@@ -30,36 +30,42 @@
     <ClCompile Include="Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="Window.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="freetype.h">
+    <ClInclude Include="sgct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ft2build.h">
+    <ClInclude Include="sgct\freetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="RenderEngine.h">
+    <ClInclude Include="sgct\Frustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="SharedData.h">
+    <ClInclude Include="sgct\Network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="ReadConfig.h">
+    <ClInclude Include="sgct\Point3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Network.h">
+    <ClInclude Include="sgct\ReadConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Frustum.h">
+    <ClInclude Include="sgct\RenderEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="User.h">
+    <ClInclude Include="sgct\SharedData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Point3.h">
+    <ClInclude Include="sgct\Statistics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="Statistics.h">
+    <ClInclude Include="sgct\User.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="sgct\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

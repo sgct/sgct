@@ -1,15 +1,10 @@
 #include <math.h>
 #include <sstream>
-#include "RenderEngine.h"
-
-HDC hDC;
+#include "sgct/RenderEngine.h"
 
 void clearBuffer(void);
-void GLFWCALL windowResizeCallback( int width, int height );
 
 using namespace sgct;
-
-RenderEngine * instancePtr;
 
 RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 {
@@ -19,7 +14,6 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 		exit( EXIT_FAILURE );
 	}
 	
-	instancePtr = this;
 	mDrawFn = NULL;
 	mPreDrawFn = NULL;
 	mInitOGLFn = NULL;
@@ -31,16 +25,10 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 	nearClippingPlaneDist = 0.1f;
 	farClippingPlaneDist = 100.0f;
 	displayInfo = false;
-	useSwapGroups = false;
-	swapGroupMaster = false;
 	runningLocal = false;
 	isServer = true;
-	thisClusterNodeId = -1;
+	mThisClusterNodeId = -1;
 	activeFrustum = Frustum::Mono;
-
-	windowRes[0] = 640;
-	windowRes[1] = 480;
-	windowMode = GLFW_WINDOW;
 
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
@@ -55,6 +43,110 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 
 	mSharedData = &sharedData; 
 
+	initNetwork();
+
+	if( mThisClusterNodeId == -1 || mThisClusterNodeId >= static_cast<int>(mConfig->getNumberOfNodes()) ) //fatal error
+	{
+		fprintf(stderr, "This computer is not a part of the cluster configuration!\n");
+		mNetwork->close();
+		glfwTerminate();
+		exit( EXIT_FAILURE );
+	}
+	else
+	{
+		printNodeInfo( static_cast<unsigned int>(mThisClusterNodeId) );
+	}
+
+	int antiAliasingSamples = mConfig->getNodePtr(mThisClusterNodeId)->numberOfSamples;
+	if( antiAliasingSamples > 1 ) //if multisample is used
+		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+
+	mWindow.setWindowResolution(
+		mConfig->getNodePtr(mThisClusterNodeId)->windowData[2],
+		mConfig->getNodePtr(mThisClusterNodeId)->windowData[3] );
+
+	mWindow.setWindowPosition(
+		mConfig->getNodePtr(mThisClusterNodeId)->windowData[0],
+		mConfig->getNodePtr(mThisClusterNodeId)->windowData[1] );
+	
+	mWindow.setWindowMode( mConfig->getNodePtr(mThisClusterNodeId)->fullscreen ? 
+		GLFW_FULLSCREEN : GLFW_WINDOW );
+	
+	mWindow.useSwapGroups( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups );
+	mWindow.useQuadbuffer( mConfig->getNodePtr(mThisClusterNodeId)->stereo == ReadConfig::Active );
+
+	try
+	{	
+		fprintf(stderr, "Initiating network communication...\n");
+		if( runningLocal )
+			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mSharedData);
+		else
+			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mSharedData);
+		fprintf(stderr, "Done\n");
+	}
+	catch( char * err )
+	{
+		fprintf(stderr, "Network error: %s\n", err);
+	}
+
+	if( mWindow.openWindow() )
+	{
+		clean();
+		glfwTerminate();
+		exit( EXIT_FAILURE );
+	}
+
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+	  //Problem: glewInit failed, something is seriously wrong.
+	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	}
+	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+
+	init();
+}
+
+void RenderEngine::init()
+{
+	char windowTitle[32];
+	sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+		isServer ? "server" : "slave");
+	mWindow.init(windowTitle);
+
+	//Get OpenGL version
+	int version[3];
+	glfwGetGLVersion( &version[0], &version[1], &version[2] );
+	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
+
+	if( mInitOGLFn != NULL )
+		mInitOGLFn();
+
+	calculateFrustums();
+
+	switch( mConfig->getNodePtr(mThisClusterNodeId)->stereo )
+	{
+	case ReadConfig::Active:
+		mInternalRenderFn = &RenderEngine::setActiveStereoRenderingMode;
+		break;
+	
+	default:
+		mInternalRenderFn = &RenderEngine::setNormalRenderingMode;
+		break;
+	}
+
+	try
+	{
+		font.init("font/verdanab.ttf", 10); //Build the freetype font
+	}
+	catch(std::runtime_error const & e)
+	{
+		fprintf(stdout, "Font reading error: %s\n", e.what());
+	}
+}
+
+void RenderEngine::initNetwork()
+{
 	try
 	{
 		mNetwork = new Network();
@@ -77,181 +169,10 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 			else if( !runningLocal && !mConfig->getNodePtr(i)->master)
 				isServer = false;
 
-			thisClusterNodeId = i;
+			mThisClusterNodeId = i;
 			break;
 		}
 	}
-
-	if( thisClusterNodeId == -1 || thisClusterNodeId >= static_cast<int>(mConfig->getNumberOfNodes()) ) //fatal error
-	{
-		fprintf(stderr, "This computer is not a part of the cluster configuration!\n");
-		mNetwork->close();
-		glfwTerminate();
-		exit( EXIT_FAILURE );
-	}
-	else
-	{
-		fprintf(stderr, "This node is = %d.\nView plane coordinates: \n", thisClusterNodeId);
-		fprintf(stderr, "\tLower left: %.4f  %.4f  %.4f\n",
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].z);
-		fprintf(stderr, "\tUpper left: %.4f  %.4f  %.4f\n",
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].x,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].y,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].z);
-		fprintf(stderr, "\tUpper right: %.4f  %.4f  %.4f\n\n",
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y,
-			mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].z);
-	}
-
-	int antiAliasingSamples = mConfig->getNodePtr(thisClusterNodeId)->numberOfSamples;
-	if( antiAliasingSamples != 0 )
-		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
-
-	//get window resolution
-	windowRes[0] = mConfig->getNodePtr(thisClusterNodeId)->windowData[2];
-	windowRes[1] = mConfig->getNodePtr(thisClusterNodeId)->windowData[3];
-
-	windowMode = (mConfig->getNodePtr(thisClusterNodeId)->fullscreen ? GLFW_FULLSCREEN : GLFW_WINDOW);
-
-	useSwapGroups = mConfig->getNodePtr(thisClusterNodeId)->useSwapGroups;
-
-	//Active quad-buffered stereo
-	if( mConfig->getNodePtr(thisClusterNodeId)->stereo == ReadConfig::Active )
-		glfwOpenWindowHint(GLFW_STEREO, GL_TRUE);
-
-	try
-	{	
-		fprintf(stderr, "Initiating network communication...\n");
-		if( runningLocal )
-			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mSharedData);
-		else
-			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mSharedData);
-		fprintf(stderr, "Done\n");
-	}
-	catch( char * err )
-	{
-		fprintf(stderr, "Network error: %s\n", err);
-	}
-
-	//glfwSleep( 0.25 ); //wait for all threads to start
-
-	/* Open an OpenGL window
-	param: 
-	int width
-	int height
-	int redbits
-	int greenbits
-	int bluebits
-	int alphabits
-	int depthbits
-	int stencilbits
-	int mode
-	*/
-	if( !glfwOpenWindow( getHorizontalWindowResolution(),
-		getVerticalWindowResolution(),
-		0,0,0,0,0,0,
-		getWindowMode()) )
-	{
-		clean();
-		glfwTerminate();
-		exit( EXIT_FAILURE );
-	}
-
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-	  //Problem: glewInit failed, something is seriously wrong.
-	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-	}
-	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-	init();
-}
-
-void RenderEngine::init()
-{
-	char windowTitle[32];
-	sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(thisClusterNodeId)->ip.c_str(),
-		isServer ? "server" : "slave");
-	glfwSetWindowTitle( windowTitle );
-	glfwSetWindowSizeCallback( windowResizeCallback );
-
-	glfwSwapInterval( 1 ); //0: vsync off, 1: vsync on
-	glfwSetWindowPos( mConfig->getNodePtr(thisClusterNodeId)->windowData[0],
-		mConfig->getNodePtr(thisClusterNodeId)->windowData[1]);
-
-	//Get OpenGL version
-	int version[3];
-	glfwGetGLVersion( &version[0], &version[1], &version[2] );
-	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
-
-	if( useSwapGroups )
-		initNvidiaSwapGroups();
-
-	if( mInitOGLFn != NULL )
-		mInitOGLFn();
-
-	calculateFrustums();
-
-	switch( mConfig->getNodePtr(thisClusterNodeId)->stereo )
-	{
-	case ReadConfig::Active:
-		mInternalRenderFn = &RenderEngine::setActiveStereoRenderingMode;
-		break;
-	
-	default:
-		mInternalRenderFn = &RenderEngine::setNormalRenderingMode;
-		break;
-	}
-
-	try
-	{
-		font.init("font/verdanab.ttf", 10); //Build the freetype font
-	}
-	catch(std::runtime_error const & e)
-	{
-		fprintf(stdout, "Font reading error: %s\n", e.what());
-	}
-}
-
-void RenderEngine::initNvidiaSwapGroups()
-{
-	if (wglewIsSupported("WGL_NV_swap_group"))
-	{
-		useSwapGroups = true;
-		
-		hDC = wglGetCurrentDC();
-		fprintf(stdout, "WGL_NV_swap_group is supported\n");
-
-		if( wglJoinSwapGroupNV(hDC,1) )
-			fprintf(stdout, "Joining swapgroup 1 [ok].\n");
-		else
-		{
-			fprintf(stdout, "Joining swapgroup 1 [failed].\n");
-			useSwapGroups = false;
-		}
-
-		if( wglBindSwapBarrierNV(1,1) )
-			fprintf(stdout, "Setting up swap barrier [ok].\n");
-		else
-		{
-			fprintf(stdout, "Setting up swap barrier [failed].\n");
-			useSwapGroups = false;
-		}
-		
-		if( wglResetFrameCountNV(hDC) )
-		{
-			swapGroupMaster = true;
-			fprintf(stdout, "Resetting frame counter. This computer is the master.\n");
-		}
-		else
-			fprintf(stdout, "Resetting frame counter failed. This computer is the slave.\n");
-	}
-	else
-		useSwapGroups = false;
 }
 
 void RenderEngine::clean()
@@ -267,6 +188,23 @@ void RenderEngine::clean()
 	delete mFrustums[Frustum::StereoRightEye];
 	
 	font.clean();
+}
+
+void RenderEngine::printNodeInfo(unsigned int nodeId)
+{
+	fprintf(stderr, "This node is = %d.\nView plane coordinates: \n", nodeId);
+	fprintf(stderr, "\tLower left: %.4f  %.4f  %.4f\n",
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].z);
+	fprintf(stderr, "\tUpper left: %.4f  %.4f  %.4f\n",
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].x,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].y,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperLeft ].z);
+	fprintf(stderr, "\tUpper right: %.4f  %.4f  %.4f\n\n",
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y,
+		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].z);
 }
 
 void RenderEngine::calcFPS(double timestamp)
@@ -341,36 +279,36 @@ void RenderEngine::calculateFrustums()
 	mUser.RightEyePos.z = mConfig->getUserPos()->z;
 
 	//nearFactor = near clipping plane / focus plane dist
-	float nearFactor = nearClippingPlaneDist / (mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].z - mConfig->getUserPos()->z);
+	float nearFactor = nearClippingPlaneDist / (mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].z - mConfig->getUserPos()->z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
 	
 	mFrustums[Frustum::Mono] = new Frustum(
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mConfig->getUserPos()->x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mConfig->getUserPos()->x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mConfig->getUserPos()->y)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mConfig->getUserPos()->y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mConfig->getUserPos()->x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mConfig->getUserPos()->x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mConfig->getUserPos()->y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mConfig->getUserPos()->y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
 
 	mFrustums[Frustum::StereoLeftEye] = new Frustum(
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.LeftEyePos.x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.LeftEyePos.x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.LeftEyePos.y)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.LeftEyePos.y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.LeftEyePos.x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.LeftEyePos.x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.LeftEyePos.y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.LeftEyePos.y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
 
 	mFrustums[Frustum::StereoRightEye] = new Frustum(
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.RightEyePos.x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.RightEyePos.x)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.RightEyePos.y)*nearFactor,
-		(mConfig->getNodePtr(thisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.RightEyePos.y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.RightEyePos.x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.RightEyePos.x)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.RightEyePos.y)*nearFactor,
+		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.RightEyePos.y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
 }
 
 void RenderEngine::setNormalRenderingMode()
 {
 	activeFrustum = Frustum::Mono;
-	glViewport (0, 0, windowRes[0], windowRes[1]);
+	glViewport (0, 0, mWindow.getHResolution(), mWindow.getVResolution());
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -398,7 +336,7 @@ void RenderEngine::setNormalRenderingMode()
 
 void RenderEngine::setActiveStereoRenderingMode()
 {
-	glViewport (0, 0, windowRes[0], windowRes[1]);
+	glViewport (0, 0, mWindow.getHResolution(), mWindow.getVResolution());
 	activeFrustum = Frustum::StereoLeftEye;
 	glDrawBuffer(GL_BACK_LEFT);
 	glMatrixMode(GL_PROJECTION);
@@ -499,35 +437,15 @@ void RenderEngine::renderDisplayInfo()
 	freetype::print(font, 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
 	freetype::print(font, 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
 	freetype::print(font, 100, 55, "Master: %s", isServer ? "True" : "False");
-	freetype::print(font, 100, 40, "SwapLock: %s (%s)", useSwapGroups ? "enabled" : "disabled", swapGroupMaster ? "master" : "slave");
-}
-
-void RenderEngine::getSwapGroupFrameNumber(GLuint & frameNumber)
-{
-	frameNumber = 0;
-	if (useSwapGroups)
-	{
-		wglQueryFrameCountNV(hDC, &frameNumber);
-	}		
-}
-
-void RenderEngine::resetSwapGroupFrameNumber()
-{
-	if (useSwapGroups)
-	{
-		wglResetFrameCountNV(hDC);
-	}
+	freetype::print(font, 100, 40, "SwapLock: %s (%s)",
+		mWindow.isUsingSwapGroups() ? "enabled" : "disabled",
+		mWindow.isSwapGroupMaster() ? "master" : "slave");
 }
 
 void clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-}
-
-void GLFWCALL windowResizeCallback( int width, int height )
-{ 
-	instancePtr->setWindowResolution(width, height > 0 ? height : 1);
 }
 
 void RenderEngine::parseArguments( int argc, char* argv[] )
@@ -551,7 +469,7 @@ void RenderEngine::parseArguments( int argc, char* argv[] )
 		{
 			runningLocal = true;
 			std::stringstream ss( argv[i+1] );
-			ss >> thisClusterNodeId;
+			ss >> mThisClusterNodeId;
 			i+=2;
 		}
 		else

@@ -4,11 +4,10 @@
 
 */
 
-#ifndef _RENDER_ENGINE
-#define _RENDER_ENGINE
+#ifndef _RENDER_ENGINE_H_
+#define _RENDER_ENGINE_H_
 
 #include <GL/glew.h>
-#include <GL/wglew.h>
 #include <GL/glfw.h>
 
 #include "freetype.h"
@@ -17,6 +16,7 @@
 #include "Frustum.h"
 #include "SharedData.h"
 #include "Statistics.h"
+#include "Window.h"
 #include "User.h"
 #include <string>
 
@@ -38,29 +38,21 @@ public:
 	void setPreDrawFunction(void(*fnPtr)(void));
 	void setInitOGLFunction(void(*fnPtr)(void));
 	void setClearBufferFunction(void(*fnPtr)(void));
-
-	//swaplock functions
-	void getSwapGroupFrameNumber(GLuint & frameNumber);
-	void resetSwapGroupFrameNumber();
 	
 	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
+	Window * getWindowPtr() { return &mWindow; }
 
 	inline bool isSyncServer() { return isServer; }
-	inline bool isUsingSwapGroups() { return useSwapGroups; }
-	inline int getWindowMode() { return windowMode; }
-	inline int getHorizontalWindowResolution() { return windowRes[0]; }
-	inline int getVerticalWindowResolution() { return windowRes[1]; }
 	inline bool isDisplayInfoRendered() { return displayInfo; }
-
-	void setWindowResolution(int x, int y) { windowRes[0] = x; windowRes[1] = y; }
 
 private:
 	void init();
+	void initNetwork();
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
-	void initNvidiaSwapGroups();
 	void renderDisplayInfo();
 	void calculateFrustums();
+	void printNodeInfo(unsigned int nodeId);
 
 	//stereo render functions
 	void setNormalRenderingMode();
@@ -87,23 +79,19 @@ private:
 	int activeFrustum;
 
 	freetype::font_data font;
-	bool useSwapGroups;
-	bool swapGroupMaster;
 	bool isServer;
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool displayInfo;
 
-	int windowRes[2];
-	int windowMode;
-
-	User mUser;
+	Window	mWindow;
+	User	mUser;
 
 	Network * mNetwork;
 	ReadConfig * mConfig;
 	SharedData * mSharedData;
 
 	std::string configFilename;
-	int thisClusterNodeId;
+	int mThisClusterNodeId;
 };
 
 }

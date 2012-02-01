@@ -1,4 +1,4 @@
-#include "Network.h"
+#include "sgct/Network.h"
 
 #include <stdlib.h>
 #include <stdio.h>

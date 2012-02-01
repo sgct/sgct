@@ -1,4 +1,4 @@
-#include "SharedData.h"
+#include "sgct/SharedData.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

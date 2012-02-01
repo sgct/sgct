@@ -1,4 +1,4 @@
-#include "ReadConfig.h"
+#include "sgct/ReadConfig.h"
 #include <tinyxml.h>
 
 ReadConfig::ReadConfig( const std::string filename )

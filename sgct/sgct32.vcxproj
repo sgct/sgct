@@ -113,18 +113,20 @@
     <ClCompile Include="ReadConfig.cpp" />
     <ClCompile Include="RenderEngine.cpp" />
     <ClCompile Include="SharedData.cpp" />
+    <ClCompile Include="Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="freetype.h" />
-    <ClInclude Include="Frustum.h" />
-    <ClInclude Include="ft2build.h" />
-    <ClInclude Include="Network.h" />
-    <ClInclude Include="Point3.h" />
-    <ClInclude Include="ReadConfig.h" />
-    <ClInclude Include="RenderEngine.h" />
-    <ClInclude Include="SharedData.h" />
-    <ClInclude Include="Statistics.h" />
-    <ClInclude Include="User.h" />
+    <ClInclude Include="sgct.h" />
+    <ClInclude Include="sgct\freetype.h" />
+    <ClInclude Include="sgct\Frustum.h" />
+    <ClInclude Include="sgct\Network.h" />
+    <ClInclude Include="sgct\Point3.h" />
+    <ClInclude Include="sgct\ReadConfig.h" />
+    <ClInclude Include="sgct\RenderEngine.h" />
+    <ClInclude Include="sgct\SharedData.h" />
+    <ClInclude Include="sgct\Statistics.h" />
+    <ClInclude Include="sgct\User.h" />
+    <ClInclude Include="sgct\Window.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

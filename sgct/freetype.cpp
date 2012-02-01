@@ -15,7 +15,7 @@ The font engine
 #endif
 
 //Include our header file.
-#include "freetype.h"
+#include "sgct/freetype.h"
 
 #pragma warning(disable:4996) //remove VS2005/VS2008 security warnings
 

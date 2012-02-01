@@ -1,7 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#include "RenderEngine.h"
+#include "sgct.h"
 
 sgct::RenderEngine * gRenderEngine;
 

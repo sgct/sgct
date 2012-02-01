@@ -4,8 +4,8 @@
 	© 2012 Miroslav Andel, Alexander Fridlund
 */
 
-#ifndef _WINDOW_H_
-#define _WINDOW_H_
+#ifndef _SGCT_H_
+#define _SGCT_H_
 
 #include "sgct/RenderEngine.h"
 

@@ -15,57 +15,57 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="freetype.cpp">
+    <ClCompile Include="src\freetype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="RenderEngine.cpp">
+    <ClCompile Include="src\Network.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="SharedData.cpp">
+    <ClCompile Include="src\ReadConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="ReadConfig.cpp">
+    <ClCompile Include="src\RenderEngine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Network.cpp">
+    <ClCompile Include="src\SharedData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="Window.cpp">
+    <ClCompile Include="src\Window.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="sgct.h">
+    <ClInclude Include="inc\sgct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\freetype.h">
+    <ClInclude Include="inc\sgct\freetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\Frustum.h">
+    <ClInclude Include="inc\sgct\Frustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\Network.h">
+    <ClInclude Include="inc\sgct\Network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\Point3.h">
+    <ClInclude Include="inc\sgct\Point3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\ReadConfig.h">
+    <ClInclude Include="inc\sgct\ReadConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\RenderEngine.h">
+    <ClInclude Include="inc\sgct\RenderEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\SharedData.h">
+    <ClInclude Include="inc\sgct\SharedData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\Statistics.h">
+    <ClInclude Include="inc\sgct\Statistics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\User.h">
+    <ClInclude Include="inc\sgct\User.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="sgct\Window.h">
+    <ClInclude Include="inc\sgct\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

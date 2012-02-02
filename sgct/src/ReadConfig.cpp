@@ -1,7 +1,7 @@
 #include "sgct/ReadConfig.h"
 #include <tinyxml.h>
 
-ReadConfig::ReadConfig( const std::string filename )
+core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 
@@ -28,7 +28,7 @@ ReadConfig::ReadConfig( const std::string filename )
 	}
 }
 
-void ReadConfig::readAndParseXML()
+void core_sgct::ReadConfig::readAndParseXML()
 {
 	TiXmlDocument initVals( xmlFileName.c_str() );
 	if( !initVals.LoadFile() )
@@ -163,7 +163,7 @@ void ReadConfig::readAndParseXML()
 	//fprintf(stderr, "Done\n" );
 }
 
-int ReadConfig::getStereoType( const std::string type )
+int core_sgct::ReadConfig::getStereoType( const std::string type )
 {
 	if( strcmp( type.c_str(), "none" ) == 0 )
 		return None;

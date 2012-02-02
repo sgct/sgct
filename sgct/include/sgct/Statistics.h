@@ -1,7 +1,7 @@
 #ifndef _STATISTICS_H_
 #define _STATISTICS_H_
 
-namespace sgct
+namespace core_sgct
 {
 
 /*!
@@ -16,6 +16,6 @@ struct Statistics
 	double TotalTime;
 };
 
-} //sgct
+} //core_sgct
 
 #endif

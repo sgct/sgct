@@ -7,15 +7,14 @@
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
-#include "sgct/Network.h"
-#include "sgct/Window.h"
+#include "sgct/SGCTNetwork.h"
+#include "sgct/SGCTWindow.h"
 #include "sgct/freetype.h"
 #include "sgct/ReadConfig.h"
 #include "sgct/Frustum.h"
 #include "sgct/SharedData.h"
 #include "sgct/Statistics.h"
 #include "sgct/User.h"
-#include <string>
 
 namespace sgct //small graphics cluster toolkit
 {
@@ -24,6 +23,7 @@ class RenderEngine
 {
 public:
 	RenderEngine( SharedData & sharedData, int argc, char* argv[] );
+	bool init();
 	void clean();
 	void render();
 	double getDt();
@@ -37,24 +37,24 @@ public:
 	void setClearBufferFunction(void(*fnPtr)(void));
 	
 	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
-	Window * getWindowPtr() { return mWindow; }
-
+	
+	inline core_sgct::SGCTWindow * getWindowPtr() { return mWindow; }
 	inline bool isSyncServer() { return isServer; }
 	inline bool isDisplayInfoRendered() { return displayInfo; }
 
 private:
-	void init();
-	void initNetwork();
+	bool initNetwork();
+	bool initWindow();
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
-
+	
 	//stereo render functions
 	void setNormalRenderingMode();
 	void setActiveStereoRenderingMode();
-
+	
 	static void clearBuffer(void);
 
 private:
@@ -69,25 +69,27 @@ private:
 	CallbackFn mClearBufferFn;
 	InternalCallbackFn mInternalRenderFn;
 
-	Frustum *mFrustums[3];
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;
 
-	Statistics mStatistics;
-
 	int activeFrustum;
 
-	freetype::font_data font;
 	bool isServer;
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool displayInfo;
 
-	User	mUser;
+	//objects
+	core_sgct::User			mUser;
+	core_sgct::Statistics	mStatistics;
+	freetype::font_data		mFont;
+	
+	//pointers
+	core_sgct::SGCTWindow	* mWindow;
+	core_sgct::SGCTNetwork	* mNetwork;
+	core_sgct::ReadConfig	* mConfig;
+	core_sgct::Frustum		* mFrustums[3];
 
-	Window	* mWindow;
-	Network * mNetwork;
-	ReadConfig * mConfig;
-	SharedData * mSharedData;
+	SharedData				* mSharedData;
 
 	std::string configFilename;
 	int mThisClusterNodeId;

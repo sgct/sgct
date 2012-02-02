@@ -3,7 +3,7 @@
 
 #include "Point3.h"
 
-namespace sgct
+namespace core_sgct
 {
 
 /*!

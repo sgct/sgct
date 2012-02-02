@@ -7,6 +7,9 @@
 #ifndef _FRUSTUM
 #define _FRUSTUM
 
+namespace core_sgct
+{
+
 class Frustum
 {
 public:
@@ -38,5 +41,7 @@ private:
 	float mNear;
 	float mFar;
 };
+
+}
 
 #endif

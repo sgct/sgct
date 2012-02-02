@@ -1,17 +1,17 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/Window.h"
+#include "sgct/SGCTWindow.h"
 #include <stdio.h>
 
 HDC hDC;
 void GLFWCALL windowResizeCallback( int width, int height );
 
-using namespace sgct;
+//using namespace sgct;
 
-Window * instancePtr;
+core_sgct::SGCTWindow * instancePtr;
 
-Window::Window()
+core_sgct::SGCTWindow::SGCTWindow()
 {
 	instancePtr = this;
 	mUseSwapGroups = false;
@@ -25,7 +25,7 @@ Window::Window()
 	mWindowMode = GLFW_WINDOW;
 }
 
-void Window::init(const char * windowTitle)
+void core_sgct::SGCTWindow::init(const char * windowTitle)
 {
 	glfwSwapInterval( 1 ); //0: vsync off, 1: vsync on
 	glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
@@ -35,36 +35,36 @@ void Window::init(const char * windowTitle)
 		initNvidiaSwapGroups();
 }
 
-void Window::setWindowResolution(int x, int y)
+void core_sgct::SGCTWindow::setWindowResolution(int x, int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
 }
 
-void Window::setWindowPosition(int x, int y)
+void core_sgct::SGCTWindow::setWindowPosition(int x, int y)
 {
 	mWindowPos[0] = x;
 	mWindowPos[1] = y;
 }
 
-void Window::setWindowMode(int mode)
+void core_sgct::SGCTWindow::setWindowMode(int mode)
 {
 	mWindowMode = mode;
 }
 
-void Window::useSwapGroups(bool state)
+void core_sgct::SGCTWindow::useSwapGroups(bool state)
 {
 	mUseSwapGroups = state;
 }
 
-void Window::useQuadbuffer(bool state)
+void core_sgct::SGCTWindow::useQuadbuffer(bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
 		glfwOpenWindowHint(GLFW_STEREO, GL_TRUE);
 }
 
-bool Window::openWindow()
+bool core_sgct::SGCTWindow::openWindow()
 {
 	/* Open an OpenGL window
 	param: 
@@ -85,7 +85,7 @@ bool Window::openWindow()
 		mWindowMode);
 }
 
-void Window::initNvidiaSwapGroups()
+void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 {
 	if (wglewIsSupported("WGL_NV_swap_group"))
 	{
@@ -127,7 +127,7 @@ void GLFWCALL windowResizeCallback( int width, int height )
 	instancePtr->setWindowResolution(width, height > 0 ? height : 1);
 }
 
-void Window::getSwapGroupFrameNumber(unsigned int & frameNumber)
+void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
 {
 	frameNumber = 0;
 	if (mUseSwapGroups)
@@ -136,7 +136,7 @@ void Window::getSwapGroupFrameNumber(unsigned int & frameNumber)
 	}		
 }
 
-void Window::resetSwapGroupFrameNumber()
+void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
 	if (mUseSwapGroups)
 	{

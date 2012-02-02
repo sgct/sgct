@@ -7,15 +7,15 @@
 #ifndef _SGCT_WINDOW_H_
 #define _SGCT_WINDOW_H_
 
-namespace sgct
+namespace core_sgct
 {
 /*!
 Helper class for window data
 */
-class Window
+class SGCTWindow
 {
 public:
-	Window();
+	SGCTWindow();
 	void init(const char * windowTitle);
 	void setWindowResolution(int x, int y);
 	void setWindowPosition(int x, int y);

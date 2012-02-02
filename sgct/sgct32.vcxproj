@@ -12,24 +12,24 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\freetype.cpp" />
-    <ClCompile Include="src\Network.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\RenderEngine.cpp" />
+    <ClCompile Include="src\SGCTNetwork.cpp" />
+    <ClCompile Include="src\SGCTWindow.cpp" />
     <ClCompile Include="src\SharedData.cpp" />
-    <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sgct.h" />
     <ClInclude Include="include\sgct\freetype.h" />
     <ClInclude Include="include\sgct\Frustum.h" />
-    <ClInclude Include="include\sgct\Network.h" />
     <ClInclude Include="include\sgct\Point3.h" />
     <ClInclude Include="include\sgct\ReadConfig.h" />
     <ClInclude Include="include\sgct\RenderEngine.h" />
+    <ClInclude Include="include\sgct\SGCTNetwork.h" />
+    <ClInclude Include="include\sgct\SGCTWindow.h" />
     <ClInclude Include="include\sgct\SharedData.h" />
     <ClInclude Include="include\sgct\Statistics.h" />
     <ClInclude Include="include\sgct\User.h" />
-    <ClInclude Include="include\sgct\Window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0516E457-A21E-4D14-8DBC-63D918909A23}</ProjectGuid>
@@ -87,6 +87,7 @@
     <Lib>
       <AdditionalLibraryDirectories>..\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <IgnoreSpecificDefaultLibraries>libcpmt.lib</IgnoreSpecificDefaultLibraries>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>
@@ -120,6 +121,7 @@
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>libcpmt.lib</IgnoreSpecificDefaultLibraries>
     </Lib>
     <ProjectReference>
       <LinkLibraryDependencies>true</LinkLibraryDependencies>

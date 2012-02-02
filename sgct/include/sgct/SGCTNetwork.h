@@ -1,4 +1,4 @@
-/* Network.h
+/* SGCTNetwork.h
 
 © 2012 Miroslav Andel
 
@@ -8,8 +8,8 @@
 #define WIN32_LEAN_AND_MEAN
 #endif
 
-#ifndef _NETWORK
-#define _NETWORK
+#ifndef _SGCT_NETWORK
+#define _SGCT_NETWORK
 
 #include <windows.h>
 #include <winsock2.h>
@@ -17,6 +17,9 @@
 #include <vector>
 
 #include "sgct/SharedData.h"
+
+namespace core_sgct //small graphics cluster toolkit
+{
 
 class ConnectionData
 {
@@ -33,10 +36,10 @@ public:
 	int threadID;
 };
 
-class Network
+class SGCTNetwork
 {
 public:
-	Network();
+	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr);
 	void sync();
 	void close();
@@ -64,8 +67,9 @@ private:
 class TCPData
 {
 public:
-	Network * mNetwork;
+	SGCTNetwork * mNetwork;
 	unsigned int clientIndex;
 };
+}
 
 #endif

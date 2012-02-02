@@ -1,4 +1,4 @@
-#include "sgct/Network.h"
+#include "sgct/SGCTNetwork.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
@@ -10,7 +10,7 @@ void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL listenForClients(void *arg);
 void GLFWCALL decode(void *arg);
 
-Network::Network()
+core_sgct::SGCTNetwork::SGCTNetwork()
 {
 	threadID = -1;
 	mSocket = INVALID_SOCKET;
@@ -56,7 +56,7 @@ Network::Network()
     }
 }
 
-void Network::init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr)
+void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr)
 {
 	isServer = _isServer;
 	shdPtr = _shdPtr;
@@ -162,7 +162,7 @@ void Network::init(const std::string port, const std::string ip, bool _isServer,
 
 void GLFWCALL listenForClients(void *arg)
 {
-	Network * nPtr = (Network *)arg;
+	core_sgct::SGCTNetwork * nPtr = (core_sgct::SGCTNetwork *)arg;
 
 	while ( true )
 	{
@@ -173,7 +173,7 @@ void GLFWCALL listenForClients(void *arg)
 			break;
 		}
 		
-		ConnectionData cd;
+		core_sgct::ConnectionData cd;
 
 		// Wait for connection
 		cd.client_socket = accept(nPtr->mSocket, NULL, NULL);
@@ -182,7 +182,7 @@ void GLFWCALL listenForClients(void *arg)
 		{
 			nPtr->clients.push_back(cd);
 			unsigned int clientIndex = nPtr->clients.size() - 1;
-			TCPData * dataPtr = new TCPData;
+			core_sgct::TCPData * dataPtr = new core_sgct::TCPData;
 			dataPtr->clientIndex = clientIndex;
 			dataPtr->mNetwork = nPtr;
 
@@ -196,15 +196,15 @@ void GLFWCALL listenForClients(void *arg)
 
 void GLFWCALL decode(void *arg)
 {
-	TCPData * dataPtr = (TCPData*)arg;
+	core_sgct::TCPData * dataPtr = (core_sgct::TCPData*)arg;
 	
 	fprintf( stderr, "Decoder for client %d is active.\n", dataPtr->clientIndex );
-	Network * nPtr = dataPtr->mNetwork;
+	core_sgct::SGCTNetwork * nPtr = dataPtr->mNetwork;
 }
 
 void GLFWCALL communicationHandler(void *arg)
 {
-	Network * nPtr = (Network *)arg;
+	core_sgct::SGCTNetwork * nPtr = (core_sgct::SGCTNetwork *)arg;
 	int recvbuflen = nPtr->shdPtr->getBufferSize();
 	char * recvbuf;
 	recvbuf = new char[nPtr->shdPtr->getBufferSize()];
@@ -236,7 +236,7 @@ void GLFWCALL communicationHandler(void *arg)
 	delete recvbuf;
 }
 
-void Network::sendStrToAllClients(const std::string str)
+void core_sgct::SGCTNetwork::sendStrToAllClients(const std::string str)
 {
 	for(unsigned int i=0; i<clients.size(); i++)
 		if( clients[i].connected )
@@ -245,7 +245,7 @@ void Network::sendStrToAllClients(const std::string str)
 		}
 }
 
-void Network::sendDataToAllClients(void * data, int lenght)
+void core_sgct::SGCTNetwork::sendDataToAllClients(void * data, int lenght)
 {
 	for(unsigned int i=0; i<clients.size(); i++)
 		if( clients[i].connected )
@@ -254,14 +254,14 @@ void Network::sendDataToAllClients(void * data, int lenght)
 		}
 }
 
-void Network::sync()
+void core_sgct::SGCTNetwork::sync()
 {
 	sendDataToAllClients( shdPtr->getDataBlock(), shdPtr->getDataSize() );
 
 	//should wait for reply from clients...
 }
 
-void Network::close()
+void core_sgct::SGCTNetwork::close()
 {
 	for(unsigned int i=0; i<clients.size(); i++)
 	{
@@ -284,12 +284,12 @@ void Network::close()
 	fprintf( stderr, " Done!\n");
 }
 
-bool Network::matchHostName(const std::string name)
+bool core_sgct::SGCTNetwork::matchHostName(const std::string name)
 {
 	return strcmp(name.c_str(), hostName.c_str() ) == 0;
 }
 
-bool Network::matchAddress(const std::string ip)
+bool core_sgct::SGCTNetwork::matchAddress(const std::string ip)
 {
 	for( unsigned int i=0; i<localAddresses.size(); i++)
 		if( strcmp(ip.c_str(), localAddresses[i].c_str()) == 0 )

@@ -18,9 +18,6 @@
     <ClCompile Include="src\freetype.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Network.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\ReadConfig.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -30,7 +27,10 @@
     <ClCompile Include="src\SharedData.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Window.cpp">
+    <ClCompile Include="src\SGCTWindow.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SGCTNetwork.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -42,9 +42,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\sgct\Frustum.h">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="include\sgct\Network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="include\sgct\Point3.h">
@@ -65,7 +62,10 @@
     <ClInclude Include="include\sgct\User.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="include\sgct\Window.h">
+    <ClInclude Include="include\sgct\SGCTWindow.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="include\sgct\SGCTNetwork.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

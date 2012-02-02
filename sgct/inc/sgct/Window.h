@@ -4,8 +4,8 @@
 	© 2012 Miroslav Andel
 */
 
-#ifndef _WINDOW_H_
-#define _WINDOW_H_
+#ifndef _SGCT_WINDOW_H_
+#define _SGCT_WINDOW_H_
 
 namespace sgct
 {
@@ -24,7 +24,7 @@ public:
 	void useQuadbuffer(bool state);
 	bool openWindow();
 	void initNvidiaSwapGroups();
-	void getSwapGroupFrameNumber(GLuint & frameNumber);
+	void getSwapGroupFrameNumber(unsigned int & frameNumber);
 	void resetSwapGroupFrameNumber();
 	
 	inline bool isUsingSwapGroups() { return mUseSwapGroups; }
@@ -34,10 +34,6 @@ public:
 	inline int getVResolution() { return mWindowRes[1]; }
 
 private:
-	static void GLFWCALL windowResizeCallback( int width, int height );
-
-private:
-	static Window * instancePtr;
 	bool mUseSwapGroups;
 	bool mSwapGroupMaster;
 	bool mUseQuadBuffer;

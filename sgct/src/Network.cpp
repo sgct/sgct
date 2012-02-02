@@ -1,8 +1,8 @@
 #include "sgct/Network.h"
-
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
+#include <GL/glfw.h>
 
 GLFWmutex gMutex;
 

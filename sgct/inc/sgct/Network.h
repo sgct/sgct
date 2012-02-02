@@ -13,11 +13,10 @@
 
 #include <windows.h>
 #include <winsock2.h>
-
-#include <GL/glfw.h>
-#include "SharedData.h"
 #include <string>
 #include <vector>
+
+#include "sgct/SharedData.h"
 
 class ConnectionData
 {

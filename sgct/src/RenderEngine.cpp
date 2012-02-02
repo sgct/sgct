@@ -1,8 +1,9 @@
+#include <GL/glew.h>
+#include <GL/wglew.h>
+#include <GL/glfw.h>
+#include "sgct/RenderEngine.h"
 #include <math.h>
 #include <sstream>
-#include "sgct/RenderEngine.h"
-
-void clearBuffer(void);
 
 using namespace sgct;
 
@@ -61,19 +62,20 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 	if( antiAliasingSamples > 1 ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
 
-	mWindow.setWindowResolution(
+	mWindow = new Window();
+	mWindow->setWindowResolution(
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[2],
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[3] );
 
-	mWindow.setWindowPosition(
+	mWindow->setWindowPosition(
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[0],
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[1] );
 	
-	mWindow.setWindowMode( mConfig->getNodePtr(mThisClusterNodeId)->fullscreen ? 
+	mWindow->setWindowMode( mConfig->getNodePtr(mThisClusterNodeId)->fullscreen ? 
 		GLFW_FULLSCREEN : GLFW_WINDOW );
 	
-	mWindow.useSwapGroups( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups );
-	mWindow.useQuadbuffer( mConfig->getNodePtr(mThisClusterNodeId)->stereo == ReadConfig::Active );
+	mWindow->useSwapGroups( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups );
+	mWindow->useQuadbuffer( mConfig->getNodePtr(mThisClusterNodeId)->stereo == ReadConfig::Active );
 
 	try
 	{	
@@ -89,7 +91,7 @@ RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 		fprintf(stderr, "Network error: %s\n", err);
 	}
 
-	if( mWindow.openWindow() )
+	if( mWindow->openWindow() )
 	{
 		clean();
 		glfwTerminate();
@@ -112,7 +114,7 @@ void RenderEngine::init()
 	char windowTitle[32];
 	sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave");
-	mWindow.init(windowTitle);
+	mWindow->init(windowTitle);
 
 	//Get OpenGL version
 	int version[3];
@@ -182,6 +184,7 @@ void RenderEngine::clean()
 	
 	delete mNetwork;
 	delete mConfig;
+	delete mWindow;
 
 	delete mFrustums[Frustum::Mono];
 	delete mFrustums[Frustum::StereoLeftEye];
@@ -308,7 +311,7 @@ void RenderEngine::calculateFrustums()
 void RenderEngine::setNormalRenderingMode()
 {
 	activeFrustum = Frustum::Mono;
-	glViewport (0, 0, mWindow.getHResolution(), mWindow.getVResolution());
+	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
 	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -336,7 +339,7 @@ void RenderEngine::setNormalRenderingMode()
 
 void RenderEngine::setActiveStereoRenderingMode()
 {
-	glViewport (0, 0, mWindow.getHResolution(), mWindow.getVResolution());
+	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
 	activeFrustum = Frustum::StereoLeftEye;
 	glDrawBuffer(GL_BACK_LEFT);
 	glMatrixMode(GL_PROJECTION);
@@ -438,11 +441,11 @@ void RenderEngine::renderDisplayInfo()
 	freetype::print(font, 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
 	freetype::print(font, 100, 55, "Master: %s", isServer ? "True" : "False");
 	freetype::print(font, 100, 40, "SwapLock: %s (%s)",
-		mWindow.isUsingSwapGroups() ? "enabled" : "disabled",
-		mWindow.isSwapGroupMaster() ? "master" : "slave");
+		mWindow->isUsingSwapGroups() ? "enabled" : "disabled",
+		mWindow->isSwapGroupMaster() ? "master" : "slave");
 }
 
-void clearBuffer(void)
+void RenderEngine::clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);

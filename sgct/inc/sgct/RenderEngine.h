@@ -7,17 +7,14 @@
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
-#include <GL/glew.h>
-#include <GL/glfw.h>
-
-#include "freetype.h"
-#include "Network.h"
-#include "ReadConfig.h"
-#include "Frustum.h"
-#include "SharedData.h"
-#include "Statistics.h"
-#include "Window.h"
-#include "User.h"
+#include "sgct/Network.h"
+#include "sgct/Window.h"
+#include "sgct/freetype.h"
+#include "sgct/ReadConfig.h"
+#include "sgct/Frustum.h"
+#include "sgct/SharedData.h"
+#include "sgct/Statistics.h"
+#include "sgct/User.h"
 #include <string>
 
 namespace sgct //small graphics cluster toolkit
@@ -40,7 +37,7 @@ public:
 	void setClearBufferFunction(void(*fnPtr)(void));
 	
 	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
-	Window * getWindowPtr() { return &mWindow; }
+	Window * getWindowPtr() { return mWindow; }
 
 	inline bool isSyncServer() { return isServer; }
 	inline bool isDisplayInfoRendered() { return displayInfo; }
@@ -57,6 +54,8 @@ private:
 	//stereo render functions
 	void setNormalRenderingMode();
 	void setActiveStereoRenderingMode();
+
+	static void clearBuffer(void);
 
 private:
 	// Convinience typedef
@@ -83,9 +82,9 @@ private:
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool displayInfo;
 
-	Window	mWindow;
 	User	mUser;
 
+	Window	* mWindow;
 	Network * mNetwork;
 	ReadConfig * mConfig;
 	SharedData * mSharedData;

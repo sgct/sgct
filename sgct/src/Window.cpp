@@ -1,12 +1,15 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include <stdio.h>
 #include "sgct/Window.h"
+#include <stdio.h>
 
 HDC hDC;
+void GLFWCALL windowResizeCallback( int width, int height );
 
 using namespace sgct;
+
+Window * instancePtr;
 
 Window::Window()
 {
@@ -119,12 +122,12 @@ void Window::initNvidiaSwapGroups()
 		mUseSwapGroups = false;
 }
 
-void GLFWCALL Window::windowResizeCallback( int width, int height )
+void GLFWCALL windowResizeCallback( int width, int height )
 { 
 	instancePtr->setWindowResolution(width, height > 0 ? height : 1);
 }
 
-void Window::getSwapGroupFrameNumber(GLuint & frameNumber)
+void Window::getSwapGroupFrameNumber(unsigned int & frameNumber)
 {
 	frameNumber = 0;
 	if (mUseSwapGroups)

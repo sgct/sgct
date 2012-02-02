@@ -11,6 +11,8 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Font.cpp" />
+    <ClCompile Include="src\FontManager.cpp" />
     <ClCompile Include="src\freetype.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\RenderEngine.cpp" />
@@ -20,6 +22,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sgct.h" />
+    <ClInclude Include="include\sgct\Font.h" />
+    <ClInclude Include="include\sgct\FontManager.h" />
     <ClInclude Include="include\sgct\freetype.h" />
     <ClInclude Include="include\sgct\Frustum.h" />
     <ClInclude Include="include\sgct\Point3.h" />

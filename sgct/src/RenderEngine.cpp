@@ -2,6 +2,8 @@
 #include <GL/wglew.h>
 #include <GL/glfw.h>
 #include "sgct/RenderEngine.h"
+#include "sgct/freetype.h"
+#include "sgct/FontManager.h"
 #include <math.h>
 #include <sstream>
 
@@ -54,20 +56,30 @@ bool sgct::RenderEngine::init()
 
 	initOGL();
 
-	try
-	{
-		char winDir[128];
-		GetWindowsDirectory(winDir,128);
-		char fontPath[256];
-		sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
-		
-		fprintf(stdout, "Loading font '%s'\n", fontPath);
-		mFont.init(fontPath, 10); //Build the freetype font
-	}
-	catch(std::runtime_error const & e)
-	{
-		fprintf(stdout, "Font reading error: %s\n", e.what());
-	}
+	//
+	// Add fonts
+	//
+
+	char winDir[128];
+	GetWindowsDirectory(winDir,128);
+	char fontPath[256];
+	sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
+	FontManager::Instance()->AddFont( "Verdana", fontPath );
+	FontManager::Instance()->GetFont( "Verdana", 10 );
+	//try
+	//{
+	//	char winDir[128];
+	//	GetWindowsDirectory(winDir,128);
+	//	char fontPath[256];
+	//	sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
+	//	
+	//	fprintf(stdout, "Loading font '%s'\n", fontPath);
+	//	mFont.init(fontPath, 10); //Build the freetype font
+	//}
+	//catch(std::runtime_error const & e)
+	//{
+	//	fprintf(stdout, "Font reading error: %s\n", e.what());
+	//}
 	
 	return true;
 }
@@ -211,7 +223,9 @@ void sgct::RenderEngine::clean()
 	delete mFrustums[core_sgct::Frustum::StereoLeftEye];
 	delete mFrustums[core_sgct::Frustum::StereoRightEye];
 	
-	mFont.clean();
+	// Destroy explicitly to avoid memory leak messages
+	FontManager::Destroy();
+	//font.clean();
 }
 
 void sgct::RenderEngine::render()
@@ -253,8 +267,6 @@ void sgct::RenderEngine::render()
 		running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
 	}
 
-	clean(); //disconnect and clean up
-
 	// Close window and terminate GLFW
 	glfwTerminate();
 }
@@ -262,10 +274,10 @@ void sgct::RenderEngine::render()
 void sgct::RenderEngine::renderDisplayInfo()
 {
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	freetype::print(mFont, 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
-	freetype::print(mFont, 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
-	freetype::print(mFont, 100, 55, "Master: %s", isServer ? "True" : "False");
-	freetype::print(mFont, 100, 40, "SwapLock: %s (%s)",
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 55, "Master: %s", isServer ? "True" : "False");
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 40, "SwapLock: %s (%s)",
 		mWindow->isUsingSwapGroups() ? "enabled" : "disabled",
 		mWindow->isSwapGroupMaster() ? "master" : "slave");
 }
@@ -295,7 +307,8 @@ void sgct::RenderEngine::setNormalRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		freetype::print(mFont, 100, 100, "Active frustum: mono");
+		//reetype::print(font, 100, 100, "Active frustum: mono");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: mono");
 	}
 }
 
@@ -323,7 +336,8 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		freetype::print(mFont, 100, 100, "Active frustum: stereo left eye");
+		//freetype::print(font, 100, 100, "Active frustum: stereo left eye");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: stereo left eye");
 	}
 
 	activeFrustum = core_sgct::Frustum::StereoRightEye;
@@ -347,7 +361,8 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		freetype::print(mFont, 100, 100, "Active frustum: stereo right eye");
+		//freetype::print(font, 100, 100, "Active frustum: stereo right eye");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: stereo right eye");
 	}
 }
 

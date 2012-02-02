@@ -27,6 +27,12 @@ int main( int argc, char* argv[] )
 {	
 	gRenderEngine = new sgct::RenderEngine( mySharedData, argc, argv );
 
+	if( !gRenderEngine->init() )
+	{
+		delete gRenderEngine;
+		return EXIT_FAILURE;
+	}
+
 	mySharedData.setEncodeFunction(myEncodeFun);
 	mySharedData.setDecodeFunction(myDecodeFun);
 

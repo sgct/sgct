@@ -14,6 +14,8 @@
 #include "freetype/ftoutln.h"
 #include "freetype/fttrigon.h"
 
+#include "sgct/Font.h"
+
 //Some STL headers
 #include <string>
 #include <vector>
@@ -39,27 +41,27 @@ using std::vector;
 //Ditto for string.
 using std::string;
 
-//This holds all of the information related to any
-//freetype font that we want to create.  
-struct font_data
-{
-	float h;			///< Holds the height of the font.
-	unsigned int * textures;	///< Holds the texture id's 
-	unsigned int list_base;	///< Holds the first display list id
-
-	//The init function will create a font of
-	//of the height h from the file fname.
-	void init(const char * fname, unsigned int h);
-
-	//Free all the resources assosiated with the font.
-	void clean();
-};
+////This holds all of the information related to any
+////freetype font that we want to create.  
+//struct font_data
+//{
+//	float h;			///< Holds the height of the font.
+//	unsigned int * textures;	///< Holds the texture id's 
+//	unsigned int list_base;	///< Holds the first display list id
+//
+//	//The init function will create a font of
+//	//of the height h from the file fname.
+//	void init(const char * fname, unsigned int h);
+//
+//	//Free all the resources assosiated with the font.
+//	void clean();
+//};
 
 //The flagship function of the library - this thing will print
 //out text at window coordinates x,y, using the font ft_font.
 //The current modelview matrix will also be applied to the text. 
-void print(const font_data &ft_font, float x, float y, const char *fmt, ...);
-void print3d(const font_data &ft_font, float x, float y, float z, float scale, const char *fmt, ...);
+void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ...);
+void print3d(const Freetype::Font * ft_font, float x, float y, float z, float scale, const char *fmt, ...);
 
 }
 

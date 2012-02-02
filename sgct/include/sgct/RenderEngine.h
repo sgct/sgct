@@ -9,7 +9,6 @@
 
 #include "sgct/SGCTNetwork.h"
 #include "sgct/SGCTWindow.h"
-#include "sgct/freetype.h"
 #include "sgct/ReadConfig.h"
 #include "sgct/Frustum.h"
 #include "sgct/SharedData.h"
@@ -23,8 +22,12 @@ class RenderEngine
 {
 public:
 	RenderEngine( SharedData & sharedData, int argc, char* argv[] );
+	~RenderEngine()
+	{
+		clean();
+	}
+
 	bool init();
-	void clean();
 	void render();
 	double getDt();
 	double getTime();
@@ -46,6 +49,8 @@ private:
 	bool initNetwork();
 	bool initWindow();
 	void initOGL();
+	void clean();
+
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
 	void renderDisplayInfo();
@@ -82,7 +87,6 @@ private:
 	//objects
 	core_sgct::User			mUser;
 	core_sgct::Statistics	mStatistics;
-	freetype::font_data		mFont;
 	
 	//pointers
 	core_sgct::SGCTWindow	* mWindow;

@@ -45,49 +45,24 @@ bool sgct::RenderEngine::init()
 	if( !initNetwork() )
 		return false;
 
-	int antiAliasingSamples = mConfig->getNodePtr(mThisClusterNodeId)->numberOfSamples;
-	if( antiAliasingSamples > 1 ) //if multisample is used
-		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
-
-	GLenum err = glewInit();
-	if (GLEW_OK != err)
-	{
-	  //Problem: glewInit failed, something is seriously wrong.
-	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
-	}
-	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
-
-	if( initWindow() )
+	if( !initWindow() )
 	{
 		clean();
 		glfwTerminate();
 		return false;
 	}
 
-	//Get OpenGL version
-	int version[3];
-	glfwGetGLVersion( &version[0], &version[1], &version[2] );
-	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
-
-	if( mInitOGLFn != NULL )
-		mInitOGLFn();
-
-	calculateFrustums();
-	
-	switch( mConfig->getNodePtr(mThisClusterNodeId)->stereo )
-	{
-	case core_sgct::ReadConfig::Active:
-		mInternalRenderFn = &RenderEngine::setActiveStereoRenderingMode;
-		break;
-	
-	default:
-		mInternalRenderFn = &RenderEngine::setNormalRenderingMode;
-		break;
-	}
+	initOGL();
 
 	try
 	{
-		mFont.init("font/verdanab.ttf", 10); //Build the freetype font
+		char winDir[128];
+		GetWindowsDirectory(winDir,128);
+		char fontPath[256];
+		sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
+		
+		fprintf(stdout, "Loading font '%s'\n", fontPath);
+		mFont.init(fontPath, 10); //Build the freetype font
 	}
 	catch(std::runtime_error const & e)
 	{
@@ -173,8 +148,21 @@ bool sgct::RenderEngine::initWindow()
 	mWindow->useSwapGroups( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups );
 	mWindow->useQuadbuffer( mConfig->getNodePtr(mThisClusterNodeId)->stereo == core_sgct::ReadConfig::Active );
 	
+	int antiAliasingSamples = mConfig->getNodePtr(mThisClusterNodeId)->numberOfSamples;
+	if( antiAliasingSamples > 1 ) //if multisample is used
+		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+
 	if( !mWindow->openWindow() )
 		return false;
+
+	GLenum err = glewInit();
+	if (GLEW_OK != err)
+	{
+	  //Problem: glewInit failed, something is seriously wrong.
+	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	  return false;
+	}
+	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	char windowTitle[32];
 	sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
@@ -184,8 +172,34 @@ bool sgct::RenderEngine::initWindow()
 	return true;
 }
 
+void sgct::RenderEngine::initOGL()
+{	
+	//Get OpenGL version
+	int version[3];
+	glfwGetGLVersion( &version[0], &version[1], &version[2] );
+	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
+
+	if( mInitOGLFn != NULL )
+		mInitOGLFn();
+
+	calculateFrustums();
+	
+	switch( mConfig->getNodePtr(mThisClusterNodeId)->stereo )
+	{
+	case core_sgct::ReadConfig::Active:
+		mInternalRenderFn = &RenderEngine::setActiveStereoRenderingMode;
+		break;
+	
+	default:
+		mInternalRenderFn = &RenderEngine::setNormalRenderingMode;
+		break;
+	}
+}
+
 void sgct::RenderEngine::clean()
 {
+	fprintf(stderr, "Cleaning up...\n");
+	
 	//close TCP connections
 	mNetwork->close();
 	

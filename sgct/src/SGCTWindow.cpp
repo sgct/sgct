@@ -79,7 +79,7 @@ bool core_sgct::SGCTWindow::openWindow()
 	int mode
 	*/
 
-	return !glfwOpenWindow( mWindowRes[0],
+	return GL_TRUE == glfwOpenWindow( mWindowRes[0],
 		mWindowRes[1],
 		0,0,0,0,0,0,
 		mWindowMode);

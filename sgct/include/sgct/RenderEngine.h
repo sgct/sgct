@@ -45,6 +45,7 @@ public:
 private:
 	bool initNetwork();
 	bool initWindow();
+	void initOGL();
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
 	void renderDisplayInfo();

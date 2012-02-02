@@ -35,37 +35,37 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\sgct.h">
+    <ClInclude Include="include\sgct.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\freetype.h">
+    <ClInclude Include="include\sgct\freetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\Frustum.h">
+    <ClInclude Include="include\sgct\Frustum.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\Network.h">
+    <ClInclude Include="include\sgct\Network.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\Point3.h">
+    <ClInclude Include="include\sgct\Point3.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\ReadConfig.h">
+    <ClInclude Include="include\sgct\ReadConfig.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\RenderEngine.h">
+    <ClInclude Include="include\sgct\RenderEngine.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\SharedData.h">
+    <ClInclude Include="include\sgct\SharedData.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\Statistics.h">
+    <ClInclude Include="include\sgct\Statistics.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\User.h">
+    <ClInclude Include="include\sgct\User.h">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="inc\sgct\Window.h">
+    <ClInclude Include="include\sgct\Window.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

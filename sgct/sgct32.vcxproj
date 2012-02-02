@@ -19,17 +19,17 @@
     <ClCompile Include="src\Window.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="inc\sgct.h" />
-    <ClInclude Include="inc\sgct\freetype.h" />
-    <ClInclude Include="inc\sgct\Frustum.h" />
-    <ClInclude Include="inc\sgct\Network.h" />
-    <ClInclude Include="inc\sgct\Point3.h" />
-    <ClInclude Include="inc\sgct\ReadConfig.h" />
-    <ClInclude Include="inc\sgct\RenderEngine.h" />
-    <ClInclude Include="inc\sgct\SharedData.h" />
-    <ClInclude Include="inc\sgct\Statistics.h" />
-    <ClInclude Include="inc\sgct\User.h" />
-    <ClInclude Include="inc\sgct\Window.h" />
+    <ClInclude Include="include\sgct.h" />
+    <ClInclude Include="include\sgct\freetype.h" />
+    <ClInclude Include="include\sgct\Frustum.h" />
+    <ClInclude Include="include\sgct\Network.h" />
+    <ClInclude Include="include\sgct\Point3.h" />
+    <ClInclude Include="include\sgct\ReadConfig.h" />
+    <ClInclude Include="include\sgct\RenderEngine.h" />
+    <ClInclude Include="include\sgct\SharedData.h" />
+    <ClInclude Include="include\sgct\Statistics.h" />
+    <ClInclude Include="include\sgct\User.h" />
+    <ClInclude Include="include\sgct\Window.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0516E457-A21E-4D14-8DBC-63D918909A23}</ProjectGuid>
@@ -58,9 +58,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)..\..\sgct\lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SolutionDir)\sgct\lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)..\..\sgct\lib\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SolutionDir)\sgct\lib\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
   </PropertyGroup>
@@ -73,7 +73,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc\;..\vs2010_deps\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\;..\vs2010_deps\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -105,7 +105,7 @@
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>GLEW_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>inc\;..\vs2010_deps\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>include\;..\vs2010_deps\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml.lib;%(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>

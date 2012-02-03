@@ -266,20 +266,26 @@ void core_sgct::SGCTNetwork::close()
 	for(unsigned int i=0; i<clients.size(); i++)
 	{
 		fprintf( stderr, "Closing client connection %d...", i);
-		glfwDestroyThread( clients[i].threadID );
+
 		if( clients[i].client_socket != INVALID_SOCKET )
 		{
+			fprintf( stderr, "Closing socket on node %d...", i);
+			shutdown(clients[i].client_socket, SD_BOTH);
 			closesocket( clients[i].client_socket );
 		}
 
+		glfwDestroyThread( clients[i].threadID );
 		fprintf( stderr, " Done!\n");
 	}	
 	
 	fprintf( stderr, "Closing server connection...");
+	if( mSocket != INVALID_SOCKET )
+	{
+		shutdown(mSocket, SD_BOTH);
+		closesocket( mSocket );
+	}
 	if( threadID != -1 )
 		glfwDestroyThread( threadID	);
-	if( mSocket != INVALID_SOCKET )
-		closesocket( mSocket );
 	WSACleanup();
 	fprintf( stderr, " Done!\n");
 }

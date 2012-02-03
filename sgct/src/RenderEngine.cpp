@@ -255,8 +255,6 @@ void sgct::RenderEngine::render()
 	
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
-		glDrawBuffer(GL_BACK); //draw into both back buffers
-		mClearBufferFn();
 		
 		(this->*mInternalRenderFn)();
 
@@ -266,7 +264,6 @@ void sgct::RenderEngine::render()
 		if( displayInfo )
 			renderDisplayInfo();
 		
-		glFlush();
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed
@@ -306,6 +303,8 @@ void sgct::RenderEngine::setNormalRenderingMode()
 	//translate to user pos
 	glTranslatef(-mConfig->getUserPos()->x, -mConfig->getUserPos()->y, -mConfig->getUserPos()->z);
 	glMatrixMode(GL_MODELVIEW);
+	glDrawBuffer(GL_BACK); //draw into both back buffers
+	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 	
 	if( mDrawFn != NULL )
@@ -322,7 +321,7 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 {
 	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
 	activeFrustum = core_sgct::Frustum::StereoLeftEye;
-	glDrawBuffer(GL_BACK_LEFT);
+	
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum(mFrustums[core_sgct::Frustum::StereoLeftEye]->getLeft(), 
@@ -335,6 +334,8 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	//translate to user pos
 	glTranslatef(-mUser.LeftEyePos.x , -mUser.LeftEyePos.y, -mUser.LeftEyePos.z);
 	glMatrixMode(GL_MODELVIEW);
+	glDrawBuffer(GL_BACK_LEFT);
+	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 	
 	if( mDrawFn != NULL )
@@ -347,7 +348,6 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	}
 
 	activeFrustum = core_sgct::Frustum::StereoRightEye;
-	glDrawBuffer(GL_BACK_RIGHT);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glFrustum(mFrustums[core_sgct::Frustum::StereoRightEye]->getLeft(), 
@@ -360,6 +360,8 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	//translate to user pos
 	glTranslatef(-mUser.RightEyePos.x , -mUser.RightEyePos.y, -mUser.RightEyePos.z);
 	glMatrixMode(GL_MODELVIEW);
+	glDrawBuffer(GL_BACK_RIGHT);
+	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 	
 	if( mDrawFn != NULL )

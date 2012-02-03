@@ -25,6 +25,17 @@ core_sgct::SGCTWindow::SGCTWindow()
 	mWindowMode = GLFW_WINDOW;
 }
 
+core_sgct::SGCTWindow::~SGCTWindow()
+{
+	if( mUseSwapGroups )
+	{
+		//un-bind
+		wglBindSwapBarrierNV(1,0);
+		//un-join
+		wglJoinSwapGroupNV(hDC,0);
+	}
+}
+
 void core_sgct::SGCTWindow::init(const char * windowTitle)
 {
 	glfwSwapInterval( 1 ); //0: vsync off, 1: vsync on

@@ -16,6 +16,7 @@ class SGCTWindow
 {
 public:
 	SGCTWindow();
+	~SGCTWindow();
 	void init(const char * windowTitle);
 	void setWindowResolution(int x, int y);
 	void setWindowPosition(int x, int y);

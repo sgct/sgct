@@ -191,6 +191,11 @@ void sgct::RenderEngine::initOGL()
 	glfwGetGLVersion( &version[0], &version[1], &version[2] );
 	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
 
+	if (!GLEW_ARB_texture_non_power_of_two)
+	{
+		fprintf( stderr, "Warning! Only power of two textures are supported!\n");
+	}
+
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -260,7 +265,8 @@ void sgct::RenderEngine::render()
 		glDrawBuffer(GL_BACK); //draw into both back buffers
 		if( displayInfo )
 			renderDisplayInfo();
-
+		
+		glFlush();
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed

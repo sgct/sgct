@@ -14,11 +14,13 @@
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontManager.cpp" />
     <ClCompile Include="src\freetype.cpp" />
+    <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\RenderEngine.cpp" />
     <ClCompile Include="src\SGCTNetwork.cpp" />
     <ClCompile Include="src\SGCTWindow.cpp" />
     <ClCompile Include="src\SharedData.cpp" />
+    <ClCompile Include="src\TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sgct.h" />
@@ -26,6 +28,7 @@
     <ClInclude Include="include\sgct\FontManager.h" />
     <ClInclude Include="include\sgct\freetype.h" />
     <ClInclude Include="include\sgct\Frustum.h" />
+    <ClInclude Include="include\sgct\Image.h" />
     <ClInclude Include="include\sgct\Point3.h" />
     <ClInclude Include="include\sgct\ReadConfig.h" />
     <ClInclude Include="include\sgct\RenderEngine.h" />
@@ -33,6 +36,7 @@
     <ClInclude Include="include\sgct\SGCTWindow.h" />
     <ClInclude Include="include\sgct\SharedData.h" />
     <ClInclude Include="include\sgct\Statistics.h" />
+    <ClInclude Include="include\sgct\TextureManager.h" />
     <ClInclude Include="include\sgct\User.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
@@ -86,7 +90,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw_d.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxml_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32s.lib;glfw_d.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxml_d.lib;zlib_d.lib;libpng15_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -121,7 +125,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml.lib;zlib.lib;libpng15.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

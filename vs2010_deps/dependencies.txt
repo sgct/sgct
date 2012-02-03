@@ -5,3 +5,5 @@ opengl32.lib
 freetype248.lib
 ws2_32.lib
 tinyxml.lib
+libpng15.lib
+zlib.lib

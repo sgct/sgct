@@ -17,6 +17,7 @@ core_sgct::SGCTWindow::SGCTWindow()
 	mUseSwapGroups = false;
 	mSwapGroupMaster = false;
 	mUseQuadBuffer = false;
+	mBarrier = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -61,6 +62,14 @@ void core_sgct::SGCTWindow::setWindowPosition(int x, int y)
 void core_sgct::SGCTWindow::setWindowMode(int mode)
 {
 	mWindowMode = mode;
+}
+
+void core_sgct::SGCTWindow::setBarrier(bool state)
+{
+	if( mUseSwapGroups )
+	{
+		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
+	}
 }
 
 void core_sgct::SGCTWindow::useSwapGroups(bool state)
@@ -114,11 +123,14 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 		}
 
 		if( wglBindSwapBarrierNV(1,1) )
+		{
 			fprintf(stdout, "Setting up swap barrier [ok].\n");
+			mBarrier = true;
+		}
 		else
 		{
 			fprintf(stdout, "Setting up swap barrier [failed].\n");
-			mUseSwapGroups = false;
+			mBarrier = false;
 		}
 		
 		if( wglResetFrameCountNV(hDC) )

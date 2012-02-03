@@ -21,6 +21,7 @@ public:
 	void setWindowResolution(int x, int y);
 	void setWindowPosition(int x, int y);
 	void setWindowMode(int mode);
+	void setBarrier(bool state);
 	void useSwapGroups(bool state);
 	void useQuadbuffer(bool state);
 	bool openWindow();
@@ -28,6 +29,7 @@ public:
 	void getSwapGroupFrameNumber(unsigned int & frameNumber);
 	void resetSwapGroupFrameNumber();
 	
+	inline bool isBarrierActive() { return mBarrier; }
 	inline bool isUsingSwapGroups() { return mUseSwapGroups; }
 	inline bool isSwapGroupMaster() { return mSwapGroupMaster; }
 	inline int getWindowMode() { return mWindowMode; }
@@ -36,6 +38,7 @@ public:
 
 private:
 	bool mUseSwapGroups;
+	bool mBarrier;
 	bool mSwapGroupMaster;
 	bool mUseQuadBuffer;
 	int mWindowRes[2];

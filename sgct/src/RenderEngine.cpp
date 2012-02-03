@@ -10,6 +10,13 @@
 sgct::RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
 {	
 	mSharedData = &sharedData;
+	//init pointers
+	mNetwork = NULL;
+	mWindow = NULL;
+	mConfig = NULL;
+	for( unsigned int i=0; i<3; i++)
+		mFrustums[i] = NULL;
+	//init function pointers
 	mDrawFn = NULL;
 	mPreDrawFn = NULL;
 	mInitOGLFn = NULL;
@@ -218,15 +225,20 @@ void sgct::RenderEngine::clean()
 	fprintf(stderr, "Cleaning up...\n");
 	
 	//close TCP connections
-	mNetwork->close();
-	
-	delete mNetwork;
-	delete mConfig;
-	delete mWindow;
+	if( mNetwork != NULL )
+	{
+		mNetwork->close();
+		delete mNetwork;
+	}
 
-	delete mFrustums[core_sgct::Frustum::Mono];
-	delete mFrustums[core_sgct::Frustum::StereoLeftEye];
-	delete mFrustums[core_sgct::Frustum::StereoRightEye];
+	if( mConfig != NULL )
+		delete mConfig;
+	if( mWindow != NULL )
+		delete mWindow;
+
+	for( unsigned int i=0; i<3; i++)
+		if( mFrustums[i] != NULL )
+			delete mFrustums[i];
 	
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
@@ -280,8 +292,9 @@ void sgct::RenderEngine::renderDisplayInfo()
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 55, "Master: %s", isServer ? "True" : "False");
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 40, "SwapLock: %s (%s)",
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 40, "Swap groups: %s and %s (%s)",
 		mWindow->isUsingSwapGroups() ? "enabled" : "disabled",
+		mWindow->isBarrierActive() ? "active" : "not active",
 		mWindow->isSwapGroupMaster() ? "master" : "slave");
 }
 

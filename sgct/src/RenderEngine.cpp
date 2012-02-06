@@ -70,7 +70,9 @@ bool sgct::RenderEngine::init()
 	char winDir[128];
 	GetWindowsDirectory(winDir,128);
 	char fontPath[256];
-	sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
+	
+	sprintf_s( fontPath, "%s\\Fonts\\verdanab.ttf", 256, winDir);
+	
 	FontManager::Instance()->AddFont( "Verdana", fontPath );
 	FontManager::Instance()->GetFont( "Verdana", 10 );
 	//try
@@ -184,7 +186,7 @@ bool sgct::RenderEngine::initWindow()
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	char windowTitle[32];
-	sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+	sprintf_s( windowTitle, 32, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave");
 	mWindow->init(windowTitle);
 

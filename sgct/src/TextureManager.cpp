@@ -4,12 +4,12 @@
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 
-const unsigned int & sgct::TextureManager::getTextureByIndex(const unsigned int index)
+const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int index)
 {
 	return index > mTextures.size() ? 0 : mTextures[index].second;
 }
 
-const unsigned int & sgct::TextureManager::getTextureByName(const std::string name)
+const unsigned int sgct::TextureManager::getTextureByName(const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
 		if( mTextures[i].first.compare(name) == 0 )

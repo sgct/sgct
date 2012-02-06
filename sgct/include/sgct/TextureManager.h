@@ -34,8 +34,8 @@ public:
 		}
 	}
 
-	const unsigned int & getTextureByIndex(const unsigned int index);
-	const unsigned int & getTextureByName(const std::string name);
+	const unsigned int getTextureByIndex(const unsigned int index);
+	const unsigned int getTextureByName(const std::string name);
 
 	void setAnisotropicFilterSize(float fval);
 	void setCompression(bool state);

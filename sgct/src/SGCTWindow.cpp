@@ -68,7 +68,7 @@ void core_sgct::SGCTWindow::setBarrier(bool state)
 {
 	if( mUseSwapGroups )
 	{
-		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0);
+		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 	}
 }
 

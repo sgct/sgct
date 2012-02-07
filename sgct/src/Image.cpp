@@ -40,7 +40,8 @@ bool core_sgct::Image::load(const char * filename)
 
 bool core_sgct::Image::loadPNG(const char *filename)
 {
-	strcpy( _filename, filename );
+	if( strcpy_s(_filename, sizeof(_filename), filename ) != 0)
+		return false;
 
 	unsigned char *pb;
   
@@ -51,8 +52,8 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	//int numChannels;
 	int r, color_type, bpp;
 
-	FILE *fp = fopen(_filename, "rb");
-	if( !fp )
+	FILE *fp = NULL;
+	if( fopen_s( &fp, _filename, "rb") != 0 && !fp )
 	{
 		fprintf( stderr, "Can't open PNG texture file '%s'\n", _filename);
 		return false;

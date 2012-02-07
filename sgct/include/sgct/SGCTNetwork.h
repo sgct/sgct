@@ -15,7 +15,7 @@
 #include <winsock2.h>
 #include <string>
 #include <vector>
-
+#include <functional>
 #include "sgct/SharedData.h"
 
 namespace core_sgct //small graphics cluster toolkit
@@ -45,11 +45,14 @@ public:
 	void close();
 	bool matchHostName(const std::string name);
 	bool matchAddress(const std::string ip);
+	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
 	
-	inline bool isRunning() { return running; }
-	void setRunning(bool state) { running = state; }
-
+	inline bool isRunning() { return mRunning; }
+	inline bool isServer() { return mServer; }
+	void setRunning(bool state) { mRunning = state; }
+	
 	SOCKET mSocket;
+	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::vector<ConnectionData> clients;
 	sgct::SharedData * shdPtr;
 
@@ -57,8 +60,8 @@ private:
 	void sendStrToAllClients(const std::string str);
 	void sendDataToAllClients(void * data, int lenght);
 
-	bool running;
-	bool isServer;
+	bool mRunning;
+	bool mServer;
 	std::string hostName;
 	std::vector<std::string> localAddresses;
 	int threadID;
@@ -67,8 +70,10 @@ private:
 class TCPData
 {
 public:
+	TCPData() { mClientIndex = -1; }
+	
 	SGCTNetwork * mNetwork;
-	unsigned int clientIndex;
+	int mClientIndex; //-1 if message from server
 };
 }
 

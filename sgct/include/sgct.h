@@ -22,5 +22,6 @@
 #include "sgct/RenderEngine.h"
 #include "sgct/TextureManager.h"
 #include "sgct/FontManager.h"
+#include "sgct/MessageHandler.h"
 
 #endif

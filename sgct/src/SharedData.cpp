@@ -36,7 +36,7 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 	mDecodeFn = fnPtr;
 }
 
-void SharedData::decode(const char * receivedData, int receivedLenght)
+void SharedData::decode(const char * receivedData, int receivedLenght, int clientIndex)
 {	
 	pos = 0;
 	//memcpy(dataBlock, receivedData, receivedLenght);

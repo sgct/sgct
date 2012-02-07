@@ -32,17 +32,12 @@ public:
 	void setDecodeFunction(void(*fnPtr)(void));
 
 	void encode();
-	void decode(const char * receivedData, int receivedLenght);
+	void decode(const char * receivedData, int receivedLenght, int clientIndex);
 	//unsigned char * getDataBlock() { return dataBlock; }
 	unsigned char * getDataBlock() { return &dataBlock[0]; }
 	//unsigned int getDataSize() { return pos; }
 	unsigned int getDataSize() { return dataBlock.size(); }
 	unsigned int getBufferSize() { return mBufferSize; }
-
-	/*double dt;
-	double time;
-	bool showFPS;
-	unsigned char flags;*/
 
 private:
 	//function pointers

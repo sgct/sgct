@@ -8,12 +8,12 @@ GLFWmutex gMutex;
 
 void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL listenForClients(void *arg);
-void GLFWCALL decode(void *arg);
 
 core_sgct::SGCTNetwork::SGCTNetwork()
 {
 	threadID = -1;
 	mSocket = INVALID_SOCKET;
+	mDecoderCallbackFn = NULL;
 
 	WSADATA wsaData;
 	WORD version;
@@ -58,10 +58,10 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 
 void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr)
 {
-	isServer = _isServer;
+	mServer = _isServer;
 	shdPtr = _shdPtr;
 	gMutex = glfwCreateMutex();
-	running = false;
+	mRunning = false;
 
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 
@@ -74,7 +74,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	// Resolve the local address and port to be used by the server
 	int iResult;
 	
-	if( isServer )
+	if( mServer )
 		iResult = getaddrinfo(NULL, port.c_str(), &hints, &result);
 	else
 		iResult = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
@@ -112,7 +112,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	}
 
 	
-	if( isServer )
+	if( mServer )
 	{
 		// Setup the TCP listening socket
 		iResult = bind( mSocket, result->ai_addr, (int)result->ai_addrlen);
@@ -134,7 +134,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			throw "Failed to start listen thread!";
 		}
 	}
-	else
+	else //client
 	{
 		// Connect to server.
 		while( true )
@@ -147,10 +147,13 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			glfwSleep(0.25); //wait for next attempt
 		}
 
-		running = true;
+		mRunning = true;
 		freeaddrinfo(result);
 
-		threadID = glfwCreateThread( communicationHandler, this );
+		core_sgct::TCPData * dataPtr = new core_sgct::TCPData;
+		dataPtr->mNetwork = this;
+
+		threadID = glfwCreateThread( communicationHandler, dataPtr );
 		if( threadID < 0)
 		{
 			WSACleanup();
@@ -172,67 +175,75 @@ void GLFWCALL listenForClients(void *arg)
 			fprintf( stderr, "SocketError!\n");
 			break;
 		}
-		
+
 		core_sgct::ConnectionData cd;
 
 		// Wait for connection
 		cd.client_socket = accept(nPtr->mSocket, NULL, NULL);
 		
 		if (cd.client_socket != INVALID_SOCKET)
-		{
+		{	
 			nPtr->clients.push_back(cd);
-			unsigned int clientIndex = nPtr->clients.size() - 1;
+			
 			core_sgct::TCPData * dataPtr = new core_sgct::TCPData;
-			dataPtr->clientIndex = clientIndex;
+			dataPtr->mClientIndex = static_cast<int>(nPtr->clients.size()) - 1;
 			dataPtr->mNetwork = nPtr;
+			dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].connected = true;
+			
+			//start reading thread
+			nPtr->clients[ dataPtr->mClientIndex ].threadID = glfwCreateThread( communicationHandler, dataPtr );
 
-			nPtr->clients[clientIndex].threadID = glfwCreateThread( decode, dataPtr );
-			nPtr->clients[clientIndex].connected = true;
+			if( nPtr->clients[ dataPtr->mClientIndex ].threadID < 0)
+			{
+				closesocket(cd.client_socket);
+				fprintf( stderr, "Failed to connecto to client (thread error)!\n");
+			}
 		}
-
 		glfwUnlockMutex( gMutex );
-	}
+	}//end while
 }
 
-void GLFWCALL decode(void *arg)
+void core_sgct::SGCTNetwork::setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback)
 {
-	core_sgct::TCPData * dataPtr = (core_sgct::TCPData*)arg;
-	
-	fprintf( stderr, "Decoder for client %d is active.\n", dataPtr->clientIndex );
-	core_sgct::SGCTNetwork * nPtr = dataPtr->mNetwork;
+	mDecoderCallbackFn = callback;
 }
 
+/*
+function to decode messages on the client from the server
+*/
 void GLFWCALL communicationHandler(void *arg)
 {
-	core_sgct::SGCTNetwork * nPtr = (core_sgct::SGCTNetwork *)arg;
-	int recvbuflen = nPtr->shdPtr->getBufferSize();
+	core_sgct::TCPData * dataPtr = (core_sgct::TCPData *)arg;
+	
+	int recvbuflen = dataPtr->mNetwork->shdPtr->getBufferSize();
 	char * recvbuf;
-	recvbuf = new char[nPtr->shdPtr->getBufferSize()];
+	recvbuf = new char[dataPtr->mNetwork->shdPtr->getBufferSize()];
 
 	// Receive data until the server closes the connection
 	int iResult;
 	do
 	{
-		iResult = recv(nPtr->mSocket, recvbuf, recvbuflen, 0);
+		if( dataPtr->mNetwork->isServer() )
+			iResult = recv( dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].client_socket, recvbuf, recvbuflen, 0);
+		else
+			iResult = recv( dataPtr->mNetwork->mSocket, recvbuf, recvbuflen, 0);
+			
 		if (iResult > 0)
 		{
-			glfwLockMutex( gMutex );
-				nPtr->shdPtr->decode(recvbuf, recvbuflen);
-			glfwUnlockMutex( gMutex );
+			if( dataPtr->mNetwork->mDecoderCallbackFn != NULL )
+				(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf, recvbuflen, dataPtr->mClientIndex);
 		}
 		else if (iResult == 0)
 		{
-			fprintf(stderr, "TCP Connection closed\n");
+			fprintf(stderr, "TCP Connection closed [client: %d]\n", dataPtr->mClientIndex);
 		}
 		else
 		{
-			fprintf(stderr, "TCP recv failed: %d\n", WSAGetLastError());
+			fprintf(stderr, "TCP recv failed: %d [client: %d]\n", WSAGetLastError(), dataPtr->mClientIndex);
 		}
 	} while (iResult > 0);
 
-	glfwLockMutex( gMutex );
-		nPtr->setRunning(false);
-	glfwUnlockMutex( gMutex );
+	dataPtr->mNetwork->setRunning(false);
 	delete recvbuf;
 }
 
@@ -263,29 +274,29 @@ void core_sgct::SGCTNetwork::sync()
 
 void core_sgct::SGCTNetwork::close()
 {
+	mDecoderCallbackFn = NULL;
+
 	for(unsigned int i=0; i<clients.size(); i++)
 	{
 		fprintf( stderr, "Closing client connection %d...", i);
-
+		glfwDestroyThread( clients[i].threadID );
 		if( clients[i].client_socket != INVALID_SOCKET )
 		{
 			fprintf( stderr, "Closing socket on node %d...", i);
 			shutdown(clients[i].client_socket, SD_BOTH);
 			closesocket( clients[i].client_socket );
 		}
-
-		glfwDestroyThread( clients[i].threadID );
 		fprintf( stderr, " Done!\n");
 	}	
 	
 	fprintf( stderr, "Closing server connection...");
+	if( threadID != -1 )
+		glfwDestroyThread( threadID	);
 	if( mSocket != INVALID_SOCKET )
 	{
 		shutdown(mSocket, SD_BOTH);
 		closesocket( mSocket );
 	}
-	if( threadID != -1 )
-		glfwDestroyThread( threadID	);
 	WSACleanup();
 	fprintf( stderr, " Done!\n");
 }

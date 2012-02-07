@@ -4,6 +4,7 @@
 #include "sgct/RenderEngine.h"
 #include "sgct/freetype.h"
 #include "sgct/FontManager.h"
+#include "sgct/MessageHandler.h"
 #include <math.h>
 #include <sstream>
 
@@ -66,13 +67,10 @@ bool sgct::RenderEngine::init()
 	//
 	// Add fonts
 	//
-
 	char winDir[128];
 	GetWindowsDirectory(winDir,128);
 	char fontPath[256];
-	
-	sprintf_s( fontPath, "%s\\Fonts\\verdanab.ttf", 256, winDir);
-	
+	int i=sprintf_s( fontPath, sizeof(fontPath), "%s\\Fonts\\verdanab.ttf", winDir);
 	FontManager::Instance()->AddFont( "Verdana", fontPath );
 	FontManager::Instance()->GetFont( "Verdana", 10 );
 	//try
@@ -141,6 +139,27 @@ bool sgct::RenderEngine::initNetwork()
 			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mSharedData);
 		else
 			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mSharedData);
+		
+		//set decoder for client
+		if( isServer )
+		{
+			std::tr1::function< void(const char*, int, int) > callback;
+			callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(), 
+				std::tr1::placeholders::_1, 
+				std::tr1::placeholders::_2,
+				std::tr1::placeholders::_3);
+			mNetwork->setDecodeFunction(callback);
+		}
+		else
+		{
+			std::tr1::function< void(const char*, int, int) > callback;
+			callback = std::tr1::bind(&sgct::SharedData::decode, mSharedData, 
+				std::tr1::placeholders::_1, 
+				std::tr1::placeholders::_2,
+				std::tr1::placeholders::_3);
+			mNetwork->setDecodeFunction(callback);
+		}
+
 		fprintf(stderr, "Done\n");
 	}
 	catch( char * err )
@@ -186,10 +205,9 @@ bool sgct::RenderEngine::initWindow()
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	char windowTitle[32];
-	sprintf_s( windowTitle, 32, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+	sprintf_s( windowTitle, sizeof(windowTitle), "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave");
 	mWindow->init(windowTitle);
-
 	return true;
 }
 
@@ -245,6 +263,8 @@ void sgct::RenderEngine::clean()
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
 	//font.clean();
+
+	MessageHandler::Destroy();
 }
 
 void sgct::RenderEngine::render()

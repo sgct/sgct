@@ -6,6 +6,7 @@
 #include "freetype/ftglyph.h"
 
 #include <algorithm>
+#include <stdio.h>
 
 using namespace sgct;
 
@@ -42,9 +43,17 @@ FontManager::FontManager(void)
 	
 	if ( error != 0 )
 	{
-		// Implement error message "Could not initiate Freetype library"
+		fprintf( stderr, "Could not initiate Freetype library.\n" );
 		return; // No need to continue
 	}
+
+	//
+	// Set default font path
+	//
+	char winDir[128];
+	GetWindowsDirectory(winDir,128);
+	mDefaultFontPath.assign( winDir );
+	mDefaultFontPath += "\\Fonts\\";
 }
 
 /*!
@@ -66,21 +75,36 @@ FontManager::~FontManager(void)
 	}
 }
 
+/*!
+Set the default font path. This will be the directory where font files will be searched
+for by default. If not explicitly set the default font path will be the windows font folder.
+@param	path	The directory where the default font files are located
+*/
+void FontManager::SetDefaultFontPath( const std::string & path )
+{
+	mDefaultFontPath = path;
+}
 
 /*!
 Adds a font file to the manager.
 @param	fontName	Specify a name for the font
 @param	path		Path to the font file
+@param	fontPath	If it is a local font path directory or using the default path
 */
-bool FontManager::AddFont( const std::string & fontName, const std::string & path )
+bool FontManager::AddFont( const std::string & fontName, std::string path, FontPath fontPath )
 {
 	// Perform file exists check
+	if( fontPath == FontPath_Default )
+	{
+		path = mDefaultFontPath + path;
+	}
 	
 	bool inserted = mFontPaths.insert( std::pair<std::string, std::string>( fontName, path ) ).second;
 
 	if( !inserted )
 	{
-		// Error message "Font with name [&s] already specified"
+		
+		fprintf( stderr, "Font with name [&s] already specified.\n", fontName.c_str() );
 		return false;
 	}
 
@@ -97,7 +121,7 @@ const Freetype::Font * FontManager::GetFont( const std::string & fontName, unsig
 {
 	// If there will be a lot of switching between font sizes consider saving every font face as a unique font instead
 	// of resizing
-	Freetype::Font searchFont( fontName, height );
+	Freetype::Font searchFont( fontName, static_cast<float>( height ) );
 
 	std::set<Freetype::Font>::iterator it = std::find( mFonts.begin(), mFonts.end(), searchFont );
 
@@ -121,13 +145,13 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if( it == mFontPaths.end() )
 	{
-		// Implement error message "Path to font [%i] unspecified"
+		fprintf( stderr, "No font file specified for font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
 	if( mFTLibrary == NULL )
 	{
-		// Implement error message "library not initialized, can't create font" 
+		fprintf( stderr, "Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -136,7 +160,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if ( error == FT_Err_Unknown_File_Format )
 	{
-		// Implement error message "Unsuported file format, can't load font file [%s]"
+		fprintf( stderr, "Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
 		return mFonts.end();
 	}
 	else if( error != 0 || face == NULL )
@@ -147,7 +171,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
 	{
-		// Implement error message "Could not set pixel size for font file [%s]"
+		fprintf( stderr, "Could not set pixel size for font[%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -189,7 +213,8 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//Load the Glyph for our character.
 	if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT ) )
 	{
-		// Implement error message "FT_Load_Glyph failed for char %s"
+		fprintf( stderr, "FT_Load_Glyph failed for char [%c].\n", ch );
+		// Implement error message " char %s"
 		return false;
 	}
 		
@@ -198,7 +223,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
     FT_Glyph glyph;
     if( FT_Get_Glyph( face->glyph, &glyph ) )
 	{
-		// Implement error message "FT_Get_Glyph failed for char %s"
+		fprintf( stderr, "FT_Get_Glyph failed for char [%c].\n", ch );
 		return false;
 	}
 
@@ -262,12 +287,12 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//first we need to move over a little so that
 	//the character has the right amount of space
 	//between it and the one before it.
-	glTranslatef( bitmap_glyph->left,0,0);
+	glTranslatef( (GLfloat)bitmap_glyph->left,0,0);
 
 	//Now we move down a little in the case that the
 	//bitmap extends past the bottom of the line 
 	//(this is only true for characters like 'g' or 'y'.
-	glTranslatef( 0, bitmap_glyph->top-bitmap.rows, 0 );
+	glTranslatef( 0, (GLfloat)bitmap_glyph->top-bitmap.rows, 0 );
 
 	//Now we need to account for the fact that many of
 	//our textures are filled with empty padding space.
@@ -286,19 +311,19 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//so that the result will be properly aligned.
 
 	glBegin(GL_QUADS);
-		glTexCoord2d( 0, 0 ); glVertex2f(			 0, bitmap.rows );
-		glTexCoord2d( 0, y ); glVertex2f(			 0,			  0 );
-		glTexCoord2d( x, y ); glVertex2f( bitmap.width,			  0 );
-		glTexCoord2d( x, 0 ); glVertex2f( bitmap.width, bitmap.rows );
+		glTexCoord2d( 0, 0 ); glVertex2f(				   0.0f, (GLfloat)bitmap.rows );
+		glTexCoord2d( 0, y ); glVertex2f(				   0.0f,				 0.0f );
+		glTexCoord2d( x, y ); glVertex2f( (GLfloat)bitmap.width,				 0.0f );
+		glTexCoord2d( x, 0 ); glVertex2f( (GLfloat)bitmap.width, (GLfloat)bitmap.rows );
 	glEnd();
 	glPopMatrix();
 	
-	glTranslatef( face->glyph->advance.x >> 6, 0, 0 );
+	glTranslatef( (GLfloat)(face->glyph->advance.x >> 6), 0, 0 );
 
 
 	//increment the raster position as if we were a bitmap font.
 	//(only needed if you want to calculate text length)
-	glBitmap( 0, 0, 0, 0, face->glyph->advance.x >> 6, 0, NULL );
+	glBitmap( 0, 0, 0.0f, 0.0f, (GLfloat)(face->glyph->advance.x >> 6), 0, NULL );
 
 	//Finnish the display list
 	glEndList();

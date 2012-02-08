@@ -42,7 +42,7 @@ void Font::init( const std::string & name, unsigned int height )
 	//Allocate some memory to store the texture ids.
 	mName = name;
 	mTextures = new GLuint[128];
-	mHeight = height;
+	mHeight = static_cast<float>( height );
 
 	mListBase = glGenLists(128);
 	glGenTextures( 128, mTextures );

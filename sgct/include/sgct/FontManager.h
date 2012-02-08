@@ -20,10 +20,15 @@ Singleton for font handling. A lot of the font handling is based on Nehes tutori
 class FontManager
 {
 public:
+	// Convinience enum from where to load font files
+	enum FontPath{ FontPath_Local, FontPath_Default };
+
 	~FontManager(void);
 
-	bool AddFont( const std::string & fontName, const std::string & path );
+	bool AddFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
 	const Freetype::Font * GetFont( const std::string & name, unsigned int height = mDefaultHeight );
+
+	void SetDefaultFontPath( const std::string & path );
 
 	static FontManager * Instance()
 	{
@@ -56,6 +61,8 @@ private:
 
 	static FontManager * mInstance;					// Singleton instance of the LogManager
 	static const FT_Short mDefaultHeight;			// Default height of font faces in pixels
+	
+	std::string mDefaultFontPath;			// The default font path from where to look for font files
 
 	FT_Library  mFTLibrary;							// Freetype library
 

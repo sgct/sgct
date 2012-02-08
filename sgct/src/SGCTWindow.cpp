@@ -99,6 +99,9 @@ bool core_sgct::SGCTWindow::openWindow()
 	int mode
 	*/
 
+	glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 4 );
+	glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 1 );	
+
 	return GL_TRUE == glfwOpenWindow( mWindowRes[0],
 		mWindowRes[1],
 		0,0,0,0,0,0,

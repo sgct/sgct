@@ -68,27 +68,9 @@ bool sgct::Engine::init()
 	//
 	// Add fonts
 	//
-	char winDir[128];
-	GetWindowsDirectory(winDir,128);
-	char fontPath[256];
-	int i=sprintf_s( fontPath, sizeof(fontPath), "%s\\Fonts\\verdanab.ttf", winDir);
-	FontManager::Instance()->AddFont( "Verdana", fontPath );
+	if( !FontManager::Instance()->AddFont( "Verdana", "verdanab.ttf" ) )
 	FontManager::Instance()->GetFont( "Verdana", 10 );
-	//try
-	//{
-	//	char winDir[128];
-	//	GetWindowsDirectory(winDir,128);
-	//	char fontPath[256];
-	//	sprintf( fontPath, "%s\\Fonts\\verdanab.ttf", winDir);
-	//	
-	//	fprintf(stdout, "Loading font '%s'\n", fontPath);
-	//	mFont.init(fontPath, 10); //Build the freetype font
-	//}
-	//catch(std::runtime_error const & e)
-	//{
-	//	fprintf(stdout, "Font reading error: %s\n", e.what());
-	//}
-	
+
 	return true;
 }
 

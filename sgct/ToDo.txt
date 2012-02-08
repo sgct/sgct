@@ -1,7 +1,6 @@
 Font & FontManager
 ====================
 * Throw warnings when font not found
-* Remove compile warnings
 
 SGCTNetwork
 ===================

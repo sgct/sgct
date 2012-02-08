@@ -2,6 +2,7 @@
 #include <stdio.h>
 
 #include "sgct.h"
+#define EXTENDED_SIZE 2048
 
 sgct::Engine * gEngine;
 
@@ -17,15 +18,15 @@ void keyCallback(int key, int action);
 double dt = 0.0;
 double time = 0.0;
 bool showFPS = false;
+bool extraPackages = false;
+float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
 void drawGrid(float size, int steps);
 
-sgct::SharedData mySharedData(1024);
-
 int main( int argc, char* argv[] )
 {	
-	gEngine = new sgct::Engine( mySharedData, argc, argv );
+	gEngine = new sgct::Engine( argc, argv );
 
 	if( !gEngine->init() )
 	{
@@ -33,8 +34,12 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	mySharedData.setEncodeFunction(myEncodeFun);
-	mySharedData.setDecodeFunction(myDecodeFun);
+	//allocate extra data
+	for(int i=0;i<EXTENDED_SIZE;i++)
+		extraData[i] = static_cast<float>(i);
+
+	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
 	//init openGL
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -142,19 +147,29 @@ void myInitOGLFun()
 void myEncodeFun()
 {
 	flags = showFPS	? flags | 1 : flags & ~1;
+	flags = extraPackages ? flags | 2 : flags & ~2;
 
-	mySharedData.writeDouble(dt);
-	mySharedData.writeDouble(time);
-	mySharedData.writeUChar(flags);
+	sgct::SharedData::Instance()->writeDouble(dt);
+	sgct::SharedData::Instance()->writeDouble(time);
+	sgct::SharedData::Instance()->writeUChar(flags);
+
+	if(extraPackages)
+		for(int i=0;i<EXTENDED_SIZE;i++)
+			sgct::SharedData::Instance()->writeFloat( extraData[i] );
 }
 
 void myDecodeFun()
 {
-	dt = mySharedData.readDouble();
-	time = mySharedData.readDouble();
-	flags = mySharedData.readUChar();
+	dt = sgct::SharedData::Instance()->readDouble();
+	time = sgct::SharedData::Instance()->readDouble();
+	flags = sgct::SharedData::Instance()->readUChar();
 
 	showFPS	= flags & 0x0001;
+	extraPackages = (flags>>1) & 0x0001;
+
+	if(extraPackages)
+		for(int i=0;i<EXTENDED_SIZE;i++)
+			extraData[i] = sgct::SharedData::Instance()->readFloat();
 }
 
 void drawGrid(float size, int steps)
@@ -199,6 +214,11 @@ void keyCallback(int key, int action)
 	case 'I':
 		if(action == GLFW_PRESS)
 			showFPS = !showFPS;
+		break;
+
+	case 'E':
+		if(action == GLFW_PRESS)
+			extraPackages = !extraPackages;
 		break;
 	}
 }

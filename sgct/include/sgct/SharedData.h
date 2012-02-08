@@ -15,9 +15,29 @@ namespace sgct //small graphics cluster toolkit
 class SharedData
 {
 public:
-	SharedData(unsigned int bufferSize);
-	~SharedData();
+	/*! Get the SharedData instance */
+	static SharedData * Instance()
+	{
+		if( mInstance == NULL )
+		{
+			mInstance = new SharedData();
+		}
 
+		return mInstance;
+	}
+
+	/*! Destroy the SharedData */
+	static void Destroy()
+	{
+		if( mInstance != NULL )
+		{
+			delete mInstance;
+			mInstance = NULL;
+		}
+	}
+
+	SharedData();
+	~SharedData();
 	void writeFloat(float f);
 	void writeDouble(double d);
 	void writeInt32(int i);
@@ -33,21 +53,19 @@ public:
 
 	void encode();
 	void decode(const char * receivedData, int receivedLenght, int clientIndex);
-	//unsigned char * getDataBlock() { return dataBlock; }
+
 	unsigned char * getDataBlock() { return &dataBlock[0]; }
-	//unsigned int getDataSize() { return pos; }
 	unsigned int getDataSize() { return dataBlock.size(); }
-	unsigned int getBufferSize() { return mBufferSize; }
+	unsigned int getBufferSize() { return dataBlock.capacity(); }
 
 private:
 	//function pointers
 	void (*mEncodeFn) (void);
 	void (*mDecodeFn) (void);
 
-	//unsigned char * dataBlock;
+	static SharedData * mInstance;
 	std::vector<unsigned char> dataBlock;
 	unsigned int pos;
-	unsigned int mBufferSize;
 };
 
 }

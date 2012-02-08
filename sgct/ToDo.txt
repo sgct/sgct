@@ -6,3 +6,4 @@ Font & FontManager
 SGCTNetwork
 ===================
 Add support for dynamic buffer
+Add an aditional mutex object to communication handler in order to sync the decode callback with the main thread.

@@ -16,11 +16,9 @@ unsigned int myTextureIndex;
 //variables to share across cluster
 double time = 0.0;
 
-sgct::SharedData mySharedData(256);
-
 int main( int argc, char* argv[] )
 {	
-	gEngine = new sgct::Engine( mySharedData, argc, argv );
+	gEngine = new sgct::Engine( argc, argv );
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
@@ -32,8 +30,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	mySharedData.setEncodeFunction(myEncodeFun);
-	mySharedData.setDecodeFunction(myDecodeFun);
+	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
 
 	// Main loop
@@ -86,10 +84,10 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	mySharedData.writeDouble(time);
+	sgct::SharedData::Instance()->writeDouble(time);
 }
 
 void myDecodeFun()
 {
-	time = mySharedData.readDouble();
+	time = sgct::SharedData::Instance()->readDouble();
 }

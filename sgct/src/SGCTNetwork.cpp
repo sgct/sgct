@@ -1,10 +1,12 @@
 #include "sgct/SGCTNetwork.h"
+#include "sgct/SharedData.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
 #include <GL/glfw.h>
 
 GLFWmutex gMutex;
+GLFWmutex gDecoderMutex;
 
 void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL listenForClients(void *arg);
@@ -56,12 +58,13 @@ core_sgct::SGCTNetwork::SGCTNetwork()
     }
 }
 
-void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr)
+void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer)
 {
 	mServer = _isServer;
-	shdPtr = _shdPtr;
 	gMutex = glfwCreateMutex();
+	gDecoderMutex = glfwCreateMutex();
 	mRunning = false;
+	mBufferSize = sgct::SharedData::Instance()->getBufferSize();
 
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 
@@ -216,14 +219,15 @@ void GLFWCALL communicationHandler(void *arg)
 	core_sgct::TCPData * dataPtr = (core_sgct::TCPData *)arg;
 	
 	//init buffer
-	int recvbuflen = dataPtr->mNetwork->shdPtr->getBufferSize();
+	int recvbuflen = dataPtr->mNetwork->mBufferSize;
 	char * recvbuf;
-	recvbuf = new char[dataPtr->mNetwork->shdPtr->getBufferSize()];
+	recvbuf = new char[dataPtr->mNetwork->mBufferSize];
 
 	// Receive data until the server closes the connection
 	int iResult;
 	do
 	{
+		//check to use correct socket
 		if( dataPtr->mNetwork->isServer() )
 			iResult = recv( dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].client_socket, recvbuf, recvbuflen, 0);
 		else
@@ -231,8 +235,34 @@ void GLFWCALL communicationHandler(void *arg)
 			
 		if (iResult > 0)
 		{
-			if( dataPtr->mNetwork->mDecoderCallbackFn != NULL )
+			//check type of message
+			if( recvbuf[0] == core_sgct::SGCTNetwork::SizeHeader && recvbuflen > 4)
+			{
+				union
+				{
+					unsigned int newSize;
+					char c[4];
+				} cui;
+				//parse int
+				cui.c[0] = recvbuf[1];
+				cui.c[1] = recvbuf[2];
+				cui.c[2] = recvbuf[3];
+				cui.c[3] = recvbuf[4];
+
+				glfwLockMutex( gDecoderMutex );
+				fprintf(stderr, "Network: New package size is %d\n", cui.newSize);
+				dataPtr->mNetwork->mBufferSize = cui.newSize;
+				recvbuflen = cui.newSize;
+				delete recvbuf;
+				recvbuf = new char[cui.newSize];
+				glfwUnlockMutex( gDecoderMutex );
+			}
+			else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader && dataPtr->mNetwork->mDecoderCallbackFn != NULL)
+			{
+				glfwLockMutex( gDecoderMutex );
 				(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf, recvbuflen, dataPtr->mClientIndex);
+				glfwUnlockMutex( gDecoderMutex );
+			}
 		}
 		else if (iResult == 0)
 		{
@@ -268,7 +298,23 @@ void core_sgct::SGCTNetwork::sendDataToAllClients(void * data, int lenght)
 
 void core_sgct::SGCTNetwork::sync()
 {
-	sendDataToAllClients( shdPtr->getDataBlock(), shdPtr->getDataSize() );
+	//check if buffer needs to be re-sized
+	if( sgct::SharedData::Instance()->getDataSize() > mBufferSize )
+	{
+		mBufferSize = sgct::SharedData::Instance()->getDataSize();
+		char * p = (char *)&mBufferSize;
+
+		//create package
+		char resizeMessage[5];
+		resizeMessage[0] = static_cast<char>(SGCTNetwork::SizeHeader);
+		resizeMessage[1] = p[0];
+		resizeMessage[2] = p[1];
+		resizeMessage[3] = p[2];
+		resizeMessage[4] = p[3];
+
+		sendDataToAllClients(resizeMessage,5);
+	}
+	sendDataToAllClients( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
 
 	//should wait for reply from clients...
 }

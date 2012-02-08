@@ -11,7 +11,6 @@
 #include "sgct/SGCTWindow.h"
 #include "sgct/ReadConfig.h"
 #include "sgct/Frustum.h"
-#include "sgct/SharedData.h"
 #include "sgct/Statistics.h"
 #include "sgct/User.h"
 
@@ -21,7 +20,7 @@ namespace sgct //small graphics cluster toolkit
 class Engine
 {
 public:
-	Engine( SharedData & sharedData, int argc, char* argv[] );
+	Engine( int argc, char* argv[] );
 	~Engine()
 	{
 		clean();
@@ -93,8 +92,6 @@ private:
 	core_sgct::SGCTNetwork	* mNetwork;
 	core_sgct::ReadConfig	* mConfig;
 	core_sgct::Frustum		* mFrustums[3];
-
-	SharedData				* mSharedData;
 
 	std::string configFilename;
 	int mThisClusterNodeId;

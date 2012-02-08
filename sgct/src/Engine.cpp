@@ -6,12 +6,12 @@
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"
 #include "sgct/TextureManager.h"
+#include "sgct/SharedData.h"
 #include <math.h>
 #include <sstream>
 
-sgct::Engine::Engine( SharedData & sharedData, int argc, char* argv[] )
+sgct::Engine::Engine( int argc, char* argv[] )
 {	
-	mSharedData = &sharedData;
 	//init pointers
 	mNetwork = NULL;
 	mWindow = NULL;
@@ -137,9 +137,9 @@ bool sgct::Engine::initNetwork()
 	{	
 		fprintf(stderr, "Initiating network communication...\n");
 		if( runningLocal )
-			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mSharedData);
+			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer);
 		else
-			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mSharedData);
+			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer);
 		
 		//set decoder for client
 		if( isServer )
@@ -154,7 +154,7 @@ bool sgct::Engine::initNetwork()
 		else
 		{
 			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::SharedData::decode, mSharedData, 
+			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(), 
 				std::tr1::placeholders::_1, 
 				std::tr1::placeholders::_2,
 				std::tr1::placeholders::_3);
@@ -263,8 +263,8 @@ void sgct::Engine::clean()
 	
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
-	//font.clean();
 
+	sgct::SharedData::Instance()->Destroy();
 	sgct::TextureManager::Instance()->Destroy();
 	MessageHandler::Destroy();
 }
@@ -280,7 +280,7 @@ void sgct::Engine::render()
 	
 		if( isServer )
 		{
-			mSharedData->encode();	
+			sgct::SharedData::Instance()->encode();	
 			mNetwork->sync();
 		}
 		else

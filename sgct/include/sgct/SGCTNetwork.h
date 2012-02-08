@@ -16,7 +16,6 @@
 #include <string>
 #include <vector>
 #include <functional>
-#include "sgct/SharedData.h"
 
 namespace core_sgct //small graphics cluster toolkit
 {
@@ -40,7 +39,7 @@ class SGCTNetwork
 {
 public:
 	SGCTNetwork();
-	void init(const std::string port, const std::string ip, bool _isServer, sgct::SharedData * _shdPtr);
+	void init(const std::string port, const std::string ip, bool _isServer);
 	void sync();
 	void close();
 	bool matchHostName(const std::string name);
@@ -51,10 +50,11 @@ public:
 	inline bool isServer() { return mServer; }
 	void setRunning(bool state) { mRunning = state; }
 	
+	enum PackageHeaders { SyncHeader = 0, SizeHeader };
 	SOCKET mSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::vector<ConnectionData> clients;
-	sgct::SharedData * shdPtr;
+	unsigned int mBufferSize;
 
 private:
 	void sendStrToAllClients(const std::string str);

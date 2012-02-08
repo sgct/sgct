@@ -1,22 +1,22 @@
 #include "sgct/SharedData.h"
+#include "sgct/SGCTNetwork.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
 
 using namespace sgct;
 
-SharedData::SharedData(unsigned int bufferSize)
+SharedData * SharedData::mInstance = NULL;
+
+SharedData::SharedData()
 {
-	mBufferSize = bufferSize;
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
-	dataBlock.reserve(mBufferSize);
-	//dataBlock = (unsigned char *) malloc(BUFFER_SIZE);
+	dataBlock.reserve(512);
 }
 
 SharedData::~SharedData()
 {
-	//free(dataBlock);
 	dataBlock.clear();
 }
 
@@ -32,86 +32,51 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 
 void SharedData::decode(const char * receivedData, int receivedLenght, int clientIndex)
 {	
-	pos = 0;
-	//memcpy(dataBlock, receivedData, receivedLenght);
+	//re-allocate buffer if needed
+	if( receivedLenght > static_cast<int>(dataBlock.capacity()) )
+		dataBlock.reserve(receivedLenght);
 	dataBlock.assign(receivedData, receivedData+receivedLenght);
 
-	/*
-		Make sure that all the data fits into the buffer. There is no check right now.
-	*/
-
+	//ignore the header byte
+	pos = 1;
+	
 	if( mDecodeFn != NULL )
 		mDecodeFn();
 }
 
 void SharedData::encode()
 {
-	//pos = 0;
 	dataBlock.clear();
+
+	//add header byte
+	dataBlock.push_back(core_sgct::SGCTNetwork::SyncHeader);
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
-
-	/*flags = showFPS	? flags | 1 : flags & ~1;
-
-	writeDouble(dt);
-	writeDouble(time);
-	writeUChar(flags);*/
 }
 
 void SharedData::writeFloat(float f)
 {
 	unsigned char *p = (unsigned char *)&f;
-	if( (dataBlock.size() + 4) > mBufferSize )
-		return;
 	dataBlock.insert( dataBlock.end(), p, p+4);
-	/*dataBlock[pos] = p[0];
-	dataBlock[pos+1] = p[1];
-	dataBlock[pos+2] = p[2];
-	dataBlock[pos+3] = p[3];
-	pos += 4;*/
-
-
 }
 
 void SharedData::writeDouble(double d)
 {
 	unsigned char *p = (unsigned char *)&d;
-	if( (dataBlock.size() + 8) > mBufferSize )
-		return;
 	dataBlock.insert( dataBlock.end(), p, p+8);
-	/*dataBlock[pos] = p[0];
-	dataBlock[pos+1] = p[1];
-	dataBlock[pos+2] = p[2];
-	dataBlock[pos+3] = p[3];
-	dataBlock[pos+4] = p[4];
-	dataBlock[pos+5] = p[5];
-	dataBlock[pos+6] = p[6];
-	dataBlock[pos+7] = p[7];
-	pos += 8;*/
 }
 
 void SharedData::writeInt32(int i)
 {
 	unsigned char *p = (unsigned char *)&i;
-	if( (dataBlock.size() + 4) > mBufferSize )
-		return;
 	dataBlock.insert( dataBlock.end(), p, p+4);
-	/*dataBlock[pos] = p[0];
-	dataBlock[pos+1] = p[1];
-	dataBlock[pos+2] = p[2];
-	dataBlock[pos+3] = p[3];
-	pos += 4;*/
 }
 
 void SharedData::writeUChar(unsigned char c)
 {
 	unsigned char *p = &c;
-	if( (dataBlock.size() + 1) > mBufferSize )
-		return;
 	dataBlock.push_back(*p);
-	//dataBlock[pos] = p[0];
-	//pos += 1;
 }
 
 float SharedData::readFloat()
@@ -122,10 +87,6 @@ float SharedData::readFloat()
 		unsigned char c[4];
 	} cf;
 
-	/*cf.c[0] = *(dataBlock + pos);
-	cf.c[1] = *(dataBlock + pos + 1);
-	cf.c[2] = *(dataBlock + pos + 2);
-	cf.c[3] = *(dataBlock + pos + 3);*/
 	cf.c[0] = dataBlock[pos];
 	cf.c[1] = dataBlock[pos+1];
 	cf.c[2] = dataBlock[pos+2];
@@ -142,15 +103,6 @@ double SharedData::readDouble()
 		double d;
 		unsigned char c[8];
 	} cf;
-
-	/*cf.c[0] = *(dataBlock + pos);
-	cf.c[1] = *(dataBlock + pos + 1);
-	cf.c[2] = *(dataBlock + pos + 2);
-	cf.c[3] = *(dataBlock + pos + 3);
-	cf.c[4] = *(dataBlock + pos + 4);
-	cf.c[5] = *(dataBlock + pos + 5);
-	cf.c[6] = *(dataBlock + pos + 6);
-	cf.c[7] = *(dataBlock + pos + 7);*/
 
 	cf.c[0] = dataBlock[pos];
 	cf.c[1] = dataBlock[pos+1];
@@ -173,10 +125,6 @@ int SharedData::readInt32()
 		unsigned char c[4];
 	} cf;
 
-	/*cf.c[0] = *(dataBlock + pos);
-	cf.c[1] = *(dataBlock + pos + 1);
-	cf.c[2] = *(dataBlock + pos + 2);
-	cf.c[3] = *(dataBlock + pos + 3);*/
 	cf.c[0] = dataBlock[pos];
 	cf.c[1] = dataBlock[pos+1];
 	cf.c[2] = dataBlock[pos+2];
@@ -190,7 +138,6 @@ unsigned char SharedData::readUChar()
 {
 	unsigned char c;
 	c = dataBlock[pos];
-	//c = *(dataBlock + pos);
 	pos += 1;
 
 	return c;

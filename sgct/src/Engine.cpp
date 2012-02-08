@@ -18,10 +18,15 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mConfig = NULL;
 	for( unsigned int i=0; i<3; i++)
 		mFrustums[i] = NULL;
+	
 	//init function pointers
 	mDrawFn = NULL;
 	mPreDrawFn = NULL;
+	mPostDrawFn = NULL;
 	mInitOGLFn = NULL;
+	mClearBufferFn = NULL;
+	mInternalRenderFn = NULL;
+
 	setClearBufferFunction( clearBuffer );
 	mStatistics.AvgFPS = 0.0;
 	mStatistics.DrawTime = 0.0;
@@ -44,22 +49,21 @@ bool sgct::Engine::init()
 	// Initialize GLFW
 	if( !glfwInit() )
 		return false;
-	
 	mConfig = new core_sgct::ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
 		fprintf(stderr, "Error in xml config file parsing.\n");
-		glfwTerminate();
 		return false;
 	} 
-	
 	if( !initNetwork() )
+	{
+		fprintf(stderr, "Network init error.\n");
 		return false;
+	}
 
 	if( !initWindow() )
 	{
-		clean();
-		glfwTerminate();
+		fprintf(stderr, "Window init error.\n");
 		return false;
 	}
 
@@ -68,8 +72,8 @@ bool sgct::Engine::init()
 	//
 	// Add fonts
 	//
-	if( !FontManager::Instance()->AddFont( "Verdana", "verdanab.ttf" ) )
-	FontManager::Instance()->GetFont( "Verdana", 10 );
+	if( !FontManager::Instance()->AddFont( "Verdana", "verdana.ttf" ) )
+		FontManager::Instance()->GetFont( "Verdana", 14 );
 
 	return true;
 }
@@ -119,9 +123,9 @@ bool sgct::Engine::initNetwork()
 	{	
 		fprintf(stderr, "Initiating network communication...\n");
 		if( runningLocal )
-			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer);
+			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mConfig->getNumberOfNodes());
 		else
-			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer);
+			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mConfig->getNumberOfNodes());
 		
 		//set decoder for client
 		if( isServer )
@@ -191,6 +195,19 @@ bool sgct::Engine::initWindow()
 	sprintf_s( windowTitle, sizeof(windowTitle), "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave");
 	mWindow->init(windowTitle);
+
+	//Must wait until all nodes are running if using swap barrier
+	if( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups )
+	{
+		while(!mNetwork->areAllNodesConnected())
+		{
+			fprintf(stdout, "Waiting for all nodes to connect...\n");
+			// Swap front and back rendering buffers
+			glfwSleep(0.25);
+			glfwSwapBuffers();
+		}
+	}
+
 	return true;
 }
 
@@ -221,6 +238,10 @@ void sgct::Engine::initOGL()
 		mInternalRenderFn = &Engine::setNormalRenderingMode;
 		break;
 	}
+
+	//init swap group barrier when ready to render
+	mWindow->setBarrier(true);
+	mWindow->resetSwapGroupFrameNumber();
 }
 
 void sgct::Engine::clean()
@@ -249,6 +270,9 @@ void sgct::Engine::clean()
 	sgct::SharedData::Instance()->Destroy();
 	sgct::TextureManager::Instance()->Destroy();
 	MessageHandler::Destroy();
+
+	// Close window and terminate GLFW
+	glfwTerminate();
 }
 
 void sgct::Engine::render()
@@ -281,27 +305,32 @@ void sgct::Engine::render()
 		glDrawBuffer(GL_BACK); //draw into both back buffers
 		if( displayInfo )
 			renderDisplayInfo();
+
+		if( mPostDrawFn != NULL )
+			mPostDrawFn();
 		
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed
 		running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
 	}
-
-	// Close window and terminate GLFW
-	glfwTerminate();
 }
 
 void sgct::Engine::renderDisplayInfo()
 {
-	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 70, "Render time %.2f ms", getDrawTime()*1000.0);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 55, "Master: %s", isServer ? "True" : "False");
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 40, "Swap groups: %s and %s (%s)",
-		mWindow->isUsingSwapGroups() ? "enabled" : "disabled",
+	glColor4f(0.8f,0.8f,0.0f,1.0f);
+	unsigned int lFrameNumber = 0;
+	mWindow->getSwapGroupFrameNumber(lFrameNumber);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Node ip: %s (%s)",
+		mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+		isServer ? "master" : "slave");
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Render time %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
+		mWindow->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		mWindow->isBarrierActive() ? "active" : "not active",
-		mWindow->isSwapGroupMaster() ? "master" : "slave");
+		mWindow->isSwapGroupMaster() ? "master" : "slave",
+		lFrameNumber);
 }
 
 void sgct::Engine::setNormalRenderingMode()
@@ -330,9 +359,8 @@ void sgct::Engine::setNormalRenderingMode()
 		mDrawFn();
 	if( displayInfo )
 	{
-		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		//reetype::print(font, 100, 100, "Active frustum: mono");
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: mono");
+		glColor4f(0.8f,0.8f,0.0f,1.0f);
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: mono");
 	}
 }
 
@@ -361,9 +389,8 @@ void sgct::Engine::setActiveStereoRenderingMode()
 		mDrawFn();
 	if( displayInfo )
 	{
-		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		//freetype::print(font, 100, 100, "Active frustum: stereo left eye");
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: stereo left eye");
+		glColor4f(0.8f,0.8f,0.0f,1.0f);
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: stereo left eye");
 	}
 
 	activeFrustum = core_sgct::Frustum::StereoRightEye;
@@ -387,9 +414,8 @@ void sgct::Engine::setActiveStereoRenderingMode()
 		mDrawFn();
 	if( displayInfo )
 	{
-		glColor4f(0.8f,0.8f,0.8f,1.0f);
-		//freetype::print(font, 100, 100, "Active frustum: stereo right eye");
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 100, "Active frustum: stereo right eye");
+		glColor4f(0.8f,0.8f,0.0f,1.0f);
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: stereo right eye");
 	}
 }
 
@@ -469,6 +495,11 @@ void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 void sgct::Engine::setPreDrawFunction(void(*fnPtr)(void))
 {
 	mPreDrawFn = fnPtr;
+}
+
+void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))
+{
+	mPostDrawFn = fnPtr;
 }
 
 void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))

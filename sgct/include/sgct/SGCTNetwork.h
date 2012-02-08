@@ -39,7 +39,7 @@ class SGCTNetwork
 {
 public:
 	SGCTNetwork();
-	void init(const std::string port, const std::string ip, bool _isServer);
+	void init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig);
 	void sync();
 	void close();
 	bool matchHostName(const std::string name);
@@ -48,9 +48,12 @@ public:
 	
 	inline bool isRunning() { return mRunning; }
 	inline bool isServer() { return mServer; }
+	inline bool areAllNodesConnected() { return mAllNodesConnected; }
+	inline unsigned int getNumberOfNodesInConfig() { return mNumberOfNodesInConfig; }
 	void setRunning(bool state) { mRunning = state; }
+	void setAllNodesConnected(bool state);
 	
-	enum PackageHeaders { SyncHeader = 0, SizeHeader };
+	enum PackageHeaders { SyncHeader = 0, SizeHeader, ClusterConnected };
 	SOCKET mSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::vector<ConnectionData> clients;
@@ -62,6 +65,8 @@ private:
 
 	bool mRunning;
 	bool mServer;
+	bool mAllNodesConnected;
+	unsigned int mNumberOfNodesInConfig;
 	std::string hostName;
 	std::vector<std::string> localAddresses;
 	int threadID;

@@ -16,6 +16,8 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	threadID = -1;
 	mSocket = INVALID_SOCKET;
 	mDecoderCallbackFn = NULL;
+	mNumberOfNodesInConfig = 0;
+	mAllNodesConnected = false;
 
 	WSADATA wsaData;
 	WORD version;
@@ -58,8 +60,9 @@ core_sgct::SGCTNetwork::SGCTNetwork()
     }
 }
 
-void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer)
+void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig)
 {
+	mNumberOfNodesInConfig = numberOfNodesInConfig;
 	mServer = _isServer;
 	gMutex = glfwCreateMutex();
 	gDecoderMutex = glfwCreateMutex();
@@ -193,6 +196,12 @@ void GLFWCALL listenForClients(void *arg)
 			dataPtr->mNetwork = nPtr;
 			dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].connected = true;
 			
+			//check if all connected and don't count itself
+			if(dataPtr->mNetwork->getNumberOfNodesInConfig()-1 == dataPtr->mNetwork->clients.size())
+			{
+				dataPtr->mNetwork->setAllNodesConnected(true);
+			}
+
 			//start reading thread
 			nPtr->clients[ dataPtr->mClientIndex ].threadID = glfwCreateThread( communicationHandler, dataPtr );
 
@@ -263,6 +272,12 @@ void GLFWCALL communicationHandler(void *arg)
 				(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf, recvbuflen, dataPtr->mClientIndex);
 				glfwUnlockMutex( gDecoderMutex );
 			}
+			else if( recvbuf[0] == core_sgct::SGCTNetwork::ClusterConnected )
+			{
+				glfwLockMutex( gDecoderMutex );
+					dataPtr->mNetwork->setAllNodesConnected(true);
+				glfwUnlockMutex( gDecoderMutex );
+			}
 		}
 		else if (iResult == 0)
 		{
@@ -294,6 +309,16 @@ void core_sgct::SGCTNetwork::sendDataToAllClients(void * data, int lenght)
 		{
 			send(clients[i].client_socket, (const char *)data, lenght, 0);
 		}
+}
+
+void core_sgct::SGCTNetwork::setAllNodesConnected(bool state)
+{
+	mAllNodesConnected = state;
+	if( isServer() && mAllNodesConnected )
+	{
+		char tmpMessage = ClusterConnected;
+		sendDataToAllClients(&tmpMessage, 1);
+	}
 }
 
 void core_sgct::SGCTNetwork::sync()

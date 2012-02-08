@@ -35,6 +35,7 @@ public:
 
 	void setDrawFunction(void(*fnPtr)(void));
 	void setPreDrawFunction(void(*fnPtr)(void));
+	void setPostDrawFunction(void(*fnPtr)(void));
 	void setInitOGLFunction(void(*fnPtr)(void));
 	void setClearBufferFunction(void(*fnPtr)(void));
 	
@@ -70,6 +71,7 @@ private:
 	//function pointers
 	CallbackFn mDrawFn;
 	CallbackFn mPreDrawFn;
+	CallbackFn mPostDrawFn;
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
 	InternalCallbackFn mInternalRenderFn;

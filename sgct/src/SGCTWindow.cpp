@@ -43,41 +43,41 @@ void core_sgct::SGCTWindow::init(const char * windowTitle)
 	glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
 	glfwSetWindowSizeCallback( windowResizeCallback );
 	glfwSetWindowTitle( windowTitle );
-	if( mUseSwapGroups )
-		initNvidiaSwapGroups();
+
+	initNvidiaSwapGroups();
 }
 
-void core_sgct::SGCTWindow::setWindowResolution(int x, int y)
+void core_sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
 }
 
-void core_sgct::SGCTWindow::setWindowPosition(int x, int y)
+void core_sgct::SGCTWindow::setWindowPosition(const int x, const int y)
 {
 	mWindowPos[0] = x;
 	mWindowPos[1] = y;
 }
 
-void core_sgct::SGCTWindow::setWindowMode(int mode)
+void core_sgct::SGCTWindow::setWindowMode(const int mode)
 {
 	mWindowMode = mode;
 }
 
-void core_sgct::SGCTWindow::setBarrier(bool state)
+void core_sgct::SGCTWindow::setBarrier(const bool state)
 {
-	if( mUseSwapGroups )
+	if( mUseSwapGroups && state != mBarrier)
 	{
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 	}
 }
 
-void core_sgct::SGCTWindow::useSwapGroups(bool state)
+void core_sgct::SGCTWindow::useSwapGroups(const bool state)
 {
 	mUseSwapGroups = state;
 }
 
-void core_sgct::SGCTWindow::useQuadbuffer(bool state)
+void core_sgct::SGCTWindow::useQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
@@ -99,8 +99,8 @@ bool core_sgct::SGCTWindow::openWindow()
 	int mode
 	*/
 
-	glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 4 );
-	glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 1 );	
+	//glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 4 );
+	//glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 1 );	
 
 	return GL_TRUE == glfwOpenWindow( mWindowRes[0],
 		mWindowRes[1],
@@ -110,10 +110,8 @@ bool core_sgct::SGCTWindow::openWindow()
 
 void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 {
-	if (wglewIsSupported("WGL_NV_swap_group"))
+	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
-		mUseSwapGroups = true;
-		
 		hDC = wglGetCurrentDC();
 		fprintf(stdout, "WGL_NV_swap_group is supported\n");
 
@@ -123,26 +121,8 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 		{
 			fprintf(stdout, "Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
+			return;
 		}
-
-		if( wglBindSwapBarrierNV(1,1) )
-		{
-			fprintf(stdout, "Setting up swap barrier [ok].\n");
-			mBarrier = true;
-		}
-		else
-		{
-			fprintf(stdout, "Setting up swap barrier [failed].\n");
-			mBarrier = false;
-		}
-		
-		if( wglResetFrameCountNV(hDC) )
-		{
-			mUseSwapGroups = true;
-			fprintf(stdout, "Resetting frame counter. This computer is the master.\n");
-		}
-		else
-			fprintf(stdout, "Resetting frame counter failed. This computer is the slave.\n");
 	}
 	else
 		mUseSwapGroups = false;
@@ -156,7 +136,7 @@ void GLFWCALL windowResizeCallback( int width, int height )
 void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
 {
 	frameNumber = 0;
-	if (mUseSwapGroups)
+	if (mBarrier)
 	{
 		wglQueryFrameCountNV(hDC, &frameNumber);
 	}		
@@ -164,8 +144,17 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
 
 void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
-	if (mUseSwapGroups)
+	if (mBarrier)
 	{
-		wglResetFrameCountNV(hDC);
+		if( wglResetFrameCountNV(hDC) )
+		{
+			mSwapGroupMaster = true;
+			fprintf(stdout, "Resetting frame counter. This computer is the master.\n");
+		}
+		else
+		{
+			mSwapGroupMaster = false;
+			fprintf(stdout, "Resetting frame counter failed. This computer is the slave.\n");
+		}
 	}
 }

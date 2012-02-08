@@ -18,12 +18,12 @@ public:
 	SGCTWindow();
 	~SGCTWindow();
 	void init(const char * windowTitle);
-	void setWindowResolution(int x, int y);
-	void setWindowPosition(int x, int y);
-	void setWindowMode(int mode);
-	void setBarrier(bool state);
-	void useSwapGroups(bool state);
-	void useQuadbuffer(bool state);
+	void setWindowResolution(const int x, const int y);
+	void setWindowPosition(const int x, const int y);
+	void setWindowMode(const int mode);
+	void setBarrier(const bool state);
+	void useSwapGroups(const bool state);
+	void useQuadbuffer(const bool state);
 	bool openWindow();
 	void initNvidiaSwapGroups();
 	void getSwapGroupFrameNumber(unsigned int & frameNumber);

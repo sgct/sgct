@@ -16,16 +16,18 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	try
 	{
 		readAndParseXML();
-		valid = true;
-		fprintf(stderr, "Config file '%s' read successfully!\n", xmlFileName.c_str());
-		fprintf(stderr, "Number of nodes in cluster: %d\n", nodes.size());
-		for(unsigned int i = 0; i<nodes.size(); i++)
-			fprintf(stderr, "Node(%d) ip: %s\n", i, nodes[i].ip.c_str());
 	}
 	catch(char * err)
 	{
 		fprintf(stderr, "Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
+		return;
 	}
+
+	valid = true;
+	fprintf(stderr, "Config file '%s' read successfully!\n", xmlFileName.c_str());
+	fprintf(stderr, "Number of nodes in cluster: %d\n", nodes.size());
+	for(unsigned int i = 0; i<nodes.size(); i++)
+		fprintf(stderr, "Node(%d) ip: %s\n", i, nodes[i].ip.c_str());
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -33,15 +35,13 @@ void core_sgct::ReadConfig::readAndParseXML()
 	TiXmlDocument initVals( xmlFileName.c_str() );
 	if( !initVals.LoadFile() )
 	{
-		throw initVals.ErrorDesc();
-		return;
+		throw "Invalid XML file!";
 	}
 
 	TiXmlElement* XMLroot = initVals.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{
 		throw "Cannot find XML root!";
-		return;
 	}
 
 	masterIP.assign( XMLroot->Attribute( "masterAddress" ) );

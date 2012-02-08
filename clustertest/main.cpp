@@ -8,6 +8,7 @@ sgct::Engine * gEngine;
 
 void myDrawFun();
 void myPreDrawFun();
+void myPostDrawFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
@@ -19,6 +20,8 @@ double dt = 0.0;
 double time = 0.0;
 bool showFPS = false;
 bool extraPackages = false;
+bool barrier = false;
+bool resetCounter = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
@@ -45,6 +48,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPostDrawFunction( myPostDrawFun );
 	glfwSetKeyCallback( keyCallback );
 
 	// Main loop
@@ -58,7 +62,7 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{
+{	
 	glPushMatrix();
 	
 	/*if( gEngine->isUsingSwapGroups() )
@@ -81,41 +85,42 @@ void myDrawFun()
 	*/
 
 	glRotatef(static_cast<float>(time)*10.0f, 0.0f, 1.0f, 0.0f);
+	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glLineWidth(2.0);
 	
 	//draw a cube
 	//bottom
 	glBegin(GL_LINE_STRIP);
-	glVertex3f( -0.5f, -0.5f, -0.5f);
-	glVertex3f( 0.5f, -0.5f, -0.5f);
-	glVertex3f( 0.5f, -0.5f, 0.5f);
-	glVertex3f( -0.5f, -0.5f, 0.5f);
-	glVertex3f( -0.5f, -0.5f, -0.5f);
+	glVertex3f( -1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f, -1.0f, 1.0f);
+	glVertex3f( -1.0f, -1.0f, 1.0f);
+	glVertex3f( -1.0f, -1.0f, -1.0f);
 	glEnd();
 
 	//top
 	glBegin(GL_LINE_STRIP);
-	glVertex3f( -0.5f, 0.5f, -0.5f);
-	glVertex3f( 0.5f, 0.5f, -0.5f);
-	glVertex3f( 0.5f, 0.5f, 0.5f);
-	glVertex3f( -0.5f, 0.5f, 0.5f);
-	glVertex3f( -0.5f, 0.5f, -0.5f);
+	glVertex3f( -1.0f, 1.0f, -1.0f);
+	glVertex3f( 1.0f, 1.0f, -1.0f);
+	glVertex3f( 1.0f, 1.0f, 1.0f);
+	glVertex3f( -1.0f, 1.0f, 1.0f);
+	glVertex3f( -1.0f, 1.0f, -1.0f);
 	glEnd();
 
 	//sides
 	glBegin(GL_LINES);
-	glVertex3f( -0.5f, -0.5f, -0.5f);
-	glVertex3f( -0.5f, 0.5f, -0.5f);
+	glVertex3f( -1.0f, -1.0f, -1.0f);
+	glVertex3f( -1.0f, 1.0f, -1.0f);
 
-	glVertex3f( 0.5f, -0.5f, -0.5f);
-	glVertex3f( 0.5f, 0.5f, -0.5f);
+	glVertex3f( 1.0f, -1.0f, -1.0f);
+	glVertex3f( 1.0f, 1.0f, -1.0f);
 
-	glVertex3f( 0.5f, -0.5f, 0.5f);
-	glVertex3f( 0.5f, 0.5f, 0.5f);
+	glVertex3f( 1.0f, -1.0f, 1.0f);
+	glVertex3f( 1.0f, 1.0f, 1.0f);
 
-	glVertex3f( -0.5f, -0.5f, 0.5f);
-	glVertex3f( -0.5f, 0.5f, 0.5f);
+	glVertex3f( -1.0f, -1.0f, 1.0f);
+	glVertex3f( -1.0f, 1.0f, 1.0f);
 	glEnd();
 
 	glPopMatrix();
@@ -133,6 +138,20 @@ void myPreDrawFun()
 	}
 
 	gEngine->setDisplayInfoVisibility( showFPS );
+	gEngine->getWindowPtr()->setBarrier( barrier );
+	if(resetCounter)
+	{
+		gEngine->getWindowPtr()->resetSwapGroupFrameNumber();
+	}
+}
+
+void myPostDrawFun()
+{
+	if( gEngine->isSyncServer() )
+	{
+		if(resetCounter)
+			resetCounter = false;
+	}
 }
 
 void myInitOGLFun()
@@ -148,6 +167,8 @@ void myEncodeFun()
 {
 	flags = showFPS	? flags | 1 : flags & ~1;
 	flags = extraPackages ? flags | 2 : flags & ~2;
+	flags = barrier ? flags | 4 : flags & ~4;
+	flags = resetCounter ? flags | 8 : flags & ~8;
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(time);
@@ -166,6 +187,8 @@ void myDecodeFun()
 
 	showFPS	= flags & 0x0001;
 	extraPackages = (flags>>1) & 0x0001;
+	barrier = (flags>>2) & 0x0001;
+	resetCounter = (flags>>3) & 0x0001;
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -209,16 +232,29 @@ void drawGrid(float size, int steps)
 
 void keyCallback(int key, int action)
 {
-	switch( key )
+	if( gEngine->isSyncServer() )
 	{
-	case 'I':
-		if(action == GLFW_PRESS)
-			showFPS = !showFPS;
-		break;
+		switch( key )
+		{
+		case 'I':
+			if(action == GLFW_PRESS)
+				showFPS = !showFPS;
+			break;
 
-	case 'E':
-		if(action == GLFW_PRESS)
-			extraPackages = !extraPackages;
-		break;
+		case 'E':
+			if(action == GLFW_PRESS)
+				extraPackages = !extraPackages;
+			break;
+
+		case 'B':
+			if(action == GLFW_PRESS)
+				barrier = !barrier;
+			break;
+
+		case 'R':
+			if(action == GLFW_PRESS)
+				resetCounter = true;
+			break;
+		}
 	}
 }

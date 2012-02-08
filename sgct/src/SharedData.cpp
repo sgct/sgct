@@ -12,12 +12,6 @@ SharedData::SharedData(unsigned int bufferSize)
 	mDecodeFn = NULL;
 	dataBlock.reserve(mBufferSize);
 	//dataBlock = (unsigned char *) malloc(BUFFER_SIZE);
-	/*
-	dt = 0.0;
-	time = 0.0;
-	showFPS = false;
-	flags = 0;
-	*/
 }
 
 SharedData::~SharedData()
@@ -48,11 +42,6 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 
 	if( mDecodeFn != NULL )
 		mDecodeFn();
-	/*dt = readDouble();
-	time = readDouble();
-	flags = readUChar();
-
-	showFPS	= flags & 0x0001;*/
 }
 
 void SharedData::encode()

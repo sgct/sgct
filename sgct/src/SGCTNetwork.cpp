@@ -215,6 +215,7 @@ void GLFWCALL communicationHandler(void *arg)
 {
 	core_sgct::TCPData * dataPtr = (core_sgct::TCPData *)arg;
 	
+	//init buffer
 	int recvbuflen = dataPtr->mNetwork->shdPtr->getBufferSize();
 	char * recvbuf;
 	recvbuf = new char[dataPtr->mNetwork->shdPtr->getBufferSize()];

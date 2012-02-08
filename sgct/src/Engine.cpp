@@ -1,14 +1,15 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/RenderEngine.h"
+#include "sgct/Engine.h"
 #include "sgct/freetype.h"
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"
+#include "sgct/TextureManager.h"
 #include <math.h>
 #include <sstream>
 
-sgct::RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[] )
+sgct::Engine::Engine( SharedData & sharedData, int argc, char* argv[] )
 {	
 	mSharedData = &sharedData;
 	//init pointers
@@ -38,7 +39,7 @@ sgct::RenderEngine::RenderEngine( SharedData & sharedData, int argc, char* argv[
 	parseArguments( argc, argv );
 }
 
-bool sgct::RenderEngine::init()
+bool sgct::Engine::init()
 {
 	// Initialize GLFW
 	if( !glfwInit() )
@@ -91,7 +92,7 @@ bool sgct::RenderEngine::init()
 	return true;
 }
 
-bool sgct::RenderEngine::initNetwork()
+bool sgct::Engine::initNetwork()
 {
 	try
 	{
@@ -171,7 +172,7 @@ bool sgct::RenderEngine::initNetwork()
 	return true;
 }
 
-bool sgct::RenderEngine::initWindow()
+bool sgct::Engine::initWindow()
 {
 	mWindow = new core_sgct::SGCTWindow();
 	mWindow->setWindowResolution(
@@ -211,7 +212,7 @@ bool sgct::RenderEngine::initWindow()
 	return true;
 }
 
-void sgct::RenderEngine::initOGL()
+void sgct::Engine::initOGL()
 {	
 	//Get OpenGL version
 	int version[3];
@@ -231,16 +232,16 @@ void sgct::RenderEngine::initOGL()
 	switch( mConfig->getNodePtr(mThisClusterNodeId)->stereo )
 	{
 	case core_sgct::ReadConfig::Active:
-		mInternalRenderFn = &RenderEngine::setActiveStereoRenderingMode;
+		mInternalRenderFn = &Engine::setActiveStereoRenderingMode;
 		break;
 	
 	default:
-		mInternalRenderFn = &RenderEngine::setNormalRenderingMode;
+		mInternalRenderFn = &Engine::setNormalRenderingMode;
 		break;
 	}
 }
 
-void sgct::RenderEngine::clean()
+void sgct::Engine::clean()
 {
 	fprintf(stderr, "Cleaning up...\n");
 	
@@ -264,10 +265,11 @@ void sgct::RenderEngine::clean()
 	FontManager::Destroy();
 	//font.clean();
 
+	sgct::TextureManager::Instance()->Destroy();
 	MessageHandler::Destroy();
 }
 
-void sgct::RenderEngine::render()
+void sgct::Engine::render()
 {
 	int running = GL_TRUE;
 	
@@ -308,7 +310,7 @@ void sgct::RenderEngine::render()
 	glfwTerminate();
 }
 
-void sgct::RenderEngine::renderDisplayInfo()
+void sgct::Engine::renderDisplayInfo()
 {
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 85, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
@@ -320,7 +322,7 @@ void sgct::RenderEngine::renderDisplayInfo()
 		mWindow->isSwapGroupMaster() ? "master" : "slave");
 }
 
-void sgct::RenderEngine::setNormalRenderingMode()
+void sgct::Engine::setNormalRenderingMode()
 {
 	activeFrustum = core_sgct::Frustum::Mono;
 	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
@@ -352,7 +354,7 @@ void sgct::RenderEngine::setNormalRenderingMode()
 	}
 }
 
-void sgct::RenderEngine::setActiveStereoRenderingMode()
+void sgct::Engine::setActiveStereoRenderingMode()
 {
 	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
 	activeFrustum = core_sgct::Frustum::StereoLeftEye;
@@ -409,7 +411,7 @@ void sgct::RenderEngine::setActiveStereoRenderingMode()
 	}
 }
 
-void sgct::RenderEngine::calculateFrustums()
+void sgct::Engine::calculateFrustums()
 {
 	mUser.LeftEyePos.x = mConfig->getUserPos()->x - mConfig->getEyeSeparation()/2.0f;
 	mUser.LeftEyePos.y = mConfig->getUserPos()->y;
@@ -446,7 +448,7 @@ void sgct::RenderEngine::calculateFrustums()
 		nearClippingPlaneDist, farClippingPlaneDist);
 }
 
-void sgct::RenderEngine::parseArguments( int argc, char* argv[] )
+void sgct::Engine::parseArguments( int argc, char* argv[] )
 {
 	//parse arguments
 	fprintf(stderr, "Parsing arguments...");
@@ -477,33 +479,33 @@ void sgct::RenderEngine::parseArguments( int argc, char* argv[] )
 	fprintf(stderr, " Done\n");
 }
 
-void sgct::RenderEngine::setDrawFunction(void(*fnPtr)(void))
+void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 {
 	mDrawFn = fnPtr;
 }
 
-void sgct::RenderEngine::setPreDrawFunction(void(*fnPtr)(void))
+void sgct::Engine::setPreDrawFunction(void(*fnPtr)(void))
 {
 	mPreDrawFn = fnPtr;
 }
 
-void sgct::RenderEngine::setInitOGLFunction(void(*fnPtr)(void))
+void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 {
 	mInitOGLFn = fnPtr;
 }
 
-void sgct::RenderEngine::setClearBufferFunction(void(*fnPtr)(void))
+void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 {
 	mClearBufferFn = fnPtr;
 }
 
-void sgct::RenderEngine::clearBuffer(void)
+void sgct::Engine::clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 }
 
-void sgct::RenderEngine::printNodeInfo(unsigned int nodeId)
+void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
 	fprintf(stderr, "This node is = %d.\nView plane coordinates: \n", nodeId);
 	fprintf(stderr, "\tLower left: %.4f  %.4f  %.4f\n",
@@ -520,7 +522,7 @@ void sgct::RenderEngine::printNodeInfo(unsigned int nodeId)
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperRight ].z);
 }
 
-void sgct::RenderEngine::calcFPS(double timestamp)
+void sgct::Engine::calcFPS(double timestamp)
 {
 	static double lastTimestamp = glfwGetTime();
 	mStatistics.FrameTime = timestamp - lastTimestamp;
@@ -539,22 +541,22 @@ void sgct::RenderEngine::calcFPS(double timestamp)
 	}
 }
 
-double sgct::RenderEngine::getDt()
+double sgct::Engine::getDt()
 {
 	return mStatistics.FrameTime;
 }
 
-double sgct::RenderEngine::getTime()
+double sgct::Engine::getTime()
 {
 	return mStatistics.TotalTime;
 }
 
-double sgct::RenderEngine::getDrawTime()
+double sgct::Engine::getDrawTime()
 {
 	return mStatistics.DrawTime;
 }
 
-void sgct::RenderEngine::setNearAndFarClippingPlanes(float _near, float _far)
+void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 {
 	nearClippingPlaneDist = _near;
 	farClippingPlaneDist = _far;

@@ -3,7 +3,7 @@
 
 #include "sgct.h"
 
-sgct::RenderEngine * gRenderEngine;
+sgct::Engine * gEngine;
 
 void myDrawFun();
 void myPreDrawFun();
@@ -20,15 +20,15 @@ sgct::SharedData mySharedData(256);
 
 int main( int argc, char* argv[] )
 {	
-	gRenderEngine = new sgct::RenderEngine( mySharedData, argc, argv );
+	gEngine = new sgct::Engine( mySharedData, argc, argv );
 
-	gRenderEngine->setInitOGLFunction( myInitOGLFun );
-	gRenderEngine->setDrawFunction( myDrawFun );
-	gRenderEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setInitOGLFunction( myInitOGLFun );
+	gEngine->setDrawFunction( myDrawFun );
+	gEngine->setPreDrawFunction( myPreDrawFun );
 
-	if( !gRenderEngine->init() )
+	if( !gEngine->init() )
 	{
-		delete gRenderEngine;
+		delete gEngine;
 		return EXIT_FAILURE;
 	}
 
@@ -37,11 +37,10 @@ int main( int argc, char* argv[] )
 
 
 	// Main loop
-	gRenderEngine->render();
+	gEngine->render();
 
 	// Clean up
-	sgct::TextureManager::Instance()->Destroy();
-	delete gRenderEngine;
+	delete gEngine;
 	
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -66,9 +65,9 @@ void myDrawFun()
 
 void myPreDrawFun()
 {
-	if( gRenderEngine->isSyncServer() )
+	if( gEngine->isSyncServer() )
 	{
-		time = gRenderEngine->getTime();
+		time = gEngine->getTime();
 	}
 }
 

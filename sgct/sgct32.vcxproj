@@ -11,13 +11,13 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\Engine.cpp" />
     <ClCompile Include="src\Font.cpp" />
     <ClCompile Include="src\FontManager.cpp" />
     <ClCompile Include="src\freetype.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\MessageHandler.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
-    <ClCompile Include="src\RenderEngine.cpp" />
     <ClCompile Include="src\SGCTNetwork.cpp" />
     <ClCompile Include="src\SGCTWindow.cpp" />
     <ClCompile Include="src\SharedData.cpp" />
@@ -25,6 +25,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="include\sgct.h" />
+    <ClInclude Include="include\sgct\Engine.h" />
     <ClInclude Include="include\sgct\Font.h" />
     <ClInclude Include="include\sgct\FontManager.h" />
     <ClInclude Include="include\sgct\freetype.h" />
@@ -33,7 +34,6 @@
     <ClInclude Include="include\sgct\MessageHandler.h" />
     <ClInclude Include="include\sgct\Point3.h" />
     <ClInclude Include="include\sgct\ReadConfig.h" />
-    <ClInclude Include="include\sgct\RenderEngine.h" />
     <ClInclude Include="include\sgct\SGCTNetwork.h" />
     <ClInclude Include="include\sgct\SGCTWindow.h" />
     <ClInclude Include="include\sgct\SharedData.h" />

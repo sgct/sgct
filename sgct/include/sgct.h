@@ -19,7 +19,7 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/RenderEngine.h"
+#include "sgct/Engine.h"
 #include "sgct/TextureManager.h"
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"

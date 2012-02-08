@@ -3,7 +3,7 @@
 
 #include "sgct.h"
 
-sgct::RenderEngine * gRenderEngine;
+sgct::Engine * gEngine;
 
 void myDrawFun();
 void myPreDrawFun();
@@ -25,11 +25,11 @@ sgct::SharedData mySharedData(1024);
 
 int main( int argc, char* argv[] )
 {	
-	gRenderEngine = new sgct::RenderEngine( mySharedData, argc, argv );
+	gEngine = new sgct::Engine( mySharedData, argc, argv );
 
-	if( !gRenderEngine->init() )
+	if( !gEngine->init() )
 	{
-		delete gRenderEngine;
+		delete gEngine;
 		return EXIT_FAILURE;
 	}
 
@@ -37,16 +37,16 @@ int main( int argc, char* argv[] )
 	mySharedData.setDecodeFunction(myDecodeFun);
 
 	//init openGL
-	gRenderEngine->setInitOGLFunction( myInitOGLFun );
-	gRenderEngine->setDrawFunction( myDrawFun );
-	gRenderEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setInitOGLFunction( myInitOGLFun );
+	gEngine->setDrawFunction( myDrawFun );
+	gEngine->setPreDrawFunction( myPreDrawFun );
 	glfwSetKeyCallback( keyCallback );
 
 	// Main loop
-	gRenderEngine->render();
+	gEngine->render();
 
 	// Clean up
-	delete gRenderEngine;
+	delete gEngine;
 	
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -56,14 +56,14 @@ void myDrawFun()
 {
 	glPushMatrix();
 	
-	/*if( gRenderEngine->isUsingSwapGroups() )
+	/*if( gEngine->isUsingSwapGroups() )
 	{
 		GLuint frameNumber;
-		gRenderEngine->getSwapGroupFrameNumber(frameNumber);
+		gEngine->getSwapGroupFrameNumber(frameNumber);
 		glTranslatef(0.0f, sinf(static_cast<float>(frameNumber)/100.0f), 0.0f);
 	}
 	else
-		glTranslatef(0.0f, static_cast<float>(sin(gRenderEngine->mSharedData->time)), 0.0f);
+		glTranslatef(0.0f, static_cast<float>(sin(gEngine->mSharedData->time)), 0.0f);
 	glColor3f(1.0f,0.0f,0.0f); //red
 	glBegin(GL_QUADS);
 	
@@ -121,13 +121,13 @@ void myDrawFun()
 void myPreDrawFun()
 {
 	//fprintf(stderr, "preframe\n");
-	if( gRenderEngine->isSyncServer() )
+	if( gEngine->isSyncServer() )
 	{
-		dt = gRenderEngine->getDt();
-		time = gRenderEngine->getTime();
+		dt = gEngine->getDt();
+		time = gEngine->getTime();
 	}
 
-	gRenderEngine->setDisplayInfoVisibility( showFPS );
+	gEngine->setDisplayInfoVisibility( showFPS );
 }
 
 void myInitOGLFun()

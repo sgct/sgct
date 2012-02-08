@@ -5,8 +5,4 @@ Font & FontManager
 
 SGCTNetwork
 ===================
-Add support for reading on server in order to create an server object that recieves messages from the clients.
-Also add support for setting the port in the ReadConfig class via XML
-
-char * tempBuffer = "What's up???\n";
-int iSendResult = send( mNetwork->mSocket, tempBuffer, sizeof(tempBuffer), 0 );
+Add support for dynamic buffer

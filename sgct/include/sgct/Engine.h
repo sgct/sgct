@@ -1,4 +1,4 @@
-/* RenderEngine.h
+/* Engine.h
 
 © 2012 Miroslav Andel
 
@@ -18,11 +18,11 @@
 namespace sgct //small graphics cluster toolkit
 {
 
-class RenderEngine
+class Engine
 {
 public:
-	RenderEngine( SharedData & sharedData, int argc, char* argv[] );
-	~RenderEngine()
+	Engine( SharedData & sharedData, int argc, char* argv[] );
+	~Engine()
 	{
 		clean();
 	}
@@ -66,7 +66,7 @@ private:
 private:
 	// Convinience typedef
 	typedef void (*CallbackFn)(void);
-	typedef void (RenderEngine::*InternalCallbackFn)(void);
+	typedef void (Engine::*InternalCallbackFn)(void);
 
 	//function pointers
 	CallbackFn mDrawFn;

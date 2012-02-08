@@ -48,7 +48,7 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 		
 		int textureType = GL_RGB;
 		if(img.getChannels() == 4)	textureType = GL_RGBA;
-		else if(img.getChannels() == 1)	textureType = GL_LUMINANCE;
+		else if(img.getChannels() == 1)	textureType = GL_LUMINANCE; /* todo: the user should be able to choose between GL_Luminance and GL_alpha */
 		else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
 		
 		GLint components;
@@ -115,4 +115,5 @@ void sgct::TextureManager::freeTextureData()
 	//let's erase them one by one
 	for(unsigned int i=0; i<mTextures.size(); i++)
 		glDeleteTextures(1, &mTextures[i].second);
+	mTextures.clear();
 }

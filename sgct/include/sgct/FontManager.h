@@ -57,6 +57,10 @@ private:
 	std::set<Freetype::Font>::iterator CreateFont( const std::string & fontName, unsigned int height );
 	bool MakeDisplayList( FT_Face face, char ch, Freetype::Font & font );
 
+	// Don't implement these, should give compile warning if used
+	FontManager( const FontManager & fm );
+	const FontManager & operator=(const FontManager & rhs );
+
 private:
 
 	static FontManager * mInstance;					// Singleton instance of the LogManager

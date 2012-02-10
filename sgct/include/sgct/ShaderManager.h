@@ -59,7 +59,11 @@ public:
 
 private:
 	ShaderManager(void);
-	
+
+	// Don't implement these, should give compile warning if used
+	ShaderManager( const ShaderManager & tm );
+	const ShaderManager & operator=(const ShaderManager & rhs );
+
 public:
 	// A shader program that never will be initialized.
 	// Will be returned for not found programs and can be used as 

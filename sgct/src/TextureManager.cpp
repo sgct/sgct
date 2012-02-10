@@ -4,6 +4,12 @@
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 
+sgct::TextureManager::TextureManager()
+{
+	setAnisotropicFilterSize(1.0f);
+	setCompression(false);
+}
+
 const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int index)
 {
 	return index > mTextures.size() ? 0 : mTextures[index].second;

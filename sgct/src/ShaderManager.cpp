@@ -63,8 +63,8 @@ bool sgct::ShaderManager::addShader(
 	// If shader don't exist, create it and add to container
 	//
 	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
-		ShaderProgram::ShaderSourceType::SHADER_SOURCE_FILE :
-		ShaderProgram::ShaderSourceType::SHADER_SOURCE_STRING;
+		ShaderProgram::SHADER_SOURCE_FILE :
+		ShaderProgram::SHADER_SOURCE_STRING;
 
 	ShaderProgram sp( name );
 	

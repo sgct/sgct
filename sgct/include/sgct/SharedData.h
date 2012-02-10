@@ -36,8 +36,6 @@ public:
 		}
 	}
 
-	SharedData();
-	~SharedData();
 	void writeFloat(float f);
 	void writeDouble(double d);
 	void writeInt32(int i);
@@ -57,6 +55,14 @@ public:
 	unsigned char * getDataBlock() { return &dataBlock[0]; }
 	unsigned int getDataSize() { return dataBlock.size(); }
 	unsigned int getBufferSize() { return dataBlock.capacity(); }
+
+private:
+	SharedData();
+	~SharedData();
+
+	// Don't implement these, should give compile warning if used
+	SharedData( const SharedData & tm );
+	const SharedData & operator=(const SharedData & rhs );
 
 private:
 	//function pointers

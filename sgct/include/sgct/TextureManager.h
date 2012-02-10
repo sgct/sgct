@@ -16,8 +16,6 @@ public:
 		if( mInstance == NULL )
 		{
 			mInstance = new TextureManager();
-			mInstance->setAnisotropicFilterSize(1.0f);
-			mInstance->setCompression(false);
 		}
 
 		return mInstance;
@@ -42,7 +40,15 @@ public:
 	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
 
 private:
+	TextureManager();
+
 	void freeTextureData();
+
+	// Don't implement these, should give compile warning if used
+	TextureManager( const TextureManager & tm );
+	const TextureManager & operator=(const TextureManager & rhs );
+
+private:
 
 	static TextureManager * mInstance;
 	

@@ -52,9 +52,9 @@ public:
 	void encode();
 	void decode(const char * receivedData, int receivedLenght, int clientIndex);
 
-	unsigned char * getDataBlock() { return &dataBlock[0]; }
-	unsigned int getDataSize() { return dataBlock.size(); }
-	unsigned int getBufferSize() { return dataBlock.capacity(); }
+	inline unsigned char * getDataBlock() { return &dataBlock[0]; }
+	inline unsigned int getDataSize() { return dataBlock.size(); }
+	inline unsigned int getBufferSize() { return dataBlock.capacity(); }
 
 private:
 	SharedData();

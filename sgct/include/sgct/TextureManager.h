@@ -26,7 +26,6 @@ public:
 	{
 		if( mInstance != NULL )
 		{
-			mInstance->freeTextureData();
 			delete mInstance;
 			mInstance = NULL;
 		}
@@ -41,6 +40,7 @@ public:
 
 private:
 	TextureManager();
+	~TextureManager();
 
 	void freeTextureData();
 

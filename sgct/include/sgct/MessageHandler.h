@@ -37,6 +37,12 @@ public:
 	}
 
 	void decode(const char * receivedData, int receivedLenght, int clientIndex);
+private:
+	MessageHandler(void);
+
+	// Don't implement these, should give compile warning if used
+	MessageHandler( const MessageHandler & tm );
+	const MessageHandler & operator=(const MessageHandler & rhs );
 
 private:
 	static MessageHandler * mInstance;

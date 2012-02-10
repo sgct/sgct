@@ -10,6 +10,11 @@ sgct::TextureManager::TextureManager()
 	setCompression(false);
 }
 
+sgct::TextureManager::~TextureManager()
+{
+	freeTextureData();
+}
+
 const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int index)
 {
 	return index > mTextures.size() ? 0 : mTextures[index].second;

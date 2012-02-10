@@ -7,6 +7,7 @@
 #include "sgct/MessageHandler.h"
 #include "sgct/TextureManager.h"
 #include "sgct/SharedData.h"
+#include "sgct/ShaderManager.h"
 #include <math.h>
 #include <sstream>
 
@@ -266,6 +267,7 @@ void sgct::Engine::clean()
 	
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
+	ShaderManager::Destroy();
 
 	sgct::SharedData::Instance()->Destroy();
 	sgct::TextureManager::Instance()->Destroy();

@@ -30,6 +30,7 @@ void drawGrid(float size, int steps);
 int main( int argc, char* argv[] )
 {	
 	gEngine = new sgct::Engine( argc, argv );
+	gEngine->setInitOGLFunction( myInitOGLFun );
 
 	if( !gEngine->init() )
 	{
@@ -45,7 +46,7 @@ int main( int argc, char* argv[] )
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
 	//init openGL
-	gEngine->setInitOGLFunction( myInitOGLFun );
+	
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
 	gEngine->setPostDrawFunction( myPostDrawFun );
@@ -220,9 +221,9 @@ void drawGrid(float size, int steps)
 	}
 	glEnd();
 	
-	glVertex3f( -1.0f, 0.01f, 0.0f);
-	glVertex3f( 1.0f, 0.01f, 0.0f);
-	glVertex3f( 1.0f, -0.01f, 0.0f);
+	glVertex3f( -1.0f,  0.01f, 0.0f);
+	glVertex3f(  1.0f,  0.01f, 0.0f);
+	glVertex3f(  1.0f, -0.01f, 0.0f);
 	glVertex3f( -1.0f, -0.01f, 0.0f);
 
 	glPopMatrix();

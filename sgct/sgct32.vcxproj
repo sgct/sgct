@@ -20,6 +20,9 @@
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\SGCTNetwork.cpp" />
     <ClCompile Include="src\SGCTWindow.cpp" />
+    <ClCompile Include="src\Shader.cpp" />
+    <ClCompile Include="src\ShaderManager.cpp" />
+    <ClCompile Include="src\ShaderProgram.cpp" />
     <ClCompile Include="src\SharedData.cpp" />
     <ClCompile Include="src\TextureManager.cpp" />
   </ItemGroup>
@@ -36,6 +39,9 @@
     <ClInclude Include="include\sgct\ReadConfig.h" />
     <ClInclude Include="include\sgct\SGCTNetwork.h" />
     <ClInclude Include="include\sgct\SGCTWindow.h" />
+    <ClInclude Include="include\sgct\Shader.h" />
+    <ClInclude Include="include\sgct\ShaderManager.h" />
+    <ClInclude Include="include\sgct\ShaderProgram.h" />
     <ClInclude Include="include\sgct\SharedData.h" />
     <ClInclude Include="include\sgct\Statistics.h" />
     <ClInclude Include="include\sgct\TextureManager.h" />

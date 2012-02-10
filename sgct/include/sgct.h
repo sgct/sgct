@@ -24,5 +24,6 @@
 #include "sgct/TextureManager.h"
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"
+#include "sgct/ShaderManager.h"
 
 #endif

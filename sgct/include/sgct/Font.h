@@ -4,6 +4,7 @@
 #include <freetype/ftglyph.h>
 
 #include <vector>
+#include <string>
 
 namespace Freetype
 {
@@ -16,7 +17,7 @@ Nehes font tutorial for freetype.
 class Font
 {
 public:
-	Font( const std::string & fontName = std::string(), float height = 0.0f );	
+	Font( const std::string & fontName = std::string(), float height = 0.0f );
 	~Font();
 
 	void init( const std::string & fontName, unsigned int h );
@@ -43,11 +44,11 @@ public:
 	/*! Equal to Font comparison operator */
 	inline bool operator==( const Font & rhs ) const
 	{ return mName.compare( rhs.mName ) == 0 && mHeight == rhs.mHeight; }
-	
+
 private:
 	std::string mName;				// Holds the font name
 	float mHeight;					// Holds the height of the font.
-	unsigned int * mTextures;		// Holds the texture id's 
+	unsigned int * mTextures;		// Holds the texture id's
 	unsigned int mListBase;			// Holds the first display list id
 
 	std::vector<FT_Glyph> mGlyphs;	// All glyphs needed by the font

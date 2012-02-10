@@ -8,7 +8,7 @@
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
-#include "sgct/Font.h"
+#include "Font.h"
 
 namespace sgct
 {
@@ -65,7 +65,7 @@ private:
 
 	static FontManager * mInstance;					// Singleton instance of the LogManager
 	static const FT_Short mDefaultHeight;			// Default height of font faces in pixels
-	
+
 	std::string mDefaultFontPath;			// The default font path from where to look for font files
 
 	FT_Library  mFTLibrary;							// Freetype library

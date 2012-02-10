@@ -1,4 +1,6 @@
-#include "sgct/ReadConfig.h"
+#define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
+
+#include "../include/sgct/ReadConfig.h"
 #include <tinyxml.h>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
@@ -10,7 +12,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		fprintf(stderr, "Error: No XML config file loaded.\n");
 		return;
 	}
-	
+
 	xmlFileName = filename;
 
 	try
@@ -57,7 +59,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 		if( strcmp("Node", val[0]) == 0 )
 		{
 			NodeConfig tmpNodeCfg;
-			tmpNodeCfg.master = (strcmp( element[0]->Attribute( "type" ), "Master" ) == 0 ? true : false); 
+			tmpNodeCfg.master = (strcmp( element[0]->Attribute( "type" ), "Master" ) == 0 ? true : false);
 			tmpNodeCfg.ip.assign( element[0]->Attribute( "ip" ) );
 
 			element[1] = element[0]->FirstChildElement();
@@ -70,7 +72,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 					tmpNodeCfg.fullscreen = (strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? true : false);
 					element[1]->Attribute("numberOfSamples", &tmpNodeCfg.numberOfSamples );
 					tmpNodeCfg.useSwapGroups = (strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
-					
+
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
@@ -100,6 +102,8 @@ void core_sgct::ReadConfig::readAndParseXML()
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
+						val[2] = element[2]->Value();
+
 						if( strcmp("Pos", val[2]) == 0 )
 						{
 							Point3f tmpP3;
@@ -121,7 +125,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 						element[2] = element[2]->NextSiblingElement();
 					}
 				}
-				
+
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
@@ -133,12 +137,12 @@ void core_sgct::ReadConfig::readAndParseXML()
 			double dTmp;
 			element[0]->Attribute("eyeSeparation", &dTmp);
 			eyeSeparation = static_cast<float>( dTmp );
-			
+
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-				
+
 				if( strcmp("Pos", val[1]) == 0 )
 				{
 					double dTmp[3];
@@ -175,7 +179,7 @@ int core_sgct::ReadConfig::getStereoType( const std::string type )
 		return PassiveHorizontal;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
 		return Checkerboard;
-	
+
 	//if match not found
 	return -1;
 }

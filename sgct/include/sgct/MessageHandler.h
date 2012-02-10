@@ -9,7 +9,7 @@
 
 #include <string>
 
-namespace sgct //small graphics cluster toolkit
+namespace sgct //simple graphics cluster toolkit
 {
 
 class MessageHandler

@@ -1,5 +1,5 @@
-#include "sgct/SharedData.h"
-#include "sgct/SGCTNetwork.h"
+#include "../include/sgct/SharedData.h"
+#include "../include/sgct/SGCTNetwork.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -31,7 +31,7 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 }
 
 void SharedData::decode(const char * receivedData, int receivedLenght, int clientIndex)
-{	
+{
 	//re-allocate buffer if needed
 	if( receivedLenght > static_cast<int>(dataBlock.capacity()) )
 		dataBlock.reserve(receivedLenght);
@@ -39,7 +39,7 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 
 	//ignore the header byte
 	pos = 1;
-	
+
 	if( mDecodeFn != NULL )
 		mDecodeFn();
 }

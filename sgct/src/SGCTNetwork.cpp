@@ -1,5 +1,9 @@
-#include "sgct/SGCTNetwork.h"
-#include "sgct/SharedData.h"
+#if !(_MSC_VER >= 1400) //if not visual studio 2005 or later
+    #define _WIN32_WINNT 0x501
+#endif
+
+#include "../include/sgct/SGCTNetwork.h"
+#include "../include/sgct/SharedData.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
@@ -79,7 +83,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 
 	// Resolve the local address and port to be used by the server
 	int iResult;
-	
+
 	if( mServer )
 		iResult = getaddrinfo(NULL, port.c_str(), &hints, &result);
 	else
@@ -87,7 +91,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	if (iResult != 0)
 	{
 		WSACleanup();
-		throw "Failed to parse hints for connection."; 
+		throw "Failed to parse hints for connection.";
 	}
 
 	// Attempt to connect to the first address returned by
@@ -109,7 +113,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		TCP_NODELAY,     /* name of option */
 		(char *) &flag,  /* the cast is historical cruft */
 		sizeof(int));    /* length of option value */
-    
+
 	if (iResult < 0)
 	{
 		freeaddrinfo(result);
@@ -117,7 +121,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		throw "Failed to set TCP_NODELAY!";
 	}
 
-	
+
 	if( mServer )
 	{
 		// Setup the TCP listening socket
@@ -131,7 +135,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		}
 
 		freeaddrinfo(result);
-	
+
 		threadID = glfwCreateThread( listenForClients, this );
 		if( threadID < 0)
 		{
@@ -186,16 +190,16 @@ void GLFWCALL listenForClients(void *arg)
 
 		// Wait for connection
 		cd.client_socket = accept(nPtr->mSocket, NULL, NULL);
-		
+
 		if (cd.client_socket != INVALID_SOCKET)
-		{	
+		{
 			nPtr->clients.push_back(cd);
-			
+
 			core_sgct::TCPData * dataPtr = new core_sgct::TCPData;
 			dataPtr->mClientIndex = static_cast<int>(nPtr->clients.size()) - 1;
 			dataPtr->mNetwork = nPtr;
 			dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].connected = true;
-			
+
 			//check if all connected and don't count itself
 			if(dataPtr->mNetwork->getNumberOfNodesInConfig()-1 == dataPtr->mNetwork->clients.size())
 			{
@@ -226,7 +230,7 @@ function to decode messages on the client from the server
 void GLFWCALL communicationHandler(void *arg)
 {
 	core_sgct::TCPData * dataPtr = (core_sgct::TCPData *)arg;
-	
+
 	//init buffer
 	int recvbuflen = dataPtr->mNetwork->mBufferSize;
 	char * recvbuf;
@@ -241,7 +245,7 @@ void GLFWCALL communicationHandler(void *arg)
 			iResult = recv( dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].client_socket, recvbuf, recvbuflen, 0);
 		else
 			iResult = recv( dataPtr->mNetwork->mSocket, recvbuf, recvbuflen, 0);
-			
+
 		if (iResult > 0)
 		{
 			//check type of message
@@ -359,8 +363,8 @@ void core_sgct::SGCTNetwork::close()
 			closesocket( clients[i].client_socket );
 		}
 		fprintf( stderr, " Done!\n");
-	}	
-	
+	}
+
 	fprintf( stderr, "Closing server connection...");
 	if( threadID != -1 )
 		glfwDestroyThread( threadID	);

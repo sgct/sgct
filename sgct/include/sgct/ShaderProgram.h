@@ -1,7 +1,7 @@
 #ifndef _SHADER_PROGRAM_H_
 #define _SHADER_PROGRAM_H_
 
-#include "sgct/Shader.h"
+#include "Shader.h"
 
 namespace sgct
 {
@@ -9,7 +9,7 @@ namespace sgct
 /*!
 Helper class for handling compiling, linking and using shader programs.
 Current implementation only supports vertex and fragment shader. Uniform and
-attribute handling must be managed explicitly but it is possible to poll the 
+attribute handling must be managed explicitly but it is possible to poll the
 Shader program for uniform and attribute locations.
 */
 class ShaderProgram
@@ -29,17 +29,17 @@ public:
 	bool createAndLinkProgram();
 
 	bool use() const;
-	
-	/*! 
-	Get the location of the attribute, no explicit error checks are performed. 
+
+	/*!
+	Get the location of the attribute, no explicit error checks are performed.
 	Users are responsible of checking the return value of the attribute location
 	@param	name Name of the attribute
 	@return	Uniform location within the program, -1 if not an active attribute
 	*/
 	inline GLint getAttribLocation( const std::string & name ) const { return glGetAttribLocation( mProgramId, name.c_str() ); }
-	
-	/*! 
-	Get the location of the attribute, no explicit error checks are performed. 
+
+	/*!
+	Get the location of the attribute, no explicit error checks are performed.
 	Users are responsible of checking the return value of the attribute location
 	@param	name Name of the uniform
 	@return	Uniform location within the program, -1 if not an active uniform
@@ -65,9 +65,8 @@ private:
 
 private:
 
-	bool mIsLinked;						// If this program has been linked
-
 	std::string mName;					// Name of the program, has to be unique
+	bool mIsLinked;						// If this program has been linked
 	GLint mProgramId;					// Unique program id
 
 	core_sgct::Shader mVertexShader;	// Handler for the vertex shader

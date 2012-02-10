@@ -1,8 +1,10 @@
-#include "sgct/ShaderProgram.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "../include/sgct/ShaderProgram.h"
 
 /*!
 Default only sets the program name.Shaders objects won't be created until
-the any shader source code is set. The program will be created when the 
+the any shader source code is set. The program will be created when the
 createAndLink() function is called. Make sure the shader sources are
 set before calling it.
 @param	name	Name of the shader program. Must be unique
@@ -120,7 +122,7 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 	//
 	glAttachShader( mProgramId, mVertexShader.getId() );
 	glAttachShader( mProgramId, mFragmentShader.getId() );
-	
+
 	glLinkProgram( mProgramId );
 
 	return mIsLinked = checkLinkStatus();
@@ -156,9 +158,9 @@ bool sgct::ShaderProgram::createProgram()
 		return false;
 	}
 
-	return true;	
+	return true;
 }
-//----------------------------------------------------------------------------//	
+//----------------------------------------------------------------------------//
 
 /*!
 Will check the link status of the program and output any errors from the program log
@@ -173,7 +175,7 @@ bool sgct::ShaderProgram::checkLinkStatus() const
 	{
 		GLint logLength;
 		glGetProgramiv( mProgramId, GL_INFO_LOG_LENGTH, &logLength );
-		
+
 		GLchar * log = new GLchar[logLength];
 		glGetProgramInfoLog( mProgramId, logLength, NULL, log );
 
@@ -182,7 +184,7 @@ bool sgct::ShaderProgram::checkLinkStatus() const
 		delete[] log;
 		return false;
 	}
-	
+
 	return linkStatus == GL_TRUE;
 }
 //----------------------------------------------------------------------------//
@@ -195,10 +197,10 @@ bool sgct::ShaderProgram::use() const
 	//
 	// Make sure the program is linked before it can be used
 	//
-	if( !mIsLinked ) 
+	if( !mIsLinked )
 	{
 		fprintf( stderr, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
-		return false; 
+		return false;
 	}
 
 	glUseProgram( mProgramId );

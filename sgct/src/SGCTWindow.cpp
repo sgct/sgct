@@ -1,7 +1,7 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/SGCTWindow.h"
+#include "../include/sgct/SGCTWindow.h"
 #include <stdio.h>
 
 HDC hDC;
@@ -87,7 +87,7 @@ void core_sgct::SGCTWindow::useQuadbuffer(const bool state)
 bool core_sgct::SGCTWindow::openWindow()
 {
 	/* Open an OpenGL window
-	param: 
+	param:
 	int width
 	int height
 	int redbits
@@ -100,7 +100,7 @@ bool core_sgct::SGCTWindow::openWindow()
 	*/
 
 	//glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 4 );
-	//glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 1 );	
+	//glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 1 );
 
 	return GL_TRUE == glfwOpenWindow( mWindowRes[0],
 		mWindowRes[1],
@@ -129,7 +129,7 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 }
 
 void GLFWCALL windowResizeCallback( int width, int height )
-{ 
+{
 	instancePtr->setWindowResolution(width, height > 0 ? height : 1);
 }
 
@@ -139,7 +139,7 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
 	if (mBarrier)
 	{
 		wglQueryFrameCountNV(hDC, &frameNumber);
-	}		
+	}
 }
 
 void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()

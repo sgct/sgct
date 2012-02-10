@@ -28,7 +28,7 @@ unsigned char flags = 0;
 void drawGrid(float size, int steps);
 
 int main( int argc, char* argv[] )
-{	
+{
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setInitOGLFunction( myInitOGLFun );
 
@@ -57,15 +57,15 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete gEngine;
-	
+
 	// Exit program
 	exit( EXIT_SUCCESS );
 }
 
 void myDrawFun()
-{	
+{
 	glPushMatrix();
-	
+
 	/*if( gEngine->isUsingSwapGroups() )
 	{
 		GLuint frameNumber;
@@ -76,7 +76,7 @@ void myDrawFun()
 		glTranslatef(0.0f, static_cast<float>(sin(gEngine->mSharedData->time)), 0.0f);
 	glColor3f(1.0f,0.0f,0.0f); //red
 	glBegin(GL_QUADS);
-	
+
 	glVertex3f( -3.0f, 0.01f, 0.0f);
 	glVertex3f( 3.0f, 0.01f, 0.0f);
 	glVertex3f( 3.0f, -0.01f, 0.0f);
@@ -89,7 +89,7 @@ void myDrawFun()
 	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glLineWidth(2.0);
-	
+
 	//draw a cube
 	//bottom
 	glBegin(GL_LINE_STRIP);
@@ -205,7 +205,7 @@ void drawGrid(float size, int steps)
 	glTranslatef(-size/2.0f, -size/2.0f, 0.0f);
 	glColor4f(1.0f,1.0f,1.0f,0.5f);
 	glLineWidth(1.0);
-	
+
 	glBegin(GL_LINES);
 	//horizontal lines
 	for( float f=0.0f; f<=size; f+= (size/static_cast<float>(steps)))
@@ -220,7 +220,7 @@ void drawGrid(float size, int steps)
 		glVertex3f( f, size, 0.0f);
 	}
 	glEnd();
-	
+
 	glVertex3f( -1.0f,  0.01f, 0.0f);
 	glVertex3f(  1.0f,  0.01f, 0.0f);
 	glVertex3f(  1.0f, -0.01f, 0.0f);

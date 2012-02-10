@@ -1,4 +1,4 @@
-#include "sgct/Shader.h"
+#include "../include/sgct/Shader.h"
 
 #include <fstream>
 #include <sstream>
@@ -38,9 +38,9 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 
 	if( !shaderFile.is_open() )
 	{
-		fprintf( stderr, 
-			"Could not open %s file[%s].\n", 
-			getShaderTypeName( mShaderType ).c_str(), 
+		fprintf( stderr,
+			"Could not open %s file[%s].\n",
+			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
 		return false;
 	}
@@ -50,22 +50,22 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	//
 	shaderFile.seekg( 0, std::ios_base::end );
 	int fileLength = static_cast<int>( shaderFile.tellg() );
-		
+
 	shaderFile.seekg( 0, std::ios_base::beg );
 	std::string shaderSrc( fileLength, '\0' );
 
-	// 
+	//
 	// Make sure the file is not empty
 	//
 	if( fileLength == 0 )
 	{
-		fprintf( stderr, 
+		fprintf( stderr,
 			"Can't create source for %s: empty file [%s].\n",
 			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
 		return false;
 	}
-	
+
 	//
 	// Copy file content to string
 	//
@@ -92,8 +92,8 @@ bool core_sgct::Shader::setSourceFromString( const std::string & sourceString )
 	//
 	if( mShaderId > 0 )
 	{
-		fprintf( stderr, 
-			"%s is alread set for specified shader.\n", 
+		fprintf( stderr,
+			"%s is alread set for specified shader.\n",
 			getShaderTypeName( mShaderType ).c_str() );
 		return false;
 	}
@@ -131,12 +131,12 @@ bool core_sgct::Shader::checkCompilationStatus() const
 
 		if( logLength == 0 )
 		{
-			fprintf( stderr, "%s compile error: Unknown error\n", getShaderTypeName( mShaderType ) );
+			fprintf( stderr, "%s compile error: Unknown error\n", getShaderTypeName( mShaderType ).c_str() );
 			return false;
 		}
 
 		GLchar * log = new GLchar[logLength];
-		
+
 		glGetShaderInfoLog( mShaderId, logLength, NULL, log );
 		fprintf( stderr, "%s compile error: %s\n", getShaderTypeName( mShaderType ).c_str(), log );
 

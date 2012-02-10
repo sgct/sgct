@@ -1,4 +1,4 @@
-#include "sgct/ShaderManager.h"
+#include "../include/sgct/ShaderManager.h"
 
 #include <algorithm>
 

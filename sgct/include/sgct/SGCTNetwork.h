@@ -15,7 +15,12 @@
 #include <winsock2.h>
 #include <string>
 #include <vector>
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
 #include <functional>
+#else
+#include <tr1/functional>
+#endif
 
 namespace core_sgct //small graphics cluster toolkit
 {
@@ -45,14 +50,14 @@ public:
 	bool matchHostName(const std::string name);
 	bool matchAddress(const std::string ip);
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	
+
 	inline bool isRunning() { return mRunning; }
 	inline bool isServer() { return mServer; }
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	inline unsigned int getNumberOfNodesInConfig() { return mNumberOfNodesInConfig; }
 	void setRunning(bool state) { mRunning = state; }
 	void setAllNodesConnected(bool state);
-	
+
 	enum PackageHeaders { SyncHeader = 0, SizeHeader, ClusterConnected };
 	SOCKET mSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
@@ -76,7 +81,7 @@ class TCPData
 {
 public:
 	TCPData() { mClientIndex = -1; }
-	
+
 	SGCTNetwork * mNetwork;
 	int mClientIndex; //-1 if message from server
 };

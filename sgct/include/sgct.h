@@ -14,7 +14,7 @@
 #ifndef _SGCT_H_
 #define _SGCT_H_
 
-#include <windows.h>
+#include <windows.h> //must be declared before glfw
 #include <winsock2.h>
 #include <GL/glew.h>
 #include <GL/wglew.h>

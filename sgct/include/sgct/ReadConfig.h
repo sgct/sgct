@@ -12,7 +12,7 @@
 
 #include "Point3.h"
 
-namespace core_sgct //small graphics cluster toolkit
+namespace core_sgct //simple graphics cluster toolkit
 {
 
 struct NodeConfig

@@ -1,6 +1,8 @@
+#include <stdio.h>
 #include <GL/glew.h>
-#include "sgct/TextureManager.h"
-#include "sgct/Image.h"
+
+#include "../include/sgct/TextureManager.h"
+#include "../include/sgct/Image.h"
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 
@@ -56,12 +58,12 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 	if(img.getData() != NULL)
 	{
 		glBindTexture(GL_TEXTURE_2D, texID);
-		
+
 		int textureType = GL_RGB;
 		if(img.getChannels() == 4)	textureType = GL_RGBA;
 		else if(img.getChannels() == 1)	textureType = GL_LUMINANCE; /* todo: the user should be able to choose between GL_Luminance and GL_alpha */
 		else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
-		
+
 		GLint components;
 
 		if(mCompression)
@@ -87,7 +89,7 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 			components = img.getChannels();
 			fprintf( stderr, "Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
 		}
-		
+
 		glTexImage2D(GL_TEXTURE_2D, 0, components, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
 		if(mipmapLevels > 1)
 		{

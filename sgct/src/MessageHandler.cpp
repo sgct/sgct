@@ -1,4 +1,4 @@
-#include "sgct/MessageHandler.h"
+#include "../include/sgct/MessageHandler.h"
 #include <stdlib.h>
 #include <stdio.h>
 

@@ -7,9 +7,10 @@
 #ifndef _SHARED_DATA
 #define _SHARED_DATA
 
+#include <stddef.h> //get definition for NULL
 #include <vector>
 
-namespace sgct //small graphics cluster toolkit
+namespace sgct //simple graphics cluster toolkit
 {
 
 class SharedData

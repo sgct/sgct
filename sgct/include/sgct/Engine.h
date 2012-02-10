@@ -7,14 +7,14 @@
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
-#include "sgct/SGCTNetwork.h"
-#include "sgct/SGCTWindow.h"
-#include "sgct/ReadConfig.h"
-#include "sgct/Frustum.h"
-#include "sgct/Statistics.h"
-#include "sgct/User.h"
+#include "SGCTNetwork.h"
+#include "SGCTWindow.h"
+#include "ReadConfig.h"
+#include "Frustum.h"
+#include "Statistics.h"
+#include "User.h"
 
-namespace sgct //small graphics cluster toolkit
+namespace sgct //simple graphics cluster toolkit
 {
 
 class Engine
@@ -38,9 +38,9 @@ public:
 	void setPostDrawFunction(void(*fnPtr)(void));
 	void setInitOGLFunction(void(*fnPtr)(void));
 	void setClearBufferFunction(void(*fnPtr)(void));
-	
+
 	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
-	
+
 	inline core_sgct::SGCTWindow * getWindowPtr() { return mWindow; }
 	inline bool isSyncServer() { return isServer; }
 	inline bool isDisplayInfoRendered() { return displayInfo; }
@@ -56,11 +56,11 @@ private:
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
-	
+
 	//stereo render functions
 	void setNormalRenderingMode();
 	void setActiveStereoRenderingMode();
-	
+
 	static void clearBuffer(void);
 
 private:
@@ -88,7 +88,7 @@ private:
 	//objects
 	core_sgct::User			mUser;
 	core_sgct::Statistics	mStatistics;
-	
+
 	//pointers
 	core_sgct::SGCTWindow	* mWindow;
 	core_sgct::SGCTNetwork	* mNetwork;

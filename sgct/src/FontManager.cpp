@@ -1,9 +1,9 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/FontManager.h"
+#include "../include/sgct/FontManager.h"
 
-#include "freetype/ftglyph.h"
+#include <freetype/ftglyph.h>
 
 #include <algorithm>
 #include <stdio.h>
@@ -11,7 +11,7 @@
 using namespace sgct;
 
 //----------------------------------------------------------------------
-// Helper functions 
+// Helper functions
 //----------------------------------------------------------------------
 
 /*!
@@ -34,13 +34,13 @@ FontManager * FontManager::mInstance = NULL;
 /*! Default height in pixels for all font faces */
 const FT_Short FontManager::mDefaultHeight = 10;
 
-/*! 
-Constructor initiates the freetyp library 
+/*!
+Constructor initiates the freetyp library
 */
 FontManager::FontManager(void)
 {
 	FT_Error error = FT_Init_FreeType( &mFTLibrary );
-	
+
 	if ( error != 0 )
 	{
 		fprintf( stderr, "Could not initiate Freetype library.\n" );
@@ -98,13 +98,13 @@ bool FontManager::AddFont( const std::string & fontName, std::string path, FontP
 	{
 		path = mDefaultFontPath + path;
 	}
-	
+
 	bool inserted = mFontPaths.insert( std::pair<std::string, std::string>( fontName, path ) ).second;
 
 	if( !inserted )
 	{
-		
-		fprintf( stderr, "Font with name [&s] already specified.\n", fontName.c_str() );
+
+		fprintf( stderr, "Font with name '%s' already specified.\n", fontName.c_str() );
 		return false;
 	}
 
@@ -178,7 +178,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 	// Create the font when all error tests are done
 	Freetype::Font newFont = Freetype::Font();
 	newFont.init( fontName, height );
-	
+
 
 	//This is where we actually create each of the fonts display lists.
 	for( unsigned char i = 0;i < 128; ++i )
@@ -204,7 +204,7 @@ Create a display list for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font ) 
+bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font )
 {
 
 	//The first thing we do is get FreeType to render our character
@@ -217,7 +217,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 		// Implement error message " char %s"
 		return false;
 	}
-		
+
 
 	//Move the face's glyph into a Glyph object.
     FT_Glyph glyph;
@@ -247,15 +247,15 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//Notice that we are using two channel bitmap (one for
 	//luminocity and one for alpha), but we assign
 	//both luminocity and alpha to the value that we
-	//find in the FreeType bitmap. 
+	//find in the FreeType bitmap.
 	//We use the ?: operator so that value which we use
 	//will be 0 if we are in the padding zone, and whatever
 	//is the the Freetype bitmap otherwise.
-	for( int j = 0; j < height; ++j ) 
+	for( int j = 0; j < height; ++j )
 	{
 		for( int i = 0; i < width; ++i )
 		{
-			expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] = 
+			expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] =
 				(i>=bitmap.width || j>=bitmap.rows) ?
 				0 : bitmap.buffer[i + bitmap.width*j];
 		}
@@ -263,7 +263,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 
 
 	//Now we just setup some texture paramaters.
-	GLuint textureId = font.getTextures()[ch];
+	GLuint textureId = font.getTextures()[static_cast<unsigned int>(ch)];
 	glBindTexture( GL_TEXTURE_2D, textureId );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -290,14 +290,14 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	glTranslatef( (GLfloat)bitmap_glyph->left,0,0);
 
 	//Now we move down a little in the case that the
-	//bitmap extends past the bottom of the line 
+	//bitmap extends past the bottom of the line
 	//(this is only true for characters like 'g' or 'y'.
 	glTranslatef( 0, (GLfloat)bitmap_glyph->top-bitmap.rows, 0 );
 
 	//Now we need to account for the fact that many of
 	//our textures are filled with empty padding space.
-	//We figure what portion of the texture is used by 
-	//the actual character and store that information in 
+	//We figure what portion of the texture is used by
+	//the actual character and store that information in
 	//the x and y variables, then when we draw the
 	//quad, we will only reference the parts of the texture
 	//that we contain the character itself.
@@ -305,7 +305,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 			y=(float)bitmap.rows / (float)height;
 
 	//Here we draw the texturemaped quads.
-	//The bitmap that we got from FreeType was not 
+	//The bitmap that we got from FreeType was not
 	//oriented quite like we would like it to be,
 	//so we need to link the texture to the quad
 	//so that the result will be properly aligned.
@@ -317,7 +317,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 		glTexCoord2d( x, 0 ); glVertex2f( (GLfloat)bitmap.width, (GLfloat)bitmap.rows );
 	glEnd();
 	glPopMatrix();
-	
+
 	glTranslatef( (GLfloat)(face->glyph->advance.x >> 6), 0, 0 );
 
 

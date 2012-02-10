@@ -1,25 +1,25 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/Engine.h"
-#include "sgct/freetype.h"
-#include "sgct/FontManager.h"
-#include "sgct/MessageHandler.h"
-#include "sgct/TextureManager.h"
-#include "sgct/SharedData.h"
-#include "sgct/ShaderManager.h"
+#include "../include/sgct/Engine.h"
+#include "../include/sgct/freetype.h"
+#include "../include/sgct/FontManager.h"
+#include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/TextureManager.h"
+#include "../include/sgct/SharedData.h"
+#include "../include/sgct/ShaderManager.h"
 #include <math.h>
 #include <sstream>
 
 sgct::Engine::Engine( int argc, char* argv[] )
-{	
+{
 	//init pointers
 	mNetwork = NULL;
 	mWindow = NULL;
 	mConfig = NULL;
 	for( unsigned int i=0; i<3; i++)
 		mFrustums[i] = NULL;
-	
+
 	//init function pointers
 	mDrawFn = NULL;
 	mPreDrawFn = NULL;
@@ -55,7 +55,7 @@ bool sgct::Engine::init()
 	{
 		fprintf(stderr, "Error in xml config file parsing.\n");
 		return false;
-	} 
+	}
 	if( !initNetwork() )
 	{
 		fprintf(stderr, "Network init error.\n");
@@ -121,19 +121,19 @@ bool sgct::Engine::initNetwork()
 	}
 
 	try
-	{	
+	{
 		fprintf(stderr, "Initiating network communication...\n");
 		if( runningLocal )
 			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mConfig->getNumberOfNodes());
 		else
 			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mConfig->getNumberOfNodes());
-		
+
 		//set decoder for client
 		if( isServer )
 		{
 			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(), 
-				std::tr1::placeholders::_1, 
+			callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
+				std::tr1::placeholders::_1,
 				std::tr1::placeholders::_2,
 				std::tr1::placeholders::_3);
 			mNetwork->setDecodeFunction(callback);
@@ -141,8 +141,8 @@ bool sgct::Engine::initNetwork()
 		else
 		{
 			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(), 
-				std::tr1::placeholders::_1, 
+			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
+				std::tr1::placeholders::_1,
 				std::tr1::placeholders::_2,
 				std::tr1::placeholders::_3);
 			mNetwork->setDecodeFunction(callback);
@@ -169,13 +169,13 @@ bool sgct::Engine::initWindow()
 	mWindow->setWindowPosition(
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[0],
 		mConfig->getNodePtr(mThisClusterNodeId)->windowData[1] );
-	
-	mWindow->setWindowMode( mConfig->getNodePtr(mThisClusterNodeId)->fullscreen ? 
+
+	mWindow->setWindowMode( mConfig->getNodePtr(mThisClusterNodeId)->fullscreen ?
 		GLFW_FULLSCREEN : GLFW_WINDOW );
-	
+
 	mWindow->useSwapGroups( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups );
 	mWindow->useQuadbuffer( mConfig->getNodePtr(mThisClusterNodeId)->stereo == core_sgct::ReadConfig::Active );
-	
+
 	int antiAliasingSamples = mConfig->getNodePtr(mThisClusterNodeId)->numberOfSamples;
 	if( antiAliasingSamples > 1 ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
@@ -193,8 +193,13 @@ bool sgct::Engine::initWindow()
 	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	char windowTitle[32];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 	sprintf_s( windowTitle, sizeof(windowTitle), "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave");
+    #else
+    sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+		isServer ? "server" : "slave");
+    #endif
 	mWindow->init(windowTitle);
 
 	//Must wait until all nodes are running if using swap barrier
@@ -213,7 +218,7 @@ bool sgct::Engine::initWindow()
 }
 
 void sgct::Engine::initOGL()
-{	
+{
 	//Get OpenGL version
 	int version[3];
 	glfwGetGLVersion( &version[0], &version[1], &version[2] );
@@ -228,13 +233,13 @@ void sgct::Engine::initOGL()
 		mInitOGLFn();
 
 	calculateFrustums();
-	
+
 	switch( mConfig->getNodePtr(mThisClusterNodeId)->stereo )
 	{
 	case core_sgct::ReadConfig::Active:
 		mInternalRenderFn = &Engine::setActiveStereoRenderingMode;
 		break;
-	
+
 	default:
 		mInternalRenderFn = &Engine::setNormalRenderingMode;
 		break;
@@ -248,7 +253,7 @@ void sgct::Engine::initOGL()
 void sgct::Engine::clean()
 {
 	fprintf(stderr, "Cleaning up...\n");
-	
+
 	//close TCP connections
 	if( mNetwork != NULL )
 	{
@@ -264,7 +269,7 @@ void sgct::Engine::clean()
 	for( unsigned int i=0; i<3; i++)
 		if( mFrustums[i] != NULL )
 			delete mFrustums[i];
-	
+
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
 	ShaderManager::Destroy();
@@ -280,15 +285,15 @@ void sgct::Engine::clean()
 void sgct::Engine::render()
 {
 	int running = GL_TRUE;
-	
+
 	while( running )
 	{
 		if( mPreDrawFn != NULL )
 			mPreDrawFn();
-	
+
 		if( isServer )
 		{
-			sgct::SharedData::Instance()->encode();	
+			sgct::SharedData::Instance()->encode();
 			mNetwork->sync();
 		}
 		else
@@ -296,10 +301,10 @@ void sgct::Engine::render()
 			if( !mNetwork->isRunning() ) //exit if not running
 				break;
 		}
-	
+
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
-		
+
 		(this->*mInternalRenderFn)();
 
 		mStatistics.DrawTime = (glfwGetTime() - startFrameTime);
@@ -310,7 +315,7 @@ void sgct::Engine::render()
 
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
-		
+
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed
@@ -339,15 +344,15 @@ void sgct::Engine::setNormalRenderingMode()
 {
 	activeFrustum = core_sgct::Frustum::Mono;
 	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glFrustum(mFrustums[core_sgct::Frustum::Mono]->getLeft(), 
+	glFrustum(mFrustums[core_sgct::Frustum::Mono]->getLeft(),
 		mFrustums[core_sgct::Frustum::Mono]->getRight(),
         mFrustums[core_sgct::Frustum::Mono]->getBottom(),
 		mFrustums[core_sgct::Frustum::Mono]->getTop(),
-        mFrustums[core_sgct::Frustum::Mono]->getNear(), 
+        mFrustums[core_sgct::Frustum::Mono]->getNear(),
 		mFrustums[core_sgct::Frustum::Mono]->getFar());
 
 	//translate to user pos
@@ -356,7 +361,7 @@ void sgct::Engine::setNormalRenderingMode()
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
-	
+
 	if( mDrawFn != NULL )
 		mDrawFn();
 	if( displayInfo )
@@ -370,14 +375,14 @@ void sgct::Engine::setActiveStereoRenderingMode()
 {
 	glViewport (0, 0, mWindow->getHResolution(), mWindow->getVResolution());
 	activeFrustum = core_sgct::Frustum::StereoLeftEye;
-	
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(mFrustums[core_sgct::Frustum::StereoLeftEye]->getLeft(), 
+	glFrustum(mFrustums[core_sgct::Frustum::StereoLeftEye]->getLeft(),
 		mFrustums[core_sgct::Frustum::StereoLeftEye]->getRight(),
         mFrustums[core_sgct::Frustum::StereoLeftEye]->getBottom(),
 		mFrustums[core_sgct::Frustum::StereoLeftEye]->getTop(),
-        mFrustums[core_sgct::Frustum::StereoLeftEye]->getNear(), 
+        mFrustums[core_sgct::Frustum::StereoLeftEye]->getNear(),
 		mFrustums[core_sgct::Frustum::StereoLeftEye]->getFar());
 
 	//translate to user pos
@@ -386,7 +391,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	glDrawBuffer(GL_BACK_LEFT);
 	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
-	
+
 	if( mDrawFn != NULL )
 		mDrawFn();
 	if( displayInfo )
@@ -398,11 +403,11 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	activeFrustum = core_sgct::Frustum::StereoRightEye;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(mFrustums[core_sgct::Frustum::StereoRightEye]->getLeft(), 
+	glFrustum(mFrustums[core_sgct::Frustum::StereoRightEye]->getLeft(),
 		mFrustums[core_sgct::Frustum::StereoRightEye]->getRight(),
         mFrustums[core_sgct::Frustum::StereoRightEye]->getBottom(),
 		mFrustums[core_sgct::Frustum::StereoRightEye]->getTop(),
-        mFrustums[core_sgct::Frustum::StereoRightEye]->getNear(), 
+        mFrustums[core_sgct::Frustum::StereoRightEye]->getNear(),
 		mFrustums[core_sgct::Frustum::StereoRightEye]->getFar());
 
 	//translate to user pos
@@ -411,7 +416,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	glDrawBuffer(GL_BACK_RIGHT);
 	mClearBufferFn(); //clear buffers
 	glLoadIdentity();
-	
+
 	if( mDrawFn != NULL )
 		mDrawFn();
 	if( displayInfo )
@@ -435,7 +440,7 @@ void sgct::Engine::calculateFrustums()
 	float nearFactor = nearClippingPlaneDist / (mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ core_sgct::ReadConfig::LowerLeft ].z - mConfig->getUserPos()->z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
-	
+
 	mFrustums[core_sgct::Frustum::Mono] = new core_sgct::Frustum(
 		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ core_sgct::ReadConfig::LowerLeft ].x - mConfig->getUserPos()->x)*nearFactor,
 		(mConfig->getNodePtr(mThisClusterNodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperRight ].x - mConfig->getUserPos()->x)*nearFactor,

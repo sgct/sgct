@@ -1,7 +1,7 @@
 #include <GL/glew.h>
 #include <GL/wglew.h>
 #include <GL/glfw.h>
-#include "sgct/Font.h"
+#include "../include/sgct/Font.h"
 
 #define SAFE_DELETE( p ) { if( p != NULL ) { delete p; p = NULL; } };
 #define SAFE_DELETE_A( p ) { if( p != NULL ) { delete[] p; p = NULL; } };
@@ -14,7 +14,7 @@ The init function needs to be called before the font can actually be used
 @param	fontName	Name of the font
 @param	height		Height of the font
 */
-Font::Font( const std::string & fontName, float height ) : 
+Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
 	mTextures( NULL ),

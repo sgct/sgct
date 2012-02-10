@@ -3,7 +3,7 @@
 #include <png.h>
 #include <pngpriv.h>
 
-#include "sgct/Image.h"
+#include "../include/sgct/Image.h"
 
 bool core_sgct::Image::load(const char * filename)
 {
@@ -21,11 +21,16 @@ bool core_sgct::Image::load(const char * filename)
 		type[3] = filename[length-1];
 		type[4] = '\0';
 
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		if( strcpy_s(type, sizeof(type), ".PNG" ) != 0)
+			return loadPNG(filename);
+#else
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
 			return loadPNG(filename);
+#endif
 		else
 		{
-			fprintf( stderr, "Unknown filesuffix: \"%s\"\n", type, filename);
+			fprintf( stderr, "Unknown filesuffix: \"%s\"\n", type);
 			return false;
 		}
 	}
@@ -40,24 +45,38 @@ bool core_sgct::Image::load(const char * filename)
 
 bool core_sgct::Image::loadPNG(const char *filename)
 {
-	if( strcpy_s(_filename, sizeof(_filename), filename ) != 0)
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( strcpy_s(_filename, sizeof(_filename), filename ) != 0)
 		return false;
+    #else
+    if( strcpy(_filename, filename ) != 0)
+		return false;
+    #endif
 
 	unsigned char *pb;
-  
+
 	png_structp png_ptr;
 	png_infop info_ptr;
-	unsigned int sig_read = 0;
 	char header[PNG_BYTES_TO_CHECK];
 	//int numChannels;
 	int r, color_type, bpp;
 
 	FILE *fp = NULL;
-	if( fopen_s( &fp, _filename, "rb") != 0 && !fp )
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( fopen_s( &fp, _filename, "rb") != 0 && !fp )
 	{
 		fprintf( stderr, "Can't open PNG texture file '%s'\n", _filename);
 		return false;
 	}
+    #else
+    fp = fopen(_filename, "rb");
+    if( fp == NULL )
+	{
+		fprintf( stderr, "Can't open PNG texture file '%s'\n", _filename);
+		return false;
+	}
+    #endif
+
 
 	fread( header, 1, PNG_BYTES_TO_CHECK, fp );
 	if( png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
@@ -169,7 +188,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 	fclose(fp);
-	
+
 	fprintf( stderr, "Image loaded %s\n", _filename);
 	return true;
 }

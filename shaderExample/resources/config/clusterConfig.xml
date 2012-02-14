@@ -1,0 +1,68 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="172.19.8.10" port="20000">
+	<Node type="Master" ip="172.19.8.10">
+	<!-- <Node type="Master" ip="192.168.0.11"> -->
+		<Window fullscreen="false" numberOfSamples="4" swapLock="false">
+			<Stereo type="none" />
+			<!--<Size x="1388" y="400" />-->
+			<Size x="1456" y="420" />
+			<Pos x="100" y="100" />
+		</Window>
+		<Viewplane>
+			<!-- Lower left -->
+			<Pos x="-3.34533" y="-0.965" z="0.0" />
+			<!-- Upper left -->
+			<Pos x="-3.34533" y="0.965" z="0.0" />
+			<!-- Upper right -->
+			<Pos x="3.34533" y="0.965" z="0.0" />
+		</Viewplane>
+	</Node>
+	<Node type="Slave" ip="172.19.8.11">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+			<Stereo type="none" />
+			<Size x="1400" y="1050" />
+			<Pos x="0" y="0" />
+		</Window>
+		<Viewplane>
+			<!-- Lower left -->
+			<Pos x="-3.34533" y="-0.965" z="0.0" />
+			<!-- Upper left -->
+			<Pos x="-3.34533" y="0.965" z="0.0" />
+			<!-- Upper right -->
+			<Pos x="-0.772" y="0.965" z="0.0" />
+		</Viewplane>
+	</Node>
+	<Node type="Slave" ip="172.19.8.12">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+			<Stereo type="none" />
+			<Size x="1400" y="1050" />
+			<Pos x="0" y="0" />
+		</Window>
+		<Viewplane>
+			<!-- Lower left -->
+			<Pos x="-1.286667" y="-0.965" z="0.0" />
+			<!-- Upper left -->
+			<Pos x="-1.286667" y="0.965" z="0.0" />
+			<!-- Upper right -->
+			<Pos x="1.286667" y="0.965" z="0.0" />
+		</Viewplane>
+	</Node>
+	<Node type="Slave" ip="172.19.8.13">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+			<Stereo type="none" />
+			<Size x="1400" y="1050" />
+			<Pos x="0" y="0" />
+		</Window>
+		<Viewplane>
+			<!-- Lower left -->
+			<Pos x="0.772" y="-0.965" z="0.0" />
+			<!-- Upper left -->
+			<Pos x="0.772" y="0.965" z="0.0" />
+			<!-- Upper right -->
+			<Pos x="3.34533" y="0.965" z="0.0" />
+		</Viewplane>
+	</Node>
+	<User eyeSeparation="0.069">
+		<Pos x="0.0" y="0.085" z="3.6" />
+	</User>
+</Cluster>

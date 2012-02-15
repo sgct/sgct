@@ -17,11 +17,7 @@ The font engine
 //Include our header file.
 #include "../include/sgct/freetype.h"
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-//MSVC will spit out all sorts of useless warnings if
-//you create vectors of strings, this pragma gets rid of them.
-#pragma warning(disable: 4996)
-#endif
+#define TEXT_RENDER_BUFFER_SIZE 512
 
 namespace freetype {
 //
@@ -238,7 +234,7 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight() * 1.59f;
 
-	char		text[256];								// Holds Our String
+	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
 
 	if (fmt == NULL)									// If There's No Text
@@ -246,7 +242,11 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 
 	else {
 	va_start(ap, fmt);									// Parses The String For Variables
-	    vsprintf(text, fmt, ap);						// And Converts Symbols To Actual Numbers
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+#else
+		vsprintf(text, fmt, ap);
+#endif
 	va_end(ap);											// Results Are Stored In Text
 	}
 
@@ -331,15 +331,19 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight();
 
-	char		text[256];								// Holds Our String
+	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
 
 	if (fmt == NULL)									// If There's No Text
-		*text=0;											// Do Nothing
+		*text=0;										// Do Nothing
 
 	else {
 	va_start(ap, fmt);									// Parses The String For Variables
-	    vsprintf(text, fmt, ap);						// And Converts Symbols To Actual Numbers
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+#else
+		vsprintf(text, fmt, ap);
+#endif
 	va_end(ap);											// Results Are Stored In Text
 	}
 

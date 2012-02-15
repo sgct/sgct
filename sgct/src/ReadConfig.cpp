@@ -1,6 +1,7 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 
 #include "../include/sgct/ReadConfig.h"
+#include "../include/sgct/MessageHandler.h"
 #include <tinyxml.h>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
@@ -9,7 +10,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 
 	if( filename.empty() )
 	{
-		fprintf(stderr, "Error: No XML config file loaded.\n");
+		sgct::MessageHandler::Instance()->print("Error: No XML config file loaded.\n");
 		return;
 	}
 
@@ -21,15 +22,15 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	}
 	catch(char * err)
 	{
-		fprintf(stderr, "Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
+		sgct::MessageHandler::Instance()->print("Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
 		return;
 	}
 
 	valid = true;
-	fprintf(stderr, "Config file '%s' read successfully!\n", xmlFileName.c_str());
-	fprintf(stderr, "Number of nodes in cluster: %d\n", nodes.size());
+	sgct::MessageHandler::Instance()->print("Config file '%s' read successfully!\n", xmlFileName.c_str());
+	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", nodes.size());
 	for(unsigned int i = 0; i<nodes.size(); i++)
-		fprintf(stderr, "Node(%d) ip: %s\n", i, nodes[i].ip.c_str());
+		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s\n", i, nodes[i].ip.c_str());
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -163,8 +164,6 @@ void core_sgct::ReadConfig::readAndParseXML()
 		//iterate
 		element[0] = element[0]->NextSiblingElement();
 	}
-
-	//fprintf(stderr, "Done\n" );
 }
 
 int core_sgct::ReadConfig::getStereoType( const std::string type )

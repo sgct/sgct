@@ -37,8 +37,8 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 		dataBlock.reserve(receivedLenght);
 	dataBlock.assign(receivedData, receivedData+receivedLenght);
 
-	//ignore the header byte
-	pos = 1;
+	//reset
+	pos = 0;
 
 	if( mDecodeFn != NULL )
 		mDecodeFn();

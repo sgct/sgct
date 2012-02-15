@@ -1,9 +1,22 @@
+SGCT lib (Visual Studio)
+================
 glew32s.lib
 glfw.lib
 glu32.lib
 opengl32.lib
 freetype248.lib
 ws2_32.lib
-tinyxml.lib
+tinyxmlSTL.lib
 libpng15.lib
 zlib.lib
+
+SGCT lib (MinGW)
+================
+
+
+MinGW projects
+================
+sgct32
+opengl32
+glu32
+ws2_32

@@ -11,13 +11,13 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 
-unsigned int myTextureIndex; 
+unsigned int myTextureIndex;
 
 //variables to share across cluster
 double time = 0.0;
 
 int main( int argc, char* argv[] )
-{	
+{
 	gEngine = new sgct::Engine( argc, argv );
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -39,7 +39,7 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete gEngine;
-	
+
 	// Exit program
 	exit( EXIT_SUCCESS );
 }
@@ -51,7 +51,7 @@ void myDrawFun()
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
 	glBegin(GL_QUADS);
-	
+
 	glTexCoord2d(0.0,0.0);	glVertex3f( -0.5f, -0.5f, 0.0f);
 	glTexCoord2d(0.0,1.0);	glVertex3f( -0.5f, 0.5f, 0.0f);
 	glTexCoord2d(1.0,1.0);	glVertex3f( 0.5f, 0.5f, 0.0f);
@@ -79,7 +79,6 @@ void myInitOGLFun()
 
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "mug", "mug.png", true);
-	
 }
 
 void myEncodeFun()

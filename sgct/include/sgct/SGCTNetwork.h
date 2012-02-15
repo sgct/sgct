@@ -58,7 +58,7 @@ public:
 	void setRunning(bool state) { mRunning = state; }
 	void setAllNodesConnected(bool state);
 
-	enum PackageHeaders { SyncHeader = 0, SizeHeader, ClusterConnected };
+	enum PackageHeaders { SyncHeader = 33, SizeHeader, ClusterConnected };
 	SOCKET mSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::vector<ConnectionData> clients;

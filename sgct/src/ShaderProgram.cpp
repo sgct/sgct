@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "../include/sgct/ShaderProgram.h"
+#include "../include/sgct/MessageHandler.h"
 
 /*!
 Default only sets the program name.Shaders objects won't be created until
@@ -104,7 +105,7 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 	//
 	if( mVertexShader.getId() == 0 || mFragmentShader.getId() == 0 )
 	{
-		fprintf( stderr, "Can't create shader program [%s], all shader sources not properly set.\n", mName.c_str() );
+		sgct::MessageHandler::Instance()->print("Can't create shader program [%s], all shader sources not properly set.\n", mName.c_str() );
 		return false;
 	}
 
@@ -142,7 +143,7 @@ bool sgct::ShaderProgram::createProgram()
 		// if it has been linked already it can't be reused
 		if( mIsLinked )
 		{
-			fprintf( stderr, "Could not create shader program [%s]: Already linked to shaders.\n", mName.c_str() );
+			sgct::MessageHandler::Instance()->print("Could not create shader program [%s]: Already linked to shaders.\n", mName.c_str() );
 			return false;
 		}
 
@@ -154,7 +155,7 @@ bool sgct::ShaderProgram::createProgram()
 
 	if( mProgramId == 0 )
 	{
-		fprintf( stderr, "Could not create shader program [%s]: Unknown error.\n", mName.c_str() );
+		sgct::MessageHandler::Instance()->print("Could not create shader program [%s]: Unknown error.\n", mName.c_str() );
 		return false;
 	}
 
@@ -179,7 +180,7 @@ bool sgct::ShaderProgram::checkLinkStatus() const
 		GLchar * log = new GLchar[logLength];
 		glGetProgramInfoLog( mProgramId, logLength, NULL, log );
 
-		fprintf( stderr, "Shader program[%s] linking error: %s\n", mName.c_str(), log );
+		sgct::MessageHandler::Instance()->print("Shader program[%s] linking error: %s\n", mName.c_str(), log );
 
 		delete[] log;
 		return false;
@@ -199,7 +200,7 @@ bool sgct::ShaderProgram::use() const
 	//
 	if( !mIsLinked )
 	{
-		fprintf( stderr, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
+		sgct::MessageHandler::Instance()->print("Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
 		return false;
 	}
 

@@ -2,6 +2,7 @@
 #include <GL/glew.h>
 
 #include "../include/sgct/TextureManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Image.h"
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
@@ -10,6 +11,7 @@ sgct::TextureManager::TextureManager()
 {
 	setAnisotropicFilterSize(1.0f);
 	setCompression(false);
+	setAlphaModeForSingleChannelTextures(false);
 }
 
 sgct::TextureManager::~TextureManager()
@@ -19,7 +21,7 @@ sgct::TextureManager::~TextureManager()
 
 const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int index)
 {
-	return index > mTextures.size() ? 0 : mTextures[index].second;
+	return index >= mTextures.size() ? 0 : mTextures[index].second;
 }
 
 const unsigned int sgct::TextureManager::getTextureByName(const std::string name)
@@ -48,11 +50,12 @@ void sgct::TextureManager::setCompression(bool state)
 
 bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
+	GLuint texID = 0;
+
 	core_sgct::Image img;
 	if( !img.load(filename.c_str()) )
 		return false;
 
-	GLuint texID;
 	glGenTextures( 1, &texID );
 
 	if(img.getData() != NULL)
@@ -61,7 +64,7 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 
 		int textureType = GL_RGB;
 		if(img.getChannels() == 4)	textureType = GL_RGBA;
-		else if(img.getChannels() == 1)	textureType = GL_LUMINANCE; /* todo: the user should be able to choose between GL_Luminance and GL_alpha */
+		else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
 		else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
 
 		GLint components;
@@ -71,23 +74,23 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 			if( img.getChannels() == 4 )
 			{
 				components = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-				fprintf( stderr, "Creating texture... size: %dx%d, %d-channels DXT3 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels DXT3 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
 			}
 			else if( img.getChannels() == 3 )
 			{
 				components = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-				fprintf( stderr, "Creating texture... size: %dx%d, %d-channels DXT1 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels DXT1 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
 			}
 			else
 			{
 				components = img.getChannels();
-				fprintf( stderr, "Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
 			}
 		}
 		else
 		{
 			components = img.getChannels();
-			fprintf( stderr, "Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+			sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, components, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
@@ -112,13 +115,13 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 
 		mTextures.push_back( std::pair<std::string, unsigned int>( name, (unsigned int)texID ) );
 
-		fprintf( stderr, "Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
+		sgct::MessageHandler::Instance()->print("Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
 		img.cleanup();
 	}
 	else //image data not valid
 		return false;
 
-	index = mTextures.size()-1;
+    index = mTextures.size()-1;
 	return true;
 }
 

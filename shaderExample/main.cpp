@@ -13,7 +13,8 @@ void myDecodeFun();
 
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
-unsigned int myTextureIndex; 
+unsigned int myTextureIndex;
+GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
 double time = 0.0;
@@ -55,7 +56,7 @@ void myDrawFun()
 
 	glPushMatrix();
 	glTranslatef( 0.0f, -0.5f, 0.0f );	
-	drawTerrainGrid( 2.0f, 2.0f, 500, 500 );
+	glCallList(myTerrainDisplayList);
 	glPopMatrix();
 
 	glDisable(GL_TEXTURE_2D);
@@ -76,6 +77,12 @@ void myInitOGLFun()
 	glDisable( GL_LIGHTING );
 	glEnable( GL_COLOR_MATERIAL );
 	glShadeModel( GL_SMOOTH );
+
+	myTerrainDisplayList = glGenLists(1);
+	glNewList(myTerrainDisplayList, GL_COMPILE);
+	//draw the terrain once to add it to the display list
+	drawTerrainGrid( 2.0f, 2.0f, 500, 500 );
+	glEndList();
 
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "heightmap", "resources/textures/heightmap.png", true);

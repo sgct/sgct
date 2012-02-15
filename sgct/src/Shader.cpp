@@ -1,4 +1,5 @@
 #include "../include/sgct/Shader.h"
+#include "../include/sgct/MessageHandler.h"
 
 #include <fstream>
 #include <sstream>
@@ -38,7 +39,7 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 
 	if( !shaderFile.is_open() )
 	{
-		fprintf( stderr,
+		sgct::MessageHandler::Instance()->print(
 			"Could not open %s file[%s].\n",
 			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
@@ -59,7 +60,7 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	//
 	if( fileLength == 0 )
 	{
-		fprintf( stderr,
+		sgct::MessageHandler::Instance()->print(
 			"Can't create source for %s: empty file [%s].\n",
 			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
@@ -92,7 +93,7 @@ bool core_sgct::Shader::setSourceFromString( const std::string & sourceString )
 	//
 	if( mShaderId > 0 )
 	{
-		fprintf( stderr,
+		sgct::MessageHandler::Instance()->print(
 			"%s is alread set for specified shader.\n",
 			getShaderTypeName( mShaderType ).c_str() );
 		return false;
@@ -131,14 +132,14 @@ bool core_sgct::Shader::checkCompilationStatus() const
 
 		if( logLength == 0 )
 		{
-			fprintf( stderr, "%s compile error: Unknown error\n", getShaderTypeName( mShaderType ).c_str() );
+			sgct::MessageHandler::Instance()->print("%s compile error: Unknown error\n", getShaderTypeName( mShaderType ).c_str() );
 			return false;
 		}
 
 		GLchar * log = new GLchar[logLength];
 
 		glGetShaderInfoLog( mShaderId, logLength, NULL, log );
-		fprintf( stderr, "%s compile error: %s\n", getShaderTypeName( mShaderType ).c_str(), log );
+		sgct::MessageHandler::Instance()->print("%s compile error: %s\n", getShaderTypeName( mShaderType ).c_str(), log );
 
 		delete[] log;
 

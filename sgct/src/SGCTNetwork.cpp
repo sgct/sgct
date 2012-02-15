@@ -4,6 +4,7 @@
 
 #include "../include/sgct/SGCTNetwork.h"
 #include "../include/sgct/SharedData.h"
+#include "../include/sgct/MessageHandler.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
@@ -149,7 +150,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		// Connect to server.
 		while( true )
 		{
-			fprintf(stderr, "Attempting to connect to server...\n");
+			sgct::MessageHandler::Instance()->print("Attempting to connect to server...\n");
 			iResult = connect( mSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
 			if (iResult != SOCKET_ERROR)
 				break;
@@ -182,7 +183,7 @@ void GLFWCALL listenForClients(void *arg)
 		glfwLockMutex( gMutex );
 		if( listen( nPtr->mSocket, SOMAXCONN ) == SOCKET_ERROR )
 		{
-			fprintf( stderr, "SocketError!\n");
+			sgct::MessageHandler::Instance()->print("SocketError!\n");
 			break;
 		}
 
@@ -212,7 +213,7 @@ void GLFWCALL listenForClients(void *arg)
 			if( nPtr->clients[ dataPtr->mClientIndex ].threadID < 0)
 			{
 				closesocket(cd.client_socket);
-				fprintf( stderr, "Failed to connecto to client (thread error)!\n");
+				sgct::MessageHandler::Instance()->print("Failed to connecto to client (thread error)!\n");
 			}
 		}
 		glfwUnlockMutex( gMutex );
@@ -231,10 +232,17 @@ void GLFWCALL communicationHandler(void *arg)
 {
 	core_sgct::TCPData * dataPtr = (core_sgct::TCPData *)arg;
 
+	//say hi
+	/*if( dataPtr->mNetwork->isServer() )
+		send(dataPtr->mNetwork->clients[ dataPtr->mClientIndex ].client_socket, "Connected.", 11, 0);
+	else
+		send(dataPtr->mNetwork->mSocket, "Connected.", 11, 0);*/
+
 	//init buffer
 	int recvbuflen = dataPtr->mNetwork->mBufferSize;
 	char * recvbuf;
-	recvbuf = new char[dataPtr->mNetwork->mBufferSize];
+	recvbuf = (char *) malloc(dataPtr->mNetwork->mBufferSize);
+	//memset(recvbuf,0,dataPtr->mNetwork->mBufferSize);
 
 	// Receive data until the server closes the connection
 	int iResult;
@@ -248,6 +256,9 @@ void GLFWCALL communicationHandler(void *arg)
 
 		if (iResult > 0)
 		{
+			//if( dataPtr->mNetwork->isServer() )
+			//	fprintf(stderr, "\nData received: [%s]\n", recvbuf);
+
 			//check type of message
 			if( recvbuf[0] == core_sgct::SGCTNetwork::SizeHeader && recvbuflen > 4)
 			{
@@ -263,17 +274,18 @@ void GLFWCALL communicationHandler(void *arg)
 				cui.c[3] = recvbuf[4];
 
 				glfwLockMutex( gDecoderMutex );
-				fprintf(stderr, "Network: New package size is %d\n", cui.newSize);
+				sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", cui.newSize);
 				dataPtr->mNetwork->mBufferSize = cui.newSize;
 				recvbuflen = cui.newSize;
-				delete recvbuf;
-				recvbuf = new char[cui.newSize];
+				free(recvbuf);
+				recvbuf = (char *)malloc(cui.newSize);
+				//memset(recvbuf,0,cui.newSize);
 				glfwUnlockMutex( gDecoderMutex );
 			}
 			else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader && dataPtr->mNetwork->mDecoderCallbackFn != NULL)
 			{
 				glfwLockMutex( gDecoderMutex );
-				(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf, recvbuflen, dataPtr->mClientIndex);
+				(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
 				glfwUnlockMutex( gDecoderMutex );
 			}
 			else if( recvbuf[0] == core_sgct::SGCTNetwork::ClusterConnected )
@@ -285,16 +297,20 @@ void GLFWCALL communicationHandler(void *arg)
 		}
 		else if (iResult == 0)
 		{
-			fprintf(stderr, "TCP Connection closed [client: %d]\n", dataPtr->mClientIndex);
+			glfwLockMutex( gDecoderMutex );
+			sgct::MessageHandler::Instance()->print("TCP Connection closed [client: %d]\n", dataPtr->mClientIndex);
+			glfwUnlockMutex( gDecoderMutex );
 		}
 		else
 		{
-			fprintf(stderr, "TCP recv failed: %d [client: %d]\n", WSAGetLastError(), dataPtr->mClientIndex);
+			glfwLockMutex( gDecoderMutex );
+			sgct::MessageHandler::Instance()->print("TCP recv failed: %d [client: %d]\n", WSAGetLastError(), dataPtr->mClientIndex);
+			glfwUnlockMutex( gDecoderMutex );
 		}
 	} while (iResult > 0);
 
 	dataPtr->mNetwork->setRunning(false);
-	delete recvbuf;
+	free(recvbuf);
 }
 
 void core_sgct::SGCTNetwork::sendStrToAllClients(const std::string str)
@@ -327,25 +343,62 @@ void core_sgct::SGCTNetwork::setAllNodesConnected(bool state)
 
 void core_sgct::SGCTNetwork::sync()
 {
-	//check if buffer needs to be re-sized
-	if( sgct::SharedData::Instance()->getDataSize() > mBufferSize )
+	if( isServer() )
 	{
-		mBufferSize = sgct::SharedData::Instance()->getDataSize();
-		char * p = (char *)&mBufferSize;
 
-		//create package
-		char resizeMessage[5];
-		resizeMessage[0] = static_cast<char>(SGCTNetwork::SizeHeader);
-		resizeMessage[1] = p[0];
-		resizeMessage[2] = p[1];
-		resizeMessage[3] = p[2];
-		resizeMessage[4] = p[3];
+        //check if buffer needs to be re-sized
+        if( sgct::SharedData::Instance()->getDataSize() > mBufferSize )
+        {
+            mBufferSize = sgct::SharedData::Instance()->getDataSize();
+            char * p = (char *)&mBufferSize;
 
-		sendDataToAllClients(resizeMessage,5);
+            //create package
+            char resizeMessage[5];
+            resizeMessage[0] = SGCTNetwork::SizeHeader;
+            resizeMessage[1] = p[0];
+            resizeMessage[2] = p[1];
+            resizeMessage[3] = p[2];
+            resizeMessage[4] = p[3];
+
+            sendDataToAllClients(resizeMessage,5);
+        }
+        sendDataToAllClients( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+        //should wait for reply from clients...
 	}
-	sendDataToAllClients( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+	else //if client
+	{
+        int iResult = 0;
 
-	//should wait for reply from clients...
+		//check if message fits in buffer
+        if(sgct::MessageHandler::Instance()->getDataSize() > 1 && //larger than first header byte + '\0'
+           sgct::MessageHandler::Instance()->getDataSize() < mBufferSize)
+        {
+            const char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
+			
+			iResult = send(mSocket,
+                 messageToSend,
+                 sgct::MessageHandler::Instance()->getDataSize(),
+                 0);
+			
+			if (iResult == SOCKET_ERROR)
+				sgct::MessageHandler::Instance()->print("Send failed with error: %d\n", WSAGetLastError());
+
+			sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
+        }
+        else if(sgct::MessageHandler::Instance()->getDataSize() > 1 && //larger than first header byte + '\0'
+                sgct::MessageHandler::Instance()->getDataSize() >= mBufferSize )
+        {
+			const char * messageToSend = sgct::MessageHandler::Instance()->getTrimmedMessage(mBufferSize-1);
+			
+			iResult = send(mSocket,
+                 messageToSend,
+                 sgct::MessageHandler::Instance()->getTrimmedDataSize(),
+                 0);
+
+			if (iResult == SOCKET_ERROR)
+				sgct::MessageHandler::Instance()->print("Send failed with error: %d\n", WSAGetLastError());
+        }
+	}
 }
 
 void core_sgct::SGCTNetwork::close()
@@ -354,18 +407,18 @@ void core_sgct::SGCTNetwork::close()
 
 	for(unsigned int i=0; i<clients.size(); i++)
 	{
-		fprintf( stderr, "Closing client connection %d...", i);
+		sgct::MessageHandler::Instance()->print("Closing client connection %d...", i);
 		glfwDestroyThread( clients[i].threadID );
 		if( clients[i].client_socket != INVALID_SOCKET )
 		{
-			fprintf( stderr, "Closing socket on node %d...", i);
+			sgct::MessageHandler::Instance()->print("Closing socket on node %d...", i);
 			shutdown(clients[i].client_socket, SD_BOTH);
 			closesocket( clients[i].client_socket );
 		}
-		fprintf( stderr, " Done!\n");
+		sgct::MessageHandler::Instance()->print(" Done!\n");
 	}
 
-	fprintf( stderr, "Closing server connection...");
+	sgct::MessageHandler::Instance()->print("Closing server connection...");
 	if( threadID != -1 )
 		glfwDestroyThread( threadID	);
 	if( mSocket != INVALID_SOCKET )
@@ -374,7 +427,7 @@ void core_sgct::SGCTNetwork::close()
 		closesocket( mSocket );
 	}
 	WSACleanup();
-	fprintf( stderr, " Done!\n");
+	sgct::MessageHandler::Instance()->print(" Done!\n");
 }
 
 bool core_sgct::SGCTNetwork::matchHostName(const std::string name)

@@ -1,4 +1,5 @@
 #include "../include/sgct/ShaderManager.h"
+#include "../include/sgct/MessageHandler.h"
 
 #include <algorithm>
 
@@ -55,7 +56,7 @@ bool sgct::ShaderManager::addShader(
 	//
 	if( shaderExists( name ) )
 	{
-		fprintf( stderr, "Unable to add shader program [%s]: Name already exists.\n", name.c_str() );
+		sgct::MessageHandler::Instance()->print("Unable to add shader program [%s]: Name already exists.\n", name.c_str() );
 		return false;
 	}
 
@@ -104,7 +105,7 @@ bool sgct::ShaderManager::removeShader( const std::string & name )
 
 	if( shaderIt == mShaders.end() )
 	{
-		fprintf( stderr, "Unable to remove shader program [%s]: Not found in manager.\n", name.c_str() );
+		sgct::MessageHandler::Instance()->print("Unable to remove shader program [%s]: Not found in manager.\n", name.c_str() );
 		return false;
 	}
 
@@ -126,7 +127,7 @@ bool sgct::ShaderManager::useShader( const std::string & name ) const
 
 	if( sp == NullShader )
 	{
-		fprintf( stderr, "Could not set shader program [%s] as active: Not found in manager.\n", name.c_str() );
+		sgct::MessageHandler::Instance()->print("Could not set shader program [%s] as active: Not found in manager.\n", name.c_str() );
 		return false;
 	}
 

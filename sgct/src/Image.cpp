@@ -4,6 +4,7 @@
 #include <pngpriv.h>
 
 #include "../include/sgct/Image.h"
+#include "../include/sgct/MessageHandler.h"
 
 bool core_sgct::Image::load(const char * filename)
 {
@@ -21,22 +22,17 @@ bool core_sgct::Image::load(const char * filename)
 		type[3] = filename[length-1];
 		type[4] = '\0';
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		if( strcpy_s(type, sizeof(type), ".PNG" ) != 0)
-			return loadPNG(filename);
-#else
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
 			return loadPNG(filename);
-#endif
 		else
 		{
-			fprintf( stderr, "Unknown filesuffix: \"%s\"\n", type);
+			sgct::MessageHandler::Instance()->print("Unknown filesuffix: \"%s\"\n", type);
 			return false;
 		}
 	}
 	else
 	{
-		fprintf( stderr, "Image loading failed (bad filename: %s)\n", filename);
+		sgct::MessageHandler::Instance()->print("Image loading failed (bad filename: %s)\n", filename);
 		return false;
 	}
 }
@@ -45,16 +41,21 @@ bool core_sgct::Image::load(const char * filename)
 
 bool core_sgct::Image::loadPNG(const char *filename)
 {
+	mFilename = NULL;
+	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	{
+	    return false;
+	}
+	
+	mFilename = new char[strlen(filename)+1];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( strcpy_s(_filename, sizeof(_filename), filename ) != 0)
+    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
 		return false;
     #else
-    if( strcpy(_filename, filename ) != 0)
-		return false;
+    strcpy(mFilename, filename );
     #endif
-
+ 
 	unsigned char *pb;
-
 	png_structp png_ptr;
 	png_infop info_ptr;
 	char header[PNG_BYTES_TO_CHECK];
@@ -63,25 +64,24 @@ bool core_sgct::Image::loadPNG(const char *filename)
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, _filename, "rb") != 0 && !fp )
+    if( fopen_s( &fp, mFilename, "rb") != 0 && !fp )
 	{
-		fprintf( stderr, "Can't open PNG texture file '%s'\n", _filename);
+		sgct::MessageHandler::Instance()->print("Can't open PNG texture file '%s'\n", mFilename);
 		return false;
 	}
     #else
-    fp = fopen(_filename, "rb");
+    fp = fopen(mFilename, "rb");
     if( fp == NULL )
 	{
-		fprintf( stderr, "Can't open PNG texture file '%s'\n", _filename);
+		sgct::MessageHandler::Instance()->print("Can't open PNG texture file '%s'\n", mFilename);
 		return false;
 	}
     #endif
 
-
 	fread( header, 1, PNG_BYTES_TO_CHECK, fp );
 	if( png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
 	{
-		fprintf( stderr, "Texture file '%s' is not in PNG format\n", _filename);
+		sgct::MessageHandler::Instance()->print("Texture file '%s' is not in PNG format\n", mFilename);
 		fclose(fp);
 		return false;
 	}
@@ -89,7 +89,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	png_ptr = png_create_read_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
 	if( png_ptr == NULL )
 	{
-		fprintf( stderr, "Can't initialize PNG file for reading: %s\n", _filename);
+		sgct::MessageHandler::Instance()->print("Can't initialize PNG file for reading: %s\n", mFilename);
 		fclose(fp);
 		return false;
 	}
@@ -99,7 +99,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	{
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-		fprintf( stderr, "Can't allocate memory to read PNG file: %s\n", _filename);
+		sgct::MessageHandler::Instance()->print("Can't allocate memory to read PNG file: %s\n", mFilename);
 		return false;
 	}
 
@@ -107,7 +107,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		fclose(fp);
-		fprintf( stderr, "Exception occurred while reading PNG file: %s\n", _filename);
+		sgct::MessageHandler::Instance()->print("Exception occurred while reading PNG file: %s\n", mFilename);
 		return false;
 	}
 
@@ -140,26 +140,10 @@ bool core_sgct::Image::loadPNG(const char *filename)
 		channels = 4;
 	else
 	{
-		fprintf( stderr, "Unsupported format '%s'\n", _filename );
+		sgct::MessageHandler::Instance()->print("Unsupported format '%s'\n", mFilename );
 		fclose(fp);
 		return false;
 	}
-
-	//size_x = png_get_image_width(png_ptr,info_ptr);
-	//size_y = png_get_image_height(png_ptr,info_ptr);
-
-	/*if( png_get_bit_depth(png_ptr, info_ptr) != 8 )
-	{
-		fprintf( stderr, "Can't handle PNG files with bit depth other than 8.  '%s' has %d bits per pixel", _filename, png_get_bit_depth(png_ptr, info_ptr) );
-		fclose(fp);
-		return;
-	}
-	if( channels == 2 )
-	{
-		fprintf( stderr, "Can't handle a two-channel PNG file: %s", _filename );
-		fclose(fp);
-		return;
-	}*/
 
 	data = pb = (unsigned char*)malloc( sizeof(unsigned char)*( channels * size_x * size_y ) );
 
@@ -169,13 +153,14 @@ bool core_sgct::Image::loadPNG(const char *filename)
 		int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
-			switch( channels )
+			*(pb)++ = row[c];
+			/*switch( channels )
 			{
 			case 1:
 				*(pb)++ = row[c];
 				break;
 			case 2:
-				fprintf( stderr, "Can't handle a two-channel PNG file: %s\n", _filename );
+				sgct::MessageHandler::Instance()->print("Can't handle a two-channel PNG file: %s\n", mFilename );
 				free(pb);
 				fclose(fp);
 				return false;
@@ -183,13 +168,13 @@ bool core_sgct::Image::loadPNG(const char *filename)
 			case 4:
 				*(pb)++ = row[c];
 				break;
-			}
+			}*/
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 	fclose(fp);
 
-	fprintf( stderr, "Image loaded %s\n", _filename);
+	sgct::MessageHandler::Instance()->print("Image loaded %s\n", mFilename);
 	return true;
 }
 
@@ -197,7 +182,10 @@ void core_sgct::Image::cleanup()
 {
 	//delete data;
 	free(data);
-	fprintf( stderr, "Image data deleted %s\n", _filename);
+	sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
+
+	delete [] mFilename;
+	mFilename = NULL;
 }
 
 unsigned char * core_sgct::Image::getData()

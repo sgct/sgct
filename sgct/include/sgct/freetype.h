@@ -25,12 +25,6 @@
 //catch any exceptions that we throw.
 #include <stdexcept>
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-//MSVC will spit out all sorts of useless warnings if
-//you create vectors of strings, this pragma gets rid of them.
-#pragma warning(disable: 4786)
-#endif
-
 ///Wrap everything in a namespace, that we can use common
 ///function names like "print" without worrying about
 ///overlapping with anyone else's code.

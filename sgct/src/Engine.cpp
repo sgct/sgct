@@ -53,18 +53,18 @@ bool sgct::Engine::init()
 	mConfig = new core_sgct::ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
-		fprintf(stderr, "Error in xml config file parsing.\n");
+		sgct::MessageHandler::Instance()->print("Error in xml config file parsing.\n");
 		return false;
 	}
 	if( !initNetwork() )
 	{
-		fprintf(stderr, "Network init error.\n");
+		sgct::MessageHandler::Instance()->print("Network init error.\n");
 		return false;
 	}
 
 	if( !initWindow() )
 	{
-		fprintf(stderr, "Window init error.\n");
+		sgct::MessageHandler::Instance()->print("Window init error.\n");
 		return false;
 	}
 
@@ -87,7 +87,7 @@ bool sgct::Engine::initNetwork()
 	}
 	catch( char * err )
 	{
-		fprintf(stderr, "Network init error: %s\n", err);
+		sgct::MessageHandler::Instance()->print("Network init error: %s\n", err);
 		mNetwork->close();
 		glfwTerminate();
 		return false;
@@ -110,7 +110,7 @@ bool sgct::Engine::initNetwork()
 
 	if( mThisClusterNodeId == -1 || mThisClusterNodeId >= static_cast<int>(mConfig->getNumberOfNodes()) ) //fatal error
 	{
-		fprintf(stderr, "This computer is not a part of the cluster configuration!\n");
+		sgct::MessageHandler::Instance()->print("This computer is not a part of the cluster configuration!\n");
 		mNetwork->close();
 		glfwTerminate();
 		return false;
@@ -122,7 +122,8 @@ bool sgct::Engine::initNetwork()
 
 	try
 	{
-		fprintf(stderr, "Initiating network communication...\n");
+		sgct::MessageHandler::Instance()->sendMessagesToServer(!isServer);
+		sgct::MessageHandler::Instance()->print("Initiating network communication...\n");
 		if( runningLocal )
 			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mConfig->getNumberOfNodes());
 		else
@@ -148,11 +149,11 @@ bool sgct::Engine::initNetwork()
 			mNetwork->setDecodeFunction(callback);
 		}
 
-		fprintf(stderr, "Done\n");
+		sgct::MessageHandler::Instance()->print("Done\n");
 	}
 	catch( char * err )
 	{
-		fprintf(stderr, "Network error: %s\n", err);
+		sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
 		return false;
 	}
 
@@ -187,10 +188,10 @@ bool sgct::Engine::initWindow()
 	if (GLEW_OK != err)
 	{
 	  //Problem: glewInit failed, something is seriously wrong.
-	  fprintf(stderr, "Error: %s\n", glewGetErrorString(err));
+	  sgct::MessageHandler::Instance()->print("Error: %s\n", glewGetErrorString(err));
 	  return false;
 	}
-	fprintf(stdout, "Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+	sgct::MessageHandler::Instance()->print("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
 	char windowTitle[32];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -207,7 +208,7 @@ bool sgct::Engine::initWindow()
 	{
 		while(!mNetwork->areAllNodesConnected())
 		{
-			fprintf(stdout, "Waiting for all nodes to connect...\n");
+			sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
 			// Swap front and back rendering buffers
 			glfwSleep(0.25);
 			glfwSwapBuffers();
@@ -222,11 +223,11 @@ void sgct::Engine::initOGL()
 	//Get OpenGL version
 	int version[3];
 	glfwGetGLVersion( &version[0], &version[1], &version[2] );
-	fprintf( stderr, "OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
+	sgct::MessageHandler::Instance()->print("OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
 
 	if (!GLEW_ARB_texture_non_power_of_two)
 	{
-		fprintf( stderr, "Warning! Only power of two textures are supported!\n");
+		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
 	}
 
 	if( mInitOGLFn != NULL )
@@ -252,7 +253,7 @@ void sgct::Engine::initOGL()
 
 void sgct::Engine::clean()
 {
-	fprintf(stderr, "Cleaning up...\n");
+	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
 	//close TCP connections
 	if( mNetwork != NULL )
@@ -294,13 +295,14 @@ void sgct::Engine::render()
 		if( isServer )
 		{
 			sgct::SharedData::Instance()->encode();
-			mNetwork->sync();
 		}
 		else
 		{
 			if( !mNetwork->isRunning() ) //exit if not running
 				break;
 		}
+
+		mNetwork->sync();
 
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
@@ -466,7 +468,7 @@ void sgct::Engine::calculateFrustums()
 void sgct::Engine::parseArguments( int argc, char* argv[] )
 {
 	//parse arguments
-	fprintf(stderr, "Parsing arguments...");
+	sgct::MessageHandler::Instance()->print("Parsing arguments...");
 	int i=0;
 	while( i<argc )
 	{
@@ -491,7 +493,7 @@ void sgct::Engine::parseArguments( int argc, char* argv[] )
 			i++; //iterate
 	}
 
-	fprintf(stderr, " Done\n");
+	sgct::MessageHandler::Instance()->print(" Done\n");
 }
 
 void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
@@ -527,16 +529,16 @@ void sgct::Engine::clearBuffer(void)
 
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
-	fprintf(stderr, "This node is = %d.\nView plane coordinates: \n", nodeId);
-	fprintf(stderr, "\tLower left: %.4f  %.4f  %.4f\n",
+	sgct::MessageHandler::Instance()->print("This node is = %d.\nView plane coordinates: \n", nodeId);
+	sgct::MessageHandler::Instance()->print("\tLower left: %.4f  %.4f  %.4f\n",
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::LowerLeft ].x,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::LowerLeft ].y,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::LowerLeft ].z);
-	fprintf(stderr, "\tUpper left: %.4f  %.4f  %.4f\n",
+	sgct::MessageHandler::Instance()->print("\tUpper left: %.4f  %.4f  %.4f\n",
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperLeft ].x,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperLeft ].y,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperLeft ].z);
-	fprintf(stderr, "\tUpper right: %.4f  %.4f  %.4f\n\n",
+	sgct::MessageHandler::Instance()->print("\tUpper right: %.4f  %.4f  %.4f\n\n",
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperRight ].x,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperRight ].y,
 		mConfig->getNodePtr(nodeId)->viewPlaneCoords[ core_sgct::ReadConfig::UpperRight ].z);

@@ -2,6 +2,7 @@
 #include <GL/wglew.h>
 #include <GL/glfw.h>
 #include "../include/sgct/FontManager.h"
+#include "../include/sgct/MessageHandler.h"
 
 #include <freetype/ftglyph.h>
 
@@ -43,7 +44,7 @@ FontManager::FontManager(void)
 
 	if ( error != 0 )
 	{
-		fprintf( stderr, "Could not initiate Freetype library.\n" );
+		sgct::MessageHandler::Instance()->print("Could not initiate Freetype library.\n" );
 		return; // No need to continue
 	}
 
@@ -104,7 +105,7 @@ bool FontManager::AddFont( const std::string & fontName, std::string path, FontP
 	if( !inserted )
 	{
 
-		fprintf( stderr, "Font with name '%s' already specified.\n", fontName.c_str() );
+		sgct::MessageHandler::Instance()->print("Font with name '%s' already specified.\n", fontName.c_str() );
 		return false;
 	}
 
@@ -145,13 +146,13 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if( it == mFontPaths.end() )
 	{
-		fprintf( stderr, "No font file specified for font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::Instance()->print("No font file specified for font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
 	if( mFTLibrary == NULL )
 	{
-		fprintf( stderr, "Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::Instance()->print("Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -160,7 +161,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if ( error == FT_Err_Unknown_File_Format )
 	{
-		fprintf( stderr, "Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
+		sgct::MessageHandler::Instance()->print("Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
 		return mFonts.end();
 	}
 	else if( error != 0 || face == NULL )
@@ -171,7 +172,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 
 	if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
 	{
-		fprintf( stderr, "Could not set pixel size for font[%s].\n", fontName.c_str() );
+		sgct::MessageHandler::Instance()->print("Could not set pixel size for font[%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -213,7 +214,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//Load the Glyph for our character.
 	if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT ) )
 	{
-		fprintf( stderr, "FT_Load_Glyph failed for char [%c].\n", ch );
+		sgct::MessageHandler::Instance()->print("FT_Load_Glyph failed for char [%c].\n", ch );
 		// Implement error message " char %s"
 		return false;
 	}
@@ -223,7 +224,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
     FT_Glyph glyph;
     if( FT_Get_Glyph( face->glyph, &glyph ) )
 	{
-		fprintf( stderr, "FT_Get_Glyph failed for char [%c].\n", ch );
+		sgct::MessageHandler::Instance()->print("FT_Get_Glyph failed for char [%c].\n", ch );
 		return false;
 	}
 

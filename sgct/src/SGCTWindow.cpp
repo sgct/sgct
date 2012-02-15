@@ -2,6 +2,7 @@
 #include <GL/wglew.h>
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
+#include "../include/sgct/MessageHandler.h"
 #include <stdio.h>
 
 HDC hDC;
@@ -113,13 +114,13 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
 		hDC = wglGetCurrentDC();
-		fprintf(stdout, "WGL_NV_swap_group is supported\n");
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
 
 		if( wglJoinSwapGroupNV(hDC,1) )
-			fprintf(stdout, "Joining swapgroup 1 [ok].\n");
+			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
-			fprintf(stdout, "Joining swapgroup 1 [failed].\n");
+			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
 			return;
 		}
@@ -149,12 +150,12 @@ void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 		if( wglResetFrameCountNV(hDC) )
 		{
 			mSwapGroupMaster = true;
-			fprintf(stdout, "Resetting frame counter. This computer is the master.\n");
+			sgct::MessageHandler::Instance()->print("Resetting frame counter. This computer is the master.\n");
 		}
 		else
 		{
 			mSwapGroupMaster = false;
-			fprintf(stdout, "Resetting frame counter failed. This computer is the slave.\n");
+			sgct::MessageHandler::Instance()->print("Resetting frame counter failed. This computer is the slave.\n");
 		}
 	}
 }

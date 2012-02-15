@@ -17,9 +17,9 @@ public:
 
 private:
 	int channels;
-	int size_x;	
+	int size_x;
 	int size_y;
-	char _filename[256];
+	char * mFilename;
 	unsigned char * data;
 };
 

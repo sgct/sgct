@@ -35,6 +35,7 @@ public:
 	const unsigned int getTextureByName(const std::string name);
 
 	void setAnisotropicFilterSize(float fval);
+	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
 	void setCompression(bool state);
 	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
 
@@ -54,6 +55,7 @@ private:
 	
 	float mAnisotropicFilterSize;
 	bool mCompression;
+	bool mAlphaMode;
 	std::vector< std::pair<std::string, unsigned int> > mTextures;
 };
 

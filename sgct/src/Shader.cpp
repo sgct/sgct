@@ -50,7 +50,7 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	// Create needed resources by reading file length
 	//
 	shaderFile.seekg( 0, std::ios_base::end );
-	long fileLength = shaderFile.tellg();
+	std::streamoff fileLength = shaderFile.tellg();
 
 	shaderFile.seekg( 0, std::ios_base::beg );
 

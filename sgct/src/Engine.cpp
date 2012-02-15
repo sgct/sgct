@@ -85,7 +85,7 @@ bool sgct::Engine::initNetwork()
 	{
 		mNetwork = new core_sgct::SGCTNetwork();
 	}
-	catch( char * err )
+	catch( const char * err )
 	{
 		sgct::MessageHandler::Instance()->print("Network init error: %s\n", err);
 		mNetwork->close();
@@ -128,35 +128,34 @@ bool sgct::Engine::initNetwork()
 			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer, mConfig->getNumberOfNodes());
 		else
 			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer, mConfig->getNumberOfNodes());
+    }
+    catch( const char * err )
+    {
+        sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
+        return false;
+    }
 
-		//set decoder for client
-		if( isServer )
-		{
-			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
-				std::tr1::placeholders::_1,
-				std::tr1::placeholders::_2,
-				std::tr1::placeholders::_3);
-			mNetwork->setDecodeFunction(callback);
-		}
-		else
-		{
-			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
-				std::tr1::placeholders::_1,
-				std::tr1::placeholders::_2,
-				std::tr1::placeholders::_3);
-			mNetwork->setDecodeFunction(callback);
-		}
+    //set decoder for client
+    if( isServer )
+    {
+        std::tr1::function< void(const char*, int, int) > callback;
+        callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
+            std::tr1::placeholders::_1,
+            std::tr1::placeholders::_2,
+            std::tr1::placeholders::_3);
+        mNetwork->setDecodeFunction(callback);
+    }
+    else
+    {
+        std::tr1::function< void(const char*, int, int) > callback;
+        callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
+            std::tr1::placeholders::_1,
+            std::tr1::placeholders::_2,
+            std::tr1::placeholders::_3);
+        mNetwork->setDecodeFunction(callback);
+    }
 
-		sgct::MessageHandler::Instance()->print("Done\n");
-	}
-	catch( char * err )
-	{
-		sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
-		return false;
-	}
-
+    sgct::MessageHandler::Instance()->print("Done\n");
 	return true;
 }
 

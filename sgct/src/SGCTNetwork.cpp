@@ -122,7 +122,6 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		throw "Failed to set TCP_NODELAY!";
 	}
 
-
 	if( mServer )
 	{
 		// Setup the TCP listening socket
@@ -376,12 +375,12 @@ void core_sgct::SGCTNetwork::sync()
             /* Don't remove this pointer, somehow the send function doesn't
 			work during the first call without setting the pointer first!!! */
 			const char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
-			
+
 			iResult = send(mSocket,
                  messageToSend,
                  sgct::MessageHandler::Instance()->getDataSize(),
                  0);
-			
+
 			if (iResult == SOCKET_ERROR)
 				sgct::MessageHandler::Instance()->print("Send failed with error: %d\n", WSAGetLastError());
 
@@ -393,7 +392,7 @@ void core_sgct::SGCTNetwork::sync()
 			/* Don't remove this pointer, somehow the send function doesn't
 			work during the first call without setting the pointer first!!! */
 			const char * messageToSend = sgct::MessageHandler::Instance()->getTrimmedMessage(mBufferSize-1);
-			
+
 			iResult = send(mSocket,
                  messageToSend,
                  sgct::MessageHandler::Instance()->getTrimmedDataSize(),

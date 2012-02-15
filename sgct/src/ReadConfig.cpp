@@ -20,7 +20,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	{
 		readAndParseXML();
 	}
-	catch(char * err)
+	catch(const char * err)
 	{
 		sgct::MessageHandler::Instance()->print("Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
 		return;

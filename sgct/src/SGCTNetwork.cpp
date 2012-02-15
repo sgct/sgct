@@ -373,7 +373,9 @@ void core_sgct::SGCTNetwork::sync()
         if(sgct::MessageHandler::Instance()->getDataSize() > 1 && //larger than first header byte + '\0'
            sgct::MessageHandler::Instance()->getDataSize() < mBufferSize)
         {
-            const char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
+            /* Don't remove this pointer, somehow the send function doesn't
+			work during the first call without setting the pointer first!!! */
+			const char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
 			
 			iResult = send(mSocket,
                  messageToSend,
@@ -388,6 +390,8 @@ void core_sgct::SGCTNetwork::sync()
         else if(sgct::MessageHandler::Instance()->getDataSize() > 1 && //larger than first header byte + '\0'
                 sgct::MessageHandler::Instance()->getDataSize() >= mBufferSize )
         {
+			/* Don't remove this pointer, somehow the send function doesn't
+			work during the first call without setting the pointer first!!! */
 			const char * messageToSend = sgct::MessageHandler::Instance()->getTrimmedMessage(mBufferSize-1);
 			
 			iResult = send(mSocket,

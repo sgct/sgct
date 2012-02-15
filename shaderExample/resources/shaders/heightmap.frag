@@ -6,8 +6,9 @@ varying vec3 v;
 // the fragment and direction from fragment to the light
 vec4 diffuseShading( vec3 fragNormal, vec3 lightDir )
 {
-	vec4 Idiff = gl_FrontLightProduct[0].diffuse * max(dot(fragNormal,lightDir), 0.0);  
-	return clamp(Idiff, 0.0, 1.0);
+	vec4 Idiff = gl_FrontLightProduct[0].diffuse * max(dot(fragNormal,lightDir), 0.0);
+	vec4 ambientColor = vec4(0.2,0.2,0.2,1.0);
+	return clamp(Idiff+ambientColor, 0.0, 1.0);
 }
 
 void main()

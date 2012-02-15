@@ -42,6 +42,7 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete gEngine;
+	glDeleteLists(myTerrainDisplayList, 1);
 	
 	// Exit program
 	exit( EXIT_SUCCESS );

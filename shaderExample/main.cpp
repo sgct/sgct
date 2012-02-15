@@ -20,7 +20,7 @@ GLuint myTerrainDisplayList = 0;
 double time = 0.0;
 
 int main( int argc, char* argv[] )
-{	
+{
 	gEngine = new sgct::Engine( argc, argv );
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -36,14 +36,13 @@ int main( int argc, char* argv[] )
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
-
 	// Main loop
 	gEngine->render();
 
 	// Clean up
 	delete gEngine;
 	glDeleteLists(myTerrainDisplayList, 1);
-	
+
 	// Exit program
 	exit( EXIT_SUCCESS );
 }
@@ -51,12 +50,13 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glRotatef( static_cast<float>( time ) * 10.0f, 0.0f, 1.0f, 0.0f );
+
 	glColor3f( 1.0f, 1.0f, 1.0f );
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIndex ) );
-
 	glPushMatrix();
-	glTranslatef( 0.0f, -0.5f, 0.0f );	
+	glTranslatef( 0.0f, -0.5f, 0.0f );
+
 	glCallList(myTerrainDisplayList);
 	glPopMatrix();
 
@@ -111,9 +111,6 @@ Will draw a flat surface that can be used for the heightmapped terrain.
 */
 void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int dRes )
 {
-	// OBS: This is a simple way of drawing the gridded terrain surface. If used in a more
-	// complex loob buffers should be generated and used instead
-
 	float wStart = -width * 0.5f;
 	float dStart = -depth * 0.5f;
 

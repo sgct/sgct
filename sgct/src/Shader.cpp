@@ -3,7 +3,7 @@
 
 #include <fstream>
 #include <sstream>
-
+#include <iostream>
 /*!
 The constructor sets shader type
 @param	shaderType	The shader type: vertex or fragment
@@ -50,10 +50,9 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	// Create needed resources by reading file length
 	//
 	shaderFile.seekg( 0, std::ios_base::end );
-	int fileLength = static_cast<int>( shaderFile.tellg() );
+	long fileLength = shaderFile.tellg();
 
 	shaderFile.seekg( 0, std::ios_base::beg );
-	std::string shaderSrc( fileLength, '\0' );
 
 	//
 	// Make sure the file is not empty
@@ -70,7 +69,24 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	//
 	// Copy file content to string
 	//
-	shaderFile.read( &shaderSrc[0], fileLength );
+
+	// Obs: take special care if changing the way of reading the file.
+	// This was the only way I got it to work for both VS2010 and GCC 4.6.2 without
+	// crashing. See the commented lines below for how it originally was. Those
+	// lines did not work with GCC 4.6.2. Feel free to update the reading but
+	// make sure it works for both VS and GCC.
+
+	std::string shaderSrc;
+    while ( shaderFile.good() )
+    {
+        char c = shaderFile.get();
+
+        if( shaderFile.good() ) shaderSrc += c;
+    }
+
+	//std::string shaderSrc( fileLength, '\0' );
+	//shaderFile.read( &shaderSrc[0], fileLength );
+
 	shaderFile.close();
 
 	//

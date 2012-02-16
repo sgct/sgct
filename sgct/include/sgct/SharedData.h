@@ -41,11 +41,13 @@ public:
 	void writeDouble(double d);
 	void writeInt32(int i);
 	void writeUChar(unsigned char c);
+	void writeBool(bool b);
 
 	float			readFloat();
 	double			readDouble();
 	int				readInt32();
 	unsigned char	readUChar();
+	bool			readBool();
 
 	void setEncodeFunction(void(*fnPtr)(void));
 	void setDecodeFunction(void(*fnPtr)(void));

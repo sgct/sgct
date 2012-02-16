@@ -7,6 +7,7 @@
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
+	useExternalControlPort = false;
 
 	if( filename.empty() )
 	{
@@ -49,6 +50,13 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 	masterIP.assign( XMLroot->Attribute( "masterAddress" ) );
 	masterPort.assign( XMLroot->Attribute( "port" ) );
+	const char * tmpStr = NULL;
+	tmpStr = XMLroot->Attribute( "externalControlPort" );
+	if( tmpStr != NULL )
+	{
+		externalControlPort.assign(tmpStr);
+		useExternalControlPort = true;
+	}
 
 	TiXmlElement* element[3];
 	const char * val[3];

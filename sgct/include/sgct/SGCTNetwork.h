@@ -44,37 +44,47 @@ class SGCTNetwork
 {
 public:
 	SGCTNetwork();
-	void init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig);
+	void init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig, int serverType = SyncServer);
 	void sync();
 	void close();
 	bool matchHostName(const std::string name);
 	bool matchAddress(const std::string ip);
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
+	void setBufferSize(unsigned int newSize);
 
+	inline int getTypeOfServer() { return mServerType; }
 	inline bool isRunning() { return mRunning; }
 	inline bool isServer() { return mServer; }
+	inline bool isClientConnected( int index ) { return (clients[index] != NULL && clients[index]->connected) ? true : false; }
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	inline unsigned int getNumberOfNodesInConfig() { return mNumberOfNodesInConfig; }
-	void setRunning(bool state) { mRunning = state; }
+	void setRunningStatus(bool status) { mRunning = status; }
+	void setClientConnectionStatus(int clientIndex, bool state);
 	void setAllNodesConnected(bool state);
-
-	enum PackageHeaders { SyncHeader = 33, SizeHeader, ClusterConnected };
-	SOCKET mSocket;
-	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::vector<ConnectionData> clients;
-	unsigned int mBufferSize;
-
-private:
+	void terminateClient(int index);
 	void sendStrToAllClients(const std::string str);
 	void sendDataToAllClients(void * data, int lenght);
 
+	//ASCII device control chars = 17, 18, 19 & 20
+	enum PackageHeaders { SyncHeader = 17, SizeHeader, ClusterConnected };
+	enum ServerTypess { SyncServer = 0, ExternalControl };
+	SOCKET mSocket;
+	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
+	std::vector<ConnectionData*> clients;
+	
+	unsigned int mBufferSize;
+	unsigned int mRequestedSize;
+
+private:
+
+	int mServerType;
 	bool mRunning;
 	bool mServer;
 	bool mAllNodesConnected;
 	unsigned int mNumberOfNodesInConfig;
 	std::string hostName;
 	std::vector<std::string> localAddresses;
-	int threadID;
+	int mainThreadID, pollClientStatusThreadID;
 };
 
 class TCPData

@@ -37,9 +37,11 @@ public:
 
 	std::string * getMasterIP() { return &masterIP; }
 	std::string * getMasterPort() { return &masterPort; }
+	std::string * getExternalControlPort() { return &externalControlPort; }
 	NodeConfig * getNodePtr(unsigned int index) { return &nodes[index]; }
 	unsigned int getNumberOfNodes() { return nodes.size(); }
 	bool isValid() { return valid; }
+	bool isExternalControlPortSet() { return useExternalControlPort; }
 	Point3f * getUserPos() { return &userPos; }
 	float getEyeSeparation() { return eyeSeparation; }
 
@@ -48,6 +50,7 @@ private:
 	int getStereoType( const std::string type );
 
 	bool valid;
+	bool useExternalControlPort;
 	std::string xmlFileName;
 	std::vector<NodeConfig> nodes;
 	Point3f userPos;
@@ -55,6 +58,7 @@ private:
 
 	std::string masterIP;
 	std::string masterPort;
+	std::string externalControlPort;
 };
 
 }

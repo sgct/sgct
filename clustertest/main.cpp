@@ -14,6 +14,7 @@ void myEncodeFun();
 void myDecodeFun();
 
 void keyCallback(int key, int action);
+void externalControlCallback(const char * receivedChars, int size, int clientId);
 
 //variables to share across cluster
 double dt = 0.0;
@@ -31,6 +32,7 @@ int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setInitOGLFunction( myInitOGLFun );
+	gEngine->setExternalControlCallback( externalControlCallback );
 
 	if( !gEngine->init() )
 	{
@@ -257,5 +259,16 @@ void keyCallback(int key, int action)
 				resetCounter = true;
 			break;
 		}
+	}
+}
+
+void externalControlCallback(const char * receivedChars, int size, int clientId)
+{
+	if( gEngine->isSyncServer() )
+	{
+		if(strcmp(receivedChars, "info") == 0)
+			showFPS = !showFPS;
+		else if(strcmp(receivedChars, "size") == 0)
+			gEngine->setExternalControlBufferSize(4096);
 	}
 }

@@ -77,6 +77,7 @@ bool core_sgct::Shader::setSourceFromFile( const std::string & file )
 	// make sure it works for both VS and GCC.
 
 	std::string shaderSrc;
+	shaderSrc.reserve(4096);
     while ( shaderFile.good() )
     {
         char c = shaderFile.get();

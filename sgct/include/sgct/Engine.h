@@ -39,6 +39,12 @@ public:
 	void setInitOGLFunction(void(*fnPtr)(void));
 	void setClearBufferFunction(void(*fnPtr)(void));
 
+	//external control network functions
+	void setExternalControlCallback(void(*fnPtr)(const char *, int, int));
+	void sendMessageToExternalControl(void * data, int lenght);
+	void sendMessageToExternalControl(const std::string msg);
+	void setExternalControlBufferSize(unsigned int newSize);
+
 	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
 
 	inline core_sgct::SGCTWindow * getWindowPtr() { return mWindow; }
@@ -60,6 +66,7 @@ private:
 	//stereo render functions
 	void setNormalRenderingMode();
 	void setActiveStereoRenderingMode();
+	void decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex);
 
 	static void clearBuffer(void);
 
@@ -67,6 +74,7 @@ private:
 	// Convinience typedef
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
+	typedef void (*NetworkCallbackFn)(const char *, int, int);
 
 	//function pointers
 	CallbackFn mDrawFn;
@@ -75,6 +83,7 @@ private:
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
 	InternalCallbackFn mInternalRenderFn;
+	NetworkCallbackFn mNetworkCallbackFn;
 
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;
@@ -92,6 +101,7 @@ private:
 	//pointers
 	core_sgct::SGCTWindow	* mWindow;
 	core_sgct::SGCTNetwork	* mNetwork;
+	core_sgct::SGCTNetwork	* mExternalControlNetwork;
 	core_sgct::ReadConfig	* mConfig;
 	core_sgct::Frustum		* mFrustums[3];
 

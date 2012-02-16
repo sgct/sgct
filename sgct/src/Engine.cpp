@@ -15,6 +15,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 {
 	//init pointers
 	mNetwork = NULL;
+	mExternalControlNetwork = NULL;
 	mWindow = NULL;
 	mConfig = NULL;
 	for( unsigned int i=0; i<3; i++)
@@ -27,6 +28,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mInternalRenderFn = NULL;
+	mNetworkCallbackFn = NULL;
 
 	setClearBufferFunction( clearBuffer );
 	mStatistics.AvgFPS = 0.0;
@@ -88,7 +90,8 @@ bool sgct::Engine::initNetwork()
 	catch( const char * err )
 	{
 		sgct::MessageHandler::Instance()->print("Network init error: %s\n", err);
-		mNetwork->close();
+		if(mNetwork != NULL)
+			mNetwork->close();
 		glfwTerminate();
 		return false;
 	}
@@ -134,6 +137,40 @@ bool sgct::Engine::initNetwork()
         sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
         return false;
     }
+
+	if( mConfig->isExternalControlPortSet() && isServer)
+	{
+		try
+		{
+			mExternalControlNetwork = new core_sgct::SGCTNetwork();
+		}
+		catch( const char * err )
+		{
+			sgct::MessageHandler::Instance()->print("External control Network init error: %s\n", err);
+			if(mExternalControlNetwork != NULL)
+				mExternalControlNetwork->close();
+		}
+		
+		if( mExternalControlNetwork != NULL )
+		{
+			try
+			{
+				sgct::MessageHandler::Instance()->print("Initiating external control network...\n");
+				mExternalControlNetwork->init(*(mConfig->getExternalControlPort()), "127.0.0.1", true, mConfig->getNumberOfNodes(), core_sgct::SGCTNetwork::ExternalControl);
+			
+				std::tr1::function< void(const char*, int, int) > callback;
+				callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, this,
+					std::tr1::placeholders::_1,
+					std::tr1::placeholders::_2,
+					std::tr1::placeholders::_3);
+				mExternalControlNetwork->setDecodeFunction(callback);
+			}
+			catch( const char * err )
+			{
+				sgct::MessageHandler::Instance()->print("External control network error: %s\n", err);
+			}
+		}
+	}
 
     //set decoder for client
     if( isServer )
@@ -254,22 +291,39 @@ void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
+	//close external control connections
+	if( mExternalControlNetwork != NULL )
+	{
+		mExternalControlNetwork->close();
+		delete mExternalControlNetwork;
+		mExternalControlNetwork = NULL;
+	}
+
 	//close TCP connections
 	if( mNetwork != NULL )
 	{
 		mNetwork->close();
 		delete mNetwork;
+		mNetwork = NULL;
 	}
 
 	if( mConfig != NULL )
+	{
 		delete mConfig;
+		mConfig = NULL;
+	}
 	if( mWindow != NULL )
+	{
 		delete mWindow;
+		mWindow = NULL;
+	}
 
 	for( unsigned int i=0; i<3; i++)
 		if( mFrustums[i] != NULL )
+		{
 			delete mFrustums[i];
-
+			mFrustums[i] = NULL;
+		}
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
 	ShaderManager::Destroy();
@@ -520,6 +574,11 @@ void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 	mClearBufferFn = fnPtr;
 }
 
+void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))
+{
+	mNetworkCallbackFn = fnPtr;
+}
+
 void sgct::Engine::clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -582,4 +641,28 @@ void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 	nearClippingPlaneDist = _near;
 	farClippingPlaneDist = _far;
 	calculateFrustums();
+}
+
+void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex)
+{
+	if(mNetworkCallbackFn != NULL)
+		mNetworkCallbackFn(receivedData, receivedLenght, clientIndex);
+}
+
+void sgct::Engine::sendMessageToExternalControl(void * data, int lenght)
+{
+	if(mExternalControlNetwork != NULL)
+		mExternalControlNetwork->sendDataToAllClients( data, lenght );
+}
+
+void sgct::Engine::sendMessageToExternalControl(const std::string msg)
+{
+	if(mExternalControlNetwork != NULL)
+		mExternalControlNetwork->sendStrToAllClients( msg );
+}
+
+void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
+{
+	if(mExternalControlNetwork != NULL)
+		mExternalControlNetwork->setBufferSize(newSize);
 }

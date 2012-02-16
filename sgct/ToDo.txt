@@ -1,8 +1,1 @@
-Font & FontManager
-====================
-* Throw warnings when font not found
-
-SGCTNetwork
-===================
-Add support for dynamic buffer
-Add an aditional mutex object to communication handler in order to sync the decode callback with the main thread.
+Add bool support in sharedData

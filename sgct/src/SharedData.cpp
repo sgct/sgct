@@ -79,6 +79,14 @@ void SharedData::writeUChar(unsigned char c)
 	dataBlock.push_back(*p);
 }
 
+void SharedData::writeBool(bool b)
+{
+	if( b )
+		dataBlock.push_back(1);
+	else
+		dataBlock.push_back(0);
+}
+
 float SharedData::readFloat()
 {
 	union
@@ -141,4 +149,13 @@ unsigned char SharedData::readUChar()
 	pos += 1;
 
 	return c;
+}
+
+bool SharedData::readBool()
+{
+	bool b;
+	b = dataBlock[pos] == 1 ? true : false;
+	pos += 1;
+
+	return b;
 }

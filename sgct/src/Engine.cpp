@@ -34,13 +34,13 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mStatistics.AvgFPS = 0.0;
 	mStatistics.DrawTime = 0.0;
 	mStatistics.FrameTime = 0.0;
-	mStatistics.TotalTime = 0.0;
 	nearClippingPlaneDist = 0.1f;
 	farClippingPlaneDist = 100.0f;
 	displayInfo = false;
 	runningLocal = false;
 	isServer = true;
 	showWireframe = false;
+	mTerminate = false;
 	mThisClusterNodeId = -1;
 	activeFrustum = core_sgct::Frustum::Mono;
 
@@ -337,6 +337,23 @@ void sgct::Engine::clean()
 	glfwTerminate();
 }
 
+void sgct::Engine::frameLock()
+{
+	int syncFrame = mNetwork->getCurrentFrame();
+	int currentSyncFrame = syncFrame;
+	mNetwork->sync();
+	if( !isServer)
+	{
+		while(mNetwork->isRunning())
+		{
+			currentSyncFrame = mNetwork->getCurrentFrame();
+				
+			if( currentSyncFrame != syncFrame )
+				break;
+		}
+	}
+}
+
 void sgct::Engine::render()
 {
 	int running = GL_TRUE;
@@ -348,7 +365,9 @@ void sgct::Engine::render()
 
 		if( isServer )
 		{
+			mNetwork->syncMutex(true);
 			sgct::SharedData::Instance()->encode();
+			mNetwork->syncMutex(false);
 		}
 		else
 		{
@@ -356,7 +375,7 @@ void sgct::Engine::render()
 				break;
 		}
 
-		mNetwork->sync();
+		frameLock();		
 
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
@@ -381,7 +400,7 @@ void sgct::Engine::render()
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed
-		running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED );
+		running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
 	}
 }
 
@@ -613,7 +632,6 @@ void sgct::Engine::calcFPS(double timestamp)
 {
 	static double lastTimestamp = glfwGetTime();
 	mStatistics.FrameTime = timestamp - lastTimestamp;
-	mStatistics.TotalTime += mStatistics.FrameTime;
 	lastTimestamp = timestamp;
     static double renderedFrames = 0.0;
 	static double tmpTime = 0.0;
@@ -631,11 +649,6 @@ void sgct::Engine::calcFPS(double timestamp)
 double sgct::Engine::getDt()
 {
 	return mStatistics.FrameTime;
-}
-
-double sgct::Engine::getTime()
-{
-	return mStatistics.TotalTime;
 }
 
 double sgct::Engine::getDrawTime()

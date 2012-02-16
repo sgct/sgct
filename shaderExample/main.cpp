@@ -52,14 +52,14 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
+	glTranslatef( 0.0f, -0.20f, 1.0f );
 	glRotatef( static_cast<float>( time ) * 10.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor3f( 1.0f, 1.0f, 1.0f );
 	glEnable( GL_TEXTURE_2D );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIndex ) );
+	
 	glPushMatrix();
-	glTranslatef( 0.0f, -0.5f, 0.0f );
-
 	glCallList(myTerrainDisplayList);
 	glPopMatrix();
 
@@ -70,7 +70,7 @@ void myPreDrawFun()
 {
 	if( gEngine->isSyncServer() )
 	{
-		time = gEngine->getTime();
+		time = glfwGetTime();
 	}
 
 	gEngine->setWireframe(wireframe);
@@ -80,14 +80,19 @@ void myInitOGLFun()
 {
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_NORMALIZE );
-	glDisable( GL_LIGHTING );
 	glEnable( GL_COLOR_MATERIAL );
 	glShadeModel( GL_SMOOTH );
+
+	glEnable(GL_LIGHTING);
+	glEnable(GL_LIGHT0);
+
+	float position[] = { 2.0f, 10.0f, 15.0f, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, position);
 
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
-	drawTerrainGrid( 3.0f, 3.0f, 256, 256 );
+	drawTerrainGrid( 2.0f, 2.0f, 256, 256 );
 	glEndList();
 
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
@@ -155,6 +160,11 @@ void keyCallback(int key, int action)
 		case 'W':
 			if(action == GLFW_PRESS)
 				wireframe = !wireframe;
+			break;
+
+		case 'Q':
+			if(action == GLFW_PRESS)
+				gEngine->terminate();
 			break;
 		}
 	}

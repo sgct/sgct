@@ -22,6 +22,8 @@
 #include <tr1/functional>
 #endif
 
+#define MAX_NET_SYNC_FRAME_NUMBER 10000
+
 namespace core_sgct //small graphics cluster toolkit
 {
 
@@ -51,6 +53,7 @@ public:
 	bool matchAddress(const std::string ip);
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
 	void setBufferSize(unsigned int newSize);
+	void syncMutex(bool lock);
 
 	inline int getTypeOfServer() { return mServerType; }
 	inline bool isRunning() { return mRunning; }
@@ -58,12 +61,14 @@ public:
 	inline bool isClientConnected( int index ) { return (clients[index] != NULL && clients[index]->connected) ? true : false; }
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	inline unsigned int getNumberOfNodesInConfig() { return mNumberOfNodesInConfig; }
+	int getCurrentFrame();
 	void setRunningStatus(bool status) { mRunning = status; }
 	void setClientConnectionStatus(int clientIndex, bool state);
 	void setAllNodesConnected(bool state);
 	void terminateClient(int index);
 	void sendStrToAllClients(const std::string str);
 	void sendDataToAllClients(void * data, int lenght);
+	void iterateFramecounter();
 
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncHeader = 17, SizeHeader, ClusterConnected };
@@ -85,6 +90,7 @@ private:
 	std::string hostName;
 	std::vector<std::string> localAddresses;
 	int mainThreadID, pollClientStatusThreadID;
+	int mFramecounter;
 };
 
 class TCPData

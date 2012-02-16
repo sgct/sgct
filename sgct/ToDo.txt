@@ -1,1 +1,1 @@
-Add bool support in sharedData
+Testa glfwSwapInterval(0) om det blir bättre med g-sync

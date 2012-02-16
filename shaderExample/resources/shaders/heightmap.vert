@@ -1,5 +1,5 @@
 uniform sampler2D tex;			// Sampler for texture height map
-uniform float height = 0.25f;	// Height scaling
+uniform float height = 0.20f;	// Height scaling
 varying vec3 v;					// Vertex position in eye coordinates
 
 void main() {

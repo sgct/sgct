@@ -28,8 +28,9 @@ public:
 
 	bool init();
 	void render();
+	void terminate() { mTerminate = true; }
+
 	double getDt();
-	double getTime();
 	double getDrawTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
@@ -58,6 +59,7 @@ private:
 	void initOGL();
 	void clean();
 
+	void frameLock();
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
 	void renderDisplayInfo();
@@ -95,6 +97,7 @@ private:
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool displayInfo;
 	bool showWireframe;
+	bool mTerminate;
 
 	//objects
 	core_sgct::User			mUser;

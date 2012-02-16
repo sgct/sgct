@@ -28,6 +28,7 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	mServerType = SyncServer;
 	mBufferSize = 512;
 	mRequestedSize = 512;
+	mFramecounter = 0;
 
 	WSADATA wsaData;
 	WORD version;
@@ -194,6 +195,28 @@ void core_sgct::SGCTNetwork::setBufferSize(unsigned int newSize)
 	mRequestedSize = newSize;
 }
 
+void core_sgct::SGCTNetwork::iterateFramecounter()
+{
+	if( mFramecounter < MAX_NET_SYNC_FRAME_NUMBER )
+		mFramecounter++;
+	else
+		mFramecounter = 0;
+}
+
+int core_sgct::SGCTNetwork::getCurrentFrame()
+{
+	int tmpi;
+	glfwLockMutex( gDecoderMutex );
+		tmpi = mFramecounter;
+	glfwUnlockMutex( gDecoderMutex );
+	return tmpi;
+}
+
+void core_sgct::SGCTNetwork::syncMutex(bool lock)
+{
+	lock ? glfwLockMutex( gDecoderMutex ) : glfwUnlockMutex( gDecoderMutex );
+}
+
 void GLFWCALL listenForClients(void *arg)
 {
 	core_sgct::SGCTNetwork * nPtr = (core_sgct::SGCTNetwork *)arg;
@@ -325,6 +348,7 @@ void GLFWCALL communicationHandler(void *arg)
 				{
 					glfwLockMutex( gDecoderMutex );
 						(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
+						dataPtr->mNetwork->iterateFramecounter();
 					glfwUnlockMutex( gDecoderMutex );
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::ClusterConnected )

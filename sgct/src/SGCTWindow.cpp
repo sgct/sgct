@@ -40,7 +40,7 @@ core_sgct::SGCTWindow::~SGCTWindow()
 
 void core_sgct::SGCTWindow::init(const char * windowTitle)
 {
-	glfwSwapInterval( 1 ); //0: vsync off, 1: vsync on
+	glfwSwapInterval( 0 ); //0: vsync off, 1: vsync on
 	glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
 	glfwSetWindowSizeCallback( windowResizeCallback );
 	glfwSetWindowTitle( windowTitle );

@@ -13,7 +13,6 @@ struct Statistics
 	double AvgFPS;
 	double FrameTime;
 	double DrawTime;
-	double TotalTime;
 };
 
 } //core_sgct

@@ -32,6 +32,7 @@ public:
 	double getTime();
 	double getDrawTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
+	void setWireframe(bool enabled) { showWireframe = enabled; }
 
 	void setDrawFunction(void(*fnPtr)(void));
 	void setPreDrawFunction(void(*fnPtr)(void));
@@ -93,6 +94,7 @@ private:
 	bool isServer;
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool displayInfo;
+	bool showWireframe;
 
 	//objects
 	core_sgct::User			mUser;

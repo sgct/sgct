@@ -11,6 +11,7 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 
+void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
 unsigned int myTextureIndex;
@@ -18,6 +19,7 @@ GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
 double time = 0.0;
+bool wireframe = false;
 
 int main( int argc, char* argv[] )
 {
@@ -35,6 +37,7 @@ int main( int argc, char* argv[] )
 
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	glfwSetKeyCallback( keyCallback );
 
 	// Main loop
 	gEngine->render();
@@ -69,6 +72,8 @@ void myPreDrawFun()
 	{
 		time = gEngine->getTime();
 	}
+
+	gEngine->setWireframe(wireframe);
 }
 
 void myInitOGLFun()
@@ -82,7 +87,7 @@ void myInitOGLFun()
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
-	drawTerrainGrid( 2.0f, 2.0f, 500, 500 );
+	drawTerrainGrid( 3.0f, 3.0f, 256, 256 );
 	glEndList();
 
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
@@ -95,11 +100,13 @@ void myInitOGLFun()
 void myEncodeFun()
 {
 	sgct::SharedData::Instance()->writeDouble( time );
+	sgct::SharedData::Instance()->writeBool( wireframe );
 }
 
 void myDecodeFun()
 {
 	time = sgct::SharedData::Instance()->readDouble();
+	wireframe = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -137,4 +144,18 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 
 		glEnd();
     }
+}
+
+void keyCallback(int key, int action)
+{
+	if( gEngine->isSyncServer() )
+	{
+		switch( key )
+		{
+		case 'W':
+			if(action == GLFW_PRESS)
+				wireframe = !wireframe;
+			break;
+		}
+	}
 }

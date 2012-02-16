@@ -40,6 +40,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	displayInfo = false;
 	runningLocal = false;
 	isServer = true;
+	showWireframe = false;
 	mThisClusterNodeId = -1;
 	activeFrustum = core_sgct::Frustum::Mono;
 
@@ -360,7 +361,13 @@ void sgct::Engine::render()
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
 
+		glLineWidth(1.0);
+		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 		(this->*mInternalRenderFn)();
+
+		//restore
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 		mStatistics.DrawTime = (glfwGetTime() - startFrameTime);
 

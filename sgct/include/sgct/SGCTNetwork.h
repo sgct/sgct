@@ -46,7 +46,7 @@ class SGCTNetwork
 {
 public:
 	SGCTNetwork();
-	void init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig, int serverType = SyncServer);
+	void init(const std::string port, const std::string ip, bool _isServer, int serverType = SyncServer);
 	void sync();
 	void close();
 	bool matchHostName(const std::string name);
@@ -60,7 +60,6 @@ public:
 	inline bool isServer() { return mServer; }
 	inline bool isClientConnected( int index ) { return (clients[index] != NULL && clients[index]->connected) ? true : false; }
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
-	inline unsigned int getNumberOfNodesInConfig() { return mNumberOfNodesInConfig; }
 	int getCurrentFrame();
 	void setRunningStatus(bool status) { mRunning = status; }
 	void setClientConnectionStatus(int clientIndex, bool state);
@@ -86,7 +85,6 @@ private:
 	bool mRunning;
 	bool mServer;
 	bool mAllNodesConnected;
-	unsigned int mNumberOfNodesInConfig;
 	std::string hostName;
 	std::vector<std::string> localAddresses;
 	int mainThreadID, pollClientStatusThreadID;

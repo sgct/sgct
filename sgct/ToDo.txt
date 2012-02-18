@@ -10,6 +10,7 @@ Frustum klassen ska kunna ha funtioner som säger om:
 	3. Box är innanför frustumet
 Detta gör det enklare för användaren att implemetera frustum culling. NodeConfig klassen kanske borde ligga i en singleton manager.
 
+Utöka header byten i nätverksklassen till en större.. Har fått ett fel en gång. Borde kanske vara 8 bytes. Borde även synka locka servern i renderingsloopen.
 
 
 //float texturer vore najs att kunna hantera

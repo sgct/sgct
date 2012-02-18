@@ -17,8 +17,10 @@
     <ClCompile Include="src\freetype.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\MessageHandler.cpp" />
+    <ClCompile Include="src\NodeManager.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\SGCTNetwork.cpp" />
+    <ClCompile Include="src\SGCTNode.cpp" />
     <ClCompile Include="src\SGCTWindow.cpp" />
     <ClCompile Include="src\Shader.cpp" />
     <ClCompile Include="src\ShaderManager.cpp" />
@@ -35,9 +37,11 @@
     <ClInclude Include="include\sgct\Frustum.h" />
     <ClInclude Include="include\sgct\Image.h" />
     <ClInclude Include="include\sgct\MessageHandler.h" />
+    <ClInclude Include="include\sgct\NodeManager.h" />
     <ClInclude Include="include\sgct\Point3.h" />
     <ClInclude Include="include\sgct\ReadConfig.h" />
     <ClInclude Include="include\sgct\SGCTNetwork.h" />
+    <ClInclude Include="include\sgct\SGCTNode.h" />
     <ClInclude Include="include\sgct\SGCTWindow.h" />
     <ClInclude Include="include\sgct\Shader.h" />
     <ClInclude Include="include\sgct\ShaderManager.h" />

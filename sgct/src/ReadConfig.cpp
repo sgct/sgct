@@ -2,6 +2,7 @@
 
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/NodeManager.h"
 #include <tinyxml.h>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
@@ -29,9 +30,10 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 
 	valid = true;
 	sgct::MessageHandler::Instance()->print("Config file '%s' read successfully!\n", xmlFileName.c_str());
-	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", nodes.size());
-	for(unsigned int i = 0; i<nodes.size(); i++)
-		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s\n", i, nodes[i].ip.c_str());
+	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", 
+		NodeManager::Instance()->getNumberOfNodes());
+	for(unsigned int i = 0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
+		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s\n", i, NodeManager::Instance()->getNodePtr(i)->ip.c_str());
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -67,9 +69,8 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 		if( strcmp("Node", val[0]) == 0 )
 		{
-			NodeConfig tmpNodeCfg;
-			tmpNodeCfg.master = (strcmp( element[0]->Attribute( "type" ), "Master" ) == 0 ? true : false);
-			tmpNodeCfg.ip.assign( element[0]->Attribute( "ip" ) );
+			SGCTNode tmpNode;
+			tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
@@ -78,15 +79,12 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 				if( strcmp("Window", val[1]) == 0 )
 				{
-					//init optional parameters
-					tmpNodeCfg.lockVerticalSync = false;
-					
-					tmpNodeCfg.fullscreen = (strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? true : false);
-					element[1]->Attribute("numberOfSamples", &tmpNodeCfg.numberOfSamples );
-					tmpNodeCfg.useSwapGroups = (strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+					tmpNode.fullscreen = (strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? true : false);
+					element[1]->Attribute("numberOfSamples", &tmpNode.numberOfSamples );
+					tmpNode.useSwapGroups = (strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
 					if( element[1]->Attribute("verticalSync") != NULL )
-						tmpNodeCfg.lockVerticalSync =
+						tmpNode.lockVerticalSync =
 							(strcmp( element[1]->Attribute("verticalSync"), "true" ) == 0 ? true : false);
 
 					element[2] = element[1]->FirstChildElement();
@@ -96,17 +94,17 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 						if( strcmp("Stereo", val[2]) == 0 )
 						{
-							tmpNodeCfg.stereo = getStereoType( element[2]->Attribute("type") );
+							tmpNode.stereo = getStereoType( element[2]->Attribute("type") );
 						}
 						else if( strcmp("Size", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpNodeCfg.windowData[2] );
-							element[2]->Attribute("y", &tmpNodeCfg.windowData[3] );
+							element[2]->Attribute("x", &tmpNode.windowData[2] );
+							element[2]->Attribute("y", &tmpNode.windowData[3] );
 						}
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpNodeCfg.windowData[0] );
-							element[2]->Attribute("y", &tmpNodeCfg.windowData[1] );
+							element[2]->Attribute("x", &tmpNode.windowData[0] );
+							element[2]->Attribute("y", &tmpNode.windowData[1] );
 						}
 
 						//iterate
@@ -133,7 +131,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							tmpP3.y = static_cast<float>(dTmp[1]);
 							tmpP3.z = static_cast<float>(dTmp[2]);
 
-							tmpNodeCfg.viewPlaneCoords[i%3] = tmpP3;
+							tmpNode.viewPlaneCoords[i%3] = tmpP3;
 							i++;
 						}
 
@@ -146,7 +144,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 				element[1] = element[1]->NextSiblingElement();
 			}
 
-			nodes.push_back( tmpNodeCfg );
+			core_sgct::NodeManager::Instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
 		{

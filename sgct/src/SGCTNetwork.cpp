@@ -5,6 +5,7 @@
 #include "../include/sgct/SGCTNetwork.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/NodeManager.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
@@ -23,7 +24,6 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	pollClientStatusThreadID = -1;
 	mSocket = INVALID_SOCKET;
 	mDecoderCallbackFn = NULL;
-	mNumberOfNodesInConfig = 0;
 	mAllNodesConnected = false;
 	mServerType = SyncServer;
 	mBufferSize = 512;
@@ -71,9 +71,8 @@ core_sgct::SGCTNetwork::SGCTNetwork()
     }
 }
 
-void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, unsigned int numberOfNodesInConfig, int serverType)
+void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, int serverType)
 {
-	mNumberOfNodesInConfig = numberOfNodesInConfig;
 	mServer = _isServer;
 	mServerType = serverType;
 	gMutex = glfwCreateMutex();
@@ -246,7 +245,7 @@ void GLFWCALL listenForClients(void *arg)
 			dataPtr->mNetwork->clients[ dataPtr->mClientIndex ]->connected = true;
 
 			//check if all connected and don't count itself
-			if(dataPtr->mNetwork->getNumberOfNodesInConfig()-1 == dataPtr->mNetwork->clients.size())
+			if(core_sgct::NodeManager::Instance()->getNumberOfNodes()-1 == dataPtr->mNetwork->clients.size())
 			{
 				dataPtr->mNetwork->setAllNodesConnected(true);
 			}

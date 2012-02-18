@@ -9,24 +9,10 @@
 
 #include <string>
 #include <vector>
-
 #include "Point3.h"
 
 namespace core_sgct //simple graphics cluster toolkit
 {
-
-struct NodeConfig
-{
-	bool master;
-	bool useSwapGroups;
-	bool lockVerticalSync;
-	std::string ip;
-	bool fullscreen;
-	int numberOfSamples;
-	int stereo;
-	int windowData[4]; //offset x y and size x y
-	Point3f viewPlaneCoords[3];
-};
 
 class ReadConfig
 {
@@ -39,8 +25,6 @@ public:
 	std::string * getMasterIP() { return &masterIP; }
 	std::string * getMasterPort() { return &masterPort; }
 	std::string * getExternalControlPort() { return &externalControlPort; }
-	NodeConfig * getNodePtr(unsigned int index) { return &nodes[index]; }
-	unsigned int getNumberOfNodes() { return nodes.size(); }
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	Point3f * getUserPos() { return &userPos; }
@@ -53,7 +37,6 @@ private:
 	bool valid;
 	bool useExternalControlPort;
 	std::string xmlFileName;
-	std::vector<NodeConfig> nodes;
 	Point3f userPos;
 	float eyeSeparation;
 

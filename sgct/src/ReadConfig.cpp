@@ -78,9 +78,16 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 				if( strcmp("Window", val[1]) == 0 )
 				{
+					//init optional parameters
+					tmpNodeCfg.lockVerticalSync = false;
+					
 					tmpNodeCfg.fullscreen = (strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? true : false);
 					element[1]->Attribute("numberOfSamples", &tmpNodeCfg.numberOfSamples );
 					tmpNodeCfg.useSwapGroups = (strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+
+					if( element[1]->Attribute("verticalSync") != NULL )
+						tmpNodeCfg.lockVerticalSync =
+							(strcmp( element[1]->Attribute("verticalSync"), "true" ) == 0 ? true : false);
 
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )

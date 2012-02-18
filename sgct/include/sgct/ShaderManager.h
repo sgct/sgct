@@ -30,7 +30,8 @@ public:
 		ShaderSourceType sSrcType = SHADER_SRC_FILE );
 
 	bool removeShader( const std::string & name );
-	bool useShader( const std::string & name ) const;
+	bool bindShader( const std::string & name ) const;
+	void unBindShader();
 
 	bool shaderExists( const std::string & name ) const;
 	

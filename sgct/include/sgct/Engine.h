@@ -65,6 +65,7 @@ private:
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
+	const char * getBasicInfo();
 
 	//stereo render functions
 	void setNormalRenderingMode();
@@ -112,6 +113,7 @@ private:
 
 	std::string configFilename;
 	int mThisClusterNodeId;
+	char basicInfo[48];
 };
 
 }

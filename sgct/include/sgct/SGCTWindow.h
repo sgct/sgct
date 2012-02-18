@@ -17,7 +17,8 @@ class SGCTWindow
 public:
 	SGCTWindow();
 	~SGCTWindow();
-	void init(const char * windowTitle);
+	void init(bool lockVerticalSync);
+	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(const int mode);

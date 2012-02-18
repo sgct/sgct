@@ -11,6 +11,8 @@
 #define _CRT_SECURE_NO_DEPRECATE 1
 #define _CRT_NONSTDC_NO_DEPRECATE 1
 
+#define GLEW_STATIC //important when compileing with gcc
+
 #ifndef _SGCT_H_
 #define _SGCT_H_
 

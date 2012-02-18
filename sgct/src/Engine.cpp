@@ -230,15 +230,8 @@ bool sgct::Engine::initWindow()
 	}
 	sgct::MessageHandler::Instance()->print("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
-	char windowTitle[32];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( windowTitle, sizeof(windowTitle), "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
-		isServer ? "server" : "slave");
-    #else
-    sprintf( windowTitle, "Node: %s (%s)", mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
-		isServer ? "server" : "slave");
-    #endif
-	mWindow->init(windowTitle);
+	mWindow->init( mConfig->getNodePtr(mThisClusterNodeId)->lockVerticalSync );
+	mWindow->setWindowTitle( getBasicInfo() );
 
 	//Must wait until all nodes are running if using swap barrier
 	if( mConfig->getNodePtr(mThisClusterNodeId)->useSwapGroups )
@@ -643,6 +636,10 @@ void sgct::Engine::calcFPS(double timestamp)
 		mStatistics.AvgFPS = renderedFrames / tmpTime;
 		renderedFrames = 0.0;
 		tmpTime = 0.0;
+
+		//don't set if in full screen
+		if(mWindow->getWindowMode() == GLFW_WINDOW)
+			mWindow->setWindowTitle( getBasicInfo() );
 	}
 }
 
@@ -685,4 +682,21 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 {
 	if(mExternalControlNetwork != NULL)
 		mExternalControlNetwork->setBufferSize(newSize);
+}
+
+const char * sgct::Engine::getBasicInfo()
+{
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
+		runningLocal ? "127.0.0.1" : mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+		isServer ? "server" : "slave",
+		mStatistics.AvgFPS);
+    #else
+    sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
+		runningLocal ? "127.0.0.1" : mConfig->getNodePtr(mThisClusterNodeId)->ip.c_str(),
+		isServer ? "server" : "slave",
+		mStatistics.AvgFPS);
+    #endif
+
+	return basicInfo;
 }

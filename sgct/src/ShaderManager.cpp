@@ -121,13 +121,14 @@ Set a shader program to be used in the current rendering pipeline
 @param	name	Name of the shader program to set as active
 @return	Wether the specified shader was set as active or not.
 */
-bool sgct::ShaderManager::useShader( const std::string & name ) const
+bool sgct::ShaderManager::bindShader( const std::string & name ) const
 {
 	ShaderProgram sp = getShader( name );
 
 	if( sp == NullShader )
 	{
 		sgct::MessageHandler::Instance()->print("Could not set shader program [%s] as active: Not found in manager.\n", name.c_str() );
+		glUseProgram( GL_FALSE ); //unbind to prevent errors
 		return false;
 	}
 
@@ -135,6 +136,14 @@ bool sgct::ShaderManager::useShader( const std::string & name ) const
 }
 //----------------------------------------------------------------------------//
 
+/*!
+	Unbind/unset/diable current shader program in the rendering pipeline.
+*/
+void sgct::ShaderManager::unBindShader()
+{
+	glUseProgram( GL_FALSE );
+}
+//----------------------------------------------------------------------------//
 /*!
 Get the specified shader program from the shader manager. If the shader is not found
 ShaderManager::NullShader will be returned which can be used for comparisons. The NullShader

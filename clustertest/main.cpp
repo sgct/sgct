@@ -137,7 +137,7 @@ void myPreDrawFun()
 	if( gEngine->isSyncServer() )
 	{
 		dt = gEngine->getDt();
-		time = gEngine->getTime();
+		time = glfwGetTime();
 	}
 
 	gEngine->setDisplayInfoVisibility( showFPS );

@@ -19,6 +19,7 @@ struct NodeConfig
 {
 	bool master;
 	bool useSwapGroups;
+	bool lockVerticalSync;
 	std::string ip;
 	bool fullscreen;
 	int numberOfSamples;

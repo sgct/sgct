@@ -2,7 +2,7 @@
 <Cluster masterAddress="172.19.8.10" port="20000">
 	<Node type="Master" ip="172.19.8.10">
 	<!-- <Node type="Master" ip="192.168.0.11"> -->
-		<Window fullscreen="false" numberOfSamples="4" swapLock="false">
+		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="false">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
 			<Size x="728" y="210" />

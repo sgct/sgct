@@ -18,7 +18,7 @@
     <None Include="resources\shaders\heightmap.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{0516E457-A21E-4D14-8DBC-63D918909A23}</ProjectGuid>
+    <ProjectGuid>{DE236993-0678-4638-8180-39DE3D8B74C7}</ProjectGuid>
     <RootNamespace>textureExample</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

@@ -14,7 +14,9 @@ void myDecodeFun();
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
-unsigned int myTextureIndex;
+unsigned int myTextureIds[2];
+int myTextureLocations[2];
+int timeLoc;
 GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
@@ -51,18 +53,35 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{
+{	
 	glTranslatef( 0.0f, -0.20f, 1.0f );
 	glRotatef( static_cast<float>( time ) * 10.0f, 0.0f, 1.0f, 0.0f );
 
-	glColor3f( 1.0f, 1.0f, 1.0f );
-	glEnable( GL_TEXTURE_2D );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIndex ) );
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );	
 	
+	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIds[0] ));
+	glEnable(GL_TEXTURE_2D);
+
+	glActiveTextureARB(GL_TEXTURE1_ARB);
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIds[1] )); 
+	glEnable(GL_TEXTURE_2D);
+
+	//set current shader program
+	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
+	glUniform1f( timeLoc, static_cast<float>( time ) );
+
 	glPushMatrix();
 	glCallList(myTerrainDisplayList);
 	glPopMatrix();
 
+	//unset current shader program
+	sgct::ShaderManager::Instance()->unBindShader();
+
+	glActiveTextureARB(GL_TEXTURE1_ARB);
+	glDisable(GL_TEXTURE_2D);
+
+	glActiveTextureARB(GL_TEXTURE0_ARB);
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -82,24 +101,43 @@ void myInitOGLFun()
 	glEnable( GL_NORMALIZE );
 	glEnable( GL_COLOR_MATERIAL );
 	glShadeModel( GL_SMOOTH );
-
 	glEnable(GL_LIGHTING);
+
+	//Set up light 0
 	glEnable(GL_LIGHT0);
-
-	float position[] = { 2.0f, 10.0f, 15.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, position);
-
+	GLfloat lightPosition[] = { -2.0f, 3.0f, 10.0f, 1.0f };
+	GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
+	GLfloat lightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
+	GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+	
+	//create and compile display list
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
 	drawTerrainGrid( 2.0f, 2.0f, 256, 256 );
 	glEndList();
 
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "heightmap", "resources/textures/heightmap.png", true);
+	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
+	sgct::TextureManager::Instance()->loadTexure(myTextureIds[0], "heightmap", "resources/textures/heightmap.png", true, 0);
+	sgct::TextureManager::Instance()->loadTexure(myTextureIds[1], "normalmap", "resources/textures/normalmap.png", true, 0);
 
 	sgct::ShaderManager::Instance()->addShader( "Heightmap", "resources/shaders/heightmap.vert", "resources/shaders/heightmap.frag" );
-	sgct::ShaderManager::Instance()->useShader( "Heightmap" );
+
+	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
+	myTextureLocations[0] = -1;
+	myTextureLocations[1] = -1;
+	timeLoc = -1;
+	myTextureLocations[0] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "hTex" );
+	myTextureLocations[1] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "nTex" );
+	timeLoc = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "time" );
+
+	glUniform1i( myTextureLocations[0], 0 );
+	glUniform1i( myTextureLocations[1], 1 );
+	sgct::ShaderManager::Instance()->unBindShader();
 }
 
 void myEncodeFun()
@@ -138,13 +176,22 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 
 		glBegin( GL_TRIANGLE_STRIP );
 
+		glNormal3f(0.0f,1.0f,0.0);
         for( unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex )
         {
 			float wPos = wStart + dW * static_cast<float>( widthIndex );
 			float wTexCoord = widthIndex / static_cast<float>( wRes );
 
-			glTexCoord2f( wTexCoord, dTexCoordLow ); glVertex3f( wPos, 0.0f, dPosLow );
-			glTexCoord2f( wTexCoord, dTexCoordHigh ); glVertex3f( wPos, 0.0f, dPosHigh );
+			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, wTexCoord, dTexCoordLow);
+			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, wTexCoord, dTexCoordLow);
+			glVertex3f( wPos, 0.0f, dPosLow );
+
+			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, wTexCoord, dTexCoordHigh);
+			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, wTexCoord, dTexCoordHigh);
+			glVertex3f( wPos, 0.0f, dPosHigh );
+
+			/*glTexCoord2f( wTexCoord, dTexCoordLow ); glVertex3f( wPos, 0.0f, dPosLow );
+			glTexCoord2f( wTexCoord, dTexCoordHigh ); glVertex3f( wPos, 0.0f, dPosHigh );*/
         }
 
 		glEnd();

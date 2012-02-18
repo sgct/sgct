@@ -1,41 +1,51 @@
-uniform sampler2D tex; // Used for texture sampling
-
+uniform sampler2D hTex;
+uniform sampler2D nTex;
+uniform float time;
+varying float vScale;
+varying vec3 light_dir;
 varying vec3 v;
 
 // Computes the diffues shading by using the normal for
 // the fragment and direction from fragment to the light
-vec4 calcShading( vec3 fragNormal, vec3 lightDir )
+vec3 calcShading( vec3 N, vec3 L )
 {
+	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0)  
+	vec3 R = normalize(reflect(-L,N));
+	
+	//Ambient contribution  
+	vec4 Iamb = gl_LightSource[0].ambient;
+	
 	//Diffuse contribution
-	vec4 Idiff = gl_FrontLightProduct[0].diffuse * max(dot(fragNormal,lightDir), 0.0);
-	//Ambient contribution
-	Idiff += vec4(0.15,0.15,0.15,1.0);
-	return clamp(Idiff, 0.0, 1.0);
+	vec3 Idiff = gl_LightSource[0].diffuse * max(dot(N,L), 0.0);
+	Idiff = clamp(Idiff, 0.0, 1.0);
+	
+	//Specular contribution
+	const float specExp = 32.0;
+	vec4 Ispec = gl_LightSource[0].specular 
+		* pow(max(dot(R,E),0.0), specExp);
+    Ispec = clamp(Ispec, 0.0, 1.0); 
+   
+	return Iamb + Idiff + Ispec;
 }
 
 void main()
 {
-	ivec2 textRes = textureSize( tex, 0 );
-	float invTexWidth  = 1.0 / textRes.x;
-	float invTexHeight = 1.0 / textRes.y;
+	vec3 pixelVals = texture2D( nTex, gl_TexCoord[1].st).rgb;
+	vec3 normal;
+	normal.x = (pixelVals.r * 2.0 - 1.0);
+	normal.y = (pixelVals.b * 2.0 - 1.0)/vScale;
+	normal.z = (pixelVals.g * 2.0 - 1.0);
+	if(vScale < 0)
+		normal = -normal;
 	
-	// val_row_column, where 0_0 = current fragment
-	float val_0_0 = length( texture2D( tex, gl_TexCoord[0].st ).xyz );
-
-	float val_1_0 = length( texture2D( tex, gl_TexCoord[0].st + vec2(		 0.0, invTexHeight ) ).xyz );
-	float val_0_1 = length( texture2D( tex, gl_TexCoord[0].st + vec2( invTexWidth,		   0.0 ) ).xyz );
-
-	vec3 normal = normalize( cross( vec3( 0.0, val_1_0-val_0_0, invTexHeight ), vec3( invTexWidth, val_0_1-val_0_0, 0.0 ) ) );
+	// Set fragment color
+	// This will result in a non-linear color temperature scale based on height value
+	float hVal = texture2D( hTex, gl_TexCoord[0].st).x;
+	float Pi = 3.14159265358979323846264;
+	gl_FragColor.rgb = vec3(1.0-cos(Pi*hVal),sin(Pi*hVal),cos(Pi*hVal));
+	//gl_FragColor.rgb = vec3(1.0,1.0,1.0); set to white
 	
-
-	/*vec3 x = vec3(invTexWidth,
-		texture2D( tex, gl_TexCoord[0].st - vec2(invTexWidth, 0.0 ) ).r/textRes.x,
-		0.0);
-	vec3 y = vec3(0.0,
-		texture2D( tex, gl_TexCoord[0].st - vec2(0.0, invTexHeight ) ).r/textRes.y,
-		invTexHeight);
-	vec3 normal = normalize( cross(y,x) );*/
-	
-	vec3 L = normalize( (gl_LightSource[0].position*gl_ModelViewMatrix).xyz - v );
-	gl_FragColor = calcShading( normal, L );
+	// multiply color with shading
+	gl_FragColor.rgb *= calcShading( normalize(gl_NormalMatrix * normal), light_dir );
+	gl_FragColor.a = 1.0;
 }

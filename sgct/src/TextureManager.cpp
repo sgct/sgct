@@ -94,6 +94,7 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 		}
 
 		glTexImage2D(GL_TEXTURE_2D, 0, components, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+		
 		if(mipmapLevels > 1)
 		{
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR );

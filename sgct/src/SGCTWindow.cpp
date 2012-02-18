@@ -38,14 +38,22 @@ core_sgct::SGCTWindow::~SGCTWindow()
 	}
 }
 
-void core_sgct::SGCTWindow::init(const char * windowTitle)
+void core_sgct::SGCTWindow::init(bool lockVerticalSync)
 {
-	glfwSwapInterval( 0 ); //0: vsync off, 1: vsync on
+	glfwSwapInterval( lockVerticalSync ? 1 : 0 ); //0: vsync off, 1: vsync on
 	glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
 	glfwSetWindowSizeCallback( windowResizeCallback );
-	glfwSetWindowTitle( windowTitle );
 
 	initNvidiaSwapGroups();
+}
+
+/*!
+	Sets the window title.
+	@param	Title of the window.
+*/
+void core_sgct::SGCTWindow::setWindowTitle(const char * title)
+{
+	glfwSetWindowTitle( title );
 }
 
 void core_sgct::SGCTWindow::setWindowResolution(const int x, const int y)

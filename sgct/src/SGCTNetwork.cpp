@@ -28,7 +28,8 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	mServerType = SyncServer;
 	mBufferSize = 512;
 	mRequestedSize = 512;
-	mFramecounter = 0;
+	mFrameCounter = 0;
+	mFeedbackCounter = 0;
 
 	WSADATA wsaData;
 	WORD version;
@@ -194,21 +195,43 @@ void core_sgct::SGCTNetwork::setBufferSize(unsigned int newSize)
 	mRequestedSize = newSize;
 }
 
-void core_sgct::SGCTNetwork::iterateFramecounter()
+void core_sgct::SGCTNetwork::iterateFrameCounter()
 {
-	if( mFramecounter < MAX_NET_SYNC_FRAME_NUMBER )
-		mFramecounter++;
+	if( mFrameCounter < MAX_NET_SYNC_FRAME_NUMBER )
+		mFrameCounter++;
 	else
-		mFramecounter = 0;
+		mFrameCounter = 0;
+}
+
+void core_sgct::SGCTNetwork::iterateFeedbackCounter()
+{
+	if( mFeedbackCounter > 0 )
+		mFeedbackCounter--;
 }
 
 int core_sgct::SGCTNetwork::getCurrentFrame()
 {
 	int tmpi;
 	glfwLockMutex( gDecoderMutex );
-		tmpi = mFramecounter;
+		tmpi = mFrameCounter;
 	glfwUnlockMutex( gDecoderMutex );
 	return tmpi;
+}
+
+unsigned int core_sgct::SGCTNetwork::getFeedbackCount()
+{
+	unsigned int tmpui;
+	glfwLockMutex( gDecoderMutex );
+		tmpui = mFeedbackCounter;
+	glfwUnlockMutex( gDecoderMutex );
+	return tmpui;
+}
+
+void core_sgct::SGCTNetwork::resetFeedbackCounter()
+{
+	glfwLockMutex( gDecoderMutex );
+		mFeedbackCounter = 0;
+	glfwUnlockMutex( gDecoderMutex );
 }
 
 void core_sgct::SGCTNetwork::syncMutex(bool lock)
@@ -242,16 +265,17 @@ void GLFWCALL listenForClients(void *arg)
 			core_sgct::TCPData * dataPtr = new core_sgct::TCPData;
 			dataPtr->mClientIndex = static_cast<int>(nPtr->clients.size()) - 1;
 			dataPtr->mNetwork = nPtr;
-			dataPtr->mNetwork->clients[ dataPtr->mClientIndex ]->connected = true;
+
+			//start reading thread
+			nPtr->clients[ dataPtr->mClientIndex ]->threadID = glfwCreateThread( communicationHandler, dataPtr );
+
+			dataPtr->mNetwork->setClientConnectionStatus(dataPtr->mClientIndex,true);
 
 			//check if all connected and don't count itself
 			if(core_sgct::NodeManager::Instance()->getNumberOfNodes()-1 == dataPtr->mNetwork->clients.size())
 			{
 				dataPtr->mNetwork->setAllNodesConnected(true);
 			}
-
-			//start reading thread
-			nPtr->clients[ dataPtr->mClientIndex ]->threadID = glfwCreateThread( communicationHandler, dataPtr );
 
 			if( nPtr->clients[ dataPtr->mClientIndex ]->threadID < 0)
 			{
@@ -269,7 +293,7 @@ void core_sgct::SGCTNetwork::setDecodeFunction(std::tr1::function<void (const ch
 }
 
 /*
-function to decode messages on the client from the server
+function to decode messages
 */
 void GLFWCALL communicationHandler(void *arg)
 {
@@ -277,7 +301,12 @@ void GLFWCALL communicationHandler(void *arg)
 
 	//say hi
 	if( dataPtr->mNetwork->isServer() )
+	{
 		send(dataPtr->mNetwork->clients[ dataPtr->mClientIndex ]->client_socket, "Connected..\r\n", 13, 0);
+		//initial sync
+		//if( dataPtr->mNetwork->getTypeOfServer() == core_sgct::SGCTNetwork::SyncServer )
+		//	dataPtr->mNetwork->sync();
+	}
 	else
 		send(dataPtr->mNetwork->mSocket, "Connected.\r\n", 13, 0);
 
@@ -305,9 +334,8 @@ void GLFWCALL communicationHandler(void *arg)
 			glfwUnlockMutex( gDecoderMutex );
 		}
 		
-		
 		//check to use correct socket
-		if( dataPtr->mNetwork->isServer() )
+		if( dataPtr->mNetwork->isServer() && dataPtr->mNetwork->clients[ dataPtr->mClientIndex ]->connected)
 			iResult = recv( dataPtr->mNetwork->clients[ dataPtr->mClientIndex ]->client_socket, recvbuf, recvbuflen, 0);
 		else
 			iResult = recv( dataPtr->mNetwork->mSocket, recvbuf, recvbuflen, 0);
@@ -343,11 +371,27 @@ void GLFWCALL communicationHandler(void *arg)
 					//memset(recvbuf,0,cui.newSize);
 					glfwUnlockMutex( gDecoderMutex );
 				}
-				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader && dataPtr->mNetwork->mDecoderCallbackFn != NULL)
+				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
+					!dataPtr->mNetwork->isServer() &&
+					dataPtr->mNetwork->mDecoderCallbackFn != NULL)
 				{
 					glfwLockMutex( gDecoderMutex );
 						(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
-						dataPtr->mNetwork->iterateFramecounter();
+						dataPtr->mNetwork->iterateFrameCounter();
+					glfwUnlockMutex( gDecoderMutex );
+				}
+				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
+					dataPtr->mNetwork->isServer() &&
+					dataPtr->mNetwork->mDecoderCallbackFn != NULL)
+				{
+					glfwLockMutex( gDecoderMutex );
+						(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
+					glfwUnlockMutex( gDecoderMutex );
+				}
+				else if( recvbuf[0] == core_sgct::SGCTNetwork::mACKByte )
+				{
+					glfwLockMutex( gDecoderMutex );
+						dataPtr->mNetwork->iterateFeedbackCounter();
 					glfwUnlockMutex( gDecoderMutex );
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::ClusterConnected )
@@ -382,7 +426,10 @@ void GLFWCALL communicationHandler(void *arg)
 			glfwLockMutex( gDecoderMutex );
 				sgct::MessageHandler::Instance()->print("TCP Connection closed [client: %d]\n", dataPtr->mClientIndex);
 				if(dataPtr->mNetwork->isServer())
+				{
 					dataPtr->mNetwork->setClientConnectionStatus(dataPtr->mClientIndex,false);
+					dataPtr->mNetwork->resetFeedbackCounter();
+				}
 				else
 					dataPtr->mNetwork->setRunningStatus(false);
 			glfwUnlockMutex( gDecoderMutex );
@@ -392,7 +439,10 @@ void GLFWCALL communicationHandler(void *arg)
 			glfwLockMutex( gDecoderMutex );
 				sgct::MessageHandler::Instance()->print("TCP recv failed: %d [client: %d]\n", WSAGetLastError(), dataPtr->mClientIndex);
 				if(dataPtr->mNetwork->isServer())
+				{
 					dataPtr->mNetwork->setClientConnectionStatus(dataPtr->mClientIndex,false);
+					dataPtr->mNetwork->resetFeedbackCounter();
+				}
 				else
 					dataPtr->mNetwork->setRunningStatus(false);
 			glfwUnlockMutex( gDecoderMutex );
@@ -427,7 +477,7 @@ void core_sgct::SGCTNetwork::sendStrToAllClients(const std::string str)
 		{
 			iResult = send(clients[i]->client_socket, str.c_str(), str.size(), 0);
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print("Send failed to client %d with error: %d\n", i, WSAGetLastError());
+				sgct::MessageHandler::Instance()->print("Send string failed to client %d with error: %d\n", i, WSAGetLastError());
 		}
 }
 
@@ -437,10 +487,34 @@ void core_sgct::SGCTNetwork::sendDataToAllClients(void * data, int lenght)
 	for(unsigned int i=0; i<clients.size(); i++)
 		if( clients[i] != NULL && clients[i]->connected )
 		{
+			//This must occur before send..
+			if( static_cast<unsigned char *>(data)[0] == SyncHeader )
+			{
+				glfwLockMutex( gDecoderMutex );
+					mFeedbackCounter++;
+				glfwUnlockMutex( gDecoderMutex );
+			}
+			
 			iResult = send(clients[i]->client_socket, (const char *)data, lenght, 0);
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print("Send failed to client %d with error: %d\n", i, WSAGetLastError());
+			{
+				sgct::MessageHandler::Instance()->print("Send data failed to client %d with error: %d\n", i, WSAGetLastError());
+				if( static_cast<unsigned char *>(data)[0] == SyncHeader )
+				{
+					//correct if message fails
+					glfwLockMutex( gDecoderMutex );
+						iterateFeedbackCounter();
+					glfwUnlockMutex( gDecoderMutex );
+				}
+			}
 		}
+}
+
+void core_sgct::SGCTNetwork::sendDataToServer(const char * data, int lenght)
+{
+	int iResult = send(mSocket, data, lenght, 0);
+	if (iResult == SOCKET_ERROR)
+		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
 }
 
 void core_sgct::SGCTNetwork::setAllNodesConnected(bool state)
@@ -460,11 +534,11 @@ void core_sgct::SGCTNetwork::setClientConnectionStatus(int clientIndex, bool sta
 }
 
 void core_sgct::SGCTNetwork::terminateClient(int index)
-{
+{	
 	if( index >= 0 && index < static_cast<int>(clients.size()) && clients[index] != NULL )
 	{
 		sgct::MessageHandler::Instance()->print("Closing client connection %d...\n", index);
-		clients[index]->connected = false;
+		setClientConnectionStatus(index, false);
 
 		//Brutal kill but we cannot wait since the thead is waiting for messages (blocking)
 		glfwDestroyThread( clients[index]->threadID );
@@ -483,6 +557,10 @@ void core_sgct::SGCTNetwork::terminateClient(int index)
 
 void core_sgct::SGCTNetwork::sync()
 {
+	glfwLockMutex( gDecoderMutex );
+		mFeedbackCounter = 0;
+	glfwUnlockMutex( gDecoderMutex );
+
 	if( isServer() )
 	{
 
@@ -517,13 +595,7 @@ void core_sgct::SGCTNetwork::sync()
 			work during the first call without setting the pointer first!!! */
 			const char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
 
-			iResult = send(mSocket,
-                 messageToSend,
-                 sgct::MessageHandler::Instance()->getDataSize(),
-                 0);
-
-			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print("Send failed with error: %d\n", WSAGetLastError());
+			sendDataToServer(messageToSend, sgct::MessageHandler::Instance()->getDataSize());
 
 			sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
         }
@@ -534,13 +606,7 @@ void core_sgct::SGCTNetwork::sync()
 			work during the first call without setting the pointer first!!! */
 			const char * messageToSend = sgct::MessageHandler::Instance()->getTrimmedMessage(mBufferSize-1);
 
-			iResult = send(mSocket,
-                 messageToSend,
-                 sgct::MessageHandler::Instance()->getTrimmedDataSize(),
-                 0);
-
-			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print("Send failed with error: %d\n", WSAGetLastError());
+			sendDataToServer(messageToSend, sgct::MessageHandler::Instance()->getTrimmedDataSize());
         }
 	}
 }

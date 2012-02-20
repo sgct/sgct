@@ -36,7 +36,10 @@ int main( int argc, char* argv[] )
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
-
+	
+	//temp
+	gEngine->setDisplayInfoVisibility( true );
+	
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 	glfwSetKeyCallback( keyCallback );
@@ -71,9 +74,7 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	glUniform1f( timeLoc, static_cast<float>( time ) );
 
-	glPushMatrix();
 	glCallList(myTerrainDisplayList);
-	glPopMatrix();
 
 	//unset current shader program
 	sgct::ShaderManager::Instance()->unBindShader();
@@ -167,7 +168,7 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 	float dW = width / static_cast<float>( wRes );
 	float dD = depth / static_cast<float>( dRes );
 
-	 for( unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex )
+	for( unsigned int depthIndex = 0; depthIndex < dRes; ++depthIndex )
     {
 		float dPosLow = dStart + dD * static_cast<float>( depthIndex );
 		float dPosHigh = dStart + dD * static_cast<float>( depthIndex + 1 );
@@ -189,9 +190,6 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, wTexCoord, dTexCoordHigh);
 			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, wTexCoord, dTexCoordHigh);
 			glVertex3f( wPos, 0.0f, dPosHigh );
-
-			/*glTexCoord2f( wTexCoord, dTexCoordLow ); glVertex3f( wPos, 0.0f, dPosLow );
-			glTexCoord2f( wTexCoord, dTexCoordHigh ); glVertex3f( wPos, 0.0f, dPosHigh );*/
         }
 
 		glEnd();

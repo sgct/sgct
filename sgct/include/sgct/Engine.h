@@ -32,6 +32,7 @@ public:
 
 	double getDt();
 	double getDrawTime();
+	double getSyncTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
 
@@ -59,7 +60,7 @@ private:
 	void initOGL();
 	void clean();
 
-	void frameLock();
+	void frameSyncAndLock(int stage);
 	void calcFPS(double timestamp);
 	void parseArguments( int argc, char* argv[] );
 	void renderDisplayInfo();
@@ -88,6 +89,8 @@ private:
 	CallbackFn mClearBufferFn;
 	InternalCallbackFn mInternalRenderFn;
 	NetworkCallbackFn mNetworkCallbackFn;
+
+	enum Stages { PreStage = 0, PostStage };
 
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;

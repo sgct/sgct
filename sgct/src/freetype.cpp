@@ -287,8 +287,8 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 
 	glListBase(font);
 
-	float modelview_matrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);
+	/*float modelview_matrix[16];
+	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);*/
 
 	//This is where the text display actually happens.
 	//For each line of text we reset the modelview matrix
@@ -303,7 +303,7 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 		glPushMatrix();
 		glLoadIdentity();
 		glTranslatef(x,y-h*i,0);
-		glMultMatrixf(modelview_matrix);
+		//glMultMatrixf(modelview_matrix); we don't want to get affected by current scene's transformation when printing in 2d.
 
 	//  The commented out raster position stuff can be useful if you need to
 	//  know the length of the text that you are creating.

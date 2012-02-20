@@ -61,17 +61,23 @@ public:
 	inline bool isClientConnected( int index ) { return (clients[index] != NULL && clients[index]->connected) ? true : false; }
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	int getCurrentFrame();
+	unsigned int getFeedbackCount();
 	void setRunningStatus(bool status) { mRunning = status; }
 	void setClientConnectionStatus(int clientIndex, bool state);
 	void setAllNodesConnected(bool state);
 	void terminateClient(int index);
 	void sendStrToAllClients(const std::string str);
 	void sendDataToAllClients(void * data, int lenght);
-	void iterateFramecounter();
+	void sendDataToServer(const char * data, int lenght);
+	void iterateFrameCounter();
+	void iterateFeedbackCounter();
+	void resetFeedbackCounter();
 
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncHeader = 17, SizeHeader, ClusterConnected };
-	enum ServerTypess { SyncServer = 0, ExternalControl };
+	enum ServerTypes { SyncServer = 0, ExternalControl };
+	//ASCII ACK byte
+	static const char mACKByte = 6;
 	SOCKET mSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::vector<ConnectionData*> clients;
@@ -82,13 +88,14 @@ public:
 private:
 
 	int mServerType;
+	unsigned int mFeedbackCounter; //counts so that feedback is received from all nodes
 	bool mRunning;
 	bool mServer;
 	bool mAllNodesConnected;
 	std::string hostName;
 	std::vector<std::string> localAddresses;
 	int mainThreadID, pollClientStatusThreadID;
-	int mFramecounter;
+	int mFrameCounter;
 };
 
 class TCPData

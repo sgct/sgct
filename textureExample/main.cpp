@@ -30,6 +30,9 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
+	//temp
+	gEngine->setDisplayInfoVisibility( true );
+
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 

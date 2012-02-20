@@ -336,21 +336,48 @@ void sgct::Engine::clean()
 	glfwTerminate();
 }
 
-void sgct::Engine::frameLock()
+void sgct::Engine::frameSyncAndLock(int stage)
 {
-	int syncFrame = mNetwork->getCurrentFrame();
-	int currentSyncFrame = syncFrame;
-	mNetwork->sync();
-	if( !isServer)
+	double t0 = glfwGetTime();
+	
+	if(stage == PreStage)
+	{
+		mNetwork->sync();
+
+		if( !isServer)
+		{
+			static int netFrameCounter = 0;
+			
+			while(mNetwork->isRunning())
+			{
+				if( netFrameCounter != mNetwork->getCurrentFrame() )
+				{
+					//send acknowlege back to server
+					mNetwork->sendDataToServer(&core_sgct::SGCTNetwork::mACKByte,1);
+					
+					//iterate
+					if( netFrameCounter < MAX_NET_SYNC_FRAME_NUMBER )
+						netFrameCounter++;
+					else
+						netFrameCounter = 0;
+					break;
+				}
+			}
+		}
+	}
+	else if(stage == PostStage && isServer)
 	{
 		while(mNetwork->isRunning())
 		{
-			currentSyncFrame = mNetwork->getCurrentFrame();
-				
-			if( currentSyncFrame != syncFrame )
+			//check if all nodes has sent feedback to server
+			if( mNetwork->getFeedbackCount() == 0 )
+			{
 				break;
+			}
 		}
 	}
+
+	mStatistics.SyncTime = glfwGetTime() - t0;
 }
 
 void sgct::Engine::render()
@@ -374,7 +401,7 @@ void sgct::Engine::render()
 				break;
 		}
 
-		frameLock();		
+		frameSyncAndLock(PreStage);		
 
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
@@ -396,6 +423,8 @@ void sgct::Engine::render()
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
 
+		frameSyncAndLock(PostStage);
+
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 		// Check if ESC key was pressed or window was closed
@@ -408,11 +437,12 @@ void sgct::Engine::renderDisplayInfo()
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
 	unsigned int lFrameNumber = 0;
 	mWindow->getSwapGroupFrameNumber(lFrameNumber);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Node ip: %s (%s)",
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Node ip: %s (%s)",
 		NodeManager::Instance()->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "master" : "slave");
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Render time %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time %.2f ms", getSyncTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
 		mWindow->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		mWindow->isBarrierActive() ? "active" : "not active",
@@ -447,7 +477,7 @@ void sgct::Engine::setNormalRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: mono");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: mono");
 	}
 }
 
@@ -477,7 +507,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: stereo left eye");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: stereo left eye");
 	}
 
 	activeFrustum = Frustum::StereoRightEye;
@@ -502,7 +532,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	if( displayInfo )
 	{
 		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Active frustum: stereo right eye");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: stereo right eye");
 	}
 }
 
@@ -645,6 +675,11 @@ double sgct::Engine::getDt()
 double sgct::Engine::getDrawTime()
 {
 	return mStatistics.DrawTime;
+}
+
+double sgct::Engine::getSyncTime()
+{
+	return mStatistics.SyncTime;
 }
 
 void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)

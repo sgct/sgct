@@ -22,6 +22,8 @@ GLuint myTerrainDisplayList = 0;
 //variables to share across cluster
 double time = 0.0;
 bool wireframe = false;
+bool info = false;
+bool graph = false;
 
 int main( int argc, char* argv[] )
 {
@@ -36,9 +38,6 @@ int main( int argc, char* argv[] )
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
-	
-	//temp
-	gEngine->setDisplayInfoVisibility( true );
 	
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
@@ -94,6 +93,8 @@ void myPreDrawFun()
 	}
 
 	gEngine->setWireframe(wireframe);
+	gEngine->setDisplayInfoVisibility(info);
+	gEngine->setStatsGraphVisibility(graph);
 }
 
 void myInitOGLFun()
@@ -145,12 +146,16 @@ void myEncodeFun()
 {
 	sgct::SharedData::Instance()->writeDouble( time );
 	sgct::SharedData::Instance()->writeBool( wireframe );
+	sgct::SharedData::Instance()->writeBool( info );
+	sgct::SharedData::Instance()->writeBool( graph );
 }
 
 void myDecodeFun()
 {
 	time = sgct::SharedData::Instance()->readDouble();
 	wireframe = sgct::SharedData::Instance()->readBool();
+	info = sgct::SharedData::Instance()->readBool();
+	graph = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -202,6 +207,16 @@ void keyCallback(int key, int action)
 	{
 		switch( key )
 		{
+		case 'G':
+			if(action == GLFW_PRESS)
+				graph = !graph;
+			break;
+
+		case 'I':
+			if(action == GLFW_PRESS)
+				info = !info;
+			break;
+
 		case 'W':
 			if(action == GLFW_PRESS)
 				wireframe = !wireframe;

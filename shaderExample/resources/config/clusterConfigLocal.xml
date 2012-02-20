@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<Cluster masterAddress="172.19.8.10" port="20499" externalControlPort="20500">
-	<Node ip="172.19.8.10">
+<Cluster masterAddress="192.168.10.1" port="20499" externalControlPort="20500">
+	<Node ip="192.168.10.1">
 		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="true">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
@@ -16,63 +16,18 @@
 			<Pos x="3.34533" y="0.965" z="0.0" />
 		</Viewplane>
 	</Node>
-	<Node ip="172.19.8.41">
-		<Window fullscreen="false" numberOfSamples="4" swapLock="false">
+	<Node ip="192.168.10.2">
+		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="false">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
-			<Size x="1024" y="768" />
-			<Pos x="200" y="100" />
-		</Window>
-		<Viewplane>
-			<!-- Lower left -->
-			<Pos x="-2.0" y="-1.5" z="0.0" />
-			<!-- Upper left -->
-			<Pos x="-2.0" y="1.5" z="0.0" />
-			<!-- Upper right -->
-			<Pos x="2.0" y="1.5" z="0.0" />
-		</Viewplane>
-	</Node>
-	<Node ip="172.19.8.11">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
-			<Stereo type="none" />
-			<Size x="1280" y="800" />
-			<Pos x="0" y="0" />
+			<Size x="728" y="210" />
+			<Pos x="200" y="300" />
 		</Window>
 		<Viewplane>
 			<!-- Lower left -->
 			<Pos x="-3.34533" y="-0.965" z="0.0" />
 			<!-- Upper left -->
 			<Pos x="-3.34533" y="0.965" z="0.0" />
-			<!-- Upper right -->
-			<Pos x="-0.772" y="0.965" z="0.0" />
-		</Viewplane>
-	</Node>
-	<Node ip="172.19.8.12">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
-			<Stereo type="none" />
-			<Size x="1280" y="800" />
-			<Pos x="0" y="0" />
-		</Window>
-		<Viewplane>
-			<!-- Lower left -->
-			<Pos x="-1.286667" y="-0.965" z="0.0" />
-			<!-- Upper left -->
-			<Pos x="-1.286667" y="0.965" z="0.0" />
-			<!-- Upper right -->
-			<Pos x="1.286667" y="0.965" z="0.0" />
-		</Viewplane>
-	</Node>
-	<Node ip="172.19.8.13">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
-			<Stereo type="none" />
-			<Size x="1400" y="1050" />
-			<Pos x="0" y="0" />
-		</Window>
-		<Viewplane>
-			<!-- Lower left -->
-			<Pos x="0.772" y="-0.965" z="0.0" />
-			<!-- Upper left -->
-			<Pos x="0.772" y="0.965" z="0.0" />
 			<!-- Upper right -->
 			<Pos x="3.34533" y="0.965" z="0.0" />
 		</Viewplane>

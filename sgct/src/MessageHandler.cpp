@@ -22,7 +22,7 @@ sgct::MessageHandler::MessageHandler(void)
 	mSwapBuffer1.reserve(BUFFER_HANDLER_MAX_SIZE);
 	mSwapBuffer2.reserve(BUFFER_HANDLER_MAX_SIZE);
 
-	mBuffer.push_back(core_sgct::SGCTNetwork::SyncHeader);
+	mBuffer.push_back(core_sgct::SGCTNetwork::mACKByte);
 
     mLocal = true;
 }
@@ -76,7 +76,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
     if(!mLocal)
     {
         if(mBuffer.empty())
-			mBuffer.push_back(core_sgct::SGCTNetwork::SyncHeader);
+			mBuffer.push_back(core_sgct::SGCTNetwork::mACKByte);
 		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
     }
 }
@@ -100,7 +100,7 @@ const char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastCh
 		
 		mSwapBuffer1 = mBuffer.substr(0,indexOfLastChar);
 		
-		mSwapBuffer2.push_back(core_sgct::SGCTNetwork::SyncHeader);
+		mSwapBuffer2.push_back(core_sgct::SGCTNetwork::mACKByte);
 		mSwapBuffer2.insert(mSwapBuffer2.end(), mBuffer.begin() + indexOfLastChar,
 			mBuffer.end());
 		

@@ -30,9 +30,9 @@ public:
 	void render();
 	void terminate() { mTerminate = true; }
 
-	double getDt();
-	double getDrawTime();
-	double getSyncTime();
+	const double & getDt();
+	const double & getDrawTime();
+	const double & getSyncTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
 
@@ -48,11 +48,12 @@ public:
 	void sendMessageToExternalControl(const std::string msg);
 	void setExternalControlBufferSize(unsigned int newSize);
 
-	void setDisplayInfoVisibility(bool state) { displayInfo = state; }
+	void setDisplayInfoVisibility(bool state) { showInfo = state; }
+	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
 	inline core_sgct::SGCTWindow * getWindowPtr() { return mWindow; }
 	inline bool isSyncServer() { return isServer; }
-	inline bool isDisplayInfoRendered() { return displayInfo; }
+	inline bool isDisplayInfoRendered() { return showInfo; }
 
 private:
 	bool initNetwork();
@@ -90,7 +91,7 @@ private:
 	InternalCallbackFn mInternalRenderFn;
 	NetworkCallbackFn mNetworkCallbackFn;
 
-	enum Stages { PreStage = 0, PostStage };
+	enum SyncStage { PreStage = 0, PostStage };
 
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;
@@ -99,7 +100,8 @@ private:
 
 	bool isServer;
 	bool runningLocal; //possible to run a cluster setup for testing on a single computer
-	bool displayInfo;
+	bool showInfo;
+	bool showGraph;
 	bool showWireframe;
 	bool mTerminate;
 
@@ -116,6 +118,7 @@ private:
 
 	std::string configFilename;
 	int mThisClusterNodeId;
+	int mRunning;
 	char basicInfo[48];
 };
 

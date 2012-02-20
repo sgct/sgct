@@ -62,6 +62,7 @@ public:
 	inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	int getCurrentFrame();
 	unsigned int getFeedbackCount();
+	unsigned int getConnectedNodeCount();
 	void setRunningStatus(bool status) { mRunning = status; }
 	void setClientConnectionStatus(int clientIndex, bool state);
 	void setAllNodesConnected(bool state);
@@ -89,6 +90,7 @@ private:
 
 	int mServerType;
 	unsigned int mFeedbackCounter; //counts so that feedback is received from all nodes
+	unsigned int mNumberOfConnectedNodes;
 	bool mRunning;
 	bool mServer;
 	bool mAllNodesConnected;

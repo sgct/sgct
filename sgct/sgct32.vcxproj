@@ -26,6 +26,7 @@
     <ClCompile Include="src\ShaderManager.cpp" />
     <ClCompile Include="src\ShaderProgram.cpp" />
     <ClCompile Include="src\SharedData.cpp" />
+    <ClCompile Include="src\Statistics.cpp" />
     <ClCompile Include="src\TextureManager.cpp" />
   </ItemGroup>
   <ItemGroup>

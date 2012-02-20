@@ -31,15 +31,12 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mInternalRenderFn = NULL;
-	mNetworkCallbackFn = NULL;
 
 	setClearBufferFunction( clearBuffer );
-	mStatistics.AvgFPS = 0.0;
-	mStatistics.DrawTime = 0.0;
-	mStatistics.FrameTime = 0.0;
 	nearClippingPlaneDist = 0.1f;
 	farClippingPlaneDist = 100.0f;
-	displayInfo = false;
+	showInfo = false;
+	showGraph = false;
 	runningLocal = false;
 	isServer = true;
 	showWireframe = false;
@@ -103,14 +100,19 @@ bool sgct::Engine::initNetwork()
 	//check in cluster configuration if this node master or slave
 	for(unsigned int i=0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
 	{
-		if( mNetwork->matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ) )
+		//if this computer matches node[i]
+		if( !runningLocal && mNetwork->matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ) )
 		{
-			if( !runningLocal &&
-				mNetwork->matchHostName( (*mConfig->getMasterIP()) ))
+			if( mNetwork->matchAddress( (*mConfig->getMasterIP()) ))
+			{
 				isServer = true;
-			else if( !runningLocal &&
-				!mNetwork->matchHostName( (*mConfig->getMasterIP()) ))
+				sgct::MessageHandler::Instance()->print("This computer is the network server.\n");
+			}
+			else
+			{
 				isServer = false;
+				sgct::MessageHandler::Instance()->print("This computer is the network client.\n");
+			}
 
 			mThisClusterNodeId = i;
 			break;
@@ -340,7 +342,7 @@ void sgct::Engine::frameSyncAndLock(int stage)
 {
 	double t0 = glfwGetTime();
 	
-	if(stage == PreStage)
+	if( stage == PreStage )
 	{
 		mNetwork->sync();
 
@@ -348,13 +350,11 @@ void sgct::Engine::frameSyncAndLock(int stage)
 		{
 			static int netFrameCounter = 0;
 			
-			while(mNetwork->isRunning())
+			//don't wait more then a sec, then something is wrong
+			while(mNetwork->isRunning() && mRunning && (glfwGetTime()-t0) < 1.0)
 			{
 				if( netFrameCounter != mNetwork->getCurrentFrame() )
 				{
-					//send acknowlege back to server
-					mNetwork->sendDataToServer(&core_sgct::SGCTNetwork::mACKByte,1);
-					
 					//iterate
 					if( netFrameCounter < MAX_NET_SYNC_FRAME_NUMBER )
 						netFrameCounter++;
@@ -364,10 +364,13 @@ void sgct::Engine::frameSyncAndLock(int stage)
 				}
 			}
 		}
+
+		mStatistics.setSyncTime(glfwGetTime() - t0);
 	}
-	else if(stage == PostStage && isServer)
+	else if( isServer && !runningLocal )//post stage
 	{
-		while(mNetwork->isRunning())
+		//don't wait more then a sec, then something is wrong
+		while(mNetwork->isRunning() && mRunning && (glfwGetTime()-t0) < 1.0)
 		{
 			//check if all nodes has sent feedback to server
 			if( mNetwork->getFeedbackCount() == 0 )
@@ -375,16 +378,16 @@ void sgct::Engine::frameSyncAndLock(int stage)
 				break;
 			}
 		}
-	}
 
-	mStatistics.SyncTime = glfwGetTime() - t0;
+		mStatistics.addSyncTime(glfwGetTime() - t0);
+	}
 }
 
 void sgct::Engine::render()
 {
-	int running = GL_TRUE;
+	mRunning = GL_TRUE;
 
-	while( running )
+	while( mRunning )
 	{
 		if( mPreDrawFn != NULL )
 			mPreDrawFn();
@@ -414,21 +417,23 @@ void sgct::Engine::render()
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		mStatistics.DrawTime = (glfwGetTime() - startFrameTime);
+		mStatistics.setDrawTime(glfwGetTime() - startFrameTime);
+		
+		frameSyncAndLock(PostStage);
 
-		glDrawBuffer(GL_BACK); //draw into both back buffers
-		if( displayInfo )
+		if( showGraph )
+			mStatistics.draw();
+		if( showInfo )
 			renderDisplayInfo();
 
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
 
-		frameSyncAndLock(PostStage);
-
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
+
 		// Check if ESC key was pressed or window was closed
-		running = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
+		mRunning = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
 	}
 }
 
@@ -437,10 +442,12 @@ void sgct::Engine::renderDisplayInfo()
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
 	unsigned int lFrameNumber = 0;
 	mWindow->getSwapGroupFrameNumber(lFrameNumber);
+	
+	glDrawBuffer(GL_BACK); //draw into both back buffers
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Node ip: %s (%s)",
 		NodeManager::Instance()->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "master" : "slave");
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.AvgFPS);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time %.2f ms", getDrawTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time %.2f ms", getSyncTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
@@ -448,6 +455,16 @@ void sgct::Engine::renderDisplayInfo()
 		mWindow->isBarrierActive() ? "active" : "not active",
 		mWindow->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
+
+	//if stereoscopic rendering
+	if( NodeManager::Instance()->getNodePtr(mThisClusterNodeId)->stereo != ReadConfig::None )
+	{
+		glDrawBuffer(GL_BACK_LEFT);
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active eye: Left");
+		glDrawBuffer(GL_BACK_RIGHT);
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active eye:        Right");
+		glDrawBuffer(GL_BACK);
+	}
 }
 
 void sgct::Engine::setNormalRenderingMode()
@@ -474,11 +491,6 @@ void sgct::Engine::setNormalRenderingMode()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
-	if( displayInfo )
-	{
-		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: mono");
-	}
 }
 
 void sgct::Engine::setActiveStereoRenderingMode()
@@ -504,11 +516,6 @@ void sgct::Engine::setActiveStereoRenderingMode()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
-	if( displayInfo )
-	{
-		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: stereo left eye");
-	}
 
 	activeFrustum = Frustum::StereoRightEye;
 	glMatrixMode(GL_PROJECTION);
@@ -529,11 +536,6 @@ void sgct::Engine::setActiveStereoRenderingMode()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
-	if( displayInfo )
-	{
-		glColor4f(0.8f,0.8f,0.0f,1.0f);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active frustum: stereo right eye");
-	}
 }
 
 void sgct::Engine::calculateFrustums()
@@ -648,16 +650,15 @@ void sgct::Engine::printNodeInfo(unsigned int nodeId)
 void sgct::Engine::calcFPS(double timestamp)
 {
 	static double lastTimestamp = glfwGetTime();
-	mStatistics.FrameTime = timestamp - lastTimestamp;
+	mStatistics.setFrameTime(timestamp - lastTimestamp);
 	lastTimestamp = timestamp;
     static double renderedFrames = 0.0;
 	static double tmpTime = 0.0;
-	mStatistics.FPS = 1.0/mStatistics.FrameTime;
 	renderedFrames += 1.0;
-	tmpTime += mStatistics.FrameTime;
+	tmpTime += mStatistics.getFrameTime();
 	if( tmpTime >= 1.0 )
 	{
-		mStatistics.AvgFPS = renderedFrames / tmpTime;
+		mStatistics.setAvgFPS(renderedFrames / tmpTime);
 		renderedFrames = 0.0;
 		tmpTime = 0.0;
 
@@ -667,19 +668,19 @@ void sgct::Engine::calcFPS(double timestamp)
 	}
 }
 
-double sgct::Engine::getDt()
+const double & sgct::Engine::getDt()
 {
-	return mStatistics.FrameTime;
+	return mStatistics.getFrameTime();
 }
 
-double sgct::Engine::getDrawTime()
+const double & sgct::Engine::getDrawTime()
 {
-	return mStatistics.DrawTime;
+	return mStatistics.getDrawTime();
 }
 
-double sgct::Engine::getSyncTime()
+const double & sgct::Engine::getSyncTime()
 {
-	return mStatistics.SyncTime;
+	return mStatistics.getSyncTime();
 }
 
 void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
@@ -719,12 +720,12 @@ const char * sgct::Engine::getBasicInfo()
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
 		runningLocal ? "127.0.0.1" : NodeManager::Instance()->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave",
-		mStatistics.AvgFPS);
+		mStatistics.getAvgFPS());
     #else
     sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
 		runningLocal ? "127.0.0.1" : NodeManager::Instance()->getNodePtr(mThisClusterNodeId)->ip.c_str(),
 		isServer ? "server" : "slave",
-		mStatistics.AvgFPS);
+		mStatistics.getAvgFPS());
     #endif
 
 	return basicInfo;

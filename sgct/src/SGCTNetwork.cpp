@@ -26,10 +26,11 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	mDecoderCallbackFn = NULL;
 	mAllNodesConnected = false;
 	mServerType = SyncServer;
-	mBufferSize = 512;
-	mRequestedSize = 512;
+	mBufferSize = 1024;
+	mRequestedSize = mBufferSize;
 	mFrameCounter = 0;
 	mFeedbackCounter = 0;
+	mNumberOfConnectedNodes = 0;
 
 	WSADATA wsaData;
 	WORD version;
@@ -227,6 +228,15 @@ unsigned int core_sgct::SGCTNetwork::getFeedbackCount()
 	return tmpui;
 }
 
+unsigned int core_sgct::SGCTNetwork::getConnectedNodeCount()
+{
+	unsigned int tmpui;
+	glfwLockMutex( gDecoderMutex );
+		tmpui = mNumberOfConnectedNodes;
+	glfwUnlockMutex( gDecoderMutex );
+	return tmpui;
+}
+
 void core_sgct::SGCTNetwork::resetFeedbackCounter()
 {
 	glfwLockMutex( gDecoderMutex );
@@ -371,8 +381,8 @@ void GLFWCALL communicationHandler(void *arg)
 					//memset(recvbuf,0,cui.newSize);
 					glfwUnlockMutex( gDecoderMutex );
 				}
+				//client
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
-					!dataPtr->mNetwork->isServer() &&
 					dataPtr->mNetwork->mDecoderCallbackFn != NULL)
 				{
 					glfwLockMutex( gDecoderMutex );
@@ -380,18 +390,13 @@ void GLFWCALL communicationHandler(void *arg)
 						dataPtr->mNetwork->iterateFrameCounter();
 					glfwUnlockMutex( gDecoderMutex );
 				}
-				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
-					dataPtr->mNetwork->isServer() &&
-					dataPtr->mNetwork->mDecoderCallbackFn != NULL)
-				{
-					glfwLockMutex( gDecoderMutex );
-						(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
-					glfwUnlockMutex( gDecoderMutex );
-				}
+				//server
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::mACKByte )
 				{
 					glfwLockMutex( gDecoderMutex );
 						dataPtr->mNetwork->iterateFeedbackCounter();
+						if(dataPtr->mNetwork->mDecoderCallbackFn != NULL)
+							(dataPtr->mNetwork->mDecoderCallbackFn)(recvbuf+1, iResult-1, dataPtr->mClientIndex);
 					glfwUnlockMutex( gDecoderMutex );
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::ClusterConnected )
@@ -471,43 +476,58 @@ void GLFWCALL pollClients(void *arg)
 
 void core_sgct::SGCTNetwork::sendStrToAllClients(const std::string str)
 {
+	unsigned int nodeCounter = 0;
+
 	int iResult = 0;
 	for(unsigned int i=0; i<clients.size(); i++)
 		if( clients[i] != NULL && clients[i]->connected )
 		{
+			nodeCounter++;
+			
 			iResult = send(clients[i]->client_socket, str.c_str(), str.size(), 0);
 			if (iResult == SOCKET_ERROR)
 				sgct::MessageHandler::Instance()->print("Send string failed to client %d with error: %d\n", i, WSAGetLastError());
 		}
+
+	glfwLockMutex( gDecoderMutex );
+		mNumberOfConnectedNodes = nodeCounter;
+	glfwUnlockMutex( gDecoderMutex );
 }
 
 void core_sgct::SGCTNetwork::sendDataToAllClients(void * data, int lenght)
 {
+	unsigned int nodeCounter = 0;
+	unsigned int feedback = 0;
+	
 	int iResult = 0;
 	for(unsigned int i=0; i<clients.size(); i++)
 		if( clients[i] != NULL && clients[i]->connected )
 		{
+			nodeCounter++;
+			
 			//This must occur before send..
 			if( static_cast<unsigned char *>(data)[0] == SyncHeader )
 			{
-				glfwLockMutex( gDecoderMutex );
-					mFeedbackCounter++;
-				glfwUnlockMutex( gDecoderMutex );
+				feedback++;
 			}
 			
 			iResult = send(clients[i]->client_socket, (const char *)data, lenght, 0);
 			if (iResult == SOCKET_ERROR)
 			{
 				sgct::MessageHandler::Instance()->print("Send data failed to client %d with error: %d\n", i, WSAGetLastError());
-				if( static_cast<unsigned char *>(data)[0] == SyncHeader )
+				
+				//correct if message fails
+				if( static_cast<unsigned char *>(data)[0] == SyncHeader && feedback > 0)
 				{
-					//correct if message fails
-					glfwLockMutex( gDecoderMutex );
-						iterateFeedbackCounter();
-					glfwUnlockMutex( gDecoderMutex );
+					feedback--;
 				}
 			}
 		}
+
+	glfwLockMutex( gDecoderMutex );
+		mNumberOfConnectedNodes = nodeCounter;
+		mFeedbackCounter += feedback;
+	glfwUnlockMutex( gDecoderMutex );
 }
 
 void core_sgct::SGCTNetwork::sendDataToServer(const char * data, int lenght)
@@ -583,10 +603,11 @@ void core_sgct::SGCTNetwork::sync()
         sendDataToAllClients( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
         //should wait for reply from clients...
 	}
-	else// if(isRunning()) //if client
+	else //if client
 	{
-        int iResult = 0;
-
+        //The servers's render function is locked until a message starting with the ack-byte is received.
+		
+		
 		//check if message fits in buffer
         if(sgct::MessageHandler::Instance()->getDataSize() > 1 && //larger than first header byte + '\0'
            sgct::MessageHandler::Instance()->getDataSize() < mBufferSize)
@@ -608,6 +629,8 @@ void core_sgct::SGCTNetwork::sync()
 
 			sendDataToServer(messageToSend, sgct::MessageHandler::Instance()->getTrimmedDataSize());
         }
+		else
+			sendDataToServer(&core_sgct::SGCTNetwork::mACKByte,1);
 	}
 }
 

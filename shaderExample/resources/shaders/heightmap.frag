@@ -7,7 +7,7 @@ varying vec3 v;
 
 // Computes the diffues shading by using the normal for
 // the fragment and direction from fragment to the light
-vec3 calcShading( vec3 N, vec3 L )
+vec4 calcShading( vec3 N, vec3 L )
 {
 	vec3 E = normalize(-v); // we are in Eye Coordinates, so EyePos is (0,0,0)  
 	vec3 R = normalize(reflect(-L,N));
@@ -16,7 +16,7 @@ vec3 calcShading( vec3 N, vec3 L )
 	vec4 Iamb = gl_LightSource[0].ambient;
 	
 	//Diffuse contribution
-	vec3 Idiff = gl_LightSource[0].diffuse * max(dot(N,L), 0.0);
+	vec4 Idiff = gl_LightSource[0].diffuse * max(dot(N,L), 0.0);
 	Idiff = clamp(Idiff, 0.0, 1.0);
 	
 	//Specular contribution
@@ -46,6 +46,6 @@ void main()
 	//gl_FragColor.rgb = vec3(1.0,1.0,1.0); set to white
 	
 	// multiply color with shading
-	gl_FragColor.rgb *= calcShading( normalize(gl_NormalMatrix * normal), light_dir );
+	gl_FragColor.rgb *= calcShading( normalize(gl_NormalMatrix * normal), light_dir ).xyz;
 	gl_FragColor.a = 1.0;
 }

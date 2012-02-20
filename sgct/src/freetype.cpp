@@ -285,6 +285,12 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	//if wireframe correct this...
+	GLint fillMode;
+	glGetIntegerv( GL_POLYGON_MODE, &fillMode );
+	if(fillMode == GL_LINE)
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 	glListBase(font);
 
 	/*float modelview_matrix[16];
@@ -317,7 +323,6 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 
 		glPopMatrix();
 	}
-
 
 	glPopAttrib();
 
@@ -376,6 +381,12 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
+	//if wireframe correct this...
+	GLint fillMode;
+	glGetIntegerv( GL_POLYGON_MODE, &fillMode );
+	if(fillMode == GL_LINE)
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 	glListBase(font);
 
 	for(unsigned int i=0;i<lines.size();i++)
@@ -388,6 +399,8 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 		glPopMatrix();
 	}
 
+	if(fillMode == GL_LINE)
+		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	glEnable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);

@@ -17,7 +17,7 @@
 		</Viewplane>
 	</Node>
 	<Node ip="172.19.8.11">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
 			<Stereo type="none" />
 			<Size x="1400" y="1050" />
 			<Pos x="0" y="0" />
@@ -32,7 +32,7 @@
 		</Viewplane>
 	</Node>
 	<Node ip="172.19.8.12">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
 			<Stereo type="none" />
 			<Size x="1400" y="1050" />
 			<Pos x="0" y="0" />
@@ -47,7 +47,7 @@
 		</Viewplane>
 	</Node>
 	<Node ip="172.19.8.13">
-		<Window fullscreen="true" numberOfSamples="4" swapLock="true">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="false">
 			<Stereo type="none" />
 			<Size x="1400" y="1050" />
 			<Pos x="0" y="0" />

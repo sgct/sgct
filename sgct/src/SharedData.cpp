@@ -12,7 +12,7 @@ SharedData::SharedData()
 {
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
-	dataBlock.reserve(512);
+	dataBlock.reserve(1024);
 }
 
 SharedData::~SharedData()

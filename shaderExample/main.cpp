@@ -23,7 +23,7 @@ GLuint myTerrainDisplayList = 0;
 double time = 0.0;
 bool wireframe = false;
 bool info = false;
-bool graph = false;
+bool stats = false;
 
 int main( int argc, char* argv[] )
 {
@@ -56,8 +56,8 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {	
-	glTranslatef( 0.0f, -0.20f, 1.0f );
-	glRotatef( static_cast<float>( time ) * 10.0f, 0.0f, 1.0f, 0.0f );
+	glTranslatef( 0.0f, -0.28f, 2.0f );
+	glRotatef( static_cast<float>( time ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );	
 	
@@ -94,7 +94,7 @@ void myPreDrawFun()
 
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
-	gEngine->setStatsGraphVisibility(graph);
+	gEngine->setStatsGraphVisibility(stats);
 }
 
 void myInitOGLFun()
@@ -120,7 +120,7 @@ void myInitOGLFun()
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
-	drawTerrainGrid( 2.0f, 2.0f, 256, 256 );
+	drawTerrainGrid( 1.0f, 1.0f, 256, 256 );
 	glEndList();
 
 	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
@@ -147,7 +147,7 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeDouble( time );
 	sgct::SharedData::Instance()->writeBool( wireframe );
 	sgct::SharedData::Instance()->writeBool( info );
-	sgct::SharedData::Instance()->writeBool( graph );
+	sgct::SharedData::Instance()->writeBool( stats );
 }
 
 void myDecodeFun()
@@ -155,7 +155,7 @@ void myDecodeFun()
 	time = sgct::SharedData::Instance()->readDouble();
 	wireframe = sgct::SharedData::Instance()->readBool();
 	info = sgct::SharedData::Instance()->readBool();
-	graph = sgct::SharedData::Instance()->readBool();
+	stats = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -207,9 +207,9 @@ void keyCallback(int key, int action)
 	{
 		switch( key )
 		{
-		case 'G':
+		case 'S':
 			if(action == GLFW_PRESS)
-				graph = !graph;
+				stats = !stats;
 			break;
 
 		case 'I':

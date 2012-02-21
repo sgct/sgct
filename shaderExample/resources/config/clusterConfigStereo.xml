@@ -62,6 +62,6 @@
 		</Viewplane>
 	</Node>
 	<User eyeSeparation="0.069">
-		<Pos x="0.0" y="0.085" z="3.6" />
+		<Pos x="0.0" y="-0.085" z="3.6" />
 	</User>
 </Cluster>

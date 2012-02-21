@@ -438,8 +438,10 @@ void sgct::Engine::renderDisplayInfo()
 		NodeManager::Instance()->getThisNodePtr()->ip.c_str(),
 		isServer ? "master" : "slave");
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time %.2f ms", getDrawTime()*1000.0);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time %.2f ms", getSyncTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time: %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time [%d]: %.2f ms", 
+		SharedData::Instance()->getBufferSize(),
+		getSyncTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
 		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isBarrierActive() ? "active" : "not active",

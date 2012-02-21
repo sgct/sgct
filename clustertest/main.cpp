@@ -23,6 +23,7 @@ bool showFPS = false;
 bool extraPackages = false;
 bool barrier = false;
 bool resetCounter = false;
+bool stats = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
@@ -141,6 +142,7 @@ void myPreDrawFun()
 
 	gEngine->setDisplayInfoVisibility( showFPS );
 	gEngine->getWindowPtr()->setBarrier( barrier );
+	gEngine->setStatsGraphVisibility( stats );
 	if(resetCounter)
 	{
 		gEngine->getWindowPtr()->resetSwapGroupFrameNumber();
@@ -151,8 +153,7 @@ void myPostDrawFun()
 {
 	if( gEngine->isSyncServer() )
 	{
-		if(resetCounter)
-			resetCounter = false;
+		resetCounter = false;
 	}
 }
 
@@ -171,6 +172,7 @@ void myEncodeFun()
 	flags = extraPackages ? flags | 2 : flags & ~2;
 	flags = barrier ? flags | 4 : flags & ~4;
 	flags = resetCounter ? flags | 8 : flags & ~8;
+	flags = stats ? flags | 16 : flags & ~16;
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(time);
@@ -191,6 +193,7 @@ void myDecodeFun()
 	extraPackages = (flags>>1) & 0x0001;
 	barrier = (flags>>2) & 0x0001;
 	resetCounter = (flags>>3) & 0x0001;
+	stats = (flags>>4) & 0x0001;
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -256,6 +259,11 @@ void keyCallback(int key, int action)
 		case 'R':
 			if(action == GLFW_PRESS)
 				resetCounter = true;
+			break;
+
+		case 'S':
+			if(action == GLFW_PRESS)
+				stats = !stats;
 			break;
 		}
 	}

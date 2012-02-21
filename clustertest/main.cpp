@@ -133,7 +133,6 @@ void myDrawFun()
 
 void myPreDrawFun()
 {
-	//fprintf(stderr, "preframe\n");
 	if( gEngine->isSyncServer() )
 	{
 		dt = gEngine->getDt();

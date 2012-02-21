@@ -5,6 +5,7 @@ core_sgct::NodeManager * core_sgct::NodeManager::mInstance = NULL;
 core_sgct::NodeManager::NodeManager(void)
 {
 	masterIndex = -1;
+	mThisNodeId = -1;
 	validCluster = false;
 }
 
@@ -21,4 +22,9 @@ void core_sgct::NodeManager::addNode(core_sgct::SGCTNode node)
 core_sgct::SGCTNode * core_sgct::NodeManager::getNodePtr(unsigned int index)
 {
 	return &nodes[index];
+}
+
+core_sgct::SGCTNode * core_sgct::NodeManager::getThisNodePtr()
+{
+	return &nodes[mThisNodeId];
 }

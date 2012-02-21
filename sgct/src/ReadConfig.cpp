@@ -1,5 +1,8 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 
+#include <GL/glew.h>
+#include <GL/wglew.h>
+#include <GL/glfw.h>
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/NodeManager.h"
@@ -15,7 +18,6 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		sgct::MessageHandler::Instance()->print("Error: No XML config file loaded.\n");
 		return;
 	}
-
 	xmlFileName = filename;
 
 	try
@@ -27,7 +29,6 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		sgct::MessageHandler::Instance()->print("Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
 		return;
 	}
-
 	valid = true;
 	sgct::MessageHandler::Instance()->print("Config file '%s' read successfully!\n", xmlFileName.c_str());
 	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", 
@@ -49,7 +50,6 @@ void core_sgct::ReadConfig::readAndParseXML()
 	{
 		throw "Cannot find XML root!";
 	}
-
 	masterIP.assign( XMLroot->Attribute( "masterAddress" ) );
 	masterPort.assign( XMLroot->Attribute( "port" ) );
 	const char * tmpStr = NULL;
@@ -76,13 +76,12 @@ void core_sgct::ReadConfig::readAndParseXML()
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-
 				if( strcmp("Window", val[1]) == 0 )
 				{
-					tmpNode.fullscreen = (strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? true : false);
+					tmpNode.getWindowPtr()->setWindowMode(strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
 					element[1]->Attribute("numberOfSamples", &tmpNode.numberOfSamples );
-					tmpNode.useSwapGroups = (strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
-
+					tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+					
 					if( element[1]->Attribute("verticalSync") != NULL )
 						tmpNode.lockVerticalSync =
 							(strcmp( element[1]->Attribute("verticalSync"), "true" ) == 0 ? true : false);
@@ -91,22 +90,27 @@ void core_sgct::ReadConfig::readAndParseXML()
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
-
+						int tmpWinData[4];
+						memset(tmpWinData,0,4);
+						
 						if( strcmp("Stereo", val[2]) == 0 )
 						{
 							tmpNode.stereo = getStereoType( element[2]->Attribute("type") );
 						}
 						else if( strcmp("Size", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpNode.windowData[2] );
-							element[2]->Attribute("y", &tmpNode.windowData[3] );
+							element[2]->Attribute("x", &tmpWinData[2] );
+							element[2]->Attribute("y", &tmpWinData[3] );
 						}
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpNode.windowData[0] );
-							element[2]->Attribute("y", &tmpNode.windowData[1] );
+							element[2]->Attribute("x", &tmpWinData[0] );
+							element[2]->Attribute("y", &tmpWinData[1] );
 						}
 
+						tmpNode.getWindowPtr()->setWindowResolution(tmpWinData[2],tmpWinData[3]);
+						tmpNode.getWindowPtr()->setWindowPosition(tmpWinData[0],tmpWinData[1]);
+						
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
 					}
@@ -143,7 +147,10 @@ void core_sgct::ReadConfig::readAndParseXML()
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
-
+			
+			//temp
+			tmpNode.addViewport(0.0f, 0.0f, 1.0f, 1.0f);
+			
 			core_sgct::NodeManager::Instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )

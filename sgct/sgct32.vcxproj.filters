@@ -131,6 +131,9 @@
     <ClInclude Include="include\sgct\SGCTNode.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="include\sgct\Viewport.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <None Include="ToDo.txt" />

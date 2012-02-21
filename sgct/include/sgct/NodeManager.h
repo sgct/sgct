@@ -40,6 +40,9 @@ public:
 	void addNode(SGCTNode node);
 	unsigned int getNumberOfNodes() const { return nodes.size(); }
 	SGCTNode * getNodePtr(unsigned int index);
+	SGCTNode * getThisNodePtr();
+	void setThisNodeId(int id) { mThisNodeId = id; }
+	int getThisNodeId() { return mThisNodeId; }
 
 private:
 	NodeManager(void);
@@ -54,6 +57,7 @@ private:
 
 	std::vector<SGCTNode> nodes;
 	int masterIndex;
+	int mThisNodeId;
 	bool validCluster;
 };
 }

@@ -16,6 +16,7 @@ The font engine
 
 //Include our header file.
 #include "../include/sgct/freetype.h"
+#include "../include/sgct/NodeManager.h"
 
 #define TEXT_RENDER_BUFFER_SIZE 512
 
@@ -204,12 +205,21 @@ namespace freetype {
 inline void pushScreenCoordinateMatrix()
 {
 	glPushAttrib(GL_TRANSFORM_BIT);
-	GLint	viewport[4];
-	glGetIntegerv(GL_VIEWPORT, viewport);
+	//GLint	viewport[4];
+	//glGetIntegerv(GL_VIEWPORT, viewport);
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	gluOrtho2D(viewport[0],viewport[2],viewport[1],viewport[3]);
+	//gluOrtho2D(0.0,1024.0,0.0,768.0);
+	gluOrtho2D(
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getX()) * 
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getXSize()) *
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getY()) *
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()),
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getYSize()) *
+		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()));
 	glPopAttrib();
 }
 
@@ -284,12 +294,6 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	//if wireframe correct this...
-	GLint fillMode;
-	glGetIntegerv( GL_POLYGON_MODE, &fillMode );
-	if(fillMode == GL_LINE)
-		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 	glListBase(font);
 
@@ -381,12 +385,6 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//if wireframe correct this...
-	GLint fillMode;
-	glGetIntegerv( GL_POLYGON_MODE, &fillMode );
-	if(fillMode == GL_LINE)
-		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
 	glListBase(font);
 
 	for(unsigned int i=0;i<lines.size();i++)
@@ -399,8 +397,6 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 		glPopMatrix();
 	}
 
-	if(fillMode == GL_LINE)
-		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
 	glEnable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);

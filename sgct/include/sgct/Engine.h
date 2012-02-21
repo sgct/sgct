@@ -7,8 +7,8 @@
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
+#include "NodeManager.h"
 #include "SGCTNetwork.h"
-#include "SGCTWindow.h"
 #include "ReadConfig.h"
 #include "Frustum.h"
 #include "Statistics.h"
@@ -51,7 +51,7 @@ public:
 	void setDisplayInfoVisibility(bool state) { showInfo = state; }
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
-	inline core_sgct::SGCTWindow * getWindowPtr() { return mWindow; }
+	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	inline bool isSyncServer() { return isServer; }
 	inline bool isDisplayInfoRendered() { return showInfo; }
 
@@ -110,14 +110,12 @@ private:
 	core_sgct::Statistics	mStatistics;
 
 	//pointers
-	core_sgct::SGCTWindow	* mWindow;
 	core_sgct::SGCTNetwork	* mNetwork;
 	core_sgct::SGCTNetwork	* mExternalControlNetwork;
 	core_sgct::ReadConfig	* mConfig;
 	core_sgct::Frustum		* mFrustums[3];
 
 	std::string configFilename;
-	int mThisClusterNodeId;
 	int mRunning;
 	char basicInfo[48];
 };

@@ -51,6 +51,7 @@
     <ClInclude Include="include\sgct\Statistics.h" />
     <ClInclude Include="include\sgct\TextureManager.h" />
     <ClInclude Include="include\sgct\User.h" />
+    <ClInclude Include="include\sgct\Viewport.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="ToDo.txt" />

@@ -3,18 +3,14 @@
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/NodeManager.h"
 #include <stdio.h>
 
 HDC hDC;
 void GLFWCALL windowResizeCallback( int width, int height );
 
-//using namespace sgct;
-
-core_sgct::SGCTWindow * instancePtr;
-
 core_sgct::SGCTWindow::SGCTWindow()
 {
-	instancePtr = this;
 	mUseSwapGroups = false;
 	mSwapGroupMaster = false;
 	mUseQuadBuffer = false;
@@ -27,7 +23,7 @@ core_sgct::SGCTWindow::SGCTWindow()
 	mWindowMode = GLFW_WINDOW;
 }
 
-core_sgct::SGCTWindow::~SGCTWindow()
+void core_sgct::SGCTWindow::close()
 {
 	if( mUseSwapGroups )
 	{
@@ -139,7 +135,7 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 
 void GLFWCALL windowResizeCallback( int width, int height )
 {
-	instancePtr->setWindowResolution(width, height > 0 ? height : 1);
+	core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
 }
 
 void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)

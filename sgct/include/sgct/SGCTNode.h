@@ -25,6 +25,7 @@ public:
 
 	bool lockVerticalSync;
 	std::string ip;
+	std::string port;
 	int numberOfSamples;
 	int stereo;
 	Point3f viewPlaneCoords[3];

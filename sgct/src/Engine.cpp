@@ -16,8 +16,7 @@ using namespace core_sgct;
 sgct::Engine::Engine( int argc, char* argv[] )
 {	
 	//init pointers
-	mNetwork = NULL;
-	mExternalControlNetwork = NULL;
+	mNetworkConnections = NULL;
 	mConfig = NULL;
 	for( unsigned int i=0; i<3; i++)
 		mFrustums[i] = NULL;
@@ -31,6 +30,8 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mInternalRenderFn = NULL;
 	mTerminate = false;
 
+	localRunningMode = NetworkManager::NotLocal;
+
 	// Initialize GLFW
 	if( !glfwInit() )
 	{
@@ -43,8 +44,6 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	farClippingPlaneDist = 100.0f;
 	showInfo = false;
 	showGraph = false;
-	runningLocal = false;
-	isServer = true;
 	showWireframe = false;
 	activeFrustum = Frustum::Mono;
 
@@ -91,47 +90,22 @@ bool sgct::Engine::init()
 
 bool sgct::Engine::initNetwork()
 {
-	try
-	{
-		mNetwork = new SGCTNetwork();
-	}
-	catch( const char * err )
-	{
-		sgct::MessageHandler::Instance()->print("Network init error: %s\n", err);
-		if(mNetwork != NULL)
-			mNetwork->close();
-		glfwTerminate();
-		return false;
-	}
+	mNetworkConnections = new NetworkManager(localRunningMode);
 
-	//check in cluster configuration if this node master or slave
-	for(unsigned int i=0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
-	{
-		//if this computer matches node[i]
-		if( !runningLocal && mNetwork->matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ) )
-		{
-			if( mNetwork->matchAddress( (*mConfig->getMasterIP()) ))
+	//check in cluster configuration which it is
+	if( localRunningMode == NetworkManager::NotLocal )
+		for(unsigned int i=0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
+			if( mNetworkConnections->matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ) )
 			{
-				isServer = true;
-				sgct::MessageHandler::Instance()->print("This computer is the network server.\n");
+				NodeManager::Instance()->setThisNodeId(i);
+				break;
 			}
-			else
-			{
-				isServer = false;
-				sgct::MessageHandler::Instance()->print("This computer is the network client.\n");
-			}
-
-			NodeManager::Instance()->setThisNodeId(i);
-			break;
-		}
-	}
 
 	if( NodeManager::Instance()->getThisNodeId() == -1 ||
 		NodeManager::Instance()->getThisNodeId() >= static_cast<int>( NodeManager::Instance()->getNumberOfNodes() )) //fatal error
 	{
 		sgct::MessageHandler::Instance()->print("This computer is not a part of the cluster configuration!\n");
-		mNetwork->close();
-		glfwTerminate();
+		mNetworkConnections->close();
 		return false;
 	}
 	else
@@ -139,74 +113,11 @@ bool sgct::Engine::initNetwork()
 		printNodeInfo( static_cast<unsigned int>(NodeManager::Instance()->getThisNodeId()) );
 	}
 
-	try
-	{
-		sgct::MessageHandler::Instance()->sendMessagesToServer(!isServer);
-		sgct::MessageHandler::Instance()->print("Initiating network communication...\n");
-		if( runningLocal )
-			mNetwork->init(*(mConfig->getMasterPort()), "127.0.0.1", isServer);
-		else
-			mNetwork->init(*(mConfig->getMasterPort()), *(mConfig->getMasterIP()), isServer);
-    }
-    catch( const char * err )
-    {
-        sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
-        return false;
-    }
-
-	if( mConfig->isExternalControlPortSet() && isServer)
-	{
-		try
-		{
-			mExternalControlNetwork = new SGCTNetwork();
-		}
-		catch( const char * err )
-		{
-			sgct::MessageHandler::Instance()->print("External control Network init error: %s\n", err);
-			if(mExternalControlNetwork != NULL)
-				mExternalControlNetwork->close();
-		}
-		
-		if( mExternalControlNetwork != NULL )
-		{
-			try
-			{
-				sgct::MessageHandler::Instance()->print("Initiating external control network...\n");
-				mExternalControlNetwork->init(*(mConfig->getExternalControlPort()), "127.0.0.1", true, SGCTNetwork::ExternalControl);
-			
-				std::tr1::function< void(const char*, int, int) > callback;
-				callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, this,
-					std::tr1::placeholders::_1,
-					std::tr1::placeholders::_2,
-					std::tr1::placeholders::_3);
-				mExternalControlNetwork->setDecodeFunction(callback);
-			}
-			catch( const char * err )
-			{
-				sgct::MessageHandler::Instance()->print("External control network error: %s\n", err);
-			}
-		}
-	}
-
-    //set decoder for client
-    if( isServer )
-    {
-        std::tr1::function< void(const char*, int, int) > callback;
-        callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
-            std::tr1::placeholders::_1,
-            std::tr1::placeholders::_2,
-            std::tr1::placeholders::_3);
-        mNetwork->setDecodeFunction(callback);
-    }
-    else
-    {
-        std::tr1::function< void(const char*, int, int) > callback;
-        callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
-            std::tr1::placeholders::_1,
-            std::tr1::placeholders::_2,
-            std::tr1::placeholders::_3);
-        mNetwork->setDecodeFunction(callback);
-    }
+	//Set message handler to send messages or not
+	sgct::MessageHandler::Instance()->sendMessagesToServer( !mNetworkConnections->isComputerServer() );
+	
+	if(!mNetworkConnections->init())
+		return false;
 
     sgct::MessageHandler::Instance()->print("Done\n");
 	return true;
@@ -238,7 +149,7 @@ bool sgct::Engine::initWindow()
 	//Must wait until all nodes are running if using swap barrier
 	if( NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() )
 	{
-		while(!mNetwork->areAllNodesConnected())
+		while(!mNetworkConnections->areAllNodesConnected())
 		{
 			sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
 			// Swap front and back rendering buffers
@@ -287,23 +198,14 @@ void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
-	//close external control connections
-	if( mExternalControlNetwork != NULL )
-	{
-		mExternalControlNetwork->close();
-		delete mExternalControlNetwork;
-		mExternalControlNetwork = NULL;
-	}
-
 	//de-init window and unbind swapgroups...
 	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->close();
 
 	//close TCP connections
-	if( mNetwork != NULL )
+	if( mNetworkConnections != NULL )
 	{
-		mNetwork->close();
-		delete mNetwork;
-		mNetwork = NULL;
+		delete mNetworkConnections;
+		mNetworkConnections = NULL;
 	}
 
 	if( mConfig != NULL )
@@ -336,37 +238,23 @@ void sgct::Engine::frameSyncAndLock(int stage)
 	
 	if( stage == PreStage )
 	{
-		mNetwork->sync();
+		mNetworkConnections->sync();
 
-		if( !isServer)
-		{
-			static int netFrameCounter = 0;
-			
-			while(mNetwork->isRunning() && mRunning && (glfwGetTime()-t0) < 0.015)
+		if( !mNetworkConnections->isComputerServer() ) //not server
+			while(mNetworkConnections->isRunning() && mRunning)// && (glfwGetTime()-t0) < 0.015)
 			{
-				if( netFrameCounter != mNetwork->getCurrentFrame() )
-				{
-					//iterate
-					if( netFrameCounter < MAX_NET_SYNC_FRAME_NUMBER )
-						netFrameCounter++;
-					else
-						netFrameCounter = 0;
+				if( mNetworkConnections->isSyncComplete() )
 					break;
-				}
 			}
-		}
 
 		mStatistics.setSyncTime(glfwGetTime() - t0);
 	}
-	else if( isServer && !runningLocal )//post stage
+	else if( mNetworkConnections->isComputerServer() && localRunningMode == NetworkManager::NotLocal )//post stage
 	{
-		while(mNetwork->isRunning() && mRunning && (glfwGetTime()-t0) < 0.015)
+		while(mNetworkConnections->isRunning() && mRunning)// && (glfwGetTime()-t0) < 0.015)
 		{
-			//check if all nodes has sent feedback to server
-			if( mNetwork->getFeedbackCount() == 0 )
-			{
-				break;
-			}
+			if( mNetworkConnections->isSyncComplete() )
+					break;
 		}
 
 		mStatistics.addSyncTime(glfwGetTime() - t0);
@@ -382,15 +270,15 @@ void sgct::Engine::render()
 		if( mPreDrawFn != NULL )
 			mPreDrawFn();
 
-		if( isServer )
+		if( mNetworkConnections->isComputerServer() )
 		{
-			mNetwork->syncMutex(true);
-			sgct::SharedData::Instance()->encode();
-			mNetwork->syncMutex(false);
+			SGCTNetwork::setMutexState(true);
+				sgct::SharedData::Instance()->encode();
+			SGCTNetwork::setMutexState(false);
 		}
 		else
 		{
-			if( !mNetwork->isRunning() ) //exit if not running
+			if( !mNetworkConnections->isRunning() ) //exit if not running
 				break;
 		}
 
@@ -422,6 +310,8 @@ void sgct::Engine::render()
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 
+		mNetworkConnections->swapData();
+
 		// Check if ESC key was pressed or window was closed
 		mRunning = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
 	}
@@ -436,7 +326,7 @@ void sgct::Engine::renderDisplayInfo()
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Node ip: %s (%s)",
 		NodeManager::Instance()->getThisNodePtr()->ip.c_str(),
-		isServer ? "master" : "slave");
+		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time: %.2f ms", getDrawTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time [%d]: %.2f ms", 
@@ -583,12 +473,12 @@ void sgct::Engine::parseArguments( int argc, char* argv[] )
 		}
 		else if( strcmp(argv[i],"--client") == 0 )
 		{
-			isServer = false;
+			localRunningMode = NetworkManager::LocalClient;
 			i++;
 		}
 		else if( strcmp(argv[i],"-local") == 0 )
 		{
-			runningLocal = true;
+			localRunningMode = NetworkManager::LocalServer;
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
@@ -694,33 +584,33 @@ void sgct::Engine::decodeExternalControl(const char * receivedData, int received
 
 void sgct::Engine::sendMessageToExternalControl(void * data, int lenght)
 {
-	if(mExternalControlNetwork != NULL)
-		mExternalControlNetwork->sendDataToAllClients( data, lenght );
+	if( mNetworkConnections->getExternalControlPtr() != NULL )
+		mNetworkConnections->getExternalControlPtr()->sendData( data, lenght );
 }
 
 void sgct::Engine::sendMessageToExternalControl(const std::string msg)
 {
-	if(mExternalControlNetwork != NULL)
-		mExternalControlNetwork->sendStrToAllClients( msg );
+	if( mNetworkConnections->getExternalControlPtr() != NULL )
+		mNetworkConnections->getExternalControlPtr()->sendData( (void *)msg.c_str(), msg.size() );
 }
 
 void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 {
-	if(mExternalControlNetwork != NULL)
-		mExternalControlNetwork->setBufferSize(newSize);
+	if( mNetworkConnections->getExternalControlPtr() != NULL )
+		mNetworkConnections->getExternalControlPtr()->setBufferSize(newSize);
 }
 
 const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
-		runningLocal ? "127.0.0.1" : NodeManager::Instance()->getThisNodePtr()->ip.c_str(),
-		isServer ? "server" : "slave",
+		localRunningMode == NetworkManager::NotLocal ? NodeManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
+		mNetworkConnections->isComputerServer() ? "server" : "slave",
 		mStatistics.getAvgFPS());
     #else
     sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
-		runningLocal ? "127.0.0.1" : NodeManager::Instance()->getThisNodePtr()->ip.c_str(),
-		isServer ? "server" : "slave",
+		localRunningMode == NetworkManager::NotLocal ? NodeManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
+		mNetworkConnections->isComputerServer() ? "server" : "slave",
 		mStatistics.getAvgFPS());
     #endif
 

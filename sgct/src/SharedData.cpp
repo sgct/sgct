@@ -13,10 +13,19 @@ SharedData::SharedData()
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
 	dataBlock.reserve(1024);
+
+	headerSpace		= NULL;
+	headerSpace		= (unsigned char*) malloc(core_sgct::SGCTNetwork::syncHeaderSize);
+
+	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
+		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
 }
 
 SharedData::~SharedData()
 {
+	free(headerSpace);
+    headerSpace = NULL;
+	
 	dataBlock.clear();
 }
 
@@ -32,24 +41,27 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 
 void SharedData::decode(const char * receivedData, int receivedLenght, int clientIndex)
 {
-	//re-allocate buffer if needed
-	if( receivedLenght > static_cast<int>(dataBlock.capacity()) )
-		dataBlock.reserve(receivedLenght);
-	dataBlock.assign(receivedData, receivedData+receivedLenght);
+	if(receivedLenght > 0)
+	{
+		//re-allocate buffer if needed
+		if( receivedLenght > static_cast<int>(dataBlock.capacity()) )
+			dataBlock.reserve(receivedLenght);
+		dataBlock.assign(receivedData, receivedData+receivedLenght);
 
-	//reset
-	pos = 0;
+		//reset
+		pos = 0;
 
-	if( mDecodeFn != NULL )
-		mDecodeFn();
+		if( mDecodeFn != NULL )
+			mDecodeFn();
+	}
 }
 
 void SharedData::encode()
 {
 	dataBlock.clear();
 
-	//add header byte
-	dataBlock.push_back(core_sgct::SGCTNetwork::SyncHeader);
+	//reserve header space
+	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
@@ -131,15 +143,15 @@ int SharedData::readInt32()
 	{
 		int i;
 		unsigned char c[4];
-	} cf;
+	} ci;
 
-	cf.c[0] = dataBlock[pos];
-	cf.c[1] = dataBlock[pos+1];
-	cf.c[2] = dataBlock[pos+2];
-	cf.c[3] = dataBlock[pos+3];
+	ci.c[0] = dataBlock[pos];
+	ci.c[1] = dataBlock[pos+1];
+	ci.c[2] = dataBlock[pos+2];
+	ci.c[3] = dataBlock[pos+3];
 	pos += 4;
 
-	return cf.i;
+	return ci.i;
 }
 
 unsigned char SharedData::readUChar()

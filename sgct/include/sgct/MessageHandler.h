@@ -7,7 +7,7 @@
 #ifndef _MESSAGE_HANDLER
 #define _MESSAGE_HANDLER
 
-#include <string>
+#include <vector>
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -44,8 +44,8 @@ public:
 	inline unsigned int getDataSize() { return mBuffer.size(); }
 	inline unsigned int getTrimmedDataSize() { return mSwapBuffer1.size(); }
 
-	const char * getMessage();
-    const char * getTrimmedMessage( int unsigned indexOfLastChar );
+	char * getMessage();
+    char * getTrimmedMessage( int unsigned indexOfLastChar );
 
 private:
 	MessageHandler(void);
@@ -61,10 +61,11 @@ private:
 	//int pos;
 	//int swapSize;
 	char * mParseBuffer;
-	std::string mSwapBuffer1;
-	std::string mSwapBuffer2;
-	std::string mBuffer;
-	std::string mRecBuffer;
+	std::vector<char> mSwapBuffer1;
+	std::vector<char> mSwapBuffer2;
+	std::vector<char> mBuffer;
+	std::vector<char> mRecBuffer;
+	unsigned char  * headerSpace;
 	bool mLocal;
 };
 

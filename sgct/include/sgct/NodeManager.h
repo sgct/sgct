@@ -9,6 +9,7 @@
 
 #include "SGCTNode.h"
 #include <vector>
+#include <string>
 
 namespace core_sgct
 {
@@ -44,6 +45,12 @@ public:
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
 
+	std::string * getMasterIp() { return &masterIp; }
+	void setMasterIp(std::string & ip) { masterIp.assign(ip); }
+
+	std::string * getExternalControlPort() { return &mExternalControlPort; }
+	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
+
 private:
 	NodeManager(void);
 	~NodeManager(void);
@@ -59,6 +66,8 @@ private:
 	int masterIndex;
 	int mThisNodeId;
 	bool validCluster;
+	std::string masterIp;
+	std::string mExternalControlPort;
 };
 }
 

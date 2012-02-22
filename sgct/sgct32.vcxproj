@@ -17,6 +17,7 @@
     <ClCompile Include="src\freetype.cpp" />
     <ClCompile Include="src\Image.cpp" />
     <ClCompile Include="src\MessageHandler.cpp" />
+    <ClCompile Include="src\NetworkManager.cpp" />
     <ClCompile Include="src\NodeManager.cpp" />
     <ClCompile Include="src\ReadConfig.cpp" />
     <ClCompile Include="src\SGCTNetwork.cpp" />
@@ -38,6 +39,7 @@
     <ClInclude Include="include\sgct\Frustum.h" />
     <ClInclude Include="include\sgct\Image.h" />
     <ClInclude Include="include\sgct\MessageHandler.h" />
+    <ClInclude Include="include\sgct\NetworkManager.h" />
     <ClInclude Include="include\sgct\NodeManager.h" />
     <ClInclude Include="include\sgct\Point3.h" />
     <ClInclude Include="include\sgct\ReadConfig.h" />

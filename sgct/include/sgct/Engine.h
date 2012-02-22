@@ -8,7 +8,7 @@
 #define _RENDER_ENGINE_H_
 
 #include "NodeManager.h"
-#include "SGCTNetwork.h"
+#include "NetworkManager.h"
 #include "ReadConfig.h"
 #include "Frustum.h"
 #include "Statistics.h"
@@ -52,7 +52,7 @@ public:
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
 	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr(); }
-	inline bool isSyncServer() { return isServer; }
+	inline bool isSyncServer() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
 
 private:
@@ -96,10 +96,11 @@ private:
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;
 
+	int localRunningMode;
 	int activeFrustum;
 
-	bool isServer;
-	bool runningLocal; //possible to run a cluster setup for testing on a single computer
+	//bool isServer;
+	//bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool showInfo;
 	bool showGraph;
 	bool showWireframe;
@@ -110,8 +111,7 @@ private:
 	core_sgct::Statistics	mStatistics;
 
 	//pointers
-	core_sgct::SGCTNetwork	* mNetwork;
-	core_sgct::SGCTNetwork	* mExternalControlNetwork;
+	core_sgct::NetworkManager * mNetworkConnections;
 	core_sgct::ReadConfig	* mConfig;
 	core_sgct::Frustum		* mFrustums[3];
 

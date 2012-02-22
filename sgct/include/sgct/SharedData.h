@@ -74,6 +74,7 @@ private:
 
 	static SharedData * mInstance;
 	std::vector<unsigned char> dataBlock;
+	unsigned char * headerSpace;
 	unsigned int pos;
 };
 

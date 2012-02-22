@@ -22,9 +22,9 @@ public:
 	enum StereoMode { None = 0, Active, PassiveVertical, PassiveHorizontal, Checkerboard };
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
-	std::string * getMasterIP() { return &masterIP; }
-	std::string * getMasterPort() { return &masterPort; }
-	std::string * getExternalControlPort() { return &externalControlPort; }
+	//std::string * getMasterIP() { return &masterIP; }
+	//std::string * getMasterPort() { return &masterPort; }
+	//std::string * getExternalControlPort() { return &externalControlPort; }
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	Point3f * getUserPos() { return &userPos; }
@@ -40,9 +40,9 @@ private:
 	Point3f userPos;
 	float eyeSeparation;
 
-	std::string masterIP;
-	std::string masterPort;
-	std::string externalControlPort;
+	//std::string masterIP;
+	//std::string masterPort;
+	//std::string externalControlPort;
 };
 
 }

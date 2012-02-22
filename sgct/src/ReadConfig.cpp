@@ -34,7 +34,9 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", 
 		NodeManager::Instance()->getNumberOfNodes());
 	for(unsigned int i = 0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
-		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s\n", i, NodeManager::Instance()->getNodePtr(i)->ip.c_str());
+		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s [%s]\n", i,
+		NodeManager::Instance()->getNodePtr(i)->ip.c_str(),
+		NodeManager::Instance()->getNodePtr(i)->port.c_str());
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -50,13 +52,14 @@ void core_sgct::ReadConfig::readAndParseXML()
 	{
 		throw "Cannot find XML root!";
 	}
-	masterIP.assign( XMLroot->Attribute( "masterAddress" ) );
-	masterPort.assign( XMLroot->Attribute( "port" ) );
-	const char * tmpStr = NULL;
-	tmpStr = XMLroot->Attribute( "externalControlPort" );
-	if( tmpStr != NULL )
+
+	std::string tmpStr( XMLroot->Attribute( "masterAddress" ) );
+	NodeManager::Instance()->setMasterIp( tmpStr );
+	
+	tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
+	if( !tmpStr.empty() )
 	{
-		externalControlPort.assign(tmpStr);
+		NodeManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
 	}
 
@@ -71,6 +74,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 		{
 			SGCTNode tmpNode;
 			tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
+			tmpNode.port.assign( element[0]->Attribute( "port" ) );
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
@@ -151,7 +155,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 			//temp
 			tmpNode.addViewport(0.0f, 0.0f, 1.0f, 1.0f);
 			
-			core_sgct::NodeManager::Instance()->addNode(tmpNode);
+			NodeManager::Instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
 		{

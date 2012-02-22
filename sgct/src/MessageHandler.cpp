@@ -14,7 +14,9 @@ sgct::MessageHandler::MessageHandler(void)
 {
     mParseBuffer	= NULL;
 	mParseBuffer	= (char*) malloc(MESSAGE_HANDLER_MAX_SIZE);
-	memset(mParseBuffer,	'\0',	MESSAGE_HANDLER_MAX_SIZE);
+
+	headerSpace		= NULL;
+	headerSpace		= (unsigned char*) malloc(core_sgct::SGCTNetwork::syncHeaderSize);
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 
@@ -22,7 +24,9 @@ sgct::MessageHandler::MessageHandler(void)
 	mSwapBuffer1.reserve(BUFFER_HANDLER_MAX_SIZE);
 	mSwapBuffer2.reserve(BUFFER_HANDLER_MAX_SIZE);
 
-	mBuffer.push_back(core_sgct::SGCTNetwork::mACKByte);
+	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
+		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
+	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 
     mLocal = true;
 }
@@ -32,6 +36,9 @@ sgct::MessageHandler::~MessageHandler(void)
     free(mParseBuffer);
     mParseBuffer = NULL;
 
+	free(headerSpace);
+    headerSpace = NULL;
+
 	mBuffer.clear();
 	mSwapBuffer1.clear();
 	mSwapBuffer2.clear();
@@ -40,13 +47,13 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedLenght, int clientIndex)
 {
-	if( receivedLenght > 1 ) //header + '\0'
+	if(receivedLenght > 0)
 	{
-        mRecBuffer.clear();
+		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedLenght);
-		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, mRecBuffer.c_str());
+		mRecBuffer.push_back('\0');
+		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, &mRecBuffer[0]);
 	}
-
 }
 
 void sgct::MessageHandler::print(const char *fmt, ...)
@@ -76,7 +83,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
     if(!mLocal)
     {
         if(mBuffer.empty())
-			mBuffer.push_back(core_sgct::SGCTNetwork::mACKByte);
+			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
     }
 }
@@ -86,30 +93,30 @@ void sgct::MessageHandler::clearBuffer()
 	mBuffer.clear();
 }
 
-const char * sgct::MessageHandler::getMessage()
+char * sgct::MessageHandler::getMessage()
 {
-	return mBuffer.c_str();
+	return &mBuffer[0];
 }
 
-const char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
+char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
 {
     if( mBuffer.size() > indexOfLastChar)
     {
         mSwapBuffer1.clear();
 		mSwapBuffer2.clear();
 		
-		mSwapBuffer1 = mBuffer.substr(0,indexOfLastChar);
+		mSwapBuffer1.insert(mSwapBuffer1.begin(), &mBuffer[0], &mBuffer[0]+indexOfLastChar);
 		
-		mSwapBuffer2.push_back(core_sgct::SGCTNetwork::mACKByte);
+		mSwapBuffer2.insert(mSwapBuffer2.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 		mSwapBuffer2.insert(mSwapBuffer2.end(), mBuffer.begin() + indexOfLastChar,
 			mBuffer.end());
 		
-		mBuffer.assign(mSwapBuffer2);
+		mBuffer.assign(mSwapBuffer2.begin(), mSwapBuffer2.end());
 		
-		return mSwapBuffer1.c_str();
+		return &mSwapBuffer1[0];
     }
     else
     {
-        return mBuffer.c_str();
+        return &mBuffer[0];
     }
 }

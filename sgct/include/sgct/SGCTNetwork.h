@@ -28,21 +28,6 @@
 namespace core_sgct //small graphics cluster toolkit
 {
 
-/*class ConnectionData
-{
-public:
-	ConnectionData()
-	{
-		connected = false;
-		client_socket = INVALID_SOCKET;
-		threadID = -1;
-	}
-
-	bool connected;
-	SOCKET client_socket;
-	int threadID;
-};*/
-
 class SGCTNetwork
 {
 public:
@@ -90,10 +75,10 @@ public:
 	SOCKET mListenSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
 	std::tr1::function< void(void) > mDisconnectedCallbackFn;
-	
+
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
-	static const int syncHeaderSize = 5;
+	static const unsigned int syncHeaderSize = 5;
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncHeader = 17, SizeHeader };
 	enum ServerTypes { SyncServer = 0, ExternalControl };

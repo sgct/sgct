@@ -5,7 +5,7 @@
 #include "../include/sgct/SGCTNetwork.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/NodeManager.h"
+#include "../include/sgct/ClusterManager.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <ws2tcpip.h>
@@ -239,7 +239,7 @@ bool core_sgct::SGCTNetwork::compareFrames()
 void core_sgct::SGCTNetwork::swapFrames()
 {
 	glfwLockMutex( gDecoderMutex );
-		mRecvFrame[1] = mRecvFrame[0]; 
+		mRecvFrame[1] = mRecvFrame[0];
 	glfwUnlockMutex( gDecoderMutex );
 }
 
@@ -273,7 +273,7 @@ void GLFWCALL communicationHandler(void *arg)
 		glfwLockMutex( gDecoderMutex );
 			sgct::MessageHandler::Instance()->print("Waiting for client to connect to connection %d...\n", nPtr->getId());
 		glfwUnlockMutex( gDecoderMutex );
-		
+
 		if( listen( nPtr->mListenSocket, SOMAXCONN ) == SOCKET_ERROR )
 		{
 			return;
@@ -283,10 +283,10 @@ void GLFWCALL communicationHandler(void *arg)
 		if (nPtr->mSocket == INVALID_SOCKET )//&& nPtr->setNoDelay(&(nPtr->mSocket)))
 		{
 			nPtr->setConnectedStatus(false);
-			return;	
+			return;
 		}
 	}
-	
+
 	nPtr->setConnectedStatus(true);
 
 	glfwLockMutex( gDecoderMutex );
@@ -320,7 +320,7 @@ void GLFWCALL communicationHandler(void *arg)
 				recvbuf = (char *)malloc(nPtr->mRequestedSize);
 			glfwUnlockMutex( gDecoderMutex );
 		}
-		
+
 		iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
 
 		if (iResult > 0)
@@ -352,7 +352,7 @@ void GLFWCALL communicationHandler(void *arg)
 					glfwUnlockMutex( gDecoderMutex );
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
-					iResult >= core_sgct::SGCTNetwork::syncHeaderSize &&
+					iResult >= static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize) &&
 					nPtr->mDecoderCallbackFn != NULL)
 				{
 					//convert from uchar to int32
@@ -366,7 +366,7 @@ void GLFWCALL communicationHandler(void *arg)
 					ci.c[1] = recvbuf[2];
 					ci.c[2] = recvbuf[3];
 					ci.c[3] = recvbuf[4];
-					
+
 					glfwLockMutex( gDecoderMutex );
 						nPtr->setRecvFrame( ci.i );
 						(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
@@ -398,7 +398,7 @@ void GLFWCALL communicationHandler(void *arg)
 		else if (iResult == 0)
 		{
 			nPtr->setConnectedStatus(false);
-			
+
 			glfwLockMutex( gDecoderMutex );
 				sgct::MessageHandler::Instance()->print("TCP Connection %d closed.\n", nPtr->getId());
 			glfwUnlockMutex( gDecoderMutex );
@@ -415,7 +415,7 @@ void GLFWCALL communicationHandler(void *arg)
 
 	//cleanup
 	free(recvbuf);
-	
+
 	glfwLockMutex( gDecoderMutex );
 	if(nPtr->mDisconnectedCallbackFn != NULL)
 		nPtr->mDisconnectedCallbackFn();
@@ -447,7 +447,7 @@ void core_sgct::SGCTNetwork::close()
 	gameOver[5] = '\n';
 	gameOver[6] = '\0';
 	sendData(gameOver, 7);
-	
+
 	mDecoderCallbackFn = NULL;
 
 	mConnected = false;

@@ -21,7 +21,7 @@
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;resources\config\clusterConfigLocal.xml&quot; -local 0' />
+				<Option parameters='-config &quot;resources\config\clusterConfigLocal.xml&quot; -local 1' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>

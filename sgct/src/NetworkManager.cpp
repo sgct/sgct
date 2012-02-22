@@ -1,7 +1,8 @@
 #include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/NodeManager.h"
+#include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SharedData.h"
+#include "../include/sgct/Engine.h"
 #include <ws2tcpip.h>
 #include <GL/glfw.h>
 
@@ -35,12 +36,12 @@ core_sgct::NetworkManager::NetworkManager(int mode)
 	}
 
 	if(mMode == NotLocal)
-		mIsServer = matchAddress( (*NodeManager::Instance()->getMasterIp()));
+		mIsServer = matchAddress( (*ClusterManager::Instance()->getMasterIp()));
 	else if(mMode == LocalServer)
 		mIsServer = true;
 	else
 		mIsServer = false;
-	
+
 	if( mIsServer )
 		sgct::MessageHandler::Instance()->print("This computer is the network server.\n");
 	else
@@ -56,18 +57,18 @@ bool core_sgct::NetworkManager::init()
 {
 	//if faking an address (running local) then add it to the search list
 	if(mMode != NotLocal)
-		localAddresses.push_back(NodeManager::Instance()->getThisNodePtr()->ip);
+		localAddresses.push_back(ClusterManager::Instance()->getThisNodePtr()->ip);
 
 	std::string tmpIp;
 	if( mMode == NotLocal )
-		tmpIp = *NodeManager::Instance()->getMasterIp();
+		tmpIp = *ClusterManager::Instance()->getMasterIp();
 	else
 		tmpIp = "127.0.0.1";
-	
+
 	//add connection for external communication
 	if( mIsServer )
 	{
-		if(!addConnection( (*NodeManager::Instance()->getExternalControlPort()),
+		if(!addConnection( (*ClusterManager::Instance()->getExternalControlPort()),
 		"127.0.0.1", SGCTNetwork::ExternalControl))
 		{
 			sgct::MessageHandler::Instance()->print("Failed to add external connection!\n");
@@ -76,19 +77,19 @@ bool core_sgct::NetworkManager::init()
 		{
 			mIsExternalControlPresent = true;
 
-			/*std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, enginePtr,
+			std::tr1::function< void(const char*, int, int) > callback;
+			callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
 				std::tr1::placeholders::_1,
 				std::tr1::placeholders::_2,
 				std::tr1::placeholders::_3);
-			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);*/
+			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 		}
 	}
 	else //client
 	{
-		if(!addConnection(NodeManager::Instance()->getThisNodePtr()->port, tmpIp))
+		if(!addConnection(ClusterManager::Instance()->getThisNodePtr()->port, tmpIp))
 		{
-			sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", NodeManager::Instance()->getMasterIp()->c_str());
+			sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", ClusterManager::Instance()->getMasterIp()->c_str());
 			return false;
 		}
 		else //bind
@@ -103,14 +104,14 @@ bool core_sgct::NetworkManager::init()
 	}
 
 	//add all connections from config file
-	for(unsigned int i=0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
+	for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
 	{
 		//dont add itself if server
-		if( mIsServer && !matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ))
+		if( mIsServer && !matchAddress( ClusterManager::Instance()->getNodePtr(i)->ip ))
 		{
-			if(!addConnection(NodeManager::Instance()->getNodePtr(i)->port, tmpIp))
+			if(!addConnection(ClusterManager::Instance()->getNodePtr(i)->port, tmpIp))
 			{
-				sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", NodeManager::Instance()->getNodePtr(i)->ip.c_str());
+				sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", ClusterManager::Instance()->getNodePtr(i)->ip.c_str());
 				return false;
 			}
 			else //bind
@@ -137,7 +138,7 @@ void core_sgct::NetworkManager::sync()
 			mNetworkConnections[i]->isServer())
 		{
 			mNetworkConnections[i]->checkIfBufferNeedsResizing();
-			
+
 			//iterate counter
 			mNetworkConnections[i]->iterateFrameCounter();
 
@@ -167,8 +168,8 @@ void core_sgct::NetworkManager::sync()
 }
 
 bool core_sgct::NetworkManager::isSyncComplete()
-{	
-	int counter = 0;
+{
+	unsigned int counter = 0;
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
 			!mNetworkConnections[i]->compareFrames())
@@ -187,9 +188,9 @@ void core_sgct::NetworkManager::swapData()
 
 void core_sgct::NetworkManager::updateConnectionStatus()
 {
-	int counter = 0;
-	int specificCounter = 0;
-	
+	unsigned int counter = 0;
+	unsigned int specificCounter = 0;
+
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 	if( mNetworkConnections[i]->isConnected() )
 	{
@@ -200,7 +201,7 @@ void core_sgct::NetworkManager::updateConnectionStatus()
 
 	mNumberOfConnectedNodes = counter;
 
-	mAllNodesConnected = (specificCounter == NodeManager::Instance()->getNumberOfNodes()-1);
+	mAllNodesConnected = (specificCounter == ClusterManager::Instance()->getNumberOfNodes()-1);
 
 	if(mNumberOfConnectedNodes == 0 && !mIsServer)
 		mIsRunning = false;
@@ -228,7 +229,7 @@ void core_sgct::NetworkManager::close()
 bool core_sgct::NetworkManager::addConnection(const std::string port, const std::string ip, int serverType)
 {
 	SGCTNetwork * netPtr = NULL;
-	
+
 	if(port.empty() || ip.empty())
 		return false;
 

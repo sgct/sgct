@@ -5,7 +5,7 @@
 #include <GL/glfw.h>
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/NodeManager.h"
+#include "../include/sgct/ClusterManager.h"
 #include <tinyxml.h>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
@@ -32,11 +32,11 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	valid = true;
 	sgct::MessageHandler::Instance()->print("Config file '%s' read successfully!\n", xmlFileName.c_str());
 	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", 
-		NodeManager::Instance()->getNumberOfNodes());
-	for(unsigned int i = 0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
+		ClusterManager::Instance()->getNumberOfNodes());
+	for(unsigned int i = 0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
 		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s [%s]\n", i,
-		NodeManager::Instance()->getNodePtr(i)->ip.c_str(),
-		NodeManager::Instance()->getNodePtr(i)->port.c_str());
+		ClusterManager::Instance()->getNodePtr(i)->ip.c_str(),
+		ClusterManager::Instance()->getNodePtr(i)->port.c_str());
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -54,17 +54,17 @@ void core_sgct::ReadConfig::readAndParseXML()
 	}
 
 	std::string tmpStr( XMLroot->Attribute( "masterAddress" ) );
-	NodeManager::Instance()->setMasterIp( tmpStr );
+	ClusterManager::Instance()->setMasterIp( tmpStr );
 	
 	tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
 	if( !tmpStr.empty() )
 	{
-		NodeManager::Instance()->setExternalControlPort(tmpStr);
+		ClusterManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
 	}
 
-	TiXmlElement* element[3];
-	const char * val[3];
+	TiXmlElement* element[10];
+	const char * val[10];
 	element[0] = XMLroot->FirstChildElement();
 	while( element[0] != NULL )
 	{
@@ -101,15 +101,15 @@ void core_sgct::ReadConfig::readAndParseXML()
 						{
 							tmpNode.stereo = getStereoType( element[2]->Attribute("type") );
 						}
-						else if( strcmp("Size", val[2]) == 0 )
-						{
-							element[2]->Attribute("x", &tmpWinData[2] );
-							element[2]->Attribute("y", &tmpWinData[3] );
-						}
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
 							element[2]->Attribute("x", &tmpWinData[0] );
 							element[2]->Attribute("y", &tmpWinData[1] );
+						}
+						else if( strcmp("Size", val[2]) == 0 )
+						{
+							element[2]->Attribute("x", &tmpWinData[2] );
+							element[2]->Attribute("y", &tmpWinData[3] );
 						}
 
 						tmpNode.getWindowPtr()->setWindowResolution(tmpWinData[2],tmpWinData[3]);
@@ -119,43 +119,73 @@ void core_sgct::ReadConfig::readAndParseXML()
 						element[2] = element[2]->NextSiblingElement();
 					}
 				}
-				else if(strcmp("Viewplane", val[1]) == 0)
+				else if(strcmp("Viewport", val[1]) == 0)
 				{
+					Viewport tmpVp;
+					
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
-
-						if( strcmp("Pos", val[2]) == 0 )
+						double dTmp[2];
+						dTmp[0] = 0.0f;
+						dTmp[1] = 0.0f;
+						
+						if(strcmp("Pos", val[2]) == 0)
 						{
-							Point3f tmpP3;
-							double dTmp[3];
-							static unsigned int i=0;
 							element[2]->Attribute("x", &dTmp[0]);
 							element[2]->Attribute("y", &dTmp[1]);
-							element[2]->Attribute("z", &dTmp[2]);
-
-							tmpP3.x = static_cast<float>(dTmp[0]);
-							tmpP3.y = static_cast<float>(dTmp[1]);
-							tmpP3.z = static_cast<float>(dTmp[2]);
-
-							tmpNode.viewPlaneCoords[i%3] = tmpP3;
-							i++;
+							tmpVp.setPos(static_cast<float>(dTmp[0]),
+								static_cast<float>(dTmp[1]));
 						}
+						else if(strcmp("Size", val[2]) == 0)
+						{
+							element[2]->Attribute("x", &dTmp[0]);
+							element[2]->Attribute("y", &dTmp[1]);
+							tmpVp.setSize(static_cast<float>(dTmp[0]),
+								static_cast<float>(dTmp[1]));
+						}
+						else if(strcmp("Viewplane", val[2]) == 0)
+						{
+							element[3] = element[2]->FirstChildElement();
+							while( element[3] != NULL )
+							{
+								val[3] = element[3]->Value();
 
-						//iterate
-						element[2] = element[2]->NextSiblingElement();
-					}
-				}
+								if( strcmp("Pos", val[3]) == 0 )
+								{
+									Point3f tmpP3;
+									double dTmp[3];
+									static unsigned int i=0;
+									element[3]->Attribute("x", &dTmp[0]);
+									element[3]->Attribute("y", &dTmp[1]);
+									element[3]->Attribute("z", &dTmp[2]);
 
+									tmpP3.x = static_cast<float>(dTmp[0]);
+									tmpP3.y = static_cast<float>(dTmp[1]);
+									tmpP3.z = static_cast<float>(dTmp[2]);
+
+									tmpVp.viewPlaneCoords[i%3] = tmpP3;
+									i++;
+								}
+
+								//iterate
+								element[3] = element[3]->NextSiblingElement();
+							}//end while level 3
+						}//end if viewplane
+
+					//iterate
+					element[2] = element[2]->NextSiblingElement();
+					}//end while level 2
+
+					tmpNode.addViewport(tmpVp);
+				}//end viewport
+				
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
 			
-			//temp
-			tmpNode.addViewport(0.0f, 0.0f, 1.0f, 1.0f);
-			
-			NodeManager::Instance()->addNode(tmpNode);
+			ClusterManager::Instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
 		{

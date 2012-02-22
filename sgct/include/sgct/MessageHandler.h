@@ -7,6 +7,7 @@
 #ifndef _MESSAGE_HANDLER
 #define _MESSAGE_HANDLER
 
+#include <stddef.h> //get definition for NULL
 #include <vector>
 
 namespace sgct //simple graphics cluster toolkit

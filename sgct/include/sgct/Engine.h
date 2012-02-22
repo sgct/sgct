@@ -7,10 +7,9 @@
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
-#include "NodeManager.h"
+#include "ClusterManager.h"
 #include "NetworkManager.h"
 #include "ReadConfig.h"
-#include "Frustum.h"
 #include "Statistics.h"
 #include "User.h"
 
@@ -29,6 +28,7 @@ public:
 	bool init();
 	void render();
 	void terminate() { mTerminate = true; }
+	static Engine * getPtr() { return mThis; }
 
 	const double & getDt();
 	const double & getDrawTime();
@@ -47,11 +47,12 @@ public:
 	void sendMessageToExternalControl(void * data, int lenght);
 	void sendMessageToExternalControl(const std::string msg);
 	void setExternalControlBufferSize(unsigned int newSize);
+	void decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex);
 
 	void setDisplayInfoVisibility(bool state) { showInfo = state; }
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
-	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr(); }
+	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	inline bool isSyncServer() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
 
@@ -72,7 +73,6 @@ private:
 	//stereo render functions
 	void setNormalRenderingMode();
 	void setActiveStereoRenderingMode();
-	void decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex);
 
 	static void clearBuffer(void);
 
@@ -113,11 +113,12 @@ private:
 	//pointers
 	core_sgct::NetworkManager * mNetworkConnections;
 	core_sgct::ReadConfig	* mConfig;
-	core_sgct::Frustum		* mFrustums[3];
 
 	std::string configFilename;
 	int mRunning;
 	char basicInfo[48];
+
+	static Engine * mThis;
 };
 
 }

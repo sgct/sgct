@@ -14,9 +14,29 @@ class Frustum
 {
 public:
 	// Frustum mode enum
-	enum Mode { Mono = 0, StereoLeftEye, StereoRightEye };
+	enum FrustumMode { Mono = 0, StereoLeftEye, StereoRightEye };
+
+	Frustum()
+	{
+		mLeft = -1.0f;
+		mRight = 1.0f;
+		mBottom = -1.0f;
+		mTop = 1.0f;
+		mNear = 0.1f;
+		mFar = 100.0f;
+	}
 
 	Frustum(float left, float right, float bottom, float top, float nearClippingPlane=0.1f, float farClippingPlane=100.0f)
+	{
+		mLeft = left;
+		mRight = right;
+		mBottom = bottom;
+		mTop = top;
+		mNear = nearClippingPlane;
+		mFar = farClippingPlane;
+	}
+
+	void set(float left, float right, float bottom, float top, float nearClippingPlane=0.1f, float farClippingPlane=100.0f)
 	{
 		mLeft = left;
 		mRight = right;

@@ -3,7 +3,7 @@
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/NodeManager.h"
+#include "../include/sgct/ClusterManager.h"
 #include <stdio.h>
 
 HDC hDC;
@@ -37,8 +37,12 @@ void core_sgct::SGCTWindow::close()
 void core_sgct::SGCTWindow::init(bool lockVerticalSync)
 {
 	glfwSwapInterval( lockVerticalSync ? 1 : 0 ); //0: vsync off, 1: vsync on
-	glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
-	glfwSetWindowSizeCallback( windowResizeCallback );
+	
+	if(mWindowMode == GLFW_WINDOW)
+	{
+		glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
+		glfwSetWindowSizeCallback( windowResizeCallback );
+	}
 
 	initNvidiaSwapGroups();
 }
@@ -135,7 +139,7 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 
 void GLFWCALL windowResizeCallback( int width, int height )
 {
-	core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
+	core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
 }
 
 void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)

@@ -13,13 +13,14 @@
 
 using namespace core_sgct;
 
+sgct::Engine * sgct::Engine::mThis = NULL;
+
 sgct::Engine::Engine( int argc, char* argv[] )
 {	
 	//init pointers
+	mThis = this;
 	mNetworkConnections = NULL;
 	mConfig = NULL;
-	for( unsigned int i=0; i<3; i++)
-		mFrustums[i] = NULL;
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -28,6 +29,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mInternalRenderFn = NULL;
+	mNetworkCallbackFn = NULL;
 	mTerminate = false;
 
 	localRunningMode = NetworkManager::NotLocal;
@@ -94,15 +96,15 @@ bool sgct::Engine::initNetwork()
 
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
-		for(unsigned int i=0; i<NodeManager::Instance()->getNumberOfNodes(); i++)
-			if( mNetworkConnections->matchAddress( NodeManager::Instance()->getNodePtr(i)->ip ) )
+		for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
+			if( mNetworkConnections->matchAddress( ClusterManager::Instance()->getNodePtr(i)->ip ) )
 			{
-				NodeManager::Instance()->setThisNodeId(i);
+				ClusterManager::Instance()->setThisNodeId(i);
 				break;
 			}
 
-	if( NodeManager::Instance()->getThisNodeId() == -1 ||
-		NodeManager::Instance()->getThisNodeId() >= static_cast<int>( NodeManager::Instance()->getNumberOfNodes() )) //fatal error
+	if( ClusterManager::Instance()->getThisNodeId() == -1 ||
+		ClusterManager::Instance()->getThisNodeId() >= static_cast<int>( ClusterManager::Instance()->getNumberOfNodes() )) //fatal error
 	{
 		sgct::MessageHandler::Instance()->print("This computer is not a part of the cluster configuration!\n");
 		mNetworkConnections->close();
@@ -110,7 +112,7 @@ bool sgct::Engine::initNetwork()
 	}
 	else
 	{
-		printNodeInfo( static_cast<unsigned int>(NodeManager::Instance()->getThisNodeId()) );
+		printNodeInfo( static_cast<unsigned int>(ClusterManager::Instance()->getThisNodeId()) );
 	}
 
 	//Set message handler to send messages or not
@@ -125,13 +127,13 @@ bool sgct::Engine::initNetwork()
 
 bool sgct::Engine::initWindow()
 {
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->useQuadbuffer( NodeManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active );
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active );
 
-	int antiAliasingSamples = NodeManager::Instance()->getThisNodePtr()->numberOfSamples;
+	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
 	if( antiAliasingSamples > 1 ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
 
-	if( !NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->openWindow() )
+	if( !ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->openWindow() )
 		return false;
 
 	GLenum err = glewInit();
@@ -143,11 +145,11 @@ bool sgct::Engine::initWindow()
 	}
 	sgct::MessageHandler::Instance()->print("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
 
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->init( NodeManager::Instance()->getThisNodePtr()->lockVerticalSync );
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowTitle( getBasicInfo() );
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->init( ClusterManager::Instance()->getThisNodePtr()->lockVerticalSync );
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowTitle( getBasicInfo() );
 
 	//Must wait until all nodes are running if using swap barrier
-	if( NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() )
+	if( ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() )
 	{
 		while(!mNetworkConnections->areAllNodesConnected())
 		{
@@ -178,7 +180,7 @@ void sgct::Engine::initOGL()
 
 	calculateFrustums();
 
-	switch( NodeManager::Instance()->getThisNodePtr()->stereo )
+	switch( ClusterManager::Instance()->getThisNodePtr()->stereo )
 	{
 	case ReadConfig::Active:
 		mInternalRenderFn = &Engine::setActiveStereoRenderingMode;
@@ -190,8 +192,8 @@ void sgct::Engine::initOGL()
 	}
 
 	//init swap group barrier when ready to render
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->setBarrier(true);
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->resetSwapGroupFrameNumber();
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setBarrier(true);
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->resetSwapGroupFrameNumber();
 }
 
 void sgct::Engine::clean()
@@ -199,7 +201,9 @@ void sgct::Engine::clean()
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
 	//de-init window and unbind swapgroups...
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->close();
+	SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
+	if(nPtr != NULL)
+		nPtr->getWindowPtr()->close();
 
 	//close TCP connections
 	if( mNetworkConnections != NULL )
@@ -214,18 +218,12 @@ void sgct::Engine::clean()
 		mConfig = NULL;
 	}
 
-	for( unsigned int i=0; i<3; i++)
-		if( mFrustums[i] != NULL )
-		{
-			delete mFrustums[i];
-			mFrustums[i] = NULL;
-		}
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
 	ShaderManager::Destroy();
 	SharedData::Destroy();
 	TextureManager::Destroy();
-	NodeManager::Destroy();
+	ClusterManager::Destroy();
 	MessageHandler::Destroy();
 
 	// Close window and terminate GLFW
@@ -321,11 +319,11 @@ void sgct::Engine::renderDisplayInfo()
 {
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
 	unsigned int lFrameNumber = 0;
-	NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
+	ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 	
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Node ip: %s (%s)",
-		NodeManager::Instance()->getThisNodePtr()->ip.c_str(),
+		ClusterManager::Instance()->getThisNodePtr()->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Render time: %.2f ms", getDrawTime()*1000.0);
@@ -333,13 +331,13 @@ void sgct::Engine::renderDisplayInfo()
 		SharedData::Instance()->getBufferSize(),
 		getSyncTime()*1000.0);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
-		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
-		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isBarrierActive() ? "active" : "not active",
-		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
+		ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
+		ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->isBarrierActive() ? "active" : "not active",
+		ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
 	//if stereoscopic rendering
-	if( NodeManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
+	if( ClusterManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
 		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active eye: Left");
@@ -352,18 +350,23 @@ void sgct::Engine::renderDisplayInfo()
 void sgct::Engine::setNormalRenderingMode()
 {
 	activeFrustum = Frustum::Mono;
-	glViewport (0, 0, NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution(),
-		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution());
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	glViewport(
+		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())));
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	glFrustum(mFrustums[Frustum::Mono]->getLeft(),
-		mFrustums[Frustum::Mono]->getRight(),
-        mFrustums[Frustum::Mono]->getBottom(),
-		mFrustums[Frustum::Mono]->getTop(),
-        mFrustums[Frustum::Mono]->getNear(),
-		mFrustums[Frustum::Mono]->getFar());
+	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::Mono);
+	glFrustum( tmpFrustum->getLeft(),
+		tmpFrustum->getRight(),
+        tmpFrustum->getBottom(),
+		tmpFrustum->getTop(),
+        tmpFrustum->getNear(),
+		tmpFrustum->getFar());
 
 	//translate to user pos
 	glTranslatef(-mConfig->getUserPos()->x, -mConfig->getUserPos()->y, -mConfig->getUserPos()->z);
@@ -378,18 +381,26 @@ void sgct::Engine::setNormalRenderingMode()
 
 void sgct::Engine::setActiveStereoRenderingMode()
 {
-	glViewport (0, 0, NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution(),
-		NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution());
 	activeFrustum = Frustum::StereoLeftEye;
+
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	glViewport(
+		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())));
+
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(mFrustums[Frustum::StereoLeftEye]->getLeft(),
-		mFrustums[Frustum::StereoLeftEye]->getRight(),
-        mFrustums[Frustum::StereoLeftEye]->getBottom(),
-		mFrustums[Frustum::StereoLeftEye]->getTop(),
-        mFrustums[Frustum::StereoLeftEye]->getNear(),
-		mFrustums[Frustum::StereoLeftEye]->getFar());
+	
+	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoLeftEye);
+	glFrustum( tmpFrustum->getLeft(),
+		tmpFrustum->getRight(),
+        tmpFrustum->getBottom(),
+		tmpFrustum->getTop(),
+        tmpFrustum->getNear(),
+		tmpFrustum->getFar());
 
 	//translate to user pos
 	glTranslatef(-mUser.LeftEyePos.x , -mUser.LeftEyePos.y, -mUser.LeftEyePos.z);
@@ -404,12 +415,14 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	activeFrustum = Frustum::StereoRightEye;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	glFrustum(mFrustums[Frustum::StereoRightEye]->getLeft(),
-		mFrustums[Frustum::StereoRightEye]->getRight(),
-        mFrustums[Frustum::StereoRightEye]->getBottom(),
-		mFrustums[Frustum::StereoRightEye]->getTop(),
-        mFrustums[Frustum::StereoRightEye]->getNear(),
-		mFrustums[Frustum::StereoRightEye]->getFar());
+	
+	tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoRightEye);
+	glFrustum( tmpFrustum->getLeft(),
+		tmpFrustum->getRight(),
+        tmpFrustum->getBottom(),
+		tmpFrustum->getTop(),
+        tmpFrustum->getNear(),
+		tmpFrustum->getFar());
 
 	//translate to user pos
 	glTranslatef(-mUser.RightEyePos.x , -mUser.RightEyePos.y, -mUser.RightEyePos.z);
@@ -432,31 +445,61 @@ void sgct::Engine::calculateFrustums()
 	mUser.RightEyePos.y = mConfig->getUserPos()->y;
 	mUser.RightEyePos.z = mConfig->getUserPos()->z;
 
+	for(unsigned int i=0; i<ClusterManager::Instance()->getThisNodePtr()->getNumberOfViewports(); i++)
+	{
+		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
+			Frustum::Mono,
+			mConfig->getUserPos()->x,
+			mConfig->getUserPos()->y,
+			mConfig->getUserPos()->z,
+			nearClippingPlaneDist,
+			farClippingPlaneDist);
+
+		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
+			Frustum::StereoLeftEye,
+			mUser.LeftEyePos.x,
+			mUser.LeftEyePos.y,
+			mUser.LeftEyePos.z,
+			nearClippingPlaneDist,
+			farClippingPlaneDist);
+
+		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
+			Frustum::StereoRightEye,
+			mUser.RightEyePos.x,
+			mUser.RightEyePos.y,
+			mUser.RightEyePos.z,
+			nearClippingPlaneDist,
+			farClippingPlaneDist);
+	}
+
+	/*
 	//nearFactor = near clipping plane / focus plane dist
-	float nearFactor = nearClippingPlaneDist / (NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].z - mConfig->getUserPos()->z);
+	float nearFactor = nearClippingPlaneDist / (ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].z - mConfig->getUserPos()->z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
 
 	mFrustums[Frustum::Mono] = new Frustum(
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mConfig->getUserPos()->x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mConfig->getUserPos()->x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mConfig->getUserPos()->y)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mConfig->getUserPos()->y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mConfig->getUserPos()->x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mConfig->getUserPos()->x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mConfig->getUserPos()->y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mConfig->getUserPos()->y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
 
 	mFrustums[Frustum::StereoLeftEye] = new Frustum(
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.LeftEyePos.x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.LeftEyePos.x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.LeftEyePos.y)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.LeftEyePos.y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.LeftEyePos.x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.LeftEyePos.x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.LeftEyePos.y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.LeftEyePos.y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
 
 	mFrustums[Frustum::StereoRightEye] = new Frustum(
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.RightEyePos.x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.RightEyePos.x)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.RightEyePos.y)*nearFactor,
-		(NodeManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.RightEyePos.y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].x - mUser.RightEyePos.x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].x - mUser.RightEyePos.x)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::LowerLeft ].y - mUser.RightEyePos.y)*nearFactor,
+		(ClusterManager::Instance()->getThisNodePtr()->viewPlaneCoords[ ReadConfig::UpperRight ].y - mUser.RightEyePos.y)*nearFactor,
 		nearClippingPlaneDist, farClippingPlaneDist);
+
+		*/
 }
 
 void sgct::Engine::parseArguments( int argc, char* argv[] )
@@ -482,7 +525,7 @@ void sgct::Engine::parseArguments( int argc, char* argv[] )
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
-			NodeManager::Instance()->setThisNodeId(tmpi);
+			ClusterManager::Instance()->setThisNodeId(tmpi);
 			i+=2;
 		}
 		else
@@ -549,8 +592,8 @@ void sgct::Engine::calcFPS(double timestamp)
 		tmpTime = 0.0;
 
 		//don't set if in full screen
-		if(NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getWindowMode() == GLFW_WINDOW)
-			NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowTitle( getBasicInfo() );
+		if(ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getWindowMode() == GLFW_WINDOW)
+			ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowTitle( getBasicInfo() );
 	}
 }
 
@@ -604,12 +647,12 @@ const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
-		localRunningMode == NetworkManager::NotLocal ? NodeManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
+		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "server" : "slave",
 		mStatistics.getAvgFPS());
     #else
     sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
-		localRunningMode == NetworkManager::NotLocal ? NodeManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
+		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "server" : "slave",
 		mStatistics.getAvgFPS());
     #endif

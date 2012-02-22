@@ -1,11 +1,11 @@
-/* NodeManager.h
+/* ClusterManager.h
 
 © 2012 Miroslav Andel
 
 */
 
-#ifndef _NODE_MANAGER
-#define _NODE_MANAGER
+#ifndef _CLUSTER_MANAGER
+#define _CLUSTER_MANAGER
 
 #include "SGCTNode.h"
 #include <vector>
@@ -14,21 +14,21 @@
 namespace core_sgct
 {
 
-class NodeManager
+class ClusterManager
 {
 public:
-	/*! Get the NodeManager instance */
-	static NodeManager * Instance()
+	/*! Get the ClusterManager instance */
+	static ClusterManager * Instance()
 	{
 		if( mInstance == NULL )
 		{
-			mInstance = new NodeManager();
+			mInstance = new ClusterManager();
 		}
 
 		return mInstance;
 	}
 
-	/*! Destroy the NodeManager */
+	/*! Destroy the ClusterManager */
 	static void Destroy()
 	{
 		if( mInstance != NULL )
@@ -52,15 +52,15 @@ public:
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
 
 private:
-	NodeManager(void);
-	~NodeManager(void);
+	ClusterManager(void);
+	~ClusterManager(void);
 
 	// Don't implement these, should give compile warning if used
-	NodeManager( const NodeManager & nm );
-	const NodeManager & operator=(const NodeManager & nm );
+	ClusterManager( const ClusterManager & nm );
+	const ClusterManager & operator=(const ClusterManager & nm );
 
 private:
-	static NodeManager * mInstance;
+	static ClusterManager * mInstance;
 
 	std::vector<SGCTNode> nodes;
 	int masterIndex;

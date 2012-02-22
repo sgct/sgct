@@ -4,33 +4,41 @@
 		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="true">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
-			<Size x="728" y="210" />
 			<Pos x="200" y="300" />
+			<Size x="728" y="210" />
 		</Window>
-		<Viewplane>
-			<!-- Lower left -->
-			<Pos x="-3.34533" y="-0.965" z="0.0" />
-			<!-- Upper left -->
-			<Pos x="-3.34533" y="0.965" z="0.0" />
-			<!-- Upper right -->
-			<Pos x="3.34533" y="0.965" z="0.0" />
-		</Viewplane>
+		<Viewport>
+			<Pos x="0.0" y="0.0" />
+			<Size x="1.0" y="1.0" />
+			<Viewplane>
+				<!-- Lower left -->
+				<Pos x="-3.34533" y="-0.965" z="0.0" />
+				<!-- Upper left -->
+				<Pos x="-3.34533" y="0.965" z="0.0" />
+				<!-- Upper right -->
+				<Pos x="3.34533" y="0.965" z="0.0" />
+			</Viewplane>
+		</Viewport>
 	</Node>
 	<Node ip="192.168.10.2" port="20402">
-		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="true">
+		<Window fullscreen="true" numberOfSamples="4" swapLock="false" verticalSync="true">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
-			<Size x="728" y="210" />
 			<Pos x="200" y="300" />
+			<Size x="728" y="210" />
 		</Window>
-		<Viewplane>
-			<!-- Lower left -->
-			<Pos x="-3.34533" y="-0.965" z="0.0" />
-			<!-- Upper left -->
-			<Pos x="-3.34533" y="0.965" z="0.0" />
-			<!-- Upper right -->
-			<Pos x="3.34533" y="0.965" z="0.0" />
-		</Viewplane>
+		<Viewport>
+			<Pos x="0.0" y="0.0" />
+			<Size x="1.0" y="1.0" />
+			<Viewplane>
+				<!-- Lower left -->
+				<Pos x="-3.34533" y="-0.965" z="0.0" />
+				<!-- Upper left -->
+				<Pos x="-3.34533" y="0.965" z="0.0" />
+				<!-- Upper right -->
+				<Pos x="3.34533" y="0.965" z="0.0" />
+			</Viewplane>
+		</Viewport>
 	</Node>
 	<User eyeSeparation="0.069">
 		<Pos x="0.0" y="-0.085" z="3.6" />

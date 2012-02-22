@@ -20,7 +20,6 @@ public:
 	ReadConfig( const std::string filename );
 
 	enum StereoMode { None = 0, Active, PassiveVertical, PassiveHorizontal, Checkerboard };
-	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
 	//std::string * getMasterIP() { return &masterIP; }
 	//std::string * getMasterPort() { return &masterPort; }

@@ -56,7 +56,7 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {	
-	glTranslatef( 0.0f, -0.28f, 2.0f );
+	glTranslatef( 0.0f, -0.15f, 2.5f );
 	glRotatef( static_cast<float>( time ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );	

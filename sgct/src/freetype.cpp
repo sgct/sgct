@@ -16,7 +16,7 @@ The font engine
 
 //Include our header file.
 #include "../include/sgct/freetype.h"
-#include "../include/sgct/NodeManager.h"
+#include "../include/sgct/ClusterManager.h"
 
 #define TEXT_RENDER_BUFFER_SIZE 512
 
@@ -212,14 +212,14 @@ inline void pushScreenCoordinateMatrix()
 	glLoadIdentity();
 	//gluOrtho2D(0.0,1024.0,0.0,768.0);
 	gluOrtho2D(
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getX()) * 
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getXSize()) *
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getY()) *
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()),
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getCurrentViewport()->getYSize()) *
-		static_cast<double>(core_sgct::NodeManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()));
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getX()) * 
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getXSize()) *
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getY()) *
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()),
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getYSize()) *
+		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()));
 	glPopAttrib();
 }
 

@@ -10,7 +10,7 @@ void main()
 	gl_TexCoord[0] = gl_MultiTexCoord0;
 	gl_TexCoord[1] = gl_MultiTexCoord1;
 	
-	vScale = 0.4+0.15*sin(time);
+	vScale = 0.2+0.10*sin(time);
 	float hVal = texture2D( hTex, gl_TexCoord[0].st ).x;
 	gl_Vertex.y += hVal * vScale;
 	

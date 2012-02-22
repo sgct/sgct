@@ -1,3 +1,6 @@
+SharedData::Instance()->getBufferSize() olika på master och slavar
+
+
 Testa glfwSwapInterval(0) om det blir bättre med g-sync
 
 * Skapa en klass av "struct NodeConfig". Den bör i sin tur innehålla en vector med viewports.

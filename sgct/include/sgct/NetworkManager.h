@@ -39,6 +39,7 @@ private:
 	void initAPI();
 	void getHostInfo();
 	void updateConnectionStatus();
+	void setAllNodesConnected();
 
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };

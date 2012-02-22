@@ -33,82 +33,51 @@ class SGCTNetwork
 public:
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
-	//void sync();
 	void close();
-	//bool matchHostName(const std::string name);
-	//bool matchAddress(const std::string ip);
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	void setDisconnectedFunction(std::tr1::function<void (void)> callback);
+	void setUpdateFunction(std::tr1::function<void (void)> callback);
+	void setConnectedFunction(std::tr1::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
 	bool setNoDelay(SOCKET * socketPtr);
 
 	inline int getTypeOfServer() { return mServerType; }
 	inline int getId() { return mId; }
-	//inline bool isRunning() { return mRunning; }
 	inline bool isServer() { return mServer; }
 	inline bool isConnected() { return mConnected; }
-	//inline bool isClientConnected( int index ) { return (clients[index] != NULL && clients[index]->connected) ? true : false; }
-	//inline bool areAllNodesConnected() { return mAllNodesConnected; }
 	int getSendFrame();
 	bool compareFrames();
 	void setRecvFrame(int i) { mRecvFrame[0] = i; }
 	void swapFrames();
-	//unsigned int getFeedbackCount();
-	//unsigned int getConnectedNodeCount();
-	//void setRunningStatus(bool status) { mRunning = status; }
-	//void setClientConnectionStatus(int clientIndex, bool state);
-	//void setAllNodesConnected(bool state);
-	//void terminateClient(int index);
-	//void sendStrToAllClients(const std::string str);
-	//void sendDataToAllClients(void * data, int lenght);
 	void sendData(void * data, int lenght);
 	void sendStr(std::string msg);
 	void iterateFrameCounter();
 	void checkIfBufferNeedsResizing();
 	void pushClientMessage();
 	static void setMutexState(bool lock);
-	//void iterateFeedbackCounter();
-	//void resetFeedbackCounter();
 
 	SOCKET mSocket;
 	SOCKET mListenSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::tr1::function< void(void) > mDisconnectedCallbackFn;
+	std::tr1::function< void(void) > mUpdateCallbackFn;
+	std::tr1::function< void(void) > mConnectedCallbackFn;
 
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
 	static const unsigned int syncHeaderSize = 5;
 	//ASCII device control chars = 17, 18, 19 & 20
-	enum PackageHeaders { SyncHeader = 17, SizeHeader };
+	enum PackageHeaders { SyncHeader = 17, SizeHeader, ConnectedHeader };
 	enum ServerTypes { SyncServer = 0, ExternalControl };
 
 private:
-	//void initAPI();
-
 	int mServerType;
-	//unsigned int mFeedbackCounter; //counts so that feedback is received from all nodes
-	//unsigned int mNumberOfConnectedNodes;
-	//bool mRunning;
 	bool mServer;
-	//bool mAllNodesConnected;
-	//std::string hostName;
-	//std::vector<std::string> localAddresses;
 	int mainThreadID;//, pollClientStatusThreadID;
 	bool mConnected;
 	int mSendFrame;
 	int mRecvFrame[2];
 	int mId;
 };
-
-/*class TCPData
-{
-public:
-	TCPData() { mClientIndex = -1; }
-
-	SGCTNetwork * mNetwork;
-	int mClientIndex; //-1 if message from server
-};*/
 }
 
 #endif

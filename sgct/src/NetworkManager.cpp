@@ -201,10 +201,28 @@ void core_sgct::NetworkManager::updateConnectionStatus()
 
 	mNumberOfConnectedNodes = counter;
 
-	mAllNodesConnected = (specificCounter == ClusterManager::Instance()->getNumberOfNodes()-1);
-
 	if(mNumberOfConnectedNodes == 0 && !mIsServer)
 		mIsRunning = false;
+
+	sgct::MessageHandler::Instance()->print("Number of connections: %d\n", counter);
+	
+	if(mIsServer)
+	{
+		mAllNodesConnected = (specificCounter == (ClusterManager::Instance()->getNumberOfNodes()-1));
+
+		if(mAllNodesConnected)
+			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+				if( mNetworkConnections[i]->isConnected() )
+				{
+					char tmpc = SGCTNetwork::ConnectedHeader;
+					mNetworkConnections[i]->sendData(&tmpc, 1);
+				}
+	}
+}
+
+void core_sgct::NetworkManager::setAllNodesConnected()
+{
+	mAllNodesConnected = true;
 }
 
 void core_sgct::NetworkManager::close()
@@ -251,9 +269,14 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
 
 		//bind callback
-		std::tr1::function< void(void) > callback;
-		callback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this);
-		netPtr->setDisconnectedFunction(callback);
+		std::tr1::function< void(void) > updateCallback;
+		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this);
+		netPtr->setUpdateFunction(updateCallback);
+
+		//bind callback
+		std::tr1::function< void(void) > connectedCallback;
+		connectedCallback = std::tr1::bind(&core_sgct::NetworkManager::setAllNodesConnected, this);
+		netPtr->setConnectedFunction(connectedCallback);
     }
     catch( const char * err )
     {

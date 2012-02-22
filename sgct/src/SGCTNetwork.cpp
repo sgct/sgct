@@ -20,7 +20,8 @@ core_sgct::SGCTNetwork::SGCTNetwork()
 	mSocket				= INVALID_SOCKET;
 	mListenSocket		= INVALID_SOCKET;
 	mDecoderCallbackFn	= NULL;
-	mDisconnectedCallbackFn = NULL;
+	mUpdateCallbackFn	= NULL;
+	mConnectedCallbackFn = NULL;
 	mServerType			= SyncServer;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
@@ -248,9 +249,14 @@ void core_sgct::SGCTNetwork::setDecodeFunction(std::tr1::function<void (const ch
 	mDecoderCallbackFn = callback;
 }
 
-void core_sgct::SGCTNetwork::setDisconnectedFunction(std::tr1::function<void (void)> callback)
+void core_sgct::SGCTNetwork::setUpdateFunction(std::tr1::function<void (void)> callback)
 {
-	mDisconnectedCallbackFn = callback;
+	mUpdateCallbackFn = callback;
+}
+
+void core_sgct::SGCTNetwork::setConnectedFunction(std::tr1::function<void (void)> callback)
+{
+	mConnectedCallbackFn = callback;
 }
 
 void core_sgct::SGCTNetwork::setConnectedStatus(bool state)
@@ -280,7 +286,7 @@ void GLFWCALL communicationHandler(void *arg)
 		}
 
 		nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
-		if (nPtr->mSocket == INVALID_SOCKET )//&& nPtr->setNoDelay(&(nPtr->mSocket)))
+		if (nPtr->mSocket == INVALID_SOCKET && nPtr->setNoDelay(&(nPtr->mSocket)))
 		{
 			nPtr->setConnectedStatus(false);
 			return;
@@ -291,8 +297,8 @@ void GLFWCALL communicationHandler(void *arg)
 
 	glfwLockMutex( gDecoderMutex );
 		sgct::MessageHandler::Instance()->print("Connection %d established!\n", nPtr->getId());
-		if(nPtr->mDisconnectedCallbackFn != NULL)
-			nPtr->mDisconnectedCallbackFn();
+		if(nPtr->mUpdateCallbackFn != NULL)
+			nPtr->mUpdateCallbackFn();
 	glfwUnlockMutex( gDecoderMutex );
 
 	//say hi
@@ -374,6 +380,13 @@ void GLFWCALL communicationHandler(void *arg)
 							nPtr->getId());
 					glfwUnlockMutex( gDecoderMutex );
 				}
+				else if( recvbuf[0] == core_sgct::SGCTNetwork::ConnectedHeader &&
+					nPtr->mConnectedCallbackFn != NULL)
+				{
+					glfwLockMutex( gDecoderMutex );
+						(nPtr->mConnectedCallbackFn)();
+					glfwUnlockMutex( gDecoderMutex );
+				}
 			}
 			else if(nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl)
 			{
@@ -417,8 +430,8 @@ void GLFWCALL communicationHandler(void *arg)
 	free(recvbuf);
 
 	glfwLockMutex( gDecoderMutex );
-	if(nPtr->mDisconnectedCallbackFn != NULL)
-		nPtr->mDisconnectedCallbackFn();
+	if(nPtr->mUpdateCallbackFn != NULL)
+		nPtr->mUpdateCallbackFn();
 	glfwUnlockMutex( gDecoderMutex );
 }
 

@@ -275,7 +275,7 @@ void sgct::Engine::frameSyncAndLock(int stage)
 	else //post stage
 	{
 		if( mNetworkConnections->isComputerServer() &&
-			localRunningMode == NetworkManager::NotLocal &&
+			/*localRunningMode == NetworkManager::NotLocal &&*/
 			!getWindowPtr()->isBarrierActive() )//post stage
 		{
 			while(mNetworkConnections->isRunning() && mRunning)

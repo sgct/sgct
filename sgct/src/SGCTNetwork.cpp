@@ -558,16 +558,16 @@ void core_sgct::SGCTNetwork::close()
 	if( mSocket != INVALID_SOCKET )
 	{
 		iResult = shutdown(mSocket, SD_BOTH);
-		if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+		/*if (iResult == SOCKET_ERROR)
+			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());*/
 		closesocket( mSocket );
 	}
 
 	if( mListenSocket != INVALID_SOCKET )
 	{
 		iResult = shutdown(mListenSocket, SD_BOTH);
-		if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+		/*if (iResult == SOCKET_ERROR)
+			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());*/
 		closesocket( mListenSocket );
 	}
 

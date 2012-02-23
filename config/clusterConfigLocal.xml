@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="192.168.10.1" externalControlPort="20500">
 	<Node ip="192.168.10.1" port="20401">
-		<Window fullscreen="false" numberOfSamples="0" swapLock="false" verticalSync="true">
+		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="true">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
 			<Pos x="200" y="300" />
@@ -21,7 +21,7 @@
 		</Viewport>
 	</Node>
 	<Node ip="192.168.10.2" port="20402">
-		<Window fullscreen="false" numberOfSamples="0" swapLock="false" verticalSync="true">
+		<Window fullscreen="false" numberOfSamples="4" swapLock="false" verticalSync="true">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->
 			<Pos x="200" y="300" />

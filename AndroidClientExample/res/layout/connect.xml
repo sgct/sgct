@@ -1,0 +1,148 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        >
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            >
+
+        <TextView
+                style="@style/Header"
+                android:id="@+id/headerTV"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                />
+
+        <TextView
+                android:id="@+id/connectInfoTV"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/connect_descr"
+                android:layout_marginBottom="15dp"
+                />
+
+        <TextView
+                style="@style/Bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/ip"
+                />
+
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                >
+
+            <EditText
+                    style="@style/IPPart"
+                    android:id="@+id/ip1ET"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="."
+                    />
+
+            <EditText
+                    style="@style/IPPart"
+                    android:id="@+id/ip2ET"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="."
+                    />
+
+            <EditText
+                    style="@style/IPPart"
+                    android:id="@+id/ip3ET"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    />
+
+            <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="."
+                    />
+
+            <EditText
+                    style="@style/IPPart"
+                    android:id="@+id/ip4ET"
+                    android:layout_width="fill_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    />
+
+        </LinearLayout>
+
+        <TextView
+                style="@style/Bold"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="@string/port"
+                />
+
+        <EditText
+                style="@style/Numbers"
+                android:id="@+id/portET"
+                android:layout_width="100dp"
+                android:layout_height="wrap_content"
+                android:maxLength="5"
+                android:layout_marginBottom="15dp"
+                />
+
+        <CheckBox
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:id="@+id/autoconnectCB"
+                android:text="@string/autoconnect"
+                />
+
+        <LinearLayout
+                android:orientation="horizontal"
+                android:layout_width="fill_parent"
+                android:layout_height="fill_parent"
+                >
+
+            <Button
+                    android:text="@string/connect"
+                    android:id="@+id/connectBTN"
+                    android:paddingRight="10dp"
+                    android:paddingLeft="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+            <Button
+                    android:text="@string/cancel"
+                    android:id="@+id/cancelBTN"
+                    android:paddingRight="10dp"
+                    android:paddingLeft="10dp"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    />
+
+        </LinearLayout>
+
+
+    </LinearLayout>
+
+</ScrollView>

@@ -214,7 +214,8 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected
 
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 	{
-		if( i != index && mNetworkConnections[i]->isConnected() )
+		if( i != static_cast<unsigned int>(index) &&
+            mNetworkConnections[i]->isConnected() )
 		{
 			counter++;
 			if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
@@ -227,7 +228,7 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected
 		mIsRunning = false;
 
 	sgct::MessageHandler::Instance()->print("Number of connections: %d\n", counter);
-	
+
 	if(mIsServer)
 	{
 		mAllNodesConnected = (specificCounter == (ClusterManager::Instance()->getNumberOfNodes()-1));

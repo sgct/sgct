@@ -130,9 +130,9 @@ void GLFWCALL connectionHandler(void *arg)
 		while(true)
 		{
 			if( !nPtr->isConnected() )
-			{	
+			{
 				sgct::MessageHandler::Instance()->print("Re-listening for client at connection %d... \n", nPtr->getId());
-				
+
 				if( nPtr->mCommThreadId != -1 )
 					glfwWaitThread( nPtr->mCommThreadId, GLFW_WAIT );
 				nPtr->mCommThreadId = glfwCreateThread( communicationHandler, nPtr );
@@ -141,7 +141,7 @@ void GLFWCALL connectionHandler(void *arg)
 					return;
 				}
 			}
-			
+
 			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 				glfwWaitCond( core_sgct::NetworkManager::gStartConnectionCond,
 					core_sgct::NetworkManager::gDecoderMutex,
@@ -315,7 +315,7 @@ bool core_sgct::SGCTNetwork::isConnected()
 }
 
 int core_sgct::SGCTNetwork::getTypeOfServer()
-{ 
+{
 	int tmpi;
 	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		tmpi = mServerType;
@@ -456,7 +456,7 @@ void GLFWCALL communicationHandler(void *arg)
 					(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
 						iResult-core_sgct::SGCTNetwork::syncHeaderSize,
 						nPtr->getId());
-					
+
 					glfwSignalCond( core_sgct::NetworkManager::gCond );
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::ConnectedHeader &&
@@ -553,21 +553,16 @@ void core_sgct::SGCTNetwork::close()
 
 	if( mMainThreadId != -1 )
 		glfwDestroyThread( mMainThreadId );
-	
-	int iResult;
+
 	if( mSocket != INVALID_SOCKET )
 	{
-		iResult = shutdown(mSocket, SD_BOTH);
-		/*if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());*/
+		shutdown(mSocket, SD_BOTH);
 		closesocket( mSocket );
 	}
 
 	if( mListenSocket != INVALID_SOCKET )
 	{
-		iResult = shutdown(mListenSocket, SD_BOTH);
-		/*if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());*/
+		shutdown(mListenSocket, SD_BOTH);
 		closesocket( mListenSocket );
 	}
 

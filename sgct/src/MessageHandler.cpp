@@ -1,5 +1,5 @@
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTNetwork.h"
+#include "../include/sgct/NetworkManager.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <stdarg.h>
@@ -49,10 +49,12 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedLenght,
 {
 	if(receivedLenght > 0)
 	{
+		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedLenght);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, &mRecBuffer[0]);
+		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	}
 }
 
@@ -80,17 +82,21 @@ void sgct::MessageHandler::print(const char *fmt, ...)
     fprintf(stderr, mParseBuffer);
 
     //if client send to server
-    if(!mLocal)
+    if(!mLocal && core_sgct::NetworkManager::gDecoderMutex != NULL)
     {
-        if(mBuffer.empty())
+        glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		if(mBuffer.empty())
 			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
+		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
     }
 }
 
 void sgct::MessageHandler::clearBuffer()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	mBuffer.clear();
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 char * sgct::MessageHandler::getMessage()
@@ -102,7 +108,8 @@ char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
 {
     if( mBuffer.size() > indexOfLastChar)
     {
-        mSwapBuffer1.clear();
+        glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		mSwapBuffer1.clear();
 		mSwapBuffer2.clear();
 		
 		mSwapBuffer1.insert(mSwapBuffer1.begin(), &mBuffer[0], &mBuffer[0]+indexOfLastChar);
@@ -112,7 +119,7 @@ char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
 			mBuffer.end());
 		
 		mBuffer.assign(mSwapBuffer2.begin(), mSwapBuffer2.end());
-		
+		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		return &mSwapBuffer1[0];
     }
     else

@@ -1,5 +1,5 @@
 #include "../include/sgct/SharedData.h"
-#include "../include/sgct/SGCTNetwork.h"
+#include "../include/sgct/NetworkManager.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,64 +43,83 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 {
 	if(receivedLenght > 0)
 	{
+		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		
 		//re-allocate buffer if needed
-		if( receivedLenght > static_cast<int>(dataBlock.capacity()) )
-			dataBlock.reserve(receivedLenght);
-		dataBlock.assign(receivedData, receivedData+receivedLenght);
+		if( (receivedLenght + core_sgct::SGCTNetwork::syncHeaderSize) > static_cast<int>(dataBlock.capacity()) )
+			dataBlock.reserve(receivedLenght + core_sgct::SGCTNetwork::syncHeaderSize);
+		dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
+		dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedLenght);
 
 		//reset
-		pos = 0;
+		pos = core_sgct::SGCTNetwork::syncHeaderSize;
 
 		if( mDecodeFn != NULL )
 			mDecodeFn();
+
+		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	}
 }
 
 void SharedData::encode()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	dataBlock.clear();
 
 	//reserve header space
+
 	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeFloat(float f)
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	unsigned char *p = (unsigned char *)&f;
 	dataBlock.insert( dataBlock.end(), p, p+4);
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeDouble(double d)
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	unsigned char *p = (unsigned char *)&d;
 	dataBlock.insert( dataBlock.end(), p, p+8);
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeInt32(int i)
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	unsigned char *p = (unsigned char *)&i;
 	dataBlock.insert( dataBlock.end(), p, p+4);
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeUChar(unsigned char c)
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	unsigned char *p = &c;
 	dataBlock.push_back(*p);
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeBool(bool b)
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	if( b )
 		dataBlock.push_back(1);
 	else
 		dataBlock.push_back(0);
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 float SharedData::readFloat()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	union
 	{
 		float f;
@@ -112,12 +131,14 @@ float SharedData::readFloat()
 	cf.c[2] = dataBlock[pos+2];
 	cf.c[3] = dataBlock[pos+3];
 	pos += 4;
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 
 	return cf.f;
 }
 
 double SharedData::readDouble()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	union
 	{
 		double d;
@@ -133,12 +154,14 @@ double SharedData::readDouble()
 	cf.c[6] = dataBlock[pos+6];
 	cf.c[7] = dataBlock[pos+7];
 	pos += 8;
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 
 	return cf.d;
 }
 
 int SharedData::readInt32()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	union
 	{
 		int i;
@@ -150,24 +173,29 @@ int SharedData::readInt32()
 	ci.c[2] = dataBlock[pos+2];
 	ci.c[3] = dataBlock[pos+3];
 	pos += 4;
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 
 	return ci.i;
 }
 
 unsigned char SharedData::readUChar()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	unsigned char c;
 	c = dataBlock[pos];
 	pos += 1;
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 
 	return c;
 }
 
 bool SharedData::readBool()
 {
+	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	bool b;
 	b = dataBlock[pos] == 1 ? true : false;
 	pos += 1;
+	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 
 	return b;
 }

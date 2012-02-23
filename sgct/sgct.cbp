@@ -58,6 +58,7 @@
 			<Add directory="..\deps\mingw\lib" />
 		</Linker>
 		<Unit filename="include\sgct.h" />
+		<Unit filename="include\sgct\ClusterManager.h" />
 		<Unit filename="include\sgct\Engine.h" />
 		<Unit filename="include\sgct\Font.h" />
 		<Unit filename="include\sgct\FontManager.h" />
@@ -65,7 +66,6 @@
 		<Unit filename="include\sgct\Image.h" />
 		<Unit filename="include\sgct\MessageHandler.h" />
 		<Unit filename="include\sgct\NetworkManager.h" />
-		<Unit filename="include\sgct\NodeManager.h" />
 		<Unit filename="include\sgct\Point3.h" />
 		<Unit filename="include\sgct\ReadConfig.h" />
 		<Unit filename="include\sgct\SGCTNetwork.h" />
@@ -80,13 +80,13 @@
 		<Unit filename="include\sgct\User.h" />
 		<Unit filename="include\sgct\Viewport.h" />
 		<Unit filename="include\sgct\freetype.h" />
+		<Unit filename="src\ClusterManager.cpp" />
 		<Unit filename="src\Engine.cpp" />
 		<Unit filename="src\Font.cpp" />
 		<Unit filename="src\FontManager.cpp" />
 		<Unit filename="src\Image.cpp" />
 		<Unit filename="src\MessageHandler.cpp" />
 		<Unit filename="src\NetworkManager.cpp" />
-		<Unit filename="src\NodeManager.cpp" />
 		<Unit filename="src\ReadConfig.cpp" />
 		<Unit filename="src\SGCTNetwork.cpp" />
 		<Unit filename="src\SGCTNode.cpp" />
@@ -97,6 +97,7 @@
 		<Unit filename="src\SharedData.cpp" />
 		<Unit filename="src\Statistics.cpp" />
 		<Unit filename="src\TextureManager.cpp" />
+		<Unit filename="src\Viewport.cpp" />
 		<Unit filename="src\freetype.cpp" />
 		<Extensions>
 			<code_completion />

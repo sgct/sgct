@@ -6,8 +6,20 @@
 #include <ws2tcpip.h>
 #include <GL/glfw.h>
 
+GLFWmutex core_sgct::NetworkManager::gDecoderMutex = NULL;
+GLFWcond core_sgct::NetworkManager::gCond = NULL;
+GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
+
 core_sgct::NetworkManager::NetworkManager(int mode)
 {
+	gDecoderMutex = glfwCreateMutex();
+	gCond = glfwCreateCond();
+	gStartConnectionCond = glfwCreateCond();
+	if(gDecoderMutex == NULL ||
+		gCond == NULL ||
+		gStartConnectionCond == NULL)
+		throw "Failed to create thread objects!";
+
 	mNumberOfConnectedNodes = 0;
 	mAllNodesConnected = false;
 	mIsExternalControlPresent = false;
@@ -22,7 +34,7 @@ core_sgct::NetworkManager::NetworkManager(int mode)
 	}
 	catch(const char * err)
 	{
-		sgct::MessageHandler::Instance()->print("Initiating network API failed! Error: '%s'\n", err);
+		throw err;
 	}
 
 	sgct::MessageHandler::Instance()->print("Getting host info...\n");
@@ -32,7 +44,7 @@ core_sgct::NetworkManager::NetworkManager(int mode)
 	}
 	catch(const char * err)
 	{
-		sgct::MessageHandler::Instance()->print("Getting host info failed! Error: '%s'\n", err);
+		throw err;
 	}
 
 	if(mMode == NotLocal)
@@ -142,17 +154,19 @@ void core_sgct::NetworkManager::sync()
 			//iterate counter
 			mNetworkConnections[i]->iterateFrameCounter();
 
-			//set bytes in header
-			int currentFrame = mNetworkConnections[i]->getSendFrame();
-			unsigned char *p = (unsigned char *)&currentFrame;
-			sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
-			sgct::SharedData::Instance()->getDataBlock()[1] = p[0];
-			sgct::SharedData::Instance()->getDataBlock()[2] = p[1];
-			sgct::SharedData::Instance()->getDataBlock()[3] = p[2];
-			sgct::SharedData::Instance()->getDataBlock()[4] = p[3];
+			glfwLockMutex( gDecoderMutex );
+				//set bytes in header
+				int currentFrame = mNetworkConnections[i]->getSendFrame();
+				unsigned char *p = (unsigned char *)&currentFrame;
+				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
+				sgct::SharedData::Instance()->getDataBlock()[1] = p[0];
+				sgct::SharedData::Instance()->getDataBlock()[2] = p[1];
+				sgct::SharedData::Instance()->getDataBlock()[3] = p[2];
+				sgct::SharedData::Instance()->getDataBlock()[4] = p[3];
 
-			//send
-			mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+				//send
+				mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+			glfwUnlockMutex( gDecoderMutex );
 		}
 		//Client
 		else if( mNetworkConnections[i]->isConnected() &&
@@ -186,19 +200,27 @@ void core_sgct::NetworkManager::swapData()
 		mNetworkConnections[i]->swapFrames();
 }
 
-void core_sgct::NetworkManager::updateConnectionStatus()
+void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected)
 {
 	unsigned int counter = 0;
 	unsigned int specificCounter = 0;
 
-	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-	if( mNetworkConnections[i]->isConnected() )
+	if( connected )
 	{
 		counter++;
-		if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+		if(mNetworkConnections[index]->getTypeOfServer() == SGCTNetwork::SyncServer)
 			specificCounter++;
 	}
 
+	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+	{
+		if( i != index && mNetworkConnections[i]->isConnected() )
+		{
+			counter++;
+			if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+				specificCounter++;
+		}
+	}
 	mNumberOfConnectedNodes = counter;
 
 	if(mNumberOfConnectedNodes == 0 && !mIsServer)
@@ -217,6 +239,12 @@ void core_sgct::NetworkManager::updateConnectionStatus()
 					char tmpc = SGCTNetwork::ConnectedHeader;
 					mNetworkConnections[i]->sendData(&tmpc, 1);
 				}
+	}
+
+	//wake up the connection handler thread
+	if( mNetworkConnections[index]->isServer() )
+	{
+		glfwSignalCond( gStartConnectionCond );
 	}
 }
 
@@ -239,6 +267,22 @@ void core_sgct::NetworkManager::close()
 	}
 
 	mNetworkConnections.clear();
+
+	if( gCond != NULL )
+	{
+		glfwDestroyCond( gCond );
+		gCond = NULL;
+	}
+	if( gStartConnectionCond != NULL )
+	{
+		glfwDestroyCond( gStartConnectionCond );
+		gStartConnectionCond = NULL;
+	}
+	if( gDecoderMutex != NULL )
+	{
+		glfwDestroyMutex( gDecoderMutex );
+		gDecoderMutex = NULL;
+	}
 
 	WSACleanup();
 	sgct::MessageHandler::Instance()->print("Network API closed!\n");
@@ -269,8 +313,11 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
 
 		//bind callback
-		std::tr1::function< void(void) > updateCallback;
-		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this);
+		std::tr1::function< void(int,bool) > updateCallback;
+		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus,
+			this,
+			std::tr1::placeholders::_1,
+			std::tr1::placeholders::_2);
 		netPtr->setUpdateFunction(updateCallback);
 
 		//bind callback

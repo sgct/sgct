@@ -35,32 +35,32 @@ public:
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
 	void close();
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	void setUpdateFunction(std::tr1::function<void (void)> callback);
+	void setUpdateFunction(std::tr1::function<void (int,bool)> callback);
 	void setConnectedFunction(std::tr1::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
 	bool setNoDelay(SOCKET * socketPtr);
 
-	inline int getTypeOfServer() { return mServerType; }
-	inline int getId() { return mId; }
-	inline bool isServer() { return mServer; }
-	inline bool isConnected() { return mConnected; }
+	int getTypeOfServer();
+	int getId();
+	bool isServer();
+	bool isConnected();
 	int getSendFrame();
 	bool compareFrames();
-	void setRecvFrame(int i) { mRecvFrame[0] = i; }
+	void setRecvFrame(int i);
 	void swapFrames();
 	void sendData(void * data, int lenght);
 	void sendStr(std::string msg);
 	void iterateFrameCounter();
 	void checkIfBufferNeedsResizing();
 	void pushClientMessage();
-	static void setMutexState(bool lock);
 
 	SOCKET mSocket;
 	SOCKET mListenSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::tr1::function< void(void) > mUpdateCallbackFn;
+	std::tr1::function< void(int,bool) > mUpdateCallbackFn;
 	std::tr1::function< void(void) > mConnectedCallbackFn;
+	int mCommThreadId;
 
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
@@ -72,7 +72,7 @@ public:
 private:
 	int mServerType;
 	bool mServer;
-	int mainThreadID;//, pollClientStatusThreadID;
+	int mMainThreadId;
 	bool mConnected;
 	int mSendFrame;
 	int mRecvFrame[2];

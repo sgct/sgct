@@ -86,7 +86,15 @@ bool sgct::Engine::init()
 
 bool sgct::Engine::initNetwork()
 {
-	mNetworkConnections = new NetworkManager(localRunningMode);
+	try
+	{
+		mNetworkConnections = new NetworkManager(localRunningMode);
+	}
+	catch(const char * err)
+	{
+		sgct::MessageHandler::Instance()->print("Initiating network connections failed! Error: '%s'\n", err);
+		return false;
+	}
 
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
@@ -145,15 +153,23 @@ bool sgct::Engine::initWindow()
 	//Must wait until all nodes are running if using swap barrier
 	if( getWindowPtr()->isUsingSwapGroups() )
 	{
-		while(!mNetworkConnections->areAllNodesConnected() &&
-			mNetworkConnections->isRunning() &&
+		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
+		glfwSwapBuffers();
+		//render just black....
+		while(mNetworkConnections->isRunning() &&
 			!glfwGetKey( GLFW_KEY_ESC ) &&
 			glfwGetWindowParam( GLFW_OPENED ) &&
 			!mTerminate)
 		{
-			sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
+			if(mNetworkConnections->areAllNodesConnected())
+				break;
+			
+			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+				glfwWaitCond( core_sgct::NetworkManager::gCond,
+					core_sgct::NetworkManager::gDecoderMutex,
+					1.0 );
+			glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 			// Swap front and back rendering buffers
-			glfwSleep(0.1);
 			glfwSwapBuffers();
 		}
 	}
@@ -215,13 +231,11 @@ void sgct::Engine::clean()
 		delete mNetworkConnections;
 		mNetworkConnections = NULL;
 	}
-
 	if( mConfig != NULL )
 	{
 		delete mConfig;
 		mConfig = NULL;
 	}
-
 	// Destroy explicitly to avoid memory leak messages
 	FontManager::Destroy();
 	ShaderManager::Destroy();
@@ -237,31 +251,49 @@ void sgct::Engine::clean()
 void sgct::Engine::frameSyncAndLock(int stage)
 {
 	double t0 = glfwGetTime();
-	
+	static double syncTime = 0.0;
+
 	if( stage == PreStage )
 	{
 		mNetworkConnections->sync();
-
+		
 		if( !mNetworkConnections->isComputerServer() ) //not server
-			while(mNetworkConnections->isRunning() && mRunning && (glfwGetTime()-t0) < 0.1)
+			while(mNetworkConnections->isRunning() && mRunning)
 			{
 				if( mNetworkConnections->isSyncComplete() )
-					break;
+						break;
+
+				glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					glfwWaitCond( core_sgct::NetworkManager::gCond,
+						core_sgct::NetworkManager::gDecoderMutex,
+						1.0 );
+				glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 			}
 
-		mStatistics.setSyncTime(glfwGetTime() - t0);
+		syncTime = glfwGetTime() - t0;
 	}
-	else if( mNetworkConnections->isComputerServer() &&
-		localRunningMode == NetworkManager::NotLocal &&
-		!getWindowPtr()->isBarrierActive() )//post stage
+	else //post stage
 	{
-		while(mNetworkConnections->isRunning() && mRunning && (glfwGetTime()-t0) < 0.1)
+		if( mNetworkConnections->isComputerServer() &&
+			localRunningMode == NetworkManager::NotLocal &&
+			!getWindowPtr()->isBarrierActive() )//post stage
 		{
-			if( mNetworkConnections->isSyncComplete() )
-					break;
+			while(mNetworkConnections->isRunning() && mRunning)
+			{
+				if( mNetworkConnections->isSyncComplete() )
+						break;
+
+				glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					glfwWaitCond( core_sgct::NetworkManager::gCond,
+						core_sgct::NetworkManager::gDecoderMutex,
+						1.0 );
+				glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+			}
+
+			syncTime += glfwGetTime() - t0;
 		}
 
-		mStatistics.addSyncTime(glfwGetTime() - t0);
+		mStatistics.setSyncTime(syncTime);
 	}
 }
 
@@ -276,9 +308,7 @@ void sgct::Engine::render()
 
 		if( mNetworkConnections->isComputerServer() )
 		{
-			SGCTNetwork::setMutexState(true);
-				sgct::SharedData::Instance()->encode();
-			SGCTNetwork::setMutexState(false);
+			sgct::SharedData::Instance()->encode();
 		}
 		else
 		{
@@ -305,12 +335,13 @@ void sgct::Engine::render()
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
 
-		frameSyncAndLock(PostStage);
-
 		if( showGraph )
 			mStatistics.draw();
 		if( showInfo )
 			renderDisplayInfo();
+
+		//wait for nodes render before swapping
+		frameSyncAndLock(PostStage);
 
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();

@@ -38,11 +38,14 @@ private:
 	bool addConnection(const std::string port, const std::string ip, int serverType = SGCTNetwork::SyncServer);
 	void initAPI();
 	void getHostInfo();
-	void updateConnectionStatus();
+	void updateConnectionStatus(int index, bool connected);
 	void setAllNodesConnected();
 
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
+	static GLFWmutex gDecoderMutex;
+	static GLFWcond gCond;
+	static GLFWcond gStartConnectionCond;
 
 private:
 	std::vector<SGCTNetwork*> mNetworkConnections;

@@ -1,4 +1,5 @@
 SharedData::Instance()->getBufferSize() olika på master och slavar
+Skydda shared data med mutex...
 
 
 Testa glfwSwapInterval(0) om det blir bättre med g-sync

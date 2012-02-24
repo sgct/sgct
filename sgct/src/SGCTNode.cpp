@@ -2,7 +2,8 @@
 
 core_sgct::SGCTNode::SGCTNode()
 {
-	mCurrentViewportIndex = 0;  
+	mCurrentViewportIndex = 0;
+	numberOfSamples = 0;
 
 	//init optional parameters
 	lockVerticalSync = true;				

@@ -53,7 +53,7 @@ public:
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
 	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
-	inline bool isSyncServer() { return mNetworkConnections->isComputerServer(); }
+	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
 
 private:
@@ -99,8 +99,6 @@ private:
 	int localRunningMode;
 	int activeFrustum;
 
-	//bool isServer;
-	//bool runningLocal; //possible to run a cluster setup for testing on a single computer
 	bool showInfo;
 	bool showGraph;
 	bool showWireframe;

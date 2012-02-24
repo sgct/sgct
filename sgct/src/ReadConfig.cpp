@@ -56,9 +56,9 @@ void core_sgct::ReadConfig::readAndParseXML()
 	std::string tmpStr( XMLroot->Attribute( "masterAddress" ) );
 	ClusterManager::Instance()->setMasterIp( tmpStr );
 	
-	tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
-	if( !tmpStr.empty() )
+	if( XMLroot->Attribute( "externalControlPort" ) != NULL )
 	{
+		tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
 	}
@@ -83,8 +83,13 @@ void core_sgct::ReadConfig::readAndParseXML()
 				if( strcmp("Window", val[1]) == 0 )
 				{
 					tmpNode.getWindowPtr()->setWindowMode(strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
-					element[1]->Attribute("numberOfSamples", &tmpNode.numberOfSamples );
-					tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+					
+					int tmpSamples = 0;
+					if( element[1]->Attribute("numberOfSamples", &tmpSamples ) != NULL )
+						tmpNode.numberOfSamples = tmpSamples;
+					
+					if( element[1]->Attribute("swapLock") != NULL )
+						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 					
 					if( element[1]->Attribute("verticalSync") != NULL )
 						tmpNode.lockVerticalSync =

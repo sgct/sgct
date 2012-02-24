@@ -208,8 +208,8 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
-	if( !FontManager::Instance()->AddFont( "Verdana", "verdana.ttf" ) )
-		FontManager::Instance()->GetFont( "Verdana", 14 );
+	if( !FontManager::Instance()->AddFont( "Verdana", "verdanab.ttf" ) )
+		FontManager::Instance()->GetFont( "Verdana", 12 );
 
 	//init swap group barrier when ready to render
 	getWindowPtr()->setBarrier(true);
@@ -361,19 +361,19 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 	
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 120, "Node ip: %s (%s)",
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
 		ClusterManager::Instance()->getThisNodePtr()->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 60, "Sync time [%d]: %.2f ms", 
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms", 
 		SharedData::Instance()->getDataSize(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
@@ -383,9 +383,9 @@ void sgct::Engine::renderDisplayInfo()
 	if( ClusterManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active eye: Left");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 14 ), 100, 140, "Active eye:        Right");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:        Right");
 		glDrawBuffer(GL_BACK);
 	}
 	glPopAttrib();
@@ -534,6 +534,11 @@ void sgct::Engine::parseArguments( int argc, char* argv[] )
 			localRunningMode = NetworkManager::LocalClient;
 			i++;
 		}
+		else if( strcmp(argv[i],"--slave") == 0 )
+		{
+			localRunningMode = NetworkManager::LocalClient;
+			i++;
+		}
 		else if( strcmp(argv[i],"-local") == 0 && argc > (i+1) )
 		{
 			localRunningMode = NetworkManager::LocalServer;
@@ -663,12 +668,12 @@ const char * sgct::Engine::getBasicInfo()
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
-		mNetworkConnections->isComputerServer() ? "server" : "slave",
+		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		mStatistics.getAvgFPS());
     #else
     sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
-		mNetworkConnections->isComputerServer() ? "server" : "slave",
+		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		mStatistics.getAvgFPS());
     #endif
 

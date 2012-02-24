@@ -87,7 +87,7 @@ void myDrawFun()
 
 void myPreDrawFun()
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		time = glfwGetTime();
 	}
@@ -203,7 +203,7 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 
 void keyCallback(int key, int action)
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		switch( key )
 		{

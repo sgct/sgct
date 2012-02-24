@@ -380,6 +380,9 @@ void core_sgct::NetworkManager::getHostInfo()
         memcpy(&addr, phe->h_addr_list[i], sizeof(struct in_addr));
 		localAddresses.push_back( inet_ntoa(addr) );
     }
+
+	//add the loop-back
+	localAddresses.push_back("127.0.0.1");
 }
 
 bool core_sgct::NetworkManager::matchHostName(const std::string name)

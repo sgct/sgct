@@ -8,6 +8,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderExample", "shaderExam
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct_template", "sgct_template\sgct_template.vcxproj", "{13FA335E-C595-49FD-8B09-B2AD0A80F102}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1", "example1\example1.vcxproj", "{8303EDAB-3F90-4302-81FB-C5F58923E993}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -22,6 +32,14 @@ Global
 		{DE236993-0678-4638-8180-39DE3D8B74C7}.Debug|Win32.Build.0 = Debug|Win32
 		{DE236993-0678-4638-8180-39DE3D8B74C7}.Release|Win32.ActiveCfg = Release|Win32
 		{DE236993-0678-4638-8180-39DE3D8B74C7}.Release|Win32.Build.0 = Release|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Debug|Win32.Build.0 = Debug|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Release|Win32.ActiveCfg = Release|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Release|Win32.Build.0 = Release|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.Build.0 = Debug|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.ActiveCfg = Release|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

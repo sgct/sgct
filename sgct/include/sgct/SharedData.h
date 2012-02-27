@@ -49,8 +49,8 @@ public:
 	unsigned char	readUChar();
 	bool			readBool();
 
-	void setEncodeFunction(void(*fnPtr)(void));
-	void setDecodeFunction(void(*fnPtr)(void));
+	void setEncodeFunction( void(*fnPtr)(void) );
+	void setDecodeFunction( void(*fnPtr)(void) );
 
 	void encode();
 	void decode(const char * receivedData, int receivedLenght, int clientIndex);

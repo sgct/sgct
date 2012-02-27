@@ -36,14 +36,14 @@ public:
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
 
-	void setDrawFunction(void(*fnPtr)(void));
-	void setPreDrawFunction(void(*fnPtr)(void));
-	void setPostDrawFunction(void(*fnPtr)(void));
-	void setInitOGLFunction(void(*fnPtr)(void));
-	void setClearBufferFunction(void(*fnPtr)(void));
+	void setInitOGLFunction( void(*fnPtr)(void) );
+	void setPreDrawFunction( void(*fnPtr)(void));
+	void setClearBufferFunction( void(*fnPtr)(void) );
+	void setDrawFunction( void(*fnPtr)(void) );
+	void setPostDrawFunction( void(*fnPtr)(void) );
 
 	//external control network functions
-	void setExternalControlCallback(void(*fnPtr)(const char *, int, int));
+	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
 	void sendMessageToExternalControl(void * data, int lenght);
 	void sendMessageToExternalControl(const std::string msg);
 	void setExternalControlBufferSize(unsigned int newSize);

@@ -11,15 +11,16 @@ double time = 0.0;
 
 int main( int argc, char* argv[] )
 {
+	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 	
-	//Bind your draw function to the render loop
+	// Bind your functions
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 	
-
+	// Init the engine
 	if( !gEngine->init() )
 	{
 		delete gEngine;
@@ -29,7 +30,7 @@ int main( int argc, char* argv[] )
 	// Main loop
 	gEngine->render();
 
-	// Clean up
+	// Clean up (de-allocate)
 	delete gEngine;
 
 	// Exit program
@@ -54,6 +55,16 @@ void myDrawFun()
 	glEnd();
 }
 
+void myPreDrawFun()
+{
+	//set the time only on the master
+	if( gEngine->isMaster() )
+	{
+		//get the time in seconds
+		time = glfwGetTime();
+	}
+}
+
 void myEncodeFun()
 {
 	sgct::SharedData::Instance()->writeDouble( time );
@@ -62,12 +73,4 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	time = sgct::SharedData::Instance()->readDouble();
-}
-
-void myPreDrawFun()
-{
-	if( gEngine->isMaster() )
-	{
-		time = glfwGetTime();
-	}
 }

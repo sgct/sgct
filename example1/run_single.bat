@@ -1,2 +1,2 @@
-example1.exe -config "..\config\single.xml"
+example1.exe -config "single.xml"
 pause

@@ -2,8 +2,6 @@
 
 sgct::Engine * gEngine;
 
-sgct::
-
 void myDrawFun();
 void myPreDrawFun();
 void myEncodeFun();

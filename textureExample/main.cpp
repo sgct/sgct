@@ -62,7 +62,7 @@ void myDrawFun()
 
 void myPreDrawFun()
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		time = glfwGetTime();
 	}

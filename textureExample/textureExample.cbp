@@ -20,6 +20,7 @@
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters='-config &quot;single.xml&quot;' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
@@ -32,9 +33,10 @@
 			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add directory="..\sgct\include" />
-			<Add directory="..\deps\mingw\include" />
 		</Compiler>
 		<Linker>
+			<Add option="-static-libgcc" />
+			<Add option="-static-libstdc++" />
 			<Add library="sgct32" />
 			<Add library="opengl32" />
 			<Add library="glu32" />

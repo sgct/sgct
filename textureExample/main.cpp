@@ -45,7 +45,8 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glRotatef(static_cast<float>(time)*10.0f, 0.0f, 1.0f, 0.0f);
+	float speed = 50.0f;
+	glRotatef(static_cast<float>( time ) * speed, 0.0f, 1.0f, 0.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
@@ -70,12 +71,6 @@ void myPreDrawFun()
 
 void myInitOGLFun()
 {
-	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_NORMALIZE);
-	glDisable(GL_LIGHTING);
-	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);
-
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "mug", "mug.png", true);
 }

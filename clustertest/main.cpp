@@ -134,7 +134,7 @@ void myDrawFun()
 
 void myPreDrawFun()
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		dt = gEngine->getDt();
 		time = glfwGetTime();
@@ -151,7 +151,7 @@ void myPreDrawFun()
 
 void myPostDrawFun()
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		resetCounter = false;
 	}
@@ -237,7 +237,7 @@ void drawGrid(float size, int steps)
 
 void keyCallback(int key, int action)
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		switch( key )
 		{
@@ -271,7 +271,7 @@ void keyCallback(int key, int action)
 
 void externalControlCallback(const char * receivedChars, int size, int clientId)
 {
-	if( gEngine->isSyncServer() )
+	if( gEngine->isMaster() )
 	{
 		if(strcmp(receivedChars, "info") == 0)
 			showFPS = !showFPS;

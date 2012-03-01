@@ -5,7 +5,7 @@
 #include "../include/sgct/Engine.h"
 #include <GL/glfw.h>
 
-#ifdef __WINDOWS__ //WinSock
+#ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #include <sys/types.h>
@@ -295,7 +295,7 @@ void core_sgct::NetworkManager::close()
 		gDecoderMutex = NULL;
 	}
 
-#ifdef __WINDOWS__     
+#ifdef __WIN32__     
     WSACleanup();
 #else
     //No cleanup needed
@@ -353,7 +353,7 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 void core_sgct::NetworkManager::initAPI()
 {
 
-#ifdef __WINDOWS__
+#ifdef __WIN32__
 	WSADATA wsaData;
 	WORD version;
 	int error;
@@ -382,7 +382,7 @@ void core_sgct::NetworkManager::getHostInfo()
 	char tmpStr[128];
     if (gethostname(tmpStr, sizeof(tmpStr)) == SOCKET_ERROR)
 	{
-#ifdef __WINDOWS__     
+#ifdef __WIN32__     
         WSACleanup();
 #else
         //No cleanup needed
@@ -394,7 +394,7 @@ void core_sgct::NetworkManager::getHostInfo()
 	struct hostent *phe = gethostbyname(tmpStr);
     if (phe == 0)
 	{
-#ifdef __WINDOWS__     
+#ifdef __WIN32__     
         WSACleanup();
 #else
         //No cleanup needed

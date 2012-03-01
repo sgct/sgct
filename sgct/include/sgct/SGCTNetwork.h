@@ -10,7 +10,7 @@
 
 #ifndef _SGCT_NETWORK
 #define _SGCT_NETWORK
-#if WIN32
+#if __WIN32__
 #include <windows.h>
 #include <winsock2.h>
 #else //Use BSD sockets

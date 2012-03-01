@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __WIN32__ //WinSock
+#ifdef __WIN32__ //WinSock 
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #include <sys/types.h>

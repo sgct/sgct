@@ -95,10 +95,10 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 {
 	if( mUseSwapGroups && state != mBarrier)
 	{
-#ifdef __WIN32__
+#ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
-#else
-		mBarrier = glXBindSwapBarrierNV(0, 1, state ? 1 : 0) ? 1 : 0;
+#elif //Apple and Linux uses glext.h
+		mBarrier = glxBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #endif
 	}
 }
@@ -191,7 +191,7 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
     #ifdef __WIN32__ //Windows uses wglew.h
 		wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
-		glXJoinSwapGroupNV(0, hDC, frameNumber);
+        gxlJoinSwapGroupNV(hDC, &frameNumber);
     #endif
 	}
 }

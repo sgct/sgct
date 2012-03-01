@@ -1,7 +1,7 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 
 #include <GL/glew.h>
-#if WIN32
+#if __WIN32__
 #include <GL/wglew.h>
 #else
 #include <GL/glext.h>

@@ -1,15 +1,16 @@
 /* freetype.cpp
 The font engine
 
-© 2005 freetype(TM), Miroslav Andel
+ï¿½ 2005 freetype(TM), Miroslav Andel
 
 */
 
-#include <windows.h>
+
 #if defined(__APPLE__)
 #  include <OpenGL/gl.h>
 #  include <OpenGL/glu.h>
 #else
+#include <windows.h>
 #  include <GL/gl.h>
 #  include <GL/glu.h>
 #endif

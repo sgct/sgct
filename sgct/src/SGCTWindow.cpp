@@ -1,5 +1,9 @@
 #include <GL/glew.h>
+#if WIN32
 #include <GL/wglew.h>
+#else
+#include <GL/glext.h>
+#endif
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
 #include "../include/sgct/MessageHandler.h"

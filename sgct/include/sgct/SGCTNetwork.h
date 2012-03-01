@@ -1,6 +1,6 @@
 /* SGCTNetwork.h
 
-© 2012 Miroslav Andel
+ï¿½ 2012 Miroslav Andel
 
 */
 
@@ -10,9 +10,17 @@
 
 #ifndef _SGCT_NETWORK
 #define _SGCT_NETWORK
-
+#if WIN32
 #include <windows.h>
 #include <winsock2.h>
+#else //Use BSD sockets
+#include <sys/types.h>
+#include <sys/socket.h>
+#include <netinet/in.h>
+#include <arpa/inet.h>
+#include <netdb.h>
+#define SOCKET unsigned int*
+#endif
 #include <string>
 #include <vector>
 #include <GL/glfw.h>

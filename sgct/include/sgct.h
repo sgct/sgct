@@ -28,7 +28,11 @@
 //
 //#else
     #include <GL/glew.h>
-    #include <GL/wglew.h>
+#if WIN32
+#include <GL/wglew.h>
+#else
+#include <GL/glext.h>
+#endif
     #include <GL/glfw.h>
 //#endif
 #include "sgct/Engine.h"

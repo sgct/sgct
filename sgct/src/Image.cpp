@@ -1,7 +1,9 @@
 #include <stdio.h>
 #include <fstream>
 #include <png.h>
+#if WIN32
 #include <pngpriv.h>
+#endif
 
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
@@ -146,10 +148,11 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	}
 
 	data = pb = (unsigned char*)malloc( sizeof(unsigned char)*( channels * size_x * size_y ) );
-
-	for( r = (int)info_ptr->height - 1 ; r >= 0 ; r-- )
+    png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
-		png_bytep row = info_ptr->row_pointers[r];
+		//png_bytep row = info_ptr->row_pointers[r];
+        png_bytep row = row_pointers[r];
 		int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )

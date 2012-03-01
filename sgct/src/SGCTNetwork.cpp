@@ -10,7 +10,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __WINDOWS__ //WinSock 
+#ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #include <sys/types.h>
@@ -18,6 +18,13 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <netdb.h>
+	#include <errno.h>
+	#define TCP_NODELAY 0x0001
+	#define SD_RECIEVE 0x00
+	#define SD_SEND 0x01
+	#define SD_BOTH 0x02
+	#define SOCKET_ERROR (-1)
+	#define INVALID_SOCKET (SOCKET)(~0)
 #endif
 
 void GLFWCALL communicationHandler(void *arg);
@@ -50,7 +57,11 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	mId = id;
 
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
+#ifdef __WIN32__ //WinSock
 	ZeroMemory(&hints, sizeof (hints));
+#else
+	memset(&hints, 0, sizeof (hints));
+#endif
 	hints.ai_family = AF_INET;
 	hints.ai_socktype = SOCK_STREAM;
 	hints.ai_protocol = IPPROTO_TCP;
@@ -88,7 +99,11 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		if (iResult == SOCKET_ERROR)
 		{
 			freeaddrinfo(result);
+#ifdef __WIN32__
 			closesocket(mListenSocket);
+#else
+			close(mListenSocket);
+#endif
 			throw "Bind listen socket failed!";
 		}
 	}
@@ -125,7 +140,11 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	mMainThreadId = glfwCreateThread( connectionHandler, this );
 	if( mMainThreadId < 0)
 	{
+#ifdef __WIN32__
 		mServer ? closesocket(mListenSocket) : closesocket(mSocket);
+#else
+		mServer ? close(mListenSocket) : close(mSocket);
+#endif
 		throw "Failed to start main network thread!";
 	}
 }
@@ -503,7 +522,7 @@ void GLFWCALL communicationHandler(void *arg)
 		else
 		{
 			nPtr->setConnectedStatus(false);
-            #ifdef __WINDOWS__
+            #ifdef __WIN32__
                 sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
             #else
                 sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
@@ -522,12 +541,13 @@ void GLFWCALL communicationHandler(void *arg)
 	{
 		iResult = shutdown(nPtr->mSocket, SD_BOTH);
 		if (iResult == SOCKET_ERROR)
-#ifdef __WINDOWS__
+#ifdef __WIN32__
 			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+		closesocket( nPtr->mSocket );
 #else
         sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", nPtr->getId(), errno);
+		close( nPtr->mSocket );
 #endif
-		closesocket( nPtr->mSocket );
 		nPtr->mSocket = INVALID_SOCKET;
 	}
 
@@ -539,10 +559,10 @@ void core_sgct::SGCTNetwork::sendData(void * data, int lenght)
 {
 	int iResult = send(mSocket, (const char *)data, lenght, 0);
 	if (iResult == SOCKET_ERROR)
-#ifdef __WINDOWS__
+#ifdef __WIN32__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
 #else
-    sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", nPtr->getId(), errno);
+    sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
 #endif
 }
 
@@ -550,14 +570,14 @@ void core_sgct::SGCTNetwork::sendStr(std::string msg)
 {
 	int iResult = send(mSocket, msg.c_str(), msg.size(), 0);
 	if (iResult == SOCKET_ERROR)
-#ifdef __WINDOWS__
+#ifdef __WIN32__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
 #else
-        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", nPtr->getId(), errno);
+        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
 #endif
 }
 
-void core_sgct::SGCTNetwork::close()
+void core_sgct::SGCTNetwork::closeSGCT()
 {
 	char gameOver[7];
 	gameOver[0] = 24; //ASCII for cancel
@@ -582,13 +602,21 @@ void core_sgct::SGCTNetwork::close()
 	if( mSocket != INVALID_SOCKET )
 	{
 		shutdown(mSocket, SD_BOTH);
+#ifdef __WIN32__
 		closesocket( mSocket );
+#else
+		close( mSocket );
+#endif
 	}
 
 	if( mListenSocket != INVALID_SOCKET )
 	{
 		shutdown(mListenSocket, SD_BOTH);
+#ifdef __WIN32__
 		closesocket( mListenSocket );
+#else
+		close( mListenSocket );
+#endif
 	}
 
 	sgct::MessageHandler::Instance()->print(" Done!\n");

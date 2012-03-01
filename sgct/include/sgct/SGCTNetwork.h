@@ -19,7 +19,7 @@
 #include <netinet/in.h>
 #include <arpa/inet.h>
 #include <netdb.h>
-#define SOCKET unsigned int*
+#define SOCKET unsigned int
 #endif
 #include <string>
 #include <vector>
@@ -41,7 +41,7 @@ class SGCTNetwork
 public:
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
-	void close();
+	void closeSGCT();
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
 	void setUpdateFunction(std::tr1::function<void (int,bool)> callback);
 	void setConnectedFunction(std::tr1::function<void (void)> callback);

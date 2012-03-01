@@ -1,8 +1,9 @@
 #include <GL/glew.h>
-#if WIN32
+#if __WIN32__
 #include <GL/wglew.h>
-#else
+#else //APPLE LINUX
 #include <GL/glext.h>
+#include <GL/glxew.h>
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
@@ -10,7 +11,13 @@
 #include "../include/sgct/ClusterManager.h"
 #include <stdio.h>
 
+#ifdef __WIN32__
 HDC hDC;
+#else
+//@TODO INVESTIGATE THE SWAP BUFFER COMMANDS FOR APPLE AND LINUX< WHY 3 Paeameters needed instead of 2!!!
+GLXDrawable hDC;
+#endif
+
 void GLFWCALL windowResizeCallback( int width, int height );
 
 core_sgct::SGCTWindow::SGCTWindow()
@@ -31,10 +38,17 @@ void core_sgct::SGCTWindow::close()
 {
 	if( mUseSwapGroups )
 	{
+#ifdef __WIN32__
 		//un-bind
 		wglBindSwapBarrierNV(1,0);
 		//un-join
 		wglJoinSwapGroupNV(hDC,0);
+#else
+		//un-bind
+		glXBindSwapBarrierNV(0, 1,0);
+		//un-join
+		glXJoinSwapGroupNV(0,hDC,0);
+#endif
 	}
 }
 
@@ -81,7 +95,11 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 {
 	if( mUseSwapGroups && state != mBarrier)
 	{
+#ifdef __WIN32__
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
+#else
+		mBarrier = glXBindSwapBarrierNV(0, 1, state ? 1 : 0) ? 1 : 0;
+#endif
 	}
 }
 
@@ -140,13 +158,13 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	}
 	else
 		mUseSwapGroups = false;
-#elif //Apple and Linux uses glext.h
-    if (glxewIsSupported("NV_swap_group") && mUseSwapGroups)
+#else //Apple and Linux uses glext.h
+    if (glewIsSupported("NV_swap_group") && mUseSwapGroups)
 	{
-		hDC = glxGetCurrentDC();
+		hDC = glXGetCurrentDrawable();
 		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
         
-		if( glxJoinSwapGroupNV(hDC,1) )
+		if( glXJoinSwapGroupNV(0, hDC,1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
@@ -157,8 +175,6 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	}
 	else
 		mUseSwapGroups = false;
-#else
-    mUseSwapGroups = false;
 #endif
 }
 
@@ -167,7 +183,7 @@ void GLFWCALL windowResizeCallback( int width, int height )
 	core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
 }
 
-void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
+void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
 	if (mBarrier)
@@ -175,8 +191,8 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
     #ifdef __WIN32__ //Windows uses wglew.h
 		wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
-        gxlJoinSwapGroupNV(hDC, &frameNumber);
-    #end
+		glXJoinSwapGroupNV(0, hDC, frameNumber);
+    #endif
 	}
 }
 
@@ -184,7 +200,11 @@ void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
 	if (mBarrier)
 	{
+#ifdef __WIN32__
 		if( wglResetFrameCountNV(hDC) )
+#else
+		if( glXResetFrameCountNV(0, hDC) )
+#endif
 		{
 			mSwapGroupMaster = true;
 			sgct::MessageHandler::Instance()->print("Resetting frame counter. This computer is the master.\n");

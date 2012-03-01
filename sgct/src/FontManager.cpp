@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#if WIN32
+#ifdef __WIN32__
 #include <GL/wglew.h>
 #else
 #include <GL/glext.h>
@@ -55,10 +55,19 @@ FontManager::FontManager(void)
 	//
 	// Set default font path
 	//
+    
 	char winDir[128];
+#ifdef __WIN32__
 	GetWindowsDirectory(winDir,128);
-	mDefaultFontPath.assign( winDir );
+    mDefaultFontPath.assign( winDir );
 	mDefaultFontPath += "\\Fonts\\";
+#else
+    //@TODO FIX ME SET SUITALBE PATH
+    sprintf(winDir, "/tmp/");
+    mDefaultFontPath.assign( winDir );
+	mDefaultFontPath += "Fonts/";
+#endif
+
 }
 
 /*!

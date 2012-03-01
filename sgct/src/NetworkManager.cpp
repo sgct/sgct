@@ -13,6 +13,7 @@
     #include <netinet/in.h>
     #include <arpa/inet.h>
     #include <netdb.h>
+	#define SOCKET_ERROR (-1)
 #endif
 
 GLFWmutex core_sgct::NetworkManager::gDecoderMutex = NULL;
@@ -271,7 +272,7 @@ void core_sgct::NetworkManager::close()
 	{
 		if(mNetworkConnections[i] != NULL)
 		{
-			mNetworkConnections[i]->close();
+			mNetworkConnections[i]->closeSGCT();
 			delete mNetworkConnections[i];
 		}
 	}
@@ -317,7 +318,7 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 	{
 		sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
 		if(netPtr != NULL)
-			netPtr->close();
+			netPtr->closeSGCT();
 		return false;
 	}
 

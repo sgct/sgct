@@ -91,7 +91,20 @@ source_group("Source Files" FILES ${SOURCE_FILES})
 # APPLICATIONS #
 ################
 
-add_library(sgct ${SOURCE_FILES} ${HEADER_FILES})
+add_library(sgct 
+	${SOURCE_FILES} 
+	${HEADER_FILES} 
+)
+TARGET_LINK_LIBRARIES(sgct 	
+			${GLFW_LIBRARY} 
+			${EXTRA_LIBS}
+        	${GLEW_LIBRARY}
+			${OpenGL_LIBRARIES}
+			${EXTRA_LIBS}
+			${PNG_LIBRARY}
+			${TINYXML_LIBRARIES}
+			${FREETYPE_LIBRARIES}
+			)
 
 add_dependencies(sgct ${SGCT_DEPENDENCIES})
 

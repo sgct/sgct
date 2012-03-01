@@ -137,12 +137,12 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	else
 		mUseSwapGroups = false;
 #elif //Apple and Linux uses glext.h
-    if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
+    if (glxewIsSupported("NV_swap_group") && mUseSwapGroups)
 	{
-		hDC = wglGetCurrentDC();
+		hDC = glxGetCurrentDC();
 		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
         
-		if( wglJoinSwapGroupNV(hDC,1) )
+		if( glxJoinSwapGroupNV(hDC,1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
@@ -168,7 +168,11 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int & frameNumber)
 	frameNumber = 0;
 	if (mBarrier)
 	{
+    #ifdef __WIN32__ //Windows uses wglew.h
 		wglQueryFrameCountNV(hDC, &frameNumber);
+    #else //Apple and Linux uses glext.h
+        gxlJoinSwapGroupNV(hDC, &frameNumber);
+    #end
 	}
 }
 

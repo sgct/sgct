@@ -9,7 +9,16 @@
 #include "../include/sgct/NetworkManager.h"
 #include <stdlib.h>
 #include <stdio.h>
-#include <ws2tcpip.h>
+
+#ifdef __WINDOWS__ //WinSock 
+    #include <ws2tcpip.h>
+#else //Use BSD sockets
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+#endif
 
 void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL connectionHandler(void *arg);
@@ -494,7 +503,11 @@ void GLFWCALL communicationHandler(void *arg)
 		else
 		{
 			nPtr->setConnectedStatus(false);
-			sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
+            #ifdef __WINDOWS__
+                sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
+            #else
+                sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
+            #endif
 		}
 	} while (iResult > 0 || nPtr->isConnected());
 
@@ -509,7 +522,11 @@ void GLFWCALL communicationHandler(void *arg)
 	{
 		iResult = shutdown(nPtr->mSocket, SD_BOTH);
 		if (iResult == SOCKET_ERROR)
+#ifdef __WINDOWS__
 			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+#else
+        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", nPtr->getId(), errno);
+#endif
 		closesocket( nPtr->mSocket );
 		nPtr->mSocket = INVALID_SOCKET;
 	}
@@ -522,14 +539,22 @@ void core_sgct::SGCTNetwork::sendData(void * data, int lenght)
 {
 	int iResult = send(mSocket, (const char *)data, lenght, 0);
 	if (iResult == SOCKET_ERROR)
+#ifdef __WINDOWS__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
+#else
+    sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", nPtr->getId(), errno);
+#endif
 }
 
 void core_sgct::SGCTNetwork::sendStr(std::string msg)
 {
 	int iResult = send(mSocket, msg.c_str(), msg.size(), 0);
 	if (iResult == SOCKET_ERROR)
+#ifdef __WINDOWS__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
+#else
+        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", nPtr->getId(), errno);
+#endif
 }
 
 void core_sgct::SGCTNetwork::close()

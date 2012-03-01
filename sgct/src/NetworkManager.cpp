@@ -3,8 +3,17 @@
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/Engine.h"
-#include <ws2tcpip.h>
 #include <GL/glfw.h>
+
+#ifdef __WINDOWS__ //WinSock
+    #include <ws2tcpip.h>
+#else //Use BSD sockets
+    #include <sys/types.h>
+    #include <sys/socket.h>
+    #include <netinet/in.h>
+    #include <arpa/inet.h>
+    #include <netdb.h>
+#endif
 
 GLFWmutex core_sgct::NetworkManager::gDecoderMutex = NULL;
 GLFWcond core_sgct::NetworkManager::gCond = NULL;
@@ -285,7 +294,11 @@ void core_sgct::NetworkManager::close()
 		gDecoderMutex = NULL;
 	}
 
-	WSACleanup();
+#ifdef __WINDOWS__     
+    WSACleanup();
+#else
+    //No cleanup needed
+#endif
 	sgct::MessageHandler::Instance()->print("Network API closed!\n");
 }
 
@@ -338,6 +351,8 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 
 void core_sgct::NetworkManager::initAPI()
 {
+
+#ifdef __WINDOWS__
 	WSADATA wsaData;
 	WORD version;
 	int error;
@@ -354,6 +369,10 @@ void core_sgct::NetworkManager::initAPI()
 		WSACleanup();
 		throw "Winsock 2.2 startup failed!";
 	}
+#else
+    //No init needed
+#endif
+    
 }
 
 void core_sgct::NetworkManager::getHostInfo()
@@ -362,7 +381,11 @@ void core_sgct::NetworkManager::getHostInfo()
 	char tmpStr[128];
     if (gethostname(tmpStr, sizeof(tmpStr)) == SOCKET_ERROR)
 	{
+#ifdef __WINDOWS__     
         WSACleanup();
+#else
+        //No cleanup needed
+#endif
 		throw "Failed to get host name!";
     }
 	hostName.assign(tmpStr);
@@ -370,8 +393,12 @@ void core_sgct::NetworkManager::getHostInfo()
 	struct hostent *phe = gethostbyname(tmpStr);
     if (phe == 0)
 	{
+#ifdef __WINDOWS__     
         WSACleanup();
-		throw "Bad host lockup!";
+#else
+        //No cleanup needed
+#endif
+      	throw "Bad host lockup!";
     }
 
     for (int i = 0; phe->h_addr_list[i] != 0; ++i)

@@ -1,7 +1,7 @@
 /*
 	sgct.h
 
-	© 2012 Miroslav Andel, Alexander Fridlund
+	ï¿½ 2012 Miroslav Andel, Alexander Fridlund
 */
 
 #ifndef WIN32_LEAN_AND_MEAN
@@ -17,10 +17,20 @@
 #define _SGCT_H_
 
 #include <windows.h> //must be declared before glfw
-#include <winsock2.h>
-#include <GL/glew.h>
-#include <GL/wglew.h>
-#include <GL/glfw.h>
+
+#ifdef __WIN32__
+    #include <winsock2.h>
+#endif
+//@TODO FIX ME, which inlcudes needed?
+//#ifdef __DARWIN__
+//    #include <glew.h>
+//    #include <GL/glew.h>
+//
+//#else
+    #include <GL/glew.h>
+    #include <GL/wglew.h>
+    #include <GL/glfw.h>
+//#endif
 #include "sgct/Engine.h"
 #include "sgct/SharedData.h"
 #include "sgct/TextureManager.h"

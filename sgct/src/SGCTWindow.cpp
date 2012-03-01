@@ -119,6 +119,7 @@ bool core_sgct::SGCTWindow::openWindow()
 
 void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 {
+#ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
 		hDC = wglGetCurrentDC();
@@ -135,6 +136,26 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	}
 	else
 		mUseSwapGroups = false;
+#elif //Apple and Linux uses glext.h
+    if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
+	{
+		hDC = wglGetCurrentDC();
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
+        
+		if( wglJoinSwapGroupNV(hDC,1) )
+			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
+		else
+		{
+			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [failed].\n");
+			mUseSwapGroups = false;
+			return;
+		}
+	}
+	else
+		mUseSwapGroups = false;
+#else
+    mUseSwapGroups = false;
+#endif
 }
 
 void GLFWCALL windowResizeCallback( int width, int height )

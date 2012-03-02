@@ -41,15 +41,21 @@ void core_sgct::SGCTWindow::close()
 #ifdef __WITHSWAPBARRIERS__
         
 #ifdef __WIN32__
-		//un-bind
-		wglBindSwapBarrierNV(1,0);
-		//un-join
-		wglJoinSwapGroupNV(hDC,0);
+		if( wglewIsSupported("WGL_NV_swap_group") )
+		{
+			//un-bind
+			wglBindSwapBarrierNV(1,0);
+			//un-join
+			wglJoinSwapGroupNV(hDC,0);
+		}
 #else 
-		//un-bind
-		glXBindSwapBarrierNV(0, 1,0);
-		//un-join
-		glXJoinSwapGroupNV(0,hDC,0);
+		if( glxewIsSupported("GLX_NV_swap_group") )
+		{
+			//un-bind
+			glXBindSwapBarrierNV(1,0);
+			//un-join
+			glXJoinSwapGroupNV(hDC,0);
+		}
 #endif
         
 #endif
@@ -169,12 +175,12 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	else
 		mUseSwapGroups = false;
 #else //Apple and Linux uses glext.h
-    if (glewIsSupported("NV_swap_group") && mUseSwapGroups)
+    if (glxewIsSupported(GLX_NV_swap_group) && mUseSwapGroups)
 	{
 		hDC = glXGetCurrentDrawable();
 		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
 
-		if( glXJoinSwapGroupNV(0, hDC,1) )
+		if( glXJoinSwapGroupNV(hDC,1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
@@ -207,9 +213,11 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 	{
         
     #ifdef __WIN32__ //Windows uses wglew.h
-		wglQueryFrameCountNV(hDC, &frameNumber);
+		if( wglewIsSupported("WGL_NV_swap_group") )
+			wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
-        gxlJoinSwapGroupNV(hDC, &frameNumber);
+		if( glxewIsSupported("GLX_NV_swap_group") )
+			gxlQueryFrameCountNV(hDC, &frameNumber);
     #endif
 	}
 #endif
@@ -223,9 +231,9 @@ void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 	if (mBarrier)
 	{
 #ifdef __WIN32__
-		if( wglResetFrameCountNV(hDC) )
+		if( wglewIsSupported("WGL_NV_swap_group") && wglResetFrameCountNV(hDC) )
 #else
-		if( glXResetFrameCountNV(0, hDC) )
+		if( glxewIsSupported("GLX_NV_swap_group") && glXResetFrameCountNV(hDC) )
 #endif
 		{
 			mSwapGroupMaster = true;

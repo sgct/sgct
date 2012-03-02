@@ -16,9 +16,8 @@
 #ifndef _SGCT_H_
 #define _SGCT_H_
 
-#include <windows.h> //must be declared before glfw
-
 #ifdef __WIN32__
+    #include <windows.h> //must be declared before glfw
     #include <winsock2.h>
 #endif
 //@TODO FIX ME, which inlcudes needed?

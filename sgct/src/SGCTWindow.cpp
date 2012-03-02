@@ -1,5 +1,5 @@
 #include <GL/glew.h>
-#if __WIN32__
+#ifdef __WIN32__
 #include <GL/wglew.h>
 #else //APPLE LINUX
 #include <GL/glext.h>
@@ -38,16 +38,20 @@ void core_sgct::SGCTWindow::close()
 {
 	if( mUseSwapGroups )
 	{
+#ifdef __WITHSWAPBARRIERS__
+        
 #ifdef __WIN32__
 		//un-bind
 		wglBindSwapBarrierNV(1,0);
 		//un-join
 		wglJoinSwapGroupNV(hDC,0);
-#else
+#else 
 		//un-bind
 		glXBindSwapBarrierNV(0, 1,0);
 		//un-join
 		glXJoinSwapGroupNV(0,hDC,0);
+#endif
+        
 #endif
 	}
 }
@@ -93,6 +97,8 @@ void core_sgct::SGCTWindow::setWindowMode(const int mode)
 
 void core_sgct::SGCTWindow::setBarrier(const bool state)
 {
+#ifdef __WITHSWAPBARRIERS__
+
 	if( mUseSwapGroups && state != mBarrier)
 	{
 #ifdef __WIN32__ //Windows uses wglew.h
@@ -101,6 +107,8 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 		mBarrier = glxBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #endif
 	}
+    
+#endif
 }
 
 void core_sgct::SGCTWindow::useSwapGroups(const bool state)
@@ -141,6 +149,8 @@ bool core_sgct::SGCTWindow::openWindow()
 
 void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 {
+#ifdef __WITHSWAPBARRIERS__
+
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
@@ -176,6 +186,10 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	else
 		mUseSwapGroups = false;
 #endif
+    
+#else
+        mUseSwapGroups = false;
+#endif
 }
 
 void GLFWCALL windowResizeCallback( int width, int height )
@@ -186,18 +200,26 @@ void GLFWCALL windowResizeCallback( int width, int height )
 void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
+    
+#ifdef __WITHSWAPBARRIERS__
+
 	if (mBarrier)
 	{
+        
     #ifdef __WIN32__ //Windows uses wglew.h
 		wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
         gxlJoinSwapGroupNV(hDC, &frameNumber);
     #endif
 	}
+#endif
 }
 
 void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
+    
+#ifdef __WITHSWAPBARRIERS__
+
 	if (mBarrier)
 	{
 #ifdef __WIN32__
@@ -215,4 +237,6 @@ void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 			sgct::MessageHandler::Instance()->print("Resetting frame counter failed. This computer is the slave.\n");
 		}
 	}
+
+#endif
 }

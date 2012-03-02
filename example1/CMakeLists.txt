@@ -62,7 +62,17 @@ add_dependencies(example1 sgct ${SGCT_DEPENDENCIES})
 
 target_link_libraries(example1
 	${SGCT_DEPENDENCIES}
-)
+			sgct
+			${GLFW_LIBRARY} 
+			${EXTRA_LIBS}
+        		${GLEW_LIBRARY}
+			${OpenGL_LIBRARIES}
+			${EXTRA_LIBS}
+			${PNG_LIBRARY}
+			${TINYXML_LIBRARIES}
+			${FREETYPE_LIBRARIES}
+	)
+
 
 install(TARGETS example1
   RUNTIME DESTINATION bin/release CONFIGURATIONS Release

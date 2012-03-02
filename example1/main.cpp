@@ -7,7 +7,7 @@ void myPreDrawFun();
 void myEncodeFun();
 void myDecodeFun();
 
-double time = 0.0;
+double curr_time = 0.0;
 
 int main( int argc, char* argv[] )
 {
@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	float speed = 50.0f;
-	glRotatef(static_cast<float>( time ) * speed, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>( curr_time ) * speed, 0.0f, 1.0f, 0.0f);
 	
 	//render a single triangle
 	glBegin(GL_TRIANGLES);
@@ -61,16 +61,16 @@ void myPreDrawFun()
 	if( gEngine->isMaster() )
 	{
 		//get the time in seconds
-		time = glfwGetTime();
+		curr_time = glfwGetTime();
 	}
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( time );
+	sgct::SharedData::Instance()->writeDouble( curr_time );
 }
 
 void myDecodeFun()
 {
-	time = sgct::SharedData::Instance()->readDouble();
+	curr_time = sgct::SharedData::Instance()->readDouble();
 }

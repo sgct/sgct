@@ -95,6 +95,14 @@ add_library(sgct
 	${SOURCE_FILES} 
 	${HEADER_FILES} 
 )
+
+
+add_dependencies(sgct ${SGCT_DEPENDENCIES})
+
+###########
+# LINKING #
+###########
+
 TARGET_LINK_LIBRARIES(sgct 	
 			${GLFW_LIBRARY} 
 			${EXTRA_LIBS}
@@ -106,12 +114,9 @@ TARGET_LINK_LIBRARIES(sgct
 			${FREETYPE_LIBRARIES}
 			)
 
-add_dependencies(sgct ${SGCT_DEPENDENCIES})
-
-###########
-# LINKING #
-###########
-
+###################
+# Install Targets #
+###################
 
 install(TARGETS sgct
   RUNTIME DESTINATION bin/release CONFIGURATIONS Release

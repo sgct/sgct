@@ -3,8 +3,6 @@
 project(SGCT)
 cmake_minimum_required(VERSION 2.6.2)
 
-
-
 #---------------------------------------------------------------------
 # Path to the install directory
 #
@@ -29,27 +27,31 @@ if(NOT LIBRARY_OUTPUT_PATH)
 endif(NOT LIBRARY_OUTPUT_PATH)
 
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
+
+
 #
-# Custom cmake modules, like FindXPackage.cmake
+# Path for custom cmake modules, like FindXPackage.cmake
 #
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
 
+#
+# Find modules, ex third party libs, include files
+#
 ##TODO LINK WITH CORRECT LIBRARIES
 find_package(GLFW REQUIRED)
 INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
-LINK_DIRECTORIES(${GLFW_LIBRARY_DIRS})
 find_package(GLEW REQUIRED)
 INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 find_package(PNG REQUIRED)
 INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
 find_package(freetype REQUIRED)	
 INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIR})
-#find_package(TinyXML REQUIRED)		
+find_package(TinyXML REQUIRED)		
 INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIR})
 
-set(SGCT_DEPENDENCIES libtinyxml ${GLFW_LIBRARY} ${GLEW_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${FREETYPE_LIBRARY} )
+set(SGCT_DEPENDENCIES ${GLFW_LIBRARY} ${TINYXML_LIBRARY} ${GLEW_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${FREETYPE_LIBRARY} )
 
 message("${SGCT_DEPENDENCIES}")
 set(SGCT_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/deps/tinyxml/" ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/sgct/include )

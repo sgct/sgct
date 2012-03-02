@@ -55,7 +55,7 @@ void core_sgct::SGCTWindow::close()
 void core_sgct::SGCTWindow::init(bool lockVerticalSync)
 {
 	glfwSwapInterval( lockVerticalSync ? 1 : 0 ); //0: vsync off, 1: vsync on
-	
+
 	if(mWindowMode == GLFW_WINDOW)
 	{
 		glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
@@ -97,7 +97,7 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 	{
 #ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
-#elif //Apple and Linux uses glext.h
+#else //Apple and Linux uses glext.h
 		mBarrier = glxBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #endif
 	}
@@ -163,7 +163,7 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	{
 		hDC = glXGetCurrentDrawable();
 		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
-        
+
 		if( glXJoinSwapGroupNV(0, hDC,1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else

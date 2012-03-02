@@ -48,6 +48,13 @@ void sgct::TextureManager::setCompression(bool state)
 	mCompression = state;
 }
 
+bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
+{
+	unsigned int tmpId = 0;
+
+	return loadTexure(tmpId, name, filename, interpolate, mipmapLevels);
+}
+
 bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	GLuint texID = 0;

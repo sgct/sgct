@@ -16,6 +16,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 	useExternalControlPort = false;
+	useMasterSyncLock = true;
 
 	if( filename.empty() )
 	{
@@ -65,6 +66,11 @@ void core_sgct::ReadConfig::readAndParseXML()
 		tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
+	}
+
+	if( XMLroot->Attribute( "lockMasterSync" ) != NULL )
+	{
+		useMasterSyncLock = strcmp( XMLroot->Attribute( "lockMasterSync" ), "true" ) == 0 ? true : false;
 	}
 
 	TiXmlElement* element[10];

@@ -1,5 +1,4 @@
 #include <GL/glew.h>
-#if __WIN32__
 #ifdef __WIN32__
 #include <GL/wglew.h>
 #else

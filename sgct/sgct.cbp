@@ -41,6 +41,7 @@
 			<Add option="-std=c++0x" />
 			<Add option="-Wall" />
 			<Add option="-DGLEW_STATIC" />
+			<Add option="-D__WIN32__" />
 			<Add directory="..\deps\mingw\include" />
 		</Compiler>
 		<Linker>

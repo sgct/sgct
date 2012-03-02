@@ -23,6 +23,8 @@ public:
 
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
+	bool isMasterSyncLocked() { return useMasterSyncLock; }
+
 	Point3f * getUserPos() { return &userPos; }
 	float getEyeSeparation() { return eyeSeparation; }
 
@@ -31,6 +33,7 @@ private:
 	int getStereoType( const std::string type );
 
 	bool valid;
+	bool useMasterSyncLock;
 	bool useExternalControlPort;
 	std::string xmlFileName;
 	Point3f userPos;

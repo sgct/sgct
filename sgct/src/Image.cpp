@@ -1,7 +1,7 @@
 #include <stdio.h>
 #include <fstream>
 #include <png.h>
-#if WIN32
+#ifdef __WIN32__
 #include <pngpriv.h>
 #endif
 
@@ -48,7 +48,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	{
 	    return false;
 	}
-	
+
 	mFilename = new char[strlen(filename)+1];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
@@ -56,7 +56,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
     #else
     strcpy(mFilename, filename );
     #endif
- 
+
 	unsigned char *pb;
 	png_structp png_ptr;
 	png_infop info_ptr;

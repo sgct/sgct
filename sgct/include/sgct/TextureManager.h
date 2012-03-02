@@ -38,6 +38,7 @@ public:
 	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
 	void setCompression(bool state);
 	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
+	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
 
 private:
 	TextureManager();

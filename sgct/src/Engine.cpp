@@ -93,6 +93,7 @@ bool sgct::Engine::initNetwork()
 	try
 	{
 		mNetworkConnections = new NetworkManager(localRunningMode);
+
 	}
 	catch(const char * err)
 	{

@@ -22,9 +22,9 @@ GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
 
 core_sgct::NetworkManager::NetworkManager(int mode)
 {
-	gDecoderMutex = glfwCreateMutex();
-	gCond = glfwCreateCond();
-	gStartConnectionCond = glfwCreateCond();
+	core_sgct::NetworkManager::gDecoderMutex = glfwCreateMutex();
+	core_sgct::NetworkManager::gCond = glfwCreateCond();
+	core_sgct::NetworkManager::gStartConnectionCond = glfwCreateCond();
 	if(gDecoderMutex == NULL ||
 		gCond == NULL ||
 		gStartConnectionCond == NULL)

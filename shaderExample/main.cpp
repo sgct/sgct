@@ -16,11 +16,11 @@ void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int
 
 unsigned int myTextureIds[2];
 int myTextureLocations[2];
-int timeLoc;
+int curr_timeLoc;
 GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
-double time = 0.0;
+double curr_time = 0.0;
 bool wireframe = false;
 bool info = false;
 bool stats = false;
@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {	
 	glTranslatef( 0.0f, -0.15f, 2.5f );
-	glRotatef( static_cast<float>( time ) * 8.0f, 0.0f, 1.0f, 0.0f );
+	glRotatef( static_cast<float>( curr_time ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );	
 	
@@ -71,7 +71,7 @@ void myDrawFun()
 
 	//set current shader program
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
-	glUniform1f( timeLoc, static_cast<float>( time ) );
+	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
 	glCallList(myTerrainDisplayList);
 
@@ -89,7 +89,7 @@ void myPreDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		time = glfwGetTime();
+		curr_time = glfwGetTime();
 	}
 
 	gEngine->setWireframe(wireframe);
@@ -132,10 +132,10 @@ void myInitOGLFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	myTextureLocations[0] = -1;
 	myTextureLocations[1] = -1;
-	timeLoc = -1;
+	curr_timeLoc = -1;
 	myTextureLocations[0] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "hTex" );
 	myTextureLocations[1] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "nTex" );
-	timeLoc = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "time" );
+	curr_timeLoc = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "curr_time" );
 
 	glUniform1i( myTextureLocations[0], 0 );
 	glUniform1i( myTextureLocations[1], 1 );
@@ -144,7 +144,7 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( time );
+	sgct::SharedData::Instance()->writeDouble( curr_time );
 	sgct::SharedData::Instance()->writeBool( wireframe );
 	sgct::SharedData::Instance()->writeBool( info );
 	sgct::SharedData::Instance()->writeBool( stats );
@@ -152,7 +152,7 @@ void myEncodeFun()
 
 void myDecodeFun()
 {
-	time = sgct::SharedData::Instance()->readDouble();
+	curr_time = sgct::SharedData::Instance()->readDouble();
 	wireframe = sgct::SharedData::Instance()->readBool();
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();

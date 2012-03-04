@@ -48,7 +48,7 @@ source_group("Source Files" FILES ${SOURCE_FILES})
 ################
 
 if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-add_executable(example1 MACOSX_BUNDLE ${SOURCE_FILES})
+add_executable(example1 ${SOURCE_FILES})
 else(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 add_executable(example1 WIN32 ${SOURCE_FILES})
 endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
@@ -63,9 +63,7 @@ add_dependencies(example1 sgct ${SGCT_DEPENDENCIES})
 target_link_libraries(example1
 	${SGCT_DEPENDENCIES}
 			sgct
-			${GLFW_LIBRARY} 
 			${EXTRA_LIBS}
-        		${GLEW_LIBRARY}
 			${OpenGL_LIBRARIES}
 			${EXTRA_LIBS}
 			${PNG_LIBRARY}

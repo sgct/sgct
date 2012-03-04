@@ -3,6 +3,12 @@
 project(SGCT)
 cmake_minimum_required(VERSION 2.6.2)
 
+#------------------------------------
+#  Build Type
+#  Release/Debug/RelWithDebInfo/MinSizeRel...
+set(CMAKE_BUILD_TYPE RelWithDebInfo)
+#set(CMAKE_CXX_FLAGS "-g -Wall")
+
 #---------------------------------------------------------------------
 # Path to the install directory
 #
@@ -66,6 +72,7 @@ set(SGCT_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH})
 #
 option(HAS_SGCT   "Required for SGCT modules"    ON)
 option(HAS_EXAMPLE1   "Simple example"    ON)
+option(HAS_SHADEREXAMPLE "Shader Example"ON)
 #--------------------------------------------------------------------
 # Build shared libs or static libs
 option(BUILD_SHARED_LIBS "Build shared libs or static libs" ON)
@@ -140,6 +147,9 @@ add_subdirectory(sgct)
 IF (HAS_EXAMPLE1)
   add_subdirectory(example1)
 ENDIF (HAS_EXAMPLE1)
+IF (HAS_SHADEREXAMPLE)
+  add_subdirectory(shaderExample)
+ENDIF (HAS_SHADEREXAMPLE)
 #--------------------------------------------------------------------
 # Write config.xml
 #

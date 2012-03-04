@@ -85,15 +85,8 @@ void SharedData::writeFloat(float f)
 
 void SharedData::writeDouble(double d)
 {
-
-	// @TODO JOEL :: SOMEHOW THE gDecodetMutex is NULL here for APPLE MAC OS X 10.7
-	// if(core_sgct::NetworkManager::gDecoderMutex == NULL);
-	// added a err workaround just to get it to run
-//    glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
-
     glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
- //   printf("hej2! \n");
-	unsigned char *p = (unsigned char *)&d;
+ 	unsigned char *p = (unsigned char *)&d;
 	dataBlock.insert( dataBlock.end(), p, p+8);
 	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }

@@ -1,0 +1,40 @@
+How to use tinyxml
+
+1.download it
+2.use makefile to build it
+3.if you finish it correctly, you will got several *.o files
+4.if you want to use it as a dynamic lib you should rebuild it by yourself.here is the command lines:
+	g++ -fpic -shared -o libtinyxml.so tinystr.cpp tinyxml.cpp tinyxmlerror.cpp tinyxmlparser.cpp
+5.then you will got a file called libtinyxml.so . copy it to where you want to store(/usr/local/tinyxml/dynamicLib)
+6.you can use it as a dynamic library smoothly.
+
+
+Be note ,if you use the command line below(with stl version), there will be some problem about the "Segment Fault" when runing the problem.
+1.creat the static library
+	#error
+	rm -rf *.so *.a *.o
+	g++ -g -DTIXML_USE_STL -c *.cpp
+	ar -rc libtinyxml.a *.o
+	cp ./libtinyxml.a /usr/local/tinyxml/staticLib/
+	rm -rf *.so *.a *.o
+	
+2.create the dynamic library
+	#error
+	rm -rf *.so *.a *.o
+	g++ -g -DTIXML_USE_STL -c -fpic *.cpp
+	g++ -shared -o libtinyxml.so *.o
+	rm -rf *.so *.a *.o
+	
+if you use no stl version will let tinyxml run smoothly
+1.creat the static library
+	rm -rf *.so *.a *.o
+	g++ -g -c *.cpp
+	ar -rc libtinyxml.a *.o
+	cp ./libtinyxml.a /usr/local/tinyxml/staticLib/
+	rm -rf *.so *.a *.o
+	
+2.create the dynamic library
+	rm -rf *.so *.a *.o
+	g++ -g -c -fpic *.cpp
+	g++ -shared -o libtinyxml.so *.o
+	rm -rf *.so *.a *.o

@@ -1,0 +1,6 @@
+tinyxml 2.6.2
+zlib 1.2.5
+lpng 1.5.8
+glew 1.7.0
+freetype 2.4.8
+glfw 2.7.3

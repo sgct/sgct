@@ -53,15 +53,31 @@ INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
 find_package(PNG REQUIRED)
 INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
 find_package(freetype REQUIRED)	
-INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIR})
-find_package(TinyXML REQUIRED)		
+INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
+set(TINYXML_LIBRARY tinyxml)
+set(TINYXML_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/tinyxml/")
+#find_package(TinyXML REQUIRED)		
 INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIR})
+# OpenGL
+IF(APPLE)
+   INCLUDE_DIRECTORIES(/System/Library/Frameworks)
+   FIND_LIBRARY(GLUT_LIBRARY GLUT)
+   FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
+	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+   SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+   SET( OpenGL_INCLUDE_DIR /usr/include/GL)
+   INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIR})
+ELSE(APPLE)
+   SET( OpenGL_INCLUDE_DIR /usr/include/GL)
+   INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIR})
+   SET( OpenGL_LIBRARIES GL)
+ENDIF(APPLE)
 
-set(SGCT_DEPENDENCIES ${GLFW_LIBRARY} ${TINYXML_LIBRARY} ${GLEW_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${FREETYPE_LIBRARY} )
+set(SGCT_DEPENDENCIES ${GLFW_LIBRARY} ${TINYXML_LIBRARY} ${GLEW_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${FREETYPE_LIBRARY} ${EXTRA_LIBS} ${OpenGL_LIBRARIES})
 
 message("${SGCT_DEPENDENCIES}")
-set(SGCT_INCLUDE_DIRS "${CMAKE_SOURCE_DIR}/deps/tinyxml/" ${GLFW_INCLUDE_DIR} ${GLEW_INCLUDE_DIR} ${PNG_PNG_INCLUDE_DIR} ${ZLIB_INCLUDE_DIR} ${FREETYPE_INCLUDE_DIRS} ${CMAKE_SOURCE_DIR}/sgct/include )
-message("${SGCT_INCLUDE_DIRS}")
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/sgct/include)
+
 set(SGCT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sgct/src)
 set(SGCT_BINARY_DIR ${CMAKE_BINARY_DIR})
 set(SGCT_LIBRARY_DIR ${LIBRARY_OUTPUT_PATH})
@@ -91,20 +107,7 @@ endif(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
 # Locate SGCT libraries and include directories
 #
 
-# OpenGL
-IF(APPLE)
-   INCLUDE_DIRECTORIES(/System/Library/Frameworks)
-   FIND_LIBRARY(GLUT_LIBRARY GLUT)
-   FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
-	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-   SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
-   SET( OpenGL_INCLUDE_DIR /usr/include/GL)
-   INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIR})
-ELSE(APPLE)
-   SET( OpenGL_INCLUDE_DIR /usr/include/GL)
-   INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIR})
-   SET( OpenGL_LIBRARIES GL)
-ENDIF(APPLE)
+
 
 #--------------------------------------------------------------------
 # Set preprocessor definition for static or shared build
@@ -143,11 +146,12 @@ endif(DEBUG_POSTFIX)
 #
 add_subdirectory(deps/tinyxml)
 add_subdirectory(sgct)
+#TODO Add makefiles for all examples
 IF(WITH_EXAMPLES)
   add_subdirectory(example1)
-  add_subdirectory(shaderExample)
-  add_subdirectory(simpleShaderExample)
-  add_subdirectory(textureExample)
+#  add_subdirectory(shaderExample)
+#  add_subdirectory(simpleShaderExample)
+#  add_subdirectory(textureExample)
 ENDIF(WITH_EXAMPLES)
 
 #--------------------------------------------------------------------

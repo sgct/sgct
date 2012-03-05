@@ -26,9 +26,6 @@ endif(DEBUG_POSTFIX)
 # SOURCES #
 ###########
 
-include_directories(
-	${SGCT_INCLUDE_DIRS}
-)
 
 link_directories(
 	${LIBRARY_OUTPUT_PATH}
@@ -36,10 +33,10 @@ link_directories(
 
 add_definitions(-DEXAMPLE)
 
-set(SGCT_INCLUDE_DIR ${SGCT_INCLUDE_DIRS}/sgct)
+set(SGCT_INCLUDE_DIR ${CMAKE_SOURCE_DIR}/sgct/include/sgct)
 
 set(HEADER_FILES
-	${SGCT_INCLUDE_DIRS}/sgct.h
+	${CMAKE_SOURCE_DIR}/sgct/include/sgct.h
 	${SGCT_INCLUDE_DIR}/ClusterManager.h
 	${SGCT_INCLUDE_DIR}/Engine.h
 	${SGCT_INCLUDE_DIR}/Font.h
@@ -58,7 +55,7 @@ set(HEADER_FILES
 	${SGCT_INCLUDE_DIR}/SharedData.h
 	${SGCT_INCLUDE_DIR}/Statistics.h
 	${SGCT_INCLUDE_DIR}/TextureManager.h
-	${SGCT_INCLUDE_DIR}/Timer.h
+#	${SGCT_INCLUDE_DIR}/Timer.h
 	${SGCT_INCLUDE_DIR}/Viewport.h
 )
 
@@ -81,7 +78,7 @@ set(SOURCE_FILES
 	SharedData.cpp
 	Statistics.cpp
 	TextureManager.cpp
-	Timer.cpp
+#	Timer.cpp
 	Viewport.cpp
 
 )
@@ -105,14 +102,7 @@ add_dependencies(sgct ${SGCT_DEPENDENCIES})
 ###########
 
 TARGET_LINK_LIBRARIES(sgct 	
-			${GLFW_LIBRARY} 
-			${EXTRA_LIBS}
-        	${GLEW_LIBRARY}
-			${OpenGL_LIBRARIES}
-			${EXTRA_LIBS}
-			${PNG_LIBRARY}
-			${TINYXML_LIBRARIES}
-			${FREETYPE_LIBRARIES}
+			${SGCT_DEPENDENCIES}
 			)
 
 ###################

@@ -55,6 +55,13 @@ endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 add_dependencies(example1 sgct ${SGCT_DEPENDENCIES})
 
+file(GLOB_RECURSE
+	example_files
+	*.xml
+	*.bat
+)
+file(COPY ${example_files} DESTINATION ${EXECUTABLE_OUTPUT_PATH})
+
 ###########
 # LINKING #
 ###########
@@ -63,12 +70,6 @@ add_dependencies(example1 sgct ${SGCT_DEPENDENCIES})
 target_link_libraries(example1
 	${SGCT_DEPENDENCIES}
 			sgct
-			${EXTRA_LIBS}
-			${OpenGL_LIBRARIES}
-			${EXTRA_LIBS}
-			${PNG_LIBRARY}
-			${TINYXML_LIBRARIES}
-			${FREETYPE_LIBRARIES}
 	)
 
 

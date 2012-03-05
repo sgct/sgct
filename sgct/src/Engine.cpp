@@ -1,7 +1,7 @@
 #include <GL/glew.h>
-#if __WIN32__
+#if __WIN32__ //USE WGL EXTENSIONS
 #include <GL/wglew.h>
-#else
+#else //APPLE LINUX USE GLX EXTENSIONS
 #include <GL/glext.h>
 #endif
 #include <GL/glfw.h>
@@ -44,6 +44,9 @@ sgct::Engine::Engine( int argc, char* argv[] )
 		mTerminate = true;
 		return;
 	}
+
+	//Start timer
+	mTimer.start();
 
 	setClearBufferFunction( clearBuffer );
 	nearClippingPlaneDist = 0.1f;
@@ -305,6 +308,7 @@ void sgct::Engine::frameSyncAndLock(int stage)
 
 void sgct::Engine::render()
 {
+
 	mRunning = GL_TRUE;
 
 	while( mRunning )
@@ -684,4 +688,8 @@ const char * sgct::Engine::getBasicInfo()
     #endif
 
 	return basicInfo;
+}
+
+float sgct::Engine::getTime() {
+	return glfwGetTime();
 }

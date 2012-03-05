@@ -13,10 +13,12 @@
 
 #ifdef __WIN32__
 HDC hDC;
-#else
-//@TODO INVESTIGATE THE SWAP BUFFER COMMANDS FOR APPLE AND LINUX< WHY 3 Paeameters needed instead of 2!!!
+#else // APPLE || LINUX
 GLXDrawable hDC;
 #endif
+
+//@TODO INVESTIGATE THE SWAP BUFFER COMMANDS FOR APPLE AND LINUX< WHY 3 Paeameters needed instead of 2!!!
+
 
 void GLFWCALL windowResizeCallback( int width, int height );
 
@@ -57,7 +59,7 @@ void core_sgct::SGCTWindow::close()
 			glXJoinSwapGroupNV(hDC,0);
 		}
 #endif
-        
+
 #endif
 	}
 }

@@ -11,10 +11,10 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 
-int timeLoc = -1;
+int curr_timeLoc = -1;
 
 //variables to share across cluster
-double time = 0.0;
+double curr_time = 0.0;
 
 int main( int argc, char* argv[] )
 {
@@ -47,10 +47,10 @@ void myDrawFun()
 {
     //set current shader program
 	sgct::ShaderManager::Instance()->bindShader( "SimpleColor" );
-	glUniform1f( timeLoc, static_cast<float>( time ) );
+	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
 	float speed = 50.0f;
-	glRotatef(static_cast<float>( time ) * speed, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>( curr_time ) * speed, 0.0f, 1.0f, 0.0f);
 
 	//render a single triangle
 	glBegin(GL_TRIANGLES);
@@ -68,25 +68,25 @@ void myInitOGLFun()
 	sgct::ShaderManager::Instance()->addShader( "SimpleColor", "simple.vert", "simple.frag" );
 	sgct::ShaderManager::Instance()->bindShader( "SimpleColor" );
 
-	timeLoc = sgct::ShaderManager::Instance()->getShader( "SimpleColor").getUniformLocation( "time" );
+	curr_timeLoc = sgct::ShaderManager::Instance()->getShader( "SimpleColor").getUniformLocation( "curr_time" );
 
 	sgct::ShaderManager::Instance()->unBindShader();
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( time );
+	sgct::SharedData::Instance()->writeDouble( curr_time );
 }
 
 void myDecodeFun()
 {
-	time = sgct::SharedData::Instance()->readDouble();
+	curr_time = sgct::SharedData::Instance()->readDouble();
 }
 
 void myPreDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		time = glfwGetTime();
+		curr_time = gEngine->getTime();
 	}
 }

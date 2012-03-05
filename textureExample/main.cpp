@@ -14,7 +14,7 @@ void myDecodeFun();
 unsigned int myTextureIndex;
 
 //variables to share across cluster
-double time = 0.0;
+double curr_time = 0.0;
 
 int main( int argc, char* argv[] )
 {
@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	float speed = 50.0f;
-	glRotatef(static_cast<float>( time ) * speed, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>( curr_time ) * speed, 0.0f, 1.0f, 0.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
@@ -65,7 +65,9 @@ void myPreDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		time = glfwGetTime();
+		//@TODO JOEL __APPLE__ SOMEHOW glfwGetTime needs to be run in engine function, dosent work to use it directly here.
+		curr_time = gEngine->getTime();
+		printf("curr time %f\n", curr_time);
 	}
 }
 
@@ -77,10 +79,10 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble(time);
+	sgct::SharedData::Instance()->writeDouble(curr_time);
 }
 
 void myDecodeFun()
 {
-	time = sgct::SharedData::Instance()->readDouble();
+	curr_time = sgct::SharedData::Instance()->readDouble();
 }

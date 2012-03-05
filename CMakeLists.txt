@@ -69,10 +69,9 @@ set(SGCT_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH})
 
 #--------------------------------------------------------------------
 # Boolean values to build the different projects
-#
 option(HAS_SGCT   "Required for SGCT modules"    ON)
-option(HAS_EXAMPLE1   "Simple example"    ON)
-option(HAS_SHADEREXAMPLE "Shader Example"ON)
+option(WITH_EXAMPLES   "Compile example projects"    ON)
+
 #--------------------------------------------------------------------
 # Build shared libs or static libs
 option(BUILD_SHARED_LIBS "Build shared libs or static libs" ON)
@@ -144,12 +143,13 @@ endif(DEBUG_POSTFIX)
 #
 add_subdirectory(deps/tinyxml)
 add_subdirectory(sgct)
-IF (HAS_EXAMPLE1)
+IF(WITH_EXAMPLES)
   add_subdirectory(example1)
-ENDIF (HAS_EXAMPLE1)
-IF (HAS_SHADEREXAMPLE)
   add_subdirectory(shaderExample)
-ENDIF (HAS_SHADEREXAMPLE)
+  add_subdirectory(simpleShaderExample)
+  add_subdirectory(textureExample)
+ENDIF(WITH_EXAMPLES)
+
 #--------------------------------------------------------------------
 # Write config.xml
 #

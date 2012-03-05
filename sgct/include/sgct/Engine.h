@@ -11,6 +11,7 @@
 #include "NetworkManager.h"
 #include "ReadConfig.h"
 #include "Statistics.h"
+#include "Timer.h"
 #include "User.h"
 
 namespace sgct //simple graphics cluster toolkit
@@ -55,6 +56,10 @@ public:
 	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
+
+	//Timer fucntionality - Returns time since engine init in s.
+	float getTime();
+
 
 private:
 	bool initNetwork();
@@ -105,8 +110,9 @@ private:
 	bool mTerminate;
 
 	//objects
-	core_sgct::User			mUser;
 	core_sgct::Statistics	mStatistics;
+	core_sgct::Timer		mTimer;
+	core_sgct::User			mUser;
 
 	//pointers
 	core_sgct::NetworkManager * mNetworkConnections;

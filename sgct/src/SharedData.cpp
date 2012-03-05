@@ -43,6 +43,9 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 {
 	if(receivedLenght > 0)
 	{
+
+		// @TODO JOEL: Removed to make examples run on Mac Os X
+		// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		
 		//re-allocate buffer if needed
@@ -57,13 +60,19 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 		if( mDecodeFn != NULL )
 			mDecodeFn();
 
+		// @TODO JOEL: Removed to make examples run on Mac Os X
+		// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	}
 }
 
 void SharedData::encode()
 {
-//	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+//@TODO Decide whatever weshould have the mutex lock in encode or implicitly in mEncodeFn through
+//e.g writeDouble()
+
+// @TODO JOEL: Removed to make examples run on Mac Os X
+// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	dataBlock.clear();
 
 	//reserve header space
@@ -72,7 +81,8 @@ void SharedData::encode()
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
-//	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+// @TODO JOEL: Removed to make examples run on Mac Os X
+// glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeFloat(float f)

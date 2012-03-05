@@ -58,8 +58,8 @@ set(HEADER_FILES
 	${SGCT_INCLUDE_DIR}/SharedData.h
 	${SGCT_INCLUDE_DIR}/Statistics.h
 	${SGCT_INCLUDE_DIR}/TextureManager.h
+	${SGCT_INCLUDE_DIR}/Timer.h
 	${SGCT_INCLUDE_DIR}/Viewport.h
-
 )
 
 set(SOURCE_FILES
@@ -81,6 +81,7 @@ set(SOURCE_FILES
 	SharedData.cpp
 	Statistics.cpp
 	TextureManager.cpp
+	Timer.cpp
 	Viewport.cpp
 
 )

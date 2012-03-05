@@ -45,9 +45,6 @@ sgct::Engine::Engine( int argc, char* argv[] )
 		return;
 	}
 
-	//Start timer
-	mTimer.start();
-
 	setClearBufferFunction( clearBuffer );
 	nearClippingPlaneDist = 0.1f;
 	farClippingPlaneDist = 100.0f;
@@ -690,6 +687,6 @@ const char * sgct::Engine::getBasicInfo()
 	return basicInfo;
 }
 
-float sgct::Engine::getTime() {
+double sgct::Engine::getTime() {
 	return glfwGetTime();
 }

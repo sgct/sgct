@@ -57,8 +57,7 @@ public:
 	inline bool isDisplayInfoRendered() { return showInfo; }
 
 	//Timer functionality - Returns time since engine object created in s.
-	float getTime();
-
+	double getTime();
 
 private:
 	bool initNetwork();

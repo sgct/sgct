@@ -1,0 +1,174 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project DefaultTargets="Build" ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup Label="ProjectConfigurations">
+    <ProjectConfiguration Include="Debug|Win32">
+      <Configuration>Debug</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+    <ProjectConfiguration Include="Release|Win32">
+      <Configuration>Release</Configuration>
+      <Platform>Win32</Platform>
+    </ProjectConfiguration>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sgct\ClusterManager.cpp" />
+    <ClCompile Include="..\sgct\Engine.cpp" />
+    <ClCompile Include="..\sgct\Font.cpp" />
+    <ClCompile Include="..\sgct\FontManager.cpp" />
+    <ClCompile Include="..\sgct\freetype.cpp" />
+    <ClCompile Include="..\sgct\Image.cpp" />
+    <ClCompile Include="..\sgct\MessageHandler.cpp" />
+    <ClCompile Include="..\sgct\NetworkManager.cpp" />
+    <ClCompile Include="..\sgct\ReadConfig.cpp" />
+    <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
+    <ClCompile Include="..\sgct\SGCTNode.cpp" />
+    <ClCompile Include="..\sgct\SGCTWindow.cpp" />
+    <ClCompile Include="..\sgct\Shader.cpp" />
+    <ClCompile Include="..\sgct\ShaderManager.cpp" />
+    <ClCompile Include="..\sgct\ShaderProgram.cpp" />
+    <ClCompile Include="..\sgct\SharedData.cpp" />
+    <ClCompile Include="..\sgct\Statistics.cpp" />
+    <ClCompile Include="..\sgct\TextureManager.cpp" />
+    <ClCompile Include="..\sgct\Viewport.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\sgct.h" />
+    <ClInclude Include="..\..\include\sgct\ClusterManager.h" />
+    <ClInclude Include="..\..\include\sgct\Engine.h" />
+    <ClInclude Include="..\..\include\sgct\Font.h" />
+    <ClInclude Include="..\..\include\sgct\FontManager.h" />
+    <ClInclude Include="..\..\include\sgct\freetype.h" />
+    <ClInclude Include="..\..\include\sgct\Frustum.h" />
+    <ClInclude Include="..\..\include\sgct\Image.h" />
+    <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
+    <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
+    <ClInclude Include="..\..\include\sgct\Point3.h" />
+    <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
+    <ClInclude Include="..\..\include\sgct\Shader.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
+    <ClInclude Include="..\..\include\sgct\SharedData.h" />
+    <ClInclude Include="..\..\include\sgct\Statistics.h" />
+    <ClInclude Include="..\..\include\sgct\TextureManager.h" />
+    <ClInclude Include="..\..\include\sgct\User.h" />
+    <ClInclude Include="..\..\include\sgct\Viewport.h" />
+  </ItemGroup>
+  <PropertyGroup Label="Globals">
+    <ProjectGuid>{0516E457-A21E-4D14-8DBC-63D918909A23}</ProjectGuid>
+    <RootNamespace>sgct32</RootNamespace>
+    <ProjectName>sgct32</ProjectName>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+    <WholeProgramOptimization>true</WholeProgramOptimization>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
+    <ConfigurationType>StaticLibrary</ConfigurationType>
+    <CharacterSet>MultiByte</CharacterSet>
+  </PropertyGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
+  <ImportGroup Label="ExtensionSettings">
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <ImportGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="PropertySheets">
+    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
+  </ImportGroup>
+  <PropertyGroup Label="UserMacros" />
+  <PropertyGroup>
+    <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\..\..\lib\msvc10\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\..\..\lib\msvc10\</OutDir>
+    <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
+  </PropertyGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+    <ClCompile>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>true</MinimalRebuild>
+      <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <PreprocessorDefinitions>GLEW_STATIC;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml.lib;;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glew32s.lib;glfw_d.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxmlSTL_d.lib;zlib_d.lib;libpng15_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>..\..\lib\msvc10\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <OutputFile>$(OutDir)$(TargetName)$(TargetExt)</OutputFile>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
+    <ClCompile>
+      <Optimization>MaxSpeed</Optimization>
+      <IntrinsicFunctions>true</IntrinsicFunctions>
+      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <FunctionLevelLinking>true</FunctionLevelLinking>
+      <WarningLevel>Level3</WarningLevel>
+      <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
+      <PreprocessorDefinitions>GLEW_STATIC;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>..\..\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+    </ClCompile>
+    <Link>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml.lib;%(AdditionalDependencies);%(AdditionalDependencies)</AdditionalDependencies>
+      <GenerateDebugInformation>true</GenerateDebugInformation>
+      <OptimizeReferences>true</OptimizeReferences>
+      <EnableCOMDATFolding>true</EnableCOMDATFolding>
+      <TargetMachine>MachineX86</TargetMachine>
+      <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+    </Link>
+    <Lib>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxmlSTL.lib;zlib.lib;libpng15.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
+    <Lib>
+      <AdditionalLibraryDirectories>..\..\lib\msvc10\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <IgnoreSpecificDefaultLibraries>
+      </IgnoreSpecificDefaultLibraries>
+      <IgnoreAllDefaultLibraries>true</IgnoreAllDefaultLibraries>
+    </Lib>
+    <ProjectReference>
+      <LinkLibraryDependencies>true</LinkLibraryDependencies>
+    </ProjectReference>
+    <PostBuildEvent>
+      <Command>
+      </Command>
+    </PostBuildEvent>
+    <PreBuildEvent>
+      <Command>
+      </Command>
+    </PreBuildEvent>
+  </ItemDefinitionGroup>
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
+  <ImportGroup Label="ExtensionTargets">
+  </ImportGroup>
+</Project>

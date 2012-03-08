@@ -1,0 +1,141 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{7e3e9845-3362-448f-84d8-812396b2f89d}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source">
+      <UniqueIdentifier>{84c34eb6-9b75-4d19-aa13-41aac760a327}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="..\..\include\sgct.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\ClusterManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Engine.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Font.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\FontManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\freetype.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Frustum.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Image.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\MessageHandler.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\NetworkManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Point3.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\ReadConfig.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTNetwork.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTNode.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTWindow.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Shader.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\ShaderManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\ShaderProgram.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SharedData.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Statistics.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\TextureManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\User.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\Viewport.h">
+      <Filter>include</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="..\sgct\Viewport.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\ClusterManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\Engine.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\Font.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\FontManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\freetype.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\Image.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\MessageHandler.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\NetworkManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\ReadConfig.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTNetwork.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTNode.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTWindow.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\Shader.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\ShaderManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\ShaderProgram.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SharedData.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\Statistics.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\TextureManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+  </ItemGroup>
+</Project>

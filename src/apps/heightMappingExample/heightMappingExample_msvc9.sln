@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
 # Visual Studio 2008
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "shaderExample_msvc9", "shaderExample_msvc9.vcproj", "{965A932B-A09A-4967-835C-535BDFE0BFB3}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heightMappingExample_msvc9", "heightMappingExample_msvc9.vcproj", "{965A932B-A09A-4967-835C-535BDFE0BFB3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

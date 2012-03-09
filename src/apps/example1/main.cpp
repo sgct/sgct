@@ -11,16 +11,16 @@ double curr_time = 0.0;
 
 int main( int argc, char* argv[] )
 {
-    
+
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
-    
+
 	// Bind your functions
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
-	
+
 	// Init the engine
 	if( !gEngine->init() )
 	{
@@ -41,9 +41,8 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	float speed = 50.0f;
-	printf("curr time %f \n", curr_time);
 	glRotatef(static_cast<float>( curr_time ) * speed, 0.0f, 1.0f, 0.0f);
-	
+
 	//render a single triangle
 	glBegin(GL_TRIANGLES);
 		glColor3f(1.0f, 0.0f, 0.0f); //Red
@@ -63,8 +62,7 @@ void myPreDrawFun()
 	if( gEngine->isMaster() )
 	{
 		//get the time in seconds
-		curr_time = curr_time+1;//glfwGetTime();
-		printf("My set curr_time is %f \n", curr_time);
+		curr_time = gEngine->getTime();
 	}
 }
 

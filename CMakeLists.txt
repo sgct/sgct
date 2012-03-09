@@ -1,23 +1,40 @@
-# Copyright Linköping University 2011
+# Copyright Linkoping University 2011
+# SGCT Project Authors see Authors.txt
 
-project(SGCT)
+#
+# General project settings
+#
 cmake_minimum_required(VERSION 2.6.2)
+
+project(SGCT C CXX)
+
+SET(SGCT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+SET(SGCT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
+SET(SGCT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
+SET(SGCT_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
+SET(SGCT_EXECUTABLE_OUTPUT_DIR bin)
+SET(SGCT_LIBRARY_OUTPUT_DIR lib)
+
+#
+# Path for custom cmake modules, like FindXPackage.cmake
+#
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+
 
 #------------------------------------
 #  Build Type
 #  Release/Debug/RelWithDebInfo/MinSizeRel...
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
-#set(CMAKE_CXX_FLAGS "-g -Wall")
 
 #---------------------------------------------------------------------
 # Path to the install directory
 #
-if(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-  set(CMAKE_INSTALL_PREFIX "C:/Program Files/SGCT"
-    CACHE PATH "Where SGCT will be installed" FORCE)
-endif(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#if(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
+#  set(CMAKE_INSTALL_PREFIX "C:/Program Files/SGCT"
+#    CACHE PATH "Where SGCT will be installed" FORCE)
+#endif(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
 
-mark_as_advanced(CMAKE_INSTALL_PREFIX)
+#mark_as_advanced(CMAKE_INSTALL_PREFIX)
 
 #--------------------------------------------------------------------
 # Output paths for the executables and libraries
@@ -36,28 +53,35 @@ mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
 
 
 #
-# Path for custom cmake modules, like FindXPackage.cmake
-#
-#
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+# Build Dependencies
+# 
+INCLUDE_DIRECTORIES(
+  src/
+  src/deps/freetype/include
+  src/deps/glew/include
+  src/deps/glfw/include
+  src/deps/lpng/include
+  src/deps/tinyxml/include
+  src/deps/zlib/include
+)
 
 
 #
 # Find modules, ex third party libs, include files
 #
 ##TODO LINK WITH CORRECT LIBRARIES
-find_package(GLFW REQUIRED)
-INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
-find_package(GLEW REQUIRED)
-INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
-find_package(PNG REQUIRED)
-INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
-find_package(freetype REQUIRED)	
-INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
-set(TINYXML_LIBRARY tinyxml)
-set(TINYXML_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/tinyxml/")
+#find_package(GLFW REQUIRED)
+#INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
+#find_package(GLEW REQUIRED)
+#INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
+#find_package(PNG REQUIRED)
+#INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
+#find_package(freetype REQUIRED)	
+#INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
+#set(TINYXML_LIBRARY tinyxml)
+#set(TINYXML_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/tinyxml/")
 #find_package(TinyXML REQUIRED)		
-INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIR})
+#INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIR})
 # OpenGL
 IF(APPLE)
    INCLUDE_DIRECTORIES(/System/Library/Frameworks)
@@ -85,13 +109,12 @@ set(SGCT_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH})
 
 #--------------------------------------------------------------------
 # Boolean values to build the different projects
-option(HAS_SGCT   "Required for SGCT modules"    ON)
 option(WITH_EXAMPLES   "Compile example projects"    ON)
 
 #--------------------------------------------------------------------
 # Build shared libs or static libs
-option(BUILD_SHARED_LIBS "Build shared libs or static libs" ON)
-#mark_as_advanced(BUILD_SHARED_LIBS)
+option(BUILD_SHARED_LIBS "Build shared libs or static libs" OFF)
+mark_as_advanced(BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------
 # If the generator is VS8, set the compiler to VS8
@@ -103,29 +126,17 @@ if(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
   endif(NOT ${CMAKE_CXX_COMPILER} MATCHES "8")
 endif(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
 
-#--------------------------------------------------------------------
-# Locate SGCT libraries and include directories
-#
-
-
 
 #--------------------------------------------------------------------
 # Set preprocessor definition for static or shared build
 # This variable should be used by all libraries in the subdirectories.
 # Set the LIB_TYPE variable to STATIC
-
-#SET (LIB_TYPE STATIC)
-#IF (BUILD_SHARED_LIBS)
-#  # User wants to build Dynamic Libraries, so change the LIB_TYPE variable to CMake keyword 'SHARED'
-#  SET (LIB_TYPE SHARED)
-#  add_definitions(-DSGCT_ALL_DYN_LINK)
-#ENDIF (BUILD_SHARED_LIBS)
+#--------------------------------------------------------------------
 
 IF (BUILD_SHARED_LIBS)
   add_definitions(-DSGCT_ALL_DYN_LINK)
 ENDIF (BUILD_SHARED_LIBS)
 
-	
 #--------------------------------------------------------------------
 # Disable deprecation warnings for standard C functions
 #
@@ -142,20 +153,12 @@ if(DEBUG_POSTFIX)
 endif(DEBUG_POSTFIX)
 
 #--------------------------------------------------------------------
-# Build modules
-#
-add_subdirectory(deps/tinyxml)
-add_subdirectory(sgct)
-#TODO Add makefiles for all examples
-IF(WITH_EXAMPLES)
-  add_subdirectory(example1)
-#  add_subdirectory(shaderExample)
-#  add_subdirectory(simpleShaderExample)
-#  add_subdirectory(textureExample)
-ENDIF(WITH_EXAMPLES)
+# Build
+#--------------------------------------------------------------------
+ADD_SUBDIRECTORY(src/deps)
+ADD_SUBDIRECTORY(src/sgct)
 
-#--------------------------------------------------------------------
-# Write config.xml
-#
-#--------------------------------------------------------------------
+IF(WITH_EXAMPLES)
+  add_subdirectory(src/apps)
+ENDIF(WITH_EXAMPLES)
 

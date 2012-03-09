@@ -4,7 +4,7 @@
 #if __WIN32__
 #include <GL/wglew.h>
 #else
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/ReadConfig.h"
@@ -36,7 +36,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	}
 	valid = true;
 	sgct::MessageHandler::Instance()->print("Config file '%s' read successfully!\n", xmlFileName.c_str());
-	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n", 
+	sgct::MessageHandler::Instance()->print("Number of nodes in cluster: %d\n",
 		ClusterManager::Instance()->getNumberOfNodes());
 	for(unsigned int i = 0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
 		sgct::MessageHandler::Instance()->print("Node(%d) ip: %s [%s]\n", i,
@@ -60,7 +60,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 	std::string tmpStr( XMLroot->Attribute( "masterAddress" ) );
 	ClusterManager::Instance()->setMasterIp( tmpStr );
-	
+
 	if( XMLroot->Attribute( "externalControlPort" ) != NULL )
 	{
 		tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
@@ -93,14 +93,14 @@ void core_sgct::ReadConfig::readAndParseXML()
 				if( strcmp("Window", val[1]) == 0 )
 				{
 					tmpNode.getWindowPtr()->setWindowMode(strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
-					
+
 					int tmpSamples = 0;
 					if( element[1]->Attribute("numberOfSamples", &tmpSamples ) != NULL )
 						tmpNode.numberOfSamples = tmpSamples;
-					
+
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
-					
+
 					if( element[1]->Attribute("verticalSync") != NULL )
 						tmpNode.lockVerticalSync =
 							(strcmp( element[1]->Attribute("verticalSync"), "true" ) == 0 ? true : false);
@@ -111,7 +111,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 						val[2] = element[2]->Value();
 						int tmpWinData[4];
 						memset(tmpWinData,0,4);
-						
+
 						if( strcmp("Stereo", val[2]) == 0 )
 						{
 							tmpNode.stereo = getStereoType( element[2]->Attribute("type") );
@@ -129,7 +129,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 						tmpNode.getWindowPtr()->setWindowResolution(tmpWinData[2],tmpWinData[3]);
 						tmpNode.getWindowPtr()->setWindowPosition(tmpWinData[0],tmpWinData[1]);
-						
+
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
 					}
@@ -137,7 +137,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 				else if(strcmp("Viewport", val[1]) == 0)
 				{
 					Viewport tmpVp;
-					
+
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
@@ -145,7 +145,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 						double dTmp[2];
 						dTmp[0] = 0.0f;
 						dTmp[1] = 0.0f;
-						
+
 						if(strcmp("Pos", val[2]) == 0)
 						{
 							element[2]->Attribute("x", &dTmp[0]);
@@ -195,11 +195,11 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 					tmpNode.addViewport(tmpVp);
 				}//end viewport
-				
+
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
-			
+
 			ClusterManager::Instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )

@@ -2,7 +2,7 @@
 #if __WIN32__ //USE WGL EXTENSIONS
 #include <GL/wglew.h>
 #else //APPLE LINUX USE GLX EXTENSIONS
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/Engine.h"
@@ -20,7 +20,7 @@ using namespace core_sgct;
 sgct::Engine * sgct::Engine::mThis = NULL;
 
 sgct::Engine::Engine( int argc, char* argv[] )
-{	
+{
 	//init pointers
 	mThis = this;
 	mNetworkConnections = NULL;
@@ -64,7 +64,7 @@ bool sgct::Engine::init()
 		sgct::MessageHandler::Instance()->print("Failed to init GLFW.\n");
 		return false;
 	}
-	
+
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
@@ -124,7 +124,7 @@ bool sgct::Engine::initNetwork()
 
 	//Set message handler to send messages or not
 	sgct::MessageHandler::Instance()->sendMessagesToServer( !mNetworkConnections->isComputerServer() );
-	
+
 	if(!mNetworkConnections->init())
 		return false;
 
@@ -168,7 +168,7 @@ bool sgct::Engine::initWindow()
 		{
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
-			
+
 			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 				glfwWaitCond( core_sgct::NetworkManager::gCond,
 					core_sgct::NetworkManager::gDecoderMutex,
@@ -261,7 +261,7 @@ void sgct::Engine::frameSyncAndLock(int stage)
 	if( stage == PreStage )
 	{
 		mNetworkConnections->sync();
-		
+
 		if( !mNetworkConnections->isComputerServer() ) //not server
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
@@ -323,7 +323,7 @@ void sgct::Engine::render()
 				break;
 		}
 
-		frameSyncAndLock(PreStage);		
+		frameSyncAndLock(PreStage);
 
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
@@ -366,7 +366,7 @@ void sgct::Engine::renderDisplayInfo()
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 	unsigned int lFrameNumber = 0;
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
-	
+
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
 		ClusterManager::Instance()->getThisNodePtr()->ip.c_str(),
@@ -376,7 +376,7 @@ void sgct::Engine::renderDisplayInfo()
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
 	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms", 
+	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms",
 		SharedData::Instance()->getDataSize(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
@@ -444,7 +444,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	
+
 	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoLeftEye);
 	glFrustum( tmpFrustum->getLeft(),
 		tmpFrustum->getRight(),
@@ -466,7 +466,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	activeFrustum = Frustum::StereoRightEye;
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-	
+
 	tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoRightEye);
 	glFrustum( tmpFrustum->getLeft(),
 		tmpFrustum->getRight(),

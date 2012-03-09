@@ -5,7 +5,7 @@
 #if __WIN32__
 #include <GL/wglew.h>
 #else
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 
@@ -14,9 +14,9 @@
 namespace core_sgct
 {
 
-/*! 
+/*!
 Simple helper class for handling shaders. Shader can't be used directly, they must be linked to a program.
-Current implementation only supports vertex and fragment shader. 
+Current implementation only supports vertex and fragment shader.
 */
 class Shader
 {
@@ -31,8 +31,8 @@ public:
 	bool setSourceFromString( const std::string & srcString );
 
 	std::string getShaderTypeName( ShaderType shaderType ) const;
-	
-	/*! 
+
+	/*!
 	Get the id for this shader used for linking against programs. The shader source must be set
 	befor the id can be used. The shader won't be created until it has the source set
 	@return Shader id that can be used for program linking

@@ -2,7 +2,7 @@
 #ifdef __WIN32__
 #include <GL/wglew.h>
 #else
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/FontManager.h"
@@ -55,7 +55,7 @@ FontManager::FontManager(void)
 	//
 	// Set default font path
 	//
-    
+
 	char winDir[128];
 #if __WIN32__
 	GetWindowsDirectory(winDir,128);

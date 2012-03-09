@@ -2,7 +2,7 @@
 #if __WIN32__
 #include <GL/wglew.h>
 #else
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/Font.h"

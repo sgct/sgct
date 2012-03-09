@@ -2,7 +2,7 @@
 #ifdef __WIN32__
 #include <GL/wglew.h>
 #else //APPLE LINUX
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #include <GL/glxew.h>
 #endif
 #include <GL/glfw.h>
@@ -41,7 +41,7 @@ void core_sgct::SGCTWindow::close()
 	if( mUseSwapGroups )
 	{
 #ifdef __WITHSWAPBARRIERS__
-        
+
 #ifdef __WIN32__
 		if( wglewIsSupported("WGL_NV_swap_group") )
 		{
@@ -50,7 +50,7 @@ void core_sgct::SGCTWindow::close()
 			//un-join
 			wglJoinSwapGroupNV(hDC,0);
 		}
-#else 
+#else
 		if( glxewIsSupported("GLX_NV_swap_group") )
 		{
 			//un-bind
@@ -115,7 +115,7 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 		mBarrier = glxBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #endif
 	}
-    
+
 #endif
 }
 
@@ -194,7 +194,7 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	else
 		mUseSwapGroups = false;
 #endif
-    
+
 #else
         mUseSwapGroups = false;
 #endif
@@ -208,12 +208,12 @@ void GLFWCALL windowResizeCallback( int width, int height )
 void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
-    
+
 #ifdef __WITHSWAPBARRIERS__
 
 	if (mBarrier)
 	{
-        
+
     #ifdef __WIN32__ //Windows uses wglew.h
 		if( wglewIsSupported("WGL_NV_swap_group") )
 			wglQueryFrameCountNV(hDC, &frameNumber);
@@ -227,7 +227,7 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 
 void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
-    
+
 #ifdef __WITHSWAPBARRIERS__
 
 	if (mBarrier)

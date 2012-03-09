@@ -2,7 +2,7 @@
 #if __WIN32__
 #include <GL/wglew.h>
 #else
-#include <GL/glext.h>
+#include <OpenGL/glext.h>
 #endif
 #include <GL/glfw.h>
 
@@ -59,7 +59,7 @@ void core_sgct::Statistics::addSyncTime(double t)
 void core_sgct::Statistics::draw()
 {
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	
+
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -89,7 +89,7 @@ void core_sgct::Statistics::draw()
 	glLineWidth(1.0f);
 	glColor4f(1.0f,0.0f,0.0f,1.0f);
 
-	const double vertScale = 10000.0; 
+	const double vertScale = 10000.0;
 
 	//zero line, 60hz & 30hz
 	glBegin(GL_LINES);
@@ -105,21 +105,21 @@ void core_sgct::Statistics::draw()
 	glColor4f(1.0f,1.0f,0.0f,0.8f);
 	glBegin(GL_LINE_STRIP);
 	for(int i=0; i<STATS_HISTORY_LENGHT; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(FrameTime[i]*vertScale)); 
+		glVertex2i(i*2, 32 + static_cast<int>(FrameTime[i]*vertScale));
 	glEnd();
 
 	//draw time (magenta)
 	glColor4f(1.0f,0.0f,1.0f,0.8f);
 	glBegin(GL_LINE_STRIP);
 	for(int i=0; i<STATS_HISTORY_LENGHT; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(DrawTime[i]*vertScale)); 
+		glVertex2i(i*2, 32 + static_cast<int>(DrawTime[i]*vertScale));
 	glEnd();
 
 	//sync time (cyan)
 	glColor4f(0.0f,1.0f,1.0f,0.8f);
 	glBegin(GL_LINE_STRIP);
 	for(int i=0; i<STATS_HISTORY_LENGHT; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(SyncTime[i]*vertScale)); 
+		glVertex2i(i*2, 32 + static_cast<int>(SyncTime[i]*vertScale));
 	glEnd();
 
 	glPopAttrib();

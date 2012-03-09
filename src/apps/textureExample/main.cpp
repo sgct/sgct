@@ -67,7 +67,6 @@ void myPreDrawFun()
 	{
 		//@TODO JOEL __APPLE__ SOMEHOW glfwGetTime needs to be run in engine function, dosent work to use it directly here.
 		curr_time = gEngine->getTime();
-	//	printf("curr time %f\n", curr_time);
 	}
 }
 

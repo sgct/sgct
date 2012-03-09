@@ -7,20 +7,21 @@
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="bin\Debug\textureExample" prefix_auto="1" extension_auto="1" />
+				<Option output="..\..\..\bin\textureExample\mingw\textureExample" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
+				<Option parameters='-config &quot;../../../config/single.xml&quot;' />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="bin\Release\textureExample" prefix_auto="1" extension_auto="1" />
+				<Option output="..\..\..\bin\textureExample\mingw\textureExample" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;single.xml&quot;' />
+				<Option parameters='-config &quot;../../../config/single.xml&quot;' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
@@ -32,7 +33,7 @@
 		<Compiler>
 			<Add option="-O3" />
 			<Add option="-Wall" />
-			<Add directory="..\sgct\include" />
+			<Add directory="..\..\..\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
@@ -41,12 +42,13 @@
 			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="ws2_32" />
-			<Add directory="..\sgct\lib" />
+			<Add directory="..\..\..\lib\mingw" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>
 			<code_completion />
 			<debugger />
+			<envvars />
 		</Extensions>
 	</Project>
 </CodeBlocks_project_file>

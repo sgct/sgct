@@ -11,7 +11,7 @@
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;single.xml&quot;' />
+				<Option parameters='-config &quot;..\..\..\config\single.xml&quot;' />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
@@ -21,7 +21,7 @@
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;single.xml&quot;' />
+				<Option parameters='-config &quot;..\..\..\config\single.xml&quot;' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
@@ -31,9 +31,9 @@
 			</Target>
 		</Build>
 		<Compiler>
-			<Add option="-O3" />
 			<Add option="-Wall" />
-			<Add directory="..\sgct\include" />
+			<Add option="-D__WIN32__" />
+			<Add directory="..\..\..\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
@@ -42,7 +42,7 @@
 			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="ws2_32" />
-			<Add directory="..\sgct\lib" />
+			<Add directory="..\..\..\lib\mingw" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>

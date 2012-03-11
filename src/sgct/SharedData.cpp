@@ -25,7 +25,7 @@ SharedData::~SharedData()
 {
 	free(headerSpace);
     headerSpace = NULL;
-	
+
 	dataBlock.clear();
 }
 
@@ -47,9 +47,9 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 		// @TODO JOEL: Removed to make examples run on Mac Os X
 		// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-		
+
 		//re-allocate buffer if needed
-		if( (receivedLenght + core_sgct::SGCTNetwork::syncHeaderSize) > static_cast<int>(dataBlock.capacity()) )
+		if( (receivedLenght + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
 			dataBlock.reserve(receivedLenght + core_sgct::SGCTNetwork::syncHeaderSize);
 		dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
 		dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedLenght);

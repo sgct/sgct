@@ -2,6 +2,7 @@
 #include "../include/sgct/NetworkManager.h"
 #include <stdlib.h>
 #include <stdio.h>
+#include <iostream>
 #include <stdarg.h>
 #include <string.h>
 
@@ -79,7 +80,8 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 	}
 
     //print local
-    fprintf(stderr, mParseBuffer);
+    //fprintf(stderr, mParseBuffer);
+    std::cerr << mParseBuffer << std::endl;
 
     //if client send to server
     if(!mLocal && core_sgct::NetworkManager::gDecoderMutex != NULL)
@@ -111,13 +113,13 @@ char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
         glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		mSwapBuffer1.clear();
 		mSwapBuffer2.clear();
-		
+
 		mSwapBuffer1.insert(mSwapBuffer1.begin(), &mBuffer[0], &mBuffer[0]+indexOfLastChar);
-		
+
 		mSwapBuffer2.insert(mSwapBuffer2.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 		mSwapBuffer2.insert(mSwapBuffer2.end(), mBuffer.begin() + indexOfLastChar,
 			mBuffer.end());
-		
+
 		mBuffer.assign(mSwapBuffer2.begin(), mSwapBuffer2.end());
 		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 		return &mSwapBuffer1[0];

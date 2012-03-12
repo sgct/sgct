@@ -11,8 +11,6 @@ file(
 	*.cpp
 )
 
-message(${source_files})
-
 SET(CMAKE_C_FLAGS -DTIXML_USE_STL)
 ADD_DEFINITIONS(-DTIXML_USE_STL)
 add_library( tinyxml ${source_files} )

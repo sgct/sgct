@@ -8,33 +8,15 @@ cmake_minimum_required(VERSION 2.6.2)
 
 project(SGCT C CXX)
 
-SET(SGCT_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-SET(SGCT_INCLUDE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/src)
-SET(SGCT_BINARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/bin)
-SET(SGCT_LIBRARY_DIR ${CMAKE_CURRENT_SOURCE_DIR}/lib)
-SET(SGCT_EXECUTABLE_OUTPUT_DIR bin)
-SET(SGCT_LIBRARY_OUTPUT_DIR lib)
-
 #
 # Path for custom cmake modules, like FindXPackage.cmake
 #
 set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
 
-
 #------------------------------------
 #  Build Type
 #  Release/Debug/RelWithDebInfo/MinSizeRel...
 set(CMAKE_BUILD_TYPE RelWithDebInfo)
-
-#---------------------------------------------------------------------
-# Path to the install directory
-#
-#if(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-#  set(CMAKE_INSTALL_PREFIX "C:/Program Files/SGCT"
-#    CACHE PATH "Where SGCT will be installed" FORCE)
-#endif(WIN32 AND CMAKE_INSTALL_PREFIX_INITIALIZED_TO_DEFAULT)
-
-#mark_as_advanced(CMAKE_INSTALL_PREFIX)
 
 #--------------------------------------------------------------------
 # Output paths for the executables and libraries
@@ -46,11 +28,10 @@ endif(NOT EXECUTABLE_OUTPUT_PATH)
 
 if(NOT LIBRARY_OUTPUT_PATH)
   set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE PATH
-    "Single output directory for building all libraries.")
+    "DEFAULT LIBRARY PATH.")
 endif(NOT LIBRARY_OUTPUT_PATH)
 
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
-
 
 #
 # Build Dependencies
@@ -69,26 +50,19 @@ INCLUDE_DIRECTORIES(
 #
 # Find modules, ex third party libs, include files
 #
-##TODO LINK WITH CORRECT LIBRARIES
-#find_package(GLFW REQUIRED)
-#INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
-#find_package(GLEW REQUIRED)
-#INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
-#find_package(PNG REQUIRED)
-#INCLUDE_DIRECTORIES(${PNG_INCLUDE_DIR})
-#find_package(freetype REQUIRED)	
-#INCLUDE_DIRECTORIES(${FREETYPE_INCLUDE_DIRS})
-#set(TINYXML_LIBRARY tinyxml)
-#set(TINYXML_INCLUDE_DIR "${CMAKE_SOURCE_DIR}/deps/tinyxml/")
-#find_package(TinyXML REQUIRED)		
-#INCLUDE_DIRECTORIES(${TINYXML_INCLUDE_DIR})
+##TODO BULD FROM SOURCE
+find_package(GLFW REQUIRED)
+INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
+find_package(GLEW REQUIRED)
+INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
+
 # OpenGL
 IF(APPLE)
    INCLUDE_DIRECTORIES(/System/Library/Frameworks)
    FIND_LIBRARY(GLUT_LIBRARY GLUT)
    FIND_LIBRARY(OpenGL_LIBRARY OpenGL)
-	FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-   SET(EXTRA_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
+   FIND_LIBRARY(COCOA_LIBRARY Cocoa)
+   SET(GL_LIBS ${COCOA_LIBRARY} ${GLUT_LIBRARY} ${OpenGL_LIBRARY})
    SET( OpenGL_INCLUDE_DIR /usr/include/GL)
    INCLUDE_DIRECTORIES(${OpenGL_INCLUDE_DIR})
 ELSE(APPLE)
@@ -97,10 +71,14 @@ ELSE(APPLE)
    SET( OpenGL_LIBRARIES GL)
 ENDIF(APPLE)
 
-set(SGCT_DEPENDENCIES ${GLFW_LIBRARY} ${TINYXML_LIBRARY} ${GLEW_LIBRARY} ${PNG_LIBRARY} ${ZLIB_LIBRARY} ${FREETYPE_LIBRARY} ${EXTRA_LIBS} ${OpenGL_LIBRARIES})
+set(SGCT_DEPENDENCIES ${GL_LIBS} ${GLFW_LIBRARY} ${GLEW_LIBRARY} tinyxml zlib png15 freetype)
 
-message("${SGCT_DEPENDENCIES}")
+#--------------------------------------------------------------------
+# Project Paths
+#
 INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/sgct/include)
+INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
+LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/lib)
 
 set(SGCT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sgct/src)
 set(SGCT_BINARY_DIR ${CMAKE_BINARY_DIR})
@@ -109,7 +87,7 @@ set(SGCT_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH})
 
 #--------------------------------------------------------------------
 # Boolean values to build the different projects
-option(WITH_EXAMPLES   "Compile example projects"    ON)
+option(WITH_EXAMPLES  "Compile example projects"   ON)
 
 #--------------------------------------------------------------------
 # Build shared libs or static libs
@@ -126,15 +104,26 @@ if(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
   endif(NOT ${CMAKE_CXX_COMPILER} MATCHES "8")
 endif(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
 
+#--------------------------------------------------------------------
+# Disable deprecation warnings for standard C functions.
+#
+if(CMAKE_COMPILER_2005)
+  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
+endif(CMAKE_COMPILER_2005)
+
+if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
+  add_definitions(-DDARWIN)
+endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
 
 #--------------------------------------------------------------------
 # Set preprocessor definition for static or shared build
 # This variable should be used by all libraries in the subdirectories.
 # Set the LIB_TYPE variable to STATIC
 #--------------------------------------------------------------------
-
+SET(BUILD_SHARED_LIBS OFF)
 IF (BUILD_SHARED_LIBS)
   add_definitions(-DSGCT_ALL_DYN_LINK)
+  SET(BUILD_SHARED_LIBS ON)
 ENDIF (BUILD_SHARED_LIBS)
 
 #--------------------------------------------------------------------

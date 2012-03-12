@@ -18,7 +18,7 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 
 //variables to share across cluster
 double dt = 0.0;
-double time = 0.0;
+double curr_time = 0.0;
 bool showFPS = false;
 bool extraPackages = false;
 bool barrier = false;
@@ -76,7 +76,7 @@ void myDrawFun()
 		glTranslatef(0.0f, sinf(static_cast<float>(frameNumber)/100.0f), 0.0f);
 	}
 	else
-		glTranslatef(0.0f, static_cast<float>(sin(gEngine->mSharedData->time)), 0.0f);
+		glTranslatef(0.0f, static_cast<float>(sin(gEngine->mSharedData->curr_time)), 0.0f);
 	glColor3f(1.0f,0.0f,0.0f); //red
 	glBegin(GL_QUADS);
 
@@ -88,7 +88,7 @@ void myDrawFun()
 	glEnd();
 	*/
 
-	glRotatef(static_cast<float>(time)*10.0f, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>(curr_time)*10.0f, 0.0f, 1.0f, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glLineWidth(2.0);
@@ -137,7 +137,7 @@ void myPreDrawFun()
 	if( gEngine->isMaster() )
 	{
 		dt = gEngine->getDt();
-		time = glfwGetTime();
+		curr_time = gEngine->getTime();
 	}
 
 	gEngine->setDisplayInfoVisibility( showFPS );
@@ -175,7 +175,7 @@ void myEncodeFun()
 	flags = stats ? flags | 16 : flags & ~16;
 
 	sgct::SharedData::Instance()->writeDouble(dt);
-	sgct::SharedData::Instance()->writeDouble(time);
+	sgct::SharedData::Instance()->writeDouble(curr_time);
 	sgct::SharedData::Instance()->writeUChar(flags);
 
 	if(extraPackages)
@@ -186,7 +186,7 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	dt = sgct::SharedData::Instance()->readDouble();
-	time = sgct::SharedData::Instance()->readDouble();
+	curr_time = sgct::SharedData::Instance()->readDouble();
 	flags = sgct::SharedData::Instance()->readUChar();
 
 	showFPS	= flags & 0x0001;

@@ -1,5 +1,18 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-ADD_EXECUTABLE(heightmap main.cpp)
-TARGET_LINK_LIBRARIES(heightmap sgct)
+SET(APP_NAME heightMappingExample)
+
+PROJECT(${APP_NAME})
+set(AppPath ${CMAKE_BINARY_DIR}/bin/Apps/${APP_NAME})
+
+set(EXECUTABLE_OUTPUT_PATH ${AppPath})
+
+ADD_EXECUTABLE(${APP_NAME} main.cpp)
+TARGET_LINK_LIBRARIES(${APP_NAME} sgct)
+
+#Copy resources to bin dir
+file(COPY heightmap.png DESTINATION ${AppPath})
+file(COPY heightmap.frag DESTINATION ${AppPath})
+file(COPY heightmap.vert DESTINATION ${AppPath})
+file(COPY normalmap.png DESTINATION ${AppPath})

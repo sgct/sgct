@@ -1,7 +1,7 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
-SET(APP_NAME clustertest)
+SET(APP_NAME sgct_template)
 
 PROJECT(${APP_NAME})
 set(AppPath ${CMAKE_BINARY_DIR}/bin/Apps/${APP_NAME})

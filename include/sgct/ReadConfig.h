@@ -4,8 +4,8 @@
 
 */
 
-#ifndef _READ_CONFIG
-#define _READ_CONFIG
+#ifndef _SGCT_READ_CONFIG
+#define _SGCT_READ_CONFIG
 
 #include <string>
 #include <vector>

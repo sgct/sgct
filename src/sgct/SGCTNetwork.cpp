@@ -7,22 +7,20 @@
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/NetworkManager.h"
+#include "../include/sgct/Engine.h"
 #include <stdlib.h>
 #include <stdio.h>
 
-#ifdef __WIN32__ //WinSock 
+#ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
+    #include <netinet/tcp.h>
     #include <arpa/inet.h>
     #include <netdb.h>
 	#include <errno.h>
-	#define TCP_NODELAY 0x0001
-	#define SD_RECIEVE 0x00
-	#define SD_SEND 0x01
-	#define SD_BOTH 0x02
 	#define SOCKET_ERROR (-1)
 	#define INVALID_SOCKET (SOCKET)(~0)
 #endif
@@ -131,12 +129,11 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			if (iResult != SOCKET_ERROR)
 				break;
 
-			glfwSleep(0.25); //wait for next attempt
+			glfwSleep(1.0); //wait for next attempt
 		}
 	}
 
 	freeaddrinfo(result);
-	//mCommThreadId = glfwCreateThread( communicationHandler, this );
 	mMainThreadId = glfwCreateThread( connectionHandler, this );
 	if( mMainThreadId < 0)
 	{
@@ -159,10 +156,11 @@ void GLFWCALL connectionHandler(void *arg)
 		{
 			if( !nPtr->isConnected() )
 			{
-				sgct::MessageHandler::Instance()->print("Re-listening for client at connection %d... \n", nPtr->getId());
+				sgct::MessageHandler::Instance()->print("Listening for client at connection %d... \n", nPtr->getId());
 
 				if( nPtr->mCommThreadId != -1 )
 					glfwWaitThread( nPtr->mCommThreadId, GLFW_WAIT );
+
 				nPtr->mCommThreadId = glfwCreateThread( communicationHandler, nPtr );
 				if( nPtr->mCommThreadId < 0)
 				{
@@ -170,11 +168,11 @@ void GLFWCALL connectionHandler(void *arg)
 				}
 			}
 
-			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-				glfwWaitCond( core_sgct::NetworkManager::gStartConnectionCond,
-					core_sgct::NetworkManager::gDecoderMutex,
+			sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+				sgct::Engine::waitCond( core_sgct::NetworkManager::gStartConnectionCond,
+					core_sgct::NetworkManager::gMutex,
 					GLFW_INFINITY );
-			glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+			sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 		}
 	}
 	else
@@ -288,27 +286,36 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 
 int core_sgct::SGCTNetwork::getSendFrame()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::getSendFrame\n");
+#endif
 	int tmpi;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpi = mSendFrame;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpi;
 }
 
 bool core_sgct::SGCTNetwork::compareFrames()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::compareFrames\n");
+#endif
 	bool tmpb;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpb = (mRecvFrame[0] == mRecvFrame[1]);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpb;
 }
 
 void core_sgct::SGCTNetwork::swapFrames()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::swapFrames\n");
+#endif
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		mRecvFrame[1] = mRecvFrame[0];
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 }
 
 void core_sgct::SGCTNetwork::setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback)
@@ -328,52 +335,70 @@ void core_sgct::SGCTNetwork::setConnectedFunction(std::tr1::function<void (void)
 
 void core_sgct::SGCTNetwork::setConnectedStatus(bool state)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::setConnectedStatus\n");
+#endif
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		mConnected = state;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 }
 
 bool core_sgct::SGCTNetwork::isConnected()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::isConnected\n");
+#endif
 	bool tmpb;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpb = mConnected;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpb;
 }
 
 int core_sgct::SGCTNetwork::getTypeOfServer()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::getTypeOfServer\n");
+#endif
 	int tmpi;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpi = mServerType;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpi;
 }
 
 int core_sgct::SGCTNetwork::getId()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::getId\n");
+#endif
 	int tmpi;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpi = mId;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpi;
 }
 
 bool core_sgct::SGCTNetwork::isServer()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::isServer\n");
+#endif
 	bool tmpb;
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		tmpb = mServer;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 	return tmpb;
 }
 
 void core_sgct::SGCTNetwork::setRecvFrame(int i)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::setRecvFrame\n");
+#endif
+	sgct::Engine::lockMutex(NetworkManager::gMutex);
 	mRecvFrame[0] = i;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	sgct::Engine::unlockMutex(NetworkManager::gMutex);
 }
 
 /*
@@ -409,8 +434,13 @@ void GLFWCALL communicationHandler(void *arg)
 		nPtr->mUpdateCallbackFn(nPtr->getId(), true);
 
 	//say hi
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Sending first message... ");
+#endif
 	send(nPtr->mSocket, "Connected..\r\n", 13, 0);
-
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 	//init buffer
 	int recvbuflen = nPtr->mBufferSize;
 	char * recvbuf;
@@ -425,19 +455,39 @@ void GLFWCALL communicationHandler(void *arg)
 		//resize buffer request
 		if( nPtr->mRequestedSize > nPtr->mBufferSize )
 		{
-			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+			#ifdef __SGCT_DEBUG__
+                sgct::MessageHandler::Instance()->print("Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
+            #endif
+			sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 				sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", nPtr->mRequestedSize);
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 				recvbuflen = nPtr->mRequestedSize;
 				free(recvbuf);
 				recvbuf = (char *)malloc(nPtr->mRequestedSize);
-			glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+			sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+			#ifdef __SGCT_DEBUG__
+                sgct::MessageHandler::Instance()->print("Done.\n");
+            #endif
 		}
 
+#ifdef __SGCT_DEBUG__
+        sgct::MessageHandler::Instance()->print("Receiving data (buffer size: %d)... ", recvbuflen);
+#endif
 		iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
-
+#ifdef __SGCT_DEBUG__
+        sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 		if (iResult > 0)
 		{
+
+#ifdef __SGCT_DEBUG__
+            sgct::MessageHandler::Instance()->print("Received bytes: %d.\n", iResult);
+            sgct::MessageHandler::Instance()->print("First byte: %d. Header size: %d\n",
+                                                    recvbuf[0],
+                                                    core_sgct::SGCTNetwork::syncHeaderSize);
+
+#endif
+
 			if( nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::SyncServer )
 			{
 				//check type of message
@@ -445,7 +495,11 @@ void GLFWCALL communicationHandler(void *arg)
 				if( recvbuf[0] == core_sgct::SGCTNetwork::SizeHeader &&
 					recvbuflen > 4)
 				{
-					union
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Re-sizing shared data buffer... ");
+#endif
+
+                    union
 					{
 						unsigned int newSize;
 						char c[4];
@@ -457,17 +511,24 @@ void GLFWCALL communicationHandler(void *arg)
 					cui.c[3] = recvbuf[4];
 
 					sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", cui.newSize);
-					glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 					nPtr->mBufferSize = cui.newSize;
 					recvbuflen = cui.newSize;
 					free(recvbuf);
 					recvbuf = (char *)malloc(cui.newSize);
-					glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
 					iResult >= static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize) &&
 					nPtr->mDecoderCallbackFn != NULL)
 				{
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Parsing sync data... ");
+#endif
 					//convert from uchar to int32
 					union
 					{
@@ -485,17 +546,29 @@ void GLFWCALL communicationHandler(void *arg)
 						iResult-core_sgct::SGCTNetwork::syncHeaderSize,
 						nPtr->getId());
 
-					glfwSignalCond( core_sgct::NetworkManager::gCond );
+					sgct::Engine::signalCond( core_sgct::NetworkManager::gCond );
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 				}
 				else if( recvbuf[0] == core_sgct::SGCTNetwork::ConnectedHeader &&
 					nPtr->mConnectedCallbackFn != NULL)
 				{
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Signaling slave is connected... ");
+#endif
 					(nPtr->mConnectedCallbackFn)();
-					glfwSignalCond( core_sgct::NetworkManager::gCond );
+					sgct::Engine::signalCond( core_sgct::NetworkManager::gCond );
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 				}
 			}
 			else if(nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl)
 			{
+#ifdef __SGCT_DEBUG__
+                sgct::MessageHandler::Instance()->print("Parsing external tcp data... ");
+#endif
 				std::string tmpStr(recvbuf);
 				extBuffer += tmpStr.substr(0, iResult);
 				std::size_t found = extBuffer.find("\r\n");
@@ -504,29 +577,45 @@ void GLFWCALL communicationHandler(void *arg)
 					std::string extMessage = extBuffer.substr(0,found);
 					extBuffer = extBuffer.substr(found+2);//jump over \r\n
 
-					glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 						if( nPtr->mDecoderCallbackFn != NULL )
 						{
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
 						}
 						nPtr->sendStr("OK\r\n");
-					glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 				}
+#ifdef __SGCT_DEBUG__
+                sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 			}
 		}
 		else if (iResult == 0)
 		{
+#ifdef __SGCT_DEBUG__
+            sgct::MessageHandler::Instance()->print("Setting connection status to false... ");
+#endif
 			nPtr->setConnectedStatus(false);
+#ifdef __SGCT_DEBUG__
+            sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
 			sgct::MessageHandler::Instance()->print("TCP Connection %d closed.\n", nPtr->getId());
 		}
 		else
 		{
+#ifdef __SGCT_DEBUG__
+            sgct::MessageHandler::Instance()->print("Setting connection status to false... ");
+#endif
 			nPtr->setConnectedStatus(false);
-            #ifdef __WIN32__
-                sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
-            #else
-                sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
-            #endif
+#ifdef __SGCT_DEBUG__
+            sgct::MessageHandler::Instance()->print("Done.\n");
+#endif
+
+#ifdef __WIN32__
+            sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
+#else
+            sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
+#endif
 		}
 	} while (iResult > 0 || nPtr->isConnected());
 
@@ -539,10 +628,15 @@ void GLFWCALL communicationHandler(void *arg)
 	//Close socket
 	if( nPtr->mSocket != INVALID_SOCKET )
 	{
-		iResult = shutdown(nPtr->mSocket, SD_BOTH);
+#ifdef __WIN32__
+        iResult = shutdown(nPtr->mSocket, SD_BOTH);
+#else
+		iResult = shutdown(nPtr->mSocket, SHUT_RDWR);
+#endif
+
 		if (iResult == SOCKET_ERROR)
 #ifdef __WIN32__
-			sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
 		closesocket( nPtr->mSocket );
 #else
         sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", nPtr->getId(), errno);
@@ -562,7 +656,7 @@ void core_sgct::SGCTNetwork::sendData(void * data, int lenght)
 #ifdef __WIN32__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
 #else
-    sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
+        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
 #endif
 }
 
@@ -577,7 +671,7 @@ void core_sgct::SGCTNetwork::sendStr(std::string msg)
 #endif
 }
 
-void core_sgct::SGCTNetwork::closeSGCT()
+void core_sgct::SGCTNetwork::closeNetwork()
 {
 	char gameOver[7];
 	gameOver[0] = 24; //ASCII for cancel
@@ -601,20 +695,34 @@ void core_sgct::SGCTNetwork::closeSGCT()
 
 	if( mSocket != INVALID_SOCKET )
 	{
-		shutdown(mSocket, SD_BOTH);
+		/*
+		Windows shutdown options
+            * SD_RECIEVE
+            * SD_SEND
+            * SD_BOTH
+
+        Linux & Mac shutdown options
+            * SHUT_RD (Disables further receive operations)
+            * SHUT_WR (Disables further send operations)
+            * SHUT_RDWR (Disables further send and receive operations)
+		*/
+
 #ifdef __WIN32__
+		shutdown(mSocket, SD_BOTH);
 		closesocket( mSocket );
 #else
+		shutdown(mSocket, SHUT_RDWR);
 		close( mSocket );
 #endif
 	}
 
 	if( mListenSocket != INVALID_SOCKET )
 	{
-		shutdown(mListenSocket, SD_BOTH);
 #ifdef __WIN32__
+        shutdown(mListenSocket, SD_BOTH);
 		closesocket( mListenSocket );
 #else
+		shutdown(mListenSocket, SHUT_RDWR);
 		close( mListenSocket );
 #endif
 	}

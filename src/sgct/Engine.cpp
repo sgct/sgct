@@ -1,9 +1,4 @@
 #include <GL/glew.h>
-#if __WIN32__ //USE WGL EXTENSIONS
-#include <GL/wglew.h>
-#else //APPLE LINUX USE GLX EXTENSIONS
-#include <OpenGL/glext.h>
-#endif
 #include <GL/glfw.h>
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/freetype.h"
@@ -17,7 +12,11 @@
 
 using namespace core_sgct;
 
-sgct::Engine * sgct::Engine::mThis = NULL;
+sgct::Engine *  sgct::Engine::mThis     = NULL;
+
+#ifdef GLEW_MX
+GLEWContext * glewGetContext();
+#endif
 
 sgct::Engine::Engine( int argc, char* argv[] )
 {
@@ -41,6 +40,18 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	// Initialize GLFW
 	if( !glfwInit() )
 	{
+		mTerminate = true;
+		return;
+	}
+
+    NetworkManager::gMutex = glfwCreateMutex();
+    NetworkManager::gCond = glfwCreateCond();
+	NetworkManager::gStartConnectionCond = glfwCreateCond();
+
+    if(NetworkManager::gMutex == NULL ||
+		NetworkManager::gCond == NULL ||
+		NetworkManager::gStartConnectionCond == NULL)
+    {
 		mTerminate = true;
 		return;
 	}
@@ -151,6 +162,13 @@ bool sgct::Engine::initWindow()
 	  return false;
 	}
 	sgct::MessageHandler::Instance()->print("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+#ifdef __WIN32__
+		if( glewIsSupported("WGL_NV_swap_group") )
+			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+#else
+		if( glewIsSupported("GLX_NV_swap_group") )
+			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+#endif
 
 	getWindowPtr()->init( ClusterManager::Instance()->getThisNodePtr()->lockVerticalSync );
 	getWindowPtr()->setWindowTitle( getBasicInfo() );
@@ -169,11 +187,11 @@ bool sgct::Engine::initWindow()
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
-			glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-				glfwWaitCond( core_sgct::NetworkManager::gCond,
-					core_sgct::NetworkManager::gDecoderMutex,
+			glfwLockMutex( NetworkManager::gMutex );
+				glfwWaitCond( NetworkManager::gCond,
+					NetworkManager::gMutex,
 					1.0 );
-			glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+			glfwUnlockMutex( NetworkManager::gMutex );
 			// Swap front and back rendering buffers
 			glfwSwapBuffers();
 		}
@@ -249,6 +267,22 @@ void sgct::Engine::clean()
 	ClusterManager::Destroy();
 	MessageHandler::Destroy();
 
+	if( NetworkManager::gMutex != NULL )
+	{
+		glfwDestroyMutex( NetworkManager::gMutex );
+		NetworkManager::gMutex = NULL;
+	}
+	if( NetworkManager::gCond != NULL )
+	{
+		glfwDestroyCond( NetworkManager::gCond );
+		NetworkManager::gCond = NULL;
+	}
+	if( NetworkManager::gStartConnectionCond != NULL )
+	{
+		glfwDestroyCond( NetworkManager::gStartConnectionCond );
+		NetworkManager::gStartConnectionCond = NULL;
+	}
+
 	// Close window and terminate GLFW
 	glfwTerminate();
 }
@@ -268,11 +302,11 @@ void sgct::Engine::frameSyncAndLock(int stage)
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
-				glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-					glfwWaitCond( core_sgct::NetworkManager::gCond,
-						core_sgct::NetworkManager::gDecoderMutex,
+				glfwLockMutex( NetworkManager::gMutex );
+					glfwWaitCond( NetworkManager::gCond,
+						NetworkManager::gMutex,
 						1.0 );
-				glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+				glfwUnlockMutex( NetworkManager::gMutex );
 			}
 
 		syncTime = glfwGetTime() - t0;
@@ -289,11 +323,11 @@ void sgct::Engine::frameSyncAndLock(int stage)
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
-				glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-					glfwWaitCond( core_sgct::NetworkManager::gCond,
-						core_sgct::NetworkManager::gDecoderMutex,
+				glfwLockMutex( NetworkManager::gMutex );
+					glfwWaitCond( NetworkManager::gCond,
+						NetworkManager::gMutex,
 						1.0 );
-				glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+				glfwUnlockMutex( NetworkManager::gMutex );
 			}
 
 			syncTime += glfwGetTime() - t0;
@@ -687,6 +721,39 @@ const char * sgct::Engine::getBasicInfo()
 	return basicInfo;
 }
 
-double sgct::Engine::getTime() {
+double sgct::Engine::getTime()
+{
 	return glfwGetTime();
+}
+
+void sgct::Engine::lockMutex(GLFWmutex &mutex)
+{
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Locking mutex... ");
+#endif
+    glfwLockMutex(mutex);
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Done\n");
+#endif
+}
+
+void sgct::Engine::unlockMutex(GLFWmutex &mutex)
+{
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Unlocking mutex... ");
+#endif
+    glfwUnlockMutex(mutex);
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("Done\n");
+#endif
+}
+
+void sgct::Engine::waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout)
+{
+    glfwWaitCond(cond, mutex, timeout);
+}
+
+void sgct::Engine::signalCond(GLFWcond &cond)
+{
+    glfwSignalCond(cond);
 }

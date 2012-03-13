@@ -16,19 +16,20 @@
 	#define SOCKET_ERROR (-1)
 #endif
 
-GLFWmutex core_sgct::NetworkManager::gDecoderMutex = NULL;
+GLFWmutex core_sgct::NetworkManager::gMutex = NULL;
 GLFWcond core_sgct::NetworkManager::gCond = NULL;
 GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
 
 core_sgct::NetworkManager::NetworkManager(int mode)
 {
-	core_sgct::NetworkManager::gDecoderMutex = glfwCreateMutex();
-	core_sgct::NetworkManager::gCond = glfwCreateCond();
-	core_sgct::NetworkManager::gStartConnectionCond = glfwCreateCond();
-	if(gDecoderMutex == NULL ||
+	//core_sgct::NetworkManager::gMutex = glfwCreateMutex();
+	//core_sgct::NetworkManager::gCond = glfwCreateCond();
+	//core_sgct::NetworkManager::gStartConnectionCond = glfwCreateCond();
+
+	/*if(gDecoderMutex == NULL ||
 		gCond == NULL ||
 		gStartConnectionCond == NULL)
-		throw "Failed to create thread objects!";
+		throw "Failed to create thread objects!";*/
 
 	mNumberOfConnectedNodes = 0;
 	mAllNodesConnected = false;
@@ -164,9 +165,14 @@ void core_sgct::NetworkManager::sync()
 			//iterate counter
 			mNetworkConnections[i]->iterateFrameCounter();
 
-			glfwLockMutex( gDecoderMutex );
-				//set bytes in header
-				int currentFrame = mNetworkConnections[i]->getSendFrame();
+            //set bytes in header
+			int currentFrame = mNetworkConnections[i]->getSendFrame();
+
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("NetworkManager::sync (mutex)\n");
+#endif
+
+			sgct::Engine::lockMutex(gMutex);
 				unsigned char *p = (unsigned char *)&currentFrame;
 				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
 				sgct::SharedData::Instance()->getDataBlock()[1] = p[0];
@@ -176,7 +182,7 @@ void core_sgct::NetworkManager::sync()
 
 				//send
 				mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
-			glfwUnlockMutex( gDecoderMutex );
+			sgct::Engine::unlockMutex(gMutex);
 		}
 		//Client
 		else if( mNetworkConnections[i]->isConnected() &&
@@ -255,7 +261,7 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected
 	//wake up the connection handler thread
 	if( mNetworkConnections[index]->isServer() )
 	{
-		glfwSignalCond( gStartConnectionCond );
+		sgct::Engine::signalCond( gStartConnectionCond );
 	}
 }
 
@@ -272,30 +278,14 @@ void core_sgct::NetworkManager::close()
 	{
 		if(mNetworkConnections[i] != NULL)
 		{
-			mNetworkConnections[i]->closeSGCT();
+			mNetworkConnections[i]->closeNetwork();
 			delete mNetworkConnections[i];
 		}
 	}
 
 	mNetworkConnections.clear();
 
-	if( gCond != NULL )
-	{
-		glfwDestroyCond( gCond );
-		gCond = NULL;
-	}
-	if( gStartConnectionCond != NULL )
-	{
-		glfwDestroyCond( gStartConnectionCond );
-		gStartConnectionCond = NULL;
-	}
-	if( gDecoderMutex != NULL )
-	{
-		glfwDestroyMutex( gDecoderMutex );
-		gDecoderMutex = NULL;
-	}
-
-#ifdef __WIN32__     
+#ifdef __WIN32__
     WSACleanup();
 #else
     //No cleanup needed
@@ -318,7 +308,7 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 	{
 		sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
 		if(netPtr != NULL)
-			netPtr->closeSGCT();
+			netPtr->closeNetwork();
 		return false;
 	}
 
@@ -373,7 +363,7 @@ void core_sgct::NetworkManager::initAPI()
 #else
     //No init needed
 #endif
-    
+
 }
 
 void core_sgct::NetworkManager::getHostInfo()
@@ -382,7 +372,7 @@ void core_sgct::NetworkManager::getHostInfo()
 	char tmpStr[128];
     if (gethostname(tmpStr, sizeof(tmpStr)) == SOCKET_ERROR)
 	{
-#ifdef __WIN32__     
+#ifdef __WIN32__
         WSACleanup();
 #else
         //No cleanup needed
@@ -394,7 +384,7 @@ void core_sgct::NetworkManager::getHostInfo()
 	struct hostent *phe = gethostbyname(tmpStr);
     if (phe == 0)
 	{
-#ifdef __WIN32__     
+#ifdef __WIN32__
         WSACleanup();
 #else
         //No cleanup needed

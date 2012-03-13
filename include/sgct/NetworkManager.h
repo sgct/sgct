@@ -28,7 +28,7 @@ public:
 	bool matchHostName(const std::string name);
 	bool matchAddress(const std::string ip);
 	bool isComputerServer() { return mIsServer; }
-	bool isRunning() { return mIsRunning; } 
+	bool isRunning() { return mIsRunning; }
 	bool areAllNodesConnected() { return mAllNodesConnected; }
 	SGCTNetwork * getExternalControlPtr() { return mIsExternalControlPresent ? mNetworkConnections[0] : NULL; }
 
@@ -43,16 +43,16 @@ private:
 
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
-	static GLFWmutex gDecoderMutex;
+	static GLFWmutex gMutex;
 	static GLFWcond gCond;
 	static GLFWcond gStartConnectionCond;
 
 private:
 	std::vector<SGCTNetwork*> mNetworkConnections;
-	
+
 	std::string hostName; //stores this computers hostname
 	std::vector<std::string> localAddresses; //stors this computers ip addresses
-	
+
 	bool mIsServer;
 	bool mIsRunning;
 	bool mIsExternalControlPresent;

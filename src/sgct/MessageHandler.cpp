@@ -1,5 +1,6 @@
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/NetworkManager.h"
+#include "../include/sgct/Engine.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -50,12 +51,12 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedLenght,
 {
 	if(receivedLenght > 0)
 	{
-		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedLenght);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, &mRecBuffer[0]);
-		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 	}
 }
 
@@ -81,24 +82,24 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 
     //print local
     //fprintf(stderr, mParseBuffer);
-    std::cerr << mParseBuffer << std::endl;
+    std::cerr << mParseBuffer;// << std::endl;
 
     //if client send to server
-    if(!mLocal && core_sgct::NetworkManager::gDecoderMutex != NULL)
+    if(!mLocal && core_sgct::NetworkManager::gMutex != NULL)
     {
-        glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		if(mBuffer.empty())
 			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
 		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
-		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
     }
 }
 
 void sgct::MessageHandler::clearBuffer()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	mBuffer.clear();
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 char * sgct::MessageHandler::getMessage()
@@ -110,7 +111,7 @@ char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
 {
     if( mBuffer.size() > indexOfLastChar)
     {
-        glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		mSwapBuffer1.clear();
 		mSwapBuffer2.clear();
 
@@ -121,7 +122,7 @@ char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
 			mBuffer.end());
 
 		mBuffer.assign(mSwapBuffer2.begin(), mSwapBuffer2.end());
-		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 		return &mSwapBuffer1[0];
     }
     else

@@ -9,9 +9,9 @@
 
 #include "ClusterManager.h"
 #include "NetworkManager.h"
-#include "ReadConfig.h"
 #include "Statistics.h"
 #include "User.h"
+#include "ReadConfig.h"
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -52,12 +52,16 @@ public:
 	void setDisplayInfoVisibility(bool state) { showInfo = state; }
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
+    //GLFW wrapped functions
+	static void lockMutex(GLFWmutex &mutex);
+	static void unlockMutex(GLFWmutex &mutex);
+	static void waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout);
+	static void signalCond(GLFWcond &cond);
+	static double getTime();
+
 	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
-
-	//Timer functionality - Returns time since engine object created in s.
-	double getTime();
 
 private:
 	bool initNetwork();

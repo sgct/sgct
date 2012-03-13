@@ -1,5 +1,7 @@
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/NetworkManager.h"
+#include "../include/sgct/Engine.h"
+#include "../include/sgct/MessageHandler.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -43,10 +45,12 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 {
 	if(receivedLenght > 0)
 	{
+#ifdef __SGCT_DEBUG__
+        sgct::MessageHandler::Instance()->print("SharedData::decode\n");
+#endif
 
-		// @TODO JOEL: Removed to make examples run on Mac Os X
-		// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-		glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+
+		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 
 		//re-allocate buffer if needed
 		if( (receivedLenght + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
@@ -57,79 +61,94 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 		//reset
 		pos = core_sgct::SGCTNetwork::syncHeaderSize;
 
+		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
 		if( mDecodeFn != NULL )
 			mDecodeFn();
-
-		// @TODO JOEL: Removed to make examples run on Mac Os X
-		// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
-		glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 	}
 }
 
 void SharedData::encode()
 {
-//@TODO Decide whatever weshould have the mutex lock in encode or implicitly in mEncodeFn through
-//e.g writeDouble()
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::encode\n");
+#endif
 
-// @TODO JOEL: Removed to make examples run on Mac Os X
-// glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	dataBlock.clear();
 
 	//reserve header space
-
 	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
+
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
-// @TODO JOEL: Removed to make examples run on Mac Os X
-// glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
 }
 
 void SharedData::writeFloat(float f)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeFloat\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&f;
 	dataBlock.insert( dataBlock.end(), p, p+4);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 void SharedData::writeDouble(double d)
 {
-    glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeDouble\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
  	unsigned char *p = (unsigned char *)&d;
 	dataBlock.insert( dataBlock.end(), p, p+8);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 void SharedData::writeInt32(int i)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeInt32\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&i;
 	dataBlock.insert( dataBlock.end(), p, p+4);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 void SharedData::writeUChar(unsigned char c)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeUChar\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = &c;
 	dataBlock.push_back(*p);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 void SharedData::writeBool(bool b)
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeBool\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	if( b )
 		dataBlock.push_back(1);
 	else
 		dataBlock.push_back(0);
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 float SharedData::readFloat()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readFloat\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
 	{
 		float f;
@@ -141,14 +160,17 @@ float SharedData::readFloat()
 	cf.c[2] = dataBlock[pos+2];
 	cf.c[3] = dataBlock[pos+3];
 	pos += 4;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return cf.f;
 }
 
 double SharedData::readDouble()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readDouble\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
 	{
 		double d;
@@ -164,14 +186,17 @@ double SharedData::readDouble()
 	cf.c[6] = dataBlock[pos+6];
 	cf.c[7] = dataBlock[pos+7];
 	pos += 8;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return cf.d;
 }
 
 int SharedData::readInt32()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readInt32\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
 	{
 		int i;
@@ -183,29 +208,35 @@ int SharedData::readInt32()
 	ci.c[2] = dataBlock[pos+2];
 	ci.c[3] = dataBlock[pos+3];
 	pos += 4;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return ci.i;
 }
 
 unsigned char SharedData::readUChar()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readUChar\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char c;
 	c = dataBlock[pos];
 	pos += 1;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return c;
 }
 
 bool SharedData::readBool()
 {
-	glfwLockMutex( core_sgct::NetworkManager::gDecoderMutex );
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readBool\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	bool b;
 	b = dataBlock[pos] == 1 ? true : false;
 	pos += 1;
-	glfwUnlockMutex( core_sgct::NetworkManager::gDecoderMutex );
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return b;
 }

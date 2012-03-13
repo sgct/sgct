@@ -20,25 +20,22 @@
     #include <windows.h> //must be declared before glfw
     #include <winsock2.h>
 #endif
-//@TODO FIX ME, which inlcudes needed?
-//#ifdef __DARWIN__
-//    #include <glew.h>
-//    #include <GL/glew.h>
-//
-//#else
-    #include <GL/glew.h>
-#if __WIN32__
-#include <GL/wglew.h>
-#else
-#include <OpenGL/glext.h>
-#endif
-    #include <GL/glfw.h>
-//#endif
+
+#include <GL/glew.h>
+#include <GL/glfw.h>
+
 #include "sgct/Engine.h"
 #include "sgct/SharedData.h"
 #include "sgct/TextureManager.h"
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"
 #include "sgct/ShaderManager.h"
+
+#ifdef __WIN32__
+    #include <GL/wglew.h>
+#else //APPLE LINUX
+    #include <OpenGL/glext.h>
+    #include <GL/glxew.h>
+#endif
 
 #endif

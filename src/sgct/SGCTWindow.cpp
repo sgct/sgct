@@ -15,10 +15,11 @@
 HDC hDC;
 #else // APPLE || LINUX
 GLXDrawable hDC;
+Display * disp;
+    #ifdef GLEW_MX
+    GLXEWContext * glxewGetContext();
+    #endif
 #endif
-
-//@TODO INVESTIGATE THE SWAP BUFFER COMMANDS FOR APPLE AND LINUX< WHY 3 Paeameters needed instead of 2!!!
-
 
 void GLFWCALL windowResizeCallback( int width, int height );
 
@@ -40,7 +41,7 @@ void core_sgct::SGCTWindow::close()
 {
 	if( mUseSwapGroups )
 	{
-#ifdef __WITHSWAPBARRIERS__
+//#ifdef __WITHSWAPBARRIERS__
 
 #ifdef __WIN32__
 		if( wglewIsSupported("WGL_NV_swap_group") )
@@ -51,16 +52,18 @@ void core_sgct::SGCTWindow::close()
 			wglJoinSwapGroupNV(hDC,0);
 		}
 #else
-		if( glxewIsSupported("GLX_NV_swap_group") )
+    #ifndef __APPLE__
+		if( glewIsSupported("GLX_NV_swap_group") )
 		{
 			//un-bind
-			glXBindSwapBarrierNV(1,0);
+			glXBindSwapBarrierNV(disp,1,0);
 			//un-join
-			glXJoinSwapGroupNV(hDC,0);
+			glXJoinSwapGroupNV(disp,hDC,0);
 		}
+    #endif
 #endif
 
-#endif
+//#endif
 	}
 }
 
@@ -105,18 +108,20 @@ void core_sgct::SGCTWindow::setWindowMode(const int mode)
 
 void core_sgct::SGCTWindow::setBarrier(const bool state)
 {
-#ifdef __WITHSWAPBARRIERS__
+//#ifdef __WITHSWAPBARRIERS__
 
 	if( mUseSwapGroups && state != mBarrier)
 	{
 #ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #else //Apple and Linux uses glext.h
-		mBarrier = glxBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
+    #ifndef __APPLE__
+		mBarrier = glXBindSwapBarrierNV(disp, 1, state ? 1 : 0) ? 1 : 0;
+    #endif
 #endif
 	}
 
-#endif
+//#endif
 }
 
 void core_sgct::SGCTWindow::useSwapGroups(const bool state)
@@ -157,7 +162,7 @@ bool core_sgct::SGCTWindow::openWindow()
 
 void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 {
-#ifdef __WITHSWAPBARRIERS__
+//#ifdef __WITHSWAPBARRIERS__
 
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
@@ -177,12 +182,15 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	else
 		mUseSwapGroups = false;
 #else //Apple and Linux uses glext.h
-    if (glxewIsSupported(GLX_NV_swap_group) && mUseSwapGroups)
+    #ifndef __APPLE__
+
+    if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
 		hDC = glXGetCurrentDrawable();
+		disp = glXGetCurrentDisplay();
 		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
 
-		if( glXJoinSwapGroupNV(hDC,1) )
+		if( glXJoinSwapGroupNV(disp,hDC,1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
@@ -193,11 +201,13 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 	}
 	else
 		mUseSwapGroups = false;
+
+    #endif
 #endif
 
-#else
-        mUseSwapGroups = false;
-#endif
+//#else
+//        mUseSwapGroups = false;
+//#endif
 }
 
 void GLFWCALL windowResizeCallback( int width, int height )
@@ -209,7 +219,7 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
 
-#ifdef __WITHSWAPBARRIERS__
+//#ifdef __WITHSWAPBARRIERS__
 
 	if (mBarrier)
 	{
@@ -218,24 +228,30 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 		if( wglewIsSupported("WGL_NV_swap_group") )
 			wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
-		if( glxewIsSupported("GLX_NV_swap_group") )
-			gxlQueryFrameCountNV(hDC, &frameNumber);
+        #ifndef __APPLE__
+		if( glewIsSupported("GLX_NV_swap_group") )
+			glXQueryFrameCountNV(disp, hDC, &frameNumber);
+        #endif
     #endif
 	}
-#endif
+//#endif
 }
 
 void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
 
-#ifdef __WITHSWAPBARRIERS__
+//#ifdef __WITHSWAPBARRIERS__
 
 	if (mBarrier)
 	{
 #ifdef __WIN32__
 		if( wglewIsSupported("WGL_NV_swap_group") && wglResetFrameCountNV(hDC) )
 #else
-		if( glxewIsSupported("GLX_NV_swap_group") && glXResetFrameCountNV(hDC) )
+    #ifdef __APPLE__
+        if(false)
+    #else //linux
+		if( glewIsSupported("GLX_NV_swap_group") && glXResetFrameCountNV(disp,hDC) )
+    #endif
 #endif
 		{
 			mSwapGroupMaster = true;
@@ -248,5 +264,5 @@ void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
 		}
 	}
 
-#endif
+//#endif
 }

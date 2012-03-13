@@ -36,7 +36,6 @@
 		<Compiler>
 			<Add option="-O3" />
 			<Add option="-Wall" />
-			<Add option="-DGLEW_STATIC" />
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>

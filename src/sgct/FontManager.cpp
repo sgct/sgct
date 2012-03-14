@@ -56,19 +56,19 @@ FontManager::FontManager(void)
 	// Set default font path
 	//
 
-	char winDir[128];
+	char fontDir[128];
 #if __WIN32__
-	GetWindowsDirectory(winDir,128);
-    mDefaultFontPath.assign( winDir );
+	GetWindowsDirectory(fontDir,128);
+    mDefaultFontPath.assign( fontDir );
 	mDefaultFontPath += "\\Fonts\\";
 #elif __APPLE__
 	//System Fonts
-    sprintf(winDir, "/System/Library/Fonts/");
-    mDefaultFontPath.assign( winDir );
+    sprintf(fontDir, "/Library/Fonts/");
+    mDefaultFontPath.assign( fontDir );
 #else
     //@TODO JOEL: SET SUITABLE FONT PATH FOR LINUX SYSTEMS
-    sprintf(winDir, "/TBA/");
-    mDefaultFontPath.assign( winDir );
+    sprintf(fontDir, "/TBA/");
+    mDefaultFontPath.assign( fontDir );
 #endif
 
 }

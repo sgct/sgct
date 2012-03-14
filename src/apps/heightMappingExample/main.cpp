@@ -32,6 +32,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setKeyboardCallbackFunction( keyCallback );
 
 	if( !gEngine->init() )
 	{
@@ -39,9 +40,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
-	glfwSetKeyCallback( keyCallback );
+	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
+	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
 
 	// Main loop
 	gEngine->render();

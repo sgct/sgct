@@ -1,3 +1,5 @@
+#version 120
+
 uniform sampler2D hTex;
 uniform sampler2D nTex;
 uniform float curr_time;

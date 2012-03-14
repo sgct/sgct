@@ -36,11 +36,13 @@ public:
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
 
+    //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );
 	void setPreDrawFunction( void(*fnPtr)(void));
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
+	void setKeyboardCallbackFunction( void(*fnPtr)(int,int) );
 
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
@@ -88,6 +90,7 @@ private:
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (*NetworkCallbackFn)(const char *, int, int);
+	typedef void (*KeyboardCallbackFn)(int, int);
 
 	//function pointers
 	CallbackFn mDrawFn;
@@ -97,6 +100,9 @@ private:
 	CallbackFn mClearBufferFn;
 	InternalCallbackFn mInternalRenderFn;
 	NetworkCallbackFn mNetworkCallbackFn;
+
+	//GLFW wrapped function pointers
+	KeyboardCallbackFn mKeyboardCallbackFn;
 
 	enum SyncStage { PreStage = 0, PostStage };
 

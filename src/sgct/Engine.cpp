@@ -33,6 +33,8 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mClearBufferFn = NULL;
 	mInternalRenderFn = NULL;
 	mNetworkCallbackFn = NULL;
+	mKeyboardCallbackFn = NULL;
+
 	mTerminate = false;
 
 	localRunningMode = NetworkManager::NotLocal;
@@ -94,6 +96,9 @@ bool sgct::Engine::init()
 		return false;
 	}
 
+	if( mKeyboardCallbackFn != NULL )
+        glfwSetKeyCallback( mKeyboardCallbackFn );
+
 	initOGL();
 
 	return true;
@@ -150,6 +155,10 @@ bool sgct::Engine::initWindow()
 	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
 	if( antiAliasingSamples > 1 ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+
+    //glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
+    //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
+    //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
 
 	if( !getWindowPtr()->openWindow() )
 		return false;
@@ -231,7 +240,14 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
+#if __WIN32__
 	if( !FontManager::Instance()->AddFont( "Verdana", "verdanab.ttf" ) )
+#elif __APPLE__
+	if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
+#else
+    //@TODO Miro: SET SUITABLE FONT NAME FOR LINUX SYSTEMS
+    if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
+#endif
 		FontManager::Instance()->GetFont( "Verdana", 12 );
 
 	//init swap group barrier when ready to render
@@ -624,6 +640,11 @@ void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))
 {
 	mNetworkCallbackFn = fnPtr;
+}
+
+void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
+{
+	mKeyboardCallbackFn = fnPtr;
 }
 
 void sgct::Engine::clearBuffer(void)

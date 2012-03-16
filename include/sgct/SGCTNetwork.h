@@ -1,29 +1,13 @@
 /* SGCTNetwork.h
 
-� 2012 Miroslav Andel
+(c)2012 Miroslav Andel
 
 */
 
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
-
 #ifndef _SGCT_NETWORK
 #define _SGCT_NETWORK
-#if __WIN32__
-#include <windows.h>
-#include <winsock2.h>
-#else //Use BSD sockets
-#include <sys/types.h>
-#include <sys/socket.h>
-#include <netinet/in.h>
-#include <arpa/inet.h>
-#include <netdb.h>
-#define SOCKET int
-#endif
 #include <string>
 #include <vector>
-#include <GL/glfw.h>
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 #include <functional>
@@ -39,6 +23,13 @@ namespace core_sgct //small graphics cluster toolkit
 class SGCTNetwork
 {
 public:
+
+#ifdef __WIN32__
+	typedef unsigned int SOCKET;
+#else
+	typedef int SOCKET;
+#endif
+	
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
 	void closeNetwork();

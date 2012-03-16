@@ -1,3 +1,4 @@
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Shader.h"
 #include "../include/sgct/MessageHandler.h"
 
@@ -133,6 +134,13 @@ bool core_sgct::Shader::setSourceFromString( const std::string & sourceString )
 }
 //----------------------------------------------------------------------------//
 
+/*! Delete the shader */
+void core_sgct::Shader::deleteShader()
+{
+	glDeleteShader( mShaderId );
+}
+//----------------------------------------------------------------------------//
+
 /*!
 Will check the compilation status of the shader and output any errors from the shader log
 return	Status of the compilation
@@ -176,9 +184,9 @@ std::string core_sgct::Shader::getShaderTypeName( ShaderType shaderType ) const
 {
 	switch( shaderType )
 	{
-	case VERTEX:
+	case GL_VERTEX_SHADER:
 		return "Vertex shader";
-	case FRAGMENT:
+	case GL_FRAGMENT_SHADER:
 		return "Fragment shader";
 	default:
 		return "Unknown shader";

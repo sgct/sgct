@@ -34,6 +34,7 @@ int main( int argc, char* argv[] )
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
+	gEngine->setKeyboardCallbackFunction( keyCallback );
 
 	if( !gEngine->init() )
 	{
@@ -48,12 +49,9 @@ int main( int argc, char* argv[] )
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
-	//init openGL
-	
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreDrawFunction( myPreDrawFun );
 	gEngine->setPostDrawFunction( myPostDrawFun );
-	glfwSetKeyCallback( keyCallback );
 
 	// Main loop
 	gEngine->render();

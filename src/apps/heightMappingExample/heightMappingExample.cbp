@@ -21,7 +21,7 @@
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;../../../config/single.xml&quot;' />
+				<Option parameters='-config &quot;../../../config/VRArenaSimCenterSingle.xml&quot;' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>

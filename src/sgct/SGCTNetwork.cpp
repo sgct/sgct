@@ -2,6 +2,26 @@
     #define _WIN32_WINNT 0x501
 #endif
 
+#ifdef __WIN32__
+	#ifndef WIN32_LEAN_AND_MEAN
+	#define WIN32_LEAN_AND_MEAN
+	#endif
+	#include <windows.h>
+	#include <winsock2.h>
+	#include <ws2tcpip.h>
+#else //Use BSD sockets
+	#include <sys/types.h>
+	#include <sys/socket.h>
+	#include <netinet/in.h>
+	#include <netinet/tcp.h>
+	#include <arpa/inet.h>
+	#include <netdb.h>
+	#include <errno.h>
+	#define SOCKET_ERROR (-1)
+	#define INVALID_SOCKET (SOCKET)(~0)
+#endif
+
+#include <GL/glfw.h>
 #include "../include/sgct/SGCTNetwork.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/MessageHandler.h"
@@ -10,20 +30,6 @@
 #include "../include/sgct/Engine.h"
 #include <stdlib.h>
 #include <stdio.h>
-
-#ifdef __WIN32__ //WinSock
-    #include <ws2tcpip.h>
-#else //Use BSD sockets
-    #include <sys/types.h>
-    #include <sys/socket.h>
-    #include <netinet/in.h>
-    #include <netinet/tcp.h>
-    #include <arpa/inet.h>
-    #include <netdb.h>
-	#include <errno.h>
-	#define SOCKET_ERROR (-1)
-	#define INVALID_SOCKET (SOCKET)(~0)
-#endif
 
 void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL connectionHandler(void *arg);

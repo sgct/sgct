@@ -1,3 +1,4 @@
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/MessageHandler.h"
 

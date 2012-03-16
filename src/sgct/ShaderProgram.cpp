@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/ShaderProgram.h"
 #include "../include/sgct/MessageHandler.h"
 
@@ -14,8 +15,8 @@ sgct::ShaderProgram::ShaderProgram( const std::string & name ) :
 	mName( name ),
 	mIsLinked( false ),
 	mProgramId( 0 ),
-	mVertexShader( core_sgct::Shader::VERTEX ),
-	mFragmentShader( core_sgct::Shader::FRAGMENT )
+	mVertexShader( GL_VERTEX_SHADER ),
+	mFragmentShader( GL_FRAGMENT_SHADER )
 {
 	; // Do nothing
 }
@@ -52,6 +53,28 @@ void sgct::ShaderProgram::deleteProgram()
 	{
 		glDeleteProgram( mProgramId );
 	}
+}
+
+/*!
+Get the location of the attribute, no explicit error checks are performed.
+Users are responsible of checking the return value of the attribute location
+@param	name Name of the attribute
+@return	Uniform location within the program, -1 if not an active attribute
+*/
+int sgct::ShaderProgram::getAttribLocation( const std::string & name ) const
+{
+	return glGetAttribLocation( mProgramId, name.c_str() );
+}
+
+/*!
+Get the location of the attribute, no explicit error checks are performed.
+Users are responsible of checking the return value of the attribute location
+@param	name Name of the uniform
+@return	Uniform location within the program, -1 if not an active uniform
+*/
+int sgct::ShaderProgram::getUniformLocation( const std::string & name ) const
+{
+	return glGetUniformLocation( mProgramId, name.c_str() );
 }
 
 /*!

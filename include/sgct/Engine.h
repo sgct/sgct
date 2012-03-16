@@ -42,7 +42,7 @@ public:
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
-	void setKeyboardCallbackFunction( void(*fnPtr)(int,int) );
+	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) );
 
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
@@ -77,6 +77,7 @@ private:
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
+	void enterCurrentViewport();
 	const char * getBasicInfo();
 
 	//stereo render functions

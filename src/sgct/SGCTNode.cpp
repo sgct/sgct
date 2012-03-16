@@ -30,6 +30,18 @@ core_sgct::Viewport * core_sgct::SGCTNode::getViewport(unsigned int index)
 	return &mViewports[index];
 }
 
+void core_sgct::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
+{
+	x = static_cast<int>(getCurrentViewport()->getX()) *
+		getWindowPtr()->getHResolution();
+	y = static_cast<int>(getCurrentViewport()->getY()) *
+		getWindowPtr()->getVResolution();
+	xSize = static_cast<int>(getCurrentViewport()->getXSize()) *
+		getWindowPtr()->getHResolution();
+	ySize = static_cast<int>(getCurrentViewport()->getYSize()) *
+		getWindowPtr()->getVResolution();
+}
+
 unsigned int core_sgct::SGCTNode::getNumberOfViewports()
 {
 	return mViewports.size();

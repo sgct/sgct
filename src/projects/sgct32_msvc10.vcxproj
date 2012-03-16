@@ -42,6 +42,7 @@
     <ClInclude Include="..\..\include\sgct\Image.h" />
     <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
     <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
+    <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
     <ClInclude Include="..\..\include\sgct\Point3.h" />
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />

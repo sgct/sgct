@@ -11,6 +11,9 @@
 #include <vector>
 #include <string>
 
+typedef void * GLFWmutex;
+typedef void * GLFWcond;
+
 namespace core_sgct
 {
 

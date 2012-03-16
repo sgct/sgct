@@ -42,12 +42,14 @@ public:
 	void writeInt32(int i);
 	void writeUChar(unsigned char c);
 	void writeBool(bool b);
+	void writeShort(short s);
 
 	float			readFloat();
 	double			readDouble();
 	int				readInt32();
 	unsigned char	readUChar();
 	bool			readBool();
+	short			readShort();
 
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );

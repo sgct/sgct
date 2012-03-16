@@ -6,6 +6,7 @@ core_sgct::Viewport::Viewport()
 	mY = 0.0f;
 	mXSize = 1.0f;
 	mYSize = 1.0f;
+	mEye = Frustum::Mono;
 }
 
 core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
@@ -14,6 +15,7 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mY = y;
 	mXSize = xSize;
 	mYSize = ySize;
+	mEye = Frustum::Mono;
 }
 
 void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
@@ -22,6 +24,7 @@ void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
 	mY = y;
 	mXSize = xSize;
 	mYSize = ySize;
+	mEye = Frustum::Mono;
 }
 
 void core_sgct::Viewport::setPos(float x, float y)
@@ -34,6 +37,11 @@ void core_sgct::Viewport::setSize(float x, float y)
 {
 	mXSize = x;
 	mYSize = y;
+}
+
+void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)
+{
+	mEye = eye;
 }
 
 void core_sgct::Viewport::calculateFrustum(int frustumMode, float x, float y, float z, float near, float far)

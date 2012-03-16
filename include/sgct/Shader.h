@@ -1,14 +1,6 @@
 #ifndef _SHADER_H_
 #define _SHADER_H_
 
-#include <GL/glew.h>
-#if __WIN32__
-#include <GL/wglew.h>
-#else
-#include <OpenGL/glext.h>
-#endif
-#include <GL/glfw.h>
-
 #include <string>
 
 namespace core_sgct
@@ -22,7 +14,8 @@ class Shader
 {
 public:
 	/*! Enum for deciding shader type */
-	enum ShaderType { VERTEX = GL_VERTEX_SHADER, FRAGMENT = GL_FRAGMENT_SHADER};
+	//enum ShaderType { VERTEX = 0, FRAGMENT};
+	typedef int ShaderType;
 
 	Shader( ShaderType shaderType );
 	~Shader(void);
@@ -37,10 +30,9 @@ public:
 	befor the id can be used. The shader won't be created until it has the source set
 	@return Shader id that can be used for program linking
 	*/
-	inline GLint getId() const { return mShaderId; }
+	inline int getId() const { return mShaderId; }
 
-	/*! Delete the shader */
-	inline void deleteShader() { glDeleteShader( mShaderId ); }
+	void deleteShader();
 
 private:
 	bool checkCompilationStatus() const;
@@ -48,7 +40,7 @@ private:
 private:
 
 	ShaderType mShaderType;	// The shader type
-	GLint mShaderId;		// The shader id used for reference
+	int mShaderId;		// The shader id used for reference
 };
 
 } // core_sgct

@@ -213,12 +213,10 @@ inline void pushScreenCoordinateMatrix()
 	glLoadIdentity();
 	//gluOrtho2D(0.0,1024.0,0.0,768.0);
 	gluOrtho2D(
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getX()) * 
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		0.0,
 		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getXSize()) *
 		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getY()) *
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()),
+		0.0,
 		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getYSize()) *
 		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()));
 	glPopAttrib();

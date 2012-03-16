@@ -1,4 +1,4 @@
-uniform float curr_time;				// Time
+uniform float curr_time;	// Time
 varying vec4 gl_FrontColor;
 
 void main()

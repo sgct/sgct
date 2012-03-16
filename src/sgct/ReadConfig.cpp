@@ -138,6 +138,23 @@ void core_sgct::ReadConfig::readAndParseXML()
 				{
 					Viewport tmpVp;
 
+					//get eye if set
+					if( element[1]->Attribute("eye") != NULL )
+					{
+						if( strcmp("both", element[1]->Attribute("eye")) == 0 )
+						{
+							tmpVp.setEye(Frustum::Mono);
+						}
+						else if( strcmp("left", element[1]->Attribute("eye")) == 0 )
+						{
+							tmpVp.setEye(Frustum::StereoLeftEye);
+						}
+						else if( strcmp("right", element[1]->Attribute("eye")) == 0 )
+						{
+							tmpVp.setEye(Frustum::StereoRightEye);
+						}
+					}
+
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{

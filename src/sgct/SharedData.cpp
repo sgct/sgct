@@ -143,6 +143,17 @@ void SharedData::writeBool(bool b)
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
+void SharedData::writeShort(short s)
+{
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeShort\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	unsigned char *p = (unsigned char *)&s;
+	dataBlock.insert( dataBlock.end(), p, p+2);
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+}
+
 float SharedData::readFloat()
 {
 #ifdef __SGCT_DEBUG__
@@ -239,4 +250,25 @@ bool SharedData::readBool()
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	return b;
+}
+
+short SharedData::readShort()
+{
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::readShort\n");
+#endif
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	union
+	{
+		short s;
+		unsigned char c[2];
+	} cs;
+
+	cs.c[0] = dataBlock[pos];
+	cs.c[1] = dataBlock[pos+1];
+
+	pos += 2;
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
+	return cs.s;
 }

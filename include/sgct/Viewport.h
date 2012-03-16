@@ -23,13 +23,16 @@ public:
 	void set(float x, float y, float xSize, float ySize);
 	void setPos(float x, float y);
 	void setSize(float x, float y);
+	void setEye(Frustum::FrustumMode eye);
 	void calculateFrustum(int frustumMode, float x, float y, float z, float near, float far);
 
 	inline float getX() { return mX; }
 	inline float getY() { return mY; }
 	inline float getXSize() { return mXSize; }
 	inline float getYSize() { return mYSize; }
+	inline unsigned int getEye() { return mEye; }
 	inline Frustum * getFrustum(int frustumMode) { return &mFrustums[frustumMode]; }
+	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
 
 	Point3f viewPlaneCoords[3];
 
@@ -41,6 +44,7 @@ private:
 	float mXSize;
 	float mYSize;
 	Frustum mFrustums[3];
+	unsigned int mEye;
 };
 
 }

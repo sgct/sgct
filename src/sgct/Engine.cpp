@@ -1,5 +1,4 @@
-#include <GL/glew.h>
-#include <GL/glfw.h>
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/FontManager.h"
@@ -381,7 +380,16 @@ void sgct::Engine::render()
 		glLineWidth(1.0);
 		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		(this->*mInternalRenderFn)();
+		//clear buffers
+		mClearBufferFn(); //clear buffers
+
+		//render all viewports
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+		{
+			tmpNode->setCurrentViewport(i);
+			(this->*mInternalRenderFn)();
+		}
 
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -392,10 +400,16 @@ void sgct::Engine::render()
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
 
-		if( showGraph )
-			mStatistics.draw();
-		if( showInfo )
-			renderDisplayInfo();
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+		{
+			tmpNode->setCurrentViewport(i);
+			enterCurrentViewport();
+			if( showGraph )
+				mStatistics.draw();
+			if( showInfo )
+				renderDisplayInfo();
+		}
+		
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
@@ -436,7 +450,7 @@ void sgct::Engine::renderDisplayInfo()
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
-	//if stereoscopic rendering
+	//if active stereoscopic rendering
 	if( ClusterManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
@@ -445,23 +459,27 @@ void sgct::Engine::renderDisplayInfo()
 		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:        Right");
 		glDrawBuffer(GL_BACK);
 	}
+	//if passive stereo
+	if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
+	{
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+	}
+	else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
+	{
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:        Right");
+	}
 	glPopAttrib();
 }
 
 void sgct::Engine::setNormalRenderingMode()
 {
 	activeFrustum = Frustum::Mono;
-	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	glViewport(
-		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution())));
+	enterCurrentViewport();
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::Mono);
+	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum();
 	glFrustum( tmpFrustum->getLeft(),
 		tmpFrustum->getRight(),
         tmpFrustum->getBottom(),
@@ -473,7 +491,7 @@ void sgct::Engine::setNormalRenderingMode()
 	glTranslatef(-mConfig->getUserPos()->x, -mConfig->getUserPos()->y, -mConfig->getUserPos()->z);
 	glMatrixMode(GL_MODELVIEW);
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	mClearBufferFn(); //clear buffers
+	//mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 
 	if( mDrawFn != NULL )
@@ -483,14 +501,7 @@ void sgct::Engine::setNormalRenderingMode()
 void sgct::Engine::setActiveStereoRenderingMode()
 {
 	activeFrustum = Frustum::StereoLeftEye;
-
-	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	glViewport(
-		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution())));
-
+	enterCurrentViewport();
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -507,7 +518,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	glTranslatef(-mUser.LeftEyePos.x , -mUser.LeftEyePos.y, -mUser.LeftEyePos.z);
 	glMatrixMode(GL_MODELVIEW);
 	glDrawBuffer(GL_BACK_LEFT);
-	mClearBufferFn(); //clear buffers
+	//mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 
 	if( mDrawFn != NULL )
@@ -529,7 +540,7 @@ void sgct::Engine::setActiveStereoRenderingMode()
 	glTranslatef(-mUser.RightEyePos.x , -mUser.RightEyePos.y, -mUser.RightEyePos.z);
 	glMatrixMode(GL_MODELVIEW);
 	glDrawBuffer(GL_BACK_RIGHT);
-	mClearBufferFn(); //clear buffers
+	//mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 
 	if( mDrawFn != NULL )
@@ -656,6 +667,16 @@ void sgct::Engine::clearBuffer(void)
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
 	sgct::MessageHandler::Instance()->print("This node has index %d.\n", nodeId);
+}
+
+void sgct::Engine::enterCurrentViewport()
+{
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	glViewport(
+		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution())));
 }
 
 void sgct::Engine::calcFPS(double timestamp)

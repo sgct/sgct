@@ -3,7 +3,6 @@
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/Engine.h"
-#include <GL/glfw.h>
 
 #ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
@@ -15,6 +14,8 @@
     #include <netdb.h>
 	#define SOCKET_ERROR (-1)
 #endif
+
+#include <GL/glfw.h>
 
 GLFWmutex core_sgct::NetworkManager::gMutex = NULL;
 GLFWcond core_sgct::NetworkManager::gCond = NULL;

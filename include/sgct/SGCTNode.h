@@ -22,9 +22,12 @@ public:
 	void addViewport(Viewport &vp);
 	Viewport * getCurrentViewport();
 	Viewport * getViewport(unsigned int index);
+	void getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
 	unsigned int getNumberOfViewports();
 
 	SGCTWindow * getWindowPtr() { return &mWindow; }
+
+	inline void setCurrentViewport(unsigned int index) { mCurrentViewportIndex = index; }
 
 	bool lockVerticalSync;
 	std::string ip;

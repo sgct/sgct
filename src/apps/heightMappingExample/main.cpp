@@ -100,10 +100,12 @@ void myPreDrawFun()
 void myInitOGLFun()
 {
 	glEnable( GL_DEPTH_TEST );
+	//glDepthMask( GL_TRUE );
+	//glDisable( GL_CULL_FACE );
 	glEnable( GL_NORMALIZE );
 	glEnable( GL_COLOR_MATERIAL );
 	glShadeModel( GL_SMOOTH );
-	glEnable(GL_LIGHTING);
+	glEnable( GL_LIGHTING );
 
 	//Set up light 0
 	glEnable(GL_LIGHT0);

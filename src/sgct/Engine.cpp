@@ -1,4 +1,3 @@
-#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/FontManager.h"
@@ -6,6 +5,7 @@
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/ShaderManager.h"
+#include "../include/sgct/ogl_headers.h"
 #include <math.h>
 #include <sstream>
 
@@ -155,6 +155,8 @@ bool sgct::Engine::initWindow()
 	if( antiAliasingSamples > 1 ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
 
+    //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+    //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
     //glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
     //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
     //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
@@ -409,7 +411,7 @@ void sgct::Engine::render()
 			if( showInfo )
 				renderDisplayInfo();
 		}
-		
+
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);

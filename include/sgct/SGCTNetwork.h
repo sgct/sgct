@@ -17,19 +17,18 @@
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
+#ifdef __WIN32__
+	typedef unsigned int SOCKET;
+#else
+	typedef int SOCKET;
+#endif
+
 namespace core_sgct //small graphics cluster toolkit
 {
 
 class SGCTNetwork
 {
 public:
-
-#ifdef __WIN32__
-	typedef unsigned int SOCKET;
-#else
-	typedef int SOCKET;
-#endif
-	
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
 	void closeNetwork();

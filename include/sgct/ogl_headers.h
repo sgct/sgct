@@ -12,8 +12,11 @@
 #include <GL/glew.h>
 #ifdef __WIN32__
     #include <GL/wglew.h>
-#else //APPLE LINUX
+#elif defined __APPLE__
     #include <OpenGL/glext.h>
+    //#include <GL/glxew.h>
+#else  //linux
+    #include <GL/glext.h>
     #include <GL/glxew.h>
 #endif
 

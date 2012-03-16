@@ -74,6 +74,7 @@
 		<Unit filename="../../include/sgct/User.h" />
 		<Unit filename="../../include/sgct/Viewport.h" />
 		<Unit filename="../../include/sgct/freetype.h" />
+		<Unit filename="../../include/sgct/ogl_headers.h" />
 		<Unit filename="../sgct/ClusterManager.cpp" />
 		<Unit filename="../sgct/Engine.cpp" />
 		<Unit filename="../sgct/Font.cpp" />

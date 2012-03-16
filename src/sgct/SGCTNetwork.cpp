@@ -131,6 +131,13 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 		while( true )
 		{
 			sgct::MessageHandler::Instance()->print("Attempting to connect to server...\n");
+
+			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
+			if (mSocket == INVALID_SOCKET)
+            {
+                freeaddrinfo(result);
+                throw "Failed to init client socket!";
+            }
 			iResult = connect( mSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
 			if (iResult != SOCKET_ERROR)
 				break;

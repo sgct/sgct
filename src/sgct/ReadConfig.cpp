@@ -258,10 +258,6 @@ int core_sgct::ReadConfig::getStereoType( const std::string type )
 		return None;
 	else if( strcmp( type.c_str(), "active" ) == 0 )
 		return Active;
-	else if( strcmp( type.c_str(), "passive_vertical" ) == 0 )
-		return PassiveVertical;
-	else if( strcmp( type.c_str(), "passive_horizontal" ) == 0 )
-		return PassiveHorizontal;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
 		return Checkerboard;
 

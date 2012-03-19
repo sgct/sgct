@@ -44,18 +44,18 @@ void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)
 	mEye = eye;
 }
 
-void core_sgct::Viewport::calculateFrustum(int frustumMode, float x, float y, float z, float near, float far)
+void core_sgct::Viewport::calculateFrustum(int frustumMode, glm::vec3 * userPos, float near, float far)
 {
 	//nearFactor = near clipping plane / focus plane dist
-	float nearFactor = near / (viewPlaneCoords[ LowerLeft ].z - z);
+	float nearFactor = near / (viewPlaneCoords[ LowerLeft ].z - userPos->z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
 
 	mFrustums[frustumMode].set(
-		(viewPlaneCoords[ LowerLeft ].x - x)*nearFactor,
-		(viewPlaneCoords[ UpperRight ].x - x)*nearFactor,
-		(viewPlaneCoords[ LowerLeft ].y - y)*nearFactor,
-		(viewPlaneCoords[ UpperRight ].y - y)*nearFactor,
+		(viewPlaneCoords[ LowerLeft ].x - userPos->x)*nearFactor,
+		(viewPlaneCoords[ UpperRight ].x - userPos->x)*nearFactor,
+		(viewPlaneCoords[ LowerLeft ].y - userPos->y)*nearFactor,
+		(viewPlaneCoords[ UpperRight ].y - userPos->y)*nearFactor,
 		near,
 		far);
 }

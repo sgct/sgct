@@ -10,7 +10,6 @@
 #include "ClusterManager.h"
 #include "NetworkManager.h"
 #include "Statistics.h"
-#include "User.h"
 #include "ReadConfig.h"
 
 namespace sgct //simple graphics cluster toolkit
@@ -43,6 +42,10 @@ public:
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) );
+	void setCharCallbackFunction( void(*fnPtr)(int, int) );
+	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) );
+	void setMousePosCallbackFunction( void(*fnPtr)(int, int) );
+	void setMouseScrollCallbackFunction( void(*fnPtr)(int) );
 
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
@@ -60,10 +63,23 @@ public:
 	static void waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout);
 	static void signalCond(GLFWcond &cond);
 	static double getTime();
+	static int getKey( const int &key );
+	static int getMouseButton( const int &button );
+	static void getMousePos( int * xPos, int * yPos );
+	static void setMousePos( const int &xPos, const int &yPos );
+	static int getMouseWheel();
+	static void setMouseWheel( const int &pos );
+	static void setMousePointerVisibility( bool state );
+	static int getJoystickParam( const int &joystick, const int &param );
+	static int getJoystickAxes( const int &joystick, float * values, const int &numOfValues);
+	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues); 
 
-	inline core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
+	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
+	static core_sgct::User * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }
+
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return showInfo; }
+	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 private:
 	bool initNetwork();
@@ -80,9 +96,7 @@ private:
 	void enterCurrentViewport();
 	const char * getBasicInfo();
 
-	//stereo render functions
-	void setNormalRenderingMode();
-	void setActiveStereoRenderingMode();
+	void draw();
 
 	static void clearBuffer(void);
 
@@ -91,7 +105,8 @@ private:
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (*NetworkCallbackFn)(const char *, int, int);
-	typedef void (*KeyboardCallbackFn)(int, int);
+	typedef void (*inputCallbackFn)(int, int);
+	typedef void (*scrollCallbackFn)(int);
 
 	//function pointers
 	CallbackFn mDrawFn;
@@ -103,7 +118,11 @@ private:
 	NetworkCallbackFn mNetworkCallbackFn;
 
 	//GLFW wrapped function pointers
-	KeyboardCallbackFn mKeyboardCallbackFn;
+	inputCallbackFn mKeyboardCallbackFn;
+	inputCallbackFn mCharCallbackFn;
+	inputCallbackFn mMouseButtonCallbackFn;
+	inputCallbackFn mMousePosCallbackFn;
+	scrollCallbackFn mMouseWheelCallbackFn;
 
 	enum SyncStage { PreStage = 0, PostStage };
 
@@ -111,7 +130,7 @@ private:
 	float farClippingPlaneDist;
 
 	int localRunningMode;
-	int activeFrustum;
+	core_sgct::Frustum::FrustumMode mActiveFrustum;
 
 	bool showInfo;
 	bool showGraph;
@@ -120,7 +139,6 @@ private:
 
 	//objects
 	core_sgct::Statistics	mStatistics;
-	core_sgct::User			mUser;
 
 	//pointers
 	core_sgct::NetworkManager * mNetworkConnections;

@@ -11,6 +11,7 @@
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include <tinyxml.h>
+#include <glm/glm.hpp>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
@@ -186,18 +187,18 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 								if( strcmp("Pos", val[3]) == 0 )
 								{
-									Point3f tmpP3;
+									glm::vec3 tmpVec;
 									double dTmp[3];
 									static unsigned int i=0;
 									element[3]->Attribute("x", &dTmp[0]);
 									element[3]->Attribute("y", &dTmp[1]);
 									element[3]->Attribute("z", &dTmp[2]);
 
-									tmpP3.x = static_cast<float>(dTmp[0]);
-									tmpP3.y = static_cast<float>(dTmp[1]);
-									tmpP3.z = static_cast<float>(dTmp[2]);
+									tmpVec.x = static_cast<float>(dTmp[0]);
+									tmpVec.y = static_cast<float>(dTmp[1]);
+									tmpVec.z = static_cast<float>(dTmp[2]);
 
-									tmpVp.viewPlaneCoords[i%3] = tmpP3;
+									tmpVp.viewPlaneCoords[i%3] = tmpVec;
 									i++;
 								}
 
@@ -223,7 +224,8 @@ void core_sgct::ReadConfig::readAndParseXML()
 		{
 			double dTmp;
 			element[0]->Attribute("eyeSeparation", &dTmp);
-			eyeSeparation = static_cast<float>( dTmp );
+			ClusterManager::Instance()->getUserPtr()->setEyeSeparation(
+				static_cast<float>( dTmp ));
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
@@ -237,9 +239,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 					element[1]->Attribute("y", &dTmp[1]);
 					element[1]->Attribute("z", &dTmp[2]);
 
-					userPos.x = static_cast<float>(dTmp[0]);
-					userPos.y = static_cast<float>(dTmp[1]);
-					userPos.z = static_cast<float>(dTmp[2]);
+					ClusterManager::Instance()->getUserPtr()->setPos(dTmp);
 				}
 
 				//iterate

@@ -33,6 +33,10 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mInternalRenderFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
+	mCharCallbackFn = NULL;
+	mMouseButtonCallbackFn = NULL;
+	mMousePosCallbackFn = NULL;
+	mMouseWheelCallbackFn = NULL;
 
 	mTerminate = false;
 
@@ -63,7 +67,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	showInfo = false;
 	showGraph = false;
 	showWireframe = false;
-	activeFrustum = Frustum::Mono;
+	mActiveFrustum = Frustum::Mono;
 
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
@@ -97,6 +101,14 @@ bool sgct::Engine::init()
 
 	if( mKeyboardCallbackFn != NULL )
         glfwSetKeyCallback( mKeyboardCallbackFn );
+	if( mMouseButtonCallbackFn != NULL )
+		glfwSetMouseButtonCallback( mMouseButtonCallbackFn );
+	if( mMousePosCallbackFn != NULL )
+		glfwSetMousePosCallback( mMousePosCallbackFn );
+	if( mCharCallbackFn != NULL )
+		glfwSetCharCallback( mCharCallbackFn );
+	if( mMouseWheelCallbackFn != NULL )
+		glfwSetMouseWheelCallback( mMouseWheelCallbackFn );
 
 	initOGL();
 
@@ -226,17 +238,7 @@ void sgct::Engine::initOGL()
 		mInitOGLFn();
 
 	calculateFrustums();
-
-	switch( ClusterManager::Instance()->getThisNodePtr()->stereo )
-	{
-	case ReadConfig::Active:
-		mInternalRenderFn = &Engine::setActiveStereoRenderingMode;
-		break;
-
-	default:
-		mInternalRenderFn = &Engine::setNormalRenderingMode;
-		break;
-	}
+	mInternalRenderFn = &Engine::draw;
 
 	//
 	// Add fonts
@@ -382,15 +384,44 @@ void sgct::Engine::render()
 		glLineWidth(1.0);
 		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		//clear buffers
-		mClearBufferFn(); //clear buffers
-
-		//render all viewports
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		
+		if( tmpNode->stereo == ReadConfig::Active )
+		{
+			mActiveFrustum = Frustum::StereoLeftEye;
+			glDrawBuffer(GL_BACK_LEFT);
+		}
+		else
+		{
+			mActiveFrustum = Frustum::Mono;
+			glDrawBuffer(GL_BACK);
+		}
+		//clear buffers
+		mClearBufferFn();
+
+		//render all viewports for mono or left eye
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		{
 			tmpNode->setCurrentViewport(i);
+			//if passive stereo or mono
+			if( tmpNode->stereo != ReadConfig::Active )
+				mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
 			(this->*mInternalRenderFn)();
+		}
+
+		if( tmpNode->stereo == ReadConfig::Active )
+		{
+			glDrawBuffer(GL_BACK_RIGHT);
+
+			//clear buffers
+			mClearBufferFn();
+			
+			mActiveFrustum = Frustum::StereoRightEye;
+			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			{
+				tmpNode->setCurrentViewport(i);
+				(this->*mInternalRenderFn)();
+			}
 		}
 
 		//restore
@@ -458,7 +489,7 @@ void sgct::Engine::renderDisplayInfo()
 		glDrawBuffer(GL_BACK_LEFT);
 		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:        Right");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
 	//if passive stereo
@@ -468,20 +499,19 @@ void sgct::Engine::renderDisplayInfo()
 	}
 	else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 	{
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:        Right");
+		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 	}
 	glPopAttrib();
 }
 
-void sgct::Engine::setNormalRenderingMode()
+void sgct::Engine::draw()
 {
-	activeFrustum = Frustum::Mono;
 	enterCurrentViewport();
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum();
+	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(mActiveFrustum);
 	glFrustum( tmpFrustum->getLeft(),
 		tmpFrustum->getRight(),
         tmpFrustum->getBottom(),
@@ -490,59 +520,10 @@ void sgct::Engine::setNormalRenderingMode()
 		tmpFrustum->getFar());
 
 	//translate to user pos
-	glTranslatef(-mConfig->getUserPos()->x, -mConfig->getUserPos()->y, -mConfig->getUserPos()->z);
+	User * usrPtr = ClusterManager::Instance()->getUserPtr();
+	glTranslatef(-usrPtr->getPosPtr(mActiveFrustum)->x, -usrPtr->getPosPtr(mActiveFrustum)->y, -usrPtr->getPosPtr(mActiveFrustum)->z);
+	
 	glMatrixMode(GL_MODELVIEW);
-	glDrawBuffer(GL_BACK); //draw into both back buffers
-	//mClearBufferFn(); //clear buffers
-	glLoadIdentity();
-
-	if( mDrawFn != NULL )
-		mDrawFn();
-}
-
-void sgct::Engine::setActiveStereoRenderingMode()
-{
-	activeFrustum = Frustum::StereoLeftEye;
-	enterCurrentViewport();
-
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoLeftEye);
-	glFrustum( tmpFrustum->getLeft(),
-		tmpFrustum->getRight(),
-        tmpFrustum->getBottom(),
-		tmpFrustum->getTop(),
-        tmpFrustum->getNear(),
-		tmpFrustum->getFar());
-
-	//translate to user pos
-	glTranslatef(-mUser.LeftEyePos.x , -mUser.LeftEyePos.y, -mUser.LeftEyePos.z);
-	glMatrixMode(GL_MODELVIEW);
-	glDrawBuffer(GL_BACK_LEFT);
-	//mClearBufferFn(); //clear buffers
-	glLoadIdentity();
-
-	if( mDrawFn != NULL )
-		mDrawFn();
-
-	activeFrustum = Frustum::StereoRightEye;
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(Frustum::StereoRightEye);
-	glFrustum( tmpFrustum->getLeft(),
-		tmpFrustum->getRight(),
-        tmpFrustum->getBottom(),
-		tmpFrustum->getTop(),
-        tmpFrustum->getNear(),
-		tmpFrustum->getFar());
-
-	//translate to user pos
-	glTranslatef(-mUser.RightEyePos.x , -mUser.RightEyePos.y, -mUser.RightEyePos.z);
-	glMatrixMode(GL_MODELVIEW);
-	glDrawBuffer(GL_BACK_RIGHT);
-	//mClearBufferFn(); //clear buffers
 	glLoadIdentity();
 
 	if( mDrawFn != NULL )
@@ -551,37 +532,24 @@ void sgct::Engine::setActiveStereoRenderingMode()
 
 void sgct::Engine::calculateFrustums()
 {
-	mUser.LeftEyePos.x = mConfig->getUserPos()->x - mConfig->getEyeSeparation()/2.0f;
-	mUser.LeftEyePos.y = mConfig->getUserPos()->y;
-	mUser.LeftEyePos.z = mConfig->getUserPos()->z;
-
-	mUser.RightEyePos.x = mConfig->getUserPos()->x + mConfig->getEyeSeparation()/2.0f;
-	mUser.RightEyePos.y = mConfig->getUserPos()->y;
-	mUser.RightEyePos.z = mConfig->getUserPos()->z;
-
 	for(unsigned int i=0; i<ClusterManager::Instance()->getThisNodePtr()->getNumberOfViewports(); i++)
 	{
+		User * usrPtr = ClusterManager::Instance()->getUserPtr();
 		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
 			Frustum::Mono,
-			mConfig->getUserPos()->x,
-			mConfig->getUserPos()->y,
-			mConfig->getUserPos()->z,
+			usrPtr->getPosPtr(),
 			nearClippingPlaneDist,
 			farClippingPlaneDist);
 
 		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
 			Frustum::StereoLeftEye,
-			mUser.LeftEyePos.x,
-			mUser.LeftEyePos.y,
-			mUser.LeftEyePos.z,
+			usrPtr->getPosPtr(Frustum::StereoLeftEye),
 			nearClippingPlaneDist,
 			farClippingPlaneDist);
 
 		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
 			Frustum::StereoRightEye,
-			mUser.RightEyePos.x,
-			mUser.RightEyePos.y,
-			mUser.RightEyePos.z,
+			usrPtr->getPosPtr(Frustum::StereoRightEye),
 			nearClippingPlaneDist,
 			farClippingPlaneDist);
 	}
@@ -660,6 +628,26 @@ void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 	mKeyboardCallbackFn = fnPtr;
 }
 
+void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(int, int) )
+{
+	mCharCallbackFn = fnPtr;
+}
+
+void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
+{
+	mMouseButtonCallbackFn = fnPtr;
+}
+
+void sgct::Engine::setMousePosCallbackFunction( void(*fnPtr)(int, int) )
+{
+	mMousePosCallbackFn = fnPtr;
+}
+
+void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(int) )
+{
+	mMouseWheelCallbackFn = fnPtr;
+}
+
 void sgct::Engine::clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -726,7 +714,7 @@ void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 
 void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex)
 {
-	if(mNetworkCallbackFn != NULL)
+	if(mNetworkCallbackFn != NULL && receivedLenght > 0)
 		mNetworkCallbackFn(receivedData, receivedLenght, clientIndex);
 }
 
@@ -763,6 +751,56 @@ const char * sgct::Engine::getBasicInfo()
     #endif
 
 	return basicInfo;
+}
+
+int sgct::Engine::getKey( const int &key )
+{
+	return glfwGetKey(key);
+}
+
+int sgct::Engine::getMouseButton( const int &button )
+{
+	return glfwGetMouseButton(button);
+}
+
+void sgct::Engine::getMousePos( int * xPos, int * yPos )
+{
+	glfwGetMousePos(xPos, yPos);
+}
+
+void sgct::Engine::setMousePos( const int &xPos, const int &yPos )
+{
+	glfwSetMousePos(xPos, yPos);
+}
+
+int sgct::Engine::getMouseWheel()
+{
+	return glfwGetMouseWheel();
+}
+
+void sgct::Engine::setMouseWheel( const int &pos )
+{
+	glfwSetMouseWheel(pos);
+}
+
+void sgct::Engine::setMousePointerVisibility( bool state )
+{
+	state ? glfwEnable( GLFW_MOUSE_CURSOR ) : glfwDisable( GLFW_MOUSE_CURSOR );
+}
+
+int sgct::Engine::getJoystickParam( const int &joystick, const int &param )
+{
+	return glfwGetJoystickParam(joystick,param);
+}
+
+int sgct::Engine::getJoystickAxes( const int &joystick, float * values, const int &numOfValues)
+{
+	return glfwGetJoystickPos( joystick, values, numOfValues );
+}
+
+int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues)
+{
+	return glfwGetJoystickButtons( joystick, values, numOfValues );
 }
 
 double sgct::Engine::getTime()

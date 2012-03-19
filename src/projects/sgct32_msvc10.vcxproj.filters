@@ -39,9 +39,6 @@
     <ClInclude Include="..\..\include\sgct\NetworkManager.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\sgct\Point3.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\sgct\ReadConfig.h">
       <Filter>include</Filter>
     </ClInclude>

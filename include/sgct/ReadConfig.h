@@ -9,7 +9,6 @@
 
 #include <string>
 #include <vector>
-#include "Point3.h"
 
 namespace core_sgct //simple graphics cluster toolkit
 {
@@ -25,9 +24,6 @@ public:
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	bool isMasterSyncLocked() { return useMasterSyncLock; }
 
-	Point3f * getUserPos() { return &userPos; }
-	float getEyeSeparation() { return eyeSeparation; }
-
 private:
 	void readAndParseXML();
 	int getStereoType( const std::string type );
@@ -36,8 +32,6 @@ private:
 	bool useMasterSyncLock;
 	bool useExternalControlPort;
 	std::string xmlFileName;
-	Point3f userPos;
-	float eyeSeparation;
 };
 
 }

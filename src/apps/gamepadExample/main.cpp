@@ -21,13 +21,13 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	joyStick1Present = glfwGetJoystickParam( GLFW_JOYSTICK_1, GLFW_PRESENT );
+	joyStick1Present = sgct::Engine::getJoystickParam( GLFW_JOYSTICK_1, GLFW_PRESENT );
 	if( joyStick1Present == GL_TRUE )
 	{
 		sgct::MessageHandler::Instance()->print("Joystick 1 is present.\n");
 
-		numberOfAxes = glfwGetJoystickParam( GLFW_JOYSTICK_1, GLFW_AXES );
-		numberOfButtons = glfwGetJoystickParam( GLFW_JOYSTICK_1, GLFW_BUTTONS );
+		numberOfAxes = sgct::Engine::getJoystickParam( GLFW_JOYSTICK_1, GLFW_AXES );
+		numberOfButtons = sgct::Engine::getJoystickParam( GLFW_JOYSTICK_1, GLFW_BUTTONS );
 
 		sgct::MessageHandler::Instance()->print("Number of axes %d\nNumber of buttons %d\n", 
 			numberOfAxes,
@@ -61,11 +61,11 @@ void myPreDrawFun()
 {
 	if( joyStick1Present == GL_TRUE )
 	{
-		glfwGetJoystickPos( GLFW_JOYSTICK_1, axesPos, numberOfAxes );
+		sgct::Engine::getJoystickAxes( GLFW_JOYSTICK_1, axesPos, numberOfAxes );
 		for(int i=0; i<numberOfAxes; i++)
 			sgct::MessageHandler::Instance()->print("%.3f ", axesPos[i]);
 
-		glfwGetJoystickButtons( GLFW_JOYSTICK_1, buttons, numberOfButtons );
+		sgct::Engine::getJoystickButtons( GLFW_JOYSTICK_1, buttons, numberOfButtons );
 		for(int i=0; i<numberOfButtons; i++)
 			sgct::MessageHandler::Instance()->print("%d ", buttons[i]);
 

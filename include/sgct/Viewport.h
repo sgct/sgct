@@ -7,7 +7,7 @@
 #ifndef _VIEWPORT_H
 #define _VIEWPORT_H
 
-#include "Point3.h"
+#include <glm/glm.hpp>
 #include "Frustum.h"
 #include <stddef.h> //get definition for NULL
 
@@ -24,17 +24,17 @@ public:
 	void setPos(float x, float y);
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
-	void calculateFrustum(int frustumMode, float x, float y, float z, float near, float far);
+	void calculateFrustum(int frustumMode, glm::vec3 * userPos, float near, float far);
 
 	inline float getX() { return mX; }
 	inline float getY() { return mY; }
 	inline float getXSize() { return mXSize; }
 	inline float getYSize() { return mYSize; }
-	inline unsigned int getEye() { return mEye; }
+	inline Frustum::FrustumMode getEye() { return mEye; }
 	inline Frustum * getFrustum(int frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
 
-	Point3f viewPlaneCoords[3];
+	glm::vec3 viewPlaneCoords[3];
 
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
@@ -44,7 +44,7 @@ private:
 	float mXSize;
 	float mYSize;
 	Frustum mFrustums[3];
-	unsigned int mEye;
+	Frustum::FrustumMode mEye;
 };
 
 }

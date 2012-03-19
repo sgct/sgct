@@ -66,25 +66,18 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glPushMatrix();
-
-	/*if( gEngine->isUsingSwapGroups() )
-	{
-		GLuint frameNumber;
-		gEngine->getSwapGroupFrameNumber(frameNumber);
-		glTranslatef(0.0f, sinf(static_cast<float>(frameNumber)/100.0f), 0.0f);
-	}
+	
+	/*if( core_sgct::Frustum::Mono == gEngine->getActiveFrustum() )
+		sgct::MessageHandler::Instance()->print("Mono!\n");
+	else if( core_sgct::Frustum::StereoLeftEye == gEngine->getActiveFrustum() )
+		sgct::MessageHandler::Instance()->print("Left eye!\n");
 	else
-		glTranslatef(0.0f, static_cast<float>(sin(gEngine->mSharedData->curr_time)), 0.0f);
-	glColor3f(1.0f,0.0f,0.0f); //red
-	glBegin(GL_QUADS);
+		sgct::MessageHandler::Instance()->print("Right eye!\n");*/
 
-	glVertex3f( -3.0f, 0.01f, 0.0f);
-	glVertex3f( 3.0f, 0.01f, 0.0f);
-	glVertex3f( 3.0f, -0.01f, 0.0f);
-	glVertex3f( -3.0f, -0.01f, 0.0f);
-
-	glEnd();
-	*/
+	//sgct::MessageHandler::Instance()->print("Mouse wheel: %d\n", sgct::Engine::getMouseWheel());
+	//sgct::MessageHandler::Instance()->print("Right mouse button: %d\n", sgct::Engine::getMouseButton(GLFW_MOUSE_BUTTON_RIGHT));
+	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
+	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
 	glRotatef(static_cast<float>(curr_time)*10.0f, 0.0f, 1.0f, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
@@ -162,6 +155,9 @@ void myInitOGLFun()
 	glDisable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
+
+	glEnable(GL_LINE_SMOOTH); 
+	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 }
 
 void myEncodeFun()
@@ -237,6 +233,8 @@ void keyCallback(int key, int action)
 {
 	if( gEngine->isMaster() )
 	{
+		static bool mousePointer = true;
+		
 		switch( key )
 		{
 		case 'I':
@@ -262,6 +260,12 @@ void keyCallback(int key, int action)
 		case 'S':
 			if(action == GLFW_PRESS)
 				stats = !stats;
+			break;
+
+		case 'M':
+			if(action == GLFW_PRESS)
+				mousePointer = !mousePointer; //toggle
+				sgct::Engine::setMousePointerVisibility(mousePointer);
 			break;
 		}
 	}

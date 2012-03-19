@@ -114,18 +114,6 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 	else
 	{
 		//Client socket
-		mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-		if (mSocket == INVALID_SOCKET)
-		{
-			freeaddrinfo(result);
-			throw "Failed to init client socket!";
-		}
-
-		if(!setNoDelay(&mSocket))
-		{
-			freeaddrinfo(result);
-			throw "Failed to set client socket to TCP_NODELAY!";
-		}
 
 		// Connect to server.
 		while( true )
@@ -133,7 +121,7 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			sgct::MessageHandler::Instance()->print("Attempting to connect to server...\n");
 
 			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-			if (mSocket == INVALID_SOCKET)
+			if (mSocket == INVALID_SOCKET && !setNoDelay(&mSocket))
             {
                 freeaddrinfo(result);
                 throw "Failed to init client socket!";
@@ -591,11 +579,11 @@ void GLFWCALL communicationHandler(void *arg)
 					extBuffer = extBuffer.substr(found+2);//jump over \r\n
 
 					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-						if( nPtr->mDecoderCallbackFn != NULL )
-						{
-							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
-						}
-						nPtr->sendStr("OK\r\n");
+					if( nPtr->mDecoderCallbackFn != NULL )
+					{
+						(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
+					}
+					nPtr->sendStr("OK\r\n");
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 				}
 #ifdef __SGCT_DEBUG__

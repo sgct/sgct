@@ -8,6 +8,7 @@
 #define _CLUSTER_MANAGER
 
 #include "SGCTNode.h"
+#include "User.h"
 #include <vector>
 #include <string>
 
@@ -42,6 +43,7 @@ public:
 	unsigned int getNumberOfNodes() const { return nodes.size(); }
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
+	User * getUserPtr() { return mUser; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
 
@@ -68,6 +70,8 @@ private:
 	bool validCluster;
 	std::string masterIp;
 	std::string mExternalControlPort;
+
+	core_sgct::User	* mUser;
 };
 }
 

@@ -89,7 +89,7 @@ void myPreDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		curr_time = gEngine->getTime();
+		curr_time = sgct::Engine::getTime();
 	}
 
 	gEngine->setWireframe(wireframe);

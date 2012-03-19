@@ -7,11 +7,14 @@ core_sgct::ClusterManager::ClusterManager(void)
 	masterIndex = -1;
 	mThisNodeId = -1;
 	validCluster = false;
+	mUser = new User();
 }
 
 core_sgct::ClusterManager::~ClusterManager()
 {
 	nodes.clear();
+	delete mUser;
+	mUser = NULL;
 }
 
 void core_sgct::ClusterManager::addNode(core_sgct::SGCTNode node)

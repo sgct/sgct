@@ -65,8 +65,7 @@ void myPreDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		//@TODO JOEL __APPLE__ SOMEHOW glfwGetTime needs to be run in engine function, dosent work to use it directly here.
-		curr_time = gEngine->getTime();
+		curr_time = sgct::Engine::getTime();
 	}
 }
 

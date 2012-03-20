@@ -17,16 +17,22 @@ void mouseButtonCallback(int button, int action);
 void drawXZGrid(int size, float yPos);
 void drawPyramid(float width);
 
-float rotationSpeed = 0.002f;
+float rotationSpeed = 0.1f;
 float walkingSpeed = 2.5f;
 
 GLuint myLandscapeDisplayList = 0;
 const int landscapeSize = 50;
+const int numberOfPyramids = 150;
+
 bool arrowButtons[4];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
 
+//to check if left mouse button is pressed
 bool mouseLeftButton = false;
+/* Holds the difference in position between when the left mouse button
+    is pressed and when the mouse button is held. */
 int mouseDx = 0;
+/* Stores the positions that will be compared to measure the difference. */
 int mouseXPos[] = { 0, 0 };
 
 glm::vec3 view(0.0f, 0.0f, 1.0f);
@@ -69,18 +75,18 @@ int main( int argc, char* argv[] )
 
 void myInitOGLFun()
 {
-	glEnable(GL_LINE_SMOOTH); 
+	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-	
+
 	//create and compile display list
 	myLandscapeDisplayList = glGenLists(1);
 	glNewList(myLandscapeDisplayList, GL_COMPILE);
-	
+
 	drawXZGrid(landscapeSize, -1.5f);
 
 	//pick a seed for the random function (must be same on all nodes)
 	srand(9745);
-	for(int i=0; i<150; i++)
+	for(int i=0; i<numberOfPyramids; i++)
 	{
 		float xPos = static_cast<float>(rand()%landscapeSize - landscapeSize/2);
 		float zPos = static_cast<float>(rand()%landscapeSize - landscapeSize/2);
@@ -90,17 +96,14 @@ void myInitOGLFun()
 		drawPyramid(0.6f);
 		glPopMatrix();
 	}
-	
 
 	glEndList();
 }
 
 void myPreDrawFun()
-{	
+{
 	if( gEngine->isMaster() )
 	{
-		
-		glm::mat4 ViewRotateX(1.0f);
 		if( mouseLeftButton )
 		{
 			int tmpYPos;
@@ -113,15 +116,15 @@ void myPreDrawFun()
 		}
 
 		static float panRot = 0.0f;
-		panRot += static_cast<float>(mouseDx) * rotationSpeed;
+		panRot += (static_cast<float>(mouseDx) * rotationSpeed * static_cast<float>(gEngine->getDt()));
 
-		ViewRotateX = glm::rotate(
+		glm::mat4 ViewRotateX = glm::rotate(
 			glm::mat4(1.0f),
 			panRot,
-			glm::vec3(0.0f, 1.0f, 0.0f));
+			glm::vec3(0.0f, 1.0f, 0.0f)); //rotation around the y-axis
 
 		view = glm::inverse(glm::mat3(ViewRotateX)) * glm::vec3(0.0f, 0.0f, 1.0f);
-		
+
 		glm::vec3 right = glm::cross(view, up);
 
 		if( arrowButtons[FORWARD] )
@@ -156,7 +159,7 @@ void myPreDrawFun()
 }
 
 void myDrawFun()
-{	
+{
 	glLoadMatrixf(glm::value_ptr(xform));
 	glCallList(myLandscapeDisplayList);
 }
@@ -205,7 +208,7 @@ void keyCallback(int key, int action)
 void mouseButtonCallback(int button, int action)
 {
 	if( gEngine->isMaster() )
-	{	
+	{
 		switch( button )
 		{
 		case GLFW_MOUSE_BUTTON_LEFT:
@@ -223,12 +226,12 @@ void drawXZGrid(int size, float yPos)
 	glPushMatrix();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	glTranslatef(0.0f, yPos, 0.0f);
-	
+
 	glLineWidth(3.0f);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
-	
+
 	glBegin( GL_LINES );
 	for(int x = -(size/2); x < (size/2); x++)
 	{
@@ -251,10 +254,10 @@ void drawPyramid(float width)
 {
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	//disable depth sorting to avoid flickering
 	glDisable(GL_DEPTH_TEST);
-	
+
 	glColor4f(1.0f, 0.0f, 0.5f, 0.3f);
 
 	glBegin(GL_TRIANGLE_FAN);
@@ -269,7 +272,8 @@ void drawPyramid(float width)
 	glVertex3f(-width/2.0f, 0.0f, -width/2.0f);
 
 	glEnd();
-	
+
+	//enhance the pyramids with lines in the edges
 	glLineWidth(2.0f);
 	glColor4f(1.0f, 0.0f, 0.5f, 0.5f);
 
@@ -278,19 +282,19 @@ void drawPyramid(float width)
 	glVertex3f(0.0f, 2.0f, 0.0f);
 	glVertex3f(-width/2.0f, 0.0f, width/2.0f);
 	glEnd();
-	
+
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(-width/2.0f, 0.0f, width/2.0f);
 	glVertex3f(0.0f, 2.0f, 0.0f);
 	glVertex3f(width/2.0f, 0.0f, width/2.0f);
 	glEnd();
-	
+
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(width/2.0f, 0.0f, width/2.0f);
 	glVertex3f(0.0f, 2.0f, 0.0f);
 	glVertex3f(width/2.0f, 0.0f, -width/2.0f);
 	glEnd();
-	
+
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(width/2.0f, 0.0f, -width/2.0f);
 	glVertex3f(0.0f, 2.0f, 0.0f);

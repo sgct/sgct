@@ -62,7 +62,7 @@ void myPreDrawFun()
 	if( gEngine->isMaster() )
 	{
 		//get the time in seconds
-		curr_time = gEngine->getTime();
+		curr_time = sgct::Engine::getTime();
 	}
 }
 

@@ -28,7 +28,7 @@
 ///Wrap everything in a namespace, that we can use common
 ///function names like "print" without worrying about
 ///overlapping with anyone else's code.
-namespace freetype {
+namespace Freetype {
 
 //Inside of this namespace, give ourselves the ability
 //to write just "vector" instead of "std::vector"

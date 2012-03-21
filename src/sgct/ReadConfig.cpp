@@ -1,23 +1,17 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 
-#include <GL/glew.h>
-#if __WIN32__
-#include <GL/wglew.h>
-#else
-#include <OpenGL/glext.h>
-#endif
-#include <GL/glfw.h>
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include <tinyxml.h>
-#include <glm/glm.hpp>
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 	useExternalControlPort = false;
 	useMasterSyncLock = true;
+	sceneOffset = glm::vec3(0.0f, 0.0f, 0.0f);
 
 	if( filename.empty() )
 	{
@@ -81,7 +75,35 @@ void core_sgct::ReadConfig::readAndParseXML()
 	{
 		val[0] = element[0]->Value();
 
-		if( strcmp("Node", val[0]) == 0 )
+        if( strcmp("Scene", val[0]) == 0 )
+        {
+            element[1] = element[0]->FirstChildElement();
+			while( element[1] != NULL )
+			{
+				val[1] = element[1]->Value();
+
+				if( strcmp("offset", val[1]) == 0 )
+				{
+				    double tmpOffset[] = {0.0, 0.0, 0.0};
+					if( element[1]->Attribute("x", &tmpOffset[0] ) != NULL &&
+                        element[1]->Attribute("y", &tmpOffset[1] ) != NULL &&
+                        element[1]->Attribute("z", &tmpOffset[2] ) != NULL)
+                    {
+                        sceneOffset.x = static_cast<float>(tmpOffset[0]);
+                        sceneOffset.y = static_cast<float>(tmpOffset[1]);
+                        sceneOffset.z = static_cast<float>(tmpOffset[2]);
+                        sgct::MessageHandler::Instance()->print("Setting scene offset to (%f, %f, %f)\n",
+                                                                sceneOffset.x,
+                                                                sceneOffset.y,
+                                                                sceneOffset.z);
+                    }
+				}
+
+				//iterate
+				element[1] = element[1]->NextSiblingElement();
+			}
+        }
+		else if( strcmp("Node", val[0]) == 0 )
 		{
 			SGCTNode tmpNode;
 			tmpNode.ip.assign( element[0]->Attribute( "ip" ) );

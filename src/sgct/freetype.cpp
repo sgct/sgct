@@ -21,7 +21,7 @@ The font engine
 
 #define TEXT_RENDER_BUFFER_SIZE 512
 
-namespace freetype {
+namespace Freetype {
 //
 /////This function gets the first power of 2 >= the
 /////int that we pass it.

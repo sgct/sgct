@@ -9,6 +9,7 @@
 
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
 
 namespace core_sgct //simple graphics cluster toolkit
 {
@@ -23,6 +24,7 @@ public:
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	bool isMasterSyncLocked() { return useMasterSyncLock; }
+	glm::vec3 * getSceneOffset() { return &sceneOffset; }
 
 private:
 	void readAndParseXML();
@@ -32,6 +34,7 @@ private:
 	bool useMasterSyncLock;
 	bool useExternalControlPort;
 	std::string xmlFileName;
+	glm::vec3 sceneOffset;
 };
 
 }

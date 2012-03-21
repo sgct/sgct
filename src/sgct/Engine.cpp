@@ -49,9 +49,9 @@ sgct::Engine::Engine( int argc, char* argv[] )
 		return;
 	}
 
-    NetworkManager::gMutex = glfwCreateMutex();
-    NetworkManager::gCond = glfwCreateCond();
-	NetworkManager::gStartConnectionCond = glfwCreateCond();
+    NetworkManager::gMutex = createMutex();
+    NetworkManager::gCond = createCondition();
+	NetworkManager::gStartConnectionCond = createCondition();
 
     if(NetworkManager::gMutex == NULL ||
 		NetworkManager::gCond == NULL ||
@@ -385,7 +385,7 @@ void sgct::Engine::render()
 		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		
+
 		if( tmpNode->stereo == ReadConfig::Active )
 		{
 			mActiveFrustum = Frustum::StereoLeftEye;
@@ -415,7 +415,7 @@ void sgct::Engine::render()
 
 			//clear buffers
 			mClearBufferFn();
-			
+
 			mActiveFrustum = Frustum::StereoRightEye;
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
@@ -465,19 +465,19 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
 		ClusterManager::Instance()->getThisNodePtr()->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms",
 		SharedData::Instance()->getDataSize(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
@@ -487,19 +487,19 @@ void sgct::Engine::renderDisplayInfo()
 	if( ClusterManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
 	//if passive stereo
 	if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 	{
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
 	}
 	else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 	{
-		freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 	}
 	glPopAttrib();
 }
@@ -521,10 +521,15 @@ void sgct::Engine::draw()
 
 	//translate to user pos
 	User * usrPtr = ClusterManager::Instance()->getUserPtr();
-	glTranslatef(-usrPtr->getPosPtr(mActiveFrustum)->x, -usrPtr->getPosPtr(mActiveFrustum)->y, -usrPtr->getPosPtr(mActiveFrustum)->z);
-	
+	glTranslatef(-usrPtr->getPosPtr(mActiveFrustum)->x,
+              -usrPtr->getPosPtr(mActiveFrustum)->y,
+              -usrPtr->getPosPtr(mActiveFrustum)->z);
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glTranslatef(mConfig->getSceneOffset()->x,
+              mConfig->getSceneOffset()->y,
+              mConfig->getSceneOffset()->z);
 
 	if( mDrawFn != NULL )
 		mDrawFn();
@@ -806,6 +811,16 @@ int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * value
 double sgct::Engine::getTime()
 {
 	return glfwGetTime();
+}
+
+GLFWmutex sgct::Engine::createMutex()
+{
+    return glfwCreateMutex();
+}
+
+GLFWcond sgct::Engine::createCondition()
+{
+    return glfwCreateCond();
 }
 
 void sgct::Engine::lockMutex(GLFWmutex &mutex)

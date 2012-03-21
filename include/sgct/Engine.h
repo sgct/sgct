@@ -41,14 +41,14 @@ public:
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
-	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) );
-	void setCharCallbackFunction( void(*fnPtr)(int, int) );
-	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) );
-	void setMousePosCallbackFunction( void(*fnPtr)(int, int) );
-	void setMouseScrollCallbackFunction( void(*fnPtr)(int) );
+	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
+	void setCharCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int character, int action
+	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
+	void setMousePosCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int x, int y
+	void setMouseScrollCallbackFunction( void(*fnPtr)(int) ); //arguments: int pos
 
 	//external control network functions
-	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) );
+	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: chonst char * buffer, int buffer length, int clientIndex
 	void sendMessageToExternalControl(void * data, int lenght);
 	void sendMessageToExternalControl(const std::string msg);
 	void setExternalControlBufferSize(unsigned int newSize);
@@ -58,6 +58,8 @@ public:
 	void setStatsGraphVisibility(bool state) { showGraph = state; }
 
     //GLFW wrapped functions
+    static GLFWmutex createMutex();
+    static GLFWcond createCondition();
 	static void lockMutex(GLFWmutex &mutex);
 	static void unlockMutex(GLFWmutex &mutex);
 	static void waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout);
@@ -72,7 +74,7 @@ public:
 	static void setMousePointerVisibility( bool state );
 	static int getJoystickParam( const int &joystick, const int &param );
 	static int getJoystickAxes( const int &joystick, float * values, const int &numOfValues);
-	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues); 
+	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues);
 
 	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	static core_sgct::User * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }

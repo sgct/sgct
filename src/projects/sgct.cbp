@@ -67,7 +67,6 @@
 		<Unit filename="..\..\include\sgct\Image.h" />
 		<Unit filename="..\..\include\sgct\MessageHandler.h" />
 		<Unit filename="..\..\include\sgct\NetworkManager.h" />
-		<Unit filename="..\..\include\sgct\Point3.h" />
 		<Unit filename="..\..\include\sgct\ReadConfig.h" />
 		<Unit filename="..\..\include\sgct\SGCTNetwork.h" />
 		<Unit filename="..\..\include\sgct\SGCTNode.h" />

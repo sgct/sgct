@@ -107,7 +107,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw_d.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxmlSTL_d.lib;zlib_d.lib;libpng15_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxmlSTL_d.lib;zlib_d.lib;libpng15_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc10\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

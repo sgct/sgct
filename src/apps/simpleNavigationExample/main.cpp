@@ -66,8 +66,8 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
-	delete gEngine;
 	glDeleteLists(myLandscapeDisplayList, 1);
+	delete gEngine;
 
 	// Exit program
 	exit( EXIT_SUCCESS );

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9,00"
 	Name="textureExample_msvc9"
-	ProjectGUID="{965A932B-A09A-4967-835C-535BDFE0BFB3}"
+	ProjectGUID="{0DE356DC-1A66-47C9-A375-E9BD2DD63861}"
 	RootNamespace="textureExample_msvc9"
 	TargetFrameworkVersion="196613"
 	>

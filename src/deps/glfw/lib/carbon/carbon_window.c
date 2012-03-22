@@ -607,17 +607,8 @@ int  _glfwPlatformOpenWindow( int width, int height,
 
     // TODO: Break up this function!
 
-    _glfwWin.windowUPP      = NULL;
-    _glfwWin.mouseUPP       = NULL;
-    _glfwWin.keyboardUPP    = NULL;
-    _glfwWin.commandUPP     = NULL;
-    _glfwWin.window         = NULL;
-    _glfwWin.aglContext     = NULL;
-    _glfwWin.aglPixelFormat = NULL;
-    _glfwWin.cglContext     = NULL;
-    _glfwWin.cglPixelFormat = NULL;
-
-    _glfwWin.refreshRate = wndconfig->refreshRate;
+    _glfwWin.refreshRate    = wndconfig->refreshRate;
+    _glfwWin.windowNoResize = wndconfig->windowNoResize;
 
     // Fail if OpenGL 3.0 or above was requested
     if( wndconfig->glMajor > 2 )

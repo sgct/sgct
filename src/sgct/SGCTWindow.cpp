@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -94,10 +94,8 @@ void core_sgct::SGCTWindow::close()
 	}
 }
 
-void core_sgct::SGCTWindow::init(bool lockVerticalSync)
+void core_sgct::SGCTWindow::init()
 {
-	glfwSwapInterval( lockVerticalSync ? 1 : 0 ); //0: vsync off, 1: vsync on
-
 	if(mWindowMode == GLFW_WINDOW)
 	{
 		glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );

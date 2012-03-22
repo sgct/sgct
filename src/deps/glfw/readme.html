@@ -7,7 +7,7 @@
 
 <body>
 
-<h1>GLFW 2.7.3 source distribution</h1>
+<h1>GLFW 2.7.4 source distribution</h1>
 
 <ol>
  <li><a href="#intro">Introduction</a></li>
@@ -23,7 +23,7 @@
 <a name="intro">
 <h2>1. Introduction</h2>
 
-<p>Welcome to version 2.7.3 of the GLFW library.  GLFW is a free, Open Source,
+<p>Welcome to version 2.7.4 of the GLFW library.  GLFW is a free, Open Source,
 multi-platform library for OpenGL application development that provides a
 powerful API for handling operating system specific tasks such as opening an
 OpenGL window, reading keyboard, mouse, joystick and time input, creating
@@ -32,15 +32,12 @@ threads, and more.</p>
 <p>GLFW 2.7 is expected to be the last major release of the 2.x series, with
 most development now being done on what will become version 3.0.</p>
 
-<p>This release replaces Cygwin cross-compilation with better MinGW and MSYS
-support, adds support for POSIX monotonic timers, adds the
-<code>GLFW_INCLUDE_GL3</code> to make GLFW include the draft <code>gl3.h</code>
-header instead of <code>gl.h</code> and fixes a number of bugs.</p>
+<p>This release adds bug fixes for a few minor issues in 2.7.3, most notably the
+missing <code>-lrt</code> on X11 and the non-interactive menu bar created by
+<code>glfwInit</code> on Mac OS X.</p>
 
-<p>At the time of this release, the draft <code>gl3.h</code> header is by
-default only available on OS X Lion.  Until it is included in other development
-environments, it can be downloaded from the
-<a href="http://www.opengl.org/registry/">OpenGL Registry</a>.</p>
+<p>For a full list of changes, see the
+<a href="#changelog">version history</a>.</p>
 
 
 <a name="compiling">
@@ -333,7 +330,7 @@ code.</p>
 
 <p>However, if you're a *nix distribution packager, use a language binding or
 for some other reason wish to install the shared library along with the rest,
-run make with the <code>x11-distro-install</code> target.</p>
+run make with the <code>x11-dist-install</code> target.</p>
 
 
 <h3>3.4 Mac OS X</h3>
@@ -578,6 +575,18 @@ version of GLFW.</p>
 <a name="changelog">
 <h2>5. Version history</h2>
 
+<h3>v2.7.4</h3>
+<ul>
+  <li>[X11] Bugfix: The library containing <code>clock_gettime</code> was not detected</li>
+  <li>[X11] Bugfix: The POSIX monotonic clock was detected using a non-POSIX macro</li>
+  <li>[Cocoa] Replaced deprecated Core Graphics event suppression call</li>
+  <li>[Cocoa] Bugfix: The <code>GLFW_WINDOW_NO_RESIZE</code> window parameter was always zero</li>
+  <li>[Cocoa] Bugfix: <code>glfwInit</code> changed the current directory without a bundle resource directory (backported from 3.0)</li>
+  <li>[Cocoa] Bugfix: <code>glfwInit</code> created a non-interactive menu bar (backported from 3.0)</li>
+  <li>[Carbon] Bugfix: The <code>GLFW_WINDOW_NO_RESIZE</code> window parameter was always zero</li>
+  <li>[Win32] Bugfix: The <code>GLFW_WINDOW_NO_RESIZE</code> window parameter was always zero</li>
+</ul>
+
 <h3>v2.7.3</h3>
 <ul>
   <li>Added <code>GLFW_INCLUDE_GL3</code> macro for including the new <code>gl3.h</code> instead of <code>gl.h</code></li>
@@ -589,6 +598,7 @@ version of GLFW.</p>
   <li>[X11] Bugfix: A synchronization point necessary for jitter-free locked cursor mode was incorrectly removed</li>
   <li>[Cocoa] Added <code>cocoa-dist-install</code> install target, intended for packagers and language binding creators</li>
   <li>[Cocoa] Bugfix: Permitted requests for OpenGL 3.0 and 3.1 despite the 3.2 context being forward-compatible</li>
+  <li>[Win32] Added Visual C++ 2010 project files for the GLFW tests and examples</li>
   <li>[Win32] Replaced Cygwin cross-compile support with MSYS support due to clearer separation between Cygwin and MSYS</li> 
   <li>[Win32] Bugfix: Alt+F4 hot key was not translated into <code>WM_CLOSE</code></li>
 </ul>
@@ -1113,6 +1123,8 @@ or you could join us on <code>#glfw</code>.
 their skills.  Special thanks go out to:</p>
 
 <ul>
+
+  <li>artblanc, for a patch replacing a deprecated Core Graphics call</li>
 
   <li>Bobyshev Alexander and Martins Mozeiko, for the original proposal of
   an FSAA hint and their work on the Win32 implementation of FSAA</li>

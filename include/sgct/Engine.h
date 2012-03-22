@@ -62,6 +62,7 @@ public:
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
+	void setCleanUpFunction( void(*fnPtr)(void) );
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
 	void setCharCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int character, int action
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
@@ -109,6 +110,7 @@ private:
 	bool initWindow();
 	void initOGL();
 	void clean();
+	void clearAllCallbacks();
 
 	void frameSyncAndLock(int stage);
 	void calcFPS(double timestamp);
@@ -137,6 +139,7 @@ private:
 	CallbackFn mPostDrawFn;
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
+	CallbackFn mCleanUpFn;
 	InternalCallbackFn mInternalRenderFn;
 	NetworkCallbackFn mNetworkCallbackFn;
 

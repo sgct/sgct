@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9,00"
 	Name="example1_msvc9"
-	ProjectGUID="{965A932B-A09A-4967-835C-535BDFE0BFB3}"
+	ProjectGUID="{901DD013-3E6B-4C51-963D-12FCFE2497EC}"
 	RootNamespace="sgct_template_msvc9"
 	TargetFrameworkVersion="196613"
 	>

@@ -1,0 +1,92 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 11.00
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct32", "sgct32_msvc10.vcxproj", "{0516E457-A21E-4D14-8DBC-63D918909A23}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clustertest_msvc10", "..\apps\clustertest\clustertest_msvc10.vcxproj", "{5CD57EA1-6979-444D-9E58-A16FB705DD74}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1_msvc10", "..\apps\example1\example1_msvc10.vcxproj", "{8303EDAB-3F90-4302-81FB-C5F58923E993}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "gamepadExample_msvc10", "..\apps\gamepadExample\gamepadExample_msvc10.vcxproj", "{13FA335E-C595-49FD-8B09-B2AD0A80F102}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heightMappingExample_msvc2010", "..\apps\heightMappingExample\heightMappingExample_msvc2010.vcxproj", "{DE236993-0678-4638-8180-39DE3D8B74C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simpleNavigationExample_msvc10", "..\apps\simpleNavigationExample\simpleNavigationExample_msvc10.vcxproj", "{D23AF01D-5A85-4D66-BD9A-E40B6345801E}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simpleShaderExample_msvc2010", "..\apps\simpleShaderExample\simpleShaderExample_msvc2010.vcxproj", "{1C0F277A-22C5-477B-9535-1EC4F3146F38}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureExample_msvc2010", "..\apps\textureExample\textureExample_msvc2010.vcxproj", "{74BC8ED9-61EE-468E-8A44-B421A04286D4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct_template_msvc10", "..\apps\sgct_template\sgct_template_msvc10.vcxproj", "{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug|Win32 = Debug|Win32
+		Release|Win32 = Release|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{0516E457-A21E-4D14-8DBC-63D918909A23}.Debug|Win32.ActiveCfg = Debug|Win32
+		{0516E457-A21E-4D14-8DBC-63D918909A23}.Debug|Win32.Build.0 = Debug|Win32
+		{0516E457-A21E-4D14-8DBC-63D918909A23}.Release|Win32.ActiveCfg = Release|Win32
+		{0516E457-A21E-4D14-8DBC-63D918909A23}.Release|Win32.Build.0 = Release|Win32
+		{5CD57EA1-6979-444D-9E58-A16FB705DD74}.Debug|Win32.ActiveCfg = Debug|Win32
+		{5CD57EA1-6979-444D-9E58-A16FB705DD74}.Debug|Win32.Build.0 = Debug|Win32
+		{5CD57EA1-6979-444D-9E58-A16FB705DD74}.Release|Win32.ActiveCfg = Release|Win32
+		{5CD57EA1-6979-444D-9E58-A16FB705DD74}.Release|Win32.Build.0 = Release|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.Build.0 = Debug|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.ActiveCfg = Release|Win32
+		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.Build.0 = Release|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Debug|Win32.ActiveCfg = Debug|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Debug|Win32.Build.0 = Debug|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Release|Win32.ActiveCfg = Release|Win32
+		{13FA335E-C595-49FD-8B09-B2AD0A80F102}.Release|Win32.Build.0 = Release|Win32
+		{DE236993-0678-4638-8180-39DE3D8B74C7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{DE236993-0678-4638-8180-39DE3D8B74C7}.Debug|Win32.Build.0 = Debug|Win32
+		{DE236993-0678-4638-8180-39DE3D8B74C7}.Release|Win32.ActiveCfg = Release|Win32
+		{DE236993-0678-4638-8180-39DE3D8B74C7}.Release|Win32.Build.0 = Release|Win32
+		{D23AF01D-5A85-4D66-BD9A-E40B6345801E}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D23AF01D-5A85-4D66-BD9A-E40B6345801E}.Debug|Win32.Build.0 = Debug|Win32
+		{D23AF01D-5A85-4D66-BD9A-E40B6345801E}.Release|Win32.ActiveCfg = Release|Win32
+		{D23AF01D-5A85-4D66-BD9A-E40B6345801E}.Release|Win32.Build.0 = Release|Win32
+		{1C0F277A-22C5-477B-9535-1EC4F3146F38}.Debug|Win32.ActiveCfg = Debug|Win32
+		{1C0F277A-22C5-477B-9535-1EC4F3146F38}.Debug|Win32.Build.0 = Debug|Win32
+		{1C0F277A-22C5-477B-9535-1EC4F3146F38}.Release|Win32.ActiveCfg = Release|Win32
+		{1C0F277A-22C5-477B-9535-1EC4F3146F38}.Release|Win32.Build.0 = Release|Win32
+		{74BC8ED9-61EE-468E-8A44-B421A04286D4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{74BC8ED9-61EE-468E-8A44-B421A04286D4}.Debug|Win32.Build.0 = Debug|Win32
+		{74BC8ED9-61EE-468E-8A44-B421A04286D4}.Release|Win32.ActiveCfg = Release|Win32
+		{74BC8ED9-61EE-468E-8A44-B421A04286D4}.Release|Win32.Build.0 = Release|Win32
+		{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}.Debug|Win32.Build.0 = Debug|Win32
+		{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}.Release|Win32.ActiveCfg = Release|Win32
+		{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}.Release|Win32.Build.0 = Release|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

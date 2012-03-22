@@ -47,8 +47,10 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
-	delete gEngine;
 	glDeleteLists(myTerrainDisplayList, 1);
+	sgct::ShaderManager::Destroy();
+	sgct::TextureManager::Destroy();
+	delete gEngine;
 
 	// Exit program
 	exit( EXIT_SUCCESS );

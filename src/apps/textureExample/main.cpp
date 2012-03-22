@@ -37,6 +37,7 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
+	sgct::TextureManager::Destroy();
 	delete gEngine;
 
 	// Exit program

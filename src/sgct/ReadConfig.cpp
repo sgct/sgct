@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -37,7 +37,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 	useExternalControlPort = false;
-	useMasterSyncLock = true;
+	useMasterSyncLock = false;
 	sceneOffset = glm::vec3(0.0f, 0.0f, 0.0f);
 	mYaw = 0.0f;
 	mPitch = 0.0f;
@@ -170,9 +170,9 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
-					if( element[1]->Attribute("verticalSync") != NULL )
-						tmpNode.lockVerticalSync =
-							(strcmp( element[1]->Attribute("verticalSync"), "true" ) == 0 ? true : false);
+                    int tmpInterval = 0;
+					if( element[1]->Attribute("swapInterval", &tmpInterval) != NULL )
+						tmpNode.swapInterval = tmpInterval;
 
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )

@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9,00"
 	Name="simpleShaderExample_msvc9"
-	ProjectGUID="{965A932B-A09A-4967-835C-535BDFE0BFB3}"
+	ProjectGUID="{E34BCC69-D1F8-4153-B8EE-1822967FECED}"
 	RootNamespace="simpleShaderExample"
 	TargetFrameworkVersion="196613"
 	>

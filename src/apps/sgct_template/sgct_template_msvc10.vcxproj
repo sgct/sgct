@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{13FA335E-C595-49FD-8B09-B2AD0A80F102}</ProjectGuid>
+    <ProjectGuid>{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}</ProjectGuid>
     <RootNamespace>sgct_template</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

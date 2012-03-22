@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -34,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/ogl_headers.h"
 #include <math.h>
+#include <iostream>
 #include <sstream>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -58,6 +59,7 @@ sgct::Engine::Engine( int argc, char* argv[] )
 	mPostDrawFn = NULL;
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
+	mCleanUpFn = NULL;
 	mInternalRenderFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
@@ -189,6 +191,13 @@ bool sgct::Engine::initNetwork()
 
 bool sgct::Engine::initWindow()
 {
+	int tmpGlfwVer[3];
+    glfwGetVersion( &tmpGlfwVer[0], &tmpGlfwVer[1], &tmpGlfwVer[2] );
+	sgct::MessageHandler::Instance()->print("Using GLFW version %d.%d.%d.\n",
+                                         tmpGlfwVer[0],
+                                         tmpGlfwVer[1],
+                                         tmpGlfwVer[2]);
+
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active );
 
 	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
@@ -208,23 +217,34 @@ bool sgct::Engine::initWindow()
 	if (GLEW_OK != err)
 	{
 	  //Problem: glewInit failed, something is seriously wrong.
-	  sgct::MessageHandler::Instance()->print("Error: %s\n", glewGetErrorString(err));
+	  sgct::MessageHandler::Instance()->print("Error: %s.\n", glewGetErrorString(err));
 	  return false;
 	}
-	sgct::MessageHandler::Instance()->print("Status: Using GLEW %s\n", glewGetString(GLEW_VERSION));
+	sgct::MessageHandler::Instance()->print("Using GLEW %s.\n", glewGetString(GLEW_VERSION));
 #ifdef __WIN32__
-		if( glewIsSupported("WGL_NV_swap_group") )
+		if( wglewIsSupported("WGL_NV_swap_group") )
 			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
 #else
 		if( glewIsSupported("GLX_NV_swap_group") )
 			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
 #endif
+        else
+            sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
 
-	getWindowPtr()->init( ClusterManager::Instance()->getThisNodePtr()->lockVerticalSync );
+    /*
+        Swap inerval:
+
+        0 = vertical sync off
+        1 = wait for vertical sync
+        2 = fix when using swapgroups in xp and running half the framerate
+    */
+
+    glfwSwapInterval( ClusterManager::Instance()->getThisNodePtr()->swapInterval );
+    getWindowPtr()->init();
 	getWindowPtr()->setWindowTitle( getBasicInfo() );
 
 	//Must wait until all nodes are running if using swap barrier
-	if( getWindowPtr()->isUsingSwapGroups() )
+	if( getWindowPtr()->isUsingSwapGroups() && ClusterManager::Instance()->getNumberOfNodes() > 1)
 	{
 		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
 		glfwSwapBuffers();
@@ -290,6 +310,12 @@ void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
+	if( mCleanUpFn != NULL )
+		mCleanUpFn();
+
+	sgct::MessageHandler::Instance()->print("Clearing all callbacks...\n");
+	clearAllCallbacks();
+
 	//de-init window and unbind swapgroups...
 	SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
 	if(nPtr != NULL)
@@ -306,32 +332,70 @@ void sgct::Engine::clean()
 		delete mConfig;
 		mConfig = NULL;
 	}
-	// Destroy explicitly to avoid memory leak messages
-	FontManager::Destroy();
-	ShaderManager::Destroy();
-	SharedData::Destroy();
-	TextureManager::Destroy();
-	ClusterManager::Destroy();
-	MessageHandler::Destroy();
 
+	// Destroy explicitly to avoid memory leak messages
+	sgct::MessageHandler::Instance()->print("Destroying font manager...\n");
+	FontManager::Destroy();
+	sgct::MessageHandler::Instance()->print("Destroying shader manager...\n");
+	ShaderManager::Destroy();
+	sgct::MessageHandler::Instance()->print("Destroying shared data...\n");
+	SharedData::Destroy();
+	sgct::MessageHandler::Instance()->print("Destroying texture manager...\n");
+	TextureManager::Destroy();
+	sgct::MessageHandler::Instance()->print("Destroying cluster manager...\n");
+	ClusterManager::Destroy();
+
+    sgct::MessageHandler::Instance()->print("Destroying mutex...\n");
 	if( NetworkManager::gMutex != NULL )
 	{
 		glfwDestroyMutex( NetworkManager::gMutex );
 		NetworkManager::gMutex = NULL;
 	}
+
+	sgct::MessageHandler::Instance()->print("Destroying condition...\n");
 	if( NetworkManager::gCond != NULL )
 	{
 		glfwDestroyCond( NetworkManager::gCond );
 		NetworkManager::gCond = NULL;
 	}
+
+	sgct::MessageHandler::Instance()->print("Destroying start condition...\n");
 	if( NetworkManager::gStartConnectionCond != NULL )
 	{
 		glfwDestroyCond( NetworkManager::gStartConnectionCond );
 		NetworkManager::gStartConnectionCond = NULL;
 	}
 
+	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
+	MessageHandler::Destroy();
+
 	// Close window and terminate GLFW
+	std::cerr << std::endl << "Terminating glfw...";
 	glfwTerminate();
+	std::cerr << " Done." << std::endl;
+}
+
+void sgct::Engine::clearAllCallbacks()
+{
+	glfwSetKeyCallback( NULL );
+	glfwSetMouseButtonCallback( NULL );
+	glfwSetMousePosCallback( NULL );
+	glfwSetCharCallback( NULL );
+	glfwSetMouseWheelCallback( NULL );
+
+	mDrawFn = NULL;
+	mPreDrawFn = NULL;
+	mPostDrawFn = NULL;
+	mInitOGLFn = NULL;
+	mClearBufferFn = NULL;
+	mCleanUpFn = NULL;
+	mInternalRenderFn = NULL;
+	mNetworkCallbackFn = NULL;
+	mKeyboardCallbackFn = NULL;
+	mCharCallbackFn = NULL;
+	mMouseButtonCallbackFn = NULL;
+	mMousePosCallbackFn = NULL;
+	mMouseWheelCallbackFn = NULL;
 }
 
 void sgct::Engine::frameSyncAndLock(int stage)
@@ -474,11 +538,10 @@ void sgct::Engine::render()
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
+		mNetworkConnections->swapData();
 
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
-
-		mNetworkConnections->swapData();
 
 		// Check if ESC key was pressed or window was closed
 		mRunning = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
@@ -558,12 +621,12 @@ void sgct::Engine::draw()
 	glMatrixMode(GL_MODELVIEW);
 
 	glm::mat4 modelMat =
-		glm::translate( glm::mat4(1.0f), (*mConfig->getSceneOffset())) 
-		* glm::yawPitchRoll( 
+		glm::yawPitchRoll(
 			mConfig->getYaw(),
 			mConfig->getPitch(),
-			mConfig->getRoll());
-	
+			mConfig->getRoll())
+        * glm::translate( glm::mat4(1.0f), (*mConfig->getSceneOffset()));
+
 	glLoadMatrixf( glm::value_ptr(modelMat) );
 
 	if( mDrawFn != NULL )
@@ -656,6 +719,11 @@ void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 {
 	mClearBufferFn = fnPtr;
+}
+
+void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
+{
+	mCleanUpFn = fnPtr;
 }
 
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))

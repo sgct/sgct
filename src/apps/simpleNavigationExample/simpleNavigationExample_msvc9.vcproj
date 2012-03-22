@@ -3,7 +3,7 @@
 	ProjectType="Visual C++"
 	Version="9,00"
 	Name="simpleNavigationExample_msvc9"
-	ProjectGUID="{965A932B-A09A-4967-835C-535BDFE0BFB3}"
+	ProjectGUID="{48277301-4B5B-4544-9181-6C23B58F6389}"
 	RootNamespace="simpleNavigationExample_msvc9"
 	TargetFrameworkVersion="196613"
 	>

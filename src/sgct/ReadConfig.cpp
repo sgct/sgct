@@ -39,6 +39,9 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	useExternalControlPort = false;
 	useMasterSyncLock = true;
 	sceneOffset = glm::vec3(0.0f, 0.0f, 0.0f);
+	mYaw = 0.0f;
+	mPitch = 0.0f;
+	mRoll = 0.0f;
 
 	if( filename.empty() )
 	{
@@ -109,7 +112,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 			{
 				val[1] = element[1]->Value();
 
-				if( strcmp("offset", val[1]) == 0 )
+				if( strcmp("Offset", val[1]) == 0 )
 				{
 				    double tmpOffset[] = {0.0, 0.0, 0.0};
 					if( element[1]->Attribute("x", &tmpOffset[0] ) != NULL &&
@@ -123,6 +126,22 @@ void core_sgct::ReadConfig::readAndParseXML()
                                                                 sceneOffset.x,
                                                                 sceneOffset.y,
                                                                 sceneOffset.z);
+                    }
+				}
+				else if( strcmp("Orientation", val[1]) == 0 )
+				{
+					double tmpOrientation[] = {0.0, 0.0, 0.0};
+					if( element[1]->Attribute("yaw", &tmpOrientation[0] ) != NULL &&
+                        element[1]->Attribute("pitch", &tmpOrientation[1] ) != NULL &&
+                        element[1]->Attribute("roll", &tmpOrientation[2] ) != NULL)
+                    {
+                        mYaw = glm::radians( static_cast<float>(tmpOrientation[0]) );
+                        mPitch = glm::radians( static_cast<float>(tmpOrientation[1]) );
+                        mRoll = glm::radians( static_cast<float>(tmpOrientation[2]) );
+                        sgct::MessageHandler::Instance()->print("Setting scene orientation to (%f, %f, %f) radians\n",
+                                                                mYaw,
+                                                                mPitch,
+                                                                mRoll);
                     }
 				}
 

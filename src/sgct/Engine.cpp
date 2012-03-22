@@ -35,6 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ogl_headers.h"
 #include <math.h>
 #include <sstream>
+#include <glm/gtx/euler_angles.hpp>
 
 using namespace core_sgct;
 
@@ -547,16 +548,23 @@ void sgct::Engine::draw()
 		tmpFrustum->getFar());
 
 	//translate to user pos
-	User * usrPtr = ClusterManager::Instance()->getUserPtr();
+	/*User * usrPtr = ClusterManager::Instance()->getUserPtr();
 	glTranslatef(-usrPtr->getPosPtr(mActiveFrustum)->x,
               -usrPtr->getPosPtr(mActiveFrustum)->y,
-              -usrPtr->getPosPtr(mActiveFrustum)->z);
+              -usrPtr->getPosPtr(mActiveFrustum)->z);*/
+	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
+	glMultMatrixf( glm::value_ptr(tmpVP->viewMatrix[mActiveFrustum]) );
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glTranslatef(mConfig->getSceneOffset()->x,
-              mConfig->getSceneOffset()->y,
-              mConfig->getSceneOffset()->z);
+
+	glm::mat4 modelMat =
+		glm::translate( glm::mat4(1.0f), (*mConfig->getSceneOffset())) 
+		* glm::yawPitchRoll( 
+			mConfig->getYaw(),
+			mConfig->getPitch(),
+			mConfig->getRoll());
+	
+	glLoadMatrixf( glm::value_ptr(modelMat) );
 
 	if( mDrawFn != NULL )
 		mDrawFn();

@@ -160,7 +160,7 @@ void myPreDrawFun()
 
 void myDrawFun()
 {
-	glLoadMatrixf(glm::value_ptr(xform));
+	glMultMatrixf(glm::value_ptr(xform));
 	glCallList(myLandscapeDisplayList);
 }
 

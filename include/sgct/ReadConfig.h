@@ -46,6 +46,9 @@ public:
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	bool isMasterSyncLocked() { return useMasterSyncLock; }
 	glm::vec3 * getSceneOffset() { return &sceneOffset; }
+	const float & getYaw() { return mYaw; }
+	const float & getPitch() { return mPitch; }
+	const float & getRoll() { return mRoll; }
 
 private:
 	void readAndParseXML();
@@ -56,6 +59,7 @@ private:
 	bool useExternalControlPort;
 	std::string xmlFileName;
 	glm::vec3 sceneOffset;
+	float mYaw, mPitch, mRoll;
 };
 
 }

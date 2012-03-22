@@ -45,7 +45,7 @@ public:
 	void setPos(float x, float y);
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
-	void calculateFrustum(int frustumMode, glm::vec3 * userPos, float near, float far);
+	void calculateFrustum(const int &frustumMode, glm::vec3 * eyePos, float near, float far);
 
 	inline float getX() { return mX; }
 	inline float getY() { return mY; }
@@ -56,6 +56,7 @@ public:
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
 
 	glm::vec3 viewPlaneCoords[3];
+	glm::mat4 viewMatrix[3];
 
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 

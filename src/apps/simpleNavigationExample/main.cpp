@@ -75,9 +75,6 @@ int main( int argc, char* argv[] )
 
 void myInitOGLFun()
 {
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
-
 	//create and compile display list
 	myLandscapeDisplayList = glGenLists(1);
 	glNewList(myLandscapeDisplayList, GL_COMPILE);

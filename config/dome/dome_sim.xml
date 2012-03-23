@@ -8,7 +8,6 @@
 		<Window fullscreen="false">
 			<Stereo type="none" />
 			<Pos x="0" y="100" />
-			<!-- 16:9 aspect ratio -->
 			<Size x="1260" y="525" />
 		</Window>
 		<!-- channel 5 (front left) -->

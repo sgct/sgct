@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 core_sgct::SGCTNode::SGCTNode()
 {
 	mCurrentViewportIndex = 0;
-	numberOfSamples = 0;
+	numberOfSamples = 1;
 
 	//init optional parameters
 	swapInterval = 1;

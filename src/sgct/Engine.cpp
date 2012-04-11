@@ -36,6 +36,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <math.h>
 #include <iostream>
 #include <sstream>
+#include <deque>
+
 #include <glm/gtx/euler_angles.hpp>
 
 using namespace core_sgct;
@@ -46,7 +48,7 @@ sgct::Engine *  sgct::Engine::mThis     = NULL;
 GLEWContext * glewGetContext();
 #endif
 
-sgct::Engine::Engine( int argc, char* argv[] )
+sgct::Engine::Engine( int& argc, char**& argv )
 {
 	//init pointers
 	mThis = this;
@@ -654,26 +656,31 @@ void sgct::Engine::calculateFrustums()
 	}
 }
 
-void sgct::Engine::parseArguments( int argc, char* argv[] )
+void sgct::Engine::parseArguments( int& argc, char**& argv )
 {
 	//parse arguments
 	sgct::MessageHandler::Instance()->print("Parsing arguments...");
 	int i=0;
+    std::deque<int> argumentsToRemove;
 	while( i<argc )
 	{
 		if( strcmp(argv[i],"-config") == 0 && argc > (i+1))
 		{
 			configFilename.assign(argv[i+1]);
+            argumentsToRemove.push_back(i);
+            argumentsToRemove.push_back(i+1);
 			i+=2;
 		}
 		else if( strcmp(argv[i],"--client") == 0 )
 		{
 			localRunningMode = NetworkManager::LocalClient;
+            argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--slave") == 0 )
 		{
 			localRunningMode = NetworkManager::LocalClient;
+            argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"-local") == 0 && argc > (i+1) )
@@ -683,11 +690,35 @@ void sgct::Engine::parseArguments( int argc, char* argv[] )
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
 			ClusterManager::Instance()->setThisNodeId(tmpi);
+            argumentsToRemove.push_back(i);
+            argumentsToRemove.push_back(i+1);
 			i+=2;
 		}
 		else
 			i++; //iterate
 	}
+
+    // remove the arguments that have been processed
+    if( argumentsToRemove.size() > 0 )
+    {
+        int newArgc = argc - argumentsToRemove.size();
+        char** newArgv = new char*[newArgc];
+        int newIterator = 0;
+        for( int oldIterator = 0; oldIterator < argc; ++oldIterator )
+        {
+            if( oldIterator == argumentsToRemove.front())
+            {
+                argumentsToRemove.pop_front();
+            }
+            else
+            {
+                newArgv[newIterator] = argv[oldIterator];
+                newIterator++;
+            }
+        }
+        argv = newArgv;
+        argc = newArgc;
+    }
 
 	sgct::MessageHandler::Instance()->print(" Done\n");
 }

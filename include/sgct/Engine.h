@@ -39,7 +39,7 @@ namespace sgct //simple graphics cluster toolkit
 class Engine
 {
 public:
-	Engine( int argc, char* argv[] );
+	Engine( int& argc, char**& argv );
 	~Engine()
 	{
 		clean();
@@ -114,7 +114,7 @@ private:
 
 	void frameSyncAndLock(int stage);
 	void calcFPS(double timestamp);
-	void parseArguments( int argc, char* argv[] );
+	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);

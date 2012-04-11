@@ -56,6 +56,9 @@ public:
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setWireframe(bool enabled) { showWireframe = enabled; }
 
+    size_t createTimer( double millisec, void(*fnPtr)(size_t) );
+    void stopTimer(size_t id);
+
     //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );
 	void setPreDrawFunction( void(*fnPtr)(void));
@@ -132,6 +135,7 @@ private:
 	typedef void (*NetworkCallbackFn)(const char *, int, int);
 	typedef void (*inputCallbackFn)(int, int);
 	typedef void (*scrollCallbackFn)(int);
+    typedef void (*timerCallbackFn)(size_t);
 
 	//function pointers
 	CallbackFn mDrawFn;
@@ -173,6 +177,16 @@ private:
 	std::string configFilename;
 	int mRunning;
 	char basicInfo[48];
+
+    typedef struct  {
+        size_t mId;
+        double mLastFired;
+        double mInterval;
+        timerCallbackFn mCallback;
+    } TimerInformation;
+
+    std::vector<TimerInformation> mTimers; //< stores all active timers
+    size_t mTimerID; //< the timer created next will use this ID
 
 	static Engine * mThis;
 };

@@ -100,6 +100,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	showGraph = false;
 	showWireframe = false;
 	mActiveFrustum = Frustum::Mono;
+    mTimerID = 0;
 
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
@@ -521,7 +522,8 @@ void sgct::Engine::render()
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		mStatistics.setDrawTime(glfwGetTime() - startFrameTime);
+        double endFrameTime = glfwGetTime();
+		mStatistics.setDrawTime(endFrameTime - startFrameTime);
 
 		//render post frame
 		if( mPostDrawFn != NULL )
@@ -537,6 +539,17 @@ void sgct::Engine::render()
 				renderDisplayInfo();
 		}
 
+        // check all timers if one of them has expired
+        for( size_t i = 0; i < mTimers.size(); ++i )
+        {
+            TimerInformation& currentTimer = mTimers[i];
+            const double timeSinceLastFiring = endFrameTime - currentTimer.mLastFired;
+            if( timeSinceLastFiring > currentTimer.mInterval )
+            {
+                currentTimer.mLastFired = endFrameTime;
+                currentTimer.mCallback(currentTimer.mId);
+            }
+        }
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
@@ -936,6 +949,36 @@ int sgct::Engine::getJoystickAxes( const int &joystick, float * values, const in
 int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues)
 {
 	return glfwGetJoystickButtons( joystick, values, numOfValues );
+}
+
+size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
+{
+    // construct the timer object
+    TimerInformation timer;
+    timer.mCallback = fnPtr;
+    timer.mInterval = millisec * 1000.0; // we want to present timers in millisec, but glfwGetTime uses seconds
+    timer.mId = mTimerID++;  // use and post-increase
+    timer.mLastFired = getTime();
+    mTimers.push_back( timer );
+    return timer.mId;
+}
+
+void sgct::Engine::stopTimer( size_t id )
+{
+    // iterate over all timers and search for the id
+    for( size_t i = 0; i < mTimers.size(); ++i )
+    {
+        const TimerInformation& currentTimer = mTimers[i];
+        if( currentTimer.mId == id )
+        {
+            // if the id found, delete this timer and return immediately
+            mTimers.erase( mTimers.begin() + i );
+            return;
+        }
+    }
+
+    // if we get this far, the searched ID did not exist
+    sgct::MessageHandler::Instance()->print("There was no timer with id: %i", id);
 }
 
 double sgct::Engine::getTime()

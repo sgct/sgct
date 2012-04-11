@@ -961,7 +961,7 @@ size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
         // construct the timer object
         TimerInformation timer;
         timer.mCallback = fnPtr;
-        timer.mInterval = millisec * 1000.0; // we want to present timers in millisec, but glfwGetTime uses seconds
+        timer.mInterval = millisec / 1000.0; // we want to present timers in millisec, but glfwGetTime uses seconds
         timer.mId = mTimerID++;  // use and post-increase
         timer.mLastFired = getTime();
         mTimers.push_back( timer );

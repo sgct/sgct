@@ -540,14 +540,17 @@ void sgct::Engine::render()
 		}
 
         // check all timers if one of them has expired
-        for( size_t i = 0; i < mTimers.size(); ++i )
+        if ( isMaster() )
         {
-            TimerInformation& currentTimer = mTimers[i];
-            const double timeSinceLastFiring = endFrameTime - currentTimer.mLastFired;
-            if( timeSinceLastFiring > currentTimer.mInterval )
+            for( size_t i = 0; i < mTimers.size(); ++i )
             {
-                currentTimer.mLastFired = endFrameTime;
-                currentTimer.mCallback(currentTimer.mId);
+                TimerInformation& currentTimer = mTimers[i];
+                const double timeSinceLastFiring = endFrameTime - currentTimer.mLastFired;
+                if( timeSinceLastFiring > currentTimer.mInterval )
+                {
+                    currentTimer.mLastFired = endFrameTime;
+                    currentTimer.mCallback(currentTimer.mId);
+                }
             }
         }
 
@@ -953,32 +956,40 @@ int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * value
 
 size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
 {
-    // construct the timer object
-    TimerInformation timer;
-    timer.mCallback = fnPtr;
-    timer.mInterval = millisec * 1000.0; // we want to present timers in millisec, but glfwGetTime uses seconds
-    timer.mId = mTimerID++;  // use and post-increase
-    timer.mLastFired = getTime();
-    mTimers.push_back( timer );
-    return timer.mId;
+    if ( isMaster() )
+    {
+        // construct the timer object
+        TimerInformation timer;
+        timer.mCallback = fnPtr;
+        timer.mInterval = millisec * 1000.0; // we want to present timers in millisec, but glfwGetTime uses seconds
+        timer.mId = mTimerID++;  // use and post-increase
+        timer.mLastFired = getTime();
+        mTimers.push_back( timer );
+        return timer.mId;
+    }
+    else
+        return std::numeric_limits<size_t>::max();
 }
 
 void sgct::Engine::stopTimer( size_t id )
 {
-    // iterate over all timers and search for the id
-    for( size_t i = 0; i < mTimers.size(); ++i )
+    if ( isMaster() )
     {
-        const TimerInformation& currentTimer = mTimers[i];
-        if( currentTimer.mId == id )
+        // iterate over all timers and search for the id
+        for( size_t i = 0; i < mTimers.size(); ++i )
         {
-            // if the id found, delete this timer and return immediately
-            mTimers.erase( mTimers.begin() + i );
-            return;
+            const TimerInformation& currentTimer = mTimers[i];
+            if( currentTimer.mId == id )
+            {
+                // if the id found, delete this timer and return immediately
+                mTimers.erase( mTimers.begin() + i );
+                return;
+            }
         }
-    }
 
-    // if we get this far, the searched ID did not exist
-    sgct::MessageHandler::Instance()->print("There was no timer with id: %i", id);
+        // if we get this far, the searched ID did not exist
+        sgct::MessageHandler::Instance()->print("There was no timer with id: %i", id);
+    }
 }
 
 double sgct::Engine::getTime()

@@ -139,12 +139,12 @@ T sgct::SharedData::readObj()
 
     for(size_t i = 0; i < size; ++i)
     {
-        data[i] = dataBlock[pos + i];0
+        data[i] = dataBlock[pos + i];
     }
     pos += size;
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
-    T result = reinterpret_cast<T>(data);
+    T result = *reinterpret_cast<T*>(data);
     delete[] data;
     return result;
 }

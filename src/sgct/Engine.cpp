@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/ogl_headers.h"
+#include "../include/sgct/SGCTInternalShaders.h"
 #include <math.h>
 #include <iostream>
 #include <sstream>
@@ -73,6 +74,19 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mTerminate = false;
 
 	localRunningMode = NetworkManager::NotLocal;
+
+	mFrameBuffers[0] = 0;
+	mFrameBuffers[1] = 0;
+	mMultiSampledFrameBuffers[0] = 0;
+	mMultiSampledFrameBuffers[1] = 0;
+	mFrameBufferTextures[0] = 0;
+	mFrameBufferTextures[1] = 0;
+	mRenderBuffers[0] = 0;
+	mRenderBuffers[1] = 0;
+	mDepthBuffers[0] = 0;
+	mDepthBuffers[1] = 0;
+	mFrameBufferTextureLocs[0] = -1;
+	mFrameBufferTextureLocs[1] = -1;
 
 	// Initialize GLFW
 	if( !glfwInit() )
@@ -285,6 +299,49 @@ void sgct::Engine::initOGL()
 		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
 	}
 
+	if(GLEW_EXT_framebuffer_multisample)
+	{
+		glEnable(GL_TEXTURE_2D);
+		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
+		glGenFramebuffersEXT(2,		&mMultiSampledFrameBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
+		glGenTextures(2,			&mFrameBufferTextures[0]);
+
+		for( int i=0; i<2; i++ )
+		{
+			//setup render buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			
+			//setup depth buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			
+			//setup non-multisample buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);	
+		}
+
+		// Unbind / Go back to regular frame buffer rendering
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		
+		glDisable(GL_TEXTURE_2D);
+
+		loadShaders();
+
+		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
+	}
+	else
+		sgct::MessageHandler::Instance()->print("Warning! FBO anti-aliasied rendering is not supported!\n");
+
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -318,6 +375,18 @@ void sgct::Engine::clean()
 
 	sgct::MessageHandler::Instance()->print("Clearing all callbacks...\n");
 	clearAllCallbacks();
+
+	//delete FBO stuff
+	if(GLEW_EXT_framebuffer_multisample)
+	{
+		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
+		glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+		glDeleteTextures(2,			&mFrameBufferTextures[0]);
+		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
+		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
+
+		sgct::ShaderManager::Destroy();
+	}
 
 	//de-init window and unbind swapgroups...
 	SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
@@ -479,18 +548,39 @@ void sgct::Engine::render()
 		glLineWidth(1.0);
 		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
+		//check if re-size needed
+		if( getWindowPtr()->isWindowResized() )
+			resizeFBOs();
+
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-		if( tmpNode->stereo == ReadConfig::Active )
+		//if any stereo type (except passive)
+		if( tmpNode->stereo != ReadConfig::None )
 		{
 			mActiveFrustum = Frustum::StereoLeftEye;
-			glDrawBuffer(GL_BACK_LEFT);
+			
+			if(GLEW_EXT_framebuffer_object)
+			{
+				glDrawBuffer(GL_BACK);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+			}
+			else if( tmpNode->stereo != ReadConfig::Active )
+				glDrawBuffer(GL_BACK_LEFT);
 		}
 		else
 		{
 			mActiveFrustum = Frustum::Mono;
-			glDrawBuffer(GL_BACK);
+			
+			if(GLEW_EXT_framebuffer_object)
+			{
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+			}
+			else
+				glDrawBuffer(GL_BACK);
 		}
+		
 		//clear buffers
 		mClearBufferFn();
 
@@ -499,18 +589,27 @@ void sgct::Engine::render()
 		{
 			tmpNode->setCurrentViewport(i);
 			//if passive stereo or mono
-			if( tmpNode->stereo != ReadConfig::Active )
+			if( tmpNode->stereo == ReadConfig::None )
 				mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
 			(this->*mInternalRenderFn)();
 		}
 
-		if( tmpNode->stereo == ReadConfig::Active )
+		//render right eye view port(s)
+		if( tmpNode->stereo != ReadConfig::None )
 		{
-			glDrawBuffer(GL_BACK_RIGHT);
+			if(GLEW_EXT_framebuffer_object)
+			{
+				glDrawBuffer(GL_BACK);
+				glBindTexture(GL_TEXTURE_2D, 0);
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
+			}
+			else if( tmpNode->stereo != ReadConfig::Active )
+				glDrawBuffer(GL_BACK_RIGHT);
 
 			//clear buffers
 			mClearBufferFn();
 
+			//render all viewports for right eye
 			mActiveFrustum = Frustum::StereoRightEye;
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
@@ -521,6 +620,31 @@ void sgct::Engine::render()
 
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+		//copy AA-buffer to "normal"/non-AA buffer
+		if(GLEW_EXT_framebuffer_multisample)
+		{
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]); // source
+			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[0]); // dest
+			glBlitFramebufferEXT(
+				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
+				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
+				GL_COLOR_BUFFER_BIT, GL_LINEAR);
+
+			//copy right buffers if used
+			if( tmpNode->stereo != ReadConfig::None )
+			{
+				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]); // source
+				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[1]); // dest
+				glBlitFramebufferEXT(
+					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
+					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
+					GL_COLOR_BUFFER_BIT, GL_LINEAR);
+			}
+
+			//Draw FBO texture here
+			renderFBOTexture();
+		}
 
         double endFrameTime = glfwGetTime();
 		mStatistics.setDrawTime(endFrameTime - startFrameTime);
@@ -593,7 +717,7 @@ void sgct::Engine::renderDisplayInfo()
 		lFrameNumber);
 
 	//if active stereoscopic rendering
-	if( ClusterManager::Instance()->getThisNodePtr()->stereo != ReadConfig::None )
+	if( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
 		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
@@ -601,14 +725,16 @@ void sgct::Engine::renderDisplayInfo()
 		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
-	//if passive stereo
-	if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
-	{
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
-	}
-	else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
-	{
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+	else //if passive stereo
+	{	
+		if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
+		{
+			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+		}
+		else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
+		{
+			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+		}
 	}
 	glPopAttrib();
 }
@@ -645,6 +771,211 @@ void sgct::Engine::draw()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
+}
+
+void sgct::Engine::renderFBOTexture()
+{
+	//unbind framebuffer
+	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+
+	//enter ortho mode
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+	glPushMatrix();
+	gluOrtho2D(0.0, static_cast<double>(getWindowPtr()->getHResolution()),
+		0.0, static_cast<double>(getWindowPtr()->getVResolution()));
+
+	glMatrixMode(GL_MODELVIEW);
+
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+	glDisable(GL_LIGHTING);
+
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	//set correct back buffer if active stereo is enabled
+	tmpNode->stereo == ReadConfig::Active ? glDrawBuffer(GL_BACK_LEFT) : glDrawBuffer(GL_BACK);
+
+	//clear buffers
+	mClearBufferFn();
+	
+	glLoadIdentity();
+	
+	glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+	
+	glColor4f(1.0f,1.0f,1.0f,1.0f);
+	if( tmpNode->stereo > ReadConfig::Active )
+	{
+		switch(tmpNode->stereo)
+		{
+		case ReadConfig::Anaglyph_Red_Cyan:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
+			break;
+
+		case ReadConfig::Anaglyph_Amber_Blue:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
+			break;
+		}
+
+		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+		glEnable(GL_TEXTURE_2D);
+
+		glActiveTextureARB(GL_TEXTURE1_ARB);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
+		glEnable(GL_TEXTURE_2D);
+
+		glBegin(GL_QUADS);
+		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.0, 0.0);
+		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, 0.0);
+		glVertex2i(0, 0);
+
+		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.0, 1.0);
+		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, 1.0);
+		glVertex2i(0, getWindowPtr()->getVResolution());
+
+		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.0, 1.0);
+		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1.0, 1.0);
+		glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+
+		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.0, 0.0);
+		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1.0, 0.0);
+		glVertex2i(getWindowPtr()->getHResolution(), 0);
+
+		glEnd();
+
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else
+	{
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+		glEnable(GL_TEXTURE_2D);
+
+		glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0);	glVertex2i(0, 0);
+		glTexCoord2d(0.0, 1.0);	glVertex2i(0, getWindowPtr()->getVResolution());
+		glTexCoord2d(1.0, 1.0);	glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+		glTexCoord2d(1.0, 0.0);	glVertex2i(getWindowPtr()->getHResolution(), 0);
+		glEnd();
+	}
+
+	//render right eye in active stereo mode
+	if( tmpNode->stereo == ReadConfig::Active )
+	{
+		glDrawBuffer(GL_BACK_RIGHT);
+		
+		//clear buffers
+		mClearBufferFn();
+	
+		glLoadIdentity();
+	
+		glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+
+		glColor4f(1.0f,1.0f,1.0f,1.0f);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
+
+		glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0);	glVertex2i(0, 0);
+		glTexCoord2d(0.0, 1.0);	glVertex2i(0, getWindowPtr()->getVResolution());
+		glTexCoord2d(1.0, 1.0);	glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+		glTexCoord2d(1.0, 0.0);	glVertex2i(getWindowPtr()->getHResolution(), 0);
+		glEnd();
+	}
+
+	glPopAttrib();
+
+	//exit ortho mode
+	glMatrixMode(GL_PROJECTION);
+	glPopMatrix();
+}
+
+void sgct::Engine::loadShaders()
+{
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	if( tmpNode->stereo == ReadConfig::Anaglyph_Red_Cyan )
+	{
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
+		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
+		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
+		glUniform1i( mFrameBufferTextures[0], 0 );
+		glUniform1i( mFrameBufferTextures[1], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ReadConfig::Anaglyph_Amber_Blue )
+	{
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
+		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
+		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
+		glUniform1i( mFrameBufferTextures[0], 0 );
+		glUniform1i( mFrameBufferTextures[1], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+}
+
+void sgct::Engine::resizeFBOs()
+{
+	if(GLEW_EXT_framebuffer_multisample)
+	{
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		
+		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+		glEnable(GL_TEXTURE_2D);
+
+		//delete all
+		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
+		glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+		glDeleteTextures(2,			&mFrameBufferTextures[0]);
+		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
+		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
+
+		//init
+		mFrameBuffers[0] = 0;
+		mFrameBuffers[1] = 0;
+		mMultiSampledFrameBuffers[0] = 0;
+		mMultiSampledFrameBuffers[1] = 0;
+		mFrameBufferTextures[0] = 0;
+		mFrameBufferTextures[1] = 0;
+		mRenderBuffers[0] = 0;
+		mRenderBuffers[1] = 0;
+		mDepthBuffers[0] = 0;
+		mDepthBuffers[1] = 0;
+
+		//generate
+		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
+		glGenFramebuffersEXT(2,		&mMultiSampledFrameBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
+		glGenTextures(2,			&mFrameBufferTextures[0]);
+
+		for( int i=0; i<2; i++ )
+		{
+			//setup render buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			
+			//setup depth buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			
+			//setup non-multisample buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
+
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		}
+				
+		glPopAttrib();
+
+		sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
+	}
 }
 
 void sgct::Engine::calculateFrustums()

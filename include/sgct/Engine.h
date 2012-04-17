@@ -125,6 +125,9 @@ private:
 	const char * getBasicInfo();
 
 	void draw();
+	void renderFBOTexture();
+	void loadShaders();
+	void resizeFBOs();
 
 	static void clearBuffer(void);
 
@@ -169,6 +172,14 @@ private:
 
 	//objects
 	core_sgct::Statistics	mStatistics;
+
+	//openGL objects
+	unsigned int mFrameBuffers[2];
+	unsigned int mMultiSampledFrameBuffers[2];
+	unsigned int mRenderBuffers[2];
+	unsigned int mDepthBuffers[2];
+	unsigned int mFrameBufferTextures[2];
+	int mFrameBufferTextureLocs[2];
 
 	//pointers
 	core_sgct::NetworkManager * mNetworkConnections;

@@ -49,5 +49,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "sgct/FontManager.h"
 #include "sgct/MessageHandler.h"
 #include "sgct/ShaderManager.h"
+#include "sgct/freetype.h"
 
 #endif

@@ -120,6 +120,14 @@ void myDrawFun()
 
 	glPopMatrix();
 
+	if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoLeftEye )
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 50, "Left");
+	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoRightEye )
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 100, "Right");
+	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::Mono )
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 150, "Mono");
+
+
 	//drawGrid(10.0, 100);
 }
 

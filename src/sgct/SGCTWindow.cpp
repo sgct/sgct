@@ -59,6 +59,8 @@ core_sgct::SGCTWindow::SGCTWindow()
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
+	mWindowResOld[0] = mWindowRes[0];
+	mWindowResOld[1] = mWindowRes[1];
 	mWindowPos[0] = 0;
 	mWindowPos[1] = 0;
 	mWindowMode = GLFW_WINDOW;
@@ -118,6 +120,26 @@ void core_sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
+}
+
+void core_sgct::SGCTWindow::initWindowResolution(const int x, const int y)
+{
+	mWindowRes[0] = x;
+	mWindowRes[1] = y;
+	mWindowResOld[0] = mWindowRes[0];
+	mWindowResOld[1] = mWindowRes[1];
+}
+
+bool core_sgct::SGCTWindow::isWindowResized()
+{
+	if( mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1] )
+	{
+		mWindowResOld[0] = mWindowRes[0];
+		mWindowResOld[1] = mWindowRes[1];
+		return true;
+	}
+	else
+		return false;
 }
 
 void core_sgct::SGCTWindow::setWindowPosition(const int x, const int y)

@@ -44,6 +44,7 @@
     <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
     <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
     <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />

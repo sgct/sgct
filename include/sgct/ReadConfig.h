@@ -40,7 +40,7 @@ class ReadConfig
 public:
 	ReadConfig( const std::string filename );
 
-	enum StereoMode { None = 0, Active, Checkerboard };
+	enum StereoMode { None = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Checkerboard };
 
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }

@@ -103,7 +103,7 @@ void core_sgct::Statistics::draw()
 
 	glLoadIdentity();
 
-	//draw background (1000x1000 canvas)
+	//draw background (1024x1024 canvas)
 	glColor4f(0.0f,0.0f,0.0f,0.5f);
 	glBegin(GL_QUADS);
 		glVertex2i(0, 0);

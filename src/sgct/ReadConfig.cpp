@@ -196,7 +196,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							element[2]->Attribute("y", &tmpWinData[3] );
 						}
 
-						tmpNode.getWindowPtr()->setWindowResolution(tmpWinData[2],tmpWinData[3]);
+						tmpNode.getWindowPtr()->initWindowResolution(tmpWinData[2],tmpWinData[3]);
 						tmpNode.getWindowPtr()->setWindowPosition(tmpWinData[0],tmpWinData[1]);
 
 						//iterate
@@ -328,6 +328,10 @@ int core_sgct::ReadConfig::getStereoType( const std::string type )
 		return Active;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
 		return Checkerboard;
+	else if( strcmp( type.c_str(), "anaglyph_red_cyan" ) == 0 )
+		return Anaglyph_Red_Cyan;
+	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
+		return Anaglyph_Amber_Blue;
 
 	//if match not found
 	return -1;

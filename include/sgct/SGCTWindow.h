@@ -41,6 +41,8 @@ public:
 	void init();
 	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
+	void initWindowResolution(const int x, const int y);
+	bool isWindowResized();
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(const int mode);
 	void setBarrier(const bool state);
@@ -65,6 +67,7 @@ private:
 	bool mUseQuadBuffer;
 	int mWindowRes[2];
 	int mWindowPos[2];
+	int mWindowResOld[2];
 	int mWindowMode;
 };
 }

@@ -52,7 +52,16 @@ namespace core_sgct
 		}
 
 		*/
-		const std::string Anaglyph_Vert_Shader = "\n#version 120\nuniform sampler2D LeftTex;\nuniform sampler2D RightTex;\nvoid main()\n{\ngl_TexCoord[0] = gl_MultiTexCoord0;\ngl_TexCoord[1] = gl_MultiTexCoord1;\ngl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n}\n";		
+		const std::string Anaglyph_Vert_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+				gl_TexCoord[1] = gl_MultiTexCoord1;\n\
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+			}\n";		
 		
 		/*
 
@@ -76,7 +85,21 @@ namespace core_sgct
 		}
 
 		*/
-		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\n#version 120\nuniform sampler2D LeftTex;\nuniform sampler2D RightTex;\nvoid main()\n{\nvec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\nfloat leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\nvec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\nfloat rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\ngl_FragColor.r = leftLum;\ngl_FragColor.g = rightLum;\ngl_FragColor.b = rightLum;\ngl_FragColor.a = 1.0;\n}\n";		
+		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
+				gl_FragColor.r = leftLum;\n\
+				gl_FragColor.g = rightLum;\n\
+				gl_FragColor.b = rightLum;\n\
+				gl_FragColor.a = 1.0;\n\
+			}\n";		
 	
 		/*
 
@@ -100,7 +123,21 @@ namespace core_sgct
 		}
 
 		*/
-		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\n#version 120\nuniform sampler2D LeftTex;\nuniform sampler2D RightTex;\nvoid main()\n{\nvec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\nvec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\nvec3 coef = vec3(0.15, 0.15, 0.70);\nfloat rightMix = dot(rightVals.rbg, coef);\ngl_FragColor.r = leftVals.r;\ngl_FragColor.g = leftVals.g;\ngl_FragColor.b = rightMix;\ngl_FragColor.a = 1.0;\n}\n";
+		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				vec3 coef = vec3(0.15, 0.15, 0.70);\n\
+				float rightMix = dot(rightVals.rbg, coef);\n\
+				gl_FragColor.r = leftVals.r;\n\
+				gl_FragColor.g = leftVals.g;\n\
+				gl_FragColor.b = rightMix;\n\
+				gl_FragColor.a = 1.0;\n\
+			}\n";
 	}
 }
 #endif

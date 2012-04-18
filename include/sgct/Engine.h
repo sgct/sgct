@@ -127,6 +127,7 @@ private:
 	void draw();
 	void renderFBOTexture();
 	void loadShaders();
+	void createFBOs();
 	void resizeFBOs();
 
 	static void clearBuffer(void);
@@ -173,13 +174,15 @@ private:
 	//objects
 	core_sgct::Statistics	mStatistics;
 
-	//openGL objects
+	//FBO stuff
+	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	unsigned int mFrameBuffers[2];
 	unsigned int mMultiSampledFrameBuffers[2];
 	unsigned int mRenderBuffers[2];
 	unsigned int mDepthBuffers[2];
 	unsigned int mFrameBufferTextures[2];
 	int mFrameBufferTextureLocs[2];
+	int mFBOMode;
 
 	//pointers
 	core_sgct::NetworkManager * mNetworkConnections;

@@ -75,6 +75,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	localRunningMode = NetworkManager::NotLocal;
 
+	//FBO stuff
 	mFrameBuffers[0] = 0;
 	mFrameBuffers[1] = 0;
 	mMultiSampledFrameBuffers[0] = 0;
@@ -87,6 +88,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mDepthBuffers[1] = 0;
 	mFrameBufferTextureLocs[0] = -1;
 	mFrameBufferTextureLocs[1] = -1;
+	mFBOMode = MultiSampledFBO;
 
 	// Initialize GLFW
 	if( !glfwInit() )
@@ -218,7 +220,7 @@ bool sgct::Engine::initWindow()
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active );
 
 	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
-	if( antiAliasingSamples > 1 ) //if multisample is used
+	if( antiAliasingSamples > 1 && mFBOMode == NoFBO ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
 
     //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
@@ -299,48 +301,7 @@ void sgct::Engine::initOGL()
 		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
 	}
 
-	if(GLEW_EXT_framebuffer_multisample)
-	{
-		glEnable(GL_TEXTURE_2D);
-		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
-		glGenFramebuffersEXT(2,		&mMultiSampledFrameBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
-		glGenTextures(2,			&mFrameBufferTextures[0]);
-
-		for( int i=0; i<2; i++ )
-		{
-			//setup render buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			
-			//setup depth buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			
-			//setup non-multisample buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
-			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);	
-		}
-
-		// Unbind / Go back to regular frame buffer rendering
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		
-		glDisable(GL_TEXTURE_2D);
-
-		loadShaders();
-
-		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
-	}
-	else
-		sgct::MessageHandler::Instance()->print("Warning! FBO anti-aliasied rendering is not supported!\n");
+	createFBOs();
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -377,10 +338,11 @@ void sgct::Engine::clean()
 	clearAllCallbacks();
 
 	//delete FBO stuff
-	if(GLEW_EXT_framebuffer_multisample)
+	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
 		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
-		glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+			glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
 		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
 		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
@@ -522,7 +484,6 @@ void sgct::Engine::frameSyncAndLock(int stage)
 
 void sgct::Engine::render()
 {
-
 	mRunning = GL_TRUE;
 
 	while( mRunning )
@@ -559,11 +520,17 @@ void sgct::Engine::render()
 		{
 			mActiveFrustum = Frustum::StereoLeftEye;
 			
-			if(GLEW_EXT_framebuffer_object)
+			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
 				glDrawBuffer(GL_BACK);
+
+				//un-bind texture
 				glBindTexture(GL_TEXTURE_2D, 0);
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+
+				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+				else
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
 			}
 			else if( tmpNode->stereo != ReadConfig::Active )
 				glDrawBuffer(GL_BACK_LEFT);
@@ -572,13 +539,18 @@ void sgct::Engine::render()
 		{
 			mActiveFrustum = Frustum::Mono;
 			
-			if(GLEW_EXT_framebuffer_object)
+			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
+				//un-bind texture
 				glBindTexture(GL_TEXTURE_2D, 0);
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+
+				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+				else
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
 			}
-			else
-				glDrawBuffer(GL_BACK);
+			
+			glDrawBuffer(GL_BACK);
 		}
 		
 		//clear buffers
@@ -597,11 +569,16 @@ void sgct::Engine::render()
 		//render right eye view port(s)
 		if( tmpNode->stereo != ReadConfig::None )
 		{
-			if(GLEW_EXT_framebuffer_object)
+			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
 				glDrawBuffer(GL_BACK);
+				//un-bind texture
 				glBindTexture(GL_TEXTURE_2D, 0);
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
+				
+				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
+				else
+					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[1]);
 			}
 			else if( tmpNode->stereo != ReadConfig::Active )
 				glDrawBuffer(GL_BACK_RIGHT);
@@ -621,15 +598,15 @@ void sgct::Engine::render()
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		//copy AA-buffer to "normal"/non-AA buffer
-		if(GLEW_EXT_framebuffer_multisample)
+		//copy AA-buffer to "regular"/non-AA buffer
+		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 		{
 			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]); // source
 			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[0]); // dest
 			glBlitFramebufferEXT(
 				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
 				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-				GL_COLOR_BUFFER_BIT, GL_LINEAR);
+				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 			//copy right buffers if used
 			if( tmpNode->stereo != ReadConfig::None )
@@ -639,12 +616,14 @@ void sgct::Engine::render()
 				glBlitFramebufferEXT(
 					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
 					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-					GL_COLOR_BUFFER_BIT, GL_LINEAR);
+					GL_COLOR_BUFFER_BIT, GL_NEAREST);
 			}
 
 			//Draw FBO texture here
 			renderFBOTexture();
 		}
+		else if(mFBOMode == RegularFBO && GLEW_EXT_framebuffer_object)
+			renderFBOTexture();
 
         double endFrameTime = glfwGetTime();
 		mStatistics.setDrawTime(endFrameTime - startFrameTime);
@@ -815,6 +794,13 @@ void sgct::Engine::renderFBOTexture()
 			break;
 		}
 
+		/*
+			ATI works without these uniforms
+			NVIDA doesn't
+		*/
+		glUniform1i( mFrameBufferTextureLocs[0], 0);
+		glUniform1i( mFrameBufferTextureLocs[1], 1);
+
 		glActiveTextureARB(GL_TEXTURE0_ARB);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
 		glEnable(GL_TEXTURE_2D);
@@ -913,18 +899,99 @@ void sgct::Engine::loadShaders()
 	}
 }
 
+void sgct::Engine::createFBOs()
+{
+	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	{	
+		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+		glEnable(GL_TEXTURE_2D);
+		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
+		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
+		glGenTextures(2,			&mFrameBufferTextures[0]);
+		
+		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+		{
+			GLint MaxSamples;
+			glGetIntegerv(GL_MAX_SAMPLES_EXT, &MaxSamples);
+			if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > MaxSamples )
+				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = MaxSamples;
+			if( MaxSamples < 2 )
+				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 0;
+
+			sgct::MessageHandler::Instance()->print("Max samples supported: %d\n", MaxSamples);
+
+			//generate the multisample buffer
+			glGenFramebuffersEXT(2, &mMultiSampledFrameBuffers[0]);
+		}
+		else
+			sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported or enabled!\n");
+
+		for( int i=0; i<2; i++ )
+		{
+			//setup render buffer
+			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			else
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			else
+				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			
+			//setup depth buffer
+			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
+			else
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			else
+				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+			
+			//setup non-multisample buffer
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);	
+		}
+
+		// Unbind / Go back to regular frame buffer rendering
+		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		
+		glPopAttrib();
+
+		loadShaders();
+
+		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
+	}
+	else
+	{
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+		//disable anaglyph & checkerboard stereo if FBOs are not used
+		if( tmpNode->stereo > ReadConfig::Active )
+			tmpNode->stereo = ReadConfig::None;
+		sgct::MessageHandler::Instance()->print("Warning! FBO rendering is not supported or enabled!\nAnaglyph & checkerboard (DLP) stereo modes are disabled.\n");
+	}
+
+}
+
 void sgct::Engine::resizeFBOs()
 {
-	if(GLEW_EXT_framebuffer_multisample)
+	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		
-		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-		glEnable(GL_TEXTURE_2D);
-
 		//delete all
 		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
-		glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+			glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
 		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
 		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
@@ -941,38 +1008,7 @@ void sgct::Engine::resizeFBOs()
 		mDepthBuffers[0] = 0;
 		mDepthBuffers[1] = 0;
 
-		//generate
-		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
-		glGenFramebuffersEXT(2,		&mMultiSampledFrameBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
-		glGenTextures(2,			&mFrameBufferTextures[0]);
-
-		for( int i=0; i<2; i++ )
-		{
-			//setup render buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			
-			//setup depth buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			
-			//setup non-multisample buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
-			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
-
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		}
-				
-		glPopAttrib();
+		createFBOs();
 
 		sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
 	}
@@ -1040,6 +1076,24 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
+		}
+		else if( strcmp(argv[i],"--No-FBO") == 0 )
+		{
+			mFBOMode = NoFBO;
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--Regular-FBO") == 0 )
+		{
+			mFBOMode = RegularFBO;
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--MultiSampled-FBO") == 0 )
+		{
+			mFBOMode = MultiSampledFBO;
+			argumentsToRemove.push_back(i);
+			i++;
 		}
 		else
 			i++; //iterate

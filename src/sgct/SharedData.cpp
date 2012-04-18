@@ -299,3 +299,38 @@ short SharedData::readShort()
 
 	return cs.s;
 }
+
+template<class T>
+void SharedData::writeObj( const T& obj )
+{
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("SharedData::writeObj\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    unsigned char *p = (unsigned char *)&obj;
+    size_t size = sizeof(obj);
+    dataBlock.insert( dataBlock.end(), p, p+size);
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+}
+
+template<class T>
+T SharedData::readObj()
+{
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("SharedData::readObj\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    size_t size = sizeof(T);
+    unsigned char* data = new unsigned char[size];
+
+    for(size_t i = 0; i < size; ++i)
+    {
+        data[i] = dataBlock[pos + i];
+    }
+    pos += size;
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
+    T result = *reinterpret_cast<T*>(data);
+    delete[] data;
+    return result;
+}

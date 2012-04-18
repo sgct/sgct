@@ -222,6 +222,8 @@ bool sgct::Engine::initWindow()
 	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
 	if( antiAliasingSamples > 1 && mFBOMode == NoFBO ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+	else if( antiAliasingSamples < 2 && mFBOMode == MultiSampledFBO ) //on sample or less => no multisampling
+		mFBOMode = RegularFBO;
 
     //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
@@ -519,7 +521,7 @@ void sgct::Engine::render()
 		if( tmpNode->stereo != ReadConfig::None )
 		{
 			mActiveFrustum = Frustum::StereoLeftEye;
-			
+
 			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
 				glDrawBuffer(GL_BACK);
@@ -538,7 +540,7 @@ void sgct::Engine::render()
 		else
 		{
 			mActiveFrustum = Frustum::Mono;
-			
+
 			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
 				//un-bind texture
@@ -549,10 +551,10 @@ void sgct::Engine::render()
 				else
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
 			}
-			
+
 			glDrawBuffer(GL_BACK);
 		}
-		
+
 		//clear buffers
 		mClearBufferFn();
 
@@ -574,7 +576,7 @@ void sgct::Engine::render()
 				glDrawBuffer(GL_BACK);
 				//un-bind texture
 				glBindTexture(GL_TEXTURE_2D, 0);
-				
+
 				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
 				else
@@ -705,7 +707,7 @@ void sgct::Engine::renderDisplayInfo()
 		glDrawBuffer(GL_BACK);
 	}
 	else //if passive stereo
-	{	
+	{
 		if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
 			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
@@ -775,11 +777,11 @@ void sgct::Engine::renderFBOTexture()
 
 	//clear buffers
 	mClearBufferFn();
-	
+
 	glLoadIdentity();
-	
+
 	glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-	
+
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
 	if( tmpNode->stereo > ReadConfig::Active )
 	{
@@ -792,12 +794,16 @@ void sgct::Engine::renderFBOTexture()
 		case ReadConfig::Anaglyph_Amber_Blue:
 			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
 			break;
+
+		case ReadConfig::Checkerboard:
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
+			break;
+
+		case ReadConfig::Checkerboard_Inverted:
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+			break;
 		}
 
-		/*
-			ATI works without these uniforms
-			NVIDA doesn't
-		*/
 		glUniform1i( mFrameBufferTextureLocs[0], 0);
 		glUniform1i( mFrameBufferTextureLocs[1], 1);
 
@@ -847,12 +853,12 @@ void sgct::Engine::renderFBOTexture()
 	if( tmpNode->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_RIGHT);
-		
+
 		//clear buffers
 		mClearBufferFn();
-	
+
 		glLoadIdentity();
-	
+
 		glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
@@ -883,8 +889,8 @@ void sgct::Engine::loadShaders()
 		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextures[0], 0 );
-		glUniform1i( mFrameBufferTextures[1], 1 );
+		glUniform1i( mFrameBufferTextureLocs[0], 0 );
+		glUniform1i( mFrameBufferTextureLocs[1], 1 );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 	else if( tmpNode->stereo == ReadConfig::Anaglyph_Amber_Blue )
@@ -893,8 +899,28 @@ void sgct::Engine::loadShaders()
 		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextures[0], 0 );
-		glUniform1i( mFrameBufferTextures[1], 1 );
+		glUniform1i( mFrameBufferTextureLocs[0], 0 );
+		glUniform1i( mFrameBufferTextureLocs[1], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ReadConfig::Checkerboard )
+	{
+		sgct::ShaderManager::Instance()->addShader("Checkerboard", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
+		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
+		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
+		glUniform1i( mFrameBufferTextureLocs[0], 0 );
+		glUniform1i( mFrameBufferTextureLocs[1], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ReadConfig::Checkerboard_Inverted )
+	{
+		sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
+		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
+		glUniform1i( mFrameBufferTextureLocs[0], 0 );
+		glUniform1i( mFrameBufferTextureLocs[1], 1 );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 }
@@ -902,14 +928,14 @@ void sgct::Engine::loadShaders()
 void sgct::Engine::createFBOs()
 {
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
-	{	
+	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		glEnable(GL_TEXTURE_2D);
 		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
 		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
 		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
 		glGenTextures(2,			&mFrameBufferTextures[0]);
-		
+
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 		{
 			GLint MaxSamples;
@@ -940,7 +966,7 @@ void sgct::Engine::createFBOs()
 			else
 				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			
+
 			//setup depth buffer
 			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
@@ -952,18 +978,18 @@ void sgct::Engine::createFBOs()
 			else
 				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			
+
 			//setup non-multisample buffer
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
-			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);	
+			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
 		}
 
 		// Unbind / Go back to regular frame buffer rendering
 		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
-		
+
 		glPopAttrib();
 
 		loadShaders();
@@ -986,8 +1012,6 @@ void sgct::Engine::resizeFBOs()
 {
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
-		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		
 		//delete all
 		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)

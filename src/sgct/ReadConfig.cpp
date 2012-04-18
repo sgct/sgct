@@ -328,6 +328,8 @@ int core_sgct::ReadConfig::getStereoType( const std::string type )
 		return Active;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
 		return Checkerboard;
+	else if( strcmp( type.c_str(), "checkerboard_inverted" ) == 0 )
+		return Checkerboard_Inverted;
 	else if( strcmp( type.c_str(), "anaglyph_red_cyan" ) == 0 )
 		return Anaglyph_Red_Cyan;
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )

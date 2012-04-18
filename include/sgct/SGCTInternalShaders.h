@@ -138,6 +138,69 @@ namespace core_sgct
 				gl_FragColor.b = rightMix;\n\
 				gl_FragColor.a = 1.0;\n\
 			}\n";
+
+		/*
+
+		#version 120
+		layout(origin_upper_left) in vec4 gl_FragCoord;
+		uniform sampler2D LeftTex;
+		uniform sampler2D RightTex;
+
+		void main()
+		{
+			float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);
+				
+			if( mod(fval,2.0) == 0.0 )
+				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
+			else
+				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
+		}
+
+		*/
+
+		const std::string CheckerBoard_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);\n\
+				if( mod(fval,2.0) == 0.0 )\n\
+					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				else\n\
+					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+			}\n";
+
+		/*
+
+		#version 120
+		uniform sampler2D LeftTex;
+		uniform sampler2D RightTex;
+
+		void main()
+		{
+			float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);
+				
+			if( mod(fval,2.0) == 0.0 )
+				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
+			else
+				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
+		}
+
+		*/
+
+		const std::string CheckerBoard_Inverted_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);\n\
+				if( mod(fval,2.0) == 0.0 )\n\
+					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+				else\n\
+					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
+			}\n";
 	}
 }
 #endif

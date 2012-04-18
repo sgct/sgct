@@ -106,50 +106,6 @@ private:
 	unsigned int pos;
 };
 
-template<class T>
-void sgct::SharedData::writeObj( const T& obj )
-{
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeObj\n");
-#endif
-    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    unsigned char *p = (unsigned char *)&obj;
-    size_t size = sizeof(obj);
-    dataBlock.insert( dataBlock.end(), p, p+size);
-    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-}
-
-
-template<class T>
-T sgct::SharedData::readObj()
-{
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readFloat\n");
-#endif
-    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    size_t size = sizeof(T);
-    unsigned char* data = new unsigned char[size];
-
-    //union
-    //{
-    //    T f;
-    //    unsigned char* c;
-    //} cf;
-    //cf.c = new unsigned char[sizeof(T)];
-
-    for(size_t i = 0; i < size; ++i)
-    {
-        data[i] = dataBlock[pos + i];
-    }
-    pos += size;
-    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-
-    T result = *reinterpret_cast<T*>(data);
-    delete[] data;
-    return result;
-}
-
-
 }
 
 #endif

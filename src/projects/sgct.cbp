@@ -68,6 +68,7 @@
 		<Unit filename="..\..\include\sgct\MessageHandler.h" />
 		<Unit filename="..\..\include\sgct\NetworkManager.h" />
 		<Unit filename="..\..\include\sgct\ReadConfig.h" />
+		<Unit filename="..\..\include\sgct\SGCTInternalShaders.h" />
 		<Unit filename="..\..\include\sgct\SGCTNetwork.h" />
 		<Unit filename="..\..\include\sgct\SGCTNode.h" />
 		<Unit filename="..\..\include\sgct\SGCTWindow.h" />

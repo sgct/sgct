@@ -148,7 +148,7 @@ namespace core_sgct
 
 		void main()
 		{
-			float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);
+			float fval = gl_FragCoord.y + gl_FragCoord.x;
 				
 			if( mod(fval,2.0) == 0.0 )
 				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
@@ -164,7 +164,7 @@ namespace core_sgct
 			uniform sampler2D RightTex;\n\
 			void main()\n\
 			{\n\
-				float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);\n\
+				float fval = gl_FragCoord.y + gl_FragCoord.x;\n\
 				if( mod(fval,2.0) == 0.0 )\n\
 					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
 				else\n\
@@ -179,7 +179,7 @@ namespace core_sgct
 
 		void main()
 		{
-			float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);
+			float fval = gl_FragCoord.y + gl_FragCoord.x;
 				
 			if( mod(fval,2.0) == 0.0 )
 				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
@@ -195,7 +195,7 @@ namespace core_sgct
 			uniform sampler2D RightTex;\n\
 			void main()\n\
 			{\n\
-				float fval = mod(gl_FragCoord.y,2.0) + mod(gl_FragCoord.x,2.0);\n\
+				float fval = gl_FragCoord.y + gl_FragCoord.x;\n\
 				if( mod(fval,2.0) == 0.0 )\n\
 					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				else\n\

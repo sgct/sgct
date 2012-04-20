@@ -148,9 +148,13 @@ namespace core_sgct
 
 		void main()
 		{
-			float fval = gl_FragCoord.y + gl_FragCoord.x;
-				
-			if( mod(fval,2.0) == 0.0 )
+			//slow
+			//float fval = gl_FragCoord.y + gl_FragCoord.x;				
+			//if( mod(fval,2.0) == 0.0 )
+
+			//fast
+			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
+			if( (fval - floor(fval)) == 0.0 )
 				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
 			else
 				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
@@ -164,8 +168,8 @@ namespace core_sgct
 			uniform sampler2D RightTex;\n\
 			void main()\n\
 			{\n\
-				float fval = gl_FragCoord.y + gl_FragCoord.x;\n\
-				if( mod(fval,2.0) == 0.0 )\n\
+				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
+				if( (fval - floor(fval)) == 0.0 )\n\
 					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
 				else\n\
 					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
@@ -179,9 +183,13 @@ namespace core_sgct
 
 		void main()
 		{
-			float fval = gl_FragCoord.y + gl_FragCoord.x;
-				
-			if( mod(fval,2.0) == 0.0 )
+			//slow
+			//float fval = gl_FragCoord.y + gl_FragCoord.x;				
+			//if( mod(fval,2.0) == 0.0 )
+
+			//faster
+			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
+			if( (fval - floor(fval)) == 0.0 )
 				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
 			else
 				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
@@ -195,8 +203,8 @@ namespace core_sgct
 			uniform sampler2D RightTex;\n\
 			void main()\n\
 			{\n\
-				float fval = gl_FragCoord.y + gl_FragCoord.x;\n\
-				if( mod(fval,2.0) == 0.0 )\n\
+				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
+				if( (fval - floor(fval)) == 0.0 )\n\
 					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				else\n\
 					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\

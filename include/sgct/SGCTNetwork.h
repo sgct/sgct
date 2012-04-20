@@ -68,7 +68,7 @@ public:
 	bool compareFrames();
 	void setRecvFrame(int i);
 	void swapFrames();
-	void sendData(void * data, int lenght);
+	void sendData(void * data, int length);
 	void sendStr(std::string msg);
 	void iterateFrameCounter();
 	void checkIfBufferNeedsResizing();

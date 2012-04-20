@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _STATISTICS_H_
 #define _STATISTICS_H_
 
-#define STATS_HISTORY_LENGHT 512
+#define STATS_HISTORY_length 512
 
 namespace core_sgct
 {
@@ -54,9 +54,9 @@ public:
 
 private:
 	double AvgFPS;
-	double FrameTime[STATS_HISTORY_LENGHT];
-	double DrawTime[STATS_HISTORY_LENGHT];
-	double SyncTime[STATS_HISTORY_LENGHT];
+	double FrameTime[STATS_HISTORY_length];
+	double DrawTime[STATS_HISTORY_length];
+	double SyncTime[STATS_HISTORY_length];
 };
 
 } //core_sgct

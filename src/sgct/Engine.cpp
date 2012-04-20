@@ -1272,16 +1272,16 @@ void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 	calculateFrustums();
 }
 
-void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex)
+void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(mNetworkCallbackFn != NULL && receivedLenght > 0)
-		mNetworkCallbackFn(receivedData, receivedLenght, clientIndex);
+	if(mNetworkCallbackFn != NULL && receivedlength > 0)
+		mNetworkCallbackFn(receivedData, receivedlength, clientIndex);
 }
 
-void sgct::Engine::sendMessageToExternalControl(void * data, int lenght)
+void sgct::Engine::sendMessageToExternalControl(void * data, int length)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
-		mNetworkConnections->getExternalControlPtr()->sendData( data, lenght );
+		mNetworkConnections->getExternalControlPtr()->sendData( data, length );
 }
 
 void sgct::Engine::sendMessageToExternalControl(const std::string msg)

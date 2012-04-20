@@ -677,9 +677,9 @@ void GLFWCALL communicationHandler(void *arg)
 		nPtr->mUpdateCallbackFn(nPtr->getId(), false);
 }
 
-void core_sgct::SGCTNetwork::sendData(void * data, int lenght)
+void core_sgct::SGCTNetwork::sendData(void * data, int length)
 {
-	int iResult = send(mSocket, (const char *)data, lenght, 0);
+	int iResult = send(mSocket, (const char *)data, length, 0);
 	if (iResult == SOCKET_ERROR)
 #ifdef __WIN32__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());

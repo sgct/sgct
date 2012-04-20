@@ -81,7 +81,7 @@ public:
 	void setDecodeFunction( void(*fnPtr)(void) );
 
 	void encode();
-	void decode(const char * receivedData, int receivedLenght, int clientIndex);
+	void decode(const char * receivedData, int receivedlength, int clientIndex);
 
 	inline unsigned char * getDataBlock() { return &dataBlock[0]; }
 	inline unsigned int getDataSize() { return dataBlock.size(); }

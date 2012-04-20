@@ -58,7 +58,7 @@ public:
 		}
 	}
 
-	void decode(const char * receivedData, int receivedLenght, int clientIndex);
+	void decode(const char * receivedData, int receivedlength, int clientIndex);
 	void print(const char *fmt, ...);
     void sendMessagesToServer( bool state ) { mLocal = !state; }
     void clearBuffer();

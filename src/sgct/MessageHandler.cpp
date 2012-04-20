@@ -74,13 +74,13 @@ sgct::MessageHandler::~MessageHandler(void)
 	mRecBuffer.clear();
 }
 
-void sgct::MessageHandler::decode(const char * receivedData, int receivedLenght, int clientIndex)
+void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(receivedLenght > 0)
+	if(receivedlength > 0)
 	{
 		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		mRecBuffer.clear();
-		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedLenght);
+		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, &mRecBuffer[0]);
 		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);

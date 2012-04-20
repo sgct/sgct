@@ -74,10 +74,10 @@ public:
 
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: chonst char * buffer, int buffer length, int clientIndex
-	void sendMessageToExternalControl(void * data, int lenght);
+	void sendMessageToExternalControl(void * data, int length);
 	void sendMessageToExternalControl(const std::string msg);
 	void setExternalControlBufferSize(unsigned int newSize);
-	void decodeExternalControl(const char * receivedData, int receivedLenght, int clientIndex);
+	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
 
 	void setDisplayInfoVisibility(bool state) { showInfo = state; }
 	void setStatsGraphVisibility(bool state) { showGraph = state; }

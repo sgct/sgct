@@ -68,9 +68,9 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 	mDecodeFn = fnPtr;
 }
 
-void SharedData::decode(const char * receivedData, int receivedLenght, int clientIndex)
+void SharedData::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(receivedLenght > 0)
+	if(receivedlength > 0)
 	{
 #ifdef __SGCT_DEBUG__
         sgct::MessageHandler::Instance()->print("SharedData::decode\n");
@@ -80,10 +80,10 @@ void SharedData::decode(const char * receivedData, int receivedLenght, int clien
 		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 
 		//re-allocate buffer if needed
-		if( (receivedLenght + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
-			dataBlock.reserve(receivedLenght + core_sgct::SGCTNetwork::syncHeaderSize);
+		if( (receivedlength + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
+			dataBlock.reserve(receivedlength + core_sgct::SGCTNetwork::syncHeaderSize);
 		dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
-		dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedLenght);
+		dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
 
 		//reset
 		pos = core_sgct::SGCTNetwork::syncHeaderSize;

@@ -304,6 +304,7 @@ void sgct::Engine::initOGL()
 	}
 
 	createFBOs();
+	loadShaders();
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -432,9 +433,14 @@ void sgct::Engine::clearAllCallbacks()
 	mMouseButtonCallbackFn = NULL;
 	mMousePosCallbackFn = NULL;
 	mMouseWheelCallbackFn = NULL;
+
+	for(unsigned int i=0; i < mTimers.size(); i++)
+	{
+		mTimers[i].mCallback = NULL;
+	}
 }
 
-void sgct::Engine::frameSyncAndLock(int stage)
+void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
 	double t0 = glfwGetTime();
 	static double syncTime = 0.0;
@@ -516,48 +522,24 @@ void sgct::Engine::render()
 			resizeFBOs();
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		//if any stereo type (except passive) then set frustum mode to left eye
+		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : mActiveFrustum = Frustum::Mono;
 
-		//if any stereo type (except passive)
-		if( tmpNode->stereo != ReadConfig::None )
+		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 		{
-			mActiveFrustum = Frustum::StereoLeftEye;
+			//un-bind texture
+			glBindTexture(GL_TEXTURE_2D, 0);
 
-			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
-			{
-				glDrawBuffer(GL_BACK);
+			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
+			else
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
 
-				//un-bind texture
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
-				else
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
-			}
-			else if( tmpNode->stereo != ReadConfig::Active )
-				glDrawBuffer(GL_BACK_LEFT);
+			setAndClearBuffer(RenderToTexture);
 		}
 		else
-		{
-			mActiveFrustum = Frustum::Mono;
-
-			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
-			{
-				//un-bind texture
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
-				else
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
-			}
-
-			glDrawBuffer(GL_BACK);
-		}
-
-		//clear buffers
-		mClearBufferFn();
-
+			setAndClearBuffer(BackBuffer);
+		
 		//render all viewports for mono or left eye
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		{
@@ -571,9 +553,10 @@ void sgct::Engine::render()
 		//render right eye view port(s)
 		if( tmpNode->stereo != ReadConfig::None )
 		{
+			mActiveFrustum = Frustum::StereoRightEye;
+			
 			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
-				glDrawBuffer(GL_BACK);
 				//un-bind texture
 				glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -581,15 +564,13 @@ void sgct::Engine::render()
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
 				else
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[1]);
+			
+				setAndClearBuffer(RenderToTexture);
 			}
-			else if( tmpNode->stereo != ReadConfig::Active )
-				glDrawBuffer(GL_BACK_RIGHT);
-
-			//clear buffers
-			mClearBufferFn();
+			else
+				setAndClearBuffer(BackBuffer);
 
 			//render all viewports for right eye
-			mActiveFrustum = Frustum::StereoRightEye;
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
 				tmpNode->setCurrentViewport(i);
@@ -630,10 +611,11 @@ void sgct::Engine::render()
         double endFrameTime = glfwGetTime();
 		mStatistics.setDrawTime(endFrameTime - startFrameTime);
 
-		//render post frame
+		//run post frame actions
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
 
+		//draw info & stats
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		{
 			tmpNode->setCurrentViewport(i);
@@ -658,6 +640,9 @@ void sgct::Engine::render()
                 }
             }
         }
+
+		//check for errors
+		checkForOGLErrors();
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
@@ -768,21 +753,21 @@ void sgct::Engine::renderFBOTexture()
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	//set correct back buffer if active stereo is enabled
-	tmpNode->stereo == ReadConfig::Active ? glDrawBuffer(GL_BACK_LEFT) : glDrawBuffer(GL_BACK);
 
 	//clear buffers
-	mClearBufferFn();
+	mActiveFrustum = tmpNode->stereo == ReadConfig::Active ? Frustum::StereoLeftEye : Frustum::Mono;
+	setAndClearBuffer(BackBuffer);
 
 	glLoadIdentity();
 
 	glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 
 	glColor4f(1.0f,1.0f,1.0f,1.0f);
+
 	if( tmpNode->stereo > ReadConfig::Active )
 	{
 		switch(tmpNode->stereo)
@@ -852,10 +837,9 @@ void sgct::Engine::renderFBOTexture()
 	//render right eye in active stereo mode
 	if( tmpNode->stereo == ReadConfig::Active )
 	{
-		glDrawBuffer(GL_BACK_RIGHT);
-
 		//clear buffers
-		mClearBufferFn();
+		mActiveFrustum = Frustum::StereoRightEye;
+		setAndClearBuffer(BackBuffer);
 
 		glLoadIdentity();
 
@@ -992,8 +976,6 @@ void sgct::Engine::createFBOs()
 
 		glPopAttrib();
 
-		loadShaders();
-
 		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
 	}
 	else
@@ -1035,6 +1017,62 @@ void sgct::Engine::resizeFBOs()
 		createFBOs();
 
 		sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
+	}
+}
+
+void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
+{
+	if(mode == BackBuffer)
+	{
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+		//Set buffer
+		if( tmpNode->stereo != ReadConfig::Active )
+			glDrawBuffer(GL_BACK);
+		else if( mActiveFrustum == Frustum::StereoLeftEye )
+			glDrawBuffer(GL_BACK_LEFT);
+		else if( mActiveFrustum == Frustum::StereoRightEye )
+			glDrawBuffer(GL_BACK_RIGHT);
+	}
+
+	//clear
+	if( mClearBufferFn != NULL )
+		mClearBufferFn();
+}
+
+void sgct::Engine::checkForOGLErrors()
+{
+	GLenum oglError = glGetError();
+
+	switch( oglError )
+	{
+	case GL_INVALID_ENUM:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_INVALID_ENUM\n");
+		break;
+
+	case GL_INVALID_VALUE:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_INVALID_VALUE\n");
+		break;
+
+	case GL_INVALID_OPERATION:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_INVALID_OPERATION\n");
+		break;
+
+	case GL_STACK_OVERFLOW:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_STACK_OVERFLOW\n");
+		break;
+
+	case GL_STACK_UNDERFLOW:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_STACK_UNDERFLOW\n");
+		break;
+
+	case GL_OUT_OF_MEMORY:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_OUT_OF_MEMORY\n");
+		break;
+
+	case GL_TABLE_TOO_LARGE:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_TABLE_TOO_LARGE\n");
+		break;
 	}
 }
 
@@ -1390,7 +1428,8 @@ void sgct::Engine::stopTimer( size_t id )
             const TimerInformation& currentTimer = mTimers[i];
             if( currentTimer.mId == id )
             {
-                // if the id found, delete this timer and return immediately
+                mTimers[i].mCallback = NULL;
+				// if the id found, delete this timer and return immediately
                 mTimers.erase( mTimers.begin() + i );
                 return;
             }

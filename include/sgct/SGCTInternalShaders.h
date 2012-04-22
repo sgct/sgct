@@ -142,7 +142,7 @@ namespace core_sgct
 		/*
 
 		#version 120
-		layout(origin_upper_left) in vec4 gl_FragCoord;
+		
 		uniform sampler2D LeftTex;
 		uniform sampler2D RightTex;
 

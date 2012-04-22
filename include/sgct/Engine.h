@@ -109,13 +109,16 @@ public:
 	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 private:
+	enum SyncStage { PreStage = 0, PostStage };
+	enum BufferMode { BackBuffer = 0, RenderToTexture };
+
 	bool initNetwork();
 	bool initWindow();
 	void initOGL();
 	void clean();
 	void clearAllCallbacks();
 
-	void frameSyncAndLock(int stage);
+	void frameSyncAndLock(SyncStage stage);
 	void calcFPS(double timestamp);
 	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();
@@ -129,6 +132,8 @@ private:
 	void loadShaders();
 	void createFBOs();
 	void resizeFBOs();
+	void setAndClearBuffer(BufferMode mode);
+	void checkForOGLErrors();
 
 	static void clearBuffer(void);
 
@@ -157,8 +162,6 @@ private:
 	inputCallbackFn mMouseButtonCallbackFn;
 	inputCallbackFn mMousePosCallbackFn;
 	scrollCallbackFn mMouseWheelCallbackFn;
-
-	enum SyncStage { PreStage = 0, PostStage };
 
 	float nearClippingPlaneDist;
 	float farClippingPlaneDist;

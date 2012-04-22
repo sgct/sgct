@@ -3,7 +3,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
 
 int joyStick1Present = GL_FALSE;
 int numberOfAxes = 0;
@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
 			buttons = new unsigned char[numberOfButtons];
 	}
 
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
 
 	// Main loop
 	gEngine->render();
@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
 	exit( EXIT_SUCCESS );
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( joyStick1Present == GL_TRUE )
 	{

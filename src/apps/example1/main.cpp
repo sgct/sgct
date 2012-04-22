@@ -3,7 +3,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
 void myEncodeFun();
 void myDecodeFun();
 
@@ -17,7 +17,7 @@ int main( int argc, char* argv[] )
 
 	// Bind your functions
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
@@ -56,7 +56,7 @@ void myDrawFun()
 	glEnd();
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	//set the time only on the master
 	if( gEngine->isMaster() )

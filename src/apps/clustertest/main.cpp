@@ -2,12 +2,14 @@
 #include <stdio.h>
 
 #include "sgct.h"
+//#include "sgct/PLYReader.h"
 #define EXTENDED_SIZE 2048
 
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
+void myPostSyncPreDrawFun();
 void myPostDrawFun();
 void myInitOGLFun();
 void myEncodeFun();
@@ -24,6 +26,7 @@ bool extraPackages = false;
 bool barrier = false;
 bool resetCounter = false;
 bool stats = false;
+bool takeScreenshot = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
@@ -42,6 +45,16 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
+	//double t0 = sgct::Engine::getTime();
+	/*core_sgct::PLYReader myPLYReader;
+	if( myPLYReader.readfile("bunny.ply") )
+	{
+		double duration = sgct::Engine::getTime() - t0;
+		sgct::MessageHandler::Instance()->print("PLY File read in %f s\n", duration);
+	}
+	else
+		sgct::MessageHandler::Instance()->print("Failed to parse ply file.\n");
+		*/
 	//allocate extra data
 	for(int i=0;i<EXTENDED_SIZE;i++)
 		extraData[i] = static_cast<float>(i);
@@ -50,7 +63,8 @@ int main( int argc, char* argv[] )
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setPostDrawFunction( myPostDrawFun );
 
 	// Main loop
@@ -66,7 +80,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glPushMatrix();
-	
+
 	/*if( core_sgct::Frustum::Mono == gEngine->getActiveFrustum() )
 		sgct::MessageHandler::Instance()->print("Mono!\n");
 	else if( core_sgct::Frustum::StereoLeftEye == gEngine->getActiveFrustum() )
@@ -131,17 +145,27 @@ void myDrawFun()
 	//drawGrid(10.0, 100);
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
 		dt = gEngine->getDt();
 		curr_time = gEngine->getTime();
 	}
+}
 
+void myPostSyncPreDrawFun()
+{
 	gEngine->setDisplayInfoVisibility( showFPS );
 	gEngine->getWindowPtr()->setBarrier( barrier );
 	gEngine->setStatsGraphVisibility( stats );
+
+	if( takeScreenshot )
+	{
+		gEngine->takeScreenshot();
+		takeScreenshot = false;
+	}
+
 	if(resetCounter)
 	{
 		gEngine->getWindowPtr()->resetSwapGroupFrameNumber();
@@ -164,7 +188,7 @@ void myInitOGLFun()
 	glEnable(GL_COLOR_MATERIAL);
 	glShadeModel(GL_SMOOTH);
 
-	glEnable(GL_LINE_SMOOTH); 
+	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 }
 
@@ -175,6 +199,7 @@ void myEncodeFun()
 	flags = barrier ? flags | 4 : flags & ~4;
 	flags = resetCounter ? flags | 8 : flags & ~8;
 	flags = stats ? flags | 16 : flags & ~16;
+	flags = takeScreenshot ? flags | 32 : flags & ~32;
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
@@ -196,6 +221,7 @@ void myDecodeFun()
 	barrier = (flags>>2) & 0x0001;
 	resetCounter = (flags>>3) & 0x0001;
 	stats = (flags>>4) & 0x0001;
+	takeScreenshot = (flags>>5) & 0x0001;
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -242,7 +268,7 @@ void keyCallback(int key, int action)
 	if( gEngine->isMaster() )
 	{
 		static bool mousePointer = true;
-		
+
 		switch( key )
 		{
 		case 'I':
@@ -272,8 +298,15 @@ void keyCallback(int key, int action)
 
 		case 'M':
 			if(action == GLFW_PRESS)
+			{
 				mousePointer = !mousePointer; //toggle
 				sgct::Engine::setMousePointerVisibility(mousePointer);
+			}
+			break;
+
+		case GLFW_KEY_F10:
+			if(action == GLFW_PRESS)
+				takeScreenshot = true;
 			break;
 		}
 	}
@@ -289,4 +322,3 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 			gEngine->setExternalControlBufferSize(4096);
 	}
 }
-	

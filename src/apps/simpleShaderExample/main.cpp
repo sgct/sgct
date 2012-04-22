@@ -6,7 +6,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
 
 	if( !gEngine->init() )
 	{
@@ -84,7 +84,7 @@ void myDecodeFun()
 	curr_time = sgct::SharedData::Instance()->readDouble();
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{

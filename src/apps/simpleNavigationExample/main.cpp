@@ -6,7 +6,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
 
@@ -97,7 +97,7 @@ void myInitOGLFun()
 	glEndList();
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{

@@ -6,7 +6,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
@@ -22,7 +22,7 @@ int main( int argc, char* argv[] )
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
 
 	if( !gEngine->init() )
 	{
@@ -62,7 +62,7 @@ void myDrawFun()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{

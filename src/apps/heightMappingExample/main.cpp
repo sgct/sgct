@@ -6,7 +6,8 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreDrawFun();
+void myPreSyncFun();
+void myPostSyncPreDrawFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
@@ -31,7 +32,8 @@ int main( int argc, char* argv[] )
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreDrawFunction( myPreDrawFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
 	if( !gEngine->init() )
@@ -87,13 +89,16 @@ void myDrawFun()
 	glDisable(GL_TEXTURE_2D);
 }
 
-void myPreDrawFun()
+void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
 		curr_time = sgct::Engine::getTime();
 	}
+}
 
+void myPostSyncPreDrawFun()
+{
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);

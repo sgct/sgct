@@ -59,7 +59,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	//init function pointers
 	mDrawFn = NULL;
-	mPreDrawFn = NULL;
+	mPreSyncFn = NULL;
+	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
@@ -423,7 +424,8 @@ void sgct::Engine::clearAllCallbacks()
 	glfwSetMouseWheelCallback( NULL );
 
 	mDrawFn = NULL;
-	mPreDrawFn = NULL;
+	mPreSyncFn = NULL;
+	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
@@ -498,8 +500,8 @@ void sgct::Engine::render()
 
 	while( mRunning )
 	{
-		if( mPreDrawFn != NULL )
-			mPreDrawFn();
+		if( mPreSyncFn != NULL )
+			mPreSyncFn();
 
 		if( mNetworkConnections->isComputerServer() )
 		{
@@ -512,6 +514,9 @@ void sgct::Engine::render()
 		}
 
 		frameSyncAndLock(PreStage);
+
+		if( mPostSyncPreDrawFn != NULL )
+			mPostSyncPreDrawFn();
 
 		double startFrameTime = glfwGetTime();
 		calcFPS(startFrameTime);
@@ -1304,9 +1309,14 @@ void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 	mDrawFn = fnPtr;
 }
 
-void sgct::Engine::setPreDrawFunction(void(*fnPtr)(void))
+void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 {
-	mPreDrawFn = fnPtr;
+	mPreSyncFn = fnPtr;
+}
+
+void sgct::Engine::setPostSyncPreDrawFunction(void(*fnPtr)(void))
+{
+	mPostSyncPreDrawFn = fnPtr;
 }
 
 void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))

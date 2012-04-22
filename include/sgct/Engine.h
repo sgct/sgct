@@ -64,7 +64,8 @@ public:
 
     //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );
-	void setPreDrawFunction( void(*fnPtr)(void));
+	void setPreSyncFunction( void(*fnPtr)(void));
+	void setPostSyncPreDrawFunction( void(*fnPtr)(void));
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
@@ -149,7 +150,8 @@ private:
 
 	//function pointers
 	CallbackFn mDrawFn;
-	CallbackFn mPreDrawFn;
+	CallbackFn mPreSyncFn;
+	CallbackFn mPostSyncPreDrawFn;
 	CallbackFn mPostDrawFn;
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;

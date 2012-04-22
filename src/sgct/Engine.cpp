@@ -34,6 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/SGCTInternalShaders.h"
+#include "../include/sgct/Image.h"
 #include <math.h>
 #include <iostream>
 #include <sstream>
@@ -112,9 +113,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	setClearBufferFunction( clearBuffer );
 	nearClippingPlaneDist = 0.1f;
 	farClippingPlaneDist = 100.0f;
-	showInfo = false;
-	showGraph = false;
-	showWireframe = false;
+	mShowInfo = false;
+	mShowGraph = false;
+	mShowWireframe = false;
+	mTakeScreenshot = false;
 	mActiveFrustum = Frustum::Mono;
     mTimerID = 0;
 
@@ -515,7 +517,7 @@ void sgct::Engine::render()
 		calcFPS(startFrameTime);
 
 		glLineWidth(1.0);
-		showWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
@@ -523,7 +525,7 @@ void sgct::Engine::render()
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		//if any stereo type (except passive) then set frustum mode to left eye
-		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : mActiveFrustum = Frustum::Mono;
+		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : Frustum::Mono;
 
 		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 		{
@@ -539,7 +541,7 @@ void sgct::Engine::render()
 		}
 		else
 			setAndClearBuffer(BackBuffer);
-		
+
 		//render all viewports for mono or left eye
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		{
@@ -554,7 +556,7 @@ void sgct::Engine::render()
 		if( tmpNode->stereo != ReadConfig::None )
 		{
 			mActiveFrustum = Frustum::StereoRightEye;
-			
+
 			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 			{
 				//un-bind texture
@@ -564,7 +566,7 @@ void sgct::Engine::render()
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
 				else
 					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[1]);
-			
+
 				setAndClearBuffer(RenderToTexture);
 			}
 			else
@@ -620,9 +622,9 @@ void sgct::Engine::render()
 		{
 			tmpNode->setCurrentViewport(i);
 			enterCurrentViewport();
-			if( showGraph )
+			if( mShowGraph )
 				mStatistics.draw();
-			if( showInfo )
+			if( mShowInfo )
 				renderDisplayInfo();
 		}
 
@@ -640,6 +642,10 @@ void sgct::Engine::render()
                 }
             }
         }
+
+		//take screenshot
+		if( mTakeScreenshot )
+			captureBuffer();
 
 		//check for errors
 		checkForOGLErrors();
@@ -755,6 +761,7 @@ void sgct::Engine::renderFBOTexture()
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
+	glEnable(GL_BLEND);
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
@@ -1074,6 +1081,112 @@ void sgct::Engine::checkForOGLErrors()
 		sgct::MessageHandler::Instance()->print("OpenGL error: GL_TABLE_TOO_LARGE\n");
 		break;
 	}
+}
+
+void sgct::Engine::captureBuffer()
+{
+	//allocate
+	unsigned char * raw_img = (unsigned char*)malloc( sizeof(unsigned char)*( 4 * getWindowPtr()->getHResolution() * getWindowPtr()->getVResolution() ) );
+
+	static int shotCounter = 0;
+	char screenShotFilenameLeft[32];
+	char screenShotFilenameRight[32];
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if( shotCounter < 10 )
+	{
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_000%d_l.png", shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_000%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 100 )
+	{
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_00%d_l.png", shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_00%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 1000 )
+	{
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_0%d_l.png", shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_0%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 10000 )
+	{
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_%d_l.png", shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_%d_r.png", shotCounter);
+	}
+#else
+    if( shotCounter < 10 )
+	{
+		sprintf( screenShotFilenameLeft, "sgct_000%d_l.png", shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_000%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 100 )
+	{
+		sprintf( screenShotFilenameLeft, "sgct_00%d_l.png", shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_00%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 1000 )
+	{
+		sprintf( screenShotFilenameLeft, "sgct_0%d_l.png", shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_0%d_r.png", shotCounter);
+	}
+	else if( shotCounter < 10000 )
+	{
+		sprintf( screenShotFilenameLeft, "sgct_%d_l.png", shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_%d_r.png", shotCounter);
+	}
+#endif
+
+	shotCounter++;
+
+	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	{
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, mFrameBuffers[0]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+	}
+	else if(tmpNode->stereo == ReadConfig::None)
+	{
+		glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+	}
+	else if(tmpNode->stereo == ReadConfig::Active)
+	{
+		glReadBuffer(GL_FRONT_LEFT);
+		glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+	}
+
+	Image img;
+	img.setChannels(4);
+	img.setDataPtr( raw_img );
+	img.setSize( getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution() );
+	img.savePNG(screenShotFilenameLeft);
+
+	if( tmpNode->stereo != ReadConfig::None )
+	{
+		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+		{
+			glBindTexture(GL_TEXTURE_2D, mFrameBuffers[1]);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		}
+		else if(tmpNode->stereo == ReadConfig::Active)
+		{
+			glReadBuffer(GL_FRONT_RIGHT);
+			glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		}
+
+		img.savePNG(screenShotFilenameRight);
+	}
+
+	img.cleanup();
+
+	glPopAttrib();
+
+	mTakeScreenshot = false;
 }
 
 void sgct::Engine::calculateFrustums()

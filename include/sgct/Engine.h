@@ -54,7 +54,10 @@ public:
 	const double & getDrawTime();
 	const double & getSyncTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
-	void setWireframe(bool enabled) { showWireframe = enabled; }
+	void setWireframe(bool state) { mShowWireframe = state; }
+	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
+	void setStatsGraphVisibility(bool state) { mShowGraph = state; }
+	void takeScreenshot() { mTakeScreenshot = true; }
 
     size_t createTimer( double millisec, void(*fnPtr)(size_t) );
     void stopTimer(size_t id);
@@ -79,9 +82,6 @@ public:
 	void setExternalControlBufferSize(unsigned int newSize);
 	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
 
-	void setDisplayInfoVisibility(bool state) { showInfo = state; }
-	void setStatsGraphVisibility(bool state) { showGraph = state; }
-
     //GLFW wrapped functions
     static GLFWmutex createMutex();
     static GLFWcond createCondition();
@@ -105,7 +105,7 @@ public:
 	static core_sgct::User * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
-	inline bool isDisplayInfoRendered() { return showInfo; }
+	inline bool isDisplayInfoRendered() { return mShowInfo; }
 	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 private:
@@ -134,6 +134,7 @@ private:
 	void resizeFBOs();
 	void setAndClearBuffer(BufferMode mode);
 	void checkForOGLErrors();
+	void captureBuffer();
 
 	static void clearBuffer(void);
 
@@ -169,9 +170,10 @@ private:
 	int localRunningMode;
 	core_sgct::Frustum::FrustumMode mActiveFrustum;
 
-	bool showInfo;
-	bool showGraph;
-	bool showWireframe;
+	bool mShowInfo;
+	bool mShowGraph;
+	bool mShowWireframe;
+	bool mTakeScreenshot;
 	bool mTerminate;
 
 	//objects

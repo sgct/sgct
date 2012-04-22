@@ -36,18 +36,22 @@ class Image
 public:
 	bool load(const char * filename);
 	bool loadPNG(const char * filename);
+	bool savePNG(const char * filename);
 	void cleanup();
 	unsigned char * getData();
 	int getChannels();
 	int getSizeX();
 	int getSizeY();
+	void setDataPtr(unsigned char * dPtr);
+	void setSize(int width, int height);
+	void setChannels(int channels);
 
 private:
-	int channels;
-	int size_x;
-	int size_y;
+	int mChannels;
+	int mSize_x;
+	int mSize_y;
 	char * mFilename;
-	unsigned char * data;
+	unsigned char * mData;
 };
 
 }

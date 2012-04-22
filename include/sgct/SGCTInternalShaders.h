@@ -81,7 +81,7 @@ namespace core_sgct
 			gl_FragColor.r = leftLum;
 			gl_FragColor.g = rightLum;
 			gl_FragColor.b = rightLum;
-			gl_FragColor.a = 1.0;
+			gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;
 		}
 
 		*/
@@ -98,7 +98,7 @@ namespace core_sgct
 				gl_FragColor.r = leftLum;\n\
 				gl_FragColor.g = rightLum;\n\
 				gl_FragColor.b = rightLum;\n\
-				gl_FragColor.a = 1.0;\n\
+				gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;\n\
 			}\n";		
 	
 		/*
@@ -119,7 +119,7 @@ namespace core_sgct
 			gl_FragColor.r = leftVals.r;
 			gl_FragColor.g = leftVals.g;
 			gl_FragColor.b = rightMix;
-			gl_FragColor.a = 1.0;
+			gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;
 		}
 
 		*/
@@ -136,7 +136,7 @@ namespace core_sgct
 				gl_FragColor.r = leftVals.r;\n\
 				gl_FragColor.g = leftVals.g;\n\
 				gl_FragColor.b = rightMix;\n\
-				gl_FragColor.a = 1.0;\n\
+				gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;\n\
 			}\n";
 
 		/*

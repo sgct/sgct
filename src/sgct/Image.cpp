@@ -76,6 +76,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	    return false;
 	}
 
+	//copy filename
 	mFilename = new char[strlen(filename)+1];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
@@ -150,11 +151,11 @@ bool core_sgct::Image::loadPNG(const char *filename)
                 PNG_TRANSFORM_EXPAND, NULL );
 
 	//channels = png_get_channels(png_ptr, info_ptr);
-	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&size_x, (png_uint_32 *)&size_y, &bpp, &color_type, NULL, NULL, NULL);
+	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
 
 	if(color_type == PNG_COLOR_TYPE_GRAY )
 	{
-		channels = 1;
+		mChannels = 1;
 		if(bpp < 8)
 		{
 			png_set_expand_gray_1_2_4_to_8(png_ptr);
@@ -162,11 +163,11 @@ bool core_sgct::Image::loadPNG(const char *filename)
 		}
 	}
 	else if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
-		channels = 2;
+		mChannels = 2;
 	else if(color_type == PNG_COLOR_TYPE_RGB)
-		channels = 3;
+		mChannels = 3;
 	else if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
-		channels = 4;
+		mChannels = 4;
 	else
 	{
 		sgct::MessageHandler::Instance()->print("Unsupported format '%s'\n", mFilename );
@@ -174,7 +175,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 		return false;
 	}
 
-	data = pb = (unsigned char*)malloc( sizeof(unsigned char)*( channels * size_x * size_y ) );
+	mData = pb = (unsigned char*)malloc( sizeof(unsigned char)*( mChannels * mSize_x * mSize_y ) );
     png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -184,21 +185,6 @@ bool core_sgct::Image::loadPNG(const char *filename)
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
 			*(pb)++ = row[c];
-			/*switch( channels )
-			{
-			case 1:
-				*(pb)++ = row[c];
-				break;
-			case 2:
-				sgct::MessageHandler::Instance()->print("Can't handle a two-channel PNG file: %s\n", mFilename );
-				free(pb);
-				fclose(fp);
-				return false;
-			case 3:
-			case 4:
-				*(pb)++ = row[c];
-				break;
-			}*/
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -208,10 +194,112 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	return true;
 }
 
+bool core_sgct::Image::savePNG(const char * filename)
+{
+	mFilename = NULL;
+	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	{
+	    return false;
+	}
+
+	//copy filename
+	mFilename = new char[strlen(filename)+1];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
+		return false;
+    #else
+    strcpy(mFilename, filename );
+    #endif
+
+	FILE *fp = NULL;
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
+	{
+		sgct::MessageHandler::Instance()->print("Can't create PNG texture file '%s'\n", mFilename);
+		return false;
+	}
+    #else
+    fp = fopen(mFilename, "wb");
+    if( fp == NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Can't create PNG texture file '%s'\n", mFilename);
+		return false;
+	}
+    #endif
+
+	/* initialize stuff */
+    png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
+    if (!png_ptr)
+		return false;
+
+    png_infop info_ptr = png_create_info_struct(png_ptr);
+    if (!info_ptr)
+		return false;
+
+    if (setjmp(png_jmpbuf(png_ptr)))
+		return false;
+
+	png_init_io(png_ptr, fp);
+
+	int color_type = -1;
+	switch( mChannels )
+	{
+	case 1:
+		color_type = PNG_COLOR_TYPE_GRAY;
+		break;
+
+	case 2:
+		color_type = PNG_COLOR_TYPE_GRAY_ALPHA;
+		break;
+
+	case 3:
+		color_type = PNG_COLOR_TYPE_RGB;
+		break;
+
+	case 4:
+		color_type = PNG_COLOR_TYPE_RGB_ALPHA;
+		break;
+	}
+
+	if( color_type == -1 )
+		return false;
+
+	/* write header */
+    png_set_IHDR(png_ptr, info_ptr, mSize_x, mSize_y,
+        8, color_type, PNG_INTERLACE_NONE,
+        PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
+
+    png_write_info(png_ptr, info_ptr);
+
+	/* write bytes */
+    if (setjmp(png_jmpbuf(png_ptr)))
+		return false;
+
+	png_bytep * rows = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
+    if (!rows)//alloc error
+		return false;
+
+	for (int y = (mSize_y-1);  y >= 0;  y--)
+        rows[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
+    png_write_image(png_ptr, rows);
+	free(rows); //clean up
+
+    /* end write */
+    if (setjmp(png_jmpbuf(png_ptr)))
+		return false;
+
+    png_write_end(png_ptr, NULL);
+
+	fclose(fp);
+
+	sgct::MessageHandler::Instance()->print("Image '%s' was saved successfully!\n", mFilename);
+	return true;
+}
+
 void core_sgct::Image::cleanup()
 {
 	//delete data;
-	free(data);
+	free(mData);
 	sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
 
 	delete [] mFilename;
@@ -220,19 +308,35 @@ void core_sgct::Image::cleanup()
 
 unsigned char * core_sgct::Image::getData()
 {
-	return data;
+	return mData;
 }
 int core_sgct::Image::getChannels()
 {
-	return channels;
+	return mChannels;
 }
 
 int core_sgct::Image::getSizeX()
 {
-	return size_x;
+	return mSize_x;
 }
 
 int core_sgct::Image::getSizeY()
 {
-	return size_y;
+	return mSize_y;
+}
+
+void core_sgct::Image::setDataPtr(unsigned char * dPtr)
+{
+	mData = dPtr;
+}
+
+void core_sgct::Image::setSize(int width, int height)
+{
+	mSize_x = width;
+	mSize_y = height;
+}
+
+void core_sgct::Image::setChannels(int channels)
+{
+	mChannels = channels;
 }

@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="sgct.cbp" />
+		<Project filename="../apps/simpleNavigationExample/simpleNavigationExample.cbp" />
+		<Project filename="../apps/heightMappingExample/heightMappingExample.cbp" />
+		<Project filename="../apps/clustertest/clustertest.cbp" />
+		<Project filename="../apps/example1/example1.cbp" />
+		<Project filename="../apps/gamepadExample/gamepadExample.cbp" />
+		<Project filename="../apps/sgct_template/sgct_template.cbp" />
+		<Project filename="../apps/simpleShaderExample/simpleShaderExample.cbp" />
+		<Project filename="../apps/textureExample/textureExample.cbp" active="1" />
+	</Workspace>
+</CodeBlocks_workspace_file>

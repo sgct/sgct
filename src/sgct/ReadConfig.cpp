@@ -207,6 +207,9 @@ void core_sgct::ReadConfig::readAndParseXML()
 				{
 					Viewport tmpVp;
 
+					if( element[1]->Attribute("overlay") != NULL )
+						tmpVp.setOverlayTexture( element[1]->Attribute("overlay") );
+
 					//get eye if set
 					if( element[1]->Attribute("eye") != NULL )
 					{

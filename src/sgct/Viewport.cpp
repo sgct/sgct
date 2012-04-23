@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
 #include "../include/sgct/Viewport.h"
+#include "../include/sgct/TextureManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 core_sgct::Viewport::Viewport()
@@ -35,6 +36,9 @@ core_sgct::Viewport::Viewport()
 	mXSize = 1.0f;
 	mYSize = 1.0f;
 	mEye = Frustum::Mono;
+	mOverlayTexture = false;
+	mFilename = NULL;
+	mTextureIndex = 0;
 }
 
 core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
@@ -44,6 +48,9 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mXSize = xSize;
 	mYSize = ySize;
 	mEye = Frustum::Mono;
+	mOverlayTexture = false;
+	mFilename = NULL;
+	mTextureIndex = 0;
 }
 
 void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
@@ -53,6 +60,9 @@ void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
 	mXSize = xSize;
 	mYSize = ySize;
 	mEye = Frustum::Mono;
+	mOverlayTexture = false;
+	mFilename = NULL;
+	mTextureIndex = 0;
 }
 
 void core_sgct::Viewport::setPos(float x, float y)
@@ -70,6 +80,27 @@ void core_sgct::Viewport::setSize(float x, float y)
 void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)
 {
 	mEye = eye;
+}
+
+void core_sgct::Viewport::setOverlayTexture(const char * texturePath)
+{
+	//copy filename
+	if( strlen(texturePath) > 4 )
+	{
+		mFilename = new char[strlen(texturePath)+1];
+		#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		if( strcpy_s(mFilename, strlen(texturePath)+1, texturePath ) != 0)
+			return;
+		#else
+		strcpy(mFilename, texturePath );
+		#endif
+	}
+}
+
+void core_sgct::Viewport::loadOverlayTexture()
+{
+	if( mFilename != NULL )
+		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mFilename, true, 1);
 }
 
 void core_sgct::Viewport::calculateFrustum(const int &frustumMode, glm::vec3 * eyePos, float near, float far)

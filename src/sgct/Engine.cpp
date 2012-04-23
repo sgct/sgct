@@ -309,6 +309,10 @@ void sgct::Engine::initOGL()
 	createFBOs();
 	loadShaders();
 
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+		tmpNode->getViewport(i)->loadOverlayTexture();
+
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -529,23 +533,10 @@ void sgct::Engine::render()
 			resizeFBOs();
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		
 		//if any stereo type (except passive) then set frustum mode to left eye
 		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : Frustum::Mono;
-
-		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
-		{
-			//un-bind texture
-			glBindTexture(GL_TEXTURE_2D, 0);
-
-			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]);
-			else
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[0]);
-
-			setAndClearBuffer(RenderToTexture);
-		}
-		else
-			setAndClearBuffer(BackBuffer);
+		setRenderTarget(0); //Set correct render target (Backbuffer, FBO etc..)
 
 		//render all viewports for mono or left eye
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -561,21 +552,7 @@ void sgct::Engine::render()
 		if( tmpNode->stereo != ReadConfig::None )
 		{
 			mActiveFrustum = Frustum::StereoRightEye;
-
-			if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
-			{
-				//un-bind texture
-				glBindTexture(GL_TEXTURE_2D, 0);
-
-				if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]);
-				else
-					glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[1]);
-
-				setAndClearBuffer(RenderToTexture);
-			}
-			else
-				setAndClearBuffer(BackBuffer);
+			setRenderTarget(1); //Set correct render target (Backbuffer, FBO etc..)
 
 			//render all viewports for right eye
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -748,6 +725,62 @@ void sgct::Engine::draw()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
+
+	//if use overlay
+	if( tmpVP->hasOverlayTexture() )
+	{
+		//enter ortho mode
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
+		glPushMatrix();
+		gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+
+		glMatrixMode(GL_MODELVIEW);
+
+		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
+		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glLoadIdentity();
+
+		glColor4f(1.0f,0.0f,0.0f,1.0f);
+
+		glEnable(GL_TEXTURE_2D);
+		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
+
+		glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
+		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
+		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
+		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
+		glEnd();
+
+		glPopAttrib();
+
+		//exit ortho mode
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+	}
+}
+
+void sgct::Engine::setRenderTarget(int bufferIndex)
+{
+	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	{
+		//un-bind texture
+		glBindTexture(GL_TEXTURE_2D, 0);
+
+		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[bufferIndex]);
+		else
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[bufferIndex]);
+
+		setAndClearBuffer(RenderToTexture);
+	}
+	else
+		setAndClearBuffer(BackBuffer);
 }
 
 void sgct::Engine::renderFBOTexture()
@@ -766,7 +799,9 @@ void sgct::Engine::renderFBOTexture()
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
@@ -1097,47 +1132,50 @@ void sgct::Engine::captureBuffer()
 	char screenShotFilenameLeft[32];
 	char screenShotFilenameRight[32];
 
+	int thisNodeId = ClusterManager::Instance()->getThisNodeId();
+	
+
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( shotCounter < 10 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_000%d_l.png", shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_000%d_r.png", shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_000%d_l.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_000%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_00%d_l.png", shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_00%d_r.png", shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_00%d_l.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_00%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_0%d_l.png", shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_0%d_r.png", shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_0%d_l.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_0%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 10000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_%d_l.png", shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_%d_r.png", shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_%d_l.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_%d_r.png", thisNodeId, shotCounter);
 	}
 #else
     if( shotCounter < 10 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_000%d_l.png", shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_000%d_r.png", shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_000%d_l.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_000%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_00%d_l.png", shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_00%d_r.png", shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_00%d_l.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_00%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_0%d_l.png", shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_0%d_r.png", shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_0%d_l.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_0%d_r.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 10000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_%d_l.png", shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_%d_r.png", shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_%d_l.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_%d_r.png", thisNodeId, shotCounter);
 	}
 #endif
 

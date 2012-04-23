@@ -45,6 +45,8 @@ public:
 	void setPos(float x, float y);
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
+	void setOverlayTexture(const char * texturePath);
+	void loadOverlayTexture();
 	void calculateFrustum(const int &frustumMode, glm::vec3 * eyePos, float near, float far);
 
 	inline float getX() { return mX; }
@@ -54,6 +56,8 @@ public:
 	inline Frustum::FrustumMode getEye() { return mEye; }
 	inline Frustum * getFrustum(int frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
+	inline bool hasOverlayTexture() { return mOverlayTexture; }
+	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
 
 	glm::vec3 viewPlaneCoords[3];
 	glm::mat4 viewMatrix[3];
@@ -61,12 +65,16 @@ public:
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
 private:
+
 	float mX;
 	float mY;
 	float mXSize;
 	float mYSize;
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
+	char * mFilename;
+	bool mOverlayTexture;
+	unsigned int mTextureIndex;
 };
 
 }

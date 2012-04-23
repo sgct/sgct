@@ -25,6 +25,7 @@ double curr_time = 0.0;
 bool wireframe = false;
 bool info = false;
 bool stats = false;
+bool takeScreenshot = false;
 
 int main( int argc, char* argv[] )
 {
@@ -102,6 +103,11 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
+	if( takeScreenshot )
+	{
+		gEngine->takeScreenshot();
+		takeScreenshot = false;
+	}
 }
 
 void myInitOGLFun()
@@ -157,6 +163,7 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeBool( wireframe );
 	sgct::SharedData::Instance()->writeBool( info );
 	sgct::SharedData::Instance()->writeBool( stats );
+	sgct::SharedData::Instance()->writeBool( takeScreenshot );
 }
 
 void myDecodeFun()
@@ -165,6 +172,7 @@ void myDecodeFun()
 	wireframe = sgct::SharedData::Instance()->readBool();
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();
+	takeScreenshot = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -234,6 +242,12 @@ void keyCallback(int key, int action)
 		case 'Q':
 			if(action == GLFW_PRESS)
 				gEngine->terminate();
+			break;
+
+		case 'P':
+		case GLFW_KEY_F10:
+			if(action == GLFW_PRESS)
+				takeScreenshot = true;
 			break;
 		}
 	}

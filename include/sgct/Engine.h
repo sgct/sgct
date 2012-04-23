@@ -129,6 +129,7 @@ private:
 	const char * getBasicInfo();
 
 	void draw();
+	void setRenderTarget(int bufferIndex);
 	void renderFBOTexture();
 	void loadShaders();
 	void createFBOs();

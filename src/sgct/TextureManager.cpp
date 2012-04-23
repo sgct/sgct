@@ -51,6 +51,19 @@ const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int in
 	return index >= mTextures.size() ? 0 : mTextures[index].second;
 }
 
+bool sgct::TextureManager::getIndexByName(unsigned int &index, const std::string name)
+{
+	for(unsigned int i=0; i<mTextures.size(); i++)
+		if( mTextures[i].first.compare(name) == 0 )
+		{
+			index = i;
+			return true;
+		}
+
+	index = 0;
+	return false;
+}
+
 const unsigned int sgct::TextureManager::getTextureByName(const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
@@ -86,6 +99,14 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 {
 	GLuint texID = 0;
 
+	//check if texture exits in manager
+	if( getIndexByName(index, name) ) //texture with that name exists already
+	{
+		sgct::MessageHandler::Instance()->print("Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByIndex( index ) );
+		return true;
+	}
+
+	//load image
 	core_sgct::Image img;
 	if( !img.load(filename.c_str()) )
 		return false;

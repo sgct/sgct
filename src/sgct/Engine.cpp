@@ -533,7 +533,7 @@ void sgct::Engine::render()
 			resizeFBOs();
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		
+
 		//if any stereo type (except passive) then set frustum mode to left eye
 		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : Frustum::Mono;
 		setRenderTarget(0); //Set correct render target (Backbuffer, FBO etc..)
@@ -745,7 +745,7 @@ void sgct::Engine::draw()
 
 		glLoadIdentity();
 
-		glColor4f(1.0f,0.0f,0.0f,1.0f);
+		glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
@@ -1125,6 +1125,8 @@ void sgct::Engine::checkForOGLErrors()
 
 void sgct::Engine::captureBuffer()
 {
+	double t0 = getTime();
+
 	//allocate
 	unsigned char * raw_img = (unsigned char*)malloc( sizeof(unsigned char)*( 4 * getWindowPtr()->getHResolution() * getWindowPtr()->getVResolution() ) );
 
@@ -1133,7 +1135,7 @@ void sgct::Engine::captureBuffer()
 	char screenShotFilenameRight[32];
 
 	int thisNodeId = ClusterManager::Instance()->getThisNodeId();
-	
+
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( shotCounter < 10 )
@@ -1230,6 +1232,8 @@ void sgct::Engine::captureBuffer()
 	glPopAttrib();
 
 	mTakeScreenshot = false;
+
+	sgct::MessageHandler::Instance()->print("Screenshot %d completed in %fs\n", shotCounter, getTime()-t0 );
 }
 
 void sgct::Engine::calculateFrustums()

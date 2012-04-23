@@ -78,6 +78,7 @@ private:
 	const TextureManager & operator=(const TextureManager & rhs );
 
 private:
+	bool getIndexByName(unsigned int &index, const std::string name);
 
 	static TextureManager * mInstance;
 	

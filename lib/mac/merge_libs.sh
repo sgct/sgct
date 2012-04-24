@@ -7,6 +7,7 @@ ar x deps/libz.a
 ar x deps/libpng.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml.a
+ar x deps/libvrpn.a
 ar x libsgct_light.a
 ar r libsgct.a *.o
 rm *.o

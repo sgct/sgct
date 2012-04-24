@@ -57,6 +57,12 @@ public:
 		updateEyeSeparation();
 	}
 
+	void setPos(glm::vec3 pos)
+	{
+		mPos[Frustum::Mono] = pos;
+		updateEyeSeparation();
+	}
+
 	void setPos(double * pos)
 	{
 		mPos[Frustum::Mono].x = static_cast<float>(pos[0]);
@@ -76,7 +82,10 @@ public:
 	glm::vec3 * getPosPtr() { return &mPos[Frustum::Mono]; }
 	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
 
-	float getEyeSeparation() { return mEyeSeparation; }
+	inline float getEyeSeparation() { return mEyeSeparation; }
+	inline float getXPos() { return mPos[Frustum::Mono].x; }
+	inline float getYPos() { return mPos[Frustum::Mono].y; }
+	inline float getZPos() { return mPos[Frustum::Mono].z; }
 
 private:
 	void updateEyeSeparation()

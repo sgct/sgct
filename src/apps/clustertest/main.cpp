@@ -308,6 +308,16 @@ void keyCallback(int key, int action)
 			if(action == GLFW_PRESS)
 				takeScreenshot = true;
 			break;
+
+		case GLFW_KEY_UP:
+			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() + glm::vec3(0.0f, 0.0f, 0.1f) );
+			sgct::MessageHandler::Instance()->print("Up was pressed.\n");
+			break;
+
+		case GLFW_KEY_DOWN:
+			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() - glm::vec3(0.0f, 0.0f, 0.1f) );
+			sgct::MessageHandler::Instance()->print("Down was pressed.\n");
+			break;
 		}
 	}
 }

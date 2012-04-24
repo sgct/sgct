@@ -112,8 +112,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	}
 
 	setClearBufferFunction( clearBuffer );
-	nearClippingPlaneDist = 0.1f;
-	farClippingPlaneDist = 100.0f;
+	mNearClippingPlaneDist = 0.1f;
+	mFarClippingPlaneDist = 100.0f;
 	mShowInfo = false;
 	mShowGraph = false;
 	mShowWireframe = false;
@@ -309,6 +309,7 @@ void sgct::Engine::initOGL()
 	createFBOs();
 	loadShaders();
 
+	//load overlays if any
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		tmpNode->getViewport(i)->loadOverlayTexture();
@@ -533,6 +534,7 @@ void sgct::Engine::render()
 			resizeFBOs();
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		User * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//if any stereo type (except passive) then set frustum mode to left eye
 		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : Frustum::Mono;
@@ -545,6 +547,15 @@ void sgct::Engine::render()
 			//if passive stereo or mono
 			if( tmpNode->stereo == ReadConfig::None )
 				mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
+			
+			if( tmpNode->getCurrentViewport()->isTracked() )
+			{
+				tmpNode->getCurrentViewport()->calculateFrustum(
+					mActiveFrustum,
+					usrPtr->getPosPtr(mActiveFrustum),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
+			}
 			(this->*mInternalRenderFn)();
 		}
 
@@ -558,6 +569,15 @@ void sgct::Engine::render()
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
 				tmpNode->setCurrentViewport(i);
+
+				if( tmpNode->getCurrentViewport()->isTracked() )
+				{
+					tmpNode->getCurrentViewport()->calculateFrustum(
+						mActiveFrustum,
+						usrPtr->getPosPtr(mActiveFrustum),
+						mNearClippingPlaneDist,
+						mFarClippingPlaneDist);
+				}
 				(this->*mInternalRenderFn)();
 			}
 		}
@@ -646,6 +666,8 @@ void sgct::Engine::render()
 
 void sgct::Engine::renderDisplayInfo()
 {
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	
 	glPushAttrib(GL_CURRENT_BIT);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 	unsigned int lFrameNumber = 0;
@@ -653,25 +675,30 @@ void sgct::Engine::renderDisplayInfo()
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
-		ClusterManager::Instance()->getThisNodePtr()->ip.c_str(),
+		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time [%d]: %.2f ms",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time (data size: %d): %.2f ms",
 		SharedData::Instance()->getDataSize(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) [frame: %d]",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
+		tmpNode->getCurrentViewport()->isTracked() ? "true" : "false",
+		getUserPtr()->getXPos(),
+		getUserPtr()->getYPos(),
+		getUserPtr()->getZPos());
 
 	//if active stereoscopic rendering
-	if( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active )
+	if( tmpNode->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
 		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
@@ -681,11 +708,11 @@ void sgct::Engine::renderDisplayInfo()
 	}
 	else //if passive stereo
 	{
-		if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
+		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
 			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
 		}
-		else if( ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
+		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
 			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
 		}
@@ -1238,27 +1265,30 @@ void sgct::Engine::captureBuffer()
 
 void sgct::Engine::calculateFrustums()
 {
-	for(unsigned int i=0; i<ClusterManager::Instance()->getThisNodePtr()->getNumberOfViewports(); i++)
-	{
-		User * usrPtr = ClusterManager::Instance()->getUserPtr();
-		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
-			Frustum::Mono,
-			usrPtr->getPosPtr(),
-			nearClippingPlaneDist,
-			farClippingPlaneDist);
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
-			Frustum::StereoLeftEye,
-			usrPtr->getPosPtr(Frustum::StereoLeftEye),
-			nearClippingPlaneDist,
-			farClippingPlaneDist);
+	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+		if( !tmpNode->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
+		{
+			User * usrPtr = ClusterManager::Instance()->getUserPtr();
+			tmpNode->getViewport(i)->calculateFrustum(
+				Frustum::Mono,
+				usrPtr->getPosPtr(),
+				mNearClippingPlaneDist,
+				mFarClippingPlaneDist);
 
-		ClusterManager::Instance()->getThisNodePtr()->getViewport(i)->calculateFrustum(
-			Frustum::StereoRightEye,
-			usrPtr->getPosPtr(Frustum::StereoRightEye),
-			nearClippingPlaneDist,
-			farClippingPlaneDist);
-	}
+			tmpNode->getViewport(i)->calculateFrustum(
+				Frustum::StereoLeftEye,
+				usrPtr->getPosPtr(Frustum::StereoLeftEye),
+				mNearClippingPlaneDist,
+				mFarClippingPlaneDist);
+
+			tmpNode->getViewport(i)->calculateFrustum(
+				Frustum::StereoRightEye,
+				usrPtr->getPosPtr(Frustum::StereoRightEye),
+				mNearClippingPlaneDist,
+				mFarClippingPlaneDist);
+		}
 }
 
 void sgct::Engine::parseArguments( int& argc, char**& argv )
@@ -1470,8 +1500,8 @@ const double & sgct::Engine::getSyncTime()
 
 void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 {
-	nearClippingPlaneDist = _near;
-	farClippingPlaneDist = _far;
+	mNearClippingPlaneDist = _near;
+	mFarClippingPlaneDist = _far;
 	calculateFrustums();
 }
 

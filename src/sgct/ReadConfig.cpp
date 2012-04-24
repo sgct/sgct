@@ -161,7 +161,8 @@ void core_sgct::ReadConfig::readAndParseXML()
 				val[1] = element[1]->Value();
 				if( strcmp("Window", val[1]) == 0 )
 				{
-					tmpNode.getWindowPtr()->setWindowMode(strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
+					if( element[1]->Attribute("fullscreen") != NULL )
+						tmpNode.getWindowPtr()->setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
 
 					int tmpSamples = 0;
 					if( element[1]->Attribute("numberOfSamples", &tmpSamples ) != NULL )
@@ -209,6 +210,9 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 					if( element[1]->Attribute("overlay") != NULL )
 						tmpVp.setOverlayTexture( element[1]->Attribute("overlay") );
+					
+					if( element[1]->Attribute("tracked") != NULL )
+						tmpVp.setTracked( strcmp( element[1]->Attribute("tracked"), "true" ) == 0 ? true : false );
 
 					//get eye if set
 					if( element[1]->Attribute("eye") != NULL )

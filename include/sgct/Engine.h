@@ -167,8 +167,8 @@ private:
 	inputCallbackFn mMousePosCallbackFn;
 	scrollCallbackFn mMouseWheelCallbackFn;
 
-	float nearClippingPlaneDist;
-	float farClippingPlaneDist;
+	float mNearClippingPlaneDist;
+	float mFarClippingPlaneDist;
 
 	int localRunningMode;
 	core_sgct::Frustum::FrustumMode mActiveFrustum;

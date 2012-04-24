@@ -46,6 +46,7 @@ public:
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
+	void setTracked(bool state);
 	void loadOverlayTexture();
 	void calculateFrustum(const int &frustumMode, glm::vec3 * eyePos, float near, float far);
 
@@ -57,6 +58,7 @@ public:
 	inline Frustum * getFrustum(int frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
+	inline bool isTracked() { return mTracked; }
 	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
 
 	glm::vec3 viewPlaneCoords[3];
@@ -74,6 +76,7 @@ private:
 	Frustum::FrustumMode mEye;
 	char * mFilename;
 	bool mOverlayTexture;
+	bool mTracked;
 	unsigned int mTextureIndex;
 };
 

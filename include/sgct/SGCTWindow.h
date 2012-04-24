@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace core_sgct
 {
+
 /*!
 Helper class for window data
 */

@@ -40,6 +40,7 @@ core_sgct::Viewport::Viewport()
 	mOverlayTexture = false;
 	mFilename = NULL;
 	mTextureIndex = 0;
+	mTracked = false;
 }
 
 core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
@@ -52,6 +53,7 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mOverlayTexture = false;
 	mFilename = NULL;
 	mTextureIndex = 0;
+	mTracked = false;
 }
 
 void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
@@ -64,6 +66,7 @@ void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
 	mOverlayTexture = false;
 	mFilename = NULL;
 	mTextureIndex = 0;
+	mTracked = false;
 }
 
 void core_sgct::Viewport::setPos(float x, float y)
@@ -96,6 +99,11 @@ void core_sgct::Viewport::setOverlayTexture(const char * texturePath)
 		strcpy(mFilename, texturePath );
 		#endif
 	}
+}
+
+void core_sgct::Viewport::setTracked(bool state)
+{
+	mTracked = state;
 }
 
 void core_sgct::Viewport::loadOverlayTexture()

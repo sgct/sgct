@@ -6,6 +6,6 @@ ar x deps/freetype.a
 ar x deps/libtinyxml.a
 ar x deps/libvrpn.a
 ar x libsgct32_light.a
-ar r libsgct32.a *.o
+ar r libsgct32.a *.o *.obj
 DEL *.o *.obj
 pause

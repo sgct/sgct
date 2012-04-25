@@ -23,10 +23,10 @@
 #include "vrpn_Tracker_isense.h"
 #include "vrpn_Serial.h"
 #include "vrpn_Shared.h"
-#include "quat.h" 
+#include "quat.h"
 
 #ifdef  VRPN_INCLUDE_INTERSENSE
-#include "isense.c"
+#include "../isense/isense.c"
 
 #define MAX_TIME_INTERVAL       (5000000) // max time between reports (usec)
 #define	INCHES_TO_METERS	(2.54/100.0)
@@ -57,7 +57,7 @@ void vrpn_Tracker_InterSense::getTrackerInfo(char *msg)
 			break;
 	}
 	switch(m_TrackerInfo.TrackerModel) {
-		case ISD_UNKNOWN: 
+		case ISD_UNKNOWN:
 			sprintf(msg, "%s Unknown model)", msg);
 			break;
 
@@ -108,11 +108,11 @@ void vrpn_Tracker_InterSense::getTrackerInfo(char *msg)
 	sprintf(msg, "%s\n", msg);
 }
 
-vrpn_Tracker_InterSense::vrpn_Tracker_InterSense(const char *name, 
+vrpn_Tracker_InterSense::vrpn_Tracker_InterSense(const char *name,
                                          vrpn_Connection *c,
-                                         int commPort, const char *additional_reset_commands, 
+                                         int commPort, const char *additional_reset_commands,
 										 int is900_timestamps, int reset_at_start) :
-vrpn_Tracker(name,c), do_is900_timestamps(is900_timestamps), 
+vrpn_Tracker(name,c), do_is900_timestamps(is900_timestamps),
 m_reset_at_start(reset_at_start)
 {
 #ifdef  VRPN_INCLUDE_INTERSENSE
@@ -163,15 +163,15 @@ m_reset_at_start(reset_at_start)
   getTrackerInfo(errStr);
   vrpn_gettimeofday(&timestamp, NULL);
   FT_INFO(errStr);
-  fprintf(stderr,errStr);	
-  
+  fprintf(stderr,errStr);
+
   status =   vrpn_TRACKER_SYNCING;
 #else
   fprintf(stderr,"Intersense library not compiled into this version.  Use Fastrak driver for IS-600/900 or recompile with VRPN_INCLUDE_INTERSENSE defined\n");
   status = vrpn_TRACKER_FAIL;
 #endif
 }
- 
+
 vrpn_Tracker_InterSense::~vrpn_Tracker_InterSense()
 {
 #ifdef  VRPN_INCLUDE_INTERSENSE
@@ -197,7 +197,7 @@ vrpn_Tracker_InterSense::~vrpn_Tracker_InterSense()
 /** This routine augments the basic sensor-output setting function of the Intersense
     to allow the possibility of requesting timestamp, button data, and/or analog
     data from the device.  It sets the device for position + quaternion + any of
-    the extended fields.  
+    the extended fields.
 
     Returns 0 on success and -1 on failure.
 */
@@ -210,7 +210,7 @@ int vrpn_Tracker_InterSense::set_sensor_output_format(int station)
         ISD_GetStationConfig(m_Handle,&m_StationInfo[station],station+1,0);
 
     	//ISD_ResetHeading(m_Handle,station+1); //Not sure if this is needed
-		// nahon@virtools.com - 
+		// nahon@virtools.com -
 		if (m_reset_at_start)
 		  ISD_Boresight(m_Handle, station+1, true); // equivalent to ISD_ResetHeading for itrax, see isense.h
 
@@ -269,9 +269,9 @@ int vrpn_Tracker_InterSense::set_sensor_output_format(int station)
 void vrpn_Tracker_InterSense::reset()
 {
 #ifdef  VRPN_INCLUDE_INTERSENSE
-  char errStr[1024]; 
+  char errStr[1024];
   int i;
-  
+
   m_Handle = ISD_OpenTracker(NULL,m_CommPort,FALSE,FALSE);
 
   if(m_Handle == -1)
@@ -283,7 +283,7 @@ void vrpn_Tracker_InterSense::reset()
 
     status = vrpn_TRACKER_FAIL;
   }
-  else 
+  else
   {
 
     //--------------------------------------------------------------------
@@ -303,7 +303,7 @@ void vrpn_Tracker_InterSense::reset()
 
     // Send the additional reset commands, if any, to the tracker.
     // These commands come in lines, with character \015 ending each
-    // line. 
+    // line.
     if (strlen(add_reset_cmd) > 0) {
 		printf("  Intersense writing extended reset commands...\n");
 		if(!ISD_SendScript(m_Handle,add_reset_cmd))
@@ -313,7 +313,7 @@ void vrpn_Tracker_InterSense::reset()
 			FT_WARNING(errStr);
 		}
 	}
-  
+
     // If we are using the IS-900 timestamps, clear the timer on the device and
     // store the time when we cleared it.  First, drain any characters in the output
     // buffer to ensure we're sending right away.  Then, send the reset command and
@@ -427,7 +427,7 @@ void vrpn_Tracker_InterSense::get_report(void)
 	pos[1] = data.Station[station].Position[1];
 	pos[2] = data.Station[station].Position[2];
 
-	if(m_StationInfo[station].AngleFormat == ISD_QUATERNION) {	
+	if(m_StationInfo[station].AngleFormat == ISD_QUATERNION) {
 		d_quat[0] = data.Station[station].Quaternion[1];
 		d_quat[1] = data.Station[station].Quaternion[2];
 		d_quat[2] = data.Station[station].Quaternion[3];
@@ -439,7 +439,7 @@ void vrpn_Tracker_InterSense::get_report(void)
 		angles[1] = DEG_TO_RAD*data.Station[station].Euler[1];
 		angles[2] = DEG_TO_RAD*data.Station[station].Euler[2];
 
-		q_from_euler(d_quat, angles[0], angles[1], angles[2]);	
+		q_from_euler(d_quat, angles[0], angles[1], angles[2]);
 	}
 
 	// have to just send it now
@@ -449,7 +449,7 @@ void vrpn_Tracker_InterSense::get_report(void)
 
 	//printf("Isense %f, %f, %f\n",pos[0],pos[1],pos[2]);
 	//printf("Isense a:%f, %f, %f : ",angles[0],angles[1],angles[2]); //if the tracker reports a quat, these will be garbage
-	//printf("q: %f, %f, %f, %f\n",d_quat[0],d_quat[1],d_quat[2],d_quat[3]);	
+	//printf("q: %f, %f, %f, %f\n",d_quat[0],d_quat[1],d_quat[2],d_quat[3]);
       }
     }
 
@@ -461,7 +461,7 @@ void vrpn_Tracker_InterSense::send_report(void)
 {
 #ifdef  VRPN_INCLUDE_INTERSENSE
 	// Send the message on the connection
-    if (d_connection) 
+    if (d_connection)
     {
 	    char	msgbuf[1000];
 	    int	len = encode_to(msgbuf);
@@ -499,13 +499,13 @@ void vrpn_Tracker_InterSense::mainloop()
 	  // resets and causes the other to timeout, and then it returns the
 	  // favor.  By checking for the report here, we reset the timestamp
 	  // if there is a report ready (ie, if THIS device is still operating).
-	    
+
 	  get_report();
 
 	  // Ready for another report
-	  status = vrpn_TRACKER_SYNCING;		
+	  status = vrpn_TRACKER_SYNCING;
       }
-      break; 
+      break;
 
     case vrpn_TRACKER_RESETTING:
       reset();

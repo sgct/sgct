@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SGCTNode.h"
 #include "User.h"
+#include "SGCTTracking.h"
 #include <vector>
 #include <string>
 
@@ -65,6 +66,7 @@ public:
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
 	User * getUserPtr() { return mUser; }
+	SGCTTracking * getTrackingPtr() { return mTracking; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
 
@@ -92,7 +94,8 @@ private:
 	std::string masterIp;
 	std::string mExternalControlPort;
 
-	core_sgct::User	* mUser;
+	User	* mUser;
+	SGCTTracking * mTracking;
 };
 }
 

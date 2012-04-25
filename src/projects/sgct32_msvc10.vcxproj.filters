@@ -81,6 +81,9 @@
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTTracking.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -138,6 +141,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\TextureManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTTracking.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

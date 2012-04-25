@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -25,39 +25,38 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
+#include <stdlib.h>
+#include <stdio.h>
+#include "../include/sgct/SGCTTracking.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/vrpn/vrpn_Tracker.h"
 
-core_sgct::ClusterManager * core_sgct::ClusterManager::mInstance = NULL;
+class vrpn_Tracker_Remote;
+vrpn_Tracker_Remote * mTracker = NULL;
+void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB t);
 
-core_sgct::ClusterManager::ClusterManager(void)
+core_sgct::SGCTTracking::~SGCTTracking()
 {
-	masterIndex = -1;
-	mThisNodeId = -1;
-	validCluster = false;
-	mUser = new User();
-	mTracking = new SGCTTracking();
+	delete mTracker;
+	mTracker = NULL;
 }
 
-core_sgct::ClusterManager::~ClusterManager()
+void core_sgct::SGCTTracking::connect(const char * name)
 {
-	nodes.clear();
-	delete mUser;
-	mUser = NULL;
-	delete mTracking;
-	mTracking = NULL;
+	mTracker = new vrpn_Tracker_Remote(name);
+	mTracker->register_change_handler(NULL, update_position_cb);
 }
 
-void core_sgct::ClusterManager::addNode(core_sgct::SGCTNode node)
+void core_sgct::SGCTTracking::update()
 {
-	nodes.push_back(node);
+	if(mTracker != NULL)
+		mTracker->mainloop();
 }
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getNodePtr(unsigned int index)
+void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB t)
 {
-	return &nodes[index];
-}
+	printf("handle_tracker\tSensor %d is now at (%f,%f,%f)\n",
+	t.sensor, t.pos[0], t.pos[1], t.pos[2]);
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getThisNodePtr()
-{
-	return mThisNodeId < 0 ? NULL : &nodes[mThisNodeId];
+	core_sgct::ClusterManager::Instance()->getUserPtr()->setPos((double *)t.pos);
 }

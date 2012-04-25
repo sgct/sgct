@@ -151,6 +151,9 @@ bool sgct::Engine::init()
 		return false;
 	}
 
+	//init tracking
+	ClusterManager::Instance()->getTrackingPtr()->connect("Tracker0@localhost");
+
 	if( mKeyboardCallbackFn != NULL )
         glfwSetKeyCallback( mKeyboardCallbackFn );
 	if( mMouseButtonCallbackFn != NULL )
@@ -505,6 +508,9 @@ void sgct::Engine::render()
 
 	while( mRunning )
 	{
+		//update tracking data
+		ClusterManager::Instance()->getTrackingPtr()->update();
+		
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();
 

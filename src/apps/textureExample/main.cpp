@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-
 #include "sgct.h"
 
 sgct::Engine * gEngine;
@@ -51,14 +50,48 @@ void myDrawFun()
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
+
+	float boxSize = 1.5f;
 	glBegin(GL_QUADS);
 
-	glTexCoord2d(0.0,0.0);	glVertex3f( -0.5f, -0.5f, 0.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( -0.5f, 0.5f, 0.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( 0.5f, 0.5f, 0.0f);
-	glTexCoord2d(1.0,0.0);	glVertex3f( 0.5f, -0.5f, 0.0f);
+	//front
+	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+
+	//back
+	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+
+	//left
+	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+
+	//right
+	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+
+	//top
+	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
+
+	//bottom
+	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
+	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
+	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
 
 	glEnd();
+
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -73,7 +106,12 @@ void myPreSyncFun()
 void myInitOGLFun()
 {
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "mug", "mug.png", true);
+	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "box", "box.png", true);
+
+	//Enable backface culling
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CW); //our polygon winding is counter clockwise
+	glEnable(GL_CULL_FACE);
 }
 
 void myEncodeFun()

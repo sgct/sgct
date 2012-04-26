@@ -34,8 +34,8 @@
 // to use time synched tracking, just pass in a sync connection to the 
 // client and the server
 
-#include "vrpn/vrpn_BaseClass.h"
-#include "vrpn/vrpn_Connection.h"
+#include "vrpn_BaseClass.h"
+#include "vrpn_Connection.h"
 
 class VRPN_API vrpn_RedundantTransmission;
 

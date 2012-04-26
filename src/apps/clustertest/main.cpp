@@ -32,6 +32,29 @@ unsigned char flags = 0;
 
 void drawGrid(float size, int steps);
 
+class TestC
+{
+public:
+	TestC() 
+	{ 
+		d1 = 1.0;
+		d2 = 1.0;
+		f1 = 5.0f;
+		f2 = 5.0f;
+		i1 = -1;
+		i2 = -1;
+	}
+
+	double d1;
+	double d2;
+	float f1;
+	float f2;
+	int i1;
+	int i2;
+};
+
+TestC myTestClass;
+
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
@@ -135,11 +158,19 @@ void myDrawFun()
 	glPopMatrix();
 
 	if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoLeftEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 50, "Left");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 50, "Left");
 	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoRightEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 100, "Right");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 100, "Right");
 	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::Mono )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 32 ), 100, 150, "Mono");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 150, "Mono");
+
+	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
+		myTestClass.d1,
+		myTestClass.d2,
+		myTestClass.f1,
+		myTestClass.f2,
+		myTestClass.i1,
+		myTestClass.i2);
 
 
 	//drawGrid(10.0, 100);
@@ -151,6 +182,13 @@ void myPreSyncFun()
 	{
 		dt = gEngine->getDt();
 		curr_time = gEngine->getTime();
+
+		myTestClass.d1 = 95.0;
+		myTestClass.d2 = 45.0;
+		myTestClass.f1 = 34.0f;
+		myTestClass.f2 = 3456.425f;
+		myTestClass.i1 = 544;
+		myTestClass.i2 = -345;
 	}
 }
 
@@ -204,6 +242,7 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
 	sgct::SharedData::Instance()->writeUChar(flags);
+	sgct::SharedData::Instance()->writeObj<TestC>( myTestClass );
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -215,6 +254,7 @@ void myDecodeFun()
 	dt = sgct::SharedData::Instance()->readDouble();
 	curr_time = sgct::SharedData::Instance()->readDouble();
 	flags = sgct::SharedData::Instance()->readUChar();
+	myTestClass = sgct::SharedData::Instance()->readObj<TestC>();
 
 	showFPS	= flags & 0x0001;
 	extraPackages = (flags>>1) & 0x0001;

@@ -73,7 +73,7 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
 	if(receivedlength > 0)
 	{
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("SharedData::decode\n");
+        MessageHandler::Instance()->print("SharedData::decode\n");
 #endif
 
 
@@ -98,7 +98,7 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
 void SharedData::encode()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::encode\n");
+    MessageHandler::Instance()->print("SharedData::encode\n");
 #endif
 
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
@@ -116,7 +116,7 @@ void SharedData::encode()
 void SharedData::writeFloat(float f)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeFloat\n");
+    MessageHandler::Instance()->print("SharedData::writeFloat\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&f;
@@ -127,7 +127,7 @@ void SharedData::writeFloat(float f)
 void SharedData::writeDouble(double d)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeDouble\n");
+    MessageHandler::Instance()->print("SharedData::writeDouble\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
  	unsigned char *p = (unsigned char *)&d;
@@ -138,7 +138,7 @@ void SharedData::writeDouble(double d)
 void SharedData::writeInt32(int i)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeInt32\n");
+    MessageHandler::Instance()->print("SharedData::writeInt32\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&i;
@@ -149,7 +149,7 @@ void SharedData::writeInt32(int i)
 void SharedData::writeUChar(unsigned char c)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeUChar\n");
+    MessageHandler::Instance()->print("SharedData::writeUChar\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = &c;
@@ -160,7 +160,7 @@ void SharedData::writeUChar(unsigned char c)
 void SharedData::writeBool(bool b)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeBool\n");
+    MessageHandler::Instance()->print("SharedData::writeBool\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	if( b )
@@ -173,7 +173,7 @@ void SharedData::writeBool(bool b)
 void SharedData::writeShort(short s)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeShort\n");
+    MessageHandler::Instance()->print("SharedData::writeShort\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&s;
@@ -181,10 +181,10 @@ void SharedData::writeShort(short s)
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
-void sgct::SharedData::writeString(const std::string& s)
+void SharedData::writeString(const std::string& s)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::writeString\n");
+    MessageHandler::Instance()->print("SharedData::writeString\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
     const char* stringData = s.c_str();
@@ -195,23 +195,20 @@ void sgct::SharedData::writeString(const std::string& s)
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
-//template<class T>
-//void SharedData::writeObj( const T& obj )
-//{
-//#ifdef __SGCT_DEBUG__
-//    sgct::MessageHandler::Instance()->print("SharedData::writeObj\n");
-//#endif
-//    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-//    unsigned char *p = (unsigned char *)&obj;
-//    size_t size = sizeof(obj);
-//    dataBlock.insert( dataBlock.end(), p, p+size);
-//    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-//}
+void SharedData::writeUCharArray(unsigned char * c, size_t length)
+{
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("SharedData::writeUCharArray\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    dataBlock.insert( dataBlock.end(), c, c+length);
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+}
 
 float SharedData::readFloat()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readFloat\n");
+    MessageHandler::Instance()->print("SharedData::readFloat\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
@@ -233,7 +230,7 @@ float SharedData::readFloat()
 double SharedData::readDouble()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readDouble\n");
+    MessageHandler::Instance()->print("SharedData::readDouble\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
@@ -259,7 +256,7 @@ double SharedData::readDouble()
 int SharedData::readInt32()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readInt32\n");
+    MessageHandler::Instance()->print("SharedData::readInt32\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
@@ -281,7 +278,7 @@ int SharedData::readInt32()
 unsigned char SharedData::readUChar()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readUChar\n");
+    MessageHandler::Instance()->print("SharedData::readUChar\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char c;
@@ -295,7 +292,7 @@ unsigned char SharedData::readUChar()
 bool SharedData::readBool()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readBool\n");
+    MessageHandler::Instance()->print("SharedData::readBool\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	bool b;
@@ -309,7 +306,7 @@ bool SharedData::readBool()
 short SharedData::readShort()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readShort\n");
+    MessageHandler::Instance()->print("SharedData::readShort\n");
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	union
@@ -327,10 +324,10 @@ short SharedData::readShort()
 	return cs.s;
 }
 
-std::string sgct::SharedData::readString()
+std::string SharedData::readString()
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SharedData::readString\n");
+    MessageHandler::Instance()->print("SharedData::readString\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
     union
@@ -357,24 +354,17 @@ std::string sgct::SharedData::readString()
     return result;
 }
 
-//template<class T>
-//T SharedData::readObj()
-//{
-//#ifdef __SGCT_DEBUG__
-//    sgct::MessageHandler::Instance()->print("SharedData::readObj\n");
-//#endif
-//    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-//    size_t size = sizeof(T);
-//    unsigned char* data = new unsigned char[size];
-//
-//    for(size_t i = 0; i < size; ++i)
-//    {
-//        data[i] = dataBlock[pos + i];
-//    }
-//    pos += size;
-//    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-//
-//    T result = *reinterpret_cast<T*>(data);
-//    delete[] data;
-//    return result;
-//}
+unsigned char * SharedData::readUCharArray(size_t length)
+{
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("SharedData::readUCharArray\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    
+	unsigned char * p = &dataBlock[pos];
+    pos += length;
+    
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
+    return p;
+}

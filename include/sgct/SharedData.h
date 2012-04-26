@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stddef.h> //get definition for NULL
 #include <vector>
+#include <string>
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -62,22 +63,21 @@ public:
 	void writeDouble(double d);
 	void writeInt32(int i);
 	void writeUChar(unsigned char c);
+	void writeUCharArray(unsigned char * c, size_t length);
 	void writeBool(bool b);
 	void writeShort(short s);
     void writeString(const std::string& s);
+	template<class T> void writeObj(const T& obj);
 
 	float			readFloat();
 	double			readDouble();
 	int				readInt32();
 	unsigned char	readUChar();
+	unsigned char * readUCharArray(size_t length);
 	bool			readBool();
 	short			readShort();
     std::string     readString();
-
-    //template<class T>
-    //void writeObj(const T& obj);
-    //template<class T>
-    //T readObj();
+    template<class T> T readObj();
 
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );
@@ -107,6 +107,29 @@ private:
 	unsigned char * headerSpace;
 	unsigned int pos;
 };
+
+template<class T>
+void SharedData::writeObj( const T& obj )
+{
+    unsigned char *p = (unsigned char *)&obj;
+    size_t size = sizeof(obj);
+    writeUCharArray(p, size);
+}
+
+template<class T>
+T SharedData::readObj()
+{
+	size_t size = sizeof(T);
+    unsigned char* data = new unsigned char[size];
+	unsigned char* c = readUCharArray(size);
+
+	for(size_t i = 0; i < size; i++)
+		data[i] = c[i];
+
+    T result = *reinterpret_cast<T*>(data);
+    delete[] data;
+    return result;
+}
 
 }
 

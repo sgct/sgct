@@ -53,10 +53,11 @@ void core_sgct::SGCTTracking::update()
 		mTracker->mainloop();
 }
 
-void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB t)
+void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB info)
 {
-	printf("handle_tracker\tSensor %d is now at (%f,%f,%f)\n",
-	t.sensor, t.pos[0], t.pos[1], t.pos[2]);
+	printf("Sensor %d is now at (%g,%g,%g)\n",
+	info.sensor, info.pos[0], info.pos[1], info.pos[2]);
 
-	core_sgct::ClusterManager::Instance()->getUserPtr()->setPos((double *)t.pos);
+	//if(info.sensor == 0)
+		core_sgct::ClusterManager::Instance()->getUserPtr()->setPos((double *)info.pos);
 }

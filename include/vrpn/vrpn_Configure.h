@@ -284,11 +284,11 @@
 
 //------------------------
 // Instructs VRPN to compile code to use Trivisio's Colibri inertial
-// tracker.  You will also need the SDK, which is available at 
+// tracker.  You will also need the SDK, which is available at
 // http://www.trivisio.com/products/motiontracking/colibri#download
 // (tested on Windows).  VRPN_TRIVISIOCOLIBRI_H and VRPN_TRIVISIOCOLIBRI_LIB_PATH
-// below point to the default installation locations on Windows.  Edit them 
-// if installed elsewhere.  Note that Trivisio.dll and pthreadVC2.dll need to be in 
+// below point to the default installation locations on Windows.  Edit them
+// if installed elsewhere.  Note that Trivisio.dll and pthreadVC2.dll need to be in
 // the path when running the server on Windows
 //#define VRPN_USE_TRIVISIOCOLIBRI
 
@@ -345,7 +345,7 @@
 // HID device or a device that has another driver, as it can prevent the
 // device from operating except through LibUSB.
 // Note that on Linux you will also need to have the libusb-1.0-0-dev
-// package installed so that we can compile the code.  
+// package installed so that we can compile the code.
 //#define VRPN_USE_LIBUSB_1_0
 
 // Instructs VRPN to compile code to handle JSON network messages.
@@ -354,9 +354,9 @@
 //#define VRPN_USE_JSONNET
 
 //------------------------
-// Instructs VRPN to compile code to use the Arrington Research 
+// Instructs VRPN to compile code to use the Arrington Research
 // ViewPoint EyeTracker.  You will also need to set VRPN_VIEWPOINT_H
-// and VRPN_VIEWPOINT_LIB_PATH below to point to the correct location 
+// and VRPN_VIEWPOINT_LIB_PATH below to point to the correct location
 // on your system.  Note that the VRPN server and ViewPoint calibration
 // software must use the same copy of the VPX_InterApp.dll
 //#define VRPN_USE_VIEWPOINT
@@ -550,7 +550,7 @@
 #endif
 
 // For client code, make sure we add the proper library dependency to the linker
-#ifdef _WIN32
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
 #pragma comment (lib, "wsock32.lib")  // VRPN requires the Windows Sockets library.
 #ifdef VRPN_USE_SHARED_LIBRARY
 #ifdef VRPNDLL_EXPORTS

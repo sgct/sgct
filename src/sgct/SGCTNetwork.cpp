@@ -600,7 +600,7 @@ void GLFWCALL communicationHandler(void *arg)
 				std::string tmpStr(recvbuf);
 				extBuffer += tmpStr.substr(0, iResult);
 				std::size_t found = extBuffer.find("\r\n");
-				if( found != std::string::npos )
+				while( found != std::string::npos )
 				{
 					std::string extMessage = extBuffer.substr(0,found);
 					extBuffer = extBuffer.substr(found+2);//jump over \r\n
@@ -612,6 +612,7 @@ void GLFWCALL communicationHandler(void *arg)
 					}
 					nPtr->sendStr("OK\r\n");
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+                    found = extBuffer.find("\r\n");
 				}
 #ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Done.\n");

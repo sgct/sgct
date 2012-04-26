@@ -181,6 +181,20 @@ void SharedData::writeShort(short s)
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
+void sgct::SharedData::writeString(const std::string& s)
+{
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SharedData::writeString\n");
+#endif
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    const char* stringData = s.c_str();
+    unsigned int length = s.size() + 1;  // +1 for the \0 character
+    unsigned char *p = (unsigned char *)&length;
+    dataBlock.insert( dataBlock.end(), p, p+4);
+    dataBlock.insert( dataBlock.end(), stringData, stringData+length);
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+}
+
 float SharedData::readFloat()
 {
 #ifdef __SGCT_DEBUG__
@@ -300,37 +314,32 @@ short SharedData::readShort()
 	return cs.s;
 }
 
-template<class T>
-void SharedData::writeObj( const T& obj )
+std::string sgct::SharedData::readString()
 {
 #ifdef __SGCT_DEBUG__
-    MessageHandler::Instance()->print("SharedData::writeObj\n");
+    sgct::MessageHandler::Instance()->print("SharedData::readString\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    unsigned char *p = (unsigned char *)&obj;
-    size_t size = sizeof(obj);
-    dataBlock.insert( dataBlock.end(), p, p+size);
-    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-}
-
-template<class T>
-T SharedData::readObj()
-{
-#ifdef __SGCT_DEBUG__
-    MessageHandler::Instance()->print("SharedData::readObj\n");
-#endif
-    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    size_t size = sizeof(T);
-    unsigned char* data = new unsigned char[size];
-
-    for(size_t i = 0; i < size; ++i)
+    union
     {
-        data[i] = dataBlock[pos + i];
-    }
-    pos += size;
-    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+        unsigned int i;
+        unsigned char c[4];
+    } ci;
 
-    T result = *reinterpret_cast<T*>(data);
-    delete[] data;
+    ci.c[0] = dataBlock[pos];
+    ci.c[1] = dataBlock[pos+1];
+    ci.c[2] = dataBlock[pos+2];
+    ci.c[3] = dataBlock[pos+3];
+    pos += 4;
+
+    char* stringData = (char*)malloc(ci.i);
+    for (unsigned int i = 0; i < ci.i; ++i) {
+        stringData[i] = dataBlock[pos + i];
+    }
+    //memcpy(stringData, (void*)dataBlock[pos], ci.i);
+    pos += ci.i;
+    std::string result(stringData);
+    free(stringData);
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
     return result;
 }

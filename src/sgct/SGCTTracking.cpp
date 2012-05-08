@@ -29,14 +29,27 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include "../include/sgct/SGCTTracking.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include "../include/vrpn/vrpn_Tracker.h"
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 
-class vrpn_Tracker_Remote;
 vrpn_Tracker_Remote * mTracker = NULL;
 void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB t);
 
+core_sgct::SGCTTracking::SGCTTracking()
+{
+	mHeadSensorIndex = -1;
+	mXform = glm::dmat4(1.0);
+	mOffset = glm::dvec3(0.0);
+	mEnabled = false;
+}
+
 core_sgct::SGCTTracking::~SGCTTracking()
 {
+	mEnabled = false;
 	delete mTracker;
 	mTracker = NULL;
 }
@@ -44,20 +57,75 @@ core_sgct::SGCTTracking::~SGCTTracking()
 void core_sgct::SGCTTracking::connect(const char * name)
 {
 	mTracker = new vrpn_Tracker_Remote(name);
-	mTracker->register_change_handler(NULL, update_position_cb);
+	mTracker->register_change_handler(this, update_position_cb);
+	mEnabled = true;
+	sgct::MessageHandler::Instance()->print("Tracking: Connecting to %s...\n", name);
 }
 
 void core_sgct::SGCTTracking::update()
 {
-	if(mTracker != NULL)
+	if(mEnabled && mTracker != NULL)
+	{
 		mTracker->mainloop();
+	}
+}
+
+void core_sgct::SGCTTracking::setHeadSensorIndex(int index)
+{
+	mHeadSensorIndex = index;
+}
+
+void core_sgct::SGCTTracking::setEnabled(bool state)
+{
+	mEnabled = state;
+}
+
+void core_sgct::SGCTTracking::setOrientation(double xRot, double yRot, double zRot)
+{
+	mXrot = xRot;
+	mYrot = yRot;
+	mZrot = zRot;
+
+	calculateXform();
+}
+
+void core_sgct::SGCTTracking::setOffset(double x, double y, double z)
+{
+	mOffset[0] = x;
+	mOffset[1] = y;
+	mOffset[2] = z;
+
+	calculateXform();
+}
+
+void core_sgct::SGCTTracking::calculateXform()
+{
+	//create rotation quaternion based on x, y, z rotations
+	glm::dquat rotQuat;
+	rotQuat = glm::rotate( rotQuat, mXrot, glm::dvec3(1.0, 0.0, 0.0) );
+	rotQuat = glm::rotate( rotQuat, mYrot, glm::dvec3(0.0, 1.0, 0.0) );
+	rotQuat = glm::rotate( rotQuat, mZrot, glm::dvec3(0.0, 0.0, 1.0) );
+	
+	//create offset translation matrix
+	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), mOffset );
+	//calculate transform
+	mXform = transMat * glm::inverse( glm::mat4_cast(rotQuat) );
 }
 
 void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB info)
 {
-	printf("Sensor %d is now at (%g,%g,%g)\n",
-	info.sensor, info.pos[0], info.pos[1], info.pos[2]);
+	if(info.sensor != -1)
+	{
+		//printf("S%d (%.3f,%.3f,%.3f) %f %f\n",
+		//info.sensor, info.pos[0], info.pos[1], info.pos[2]);
 
-	//if(info.sensor == 0)
-		core_sgct::ClusterManager::Instance()->getUserPtr()->setPos((double *)info.pos);
+		//set head pos
+		core_sgct::SGCTTracking * trackerPtr = reinterpret_cast<core_sgct::SGCTTracking *>(userdata);
+		//fprintf(stderr, "ID: %d\n", trackerPtr->getHeadSensorIndex());
+		if(info.sensor == trackerPtr->getHeadSensorIndex() && trackerPtr->getHeadSensorIndex() != -1)
+		{
+			glm::dvec4 tracked_pos = glm::dvec4( info.pos[0], info.pos[1], info.pos[2], 1.0 );
+			core_sgct::ClusterManager::Instance()->getUserPtr()->setPos( trackerPtr->getXform() * tracked_pos );
+		}
+	}
 }

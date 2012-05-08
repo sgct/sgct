@@ -93,11 +93,13 @@ void core_sgct::Statistics::draw()
 	glPushMatrix();
 	gluOrtho2D(0.0,STATS_HISTORY_length*2.0,
 		0.0,STATS_HISTORY_length);
-
-	glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+	
 	glMatrixMode(GL_MODELVIEW);
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
+	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 

@@ -26,6 +26,7 @@ bool wireframe = false;
 bool info = false;
 bool stats = false;
 bool takeScreenshot = false;
+bool useTracking = false;
 
 int main( int argc, char* argv[] )
 {
@@ -103,6 +104,8 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
+	core_sgct::ClusterManager::Instance()->getTrackingPtr()->setEnabled( useTracking );
+	
 	if( takeScreenshot )
 	{
 		gEngine->takeScreenshot();
@@ -164,6 +167,7 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeBool( info );
 	sgct::SharedData::Instance()->writeBool( stats );
 	sgct::SharedData::Instance()->writeBool( takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( useTracking );
 }
 
 void myDecodeFun()
@@ -173,6 +177,7 @@ void myDecodeFun()
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();
 	takeScreenshot = sgct::SharedData::Instance()->readBool();
+	useTracking = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -242,6 +247,11 @@ void keyCallback(int key, int action)
 		case 'Q':
 			if(action == GLFW_PRESS)
 				gEngine->terminate();
+			break;
+
+		case 'T':
+			if(action == GLFW_PRESS)
+				useTracking = !useTracking;
 			break;
 
 		case 'P':

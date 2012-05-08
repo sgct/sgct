@@ -321,6 +321,58 @@ void core_sgct::ReadConfig::readAndParseXML()
 				element[1] = element[1]->NextSiblingElement();
 			}
 		}
+		else if( strcmp("Tracking", val[0]) == 0 )
+		{
+			if( element[0]->Attribute("vrpnAddress") != NULL )
+			{
+				ClusterManager::Instance()->getTrackingPtr()->connect( element[0]->Attribute("vrpnAddress") );
+
+				int tmpi = -1;
+				if( element[0]->Attribute("headSensorIndex") != NULL )
+				{
+					element[0]->Attribute("headSensorIndex", &tmpi);
+					ClusterManager::Instance()->getTrackingPtr()->setHeadSensorIndex( tmpi );
+				}
+				else
+					sgct::MessageHandler::Instance()->print("Info: Head sensor index not specified. Head tracking is disabled!\n");
+
+				element[1] = element[0]->FirstChildElement();
+				while( element[1] != NULL )
+				{
+					val[1] = element[1]->Value();
+
+					if( strcmp("Offset", val[1]) == 0 )
+					{
+						double tmpd[3];
+						element[1]->Attribute("x", &tmpd[0]);
+						element[1]->Attribute("y", &tmpd[1]);
+						element[1]->Attribute("z", &tmpd[2]);
+
+						if( element[1]->Attribute("x") != NULL &&
+							element[1]->Attribute("y") != NULL &&
+							element[1]->Attribute("z") != NULL )
+							ClusterManager::Instance()->getTrackingPtr()->setOffset( tmpd[0], tmpd[1], tmpd[2] );
+					}
+					else if( strcmp("Orientation", val[1]) == 0 )
+					{
+						double tmpd[3];
+						element[1]->Attribute("x", &tmpd[0]);
+						element[1]->Attribute("y", &tmpd[1]);
+						element[1]->Attribute("z", &tmpd[2]);
+
+						if( element[1]->Attribute("x") != NULL &&
+							element[1]->Attribute("y") != NULL &&
+							element[1]->Attribute("z") != NULL )
+							ClusterManager::Instance()->getTrackingPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
+					}
+
+					//iterate
+					element[1] = element[1]->NextSiblingElement();
+				}
+			}
+			else
+				sgct::MessageHandler::Instance()->print("Error: No VRPN address provided! Tracking is disabled.\n");
+		}// end tracking part
 
 		//iterate
 		element[0] = element[0]->NextSiblingElement();

@@ -28,15 +28,38 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_TRACKING_H_
 #define _SGCT_TRACKING_H_
 
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace core_sgct
 {
 
 class SGCTTracking
 {
 public:
+	SGCTTracking();
 	~SGCTTracking();
 	void connect(const char * name);
 	void update();
+	void setHeadSensorIndex(int index);
+	void setEnabled(bool state);
+	void setOrientation(double xRot, double yRot, double zRot);
+	void setOffset(double x, double y, double z);
+	inline int getHeadSensorIndex() { return mHeadSensorIndex; }
+	inline glm::dmat4 getXform() { return mXform; }
+	inline bool isEnabled() { return mEnabled; }
+
+private:
+	void calculateXform();
+
+private:
+	//Miro ToDo: Add a vector of sensors 
+	int mHeadSensorIndex;
+	glm::dmat4 mXform;
+	glm::dvec3 mOffset;
+	double mXrot;
+	double mYrot;
+	double mZrot;
+	bool mEnabled;
 };
 
 }

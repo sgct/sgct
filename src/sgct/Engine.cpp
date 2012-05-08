@@ -151,9 +151,6 @@ bool sgct::Engine::init()
 		return false;
 	}
 
-	//init tracking
-	//ClusterManager::Instance()->getTrackingPtr()->connect("Isense900@localhost");
-
 	if( mKeyboardCallbackFn != NULL )
         glfwSetKeyCallback( mKeyboardCallbackFn );
 	if( mMouseButtonCallbackFn != NULL )
@@ -508,8 +505,8 @@ void sgct::Engine::render()
 
 	while( mRunning )
 	{
-		//update tracking data
-		//ClusterManager::Instance()->getTrackingPtr()->update();
+		//update tracking data if tracking is enabled
+		ClusterManager::Instance()->getTrackingPtr()->update();
 		
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();

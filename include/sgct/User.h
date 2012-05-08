@@ -63,6 +63,12 @@ public:
 		updateEyeSeparation();
 	}
 
+	void setPos(glm::dvec4 pos)
+	{
+		mPos[Frustum::Mono] = glm::vec3(pos);
+		updateEyeSeparation();
+	}
+
 	void setPos(double * pos)
 	{
 		mPos[Frustum::Mono].x = static_cast<float>(pos[0]);

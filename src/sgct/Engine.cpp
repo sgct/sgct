@@ -787,6 +787,8 @@ void sgct::Engine::draw()
 		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
 		glEnd();
 
+        glDisable(GL_BLEND);
+        glBlendFunc(GL_ONE, GL_ZERO);
 		glPopAttrib();
 
 		//exit ortho mode
@@ -933,6 +935,8 @@ void sgct::Engine::renderFBOTexture()
 		glEnd();
 	}
 
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ZERO);
 	glPopAttrib();
 
 	//exit ortho mode

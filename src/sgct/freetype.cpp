@@ -347,6 +347,8 @@ void print(const Freetype::Font * ft_font, float x, float y, const char *fmt, ..
 		glPopMatrix();
 	}
 
+    glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ZERO);
 	glPopAttrib();
 
 	pop_projection_matrix();
@@ -419,6 +421,7 @@ void print3d(const Freetype::Font * ft_font, float x, float y, float z, float sc
 	glEnable(GL_LIGHTING);
 	glDisable(GL_TEXTURE_2D);
 	glDisable(GL_BLEND);
+    glBlendFunc(GL_ONE, GL_ZERO);
 }
 
 }

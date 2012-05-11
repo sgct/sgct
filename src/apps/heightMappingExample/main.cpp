@@ -254,6 +254,16 @@ void keyCallback(int key, int action)
 				useTracking = !useTracking;
 			break;
 
+		/*case 'E':
+			if(action == GLFW_PRESS)
+			{
+				glm::dquat rotQuat;
+				rotQuat = glm::rotate( rotQuat, 90.0, glm::dvec3(0.0, 0.0, 1.0) );
+				core_sgct::ClusterManager::Instance()->getUserPtr()->setOrientation( glm::mat3_cast(rotQuat) );
+				core_sgct::ClusterManager::Instance()->getUserPtr()->setPos(0.0f, 0.0f, 4.0f);
+			}
+			break;*/
+
 		case 'P':
 		case GLFW_KEY_F10:
 			if(action == GLFW_PRESS)

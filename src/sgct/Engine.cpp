@@ -74,6 +74,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mMouseWheelCallbackFn = NULL;
 
 	mTerminate = false;
+	mIgnoreSync = false;
 
 	localRunningMode = NetworkManager::NotLocal;
 
@@ -451,6 +452,9 @@ void sgct::Engine::clearAllCallbacks()
 
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
+	if(mIgnoreSync)
+		return;
+	
 	double t0 = glfwGetTime();
 	static double syncTime = 0.0;
 
@@ -458,12 +462,14 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 	{
 		mNetworkConnections->sync();
 
+		//run only on clients/slaves
 		if( !mNetworkConnections->isComputerServer() ) //not server
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
+				//release lock once per second
 				glfwLockMutex( NetworkManager::gMutex );
 					glfwWaitCond( NetworkManager::gCond,
 						NetworkManager::gMutex,
@@ -505,8 +511,8 @@ void sgct::Engine::render()
 
 	while( mRunning )
 	{
-		//update tracking data if tracking is enabled
-		ClusterManager::Instance()->getTrackingPtr()->update();
+		//update tracking data
+		//ClusterManager::Instance()->getTrackingPtr()->update();
 		
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();
@@ -657,6 +663,7 @@ void sgct::Engine::render()
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
+		//swap frame id to keep track of sync
 		mNetworkConnections->swapData();
 
 		// Swap front and back rendering buffers
@@ -787,8 +794,6 @@ void sgct::Engine::draw()
 		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
 		glEnd();
 
-        glDisable(GL_BLEND);
-        glBlendFunc(GL_ONE, GL_ZERO);
 		glPopAttrib();
 
 		//exit ortho mode
@@ -935,8 +940,6 @@ void sgct::Engine::renderFBOTexture()
 		glEnd();
 	}
 
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ZERO);
 	glPopAttrib();
 
 	//exit ortho mode
@@ -1335,6 +1338,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
+		}
+		else if( strcmp(argv[i],"--Ignore-Sync") == 0 )
+		{
+			mIgnoreSync = true;
+			argumentsToRemove.push_back(i);
+			i++;
 		}
 		else if( strcmp(argv[i],"--No-FBO") == 0 )
 		{

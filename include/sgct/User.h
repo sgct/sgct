@@ -47,6 +47,7 @@ public:
 		for(unsigned int i=0; i<3; i++)
 			mPos[i] = glm::vec3(0.0f);
 		mEyeSeparation = 0.069f;
+		mOrientation = glm::mat3(1.0f);
 	}
 
 	void setPos(float x, float y, float z)
@@ -77,6 +78,11 @@ public:
 		updateEyeSeparation();
 	}
 
+	void setOrientation(const glm::dmat3 & rotMat)
+	{
+		mOrientation = rotMat;
+	}
+
 	void setEyeSeparation(float eyeSeparation)
 	{
 		mEyeSeparation = eyeSeparation;
@@ -84,6 +90,7 @@ public:
 	}
 
 	glm::vec3 getPos() { return mPos[Frustum::Mono]; }
+	glm::mat3 getOrientation() { return mOrientation; }
 	glm::vec3 getPos(Frustum::FrustumMode fm) { return mPos[fm]; }
 	glm::vec3 * getPosPtr() { return &mPos[Frustum::Mono]; }
 	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
@@ -96,17 +103,16 @@ public:
 private:
 	void updateEyeSeparation()
 	{
-		mPos[Frustum::StereoLeftEye].x = mPos[Frustum::Mono].x - mEyeSeparation/2.0f;
-		mPos[Frustum::StereoLeftEye].y = mPos[Frustum::Mono].y;
-		mPos[Frustum::StereoLeftEye].z = mPos[Frustum::Mono].z;
+		glm::vec3 eyeOffsetVec = glm::vec3( mEyeSeparation/2.0f, 0.0f, 0.0f );
+		glm::vec3 rotatedEyeOffsetVec = mOrientation * eyeOffsetVec;
 
-		mPos[Frustum::StereoRightEye].x = mPos[Frustum::Mono].x + mEyeSeparation/2.0f;
-		mPos[Frustum::StereoRightEye].y = mPos[Frustum::Mono].y;
-		mPos[Frustum::StereoRightEye].z = mPos[Frustum::Mono].z;
+		mPos[Frustum::StereoLeftEye] = mPos[Frustum::Mono] - rotatedEyeOffsetVec;
+		mPos[Frustum::StereoRightEye] = mPos[Frustum::Mono] + rotatedEyeOffsetVec;
 	}
 
 private:
 	glm::vec3 mPos[3];
+	glm::mat3 mOrientation;
 	float mEyeSeparation;
 };
 

@@ -178,6 +178,7 @@ private:
 	bool mShowWireframe;
 	bool mTakeScreenshot;
 	bool mTerminate;
+	bool mIgnoreSync;
 
 	//objects
 	core_sgct::Statistics	mStatistics;

@@ -27,6 +27,7 @@ bool barrier = false;
 bool resetCounter = false;
 bool stats = false;
 bool takeScreenshot = false;
+bool slowRendering = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
@@ -102,6 +103,9 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
+	if(slowRendering)
+		glfwSleep(1.0/5.0);
+	
 	glPushMatrix();
 
 	/*if( core_sgct::Frustum::Mono == gEngine->getActiveFrustum() )
@@ -232,12 +236,13 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	flags = showFPS	? flags | 1 : flags & ~1;
-	flags = extraPackages ? flags | 2 : flags & ~2;
-	flags = barrier ? flags | 4 : flags & ~4;
-	flags = resetCounter ? flags | 8 : flags & ~8;
-	flags = stats ? flags | 16 : flags & ~16;
-	flags = takeScreenshot ? flags | 32 : flags & ~32;
+	flags = showFPS	? flags | 1 : flags & ~1; //bit 1
+	flags = extraPackages ? flags | 2 : flags & ~2; //bit 2
+	flags = barrier ? flags | 4 : flags & ~4; //bit 3
+	flags = resetCounter ? flags | 8 : flags & ~8; //bit 4
+	flags = stats ? flags | 16 : flags & ~16; //bit 5
+	flags = takeScreenshot ? flags | 32 : flags & ~32; //bit 6
+	flags = slowRendering ? flags | 64 : flags & ~64; //bit 7
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
@@ -262,6 +267,7 @@ void myDecodeFun()
 	resetCounter = (flags>>3) & 0x0001;
 	stats = (flags>>4) & 0x0001;
 	takeScreenshot = (flags>>5) & 0x0001;
+	slowRendering = (flags>>6) & 0x0001;
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -342,6 +348,11 @@ void keyCallback(int key, int action)
 				mousePointer = !mousePointer; //toggle
 				sgct::Engine::setMousePointerVisibility(mousePointer);
 			}
+			break;
+
+		case GLFW_KEY_F9:
+			if(action == GLFW_PRESS)
+				slowRendering = !slowRendering;
 			break;
 
 		case GLFW_KEY_F10:

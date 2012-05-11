@@ -46,6 +46,7 @@ public:
 	void setOffset(double x, double y, double z);
 	inline int getHeadSensorIndex() { return mHeadSensorIndex; }
 	inline glm::dmat4 getXform() { return mXform; }
+	inline glm::dmat4 getOrientation() { return mOrientation; }
 	inline bool isEnabled() { return mEnabled; }
 
 private:
@@ -55,6 +56,7 @@ private:
 	//Miro ToDo: Add a vector of sensors 
 	int mHeadSensorIndex;
 	glm::dmat4 mXform;
+	glm::dmat4 mOrientation;
 	glm::dvec3 mOffset;
 	double mXrot;
 	double mYrot;

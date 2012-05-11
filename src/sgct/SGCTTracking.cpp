@@ -106,25 +106,27 @@ void core_sgct::SGCTTracking::calculateXform()
 	rotQuat = glm::rotate( rotQuat, mYrot, glm::dvec3(0.0, 1.0, 0.0) );
 	rotQuat = glm::rotate( rotQuat, mZrot, glm::dvec3(0.0, 0.0, 1.0) );
 	
+	//create inverse rotation matrix
+	mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
+
 	//create offset translation matrix
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), mOffset );
 	//calculate transform
-	mXform = transMat * glm::inverse( glm::mat4_cast(rotQuat) );
+	mXform = transMat * mOrientation;
 }
 
 void VRPN_CALLBACK update_position_cb(void *userdata, const vrpn_TRACKERCB info)
 {
 	if(info.sensor != -1)
 	{
-		//printf("S%d (%.3f,%.3f,%.3f) %f %f\n",
-		//info.sensor, info.pos[0], info.pos[1], info.pos[2]);
-
-		//set head pos
 		core_sgct::SGCTTracking * trackerPtr = reinterpret_cast<core_sgct::SGCTTracking *>(userdata);
-		//fprintf(stderr, "ID: %d\n", trackerPtr->getHeadSensorIndex());
+		
 		if(info.sensor == trackerPtr->getHeadSensorIndex() && trackerPtr->getHeadSensorIndex() != -1)
 		{
 			glm::dvec4 tracked_pos = glm::dvec4( info.pos[0], info.pos[1], info.pos[2], 1.0 );
+			glm::dquat tracked_rot = glm::dquat( info.quat[0], info.quat[1], info.quat[2], info.quat[3] );
+
+			core_sgct::ClusterManager::Instance()->getUserPtr()->setOrientation( glm::dmat3(trackerPtr->getOrientation()) * glm::mat3_cast(tracked_rot) );
 			core_sgct::ClusterManager::Instance()->getUserPtr()->setPos( trackerPtr->getXform() * tracked_pos );
 		}
 	}

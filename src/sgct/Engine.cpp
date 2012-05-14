@@ -246,15 +246,6 @@ bool sgct::Engine::initWindow()
 	  return false;
 	}
 	sgct::MessageHandler::Instance()->print("Using GLEW %s.\n", glewGetString(GLEW_VERSION));
-#ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") )
-			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
-#else
-		if( glewIsSupported("GLX_NV_swap_group") )
-			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
-#endif
-        else
-            sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
 
     /*
         Swap inerval:
@@ -271,7 +262,18 @@ bool sgct::Engine::initWindow()
 	//Must wait until all nodes are running if using swap barrier
 	if( getWindowPtr()->isUsingSwapGroups() && ClusterManager::Instance()->getNumberOfNodes() > 1)
 	{
-		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect...\n");
+		//check if swapgroups are supported
+		#ifdef __WIN32__
+		if( wglewIsSupported("WGL_NV_swap_group") )
+			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+		#else
+		if( glewIsSupported("GLX_NV_swap_group") )
+			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+		#endif
+        else
+            sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
+		
+		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect.");
 		glfwSwapBuffers();
 		//render just black....
 		while(mNetworkConnections->isRunning() &&
@@ -279,6 +281,8 @@ bool sgct::Engine::initWindow()
 			glfwGetWindowParam( GLFW_OPENED ) &&
 			!mTerminate)
 		{
+			sgct::MessageHandler::Instance()->print(".");
+			
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
@@ -290,7 +294,11 @@ bool sgct::Engine::initWindow()
 			// Swap front and back rendering buffers
 			glfwSwapBuffers();
 		}
+
+		sgct::MessageHandler::Instance()->print("\n");
 	}
+	else
+		sgct::MessageHandler::Instance()->print("Swapgroups (swap-lock) are disabled.\n");
 
 	return true;
 }

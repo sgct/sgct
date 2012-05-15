@@ -109,6 +109,7 @@ public:
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
 	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 	
+	//will only return valid values when called in the draw callback function
 	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
 	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 

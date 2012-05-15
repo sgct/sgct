@@ -324,13 +324,14 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		tmpca[3] = p[2];
 		tmpca[4] = p[3];
 
-		unsigned char *currentMessageSizePtr = (unsigned char *)&syncHeaderSize;
+		unsigned int localSyncHeaderSize = syncHeaderSize;
+		unsigned char *currentMessageSizePtr = (unsigned char *)&localSyncHeaderSize;
 		tmpca[5] = currentMessageSizePtr[0];
 		tmpca[6] = currentMessageSizePtr[1];
 		tmpca[7] = currentMessageSizePtr[2];
 		tmpca[8] = currentMessageSizePtr[3];
 
-		sendData((void *)tmpca,syncHeaderSize);
+		sendData((void *)tmpca, syncHeaderSize);
 	}
 }
 

@@ -3,7 +3,7 @@
 
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
-#define EXTENDED_SIZE 2048
+#define EXTENDED_SIZE 2000000
 
 sgct::Engine * gEngine;
 
@@ -168,15 +168,16 @@ void myDrawFun()
 	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::Mono )
 		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 150, "Mono");
 
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
+	/*Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
 		myTestClass.d1,
 		myTestClass.d2,
 		myTestClass.f1,
 		myTestClass.f2,
 		myTestClass.i1,
-		myTestClass.i2);
+		myTestClass.i2);*/
 
-
+	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 20, "Size test: %f",
+		extraData[EXTENDED_SIZE-1]);
 	//drawGrid(10.0, 100);
 }
 

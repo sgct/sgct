@@ -192,12 +192,21 @@ void core_sgct::NetworkManager::sync()
 #endif
 
 			sgct::Engine::lockMutex(gMutex);
-				unsigned char *p = (unsigned char *)&currentFrame;
+				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
+				unsigned int currentSize = sgct::SharedData::Instance()->getDataSize();
+				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
+				
 				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
-				sgct::SharedData::Instance()->getDataBlock()[1] = p[0];
-				sgct::SharedData::Instance()->getDataBlock()[2] = p[1];
-				sgct::SharedData::Instance()->getDataBlock()[3] = p[2];
-				sgct::SharedData::Instance()->getDataBlock()[4] = p[3];
+				sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
+				sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
+				sgct::SharedData::Instance()->getDataBlock()[3] = currentFrameDataPtr[2];
+				sgct::SharedData::Instance()->getDataBlock()[4] = currentFrameDataPtr[3];
+				sgct::SharedData::Instance()->getDataBlock()[5] = currentSizeDataPtr[0];
+				sgct::SharedData::Instance()->getDataBlock()[6] = currentSizeDataPtr[1];
+				sgct::SharedData::Instance()->getDataBlock()[7] = currentSizeDataPtr[2];
+				sgct::SharedData::Instance()->getDataBlock()[8] = currentSizeDataPtr[3];
+
+				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
 				mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );

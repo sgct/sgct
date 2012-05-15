@@ -284,6 +284,13 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		messageToSend[2] = p[1];
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
+
+		unsigned int currentMessageSize = sgct::MessageHandler::Instance()->getDataSize();
+		unsigned char *currentMessageSizePtr = (unsigned char *)&currentMessageSize;
+		messageToSend[5] = currentMessageSizePtr[0];
+		messageToSend[6] = currentMessageSizePtr[1];
+		messageToSend[7] = currentMessageSizePtr[2];
+		messageToSend[8] = currentMessageSizePtr[3];
 		sendData((void*)messageToSend, sgct::MessageHandler::Instance()->getDataSize());
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
     }
@@ -298,6 +305,14 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		messageToSend[2] = p[1];
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
+
+		unsigned int currentMessageSize = sgct::MessageHandler::Instance()->getDataSize();
+		unsigned char *currentMessageSizePtr = (unsigned char *)&currentMessageSize;
+		messageToSend[5] = currentMessageSizePtr[0];
+		messageToSend[6] = currentMessageSizePtr[1];
+		messageToSend[7] = currentMessageSizePtr[2];
+		messageToSend[8] = currentMessageSizePtr[3];
+
 		sendData((void*)messageToSend, sgct::MessageHandler::Instance()->getTrimmedDataSize());
     }
 	else
@@ -308,6 +323,13 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		tmpca[2] = p[1];
 		tmpca[3] = p[2];
 		tmpca[4] = p[3];
+
+		unsigned char *currentMessageSizePtr = (unsigned char *)&syncHeaderSize;
+		tmpca[5] = currentMessageSizePtr[0];
+		tmpca[6] = currentMessageSizePtr[1];
+		tmpca[7] = currentMessageSizePtr[2];
+		tmpca[8] = currentMessageSizePtr[3];
+
 		sendData((void *)tmpca,syncHeaderSize);
 	}
 }
@@ -570,6 +592,25 @@ void GLFWCALL communicationHandler(void *arg)
 					ci.c[3] = recvbuf[4];
 
 					nPtr->setRecvFrame( ci.i );
+
+					//convert from uchar to uint32
+					union
+					{
+						unsigned int ui;
+						unsigned char c[4];
+					} cui;
+
+					cui.c[0] = recvbuf[5];
+					cui.c[1] = recvbuf[6];
+					cui.c[2] = recvbuf[7];
+					cui.c[3] = recvbuf[8];
+
+					while( static_cast<unsigned int>(iResult) < cui.ui )
+					{
+						sgct::MessageHandler::Instance()->print("Network: Waiting for additional package (%d of %u)...\n", iResult, cui.ui);
+						iResult += recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
+					}
+
 					(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
 						iResult-core_sgct::SGCTNetwork::syncHeaderSize,
 						nPtr->getId());
@@ -681,6 +722,9 @@ void GLFWCALL communicationHandler(void *arg)
 void core_sgct::SGCTNetwork::sendData(void * data, int length)
 {
 	int iResult = send(mSocket, (const char *)data, length, 0);
+	//if(iResult != length) 
+	//	sgct::MessageHandler::Instance()->print("Network: send size %d length %d\n", iResult, length);
+
 	if (iResult == SOCKET_ERROR)
 #ifdef __WIN32__
 		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());

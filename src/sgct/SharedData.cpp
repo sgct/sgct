@@ -88,6 +88,20 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
 		//reset
 		pos = core_sgct::SGCTNetwork::syncHeaderSize;
 
+		//decode size info
+		/*union
+		{
+			unsigned int ui;
+			unsigned char c[4];
+		} cui;
+
+		cui.c[0] = dataBlock[pos];
+		cui.c[1] = dataBlock[pos+1];
+		cui.c[2] = dataBlock[pos+2];
+		cui.c[3] = dataBlock[pos+3];
+		pos += 4;
+		//MessageHandler::Instance()->print("SharedData::decode size: %d (receivedlength %d)\n", cui.ui, receivedlength);
+		*/
 		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 		if( mDecodeFn != NULL )
@@ -107,10 +121,25 @@ void SharedData::encode()
 	//reserve header space
 	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
 
+	//reserve size space
+	/*unsigned int currentDataSize = 0;
+	unsigned char *p = (unsigned char *)&currentDataSize;
+	unsigned int insertPos = dataBlock.size();
+	dataBlock.insert( dataBlock.end(), p, p+4);*/
+
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
+	/*
+	//get final size and insert it
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	currentDataSize = dataBlock.size();
+	dataBlock[insertPos] = p[0];
+	dataBlock[insertPos+1] = p[1];
+	dataBlock[insertPos+2] = p[2];
+	dataBlock[insertPos+3] = p[3];
+	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);*/
 }
 
 void SharedData::writeFloat(float f)

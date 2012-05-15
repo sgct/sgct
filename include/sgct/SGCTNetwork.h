@@ -83,7 +83,7 @@ public:
 
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
-	static const unsigned int syncHeaderSize = 5;
+	static const unsigned int syncHeaderSize = 9;
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncHeader = 17, SizeHeader, ConnectedHeader };
 	enum ServerTypes { SyncServer = 0, ExternalControl };

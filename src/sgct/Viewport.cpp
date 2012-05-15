@@ -41,6 +41,13 @@ core_sgct::Viewport::Viewport()
 	mFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
+
+	for(int i=0; i<3; i++)
+	{
+		mViewMatrix[i]			= glm::mat4(1.0f);
+		mProjectionMatrix[i]	= glm::mat4(1.0f);
+		mFrustumMat[i]			= glm::mat4(1.0f);
+	}
 }
 
 core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
@@ -54,6 +61,13 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
+
+	for(int i=0; i<3; i++)
+	{
+		mViewMatrix[i]			= glm::mat4(1.0f);
+		mProjectionMatrix[i]	= glm::mat4(1.0f);
+		mFrustumMat[i]			= glm::mat4(1.0f);
+	}
 }
 
 void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
@@ -112,23 +126,18 @@ void core_sgct::Viewport::loadOverlayTexture()
 		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mFilename, true, 1);
 }
 
-void core_sgct::Viewport::calculateFrustum(const int &frustumMode, glm::vec3 * eyePos, float near, float far)
+void core_sgct::Viewport::calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)
 {
 	//calculate viewplane's internal coordinate system bases
-	glm::vec3 plane_x = viewPlaneCoords[ UpperRight ] - viewPlaneCoords[ UpperLeft ];
-	glm::vec3 plane_y = viewPlaneCoords[ UpperLeft ] - viewPlaneCoords[ LowerLeft ];
+	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
+	glm::vec3 plane_y = mViewPlaneCoords[ UpperLeft ] - mViewPlaneCoords[ LowerLeft ];
 	glm::vec3 plane_z = glm::cross(plane_x, plane_y);
+	
 	//normalize
 	plane_x = glm::normalize(plane_x);
 	plane_y = glm::normalize(plane_y);
 	plane_z = glm::normalize(plane_z);
 
-	/*
-	fprintf(stderr, "plane_x: %f\t%f\t%f\n", plane_x.x, plane_x.y, plane_x.z );
-	fprintf(stderr, "plane_y: %f\t%f\t%f\n", plane_y.x, plane_y.y, plane_y.z );
-	fprintf(stderr, "plane_z: %f\t%f\t%f\n", plane_z.x, plane_z.y, plane_z.z );
-	fprintf(stderr, "\n");
-	*/
 	glm::vec3 world_x(1.0f, 0.0f, 0.0f);
 	glm::vec3 world_y(0.0f, 1.0f, 0.0f);
 	glm::vec3 world_z(0.0f, 0.0f, 1.0f);
@@ -147,34 +156,14 @@ void core_sgct::Viewport::calculateFrustum(const int &frustumMode, glm::vec3 * e
 	DCM[2][0] = glm::dot( plane_z, world_x );
 	DCM[2][1] = glm::dot( plane_z, world_y );
 	DCM[2][2] = glm::dot( plane_z, world_z );
-	/*
-	fprintf(stderr, "DCM:\n");
-	fprintf(stderr, "%f\t%f\t%f\n", DCM[0][0], DCM[0][1], DCM[0][2]);
-	fprintf(stderr, "%f\t%f\t%f\n", DCM[1][0], DCM[1][1], DCM[1][2]);
-	fprintf(stderr, "%f\t%f\t%f\n", DCM[2][0], DCM[2][1], DCM[2][2]);
-	fprintf(stderr, "\n");
-	*/
 
 	//invert & transform
 	glm::mat3 DCM_inv = glm::inverse(DCM);
 	glm::vec3 transformedViewPlaneCoords[3];
-	transformedViewPlaneCoords[ LowerLeft ] = DCM_inv * viewPlaneCoords[ LowerLeft ];
-	transformedViewPlaneCoords[ UpperLeft ] = DCM_inv * viewPlaneCoords[ UpperLeft ];
-	transformedViewPlaneCoords[ UpperRight ] = DCM_inv * viewPlaneCoords[ UpperRight ];
+	transformedViewPlaneCoords[ LowerLeft ] = DCM_inv * mViewPlaneCoords[ LowerLeft ];
+	transformedViewPlaneCoords[ UpperLeft ] = DCM_inv * mViewPlaneCoords[ UpperLeft ];
+	transformedViewPlaneCoords[ UpperRight ] = DCM_inv * mViewPlaneCoords[ UpperRight ];
 	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
-
-	/*
-	fprintf(stderr, "Trans LL: %f\t%f\t%f\n", transformedViewPlaneCoords[ LowerLeft ].x,
-		transformedViewPlaneCoords[ LowerLeft ].y,
-		transformedViewPlaneCoords[ LowerLeft ].z );
-	fprintf(stderr, "Trans UL: %f\t%f\t%f\n", transformedViewPlaneCoords[ UpperLeft ].x,
-		transformedViewPlaneCoords[ UpperLeft ].y,
-		transformedViewPlaneCoords[ UpperLeft ].z );
-	fprintf(stderr, "Trans UR: %f\t%f\t%f\n", transformedViewPlaneCoords[ UpperRight ].x,
-		transformedViewPlaneCoords[ UpperRight ].y,
-		transformedViewPlaneCoords[ UpperRight ].z );
-	fprintf(stderr, "\n");
-	*/
 
 	//nearFactor = near clipping plane / focus plane dist
 	float nearFactor = near / (transformedViewPlaneCoords[ LowerLeft ].z - transformedEyePos.z);
@@ -189,5 +178,21 @@ void core_sgct::Viewport::calculateFrustum(const int &frustumMode, glm::vec3 * e
 		near,
 		far);
 
-	viewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*eyePos));
+	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*eyePos));
+
+	//calc frustum matrix
+	mFrustumMat[frustumMode] = glm::frustum( 
+		mFrustums[frustumMode].getLeft(),
+		mFrustums[frustumMode].getRight(),
+        mFrustums[frustumMode].getBottom(),
+		mFrustums[frustumMode].getTop(),
+        mFrustums[frustumMode].getNear(),
+		mFrustums[frustumMode].getFar() );
+
+	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
 }
+
+void core_sgct::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
+{
+	mViewPlaneCoords[cornerIndex] = cornerPos;
+};

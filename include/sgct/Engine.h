@@ -108,6 +108,9 @@ public:
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
 	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
+	
+	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };

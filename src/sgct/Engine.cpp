@@ -745,17 +745,8 @@ void sgct::Engine::draw()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
-	Frustum * tmpFrustum = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustum(mActiveFrustum);
-	glFrustum( tmpFrustum->getLeft(),
-		tmpFrustum->getRight(),
-        tmpFrustum->getBottom(),
-		tmpFrustum->getTop(),
-        tmpFrustum->getNear(),
-		tmpFrustum->getFar());
-
-	//translate to user pos
 	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
-	glMultMatrixf( glm::value_ptr(tmpVP->viewMatrix[mActiveFrustum]) );
+	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
 
 	glMatrixMode(GL_MODELVIEW);
 

@@ -273,7 +273,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 									tmpVec.y = static_cast<float>(dTmp[1]);
 									tmpVec.z = static_cast<float>(dTmp[2]);
 
-									tmpVp.viewPlaneCoords[i%3] = tmpVec;
+									tmpVp.setViewPlaneCoords(i%3, tmpVec);
 									i++;
 								}
 

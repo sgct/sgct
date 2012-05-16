@@ -700,8 +700,9 @@ void sgct::Engine::renderDisplayInfo()
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time (data size: %d): %.2f ms",
-		SharedData::Instance()->getDataSize(),
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+		SharedData::Instance()->getUserDataSize(),
+		SharedData::Instance()->getCompressionRatio(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) | Frame: %d",

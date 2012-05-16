@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -32,8 +32,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <zlib.h>
 
 using namespace sgct;
+
+#define DEFAULT_SIZE 1024
 
 SharedData * SharedData::mInstance = NULL;
 
@@ -41,10 +44,25 @@ SharedData::SharedData()
 {
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
-	dataBlock.reserve(1024);
+
+	mCompressedBuffer = reinterpret_cast<unsigned char*>( malloc(DEFAULT_SIZE) );
+	mCompressedBufferSize = DEFAULT_SIZE;
+
+	dataBlock.reserve(DEFAULT_SIZE);
+	dataBlockToCompress.reserve(DEFAULT_SIZE);
+
+	mUseCompression = false;
+	mCompressionRatio = 1.0f;
+	mCompressionLevel = Z_BEST_SPEED;
+	mCompressedSize = 0;
+
+	if(mUseCompression)
+		currentStorage = &dataBlockToCompress;
+	else
+		currentStorage = &dataBlock;
 
 	headerSpace		= NULL;
-	headerSpace		= (unsigned char*) malloc(core_sgct::SGCTNetwork::syncHeaderSize);
+	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::syncHeaderSize) );
 
 	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
 		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
@@ -55,7 +73,30 @@ SharedData::~SharedData()
 	free(headerSpace);
     headerSpace = NULL;
 
+	free(mCompressedBuffer);
+	mCompressedBuffer = NULL;
+
 	dataBlock.clear();
+	dataBlockToCompress.clear();
+}
+
+void SharedData::setCompression(bool state, int level)
+{
+	mUseCompression = state;
+	mCompressionLevel = level;
+
+	if(mUseCompression)
+		currentStorage = &dataBlockToCompress;
+	else
+	{
+		currentStorage = &dataBlock;
+		mCompressionRatio = 1.0f;
+	}
+}
+
+unsigned int SharedData::getUserDataSize()
+{ 
+	return mUseCompression ? mCompressedSize : (dataBlock.size() - core_sgct::SGCTNetwork::syncHeaderSize);
 }
 
 void SharedData::setEncodeFunction(void(*fnPtr)(void))
@@ -75,18 +116,75 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
 #ifdef __SGCT_DEBUG__
         MessageHandler::Instance()->print("SharedData::decode\n");
 #endif
-
-
 		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-
-		//re-allocate buffer if needed
-		if( (receivedlength + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
-			dataBlock.reserve(receivedlength + core_sgct::SGCTNetwork::syncHeaderSize);
-		dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
-		dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
 
 		//reset
 		pos = core_sgct::SGCTNetwork::syncHeaderSize;
+
+		if(mUseCompression && receivedlength > 8)
+		{
+			//get original size (fist 4 bytes after header)
+			union
+			{
+				unsigned int ui;
+				unsigned char c[4];
+			} cui;
+
+			cui.c[0] = receivedData[0];
+			cui.c[1] = receivedData[1];
+			cui.c[2] = receivedData[2];
+			cui.c[3] = receivedData[3];
+
+			//re-allocatate if needed
+			if(mCompressedBufferSize < cui.ui)
+			{
+				free(mCompressedBuffer);
+				mCompressedBuffer = reinterpret_cast<unsigned char*>( malloc(cui.ui) );
+				mCompressedBufferSize = cui.ui;
+				MessageHandler::Instance()->print("SharedData: Compression buffer resized to %d.\n", mCompressedBufferSize);
+			}
+
+			//get compressed data block size
+			cui.c[0] = receivedData[4];
+			cui.c[1] = receivedData[5];
+			cui.c[2] = receivedData[6];
+			cui.c[3] = receivedData[7];
+			mCompressedSize = cui.ui;
+
+			uLongf data_size = static_cast<uLongf>(mCompressedSize);
+			uLongf uncompressed_size = static_cast<uLongf>(mCompressedBufferSize);
+			const Bytef * data = reinterpret_cast<const Bytef *>(receivedData + 8);
+
+			int err = uncompress(
+				mCompressedBuffer,
+				&uncompressed_size,
+				data,
+				data_size);
+
+			if(err == Z_OK)
+			{
+				//re-allocate buffer if needed
+				if( (uncompressed_size + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
+					dataBlock.reserve(uncompressed_size + core_sgct::SGCTNetwork::syncHeaderSize);
+				dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
+				dataBlock.insert(dataBlock.end(), mCompressedBuffer, mCompressedBuffer + uncompressed_size);
+
+				mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(uncompressed_size);
+			}
+			else
+			{
+				MessageHandler::Instance()->print("SharedData: Failed to un-compress data (error: %d). Received %d bytes.\n", err, receivedlength);
+				Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+				return;
+			}
+		}
+		else //not using compression
+		{
+			if( (receivedlength + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
+				dataBlock.reserve(receivedlength + core_sgct::SGCTNetwork::syncHeaderSize);
+			dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
+			dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
+		}
 
 		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
@@ -102,7 +200,10 @@ void SharedData::encode()
 #endif
 
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+
 	dataBlock.clear();
+	if(mUseCompression)
+		dataBlockToCompress.clear();
 
 	//reserve header space
 	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
@@ -111,6 +212,50 @@ void SharedData::encode()
 
 	if( mEncodeFn != NULL )
 		mEncodeFn();
+
+	if(mUseCompression && dataBlockToCompress.size() > 0)
+	{
+		//re-allocatate if needed
+		if(mCompressedBufferSize < dataBlockToCompress.size())
+		{
+			free(mCompressedBuffer);
+			mCompressedBuffer = reinterpret_cast<unsigned char*>(malloc(dataBlockToCompress.size()));
+			mCompressedBufferSize = dataBlockToCompress.size();
+		}
+
+		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+
+		uLongf compressed_size = static_cast<uLongf>(mCompressedBufferSize);
+		uLongf data_size = static_cast<uLongf>(dataBlockToCompress.size());
+		int err = compress2(
+			mCompressedBuffer,
+			&compressed_size,
+			&dataBlockToCompress[0],
+			data_size,
+			mCompressionLevel);
+
+		if(err == Z_OK)
+		{
+			//add size of uncompressed data
+			unsigned int originalSize = dataBlockToCompress.size();
+			unsigned char *p = (unsigned char *)&originalSize;
+			dataBlock.insert( dataBlock.end(), p, p+4);
+
+			//add size of compressed data (needed for cross-platform compability)
+			mCompressedSize = static_cast<unsigned int>(compressed_size);
+			unsigned char *p2 = (unsigned char *)&mCompressedSize;
+			dataBlock.insert( dataBlock.end(), p2, p2+4);
+
+			mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(originalSize);
+
+			//add the compressed block
+			dataBlock.insert( dataBlock.end(), mCompressedBuffer, mCompressedBuffer + compressed_size );
+		}
+		else
+			MessageHandler::Instance()->print("SharedData: Failed to compress data (error %d).\n", err);
+
+		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+	}
 }
 
 void SharedData::writeFloat(float f)
@@ -120,7 +265,7 @@ void SharedData::writeFloat(float f)
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&f;
-	dataBlock.insert( dataBlock.end(), p, p+4);
+	(*currentStorage).insert( (*currentStorage).end(), p, p+4);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -131,7 +276,7 @@ void SharedData::writeDouble(double d)
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
  	unsigned char *p = (unsigned char *)&d;
-	dataBlock.insert( dataBlock.end(), p, p+8);
+	(*currentStorage).insert( (*currentStorage).end(), p, p+8);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -142,7 +287,7 @@ void SharedData::writeInt32(int i)
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&i;
-	dataBlock.insert( dataBlock.end(), p, p+4);
+	(*currentStorage).insert( (*currentStorage).end(), p, p+4);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -153,7 +298,7 @@ void SharedData::writeUChar(unsigned char c)
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = &c;
-	dataBlock.push_back(*p);
+	(*currentStorage).push_back(*p);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -164,9 +309,9 @@ void SharedData::writeBool(bool b)
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	if( b )
-		dataBlock.push_back(1);
+		(*currentStorage).push_back(1);
 	else
-		dataBlock.push_back(0);
+		(*currentStorage).push_back(0);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -177,7 +322,7 @@ void SharedData::writeShort(short s)
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&s;
-	dataBlock.insert( dataBlock.end(), p, p+2);
+	(*currentStorage).insert( (*currentStorage).end(), p, p+2);
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -190,8 +335,8 @@ void SharedData::writeString(const std::string& s)
     const char* stringData = s.c_str();
     unsigned int length = s.size() + 1;  // +1 for the \0 character
     unsigned char *p = (unsigned char *)&length;
-    dataBlock.insert( dataBlock.end(), p, p+4);
-    dataBlock.insert( dataBlock.end(), stringData, stringData+length);
+    (*currentStorage).insert( (*currentStorage).end(), p, p+4);
+    (*currentStorage).insert( (*currentStorage).end(), stringData, stringData+length);
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -201,7 +346,7 @@ void SharedData::writeUCharArray(unsigned char * c, size_t length)
     MessageHandler::Instance()->print("SharedData::writeUCharArray\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    dataBlock.insert( dataBlock.end(), c, c+length);
+    (*currentStorage).insert( (*currentStorage).end(), c, c+length);
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
@@ -360,10 +505,10 @@ unsigned char * SharedData::readUCharArray(size_t length)
     MessageHandler::Instance()->print("SharedData::readUCharArray\n");
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-    
+
 	unsigned char * p = &dataBlock[pos];
     pos += length;
-    
+
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
     return p;

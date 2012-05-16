@@ -59,6 +59,16 @@ public:
 		}
 	}
 
+	/*!
+		Compression levels 1-9.
+		-1 = Default compression
+		0 = No compression
+		1 = Best speed
+		9 = Best compression
+	*/
+	void setCompression(bool state, int level = 1);
+	inline float getCompressionRatio() { return mCompressionRatio; }
+
 	void writeFloat(float f);
 	void writeDouble(double d);
 	void writeInt32(int i);
@@ -82,12 +92,26 @@ public:
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );
 
+	/*
+		Compression error/info codes:
+	
+		Z_OK            0
+		Z_STREAM_END    1
+		Z_NEED_DICT     2
+		Z_ERRNO        (-1)
+		Z_STREAM_ERROR (-2)
+		Z_DATA_ERROR   (-3)
+		Z_MEM_ERROR    (-4)
+		Z_BUF_ERROR    (-5)
+		Z_VERSION_ERROR (-6)
+	*/
 	void encode();
 	void decode(const char * receivedData, int receivedlength, int clientIndex);
 
 	inline unsigned char * getDataBlock() { return &dataBlock[0]; }
 	inline unsigned int getDataSize() { return dataBlock.size(); }
 	inline unsigned int getBufferSize() { return dataBlock.capacity(); }
+	unsigned int getUserDataSize();
 
 private:
 	SharedData();
@@ -104,8 +128,16 @@ private:
 
 	static SharedData * mInstance;
 	std::vector<unsigned char> dataBlock;
+	std::vector<unsigned char> dataBlockToCompress;
+	std::vector<unsigned char> * currentStorage;
+	unsigned char * mCompressedBuffer;
+	unsigned int mCompressedBufferSize;
+	unsigned int mCompressedSize;
 	unsigned char * headerSpace;
 	unsigned int pos;
+	int mCompressionLevel;
+	float mCompressionRatio;
+	bool mUseCompression;
 };
 
 template<class T>

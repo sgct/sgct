@@ -1,9 +1,9 @@
 #include <stdlib.h>
 #include <stdio.h>
-
+#include <zlib.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
-#define EXTENDED_SIZE 2000000
+#define EXTENDED_SIZE 20000
 
 sgct::Engine * gEngine;
 
@@ -30,14 +30,15 @@ bool takeScreenshot = false;
 bool slowRendering = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
+std::string mySharedString;
 
 void drawGrid(float size, int steps);
 
 class TestC
 {
 public:
-	TestC() 
-	{ 
+	TestC()
+	{
 		d1 = 1.0;
 		d2 = 1.0;
 		f1 = 5.0f;
@@ -58,6 +59,8 @@ TestC myTestClass;
 
 int main( int argc, char* argv[] )
 {
+	mySharedString = "Test!";
+
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
@@ -79,10 +82,13 @@ int main( int argc, char* argv[] )
 	else
 		sgct::MessageHandler::Instance()->print("Failed to parse ply file.\n");
 		*/
-	//allocate extra data
-	for(int i=0;i<EXTENDED_SIZE;i++)
-		extraData[i] = static_cast<float>(i);
 
+	//allocate extra data
+	if( gEngine->isMaster() )
+		for(int i=0;i<EXTENDED_SIZE;i++)
+			extraData[i] = static_cast<float>(rand()%500)/500.0f;
+
+	sgct::SharedData::Instance()->setCompression(true);
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
 
@@ -105,7 +111,7 @@ void myDrawFun()
 {
 	if(slowRendering)
 		glfwSleep(1.0/5.0);
-	
+
 	glPushMatrix();
 
 	/*if( core_sgct::Frustum::Mono == gEngine->getActiveFrustum() )
@@ -178,6 +184,8 @@ void myDrawFun()
 
 	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 20, "Size test: %f",
 		extraData[EXTENDED_SIZE-1]);
+	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 12 ), 20, 0, "String: %s...",
+		mySharedString.substr(0, 16).c_str());
 	//drawGrid(10.0, 100);
 }
 
@@ -194,6 +202,22 @@ void myPreSyncFun()
 		myTestClass.f2 = 3456.425f;
 		myTestClass.i1 = 544;
 		myTestClass.i2 = -345;
+
+		mySharedString = "Long text... With many words..\
+			Test tests tets dfgdnf jndjgdn fjgi fdgujdn f\
+			fgdjfh gdfiuohgdfuigh dfuihg duighdui fhduifh gduif\
+			fgdjkfhgdjkfh gdjfkhgdfhgeriu gnweuirgbe riugberu beu\
+			geirohgerwasfjisogjioseg ioeriog eirog egj wiowj io\
+			ldfgjeirohtw kjweo iohgrgohsofjwe io\
+			sdiojgs iojoi hwiog wioweioj twepow ij\
+			skjhfsdjkhf uihwuie twuisnbaf \
+			sfhgwe gweyfe guyfgweygt jas jkfsdfgwei qwe we\
+			rwere wew rter twrqew erytwe twtwet wetw wertwe\
+			wet ewtwe tewt ehyert wgsdhyrwe twetsegsgywet\
+			retre treher gsgdfhgwertegsxgfdgretgw  fdgdfe\
+			rtre tery eryery ter teery erreger er\
+			ter terte rre tesd gsdgert wegsdg ew twe\
+			dsg wwet wtwe tegwet wegerwtwe twe wettwe";
 	}
 }
 
@@ -246,6 +270,7 @@ void myEncodeFun()
 	flags = slowRendering ? flags | 64 : flags & ~64; //bit 7
 
 	sgct::SharedData::Instance()->writeDouble(dt);
+	sgct::SharedData::Instance()->writeString(mySharedString);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
 	sgct::SharedData::Instance()->writeUChar(flags);
 	sgct::SharedData::Instance()->writeObj<TestC>( myTestClass );
@@ -258,6 +283,7 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	dt = sgct::SharedData::Instance()->readDouble();
+	mySharedString = sgct::SharedData::Instance()->readString();
 	curr_time = sgct::SharedData::Instance()->readDouble();
 	flags = sgct::SharedData::Instance()->readUChar();
 	myTestClass = sgct::SharedData::Instance()->readObj<TestC>();

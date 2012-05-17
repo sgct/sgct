@@ -64,6 +64,7 @@
 		<Unit filename="../../include/sgct/SGCTInternalShaders.h" />
 		<Unit filename="../../include/sgct/SGCTNetwork.h" />
 		<Unit filename="../../include/sgct/SGCTNode.h" />
+		<Unit filename="../../include/sgct/SGCTTracking.h" />
 		<Unit filename="../../include/sgct/SGCTWindow.h" />
 		<Unit filename="../../include/sgct/Shader.h" />
 		<Unit filename="../../include/sgct/ShaderManager.h" />
@@ -85,6 +86,7 @@
 		<Unit filename="../sgct/ReadConfig.cpp" />
 		<Unit filename="../sgct/SGCTNetwork.cpp" />
 		<Unit filename="../sgct/SGCTNode.cpp" />
+		<Unit filename="../sgct/SGCTTracking.cpp" />
 		<Unit filename="../sgct/SGCTWindow.cpp" />
 		<Unit filename="../sgct/Shader.cpp" />
 		<Unit filename="../sgct/ShaderManager.cpp" />

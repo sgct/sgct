@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -495,7 +495,7 @@ void GLFWCALL communicationHandler(void *arg)
 	//init buffer
 	int recvbuflen = nPtr->mBufferSize;
 	char * recvbuf;
-	recvbuf = (char *) malloc(nPtr->mBufferSize);
+	recvbuf = reinterpret_cast<char *>( malloc(nPtr->mBufferSize) );
 
 	std::string extBuffer;
 
@@ -509,13 +509,17 @@ void GLFWCALL communicationHandler(void *arg)
 			#ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
             #endif
+
+            sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", nPtr->mRequestedSize);
 			sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-				sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", nPtr->mRequestedSize);
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 				recvbuflen = nPtr->mRequestedSize;
-				free(recvbuf);
-				recvbuf = (char *)malloc(nPtr->mRequestedSize);
+
+				recvbuf = reinterpret_cast<char *>( realloc(recvbuf, nPtr->mRequestedSize) );
+				//free(recvbuf);
+				//recvbuf = (char *)malloc(nPtr->mRequestedSize);
 			sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+			sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
 			#ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Done.\n");
             #endif
@@ -561,13 +565,20 @@ void GLFWCALL communicationHandler(void *arg)
 					cui.c[2] = recvbuf[3];
 					cui.c[3] = recvbuf[4];
 
+                    /*
+                        MessageHandler contains a mutex object and cannot be called when the mutex is locked.
+                    */
 					sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", cui.newSize);
 					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 					nPtr->mBufferSize = cui.newSize;
-					recvbuflen = cui.newSize;
-					free(recvbuf);
-					recvbuf = (char *)malloc(cui.newSize);
+					recvbuflen = static_cast<int>(cui.newSize);
+
+                    recvbuf = reinterpret_cast<char *>( realloc(recvbuf, cui.newSize) );
+                    //free(recvbuf);
+					//recvbuf = (char *)malloc(cui.newSize);
+
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+					sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
 
 #ifdef __SGCT_DEBUG__
                     sgct::MessageHandler::Instance()->print("Done.\n");
@@ -608,7 +619,7 @@ void GLFWCALL communicationHandler(void *arg)
 
 					while( static_cast<unsigned int>(iResult) < cui.ui )
 					{
-						sgct::MessageHandler::Instance()->print("Network: Waiting for additional package (%d of %u)...\n", iResult, cui.ui);
+						sgct::MessageHandler::Instance()->print("Network: Waiting for additional data (Frame %d, data %d of %u)...\n", ci.i, iResult, cui.ui);
 						iResult += recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
 					}
 
@@ -723,7 +734,7 @@ void GLFWCALL communicationHandler(void *arg)
 void core_sgct::SGCTNetwork::sendData(void * data, int length)
 {
 	int iResult = send(mSocket, (const char *)data, length, 0);
-	//if(iResult != length) 
+	//if(iResult != length)
 	//	sgct::MessageHandler::Instance()->print("Network: send size %d length %d\n", iResult, length);
 
 	if (iResult == SOCKET_ERROR)

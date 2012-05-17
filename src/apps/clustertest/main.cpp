@@ -3,7 +3,7 @@
 #include <zlib.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
-#define EXTENDED_SIZE 20000
+#define EXTENDED_SIZE 10000
 
 sgct::Engine * gEngine;
 
@@ -217,7 +217,31 @@ void myPreSyncFun()
 			retre treher gsgdfhgwertegsxgfdgretgw  fdgdfe\
 			rtre tery eryery ter teery erreger er\
 			ter terte rre tesd gsdgert wegsdg ew twe\
-			dsg wwet wtwe tegwet wegerwtwe twe wettwe";
+			dsg wwet wtwe tegwet wegerwtwe twe wettwe\
+			ghf  tyf   rf gvgfjc rffgc gffj tytyftr\
+			jhff yr fddrdrtc ghfgjf tffyftyf hffgfgf\
+			juhiugi yufuyf mgyugy ygffjhgjg jfgft hgftyf\
+			ljjhgftxxr jhgyfvcgh gvhgfhg gfhgft ygffyycfcf\
+			bvdbfd nfhgfj jfjfyj fhfhdr hfhdt fhgfht fhgfhtf\
+			hgdt ddghf hgttjts fjdgndr dgrdssndt jtydsesfegr\
+			yruruyr vuturf hffdhd sdgdjg jfjft dhdthd ghfhfh\
+			jgygkjg jfjyfhf fhfhfdh dhdtd hftygdhd hfyfyufuy\
+			fguuyfuyf ufkfkuyf hffjfvjy dtdyudc jhgyff dtd\
+			hjfh fdsdrtsssd kgkfctd ngtyurfde rsdjglityr\
+			dhfhgfvfj fhjfdhd drgdfh kgkgf jy fyfyyf hddh\
+			hfjfj jfjrfyudfj jfjfjf jfyfjkfde dsrrtg ljhfset\
+			qers3fddgyy77 fhfdgsd5 dhd55 hfcddssarr4e hfy7t\
+			t464dydstrw jgfgkjgd cvbcg ghdtt ngjyd hfhfj yyu\
+			gdyty jfhfh hft u jhfjfj jyfyjf yu yy iu\
+			ddhyf jgfyjdj yurfyd fjfjf hdtydj jddyrf hgf\
+			gdfd hdhd jyjh srsty syy jwje u7t5e hr7ej iutw\
+			jrfj j 6ddhd sgfdh jjgjf trsyfd uytgfj dtrsd5r\
+			rhfyu hfudht uhfst5 kgfy ggfd nvgtft ddrttcccy\
+			lhgyjiuhtyh jgy6 hfhf hgdgdr hfsawar\
+			sfwgr hrefsdg sfe seth stht stet stet ste\
+			seg dht jtyt drt hhfjgk dhr dhjk dhtk hdht\
+			fghgf utrg dgeh dghjr dhjt drth dghjr dhnuu\
+			hft jgki crtdu lyug fchhy jhy ,jj gjfytf ggt";
 	}
 }
 

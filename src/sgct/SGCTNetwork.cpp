@@ -516,10 +516,12 @@ void GLFWCALL communicationHandler(void *arg)
 				recvbuflen = nPtr->mRequestedSize;
 
 				recvbuf = reinterpret_cast<char *>( realloc(recvbuf, nPtr->mRequestedSize) );
-				//free(recvbuf);
-				//recvbuf = (char *)malloc(nPtr->mRequestedSize);
 			sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-			sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
+
+			if(recvbuf != NULL)
+				sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
+			else
+				sgct::MessageHandler::Instance()->print("Network error: Buffer failed to resize!\n");
 			#ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Done.\n");
             #endif
@@ -578,7 +580,11 @@ void GLFWCALL communicationHandler(void *arg)
 					//recvbuf = (char *)malloc(cui.newSize);
 
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-					sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
+					
+					if(recvbuf != NULL)
+						sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
+					else
+						sgct::MessageHandler::Instance()->print("Network error: Buffer failed to resize!\n");
 
 #ifdef __SGCT_DEBUG__
                     sgct::MessageHandler::Instance()->print("Done.\n");
@@ -617,15 +623,28 @@ void GLFWCALL communicationHandler(void *arg)
 					cui.c[2] = recvbuf[7];
 					cui.c[3] = recvbuf[8];
 
-					while( static_cast<unsigned int>(iResult) < cui.ui )
+					while( static_cast<unsigned int>(iResult) < cui.ui && iResult > 0)
 					{
 						sgct::MessageHandler::Instance()->print("Network: Waiting for additional data (Frame %d, data %d of %u)...\n", ci.i, iResult, cui.ui);
-						iResult += recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
+						
+						int tempResult = recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
+
+						if(tempResult > 0)
+							iResult += tempResult;
+						else
+						{
+							sgct::MessageHandler::Instance()->print("Network: Fatal network error!\n");
+							//0 or SOCKET_ERROR (-1)
+							iResult = tempResult;
+							break;
+						}
+
 					}
 
-					(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
-						iResult-core_sgct::SGCTNetwork::syncHeaderSize,
-						nPtr->getId());
+					if( iResult > 0 )
+						(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
+							iResult-core_sgct::SGCTNetwork::syncHeaderSize,
+							nPtr->getId());
 
 					sgct::Engine::signalCond( core_sgct::NetworkManager::gCond );
 #ifdef __SGCT_DEBUG__
@@ -701,11 +720,17 @@ void GLFWCALL communicationHandler(void *arg)
 		}
 	} while (iResult > 0 || nPtr->isConnected());
 
-	//cleanup
-	free(recvbuf);
-
 	//wait
 	glfwSleep(1.0);
+	
+	//cleanup
+	sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	if( recvbuf != NULL )
+		free(recvbuf);
+	sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+	
+	//wait
+	glfwSleep(0.25);
 
 	//Close socket
 	if( nPtr->mSocket != INVALID_SOCKET )
@@ -726,9 +751,14 @@ void GLFWCALL communicationHandler(void *arg)
 #endif
 		nPtr->mSocket = INVALID_SOCKET;
 	}
+	
+	//wait
+	glfwSleep(0.25);
 
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn(nPtr->getId(), false);
+
+	sgct::MessageHandler::Instance()->print("Network: Disconnected!\n");
 }
 
 void core_sgct::SGCTNetwork::sendData(void * data, int length)

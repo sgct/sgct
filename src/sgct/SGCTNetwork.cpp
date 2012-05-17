@@ -273,8 +273,7 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 	unsigned char *p = (unsigned char *)&currentFrame;
 
 	//check if message fits in buffer
-    if(sgct::MessageHandler::Instance()->getDataSize() > syncHeaderSize &&
-        sgct::MessageHandler::Instance()->getDataSize() < mBufferSize)
+    if(sgct::MessageHandler::Instance()->getDataSize() > syncHeaderSize)
     {
         //Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
@@ -285,35 +284,20 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
 
-		unsigned int currentMessageSize = sgct::MessageHandler::Instance()->getDataSize();
+		unsigned int currentMessageSize = 
+			sgct::MessageHandler::Instance()->getDataSize() > mBufferSize ?
+			mBufferSize :
+			sgct::MessageHandler::Instance()->getDataSize();
 		unsigned char *currentMessageSizePtr = (unsigned char *)&currentMessageSize;
 		messageToSend[5] = currentMessageSizePtr[0];
 		messageToSend[6] = currentMessageSizePtr[1];
 		messageToSend[7] = currentMessageSizePtr[2];
 		messageToSend[8] = currentMessageSizePtr[3];
-		sendData((void*)messageToSend, sgct::MessageHandler::Instance()->getDataSize());
+
+		//crop if needed
+		sendData((void*)messageToSend, currentMessageSize);
+
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
-    }
-    else if(sgct::MessageHandler::Instance()->getDataSize() > syncHeaderSize &&
-            sgct::MessageHandler::Instance()->getDataSize() >= mBufferSize )
-    {
-		//Don't remove this pointer, somehow the send function doesn't
-		//work during the first call without setting the pointer first!!!
-		char * messageToSend = sgct::MessageHandler::Instance()->getTrimmedMessage(mBufferSize-syncHeaderSize);
-		messageToSend[0] = SGCTNetwork::SyncHeader;
-		messageToSend[1] = p[0];
-		messageToSend[2] = p[1];
-		messageToSend[3] = p[2];
-		messageToSend[4] = p[3];
-
-		unsigned int currentMessageSize = sgct::MessageHandler::Instance()->getDataSize();
-		unsigned char *currentMessageSizePtr = (unsigned char *)&currentMessageSize;
-		messageToSend[5] = currentMessageSizePtr[0];
-		messageToSend[6] = currentMessageSizePtr[1];
-		messageToSend[7] = currentMessageSizePtr[2];
-		messageToSend[8] = currentMessageSizePtr[3];
-
-		sendData((void*)messageToSend, sgct::MessageHandler::Instance()->getTrimmedDataSize());
     }
 	else
 	{

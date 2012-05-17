@@ -190,7 +190,7 @@ void myDrawFun()
 }
 
 void myPreSyncFun()
-{
+{	
 	if( gEngine->isMaster() )
 	{
 		dt = gEngine->getDt();
@@ -243,6 +243,11 @@ void myPreSyncFun()
 			fghgf utrg dgeh dghjr dhjt drth dghjr dhnuu\
 			hft jgki crtdu lyug fchhy jhy ,jj gjfytf ggt";
 	}
+	/*else //slave only
+	{
+		for(int i=0; i<100; i++)
+			sgct::MessageHandler::Instance()->print("Testing... %d!\n", i);
+	}*/
 }
 
 void myPostSyncPreDrawFun()

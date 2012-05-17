@@ -35,23 +35,19 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string.h>
 
 #define MESSAGE_HANDLER_MAX_SIZE 8192
-#define BUFFER_HANDLER_MAX_SIZE 32768
 
 sgct::MessageHandler * sgct::MessageHandler::mInstance = NULL;
 
 sgct::MessageHandler::MessageHandler(void)
 {
     mParseBuffer	= NULL;
-	mParseBuffer	= (char*) malloc(MESSAGE_HANDLER_MAX_SIZE);
+	mParseBuffer	= reinterpret_cast<char*>( malloc(MESSAGE_HANDLER_MAX_SIZE) );
 
 	headerSpace		= NULL;
-	headerSpace		= (unsigned char*) malloc(core_sgct::SGCTNetwork::syncHeaderSize);
+	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::syncHeaderSize) );
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
-
-	mBuffer.reserve(BUFFER_HANDLER_MAX_SIZE);
-	mSwapBuffer1.reserve(BUFFER_HANDLER_MAX_SIZE);
-	mSwapBuffer2.reserve(BUFFER_HANDLER_MAX_SIZE);
+	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 
 	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
 		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
@@ -69,8 +65,6 @@ sgct::MessageHandler::~MessageHandler(void)
     headerSpace = NULL;
 
 	mBuffer.clear();
-	mSwapBuffer1.clear();
-	mSwapBuffer2.clear();
 	mRecBuffer.clear();
 }
 
@@ -82,7 +76,7 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedlength,
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
-		fprintf(stderr, "\n[client %d]: %s\n", clientIndex, &mRecBuffer[0]);
+		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
 		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 	}
 }
@@ -132,28 +126,4 @@ void sgct::MessageHandler::clearBuffer()
 char * sgct::MessageHandler::getMessage()
 {
 	return &mBuffer[0];
-}
-
-char * sgct::MessageHandler::getTrimmedMessage( unsigned int indexOfLastChar )
-{
-    if( mBuffer.size() > indexOfLastChar)
-    {
-        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-		mSwapBuffer1.clear();
-		mSwapBuffer2.clear();
-
-		mSwapBuffer1.insert(mSwapBuffer1.begin(), &mBuffer[0], &mBuffer[0]+indexOfLastChar);
-
-		mSwapBuffer2.insert(mSwapBuffer2.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
-		mSwapBuffer2.insert(mSwapBuffer2.end(), mBuffer.begin() + indexOfLastChar,
-			mBuffer.end());
-
-		mBuffer.assign(mSwapBuffer2.begin(), mSwapBuffer2.end());
-		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-		return &mSwapBuffer1[0];
-    }
-    else
-    {
-        return &mBuffer[0];
-    }
 }

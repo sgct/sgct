@@ -64,10 +64,8 @@ public:
     void clearBuffer();
 
 	inline unsigned int getDataSize() { return mBuffer.size(); }
-	inline unsigned int getTrimmedDataSize() { return mSwapBuffer1.size(); }
 
 	char * getMessage();
-    char * getTrimmedMessage( int unsigned indexOfLastChar );
 
 private:
 	MessageHandler(void);
@@ -80,11 +78,7 @@ private:
 private:
 	static MessageHandler * mInstance;
 
-	//int pos;
-	//int swapSize;
 	char * mParseBuffer;
-	std::vector<char> mSwapBuffer1;
-	std::vector<char> mSwapBuffer2;
 	std::vector<char> mBuffer;
 	std::vector<char> mRecBuffer;
 	unsigned char  * headerSpace;

@@ -340,7 +340,7 @@ void sgct::Engine::initOGL()
     //@TODO Miro: SET SUITABLE FONT NAME FOR LINUX SYSTEMS
     if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
 #endif
-		FontManager::Instance()->GetFont( "Verdana", 12 );
+		FontManager::Instance()->GetFont( "Verdana", 10 );
 
 	//init swap group barrier when ready to render
 	getWindowPtr()->setBarrier(true);
@@ -692,25 +692,25 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 120, "Node ip: %s (%s)",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 95, "Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 100, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 80, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 60, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 50, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 40, "Swap groups: %s and %s (%s) | Frame: %d",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
 		tmpNode->getCurrentViewport()->isTracked() ? "true" : "false",
 		getUserPtr()->getXPos(),
 		getUserPtr()->getYPos(),
@@ -720,20 +720,20 @@ void sgct::Engine::renderDisplayInfo()
 	if( tmpNode->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
 	else //if passive stereo
 	{
 		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye: Left");
+			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye: Left");
 		}
 		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 12 ), 100, 140, "Active eye:          Right");
+			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye:          Right");
 		}
 	}
 	glPopAttrib();

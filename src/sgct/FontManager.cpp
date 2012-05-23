@@ -255,7 +255,12 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font
 	//into a bitmap.  This actually requires a couple of FreeType commands:
 
 	//Load the Glyph for our character.
-	if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT ) )
+	/*
+	 Hints:
+	 http://www.freetype.org/freetype2/docs/reference/ft2-base_interface.html#FT_LOAD_XXX
+	*/
+	//if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT ) )
+	if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_FORCE_AUTOHINT ) )
 	{
 		sgct::MessageHandler::Instance()->print("FT_Load_Glyph failed for char [%c].\n", ch );
 		// Implement error message " char %s"

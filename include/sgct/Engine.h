@@ -141,6 +141,7 @@ private:
 	void setAndClearBuffer(BufferMode mode);
 	void checkForOGLErrors();
 	void captureBuffer();
+	void waitForAllWindowsInSwapGroupToOpen();
 
 	static void clearBuffer(void);
 

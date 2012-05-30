@@ -45,6 +45,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <GL/glfw.h>
 
 GLFWmutex core_sgct::NetworkManager::gMutex = NULL;
+GLFWmutex core_sgct::NetworkManager::gSyncMutex = NULL;
 GLFWcond core_sgct::NetworkManager::gCond = NULL;
 GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
 

@@ -1,5 +1,5 @@
 <?xml version="1.0" ?>
-<Cluster masterAddress="127.0.0.1" externalControlPort="20500">
+<Cluster masterAddress="127.0.0.1" externalControlPort="20500" lockMasterSync="true">
 	<Node ip="127.0.0.1" port="20400">
 		<Window fullscreen="false">
 			<Stereo type="none" />

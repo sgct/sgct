@@ -68,6 +68,7 @@ private:
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
 	static GLFWmutex gMutex;
+	static GLFWmutex gSyncMutex;
 	static GLFWcond gCond;
 	static GLFWcond gStartConnectionCond;
 

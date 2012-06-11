@@ -258,7 +258,7 @@ bool sgct::Engine::initWindow()
     */
 
     glfwSwapInterval( ClusterManager::Instance()->getThisNodePtr()->swapInterval );
-    
+
 	//Also join swap group if enabled
 	getWindowPtr()->init();
 
@@ -303,8 +303,7 @@ void sgct::Engine::initOGL()
 #elif __APPLE__
 	if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
 #else
-    //@TODO Miro: SET SUITABLE FONT NAME FOR LINUX SYSTEMS
-    if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
+    if( !FontManager::Instance()->AddFont( "Verdana", "FreeSansBold.ttf" ) )
 #endif
 		FontManager::Instance()->GetFont( "Verdana", 10 );
 
@@ -440,7 +439,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
 	if(mIgnoreSync)
 		return;
-	
+
 	double t0 = glfwGetTime();
 	static double syncTime = 0.0;
 
@@ -465,7 +464,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 
 			glfwUnlockMutex( NetworkManager::gSyncMutex );
 		}
-		
+
 		syncTime = glfwGetTime() - t0;
 	}
 	else //post stage
@@ -502,7 +501,7 @@ void sgct::Engine::render()
 	{
 		//update tracking data
 		//ClusterManager::Instance()->getTrackingPtr()->update();
-		
+
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();
 
@@ -535,7 +534,7 @@ void sgct::Engine::render()
 		User * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//if any stereo type (except passive) then set frustum mode to left eye
-		mActiveFrustum = tmpNode->stereo != ReadConfig::None ? Frustum::StereoLeftEye : Frustum::Mono;
+		mActiveFrustum = tmpNode->stereo != static_cast<int>(ReadConfig::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 		setRenderTarget(0); //Set correct render target (Backbuffer, FBO etc..)
 
 		//render all viewports for mono or left eye
@@ -543,9 +542,9 @@ void sgct::Engine::render()
 		{
 			tmpNode->setCurrentViewport(i);
 			//if passive stereo or mono
-			if( tmpNode->stereo == ReadConfig::None )
+			if( tmpNode->stereo == ReadConfig::NoStereo )
 				mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
-			
+
 			if( tmpNode->getCurrentViewport()->isTracked() )
 			{
 				tmpNode->getCurrentViewport()->calculateFrustum(
@@ -558,7 +557,7 @@ void sgct::Engine::render()
 		}
 
 		//render right eye view port(s)
-		if( tmpNode->stereo != ReadConfig::None )
+		if( tmpNode->stereo != ReadConfig::NoStereo )
 		{
 			mActiveFrustum = Frustum::StereoRightEye;
 			setRenderTarget(1); //Set correct render target (Backbuffer, FBO etc..)
@@ -594,7 +593,7 @@ void sgct::Engine::render()
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
 
 			//copy right buffers if used
-			if( tmpNode->stereo != ReadConfig::None )
+			if( tmpNode->stereo != ReadConfig::NoStereo )
 			{
 				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]); // source
 				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[1]); // dest
@@ -666,7 +665,7 @@ void sgct::Engine::render()
 void sgct::Engine::renderDisplayInfo()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	glPushAttrib(GL_CURRENT_BIT);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 	unsigned int lFrameNumber = 0;
@@ -1049,7 +1048,7 @@ void sgct::Engine::createFBOs()
 
 		//disable anaglyph & checkerboard stereo if FBOs are not used
 		if( tmpNode->stereo > ReadConfig::Active )
-			tmpNode->stereo = ReadConfig::None;
+			tmpNode->stereo = ReadConfig::NoStereo;
 		sgct::MessageHandler::Instance()->print("Warning! FBO rendering is not supported or enabled!\nAnaglyph & checkerboard (DLP) stereo modes are disabled.\n");
 	}
 
@@ -1212,7 +1211,7 @@ void sgct::Engine::captureBuffer()
 		glBindTexture(GL_TEXTURE_2D, mFrameBuffers[0]);
 		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
 	}
-	else if(tmpNode->stereo == ReadConfig::None)
+	else if(tmpNode->stereo == ReadConfig::NoStereo)
 	{
 		glReadBuffer(GL_FRONT);
 		glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
@@ -1229,7 +1228,7 @@ void sgct::Engine::captureBuffer()
 	img.setSize( getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution() );
 	img.savePNG(screenShotFilenameLeft);
 
-	if( tmpNode->stereo != ReadConfig::None )
+	if( tmpNode->stereo != ReadConfig::NoStereo )
 	{
 		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 		{
@@ -1257,7 +1256,7 @@ void sgct::Engine::captureBuffer()
 void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 {
 	sgct::MessageHandler::Instance()->print("Joining swap group if enabled/supported...\n");
-	
+
 	//Must wait until all nodes are running if using swap barrier
 	if( getWindowPtr()->isUsingSwapGroups() && ClusterManager::Instance()->getNumberOfNodes() > 1)
 	{
@@ -1271,8 +1270,8 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 		#endif
         else
             sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
-		
-		
+
+
 		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect.");
 		glfwSwapBuffers(); //render just black....
 
@@ -1283,14 +1282,14 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			!mTerminate)
 		{
 			sgct::MessageHandler::Instance()->print(".");
-			
+
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
 			glfwWaitCond( NetworkManager::gCond,
 				NetworkManager::gSyncMutex,
 				0.1 ); //wait maximum 0.1 sec per iteration
-			
+
 			// Swap front and back rendering buffers
 			glfwSwapBuffers();
 		}

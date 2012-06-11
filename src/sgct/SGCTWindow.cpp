@@ -28,7 +28,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <GL/glew.h>
 #ifdef __WIN32__
 #include <GL/wglew.h>
-#else //APPLE LINUX
+#elif __LINUX__
+#include <GL/glext.h>
+#include <GL/glxew.h>
+#else //APPLE
 #include <OpenGL/glext.h>
 #include <GL/glxew.h>
 #endif
@@ -43,9 +46,9 @@ HDC hDC;
 #else // APPLE || LINUX
 GLXDrawable hDC;
 Display * disp;
-    #ifdef GLEW_MX
-    GLXEWContext * glxewGetContext();
-    #endif
+#ifdef GLEW_MX
+GLXEWContext * glxewGetContext();
+#endif
 #endif
 
 void GLFWCALL windowResizeCallback( int width, int height );

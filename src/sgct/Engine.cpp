@@ -401,9 +401,9 @@ void sgct::Engine::clean()
 	MessageHandler::Destroy();
 
 	// Close window and terminate GLFW
-	std::cerr << std::endl << "Terminating glfw...";
+	std::cout << std::endl << "Terminating glfw...";
 	glfwTerminate();
-	std::cerr << " Done." << std::endl;
+	std::cout << " Done." << std::endl;
 }
 
 void sgct::Engine::clearAllCallbacks()

@@ -46,6 +46,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 	#include <errno.h>
 	#define SOCKET_ERROR (-1)
 	#define INVALID_SOCKET (SOCKET)(~0)
+	#define NO_ERROR 0L
 #endif
 
 #include <GL/glfw.h>
@@ -125,6 +126,8 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			throw "Failed to listen init socket!";
 		}
 
+		setOptions( &mListenSocket );
+
 		// Setup the TCP listening socket
 		iResult = bind( mListenSocket, result->ai_addr, (int)result->ai_addrlen);
 		if (iResult == SOCKET_ERROR)
@@ -135,7 +138,18 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 #else
 			close(mListenSocket);
 #endif
-			throw "Bind listen socket failed!";
+			throw "Bind socket failed!";
+		}
+
+		if( listen( mListenSocket, SOMAXCONN ) == SOCKET_ERROR )
+		{
+            freeaddrinfo(result);
+#ifdef __WIN32__
+			closesocket(mListenSocket);
+#else
+			close(mListenSocket);
+#endif
+			throw "Listen failed!";
 		}
 	}
 	else
@@ -148,11 +162,14 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 			sgct::MessageHandler::Instance()->print("Attempting to connect to server...\n");
 
 			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
-			if (mSocket == INVALID_SOCKET && !setNoDelay(&mSocket))
+			if (mSocket == INVALID_SOCKET)
             {
                 freeaddrinfo(result);
                 throw "Failed to init client socket!";
             }
+
+            setOptions( &mSocket );
+
 			iResult = connect( mSocket, ptr->ai_addr, (int)ptr->ai_addrlen);
 			if (iResult != SOCKET_ERROR)
 				break;
@@ -213,24 +230,70 @@ void GLFWCALL connectionHandler(void *arg)
 	}
 }
 
-bool core_sgct::SGCTNetwork::setNoDelay(SOCKET * socketPtr)
+void core_sgct::SGCTNetwork::setOptions(SOCKET * socketPtr)
 {
 	if(socketPtr != NULL)
 	{
 		int flag = 1;
+
+		//set no delay, disable nagle's algorithm
 		int iResult = setsockopt(*socketPtr, /* socket affected */
 		IPPROTO_TCP,     /* set option at TCP level */
 		TCP_NODELAY,     /* name of option */
 		(char *) &flag,  /* the cast is historical cruft */
 		sizeof(int));    /* length of option value */
 
-		if (iResult < 0)
-		{
-			return false;
-		}
-	}
+        if( iResult != NO_ERROR )
+            sgct::MessageHandler::Instance()->print("Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
 
-	return true;
+		//set timeout
+		int timeout = 0; //infinite
+        iResult = setsockopt(
+                *socketPtr,
+                SOL_SOCKET,
+                SO_SNDTIMEO,
+                (char *)&timeout,
+                sizeof(timeout));
+
+        iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
+        iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
+	}
+}
+
+void core_sgct::SGCTNetwork::closeSocket(SOCKET lSocket)
+{
+    if( lSocket != INVALID_SOCKET )
+	{
+	    /*
+		Windows shutdown options
+            * SD_RECIEVE
+            * SD_SEND
+            * SD_BOTH
+
+        Linux & Mac shutdown options
+            * SHUT_RD (Disables further receive operations)
+            * SHUT_WR (Disables further send operations)
+            * SHUT_RDWR (Disables further send and receive operations)
+		*/
+
+	    int iResult = SOCKET_ERROR; //init
+
+#ifdef __WIN32__
+        iResult = shutdown(lSocket, SD_BOTH);
+#else
+		iResult = shutdown(lSocket, SHUT_RDWR);
+#endif
+
+		if (iResult == SOCKET_ERROR)
+#ifdef __WIN32__
+        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
+		closesocket( lSocket );
+#else
+        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", errno);
+		close( lSocket );
+#endif
+		lSocket = INVALID_SOCKET;
+	}
 }
 
 void core_sgct::SGCTNetwork::setBufferSize(unsigned int newSize)
@@ -249,7 +312,7 @@ void core_sgct::SGCTNetwork::iterateFrameCounter()
 void core_sgct::SGCTNetwork::checkIfBufferNeedsResizing()
 {
 	//check if buffer needs to be re-sized
-    if( sgct::SharedData::Instance()->getDataSize() > mBufferSize )
+    if( sgct::SharedData::Instance()->getDataSize() > mBufferSize && isConnected())
     {
         mBufferSize = sgct::SharedData::Instance()->getDataSize();
         char * p = (char *)&mBufferSize;
@@ -262,12 +325,17 @@ void core_sgct::SGCTNetwork::checkIfBufferNeedsResizing()
         resizeMessage[3] = p[2];
         resizeMessage[4] = p[3];
 
-        sendData(resizeMessage,5);
+        if( sendData(resizeMessage,5) == SOCKET_ERROR )
+            sgct::MessageHandler::Instance()->print("Failed to send resize message!\n");
     }
 }
 
 void core_sgct::SGCTNetwork::pushClientMessage()
 {
+#ifdef __SGCT_DEBUG__
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::pushClientMessage\n");
+#endif
+
 	//The servers's render function is locked until a message starting with the ack-byte is received.
 	int currentFrame = getSendFrame();
 	unsigned char *p = (unsigned char *)&currentFrame;
@@ -284,7 +352,7 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
 
-		unsigned int currentMessageSize = 
+		unsigned int currentMessageSize =
 			sgct::MessageHandler::Instance()->getDataSize() > mBufferSize ?
 			mBufferSize :
 			sgct::MessageHandler::Instance()->getDataSize();
@@ -295,7 +363,8 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		messageToSend[8] = currentMessageSizePtr[3];
 
 		//crop if needed
-		sendData((void*)messageToSend, currentMessageSize);
+		if( sendData((void*)messageToSend, currentMessageSize) == SOCKET_ERROR )
+            sgct::MessageHandler::Instance()->print("Failed to send sync header + client log message!\n");
 
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
     }
@@ -315,7 +384,8 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 		tmpca[7] = currentMessageSizePtr[2];
 		tmpca[8] = currentMessageSizePtr[3];
 
-		sendData((void *)tmpca, syncHeaderSize);
+		if( sendData((void *)tmpca, syncHeaderSize) == SOCKET_ERROR )
+            sgct::MessageHandler::Instance()->print("Failed to send sync header!\n");
 	}
 }
 
@@ -371,7 +441,7 @@ void core_sgct::SGCTNetwork::setConnectedFunction(std::tr1::function<void (void)
 void core_sgct::SGCTNetwork::setConnectedStatus(bool state)
 {
 #ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("SGCTNetwork::setConnectedStatus\n");
+    sgct::MessageHandler::Instance()->print("SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
 #endif
 	sgct::Engine::lockMutex(NetworkManager::gMutex);
 		mConnected = state;
@@ -448,16 +518,28 @@ void GLFWCALL communicationHandler(void *arg)
 	{
 		sgct::MessageHandler::Instance()->print("Waiting for client to connect to connection %d...\n", nPtr->getId());
 
-		if( listen( nPtr->mListenSocket, SOMAXCONN ) == SOCKET_ERROR )
+		nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
+
+#ifdef __WIN32__
+		while( nPtr->mSocket == INVALID_SOCKET && errno == WSAEINTR)
+#else
+		while( nPtr->mSocket == INVALID_SOCKET && errno == EINTR)
+#endif
 		{
-			sgct::MessageHandler::Instance()->print("Listen for connection %d failed!\n", nPtr->getId());
-			return;
+		    sgct::MessageHandler::Instance()->print("Re-accept communication after interrupted system error...\n");
+		    nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 		}
 
-		nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
-		if (nPtr->mSocket == INVALID_SOCKET && nPtr->setNoDelay(&(nPtr->mSocket)))
+		if (nPtr->mSocket == INVALID_SOCKET)
 		{
-			sgct::MessageHandler::Instance()->print("Accept connection %d failed!\n", nPtr->getId());
+#ifdef __WIN32__
+            sgct::MessageHandler::Instance()->print("Accept connection %d failed! Error: %d\n", nPtr->getId(), WSAGetLastError());
+#else
+            sgct::MessageHandler::Instance()->print("Accept connection %d failed! Error: %d\n", nPtr->getId(), errno);
+#endif
+
+			if(nPtr->mUpdateCallbackFn != NULL)
+                nPtr->mUpdateCallbackFn(nPtr->getId(), false);
 			return;
 		}
 	}
@@ -468,14 +550,6 @@ void GLFWCALL communicationHandler(void *arg)
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn(nPtr->getId(), true);
 
-	//say hi
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("Sending first message... ");
-#endif
-	send(nPtr->mSocket, "Connected..\r\n", 13, 0);
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("Done.\n");
-#endif
 	//init buffer
 	int recvbuflen = nPtr->mBufferSize;
 	char * recvbuf;
@@ -512,11 +586,20 @@ void GLFWCALL communicationHandler(void *arg)
 		}
 
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("Receiving data (buffer size: %d)... ", recvbuflen);
+        sgct::MessageHandler::Instance()->print("Receiving data (buffer size: %d)...\n", recvbuflen);
 #endif
 		iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
+#ifdef __WIN32__
+		while( iResult < 0 && errno == WSAEINTR)
+#else
+		while( iResult < 0 && errno == EINTR)
+#endif
+		{
+		    sgct::MessageHandler::Instance()->print("Receiving data after interrupted system error...\n");
+		    iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
+		}
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("Done.\n");
+        sgct::MessageHandler::Instance()->print("Done. Received %d bytes.\n", iResult);
 #endif
 		if (iResult > 0)
 		{
@@ -564,7 +647,7 @@ void GLFWCALL communicationHandler(void *arg)
 					//recvbuf = (char *)malloc(cui.newSize);
 
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-					
+
 					if(recvbuf != NULL)
 						sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
 					else
@@ -579,7 +662,7 @@ void GLFWCALL communicationHandler(void *arg)
 					nPtr->mDecoderCallbackFn != NULL)
 				{
 #ifdef __SGCT_DEBUG__
-                    sgct::MessageHandler::Instance()->print("Parsing sync data... ");
+                    sgct::MessageHandler::Instance()->print("Parsing sync data...\n");
 #endif
 					//convert from uchar to int32
 					union
@@ -607,10 +690,14 @@ void GLFWCALL communicationHandler(void *arg)
 					cui.c[2] = recvbuf[7];
 					cui.c[3] = recvbuf[8];
 
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Package info: Frame = %d, Size = %u\n", ci.i, cui.ui);
+#endif
+
 					while( static_cast<unsigned int>(iResult) < cui.ui && iResult > 0)
 					{
 						sgct::MessageHandler::Instance()->print("Network: Waiting for additional data (Frame %d, data %d of %u)...\n", ci.i, iResult, cui.ui);
-						
+
 						int tempResult = recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
 
 						if(tempResult > 0)
@@ -706,36 +793,19 @@ void GLFWCALL communicationHandler(void *arg)
 
 	//wait
 	glfwSleep(1.0);
-	
+
 	//cleanup
 	sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	if( recvbuf != NULL )
 		free(recvbuf);
 	sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-	
+
 	//wait
 	glfwSleep(0.25);
 
 	//Close socket
-	if( nPtr->mSocket != INVALID_SOCKET )
-	{
-#ifdef __WIN32__
-        iResult = shutdown(nPtr->mSocket, SD_BOTH);
-#else
-		iResult = shutdown(nPtr->mSocket, SHUT_RDWR);
-#endif
+	nPtr->closeSocket( nPtr->mSocket );
 
-		if (iResult == SOCKET_ERROR)
-#ifdef __WIN32__
-        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", WSAGetLastError());
-		closesocket( nPtr->mSocket );
-#else
-        sgct::MessageHandler::Instance()->print("Socket shutdown failed with error: %d\n", nPtr->getId(), errno);
-		close( nPtr->mSocket );
-#endif
-		nPtr->mSocket = INVALID_SOCKET;
-	}
-	
 	//wait
 	glfwSleep(0.25);
 
@@ -745,42 +815,32 @@ void GLFWCALL communicationHandler(void *arg)
 	sgct::MessageHandler::Instance()->print("Network: Disconnected!\n");
 }
 
-void core_sgct::SGCTNetwork::sendData(void * data, int length)
+int core_sgct::SGCTNetwork::sendData(void * data, int length)
 {
-	int iResult = send(mSocket, (const char *)data, length, 0);
-	//if(iResult != length)
-	//	sgct::MessageHandler::Instance()->print("Network: send size %d length %d\n", iResult, length);
-
-	if (iResult == SOCKET_ERROR)
-#ifdef __WIN32__
-		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
-#else
-        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
-#endif
+	//fprintf(stderr, "Send data size: %d\n", length);
+	return send(mSocket, (const char *)data, length, 0);
 }
 
-void core_sgct::SGCTNetwork::sendStr(std::string msg)
+int core_sgct::SGCTNetwork::sendStr(std::string msg)
 {
-	int iResult = send(mSocket, msg.c_str(), msg.size(), 0);
-	if (iResult == SOCKET_ERROR)
-#ifdef __WIN32__
-		sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", WSAGetLastError());
-#else
-        sgct::MessageHandler::Instance()->print("Send data failed with error: %d\n", errno);
-#endif
+	//fprintf(stderr, "Send message: %s, size: %d\n", msg.c_str(), msg.size());
+	return send(mSocket, msg.c_str(), msg.size(), 0);
 }
 
 void core_sgct::SGCTNetwork::closeNetwork()
 {
-	char gameOver[7];
-	gameOver[0] = 24; //ASCII for cancel
-	gameOver[1] = '\r';
-	gameOver[2] = '\n';
-	gameOver[3] = 27; //ASCII for Esc
-	gameOver[4] = '\r';
-	gameOver[5] = '\n';
-	gameOver[6] = '\0';
-	sendData(gameOver, 7);
+	if( isConnected() )
+	{
+        char gameOver[7];
+        gameOver[0] = 24; //ASCII for cancel
+        gameOver[1] = '\r';
+        gameOver[2] = '\n';
+        gameOver[3] = 27; //ASCII for Esc
+        gameOver[4] = '\r';
+        gameOver[5] = '\n';
+        gameOver[6] = '\0';
+        sendData(gameOver, 7);
+	}
 
 	mDecoderCallbackFn = NULL;
 
@@ -792,39 +852,8 @@ void core_sgct::SGCTNetwork::closeNetwork()
 	if( mMainThreadId != -1 )
 		glfwDestroyThread( mMainThreadId );
 
-	if( mSocket != INVALID_SOCKET )
-	{
-		/*
-		Windows shutdown options
-            * SD_RECIEVE
-            * SD_SEND
-            * SD_BOTH
-
-        Linux & Mac shutdown options
-            * SHUT_RD (Disables further receive operations)
-            * SHUT_WR (Disables further send operations)
-            * SHUT_RDWR (Disables further send and receive operations)
-		*/
-
-#ifdef __WIN32__
-		shutdown(mSocket, SD_BOTH);
-		closesocket( mSocket );
-#else
-		shutdown(mSocket, SHUT_RDWR);
-		close( mSocket );
-#endif
-	}
-
-	if( mListenSocket != INVALID_SOCKET )
-	{
-#ifdef __WIN32__
-        shutdown(mListenSocket, SD_BOTH);
-		closesocket( mListenSocket );
-#else
-		shutdown(mListenSocket, SHUT_RDWR);
-		close( mListenSocket );
-#endif
-	}
+	closeSocket( mSocket );
+	closeSocket( mListenSocket );
 
 	sgct::MessageHandler::Instance()->print(" Done!\n");
 }

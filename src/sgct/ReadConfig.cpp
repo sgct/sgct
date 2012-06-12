@@ -210,7 +210,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 					if( element[1]->Attribute("overlay") != NULL )
 						tmpVp.setOverlayTexture( element[1]->Attribute("overlay") );
-					
+
 					if( element[1]->Attribute("tracked") != NULL )
 						tmpVp.setTracked( strcmp( element[1]->Attribute("tracked"), "true" ) == 0 ? true : false );
 
@@ -382,7 +382,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 int core_sgct::ReadConfig::getStereoType( const std::string type )
 {
 	if( strcmp( type.c_str(), "none" ) == 0 )
-		return None;
+		return NoStereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 )
 		return Active;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )

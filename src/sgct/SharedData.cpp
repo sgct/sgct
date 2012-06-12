@@ -262,7 +262,7 @@ void SharedData::encode()
 void SharedData::writeFloat(float f)
 {
 #ifdef __SGCT_DEBUG__
-    MessageHandler::Instance()->print("SharedData::writeFloat\n");
+    MessageHandler::Instance()->print("SharedData::writeFloat\nFloat = %f", f);
 #endif
 	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 	unsigned char *p = (unsigned char *)&f;
@@ -273,7 +273,7 @@ void SharedData::writeFloat(float f)
 void SharedData::writeDouble(double d)
 {
 #ifdef __SGCT_DEBUG__
-    MessageHandler::Instance()->print("SharedData::writeDouble\n");
+    MessageHandler::Instance()->print("SharedData::writeDouble\nDouble = %f\n", d);
 #endif
     Engine::lockMutex(core_sgct::NetworkManager::gMutex);
  	unsigned char *p = (unsigned char *)&d;
@@ -370,6 +370,10 @@ float SharedData::readFloat()
 	pos += 4;
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("Float = %f\n", cf.f);
+#endif
+
 	return cf.f;
 }
 
@@ -395,6 +399,10 @@ double SharedData::readDouble()
 	cf.c[7] = dataBlock[pos+7];
 	pos += 8;
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+
+#ifdef __SGCT_DEBUG__
+    MessageHandler::Instance()->print("Double = %f\n", cf.d);
+#endif
 
 	return cf.d;
 }

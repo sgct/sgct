@@ -36,6 +36,7 @@
 		<Compiler>
 			<Add option="-O3" />
 			<Add option="-Wall" />
+			<Add option="-D__LINUX__" />
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>

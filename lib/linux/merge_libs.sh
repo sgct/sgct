@@ -1,6 +1,7 @@
 #!/bin/bash
 # merge libs
 echo "Merging libs... "
+rm libsgct.a
 ar x deps/libGLEW.a
 ar x deps/libglfw.a
 ar x deps/libzlib.a

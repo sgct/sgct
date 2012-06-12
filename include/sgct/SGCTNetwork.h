@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -58,7 +58,8 @@ public:
 	void setConnectedFunction(std::tr1::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
-	bool setNoDelay(SOCKET * socketPtr);
+	void setOptions(SOCKET * socketPtr);
+	void closeSocket(SOCKET lSocket);
 
 	int getTypeOfServer();
 	int getId();
@@ -68,8 +69,8 @@ public:
 	bool compareFrames();
 	void setRecvFrame(int i);
 	void swapFrames();
-	void sendData(void * data, int length);
-	void sendStr(std::string msg);
+	int sendData(void * data, int length);
+	int sendStr(std::string msg);
 	void iterateFrameCounter();
 	void checkIfBufferNeedsResizing();
 	void pushClientMessage();

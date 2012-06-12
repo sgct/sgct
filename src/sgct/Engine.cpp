@@ -1696,22 +1696,22 @@ GLFWcond sgct::Engine::createCondition()
 
 void sgct::Engine::lockMutex(GLFWmutex &mutex)
 {
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("Locking mutex... ");
+#ifdef __SGCT_MUTEX_DEBUG__
+    sgct::MessageHandler::Instance()->print("Locking mutex...\n");
 #endif
     glfwLockMutex(mutex);
-#ifdef __SGCT_DEBUG__
+#ifdef __SGCT_MUTEX_DEBUG__
     sgct::MessageHandler::Instance()->print("Done\n");
 #endif
 }
 
 void sgct::Engine::unlockMutex(GLFWmutex &mutex)
 {
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("Unlocking mutex... ");
+#ifdef __SGCT_MUTEX_DEBUG__
+    sgct::MessageHandler::Instance()->print("Unlocking mutex...\n");
 #endif
     glfwUnlockMutex(mutex);
-#ifdef __SGCT_DEBUG__
+#ifdef __SGCT_MUTEX_DEBUG__
     sgct::MessageHandler::Instance()->print("Done\n");
 #endif
 }

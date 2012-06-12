@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -188,15 +188,11 @@ void core_sgct::NetworkManager::sync()
             //set bytes in header
 			int currentFrame = mNetworkConnections[i]->getSendFrame();
 
-#ifdef __SGCT_DEBUG__
-    sgct::MessageHandler::Instance()->print("NetworkManager::sync (mutex)\n");
-#endif
-
 			sgct::Engine::lockMutex(gMutex);
 				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
 				unsigned int currentSize = sgct::SharedData::Instance()->getDataSize();
 				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
-				
+
 				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
 				sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
 				sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
@@ -210,8 +206,12 @@ void core_sgct::NetworkManager::sync()
 				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
-				mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+				int sendErr = mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
 			sgct::Engine::unlockMutex(gMutex);
+
+            if (sendErr == SOCKET_ERROR)
+                sgct::MessageHandler::Instance()->print("Send data failed!\n");
+
 		}
 		//Client
 		else if( mNetworkConnections[i]->isConnected() &&
@@ -283,7 +283,9 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected
 				if( mNetworkConnections[i]->isConnected() )
 				{
 					char tmpc = SGCTNetwork::ConnectedHeader;
-					mNetworkConnections[i]->sendData(&tmpc, 1);
+					int sendErr = mNetworkConnections[i]->sendData(&tmpc, 1);
+					if (sendErr == SOCKET_ERROR)
+                        sgct::MessageHandler::Instance()->print("Send data failed!\n");
 				}
 	}
 

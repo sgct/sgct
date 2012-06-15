@@ -78,6 +78,11 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	localRunningMode = NetworkManager::NotLocal;
 
+	currentViewportCoords[0] = 0;
+	currentViewportCoords[1] = 0;
+	currentViewportCoords[2] = 640;
+	currentViewportCoords[3] = 480;
+
 	//FBO stuff
 	mFrameBuffers[0] = 0;
 	mFrameBuffers[1] = 0;
@@ -1499,11 +1504,20 @@ void sgct::Engine::printNodeInfo(unsigned int nodeId)
 void sgct::Engine::enterCurrentViewport()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	glViewport(
-		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution())));
+	
+	currentViewportCoords[0] =
+		static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution()));
+	currentViewportCoords[1] =
+		static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution()));
+	currentViewportCoords[2] =
+		static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution()));
+	currentViewportCoords[3] =
+		static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution()));
+
+	glViewport( currentViewportCoords[0],
+		currentViewportCoords[1],
+		currentViewportCoords[2],
+		currentViewportCoords[3]);
 }
 
 void sgct::Engine::calcFPS(double timestamp)

@@ -112,6 +112,7 @@ public:
 	//will only return valid values when called in the draw callback function
 	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
 	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	inline const int * getActiveViewport() { return currentViewportCoords; }
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -177,6 +178,7 @@ private:
 
 	int localRunningMode;
 	core_sgct::Frustum::FrustumMode mActiveFrustum;
+	int currentViewportCoords[4];
 
 	bool mShowInfo;
 	bool mShowGraph;

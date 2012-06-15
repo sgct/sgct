@@ -17,6 +17,7 @@ void myPostSyncPreDrawFun();
 void myDrawFun();
 void myEncodeFun();
 void myDecodeFun();
+void myCleanUpFun();
 void keyCallback(int key, int action);
 
 //other functions
@@ -43,6 +44,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setDrawFunction( myDrawFun );
+	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
 	for(int i=0; i<4; i++)
@@ -96,19 +98,18 @@ void myInitOGLFun()
 	{
 		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
 		mModelTrans->addChild(mModel.get());
+
+		//get the bounding sphere
+		osg::BoundingSphere bs;
+		bs = mModel->getBound();
+		osg::Vec3f tmpVec;
+		tmpVec = bs.center();
+
+		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
+		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );
 	}
 	else
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
-
-
-	//get the bounding sphere
-	osg::BoundingSphere bs;
-	bs = mModel->getBound();
-	osg::Vec3f tmpVec;
-	tmpVec = bs.center();
-
-	sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-	sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );
 }
 
 void myPreSyncFun()
@@ -174,6 +175,14 @@ void myDecodeFun()
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();
 	takeScreenshot = sgct::SharedData::Instance()->readBool();
+}
+
+void myCleanUpFun()
+{
+	sgct::MessageHandler::Instance()->print("Cleaning up osg data...\n");
+	mViewer->getSceneData()->releaseGLObjects();
+	mViewer->getCamera()->getGraphicsContext()->getState()->reset();
+	osg::FlushDeletedGLObjectsOperation(0.0);
 }
 
 void keyCallback(int key, int action)

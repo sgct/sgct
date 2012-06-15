@@ -3,47 +3,45 @@
 	<FileVersion major="1" minor="6" />
 	<Project>
 		<Option title="osgExample" />
+		<Option platforms="Unix;" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="..\..\..\bin\osgExample\mingw\osgExample" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Debug\" />
+				<Option platforms="Unix;" />
+				<Option output="../../../bin/osgExample/linux/osgExample" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;..\..\..\config\single.xml&quot;' />
+				<Option parameters='-config &quot;./../../../config/single.xml&quot;' />
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
 			</Target>
 			<Target title="Release">
-				<Option output="..\..\..\bin\osgExample\mingw\osgExample" prefix_auto="1" extension_auto="1" />
-				<Option object_output="obj\Release\" />
+				<Option platforms="Unix;" />
+				<Option output="../../../bin/osgExample/linux/osgExample" prefix_auto="1" extension_auto="1" />
+				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
-				<Option parameters='-config &quot;..\..\..\config\single.xml&quot;' />
+				<Option parameters='-config &quot;./../../../config/single.xml&quot;' />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
-				<Linker>
-					<Add option="-s" />
-				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
 			<Add option="-O3" />
 			<Add option="-Wall" />
-			<Add option="-D__WIN32__" />
-			<Add directory="..\..\..\include" />
-			<Add directory="$(OSGHOME)\include" />
+			<Add directory="../../../include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
 			<Add option="-static-libstdc++" />
-			<Add library="sgct32" />
-			<Add library="opengl32" />
-			<Add library="glu32" />
-			<Add library="ws2_32" />
+			<Add library="sgct" />
+			<Add library="GL" />
+			<Add library="GLU" />
+			<Add library="X11" />
 			<Add library="OpenThreads" />
 			<Add library="osg" />
 			<Add library="osgUtil" />
@@ -51,8 +49,7 @@
 			<Add library="osgDB" />
 			<Add library="osgGA" />
 			<Add library="osgViewer" />
-			<Add directory="..\..\..\lib\mingw" />
-			<Add directory="$(OSGHOME)\lib" />
+			<Add directory="../../../lib/linux" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>

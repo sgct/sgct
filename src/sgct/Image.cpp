@@ -110,8 +110,8 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	}
     #endif
 
-	fread( header, 1, PNG_BYTES_TO_CHECK, fp );
-	if( png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
+	size_t result = fread( header, 1, PNG_BYTES_TO_CHECK, fp );
+	if( result != PNG_BYTES_TO_CHECK || png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
 	{
 		sgct::MessageHandler::Instance()->print("Texture file '%s' is not in PNG format\n", mFilename);
 		fclose(fp);

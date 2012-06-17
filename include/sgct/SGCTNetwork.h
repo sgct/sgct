@@ -44,6 +44,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 	typedef int SOCKET;
 #endif
 
+typedef void * GLFWmutex;
+
 namespace core_sgct //small graphics cluster toolkit
 {
 
@@ -52,9 +54,10 @@ class SGCTNetwork
 public:
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
-	void closeNetwork();
+	void closeNetwork(bool forced);
+	void initShutdown();
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	void setUpdateFunction(std::tr1::function<void (int,bool)> callback);
+	void setUpdateFunction(std::tr1::function<void (void)> callback);
 	void setConnectedFunction(std::tr1::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
@@ -65,6 +68,7 @@ public:
 	int getId();
 	bool isServer();
 	bool isConnected();
+	bool isTerminated();
 	int getSendFrame();
 	bool compareFrames();
 	void setRecvFrame(int i);
@@ -78,9 +82,11 @@ public:
 	SOCKET mSocket;
 	SOCKET mListenSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::tr1::function< void(int,bool) > mUpdateCallbackFn;
+	std::tr1::function< void(void) > mUpdateCallbackFn;
 	std::tr1::function< void(void) > mConnectedCallbackFn;
 	int mCommThreadId;
+
+    bool mTerminate; //set to true upon exit
 
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
@@ -88,6 +94,8 @@ public:
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncHeader = 17, SizeHeader, ConnectedHeader };
 	enum ServerTypes { SyncServer = 0, ExternalControl };
+
+	GLFWmutex connectionMutex;
 
 private:
 	int mServerType;

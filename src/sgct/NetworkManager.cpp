@@ -51,7 +51,7 @@ GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
 
 core_sgct::NetworkManager::NetworkManager(int mode)
 {
-	mNumberOfConnectedNodes = 0;
+	mNumberOfConnections = 0;
 	mAllNodesConnected = false;
 	mIsExternalControlPresent = false;
 	mIsRunning = true;
@@ -108,41 +108,23 @@ bool core_sgct::NetworkManager::init()
 	else
 		tmpIp = "127.0.0.1";
 
-	//add connection for external communication
-	if( mIsServer )
+	//if client
+	if( !mIsServer )
 	{
-		if(!addConnection( (*ClusterManager::Instance()->getExternalControlPort()),
-		"127.0.0.1", SGCTNetwork::ExternalControl))
+		if(addConnection(ClusterManager::Instance()->getThisNodePtr()->port, tmpIp))
 		{
-			sgct::MessageHandler::Instance()->print("Failed to add external connection!\n");
-		}
-		else //bind
-		{
-			mIsExternalControlPresent = true;
-
-			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
-				std::tr1::placeholders::_1,
-				std::tr1::placeholders::_2,
-				std::tr1::placeholders::_3);
-			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
-		}
-	}
-	else //client
-	{
-		if(!addConnection(ClusterManager::Instance()->getThisNodePtr()->port, tmpIp))
-		{
-			sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", ClusterManager::Instance()->getMasterIp()->c_str());
-			return false;
-		}
-		else //bind
-		{
+			//bind
 			std::tr1::function< void(const char*, int, int) > callback;
 			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
 				std::tr1::placeholders::_1,
 				std::tr1::placeholders::_2,
 				std::tr1::placeholders::_3);
 			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
+		}
+		else
+		{
+			sgct::MessageHandler::Instance()->print("Failed to add network connection to %s!\n", ClusterManager::Instance()->getMasterIp()->c_str());
+			return false;
 		}
 	}
 
@@ -166,6 +148,23 @@ bool core_sgct::NetworkManager::init()
 					std::tr1::placeholders::_3);
 				mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 			}
+		}
+	}
+
+	//add connection for external communication
+	if( mIsServer )
+	{
+		if(addConnection( (*ClusterManager::Instance()->getExternalControlPort()),
+            "127.0.0.1", SGCTNetwork::ExternalControl))
+		{
+			mIsExternalControlPresent = true;
+
+			std::tr1::function< void(const char*, int, int) > callback;
+			callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
+				std::tr1::placeholders::_1,
+				std::tr1::placeholders::_2,
+				std::tr1::placeholders::_3);
+			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 		}
 	}
 
@@ -236,7 +235,7 @@ bool core_sgct::NetworkManager::isSyncComplete()
 			counter++;
 		}
 
-	return counter == getConnectedNodeCount();
+	return counter == getConnectionsCount();
 }
 
 void core_sgct::NetworkManager::swapData()
@@ -245,52 +244,63 @@ void core_sgct::NetworkManager::swapData()
 		mNetworkConnections[i]->swapFrames();
 }
 
-void core_sgct::NetworkManager::updateConnectionStatus(int index, bool connected)
+void core_sgct::NetworkManager::updateConnectionStatus()
 {
-	unsigned int counter = 0;
-	unsigned int specificCounter = 0;
+	unsigned int numberOfConnectionsCounter = 0;
+	unsigned int numberOfConnectedSyncNodesCounter = 0;
 
-	if( connected )
-	{
-		counter++;
-		if(mNetworkConnections[index]->getTypeOfServer() == SGCTNetwork::SyncServer)
-			specificCounter++;
-	}
-
+    //count connections
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 	{
-		if( i != static_cast<unsigned int>(index) &&
-            mNetworkConnections[i]->isConnected() )
+		if( mNetworkConnections[i]->isConnected() )
 		{
-			counter++;
+			numberOfConnectionsCounter++;
 			if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
-				specificCounter++;
+				numberOfConnectedSyncNodesCounter++;
 		}
 	}
-	mNumberOfConnectedNodes = counter;
 
-	if(mNumberOfConnectedNodes == 0 && !mIsServer)
-		mIsRunning = false;
+	sgct::Engine::lockMutex(gMutex);
+        mNumberOfConnections = numberOfConnectionsCounter;
+        //create a local copy to use so we don't need mutex on several locations
+        bool isServer = mIsServer;
 
-	sgct::MessageHandler::Instance()->print("Number of connections: %d\n", counter);
+        //if clients disconnect it's not longer running
+        if(mNumberOfConnections == 0 && !isServer)
+            mIsRunning = false;
+    sgct::Engine::unlockMutex(gMutex);
 
-	if(mIsServer)
+	if(isServer)
 	{
-		mAllNodesConnected = (specificCounter == (ClusterManager::Instance()->getNumberOfNodes()-1));
+		sgct::Engine::lockMutex(gMutex);
+            //local copy (thread safe) -- don't count server, therefore -1
+            unsigned int numberOfSlavesInConfig = ClusterManager::Instance()->getNumberOfNodes()-1;
+            //local copy (thread safe)
+            bool allNodesConnectedCopy =
+                (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
+            mAllNodesConnected = allNodesConnectedCopy;
+        sgct::Engine::unlockMutex(gMutex);
 
-		if(mAllNodesConnected)
+        //send cluster connected message to nodes/slaves
+		if(allNodesConnectedCopy)
 			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 				if( mNetworkConnections[i]->isConnected() )
 				{
 					char tmpc = SGCTNetwork::ConnectedHeader;
 					int sendErr = mNetworkConnections[i]->sendData(&tmpc, 1);
 					if (sendErr == SOCKET_ERROR)
-                        sgct::MessageHandler::Instance()->print("Send data failed!\n");
+                        sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
 				}
+
+        sgct::MessageHandler::Instance()->print("Number of connections: %u (IG slaves %u of %u)\n",
+             numberOfConnectionsCounter,
+             numberOfConnectedSyncNodesCounter,
+             numberOfSlavesInConfig);
 	}
 
-	//wake up the connection handler thread
-	if( mNetworkConnections[index]->isServer() )
+	//wake up the connection handler thread on server
+	//if node disconnects to enable reconnection
+	if( isServer )
 	{
 		sgct::Engine::signalCond( gStartConnectionCond );
 	}
@@ -305,14 +315,20 @@ void core_sgct::NetworkManager::close()
 {
 	mIsRunning = false;
 
+    //signal to terminate
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)
-	{
 		if(mNetworkConnections[i] != NULL)
 		{
-			mNetworkConnections[i]->closeNetwork();
+			mNetworkConnections[i]->initShutdown();
+		}
+
+    //wait for threads to die
+	for(unsigned int i=0; i < mNetworkConnections.size(); i++)
+		if(mNetworkConnections[i] != NULL)
+		{
+			mNetworkConnections[i]->closeNetwork(false);
 			delete mNetworkConnections[i];
 		}
-	}
 
 	mNetworkConnections.clear();
 
@@ -339,7 +355,11 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 	{
 		sgct::MessageHandler::Instance()->print("Network error: %s\n", err);
 		if(netPtr != NULL)
-			netPtr->closeNetwork();
+		{
+		    netPtr->initShutdown();
+		    glfwSleep(1.0);
+		    netPtr->closeNetwork(true);
+		}
 		return false;
 	}
 
@@ -349,11 +369,8 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
 
 		//bind callback
-		std::tr1::function< void(int,bool) > updateCallback;
-		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus,
-			this,
-			std::tr1::placeholders::_1,
-			std::tr1::placeholders::_2);
+		std::tr1::function< void(void) > updateCallback;
+		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this);
 		netPtr->setUpdateFunction(updateCallback);
 
 		//bind callback

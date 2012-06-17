@@ -335,19 +335,20 @@ void sgct::Engine::clean()
 	//delete FBO stuff
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
+		sgct::MessageHandler::Instance()->print("Releasing OpenGL buffers...\n");
 		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 			glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
 		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
 		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
-
-		sgct::ShaderManager::Destroy();
 	}
+
+	sgct::ShaderManager::Destroy();
 
 	//de-init window and unbind swapgroups...
 	SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
-	if(nPtr != NULL)
+	if(nPtr != NULL && nPtr->getWindowPtr() != NULL) //make shure to not use destroyed object
 		nPtr->getWindowPtr()->close();
 
 	//close TCP connections
@@ -356,6 +357,7 @@ void sgct::Engine::clean()
 		delete mNetworkConnections;
 		mNetworkConnections = NULL;
 	}
+
 	if( mConfig != NULL )
 	{
 		delete mConfig;
@@ -377,28 +379,28 @@ void sgct::Engine::clean()
     sgct::MessageHandler::Instance()->print("Destroying network mutex...\n");
 	if( NetworkManager::gMutex != NULL )
 	{
-		glfwDestroyMutex( NetworkManager::gMutex );
+		destroyMutex( NetworkManager::gMutex );
 		NetworkManager::gMutex = NULL;
 	}
 
 	sgct::MessageHandler::Instance()->print("Destroying sync mutex...\n");
 	if( NetworkManager::gSyncMutex != NULL )
 	{
-		glfwDestroyMutex( NetworkManager::gSyncMutex );
+		destroyMutex( NetworkManager::gSyncMutex );
 		NetworkManager::gSyncMutex = NULL;
 	}
 
 	sgct::MessageHandler::Instance()->print("Destroying condition...\n");
 	if( NetworkManager::gCond != NULL )
 	{
-		glfwDestroyCond( NetworkManager::gCond );
+		destroyCond( NetworkManager::gCond );
 		NetworkManager::gCond = NULL;
 	}
 
 	sgct::MessageHandler::Instance()->print("Destroying start condition...\n");
 	if( NetworkManager::gStartConnectionCond != NULL )
 	{
-		glfwDestroyCond( NetworkManager::gStartConnectionCond );
+		destroyCond( NetworkManager::gStartConnectionCond );
 		NetworkManager::gStartConnectionCond = NULL;
 	}
 
@@ -1504,7 +1506,7 @@ void sgct::Engine::printNodeInfo(unsigned int nodeId)
 void sgct::Engine::enterCurrentViewport()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	currentViewportCoords[0] =
 		static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution()));
 	currentViewportCoords[1] =
@@ -1708,25 +1710,35 @@ GLFWcond sgct::Engine::createCondition()
     return glfwCreateCond();
 }
 
+void sgct::Engine::destroyCond(GLFWcond &cond)
+{
+    glfwDestroyCond(cond);
+}
+
+void sgct::Engine::destroyMutex(GLFWmutex &mutex)
+{
+    glfwDestroyMutex(mutex);
+}
+
 void sgct::Engine::lockMutex(GLFWmutex &mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    sgct::MessageHandler::Instance()->print("Locking mutex...\n");
+    fprintf(stderr, "Locking mutex...\n");
 #endif
     glfwLockMutex(mutex);
 #ifdef __SGCT_MUTEX_DEBUG__
-    sgct::MessageHandler::Instance()->print("Done\n");
+    fprintf(stderr, "Done\n");
 #endif
 }
 
 void sgct::Engine::unlockMutex(GLFWmutex &mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    sgct::MessageHandler::Instance()->print("Unlocking mutex...\n");
+    fprintf(stderr, "Unlocking mutex...\n");
 #endif
     glfwUnlockMutex(mutex);
 #ifdef __SGCT_MUTEX_DEBUG__
-    sgct::MessageHandler::Instance()->print("Done\n");
+    fprintf(stderr, "Done\n");
 #endif
 }
 

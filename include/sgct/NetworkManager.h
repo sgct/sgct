@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -56,13 +56,13 @@ public:
 	bool areAllNodesConnected() { return mAllNodesConnected; }
 	SGCTNetwork * getExternalControlPtr() { return mIsExternalControlPresent ? mNetworkConnections[0] : NULL; }
 
-	unsigned int getConnectedNodeCount() { return mNumberOfConnectedNodes; }
+	unsigned int getConnectionsCount() { return mNumberOfConnections; }
 
 private:
 	bool addConnection(const std::string port, const std::string ip, int serverType = SGCTNetwork::SyncServer);
 	void initAPI();
 	void getHostInfo();
-	void updateConnectionStatus(int index, bool connected);
+	void updateConnectionStatus();
 	void setAllNodesConnected();
 
 public:
@@ -83,7 +83,7 @@ private:
 	bool mIsExternalControlPresent;
 	bool mAllNodesConnected;
 	int mMode;
-	unsigned int mNumberOfConnectedNodes;
+	unsigned int mNumberOfConnections;
 };
 
 }

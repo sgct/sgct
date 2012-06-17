@@ -6,7 +6,11 @@
 #include <osg/MatrixTransform>
 
 sgct::Engine * gEngine;
-osg::ref_ptr<osgViewer::Viewer> mViewer;
+
+//Not using ref pointers enables
+//more controlled termination
+//and prevents segfault on Linux
+osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
 
@@ -87,13 +91,13 @@ void myInitOGLFun()
                                             1.0f, 0.0f, 0.0f));
 	//foot to meter conversion
 	mModelTrans->postMult(osg::Matrix::scale( 0.3048f, 0.3048f, 0.3048f));
-	
+
 	mRootNode->addChild( mSceneTrans.get() );
 	mSceneTrans->addChild( mModelTrans.get() );
 
 	sgct::MessageHandler::Instance()->print("Loading model 'cessnafire.osg'...\n");
 	mModel = osgDB::readNodeFile("cessnafire.osg");
-	
+
 	if ( mModel.valid() )
 	{
 		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
@@ -122,7 +126,7 @@ void myPreSyncFun()
 			dist += (navigation_speed * gEngine->getDt());
 		if( arrowButtons[BACKWARD] )
 			dist -= (navigation_speed * gEngine->getDt());
-		
+
 	}
 }
 
@@ -131,7 +135,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
-	
+
 	if( takeScreenshot )
 	{
 		gEngine->takeScreenshot();
@@ -180,9 +184,8 @@ void myDecodeFun()
 void myCleanUpFun()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up osg data...\n");
-	mViewer->getSceneData()->releaseGLObjects();
-	mViewer->getCamera()->getGraphicsContext()->getState()->reset();
-	osg::FlushDeletedGLObjectsOperation(0.0);
+	delete mViewer;
+	mViewer = NULL;
 }
 
 void keyCallback(int key, int action)
@@ -232,9 +235,11 @@ void initOSG()
 {
 	mRootNode = new osg::Group();
 	osg::Referenced::setThreadSafeReferenceCounting(true);
+
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
-	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+
+	//mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// Set up osgViewer::GraphicsWindowEmbedded for this context
 	osg::ref_ptr< ::osg::GraphicsContext::Traits > traits =
@@ -246,7 +251,7 @@ void initOSG()
 	mViewer->getCamera()->setGraphicsContext(graphicsWindow.get());
 	mViewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 	mViewer->getCamera()->setClearColor( osg::Vec4( 0.0f, 0.0f, 0.0f, 0.0f) );
-	
+
 	//disable osg from clearing the buffers that will be done by sgct
 	GLbitfield tmpMask = mViewer->getCamera()->getClearMask();
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));

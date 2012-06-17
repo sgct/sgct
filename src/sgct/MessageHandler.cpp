@@ -103,7 +103,8 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 
     //print local
     //fprintf(stderr, mParseBuffer);
-    std::cout << mParseBuffer;// << std::endl;
+    std::cerr << mParseBuffer;// << std::endl;
+    //std::cout << mParseBuffer;// << std::endl;
 
     //if client send to server
     if(!mLocal && core_sgct::NetworkManager::gMutex != NULL)

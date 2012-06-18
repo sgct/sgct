@@ -67,6 +67,7 @@ public:
 	SGCTNode * getThisNodePtr();
 	User * getUserPtr() { return mUser; }
 	SGCTTracking * getTrackingPtr() { return mTracking; }
+	const glm::mat4 & getSceneTrans() { return mSceneTrans; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
 
@@ -75,6 +76,7 @@ public:
 
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
+	void updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset);
 
 private:
 	ClusterManager(void);
@@ -96,6 +98,7 @@ private:
 
 	User	* mUser;
 	SGCTTracking * mTracking;
+	glm::mat4 mSceneTrans;
 };
 }
 

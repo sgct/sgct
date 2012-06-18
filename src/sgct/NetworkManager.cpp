@@ -244,7 +244,7 @@ void core_sgct::NetworkManager::swapData()
 		mNetworkConnections[i]->swapFrames();
 }
 
-void core_sgct::NetworkManager::updateConnectionStatus()
+void core_sgct::NetworkManager::updateConnectionStatus(int index)
 {
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
@@ -304,6 +304,9 @@ void core_sgct::NetworkManager::updateConnectionStatus()
 	{
 		sgct::Engine::signalCond( gStartConnectionCond );
 	}
+
+	//signal done to caller
+	sgct::Engine::signalCond( mNetworkConnections[index]->mDoneCond );
 }
 
 void core_sgct::NetworkManager::setAllNodesConnected()
@@ -369,8 +372,9 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
 
 		//bind callback
-		std::tr1::function< void(void) > updateCallback;
-		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this);
+		std::tr1::function< void(int) > updateCallback;
+		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this,
+			std::tr1::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
 
 		//bind callback

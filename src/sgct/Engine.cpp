@@ -25,6 +25,12 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
+#ifdef __WIN32__
+	#define WIN32_LEAN_AND_MEAN
+	//prevent conflict between max() in limits.h and max script in windef.h
+	#define NOMINMAX
+#endif
+
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/FontManager.h"
@@ -39,8 +45,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <iostream>
 #include <sstream>
 #include <deque>
-
-#include <glm/gtx/euler_angles.hpp>
 
 using namespace core_sgct;
 
@@ -286,6 +290,11 @@ void sgct::Engine::initOGL()
 		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
 	}
 
+	ClusterManager::Instance()->updateSceneTransformation(
+		mConfig->getYaw(),
+		mConfig->getPitch(),
+		mConfig->getRoll(),
+		(*mConfig->getSceneOffset()));
 	createFBOs();
 	loadShaders();
 
@@ -738,14 +747,15 @@ void sgct::Engine::draw()
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glm::mat4 modelMat =
+	/*glm::mat4 modelMat =
 		glm::yawPitchRoll(
 			mConfig->getYaw(),
 			mConfig->getPitch(),
 			mConfig->getRoll())
         * glm::translate( glm::mat4(1.0f), (*mConfig->getSceneOffset()));
 
-	glLoadMatrixf( glm::value_ptr(modelMat) );
+	glLoadMatrixf( glm::value_ptr(modelMat) );*/
+	glLoadMatrixf( glm::value_ptr( ClusterManager::Instance()->getSceneTrans() ) );
 
 	if( mDrawFn != NULL )
 		mDrawFn();
@@ -1670,7 +1680,7 @@ size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
         return timer.mId;
     }
     else
-        return std::numeric_limits<size_t>::max();
+		return std::numeric_limits<size_t>::max();
 }
 
 void sgct::Engine::stopTimer( size_t id )
@@ -1725,7 +1735,8 @@ void sgct::Engine::lockMutex(GLFWmutex &mutex)
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Locking mutex...\n");
 #endif
-    glfwLockMutex(mutex);
+    if(mutex != NULL)
+		glfwLockMutex(mutex);
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Done\n");
 #endif
@@ -1736,7 +1747,8 @@ void sgct::Engine::unlockMutex(GLFWmutex &mutex)
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Unlocking mutex...\n");
 #endif
-    glfwUnlockMutex(mutex);
+	if(mutex != NULL)
+		glfwUnlockMutex(mutex);
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Done\n");
 #endif

@@ -45,7 +45,7 @@ public:
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	bool isMasterSyncLocked() { return useMasterSyncLock; }
-	glm::vec3 * getSceneOffset() { return &sceneOffset; }
+	const glm::vec3 * getSceneOffset() { return &sceneOffset; }
 	const float & getYaw() { return mYaw; }
 	const float & getPitch() { return mPitch; }
 	const float & getRoll() { return mRoll; }

@@ -26,6 +26,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
 #include "../include/sgct/ClusterManager.h"
+#include <glm/gtx/euler_angles.hpp>
 
 core_sgct::ClusterManager * core_sgct::ClusterManager::mInstance = NULL;
 
@@ -36,6 +37,7 @@ core_sgct::ClusterManager::ClusterManager(void)
 	validCluster = false;
 	mUser = new User();
 	mTracking = new SGCTTracking();
+	mSceneTrans = glm::mat4(1.0f);
 }
 
 core_sgct::ClusterManager::~ClusterManager()
@@ -60,4 +62,14 @@ core_sgct::SGCTNode * core_sgct::ClusterManager::getNodePtr(unsigned int index)
 core_sgct::SGCTNode * core_sgct::ClusterManager::getThisNodePtr()
 {
 	return mThisNodeId < 0 ? NULL : &nodes[mThisNodeId];
+}
+
+void core_sgct::ClusterManager::updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset)
+{
+	mSceneTrans =
+		glm::yawPitchRoll(
+			yaw,
+			pitch,
+			roll)
+        * glm::translate( glm::mat4(1.0f), offset);
 }

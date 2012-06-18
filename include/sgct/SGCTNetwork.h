@@ -45,6 +45,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #endif
 
 typedef void * GLFWmutex;
+typedef void * GLFWcond;
 
 namespace core_sgct //small graphics cluster toolkit
 {
@@ -57,7 +58,7 @@ public:
 	void closeNetwork(bool forced);
 	void initShutdown();
 	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	void setUpdateFunction(std::tr1::function<void (void)> callback);
+	void setUpdateFunction(std::tr1::function<void (int)> callback);
 	void setConnectedFunction(std::tr1::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
@@ -82,7 +83,7 @@ public:
 	SOCKET mSocket;
 	SOCKET mListenSocket;
 	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::tr1::function< void(void) > mUpdateCallbackFn;
+	std::tr1::function< void(int) > mUpdateCallbackFn;
 	std::tr1::function< void(void) > mConnectedCallbackFn;
 	int mCommThreadId;
 
@@ -95,7 +96,8 @@ public:
 	enum PackageHeaders { SyncHeader = 17, SizeHeader, ConnectedHeader };
 	enum ServerTypes { SyncServer = 0, ExternalControl };
 
-	GLFWmutex connectionMutex;
+	GLFWmutex mConnectionMutex;
+	GLFWcond mDoneCond;
 
 private:
 	int mServerType;

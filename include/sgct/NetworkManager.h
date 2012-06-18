@@ -62,7 +62,7 @@ private:
 	bool addConnection(const std::string port, const std::string ip, int serverType = SGCTNetwork::SyncServer);
 	void initAPI();
 	void getHostInfo();
-	void updateConnectionStatus();
+	void updateConnectionStatus(int index);
 	void setAllNodesConnected();
 
 public:

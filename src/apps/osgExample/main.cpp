@@ -146,12 +146,12 @@ void myPostSyncPreDrawFun()
 		takeScreenshot = false;
 	}
 
-	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) : 
+	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
 	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
-	
+
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
 
@@ -287,7 +287,7 @@ void setupLightSource()
 
 	light0->setLightNum( 0 );
 	light0->setPosition( osg::Vec4( 5.0f, 5.0f, 10.0f, 1.0f ) );
-	light0->setAmbient( osg::Vec4( 0.3f, 0.3f, 0.3f, 1.0f ) ); 
+	light0->setAmbient( osg::Vec4( 0.3f, 0.3f, 0.3f, 1.0f ) );
 	light0->setDiffuse( osg::Vec4( 0.8f, 0.8f, 0.8f, 1.0f ) );
 	light0->setSpecular( osg::Vec4( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	light0->setConstantAttenuation( 1.0f );
@@ -302,7 +302,7 @@ void setupLightSource()
 	light1->setDiffuse( osg::Vec4( 0.5f, 0.5f, 0.5f, 1.0f ) );
 	light1->setSpecular( osg::Vec4( 0.2f, 0.2f, 0.2f, 1.0f ) );
 	light1->setConstantAttenuation( 1.0f );
-	 
+
 	lightSource1->setLight( light1 );
     lightSource1->setLocalStateSetModes( osg::StateAttribute::ON );
 	lightSource1->setStateSetModes( *(mRootNode->getOrCreateStateSet()), osg::StateAttribute::ON );

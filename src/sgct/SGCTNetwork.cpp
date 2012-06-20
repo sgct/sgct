@@ -62,6 +62,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL connectionHandler(void *arg);
 
+#define MAX_NUMBER_OF_ATTEMPS 10
+
 core_sgct::SGCTNetwork::SGCTNetwork()
 {
 	mCommThreadId		= -1;
@@ -282,6 +284,7 @@ void core_sgct::SGCTNetwork::setOptions(SOCKET * socketPtr)
                 (char *)&timeout,
                 sizeof(timeout));
 
+		//iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_DONTLINGER, (char*)&flag, sizeof(int));
         iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
         iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
 	}
@@ -306,7 +309,7 @@ void core_sgct::SGCTNetwork::closeSocket(SOCKET lSocket)
         sgct::Engine::lockMutex(mConnectionMutex);
 #ifdef __WIN32__
         shutdown(lSocket, SD_BOTH);
-        closesocket( lSocket );
+		closesocket( lSocket );
 #else
 		shutdown(lSocket, SHUT_RDWR);
 		close( lSocket );
@@ -330,27 +333,6 @@ void core_sgct::SGCTNetwork::iterateFrameCounter()
 		mSendFrame = 0;
 }
 
-void core_sgct::SGCTNetwork::checkIfBufferNeedsResizing()
-{
-	//check if buffer needs to be re-sized
-    if( sgct::SharedData::Instance()->getDataSize() > mBufferSize && isConnected())
-    {
-        mBufferSize = sgct::SharedData::Instance()->getDataSize();
-        char * p = (char *)&mBufferSize;
-
-        //create package
-        char resizeMessage[5];
-        resizeMessage[0] = SGCTNetwork::SizeHeader;
-        resizeMessage[1] = p[0];
-        resizeMessage[2] = p[1];
-        resizeMessage[3] = p[2];
-        resizeMessage[4] = p[3];
-
-        if( sendData(resizeMessage,5) == SOCKET_ERROR )
-            sgct::MessageHandler::Instance()->print("Failed to send resize message!\n");
-    }
-}
-
 void core_sgct::SGCTNetwork::pushClientMessage()
 {
 #ifdef __SGCT_DEBUG__
@@ -361,13 +343,12 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 	int currentFrame = getSendFrame();
 	unsigned char *p = (unsigned char *)&currentFrame;
 
-	//check if message fits in buffer
-    if(sgct::MessageHandler::Instance()->getDataSize() > syncHeaderSize)
+    if(sgct::MessageHandler::Instance()->getDataSize() > mHeaderSize)
     {
         //Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
 		char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
-		messageToSend[0] = SGCTNetwork::SyncHeader;
+		messageToSend[0] = SGCTNetwork::SyncByte;
 		messageToSend[1] = p[0];
 		messageToSend[2] = p[1];
 		messageToSend[3] = p[2];
@@ -377,7 +358,9 @@ void core_sgct::SGCTNetwork::pushClientMessage()
 			sgct::MessageHandler::Instance()->getDataSize() > mBufferSize ?
 			mBufferSize :
 			sgct::MessageHandler::Instance()->getDataSize();
-		unsigned char *currentMessageSizePtr = (unsigned char *)&currentMessageSize;
+
+        unsigned int dataSize = currentMessageSize - mHeaderSize;
+		unsigned char *currentMessageSizePtr = (unsigned char *)&dataSize;
 		messageToSend[5] = currentMessageSizePtr[0];
 		messageToSend[6] = currentMessageSizePtr[1];
 		messageToSend[7] = currentMessageSizePtr[2];
@@ -391,21 +374,21 @@ void core_sgct::SGCTNetwork::pushClientMessage()
     }
 	else
 	{
-		char tmpca[syncHeaderSize];
-		tmpca[0] = SGCTNetwork::SyncHeader;
+		char tmpca[mHeaderSize];
+		tmpca[0] = SGCTNetwork::SyncByte;
 		tmpca[1] = p[0];
 		tmpca[2] = p[1];
 		tmpca[3] = p[2];
 		tmpca[4] = p[3];
 
-		unsigned int localSyncHeaderSize = syncHeaderSize;
+		unsigned int localSyncHeaderSize = 0;
 		unsigned char *currentMessageSizePtr = (unsigned char *)&localSyncHeaderSize;
 		tmpca[5] = currentMessageSizePtr[0];
 		tmpca[6] = currentMessageSizePtr[1];
 		tmpca[7] = currentMessageSizePtr[2];
 		tmpca[8] = currentMessageSizePtr[3];
 
-		if( sendData((void *)tmpca, syncHeaderSize) == SOCKET_ERROR )
+		if( sendData((void *)tmpca, mHeaderSize) == SOCKET_ERROR )
             sgct::MessageHandler::Instance()->print("Failed to send sync header!\n");
 	}
 }
@@ -478,7 +461,7 @@ bool core_sgct::SGCTNetwork::isConnected()
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpb = mConnected;
 	sgct::Engine::unlockMutex(mConnectionMutex);
-	return tmpb;
+    return tmpb;
 }
 
 int core_sgct::SGCTNetwork::getTypeOfServer()
@@ -539,6 +522,76 @@ void core_sgct::SGCTNetwork::setRecvFrame(int i)
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
+int core_sgct::SGCTNetwork::receiveData(SOCKET & lsocket, char * buffer, int length, int flags)
+{
+    int iResult = 0;
+    static int attempts = 1;
+
+    while( iResult < length )
+    {
+        int tmpRes = recv( lsocket, buffer + iResult, length - iResult, flags);
+#ifdef __SGCT_NETWORK_DEBUG__
+        sgct::MessageHandler::Instance()->print("Received %d bytes of %d...\n", tmpRes, length);
+        for(int i=0; i<tmpRes; i++)
+            sgct::MessageHandler::Instance()->print("%u\t", buffer[i]);
+        sgct::MessageHandler::Instance()->print("\n");
+#endif
+
+        if( tmpRes > 0 )
+            iResult += tmpRes;
+#ifdef __WIN32__
+        else if( errno == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+#else
+        else if( errno == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+#endif
+        {
+            sgct::MessageHandler::Instance()->print("Receiving data after interrupted system error (attempt %d)...\n", attempts);
+            //iResult = 0;
+            attempts++;
+        }
+        else
+        {
+            //capture error
+            iResult = tmpRes;
+            break;
+        }
+    }
+
+    return iResult;
+}
+
+int core_sgct::SGCTNetwork::parseInt(char * str)
+{
+    union
+    {
+        int i;
+        char c[4];
+    } ci;
+
+    ci.c[0] = str[0];
+    ci.c[1] = str[1];
+    ci.c[2] = str[2];
+    ci.c[3] = str[3];
+
+    return ci.i;
+}
+
+unsigned int core_sgct::SGCTNetwork::parseUnsignedInt(char * str)
+{
+    union
+    {
+        unsigned int ui;
+        char c[4];
+    } cui;
+
+    cui.c[0] = str[0];
+    cui.c[1] = str[1];
+    cui.c[2] = str[2];
+    cui.c[3] = str[3];
+
+    return cui.ui;
+}
+
 /*
 function to decode messages
 */
@@ -587,15 +640,17 @@ void GLFWCALL communicationHandler(void *arg)
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
-	//init buffer
-	int recvbuflen = nPtr->mBufferSize;
-	char * recvbuf;
-	recvbuf = reinterpret_cast<char *>( malloc(nPtr->mBufferSize) );
+	//init buffers
+	char recvHeader[core_sgct::SGCTNetwork::mHeaderSize];
+	memset(recvHeader, core_sgct::SGCTNetwork::FillByte, core_sgct::SGCTNetwork::mHeaderSize);
+	char * recvBuf = NULL;
 
-	std::string extBuffer;
+	//recvbuf = reinterpret_cast<char *>( malloc(nPtr->mBufferSize) );
+	recvBuf = new (std::nothrow) char[nPtr->mBufferSize];
+	std::string extBuffer; //for external comm
 
 	// Receive data until the server closes the connection
-	int iResult;
+	int iResult = 0;
 	do
 	{
 		//resize buffer request
@@ -608,55 +663,123 @@ void GLFWCALL communicationHandler(void *arg)
             sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", nPtr->mRequestedSize);
 			sgct::Engine::lockMutex(nPtr->mConnectionMutex);
 				nPtr->mBufferSize = nPtr->mRequestedSize;
-				recvbuflen = nPtr->mRequestedSize;
 
-				recvbuf = reinterpret_cast<char *>( realloc(recvbuf, nPtr->mRequestedSize) );
+				//clean up
+                delete [] recvBuf;
+                recvBuf = NULL;
+
+                //allocate
+                bool allocError = false;
+                recvBuf = new (std::nothrow) char[nPtr->mRequestedSize];
+                if(recvBuf == NULL)
+                    allocError = true;
+
 			sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
 
-			if(recvbuf != NULL)
-				sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
-			else
+			if(allocError)
 				sgct::MessageHandler::Instance()->print("Network error: Buffer failed to resize!\n");
+			else
+				sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
+
 			#ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Done.\n");
             #endif
 		}
 
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("Receiving data (buffer size: %d)...\n", recvbuflen);
+        sgct::MessageHandler::Instance()->print("Receiving message header...\n");
 #endif
-		iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
-#ifdef __WIN32__
-		while( iResult < 0 && errno == WSAEINTR)
-#else
-		while( iResult < 0 && errno == EINTR)
+
+        /*
+            Get & parse the message header if not external control
+        */
+        int syncFrameNumber = -1;
+        unsigned int dataSize = 0;
+        unsigned char packageId = core_sgct::SGCTNetwork::FillByte;
+
+        if( nPtr->getTypeOfServer() != core_sgct::SGCTNetwork::ExternalControl )
+        {
+            iResult = core_sgct::SGCTNetwork::receiveData(nPtr->mSocket,
+                               recvHeader,
+                               static_cast<int>(core_sgct::SGCTNetwork::mHeaderSize),
+                               0);
+        }
+
+#ifdef __SGCT_NETWORK_DEBUG__
+        sgct::MessageHandler::Instance()->print("Header: %u | %u %u %u %u | %u %u %u %u\n",
+                                                recvHeader[0],
+                                                recvHeader[1],
+                                                recvHeader[2],
+                                                recvHeader[3],
+                                                recvHeader[4],
+                                                recvHeader[5],
+                                                recvHeader[6],
+                                                recvHeader[7],
+                                                recvHeader[8]);
 #endif
-		{
-		    sgct::MessageHandler::Instance()->print("Receiving data after interrupted system error...\n");
-		    iResult = recv( nPtr->mSocket, recvbuf, recvbuflen, 0);
-		}
+
+        if( iResult == static_cast<int>(core_sgct::SGCTNetwork::mHeaderSize))
+        {
+            packageId = recvHeader[0];
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("Done. Received %d bytes.\n", iResult);
+            sgct::MessageHandler::Instance()->print("Package id=%d...\n", packageId);
 #endif
+            if( packageId == core_sgct::SGCTNetwork::SyncByte )
+            {
+                //parse the sync frame number
+                syncFrameNumber = core_sgct::SGCTNetwork::parseInt(&recvHeader[1]);
+                //parse the data size
+                dataSize = core_sgct::SGCTNetwork::parseUnsignedInt(&recvHeader[5]);
+
+                //resize buffer if needed
+                sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+                if( dataSize > nPtr->mBufferSize )
+                {
+                    //clean up
+                    delete [] recvBuf;
+                    recvBuf = NULL;
+
+                    //allocate
+                    recvBuf = new (std::nothrow) char[dataSize];
+                    if(recvBuf != NULL)
+                    {
+                        nPtr->mBufferSize = dataSize;
+                    }
+                }
+
+                sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+            }
+        }
+
+
+#ifdef __SGCT_DEBUG__
+        sgct::MessageHandler::Instance()->print("Receiving data (buffer size: %d)...\n", dataSize);
+#endif
+        /*
+            Get the data/message
+        */
+        if( dataSize > 0 )
+        {
+            iResult = core_sgct::SGCTNetwork::receiveData(nPtr->mSocket,
+                                        recvBuf,
+                                        dataSize,
+                                        0);
+#ifdef __SGCT_DEBUG__
+        sgct::MessageHandler::Instance()->print("Data type:% %d bytes of %u...\n", packageId, iResult, dataSize);
+#endif
+        }
+
 		if (iResult > 0)
 		{
-
-#ifdef __SGCT_DEBUG__
-            sgct::MessageHandler::Instance()->print("Received bytes: %d.\n", iResult);
-            sgct::MessageHandler::Instance()->print("First byte: %d. Header size: %d\n",
-                                                    recvbuf[0],
-                                                    core_sgct::SGCTNetwork::syncHeaderSize);
-
-#endif
             //game over message
-			if( recvbuflen > 6 &&
-                recvbuf[0] == 24 &&
-                recvbuf[1] == '\r' &&
-                recvbuf[2] == '\n' &&
-                recvbuf[3] == 27 &&
-                recvbuf[4] == '\r' &&
-                recvbuf[5] == '\n' &&
-                recvbuf[6] == '\0' )
+			if( packageId == core_sgct::SGCTNetwork::DisconnectByte &&
+                recvHeader[1] == 24 &&
+                recvHeader[2] == '\r' &&
+                recvHeader[3] == '\n' &&
+                recvHeader[4] == 27 &&
+                recvHeader[5] == '\r' &&
+                recvHeader[6] == '\n' &&
+                recvHeader[7] == '\0' )
             {
                 nPtr->setConnectedStatus(false);
 
@@ -677,115 +800,29 @@ void GLFWCALL communicationHandler(void *arg)
             }
 			else if( nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::SyncServer )
 			{
-				//check type of message
-				//Resize if needed
-				if( recvbuf[0] == core_sgct::SGCTNetwork::SizeHeader &&
-					recvbuflen > 4)
-				{
-#ifdef __SGCT_DEBUG__
-                    sgct::MessageHandler::Instance()->print("Re-sizing shared data buffer... ");
-#endif
-
-                    union
-					{
-						unsigned int newSize;
-						char c[4];
-					} cui;
-					//parse int
-					cui.c[0] = recvbuf[1];
-					cui.c[1] = recvbuf[2];
-					cui.c[2] = recvbuf[3];
-					cui.c[3] = recvbuf[4];
-
-                    /*
-                        MessageHandler contains a mutex object and cannot be called when the mutex is locked.
-                    */
-					sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", cui.newSize);
-					sgct::Engine::lockMutex(nPtr->mConnectionMutex);
-					nPtr->mBufferSize = cui.newSize;
-					recvbuflen = static_cast<int>(cui.newSize);
-
-                    recvbuf = reinterpret_cast<char *>( realloc(recvbuf, cui.newSize) );
-                    //free(recvbuf);
-					//recvbuf = (char *)malloc(cui.newSize);
-
-					sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
-
-					if(recvbuf != NULL)
-						sgct::MessageHandler::Instance()->print("Network: Buffer resized successfully!\n");
-					else
-						sgct::MessageHandler::Instance()->print("Network error: Buffer failed to resize!\n");
-
-#ifdef __SGCT_DEBUG__
-                    sgct::MessageHandler::Instance()->print("Done.\n");
-#endif
-				}
-				else if( recvbuf[0] == core_sgct::SGCTNetwork::SyncHeader &&
-					iResult >= static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize) &&
+				if( packageId == core_sgct::SGCTNetwork::SyncByte &&
 					nPtr->mDecoderCallbackFn != NULL)
 				{
-#ifdef __SGCT_DEBUG__
-                    sgct::MessageHandler::Instance()->print("Parsing sync data...\n");
-#endif
-					//convert from uchar to int32
-					union
+					nPtr->setRecvFrame( syncFrameNumber );
+					if( syncFrameNumber < 0 )
 					{
-						int i;
-						unsigned char c[4];
-					} ci;
-
-					ci.c[0] = recvbuf[1];
-					ci.c[1] = recvbuf[2];
-					ci.c[2] = recvbuf[3];
-					ci.c[3] = recvbuf[4];
-
-					nPtr->setRecvFrame( ci.i );
-
-					//convert from uchar to uint32
-					union
-					{
-						unsigned int ui;
-						unsigned char c[4];
-					} cui;
-
-					cui.c[0] = recvbuf[5];
-					cui.c[1] = recvbuf[6];
-					cui.c[2] = recvbuf[7];
-					cui.c[3] = recvbuf[8];
-
-#ifdef __SGCT_DEBUG__
-                    sgct::MessageHandler::Instance()->print("Package info: Frame = %d, Size = %u\n", ci.i, cui.ui);
-#endif
-
-					while( static_cast<unsigned int>(iResult) < cui.ui && iResult > 0)
-					{
-						sgct::MessageHandler::Instance()->print("Network: Waiting for additional data (Frame %d, data %d of %u)...\n", ci.i, iResult, cui.ui);
-
-						int tempResult = recv( nPtr->mSocket, recvbuf + iResult, recvbuflen, 0);
-
-						if(tempResult > 0)
-							iResult += tempResult;
-						else
-						{
-							sgct::MessageHandler::Instance()->print("Network: Fatal network error!\n");
-							//0 or SOCKET_ERROR (-1)
-							iResult = tempResult;
-							break;
-						}
-
+						sgct::MessageHandler::Instance()->print("Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
 					}
 
-					if( iResult > 0 )
-						(nPtr->mDecoderCallbackFn)(recvbuf+core_sgct::SGCTNetwork::syncHeaderSize,
-							iResult-core_sgct::SGCTNetwork::syncHeaderSize,
-							nPtr->getId());
+#ifdef __SGCT_DEBUG__
+                    sgct::MessageHandler::Instance()->print("Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
+#endif
+
+                    //decode callback
+                    if(dataSize > 0)
+                        (nPtr->mDecoderCallbackFn)(recvBuf, dataSize, nPtr->getId());
 
 					sgct::Engine::signalCond( core_sgct::NetworkManager::gCond );
 #ifdef __SGCT_DEBUG__
                     sgct::MessageHandler::Instance()->print("Done.\n");
 #endif
 				}
-				else if( recvbuf[0] == core_sgct::SGCTNetwork::ConnectedHeader &&
+				else if( packageId == core_sgct::SGCTNetwork::ConnectedByte &&
 					nPtr->mConnectedCallbackFn != NULL)
 				{
 #ifdef __SGCT_DEBUG__
@@ -803,7 +840,7 @@ void GLFWCALL communicationHandler(void *arg)
 #ifdef __SGCT_DEBUG__
                 sgct::MessageHandler::Instance()->print("Parsing external tcp data... ");
 #endif
-				std::string tmpStr(recvbuf);
+				std::string tmpStr(recvBuf);
 				extBuffer += tmpStr.substr(0, iResult);
 				std::size_t found = extBuffer.find("\r\n");
 				while( found != std::string::npos )
@@ -834,7 +871,12 @@ void GLFWCALL communicationHandler(void *arg)
 #ifdef __SGCT_DEBUG__
             sgct::MessageHandler::Instance()->print("Done.\n");
 #endif
-			sgct::MessageHandler::Instance()->print("TCP Connection %d closed.\n", nPtr->getId());
+
+#ifdef __WIN32__
+			sgct::MessageHandler::Instance()->print("TCP Connection %d closed (error: %d)\n", nPtr->getId(), WSAGetLastError());
+#else
+            sgct::MessageHandler::Instance()->print("TCP Connection %d closed (error: %d)\n", nPtr->getId(), errno);
+#endif
 		}
 		else
 		{
@@ -852,36 +894,41 @@ void GLFWCALL communicationHandler(void *arg)
             sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
 #endif
 		}
+
 	} while (iResult > 0 || nPtr->isConnected());
+
 
 	//cleanup
 	sgct::Engine::lockMutex(nPtr->mConnectionMutex);
-	if( recvbuf != NULL )
+	if( recvBuf != NULL )
     {
-        free(recvbuf);
-        recvbuf = NULL;
+        //free(recvbuf);
+        delete [] recvBuf;
+        recvBuf = NULL;
     }
-
-	sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+    sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
 
 	//Close socket
 	nPtr->closeSocket( nPtr->mSocket );
-
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
-    //ToDo-> kanske får ta bort den här...
-    if( nPtr->isServer() )
+	if( nPtr->isServer() )
 	{
 		sgct::Engine::signalCond( core_sgct::NetworkManager::gStartConnectionCond );
 	}
 
-    sgct::MessageHandler::Instance()->print("Slave %d disconnected!\n", nPtr->getId());
+	sgct::MessageHandler::Instance()->print("Node %d disconnected!\n", nPtr->getId());
 }
 
 int core_sgct::SGCTNetwork::sendData(void * data, int length)
 {
 	//fprintf(stderr, "Send data size: %d\n", length);
+#ifdef __SGCT_NETWORK_DEBUG__
+	for(int i=0; i<length; i++)
+        fprintf(stderr, "%u ", ((const char *)data)[i]);
+    fprintf(stderr, "\n");
+#endif
 	return send(mSocket, (const char *)data, length, 0);
 }
 
@@ -917,7 +964,7 @@ void core_sgct::SGCTNetwork::closeNetwork(bool forced)
         mConnectionMutex,
         0.25 );
     sgct::Engine::unlockMutex(mConnectionMutex);
-	
+
     if( mConnectionMutex != NULL )
 	{
 		sgct::Engine::destroyMutex(mConnectionMutex);

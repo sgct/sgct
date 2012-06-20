@@ -76,8 +76,10 @@ public:
 	void swapFrames();
 	int sendData(void * data, int length);
 	int sendStr(std::string msg);
+	static int receiveData(SOCKET & lsocket, char * buffer, int length, int flags);
+	static int parseInt(char * str);
+	static unsigned int parseUnsignedInt(char * str);
 	void iterateFrameCounter();
-	void checkIfBufferNeedsResizing();
 	void pushClientMessage();
 
 	SOCKET mSocket;
@@ -91,9 +93,9 @@ public:
 
 	unsigned int mBufferSize;
 	unsigned int mRequestedSize;
-	static const unsigned int syncHeaderSize = 9;
+	static const unsigned int mHeaderSize     = 9;
 	//ASCII device control chars = 17, 18, 19 & 20
-	enum PackageHeaders { SyncHeader = 17, SizeHeader, ConnectedHeader };
+	enum PackageHeaders { SyncByte = 17, ConnectedByte, DisconnectByte, FillByte };
 	enum ServerTypes { SyncServer = 0, ExternalControl };
 
 	GLFWmutex mConnectionMutex;

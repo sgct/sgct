@@ -44,14 +44,14 @@ sgct::MessageHandler::MessageHandler(void)
 	mParseBuffer	= reinterpret_cast<char*>( malloc(MESSAGE_HANDLER_MAX_SIZE) );
 
 	headerSpace		= NULL;
-	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::syncHeaderSize) );
+	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::mHeaderSize) );
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 
-	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
-		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
-	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
+	for(unsigned int i=0; i<core_sgct::SGCTNetwork::mHeaderSize; i++)
+		headerSpace[i] = core_sgct::SGCTNetwork::SyncByte;
+	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
 
     mLocal = true;
 }
@@ -70,15 +70,12 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(receivedlength > 0)
-	{
-		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-	}
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
 void sgct::MessageHandler::print(const char *fmt, ...)
@@ -111,7 +108,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
     {
         Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 		if(mBuffer.empty())
-			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize);
+			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
 		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
 		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
     }

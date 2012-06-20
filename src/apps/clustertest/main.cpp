@@ -3,7 +3,7 @@
 #include <zlib.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
-#define EXTENDED_SIZE 10000
+#define EXTENDED_SIZE 40000
 
 sgct::Engine * gEngine;
 

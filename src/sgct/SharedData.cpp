@@ -62,10 +62,10 @@ SharedData::SharedData()
 		currentStorage = &dataBlock;
 
 	headerSpace		= NULL;
-	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::syncHeaderSize) );
+	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::mHeaderSize) );
 
-	for(unsigned int i=0; i<core_sgct::SGCTNetwork::syncHeaderSize; i++)
-		headerSpace[i] = core_sgct::SGCTNetwork::SyncHeader;
+	for(unsigned int i=0; i<core_sgct::SGCTNetwork::mHeaderSize; i++)
+		headerSpace[i] = core_sgct::SGCTNetwork::SyncByte;
 }
 
 SharedData::~SharedData()
@@ -96,7 +96,7 @@ void SharedData::setCompression(bool state, int level)
 
 unsigned int SharedData::getUserDataSize()
 {
-	return mUseCompression ? mCompressedSize : (dataBlock.size() - core_sgct::SGCTNetwork::syncHeaderSize);
+	return mUseCompression ? mCompressedSize : (dataBlock.size() - core_sgct::SGCTNetwork::mHeaderSize);
 }
 
 void SharedData::setEncodeFunction(void(*fnPtr)(void))
@@ -111,84 +111,80 @@ void SharedData::setDecodeFunction(void(*fnPtr)(void))
 
 void SharedData::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(receivedlength > 0)
-	{
 #ifdef __SGCT_DEBUG__
-        MessageHandler::Instance()->print("SharedData::decode\n");
+    MessageHandler::Instance()->print("SharedData::decode\n");
 #endif
-		Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+    Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 
-		//reset
-		pos = core_sgct::SGCTNetwork::syncHeaderSize;
+    //reset
+    pos = 0;
+    dataBlock.clear();
 
-		if(mUseCompression && receivedlength > 8)
-		{
-			//get original size (fist 4 bytes after header)
-			union
-			{
-				unsigned int ui;
-				unsigned char c[4];
-			} cui;
+    if(mUseCompression)
+    {
+        //get original size (fist 4 bytes after header)
+        union
+        {
+            unsigned int ui;
+            unsigned char c[4];
+        } cui;
 
-			cui.c[0] = receivedData[0];
-			cui.c[1] = receivedData[1];
-			cui.c[2] = receivedData[2];
-			cui.c[3] = receivedData[3];
+        cui.c[0] = receivedData[0];
+        cui.c[1] = receivedData[1];
+        cui.c[2] = receivedData[2];
+        cui.c[3] = receivedData[3];
 
-			//re-allocatate if needed
-			if(mCompressedBufferSize < cui.ui)
-			{
-				mCompressedBuffer = reinterpret_cast<unsigned char*>( realloc(mCompressedBuffer, cui.ui) );
-				mCompressedBufferSize = cui.ui;
-			}
+        //re-allocatate if needed
+        if(mCompressedBufferSize < cui.ui)
+        {
+            mCompressedBuffer = reinterpret_cast<unsigned char*>( realloc(mCompressedBuffer, cui.ui) );
+            mCompressedBufferSize = cui.ui;
+        }
 
-			//get compressed data block size
-			cui.c[0] = receivedData[4];
-			cui.c[1] = receivedData[5];
-			cui.c[2] = receivedData[6];
-			cui.c[3] = receivedData[7];
-			mCompressedSize = cui.ui;
+        //get compressed data block size
+        cui.c[0] = receivedData[4];
+        cui.c[1] = receivedData[5];
+        cui.c[2] = receivedData[6];
+        cui.c[3] = receivedData[7];
+        mCompressedSize = cui.ui;
 
-			uLongf data_size = static_cast<uLongf>(mCompressedSize);
-			uLongf uncompressed_size = static_cast<uLongf>(mCompressedBufferSize);
-			const Bytef * data = reinterpret_cast<const Bytef *>(receivedData + 8);
+        uLongf data_size = static_cast<uLongf>(mCompressedSize);
+        uLongf uncompressed_size = static_cast<uLongf>(mCompressedBufferSize);
+        const Bytef * data = reinterpret_cast<const Bytef *>(receivedData + 8);
 
-			int err = uncompress(
-				mCompressedBuffer,
-				&uncompressed_size,
-				data,
-				data_size);
+        int err = uncompress(
+            mCompressedBuffer,
+            &uncompressed_size,
+            data,
+            data_size);
 
-			if(err == Z_OK)
-			{
-				//re-allocate buffer if needed
-				if( (uncompressed_size + static_cast<unsigned int>(core_sgct::SGCTNetwork::syncHeaderSize)) > dataBlock.capacity() )
-					dataBlock.reserve(uncompressed_size + core_sgct::SGCTNetwork::syncHeaderSize);
-				dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
-				dataBlock.insert(dataBlock.end(), mCompressedBuffer, mCompressedBuffer + uncompressed_size);
+        if(err == Z_OK)
+        {
+            //re-allocate buffer if needed
+            if( uncompressed_size > dataBlock.capacity() )
+                dataBlock.reserve(uncompressed_size);
+            dataBlock.insert(dataBlock.end(), mCompressedBuffer, mCompressedBuffer + uncompressed_size);
 
-				mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(uncompressed_size);
-			}
-			else
-			{
-				Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-				MessageHandler::Instance()->print("SharedData: Failed to un-compress data (error: %d). Received %d bytes.\n", err, receivedlength);
-				return;
-			}
-		}
-		else //not using compression
-		{
-			if( (receivedlength + static_cast<int>(core_sgct::SGCTNetwork::syncHeaderSize)) > static_cast<int>(dataBlock.capacity()) )
-				dataBlock.reserve(receivedlength + core_sgct::SGCTNetwork::syncHeaderSize);
-			dataBlock.assign(headerSpace, headerSpace + core_sgct::SGCTNetwork::syncHeaderSize);
-			dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
-		}
+            mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(uncompressed_size);
+        }
+        else
+        {
+            Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+            MessageHandler::Instance()->print("SharedData: Failed to un-compress data (error: %d). Received %d bytes.\n", err, receivedlength);
+            return;
+        }
+    }
+    else //not using compression
+    {
+        if( receivedlength > static_cast<int>(dataBlock.capacity()) )
+            dataBlock.reserve(receivedlength);
+        dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
+    }
 
-		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 
-		if( mDecodeFn != NULL )
-			mDecodeFn();
-	}
+    if( mDecodeFn != NULL )
+        mDecodeFn();
 }
 
 void SharedData::encode()
@@ -204,7 +200,7 @@ void SharedData::encode()
 		dataBlockToCompress.clear();
 
 	//reserve header space
-	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::syncHeaderSize );
+	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize );
 
 	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 

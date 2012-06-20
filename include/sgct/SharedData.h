@@ -94,7 +94,7 @@ public:
 
 	/*
 		Compression error/info codes:
-	
+
 		Z_OK            0
 		Z_STREAM_END    1
 		Z_NEED_DICT     2

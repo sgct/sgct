@@ -179,7 +179,8 @@ void core_sgct::NetworkManager::sync()
 			mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
 			mNetworkConnections[i]->isServer())
 		{
-			mNetworkConnections[i]->checkIfBufferNeedsResizing();
+			unsigned int currentSize =
+                sgct::SharedData::Instance()->getDataSize() - core_sgct::SGCTNetwork::mHeaderSize;
 
 			//iterate counter
 			mNetworkConnections[i]->iterateFrameCounter();
@@ -189,10 +190,9 @@ void core_sgct::NetworkManager::sync()
 
 			sgct::Engine::lockMutex(gMutex);
 				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
-				unsigned int currentSize = sgct::SharedData::Instance()->getDataSize();
 				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
 
-				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncHeader;
+				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncByte;
 				sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
 				sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
 				sgct::SharedData::Instance()->getDataBlock()[3] = currentFrameDataPtr[2];
@@ -205,7 +205,9 @@ void core_sgct::NetworkManager::sync()
 				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
-				int sendErr = mNetworkConnections[i]->sendData( sgct::SharedData::Instance()->getDataBlock(), sgct::SharedData::Instance()->getDataSize() );
+				int sendErr = mNetworkConnections[i]->sendData(
+                                sgct::SharedData::Instance()->getDataBlock(),
+                                sgct::SharedData::Instance()->getDataSize() );
 			sgct::Engine::unlockMutex(gMutex);
 
             if (sendErr == SOCKET_ERROR)
@@ -286,8 +288,11 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index)
 			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 				if( mNetworkConnections[i]->isConnected() )
 				{
-					char tmpc = SGCTNetwork::ConnectedHeader;
-					int sendErr = mNetworkConnections[i]->sendData(&tmpc, 1);
+					char tmpc[SGCTNetwork::mHeaderSize];
+					tmpc[0] = SGCTNetwork::ConnectedByte;
+					for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
+                        tmpc[j] = SGCTNetwork::FillByte;
+					int sendErr = mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 					if (sendErr == SOCKET_ERROR)
                         sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
 				}

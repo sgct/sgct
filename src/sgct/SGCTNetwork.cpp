@@ -760,7 +760,7 @@ void GLFWCALL communicationHandler(void *arg)
         */
         if( dataSize > 0 )
         {
-            iResult = core_sgct::SGCTNetwork::receiveData(nPtr->mSocket,
+			iResult = core_sgct::SGCTNetwork::receiveData(nPtr->mSocket,
                                         recvBuf,
                                         dataSize,
                                         0);
@@ -768,6 +768,14 @@ void GLFWCALL communicationHandler(void *arg)
         sgct::MessageHandler::Instance()->print("Data type:% %d bytes of %u...\n", packageId, iResult, dataSize);
 #endif
         }
+
+		if( nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl )
+		{
+			iResult = recv( nPtr->mSocket,
+                                        recvBuf,
+                                        nPtr->mBufferSize,
+                                        0);
+		}
 
 		if (iResult > 0)
 		{

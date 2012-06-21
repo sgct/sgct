@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	gEngine->setExternalControlBufferSize( 16384 );
+	//gEngine->setExternalControlBufferSize( 16384 );
 
 	//double t0 = sgct::Engine::getTime();
 	/*core_sgct::PLYReader myPLYReader;

@@ -54,7 +54,7 @@ public:
 	bool isComputerServer() { return mIsServer; }
 	bool isRunning() { return mIsRunning; }
 	bool areAllNodesConnected() { return mAllNodesConnected; }
-	SGCTNetwork * getExternalControlPtr() { return mIsExternalControlPresent ? mNetworkConnections[0] : NULL; }
+	SGCTNetwork * getExternalControlPtr();
 
 	unsigned int getConnectionsCount() { return mNumberOfConnections; }
 

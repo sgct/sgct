@@ -65,12 +65,14 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
-
+	
 	if( !gEngine->init() )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
+
+	gEngine->setExternalControlBufferSize( 16384 );
 
 	//double t0 = sgct::Engine::getTime();
 	/*core_sgct::PLYReader myPLYReader;

@@ -240,6 +240,22 @@ bool core_sgct::NetworkManager::isSyncComplete()
 	return counter == getConnectionsCount();
 }
 
+core_sgct::SGCTNetwork * core_sgct::NetworkManager::getExternalControlPtr()
+{ 
+	core_sgct::SGCTNetwork * netPtr = NULL;
+
+	if( mIsExternalControlPresent )
+	{
+		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+		{
+			if( mNetworkConnections[i]->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl )
+				return mNetworkConnections[i];
+		}
+	}
+
+	return netPtr;
+}
+
 void core_sgct::NetworkManager::swapData()
 {
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)

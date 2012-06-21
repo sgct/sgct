@@ -95,8 +95,11 @@ void core_sgct::SGCTNetwork::init(const std::string port, const std::string ip, 
 
 	mConnectionMutex = sgct::Engine::createMutex();
 	mDoneCond = sgct::Engine::createCondition();
-    if(mConnectionMutex == NULL || mDoneCond == NULL)
-        throw "Failed to create connection mutex & condition.";
+	mStartConnectionCond = sgct::Engine::createCondition();
+    if(mConnectionMutex == NULL ||
+		mDoneCond == NULL ||
+		mStartConnectionCond == NULL )
+        throw "Failed to create connection mutex & conditions.";
 
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 #ifdef __WIN32__ //WinSock
@@ -217,13 +220,12 @@ void GLFWCALL connectionHandler(void *arg)
 				if( nPtr->mCommThreadId != -1 )
 				{
 				    //wait for the connection to disconnect
-				    glfwWaitThread( nPtr->mCommThreadId, GLFW_WAIT );
-
+					glfwWaitThread( nPtr->mCommThreadId, GLFW_WAIT );
                     //reset thread handle/id
 				    nPtr->mCommThreadId = -1;
 				}
-
-                //start a new connection enabling the client to reconnect
+				
+				//start a new connection enabling the client to reconnect
 				nPtr->mCommThreadId = glfwCreateThread( communicationHandler, nPtr );
 				if( nPtr->mCommThreadId < 0)
 				{
@@ -232,12 +234,11 @@ void GLFWCALL connectionHandler(void *arg)
 				/*else
                     sgct::MessageHandler::Instance()->print("Comm thread created, id=%d\n", nPtr->mCommThreadId);*/
 			}
-
-            //wait for signal until next iteration in loop
+			//wait for signal until next iteration in loop
             if( !nPtr->isTerminated() )
             {
                 sgct::Engine::lockMutex(nPtr->mConnectionMutex);
-                    sgct::Engine::waitCond( core_sgct::NetworkManager::gStartConnectionCond,
+                    sgct::Engine::waitCond( nPtr->mStartConnectionCond,
                         nPtr->mConnectionMutex,
                         GLFW_INFINITY );
                 sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
@@ -525,7 +526,7 @@ void core_sgct::SGCTNetwork::setRecvFrame(int i)
 int core_sgct::SGCTNetwork::receiveData(SOCKET & lsocket, char * buffer, int length, int flags)
 {
     int iResult = 0;
-    static int attempts = 1;
+    int attempts = 1;
 
     while( iResult < length )
     {
@@ -765,16 +766,37 @@ void GLFWCALL communicationHandler(void *arg)
                                         dataSize,
                                         0);
 #ifdef __SGCT_DEBUG__
-        sgct::MessageHandler::Instance()->print("Data type:% %d bytes of %u...\n", packageId, iResult, dataSize);
+        sgct::MessageHandler::Instance()->print("Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
 #endif
         }
 
+		/*
+			Get external message
+		*/
 		if( nPtr->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl )
 		{
+			//do a normal read
 			iResult = recv( nPtr->mSocket,
                                         recvBuf,
                                         nPtr->mBufferSize,
                                         0);
+			
+			//if read fails try for x attempts
+			int attempts = 1;
+#ifdef __WIN32__
+			while( iResult <= 0 && errno == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+#else
+			while( iResult <= 0 && errno == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+#endif
+			{
+				iResult = recv( nPtr->mSocket,
+                                        recvBuf,
+                                        nPtr->mBufferSize,
+                                        0);
+
+				sgct::MessageHandler::Instance()->print("Receiving data after interrupted system error (attempt %d)...\n", attempts);
+				attempts++;
+			}
 		}
 
 		if (iResult > 0)
@@ -802,7 +824,7 @@ void GLFWCALL communicationHandler(void *arg)
                     sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
                 }
 
-                sgct::MessageHandler::Instance()->print("Disconnecting (from other peer)...\n");
+				sgct::MessageHandler::Instance()->print("Network: Client %d terminated connection.\n", nPtr->getId());
 
                 break; //exit loop
             }
@@ -914,17 +936,14 @@ void GLFWCALL communicationHandler(void *arg)
         delete [] recvBuf;
         recvBuf = NULL;
     }
-    sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
 
 	//Close socket
 	nPtr->closeSocket( nPtr->mSocket );
+
+    sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
-
-	if( nPtr->isServer() )
-	{
-		sgct::Engine::signalCond( core_sgct::NetworkManager::gStartConnectionCond );
-	}
 
 	sgct::MessageHandler::Instance()->print("Node %d disconnected!\n", nPtr->getId());
 }
@@ -979,6 +998,12 @@ void core_sgct::SGCTNetwork::closeNetwork(bool forced)
 		mConnectionMutex = NULL;
 	}
 
+	if( mStartConnectionCond != NULL )
+	{
+		sgct::Engine::destroyCond(mStartConnectionCond);
+		mStartConnectionCond = NULL;
+	}
+
 	if( mDoneCond != NULL )
 	{
 		sgct::Engine::destroyCond(mDoneCond);
@@ -992,15 +1017,17 @@ void core_sgct::SGCTNetwork::initShutdown()
 {
 	if( isConnected() )
 	{
-        char gameOver[7];
-        gameOver[0] = 24; //ASCII for cancel
-        gameOver[1] = '\r';
-        gameOver[2] = '\n';
-        gameOver[3] = 27; //ASCII for Esc
-        gameOver[4] = '\r';
-        gameOver[5] = '\n';
-        gameOver[6] = '\0';
-        sendData(gameOver, 7);
+        char gameOver[9];
+		gameOver[0] = DisconnectByte;
+        gameOver[1] = 24; //ASCII for cancel
+        gameOver[2] = '\r';
+        gameOver[3] = '\n';
+        gameOver[4] = 27; //ASCII for Esc
+        gameOver[5] = '\r';
+        gameOver[6] = '\n';
+        gameOver[7] = '\0';
+		gameOver[8] = FillByte;
+        sendData(gameOver, mHeaderSize);
 	}
 
 	sgct::MessageHandler::Instance()->print("Closing connection %d... \n", getId());
@@ -1013,7 +1040,7 @@ void core_sgct::SGCTNetwork::initShutdown()
 	//wake up the connection handler thread (in order to finish)
 	if( isServer() )
 	{
-		sgct::Engine::signalCond( core_sgct::NetworkManager::gStartConnectionCond );
+		sgct::Engine::signalCond( mStartConnectionCond );
 	}
 
     closeSocket( mSocket );

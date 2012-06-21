@@ -100,6 +100,7 @@ public:
 
 	GLFWmutex mConnectionMutex;
 	GLFWcond mDoneCond;
+	GLFWcond mStartConnectionCond;
 
 private:
 	int mServerType;

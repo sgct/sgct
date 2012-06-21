@@ -112,12 +112,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
     NetworkManager::gMutex = createMutex();
 	NetworkManager::gSyncMutex = createMutex();
     NetworkManager::gCond = createCondition();
-	NetworkManager::gStartConnectionCond = createCondition();
 
     if(NetworkManager::gMutex == NULL ||
 		NetworkManager::gSyncMutex == NULL ||
-		NetworkManager::gCond == NULL ||
-		NetworkManager::gStartConnectionCond == NULL)
+		NetworkManager::gCond == NULL)
     {
 		mTerminate = true;
 		return;
@@ -144,13 +142,14 @@ bool sgct::Engine::init()
 		sgct::MessageHandler::Instance()->print("Failed to init GLFW.\n");
 		return false;
 	}
-
+	
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
 		sgct::MessageHandler::Instance()->print("Error in xml config file parsing.\n");
 		return false;
 	}
+	
 	if( !initNetwork() )
 	{
 		sgct::MessageHandler::Instance()->print("Network init error.\n");
@@ -191,7 +190,7 @@ bool sgct::Engine::initNetwork()
 		sgct::MessageHandler::Instance()->print("Initiating network connections failed! Error: '%s'\n", err);
 		return false;
 	}
-
+	
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
 		for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
@@ -356,9 +355,12 @@ void sgct::Engine::clean()
 	sgct::ShaderManager::Destroy();
 
 	//de-init window and unbind swapgroups...
-	SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
-	if(nPtr != NULL && nPtr->getWindowPtr() != NULL) //make shure to not use destroyed object
-		nPtr->getWindowPtr()->close();
+	if(ClusterManager::Instance()->getNumberOfNodes() > 0)
+	{
+		SGCTNode * nPtr = ClusterManager::Instance()->getThisNodePtr();
+		if(nPtr != NULL && nPtr->getWindowPtr() != NULL) //make shure to not use destroyed object
+			nPtr->getWindowPtr()->close();
+	}
 
 	//close TCP connections
 	if( mNetworkConnections != NULL )
@@ -404,13 +406,6 @@ void sgct::Engine::clean()
 	{
 		destroyCond( NetworkManager::gCond );
 		NetworkManager::gCond = NULL;
-	}
-
-	sgct::MessageHandler::Instance()->print("Destroying start condition...\n");
-	if( NetworkManager::gStartConnectionCond != NULL )
-	{
-		destroyCond( NetworkManager::gStartConnectionCond );
-		NetworkManager::gStartConnectionCond = NULL;
 	}
 
 	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");

@@ -47,7 +47,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 GLFWmutex core_sgct::NetworkManager::gMutex = NULL;
 GLFWmutex core_sgct::NetworkManager::gSyncMutex = NULL;
 GLFWcond core_sgct::NetworkManager::gCond = NULL;
-GLFWcond core_sgct::NetworkManager::gStartConnectionCond = NULL;
 
 core_sgct::NetworkManager::NetworkManager(int mode)
 {
@@ -335,7 +334,7 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index)
 	//if node disconnects to enable reconnection
 	if( isServer )
 	{
-		sgct::Engine::signalCond( gStartConnectionCond );
+		sgct::Engine::signalCond( mNetworkConnections[index]->mStartConnectionCond );
 	}
 
 	//signal done to caller

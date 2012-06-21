@@ -70,7 +70,6 @@ public:
 	static GLFWmutex gMutex;
 	static GLFWmutex gSyncMutex;
 	static GLFWcond gCond;
-	static GLFWcond gStartConnectionCond;
 
 private:
 	std::vector<SGCTNetwork*> mNetworkConnections;

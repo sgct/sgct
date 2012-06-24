@@ -4,6 +4,7 @@
 #include <osg/Matrix>
 #include <osg/Transform>
 #include <osg/MatrixTransform>
+#include <glm/gtx/euler_angles.hpp>
 
 sgct::Engine * gEngine;
 
@@ -11,8 +12,9 @@ sgct::Engine * gEngine;
 //more controlled termination
 //and prevents segfault on Linux
 osgViewer::Viewer * mViewer;
-osg::ref_ptr<osg::Group> mRootNode;
-osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
+osg::ref_ptr<osg::Group>			mRootNode;
+osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
+osg::ref_ptr<osg::Node>				mModel;
 
 //callbacks
 void myInitOGLFun();
@@ -23,24 +25,40 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
+void mouseButtonCallback(int button, int action);
 
 //other functions
 void initOSG();
 void setupLightSource();
 
 //variables to share across cluster
-double curr_time = 0.0;
-double dist = -10.0;
+double dt = 0.0;
+double animateAngle = 0.0;
+glm::mat4 xform(1.0f);
 bool wireframe = false;
 bool info = false;
 bool stats = false;
 bool takeScreenshot = false;
 bool light = true;
+bool culling = true;
 
 //other var
-bool arrowButtons[4];
-enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
-const double navigation_speed = 5.0;
+bool animate = false;
+glm::vec3 view(0.0f, 0.0f, 1.0f);
+glm::vec3 up(0.0f, 1.0f, 0.0f);
+glm::vec3 position(0.0f, 0.0f, -5.0f);
+bool arrowButtonStatus[6];
+enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UPWARD, DOWNWARD };
+bool mouseButtonStatus[3];
+bool modifierKey = false;
+enum mouseButtons { LEFT_MB = 0, MIDDLE_MB, RIGHT_MB };
+enum axes { X = 0, Y, Z};
+float rotationSpeed = 0.01f;
+float navigation_speed = 1.0f;
+int mouseDiff[] = { 0, 0 };
+/* Stores the positions that will be compared to measure the difference. */
+int mouseXPos[] = { 0, 0 };
+int mouseYPos[] = { 0, 0 };
 
 int main( int argc, char* argv[] )
 {
@@ -52,9 +70,13 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
 
-	for(int i=0; i<4; i++)
-		arrowButtons[i] = false;
+	for(int i=0; i<6; i++)
+		arrowButtonStatus[i] = false;
+
+	for(int i=0; i<3; i++)
+		mouseButtonStatus[i] = false;
 
 	if( !gEngine->init() )
 	{
@@ -79,14 +101,13 @@ void myInitOGLFun()
 {
 	initOSG();
 
-	osg::ref_ptr<osg::Node>            mModel;
 	osg::ref_ptr<osg::MatrixTransform> mModelTrans;
 
 	mSceneTrans = new osg::MatrixTransform();
 	mModelTrans  = new osg::MatrixTransform();
 
 	//rotate osg coordinate system to match sgct
-	mModelTrans->setMatrix( osg::Matrix::scale(0.0001f,0.0001f,0.0001f) );
+	mModelTrans->setMatrix( osg::Matrix::scale(0.00002f,0.00002f,0.00002f) );
 	mModelTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
                                             1.0f, 0.0f, 0.0f));
 
@@ -114,10 +135,6 @@ void myInitOGLFun()
 
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
 		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );
-
-		//disable face culling
-		//mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE,
-		//	osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 	}
 	else
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
@@ -127,12 +144,66 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		curr_time = sgct::Engine::getTime();
+		dt = gEngine->getDt();
 
-		if( arrowButtons[FORWARD] )
-			dist += (navigation_speed * gEngine->getDt());
-		if( arrowButtons[BACKWARD] )
-			dist -= (navigation_speed * gEngine->getDt());
+		if( animate )
+			animateAngle += dt * 2.0;
+
+		if( mouseButtonStatus[ LEFT_MB ] )
+		{
+			sgct::Engine::getMousePos( &mouseXPos[0], &mouseYPos[0] );
+			mouseDiff[ X ] = mouseXPos[0] - mouseXPos[1];
+			mouseDiff[ Y ] = mouseYPos[0] - mouseYPos[1];
+		}
+		else
+		{
+			mouseDiff[ X ] = 0;
+			mouseDiff[ Y ] = 0;
+		}
+
+		static float rotation [] = {0.0f, 0.0f, 0.0f};
+		rotation[ Y ] -= (static_cast<float>(mouseDiff[ X ]) * rotationSpeed * static_cast<float>(dt));
+		rotation[ X ] += (static_cast<float>(mouseDiff[ Y ]) * rotationSpeed * static_cast<float>(dt));
+
+		glm::mat4 ViewRotate = glm::eulerAngleXY( rotation[ X ], rotation[ Y ] );
+
+		view = glm::inverse(glm::mat3(ViewRotate)) * glm::vec3(0.0f, 0.0f, 1.0f);
+		up = glm::inverse(glm::mat3(ViewRotate)) * glm::vec3(0.0f, 1.0f, 0.0f);
+
+		glm::vec3 right = glm::cross(view, up);
+
+		if( arrowButtonStatus[FORWARD] )
+			position += (navigation_speed * static_cast<float>(dt) * view);
+		if( arrowButtonStatus[BACKWARD] )
+			position -= (navigation_speed * static_cast<float>(dt) * view);
+		if( arrowButtonStatus[LEFT] )
+			position -= (navigation_speed * static_cast<float>(dt) * right);
+		if( arrowButtonStatus[RIGHT] )
+			position += (navigation_speed * static_cast<float>(dt) * right);
+		if( arrowButtonStatus[UPWARD] )
+			position -= (navigation_speed * static_cast<float>(dt) * up);
+		if( arrowButtonStatus[DOWNWARD] )
+			position += (navigation_speed * static_cast<float>(dt) * up);
+
+		/*
+			To get a first person camera, the world needs
+			to be transformed around the users head.
+
+			This is done by:
+			1, Transform the user to coordinate system origin
+			2, Apply transformation
+			3, Transform the user back to original position
+
+			However, mathwise this process need to be reversed
+			due to the matrix multiplication order.
+		*/
+
+		//3. transform user back to original position
+		xform = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
+		//2. apply transformation
+		xform *= (ViewRotate * glm::translate( glm::mat4(1.0f), position ));
+		//1. transform user to coordinate system origin
+		xform *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
 
 	}
 }
@@ -143,6 +214,11 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
 
+	if( culling )
+		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
+	else
+		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+
 	if( takeScreenshot )
 	{
 		gEngine->takeScreenshot();
@@ -152,13 +228,13 @@ void myPostSyncPreDrawFun()
 	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
+	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(animateAngle), 0.0, 1.0, 0.0));
+	mSceneTrans->postMult(osg::Matrix( glm::value_ptr(xform) ));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
 
-	mViewer->advance(curr_time);
+	mViewer->advance(dt);
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -176,24 +252,30 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( curr_time );
-	sgct::SharedData::Instance()->writeDouble( dist );
+	sgct::SharedData::Instance()->writeDouble( dt );
+	sgct::SharedData::Instance()->writeDouble( animateAngle );
+	for(int i=0; i<16; i++)
+		sgct::SharedData::Instance()->writeFloat( glm::value_ptr(xform)[i] );
 	sgct::SharedData::Instance()->writeBool( wireframe );
 	sgct::SharedData::Instance()->writeBool( info );
 	sgct::SharedData::Instance()->writeBool( stats );
 	sgct::SharedData::Instance()->writeBool( takeScreenshot );
 	sgct::SharedData::Instance()->writeBool( light );
+	sgct::SharedData::Instance()->writeBool( culling );
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
-	dist = sgct::SharedData::Instance()->readDouble();
+	dt = sgct::SharedData::Instance()->readDouble();
+	animateAngle = sgct::SharedData::Instance()->readDouble();
+	for(int i=0; i<16; i++)
+		glm::value_ptr(xform)[i] = sgct::SharedData::Instance()->readFloat();
 	wireframe = sgct::SharedData::Instance()->readBool();
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();
 	takeScreenshot = sgct::SharedData::Instance()->readBool();
 	light = sgct::SharedData::Instance()->readBool();
+	culling = sgct::SharedData::Instance()->readBool();
 }
 
 void myCleanUpFun()
@@ -209,9 +291,16 @@ void keyCallback(int key, int action)
 	{
 		switch( key )
 		{
+		case 'C':
+			if( modifierKey && action == GLFW_PRESS)
+				culling = !culling;
+			break;
+
 		case 'S':
-			if(action == GLFW_PRESS)
+			if( modifierKey && action == GLFW_PRESS)
 				stats = !stats;
+			else
+				arrowButtonStatus[BACKWARD] = (action == GLFW_PRESS ? true : false);
 			break;
 
 		case 'I':
@@ -225,13 +314,10 @@ void keyCallback(int key, int action)
 			break;
 
 		case 'W':
-			if(action == GLFW_PRESS)
+			if( modifierKey && action == GLFW_PRESS)
 				wireframe = !wireframe;
-			break;
-
-		case 'Q':
-			if(action == GLFW_PRESS)
-				gEngine->terminate();
+			else
+				arrowButtonStatus[FORWARD] = (action == GLFW_PRESS ? true : false);
 			break;
 
 		case 'P':
@@ -241,11 +327,55 @@ void keyCallback(int key, int action)
 			break;
 
 		case GLFW_KEY_UP:
-			arrowButtons[FORWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[FORWARD] = (action == GLFW_PRESS ? true : false);
 			break;
 
 		case GLFW_KEY_DOWN:
-			arrowButtons[BACKWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[BACKWARD] = (action == GLFW_PRESS ? true : false);
+			break;
+
+		case GLFW_KEY_RIGHT:
+		case 'D':
+			arrowButtonStatus[RIGHT] = (action == GLFW_PRESS ? true : false);
+			break;
+
+		case GLFW_KEY_LEFT:
+		case 'A':
+			arrowButtonStatus[LEFT] = (action == GLFW_PRESS ? true : false);
+			break;
+
+		case GLFW_KEY_SPACE:
+			if(action == GLFW_PRESS)
+				animate = !animate;
+			break;
+
+		case GLFW_KEY_LCTRL:
+		case GLFW_KEY_RCTRL:
+			modifierKey = (action == GLFW_PRESS ? true : false);
+			break;
+
+		case 'Q':
+			arrowButtonStatus[DOWNWARD] = (action == GLFW_PRESS ? true : false);
+			break;
+
+		case 'E':
+			arrowButtonStatus[UPWARD] = (action == GLFW_PRESS ? true : false);
+			break;
+		}
+	}
+}
+
+void mouseButtonCallback(int button, int action)
+{
+	if( gEngine->isMaster() )
+	{
+		switch( button )
+		{
+		case GLFW_MOUSE_BUTTON_LEFT:
+			mouseButtonStatus[ LEFT_MB ] = (action == GLFW_PRESS ? true : false);
+			
+			//set refPos
+			sgct::Engine::getMousePos( &mouseXPos[1], &mouseYPos[1] );
 			break;
 		}
 	}
@@ -290,8 +420,8 @@ void setupLightSource()
 
 	light0->setLightNum( 0 );
 	light0->setPosition( osg::Vec4( 5.0f, 5.0f, 10.0f, 1.0f ) );
-	light0->setAmbient( osg::Vec4( 0.3f, 0.3f, 0.3f, 1.0f ) );
-	light0->setDiffuse( osg::Vec4( 0.8f, 0.8f, 0.8f, 1.0f ) );
+	light0->setAmbient( osg::Vec4( 0.5f, 0.5f, 0.5f, 1.0f ) );
+	light0->setDiffuse( osg::Vec4( 1.0f, 1.0f, 1.0f, 1.0f ) );
 	light0->setSpecular( osg::Vec4( 0.1f, 0.1f, 0.1f, 1.0f ) );
 	light0->setConstantAttenuation( 1.0f );
 

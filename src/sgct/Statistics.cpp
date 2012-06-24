@@ -153,8 +153,8 @@ void core_sgct::Statistics::draw()
 		glVertex2i(i*2, 32 + static_cast<int>(SyncTime[i]*vertScale));
 	glEnd();
 
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ZERO);
+    //glDisable(GL_BLEND);
+    //glBlendFunc(GL_ONE, GL_ZERO);
 	glPopAttrib();
 
 	//exit ortho mode

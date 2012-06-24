@@ -742,14 +742,6 @@ void sgct::Engine::draw()
 
 	glMatrixMode(GL_MODELVIEW);
 
-	/*glm::mat4 modelMat =
-		glm::yawPitchRoll(
-			mConfig->getYaw(),
-			mConfig->getPitch(),
-			mConfig->getRoll())
-        * glm::translate( glm::mat4(1.0f), (*mConfig->getSceneOffset()));
-
-	glLoadMatrixf( glm::value_ptr(modelMat) );*/
 	glLoadMatrixf( glm::value_ptr( ClusterManager::Instance()->getSceneTrans() ) );
 
 	if( mDrawFn != NULL )
@@ -762,11 +754,16 @@ void sgct::Engine::draw()
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glPushMatrix();
+		/*
+			Some code (using OpenSceneGraph) can mess up the viewport settings.
+			To ensure correct mapping enter the current viewport.
+		*/
+		enterCurrentViewport();
 		gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);
 
-		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
+		glPushAttrib( GL_ALL_ATTRIB_BITS );
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);

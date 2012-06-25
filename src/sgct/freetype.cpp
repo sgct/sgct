@@ -234,14 +234,23 @@ inline void pushScreenCoordinateMatrix()
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 	glLoadIdentity();
-	//gluOrtho2D(0.0,1024.0,0.0,768.0);
+
+	core_sgct::SGCTNode * tmpNode = core_sgct::ClusterManager::Instance()->getThisNodePtr();
+	//set current viewport
+	//user or external scenegraph may change the viewport so it's important to reset it.
+	glViewport(
+		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())));
+	
 	gluOrtho2D(
 		0.0,
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getXSize()) *
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getHResolution()),
+		static_cast<double>(tmpNode->getCurrentViewport()->getXSize()) *
+		static_cast<double>(tmpNode->getWindowPtr()->getHResolution()),
 		0.0,
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getYSize()) *
-		static_cast<double>(core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->getVResolution()));
+		static_cast<double>(tmpNode->getCurrentViewport()->getYSize()) *
+		static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
 	glPopAttrib();
 }
 

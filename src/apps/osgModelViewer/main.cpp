@@ -14,6 +14,7 @@ sgct::Engine * gEngine;
 osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group>			mRootNode;
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
+osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
 osg::ref_ptr<osg::Node>				mModel;
 
 //callbacks
@@ -41,12 +42,13 @@ bool stats = false;
 bool takeScreenshot = false;
 bool light = true;
 bool culling = true;
+float scale = 0.00002f;
 
 //other var
 bool animate = false;
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 position(0.0f, 0.0f, -5.0f);
+glm::vec3 position(0.034f, 1.785f, -0.165f);
 bool arrowButtonStatus[6];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UPWARD, DOWNWARD };
 bool mouseButtonStatus[3];
@@ -54,7 +56,7 @@ bool modifierKey = false;
 enum mouseButtons { LEFT_MB = 0, MIDDLE_MB, RIGHT_MB };
 enum axes { X = 0, Y, Z};
 float rotationSpeed = 0.01f;
-float navigation_speed = 1.0f;
+float navigation_speed = 0.1f;
 int mouseDiff[] = { 0, 0 };
 /* Stores the positions that will be compared to measure the difference. */
 int mouseXPos[] = { 0, 0 };
@@ -105,16 +107,18 @@ void myInitOGLFun()
 
 	mSceneTrans = new osg::MatrixTransform();
 	mModelTrans  = new osg::MatrixTransform();
+	mSceneScale = new osg::MatrixTransform();
 
 	//rotate osg coordinate system to match sgct
-	mModelTrans->setMatrix( osg::Matrix::scale(0.00002f,0.00002f,0.00002f) );
-	mModelTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
+	mSceneScale->setMatrix( osg::Matrix::scale(scale, scale, scale) );
+	mModelTrans->setMatrix(osg::Matrix::rotate(glm::radians(-90.0f),
                                             1.0f, 0.0f, 0.0f));
 
 	mRootNode->getOrCreateStateSet()->setMode( GL_RESCALE_NORMAL, osg::StateAttribute::ON );
 
 	mRootNode->addChild( mSceneTrans.get() );
-	mSceneTrans->addChild( mModelTrans.get() );
+	mSceneTrans->addChild( mSceneScale.get() );
+	mSceneScale->addChild( mModelTrans.get() );
 
 	sgct::MessageHandler::Instance()->print("Loading model 'iss_all_maps_no_opacity.ive'...\n");
 	mModel = osgDB::readNodeFile("iss_all_maps_no_opacity.ive");
@@ -225,6 +229,8 @@ void myPostSyncPreDrawFun()
 		takeScreenshot = false;
 	}
 
+	mSceneScale->setMatrix( osg::Matrix::scale( scale, scale, scale ) );
+
 	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
@@ -248,6 +254,12 @@ void myDrawFun()
 	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveProjectionMatrix() ) ));
 
 	mViewer->renderingTraversals();
+	
+	if( gEngine->isMaster() )
+	{
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 35, "Scale: %.10f", scale);
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
+	}
 }
 
 void myEncodeFun()
@@ -262,6 +274,7 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeBool( takeScreenshot );
 	sgct::SharedData::Instance()->writeBool( light );
 	sgct::SharedData::Instance()->writeBool( culling );
+	sgct::SharedData::Instance()->writeFloat( scale );
 }
 
 void myDecodeFun()
@@ -276,6 +289,7 @@ void myDecodeFun()
 	takeScreenshot = sgct::SharedData::Instance()->readBool();
 	light = sgct::SharedData::Instance()->readBool();
 	culling = sgct::SharedData::Instance()->readBool();
+	scale = sgct::SharedData::Instance()->readFloat();
 }
 
 void myCleanUpFun()
@@ -361,6 +375,16 @@ void keyCallback(int key, int action)
 		case 'E':
 			arrowButtonStatus[UPWARD] = (action == GLFW_PRESS ? true : false);
 			break;
+
+		case GLFW_KEY_PAGEUP:
+			if(action == GLFW_PRESS)
+				scale *= 2.0f;
+			break;
+
+		case GLFW_KEY_PAGEDOWN:
+			if(action == GLFW_PRESS)
+				scale /= 2.0f;
+			break;
 		}
 	}
 }
@@ -389,7 +413,7 @@ void initOSG()
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
 
-	//mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// Set up osgViewer::GraphicsWindowEmbedded for this context
 	osg::ref_ptr< ::osg::GraphicsContext::Traits > traits =

@@ -4,6 +4,7 @@
 #include <osg/Matrix>
 #include <osg/Transform>
 #include <osg/MatrixTransform>
+#include <osgUtil/Optimizer>
 #include <glm/gtx/euler_angles.hpp>
 
 sgct::Engine * gEngine;
@@ -48,14 +49,14 @@ float scale = 0.00002f;
 bool animate = false;
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 position(0.034f, 1.785f, -0.165f);
+glm::vec3 position(0.00f, 0.60f, -1.170f);
 bool arrowButtonStatus[6];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UPWARD, DOWNWARD };
 bool mouseButtonStatus[3];
 bool modifierKey = false;
 enum mouseButtons { LEFT_MB = 0, MIDDLE_MB, RIGHT_MB };
 enum axes { X = 0, Y, Z};
-float rotationSpeed = 0.01f;
+float rotationSpeed = 0.003f;
 float navigation_speed = 0.1f;
 int mouseDiff[] = { 0, 0 };
 /* Stores the positions that will be compared to measure the difference. */
@@ -136,6 +137,9 @@ void myInitOGLFun()
 
 		//translate model center to origin
 		//mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
+
+		osgUtil::Optimizer optimizer;
+		optimizer.optimize(mRootNode.get());
 
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
 		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );

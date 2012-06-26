@@ -115,6 +115,7 @@ public:
 	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
 	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 	inline const int * getActiveViewport() { return currentViewportCoords; }
+
 	//can be called any time after Engine init
 	inline const glm::mat4 & getSceneTransform() { return core_sgct::ClusterManager::Instance()->getSceneTrans(); }
 

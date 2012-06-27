@@ -150,7 +150,7 @@ void myPostSyncPreDrawFun()
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
+	mSceneTrans->postMult(osg::Matrix::translate(0.0, -1.0, dist));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
@@ -256,7 +256,7 @@ void initOSG()
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
 
-	//mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// Set up osgViewer::GraphicsWindowEmbedded for this context
 	osg::ref_ptr< ::osg::GraphicsContext::Traits > traits =

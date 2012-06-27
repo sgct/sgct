@@ -227,7 +227,7 @@ void drawXZGrid(int size, float yPos)
 	glTranslatef(0.0f, yPos, 0.0f);
 
 	glLineWidth(3.0f);
-	glColor4f(1.0f, 1.0f, 1.0f, 0.5f);
+	glColor4f(1.0f, 1.0f, 1.0f, 0.8f);
 
 	glBegin( GL_LINES );
 	for(int x = -(size/2); x < (size/2); x++)
@@ -255,7 +255,7 @@ void drawPyramid(float width)
 	//disable depth sorting to avoid flickering
 	glDisable(GL_DEPTH_TEST);
 
-	glColor4f(1.0f, 0.0f, 0.5f, 0.3f);
+	glColor4f(1.0f, 0.0f, 0.5f, 0.6f);
 
 	glBegin(GL_TRIANGLE_FAN);
 	//draw top
@@ -272,7 +272,7 @@ void drawPyramid(float width)
 
 	//enhance the pyramids with lines in the edges
 	glLineWidth(2.0f);
-	glColor4f(1.0f, 0.0f, 0.5f, 0.5f);
+	glColor4f(1.0f, 0.0f, 0.5f, 0.8f);
 
 	glBegin(GL_LINE_LOOP);
 	glVertex3f(-width/2.0f, 0.0f, -width/2.0f);

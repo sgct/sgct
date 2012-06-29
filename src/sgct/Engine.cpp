@@ -662,6 +662,7 @@ void sgct::Engine::render()
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
+
 		//swap frame id to keep track of sync
 		mNetworkConnections->swapData();
 
@@ -1412,7 +1413,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
         int newIterator = 0;
         for( int oldIterator = 0; oldIterator < argc; ++oldIterator )
         {
-            if( oldIterator == argumentsToRemove.front())
+            if( !argumentsToRemove.empty() && oldIterator == argumentsToRemove.front())
             {
                 argumentsToRemove.pop_front();
             }

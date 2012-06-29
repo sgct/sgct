@@ -54,6 +54,8 @@ public:
 	const double & getDrawTime();
 	const double & getSyncTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
+    const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
+    const float& getFarClippingPlaine() const { return mFarClippingPlaneDist; }
 	void setWireframe(bool state) { mShowWireframe = state; }
 	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
 	void setStatsGraphVisibility(bool state) { mShowGraph = state; }

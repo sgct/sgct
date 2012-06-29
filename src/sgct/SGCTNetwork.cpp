@@ -876,15 +876,17 @@ void GLFWCALL communicationHandler(void *arg)
 				while( found != std::string::npos )
 				{
 					std::string extMessage = extBuffer.substr(0,found);
-					extBuffer = extBuffer.substr(found+2);//jump over \r\n
 
 					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-					if( nPtr->mDecoderCallbackFn != NULL )
-					{
-						(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
-					}
-					nPtr->sendStr("OK\r\n");
+						extBuffer = extBuffer.substr(found+2);//jump over \r\n
+						if( nPtr->mDecoderCallbackFn != NULL )
+						{
+							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
+						}
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+					
+					//reply
+					nPtr->sendStr("OK\r\n");
                     found = extBuffer.find("\r\n");
 				}
 #ifdef __SGCT_DEBUG__

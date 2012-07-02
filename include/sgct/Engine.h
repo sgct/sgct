@@ -54,15 +54,15 @@ public:
 	const double & getDrawTime();
 	const double & getSyncTime();
 	void setNearAndFarClippingPlanes(float _near, float _far);
-    const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
-    const float& getFarClippingPlaine() const { return mFarClippingPlaneDist; }
+	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
+	const float& getFarClippingPlaine() const { return mFarClippingPlaneDist; }
 	void setWireframe(bool state) { mShowWireframe = state; }
 	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
 	void setStatsGraphVisibility(bool state) { mShowGraph = state; }
 	void takeScreenshot() { mTakeScreenshot = true; }
 
-    size_t createTimer( double millisec, void(*fnPtr)(size_t) );
-    void stopTimer(size_t id);
+	size_t createTimer( double millisec, void(*fnPtr)(size_t) );
+	void stopTimer(size_t id);
 
     //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );

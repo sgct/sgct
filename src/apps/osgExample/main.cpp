@@ -78,6 +78,7 @@ int main( int argc, char* argv[] )
 void myInitOGLFun()
 {
 	initOSG();
+	setupLightSource();
 
 	osg::ref_ptr<osg::Node>            mModel;
 	osg::ref_ptr<osg::MatrixTransform> mModelTrans;
@@ -256,6 +257,7 @@ void initOSG()
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
 
+	//run single threaded when embedded
 	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
 
 	// Set up osgViewer::GraphicsWindowEmbedded for this context
@@ -266,16 +268,16 @@ void initOSG()
       new osgViewer::GraphicsWindowEmbedded(traits.get());
 
 	mViewer->getCamera()->setGraphicsContext(graphicsWindow.get());
+
+	//SGCT will handle the near and far planes
 	mViewer->getCamera()->setComputeNearFarMode(osgUtil::CullVisitor::DO_NOT_COMPUTE_NEAR_FAR);
 	mViewer->getCamera()->setClearColor( osg::Vec4( 0.0f, 0.0f, 0.0f, 0.0f) );
 
-	//disable osg from clearing the buffers that will be done by sgct
+	//disable osg from clearing the buffers that will be done by SGCT
 	GLbitfield tmpMask = mViewer->getCamera()->getClearMask();
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
 
 	mViewer->setSceneData(mRootNode.get());
-
-	setupLightSource();
 }
 
 void setupLightSource()
@@ -308,4 +310,5 @@ void setupLightSource()
 	lightSource1->setStateSetModes( *(mRootNode->getOrCreateStateSet()), osg::StateAttribute::ON );
 
 	mRootNode->addChild( lightSource0 );
+	mRootNode->addChild( lightSource1 );
 }

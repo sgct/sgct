@@ -25,8 +25,8 @@ double curr_time = 0.0;
 bool wireframe = false;
 bool info = false;
 bool stats = false;
-//bool takeScreenshot = false;
-//bool useTracking = false;
+bool takeScreenshot = false;
+bool useTracking = false;
 
 int main( int argc, char* argv[] )
 {
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glTranslatef( 0.0f, -0.15f, 2.5f );
+	glTranslatef( 0.0f, -0.15f, 3.0f );
 	glRotatef( static_cast<float>( curr_time ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -79,6 +79,7 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
+	glLineWidth(2.0);
 	glCallList(myTerrainDisplayList);
 
 	//unset current shader program
@@ -104,13 +105,13 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
-	/*core_sgct::ClusterManager::Instance()->getTrackingPtr()->setEnabled( useTracking );
+	core_sgct::ClusterManager::Instance()->getTrackingPtr()->setEnabled( useTracking );
 
 	if( takeScreenshot )
 	{
 		gEngine->takeScreenshot();
 		takeScreenshot = false;
-	}*/
+	}
 }
 
 void myInitOGLFun()
@@ -138,7 +139,7 @@ void myInitOGLFun()
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
-	drawTerrainGrid( 1.0f, 1.0f, 256, 256 );
+	drawTerrainGrid( 1.0f, 1.0f, 128, 128 );
 	glEndList();
 
 	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
@@ -166,8 +167,8 @@ void myEncodeFun()
 	sgct::SharedData::Instance()->writeBool( wireframe );
 	sgct::SharedData::Instance()->writeBool( info );
 	sgct::SharedData::Instance()->writeBool( stats );
-	//sgct::SharedData::Instance()->writeBool( takeScreenshot );
-	//sgct::SharedData::Instance()->writeBool( useTracking );
+	sgct::SharedData::Instance()->writeBool( takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( useTracking );
 }
 
 void myDecodeFun()
@@ -176,8 +177,8 @@ void myDecodeFun()
 	wireframe = sgct::SharedData::Instance()->readBool();
 	info = sgct::SharedData::Instance()->readBool();
 	stats = sgct::SharedData::Instance()->readBool();
-	//takeScreenshot = sgct::SharedData::Instance()->readBool();
-	//useTracking = sgct::SharedData::Instance()->readBool();
+	takeScreenshot = sgct::SharedData::Instance()->readBool();
+	useTracking = sgct::SharedData::Instance()->readBool();
 }
 
 /*!
@@ -249,12 +250,12 @@ void keyCallback(int key, int action)
 				gEngine->terminate();
 			break;
 
-		/*case 'T':
+		case 'T':
 			if(action == GLFW_PRESS)
 				useTracking = !useTracking;
-			break;*/
+			break;
 
-		/*case 'E':
+		case 'E':
 			if(action == GLFW_PRESS)
 			{
 				glm::dquat rotQuat;
@@ -262,13 +263,13 @@ void keyCallback(int key, int action)
 				core_sgct::ClusterManager::Instance()->getUserPtr()->setOrientation( glm::mat3_cast(rotQuat) );
 				core_sgct::ClusterManager::Instance()->getUserPtr()->setPos(0.0f, 0.0f, 4.0f);
 			}
-			break;*/
+			break;
 
-		/*case 'P':
+		case 'P':
 		case GLFW_KEY_F10:
 			if(action == GLFW_PRESS)
 				takeScreenshot = true;
-			break;*/
+			break;
 		}
 	}
 }

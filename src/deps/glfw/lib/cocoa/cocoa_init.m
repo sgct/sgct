@@ -27,6 +27,8 @@
 //
 //========================================================================
 
+#include <sys/param.h>
+
 #include "internal.h"
 
 @interface GLFWThread : NSThread
@@ -43,6 +45,7 @@
 //========================================================================
 // Change to our application bundle's resources directory, if present
 //========================================================================
+
 static void changeToResourcesDirectory( void )
 {
     char resourcesPath[MAXPATHLEN];
@@ -77,6 +80,7 @@ static void changeToResourcesDirectory( void )
     chdir( resourcesPath );
 }
 
+
 //========================================================================
 // Terminate GLFW when exiting application
 //========================================================================
@@ -107,6 +111,7 @@ static void initThreads( void )
     _glfwThrd.First.Next     = NULL;
 }
 
+
 //************************************************************************
 //****               Platform implementation functions                ****
 //************************************************************************
@@ -117,7 +122,7 @@ static void initThreads( void )
 
 int _glfwPlatformInit( void )
 {
-    _glfwLibrary.AutoreleasePool = [[NSAutoreleasePool alloc] init];
+    _glfwLibrary.autoreleasePool = [[NSAutoreleasePool alloc] init];
 
     _glfwLibrary.OpenGLFramework =
         CFBundleGetBundleWithIdentifier( CFSTR( "com.apple.opengl" ) );
@@ -139,6 +144,10 @@ int _glfwPlatformInit( void )
 
     initThreads();
 
+    _glfwInitTimer();
+
+    _glfwInitJoysticks();
+
     _glfwLibrary.eventSource = CGEventSourceCreate( kCGEventSourceStateHIDSystemState );
     if( !_glfwLibrary.eventSource )
     {
@@ -152,6 +161,7 @@ int _glfwPlatformInit( void )
 
     return GL_TRUE;
 }
+
 
 //========================================================================
 // Close window, if open, and shut down GLFW
@@ -172,8 +182,10 @@ int _glfwPlatformTerminate( void )
         _glfwLibrary.eventSource = NULL;
     }
 
-    [_glfwLibrary.AutoreleasePool release];
-    _glfwLibrary.AutoreleasePool = nil;
+    _glfwTerminateJoysticks();
+
+    [_glfwLibrary.autoreleasePool release];
+    _glfwLibrary.autoreleasePool = nil;
 
     return GL_TRUE;
 }

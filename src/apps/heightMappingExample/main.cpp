@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glTranslatef( 0.0f, -0.15f, 3.0f );
+	glTranslatef( 0.0f, -0.15f, 2.5f );
 	glRotatef( static_cast<float>( curr_time ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
@@ -79,7 +79,7 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
-	glLineWidth(2.0);
+	//glLineWidth(2.0); //for wireframe
 	glCallList(myTerrainDisplayList);
 
 	//unset current shader program
@@ -139,7 +139,7 @@ void myInitOGLFun()
 	myTerrainDisplayList = glGenLists(1);
 	glNewList(myTerrainDisplayList, GL_COMPILE);
 	//draw the terrain once to add it to the display list
-	drawTerrainGrid( 1.0f, 1.0f, 128, 128 );
+	drawTerrainGrid( 1.0f, 1.0f, 256, 256 );
 	glEndList();
 
 	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);

@@ -86,9 +86,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\..\..\lib\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SGCT_ROOT_DIR)\lib\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\..\..\lib\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SGCT_ROOT_DIR)\lib\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
   </PropertyGroup>
@@ -110,7 +110,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxmlSTL_d.lib;zlib_d.lib;libpng15_d.lib;vrpn_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32s.lib;glfw_d.lib;glu32.lib;opengl32.lib;freetype248_D.lib;ws2_32.lib;tinyxml2_d.lib;zlib_d.lib;libpng15_d.lib;vrpn_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc10\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -151,7 +151,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxmlSTL.lib;zlib.lib;libpng15.lib;vrpn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew32s.lib;glfw.lib;glu32.lib;opengl32.lib;freetype248.lib;ws2_32.lib;tinyxml2.lib;zlib.lib;libpng15.lib;vrpn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc10\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

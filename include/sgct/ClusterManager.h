@@ -72,7 +72,7 @@ public:
 	int getThisNodeId() { return mThisNodeId; }
 
 	std::string * getMasterIp() { return &masterIp; }
-	void setMasterIp(std::string & ip) { masterIp.assign(ip); }
+	void setMasterIp(std::string ip) { masterIp.assign(ip); }
 
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }

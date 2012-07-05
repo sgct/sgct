@@ -428,6 +428,7 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
     GLXFBConfig *fbconfigs;
     _GLFWfbconfig *result;
     int i, count = 0;
+    GLboolean trustWindowBit = GL_TRUE;
 
     *found = 0;
 
@@ -438,6 +439,14 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
             fprintf( stderr, "GLXFBConfigs are not supported by the X server\n" );
             return NULL;
         }
+    }
+
+    if( strcmp( glXGetClientString( _glfwLibrary.display, GLX_VENDOR ),
+                "Chromium" ) == 0 )
+    {
+        // This is a (hopefully temporary) workaround for Chromium (VirtualBox
+        // GL) not setting the window bit on any GLXFBConfigs
+        trustWindowBit = GL_FALSE;
     }
 
     if( _glfwWin.has_GLX_SGIX_fbconfig )
@@ -486,8 +495,11 @@ static _GLFWfbconfig *getFBConfigs( unsigned int *found )
 
         if( !( getFBConfigAttrib( fbconfigs[i], GLX_DRAWABLE_TYPE ) & GLX_WINDOW_BIT ) )
         {
-            // Only consider window GLXFBConfigs
-            continue;
+            if( trustWindowBit )
+            {
+                // Only consider window GLXFBConfigs
+                continue;
+            }
         }
 
         result[*found].redBits = getFBConfigAttrib( fbconfigs[i], GLX_RED_SIZE );
@@ -1838,6 +1850,9 @@ void _glfwPlatformHideMouseCursor( void )
             _glfwWin.pointerGrabbed = GL_TRUE;
         }
     }
+
+    // Move cursor to the middle of the window
+    _glfwPlatformSetMouseCursorPos( _glfwWin.width / 2, _glfwWin.height / 2 );
 }
 
 

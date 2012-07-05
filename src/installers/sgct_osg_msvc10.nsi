@@ -2,8 +2,10 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 
+!define SGCT_VERSION "0.9"
+
 ; The name of the installer
-Name "SGCT 0.8 installer"
+Name "SGCT ${SGCT_VERSION} msvc10 x86 installer"
 
 !define REALMSG "$\nOriginal non-restricted account type: $2"
 !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
@@ -46,7 +48,7 @@ Section
 SectionEnd
 
 ; The file to write
-OutFile "..\..\bin\installers\SGCT_msvc10_setup.exe"
+OutFile "..\..\bin\installers\SGCT_${SGCT_VERSION}_msvc10_setup.exe"
 
 ; The default installation directory
 InstallDir "$PROGRAMFILES\SGCT"
@@ -68,6 +70,7 @@ RequestExecutionLevel admin
 !insertmacro MUI_PAGE_COMPONENTS
 !insertmacro MUI_PAGE_DIRECTORY
 !insertmacro MUI_PAGE_INSTFILES
+!insertmacro MUI_PAGE_FINISH
 
 !insertmacro MUI_UNPAGE_CONFIRM
 !insertmacro MUI_UNPAGE_INSTFILES
@@ -77,60 +80,59 @@ RequestExecutionLevel admin
 
 ;--------------------------------
 
-Section "SGCT 0.8 x86"
+Section "SGCT ${SGCT_VERSION} MSVC10 x86"
 	SectionIn RO
 	
 	; Write the installation path into the registry
 	WriteRegStr HKLM "SOFTWARE\SGCT" "Install_Dir" "$INSTDIR"
 	  
 	; Write the uninstall keys for Windows
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "DisplayName" "SGCT 0.8"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "DisplayName" "SGCT ${SGCT_VERSION}"
 	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "UninstallString" '"$INSTDIR\uninstall.exe"'
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "NoModify" 1
 	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "NoRepair" 1
 	
-	# Uninstaller - See function un.onInit and section "uninstall" for configuration
+	SetOutPath $INSTDIR
 	writeUninstaller "$INSTDIR\uninstall.exe"
 	
-	SetOutPath $INSTDIR
 	File C-Student_wiki.url
 	File SGCT_tutorials.url
 	File C_transparent.ico
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\include"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\include"
 	File /r "..\..\include\"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\lib\msvc10"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\lib\msvc10"
 	File "..\..\lib\msvc10\sgct32.lib"
 	File "..\..\lib\msvc10\sgct32_d.lib"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\config"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\config"
 	File /r "..\..\config\"
 	
 	#add examples
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\sgct_template"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\sgct_template"
 	File "..\..\src\apps\sgct_template\main.cpp"
 	File "..\..\src\apps\sgct_template\sgct_template_msvc10.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\spinning_triangle"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\spinning_triangle"
 	File "..\..\bin\example1\msvc10\example1_msvc10.exe"
 	File "..\..\src\apps\example1\main.cpp"
 	File "..\..\src\apps\example1\example1_msvc10.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\texture_example"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\texture_example"
 	File "..\..\bin\textureExample\msvc10\textureExample_msvc2010.exe"
 	File "..\..\src\apps\textureExample\box.png"
 	File "..\..\src\apps\textureExample\main.cpp"
 	File "..\..\src\apps\textureExample\textureExample_msvc2010.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\simple_shader"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_shader"
 	File "..\..\bin\simpleShaderExample\msvc10\simpleShaderExample_msvc2010.exe"
 	File "..\..\src\apps\simpleShaderExample\simple.frag"
 	File "..\..\src\apps\simpleShaderExample\simple.vert"
 	File "..\..\src\apps\simpleShaderExample\main.cpp"
 	File "..\..\src\apps\simpleShaderExample\simpleShaderExample_msvc2010.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\height_mapping"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\height_mapping"
 	File "..\..\bin\heightMappingExample\msvc10\heightMappingExample_msvc2010.exe"
 	File "..\..\src\apps\heightMappingExample\heightmap.frag"
 	File "..\..\src\apps\heightMappingExample\heightmap.vert"
@@ -139,17 +141,17 @@ Section "SGCT 0.8 x86"
 	File "..\..\src\apps\heightMappingExample\main.cpp"
 	File "..\..\src\apps\heightMappingExample\heightMappingExample_msvc2010.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\simple_navigation"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation"
 	File "..\..\bin\simpleNavigationExample\msvc10\simpleNavigationExample_msvc10.exe"
 	File "..\..\src\apps\simpleNavigationExample\main.cpp"
 	File "..\..\src\apps\simpleNavigationExample\simpleNavigationExample_msvc10.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\gamepad"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad"
 	File "..\..\bin\gamepadExample\msvc10\gamepadExample_msvc10.exe"
 	File "..\..\src\apps\gamepadExample\main.cpp"
 	File "..\..\src\apps\gamepadExample\gamepadExample_msvc10.vcxproj"
 	
-	SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\osg_example"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
 	File "..\..\bin\osgExample\msvc10\osgExample_msvc10.exe"
 	File "..\..\src\apps\osgExample\airplane.ive"
 	File "..\..\src\apps\osgExample\main.cpp"
@@ -160,10 +162,13 @@ Section "SGCT environment variable"
 	;remove if set
 	DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
 	
-	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "A" "HKLM" "$INSTDIR\SGCT_0.8_x86"
+	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "A" "HKLM" "$INSTDIR\SGCT_${SGCT_VERSION}_x86"
 	
 	;update env vars
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+	
+	; reboot after install
+	SetRebootFlag true
 SectionEnd
 
 Section "Start Menu Shortcuts"
@@ -178,36 +183,36 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\C-Student_wiki.lnk" "$INSTDIR\C-Student_wiki.url" "" "$INSTDIR\C_transparent.ico"
   CreateShortCut "$SMPROGRAMS\SGCT\SGCT_tutorials.lnk" "$INSTDIR\SGCT_tutorials.url" "" "$INSTDIR\C_transparent.ico"
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\spinning_triangle"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_0.8_x86\examples\spinning_triangle\example1_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\spinning_triangle"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\spinning_triangle\example1_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\texture_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_0.8_x86\examples\texture_example\textureExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\texture_example"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\texture_example\textureExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\simple_shader"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_0.8_x86\examples\simple_shader\simpleShaderExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_shader"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_shader\simpleShaderExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\height_mapping"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_0.8_x86\examples\height_mapping\heightMappingExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\height_mapping"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\height_mapping\heightMappingExample_msvc2010.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\simple_navigation"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_0.8_x86\examples\simple_navigation\simpleNavigationExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation\simpleNavigationExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\gamepad"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_0.8_x86\examples\gamepad\gamepadExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad\gamepadExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_0.8_x86\examples\osg_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_0.8_x86\examples\osg_example\osgExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example\osgExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
 SectionEnd
 
-Section "OSG 3.0.1 x86"
-	SetOutPath "$INSTDIR\osg\osg-3.0.1"
+Section "OSG 3.0.1 MSVC10 x86"
+	SetOutPath "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
 	File /r "D:\bin\osg\OpenSceneGraph-3.0.1-VS10.0.30319-x86-release-12741\"
 	
-	${registerExtension} "$INSTDIR\osg\osg-3.0.1\bin\osgviewer.exe" ".osg" "OSG file"
-	${registerExtension} "$INSTDIR\osg\osg-3.0.1\bin\osgviewer.exe" ".osgb" "OSG bin file"
-	${registerExtension} "$INSTDIR\osg\osg-3.0.1\bin\osgviewer.exe" ".osgt" "OSG text file"
-	${registerExtension} "$INSTDIR\osg\osg-3.0.1\bin\osgviewer.exe" ".ive" "OSG bin file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osg" "OSG file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osgb" "OSG bin file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osgt" "OSG text file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".ive" "OSG bin file"
 SectionEnd
 
 Section "OSG environment variables"
@@ -216,13 +221,16 @@ Section "OSG environment variables"
     DeleteRegValue ${env_hklm} OSG_ROOT
     DeleteRegValue ${env_hklm} OSGHOME
 	
-	${EnvVarUpdate} $0 "OSG_ROOT" "A" "HKLM" "$INSTDIR\osg\osg-3.0.1"
+	${EnvVarUpdate} $0 "OSG_ROOT" "A" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
 	${EnvVarUpdate} $0 "OSG_PATH" "A" "HKLM" "%OSG_ROOT%\bin"
     ${EnvVarUpdate} $0 "OSGHOME" "A" "HKLM" "%OSG_ROOT%"
   
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
 	
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+	
+	; reboot after install
+	SetRebootFlag true
 SectionEnd
 
 ;--------------------------------

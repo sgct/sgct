@@ -31,7 +31,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
-#include <tinyxml.h>
+#include <tinyxml2.h>
+
+using namespace tinyxml2;
 
 core_sgct::ReadConfig::ReadConfig( const std::string filename )
 {
@@ -48,7 +50,12 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		sgct::MessageHandler::Instance()->print("Error: No XML config file loaded.\n");
 		return;
 	}
-	xmlFileName = filename;
+	else
+	{
+	    sgct::MessageHandler::Instance()->print("Parsing XML config '%s'...\n", filename.c_str());
+	}
+
+    replaceEnvVars(filename);
 
 	try
 	{
@@ -69,26 +76,104 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		ClusterManager::Instance()->getNodePtr(i)->port.c_str());
 }
 
+void core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
+{
+    size_t foundIndex = filename.find('%');
+    if( foundIndex != std::string::npos )
+    {
+        sgct::MessageHandler::Instance()->print("Error: SGCT doesn't support the usage of '%%' characters in path or file name.\n");
+		return;
+    }
+
+    std::vector< size_t > beginEnvVar;
+    std::vector< size_t > endEnvVar;
+
+    foundIndex = 0;
+    while( foundIndex != std::string::npos )
+    {
+        foundIndex = filename.find("$(", foundIndex);
+        if(foundIndex != std::string::npos)
+        {
+            beginEnvVar.push_back(foundIndex);
+            foundIndex = filename.find(')', foundIndex);
+            if(foundIndex != std::string::npos)
+                endEnvVar.push_back(foundIndex);
+        }
+    }
+
+    if(beginEnvVar.size() != endEnvVar.size())
+    {
+        sgct::MessageHandler::Instance()->print("Error: Bad configuration path string!\n");
+		return;
+    }
+    else
+    {
+        size_t appendPos = 0;
+        for(unsigned int i=0; i<beginEnvVar.size(); i++)
+        {
+            xmlFileName.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
+            std::string envVar = filename.substr(beginEnvVar[i] + 2, endEnvVar[i] - (beginEnvVar[i] + 2) );
+            char * fetchedEnvVar = NULL;
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			size_t len;
+			errno_t err = _dupenv_s( &fetchedEnvVar, &len, envVar.c_str() );
+			if ( err )
+			{
+				sgct::MessageHandler::Instance()->print("Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
+				return;
+			}
+#else
+			fetchedEnvVar = getenv(envVar.c_str());
+			if( fetchedEnvVar == NULL )
+			{
+				sgct::MessageHandler::Instance()->print("Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
+				return;
+			}
+#endif
+
+			xmlFileName.append( fetchedEnvVar );
+            appendPos = endEnvVar[i]+1;
+        }
+
+        xmlFileName.append( filename.substr( appendPos ) );
+
+        //replace all backslashes with slashes
+        for(unsigned int i=0; i<xmlFileName.size(); i++)
+            if(xmlFileName[i] == 92) //backslash
+                xmlFileName[i] = '/';
+    }
+}
+
 void core_sgct::ReadConfig::readAndParseXML()
 {
-	TiXmlDocument initVals( xmlFileName.c_str() );
-	if( !initVals.LoadFile() )
+	if( xmlFileName.empty() )
+        throw "Invalid XML file!";
+
+	XMLDocument xmlDoc;
+	xmlDoc.LoadFile(xmlFileName.c_str());
+	if( xmlDoc.ErrorID() != XML_NO_ERROR )
 	{
 		throw "Invalid XML file!";
 	}
 
-	TiXmlElement* XMLroot = initVals.FirstChildElement( "Cluster" );
+	XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{
 		throw "Cannot find XML root!";
 	}
 
-	std::string tmpStr( XMLroot->Attribute( "masterAddress" ) );
-	ClusterManager::Instance()->setMasterIp( tmpStr );
+	const char * masterAddress = XMLroot->Attribute( "masterAddress" );
+	if( masterAddress == NULL )
+	{
+		throw "Cannot find master address in XML!";
+	}
+
+	ClusterManager::Instance()->setMasterIp( masterAddress );
 
 	if( XMLroot->Attribute( "externalControlPort" ) != NULL )
 	{
-		tmpStr.assign( XMLroot->Attribute( "externalControlPort" ) );
+		std::string tmpStr( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
 	}
@@ -98,7 +183,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 		useMasterSyncLock = strcmp( XMLroot->Attribute( "lockMasterSync" ), "true" ) == 0 ? true : false;
 	}
 
-	TiXmlElement* element[10];
+	XMLElement* element[10];
 	const char * val[10];
 	element[0] = XMLroot->FirstChildElement();
 	while( element[0] != NULL )
@@ -114,35 +199,39 @@ void core_sgct::ReadConfig::readAndParseXML()
 
 				if( strcmp("Offset", val[1]) == 0 )
 				{
-				    double tmpOffset[] = {0.0, 0.0, 0.0};
-					if( element[1]->Attribute("x", &tmpOffset[0] ) != NULL &&
-                        element[1]->Attribute("y", &tmpOffset[1] ) != NULL &&
-                        element[1]->Attribute("z", &tmpOffset[2] ) != NULL)
+				    float tmpOffset[] = {0.0f, 0.0f, 0.0f};
+					if( element[1]->QueryFloatAttribute("x", &tmpOffset[0] ) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == XML_NO_ERROR)
                     {
-                        sceneOffset.x = static_cast<float>(tmpOffset[0]);
-                        sceneOffset.y = static_cast<float>(tmpOffset[1]);
-                        sceneOffset.z = static_cast<float>(tmpOffset[2]);
+                        sceneOffset.x = tmpOffset[0];
+                        sceneOffset.y = tmpOffset[1];
+                        sceneOffset.z = tmpOffset[2];
                         sgct::MessageHandler::Instance()->print("Setting scene offset to (%f, %f, %f)\n",
                                                                 sceneOffset.x,
                                                                 sceneOffset.y,
                                                                 sceneOffset.z);
                     }
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse scene offset from XML!\n");
 				}
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
-					double tmpOrientation[] = {0.0, 0.0, 0.0};
-					if( element[1]->Attribute("yaw", &tmpOrientation[0] ) != NULL &&
-                        element[1]->Attribute("pitch", &tmpOrientation[1] ) != NULL &&
-                        element[1]->Attribute("roll", &tmpOrientation[2] ) != NULL)
+					float tmpOrientation[] = {0.0f, 0.0f, 0.0f};
+					if( element[1]->QueryFloatAttribute("yaw", &tmpOrientation[0] ) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == XML_NO_ERROR)
                     {
-                        mYaw = glm::radians( static_cast<float>(tmpOrientation[0]) );
-                        mPitch = glm::radians( static_cast<float>(tmpOrientation[1]) );
-                        mRoll = glm::radians( static_cast<float>(tmpOrientation[2]) );
+                        mYaw = glm::radians( tmpOrientation[0] );
+                        mPitch = glm::radians( tmpOrientation[1] );
+                        mRoll = glm::radians( tmpOrientation[2] );
                         sgct::MessageHandler::Instance()->print("Setting scene orientation to (%f, %f, %f) radians\n",
                                                                 mYaw,
                                                                 mPitch,
                                                                 mRoll);
                     }
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse scene orientation from XML!\n");
 				}
 
 				//iterate
@@ -165,21 +254,21 @@ void core_sgct::ReadConfig::readAndParseXML()
 						tmpNode.getWindowPtr()->setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
 
 					int tmpSamples = 0;
-					if( element[1]->Attribute("numberOfSamples", &tmpSamples ) != NULL )
+					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR )
 						tmpNode.numberOfSamples = tmpSamples;
 
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
                     int tmpInterval = 0;
-					if( element[1]->Attribute("swapInterval", &tmpInterval) != NULL )
+					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
 						tmpNode.swapInterval = tmpInterval;
 
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
-						int tmpWinData[4];
+						int tmpWinData[2];
 						memset(tmpWinData,0,4);
 
 						if( strcmp("Stereo", val[2]) == 0 )
@@ -188,17 +277,20 @@ void core_sgct::ReadConfig::readAndParseXML()
 						}
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpWinData[0] );
-							element[2]->Attribute("y", &tmpWinData[1] );
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+                                tmpNode.getWindowPtr()->setWindowPosition(tmpWinData[0],tmpWinData[1]);
+                            else
+                                sgct::MessageHandler::Instance()->print("Failed to parse window position from XML!\n");
 						}
 						else if( strcmp("Size", val[2]) == 0 )
 						{
-							element[2]->Attribute("x", &tmpWinData[2] );
-							element[2]->Attribute("y", &tmpWinData[3] );
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+                                tmpNode.getWindowPtr()->initWindowResolution(tmpWinData[0],tmpWinData[1]);
+                            else
+                                sgct::MessageHandler::Instance()->print("Failed to parse window resolution from XML!\n");
 						}
-
-						tmpNode.getWindowPtr()->initWindowResolution(tmpWinData[2],tmpWinData[3]);
-						tmpNode.getWindowPtr()->setWindowPosition(tmpWinData[0],tmpWinData[1]);
 
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
@@ -235,23 +327,25 @@ void core_sgct::ReadConfig::readAndParseXML()
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
-						double dTmp[2];
-						dTmp[0] = 0.0f;
-						dTmp[1] = 0.0f;
+						float fTmp[2];
+						fTmp[0] = 0.0f;
+						fTmp[1] = 0.0f;
 
 						if(strcmp("Pos", val[2]) == 0)
 						{
-							element[2]->Attribute("x", &dTmp[0]);
-							element[2]->Attribute("y", &dTmp[1]);
-							tmpVp.setPos(static_cast<float>(dTmp[0]),
-								static_cast<float>(dTmp[1]));
+							if( element[2]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                                element[2]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR )
+                                tmpVp.setPos( fTmp[0], fTmp[1] );
+                            else
+                                sgct::MessageHandler::Instance()->print("Failed to parse viewport position from XML!\n");
 						}
 						else if(strcmp("Size", val[2]) == 0)
 						{
-							element[2]->Attribute("x", &dTmp[0]);
-							element[2]->Attribute("y", &dTmp[1]);
-							tmpVp.setSize(static_cast<float>(dTmp[0]),
-								static_cast<float>(dTmp[1]));
+							if( element[2]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                                element[2]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR )
+                                tmpVp.setSize( fTmp[0], fTmp[1] );
+                            else
+                                sgct::MessageHandler::Instance()->print("Failed to parse viewport size from XML!\n");
 						}
 						else if(strcmp("Viewplane", val[2]) == 0)
 						{
@@ -263,18 +357,21 @@ void core_sgct::ReadConfig::readAndParseXML()
 								if( strcmp("Pos", val[3]) == 0 )
 								{
 									glm::vec3 tmpVec;
-									double dTmp[3];
+									float fTmp[3];
 									static unsigned int i=0;
-									element[3]->Attribute("x", &dTmp[0]);
-									element[3]->Attribute("y", &dTmp[1]);
-									element[3]->Attribute("z", &dTmp[2]);
+									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                                        element[3]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
+                                        element[3]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR )
+                                    {
+                                        tmpVec.x = fTmp[0];
+                                        tmpVec.y = fTmp[1];
+                                        tmpVec.z = fTmp[2];
 
-									tmpVec.x = static_cast<float>(dTmp[0]);
-									tmpVec.y = static_cast<float>(dTmp[1]);
-									tmpVec.z = static_cast<float>(dTmp[2]);
-
-									tmpVp.setViewPlaneCoords(i%3, tmpVec);
-									i++;
+                                        tmpVp.setViewPlaneCoords(i%3, tmpVec);
+                                        i++;
+									}
+									else
+                                        sgct::MessageHandler::Instance()->print("Failed to parse view plane coordinates from XML!\n");
 								}
 
 								//iterate
@@ -297,10 +394,11 @@ void core_sgct::ReadConfig::readAndParseXML()
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
 		{
-			double dTmp;
-			element[0]->Attribute("eyeSeparation", &dTmp);
-			ClusterManager::Instance()->getUserPtr()->setEyeSeparation(
-				static_cast<float>( dTmp ));
+			float fTmp;
+			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == XML_NO_ERROR )
+                ClusterManager::Instance()->getUserPtr()->setEyeSeparation( fTmp );
+            else
+                sgct::MessageHandler::Instance()->print("Failed to parse user eye separation from XML!\n");
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
@@ -310,11 +408,12 @@ void core_sgct::ReadConfig::readAndParseXML()
 				if( strcmp("Pos", val[1]) == 0 )
 				{
 					double dTmp[3];
-					element[1]->Attribute("x", &dTmp[0]);
-					element[1]->Attribute("y", &dTmp[1]);
-					element[1]->Attribute("z", &dTmp[2]);
-
-					ClusterManager::Instance()->getUserPtr()->setPos(dTmp);
+					if( element[1]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
+                        element[1]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR &&
+                        element[1]->QueryDoubleAttribute("z", &dTmp[2]) == XML_NO_ERROR )
+                        ClusterManager::Instance()->getUserPtr()->setPos(dTmp);
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse user position from XML!\n");
 				}
 
 				//iterate
@@ -328,9 +427,8 @@ void core_sgct::ReadConfig::readAndParseXML()
 				ClusterManager::Instance()->getTrackingPtr()->connect( element[0]->Attribute("vrpnAddress") );
 
 				int tmpi = -1;
-				if( element[0]->Attribute("headSensorIndex") != NULL )
+				if( element[0]->QueryIntAttribute("headSensorIndex", &tmpi) == XML_NO_ERROR )
 				{
-					element[0]->Attribute("headSensorIndex", &tmpi);
 					ClusterManager::Instance()->getTrackingPtr()->setHeadSensorIndex( tmpi );
 				}
 				else
@@ -344,26 +442,22 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if( strcmp("Offset", val[1]) == 0 )
 					{
 						double tmpd[3];
-						element[1]->Attribute("x", &tmpd[0]);
-						element[1]->Attribute("y", &tmpd[1]);
-						element[1]->Attribute("z", &tmpd[2]);
-
-						if( element[1]->Attribute("x") != NULL &&
-							element[1]->Attribute("y") != NULL &&
-							element[1]->Attribute("z") != NULL )
+						if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
+                            element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
+                            element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
 							ClusterManager::Instance()->getTrackingPtr()->setOffset( tmpd[0], tmpd[1], tmpd[2] );
+                        else
+                            sgct::MessageHandler::Instance()->print("Failed to parse tracker offset in XML!\n");
 					}
 					else if( strcmp("Orientation", val[1]) == 0 )
 					{
 						double tmpd[3];
-						element[1]->Attribute("x", &tmpd[0]);
-						element[1]->Attribute("y", &tmpd[1]);
-						element[1]->Attribute("z", &tmpd[2]);
-
-						if( element[1]->Attribute("x") != NULL &&
-							element[1]->Attribute("y") != NULL &&
-							element[1]->Attribute("z") != NULL )
+						if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
+                            element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
+                            element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
 							ClusterManager::Instance()->getTrackingPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
+                        else
+                            sgct::MessageHandler::Instance()->print("Failed to parse tracker orientation in XML!\n");
 					}
 
 					//iterate

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="Windows-1252"?>
 <VisualStudioProject
 	ProjectType="Visual C++"
-	Version="9.00"
+	Version="9,00"
 	Name="sgct32_msvc9"
 	ProjectGUID="{DFB0D737-2A10-43CC-B804-368C88873C4F}"
 	RootNamespace="sgct32_msvc9"
@@ -18,7 +18,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\lib\msvc9\"
+			OutputDirectory="$(SGCT_ROOT_DIR)\lib\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2"
@@ -62,9 +62,9 @@
 			<Tool
 				Name="VCLibrarianTool"
 				LinkLibraryDependencies="true"
-				AdditionalDependencies="glew32s.lib glfw.lib glu32.lib opengl32.lib freetype248_D.lib ws2_32.lib tinyxmlSTL_D.lib zlibd.lib libpngd.lib vrpn_d.lib"
+				AdditionalDependencies="glew32s.lib glfw_d.lib glu32.lib opengl32.lib freetype248_D.lib ws2_32.lib tinyxml2_d.lib zlibd.lib libpngd.lib vrpn_d.lib"
 				OutputFile="$(OutDir)\sgct32_d.lib"
-				AdditionalLibraryDirectories="..\..\lib\msvc9\deps"
+				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9\deps"
 				IgnoreAllDefaultLibraries="true"
 			/>
 			<Tool
@@ -85,7 +85,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\lib\msvc9\"
+			OutputDirectory="$(SGCT_ROOT_DIR)\lib\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="4"
 			CharacterSet="2"
@@ -129,9 +129,9 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="glew32s.lib glfw.lib glu32.lib opengl32.lib freetype248.lib ws2_32.lib tinyxmlSTL.lib zlib.lib libpng.lib vrpn.lib"
+				AdditionalDependencies="glew32s.lib glfw.lib glu32.lib opengl32.lib freetype248.lib ws2_32.lib tinyxml2.lib zlib.lib libpng.lib vrpn.lib"
 				OutputFile="$(OutDir)\sgct32.lib"
-				AdditionalLibraryDirectories="..\..\lib\msvc9\deps"
+				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9\deps"
 			/>
 			<Tool
 				Name="VCALinkTool"

@@ -7,7 +7,7 @@
 
 <body>
 
-<h1>GLFW 2.7.4 source distribution</h1>
+<h1>GLFW 2.7.6 source distribution</h1>
 
 <ol>
  <li><a href="#intro">Introduction</a></li>
@@ -20,10 +20,10 @@
  <li><a href="#credits">Acknowledgements</a></li>
 </ol>
 
-<a name="intro">
+<a name="intro"></a>
 <h2>1. Introduction</h2>
 
-<p>Welcome to version 2.7.4 of the GLFW library.  GLFW is a free, Open Source,
+<p>Welcome to version 2.7.6 of the GLFW library.  GLFW is a free, Open Source,
 multi-platform library for OpenGL application development that provides a
 powerful API for handling operating system specific tasks such as opening an
 OpenGL window, reading keyboard, mouse, joystick and time input, creating
@@ -32,15 +32,15 @@ threads, and more.</p>
 <p>GLFW 2.7 is expected to be the last major release of the 2.x series, with
 most development now being done on what will become version 3.0.</p>
 
-<p>This release adds bug fixes for a few minor issues in 2.7.3, most notably the
-missing <code>-lrt</code> on X11 and the non-interactive menu bar created by
-<code>glfwInit</code> on Mac OS X.</p>
+<p>This release adds support for joysticks on Mac OS X, a graphical joystick
+test, support for 64-bit builds using MinGW-w64 and fixes for a number of bugs
+in 2.7.5.</p>
 
 <p>For a full list of changes, see the
 <a href="#changelog">version history</a>.</p>
 
 
-<a name="compiling">
+<a name="compiling"></a>
 <h2>2. Compiling GLFW and the example programs</h2>
 
 <p>A top level makefile can be found in the root directory of the GLFW
@@ -275,7 +275,7 @@ need to build applications for those systems, it is a better choice than
 the Cocoa port, which uses APIs unavailable on systems older than 10.5.</p>
 
 
-<a name="installing">
+<a name="installing"></a>
 <h2>3. Installing GLFW</h2>
 
 <h3>3.1 Windows</h3>
@@ -355,7 +355,7 @@ should think twice before using it. GLFW is very small and very suitable for
 static linking. The GLFW license also allows static linking without requiring
 your to share your code.</p>
 
-<a name="using">
+<a name="using"></a>
 <h2>4. Using GLFW</h2>
 
 <p>There are two aspects to using GLFW:</p>
@@ -456,10 +456,10 @@ to add other libraries as well, such as <code>glu32</code>):</p>
   </tr>
   <tr>
     <td>Microsoft Visual C++</td>
-    <td><code>glfw.lib opengl32.lib user32.lib</code></td>
+    <td><code>glfw.lib opengl32.lib</code></td>
   </tr>
   <tr>
-    <td>MinGW32</td>
+    <td>MinGW and MinGW-w64</td>
     <td><code>-lglfw -lopengl32</code></td>
   </tr>
   <tr>
@@ -507,7 +507,7 @@ such as <code>opengl32</code> and <code>glu32</code>):</p>
     <td><code>glfwdll.lib</code></td>
   </tr>
   <tr>
-    <td>MinGW32</td>
+    <td>MinGW and MinGW-w64</td>
     <td><code>-lglfwdll</code></td>
   </tr>
   <tr>
@@ -527,7 +527,12 @@ the library.  For systems that do not provide pkg-config, you should look in
 this file for the proper compile and link flags for your system, as determined
 by compile.sh at compile time.</p>
 
-<p>A typical compile and link command-line may look like this:</p>
+<p>A typical compile and link command-line when using the GLFW static library
+may look like this:</p>
+
+<blockquote><code>cc `pkg-config --cflags libglfw` -o myprog myprog.c `pkg-config --static --libs libglfw`</code></blockquote>
+
+<p>When using the GLFW sharedd library it may look like this:</p>
 
 <blockquote><code>cc `pkg-config --cflags libglfw` -o myprog myprog.c `pkg-config --libs libglfw`</code></blockquote>
 
@@ -561,7 +566,7 @@ command-line for compiling and linking your program is:</p>
 frameworks and libraries to your command-line using the <code>-l</code> and
 <code>-framework</code> switches, i.e.:</p>
 
-<blockquote><code>cc -o myprog myprog.c -lglfw -framework Cocoa -framework OpenGL</code></blockquote>
+<blockquote><code>cc -o myprog myprog.c -lglfw -framework Cocoa -framework OpenGL -framework IOKit</code></blockquote>
 
 <p>Note that you do not add the .framework extension to a framework when adding
 it from the command-line.</p>
@@ -572,8 +577,30 @@ that even though your machine may have Unix-style OpenGL libraries, they are for
 use with the X Window System, and will <em>not</em> work with the Mac OS X native
 version of GLFW.</p>
 
-<a name="changelog">
+<a name="changelog"></a>
 <h2>5. Version history</h2>
+
+<h3>v2.7.6</h3>
+<ul>
+  <li>[Cocoa] Added joystick support (backported from 3.0)</li>
+  <li>[Cocoa] Added new joystick test (backported from 3.0)</li>
+  <li>[Cocoa] Bugfix: Fullscreen windows with OpenGL 3.2 core contexts failed to open</li>
+  <li>[Cocoa] Bugfix: The cursor position incorrectly rounded during conversion</li>
+  <li>[Cocoa] Bugfix: Cursor positioning led to nonsensical results for fullscreen windows</li>
+  <li>[Cocoa] Bugfix: The GLFW window was flagged as restorable</li>
+  <li>[Win32] Bugfix: A test was missing for whether all available pixel formats had been disqualified</li>
+  <li>[Win32] Bugfix: Entering locked cursor mode caused cursor movement to be reported to the mouse position callback</li>
+  <li>[Win32] Bugfix: Setting the cursor position caused cursor movement to be reported to the mouse position callback</li>
+  <li>[Win32] Bugfix: A .def file using <code>__stdcall</code> naming conventions was used for the 64-bit DLL on MinGW-w64</li>
+  <li>[Win32] Bugfix: A superfluous link flag prevented tests and examples from being built for 64-bit on MinGW-w64</li>
+  <li>[X11] Bugfix: The VirtualBox OpenGL implementation does not set the window bit for GLX framebuffer configs</li>
+</ul>
+
+<h3>v2.7.5</h3>
+<ul>
+  <li>[Cocoa] Replaced <code>NSDate</code> time source with <code>mach_absolute_time</code> (backported from 3.0)</li>
+  <li>[Cocoa] Bugfix: A header needed for <code>MAXPATHLEN</code> on some systems was not included</li>
+</ul>
 
 <h3>v2.7.4</h3>
 <ul>
@@ -1068,12 +1095,11 @@ version of GLFW.</p>
 </ul>
 
 
-<a name="structure">
+<a name="structure"></a>
 <h2>6. Directory structure of the GLFW distribution</h2>
 
-<p>Here is an overview of the directory structure of the GLFW distribution:
+<p>Here is an overview of the directory structure of the GLFW distribution:</p>
 
-<p>
 <table border=0 cellspacing=0>
 <tr valign="top"><td width=100><code>docs</code></td><td>&nbsp;</td><td>GLFW manuals in PDF format</td></tr>
 <tr valign="top"><td><code>examples</code></td><td>&nbsp;</td><td>Several example programs in C</td></tr>
@@ -1092,7 +1118,7 @@ version of GLFW.</p>
 </table>
 
 
-<a name="contact">
+<a name="contact"></a>
 <h2>7. Contacting the project</h2>
 
 <p>The official website for GLFW is <a href="http://www.glfw.org/">glfw.org</a>.
@@ -1116,7 +1142,7 @@ GLFW or porting it to your favorite platform, we have a
 or you could join us on <code>#glfw</code>.
 
 
-<a name="credits">
+<a name="credits"></a>
 <h2>8. Acknowledgements</h2>
 
 <p>GLFW exists because people around the world donated their time and lent
@@ -1173,6 +1199,9 @@ their skills.  Special thanks go out to:</p>
   <li>Glenn Lewis, for helping out with support for the D programming
   language</li>
 
+  <li>Shane Liesegang, for providing a bug fix relating to Cocoa window
+  restoration</li>
+
   <li>Tristam MacDonald, for his bug reports and feedback on the Cocoa port</li>
 
   <li>David Medlock, for doing the initial Lua port</li>
@@ -1193,7 +1222,7 @@ their skills.  Special thanks go out to:</p>
 
   <li>Steve Sexton, for reporting an input bug in the Carbon port</li>
 
-  <li>Dmitri Shuralyov, for support, bug reports and testing</li>
+  <li>Dmitri Shuralyov, for support, bug reports, bug fixes and testing</li>
 
   <li>Daniel Skorupski, for reporting a bug in the Win32 DEF file</li>
 
@@ -1204,10 +1233,15 @@ their skills.  Special thanks go out to:</p>
 
   <li>Johannes Stein, for maintaining the Pascal bindings</li>
 
+  <li>Sergey Tikhomirov, for the initial implementation of joystick support on
+  Mac OS X</li>
+
   <li>Samuli Tuomola, for support, bug reports and testing</li>
 
   <li>Frank Wille, for helping with the AmigaOS port and making GLFW
   compile under IRIX 5.3</li>
+
+  <li>Yaniel, for fixing a bug with fullscreen windows using OpenGL 3.0 contexts on Cocoa</li>
 
   <li>Santi Zupancic, for support, bug reports and testing</li>
 

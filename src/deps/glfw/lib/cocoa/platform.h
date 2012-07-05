@@ -148,15 +148,16 @@ GLFWGLOBAL struct {
 
     // Timer data
     struct {
-        double t0;
-    } Timer;
+        double base;
+        double resolution;
+    } timer;
 
     // dlopen handle for dynamically-loading extension function pointers
     void *OpenGLFramework;
 
     id originalMode;
 
-    id AutoreleasePool;
+    id autoreleasePool;
 
     CGEventSourceRef eventSource;
 
@@ -251,6 +252,14 @@ GLFWGLOBAL struct {
 pthread_mutex_lock( &_glfwThrd.CriticalSection );
 #define LEAVE_THREAD_CRITICAL_SECTION \
 pthread_mutex_unlock( &_glfwThrd.CriticalSection );
+
+
+//========================================================================
+// Prototypes for platform specific internal functions
+//========================================================================
+
+// Time
+void _glfwInitTimer( void );
 
 
 #endif // _platform_h_

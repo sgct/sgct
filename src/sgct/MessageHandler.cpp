@@ -78,6 +78,30 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedlength,
     Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
 }
 
+
+void sgct::MessageHandler::printv(const char *fmt, va_list ap)
+{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    vsprintf_s(mParseBuffer, MESSAGE_HANDLER_MAX_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+#else
+    vsprintf(mParseBuffer, fmt, ap);
+#endif
+    va_end(ap);		// Results Are Stored In Text
+
+    //print local
+    std::cerr << mParseBuffer;
+
+    //if client send to server
+    if(!mLocal && core_sgct::NetworkManager::gMutex != NULL)
+    {
+        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+        if(mBuffer.empty())
+            mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
+        mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
+        Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+    }
+}
+
 void sgct::MessageHandler::print(const char *fmt, ...)
 {
     va_list		ap;			// Pointer To List Of Arguments
@@ -87,31 +111,9 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 		*mParseBuffer=0;	// Do Nothing
 		return;
 	}
-	else
-	{
-        va_start(ap, fmt);	// Parses The String For Variables
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	    vsprintf_s(mParseBuffer, MESSAGE_HANDLER_MAX_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
-#else
-		vsprintf(mParseBuffer, fmt, ap);
-#endif
-        va_end(ap);		// Results Are Stored In Text
-	}
-
-    //print local
-    //fprintf(stderr, mParseBuffer);
-    std::cerr << mParseBuffer;// << std::endl;
-    //std::cout << mParseBuffer;// << std::endl;
-
-    //if client send to server
-    if(!mLocal && core_sgct::NetworkManager::gMutex != NULL)
-    {
-        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
-		if(mBuffer.empty())
-			mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
-		mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
-		Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-    }
+    
+    va_start(ap, fmt);	// Parses The String For Variables
+    printv(fmt, ap);
 }
 
 void sgct::MessageHandler::clearBuffer()
@@ -124,4 +126,42 @@ void sgct::MessageHandler::clearBuffer()
 char * sgct::MessageHandler::getMessage()
 {
 	return &mBuffer[0];
+}
+
+void sgct::MessageHandler::printDebug(const char *fmt, ...)
+{
+#ifdef __SGCT_DEBUG__
+    va_list ap;
+    if (fmt == NULL)
+    {
+        *mParseBuffer = 0;
+        return;
+    }
+    va_start(ap, fmt);	// Parses The String For Variables
+    printv(fmt, ap);
+#endif
+}
+
+void sgct::MessageHandler::printIndent(unsigned int indentation, const char* fmt, ...)
+{
+    va_list ap;
+    if (fmt == NULL)
+    {
+        *mParseBuffer = 0;
+        return;
+    }
+    
+    if (indentation > 0) {
+        const std::string padding(indentation, ' ');
+        const std::string fmtString = std::string(fmt);
+        const std::string fmtComplete = padding + fmtString;
+
+        const char *fmtIndented = fmtComplete.c_str();
+        va_start(ap, fmtIndented);	// Parses The String For Variables
+        printv(fmtIndented, ap);
+    }
+    else {
+        va_start(ap, fmt);	// Parses The String For Variables
+        printv(fmt, ap);
+    }
 }

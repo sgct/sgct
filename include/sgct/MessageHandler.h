@@ -60,6 +60,8 @@ public:
 
 	void decode(const char * receivedData, int receivedlength, int clientIndex);
 	void print(const char *fmt, ...);
+    void printDebug(const char *fmt, ...);
+    void printIndent(unsigned int indentation, const char* fmt, ...);
     void sendMessagesToServer( bool state ) { mLocal = !state; }
     void clearBuffer();
 
@@ -76,6 +78,8 @@ private:
 	const MessageHandler & operator=(const MessageHandler & rhs );
 
 private:
+    void printv(const char *fmt, va_list ap);
+
 	static MessageHandler * mInstance;
 
 	char * mParseBuffer;

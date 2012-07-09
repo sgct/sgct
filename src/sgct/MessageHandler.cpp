@@ -157,7 +157,7 @@ void sgct::MessageHandler::printIndent(unsigned int indentation, const char* fmt
         const std::string fmtComplete = padding + fmtString;
 
         const char *fmtIndented = fmtComplete.c_str();
-        va_start(ap, fmtIndented);	// Parses The String For Variables
+        va_start(ap, fmt);	// Parses The String For Variables
         printv(fmtIndented, ap);
     }
     else {

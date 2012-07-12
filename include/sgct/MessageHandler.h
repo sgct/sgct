@@ -29,6 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _MESSAGE_HANDLER
 
 #include <stddef.h> //get definition for NULL
+#include <stdarg.h>
 #include <vector>
 
 namespace sgct //simple graphics cluster toolkit

@@ -55,7 +55,8 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	    sgct::MessageHandler::Instance()->print("Parsing XML config '%s'...\n", filename.c_str());
 	}
 
-    replaceEnvVars(filename);
+    if( !replaceEnvVars(filename) )
+        return;
 
 	try
 	{
@@ -76,13 +77,13 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		ClusterManager::Instance()->getNodePtr(i)->port.c_str());
 }
 
-void core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
+bool core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
 {
     size_t foundIndex = filename.find('%');
     if( foundIndex != std::string::npos )
     {
         sgct::MessageHandler::Instance()->print("Error: SGCT doesn't support the usage of '%%' characters in path or file name.\n");
-		return;
+		return false;
     }
 
     std::vector< size_t > beginEnvVar;
@@ -104,7 +105,7 @@ void core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
     if(beginEnvVar.size() != endEnvVar.size())
     {
         sgct::MessageHandler::Instance()->print("Error: Bad configuration path string!\n");
-		return;
+		return false;
     }
     else
     {
@@ -121,14 +122,14 @@ void core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
 			if ( err )
 			{
 				sgct::MessageHandler::Instance()->print("Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
-				return;
+				return false;
 			}
 #else
 			fetchedEnvVar = getenv(envVar.c_str());
 			if( fetchedEnvVar == NULL )
 			{
 				sgct::MessageHandler::Instance()->print("Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
-				return;
+				return false;
 			}
 #endif
 
@@ -143,6 +144,8 @@ void core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
             if(xmlFileName[i] == 92) //backslash
                 xmlFileName[i] = '/';
     }
+
+    return true;
 }
 
 void core_sgct::ReadConfig::readAndParseXML()
@@ -151,8 +154,7 @@ void core_sgct::ReadConfig::readAndParseXML()
         throw "Invalid XML file!";
 
 	XMLDocument xmlDoc;
-	xmlDoc.LoadFile(xmlFileName.c_str());
-	if( xmlDoc.ErrorID() != XML_NO_ERROR )
+	if( xmlDoc.LoadFile(xmlFileName.c_str()) != XML_NO_ERROR )
 	{
 		throw "Invalid XML file!";
 	}

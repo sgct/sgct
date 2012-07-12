@@ -31,7 +31,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
-#include <stdarg.h>
 #include <string.h>
 
 #define MESSAGE_HANDLER_MAX_SIZE 8192
@@ -111,7 +110,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 		*mParseBuffer=0;	// Do Nothing
 		return;
 	}
-    
+
     va_start(ap, fmt);	// Parses The String For Variables
     printv(fmt, ap);
 }
@@ -150,7 +149,7 @@ void sgct::MessageHandler::printIndent(unsigned int indentation, const char* fmt
         *mParseBuffer = 0;
         return;
     }
-    
+
     if (indentation > 0) {
         const std::string padding(indentation, ' ');
         const std::string fmtString = std::string(fmt);

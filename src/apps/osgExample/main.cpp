@@ -1,4 +1,9 @@
 #include "sgct.h"
+
+#define OSG_OSG_LIBRARY_STATIC
+#define DYNAMIC_OPENTHREADS OFF
+#define DDYNAMIC_OPENSCENEGRAPH OFF
+
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
 #include <osg/Matrix>

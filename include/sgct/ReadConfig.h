@@ -51,7 +51,7 @@ public:
 	const float & getRoll() { return mRoll; }
 
 private:
-    void replaceEnvVars( const std::string &filename );
+    bool replaceEnvVars( const std::string &filename );
 	void readAndParseXML();
 	int getStereoType( const std::string type );
 

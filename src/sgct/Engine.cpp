@@ -300,7 +300,7 @@ void sgct::Engine::initOGL()
 	//load overlays if any
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
-		tmpNode->getViewport(i)->loadOverlayTexture();
+		tmpNode->getViewport(i)->loadData();
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();

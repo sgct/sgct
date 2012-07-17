@@ -38,7 +38,9 @@ core_sgct::Viewport::Viewport()
 	mYSize = 1.0f;
 	mEye = Frustum::Mono;
 	mOverlayTexture = false;
-	mFilename = NULL;
+	mCorrectionMesh = false;
+	mOverlayFilename = NULL;
+	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
 
@@ -58,7 +60,9 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mYSize = ySize;
 	mEye = Frustum::Mono;
 	mOverlayTexture = false;
-	mFilename = NULL;
+	mCorrectionMesh = false;
+	mOverlayFilename = NULL;
+	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
 
@@ -78,7 +82,9 @@ void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
 	mYSize = ySize;
 	mEye = Frustum::Mono;
 	mOverlayTexture = false;
-	mFilename = NULL;
+	mCorrectionMesh = false;
+	mOverlayFilename = NULL;
+	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
 }
@@ -105,12 +111,27 @@ void core_sgct::Viewport::setOverlayTexture(const char * texturePath)
 	//copy filename
 	if( strlen(texturePath) > 4 )
 	{
-		mFilename = new char[strlen(texturePath)+1];
+		mOverlayFilename = new char[strlen(texturePath)+1];
 		#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		if( strcpy_s(mFilename, strlen(texturePath)+1, texturePath ) != 0)
+		if( strcpy_s(mOverlayFilename, strlen(texturePath)+1, texturePath ) != 0)
 			return;
 		#else
-		strcpy(mFilename, texturePath );
+		strcpy(mOverlayFilename, texturePath );
+		#endif
+	}
+}
+
+void core_sgct::Viewport::setCorrectionMesh(const char * meshPath)
+{
+	//copy filename
+	if( strlen(meshPath) > 3 )
+	{
+		mMeshFilename = new char[strlen(meshPath)+1];
+		#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		if( strcpy_s(mMeshFilename, strlen(meshPath)+1, meshPath ) != 0)
+			return;
+		#else
+		strcpy(mMeshFilename, meshPath );
 		#endif
 	}
 }
@@ -120,10 +141,13 @@ void core_sgct::Viewport::setTracked(bool state)
 	mTracked = state;
 }
 
-void core_sgct::Viewport::loadOverlayTexture()
+void core_sgct::Viewport::loadData()
 {
-	if( mFilename != NULL )
-		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mFilename, true, 1);
+	if( mOverlayFilename != NULL )
+		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
+
+	if( mMeshFilename != NULL )
+		mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
 }
 
 void core_sgct::Viewport::calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)

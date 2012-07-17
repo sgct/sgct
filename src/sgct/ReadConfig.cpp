@@ -305,6 +305,9 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("overlay") != NULL )
 						tmpVp.setOverlayTexture( element[1]->Attribute("overlay") );
 
+					if( element[1]->Attribute("mesh") != NULL )
+						tmpVp.setCorrectionMesh( element[1]->Attribute("mesh") );
+
 					if( element[1]->Attribute("tracked") != NULL )
 						tmpVp.setTracked( strcmp( element[1]->Attribute("tracked"), "true" ) == 0 ? true : false );
 

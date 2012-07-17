@@ -34,7 +34,7 @@ namespace core_sgct
 {
 
 /*!
-Helper struct for measuring application statistics
+Helper class for measuring application statistics
 */
 class Statistics
 {

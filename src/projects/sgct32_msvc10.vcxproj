@@ -12,6 +12,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\ClusterManager.cpp" />
+    <ClCompile Include="..\sgct\CorrectionMesh.cpp" />
     <ClCompile Include="..\sgct\Engine.cpp" />
     <ClCompile Include="..\sgct\Font.cpp" />
     <ClCompile Include="..\sgct\FontManager.cpp" />
@@ -35,6 +36,7 @@
   <ItemGroup>
     <ClInclude Include="..\..\include\sgct.h" />
     <ClInclude Include="..\..\include\sgct\ClusterManager.h" />
+    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h" />
     <ClInclude Include="..\..\include\sgct\Engine.h" />
     <ClInclude Include="..\..\include\sgct\Font.h" />
     <ClInclude Include="..\..\include\sgct\FontManager.h" />

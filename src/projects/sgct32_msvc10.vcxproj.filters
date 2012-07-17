@@ -84,6 +84,9 @@
     <ClInclude Include="..\..\include\sgct\SGCTTracking.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -144,6 +147,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\SGCTTracking.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\CorrectionMesh.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

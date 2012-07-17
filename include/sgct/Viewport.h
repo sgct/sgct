@@ -30,6 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <glm/glm.hpp>
 #include "Frustum.h"
+#include "CorrectionMesh.h"
 #include <stddef.h> //get definition for NULL
 
 namespace core_sgct
@@ -46,8 +47,9 @@ public:
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
+	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
-	void loadOverlayTexture();
+	void loadData();
 	void calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 
@@ -61,6 +63,7 @@ public:
 	inline const glm::mat4 & getProjectionMatrix( core_sgct::Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
 	inline const glm::mat4 & getFrustumMatrix( core_sgct::Frustum::FrustumMode frustumMode ) { return mFrustumMat[frustumMode]; }
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
+	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
 
@@ -78,8 +81,11 @@ private:
 	float mYSize;
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
-	char * mFilename;
+	CorrectionMesh mCM;
+	char * mOverlayFilename;
+	char * mMeshFilename;
 	bool mOverlayTexture;
+	bool mCorrectionMesh;
 	bool mTracked;
 	unsigned int mTextureIndex;
 };

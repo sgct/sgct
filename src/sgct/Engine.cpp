@@ -124,6 +124,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	setClearBufferFunction( clearBuffer );
 	mNearClippingPlaneDist = 0.1f;
 	mFarClippingPlaneDist = 100.0f;
+	mClearColor[0] = 0.0f;
+	mClearColor[1] = 0.0f;
+	mClearColor[2] = 0.0f;
+	mClearColor[3] = 0.0f;		
 	mShowInfo = false;
 	mShowGraph = false;
 	mShowWireframe = false;
@@ -812,6 +816,8 @@ void sgct::Engine::setRenderTarget(int bufferIndex)
 
 void sgct::Engine::renderFBOTexture()
 {
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	
 	//unbind framebuffer
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
@@ -819,9 +825,7 @@ void sgct::Engine::renderFBOTexture()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	gluOrtho2D(0.0, static_cast<double>(getWindowPtr()->getHResolution()),
-		0.0, static_cast<double>(getWindowPtr()->getVResolution()));
-
+	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
@@ -830,8 +834,6 @@ void sgct::Engine::renderFBOTexture()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-
 	//clear buffers
 	mActiveFrustum = tmpNode->stereo == ReadConfig::Active ? Frustum::StereoLeftEye : Frustum::Mono;
 	setAndClearBuffer(BackBuffer);
@@ -839,8 +841,6 @@ void sgct::Engine::renderFBOTexture()
 	glLoadIdentity();
 
 	glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-
-	glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 	if( tmpNode->stereo > ReadConfig::Active )
 	{
@@ -866,32 +866,35 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( mFrameBufferTextureLocs[0], 0);
 		glUniform1i( mFrameBufferTextureLocs[1], 1);
 
-		glActiveTextureARB(GL_TEXTURE0_ARB);
+		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
 		glEnable(GL_TEXTURE_2D);
 
-		glActiveTextureARB(GL_TEXTURE1_ARB);
+		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
 		glEnable(GL_TEXTURE_2D);
 
-		glBegin(GL_QUADS);
-		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.0, 0.0);
-		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, 0.0);
-		glVertex2i(0, 0);
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			tmpNode->getViewport(i)->renderMesh();
 
-		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 0.0, 1.0);
-		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 0.0, 1.0);
-		glVertex2i(0, getWindowPtr()->getVResolution());
+		/*glBegin(GL_QUADS);
+		glMultiTexCoord2d(GL_TEXTURE0, 0.0, 0.0);
+		glMultiTexCoord2d(GL_TEXTURE1, 0.0, 0.0);
+		glVertex2d(0.0, 0.0);
 
-		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.0, 1.0);
-		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1.0, 1.0);
-		glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+		glMultiTexCoord2d(GL_TEXTURE0, 0.0, 1.0);
+		glMultiTexCoord2d(GL_TEXTURE1, 0.0, 1.0);
+		glVertex2d(0.0, 1.0);
 
-		glMultiTexCoord2fARB(GL_TEXTURE0_ARB, 1.0, 0.0);
-		glMultiTexCoord2fARB(GL_TEXTURE1_ARB, 1.0, 0.0);
-		glVertex2i(getWindowPtr()->getHResolution(), 0);
+		glMultiTexCoord2d(GL_TEXTURE0, 1.0, 1.0);
+		glMultiTexCoord2d(GL_TEXTURE1, 1.0, 1.0);
+		glVertex2d(1.0, 1.0);
 
-		glEnd();
+		glMultiTexCoord2d(GL_TEXTURE0, 1.0, 0.0);
+		glMultiTexCoord2d(GL_TEXTURE1, 1.0, 0.0);
+		glVertex2d(1.0, 0.0);
+
+		glEnd();*/
 
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -900,12 +903,15 @@ void sgct::Engine::renderFBOTexture()
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
 		glEnable(GL_TEXTURE_2D);
 
-		glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0);	glVertex2i(0, 0);
-		glTexCoord2d(0.0, 1.0);	glVertex2i(0, getWindowPtr()->getVResolution());
-		glTexCoord2d(1.0, 1.0);	glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-		glTexCoord2d(1.0, 0.0);	glVertex2i(getWindowPtr()->getHResolution(), 0);
-		glEnd();
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			tmpNode->getViewport(i)->renderMesh();
+
+		/*glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
+		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
+		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
+		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
+		glEnd();*/
 	}
 
 	//render right eye in active stereo mode
@@ -919,15 +925,18 @@ void sgct::Engine::renderFBOTexture()
 
 		glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
+		//glColor4f(1.0f,1.0f,1.0f,1.0f);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
 
-		glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0);	glVertex2i(0, 0);
-		glTexCoord2d(0.0, 1.0);	glVertex2i(0, getWindowPtr()->getVResolution());
-		glTexCoord2d(1.0, 1.0);	glVertex2i(getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-		glTexCoord2d(1.0, 0.0);	glVertex2i(getWindowPtr()->getHResolution(), 0);
-		glEnd();
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			tmpNode->getViewport(i)->renderMesh();
+
+		/*glBegin(GL_QUADS);
+		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
+		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
+		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
+		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
+		glEnd();*/
 	}
 
 	glPopAttrib();
@@ -1040,7 +1049,9 @@ void sgct::Engine::createFBOs()
 			//setup non-multisample buffer
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
 			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
 		}
@@ -1498,7 +1509,8 @@ void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(int) )
 void sgct::Engine::clearBuffer(void)
 {
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	const float * colorPtr = sgct::Engine::getPtr()->getClearColor();
+	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
 }
 
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
@@ -1511,13 +1523,13 @@ void sgct::Engine::enterCurrentViewport()
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	currentViewportCoords[0] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<float>(getWindowPtr()->getHResolution()));
+		static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
 	currentViewportCoords[1] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<float>(getWindowPtr()->getVResolution()));
+		static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
 	currentViewportCoords[2] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(getWindowPtr()->getHResolution()));
+		static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
 	currentViewportCoords[3] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(getWindowPtr()->getVResolution()));
+		static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
 
 	glViewport( currentViewportCoords[0],
 		currentViewportCoords[1],
@@ -1566,6 +1578,14 @@ void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 	mNearClippingPlaneDist = _near;
 	mFarClippingPlaneDist = _far;
 	calculateFrustums();
+}
+
+void sgct::Engine::setClearColor(float red, float green, float blue, float alpha)
+{
+	mClearColor[0] = red;
+	mClearColor[1] = green;
+	mClearColor[2] = blue;
+	mClearColor[3] = alpha;
 }
 
 void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex)

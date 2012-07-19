@@ -62,6 +62,7 @@ int main( int argc, char* argv[] )
 	mySharedString = "Test!";
 
 	gEngine = new sgct::Engine( argc, argv );
+	gEngine->setClearColor(1.0f, 0.0f, 0.0f, 1.0f);
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );

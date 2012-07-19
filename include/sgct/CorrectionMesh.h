@@ -28,6 +28,17 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _CORRECTION_MESH_H_
 #define _CORRECTION_MESH_H_
 
+struct CorrectionMeshVertex
+{
+	double x, y;	//Vertex 16
+	double s0, t0;	//Texcoord0 16
+	double s1, t1;	//Texcoord1 16
+	unsigned char r, g, b; //color 3
+
+	//ATI performs better using sizes of power of two
+	unsigned char padding[13]; //64 - 16 - 16 - 16 - 3 = 13
+};
+
 namespace core_sgct
 {
 
@@ -38,11 +49,35 @@ A correction mesh is used for warping and edge-blending.
 class CorrectionMesh
 {
 public:
+	CorrectionMesh();
+	~CorrectionMesh();
+	void setViewportPointers(double vpXSize, double vpYSize, double vpXPos, double vpYPos);
 	bool readAndGenerateMesh(const char * meshPath);
+	void render();
+	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
-	unsigned int meshData;
+	void createMesh();
+	void cleanUp();
+	void renderMesh();
+
+	enum buffer { Vertex = 0, Index };
+
+	CorrectionMeshVertex * mVertices;
+	unsigned short * mFaces;
+    double mOrthoCoords[5];
+	unsigned int mResolution[2];
+
+	unsigned int mNumberOfVertices;
+	unsigned int mNumberOfFaces;
+	unsigned int mMeshData[2];
+
+	double mXSize;
+	double mYSize;
+	double mXOffset;
+	double mYOffset;
 	
+	bool hasMesh;
 };
 
 } //core_sgct

@@ -32,17 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 core_sgct::Viewport::Viewport()
 {
-	mX = 0.0f;
-	mY = 0.0f;
-	mXSize = 1.0f;
-	mYSize = 1.0f;
-	mEye = Frustum::Mono;
-	mOverlayTexture = false;
-	mCorrectionMesh = false;
-	mOverlayFilename = NULL;
-	mMeshFilename = NULL;
-	mTextureIndex = 0;
-	mTracked = false;
+	set(0.0, 0.0, 1.0, 1.0);
 
 	for(int i=0; i<3; i++)
 	{
@@ -52,7 +42,19 @@ core_sgct::Viewport::Viewport()
 	}
 }
 
-core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
+core_sgct::Viewport::Viewport(double x, double y, double xSize, double ySize)
+{
+	set(x, y, xSize, ySize);
+
+	for(int i=0; i<3; i++)
+	{
+		mViewMatrix[i]			= glm::mat4(1.0f);
+		mProjectionMatrix[i]	= glm::mat4(1.0f);
+		mFrustumMat[i]			= glm::mat4(1.0f);
+	}
+}
+
+void core_sgct::Viewport::set(double x, double y, double xSize, double ySize)
 {
 	mX = x;
 	mY = y;
@@ -65,40 +67,21 @@ core_sgct::Viewport::Viewport(float x, float y, float xSize, float ySize)
 	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
-
-	for(int i=0; i<3; i++)
-	{
-		mViewMatrix[i]			= glm::mat4(1.0f);
-		mProjectionMatrix[i]	= glm::mat4(1.0f);
-		mFrustumMat[i]			= glm::mat4(1.0f);
-	}
+	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
 }
 
-void core_sgct::Viewport::set(float x, float y, float xSize, float ySize)
+void core_sgct::Viewport::setPos(double x, double y)
 {
 	mX = x;
 	mY = y;
-	mXSize = xSize;
-	mYSize = ySize;
-	mEye = Frustum::Mono;
-	mOverlayTexture = false;
-	mCorrectionMesh = false;
-	mOverlayFilename = NULL;
-	mMeshFilename = NULL;
-	mTextureIndex = 0;
-	mTracked = false;
+	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
 }
 
-void core_sgct::Viewport::setPos(float x, float y)
-{
-	mX = x;
-	mY = y;
-}
-
-void core_sgct::Viewport::setSize(float x, float y)
+void core_sgct::Viewport::setSize(double x, double y)
 {
 	mXSize = x;
 	mYSize = y;
+	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
 }
 
 void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)
@@ -219,4 +202,9 @@ void core_sgct::Viewport::calculateFrustum(const core_sgct::Frustum::FrustumMode
 void core_sgct::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
 {
 	mViewPlaneCoords[cornerIndex] = cornerPos;
-};
+}
+
+void core_sgct::Viewport::renderMesh()
+{
+	mCM.render();
+}

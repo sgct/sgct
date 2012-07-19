@@ -53,7 +53,9 @@ public:
 	const double & getDt();
 	const double & getDrawTime();
 	const double & getSyncTime();
+	const float * getClearColor() { return mClearColor; }
 	void setNearAndFarClippingPlanes(float _near, float _far);
+	void setClearColor(float red, float green, float blue, float alpha);
 	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
 	const float& getFarClippingPlaine() const { return mFarClippingPlaneDist; }
 	void setWireframe(bool state) { mShowWireframe = state; }
@@ -108,6 +110,7 @@ public:
 
 	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	static core_sgct::User * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }
+	static void checkForOGLErrors();
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
@@ -147,7 +150,6 @@ private:
 	void createFBOs();
 	void resizeFBOs();
 	void setAndClearBuffer(BufferMode mode);
-	void checkForOGLErrors();
 	void captureBuffer();
 	void waitForAllWindowsInSwapGroupToOpen();
 
@@ -182,6 +184,7 @@ private:
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;
+	float mClearColor[4];
 
 	int localRunningMode;
 	core_sgct::Frustum::FrustumMode mActiveFrustum;

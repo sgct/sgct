@@ -332,23 +332,23 @@ void core_sgct::ReadConfig::readAndParseXML()
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
-						float fTmp[2];
-						fTmp[0] = 0.0f;
-						fTmp[1] = 0.0f;
+						double dTmp[2];
+						dTmp[0] = 0.0;
+						dTmp[1] = 0.0;
 
 						if(strcmp("Pos", val[2]) == 0)
 						{
-							if( element[2]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-                                element[2]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR )
-                                tmpVp.setPos( fTmp[0], fTmp[1] );
+							if( element[2]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
+                                element[2]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR )
+                                tmpVp.setPos( dTmp[0], dTmp[1] );
                             else
                                 sgct::MessageHandler::Instance()->print("Failed to parse viewport position from XML!\n");
 						}
 						else if(strcmp("Size", val[2]) == 0)
 						{
-							if( element[2]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-                                element[2]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR )
-                                tmpVp.setSize( fTmp[0], fTmp[1] );
+							if( element[2]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
+                                element[2]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR )
+                                tmpVp.setSize( dTmp[0], dTmp[1] );
                             else
                                 sgct::MessageHandler::Instance()->print("Failed to parse viewport size from XML!\n");
 						}

@@ -49,6 +49,7 @@ namespace core_sgct
 			gl_TexCoord[1] = gl_MultiTexCoord1;
 
 			gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+			gl_FrontColor = gl_Color;
 		}
 
 		*/
@@ -61,6 +62,7 @@ namespace core_sgct
 				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
 				gl_TexCoord[1] = gl_MultiTexCoord1;\n\
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+				gl_FrontColor = gl_Color;\n\
 			}\n";		
 		
 		/*
@@ -78,10 +80,10 @@ namespace core_sgct
 			vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);
 			float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;
 	
-			gl_FragColor.r = leftLum;
-			gl_FragColor.g = rightLum;
-			gl_FragColor.b = rightLum;
-			gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;
+			gl_FragColor.r = gl_Color.r * leftLum;
+			gl_FragColor.g = gl_Color.g * rightLum;
+			gl_FragColor.b = gl_Color.b * rightLum;
+			gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);
 		}
 
 		*/
@@ -95,10 +97,10 @@ namespace core_sgct
 				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
 				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
 				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
-				gl_FragColor.r = leftLum;\n\
-				gl_FragColor.g = rightLum;\n\
-				gl_FragColor.b = rightLum;\n\
-				gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;\n\
+				gl_FragColor.r = gl_Color.r * leftLum;\n\
+				gl_FragColor.g = gl_Color.g * rightLum;\n\
+				gl_FragColor.b = gl_Color.b * rightLum;\n\
+				gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);\n\
 			}\n";		
 	
 		/*
@@ -116,10 +118,10 @@ namespace core_sgct
 			vec3 coef = vec3(0.15, 0.15, 0.70);
 	
 			float rightMix = dot(rightVals.rbg, coef);
-			gl_FragColor.r = leftVals.r;
-			gl_FragColor.g = leftVals.g;
-			gl_FragColor.b = rightMix;
-			gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;
+			gl_FragColor.r = gl_Color.r * leftVals.r;
+			gl_FragColor.g = gl_Color.g * leftVals.g;
+			gl_FragColor.b = gl_Color.b * rightMix;
+			gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);
 		}
 
 		*/
@@ -133,10 +135,10 @@ namespace core_sgct
 				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
 				vec3 coef = vec3(0.15, 0.15, 0.70);\n\
 				float rightMix = dot(rightVals.rbg, coef);\n\
-				gl_FragColor.r = leftVals.r;\n\
-				gl_FragColor.g = leftVals.g;\n\
-				gl_FragColor.b = rightMix;\n\
-				gl_FragColor.a = leftVals.a*0.5 + rightVals.a*0.5;\n\
+				gl_FragColor.r = gl_Color.r * leftVals.r;\n\
+				gl_FragColor.g = gl_Color.g * leftVals.g;\n\
+				gl_FragColor.b = gl_Color.b * rightMix;\n\
+				gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);\n\
 			}\n";
 
 		/*
@@ -155,9 +157,9 @@ namespace core_sgct
 			//fast
 			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
 			if( (fval - floor(fval)) == 0.0 )
-				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
+				gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);
 			else
-				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
+				gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);
 		}
 
 		*/
@@ -170,9 +172,9 @@ namespace core_sgct
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
 				else\n\
-					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
 			}\n";
 
 		/*
@@ -190,9 +192,9 @@ namespace core_sgct
 			//faster
 			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
 			if( (fval - floor(fval)) == 0.0 )
-				gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);
+				gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);
 			else
-				gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);
+				gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);
 		}
 
 		*/
@@ -205,9 +207,9 @@ namespace core_sgct
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					gl_FragColor = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				else\n\
-					gl_FragColor = texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
 			}\n";
 	}
 }

@@ -40,11 +40,11 @@ class Viewport
 {
 public:
 	Viewport();
-	Viewport(float x, float y, float xSize, float ySize);
+	Viewport(double x, double y, double xSize, double ySize);
 
-	void set(float x, float y, float xSize, float ySize);
-	void setPos(float x, float y);
-	void setSize(float x, float y);
+	void set(double x, double y, double xSize, double ySize);
+	void setPos(double x, double y);
+	void setSize(double x, double y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
 	void setCorrectionMesh(const char * meshPath);
@@ -52,11 +52,12 @@ public:
 	void loadData();
 	void calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
+	void renderMesh();
 
-	inline float getX() { return mX; }
-	inline float getY() { return mY; }
-	inline float getXSize() { return mXSize; }
-	inline float getYSize() { return mYSize; }
+	inline double getX() { return mX; }
+	inline double getY() { return mY; }
+	inline double getXSize() { return mXSize; }
+	inline double getYSize() { return mYSize; }
 	inline Frustum::FrustumMode getEye() { return mEye; }
 	inline Frustum * getFrustum(core_sgct::Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
@@ -66,6 +67,7 @@ public:
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
+	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
@@ -75,10 +77,10 @@ private:
 	glm::mat4 mProjectionMatrix[3];
 	glm::mat4 mFrustumMat[3];
 
-	float mX;
-	float mY;
-	float mXSize;
-	float mYSize;
+	double mX;
+	double mY;
+	double mXSize;
+	double mYSize;
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
 	CorrectionMesh mCM;

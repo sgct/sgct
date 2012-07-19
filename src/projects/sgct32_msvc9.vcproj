@@ -163,6 +163,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\sgct\CorrectionMesh.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\sgct\Engine.cpp"
 				>
 			</File>
@@ -246,6 +250,10 @@
 			>
 			<File
 				RelativePath="..\..\include\sgct\ClusterManager.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\CorrectionMesh.h"
 				>
 			</File>
 			<File

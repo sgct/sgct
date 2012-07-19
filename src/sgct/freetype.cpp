@@ -239,17 +239,17 @@ inline void pushScreenCoordinateMatrix()
 	//set current viewport
 	//user or external scenegraph may change the viewport so it's important to reset it.
 	glViewport(
-		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<float>(tmpNode->getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<float>(tmpNode->getWindowPtr()->getVResolution())));
+		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
+		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())));
 	
 	gluOrtho2D(
 		0.0,
-		static_cast<double>(tmpNode->getCurrentViewport()->getXSize()) *
+		tmpNode->getCurrentViewport()->getXSize() *
 		static_cast<double>(tmpNode->getWindowPtr()->getHResolution()),
 		0.0,
-		static_cast<double>(tmpNode->getCurrentViewport()->getYSize()) *
+		tmpNode->getCurrentViewport()->getYSize() *
 		static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
 	glPopAttrib();
 }

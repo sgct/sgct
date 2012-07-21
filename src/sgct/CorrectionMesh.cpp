@@ -33,6 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/CorrectionMesh.h"
+#include <cstring>
 
 core_sgct::CorrectionMesh::CorrectionMesh()
 {
@@ -139,7 +140,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 					mFaces[ numOfFacesRead * 3 + 1 ] = b;
 					mFaces[ numOfFacesRead * 3 + 2 ] = c;
 				}
-				
+
 				numOfFacesRead++;
 			}
 			else
@@ -209,7 +210,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	fclose( meshFile );
 
 	createMesh();
-	
+
 	cleanUp();
 
 	//indicate that a mesh is loaded and can be used
@@ -230,7 +231,7 @@ void core_sgct::CorrectionMesh::createMesh()
 	// bind VBO & upload
 	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
-	
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
 
@@ -299,7 +300,7 @@ void core_sgct::CorrectionMesh::renderMesh()
 	glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 	glEnableClientState(GL_COLOR_ARRAY);
 	glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
-	
+
 	glEnableClientState(GL_INDEX_ARRAY);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 

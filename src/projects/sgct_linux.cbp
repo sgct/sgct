@@ -68,6 +68,7 @@
 		</Linker>
 		<Unit filename="../../include/sgct.h" />
 		<Unit filename="../../include/sgct/ClusterManager.h" />
+		<Unit filename="../../include/sgct/CorrectionMesh.h" />
 		<Unit filename="../../include/sgct/Engine.h" />
 		<Unit filename="../../include/sgct/Font.h" />
 		<Unit filename="../../include/sgct/FontManager.h" />
@@ -92,6 +93,7 @@
 		<Unit filename="../../include/sgct/freetype.h" />
 		<Unit filename="../../include/sgct/ogl_headers.h" />
 		<Unit filename="../sgct/ClusterManager.cpp" />
+		<Unit filename="../sgct/CorrectionMesh.cpp" />
 		<Unit filename="../sgct/Engine.cpp" />
 		<Unit filename="../sgct/Font.cpp" />
 		<Unit filename="../sgct/FontManager.cpp" />

@@ -36,6 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <GL/glfw.h>
 
 #include "../include/sgct/Statistics.h"
+#include <memory.h>
 
 core_sgct::Statistics::Statistics()
 {
@@ -45,7 +46,7 @@ core_sgct::Statistics::Statistics()
 		mFrameTime[i].x = static_cast<double>(i*2);
 		mDrawTime[i].x = static_cast<double>(i*2);
 		mSyncTime[i].x = static_cast<double>(i*2);
-		
+
 		mFrameTime[i].y = 0.0;
 		mDrawTime[i].y = 0.0;
 		mSyncTime[i].y = 0.0;
@@ -120,7 +121,7 @@ void core_sgct::Statistics::draw(unsigned long long frameNumber)
 	if( lastFrameNumber == frameNumber )
 		updateGPU = false;
 	lastFrameNumber = frameNumber;
-	
+
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 
 	//enter ortho mode

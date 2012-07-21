@@ -39,62 +39,96 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 core_sgct::Statistics::Statistics()
 {
-	AvgFPS = 0.0;
-	for(int unsigned i=0; i<STATS_HISTORY_length; i++)
+	mAvgFPS = 0.0;
+	for(int unsigned i=0; i<STATS_HISTORY_LENGTH; i++)
 	{
-		FrameTime[i] = 0.0;
-		DrawTime[i] = 0.0;
-		SyncTime[i] = 0.0;
+		mFrameTime[i].x = static_cast<double>(i*2);
+		mDrawTime[i].x = static_cast<double>(i*2);
+		mSyncTime[i].x = static_cast<double>(i*2);
+		
+		mFrameTime[i].y = 0.0;
+		mDrawTime[i].y = 0.0;
+		mSyncTime[i].y = 0.0;
 	}
+}
+
+core_sgct::Statistics::~Statistics()
+{
+	if(mVboPtrs[0] != 0)
+		glDeleteBuffers(3, &mVboPtrs[0]);
+}
+
+void core_sgct::Statistics::initVBO()
+{
+	glGenBuffers(3, &mVboPtrs[0]);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[FRAME_TIME]);
+	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mFrameTime, GL_STREAM_DRAW );
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[DRAW_TIME]);
+	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mDrawTime, GL_STREAM_DRAW );
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[SYNC_TIME]);
+	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mSyncTime, GL_STREAM_DRAW );
+
+	//unbind
+	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 }
 
 void core_sgct::Statistics::setAvgFPS(double afps)
 {
-	AvgFPS = afps;
+	mAvgFPS = afps;
 }
 
 void core_sgct::Statistics::setFrameTime(double t)
 {
-	for(int i=STATS_HISTORY_length-2; i>=0; i--)
+	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
-		FrameTime[i+1] = FrameTime[i];
+		mFrameTime[i+1].y = mFrameTime[i].y;
 	}
-	FrameTime[0] = t;
+	mFrameTime[0].y = t;
 }
 
 void core_sgct::Statistics::setDrawTime(double t)
 {
-	for(int i=STATS_HISTORY_length-2; i>=0; i--)
+	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
-		DrawTime[i+1] = DrawTime[i];
+		mDrawTime[i+1].y = mDrawTime[i].y;
 	}
-	DrawTime[0] = t;
+	mDrawTime[0].y = t;
 }
 
 void core_sgct::Statistics::setSyncTime(double t)
 {
-	for(int i=STATS_HISTORY_length-2; i>=0; i--)
+	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
-		SyncTime[i+1] = SyncTime[i];
+		mSyncTime[i+1].y = mSyncTime[i].y;
 	}
-	SyncTime[0] = t;
+	mSyncTime[0].y = t;
 }
 
 void core_sgct::Statistics::addSyncTime(double t)
 {
-	SyncTime[0] += t;
+	mSyncTime[0].y += t;
 }
 
-void core_sgct::Statistics::draw()
+void core_sgct::Statistics::draw(unsigned long long frameNumber)
 {
+	//make sure to only update the VBOs once per frame
+	static unsigned long long lastFrameNumber = 0;
+	bool updateGPU = true;
+	if( lastFrameNumber == frameNumber )
+		updateGPU = false;
+	lastFrameNumber = frameNumber;
+	
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	gluOrtho2D(0.0,STATS_HISTORY_length*2.0,
-		0.0,STATS_HISTORY_length);
+	gluOrtho2D(0.0,STATS_HISTORY_LENGTH*2.0,
+		0.0,STATS_HISTORY_LENGTH);
 
 	glMatrixMode(GL_MODELVIEW);
 
@@ -111,50 +145,72 @@ void core_sgct::Statistics::draw()
 	glColor4f(0.0f,0.0f,0.0f,0.5f);
 	glBegin(GL_QUADS);
 		glVertex2i(0, 0);
-		glVertex2i(0, STATS_HISTORY_length);
-		glVertex2i(STATS_HISTORY_length*2, STATS_HISTORY_length);
-		glVertex2i(STATS_HISTORY_length*2, 0);
+		glVertex2i(0, STATS_HISTORY_LENGTH);
+		glVertex2i(STATS_HISTORY_LENGTH*2, STATS_HISTORY_LENGTH);
+		glVertex2i(STATS_HISTORY_LENGTH*2, 0);
 	glEnd();
 
 	//draw graphs
 	glLineWidth(1.0f);
-	glColor4f(1.0f,0.0f,0.0f,1.0f);
 
-	const double vertScale = 10000.0;
+	glTranslatef(0.0f, 32.0f, 0.0f);
+	//glPushMatrix();
+	glScalef(1.0f, VERT_SCALE, 1.0f);
 
 	//zero line, 60hz & 30hz
+	glColor4f(1.0f,0.0f,0.0f,1.0f);
 	glBegin(GL_LINES);
-		glVertex2i(0, 32);
-		glVertex2i(STATS_HISTORY_length*2, 32);
-		glVertex2i(0, 32 + static_cast<int>(vertScale/60.0));
-		glVertex2i(STATS_HISTORY_length*2, 32 + static_cast<int>(vertScale/60.0));
-		glVertex2i(0, 32 + static_cast<int>(vertScale/30.0));
-		glVertex2i(STATS_HISTORY_length*2, 32 + static_cast<int>(vertScale/30.0));
+		glVertex2f(0.0f, 0.0f);
+		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 0.0f);
+		glVertex2f(0.0f, 1.0f/60.0f);
+		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/60.0f);
+		glVertex2f(0.0f, 1.0f/30.0f);
+		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f);
 	glEnd();
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	GLvoid* PositionBuffer;
 
 	//frame time (yellow)
 	glColor4f(1.0f,1.0f,0.0f,0.8f);
-	glBegin(GL_LINE_STRIP);
-	for(int i=0; i<STATS_HISTORY_length; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(FrameTime[i]*vertScale));
-	glEnd();
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[FRAME_TIME]);
+	if( updateGPU )
+	{
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memcpy(PositionBuffer, mFrameTime, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	glVertexPointer(2, GL_DOUBLE, 0, NULL);
+	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 
 	//draw time (magenta)
 	glColor4f(1.0f,0.0f,1.0f,0.8f);
-	glBegin(GL_LINE_STRIP);
-	for(int i=0; i<STATS_HISTORY_length; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(DrawTime[i]*vertScale));
-	glEnd();
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[DRAW_TIME]);
+	if( updateGPU )
+	{
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memcpy(PositionBuffer, mDrawTime, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	glVertexPointer(2, GL_DOUBLE, 0, NULL);
+	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 
 	//sync time (cyan)
 	glColor4f(0.0f,1.0f,1.0f,0.8f);
-	glBegin(GL_LINE_STRIP);
-	for(int i=0; i<STATS_HISTORY_length; i++)
-		glVertex2i(i*2, 32 + static_cast<int>(SyncTime[i]*vertScale));
-	glEnd();
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[SYNC_TIME]);
+	if( updateGPU )
+	{
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memcpy(PositionBuffer, mSyncTime, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	glVertexPointer(2, GL_DOUBLE, 0, NULL);
+	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 
-    //glDisable(GL_BLEND);
-    //glBlendFunc(GL_ONE, GL_ZERO);
+	glDisableClientState(GL_VERTEX_ARRAY);
+
+	//unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glPopAttrib();
 
 	//exit ortho mode

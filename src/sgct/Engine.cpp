@@ -133,6 +133,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mShowWireframe = false;
 	mTakeScreenshot = false;
 	mActiveFrustum = Frustum::Mono;
+	mFrameCounter = 0;
     mTimerID = 0;
 
 	//parse needs to be before read config since the path to the XML is parsed here
@@ -300,6 +301,7 @@ void sgct::Engine::initOGL()
 		(*mConfig->getSceneOffset()));
 	createFBOs();
 	loadShaders();
+	mStatistics.initVBO();
 
 	//load overlays if any
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -637,7 +639,7 @@ void sgct::Engine::render()
 			tmpNode->setCurrentViewport(i);
 			enterCurrentViewport();
 			if( mShowGraph )
-				mStatistics.draw();
+				mStatistics.draw(mFrameCounter);
 			if( mShowInfo )
 				renderDisplayInfo();
 		}
@@ -675,6 +677,8 @@ void sgct::Engine::render()
 
 		// Check if ESC key was pressed or window was closed
 		mRunning = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
+
+		mFrameCounter++;
 	}
 }
 
@@ -692,7 +696,7 @@ void sgct::Engine::renderDisplayInfo()
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 80, "Frame rate: %.3f Hz", mStatistics.getAvgFPS());
+	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 80, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
 	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
@@ -831,12 +835,12 @@ void sgct::Engine::renderFBOTexture()
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glEnable(GL_BLEND);
+	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//clear buffers
 	mActiveFrustum = tmpNode->stereo == ReadConfig::Active ? Frustum::StereoLeftEye : Frustum::Mono;
-	setAndClearBuffer(BackBuffer);
+	setAndClearBuffer(BackBufferBlack);
 
 	glLoadIdentity();
 
@@ -876,26 +880,6 @@ void sgct::Engine::renderFBOTexture()
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-
-		/*glBegin(GL_QUADS);
-		glMultiTexCoord2d(GL_TEXTURE0, 0.0, 0.0);
-		glMultiTexCoord2d(GL_TEXTURE1, 0.0, 0.0);
-		glVertex2d(0.0, 0.0);
-
-		glMultiTexCoord2d(GL_TEXTURE0, 0.0, 1.0);
-		glMultiTexCoord2d(GL_TEXTURE1, 0.0, 1.0);
-		glVertex2d(0.0, 1.0);
-
-		glMultiTexCoord2d(GL_TEXTURE0, 1.0, 1.0);
-		glMultiTexCoord2d(GL_TEXTURE1, 1.0, 1.0);
-		glVertex2d(1.0, 1.0);
-
-		glMultiTexCoord2d(GL_TEXTURE0, 1.0, 0.0);
-		glMultiTexCoord2d(GL_TEXTURE1, 1.0, 0.0);
-		glVertex2d(1.0, 0.0);
-
-		glEnd();*/
-
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 	else
@@ -905,13 +889,6 @@ void sgct::Engine::renderFBOTexture()
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-
-		/*glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
-		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
-		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
-		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
-		glEnd();*/
 	}
 
 	//render right eye in active stereo mode
@@ -919,24 +896,16 @@ void sgct::Engine::renderFBOTexture()
 	{
 		//clear buffers
 		mActiveFrustum = Frustum::StereoRightEye;
-		setAndClearBuffer(BackBuffer);
+		setAndClearBuffer(BackBufferBlack);
 
 		glLoadIdentity();
 
 		glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
 
-		//glColor4f(1.0f,1.0f,1.0f,1.0f);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-
-		/*glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
-		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
-		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
-		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
-		glEnd();*/
 	}
 
 	glPopAttrib();
@@ -1107,22 +1076,29 @@ void sgct::Engine::resizeFBOs()
 
 void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 {
-	if(mode == BackBuffer)
+	if(mode < RenderToTexture)
 	{
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 		//Set buffer
 		if( tmpNode->stereo != ReadConfig::Active )
 			glDrawBuffer(GL_BACK);
-		else if( mActiveFrustum == Frustum::StereoLeftEye )
+		else if( mActiveFrustum == Frustum::StereoLeftEye ) //if active left
 			glDrawBuffer(GL_BACK_LEFT);
-		else if( mActiveFrustum == Frustum::StereoRightEye )
+		else if( mActiveFrustum == Frustum::StereoRightEye ) //if active right
 			glDrawBuffer(GL_BACK_RIGHT);
 	}
-
+	
 	//clear
-	if( mClearBufferFn != NULL )
+	if( mode != BackBufferBlack && mClearBufferFn != NULL )
+	{
 		mClearBufferFn();
+	}
+	else //when rendering textures to backbuffer (using fbo)
+	{
+		glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
+	}
 }
 
 void sgct::Engine::checkForOGLErrors()
@@ -1508,9 +1484,9 @@ void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(int) )
 
 void sgct::Engine::clearBuffer(void)
 {
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	const float * colorPtr = sgct::Engine::getPtr()->getClearColor();
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
 void sgct::Engine::printNodeInfo(unsigned int nodeId)

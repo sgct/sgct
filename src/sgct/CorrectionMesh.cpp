@@ -39,10 +39,10 @@ core_sgct::CorrectionMesh::CorrectionMesh()
 	mVertices = NULL;
 	mFaces = NULL;
 
-	mXSize = 1.0;
-	mYSize = 1.0;
-	mXOffset = 0.0;
-	mYOffset = 0.0;
+	mXSize = 1.0f;
+	mYSize = 1.0f;
+	mXOffset = 0.0f;
+	mYOffset = 0.0f;
 
 	mOrthoCoords[0] = 0.0;
 	mOrthoCoords[1] = 1.0;
@@ -61,7 +61,7 @@ core_sgct::CorrectionMesh::~CorrectionMesh()
 		glDeleteBuffers(2, &mMeshData[0]);
 }
 
-void core_sgct::CorrectionMesh::setViewportPointers(double vpXSize, double vpYSize, double vpXPos, double vpYPos)
+void core_sgct::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos)
 {
 	mXSize = vpXSize;
 	mYSize = vpYSize;
@@ -95,7 +95,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	}
 #endif
 
-	double x,y,s,t;
+	float x,y,s,t;
 	unsigned int intensity;
 	unsigned int a,b,c;
 	unsigned int numOfVerticesRead = 0;
@@ -107,22 +107,22 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 		if( fgets(lineBuffer, MAX_LINE_LENGTH, meshFile ) != NULL )
 		{
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-			if( sscanf_s(lineBuffer, "%lf %lf %u %lf %lf", &x, &y, &intensity, &s, &t) == 5 )
+			if( sscanf_s(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5 )
 #else
-			if( sscanf(lineBuffer, "%lf %lf %u %lf %lf", &x, &y, &intensity, &s, &t) == 5 )
+			if( sscanf(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5 )
 #endif
 			{
 				if( mVertices != NULL && mResolution[0] != 0 && mResolution[1] != 0 )
 				{
-					mVertices[ numOfVerticesRead ].x = (x/static_cast<double>(mResolution[0])) * mXSize + mXOffset;
-					mVertices[ numOfVerticesRead ].y = (y/static_cast<double>(mResolution[1])) * mYSize + mYOffset;
+					mVertices[ numOfVerticesRead ].x = (x/static_cast<float>(mResolution[0])) * mXSize + mXOffset;
+					mVertices[ numOfVerticesRead ].y = (y/static_cast<float>(mResolution[1])) * mYSize + mYOffset;
 					mVertices[ numOfVerticesRead ].r = static_cast<unsigned char>(intensity);
 					mVertices[ numOfVerticesRead ].g = static_cast<unsigned char>(intensity);
 					mVertices[ numOfVerticesRead ].b = static_cast<unsigned char>(intensity);
-					mVertices[ numOfVerticesRead ].s0 = (1.0 - t) * mXSize + mXOffset;
-					mVertices[ numOfVerticesRead ].t0 = (1.0 - s) * mYSize + mYOffset;
-					mVertices[ numOfVerticesRead ].s1 = (1.0 - t) * mXSize + mXOffset;
-					mVertices[ numOfVerticesRead ].t1 = (1.0 - s) * mYSize + mYOffset;
+					mVertices[ numOfVerticesRead ].s0 = (1.0f - t) * mXSize + mXOffset;
+					mVertices[ numOfVerticesRead ].t0 = (1.0f - s) * mYSize + mYOffset;
+					mVertices[ numOfVerticesRead ].s1 = (1.0f - t) * mXSize + mXOffset;
+					mVertices[ numOfVerticesRead ].t1 = (1.0f - s) * mYSize + mYOffset;
 
 					numOfVerticesRead++;
 				}
@@ -135,9 +135,9 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 			{
 				if( mFaces != NULL )
 				{
-					mFaces[ numOfFacesRead * 3] = static_cast<unsigned short>(a);
-					mFaces[ numOfFacesRead * 3 + 1 ] = static_cast<unsigned short>(b);
-					mFaces[ numOfFacesRead * 3 + 2 ] = static_cast<unsigned short>(c);
+					mFaces[ numOfFacesRead * 3] = a;
+					mFaces[ numOfFacesRead * 3 + 1 ] = b;
+					mFaces[ numOfFacesRead * 3 + 2 ] = c;
 				}
 				
 				numOfFacesRead++;
@@ -162,7 +162,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 #else
 				else if( sscanf(lineBuffer, "FACES %u", &mNumberOfFaces) == 1 )
 #endif
-					mFaces = new unsigned short[ mNumberOfFaces * 3 ];
+					mFaces = new unsigned int[ mNumberOfFaces * 3 ];
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 				else if( sscanf_s(lineBuffer, "ORTHO_%s %lf", tmpString, 16, &tmpD) == 2 )
@@ -222,7 +222,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 void core_sgct::CorrectionMesh::createMesh()
 {
-	//sgct::TextureManager::Instance()->loadTexure(mTexId, "Alignment Grid", "grid2.png", true, 0);
+	//sgct::MessageHandler::Instance()->print("Uploading mesh data...\n");
 
 	// generate a new VBO and get the associated ID
 	glGenBuffers(2, &mMeshData[0]);
@@ -231,126 +231,12 @@ void core_sgct::CorrectionMesh::createMesh()
 	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
 	
-	//glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
-	
-	glClientActiveTexture(GL_TEXTURE0);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
-	
-	glClientActiveTexture(GL_TEXTURE1);
-	//glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(32));
-	
-	//glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(48));
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned short), mFaces, GL_STATIC_DRAW);
-
-	/*glDisableClientState(GL_COLOR_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);*/
-	
-	/*
-	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Color]);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices*3*sizeof(unsigned char), mColors, GL_STATIC_DRAW);
-	glColorPointer(3,GL_UNSIGNED_BYTE,0,0);
-
-	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Texture0]);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices*2*sizeof(double), mTexCoords, GL_STATIC_DRAW);
-	glClientActiveTexture(GL_TEXTURE0);
-	glTexCoordPointer(2,GL_DOUBLE,0,0);
-	
-	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Texture1]);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices*2*sizeof(double), mTexCoords, GL_STATIC_DRAW);
-	glClientActiveTexture(GL_TEXTURE1);
-	glTexCoordPointer(2,GL_DOUBLE,0,0);
-
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned short), mFaces, GL_STATIC_DRAW);
-	*/
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
 
 	//unbind
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
-	glBindBufferARB(GL_ELEMENT_ARRAY_BUFFER, 0);
-
-	//mMeshData = glGenLists(1);
-	//glNewList(mMeshData, GL_COMPILE);
-
-	/*glEnable(GL_TEXTURE_2D);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(texId) );
-	
-	//draw triangles
-	unsigned int colorIndex;
-	unsigned int vertexIndex;
-	for(unsigned int i=0; i<mNumberOfFaces; i++)
-	{
-		glBegin(GL_TRIANGLES);
-			colorIndex = mFaces[i*3] * 3;
-			vertexIndex = mFaces[i*3] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glTexCoord2d( mTexCoords[ vertexIndex ], mTexCoords[ vertexIndex + 1] );
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-			
-			colorIndex = mFaces[i*3 + 1] * 3;
-			vertexIndex = mFaces[i*3 + 1] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glTexCoord2d( mTexCoords[ vertexIndex ], mTexCoords[ vertexIndex + 1] );
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-			
-			colorIndex = mFaces[i*3 + 2] * 3;
-			vertexIndex = mFaces[i*3 + 2] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glTexCoord2d( mTexCoords[ vertexIndex ], mTexCoords[ vertexIndex + 1] );
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-		glEnd();
-	}
-
-	glDisable(GL_TEXTURE_2D);
-
-	//draw lines
-	unsigned int colorIndex;
-	unsigned int vertexIndex;
-
-	glLineWidth(1.0);
-	for(unsigned int i=0; i<mNumberOfFaces; i++)
-	{
-		glBegin(GL_LINE_LOOP);
-			colorIndex = mFaces[i*3] * 3;
-			vertexIndex = mFaces[i*3] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-			
-			colorIndex = mFaces[i*3 + 1] * 3;
-			vertexIndex = mFaces[i*3 + 1] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-			
-			colorIndex = mFaces[i*3 + 2] * 3;
-			vertexIndex = mFaces[i*3 + 2] * 2;
-			glColor3ub( mColors[ colorIndex ], mColors[ colorIndex ], mColors[ colorIndex ]);
-			glVertex2f( mVertices[ vertexIndex ], mVertices[ vertexIndex + 1] );
-		glEnd();
-	}
-
-	
-	//draw points
-	glPointSize(1.0);
-	glBegin(GL_POINTS);
-	for(unsigned int i=0; i<mNumberOfVertices; i++)
-	{
-		glColor3ub( mColors[ i*3 ], mColors[ i*3 + 1 ], mColors[ i*3 + 2 ]);
-		glColor3ub( 255, 0, 0);
-		glVertex2f( mVertices[ i*2 ], mVertices[ i*2 + 1] );
-	}
-	glEnd();
-	
-	*/
-	//glEndList();
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 }
 
 void core_sgct::CorrectionMesh::render()
@@ -361,25 +247,25 @@ void core_sgct::CorrectionMesh::render()
 	{
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		glBegin(GL_QUADS);
-		glMultiTexCoord2d(GL_TEXTURE0, 0.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		glMultiTexCoord2d(GL_TEXTURE1, 0.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		//glTexCoord2d(0.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		glVertex2d(0.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		//glTexCoord2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glVertex2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
 
-		glMultiTexCoord2d(GL_TEXTURE0, 0.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		glMultiTexCoord2d(GL_TEXTURE1, 0.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		//glTexCoord2d(0.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		glVertex2d(0.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		//glTexCoord2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glVertex2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 
-		glMultiTexCoord2d(GL_TEXTURE0, 1.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		glMultiTexCoord2d(GL_TEXTURE1, 1.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		//glTexCoord2d(1.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
-		glVertex2d(1.0*mXSize + mXOffset, 1.0*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		//glTexCoord2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glVertex2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 
-		glMultiTexCoord2d(GL_TEXTURE0, 1.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		glMultiTexCoord2d(GL_TEXTURE1, 1.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		//glTexCoord2d(1.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
-		glVertex2d(1.0*mXSize + mXOffset, 0.0*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		//glTexCoord2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glVertex2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
 		glEnd();
 	}
 }
@@ -402,37 +288,28 @@ void core_sgct::CorrectionMesh::cleanUp()
 
 void core_sgct::CorrectionMesh::renderMesh()
 {
-	//glCallList( mMeshData );
-
-	/*glActiveTexture(GL_TEXTURE0);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(mTexId) );
-	glEnable(GL_TEXTURE_2D);
-
-	glActiveTexture(GL_TEXTURE1);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(mTexId) );
-	glEnable(GL_TEXTURE_2D);*/
-
 	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-
 	glEnableClientState(GL_VERTEX_ARRAY);
-	//glVertexPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
+	glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glTexCoordPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
 	glClientActiveTexture(GL_TEXTURE1);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	//glTexCoordPointer(2, GL_DOUBLE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(32));
+	glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 	glEnableClientState(GL_COLOR_ARRAY);
-	//glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(48));
+	glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
+	
 	glEnableClientState(GL_INDEX_ARRAY);
-
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
-	glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_SHORT, NULL);
+	//sgct::MessageHandler::Instance()->print("Draw %u elements...\n", mNumberOfFaces*3);
+	glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
-	//according to nvidia this function can be optimized but it makes no difference
-	//glDrawRangeElements(GL_TRIANGLES, 0, mNumberOfFaces*3, mNumberOfFaces*3, GL_UNSIGNED_SHORT, NULL);
+	//glDrawElements(GL_TRIANGLES, 30000, GL_UNSIGNED_INT, NULL);
+	//glDrawRangeElements(GL_TRIANGLES, 0, mNumberOfFaces*3, 34490, GL_UNSIGNED_INT, NULL); //limit
 
+	//sgct::MessageHandler::Instance()->print("Disable client state vertex array...\n");
 	glDisableClientState(GL_INDEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY);
 	glClientActiveTexture(GL_TEXTURE1);

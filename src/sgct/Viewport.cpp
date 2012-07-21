@@ -67,21 +67,30 @@ void core_sgct::Viewport::set(double x, double y, double xSize, double ySize)
 	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
-	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
+	mCM.setViewportCoords(static_cast<float>(mXSize), 
+		static_cast<float>(mYSize),
+		static_cast<float>(mX),
+		static_cast<float>(mY));
 }
 
 void core_sgct::Viewport::setPos(double x, double y)
 {
 	mX = x;
 	mY = y;
-	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
+	mCM.setViewportCoords(static_cast<float>(mXSize), 
+		static_cast<float>(mYSize),
+		static_cast<float>(mX),
+		static_cast<float>(mY));
 }
 
 void core_sgct::Viewport::setSize(double x, double y)
 {
 	mXSize = x;
 	mYSize = y;
-	mCM.setViewportPointers(mXSize, mYSize, mX, mY);
+	mCM.setViewportCoords(static_cast<float>(mXSize), 
+		static_cast<float>(mYSize),
+		static_cast<float>(mX),
+		static_cast<float>(mY));
 }
 
 void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)

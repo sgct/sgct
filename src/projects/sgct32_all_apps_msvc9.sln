@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct32_msvc9", "sgct32_msvc9.vcproj", "{DFB0D737-2A10-43CC-B804-368C88873C4F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clustertest_msvc9", "..\apps\clustertest\clustertest_msvc9.vcproj", "{965A932B-A09A-4967-835C-535BDFE0BFB3}"
@@ -44,6 +44,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureExample_msvc9", "..\
 	EndProjectSection
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osgExample_msvc9", "..\apps\osgExample\osgExample_msvc9.vcproj", "{9F9E3D24-D383-4E09-9216-938F6A27FB74}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "orthoTexture", "..\apps\orthoTexture\orthoTexture_msvc9.vcproj", "{CF26FD2C-ECE5-4736-B19B-279395EBD2AB}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
 	EndProjectSection
@@ -94,6 +99,10 @@ Global
 		{9F9E3D24-D383-4E09-9216-938F6A27FB74}.Debug|Win32.Build.0 = Debug|Win32
 		{9F9E3D24-D383-4E09-9216-938F6A27FB74}.Release|Win32.ActiveCfg = Release|Win32
 		{9F9E3D24-D383-4E09-9216-938F6A27FB74}.Release|Win32.Build.0 = Release|Win32
+		{CF26FD2C-ECE5-4736-B19B-279395EBD2AB}.Debug|Win32.ActiveCfg = Debug|Win32
+		{CF26FD2C-ECE5-4736-B19B-279395EBD2AB}.Debug|Win32.Build.0 = Debug|Win32
+		{CF26FD2C-ECE5-4736-B19B-279395EBD2AB}.Release|Win32.ActiveCfg = Release|Win32
+		{CF26FD2C-ECE5-4736-B19B-279395EBD2AB}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

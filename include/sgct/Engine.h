@@ -120,13 +120,14 @@ public:
 	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
 	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 	inline const int * getActiveViewport() { return currentViewportCoords; }
+	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
 
 	//can be called any time after Engine init
 	inline const glm::mat4 & getSceneTransform() { return core_sgct::ClusterManager::Instance()->getSceneTrans(); }
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
-	enum BufferMode { BackBuffer = 0, RenderToTexture };
+	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 
 	bool initNetwork();
 	bool initWindow();
@@ -217,6 +218,8 @@ private:
 	std::string configFilename;
 	int mRunning;
 	char basicInfo[48];
+
+	unsigned long long mFrameCounter;
 
     typedef struct  {
         size_t mId;

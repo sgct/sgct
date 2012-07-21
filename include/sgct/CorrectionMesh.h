@@ -30,13 +30,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 struct CorrectionMeshVertex
 {
-	double x, y;	//Vertex 16
-	double s0, t0;	//Texcoord0 16
-	double s1, t1;	//Texcoord1 16
+	float x, y;	//Vertex 8
+	float s0, t0;	//Texcoord0 8
+	float s1, t1;	//Texcoord1 8
 	unsigned char r, g, b; //color 3
 
 	//ATI performs better using sizes of power of two
-	unsigned char padding[13]; //64 - 16 - 16 - 16 - 3 = 13
+	unsigned char padding[5]; //32 - 8 - 8 - 8 - 3 = 5
 };
 
 namespace core_sgct
@@ -51,7 +51,7 @@ class CorrectionMesh
 public:
 	CorrectionMesh();
 	~CorrectionMesh();
-	void setViewportPointers(double vpXSize, double vpYSize, double vpXPos, double vpYPos);
+	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
 	bool readAndGenerateMesh(const char * meshPath);
 	void render();
 	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
@@ -64,7 +64,7 @@ private:
 	enum buffer { Vertex = 0, Index };
 
 	CorrectionMeshVertex * mVertices;
-	unsigned short * mFaces;
+	unsigned int * mFaces;
     double mOrthoCoords[5];
 	unsigned int mResolution[2];
 
@@ -72,10 +72,10 @@ private:
 	unsigned int mNumberOfFaces;
 	unsigned int mMeshData[2];
 
-	double mXSize;
-	double mYSize;
-	double mXOffset;
-	double mYOffset;
+	float mXSize;
+	float mYSize;
+	float mXOffset;
+	float mYOffset;
 	
 	bool hasMesh;
 };

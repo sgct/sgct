@@ -64,6 +64,7 @@ private:
 	enum buffer { Vertex = 0, Index };
 
 	CorrectionMeshVertex * mVertices;
+	CorrectionMeshVertex * mVertexList;
 	unsigned int * mFaces;
     double mOrthoCoords[5];
 	unsigned int mResolution[2];

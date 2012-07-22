@@ -33,11 +33,13 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/CorrectionMesh.h"
+#include "../include/sgct/ClusterManager.h"
 #include <cstring>
 
 core_sgct::CorrectionMesh::CorrectionMesh()
 {
 	mVertices = NULL;
+	mVertexList = NULL;
 	mFaces = NULL;
 
 	mXSize = 1.0f;
@@ -59,7 +61,14 @@ core_sgct::CorrectionMesh::CorrectionMesh()
 core_sgct::CorrectionMesh::~CorrectionMesh()
 {
 	if( hasMesh )
-		glDeleteBuffers(2, &mMeshData[0]);
+	{
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX)
+			glDeleteBuffers(2, &mMeshData[0]);
+		else if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
+			glDeleteBuffers(1, &mMeshData[0]);
+		else
+			glDeleteLists(mMeshData[0], 1);
+	}
 }
 
 void core_sgct::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos)
@@ -156,6 +165,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 #endif
 				{
 					mVertices = new CorrectionMeshVertex[ mNumberOfVertices ];
+					memset(mVertices, 0, mNumberOfVertices * sizeof(CorrectionMeshVertex));
 				}
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -163,7 +173,15 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 #else
 				else if( sscanf(lineBuffer, "FACES %u", &mNumberOfFaces) == 1 )
 #endif
+				{
 					mFaces = new unsigned int[ mNumberOfFaces * 3 ];
+					memset(mFaces, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
+					if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
+					{
+						mVertexList = new CorrectionMeshVertex[ mNumberOfFaces * 3 ];
+						memset(mVertexList, 0, mNumberOfFaces * 3 * sizeof(CorrectionMeshVertex));
+					}
+				}
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 				else if( sscanf_s(lineBuffer, "ORTHO_%s %lf", tmpString, 16, &tmpD) == 2 )
@@ -209,6 +227,23 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	fclose( meshFile );
 
+	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
+	{
+		for(unsigned int i=0; i<mNumberOfFaces; i++)
+			for(unsigned int j=0; j<3; j++)
+			{
+				mVertexList[i*3 + j].x = mVertices[mFaces[i*3 + j]].x;
+				mVertexList[i*3 + j].y = mVertices[mFaces[i*3 + j]].y;
+				mVertexList[i*3 + j].s0 = mVertices[mFaces[i*3 + j]].s0;
+				mVertexList[i*3 + j].t0 = mVertices[mFaces[i*3 + j]].t0;
+				mVertexList[i*3 + j].s1 = mVertices[mFaces[i*3 + j]].s1;
+				mVertexList[i*3 + j].t1 = mVertices[mFaces[i*3 + j]].t1;
+				mVertexList[i*3 + j].r = mVertices[mFaces[i*3 + j]].r;
+				mVertexList[i*3 + j].g = mVertices[mFaces[i*3 + j]].g;
+				mVertexList[i*3 + j].b = mVertices[mFaces[i*3 + j]].b;
+			}
+	}
+
 	createMesh();
 
 	cleanUp();
@@ -225,19 +260,47 @@ void core_sgct::CorrectionMesh::createMesh()
 {
 	//sgct::MessageHandler::Instance()->print("Uploading mesh data...\n");
 
-	// generate a new VBO and get the associated ID
-	glGenBuffers(2, &mMeshData[0]);
+	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX )
+	{
+		glGenBuffers(2, &mMeshData[0]);
 
-	// bind VBO & upload
-	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
 
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
 
-	//unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		//unbind
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	else if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY )
+	{
+		glGenBuffers(1, &mMeshData[0]);
+		
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+		glBufferData(GL_ARRAY_BUFFER, mNumberOfFaces * 3 * sizeof(CorrectionMeshVertex), mVertexList, GL_STATIC_DRAW);
+
+		//unbind
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	else
+	{
+		mMeshData[Vertex] = glGenLists(1);
+		glNewList(mMeshData[Vertex], GL_COMPILE);
+	
+		glBegin(GL_TRIANGLES);
+		for(unsigned int i=0; i<mNumberOfFaces; i++)
+			for(unsigned int j=0; j<3; j++)
+			{
+				glColor3ub( mVertices[mFaces[i*3 + j]].r, mVertices[mFaces[i*3 + j]].g, mVertices[mFaces[i*3 + j]].b );
+				glMultiTexCoord2f( GL_TEXTURE0, mVertices[mFaces[i*3 + j]].s0, mVertices[mFaces[i*3 + j]].t0 );
+				glMultiTexCoord2f( GL_TEXTURE1, mVertices[mFaces[i*3 + j]].s1, mVertices[mFaces[i*3 + j]].t1 );
+				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
+			}
+		glEnd();
+		glEndList();
+	}
 }
 
 void core_sgct::CorrectionMesh::render()
@@ -280,6 +343,12 @@ void core_sgct::CorrectionMesh::cleanUp()
 		mVertices = NULL;
 	}
 
+	if( mVertexList != NULL )
+	{
+		delete [] mVertexList;
+		mVertexList = NULL;
+	}
+
 	if( mFaces != NULL )
 	{
 		delete [] mFaces;
@@ -289,36 +358,48 @@ void core_sgct::CorrectionMesh::cleanUp()
 
 void core_sgct::CorrectionMesh::renderMesh()
 {
-	glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
-	glClientActiveTexture(GL_TEXTURE1);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
-	glEnableClientState(GL_COLOR_ARRAY);
-	glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
+	if( ClusterManager::Instance()->getMeshImplementation() != ClusterManager::DISPLAY_LIST )
+	{
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+	
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
+	
+		glClientActiveTexture(GL_TEXTURE0);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
+	
+		glClientActiveTexture(GL_TEXTURE1);
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 
-	glEnableClientState(GL_INDEX_ARRAY);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		glEnableClientState(GL_COLOR_ARRAY);
+		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
+		
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX)
+		{
+			glEnableClientState(GL_INDEX_ARRAY);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
-	//sgct::MessageHandler::Instance()->print("Draw %u elements...\n", mNumberOfFaces*3);
-	glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
+			glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
-	//glDrawElements(GL_TRIANGLES, 30000, GL_UNSIGNED_INT, NULL);
-	//glDrawRangeElements(GL_TRIANGLES, 0, mNumberOfFaces*3, 34490, GL_UNSIGNED_INT, NULL); //limit
+			glDisableClientState(GL_INDEX_ARRAY);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
+		else
+		{
+			glDrawArrays(GL_TRIANGLES, 0, mNumberOfFaces*3);
+		}
 
-	//sgct::MessageHandler::Instance()->print("Disable client state vertex array...\n");
-	glDisableClientState(GL_INDEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY);
-	glClientActiveTexture(GL_TEXTURE1);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glClientActiveTexture(GL_TEXTURE0);
-	glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-	glDisableClientState(GL_VERTEX_ARRAY);
+		glDisableClientState(GL_COLOR_ARRAY);
+		glClientActiveTexture(GL_TEXTURE1);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glClientActiveTexture(GL_TEXTURE0);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		glDisableClientState(GL_VERTEX_ARRAY);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+	else
+		glCallList(mMeshData[Vertex]);
 }

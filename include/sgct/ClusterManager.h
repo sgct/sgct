@@ -61,6 +61,8 @@ public:
 		}
 	}
 
+	enum MeshImplementation { VBO_INDEX=0, VBO_ARRAY, DISPLAY_LIST };
+
 	void addNode(SGCTNode node);
 	unsigned int getNumberOfNodes() const { return nodes.size(); }
 	SGCTNode * getNodePtr(unsigned int index);
@@ -77,6 +79,9 @@ public:
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
 	void updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset);
+
+	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
+	inline MeshImplementation getMeshImplementation() { return mMeshImpl; }
 
 private:
 	ClusterManager(void);
@@ -99,6 +104,7 @@ private:
 	User	* mUser;
 	SGCTTracking * mTracking;
 	glm::mat4 mSceneTrans;
+	MeshImplementation mMeshImpl;
 };
 }
 

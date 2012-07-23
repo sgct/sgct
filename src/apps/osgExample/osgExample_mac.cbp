@@ -2,14 +2,14 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="clustertest" />
+		<Option title="osgExample" />
 		<Option platforms="Mac;" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
 				<Option platforms="Mac;" />
-				<Option output="../../../bin/clustertest/mac/clustertest_d" prefix_auto="1" extension_auto="1" />
+				<Option output="../../../bin/osgExample/mac/osgExample_d" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -24,11 +24,12 @@
 			</Target>
 			<Target title="Release">
 				<Option platforms="Mac;" />
-				<Option output="../../../bin/clustertest/mac/clustertest" prefix_auto="1" extension_auto="1" />
+				<Option output="../../../bin/osgExample/mac/osgExample" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
 				<Option parameters='-config &quot;./../../../config/single.xml&quot;' />
+				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
@@ -41,6 +42,7 @@
 			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add directory="../../../include" />
+			<Add directory="/Users/miroslavandel/code/osg/OpenSceneGraph-3.0.1-osx-x64-release-12741/include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
@@ -49,9 +51,17 @@
 			<Add option="-framework AGL" />
 			<Add option="-framework Cocoa" />
 			<Add option="-framework IOKit" />
-			<Add library="gl" />
-			<Add library="glu" />
+			<Add library="GL" />
+			<Add library="GLU" />
+			<Add library="OpenThreads" />
+			<Add library="osg" />
+			<Add library="osgUtil" />
+			<Add library="osgText" />
+			<Add library="osgDB" />
+			<Add library="osgGA" />
+			<Add library="osgViewer" />
 			<Add directory="../../../lib/mac" />
+			<Add directory="/Users/miroslavandel/code/osg/OpenSceneGraph-3.0.1-osx-x64-release-12741/lib" />
 			<Add directory="/Developer/SDKs/MacOSX10.5.sdk/usr/X11" />
 			<Add directory="/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries" />
 		</Linker>

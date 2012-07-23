@@ -2,14 +2,14 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="clustertest" />
+		<Option title="gamepadExample" />
 		<Option platforms="Mac;" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
 				<Option platforms="Mac;" />
-				<Option output="../../../bin/clustertest/mac/clustertest_d" prefix_auto="1" extension_auto="1" />
+				<Option output="../../../bin/gamepadExample/mac/gamepadExample_d" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Debug/" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -24,7 +24,7 @@
 			</Target>
 			<Target title="Release">
 				<Option platforms="Mac;" />
-				<Option output="../../../bin/clustertest/mac/clustertest" prefix_auto="1" extension_auto="1" />
+				<Option output="../../../bin/gamepadExample/mac/gamepadExample" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj/Release/" />
 				<Option type="1" />
 				<Option compiler="gcc" />

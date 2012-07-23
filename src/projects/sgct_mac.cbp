@@ -9,7 +9,7 @@
 		<Build>
 			<Target title="Debug">
 				<Option platforms="Mac;" />
-				<Option output="../../lib/mac/libsgct_light" prefix_auto="1" extension_auto="1" />
+				<Option output="../../lib/mac/libsgct_light_d" prefix_auto="1" extension_auto="1" />
 				<Option working_dir="" />
 				<Option object_output="obj/Debug/" />
 				<Option type="2" />
@@ -19,6 +19,18 @@
 					<Add option="-Wall" />
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="glew32" />
+					<Add library="glfw" />
+					<Add library="gl" />
+					<Add library="glu" />
+					<Add library="freetype" />
+					<Add library="png" />
+					<Add library="z" />
+					<Add library="tinyxml2_d" />
+					<Add library="socket" />
+					<Add library="x11" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option platforms="Mac;" />
@@ -31,6 +43,18 @@
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
+				<Linker>
+					<Add library="glew32" />
+					<Add library="glfw" />
+					<Add library="gl" />
+					<Add library="glu" />
+					<Add library="freetype" />
+					<Add library="png" />
+					<Add library="z" />
+					<Add library="tinyxml2" />
+					<Add library="socket" />
+					<Add library="x11" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
@@ -39,20 +63,11 @@
 			<Add directory="../../include" />
 		</Compiler>
 		<Linker>
-			<Add library="glew32" />
-			<Add library="glfw" />
-			<Add library="gl" />
-			<Add library="glu" />
-			<Add library="freetype" />
-			<Add library="png" />
-			<Add library="z" />
-			<Add library="tinyxml" />
-			<Add library="socket" />
-			<Add library="x11" />
 			<Add directory="../../lib/mingw/deps" />
 		</Linker>
 		<Unit filename="../../include/sgct.h" />
 		<Unit filename="../../include/sgct/ClusterManager.h" />
+		<Unit filename="../../include/sgct/CorrectionMesh.h" />
 		<Unit filename="../../include/sgct/Engine.h" />
 		<Unit filename="../../include/sgct/Font.h" />
 		<Unit filename="../../include/sgct/FontManager.h" />
@@ -77,6 +92,7 @@
 		<Unit filename="../../include/sgct/freetype.h" />
 		<Unit filename="../../include/sgct/ogl_headers.h" />
 		<Unit filename="../sgct/ClusterManager.cpp" />
+		<Unit filename="../sgct/CorrectionMesh.cpp" />
 		<Unit filename="../sgct/Engine.cpp" />
 		<Unit filename="../sgct/Font.cpp" />
 		<Unit filename="../sgct/FontManager.cpp" />

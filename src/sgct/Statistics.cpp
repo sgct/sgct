@@ -151,12 +151,12 @@ void core_sgct::Statistics::draw(unsigned long long frameNumber)
 		glVertex2i(STATS_HISTORY_LENGTH*2, 0);
 	glEnd();
 
-	//draw graphs
-	glLineWidth(1.0f);
-
 	glTranslatef(0.0f, 32.0f, 0.0f);
 	//glPushMatrix();
 	glScalef(1.0f, VERT_SCALE, 1.0f);
+
+	//draw graphs
+	glLineWidth(0.9f); //in os X 1.0f was interpreted as 2. Which is a bit weird..
 
 	//zero line, 60hz & 30hz
 	glColor4f(1.0f,0.0f,0.0f,1.0f);

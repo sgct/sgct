@@ -55,8 +55,6 @@
 			<Add library="GLU" />
 			<Add library="OpenThreads" />
 			<Add library="osg" />
-			<Add library="osgUtil" />
-			<Add library="osgText" />
 			<Add library="osgDB" />
 			<Add library="osgGA" />
 			<Add library="osgViewer" />

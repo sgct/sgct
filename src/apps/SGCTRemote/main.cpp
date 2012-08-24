@@ -4,18 +4,18 @@ sgct::Engine * gEngine;
 
 void myDrawFun();
 void myPreSyncFun();
-void myPostSyncPreDrawFun();
 void myEncodeFun();
 void myDecodeFun();
 
-void externalControlCallback(const char * receivedChars, int size, int clientId);
-
 double curr_time = 0.0;
-float size_factor = 0.5f;
+
+void myPostSyncPreDrawFun();
+void externalControlCallback(const char * receivedChars, int size, int clientId);
 
 bool showStats = false;
 bool showGraph = false;
 bool showWireframe = false;
+float size_factor = 0.5f;
 
 int main( int argc, char* argv[] )
 {
@@ -120,7 +120,9 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 		}
 		else if(size >= 6 && strncmp(receivedChars, "size", 4) == 0)
 		{
+			//parse string to int
 			int tmpVal = atoi(receivedChars + 5);
+			//recalc percent to float
 			size_factor = static_cast<float>(tmpVal)/100.0f;
 		}
 	}

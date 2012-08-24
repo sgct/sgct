@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
 # Visual C++ Express 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remote_app_msvc10", "remote_app_msvc10.vcxproj", "{8303EDAB-3F90-4302-81FB-C5F58923E993}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "remote_app_msvc10", "remote_app_msvc10.vcxproj", "{D715E50E-729A-4126-A743-FF9730C7A81C}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -9,10 +9,10 @@ Global
 		Release|Win32 = Release|Win32
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.ActiveCfg = Debug|Win32
-		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Debug|Win32.Build.0 = Debug|Win32
-		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.ActiveCfg = Release|Win32
-		{8303EDAB-3F90-4302-81FB-C5F58923E993}.Release|Win32.Build.0 = Release|Win32
+		{D715E50E-729A-4126-A743-FF9730C7A81C}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D715E50E-729A-4126-A743-FF9730C7A81C}.Debug|Win32.Build.0 = Debug|Win32
+		{D715E50E-729A-4126-A743-FF9730C7A81C}.Release|Win32.ActiveCfg = Release|Win32
+		{D715E50E-729A-4126-A743-FF9730C7A81C}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

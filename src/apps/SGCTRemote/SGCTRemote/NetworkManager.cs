@@ -12,13 +12,13 @@ namespace SGCTRemote
         public String hostAddress;
         private byte[] buffer;
         private int bufferSize;
-        public bool alive;
+        public bool valid;
 
         public NetworkManager()
         {
             hostAddress = "";
             buffer = null;
-            alive = false;
+            valid = false;
         }
 
         private void Set()
@@ -67,12 +67,16 @@ namespace SGCTRemote
 
             if (isAlive())
                 success = true;
+            
+            //the status of the connection
+            valid = success;
+            
             return success;
         }
 
         public void Disconnect()
         {
-            alive = false;
+            valid = false;
             if (client != null)
             {
                 client.Close();

@@ -20,7 +20,6 @@ namespace SGCTRemote
     public partial class Form1 : Form
     {
         private clientData c;
-        private bool connected;
 
         public Form1()
         {
@@ -30,8 +29,6 @@ namespace SGCTRemote
 
         private void init()
         {
-            connected = false;
-
             c = new clientData();
             c.connection = new NetworkManager();
             c.port = 20500;
@@ -67,21 +64,18 @@ namespace SGCTRemote
             //if connection successfull
             if (c.connection.ConnectIP(c.ip, c.port, c.bufferSize))
             {
-                connected = true;
-                c.connection.alive = true;
                 componentVisibility(true);
                 this.connectButton.Text = "Disconnect";
                 this.toolStripStatusLabel1.Text = "Connected";
                 
                 //send defaults
-                //c.connection.Send(
+                c.connection.Send("stats=0\r\ngraph=0\r\nwire=0\r\nsize=50");
             }
             else
             {
                 componentVisibility(false);
                 this.connectButton.Text = "Connect";
                 this.toolStripStatusLabel1.Text = "Disconnected";
-                MessageBox.Show("Failed to connect to server!");
             }
         }
 
@@ -93,12 +87,14 @@ namespace SGCTRemote
 
             if (c.connection != null)
             {
-                connected = false;
+                c.connection.valid = false;
                 c.connection.Disconnect();
             }
         }
 
         #endregion
+
+        #region callbacks
 
         private void MainForm_Closed(object sender, System.EventArgs e)
         {
@@ -107,9 +103,11 @@ namespace SGCTRemote
 
         private void connectButton_Click(object sender, EventArgs e)
         {
-            if (!connected)
+            if (!c.connection.valid)
             {
+                //get the ip address string from the textbox 
                 c.ip = this.ipTextBox.Text;
+
                 connect();
             }
             else
@@ -119,8 +117,8 @@ namespace SGCTRemote
         }
 
         private void StatsCheckBox_CheckedChanged(object sender, EventArgs e)
-        { 
-            if (connected)
+        {
+            if (c.connection.valid)
             {
                 CheckBox cb = (CheckBox)sender;
 
@@ -133,7 +131,7 @@ namespace SGCTRemote
 
         private void GraphCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (connected)
+            if (c.connection.valid)
             {
                 CheckBox cb = (CheckBox)sender;
 
@@ -146,7 +144,7 @@ namespace SGCTRemote
 
         private void WireframeCheckBox_CheckedChanged(object sender, EventArgs e)
         {
-            if (connected)
+            if (c.connection.valid)
             {
                 CheckBox cb = (CheckBox)sender;
 
@@ -162,10 +160,12 @@ namespace SGCTRemote
             TrackBar tb = (TrackBar)sender;
             this.SizeLabel.Text = "Size: " + tb.Value.ToString() + " %";
 
-            if (connected)
+            if (c.connection.valid)
             {
                 c.connection.Send("size=" + tb.Value.ToString());
             }
         }
+
+        #endregion
     }
 }

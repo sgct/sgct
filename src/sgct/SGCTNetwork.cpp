@@ -224,7 +224,7 @@ void GLFWCALL connectionHandler(void *arg)
                     //reset thread handle/id
 				    nPtr->mCommThreadId = -1;
 				}
-				
+
 				//start a new connection enabling the client to reconnect
 				nPtr->mCommThreadId = glfwCreateThread( communicationHandler, nPtr );
 				if( nPtr->mCommThreadId < 0)
@@ -744,7 +744,7 @@ void GLFWCALL communicationHandler(void *arg)
                                         recvBuf,
                                         nPtr->mBufferSize,
                                         0);
-			
+
 			//if read fails try for x attempts
 			int attempts = 1;
 #ifdef __WIN32__
@@ -826,10 +826,59 @@ void GLFWCALL communicationHandler(void *arg)
                 sgct::MessageHandler::Instance()->printDebug("Parsing external TCP data... ");
 				std::string tmpStr(recvBuf);
 				extBuffer += tmpStr.substr(0, iResult);
-				std::size_t found = extBuffer.find("\r\n");
+
+                bool breakConnection = false;
+
+				//look for cancel
+				std::size_t found = extBuffer.find(24); //cancel
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+				//look for escape
+				found = extBuffer.find(27); //escape
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+				//look for logout
+				found = extBuffer.find("logout");
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+				//look for close
+				found = extBuffer.find("close");
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+				//look for exit
+				found = extBuffer.find("exit");
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+				//look for quit
+				found = extBuffer.find("quit");
+				if( found != std::string::npos )
+				{
+				    breakConnection = true;
+				}
+
+				if(breakConnection)
+				{
+				    nPtr->setConnectedStatus(false);
+				    break;
+				}
+
+                //separate messages by <CR><NL>
+				found = extBuffer.find("\r\n");
 				while( found != std::string::npos )
 				{
 					std::string extMessage = extBuffer.substr(0,found);
+					//extracted message
+					//fprintf(stderr, "Extracted: '%s'\n", extMessage.c_str());
 
 					sgct::Engine::lockMutex(core_sgct::NetworkManager::gMutex);
 						extBuffer = extBuffer.substr(found+2);//jump over \r\n
@@ -838,7 +887,7 @@ void GLFWCALL communicationHandler(void *arg)
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
 						}
 					sgct::Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
-					
+
 					//reply
 					nPtr->sendStr("OK\r\n");
                     found = extBuffer.find("\r\n");
@@ -882,11 +931,11 @@ void GLFWCALL communicationHandler(void *arg)
         delete [] recvBuf;
         recvBuf = NULL;
     }
-
-	//Close socket
-	nPtr->closeSocket( nPtr->mSocket );
-
     sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+
+    //Close socket
+    //contains mutex
+	nPtr->closeSocket( nPtr->mSocket );
 
 	if(nPtr->mUpdateCallbackFn != NULL)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );

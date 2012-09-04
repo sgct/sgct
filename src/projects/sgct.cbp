@@ -32,7 +32,6 @@
 					<Add library="z" />
 					<Add library="tinyxml2_d" />
 					<Add library="ws2_32" />
-					<Add library="gdi32" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -60,7 +59,6 @@
 					<Add library="z" />
 					<Add library="tinyxml2" />
 					<Add library="ws2_32" />
-					<Add library="gdi32" />
 				</Linker>
 			</Target>
 		</Build>
@@ -74,17 +72,6 @@
 		</Compiler>
 		<Linker>
 			<Add option="-static" />
-			<Add library="glew32" />
-			<Add library="glfw" />
-			<Add library="glu32" />
-			<Add library="opengl32" />
-			<Add library="freetype" />
-			<Add library="vrpn" />
-			<Add library="png" />
-			<Add library="z" />
-			<Add library="tinyxml2" />
-			<Add library="ws2_32" />
-			<Add library="gdi32" />
 			<Add directory="..\..\lib\mingw\deps" />
 		</Linker>
 		<Unit filename="..\..\include\sgct.h" />

@@ -25,6 +25,8 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
+//#define SGCT_SHOW_CORRECTION_MESH_WIREFRAME
+
 #define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
 #define MAX_LINE_LENGTH 256
 
@@ -289,6 +291,20 @@ void core_sgct::CorrectionMesh::createMesh()
 		mMeshData[Vertex] = glGenLists(1);
 		glNewList(mMeshData[Vertex], GL_COMPILE);
 	
+#ifdef SGCT_SHOW_CORRECTION_MESH_WIREFRAME
+		for(unsigned int i=0; i<mNumberOfFaces; i++)
+		{
+			glBegin(GL_LINE_LOOP);
+			for(unsigned int j=0; j<3; j++)
+			{
+				glColor3ub( mVertices[mFaces[i*3 + j]].r, 0, 255 - mVertices[mFaces[i*3 + j]].r );
+				glMultiTexCoord2f( GL_TEXTURE0, mVertices[mFaces[i*3 + j]].s0, mVertices[mFaces[i*3 + j]].t0 );
+				glMultiTexCoord2f( GL_TEXTURE1, mVertices[mFaces[i*3 + j]].s1, mVertices[mFaces[i*3 + j]].t1 );
+				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
+			}
+			glEnd();
+		}
+#else
 		glBegin(GL_TRIANGLES);
 		for(unsigned int i=0; i<mNumberOfFaces; i++)
 			for(unsigned int j=0; j<3; j++)
@@ -299,6 +315,7 @@ void core_sgct::CorrectionMesh::createMesh()
 				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
 			}
 		glEnd();
+#endif
 		glEndList();
 	}
 }
@@ -401,5 +418,11 @@ void core_sgct::CorrectionMesh::renderMesh()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 	else
+	{
+#ifdef SGCT_SHOW_CORRECTION_MESH_WIREFRAME
+		glDisable(GL_TEXTURE_2D);
+		glLineWidth(0.9);
+#endif
 		glCallList(mMeshData[Vertex]);
+	}
 }

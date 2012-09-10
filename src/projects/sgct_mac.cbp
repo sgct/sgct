@@ -22,14 +22,11 @@
 				<Linker>
 					<Add library="glew32" />
 					<Add library="glfw" />
-					<Add library="gl" />
-					<Add library="glu" />
 					<Add library="freetype" />
 					<Add library="png" />
 					<Add library="z" />
 					<Add library="tinyxml2_d" />
 					<Add library="socket" />
-					<Add library="x11" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -46,14 +43,11 @@
 				<Linker>
 					<Add library="glew32" />
 					<Add library="glfw" />
-					<Add library="gl" />
-					<Add library="glu" />
 					<Add library="freetype" />
 					<Add library="png" />
 					<Add library="z" />
 					<Add library="tinyxml2" />
 					<Add library="socket" />
-					<Add library="x11" />
 				</Linker>
 			</Target>
 		</Build>
@@ -61,6 +55,7 @@
 			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add directory="../../include" />
+			<Add directory="/opt/X11/include" />
 		</Compiler>
 		<Linker>
 			<Add directory="../../lib/mingw/deps" />

@@ -50,6 +50,11 @@ public:
 	const float & getPitch() { return mPitch; }
 	const float & getRoll() { return mRoll; }
 
+	//font stuff
+	const int & getFontSize() { return mFontSize; }
+	const std::string getFontName() { return mFontName; }
+	const std::string getFontPath() { return mFontPath; }
+
 private:
     bool replaceEnvVars( const std::string &filename );
 	void readAndParseXML();
@@ -59,6 +64,10 @@ private:
 	bool useMasterSyncLock;
 	bool useExternalControlPort;
 	std::string xmlFileName;
+	//fontdata
+	std::string mFontName;
+	std::string mFontPath;
+	int mFontSize;
 	glm::vec3 sceneOffset;
 	float mYaw, mPitch, mRoll;
 };

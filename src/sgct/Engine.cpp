@@ -127,7 +127,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mClearColor[0] = 0.0f;
 	mClearColor[1] = 0.0f;
 	mClearColor[2] = 0.0f;
-	mClearColor[3] = 0.0f;		
+	mClearColor[3] = 0.0f;
 	mShowInfo = false;
 	mShowGraph = false;
 	mShowWireframe = false;
@@ -147,14 +147,14 @@ bool sgct::Engine::init()
 		sgct::MessageHandler::Instance()->print("Failed to init GLFW.\n");
 		return false;
 	}
-	
+
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
 		sgct::MessageHandler::Instance()->print("Error in xml config file parsing.\n");
 		return false;
 	}
-	
+
 	if( !initNetwork() )
 	{
 		sgct::MessageHandler::Instance()->print("Network init error.\n");
@@ -195,7 +195,7 @@ bool sgct::Engine::initNetwork()
 		sgct::MessageHandler::Instance()->print("Initiating network connections failed! Error: '%s'\n", err);
 		return false;
 	}
-	
+
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
 		for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
@@ -317,14 +317,17 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
-#if __WIN32__
-	if( !FontManager::Instance()->AddFont( "Verdana", "verdanab.ttf" ) )
-#elif __APPLE__
-	if( !FontManager::Instance()->AddFont( "Verdana", "Verdana Bold.ttf" ) )
-#else
-    if( !FontManager::Instance()->AddFont( "Verdana", "FreeSansBold.ttf" ) )
-#endif
-		FontManager::Instance()->GetFont( "Verdana", 10 );
+	if( mConfig->getFontPath().empty() )
+	{
+	    if( !FontManager::Instance()->AddFont( "SGCTFont", mConfig->getFontName() ) )
+            FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+    }
+    else
+    {
+	    std::string tmpPath = mConfig->getFontPath() + mConfig->getFontName();
+	    if( !FontManager::Instance()->AddFont( "SGCTFont", tmpPath, FontManager::FontPath_Local ) )
+            FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+    }
 
 	//init swap group barrier when ready to render
 	sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
@@ -692,25 +695,25 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 95, "Node ip: %s (%s)",
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 80, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 50, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
-	Freetype::print(FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
+	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
 		tmpNode->getCurrentViewport()->isTracked() ? "true" : "false",
 		getUserPtr()->getXPos(),
 		getUserPtr()->getYPos(),
@@ -720,20 +723,20 @@ void sgct::Engine::renderDisplayInfo()
 	if( tmpNode->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye: Left");
+		Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye:          Right");
+		Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
 	else //if passive stereo
 	{
 		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye: Left");
+			Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
 		}
 		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "Verdana", 10 ), 100, 110, "Active eye:          Right");
+			Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
 		}
 	}
 	glPopAttrib();
@@ -821,7 +824,7 @@ void sgct::Engine::setRenderTarget(int bufferIndex)
 void sgct::Engine::renderFBOTexture()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	//unbind framebuffer
 	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
 
@@ -1088,7 +1091,7 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 		else if( mActiveFrustum == Frustum::StereoRightEye ) //if active right
 			glDrawBuffer(GL_BACK_RIGHT);
 	}
-	
+
 	//clear
 	if( mode != BackBufferBlack && mClearBufferFn != NULL )
 	{

@@ -45,6 +45,16 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 	mPitch = 0.0f;
 	mRoll = 0.0f;
 
+	//font stuff
+	mFontSize = 10;
+	#if __WIN32__
+    mFontName = "verdanab.ttf";
+    #elif __APPLE__
+    mFontName = "Verdana Bold.ttf";
+    #else
+    mFontName = "FreeSansBold.ttf";
+    #endif
+
 	if( filename.empty() )
 	{
 		sgct::MessageHandler::Instance()->print("Error: No XML config file loaded.\n");
@@ -425,6 +435,29 @@ void core_sgct::ReadConfig::readAndParseXML()
 				element[1] = element[1]->NextSiblingElement();
 			}
 		}
+		else if( strcmp("Font", val[0]) == 0 )
+		{
+			if( element[0]->Attribute("name") != NULL )
+			{
+			    mFontName.assign( element[0]->Attribute("name") );
+            }
+
+            if( element[0]->Attribute("path") != NULL )
+			{
+			    mFontPath.assign( element[0]->Attribute("path") );
+            }
+
+            if( element[0]->Attribute("size") != NULL )
+			{
+                int tmpi = -1;
+				if( element[0]->QueryIntAttribute("size", &tmpi) == XML_NO_ERROR && tmpi > 0)
+				{
+					mFontSize = tmpi;
+				}
+				else
+					sgct::MessageHandler::Instance()->print("Info: Font size not specified. Setting to default size=10!\n");
+            }
+        }
 		else if( strcmp("Tracking", val[0]) == 0 )
 		{
 			if( element[0]->Attribute("vrpnAddress") != NULL )

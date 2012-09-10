@@ -36,17 +36,12 @@
 			<Add directory="../../../include" />
 		</Compiler>
 		<Linker>
-			<Add option="-static-libgcc" />
-			<Add option="-static-libstdc++" />
 			<Add option="-framework Opengl" />
 			<Add option="-framework AGL" />
 			<Add option="-framework Cocoa" />
+			<Add option="-framework IOKit" />
 			<Add library="sgct" />
-			<Add library="gl" />
-			<Add library="glu" />
 			<Add directory="../../../lib/mac" />
-			<Add directory="/Developer/SDKs/MacOSX10.5.sdk/usr/X11" />
-			<Add directory="/Developer/SDKs/MacOSX10.5.sdk/System/Library/Frameworks/OpenGL.framework/Versions/A/Libraries" />
 		</Linker>
 		<Unit filename="heightmap.frag">
 			<Option target="&lt;{~None~}&gt;" />

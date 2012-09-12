@@ -2,7 +2,7 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 
-!define SGCT_VERSION "0.9"
+!define SGCT_VERSION "0.9.2"
 
 ; The name of the installer
 Name "SGCT ${SGCT_VERSION} msvc10 x86 installer"
@@ -156,6 +156,15 @@ Section "SGCT ${SGCT_VERSION} MSVC10 x86"
 	File "..\..\src\apps\osgExample\airplane.ive"
 	File "..\..\src\apps\osgExample\main.cpp"
 	File "..\..\src\apps\osgExample\osgExample_msvc10.vcxproj"
+	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app"
+	File "..\..\bin\remote_app\msvc10\remote_app_msvc10.exe"
+	File "..\..\bin\remote_app\SGCTRemote.exe"
+	File "..\..\src\apps\SGCTRemote\main.cpp"
+	File "..\..\src\apps\SGCTRemote\single_remote.xml"
+	File "..\..\src\apps\SGCTRemote\remote_app.cbp"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote.sln"
+	File /r "..\..\src\apps\SGCTRemote\SGCTRemote\"
 SectionEnd
 
 Section "SGCT environment variable"
@@ -203,6 +212,11 @@ Section "Start Menu Shortcuts"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example\osgExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+
+  CreateDirectory "$SMPROGRAMS\SGCT\examples\remote"
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\remote_app.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app\remote_app_msvc10.exe" "-config single_remote.xml"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\SGCTRemote.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app\SGCTRemote.exe" ""
 SectionEnd
 
 Section "OSG 3.0.1 MSVC10 x86"

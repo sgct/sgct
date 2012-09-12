@@ -2,7 +2,7 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 
-!define SGCT_VERSION "0.9.1"
+!define SGCT_VERSION "0.9.2"
 
 ; The name of the installer
 Name "SGCT ${SGCT_VERSION} MinGW x86 installer"
@@ -151,11 +151,11 @@ Section "SGCT ${SGCT_VERSION} MinGW x86"
 	File "..\..\src\apps\gamepadExample\main.cpp"
 	File "..\..\src\apps\gamepadExample\gamepadExample.cbp"
 	
-	#SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
-	#File "..\..\bin\osgExample\mingw\osgExample.exe"
-	#File "..\..\src\apps\osgExample\airplane.ive"
-	#File "..\..\src\apps\osgExample\main.cpp"
-	#File "..\..\src\apps\osgExample\osgExample.cbp"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
+	File "..\..\bin\osgExample\mingw\osgExample.exe"
+	File "..\..\src\apps\osgExample\airplane.ive"
+	File "..\..\src\apps\osgExample\main.cpp"
+	File "..\..\src\apps\osgExample\osgExample.cbp"
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app"
 	File "..\..\bin\remote_app\mingw\remote_app.exe"
@@ -211,8 +211,8 @@ Section "Start Menu Shortcuts"
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad\gamepadExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  #SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
-  #CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example\osgExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\osg_example\osgExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
   CreateDirectory "$SMPROGRAMS\SGCT\examples\remote"
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app"
@@ -220,33 +220,33 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\SGCTRemote.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\remote_app\SGCTRemote.exe" ""
 SectionEnd
 
-#Section "OSG 3.0.1 MSVC9 x86"
-#	SetOutPath "$INSTDIR\osg\osg_3.0.1_MSVC9_x86"
-#	File /r "D:\bin\osg\OpenSceneGraph-3.0.1-VS9.0.30729-x86-release-12741\"
-#	
-#	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC9_x86\bin\osgviewer.exe" ".osg" "OSG file"
-#	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC9_x86\bin\osgviewer.exe" ".osgb" "OSG bin file"
-#	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC9_x86\bin\osgviewer.exe" ".osgt" "OSG text file"
-#	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC9_x86\bin\osgviewer.exe" ".ive" "OSG bin file"
-#SectionEnd
+Section "OSG 3.0.1 MinGW x86"
+	SetOutPath "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86"
+	File /r "D:\bin\osg\OpenSceneGraph-3.0.1-MinGW\"
+	
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osg" "OSG file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osgb" "OSG bin file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osgt" "OSG text file"
+	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".ive" "OSG bin file"
+SectionEnd
 
-#Section "OSG environment variables"
-#	;remove if set
-#	DeleteRegValue ${env_hklm} OSG_PATH
-#    DeleteRegValue ${env_hklm} OSG_ROOT
-#    DeleteRegValue ${env_hklm} OSGHOME
-#	
-#	${EnvVarUpdate} $0 "OSG_ROOT" "A" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC9_x86"
-#	${EnvVarUpdate} $0 "OSG_PATH" "A" "HKLM" "%OSG_ROOT%\bin"
-#    ${EnvVarUpdate} $0 "OSGHOME" "A" "HKLM" "%OSG_ROOT%"
-#  
-#    ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
-#	
-#	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
-#	
-#	; reboot after install
-#	SetRebootFlag true
-#SectionEnd
+Section "OSG environment variables"
+	;remove if set
+	DeleteRegValue ${env_hklm} OSG_PATH
+    DeleteRegValue ${env_hklm} OSG_ROOT
+    DeleteRegValue ${env_hklm} OSGHOME
+	
+	${EnvVarUpdate} $0 "OSG_ROOT" "A" "HKLM" "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86"
+	${EnvVarUpdate} $0 "OSG_PATH" "A" "HKLM" "%OSG_ROOT%\bin"
+    ${EnvVarUpdate} $0 "OSGHOME" "A" "HKLM" "%OSG_ROOT%"
+  
+    ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
+	
+	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
+
+	; reboot after install
+	SetRebootFlag true
+SectionEnd
 
 ;--------------------------------
 
@@ -260,16 +260,16 @@ Section "Uninstall"
   
   ; delete variable
   DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
-  #DeleteRegValue ${env_hklm} OSG_PATH
-  #DeleteRegValue ${env_hklm} OSG_ROOT
-  #DeleteRegValue ${env_hklm} OSGHOME
+  DeleteRegValue ${env_hklm} OSG_PATH
+  DeleteRegValue ${env_hklm} OSG_ROOT
+  DeleteRegValue ${env_hklm} OSGHOME
 	
-  #${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "%OSG_ROOT%\bin"
+  ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "%OSG_ROOT%\bin"
   
-  #${unregisterExtension} ".osg" "OSG file"
-  #${unregisterExtension} ".osgt" "OSG text file"
-  #${unregisterExtension} ".osgb" "OSG bin file"
-  #${unregisterExtension} ".ive" "OSG bin file"
+  ${unregisterExtension} ".osg" "OSG file"
+  ${unregisterExtension} ".osgt" "OSG text file"
+  ${unregisterExtension} ".osgb" "OSG bin file"
+  ${unregisterExtension} ".ive" "OSG bin file"
   
   ; make sure windows knows about the change
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000

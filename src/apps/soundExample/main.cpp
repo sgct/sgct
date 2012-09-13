@@ -2,10 +2,11 @@
 
 //include open AL
 #ifdef __APPLE__
-    #include <OpenAL/alut.h>
+    #include <OpenAL/al.h>
+    #include <ALUT/alut.h>
 #else
     #include <AL/al.h>
-	#include <AL/alut.h>
+    #include <AL/alut.h>
 #endif
 
 sgct::Engine * gEngine;
@@ -74,6 +75,9 @@ void myInitOGLFun()
 	gluQuadricDrawStyle(quadratic, GLU_LINE);
 
 	alutInit(NULL, 0);
+
+	//Check for errors if any
+	sgct::MessageHandler::Instance()->print("ALUT init: %s\n", alutGetErrorString( alutGetError() ));
 
 	setAudioSource(audio_buffer0, source0, "file1.wav");
 
@@ -198,6 +202,8 @@ void setAudioSource(ALuint &buffer, ALuint &source, const char * filename)
 
 	buffer = alutCreateBufferFromFile(filename);
 	if( buffer == AL_NONE )
-		sgct::MessageHandler::Instance()->print("Failed to read audio file '%s'\n", filename);
+	{
+		sgct::MessageHandler::Instance()->print("Failed to read audio file '%s', error: %s\n", filename, alutGetErrorString( alutGetError() ));
+    }
 	alSourcei(source, AL_BUFFER, buffer);
 }

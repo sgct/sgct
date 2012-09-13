@@ -204,6 +204,6 @@ void setAudioSource(ALuint &buffer, ALuint &source, const char * filename)
 	if( buffer == AL_NONE )
 	{
 		sgct::MessageHandler::Instance()->print("Failed to read audio file '%s', error: %s\n", filename, alutGetErrorString( alutGetError() ));
-    }
+	}
 	alSourcei(source, AL_BUFFER, buffer);
 }

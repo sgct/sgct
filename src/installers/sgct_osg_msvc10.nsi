@@ -171,7 +171,7 @@ Section "SGCT environment variable"
 	;remove if set
 	DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
 	
-	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "A" "HKLM" "$INSTDIR\SGCT_${SGCT_VERSION}_x86"
+	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "P" "HKLM" "$INSTDIR\SGCT_${SGCT_VERSION}_x86"
 	
 	;update env vars
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
@@ -235,9 +235,9 @@ Section "OSG environment variables"
     DeleteRegValue ${env_hklm} OSG_ROOT
     DeleteRegValue ${env_hklm} OSGHOME
 	
-	${EnvVarUpdate} $0 "OSG_ROOT" "A" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
-	${EnvVarUpdate} $0 "OSG_PATH" "A" "HKLM" "%OSG_ROOT%\bin"
-    ${EnvVarUpdate} $0 "OSGHOME" "A" "HKLM" "%OSG_ROOT%"
+	${EnvVarUpdate} $0 "OSG_ROOT" "P" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
+	${EnvVarUpdate} $0 "OSG_PATH" "P" "HKLM" "%OSG_ROOT%\bin"
+    ${EnvVarUpdate} $0 "OSGHOME" "P" "HKLM" "%OSG_ROOT%"
   
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
 	

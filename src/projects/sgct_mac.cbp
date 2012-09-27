@@ -20,7 +20,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="glew32" />
+					<Add library="GLEW" />
 					<Add library="glfw" />
 					<Add library="freetype" />
 					<Add library="png" />
@@ -41,7 +41,7 @@
 					<Add option="-O3" />
 				</Compiler>
 				<Linker>
-					<Add library="glew32" />
+					<Add library="GLEW" />
 					<Add library="glfw" />
 					<Add library="freetype" />
 					<Add library="png" />

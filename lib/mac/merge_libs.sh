@@ -2,7 +2,7 @@
 # merge libs
 echo "Merging release libs... "
 rm libsgct.a
-ar x deps/libglew32.a
+ar x deps/libGLEW.a
 ar x deps/libglfw.a
 ar x deps/libz.a
 ar x deps/libpng.a
@@ -14,7 +14,7 @@ ar r libsgct.a *.o
 rm *.o
 echo "Merging debug libs... "
 rm libsgct_d.a
-ar x deps/libglew32.a
+ar x deps/libGLEW.a
 ar x deps/libglfw.a
 ar x deps/libz.a
 ar x deps/libpng.a

@@ -10,3 +10,4 @@ Minor:
  - add support for all SUN, MTX, and OML extensions
  - make auto/Makefile more robust against auto/core/*~ mistakes
  - web poll on separating glew, glxew and wglew
+ and wglew

@@ -389,4 +389,15 @@ dist-src:
 extensions:
 	$(MAKE) -C auto
 
+.PHONY: clean distclean tardist dist-win32 dist-src nix
+	find $(TARDIR) -name '*.pl' | xargs dos2unix
+	find $(TARDIR) -name 'Makefile' | xargs dos2unix
+	find $(TARDIR) -name '*.in' | xargs dos2unix
+	find $(TARDIR) -name '*.pm' | xargs dos2unix
+	find $(TARDIR) -name '*.rc' | xargs dos2unix
+	cd .. && env GZIP=-9 tar cvzf $(DIST_SRC_TGZ) $(DIST_DIR)
+
+extensions:
+	$(MAKE) -C auto
+
 .PHONY: clean distclean tardist dist-win32 dist-src

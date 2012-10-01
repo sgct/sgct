@@ -81,10 +81,13 @@
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\sgct\SGCTTracking.h">
+    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h">
+    <ClInclude Include="..\..\include\sgct\SGCTTrackingDevice.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -146,10 +149,13 @@
     <ClCompile Include="..\sgct\TextureManager.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\sgct\SGCTTracking.cpp">
+    <ClCompile Include="..\sgct\CorrectionMesh.cpp">
       <Filter>source</Filter>
     </ClCompile>
-    <ClCompile Include="..\sgct\CorrectionMesh.cpp">
+    <ClCompile Include="..\sgct\SGCTTrackingDevice.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTTrackingManager.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

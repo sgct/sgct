@@ -25,43 +25,52 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-#ifndef _SGCT_TRACKING_H_
-#define _SGCT_TRACKING_H_
+#ifndef _SGCT_TRACKING_DEVICE_H_
+#define _SGCT_TRACKING_DEVICE_H_
 
+#include <string>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 
 namespace core_sgct
 {
 
-class SGCTTracking
+class SGCTTrackingDevice
 {
 public:
-	SGCTTracking();
-	~SGCTTracking();
-	void connect(const char * name);
-	void update();
-	void setHeadSensorIndex(int index);
+	SGCTTrackingDevice(size_t index, const char * name);
+	~SGCTTrackingDevice();
+	
 	void setEnabled(bool state);
-	void setOrientation(double xRot, double yRot, double zRot);
-	void setOffset(double x, double y, double z);
-	inline int getHeadSensorIndex() { return mHeadSensorIndex; }
-	inline glm::dmat4 getXform() { return mXform; }
-	inline glm::dmat4 getOrientation() { return mOrientation; }
+	void setNumberOfButtons(size_t numOfButtons);
+	void setNumberOfAxes(size_t numOfAxes);
+	void setPosition(const double &x, const double &y, const double &z);
+	void setRotation(const double &w, const double &x, const double &y, const double &z);
+	void setButtonVal(const bool val, size_t index);
+	void setAnalogVal(const double &val, size_t index);
+
+	inline size_t getNumberOfButtons() { return mNumberOfButtons; }
+	inline size_t getNumberOfAxes() { return mNumberOfAxes; }
+	inline bool * getButtonVals() { return mButtons; }
+	inline double * getAnalogVals() { return mAxes; }
 	inline bool isEnabled() { return mEnabled; }
+	inline bool hasButtons() { return mNumberOfButtons > 0; }
+	inline bool hasAnalogs() { return mNumberOfAxes > 0; }
+	inline glm::dvec4 getPosition() { return mTrackedPos; }
+	inline glm::dquat getRotation() { return mTrackedRot; }
 
 private:
-	void calculateXform();
-
-private:
-	//Miro ToDo: Add a vector of sensors 
-	int mHeadSensorIndex;
-	glm::dmat4 mXform;
-	glm::dmat4 mOrientation;
-	glm::dvec3 mOffset;
-	double mXrot;
-	double mYrot;
-	double mZrot;
 	bool mEnabled;
+	std::string mName;
+	size_t mIndex;
+	size_t mNumberOfButtons;
+	size_t mNumberOfAxes;
+
+	glm::dvec4 mTrackedPos;
+	glm::dquat mTrackedRot;
+
+	bool * mButtons;
+	double * mAxes;
 };
 
 }

@@ -30,8 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "SGCTNode.h"
 #include "User.h"
-#include "SGCTTracking.h"
-#include <vector>
+#include "SGCTTrackingManager.h"
 #include <string>
 
 namespace core_sgct
@@ -68,7 +67,7 @@ public:
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
 	User * getUserPtr() { return mUser; }
-	SGCTTracking * getTrackingPtr() { return mTracking; }
+
 	const glm::mat4 & getSceneTrans() { return mSceneTrans; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
@@ -82,6 +81,8 @@ public:
 
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
 	inline MeshImplementation getMeshImplementation() { return mMeshImpl; }
+
+	inline SGCTTrackingManager * getTrackingManagerPtr() { return mTrackingManager; }
 
 private:
 	ClusterManager(void);
@@ -101,8 +102,9 @@ private:
 	std::string masterIp;
 	std::string mExternalControlPort;
 
-	User	* mUser;
-	SGCTTracking * mTracking;
+	User				* mUser;
+	SGCTTrackingManager * mTrackingManager;
+
 	glm::mat4 mSceneTrans;
 	MeshImplementation mMeshImpl;
 };

@@ -520,7 +520,7 @@ void sgct::Engine::render()
 	while( mRunning )
 	{
 		//update tracking data
-		//ClusterManager::Instance()->getTrackingPtr()->update();
+		ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
 
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();

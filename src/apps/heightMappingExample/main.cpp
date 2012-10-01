@@ -105,7 +105,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
-	core_sgct::ClusterManager::Instance()->getTrackingPtr()->setEnabled( useTracking );
+	core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking );
 
 	if( takeScreenshot )
 	{

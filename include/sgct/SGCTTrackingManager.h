@@ -60,6 +60,9 @@ public:
 	SGCTTrackingDevice * getTrackingPtr(size_t index);
 	SGCTTrackingDevice * getTrackingPtr(const char * name);
 
+	void setSamplingTime(double t);
+	double getSamplingTime();
+
 private:
 	void calculateTransform();
 
@@ -69,6 +72,7 @@ private:
 	glm::dmat4 mXform;
 	glm::dmat4 mOrientation;
 	glm::dvec3 mOffset;
+	double mSamplingTime;
 
 	int	mHeadSensorIndex;
 	double mXrot;

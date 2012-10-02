@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/SGCTTrackingManager.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/Engine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -46,6 +47,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b );
 void VRPN_CALLBACK update_analog_cb(void * userdata, const vrpn_ANALOGCB a );
 
 void GLFWCALL samplingLoop(void *arg);
+GLFWmutex mTimingMutex = NULL;
 
 core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
@@ -53,6 +55,13 @@ core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 	mSamplingThreadId = -1;
 	mXform = glm::mat4(1.0);
 	mOffset = glm::vec3(0.0);
+	mSamplingTime = 0.0;
+
+	mTimingMutex = sgct::Engine::createMutex();
+	if( mTimingMutex == NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Tracking manager: Failed to create mutex!\n");
+	}
 }
 
 core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
@@ -62,6 +71,13 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	{
 		glfwDestroyThread(mSamplingThreadId);
 		mSamplingThreadId = -1;
+	}
+
+	//destroy mutex
+	if( mTimingMutex != NULL )
+	{
+		sgct::Engine::destroyMutex(mTimingMutex);
+		mTimingMutex = NULL;
 	}
 	
 	//delete all instances
@@ -130,8 +146,11 @@ void GLFWCALL samplingLoop(void *arg)
 {
 	core_sgct::SGCTTrackingManager * tmPtr = (core_sgct::SGCTTrackingManager *)arg;
 
+	double t;
+
 	while(true)
 	{
+		t = sgct::Engine::getTime();
 		for(size_t i=0; i<tmPtr->getNumberOfDevices(); i++)
 		{
 			if( tmPtr->getTrackingPtr(i)->isEnabled() )
@@ -146,7 +165,26 @@ void GLFWCALL samplingLoop(void *arg)
 					mButtonDevices[i]->mainloop();
 			}
 		}
+
+		tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
 	}
+}
+
+void core_sgct::SGCTTrackingManager::setSamplingTime(double t)
+{
+	sgct::Engine::lockMutex( mTimingMutex );
+		mSamplingTime = t;
+	sgct::Engine::unlockMutex( mTimingMutex );
+}
+
+double core_sgct::SGCTTrackingManager::getSamplingTime()
+{
+	double tmpVal;
+	sgct::Engine::lockMutex( mTimingMutex );
+		tmpVal = mSamplingTime;
+	sgct::Engine::unlockMutex( mTimingMutex );
+
+	return tmpVal;
 }
 
 void core_sgct::SGCTTrackingManager::setEnabled(bool state)
@@ -236,6 +274,7 @@ void core_sgct::SGCTTrackingManager::addAnalogsToDevice(const char * address, si
 void core_sgct::SGCTTrackingManager::setHeadSensorIndex(int index)
 {
 	mHeadSensorIndex = index;
+	sgct::MessageHandler::Instance()->print("Tracking: Setting head sensor index=%d.\n", index);
 }
 
 void core_sgct::SGCTTrackingManager::setOrientation(double xRot, double yRot, double zRot)
@@ -299,6 +338,9 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 	
 	glm::dvec4 tmpVec = glm::dvec4( info.pos[0], info.pos[1], info.pos[2], 1.0 );
 
+	fprintf(stderr, "Sensor: %d\n", info.sensor);
+
+	tdPtr->setTrackerTime();
 	tdPtr->setPosition( tm->getTransform() * tmpVec );
 	tdPtr->setRotation( info.quat[0], info.quat[1], info.quat[2], info.quat[3] );
 }

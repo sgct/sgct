@@ -67,7 +67,8 @@ public:
 	glm::dvec3 getEulerAngles();
 	glm::dmat4 getTransformMat();
 
-	GLFWmutex mTrackingMutex;
+	void setTrackerTime();
+	double getTrackerTime();
 
 private:
 	bool mEnabled;
@@ -77,9 +78,13 @@ private:
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
 
+	GLFWmutex mTrackingMutex;
+
 	glm::dvec4 mTrackedPos;
 	glm::dmat4 mRotationMat;
 	glm::dquat mRotation;
+	double mTrackerTime;
+	double mLastTime;
 	bool * mButtons;
 	double * mAxes;
 };

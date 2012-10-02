@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8B2B42A4-7B9C-4B63-A8D7-EEACFF36A3EA}</ProjectGuid>
+    <ProjectGuid>{6562112C-2683-4C46-BCC2-93D5A7B4A513}</ProjectGuid>
     <RootNamespace>trackingExample</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

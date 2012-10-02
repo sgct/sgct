@@ -46,6 +46,8 @@ core_sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, const char * nam
 
 	mButtons = NULL;
 	mAxes = NULL;
+	mTrackerTime = 0.0;
+	mLastTime = 0.0;
 
 	mTrackingMutex = NULL;
 	mTrackingMutex = sgct::Engine::createMutex();
@@ -205,4 +207,22 @@ glm::dmat4 core_sgct::SGCTTrackingDevice::getTransformMat()
 		tmpMat = mRotationMat * transMat;
 	sgct::Engine::unlockMutex(mTrackingMutex);
 	return tmpMat;
+}
+
+void core_sgct::SGCTTrackingDevice::setTrackerTime()
+{
+	sgct::Engine::lockMutex(mTrackingMutex);
+		mTrackerTime = sgct::Engine::getTime() - mLastTime;
+		mLastTime = mTrackerTime;
+	sgct::Engine::unlockMutex(mTrackingMutex);
+}
+
+double core_sgct::SGCTTrackingDevice::getTrackerTime()
+{
+	double tmpVal;
+	sgct::Engine::lockMutex(mTrackingMutex);
+		tmpVal = mTrackerTime;
+	sgct::Engine::unlockMutex(mTrackingMutex);
+
+	return tmpVal;
 }

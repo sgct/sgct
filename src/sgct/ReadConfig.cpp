@@ -482,35 +482,35 @@ void core_sgct::ReadConfig::readAndParseXML()
 					else
 						sgct::MessageHandler::Instance()->print("Error: No device name provided! Device is disabled.\n");
 				
-				element[2] = element[1]->FirstChildElement();
-				while( element[2] != NULL )
-				{
-					val[2] = element[2]->Value();
-					unsigned int tmpUI = 0;
+					element[2] = element[1]->FirstChildElement();
+					while( element[2] != NULL )
+					{
+						val[2] = element[2]->Value();
+						unsigned int tmpUI = 0;
 
-					if( strcmp("Tracker", val[2]) == 0 && element[2]->Attribute("vrpnAddress") != NULL)
-					{
-						ClusterManager::Instance()->getTrackingManagerPtr()->addTrackerToDevice(
-							element[2]->Attribute("vrpnAddress"));
-					}
-					else if( strcmp("Buttons", val[2]) == 0 &&
-						element[2]->Attribute("vrpnAddress") != NULL &&
-						element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
-					{
-						ClusterManager::Instance()->getTrackingManagerPtr()->addButtonsToDevice(
-							element[2]->Attribute("vrpnAddress"), tmpUI);
-					}
-					else if( strcmp("Axes", val[2]) == 0 &&
-						element[2]->Attribute("vrpnAddress") != NULL &&
-						element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
-					{
-						ClusterManager::Instance()->getTrackingManagerPtr()->addAnalogsToDevice(
-							element[2]->Attribute("vrpnAddress"), tmpUI);
-					}
+						if( strcmp("Tracker", val[2]) == 0 && element[2]->Attribute("vrpnAddress") != NULL)
+						{
+							ClusterManager::Instance()->getTrackingManagerPtr()->addTrackerToDevice(
+								element[2]->Attribute("vrpnAddress"));
+						}
+						else if( strcmp("Buttons", val[2]) == 0 &&
+							element[2]->Attribute("vrpnAddress") != NULL &&
+							element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
+						{
+							ClusterManager::Instance()->getTrackingManagerPtr()->addButtonsToDevice(
+								element[2]->Attribute("vrpnAddress"), tmpUI);
+						}
+						else if( strcmp("Axes", val[2]) == 0 &&
+							element[2]->Attribute("vrpnAddress") != NULL &&
+							element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
+						{
+							ClusterManager::Instance()->getTrackingManagerPtr()->addAnalogsToDevice(
+								element[2]->Attribute("vrpnAddress"), tmpUI);
+						}
 
-					//iterate
-					element[2] = element[2]->NextSiblingElement();
-				}
+						//iterate
+						element[2] = element[2]->NextSiblingElement();
+					}
 				
 				}
 				else if( strcmp("Offset", val[1]) == 0 )

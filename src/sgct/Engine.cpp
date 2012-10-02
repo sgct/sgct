@@ -180,6 +180,10 @@ bool sgct::Engine::init()
 
 	initOGL();
 
+	//start sampling tracking data
+	if(isMaster())
+		getTrackingManager()->startSampling();
+
 	return true;
 }
 
@@ -520,7 +524,8 @@ void sgct::Engine::render()
 	while( mRunning )
 	{
 		//update tracking data
-		ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
+		if( isMaster() )
+			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
 
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();

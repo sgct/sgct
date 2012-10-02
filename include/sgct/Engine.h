@@ -110,6 +110,7 @@ public:
 
 	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	static core_sgct::User * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }
+	static core_sgct::SGCTTrackingManager * getTrackingManager() { return core_sgct::ClusterManager::Instance()->getTrackingManagerPtr(); }
 	static void checkForOGLErrors();
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }

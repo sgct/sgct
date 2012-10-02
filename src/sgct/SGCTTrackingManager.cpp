@@ -25,12 +25,13 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-#include "../include/sgct/SGCTTrackingManager.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/MessageHandler.h"
 #include "../include/vrpn/vrpn_Tracker.h"
 #include "../include/vrpn/vrpn_Button.h"
 #include "../include/vrpn/vrpn_Analog.h"
+#include <GL/glfw.h>
+#include "../include/sgct/SGCTTrackingManager.h"
+#include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/MessageHandler.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -44,15 +45,25 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB t );
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b );
 void VRPN_CALLBACK update_analog_cb(void * userdata, const vrpn_ANALOGCB a );
 
+void GLFWCALL samplingLoop(void *arg);
+
 core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
 	mHeadSensorIndex = -1;
-	mXform = glm::dmat4(1.0);
-	mOffset = glm::dvec3(0.0);
+	mSamplingThreadId = -1;
+	mXform = glm::mat4(1.0);
+	mOffset = glm::vec3(0.0);
 }
 
 core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
+	//destroy thread
+	if( mSamplingThreadId != -1 )
+	{
+		glfwDestroyThread(mSamplingThreadId);
+		mSamplingThreadId = -1;
+	}
+	
 	//delete all instances
 	for(size_t i=0; i<mTrackingDevices.size(); i++)
 	{
@@ -87,35 +98,52 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	mTrackingDevices.clear();
 }
 
+void core_sgct::SGCTTrackingManager::startSampling()
+{
+	if( !mTrackingDevices.empty() )
+	{
+		mSamplingThreadId = glfwCreateThread( samplingLoop, this );
+		if( mSamplingThreadId < 0)
+		{
+			sgct::MessageHandler::Instance()->print("Tracking: Failed to start thread!\n");
+		}
+	}
+}
+
 void core_sgct::SGCTTrackingManager::updateTrackingDevices()
 {
 	for(size_t i=0; i<mTrackingDevices.size(); i++)
 	{
-		if( mTrackingDevices[i]->isEnabled() )
+		if( mTrackingDevices[i]->isEnabled() && mHeadSensorIndex == i)
 		{
-			if( mTrackers[i] != NULL )
-				mTrackers[i]->mainloop();
+			core_sgct::ClusterManager * cm = core_sgct::ClusterManager::Instance();
 
-			if( mAnalogDevices[i] != NULL )
-				mAnalogDevices[i]->mainloop();
+			//set head rot & pos
+			cm->getUserPtr()->setOrientationAndPosition( 
+				glm::dmat3( mTrackingDevices[i]->getRotationMat() ),
+				glm::vec3(mTrackingDevices[i]->getPosition()) );
+		}
+	}
+}
 
-			if( mButtonDevices[i] != NULL )
-				mButtonDevices[i]->mainloop();
+void GLFWCALL samplingLoop(void *arg)
+{
+	core_sgct::SGCTTrackingManager * tmPtr = (core_sgct::SGCTTrackingManager *)arg;
 
-			//ToDO: Sync across a cluster
-			if( mHeadSensorIndex == i )
+	while(true)
+	{
+		for(size_t i=0; i<tmPtr->getNumberOfDevices(); i++)
+		{
+			if( tmPtr->getTrackingPtr(i)->isEnabled() )
 			{
-				core_sgct::ClusterManager * cm = core_sgct::ClusterManager::Instance();
+				if( mTrackers[i] != NULL )
+					mTrackers[i]->mainloop();
 
-				//set head rot
-				cm->getUserPtr()->setOrientation( 
-					glm::dmat3( cm->getTrackingManagerPtr()->getOrientation())
-						* glm::mat3_cast( mTrackingDevices[i]->getRotation() ) );
+				if( mAnalogDevices[i] != NULL )
+					mAnalogDevices[i]->mainloop();
 
-				//set head pos
-				cm->getUserPtr()->setPos(
-					cm->getTrackingManagerPtr()->getTransform()
-						* mTrackingDevices[i]->getPosition() );
+				if( mButtonDevices[i] != NULL )
+					mButtonDevices[i]->mainloop();
 			}
 		}
 	}
@@ -143,14 +171,19 @@ void core_sgct::SGCTTrackingManager::addDevice(const char * name)
 
 void core_sgct::SGCTTrackingManager::addTrackerToDevice(const char * address)
 {
-	size_t index = mTrackingDevices.size();
+	if(mTrackingDevices.empty())
+		return;
+	
+	size_t index = mTrackingDevices.size() - 1;
 
 	if( mTrackers[index] == NULL )
 	{
 		mTrackers[index] = new vrpn_Tracker_Remote( address );
+		
 		if( mTrackers[index] != NULL )
 		{
 			mTrackers[index]->register_change_handler(mTrackingDevices[index], update_tracker_cb);
+			mTrackingDevices[index]->setPositionalDevicePresent(true);
 			sgct::MessageHandler::Instance()->print("Tracking: Connecting to tracker '%s' on device %u...\n", address, index);
 		}
 		else
@@ -160,7 +193,10 @@ void core_sgct::SGCTTrackingManager::addTrackerToDevice(const char * address)
 
 void core_sgct::SGCTTrackingManager::addButtonsToDevice(const char * address, size_t numOfButtons)
 {
-	size_t index = mTrackingDevices.size();
+	if(mTrackingDevices.empty())
+		return;
+	
+	size_t index = mTrackingDevices.size() - 1;
 	
 	if( mButtonDevices[index] == NULL )
 	{
@@ -178,7 +214,10 @@ void core_sgct::SGCTTrackingManager::addButtonsToDevice(const char * address, si
 
 void core_sgct::SGCTTrackingManager::addAnalogsToDevice(const char * address, size_t numOfAxes)
 {
-	size_t index = mTrackingDevices.size();
+	if(mTrackingDevices.empty())
+		return;
+	
+	size_t index = mTrackingDevices.size() - 1;
 	
 	if( mAnalogDevices[index] == NULL )
 	{
@@ -234,12 +273,33 @@ void core_sgct::SGCTTrackingManager::calculateTransform()
 	mXform = transMat * mOrientation;
 }
 
+core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtr(size_t index)
+{
+	return index < mTrackingDevices.size() ? mTrackingDevices[index] : NULL;
+}
+
+core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtr(const char * name)
+{
+	for(size_t i=0; i<mTrackingDevices.size(); i++)
+	{
+		if( strcmp(name, mTrackingDevices[i]->getName().c_str()) == 0 )
+			return mTrackingDevices[i];
+	}
+
+	//if not found
+	return NULL;
+}
+
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
 	core_sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
+
+	core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
 	
-	tdPtr->setPosition( info.pos[0], info.pos[1], info.pos[2] );
+	glm::dvec4 tmpVec = glm::dvec4( info.pos[0], info.pos[1], info.pos[2], 1.0 );
+
+	tdPtr->setPosition( tm->getTransform() * tmpVec );
 	tdPtr->setRotation( info.quat[0], info.quat[1], info.quat[2], info.quat[3] );
 }
 

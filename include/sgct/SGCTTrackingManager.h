@@ -40,6 +40,7 @@ public:
 	SGCTTrackingManager();
 	~SGCTTrackingManager();
 	
+	void startSampling();
 	void updateTrackingDevices();
 	void setEnabled(bool state);
 	void addDevice(const char * name);
@@ -51,16 +52,19 @@ public:
 	void setOrientation(double xRot, double yRot, double zRot);
 	void setOffset(double x, double y, double z);
 	
+	inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
 	inline int getHeadSensorIndex() { return mHeadSensorIndex; }
 	inline glm::dmat4 getTransform() { return mXform; }
 	inline glm::dmat4 getOrientation() { return mOrientation; }
 	
-	SGCTTrackingDevice * getTrackingPtr(size_t index) { return mTrackingDevices[index]; }
+	SGCTTrackingDevice * getTrackingPtr(size_t index);
+	SGCTTrackingDevice * getTrackingPtr(const char * name);
 
 private:
 	void calculateTransform();
 
 private:
+	int mSamplingThreadId;
 	std::vector<SGCTTrackingDevice *> mTrackingDevices;
 	glm::dmat4 mXform;
 	glm::dmat4 mOrientation;

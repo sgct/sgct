@@ -171,13 +171,13 @@ void myDrawFun()
 	glPopMatrix();
 
 	if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoLeftEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 50, "Left");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 50, "Left");
 	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoRightEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 100, "Right");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 100, "Right");
 	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::Mono )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 24 ), 100, 150, "Mono");
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 150, "Mono");
 
-	/*Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
+	/*Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
 		myTestClass.d1,
 		myTestClass.d2,
 		myTestClass.f1,
@@ -185,9 +185,9 @@ void myDrawFun()
 		myTestClass.i1,
 		myTestClass.i2);*/
 
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Size test: %f",
+	Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Size test: %f",
 		extraData[EXTENDED_SIZE-1]);
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 0, "String: %s...",
+	Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 0, "String: %s...",
 		mySharedString.substr(0, 16).c_str());
 	//drawGrid(10.0, 100);
 }

@@ -31,6 +31,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
+#include <glm/gtx/quaternion.hpp>
+
+typedef void * GLFWmutex;
 
 namespace core_sgct
 {
@@ -42,33 +45,41 @@ public:
 	~SGCTTrackingDevice();
 	
 	void setEnabled(bool state);
+	void setPositionalDevicePresent(bool state);
 	void setNumberOfButtons(size_t numOfButtons);
 	void setNumberOfAxes(size_t numOfAxes);
-	void setPosition(const double &x, const double &y, const double &z);
+	void setPosition(const glm::dvec4 &pos);
 	void setRotation(const double &w, const double &x, const double &y, const double &z);
 	void setButtonVal(const bool val, size_t index);
 	void setAnalogVal(const double &val, size_t index);
 
+	inline const std::string & getName() { return mName; } 
 	inline size_t getNumberOfButtons() { return mNumberOfButtons; }
 	inline size_t getNumberOfAxes() { return mNumberOfAxes; }
-	inline bool * getButtonVals() { return mButtons; }
-	inline double * getAnalogVals() { return mAxes; }
+	bool getButton(size_t index);
+	double getAnalog(size_t index);
 	inline bool isEnabled() { return mEnabled; }
+	inline bool hasTracker() { return mIsPositionalDevice; }
 	inline bool hasButtons() { return mNumberOfButtons > 0; }
 	inline bool hasAnalogs() { return mNumberOfAxes > 0; }
-	inline glm::dvec4 getPosition() { return mTrackedPos; }
-	inline glm::dquat getRotation() { return mTrackedRot; }
+	glm::dvec4 getPosition();
+	glm::dmat4 getRotationMat();
+	glm::dvec3 getEulerAngles();
+	glm::dmat4 getTransformMat();
+
+	GLFWmutex mTrackingMutex;
 
 private:
 	bool mEnabled;
+	bool mIsPositionalDevice;
 	std::string mName;
 	size_t mIndex;
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
 
 	glm::dvec4 mTrackedPos;
-	glm::dquat mTrackedRot;
-
+	glm::dmat4 mRotationMat;
+	glm::dquat mRotation;
 	bool * mButtons;
 	double * mAxes;
 };

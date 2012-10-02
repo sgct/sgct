@@ -81,6 +81,14 @@ public:
 	void setOrientation(const glm::dmat3 & rotMat)
 	{
 		mOrientation = rotMat;
+		updateEyeSeparation();
+	}
+
+	void setOrientationAndPosition(const glm::dmat3 & rotMat, glm::vec3 pos)
+	{
+		mOrientation = rotMat;
+		mPos[Frustum::Mono] = pos;
+		updateEyeSeparation();
 	}
 
 	void setEyeSeparation(float eyeSeparation)

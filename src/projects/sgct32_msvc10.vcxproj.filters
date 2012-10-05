@@ -69,9 +69,6 @@
     <ClInclude Include="..\..\include\sgct\TextureManager.h">
       <Filter>include</Filter>
     </ClInclude>
-    <ClInclude Include="..\..\include\sgct\User.h">
-      <Filter>include</Filter>
-    </ClInclude>
     <ClInclude Include="..\..\include\sgct\Viewport.h">
       <Filter>include</Filter>
     </ClInclude>
@@ -88,6 +85,9 @@
       <Filter>include</Filter>
     </ClInclude>
     <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTUser.h">
       <Filter>include</Filter>
     </ClInclude>
   </ItemGroup>
@@ -156,6 +156,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\SGCTTrackingManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTUser.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

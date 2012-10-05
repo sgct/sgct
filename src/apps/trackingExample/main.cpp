@@ -2,13 +2,18 @@
 
 sgct::Engine * gEngine;
 
+void myInitOGLFun();
 void myDrawFun();
+
+void drawAxes(float size);
 void drawWireCube(float size);
 
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
 	
+	gEngine->setInitOGLFunction( myInitOGLFun );
+
 	if( !gEngine->init() )
 	{
 		delete gEngine;
@@ -27,8 +32,24 @@ int main( int argc, char* argv[] )
 	exit( EXIT_SUCCESS );
 }
 
+void myInitOGLFun()
+{
+	glEnable(GL_DEPTH_TEST);
+}
+
 void myDrawFun()
 {
+	//draw some cubes in space
+	for( float i=-0.5f; i<=0.5f; i+=0.2f)
+		for(float j=-0.5f; j<=0.5f; j+=0.2f)
+		{
+			glPushMatrix();
+			glTranslatef(i, j, 0.0f);
+			glColor3f(1.0f,1.0f,0.0f);
+			drawWireCube(0.04f);
+			glPopMatrix();
+		}
+	
 	size_t numberOfTrackedDevices = 
 		sgct::Engine::getTrackingManager()->getNumberOfDevices();
 
@@ -38,42 +59,50 @@ void myDrawFun()
 	float lineSpace = 14.0f;
 	int fontSize = 10;
 
-	glColor3f(1.0f,0.0f,0.0f);
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 50.0f, textVerticalPos,
-		"SGCT sampling freq: %lf Hz", 1.0/sgct::Engine::getTrackingManager()->getSamplingTime());
-	textVerticalPos -= lineSpace;
-
 	for(size_t i = 0; i < numberOfTrackedDevices; i++)
 	{
 		td = sgct::Engine::getTrackingManager()->getTrackingPtr( i );
 
+		glColor3f(1.0f,1.0f,0.0f);
+		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize + 2 ), 50.0f, textVerticalPos,
+			"Device %u (%s)", i, td->getName().c_str());
+		textVerticalPos -= lineSpace;
+
 		//has this device a positional tracker?
 		if( td->hasTracker() )
 		{
-			if( static_cast<size_t>(sgct::Engine::getTrackingManager()->getHeadSensorIndex()) == i )
+			//Draw cube and ray for all devices except the head
+			if( static_cast<size_t>(sgct::Engine::getTrackingManager()->getHeadSensorIndex()) != i )
 			{
-				glColor3f(1.0f,0.0f,0.0f);
 				glLineWidth(2.0);
 				
 				glPushMatrix();
+
+				//get transform from tracker
 				glLoadMatrixd( glm::value_ptr(td->getTransformMat()) );
+				
+				glColor3f(0.5f,0.5f,0.5f);
 				drawWireCube(0.1f);
+				
+				drawAxes(0.1f);
 				
 				//draw ray
 				glBegin(GL_LINES);
+				glColor3f(1.0f,1.0f,0.0f);
 				glVertex3f(0.0f, 0.0f, 0.0f);
 				glVertex3f(0.0f, 0.0f, -5.0f);
 				glEnd();
+				
 				glPopMatrix();
 			}
 
-			glColor3f(1.0f,1.0f,0.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 50.0f, textVerticalPos,
-				"Tracker %u (%s), freq=%lf Hz", i, td->getName().c_str(), 1.0/td->getTrackerTime());
+			glColor3f(0.0f,1.0f,1.0f);
+			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+				"Tracker sensor:%d, freq: %.2lf Hz", td->getSensor(), 1.0/td->getTrackerTime());
 			textVerticalPos -= lineSpace;
 			
 			glColor3f(1.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 				"Pos x=%.3lf y=%.3lf z=%.3lf",
 				td->getPosition().x,
 				td->getPosition().y,
@@ -81,7 +110,7 @@ void myDrawFun()
 			textVerticalPos -= lineSpace;
 
 			glColor3f(1.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 				"Rot rx=%.3lf ry=%.3lf rz=%.3lf",
 				td->getEulerAngles().x,
 				td->getEulerAngles().y,
@@ -105,7 +134,8 @@ void myDrawFun()
 		if( td->hasAnalogs() )
 		{
 			glColor3f(0.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos, "Analog axes");
+			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+				"Analog axes, freq: %.2lf Hz", 1.0/td->getAnalogTime());
 			textVerticalPos -= lineSpace;
 
 			glColor3f(1.0f,1.0f,1.0f);
@@ -116,12 +146,37 @@ void myDrawFun()
 				textVerticalPos -= lineSpace;
 			}
 		}
+
+		//add extra line after each device
+		textVerticalPos -= lineSpace;
 	}
+}
+
+void drawAxes(float size)
+{
+	glLineWidth(2.0);
+	glBegin(GL_LINES);
+	
+	//x-axis
+	glColor3f(1.0f,0.0f,0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(size, 0.0f, 0.0f);
+
+	//y-axis
+	glColor3f(0.0f,1.0f,0.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, size, 0.0f);
+
+	//z-axis
+	glColor3f(0.0f,0.0f,1.0f);
+	glVertex3f(0.0f, 0.0f, 0.0f);
+	glVertex3f(0.0f, 0.0f, size);
+
+	glEnd();
 }
 
 void drawWireCube(float size)
 {
-	//draw a cube
 	//bottom
 	glBegin(GL_LINE_STRIP);
 	glVertex3f( -size, -size, -size);

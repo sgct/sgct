@@ -556,7 +556,7 @@ void sgct::Engine::render()
 			resizeFBOs();
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		User * usrPtr = ClusterManager::Instance()->getUserPtr();
+		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//if any stereo type (except passive) then set frustum mode to left eye
 		mActiveFrustum = tmpNode->stereo != static_cast<int>(ReadConfig::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
@@ -1313,7 +1313,7 @@ void sgct::Engine::calculateFrustums()
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		if( !tmpNode->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 		{
-			User * usrPtr = ClusterManager::Instance()->getUserPtr();
+			SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 			tmpNode->getViewport(i)->calculateFrustum(
 				Frustum::Mono,
 				usrPtr->getPosPtr(),

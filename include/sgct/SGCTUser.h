@@ -25,54 +25,54 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-#include "../include/sgct/ClusterManager.h"
-#include <glm/gtx/euler_angles.hpp>
+#ifndef _SGCT_USER_H_
+#define _SGCT_USER_H_
 
-core_sgct::ClusterManager * core_sgct::ClusterManager::mInstance = NULL;
+#include <glm/glm.hpp>
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+#include "Frustum.h"
 
-core_sgct::ClusterManager::ClusterManager(void)
+namespace core_sgct
 {
-	masterIndex = -1;
-	mThisNodeId = -1;
-	validCluster = false;
-	mUser = new SGCTUser();
-	mTrackingManager = new SGCTTrackingManager();
-	mSceneTrans = glm::mat4(1.0f);
-	mMeshImpl = DISPLAY_LIST; //default
-}
 
-core_sgct::ClusterManager::~ClusterManager()
+/*!
+Helper class for setting user variables
+*/
+class SGCTUser
 {
-	nodes.clear();
-	
-	delete mUser;
-	mUser = NULL;
+public:
+	SGCTUser();
 
-	delete mTrackingManager;
-	mTrackingManager = NULL;
-}
+	void setPos(float x, float y, float z);
+	void setPos(glm::vec3 pos);
+	void setPos(glm::dvec4 pos);
+	void setPos(double * pos);
 
-void core_sgct::ClusterManager::addNode(core_sgct::SGCTNode node)
-{
-	nodes.push_back(node);
-}
+	void setTransform(const glm::mat4 & transform);
+	void setTransform(const glm::dmat4 & transform);
+	void setEyeSeparation(float eyeSeparation);
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getNodePtr(unsigned int index)
-{
-	return &nodes[index];
-}
+	const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::Mono);
+	glm::vec3 * getPosPtr() { return &mPos[Frustum::Mono]; }
+	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getThisNodePtr()
-{
-	return mThisNodeId < 0 ? NULL : &nodes[mThisNodeId];
-}
+	inline const float & getEyeSeparation() { return mEyeSeparation; }
+	inline const float & getXPos() { return mPos[Frustum::Mono].x; }
+	inline const float & getYPos() { return mPos[Frustum::Mono].y; }
+	inline const float & getZPos() { return mPos[Frustum::Mono].z; }
 
-void core_sgct::ClusterManager::updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset)
-{
-	mSceneTrans =
-		glm::yawPitchRoll(
-			yaw,
-			pitch,
-			roll)
-        * glm::translate( glm::mat4(1.0f), offset);
-}
+private:
+	void updateEyeSeparation();
+	void updateEyeTransform();
+
+private:
+	glm::vec3 mPos[3];
+	glm::mat4 mTransform;
+
+	float mEyeSeparation;
+};
+
+} // core_sgct
+
+#endif

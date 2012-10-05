@@ -29,7 +29,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define _CLUSTER_MANAGER
 
 #include "SGCTNode.h"
-#include "User.h"
+#include "SGCTUser.h"
 #include "SGCTTrackingManager.h"
 #include <string>
 
@@ -66,7 +66,7 @@ public:
 	unsigned int getNumberOfNodes() const { return nodes.size(); }
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
-	User * getUserPtr() { return mUser; }
+	SGCTUser * getUserPtr() { return mUser; }
 
 	const glm::mat4 & getSceneTrans() { return mSceneTrans; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
@@ -102,7 +102,7 @@ private:
 	std::string masterIp;
 	std::string mExternalControlPort;
 
-	User				* mUser;
+	SGCTUser			* mUser;
 	SGCTTrackingManager * mTrackingManager;
 
 	glm::mat4 mSceneTrans;

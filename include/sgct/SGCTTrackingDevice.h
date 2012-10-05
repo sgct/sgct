@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -41,34 +41,44 @@ namespace core_sgct
 class SGCTTrackingDevice
 {
 public:
+	enum DataLoc { CURRENT = 0, PREVIOUS };
+
 	SGCTTrackingDevice(size_t index, const char * name);
 	~SGCTTrackingDevice();
-	
+
 	void setEnabled(bool state);
+	void setSensor(int sensor);
 	void setPositionalDevicePresent(bool state);
 	void setNumberOfButtons(size_t numOfButtons);
 	void setNumberOfAxes(size_t numOfAxes);
-	void setPosition(const glm::dvec4 &pos);
-	void setRotation(const double &w, const double &x, const double &y, const double &z);
+	void setSensorTransform( glm::dmat4 mat );
 	void setButtonVal(const bool val, size_t index);
 	void setAnalogVal(const double &val, size_t index);
+	void setOrientation(double xRot, double yRot, double zRot);
+	void setOffset(double x, double y, double z);
 
-	inline const std::string & getName() { return mName; } 
+	inline const std::string & getName() { return mName; }
 	inline size_t getNumberOfButtons() { return mNumberOfButtons; }
 	inline size_t getNumberOfAxes() { return mNumberOfAxes; }
-	bool getButton(size_t index);
-	double getAnalog(size_t index);
-	inline bool isEnabled() { return mEnabled; }
+	bool getButton(size_t index, DataLoc i = CURRENT);
+	double getAnalog(size_t index, DataLoc i = CURRENT);
+	bool isEnabled();
 	inline bool hasTracker() { return mIsPositionalDevice; }
 	inline bool hasButtons() { return mNumberOfButtons > 0; }
 	inline bool hasAnalogs() { return mNumberOfAxes > 0; }
-	glm::dvec4 getPosition();
-	glm::dmat4 getRotationMat();
-	glm::dvec3 getEulerAngles();
-	glm::dmat4 getTransformMat();
+	int getSensor();
+
+	glm::dvec3 getPosition(DataLoc i = CURRENT);
+	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
+	glm::dmat4 getTransformMat(DataLoc i = CURRENT);
 
 	void setTrackerTime();
 	double getTrackerTime();
+	void setAnalogTime();
+	double getAnalogTime();
+
+private:
+	void calculateTransform();
 
 private:
 	bool mEnabled;
@@ -77,14 +87,17 @@ private:
 	size_t mIndex;
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
+	int mSensor;
 
 	GLFWmutex mTrackingMutex;
 
-	glm::dvec4 mTrackedPos;
-	glm::dmat4 mRotationMat;
-	glm::dquat mRotation;
-	double mTrackerTime;
-	double mLastTime;
+	glm::dmat4 mPostTransform;
+	glm::dmat4 mWorldTransform[2];
+	glm::dmat4 mOrientation;
+	glm::dvec3 mOffset;
+
+	double mTrackerTime[2];
+	double mAnalogTime[2];
 	bool * mButtons;
 	double * mAxes;
 };

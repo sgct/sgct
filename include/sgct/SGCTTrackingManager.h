@@ -28,7 +28,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_TRACKING_MANAGER_H_
 #define _SGCT_TRACKING_MANAGER_H_
 
+/*#include "../include/vrpn/vrpn_Tracker.h"
+#include "../include/vrpn/vrpn_Button.h"
+#include "../include/vrpn/vrpn_Analog.h"*/
+
 #include <vector>
+#include <set>
 #include "SGCTTrackingDevice.h"
 
 namespace core_sgct
@@ -44,7 +49,7 @@ public:
 	void updateTrackingDevices();
 	void setEnabled(bool state);
 	void addDevice(const char * name);
-	void addTrackerToDevice(const char * address);
+	void addTrackerToDevice(const char * address, int sensor);
 	void addButtonsToDevice(const char * address, size_t numOfButtons);
 	void addAnalogsToDevice(const char * address, size_t numOfAxes);	
 
@@ -55,13 +60,16 @@ public:
 	inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
 	inline int getHeadSensorIndex() { return mHeadSensorIndex; }
 	inline glm::dmat4 getTransform() { return mXform; }
-	inline glm::dmat4 getOrientation() { return mOrientation; }
+	inline const glm::dvec4 & getQuatTransform() { return mQuatTransform; }
 	
 	SGCTTrackingDevice * getTrackingPtr(size_t index);
 	SGCTTrackingDevice * getTrackingPtr(const char * name);
+	SGCTTrackingDevice * getTrackingPtrBySensor(int sensor);
 
 	void setSamplingTime(double t);
 	double getSamplingTime();
+
+	bool isRunning();
 
 private:
 	void calculateTransform();
@@ -72,12 +80,12 @@ private:
 	glm::dmat4 mXform;
 	glm::dmat4 mOrientation;
 	glm::dvec3 mOffset;
+	glm::dvec4 mQuatTransform;
+	std::set< std::string > mAddresses;
 	double mSamplingTime;
+	bool mRunning;
 
 	int	mHeadSensorIndex;
-	double mXrot;
-	double mYrot;
-	double mZrot;
 };
 
 }

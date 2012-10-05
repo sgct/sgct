@@ -1,7 +1,7 @@
 /*************************************************************************
 Copyright (c) 2012 Miroslav Andel, Linköping University.
 All rights reserved.
- 
+
 Original Authors:
 Miroslav Andel, Alexander Fridlund
 
@@ -10,7 +10,7 @@ For any questions or information about the SGCT project please contact: miroslav
 This work is licensed under the Creative Commons Attribution-ShareAlike 3.0 Unported License.
 To view a copy of this license, visit http://creativecommons.org/licenses/by-sa/3.0/ or send a letter to
 Creative Commons, 444 Castro Street, Suite 900, Mountain View, California, 94041, USA.
- 
+
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS
 "AS IS" AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT
 LIMITED TO, THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS
@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/vrpn/vrpn_Tracker.h"
 #include "../include/vrpn/vrpn_Button.h"
 #include "../include/vrpn/vrpn_Analog.h"
+
 #include <GL/glfw.h>
 #include "../include/sgct/SGCTTrackingManager.h"
 #include "../include/sgct/ClusterManager.h"
@@ -55,7 +56,9 @@ core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 	mSamplingThreadId = -1;
 	mXform = glm::mat4(1.0);
 	mOffset = glm::vec3(0.0);
+	mQuatTransform = glm::dvec4(1.0);
 	mSamplingTime = 0.0;
+	mRunning = true;
 
 	mTimingMutex = sgct::Engine::createMutex();
 	if( mTimingMutex == NULL )
@@ -64,22 +67,33 @@ core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 	}
 }
 
+bool core_sgct::SGCTTrackingManager::isRunning()
+{
+	bool tmpVal;
+
+	sgct::Engine::lockMutex( mTimingMutex );
+		tmpVal = mRunning;
+	sgct::Engine::unlockMutex( mTimingMutex );
+
+	return tmpVal;
+}
+
 core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
+	sgct::MessageHandler::Instance()->print("Disconnecting VRPN...");
+
+	sgct::Engine::lockMutex( mTimingMutex );
+		mRunning = false;
+	sgct::Engine::unlockMutex( mTimingMutex );
+
 	//destroy thread
 	if( mSamplingThreadId != -1 )
 	{
-		glfwDestroyThread(mSamplingThreadId);
+		glfwWaitThread(mSamplingThreadId, GLFW_WAIT);
+		//glfwDestroyThread(mSamplingThreadId);
 		mSamplingThreadId = -1;
 	}
 
-	//destroy mutex
-	if( mTimingMutex != NULL )
-	{
-		sgct::Engine::destroyMutex(mTimingMutex);
-		mTimingMutex = NULL;
-	}
-	
 	//delete all instances
 	for(size_t i=0; i<mTrackingDevices.size(); i++)
 	{
@@ -100,7 +114,7 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 			delete mButtonDevices[i];
 			mButtonDevices[i] = NULL;
 		}
-		
+
 		if( mTrackingDevices[i] != NULL )
 		{
 			delete mTrackingDevices[i];
@@ -112,6 +126,15 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	mAnalogDevices.clear();
 	mButtonDevices.clear();
 	mTrackingDevices.clear();
+
+	//destroy mutex
+	if( mTimingMutex != NULL )
+	{
+		sgct::Engine::destroyMutex(mTimingMutex);
+		mTimingMutex = NULL;
+	}
+
+	sgct::MessageHandler::Instance()->print(" done.\n");
 }
 
 void core_sgct::SGCTTrackingManager::startSampling()
@@ -126,18 +149,19 @@ void core_sgct::SGCTTrackingManager::startSampling()
 	}
 }
 
+/*
+	Update the user position if headtracking is used. This function is called from the engine.
+*/
 void core_sgct::SGCTTrackingManager::updateTrackingDevices()
 {
 	for(size_t i=0; i<mTrackingDevices.size(); i++)
 	{
-		if( mTrackingDevices[i]->isEnabled() && mHeadSensorIndex == i)
+		if( mTrackingDevices[i]->isEnabled() && mHeadSensorIndex == static_cast<int>(i) )
 		{
 			core_sgct::ClusterManager * cm = core_sgct::ClusterManager::Instance();
 
 			//set head rot & pos
-			cm->getUserPtr()->setOrientationAndPosition( 
-				glm::dmat3( mTrackingDevices[i]->getRotationMat() ),
-				glm::vec3(mTrackingDevices[i]->getPosition()) );
+			cm->getUserPtr()->setTransform( mTrackingDevices[i]->getTransformMat() );
 		}
 	}
 }
@@ -147,8 +171,9 @@ void GLFWCALL samplingLoop(void *arg)
 	core_sgct::SGCTTrackingManager * tmPtr = (core_sgct::SGCTTrackingManager *)arg;
 
 	double t;
+	bool running = true;
 
-	while(true)
+	while(running)
 	{
 		t = sgct::Engine::getTime();
 		for(size_t i=0; i<tmPtr->getNumberOfDevices(); i++)
@@ -166,7 +191,12 @@ void GLFWCALL samplingLoop(void *arg)
 			}
 		}
 
+		running = tmPtr->isRunning();
+
 		tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
+
+		// Sleep for 1ms so we don't eat the CPU
+		vrpn_SleepMsecs(1);
 	}
 }
 
@@ -198,7 +228,7 @@ void core_sgct::SGCTTrackingManager::setEnabled(bool state)
 void core_sgct::SGCTTrackingManager::addDevice(const char * name)
 {
 	SGCTTrackingDevice * td = new SGCTTrackingDevice( mTrackingDevices.size(), name );
-	
+
 	mTrackers.push_back( NULL );
 	mAnalogDevices.push_back( NULL );
 	mButtonDevices.push_back( NULL );
@@ -207,25 +237,38 @@ void core_sgct::SGCTTrackingManager::addDevice(const char * name)
 	sgct::MessageHandler::Instance()->print("Tracking: Adding device '%s'...\n", name);
 }
 
-void core_sgct::SGCTTrackingManager::addTrackerToDevice(const char * address)
+void core_sgct::SGCTTrackingManager::addTrackerToDevice(const char * address, int sensor)
 {
 	if(mTrackingDevices.empty())
 		return;
-	
+
+	std::pair<std::set<std::string>::iterator, bool> retVal =
+		mAddresses.insert( std::string(address) );
+
 	size_t index = mTrackingDevices.size() - 1;
+
+	mTrackingDevices[index]->setSensor( sensor );
 
 	if( mTrackers[index] == NULL )
 	{
-		mTrackers[index] = new vrpn_Tracker_Remote( address );
-		
-		if( mTrackers[index] != NULL )
+		if( !retVal.second )
 		{
-			mTrackers[index]->register_change_handler(mTrackingDevices[index], update_tracker_cb);
+			sgct::MessageHandler::Instance()->print("Tracking: Tracker '%s' exists already!\n", address);
 			mTrackingDevices[index]->setPositionalDevicePresent(true);
-			sgct::MessageHandler::Instance()->print("Tracking: Connecting to tracker '%s' on device %u...\n", address, index);
 		}
 		else
-			sgct::MessageHandler::Instance()->print("Tracking: Failed to connect to tracker '%s' on device %u!\n", address, index);
+		{
+			mTrackers[index] = new vrpn_Tracker_Remote( address );
+
+			if( mTrackers[index] != NULL )
+			{
+				mTrackers[index]->register_change_handler(NULL, update_tracker_cb);
+				mTrackingDevices[index]->setPositionalDevicePresent(true);
+				sgct::MessageHandler::Instance()->print("Tracking: Connecting to tracker '%s' on device %u...\n", address, index);
+			}
+			else
+				sgct::MessageHandler::Instance()->print("Tracking: Failed to connect to tracker '%s' on device %u!\n", address, index);
+		}
 	}
 }
 
@@ -233,9 +276,9 @@ void core_sgct::SGCTTrackingManager::addButtonsToDevice(const char * address, si
 {
 	if(mTrackingDevices.empty())
 		return;
-	
+
 	size_t index = mTrackingDevices.size() - 1;
-	
+
 	if( mButtonDevices[index] == NULL )
 	{
 		mButtonDevices[index] = new vrpn_Button_Remote( address );
@@ -254,9 +297,9 @@ void core_sgct::SGCTTrackingManager::addAnalogsToDevice(const char * address, si
 {
 	if(mTrackingDevices.empty())
 		return;
-	
+
 	size_t index = mTrackingDevices.size() - 1;
-	
+
 	if( mAnalogDevices[index] == NULL )
 	{
 		mAnalogDevices[index] = new vrpn_Analog_Remote( address );
@@ -279,9 +322,14 @@ void core_sgct::SGCTTrackingManager::setHeadSensorIndex(int index)
 
 void core_sgct::SGCTTrackingManager::setOrientation(double xRot, double yRot, double zRot)
 {
-	mXrot = xRot;
-	mYrot = yRot;
-	mZrot = zRot;
+	//create rotation quaternion based on x, y, z rotations
+	glm::dquat rotQuat;
+	rotQuat = glm::rotate( rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0) );
+	rotQuat = glm::rotate( rotQuat, yRot, glm::dvec3(0.0, 1.0, 0.0) );
+	rotQuat = glm::rotate( rotQuat, zRot, glm::dvec3(0.0, 0.0, 1.0) );
+
+	//create inverse rotation matrix
+	mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
 
 	calculateTransform();
 }
@@ -297,15 +345,6 @@ void core_sgct::SGCTTrackingManager::setOffset(double x, double y, double z)
 
 void core_sgct::SGCTTrackingManager::calculateTransform()
 {
-	//create rotation quaternion based on x, y, z rotations
-	glm::dquat rotQuat;
-	rotQuat = glm::rotate( rotQuat, mXrot, glm::dvec3(1.0, 0.0, 0.0) );
-	rotQuat = glm::rotate( rotQuat, mYrot, glm::dvec3(0.0, 1.0, 0.0) );
-	rotQuat = glm::rotate( rotQuat, mZrot, glm::dvec3(0.0, 0.0, 1.0) );
-	
-	//create inverse rotation matrix
-	mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
-
 	//create offset translation matrix
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), mOffset );
 	//calculate transform
@@ -329,20 +368,32 @@ core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtr(c
 	return NULL;
 }
 
+core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtrBySensor(int sensor)
+{
+	for(size_t i=0; i<mTrackingDevices.size(); i++)
+	{
+		if( mTrackingDevices[i]->getSensor() == sensor )
+			return mTrackingDevices[i];
+	}
+
+	return NULL;
+}
+
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
-	core_sgct::SGCTTrackingDevice * tdPtr =
-		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
-
 	core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
-	
-	glm::dvec4 tmpVec = glm::dvec4( info.pos[0], info.pos[1], info.pos[2], 1.0 );
+	core_sgct::SGCTTrackingDevice * tdPtr = tm->getTrackingPtrBySensor( info.sensor );
 
-	fprintf(stderr, "Sensor: %d\n", info.sensor);
+	if(tdPtr == NULL)
+		return;
 
-	tdPtr->setTrackerTime();
-	tdPtr->setPosition( tm->getTransform() * tmpVec );
-	tdPtr->setRotation( info.quat[0], info.quat[1], info.quat[2], info.quat[3] );
+	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
+	//ToDo Miro: multiply with scale factor
+	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), posVec );
+
+	glm::dmat4 rotMat = glm::mat4_cast( glm::dquat( info.quat[3], info.quat[0], info.quat[1], info.quat[2] ) );
+
+    tdPtr->setSensorTransform( transMat * rotMat );
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
@@ -350,7 +401,9 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 	core_sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
 
-	b.state == 0 ? 
+	//fprintf(stderr, "Button: %d, state: %d\n", b.button, b.state);
+
+	b.state == 0 ?
 		tdPtr->setButtonVal( false, b.button) :
 		tdPtr->setButtonVal( true, b.button);
 }
@@ -359,8 +412,10 @@ void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
 	core_sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
-	
-	int numberOfAxes = a.num_channel;
+
 	for( int i=0; i < a.num_channel; i++ )
+	{
+		//fprintf(stderr, "Analog: %d, value: %lf\n", i, a.channel[i]);
 		tdPtr->setAnalogVal(a.channel[i], i);
+	}
 }

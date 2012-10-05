@@ -5,7 +5,7 @@
 #include "vrpn_Shared.h"
 
 // Don't complain about using sprintf() in Windows.
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#ifdef _WIN32
 #pragma warning ( disable : 4995 4996 )
 #endif
 
@@ -275,8 +275,8 @@ class VRPN_API vrpn_Endpoint {
     // Visible so that vrpn_Connection can pass them to the Dispatcher
     static int VRPN_CALLBACK handle_sender_message (void * userdata, vrpn_HANDLERPARAM p);
     static int VRPN_CALLBACK handle_type_message (void * userdata, vrpn_HANDLERPARAM p);
-
-    // Routines to inform the endpoint of the connection of
+	
+    // Routines to inform the endpoint of the connection of 
     // which it is a part.
     void setConnection( vrpn_Connection* conn ) {  d_parent = conn;  }
     vrpn_Connection* getConnection( ) {  return d_parent;  }
@@ -484,8 +484,8 @@ class VRPN_API vrpn_Connection {
     virtual vrpn_bool connected (void) const;
 
     // This function returns the logfile names of this connection in
-    // the parameters.  It will allocate memory for the name of each
-    // log file in use.  If no logging of a particular type is happening,
+    // the parameters.  It will allocate memory for the name of each 
+    // log file in use.  If no logging of a particular type is happening, 
     // then *(X_Y_logname) will be set to NULL.
     // IMPORTANT:  code calling this function is responsible for freeing
     // the memory allocated for these strings.
@@ -650,14 +650,14 @@ class VRPN_API vrpn_Connection {
     //
     // Specify whether this connection should be deleted automatically when
     //  it is no longer need (reference count reaches zero).
-    // For connections created by the VRPN code (as is done in
+    // For connections created by the VRPN code (as is done in 
     //  get_connection_by_name) these should be auto-deleted.
     //  Connections created by user code should not be auto-deleted;
     //  that is up to the user to decide when finished.
     // By default, the constructor sets this to FALSE.
     // VRPN code (or user code) can set this to TRUE if it wants the
     //  connection to be deleted automatically when the last service on it
-    //  is deleted
+    //  is deleted 
   public:
     void setAutoDeleteStatus(bool setvalue) { d_autoDeleteStatus=setvalue; }
   private:
@@ -906,7 +906,7 @@ VRPN_API int write_vrpn_cookie (char * buffer, int length, long remote_log_mode)
 #ifndef VRPN_USE_WINSOCK_SOCKETS
  int VRPN_API vrpn_noint_block_write (int outfile, const char buffer[], int length);
  int VRPN_API vrpn_noint_block_read(int infile, char buffer[], int length);
- int VRPN_API vrpn_noint_select(int width, fd_set *readfds, fd_set *writefds,
+ int VRPN_API vrpn_noint_select(int width, fd_set *readfds, fd_set *writefds, 
 		     fd_set *exceptfds, struct timeval * timeout);
 #else /* winsock sockets */
  int VRPN_API vrpn_noint_block_write(SOCKET outsock, char *buffer, int length);

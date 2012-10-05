@@ -74,6 +74,7 @@
 #include <sys/time.h>    // for timeval, timezone, gettimeofday
 #define vrpn_gettimeofday gettimeofday
 #else  // winsock sockets
+
   #include <windows.h>
 #ifndef _WIN32_WCE
   #include <sys/timeb.h>

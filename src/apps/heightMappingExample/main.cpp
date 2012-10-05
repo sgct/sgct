@@ -258,10 +258,8 @@ void keyCallback(int key, int action)
 		case 'E':
 			if(action == GLFW_PRESS)
 			{
-				glm::dquat rotQuat;
-				rotQuat = glm::rotate( rotQuat, 90.0, glm::dvec3(0.0, 0.0, 1.0) );
-				core_sgct::ClusterManager::Instance()->getUserPtr()->setOrientation( glm::mat3_cast(rotQuat) );
-				core_sgct::ClusterManager::Instance()->getUserPtr()->setPos(0.0f, 0.0f, 4.0f);
+				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
+				core_sgct::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
 			}
 			break;
 

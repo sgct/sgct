@@ -48,7 +48,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b );
 void VRPN_CALLBACK update_analog_cb(void * userdata, const vrpn_ANALOGCB a );
 
 void GLFWCALL samplingLoop(void *arg);
-GLFWmutex mTimingMutex = NULL;
+GLFWmutex mTrackingMutex = NULL;
 
 core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
@@ -60,8 +60,8 @@ core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 	mSamplingTime = 0.0;
 	mRunning = true;
 
-	mTimingMutex = sgct::Engine::createMutex();
-	if( mTimingMutex == NULL )
+	mTrackingMutex = sgct::Engine::createMutex();
+	if( mTrackingMutex == NULL )
 	{
 		sgct::MessageHandler::Instance()->print("Tracking manager: Failed to create mutex!\n");
 	}
@@ -71,9 +71,9 @@ bool core_sgct::SGCTTrackingManager::isRunning()
 {
 	bool tmpVal;
 
-	sgct::Engine::lockMutex( mTimingMutex );
+	sgct::Engine::lockMutex( mTrackingMutex );
 		tmpVal = mRunning;
-	sgct::Engine::unlockMutex( mTimingMutex );
+	sgct::Engine::unlockMutex( mTrackingMutex );
 
 	return tmpVal;
 }
@@ -82,9 +82,9 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
 	sgct::MessageHandler::Instance()->print("Disconnecting VRPN...");
 
-	sgct::Engine::lockMutex( mTimingMutex );
+	sgct::Engine::lockMutex( mTrackingMutex );
 		mRunning = false;
-	sgct::Engine::unlockMutex( mTimingMutex );
+	sgct::Engine::unlockMutex( mTrackingMutex );
 
 	//destroy thread
 	if( mSamplingThreadId != -1 )
@@ -128,10 +128,10 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	mTrackingDevices.clear();
 
 	//destroy mutex
-	if( mTimingMutex != NULL )
+	if( mTrackingMutex != NULL )
 	{
-		sgct::Engine::destroyMutex(mTimingMutex);
-		mTimingMutex = NULL;
+		sgct::Engine::destroyMutex(mTrackingMutex);
+		mTrackingMutex = NULL;
 	}
 
 	sgct::MessageHandler::Instance()->print(" done.\n");
@@ -202,17 +202,17 @@ void GLFWCALL samplingLoop(void *arg)
 
 void core_sgct::SGCTTrackingManager::setSamplingTime(double t)
 {
-	sgct::Engine::lockMutex( mTimingMutex );
+	sgct::Engine::lockMutex( mTrackingMutex );
 		mSamplingTime = t;
-	sgct::Engine::unlockMutex( mTimingMutex );
+	sgct::Engine::unlockMutex( mTrackingMutex );
 }
 
 double core_sgct::SGCTTrackingManager::getSamplingTime()
 {
 	double tmpVal;
-	sgct::Engine::lockMutex( mTimingMutex );
+	sgct::Engine::lockMutex( mTrackingMutex );
 		tmpVal = mSamplingTime;
-	sgct::Engine::unlockMutex( mTimingMutex );
+	sgct::Engine::unlockMutex( mTrackingMutex );
 
 	return tmpVal;
 }
@@ -381,6 +381,8 @@ core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtrBy
 
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
+	sgct::Engine::lockMutex(mTrackingMutex);
+
 	core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
 	core_sgct::SGCTTrackingDevice * tdPtr = tm->getTrackingPtrBySensor( info.sensor );
 
@@ -390,14 +392,17 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	//ToDo Miro: multiply with scale factor
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), posVec );
-
 	glm::dmat4 rotMat = glm::mat4_cast( glm::dquat( info.quat[3], info.quat[0], info.quat[1], info.quat[2] ) );
 
     tdPtr->setSensorTransform( transMat * rotMat );
+
+    sgct::Engine::unlockMutex(mTrackingMutex);
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 {
+	sgct::Engine::lockMutex(mTrackingMutex);
+
 	core_sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
 
@@ -406,16 +411,18 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 	b.state == 0 ?
 		tdPtr->setButtonVal( false, b.button) :
 		tdPtr->setButtonVal( true, b.button);
+
+    sgct::Engine::unlockMutex(mTrackingMutex);
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
+	sgct::Engine::lockMutex(mTrackingMutex);
+
 	core_sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<core_sgct::SGCTTrackingDevice *>(userdata);
 
-	for( int i=0; i < a.num_channel; i++ )
-	{
-		//fprintf(stderr, "Analog: %d, value: %lf\n", i, a.channel[i]);
-		tdPtr->setAnalogVal(a.channel[i], i);
-	}
+	tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
+
+	sgct::Engine::unlockMutex(mTrackingMutex);
 }

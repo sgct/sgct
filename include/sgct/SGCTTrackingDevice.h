@@ -53,7 +53,7 @@ public:
 	void setNumberOfAxes(size_t numOfAxes);
 	void setSensorTransform( glm::dmat4 mat );
 	void setButtonVal(const bool val, size_t index);
-	void setAnalogVal(const double &val, size_t index);
+	void setAnalogVal(const double * array, size_t size);
 	void setOrientation(double xRot, double yRot, double zRot);
 	void setOffset(double x, double y, double z);
 
@@ -72,13 +72,13 @@ public:
 	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
 	glm::dmat4 getTransformMat(DataLoc i = CURRENT);
 
-	void setTrackerTime();
 	double getTrackerTime();
-	void setAnalogTime();
 	double getAnalogTime();
 
 private:
 	void calculateTransform();
+	void setTrackerTime();
+	void setAnalogTime();
 
 private:
 	bool mEnabled;
@@ -88,8 +88,6 @@ private:
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
 	int mSensor;
-
-	GLFWmutex mTrackingMutex;
 
 	glm::dmat4 mPostTransform;
 	glm::dmat4 mWorldTransform[2];

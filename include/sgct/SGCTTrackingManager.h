@@ -28,10 +28,6 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_TRACKING_MANAGER_H_
 #define _SGCT_TRACKING_MANAGER_H_
 
-/*#include "../include/vrpn/vrpn_Tracker.h"
-#include "../include/vrpn/vrpn_Button.h"
-#include "../include/vrpn/vrpn_Analog.h"*/
-
 #include <vector>
 #include <set>
 #include "SGCTTrackingDevice.h"

@@ -11,7 +11,7 @@ void drawWireCube(float size);
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
-	
+
 	gEngine->setInitOGLFunction( myInitOGLFun );
 
 	if( !gEngine->init() )
@@ -49,8 +49,8 @@ void myDrawFun()
 			drawWireCube(0.04f);
 			glPopMatrix();
 		}
-	
-	size_t numberOfTrackedDevices = 
+
+	size_t numberOfTrackedDevices =
 		sgct::Engine::getTrackingManager()->getNumberOfDevices();
 
 	core_sgct::SGCTTrackingDevice * td;
@@ -75,32 +75,32 @@ void myDrawFun()
 			if( static_cast<size_t>(sgct::Engine::getTrackingManager()->getHeadSensorIndex()) != i )
 			{
 				glLineWidth(2.0);
-				
+
 				glPushMatrix();
 
 				//get transform from tracker
 				glLoadMatrixd( glm::value_ptr(td->getTransformMat()) );
-				
+
 				glColor3f(0.5f,0.5f,0.5f);
 				drawWireCube(0.1f);
-				
+
 				drawAxes(0.1f);
-				
+
 				//draw ray
 				glBegin(GL_LINES);
 				glColor3f(1.0f,1.0f,0.0f);
 				glVertex3f(0.0f, 0.0f, 0.0f);
 				glVertex3f(0.0f, 0.0f, -5.0f);
 				glEnd();
-				
+
 				glPopMatrix();
 			}
 
 			glColor3f(0.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Tracker sensor:%d, freq: %.2lf Hz", td->getSensor(), 1.0/td->getTrackerTime());
+				"Tracker sensor:%d, freq: %.1f Hz", td->getSensor(), 1.0/td->getTrackerTime());
 			textVerticalPos -= lineSpace;
-			
+
 			glColor3f(1.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 				"Pos x=%.3lf y=%.3lf z=%.3lf",
@@ -135,14 +135,14 @@ void myDrawFun()
 		{
 			glColor3f(0.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Analog axes, freq: %.2lf Hz", 1.0/td->getAnalogTime());
+				"Analog axes, freq: %.1f Hz", 1.0/td->getAnalogTime());
 			textVerticalPos -= lineSpace;
 
 			glColor3f(1.0f,1.0f,1.0f);
 			for(size_t j=0; j < td->getNumberOfAxes(); j++)
 			{
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Axis %u: %lf", j, td->getAnalog(j));
+				"Axis %u: %g", j, td->getAnalog(j));
 				textVerticalPos -= lineSpace;
 			}
 		}
@@ -156,7 +156,7 @@ void drawAxes(float size)
 {
 	glLineWidth(2.0);
 	glBegin(GL_LINES);
-	
+
 	//x-axis
 	glColor3f(1.0f,0.0f,0.0f);
 	glVertex3f(0.0f, 0.0f, 0.0f);

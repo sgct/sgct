@@ -33,6 +33,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/SGCTTrackingDevice.h"
 #include "../include/sgct/Engine.h"
 
+extern GLFWmutex mTrackingMutex;
+
 core_sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, const char * name)
 {
 	mEnabled = true;
@@ -53,26 +55,11 @@ core_sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, const char * nam
 	mAnalogTime[0] = 0.0;
 	mAnalogTime[1] = 0.0;
 	mSensor = -1;
-
-	mTrackingMutex = NULL;
-	mTrackingMutex = sgct::Engine::createMutex();
-	if( mTrackingMutex == NULL )
-	{
-		sgct::MessageHandler::Instance()->print("Tracking: Failed to create mutex!\n");
-		mEnabled = false;
-	}
 }
 
 core_sgct::SGCTTrackingDevice::~SGCTTrackingDevice()
 {
 	mEnabled = false;
-
-	//destroy mutex
-	if( mTrackingMutex != NULL )
-	{
-		sgct::Engine::destroyMutex(mTrackingMutex);
-		mTrackingMutex = NULL;
-	}
 
 	if( mButtons != NULL )
 	{
@@ -132,16 +119,14 @@ void core_sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 
 void core_sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
-	sgct::Engine::lockMutex(mTrackingMutex);
-        const glm::dmat4 & preTransform =
-            ClusterManager::Instance()->getTrackingManagerPtr()->getTransform();
+	const glm::dmat4 & preTransform =
+        ClusterManager::Instance()->getTrackingManagerPtr()->getTransform();
 
-		//swap
-		mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
-		mWorldTransform[CURRENT] = (preTransform * mat) * mPostTransform;
+    //swap
+    mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
+    mWorldTransform[CURRENT] = (preTransform * mat) * mPostTransform;
 
-		setTrackerTime();
-	sgct::Engine::unlockMutex(mTrackingMutex);
+    setTrackerTime();
 }
 
 void core_sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
@@ -156,17 +141,16 @@ void core_sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
 	}
 }
 
-void core_sgct::SGCTTrackingDevice::setAnalogVal(const double &val, size_t index)
+void core_sgct::SGCTTrackingDevice::setAnalogVal(const double * array, size_t size)
 {
-	if( index < mNumberOfAxes )
-	{
-		sgct::Engine::lockMutex(mTrackingMutex);
-			mAxes[index + mNumberOfAxes] = mAxes[index];
-			mAxes[index] = val;
+	for( size_t i=0; i < size; i++ )
+        if( i < mNumberOfAxes )
+        {
+            mAxes[i + mNumberOfAxes] = mAxes[i];
+            mAxes[i] = array[i];
+        }
 
-			setAnalogTime();
-		sgct::Engine::unlockMutex(mTrackingMutex);
-	}
+    setAnalogTime();
 }
 
 void core_sgct::SGCTTrackingDevice::setOrientation(double xRot, double yRot, double zRot)

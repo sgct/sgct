@@ -25,15 +25,16 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
+#include <GL/glfw.h>
+#include "../include/sgct/Engine.h"
+
 #include "../include/vrpn/vrpn_Tracker.h"
 #include "../include/vrpn/vrpn_Button.h"
 #include "../include/vrpn/vrpn_Analog.h"
 
-#include <GL/glfw.h>
 #include "../include/sgct/SGCTTrackingManager.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

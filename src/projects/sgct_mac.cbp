@@ -74,7 +74,9 @@
 		<Unit filename="../../include/sgct/SGCTInternalShaders.h" />
 		<Unit filename="../../include/sgct/SGCTNetwork.h" />
 		<Unit filename="../../include/sgct/SGCTNode.h" />
-		<Unit filename="../../include/sgct/SGCTTracking.h" />
+		<Unit filename="../../include/sgct/SGCTTrackingDevice.h" />
+		<Unit filename="../../include/sgct/SGCTTrackingManager.h" />
+		<Unit filename="../../include/sgct/SGCTUser.h" />
 		<Unit filename="../../include/sgct/SGCTWindow.h" />
 		<Unit filename="../../include/sgct/Shader.h" />
 		<Unit filename="../../include/sgct/ShaderManager.h" />
@@ -82,7 +84,6 @@
 		<Unit filename="../../include/sgct/SharedData.h" />
 		<Unit filename="../../include/sgct/Statistics.h" />
 		<Unit filename="../../include/sgct/TextureManager.h" />
-		<Unit filename="../../include/sgct/User.h" />
 		<Unit filename="../../include/sgct/Viewport.h" />
 		<Unit filename="../../include/sgct/freetype.h" />
 		<Unit filename="../../include/sgct/ogl_headers.h" />
@@ -97,7 +98,9 @@
 		<Unit filename="../sgct/ReadConfig.cpp" />
 		<Unit filename="../sgct/SGCTNetwork.cpp" />
 		<Unit filename="../sgct/SGCTNode.cpp" />
-		<Unit filename="../sgct/SGCTTracking.cpp" />
+		<Unit filename="../sgct/SGCTTrackingDevice.cpp" />
+		<Unit filename="../sgct/SGCTTrackingManager.cpp" />
+		<Unit filename="../sgct/SGCTUser.cpp" />
 		<Unit filename="../sgct/SGCTWindow.cpp" />
 		<Unit filename="../sgct/Shader.cpp" />
 		<Unit filename="../sgct/ShaderManager.cpp" />

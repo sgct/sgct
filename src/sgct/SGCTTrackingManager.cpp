@@ -71,7 +71,9 @@ core_sgct::SGCTTrackingManager::SGCTTrackingManager()
 bool core_sgct::SGCTTrackingManager::isRunning()
 {
 	bool tmpVal;
-
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Checking if tracking is running...\n");
+#endif
 	sgct::Engine::lockMutex( mTrackingMutex );
 		tmpVal = mRunning;
 	sgct::Engine::unlockMutex( mTrackingMutex );
@@ -83,6 +85,9 @@ core_sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
 	sgct::MessageHandler::Instance()->print("Disconnecting VRPN...");
 
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+            fprintf(stderr, "Destructing, setting running to false...\n");
+#endif
 	sgct::Engine::lockMutex( mTrackingMutex );
 		mRunning = false;
 	sgct::Engine::unlockMutex( mTrackingMutex );
@@ -162,7 +167,7 @@ void core_sgct::SGCTTrackingManager::updateTrackingDevices()
 			core_sgct::ClusterManager * cm = core_sgct::ClusterManager::Instance();
 
 			//set head rot & pos
-			cm->getUserPtr()->setTransform( mTrackingDevices[i]->getTransformMat() );
+            cm->getUserPtr()->setTransform( mTrackingDevices[i]->getTransformMat() );
 		}
 	}
 }
@@ -203,6 +208,9 @@ void GLFWCALL samplingLoop(void *arg)
 
 void core_sgct::SGCTTrackingManager::setSamplingTime(double t)
 {
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Set sampling time for vrpn loop...\n");
+#endif
 	sgct::Engine::lockMutex( mTrackingMutex );
 		mSamplingTime = t;
 	sgct::Engine::unlockMutex( mTrackingMutex );
@@ -210,6 +218,9 @@ void core_sgct::SGCTTrackingManager::setSamplingTime(double t)
 
 double core_sgct::SGCTTrackingManager::getSamplingTime()
 {
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Get sampling time for vrpn loop...\n");
+#endif
 	double tmpVal;
 	sgct::Engine::lockMutex( mTrackingMutex );
 		tmpVal = mSamplingTime;
@@ -382,10 +393,13 @@ core_sgct::SGCTTrackingDevice * core_sgct::SGCTTrackingManager::getTrackingPtrBy
 
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
-	sgct::Engine::lockMutex(mTrackingMutex);
-
-	core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
+    core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
 	core_sgct::SGCTTrackingDevice * tdPtr = tm->getTrackingPtrBySensor( info.sensor );
+
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Updating tracker...\n");
+#endif
+	sgct::Engine::lockMutex(mTrackingMutex);
 
 	if(tdPtr == NULL)
 		return;
@@ -402,6 +416,9 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 {
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Update button value...\n");
+#endif
 	sgct::Engine::lockMutex(mTrackingMutex);
 
 	core_sgct::SGCTTrackingDevice * tdPtr =
@@ -418,6 +435,9 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Update analog values...\n");
+#endif
 	sgct::Engine::lockMutex(mTrackingMutex);
 
 	core_sgct::SGCTTrackingDevice * tdPtr =

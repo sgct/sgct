@@ -207,7 +207,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\sgct\SGCTTracking.cpp"
+				RelativePath="..\sgct\SGCTTrackingDevice.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\sgct\SGCTTrackingManager.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\sgct\SGCTUser.cpp"
 				>
 			</File>
 			<File
@@ -313,7 +321,15 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\sgct\SGCTTracking.h"
+				RelativePath="..\..\include\sgct\SGCTTrackingDevice.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\SGCTTrackingManager.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\SGCTUser.h"
 				>
 			</File>
 			<File
@@ -342,10 +358,6 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sgct\TextureManager.h"
-				>
-			</File>
-			<File
-				RelativePath="..\..\include\sgct\User.h"
 				>
 			</File>
 			<File

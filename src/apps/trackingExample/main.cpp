@@ -104,7 +104,7 @@ void myDrawFun()
 
 			glColor3f(1.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Pos x=%g y=%g z=%g",
+				"Pos x=%.3g y=%.3g z=%.3g",
 				td->getPosition().x,
 				td->getPosition().y,
 				td->getPosition().z);
@@ -112,7 +112,7 @@ void myDrawFun()
 
 			glColor3f(1.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Rot rx=%g ry=%g rz=%g",
+				"Rot rx=%.3g ry=%.3g rz=%.3g",
 				td->getEulerAngles().x,
 				td->getEulerAngles().y,
 				td->getEulerAngles().z);
@@ -144,7 +144,7 @@ void myDrawFun()
 			for(size_t j=0; j < td->getNumberOfAxes(); j++)
 			{
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Axis %u: %g", j, td->getAnalog(j));
+				"Axis %u: %.3g", j, td->getAnalog(j));
 				textVerticalPos -= lineSpace;
 			}
 		}

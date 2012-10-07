@@ -2,7 +2,7 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 
-!define SGCT_VERSION "0.9.2"
+!define SGCT_VERSION "0.9.4"
 
 ; The name of the installer
 Name "SGCT ${SGCT_VERSION} MinGW x86 installer"

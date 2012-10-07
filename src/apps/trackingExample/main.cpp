@@ -96,14 +96,15 @@ void myDrawFun()
 				glPopMatrix();
 			}
 
+            double trackerTime = td->getTrackerTime();
 			glColor3f(0.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Tracker sensor:%d, freq: %.1f Hz", td->getSensor(), 1.0/td->getTrackerTime());
+				"Tracker sensor:%d, freq: %.1f Hz", td->getSensor(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
 			textVerticalPos -= lineSpace;
 
 			glColor3f(1.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Pos x=%.3lf y=%.3lf z=%.3lf",
+				"Pos x=%g y=%g z=%g",
 				td->getPosition().x,
 				td->getPosition().y,
 				td->getPosition().z);
@@ -111,7 +112,7 @@ void myDrawFun()
 
 			glColor3f(1.0f,1.0f,1.0f);
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Rot rx=%.3lf ry=%.3lf rz=%.3lf",
+				"Rot rx=%g ry=%g rz=%g",
 				td->getEulerAngles().x,
 				td->getEulerAngles().y,
 				td->getEulerAngles().z);
@@ -134,8 +135,9 @@ void myDrawFun()
 		if( td->hasAnalogs() )
 		{
 			glColor3f(0.0f,1.0f,1.0f);
+			double analogTime = td->getAnalogTime();
 			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Analog axes, freq: %.1f Hz", 1.0/td->getAnalogTime());
+				"Analog axes, freq: %.1f Hz", analogTime <= 0.0 ? 0.0 : 1.0/analogTime);
 			textVerticalPos -= lineSpace;
 
 			glColor3f(1.0f,1.0f,1.0f);

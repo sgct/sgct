@@ -3,30 +3,44 @@
 sgct::Engine * gEngine;
 
 void myInitOGLFun();
+void myPreSyncFun();
 void myDrawFun();
 
 void drawAxes(float size);
 void drawWireCube(float size);
 
+unsigned int numberOfTrackedDevices;
+
+//store each device's transform 4x4 matrix
+glm::dmat4 * trackedTransforms = NULL;
+
+//pointer to a device
+core_sgct::SGCTTrackingDevice * td = NULL;
+
 int main( int argc, char* argv[] )
 {
+	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
+	// Bind your functions
 	gEngine->setInitOGLFunction( myInitOGLFun );
+	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setDrawFunction( myDrawFun );
 
+	// Init the engine
 	if( !gEngine->init() )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
 
-	gEngine->setDrawFunction( myDrawFun );
-
 	// Main loop
 	gEngine->render();
 
 	// Clean up
 	delete gEngine;
+	delete [] trackedTransforms;
+	trackedTransforms = NULL;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -35,8 +49,32 @@ int main( int argc, char* argv[] )
 void myInitOGLFun()
 {
 	glEnable(GL_DEPTH_TEST);
+
+	numberOfTrackedDevices =
+		sgct::Engine::getTrackingManager()->getNumberOfDevices();
+
+	//allocate the array
+	trackedTransforms = new glm::dmat4[ numberOfTrackedDevices ];
 }
 
+/*
+	This callback is called once per render loop iteration.
+*/
+void myPreSyncFun()
+{
+	//store the transforms
+	for(size_t i = 0; i < numberOfTrackedDevices; i++)
+	{
+		td = sgct::Engine::getTrackingManager()->getTrackingPtr( i );
+		if( td->hasTracker() )
+			trackedTransforms[ i ] = td->getTransformMat();
+	}	
+}
+
+/*
+	This callback can be called several times per render loop iteration.
+	Using a single viewport in stereo (3D) usually results in refresh rate of 120 Hz.
+*/
 void myDrawFun()
 {
 	//draw some cubes in space
@@ -49,11 +87,6 @@ void myDrawFun()
 			drawWireCube(0.04f);
 			glPopMatrix();
 		}
-
-	size_t numberOfTrackedDevices =
-		sgct::Engine::getTrackingManager()->getNumberOfDevices();
-
-	core_sgct::SGCTTrackingDevice * td;
 
 	float textVerticalPos = static_cast<float>(sgct::Engine::getWindowPtr()->getVResolution()) - 100.0f;
 	float lineSpace = 14.0f;
@@ -71,7 +104,7 @@ void myDrawFun()
 		//has this device a positional tracker?
 		if( td->hasTracker() )
 		{
-			//Draw cube and ray for all devices except the head
+			//Draw cube and pointer line for all devices except the head
 			if( static_cast<size_t>(sgct::Engine::getTrackingManager()->getHeadSensorIndex()) != i )
 			{
 				glLineWidth(2.0);
@@ -79,14 +112,14 @@ void myDrawFun()
 				glPushMatrix();
 
 				//get transform from tracker
-				glLoadMatrixd( glm::value_ptr(td->getTransformMat()) );
+				glLoadMatrixd( glm::value_ptr(trackedTransforms[ i ]) );
 
 				glColor3f(0.5f,0.5f,0.5f);
 				drawWireCube(0.1f);
 
 				drawAxes(0.1f);
 
-				//draw ray
+				//draw pointer line
 				glBegin(GL_LINES);
 				glColor3f(1.0f,1.0f,0.0f);
 				glVertex3f(0.0f, 0.0f, 0.0f);

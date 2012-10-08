@@ -1,0 +1,100 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="127.0.0.1">
+	<Node ip="127.0.0.1" port="20401">
+		<Window fullscreen="false" numberOfSamples="4">
+			<Stereo type="none" />
+			<Pos x="0" y="0" />
+			<!-- 16:9 aspect ratio -->
+			<Size x="960" y="540" />
+		</Window>
+		<Viewport>
+			<Pos x="0.0" y="0.0" />
+			<Size x="1.0" y="1.0" />
+			<Viewplane>
+				<!-- Lower left -->
+				<Pos x="-1.778" y="-1.0" z="0.0" />
+				<!-- Upper left -->
+				<Pos x="-1.778" y="1.0" z="0.0" />
+				<!-- Upper right -->
+				<Pos x="1.778" y="1.0" z="0.0" />
+			</Viewplane>
+		</Viewport>
+	</Node>
+	<User eyeSeparation="0.069">
+		<Pos x="0.0" y="0.0" z="1.5" />
+	</User>
+	<Tracking>
+		<Device name="Head">
+			<Tracker sensor="0" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Neck">
+			<Tracker sensor="1" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Torso">
+			<Tracker sensor="2" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Waist">
+			<Tracker sensor="3" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Collar">
+			<Tracker sensor="4" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Shoulder">
+			<Tracker sensor="5" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Elbow">
+			<Tracker sensor="6" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Wrist">
+			<Tracker sensor="7" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Hand">
+			<Tracker sensor="8" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Fingertip">
+			<Tracker sensor="9" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Collar">
+			<Tracker sensor="10" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Shoulder">
+			<Tracker sensor="11" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Elbow">
+			<Tracker sensor="12" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Wrist">
+			<Tracker sensor="13" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Hand">
+			<Tracker sensor="14" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Fingertip">
+			<Tracker sensor="15" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Hip">
+			<Tracker sensor="16" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Knee">
+			<Tracker sensor="17" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Ankle">
+			<Tracker sensor="18" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Left Foot">
+			<Tracker sensor="19" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Hip">
+			<Tracker sensor="20" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Knee">
+			<Tracker sensor="21" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Ankle">
+			<Tracker sensor="22" vrpnAddress="Tracker0@localhost" />
+		</Device>
+		<Device name="Right Foot">
+			<Tracker sensor="23" vrpnAddress="Tracker0@localhost" />
+		</Device>
+	</Tracking>
+</Cluster>

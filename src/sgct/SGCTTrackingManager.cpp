@@ -396,13 +396,13 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
     core_sgct::SGCTTrackingManager * tm = core_sgct::ClusterManager::Instance()->getTrackingManagerPtr();
 	core_sgct::SGCTTrackingDevice * tdPtr = tm->getTrackingPtrBySensor( info.sensor );
 
+	if(tdPtr == NULL)
+		return;
+
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Updating tracker...\n");
 #endif
 	sgct::Engine::lockMutex(mTrackingMutex);
-
-	if(tdPtr == NULL)
-		return;
 
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	//ToDo Miro: multiply with scale factor

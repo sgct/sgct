@@ -8,7 +8,7 @@ default_target: all
 #=============================================================================
 # Special targets provided by cmake.
 
-# Disable implicit rules so canoncical targets will work.
+# Disable implicit rules so canonical targets will work.
 .SUFFIXES:
 
 # Remove some rules from gmake that .SUFFIXES does not remove.
@@ -30,19 +30,19 @@ cmake_force:
 SHELL = /bin/sh
 
 # The CMake executable.
-CMAKE_COMMAND = /opt/local/bin/cmake
+CMAKE_COMMAND = /usr/bin/cmake
 
 # The command to remove a file.
-RM = /opt/local/bin/cmake -E remove -f
+RM = /usr/bin/cmake -E remove -f
 
 # The program to use to edit the cache.
-CMAKE_EDIT_COMMAND = /opt/local/bin/ccmake
+CMAKE_EDIT_COMMAND = /usr/bin/cmake-gui
 
 # The top-level source directory on which CMake was run.
-CMAKE_SOURCE_DIR = /Users/joelkronander/Code/VRStuff/sgct
+CMAKE_SOURCE_DIR = /home/miro/code/src/deps/zlib
 
 # The top-level build directory on which CMake was run.
-CMAKE_BINARY_DIR = /Users/joelkronander/Code/VRStuff/sgct
+CMAKE_BINARY_DIR = /home/miro/code/src/deps/zlib
 
 #=============================================================================
 # Targets provided globally by CMake.
@@ -50,58 +50,17 @@ CMAKE_BINARY_DIR = /Users/joelkronander/Code/VRStuff/sgct
 # Special rule for the target edit_cache
 edit_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake cache editor..."
-	/opt/local/bin/ccmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/bin/cmake-gui -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : edit_cache
 
 # Special rule for the target edit_cache
 edit_cache/fast: edit_cache
 .PHONY : edit_cache/fast
 
-# Special rule for the target install
-install: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/opt/local/bin/cmake -P cmake_install.cmake
-.PHONY : install
-
-# Special rule for the target install
-install/fast: preinstall/fast
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Install the project..."
-	/opt/local/bin/cmake -P cmake_install.cmake
-.PHONY : install/fast
-
-# Special rule for the target install/local
-install/local: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing only the local directory..."
-	/opt/local/bin/cmake -DCMAKE_INSTALL_LOCAL_ONLY=1 -P cmake_install.cmake
-.PHONY : install/local
-
-# Special rule for the target install/local
-install/local/fast: install/local
-.PHONY : install/local/fast
-
-# Special rule for the target install/strip
-install/strip: preinstall
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Installing the project stripped..."
-	/opt/local/bin/cmake -DCMAKE_INSTALL_DO_STRIP=1 -P cmake_install.cmake
-.PHONY : install/strip
-
-# Special rule for the target install/strip
-install/strip/fast: install/strip
-.PHONY : install/strip/fast
-
-# Special rule for the target list_install_components
-list_install_components:
-	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Available install components are: \"Unspecified\""
-.PHONY : list_install_components
-
-# Special rule for the target list_install_components
-list_install_components/fast: list_install_components
-.PHONY : list_install_components/fast
-
 # Special rule for the target rebuild_cache
 rebuild_cache:
 	@$(CMAKE_COMMAND) -E cmake_echo_color --switch=$(COLOR) --cyan "Running CMake to regenerate build system..."
-	/opt/local/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
+	/usr/bin/cmake -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR)
 .PHONY : rebuild_cache
 
 # Special rule for the target rebuild_cache
@@ -110,14 +69,14 @@ rebuild_cache/fast: rebuild_cache
 
 # The main all target
 all: cmake_check_build_system
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(CMAKE_COMMAND) -E cmake_progress_start /Users/joelkronander/Code/VRStuff/sgct/CMakeFiles /Users/joelkronander/Code/VRStuff/sgct/src/deps/zlib/CMakeFiles/progress.marks
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f CMakeFiles/Makefile2 src/deps/zlib/all
-	$(CMAKE_COMMAND) -E cmake_progress_start /Users/joelkronander/Code/VRStuff/sgct/CMakeFiles 0
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/miro/code/src/deps/zlib/CMakeFiles /home/miro/code/src/deps/zlib/CMakeFiles/progress.marks
+	$(MAKE) -f CMakeFiles/Makefile2 all
+	$(CMAKE_COMMAND) -E cmake_progress_start /home/miro/code/src/deps/zlib/CMakeFiles 0
 .PHONY : all
 
 # The main clean target
 clean:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f CMakeFiles/Makefile2 src/deps/zlib/clean
+	$(MAKE) -f CMakeFiles/Makefile2 clean
 .PHONY : clean
 
 # The main clean target
@@ -126,320 +85,211 @@ clean/fast: clean
 
 # Prepare targets for installation.
 preinstall: all
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f CMakeFiles/Makefile2 src/deps/zlib/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall
 
 # Prepare targets for installation.
 preinstall/fast:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f CMakeFiles/Makefile2 src/deps/zlib/preinstall
+	$(MAKE) -f CMakeFiles/Makefile2 preinstall
 .PHONY : preinstall/fast
 
 # clear depends
 depend:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 1
 .PHONY : depend
 
-# Convenience name for target.
-src/deps/zlib/CMakeFiles/zlib.dir/rule:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f CMakeFiles/Makefile2 src/deps/zlib/CMakeFiles/zlib.dir/rule
-.PHONY : src/deps/zlib/CMakeFiles/zlib.dir/rule
+#=============================================================================
+# Target rules for targets named zlib
 
-# Convenience name for target.
-zlib: src/deps/zlib/CMakeFiles/zlib.dir/rule
+# Build rule for target.
+zlib: cmake_check_build_system
+	$(MAKE) -f CMakeFiles/Makefile2 zlib
 .PHONY : zlib
 
 # fast build rule for target.
 zlib/fast:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/build
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/build
 .PHONY : zlib/fast
 
-adler32.o: adler32.c.o
+# target to build an object file
+adler32.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/adler32.o
 .PHONY : adler32.o
 
-# target to build an object file
-adler32.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/adler32.c.o
-.PHONY : adler32.c.o
-
-adler32.i: adler32.c.i
+# target to preprocess a source file
+adler32.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/adler32.i
 .PHONY : adler32.i
 
-# target to preprocess a source file
-adler32.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/adler32.c.i
-.PHONY : adler32.c.i
-
-adler32.s: adler32.c.s
+# target to generate assembly for a file
+adler32.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/adler32.s
 .PHONY : adler32.s
 
-# target to generate assembly for a file
-adler32.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/adler32.c.s
-.PHONY : adler32.c.s
-
-compress.o: compress.c.o
+# target to build an object file
+compress.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/compress.o
 .PHONY : compress.o
 
-# target to build an object file
-compress.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/compress.c.o
-.PHONY : compress.c.o
-
-compress.i: compress.c.i
+# target to preprocess a source file
+compress.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/compress.i
 .PHONY : compress.i
 
-# target to preprocess a source file
-compress.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/compress.c.i
-.PHONY : compress.c.i
-
-compress.s: compress.c.s
+# target to generate assembly for a file
+compress.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/compress.s
 .PHONY : compress.s
 
-# target to generate assembly for a file
-compress.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/compress.c.s
-.PHONY : compress.c.s
-
-crc32.o: crc32.c.o
+# target to build an object file
+crc32.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/crc32.o
 .PHONY : crc32.o
 
-# target to build an object file
-crc32.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/crc32.c.o
-.PHONY : crc32.c.o
-
-crc32.i: crc32.c.i
+# target to preprocess a source file
+crc32.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/crc32.i
 .PHONY : crc32.i
 
-# target to preprocess a source file
-crc32.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/crc32.c.i
-.PHONY : crc32.c.i
-
-crc32.s: crc32.c.s
+# target to generate assembly for a file
+crc32.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/crc32.s
 .PHONY : crc32.s
 
-# target to generate assembly for a file
-crc32.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/crc32.c.s
-.PHONY : crc32.c.s
-
-deflate.o: deflate.c.o
+# target to build an object file
+deflate.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/deflate.o
 .PHONY : deflate.o
 
-# target to build an object file
-deflate.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/deflate.c.o
-.PHONY : deflate.c.o
-
-deflate.i: deflate.c.i
+# target to preprocess a source file
+deflate.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/deflate.i
 .PHONY : deflate.i
 
-# target to preprocess a source file
-deflate.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/deflate.c.i
-.PHONY : deflate.c.i
-
-deflate.s: deflate.c.s
+# target to generate assembly for a file
+deflate.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/deflate.s
 .PHONY : deflate.s
 
-# target to generate assembly for a file
-deflate.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/deflate.c.s
-.PHONY : deflate.c.s
-
-infback.o: infback.c.o
+# target to build an object file
+infback.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/infback.o
 .PHONY : infback.o
 
-# target to build an object file
-infback.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/infback.c.o
-.PHONY : infback.c.o
-
-infback.i: infback.c.i
+# target to preprocess a source file
+infback.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/infback.i
 .PHONY : infback.i
 
-# target to preprocess a source file
-infback.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/infback.c.i
-.PHONY : infback.c.i
-
-infback.s: infback.c.s
+# target to generate assembly for a file
+infback.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/infback.s
 .PHONY : infback.s
 
-# target to generate assembly for a file
-infback.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/infback.c.s
-.PHONY : infback.c.s
-
-inffast.o: inffast.c.o
+# target to build an object file
+inffast.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inffast.o
 .PHONY : inffast.o
 
-# target to build an object file
-inffast.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inffast.c.o
-.PHONY : inffast.c.o
-
-inffast.i: inffast.c.i
+# target to preprocess a source file
+inffast.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inffast.i
 .PHONY : inffast.i
 
-# target to preprocess a source file
-inffast.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inffast.c.i
-.PHONY : inffast.c.i
-
-inffast.s: inffast.c.s
+# target to generate assembly for a file
+inffast.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inffast.s
 .PHONY : inffast.s
 
-# target to generate assembly for a file
-inffast.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inffast.c.s
-.PHONY : inffast.c.s
-
-inflate.o: inflate.c.o
+# target to build an object file
+inflate.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inflate.o
 .PHONY : inflate.o
 
-# target to build an object file
-inflate.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inflate.c.o
-.PHONY : inflate.c.o
-
-inflate.i: inflate.c.i
+# target to preprocess a source file
+inflate.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inflate.i
 .PHONY : inflate.i
 
-# target to preprocess a source file
-inflate.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inflate.c.i
-.PHONY : inflate.c.i
-
-inflate.s: inflate.c.s
+# target to generate assembly for a file
+inflate.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inflate.s
 .PHONY : inflate.s
 
-# target to generate assembly for a file
-inflate.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inflate.c.s
-.PHONY : inflate.c.s
-
-inftrees.o: inftrees.c.o
+# target to build an object file
+inftrees.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inftrees.o
 .PHONY : inftrees.o
 
-# target to build an object file
-inftrees.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inftrees.c.o
-.PHONY : inftrees.c.o
-
-inftrees.i: inftrees.c.i
+# target to preprocess a source file
+inftrees.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inftrees.i
 .PHONY : inftrees.i
 
-# target to preprocess a source file
-inftrees.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inftrees.c.i
-.PHONY : inftrees.c.i
-
-inftrees.s: inftrees.c.s
+# target to generate assembly for a file
+inftrees.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/inftrees.s
 .PHONY : inftrees.s
 
-# target to generate assembly for a file
-inftrees.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/inftrees.c.s
-.PHONY : inftrees.c.s
-
-minigzip.o: minigzip.c.o
+# target to build an object file
+minigzip.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/minigzip.o
 .PHONY : minigzip.o
 
-# target to build an object file
-minigzip.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/minigzip.c.o
-.PHONY : minigzip.c.o
-
-minigzip.i: minigzip.c.i
+# target to preprocess a source file
+minigzip.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/minigzip.i
 .PHONY : minigzip.i
 
-# target to preprocess a source file
-minigzip.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/minigzip.c.i
-.PHONY : minigzip.c.i
-
-minigzip.s: minigzip.c.s
+# target to generate assembly for a file
+minigzip.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/minigzip.s
 .PHONY : minigzip.s
 
-# target to generate assembly for a file
-minigzip.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/minigzip.c.s
-.PHONY : minigzip.c.s
-
-trees.o: trees.c.o
+# target to build an object file
+trees.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/trees.o
 .PHONY : trees.o
 
-# target to build an object file
-trees.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/trees.c.o
-.PHONY : trees.c.o
-
-trees.i: trees.c.i
+# target to preprocess a source file
+trees.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/trees.i
 .PHONY : trees.i
 
-# target to preprocess a source file
-trees.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/trees.c.i
-.PHONY : trees.c.i
-
-trees.s: trees.c.s
+# target to generate assembly for a file
+trees.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/trees.s
 .PHONY : trees.s
 
-# target to generate assembly for a file
-trees.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/trees.c.s
-.PHONY : trees.c.s
-
-uncompr.o: uncompr.c.o
+# target to build an object file
+uncompr.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/uncompr.o
 .PHONY : uncompr.o
 
-# target to build an object file
-uncompr.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/uncompr.c.o
-.PHONY : uncompr.c.o
-
-uncompr.i: uncompr.c.i
+# target to preprocess a source file
+uncompr.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/uncompr.i
 .PHONY : uncompr.i
 
-# target to preprocess a source file
-uncompr.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/uncompr.c.i
-.PHONY : uncompr.c.i
-
-uncompr.s: uncompr.c.s
+# target to generate assembly for a file
+uncompr.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/uncompr.s
 .PHONY : uncompr.s
 
-# target to generate assembly for a file
-uncompr.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/uncompr.c.s
-.PHONY : uncompr.c.s
-
-zutil.o: zutil.c.o
+# target to build an object file
+zutil.o:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/zutil.o
 .PHONY : zutil.o
 
-# target to build an object file
-zutil.c.o:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/zutil.c.o
-.PHONY : zutil.c.o
-
-zutil.i: zutil.c.i
+# target to preprocess a source file
+zutil.i:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/zutil.i
 .PHONY : zutil.i
 
-# target to preprocess a source file
-zutil.c.i:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/zutil.c.i
-.PHONY : zutil.c.i
-
-zutil.s: zutil.c.s
-.PHONY : zutil.s
-
 # target to generate assembly for a file
-zutil.c.s:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(MAKE) -f src/deps/zlib/CMakeFiles/zlib.dir/build.make src/deps/zlib/CMakeFiles/zlib.dir/zutil.c.s
-.PHONY : zutil.c.s
+zutil.s:
+	$(MAKE) -f CMakeFiles/zlib.dir/build.make CMakeFiles/zlib.dir/zutil.s
+.PHONY : zutil.s
 
 # Help Target
 help:
@@ -448,10 +298,6 @@ help:
 	@echo "... clean"
 	@echo "... depend"
 	@echo "... edit_cache"
-	@echo "... install"
-	@echo "... install/local"
-	@echo "... install/strip"
-	@echo "... list_install_components"
 	@echo "... rebuild_cache"
 	@echo "... zlib"
 	@echo "... adler32.o"
@@ -501,6 +347,6 @@ help:
 # No rule that depends on this can have commands that come from listfiles
 # because they might be regenerated.
 cmake_check_build_system:
-	cd /Users/joelkronander/Code/VRStuff/sgct && $(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
+	$(CMAKE_COMMAND) -H$(CMAKE_SOURCE_DIR) -B$(CMAKE_BINARY_DIR) --check-build-system CMakeFiles/Makefile.cmake 0
 .PHONY : cmake_check_build_system
 

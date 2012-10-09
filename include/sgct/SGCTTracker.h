@@ -40,7 +40,7 @@ public:
 	SGCTTracker(std::string name);
 	~SGCTTracker();
 	void setEnabled(bool state);
-	void addDevice(std::string name);
+	void addDevice(std::string name, size_t index);
 	void addSensorToDevice(const char * address, int id);
 	void addButtonsToDevice(const char * address, size_t numOfButtons);
 	void addAnalogsToDevice(const char * address, size_t numOfAxes);

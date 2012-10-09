@@ -63,6 +63,12 @@ void core_sgct::SGCTUser::setPos(double * pos)
 	updateEyeSeparation();
 }
 
+void core_sgct::SGCTUser::setHeadTracker(const char * trackerName, const char * deviceName)
+{
+	mHeadTrackerDeviceName.assign(deviceName);
+	mHeadTrackerName.assign(trackerName);
+}
+
 void core_sgct::SGCTUser::setTransform(const glm::dmat4 & transform)
 {
 	mTransform = glm::dmat4( transform );

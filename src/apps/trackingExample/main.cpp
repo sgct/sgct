@@ -127,7 +127,6 @@ void myDrawFun()
 
 					//get transform from tracker
 					glLoadMatrixd( glm::value_ptr(trackedTransforms[ index ]) );
-
 					glColor3f(0.5f,0.5f,0.5f);
 					drawWireCube(0.1f);
 
@@ -142,13 +141,13 @@ void myDrawFun()
 
 					glPopMatrix();
 				}
-
+				
 				double trackerTime = devicePtr->getTrackerTime();
 				glColor3f(0.0f,1.0f,1.0f);
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-					"Tracker sensor:%d, freq: %.1f Hz", devicePtr->getSensorId(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
+					"Sensor id:%d, freq: %.1f Hz", devicePtr->getSensorId(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
 				textVerticalPos -= lineSpace;
-
+				
 				glColor3f(1.0f,1.0f,1.0f);
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Pos x=%.3g y=%.3g z=%.3g",
@@ -156,7 +155,7 @@ void myDrawFun()
 					devicePtr->getPosition().y,
 					devicePtr->getPosition().z);
 				textVerticalPos -= lineSpace;
-
+				
 				glColor3f(1.0f,1.0f,1.0f);
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Rot rx=%.3g ry=%.3g rz=%.3g",
@@ -175,7 +174,7 @@ void myDrawFun()
 				for(size_t k=0; k < devicePtr->getNumberOfButtons(); k++)
 				{
 					Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-					"Button %u: %s", k, devicePtr->getButton(j) ? "pressed" : "released");
+					"Button %u: %s", k, devicePtr->getButton(k) ? "pressed" : "released");
 					textVerticalPos -= lineSpace;
 				}
 			}
@@ -191,13 +190,14 @@ void myDrawFun()
 				for(size_t k=0; k < devicePtr->getNumberOfAxes(); k++)
 				{
 					Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-					"Axis %u: %.3g", j, devicePtr->getAnalog(j));
+					"Axis %u: %.3g", j, devicePtr->getAnalog(k));
 					textVerticalPos -= lineSpace;
 				}
 			}
 
 			//add extra line after each device
 			textVerticalPos -= lineSpace;
+			
 			//iterate the index
 			index++;
 		}

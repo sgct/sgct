@@ -35,11 +35,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 extern GLFWmutex gTrackingMutex;
 
-sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, std::string name)
+sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t parentIndex, std::string name)
 {
 	mEnabled = true;
 	mName.assign( name );
-	mIndex = index;
+	mParentIndex = parentIndex;
 	mNumberOfButtons = 0;
 	mNumberOfAxes = 0;
 
@@ -114,7 +114,7 @@ void sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
 	const glm::dmat4 & preTransform =
-        core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mIndex)->getTransform();
+        core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
 
     //swap
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];

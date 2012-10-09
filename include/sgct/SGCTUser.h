@@ -31,6 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <string>
 #include "Frustum.h"
 
 namespace core_sgct
@@ -48,6 +49,7 @@ public:
 	void setPos(glm::vec3 pos);
 	void setPos(glm::dvec4 pos);
 	void setPos(double * pos);
+	void setHeadTracker(const char * trackerName, const char * deviceName);
 
 	void setTransform(const glm::mat4 & transform);
 	void setTransform(const glm::dmat4 & transform);
@@ -62,6 +64,8 @@ public:
 	inline const float & getXPos() { return mPos[Frustum::Mono].x; }
 	inline const float & getYPos() { return mPos[Frustum::Mono].y; }
 	inline const float & getZPos() { return mPos[Frustum::Mono].z; }
+	inline const char * getHeadTrackerName() { return mHeadTrackerName.c_str(); }
+	inline const char * getHeadTrackerDeviceName() { return mHeadTrackerDeviceName.c_str(); }
 
 private:
 	void updateEyeSeparation();
@@ -72,6 +76,10 @@ private:
 	glm::mat4 mTransform;
 
 	float mEyeSeparation;
+
+	std::string mHeadTrackerDeviceName;
+	std::string mHeadTrackerName;
+
 };
 
 } // core_sgct

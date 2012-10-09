@@ -35,8 +35,8 @@ sgct::SGCTTracker::SGCTTracker(std::string name)
 {
 	mName.assign(name);
 
-	mXform = glm::mat4(1.0);
-	mOffset = glm::vec3(0.0);
+	mXform = glm::dmat4(1.0);
+	mOffset = glm::dvec3(0.0);
 	mQuatTransform = glm::dvec4(1.0);
 
 	mScale = 1.0;
@@ -64,13 +64,13 @@ void sgct::SGCTTracker::setEnabled(bool state)
 	}
 }
 
-void sgct::SGCTTracker::addDevice(std::string name)
+void sgct::SGCTTracker::addDevice(std::string name, size_t index)
 {
-	SGCTTrackingDevice * td = new SGCTTrackingDevice( mTrackingDevices.size(), name );
+	SGCTTrackingDevice * td = new SGCTTrackingDevice( index, name );
 
 	mTrackingDevices.push_back( td );
 
-	sgct::MessageHandler::Instance()->print("%s: Adding device '%s'...\n", mName.c_str(), name.c_str());
+	MessageHandler::Instance()->print("%s: Adding device '%s'...\n", mName.c_str(), name.c_str());
 }
 
 void sgct::SGCTTracker::addSensorToDevice(const char * address, int id)

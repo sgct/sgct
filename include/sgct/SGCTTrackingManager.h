@@ -52,8 +52,6 @@ public:
 	inline size_t getNumberOfTrackers() { return mTrackers.size(); }
 	inline size_t getNumberOfDevices() { return mNumberOfDevices; }
 	inline SGCTTrackingDevice * getHeadDevicePtr() { return mHead; }
-	
-	void setHeadTracker(const char * trackerName, const char * deviceName);
 
 	SGCTTracker * getLastTrackerPtr();
 	SGCTTracker * getTrackerPtr(size_t index);
@@ -64,6 +62,9 @@ public:
 	double getSamplingTime();
 
 	bool isRunning();
+
+private:
+	void setHeadTracker(const char * trackerName, const char * deviceName);
 
 private:
 	int mSamplingThreadId;

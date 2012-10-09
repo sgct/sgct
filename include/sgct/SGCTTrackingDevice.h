@@ -43,7 +43,7 @@ class SGCTTrackingDevice
 public:
 	enum DataLoc { CURRENT = 0, PREVIOUS };
 
-	SGCTTrackingDevice(size_t index, std::string name);
+	SGCTTrackingDevice(size_t parentIndex, std::string name);
 	~SGCTTrackingDevice();
 
 	void setEnabled(bool state);
@@ -82,7 +82,7 @@ private:
 private:
 	bool mEnabled;
 	std::string mName;
-	size_t mIndex;
+	size_t mParentIndex; //the index of parent SGCTTracker
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
 	int mSensorId;

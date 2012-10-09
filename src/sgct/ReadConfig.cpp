@@ -445,7 +445,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if(	element[1]->Attribute("tracker") != NULL &&
 						element[1]->Attribute("device") != NULL )
 					{
-						ClusterManager::Instance()->getTrackingManagerPtr()->setHeadTracker(
+						ClusterManager::Instance()->getUserPtr()->setHeadTracker(
 							element[1]->Attribute("tracker"), element[1]->Attribute("device") );
 					}
 					else

@@ -162,9 +162,9 @@ void sgct::SGCTTrackingManager::startSampling()
 	if( !mTrackers.empty() )
 	{
 		//link the head tracker
-		setHeadTracker( core_sgct::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(), 
+		setHeadTracker( core_sgct::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(),
 			core_sgct::ClusterManager::Instance()->getUserPtr()->getHeadTrackerDeviceName() );
-		
+
 		mSamplingThreadId = glfwCreateThread( samplingLoop, this );
 		if( mSamplingThreadId < 0)
 		{
@@ -312,8 +312,8 @@ void sgct::SGCTTrackingManager::setHeadTracker(const char * trackerName, const c
 
 	if( trackerPtr != NULL )
 		mHead = trackerPtr->getDevicePtr( deviceName );
-	
-	if( mHead == NULL )
+
+	if( mHead == NULL && strlen(trackerName) > 0 && strlen(deviceName) > 0 )
 		MessageHandler::Instance()->print("Tracking: Failed to set head tracker to %s@%s!\n",
 				deviceName, trackerName);
 }

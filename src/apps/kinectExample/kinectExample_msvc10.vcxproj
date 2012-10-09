@@ -11,7 +11,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{8303EDAB-3F90-4302-81FB-C5F58923E993}</ProjectGuid>
+    <ProjectGuid>{9EADFFAD-D152-4950-87D6-5F9042268551}</ProjectGuid>
     <RootNamespace>kinectExample</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

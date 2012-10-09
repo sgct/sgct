@@ -12,9 +12,9 @@ double curr_time = 0.0;
 float size_factor = 0.5f;
 
 //pointer to a left hand
-core_sgct::SGCTTrackingDevice * leftHand = NULL;
+sgct::SGCTTrackingDevice * leftHand = NULL;
 //pointer to a right hand
-core_sgct::SGCTTrackingDevice * rightHand = NULL;
+sgct::SGCTTrackingDevice * rightHand = NULL;
 
 bool error = false;
 
@@ -53,8 +53,12 @@ void myInitOGLFun()
 	glEnable(GL_DEPTH_TEST);
  
 	//get the tracking pointers
-	leftHand	= sgct::Engine::getTrackingManager()->getTrackingPtr("Left Hand");
-	rightHand	= sgct::Engine::getTrackingManager()->getTrackingPtr("Right Hand");
+	sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
+	if(tracker != NULL)
+	{
+		leftHand	= tracker->getDevicePtr("Left Hand");
+		rightHand	= tracker->getDevicePtr("Right Hand");
+	}
  
 	if(leftHand == NULL || rightHand == NULL)
 	{

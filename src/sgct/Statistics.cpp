@@ -41,7 +41,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 core_sgct::Statistics::Statistics()
 {
 	mAvgFPS = 0.0;
-	for(int unsigned i=0; i<STATS_HISTORY_LENGTH; i++)
+	for(unsigned int i=0; i<4; i++)
+		mVboPtrs[i] = 0;
+
+	for(unsigned int i=0; i<STATS_HISTORY_LENGTH; i++)
 	{
 		mFrameTime[i].x = static_cast<double>(i*2);
 		mDrawTime[i].x = static_cast<double>(i*2);

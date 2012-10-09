@@ -51,6 +51,7 @@ public:
 
 	void setTransform(const glm::mat4 & transform);
 	void setTransform(const glm::dmat4 & transform);
+	void setOrientation(float xRot, float yRot, float zRot);
 	void setEyeSeparation(float eyeSeparation);
 
 	const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::Mono);

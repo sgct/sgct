@@ -36,7 +36,7 @@ core_sgct::ClusterManager::ClusterManager(void)
 	mThisNodeId = -1;
 	validCluster = false;
 	mUser = new SGCTUser();
-	mTrackingManager = new SGCTTrackingManager();
+	mTrackingManager = new sgct::SGCTTrackingManager();
 	mSceneTrans = glm::mat4(1.0f);
 	mMeshImpl = DISPLAY_LIST; //default
 }

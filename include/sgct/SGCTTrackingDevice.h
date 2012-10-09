@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 typedef void * GLFWmutex;
 
-namespace core_sgct
+namespace sgct
 {
 
 class SGCTTrackingDevice
@@ -43,12 +43,11 @@ class SGCTTrackingDevice
 public:
 	enum DataLoc { CURRENT = 0, PREVIOUS };
 
-	SGCTTrackingDevice(size_t index, const char * name);
+	SGCTTrackingDevice(size_t index, std::string name);
 	~SGCTTrackingDevice();
 
 	void setEnabled(bool state);
-	void setSensor(int sensor);
-	void setPositionalDevicePresent(bool state);
+	void setSensorId(int id);
 	void setNumberOfButtons(size_t numOfButtons);
 	void setNumberOfAxes(size_t numOfAxes);
 	void setSensorTransform( glm::dmat4 mat );
@@ -63,10 +62,10 @@ public:
 	bool getButton(size_t index, DataLoc i = CURRENT);
 	double getAnalog(size_t index, DataLoc i = CURRENT);
 	bool isEnabled();
-	inline bool hasTracker() { return mIsPositionalDevice; }
+	inline bool hasSensor() { return mSensorId != -1; }
 	inline bool hasButtons() { return mNumberOfButtons > 0; }
 	inline bool hasAnalogs() { return mNumberOfAxes > 0; }
-	int getSensor();
+	int getSensorId();
 
 	glm::dvec3 getPosition(DataLoc i = CURRENT);
 	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
@@ -82,12 +81,11 @@ private:
 
 private:
 	bool mEnabled;
-	bool mIsPositionalDevice;
 	std::string mName;
 	size_t mIndex;
 	size_t mNumberOfButtons;
 	size_t mNumberOfAxes;
-	int mSensor;
+	int mSensorId;
 
 	glm::dmat4 mPostTransform;
 	glm::dmat4 mWorldTransform[2];

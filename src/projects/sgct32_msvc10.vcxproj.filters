@@ -90,6 +90,9 @@
     <ClInclude Include="..\..\include\sgct\SGCTUser.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTTracker.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -159,6 +162,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\SGCTUser.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTTracker.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

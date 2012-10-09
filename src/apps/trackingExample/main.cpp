@@ -15,7 +15,8 @@ unsigned int numberOfTrackedDevices;
 glm::dmat4 * trackedTransforms = NULL;
 
 //pointer to a device
-core_sgct::SGCTTrackingDevice * td = NULL;
+sgct::SGCTTrackingDevice * devicePtr = NULL;
+sgct::SGCTTracker * trackerPtr = NULL;
 
 int main( int argc, char* argv[] )
 {
@@ -62,13 +63,22 @@ void myInitOGLFun()
 */
 void myPreSyncFun()
 {
-	//store the transforms
-	for(size_t i = 0; i < numberOfTrackedDevices; i++)
+	/*
+	Store all transforms in the array by looping through all trackers and all devices.
+	*/
+	unsigned int index = 0;
+	for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
 	{
-		td = sgct::Engine::getTrackingManager()->getTrackingPtr( i );
-		if( td->hasTracker() )
-			trackedTransforms[ i ] = td->getTransformMat();
-	}	
+		trackerPtr = sgct::Engine::getTrackingManager()->getTrackerPtr(i);
+		for(size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++)
+		{
+			devicePtr = trackerPtr->getDevicePtr(j);
+			if( devicePtr->hasSensor() )
+				trackedTransforms[ index ] = devicePtr->getTransformMat();
+
+			index++;
+		}
+	}
 }
 
 /*
@@ -92,98 +102,105 @@ void myDrawFun()
 	float lineSpace = 14.0f;
 	int fontSize = 10;
 
-	for(size_t i = 0; i < numberOfTrackedDevices; i++)
+	unsigned int index = 0;
+	for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
 	{
-		td = sgct::Engine::getTrackingManager()->getTrackingPtr( i );
-
-		glColor3f(1.0f,1.0f,0.0f);
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize + 2 ), 50.0f, textVerticalPos,
-			"Device %u (%s)", i, td->getName().c_str());
-		textVerticalPos -= lineSpace;
-
-		//has this device a positional tracker?
-		if( td->hasTracker() )
+		trackerPtr = sgct::Engine::getTrackingManager()->getTrackerPtr(i);
+		for(size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++)
 		{
-			//Draw cube and pointer line for all devices except the head
-			if( static_cast<size_t>(sgct::Engine::getTrackingManager()->getHeadSensorIndex()) != i )
+			devicePtr = trackerPtr->getDevicePtr(j);
+
+			glColor3f(1.0f,1.0f,0.0f);
+			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize + 2 ), 50.0f, textVerticalPos,
+				"Device %u (%s)", i, devicePtr->getName().c_str());
+			textVerticalPos -= lineSpace;
+
+			//has this device a positional sensor?
+			if( devicePtr->hasSensor() )
 			{
-				glLineWidth(2.0);
+				//Draw cube and pointer line for all devices except the head
+				if( sgct::Engine::getTrackingManager()->getHeadDevicePtr() != devicePtr )
+				{
+					glLineWidth(2.0);
 
-				glPushMatrix();
+					glPushMatrix();
 
-				//get transform from tracker
-				glLoadMatrixd( glm::value_ptr(trackedTransforms[ i ]) );
+					//get transform from tracker
+					glLoadMatrixd( glm::value_ptr(trackedTransforms[ index ]) );
 
-				glColor3f(0.5f,0.5f,0.5f);
-				drawWireCube(0.1f);
+					glColor3f(0.5f,0.5f,0.5f);
+					drawWireCube(0.1f);
 
-				drawAxes(0.1f);
+					drawAxes(0.1f);
 
-				//draw pointer line
-				glBegin(GL_LINES);
-				glColor3f(1.0f,1.0f,0.0f);
-				glVertex3f(0.0f, 0.0f, 0.0f);
-				glVertex3f(0.0f, 0.0f, -5.0f);
-				glEnd();
+					//draw pointer line
+					glBegin(GL_LINES);
+					glColor3f(1.0f,1.0f,0.0f);
+					glVertex3f(0.0f, 0.0f, 0.0f);
+					glVertex3f(0.0f, 0.0f, -5.0f);
+					glEnd();
 
-				glPopMatrix();
-			}
+					glPopMatrix();
+				}
 
-            double trackerTime = td->getTrackerTime();
-			glColor3f(0.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Tracker sensor:%d, freq: %.1f Hz", td->getSensor(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
-			textVerticalPos -= lineSpace;
+				double trackerTime = devicePtr->getTrackerTime();
+				glColor3f(0.0f,1.0f,1.0f);
+				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+					"Tracker sensor:%d, freq: %.1f Hz", devicePtr->getSensorId(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
+				textVerticalPos -= lineSpace;
 
-			glColor3f(1.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Pos x=%.3g y=%.3g z=%.3g",
-				td->getPosition().x,
-				td->getPosition().y,
-				td->getPosition().z);
-			textVerticalPos -= lineSpace;
-
-			glColor3f(1.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Rot rx=%.3g ry=%.3g rz=%.3g",
-				td->getEulerAngles().x,
-				td->getEulerAngles().y,
-				td->getEulerAngles().z);
-			textVerticalPos -= lineSpace;
-		}
-		if( td->hasButtons() )
-		{
-			glColor3f(0.0f,1.0f,1.0f);
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos, "Buttons");
-			textVerticalPos -= lineSpace;
-
-			glColor3f(1.0f,1.0f,1.0f);
-			for(size_t j=0; j < td->getNumberOfButtons(); j++)
-			{
+				glColor3f(1.0f,1.0f,1.0f);
 				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Button %u: %s", j, td->getButton(j) ? "pressed" : "released");
+					"Pos x=%.3g y=%.3g z=%.3g",
+					devicePtr->getPosition().x,
+					devicePtr->getPosition().y,
+					devicePtr->getPosition().z);
+				textVerticalPos -= lineSpace;
+
+				glColor3f(1.0f,1.0f,1.0f);
+				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+					"Rot rx=%.3g ry=%.3g rz=%.3g",
+					devicePtr->getEulerAngles().x,
+					devicePtr->getEulerAngles().y,
+					devicePtr->getEulerAngles().z);
 				textVerticalPos -= lineSpace;
 			}
-		}
-		if( td->hasAnalogs() )
-		{
-			glColor3f(0.0f,1.0f,1.0f);
-			double analogTime = td->getAnalogTime();
-			Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
-				"Analog axes, freq: %.1f Hz", analogTime <= 0.0 ? 0.0 : 1.0/analogTime);
-			textVerticalPos -= lineSpace;
-
-			glColor3f(1.0f,1.0f,1.0f);
-			for(size_t j=0; j < td->getNumberOfAxes(); j++)
+			if( devicePtr->hasButtons() )
 			{
-				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
-				"Axis %u: %.3g", j, td->getAnalog(j));
+				glColor3f(0.0f,1.0f,1.0f);
+				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos, "Buttons");
 				textVerticalPos -= lineSpace;
-			}
-		}
 
-		//add extra line after each device
-		textVerticalPos -= lineSpace;
+				glColor3f(1.0f,1.0f,1.0f);
+				for(size_t k=0; k < devicePtr->getNumberOfButtons(); k++)
+				{
+					Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+					"Button %u: %s", k, devicePtr->getButton(j) ? "pressed" : "released");
+					textVerticalPos -= lineSpace;
+				}
+			}
+			if( devicePtr->hasAnalogs() )
+			{
+				glColor3f(0.0f,1.0f,1.0f);
+				double analogTime = devicePtr->getAnalogTime();
+				Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+					"Analog axes, freq: %.1f Hz", analogTime <= 0.0 ? 0.0 : 1.0/analogTime);
+				textVerticalPos -= lineSpace;
+
+				glColor3f(1.0f,1.0f,1.0f);
+				for(size_t k=0; k < devicePtr->getNumberOfAxes(); k++)
+				{
+					Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+					"Axis %u: %.3g", j, devicePtr->getAnalog(j));
+					textVerticalPos -= lineSpace;
+				}
+			}
+
+			//add extra line after each device
+			textVerticalPos -= lineSpace;
+			//iterate the index
+			index++;
+		}
 	}
 }
 

@@ -33,12 +33,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/SGCTTrackingDevice.h"
 #include "../include/sgct/Engine.h"
 
-extern GLFWmutex mTrackingMutex;
+extern GLFWmutex gTrackingMutex;
 
-core_sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, const char * name)
+sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, std::string name)
 {
 	mEnabled = true;
-	mIsPositionalDevice = false;
 	mName.assign( name );
 	mIndex = index;
 	mNumberOfButtons = 0;
@@ -54,10 +53,10 @@ core_sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t index, const char * nam
 	mTrackerTime[1] = 0.0;
 	mAnalogTime[0] = 0.0;
 	mAnalogTime[1] = 0.0;
-	mSensor = -1;
+	mSensorId = -1;
 }
 
-core_sgct::SGCTTrackingDevice::~SGCTTrackingDevice()
+sgct::SGCTTrackingDevice::~SGCTTrackingDevice()
 {
 	mEnabled = false;
 
@@ -74,22 +73,17 @@ core_sgct::SGCTTrackingDevice::~SGCTTrackingDevice()
 	}
 }
 
-void core_sgct::SGCTTrackingDevice::setEnabled(bool state)
+void sgct::SGCTTrackingDevice::setEnabled(bool state)
 {
 	mEnabled = state;
 }
 
-void core_sgct::SGCTTrackingDevice::setSensor(int sensor)
+void sgct::SGCTTrackingDevice::setSensorId(int id)
 {
-	mSensor = sensor;
+	mSensorId = id;
 }
 
-void core_sgct::SGCTTrackingDevice::setPositionalDevicePresent(bool state)
-{
-	mIsPositionalDevice = state;
-}
-
-void core_sgct::SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons)
+void sgct::SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons)
 {
 	if( mButtons == NULL )
 	{
@@ -103,7 +97,7 @@ void core_sgct::SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons)
 	}
 }
 
-void core_sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
+void sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 {
 	if( mAxes == NULL )
 	{
@@ -117,10 +111,10 @@ void core_sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 	}
 }
 
-void core_sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
+void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
 	const glm::dmat4 & preTransform =
-        ClusterManager::Instance()->getTrackingManagerPtr()->getTransform();
+        core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mIndex)->getTransform();
 
     //swap
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
@@ -129,7 +123,7 @@ void core_sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
     setTrackerTime();
 }
 
-void core_sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
+void sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
 {
 	if( index < mNumberOfButtons )
 	{
@@ -139,7 +133,7 @@ void core_sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
     }
 }
 
-void core_sgct::SGCTTrackingDevice::setAnalogVal(const double * array, size_t size)
+void sgct::SGCTTrackingDevice::setAnalogVal(const double * array, size_t size)
 {
 	for( size_t i=0; i < size; i++ )
         if( i < mNumberOfAxes )
@@ -151,7 +145,7 @@ void core_sgct::SGCTTrackingDevice::setAnalogVal(const double * array, size_t si
     setAnalogTime();
 }
 
-void core_sgct::SGCTTrackingDevice::setOrientation(double xRot, double yRot, double zRot)
+void sgct::SGCTTrackingDevice::setOrientation(double xRot, double yRot, double zRot)
 {
 	//create rotation quaternion based on x, y, z rotations
 	glm::dquat rotQuat;
@@ -160,12 +154,12 @@ void core_sgct::SGCTTrackingDevice::setOrientation(double xRot, double yRot, dou
 	rotQuat = glm::rotate( rotQuat, zRot, glm::dvec3(0.0, 0.0, 1.0) );
 
 	//create inverse rotation matrix
-	mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
+	mOrientation = glm::mat4_cast(rotQuat);
 
 	calculateTransform();
 }
 
-void core_sgct::SGCTTrackingDevice::setOffset(double x, double y, double z)
+void sgct::SGCTTrackingDevice::setOffset(double x, double y, double z)
 {
 	mOffset[0] = x;
 	mOffset[1] = y;
@@ -174,7 +168,7 @@ void core_sgct::SGCTTrackingDevice::setOffset(double x, double y, double z)
 	calculateTransform();
 }
 
-void core_sgct::SGCTTrackingDevice::calculateTransform()
+void sgct::SGCTTrackingDevice::calculateTransform()
 {
 	//create offset translation matrix
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), mOffset );
@@ -182,130 +176,130 @@ void core_sgct::SGCTTrackingDevice::calculateTransform()
 	mPostTransform = transMat * mOrientation;
 }
 
-int core_sgct::SGCTTrackingDevice::getSensor()
+int sgct::SGCTTrackingDevice::getSensorId()
 {
 	int tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sensor...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
-		tmpVal = mSensor;
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
+		tmpVal = mSensorId;
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpVal;
 }
 
-bool core_sgct::SGCTTrackingDevice::getButton(size_t index, DataLoc i)
+bool sgct::SGCTTrackingDevice::getButton(size_t index, DataLoc i)
 {
 	bool tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get button...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = index < mNumberOfButtons ? mButtons[index + mNumberOfButtons * i] : false;
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpVal;
 }
 
-double core_sgct::SGCTTrackingDevice::getAnalog(size_t index, DataLoc i)
+double sgct::SGCTTrackingDevice::getAnalog(size_t index, DataLoc i)
 {
 	double tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get analog array...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = index < mNumberOfAxes ? mAxes[index + mNumberOfAxes * i] : false;
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpVal;
 }
 
-glm::dvec3 core_sgct::SGCTTrackingDevice::getPosition(DataLoc i)
+glm::dvec3 sgct::SGCTTrackingDevice::getPosition(DataLoc i)
 {
 	glm::dvec3 tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get position...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		glm::dmat4 & matRef = mWorldTransform[i];
 		tmpVal[0] = matRef[3][0];
 		tmpVal[1] = matRef[3][1];
 		tmpVal[2] = matRef[3][2];
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpVal;
 }
 
-glm::dvec3 core_sgct::SGCTTrackingDevice::getEulerAngles(DataLoc i)
+glm::dvec3 sgct::SGCTTrackingDevice::getEulerAngles(DataLoc i)
 {
 	glm::dvec3 tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get euler angles");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = glm::eulerAngles( glm::quat_cast(mWorldTransform[i]) );
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpVal;
 }
 
-glm::dmat4 core_sgct::SGCTTrackingDevice::getTransformMat(DataLoc i)
+glm::dmat4 sgct::SGCTTrackingDevice::getTransformMat(DataLoc i)
 {
 	glm::dmat4 tmpMat;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get transform matrix...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpMat = mWorldTransform[i];
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 	return tmpMat;
 }
 
-bool core_sgct::SGCTTrackingDevice::isEnabled()
+bool sgct::SGCTTrackingDevice::isEnabled()
 {
     bool tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Is device enabled...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = mEnabled;
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 
     return tmpVal;
 }
 
-void core_sgct::SGCTTrackingDevice::setTrackerTime()
+void sgct::SGCTTrackingDevice::setTrackerTime()
 {
 	double current_time = sgct::Engine::getTime();
     mTrackerTime[0] = current_time - mTrackerTime[1];
 	mTrackerTime[1] = current_time;
 }
 
-double core_sgct::SGCTTrackingDevice::getTrackerTime()
+double sgct::SGCTTrackingDevice::getTrackerTime()
 {
 	double tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get device tracker time...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = mTrackerTime[0];
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 
 	return tmpVal;
 }
 
-void core_sgct::SGCTTrackingDevice::setAnalogTime()
+void sgct::SGCTTrackingDevice::setAnalogTime()
 {
 	double current_time = sgct::Engine::getTime();
 	mAnalogTime[0] = current_time - mAnalogTime[1];
 	mAnalogTime[1] = current_time;
 }
 
-double core_sgct::SGCTTrackingDevice::getAnalogTime()
+double sgct::SGCTTrackingDevice::getAnalogTime()
 {
 	double tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set device analog time...\n");
 #endif
-	sgct::Engine::lockMutex(mTrackingMutex);
+	Engine::lockMutex(gTrackingMutex);
 		tmpVal = mAnalogTime[0];
-	sgct::Engine::unlockMutex(mTrackingMutex);
+	Engine::unlockMutex(gTrackingMutex);
 
 	return tmpVal;
 }

@@ -430,6 +430,27 @@ void core_sgct::ReadConfig::readAndParseXML()
                     else
                         sgct::MessageHandler::Instance()->print("Failed to parse user position from XML!\n");
 				}
+				else if( strcmp("Orientation", val[1]) == 0 )
+				{
+					float fTmp[3];
+					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR )
+                        ClusterManager::Instance()->getUserPtr()->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse user Orientation from XML!\n");
+				}
+				else if( strcmp("Tracking", val[1]) == 0 )
+				{
+					if(	element[1]->Attribute("tracker") != NULL &&
+						element[1]->Attribute("device") != NULL )
+					{
+						ClusterManager::Instance()->getTrackingManagerPtr()->setHeadTracker(
+							element[1]->Attribute("tracker"), element[1]->Attribute("device") );
+					}
+					else
+						sgct::MessageHandler::Instance()->print("Failed to parse user tracking data from XML!\n");	
+				}
 
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
@@ -458,46 +479,33 @@ void core_sgct::ReadConfig::readAndParseXML()
 					sgct::MessageHandler::Instance()->print("Info: Font size not specified. Setting to default size=10!\n");
             }
         }
-		else if( strcmp("Tracking", val[0]) == 0 )
+		else if( strcmp("Tracker", val[0]) == 0 && element[0]->Attribute("name") != NULL )
 		{
-			int current_device = -1;
-			int tmpi = -1;
-			if( element[0]->QueryIntAttribute("headSensorIndex", &tmpi) == XML_NO_ERROR )
-			{
-				ClusterManager::Instance()->getTrackingManagerPtr()->setHeadSensorIndex( tmpi );
-			}
-			else
-				sgct::MessageHandler::Instance()->print("Info: Head sensor index not specified. Head tracking is disabled!\n");
+			ClusterManager::Instance()->getTrackingManagerPtr()->addTracker( std::string(element[0]->Attribute("name")) );
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
 
-				if( strcmp("Device", val[1]) == 0 )
+				if( strcmp("Device", val[1]) == 0 && element[1]->Attribute("name") != NULL)
 				{
-					current_device++;
-					if( element[1]->Attribute("name") != NULL )
-					{
-						ClusterManager::Instance()->getTrackingManagerPtr()->addDevice( element[1]->Attribute("name") );
-					}
-					else
-						sgct::MessageHandler::Instance()->print("Error: No device name provided! Device is disabled.\n");
+					ClusterManager::Instance()->getTrackingManagerPtr()->addDeviceToCurrentTracker( std::string(element[1]->Attribute("name")) );
 
 					element[2] = element[1]->FirstChildElement();
-
+					
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
 						unsigned int tmpUI = 0;
 						int tmpi = -1;
 
-						if( strcmp("Tracker", val[2]) == 0 )
+						if( strcmp("Sensor", val[2]) == 0 )
 						{
 							if( element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryIntAttribute("sensor", &tmpi) == XML_NO_ERROR )
+                                element[2]->QueryIntAttribute("id", &tmpi) == XML_NO_ERROR )
 							{
-                                ClusterManager::Instance()->getTrackingManagerPtr()->addTrackerToDevice(
+                                ClusterManager::Instance()->getTrackingManagerPtr()->addSensorToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpi);
 							}
 						}
@@ -506,7 +514,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
                                 element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
                             {
-                                ClusterManager::Instance()->getTrackingManagerPtr()->addButtonsToDevice(
+                                ClusterManager::Instance()->getTrackingManagerPtr()->addButtonsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpUI);
                             }
 
@@ -516,7 +524,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
                                 element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
                             {
-                                ClusterManager::Instance()->getTrackingManagerPtr()->addAnalogsToDevice(
+                                ClusterManager::Instance()->getTrackingManagerPtr()->addAnalogsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpUI);
                             }
 						}
@@ -526,8 +534,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							if( element[2]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
 								element[2]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
 								element[2]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-								ClusterManager::Instance()->getTrackingManagerPtr()->
-									getTrackingPtr( static_cast<size_t>(current_device) )->
+								ClusterManager::Instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
 									setOffset( tmpd[0], tmpd[1], tmpd[2] );
 							else
 								sgct::MessageHandler::Instance()->print("Failed to parse device offset in XML!\n");
@@ -538,8 +545,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 							if( element[2]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
 								element[2]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
 								element[2]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-								ClusterManager::Instance()->getTrackingManagerPtr()->
-									getTrackingPtr( static_cast<size_t>(current_device) )->
+								ClusterManager::Instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
 									setOrientation( tmpd[0], tmpd[1], tmpd[2] );
 							else
 								sgct::MessageHandler::Instance()->print("Failed to parse device orientation in XML!\n");
@@ -556,7 +562,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
                         element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
                         element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-						ClusterManager::Instance()->getTrackingManagerPtr()->setOffset( tmpd[0], tmpd[1], tmpd[2] );
+						ClusterManager::Instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOffset( tmpd[0], tmpd[1], tmpd[2] );
                     else
                         sgct::MessageHandler::Instance()->print("Failed to parse tracker offset in XML!\n");
 				}
@@ -566,9 +572,17 @@ void core_sgct::ReadConfig::readAndParseXML()
 					if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
                         element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
                         element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-						ClusterManager::Instance()->getTrackingManagerPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
+						ClusterManager::Instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
                     else
                         sgct::MessageHandler::Instance()->print("Failed to parse tracker orientation in XML!\n");
+				}
+				else if( strcmp("Scale", val[1]) == 0 )
+				{
+					double scaleVal;
+					if( element[1]->QueryDoubleAttribute("value", &scaleVal) == XML_NO_ERROR )
+						ClusterManager::Instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setScale( scaleVal );
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse tracker scale in XML!\n");
 				}
 
 				//iterate

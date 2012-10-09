@@ -25,55 +25,54 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-#ifndef _SGCT_TRACKING_MANAGER_H_
-#define _SGCT_TRACKING_MANAGER_H_
+#ifndef _SGCT_TRACKER_H_
+#define _SGCT_TRACKER_H_
 
 #include <vector>
-#include <set>
-#include "SGCTTracker.h"
+#include "SGCTTrackingDevice.h"
 
 namespace sgct
 {
 
-class SGCTTrackingManager
+class SGCTTracker
 {
 public:
-	SGCTTrackingManager();
-	~SGCTTrackingManager();
-	
-	void startSampling();
-	void updateTrackingDevices();
-	void addTracker(std::string name);
-	void addDeviceToCurrentTracker(std::string name);
-	void addSensorToCurrentDevice(const char * address, int id);
-	void addButtonsToCurrentDevice(const char * address, size_t numOfButtons);
-	void addAnalogsToCurrentDevice(const char * address, size_t numOfAxes);
-	
-	inline size_t getNumberOfTrackers() { return mTrackers.size(); }
-	inline size_t getNumberOfDevices() { return mNumberOfDevices; }
-	inline SGCTTrackingDevice * getHeadDevicePtr() { return mHead; }
-	
-	void setHeadTracker(const char * trackerName, const char * deviceName);
-
-	SGCTTracker * getLastTrackerPtr();
-	SGCTTracker * getTrackerPtr(size_t index);
-	SGCTTracker * getTrackerPtr(const char * name);
-
+	SGCTTracker(std::string name);
+	~SGCTTracker();
 	void setEnabled(bool state);
-	void setSamplingTime(double t);
-	double getSamplingTime();
+	void addDevice(std::string name);
+	void addSensorToDevice(const char * address, int id);
+	void addButtonsToDevice(const char * address, size_t numOfButtons);
+	void addAnalogsToDevice(const char * address, size_t numOfAxes);
 
-	bool isRunning();
+	SGCTTrackingDevice * getLastDevicePtr();
+	SGCTTrackingDevice * getDevicePtr(size_t index);
+	SGCTTrackingDevice * getDevicePtr(const char * name);
+	SGCTTrackingDevice * getDevicePtrBySensorId(int id);
+
+	void setOrientation(double xRot, double yRot, double zRot);
+	void setOffset(double x, double y, double z);
+	void setScale(double scaleVal);
+
+	inline glm::dmat4 getTransform() { return mXform; }
+	inline double getScale() { return mScale; }
+	inline const glm::dvec4 & getQuatTransform() { return mQuatTransform; }
+
+	inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
+	inline const std::string & getName() { return mName; }
 
 private:
-	int mSamplingThreadId;
-	std::vector<SGCTTracker *> mTrackers;
-	std::set< std::string > mAddresses;
-	double mSamplingTime;
-	bool mRunning;
+	void calculateTransform();
 
-	SGCTTrackingDevice * mHead;
-	size_t mNumberOfDevices;
+private:
+	std::vector<SGCTTrackingDevice *> mTrackingDevices;
+	std::string mName;
+
+	double mScale;
+	glm::dmat4 mXform;
+	glm::dmat4 mOrientation;
+	glm::dvec3 mOffset;
+	glm::dvec4 mQuatTransform;
 };
 
 }

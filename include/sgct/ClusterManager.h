@@ -82,7 +82,7 @@ public:
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
 	inline MeshImplementation getMeshImplementation() { return mMeshImpl; }
 
-	inline SGCTTrackingManager * getTrackingManagerPtr() { return mTrackingManager; }
+	inline sgct::SGCTTrackingManager * getTrackingManagerPtr() { return mTrackingManager; }
 
 private:
 	ClusterManager(void);
@@ -102,8 +102,8 @@ private:
 	std::string masterIp;
 	std::string mExternalControlPort;
 
-	SGCTUser			* mUser;
-	SGCTTrackingManager * mTrackingManager;
+	SGCTUser * mUser;
+	sgct::SGCTTrackingManager * mTrackingManager;
 
 	glm::mat4 mSceneTrans;
 	MeshImplementation mMeshImpl;

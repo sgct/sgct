@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\sgct\SGCTTracker.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\sgct\SGCTTrackingDevice.cpp"
 				>
 			</File>
@@ -318,6 +322,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sgct\SGCTNode.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\SGCTTracker.h"
 				>
 			</File>
 			<File

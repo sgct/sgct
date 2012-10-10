@@ -9,13 +9,12 @@ void myDrawFun();
 void drawAxes(float size);
 void drawWireCube(float size);
 
-unsigned int numberOfTrackedDevices;
-
 //store each device's transform 4x4 matrix
 glm::dmat4 * trackedTransforms = NULL;
 
 //pointer to a device
 sgct::SGCTTrackingDevice * devicePtr = NULL;
+//pointer to a tracker
 sgct::SGCTTracker * trackerPtr = NULL;
 
 int main( int argc, char* argv[] )
@@ -51,7 +50,7 @@ void myInitOGLFun()
 {
 	glEnable(GL_DEPTH_TEST);
 
-	numberOfTrackedDevices =
+	unsigned int numberOfTrackedDevices =
 		sgct::Engine::getTrackingManager()->getNumberOfDevices();
 
 	//allocate the array
@@ -70,6 +69,7 @@ void myPreSyncFun()
 	for(size_t i = 0; i < sgct::Engine::getTrackingManager()->getNumberOfTrackers(); i++)
 	{
 		trackerPtr = sgct::Engine::getTrackingManager()->getTrackerPtr(i);
+		
 		for(size_t j = 0; j < trackerPtr->getNumberOfDevices(); j++)
 		{
 			devicePtr = trackerPtr->getDevicePtr(j);

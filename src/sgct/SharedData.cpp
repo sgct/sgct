@@ -29,10 +29,10 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/external/zlib.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <zlib.h>
 
 using namespace sgct;
 

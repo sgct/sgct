@@ -37,7 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/FontManager.h"
 #include "../include/sgct/MessageHandler.h"
 
-#include <freetype/ftglyph.h>
+#include <external/freetype/ftglyph.h>
 
 #include <algorithm>
 #include <stdio.h>

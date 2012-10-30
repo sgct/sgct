@@ -31,7 +31,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
-#include <tinyxml2.h>
+#include "../include/external/tinyxml2.h"
 
 using namespace tinyxml2;
 

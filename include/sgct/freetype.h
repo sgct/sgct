@@ -29,11 +29,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define FREE__TYPE_H
 
 //FreeType Headers
-#include "ft2build.h"
-#include "freetype/freetype.h"
-#include "freetype/ftglyph.h"
-#include "freetype/ftoutln.h"
-#include "freetype/fttrigon.h"
+#include "external/ft2build.h"
+#include "external/freetype/freetype.h"
+#include "external/freetype/ftglyph.h"
+#include "external/freetype/ftoutln.h"
+#include "external/freetype/fttrigon.h"
 
 #include "Font.h"
 

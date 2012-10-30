@@ -33,7 +33,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Statistics.h"
 #include "ReadConfig.h"
 
-namespace sgct //simple graphics cluster toolkit
+/*! \namespace sgct
+\brief simple graphics cluster toolkit.
+This namespace contains the most basic functionality of the toolkit.
+*/
+namespace sgct
 {
 
 class Engine

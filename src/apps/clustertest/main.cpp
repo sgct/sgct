@@ -1,6 +1,5 @@
 #include <stdlib.h>
 #include <stdio.h>
-#include <zlib.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
 #define EXTENDED_SIZE 40000

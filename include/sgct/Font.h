@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _FREETYPE_FONT_H_
 #define _FREETYPE_FONT_H_
 
-#include <freetype/ftglyph.h>
+#include <external/freetype/ftglyph.h>
 
 #include <vector>
 #include <string>

@@ -32,7 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <set>
 #include <map>
 
-#include <ft2build.h>
+#include <external/ft2build.h>
 #include FT_FREETYPE_H
 
 #include "Font.h"

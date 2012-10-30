@@ -27,11 +27,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <stdio.h>
 #include <fstream>
-#include <png.h>
+#include "../include/external/png.h"
 #include <stdlib.h>
 
 #ifdef __WIN32__
-#include <pngpriv.h>
+#include "../include/external/pngpriv.h"
 #endif
 
 #include "../include/sgct/Image.h"

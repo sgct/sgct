@@ -107,6 +107,7 @@ public:
 	static int getJoystickParam( const int &joystick, const int &param );
 	static int getJoystickAxes( const int &joystick, float * values, const int &numOfValues);
 	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues);
+	static void sleep(double secs);
 
 	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	static core_sgct::SGCTUser * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }

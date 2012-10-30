@@ -1663,6 +1663,11 @@ int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * value
 	return glfwGetJoystickButtons( joystick, values, numOfValues );
 }
 
+void sgct::Engine::sleep(double secs)
+{
+	glfwSleep(secs);
+}
+
 size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
 {
     if ( isMaster() )

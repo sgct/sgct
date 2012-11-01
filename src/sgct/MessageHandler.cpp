@@ -43,14 +43,14 @@ sgct::MessageHandler::MessageHandler(void)
 	mParseBuffer	= reinterpret_cast<char*>( malloc(MESSAGE_HANDLER_MAX_SIZE) );
 
 	headerSpace		= NULL;
-	headerSpace		= reinterpret_cast<unsigned char*>( malloc(core_sgct::SGCTNetwork::mHeaderSize) );
+	headerSpace		= reinterpret_cast<unsigned char*>( malloc(sgct_core::SGCTNetwork::mHeaderSize) );
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 
-	for(unsigned int i=0; i<core_sgct::SGCTNetwork::mHeaderSize; i++)
-		headerSpace[i] = core_sgct::SGCTNetwork::SyncByte;
-	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
+	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
+		headerSpace[i] = sgct_core::SGCTNetwork::SyncByte;
+	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
 
     mLocal = true;
 }
@@ -69,12 +69,12 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	Engine::lockMutex(sgct_core::NetworkManager::gMutex);
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-    Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+    Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
 }
 
 
@@ -91,13 +91,13 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
     std::cerr << mParseBuffer;
 
     //if client send to server
-    if(!mLocal && core_sgct::NetworkManager::gMutex != NULL)
+    if(!mLocal && sgct_core::NetworkManager::gMutex != NULL)
     {
-        Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+        Engine::lockMutex(sgct_core::NetworkManager::gMutex);
         if(mBuffer.empty())
-            mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+core_sgct::SGCTNetwork::mHeaderSize);
+            mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
         mBuffer.insert(mBuffer.end(), mParseBuffer, mParseBuffer+strlen(mParseBuffer));
-        Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+        Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
     }
 }
 
@@ -117,9 +117,9 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 
 void sgct::MessageHandler::clearBuffer()
 {
-	Engine::lockMutex(core_sgct::NetworkManager::gMutex);
+	Engine::lockMutex(sgct_core::NetworkManager::gMutex);
 	mBuffer.clear();
-	Engine::unlockMutex(core_sgct::NetworkManager::gMutex);
+	Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
 }
 
 char * sgct::MessageHandler::getMessage()

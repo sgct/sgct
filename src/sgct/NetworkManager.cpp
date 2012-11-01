@@ -44,11 +44,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <GL/glfw.h>
 
-GLFWmutex core_sgct::NetworkManager::gMutex = NULL;
-GLFWmutex core_sgct::NetworkManager::gSyncMutex = NULL;
-GLFWcond core_sgct::NetworkManager::gCond = NULL;
+GLFWmutex sgct_core::NetworkManager::gMutex = NULL;
+GLFWmutex sgct_core::NetworkManager::gSyncMutex = NULL;
+GLFWcond sgct_core::NetworkManager::gCond = NULL;
 
-core_sgct::NetworkManager::NetworkManager(int mode)
+sgct_core::NetworkManager::NetworkManager(int mode)
 {
 	mNumberOfConnections = 0;
 	mAllNodesConnected = false;
@@ -90,12 +90,12 @@ core_sgct::NetworkManager::NetworkManager(int mode)
 		sgct::MessageHandler::Instance()->print("This computer is the network client.\n");
 }
 
-core_sgct::NetworkManager::~NetworkManager()
+sgct_core::NetworkManager::~NetworkManager()
 {
 	close();
 }
 
-bool core_sgct::NetworkManager::init()
+bool sgct_core::NetworkManager::init()
 {
 	//if faking an address (running local) then add it to the search list
 	if(mMode != NotLocal)
@@ -170,7 +170,7 @@ bool core_sgct::NetworkManager::init()
 	return true;
 }
 
-void core_sgct::NetworkManager::sync()
+void sgct_core::NetworkManager::sync()
 {
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 	{
@@ -179,7 +179,7 @@ void core_sgct::NetworkManager::sync()
 			mNetworkConnections[i]->isServer())
 		{
 			unsigned int currentSize =
-                sgct::SharedData::Instance()->getDataSize() - core_sgct::SGCTNetwork::mHeaderSize;
+                sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
 			//iterate counter
 			mNetworkConnections[i]->iterateFrameCounter();
@@ -226,7 +226,7 @@ void core_sgct::NetworkManager::sync()
 	}
 }
 
-bool core_sgct::NetworkManager::isSyncComplete()
+bool sgct_core::NetworkManager::isSyncComplete()
 {
 	unsigned int counter = 0;
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
@@ -239,15 +239,15 @@ bool core_sgct::NetworkManager::isSyncComplete()
 	return counter == getConnectionsCount();
 }
 
-core_sgct::SGCTNetwork * core_sgct::NetworkManager::getExternalControlPtr()
+sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 { 
-	core_sgct::SGCTNetwork * netPtr = NULL;
+	sgct_core::SGCTNetwork * netPtr = NULL;
 
 	if( mIsExternalControlPresent )
 	{
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
-			if( mNetworkConnections[i]->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl )
+			if( mNetworkConnections[i]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl )
 				return mNetworkConnections[i];
 		}
 	}
@@ -255,13 +255,13 @@ core_sgct::SGCTNetwork * core_sgct::NetworkManager::getExternalControlPtr()
 	return netPtr;
 }
 
-void core_sgct::NetworkManager::swapData()
+void sgct_core::NetworkManager::swapData()
 {
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		mNetworkConnections[i]->swapFrames();
 }
 
-void core_sgct::NetworkManager::updateConnectionStatus(int index)
+void sgct_core::NetworkManager::updateConnectionStatus(int index)
 {
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
@@ -303,7 +303,7 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index)
 			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 				if( mNetworkConnections[i]->isConnected() )
 				{
-					if( mNetworkConnections[i]->getTypeOfServer() == core_sgct::SGCTNetwork::SyncServer )
+					if( mNetworkConnections[i]->getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
 					{
 						char tmpc[SGCTNetwork::mHeaderSize];
 						tmpc[0] = SGCTNetwork::ConnectedByte;
@@ -316,7 +316,7 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index)
 					}
 				}
 
-		if( mNetworkConnections[index]->getTypeOfServer() == core_sgct::SGCTNetwork::ExternalControl &&
+		if( mNetworkConnections[index]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl &&
 			 mNetworkConnections[index]->isConnected())
 		{
 			int sendErr = mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
@@ -341,12 +341,12 @@ void core_sgct::NetworkManager::updateConnectionStatus(int index)
 	sgct::Engine::signalCond( mNetworkConnections[index]->mDoneCond );
 }
 
-void core_sgct::NetworkManager::setAllNodesConnected()
+void sgct_core::NetworkManager::setAllNodesConnected()
 {
 	mAllNodesConnected = true;
 }
 
-void core_sgct::NetworkManager::close()
+void sgct_core::NetworkManager::close()
 {
 	mIsRunning = false;
 
@@ -375,7 +375,7 @@ void core_sgct::NetworkManager::close()
 	sgct::MessageHandler::Instance()->print("Network API closed!\n");
 }
 
-bool core_sgct::NetworkManager::addConnection(const std::string port, const std::string ip, int serverType)
+bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, int serverType)
 {
 	SGCTNetwork * netPtr = NULL;
 
@@ -405,13 +405,13 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 
 		//bind callback
 		std::tr1::function< void(int) > updateCallback;
-		updateCallback = std::tr1::bind(&core_sgct::NetworkManager::updateConnectionStatus, this,
+		updateCallback = std::tr1::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
 			std::tr1::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
 
 		//bind callback
 		std::tr1::function< void(void) > connectedCallback;
-		connectedCallback = std::tr1::bind(&core_sgct::NetworkManager::setAllNodesConnected, this);
+		connectedCallback = std::tr1::bind(&sgct_core::NetworkManager::setAllNodesConnected, this);
 		netPtr->setConnectedFunction(connectedCallback);
     }
     catch( const char * err )
@@ -424,7 +424,7 @@ bool core_sgct::NetworkManager::addConnection(const std::string port, const std:
 	return true;
 }
 
-void core_sgct::NetworkManager::initAPI()
+void sgct_core::NetworkManager::initAPI()
 {
 
 #ifdef __WIN32__
@@ -450,7 +450,7 @@ void core_sgct::NetworkManager::initAPI()
 
 }
 
-void core_sgct::NetworkManager::getHostInfo()
+void sgct_core::NetworkManager::getHostInfo()
 {
 	//get name & local ips
 	char tmpStr[128];
@@ -487,12 +487,12 @@ void core_sgct::NetworkManager::getHostInfo()
 	localAddresses.push_back("127.0.0.1");
 }
 
-bool core_sgct::NetworkManager::matchHostName(const std::string name)
+bool sgct_core::NetworkManager::matchHostName(const std::string name)
 {
 	return strcmp(name.c_str(), hostName.c_str() ) == 0;
 }
 
-bool core_sgct::NetworkManager::matchAddress(const std::string ip)
+bool sgct_core::NetworkManager::matchAddress(const std::string ip)
 {
 	for( unsigned int i=0; i<localAddresses.size(); i++)
 		if( strcmp(ip.c_str(), localAddresses[i].c_str()) == 0 )

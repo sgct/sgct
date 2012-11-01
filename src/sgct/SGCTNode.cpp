@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../include/sgct/SGCTNode.h"
 
-core_sgct::SGCTNode::SGCTNode()
+sgct_core::SGCTNode::SGCTNode()
 {
 	mCurrentViewportIndex = 0;
 	numberOfSamples = 1;
@@ -36,28 +36,28 @@ core_sgct::SGCTNode::SGCTNode()
 	swapInterval = 1;
 }
 
-void core_sgct::SGCTNode::addViewport(float left, float right, float bottom, float top)
+void sgct_core::SGCTNode::addViewport(float left, float right, float bottom, float top)
 {
 	Viewport tmpVP(left, right, bottom, top);
 	mViewports.push_back(tmpVP);
 }
 
-void core_sgct::SGCTNode::addViewport(core_sgct::Viewport &vp)
+void sgct_core::SGCTNode::addViewport(sgct_core::Viewport &vp)
 {
 	mViewports.push_back(vp);
 }
 
-core_sgct::Viewport * core_sgct::SGCTNode::getCurrentViewport()
+sgct_core::Viewport * sgct_core::SGCTNode::getCurrentViewport()
 {
 	return &mViewports[mCurrentViewportIndex];
 }
 
-core_sgct::Viewport * core_sgct::SGCTNode::getViewport(unsigned int index)
+sgct_core::Viewport * sgct_core::SGCTNode::getViewport(unsigned int index)
 {
 	return &mViewports[index];
 }
 
-void core_sgct::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
+void sgct_core::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *
 		static_cast<double>(getWindowPtr()->getHResolution()));
@@ -69,7 +69,7 @@ void core_sgct::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSi
 		static_cast<double>(getWindowPtr()->getVResolution()));
 }
 
-unsigned int core_sgct::SGCTNode::getNumberOfViewports()
+unsigned int sgct_core::SGCTNode::getNumberOfViewports()
 {
 	return mViewports.size();
 }

@@ -36,7 +36,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 The constructor sets shader type
 @param	shaderType	The shader type: vertex or fragment
 */
-core_sgct::Shader::Shader( core_sgct::Shader::ShaderType shaderType ) :
+sgct_core::Shader::Shader( sgct_core::Shader::ShaderType shaderType ) :
 	mShaderType( shaderType ),
 	mShaderId( 0 )
 {
@@ -47,7 +47,7 @@ core_sgct::Shader::Shader( core_sgct::Shader::ShaderType shaderType ) :
 Destructor does nothing, have to explicitly call delete if shader should be destroyed.
 This is because copying between shaders should be allowed (i.e. when storing in containers)
 */
-core_sgct::Shader::~Shader(void)
+sgct_core::Shader::~Shader(void)
 {
 }
 //----------------------------------------------------------------------------//
@@ -58,7 +58,7 @@ At this point a compiled shader can't have its source reset. Recompilation of sh
 @param	file	Path to shader file
 @return	If setting source and compilation went ok.
 */
-bool core_sgct::Shader::setSourceFromFile( const std::string & file )
+bool sgct_core::Shader::setSourceFromFile( const std::string & file )
 {
 	//
 	// Make sure file can be opened
@@ -131,7 +131,7 @@ At this point a compiled shader can't have its source reset. Recompilation of sh
 @param	sourceString	String with shader source code
 @return	If setting the source and compilation went ok.
 */
-bool core_sgct::Shader::setSourceFromString( const std::string & sourceString )
+bool sgct_core::Shader::setSourceFromString( const std::string & sourceString )
 {
 	//
 	// At this point no resetting of shaders are supported
@@ -162,7 +162,7 @@ bool core_sgct::Shader::setSourceFromString( const std::string & sourceString )
 //----------------------------------------------------------------------------//
 
 /*! Delete the shader */
-void core_sgct::Shader::deleteShader()
+void sgct_core::Shader::deleteShader()
 {
 	glDeleteShader( mShaderId );
 }
@@ -172,7 +172,7 @@ void core_sgct::Shader::deleteShader()
 Will check the compilation status of the shader and output any errors from the shader log
 return	Status of the compilation
 */
-bool core_sgct::Shader::checkCompilationStatus() const
+bool sgct_core::Shader::checkCompilationStatus() const
 {
 	GLint compilationStatus;
 	glGetShaderiv( mShaderId, GL_COMPILE_STATUS, &compilationStatus );
@@ -207,7 +207,7 @@ Will return the name of the shader type
 @param	shaderType	The shader type
 @return	Sahder type name
 */
-std::string core_sgct::Shader::getShaderTypeName( ShaderType shaderType ) const
+std::string sgct_core::Shader::getShaderTypeName( ShaderType shaderType ) const
 {
 	switch( shaderType )
 	{

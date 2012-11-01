@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
-core_sgct::Viewport::Viewport()
+sgct_core::Viewport::Viewport()
 {
 	set(0.0, 0.0, 1.0, 1.0);
 
@@ -42,7 +42,7 @@ core_sgct::Viewport::Viewport()
 	}
 }
 
-core_sgct::Viewport::Viewport(double x, double y, double xSize, double ySize)
+sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
 {
 	set(x, y, xSize, ySize);
 
@@ -54,7 +54,7 @@ core_sgct::Viewport::Viewport(double x, double y, double xSize, double ySize)
 	}
 }
 
-void core_sgct::Viewport::set(double x, double y, double xSize, double ySize)
+void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
 {
 	mX = x;
 	mY = y;
@@ -73,7 +73,7 @@ void core_sgct::Viewport::set(double x, double y, double xSize, double ySize)
 		static_cast<float>(mY));
 }
 
-void core_sgct::Viewport::setPos(double x, double y)
+void sgct_core::Viewport::setPos(double x, double y)
 {
 	mX = x;
 	mY = y;
@@ -83,7 +83,7 @@ void core_sgct::Viewport::setPos(double x, double y)
 		static_cast<float>(mY));
 }
 
-void core_sgct::Viewport::setSize(double x, double y)
+void sgct_core::Viewport::setSize(double x, double y)
 {
 	mXSize = x;
 	mYSize = y;
@@ -93,12 +93,12 @@ void core_sgct::Viewport::setSize(double x, double y)
 		static_cast<float>(mY));
 }
 
-void core_sgct::Viewport::setEye(core_sgct::Frustum::FrustumMode eye)
+void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)
 {
 	mEye = eye;
 }
 
-void core_sgct::Viewport::setOverlayTexture(const char * texturePath)
+void sgct_core::Viewport::setOverlayTexture(const char * texturePath)
 {
 	//copy filename
 	if( strlen(texturePath) > 4 )
@@ -113,7 +113,7 @@ void core_sgct::Viewport::setOverlayTexture(const char * texturePath)
 	}
 }
 
-void core_sgct::Viewport::setCorrectionMesh(const char * meshPath)
+void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 {
 	//copy filename
 	if( strlen(meshPath) > 3 )
@@ -128,12 +128,12 @@ void core_sgct::Viewport::setCorrectionMesh(const char * meshPath)
 	}
 }
 
-void core_sgct::Viewport::setTracked(bool state)
+void sgct_core::Viewport::setTracked(bool state)
 {
 	mTracked = state;
 }
 
-void core_sgct::Viewport::loadData()
+void sgct_core::Viewport::loadData()
 {
 	if( mOverlayFilename != NULL )
 		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
@@ -142,7 +142,7 @@ void core_sgct::Viewport::loadData()
 		mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
 }
 
-void core_sgct::Viewport::calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)
+void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)
 {
 	//calculate viewplane's internal coordinate system bases
 	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
@@ -208,12 +208,12 @@ void core_sgct::Viewport::calculateFrustum(const core_sgct::Frustum::FrustumMode
 	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
 }
 
-void core_sgct::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
+void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
 {
 	mViewPlaneCoords[cornerIndex] = cornerPos;
 }
 
-void core_sgct::Viewport::renderMesh()
+void sgct_core::Viewport::renderMesh()
 {
 	mCM.render();
 }

@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef void * GLFWmutex;
 typedef void * GLFWcond;
 
-namespace core_sgct
+namespace sgct_core
 {
 
 class NetworkManager

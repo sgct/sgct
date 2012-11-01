@@ -53,7 +53,7 @@ GLXEWContext * glxewGetContext();
 
 void GLFWCALL windowResizeCallback( int width, int height );
 
-core_sgct::SGCTWindow::SGCTWindow()
+sgct_core::SGCTWindow::SGCTWindow()
 {
 	mUseSwapGroups = false;
 	mSwapGroupMaster = false;
@@ -69,7 +69,7 @@ core_sgct::SGCTWindow::SGCTWindow()
 	mWindowMode = GLFW_WINDOW;
 }
 
-void core_sgct::SGCTWindow::close()
+void sgct_core::SGCTWindow::close()
 {
 	if( mUseSwapGroups )
 	{
@@ -99,7 +99,7 @@ void core_sgct::SGCTWindow::close()
 	}
 }
 
-void core_sgct::SGCTWindow::init()
+void sgct_core::SGCTWindow::init()
 {
 	if(mWindowMode == GLFW_WINDOW)
 	{
@@ -114,18 +114,18 @@ void core_sgct::SGCTWindow::init()
 	Sets the window title.
 	@param	Title of the window.
 */
-void core_sgct::SGCTWindow::setWindowTitle(const char * title)
+void sgct_core::SGCTWindow::setWindowTitle(const char * title)
 {
 	glfwSetWindowTitle( title );
 }
 
-void core_sgct::SGCTWindow::setWindowResolution(const int x, const int y)
+void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
 }
 
-void core_sgct::SGCTWindow::initWindowResolution(const int x, const int y)
+void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
@@ -133,7 +133,7 @@ void core_sgct::SGCTWindow::initWindowResolution(const int x, const int y)
 	mWindowResOld[1] = mWindowRes[1];
 }
 
-bool core_sgct::SGCTWindow::isWindowResized()
+bool sgct_core::SGCTWindow::isWindowResized()
 {
 	if( mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1] )
 	{
@@ -145,18 +145,18 @@ bool core_sgct::SGCTWindow::isWindowResized()
 		return false;
 }
 
-void core_sgct::SGCTWindow::setWindowPosition(const int x, const int y)
+void sgct_core::SGCTWindow::setWindowPosition(const int x, const int y)
 {
 	mWindowPos[0] = x;
 	mWindowPos[1] = y;
 }
 
-void core_sgct::SGCTWindow::setWindowMode(const int mode)
+void sgct_core::SGCTWindow::setWindowMode(const int mode)
 {
 	mWindowMode = mode;
 }
 
-void core_sgct::SGCTWindow::setBarrier(const bool state)
+void sgct_core::SGCTWindow::setBarrier(const bool state)
 {
 //#ifdef __WITHSWAPBARRIERS__
 
@@ -174,19 +174,19 @@ void core_sgct::SGCTWindow::setBarrier(const bool state)
 //#endif
 }
 
-void core_sgct::SGCTWindow::useSwapGroups(const bool state)
+void sgct_core::SGCTWindow::useSwapGroups(const bool state)
 {
 	mUseSwapGroups = state;
 }
 
-void core_sgct::SGCTWindow::useQuadbuffer(const bool state)
+void sgct_core::SGCTWindow::useQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
 		glfwOpenWindowHint(GLFW_STEREO, GL_TRUE);
 }
 
-bool core_sgct::SGCTWindow::openWindow()
+bool sgct_core::SGCTWindow::openWindow()
 {
 	/* Open an OpenGL window
 	param:
@@ -207,7 +207,7 @@ bool core_sgct::SGCTWindow::openWindow()
 		mWindowMode);
 }
 
-void core_sgct::SGCTWindow::initNvidiaSwapGroups()
+void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 {
 //#ifdef __WITHSWAPBARRIERS__
 
@@ -259,10 +259,10 @@ void core_sgct::SGCTWindow::initNvidiaSwapGroups()
 
 void GLFWCALL windowResizeCallback( int width, int height )
 {
-	core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
+	sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
 }
 
-void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
+void sgct_core::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
 
@@ -284,7 +284,7 @@ void core_sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 //#endif
 }
 
-void core_sgct::SGCTWindow::resetSwapGroupFrameNumber()
+void sgct_core::SGCTWindow::resetSwapGroupFrameNumber()
 {
 
 //#ifdef __WITHSWAPBARRIERS__

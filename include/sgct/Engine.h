@@ -40,14 +40,19 @@ This namespace contains the most basic functionality of the toolkit.
 namespace sgct
 {
 
+/*!
+The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
+
+The figure below illustrates when different callbacks (gray boxes) are called in the renderloop. The blue boxes illustrates internal processess.
+
+\image html render_diagram.jpg
+\image latex render_diagram.eps "Render diagram" width=7cm
+*/
 class Engine
 {
 public:
 	Engine( int& argc, char**& argv );
-	~Engine()
-	{
-		clean();
-	}
+	~Engine();
 
 	bool init();
 	void render();
@@ -113,27 +118,33 @@ public:
 	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues);
 	static void sleep(double secs);
 
-	static core_sgct::SGCTWindow * getWindowPtr() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
-	static core_sgct::SGCTUser * getUserPtr() { return core_sgct::ClusterManager::Instance()->getUserPtr(); }
-	static sgct::SGCTTrackingManager * getTrackingManager() { return core_sgct::ClusterManager::Instance()->getTrackingManagerPtr(); }
+	static sgct_core::SGCTWindow * getWindowPtr() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
+	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
+	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
 	static void checkForOGLErrors();
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
-	inline const core_sgct::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
+	inline const sgct_core::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 	//will only return valid values when called in the draw callback function
-	inline const glm::mat4 & getActiveFrustumMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
-	inline const glm::mat4 & getActiveProjectionMatrix() { return core_sgct::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveFrustumMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 	inline const int * getActiveViewport() { return currentViewportCoords; }
 	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
 
 	//can be called any time after Engine init
-	inline const glm::mat4 & getSceneTransform() { return core_sgct::ClusterManager::Instance()->getSceneTrans(); }
+	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTrans(); }
 
+//all enums
 private:
+	enum FBOBufferIndexes { LeftEye = 0, RightEye };
+	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+
+private:
+	Engine() {;} //to prevent users to start without requred parameters
 
 	bool initNetwork();
 	bool initWindow();
@@ -151,7 +162,7 @@ private:
 	const char * getBasicInfo();
 
 	void draw();
-	void setRenderTarget(int bufferIndex);
+	void setRenderTarget(FBOBufferIndexes bi);
 	void renderFBOTexture();
 	void loadShaders();
 	void createFBOs();
@@ -194,7 +205,7 @@ private:
 	float mClearColor[4];
 
 	int localRunningMode;
-	core_sgct::Frustum::FrustumMode mActiveFrustum;
+	sgct_core::Frustum::FrustumMode mActiveFrustum;
 	int currentViewportCoords[4];
 
 	bool mShowInfo;
@@ -205,10 +216,9 @@ private:
 	bool mIgnoreSync;
 
 	//objects
-	core_sgct::Statistics	mStatistics;
+	sgct_core::Statistics	mStatistics;
 
 	//FBO stuff
-	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	unsigned int mFrameBuffers[2];
 	unsigned int mMultiSampledFrameBuffers[2];
 	unsigned int mRenderBuffers[2];
@@ -218,8 +228,8 @@ private:
 	int mFBOMode;
 
 	//pointers
-	core_sgct::NetworkManager * mNetworkConnections;
-	core_sgct::ReadConfig	* mConfig;
+	sgct_core::NetworkManager * mNetworkConnections;
+	sgct_core::ReadConfig	* mConfig;
 
 	std::string configFilename;
 	int mRunning;

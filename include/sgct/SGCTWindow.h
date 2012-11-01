@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_WINDOW_H_
 #define _SGCT_WINDOW_H_
 
-namespace core_sgct
+namespace sgct_core
 {
 
 /*!

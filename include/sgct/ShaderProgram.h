@@ -83,8 +83,8 @@ private:
 	bool mIsLinked;						// If this program has been linked
 	int mProgramId;						// Unique program id
 
-	core_sgct::Shader mVertexShader;	// Handler for the vertex shader
-	core_sgct::Shader mFragmentShader;	// Handler for the fragment shader
+	sgct_core::Shader mVertexShader;	// Handler for the vertex shader
+	sgct_core::Shader mFragmentShader;	// Handler for the fragment shader
 };
 
 } // sgct

@@ -37,7 +37,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "Font.h"
 
-namespace sgct
+/*! \namespace sgct_text
+\brief simple graphics cluster toolkit text namespace.
+This namespace is used for text rendering and font management.
+*/
+namespace sgct_text
 {
 
 /*!
@@ -53,7 +57,7 @@ public:
 	~FontManager(void);
 
 	bool AddFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
-	const Freetype::Font * GetFont( const std::string & name, unsigned int height = mDefaultHeight );
+	const Font * GetFont( const std::string & name, unsigned int height = mDefaultHeight );
 
 	void SetDefaultFontPath( const std::string & path );
 
@@ -81,8 +85,8 @@ private:
 	FontManager(void);
 
 	/// Helper functions
-	std::set<Freetype::Font>::iterator CreateFont( const std::string & fontName, unsigned int height );
-	bool MakeDisplayList( FT_Face face, char ch, Freetype::Font & font );
+	std::set<Font>::iterator CreateFont( const std::string & fontName, unsigned int height );
+	bool MakeDisplayList( FT_Face face, char ch, Font & font );
 
 	// Don't implement these, should give compile warning if used
 	FontManager( const FontManager & fm );
@@ -98,7 +102,7 @@ private:
 	FT_Library  mFTLibrary;							// Freetype library
 
 	std::map<std::string, std::string> mFontPaths;	// Holds all predefined font paths for generating font glyphs
-	std::set<Freetype::Font> mFonts;				// All generated fonts
+	std::set<Font> mFonts;				// All generated fonts
 };
 
 } // sgct

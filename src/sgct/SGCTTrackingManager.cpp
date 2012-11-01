@@ -162,8 +162,8 @@ void sgct::SGCTTrackingManager::startSampling()
 	if( !mTrackers.empty() )
 	{
 		//link the head tracker
-		setHeadTracker( core_sgct::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(),
-			core_sgct::ClusterManager::Instance()->getUserPtr()->getHeadTrackerDeviceName() );
+		setHeadTracker( sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(),
+			sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerDeviceName() );
 
 		mSamplingThreadId = glfwCreateThread( samplingLoop, this );
 		if( mSamplingThreadId < 0)
@@ -184,7 +184,7 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 			SGCTTrackingDevice * tdPtr = mTrackers[i]->getDevicePtr(j);
 			if( tdPtr->isEnabled() && tdPtr == mHead )
 			{
-				core_sgct::ClusterManager * cm = core_sgct::ClusterManager::Instance();
+				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::Instance();
 
 				//set head rot & pos
 				cm->getUserPtr()->setTransform( tdPtr->getTransformMat() );

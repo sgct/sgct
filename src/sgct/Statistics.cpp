@@ -38,7 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/Statistics.h"
 #include <memory.h>
 
-core_sgct::Statistics::Statistics()
+sgct_core::Statistics::Statistics()
 {
 	mAvgFPS = 0.0;
 	for(unsigned int i=0; i<4; i++)
@@ -56,13 +56,13 @@ core_sgct::Statistics::Statistics()
 	}
 }
 
-core_sgct::Statistics::~Statistics()
+sgct_core::Statistics::~Statistics()
 {
 	if(mVboPtrs[0] != 0)
 		glDeleteBuffers(3, &mVboPtrs[0]);
 }
 
-void core_sgct::Statistics::initVBO()
+void sgct_core::Statistics::initVBO()
 {
 	glGenBuffers(3, &mVboPtrs[0]);
 
@@ -79,12 +79,12 @@ void core_sgct::Statistics::initVBO()
 	glBindBufferARB(GL_ARRAY_BUFFER, 0);
 }
 
-void core_sgct::Statistics::setAvgFPS(double afps)
+void sgct_core::Statistics::setAvgFPS(double afps)
 {
 	mAvgFPS = afps;
 }
 
-void core_sgct::Statistics::setFrameTime(double t)
+void sgct_core::Statistics::setFrameTime(double t)
 {
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
@@ -93,7 +93,7 @@ void core_sgct::Statistics::setFrameTime(double t)
 	mFrameTime[0].y = t;
 }
 
-void core_sgct::Statistics::setDrawTime(double t)
+void sgct_core::Statistics::setDrawTime(double t)
 {
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
@@ -102,7 +102,7 @@ void core_sgct::Statistics::setDrawTime(double t)
 	mDrawTime[0].y = t;
 }
 
-void core_sgct::Statistics::setSyncTime(double t)
+void sgct_core::Statistics::setSyncTime(double t)
 {
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
@@ -111,12 +111,12 @@ void core_sgct::Statistics::setSyncTime(double t)
 	mSyncTime[0].y = t;
 }
 
-void core_sgct::Statistics::addSyncTime(double t)
+void sgct_core::Statistics::addSyncTime(double t)
 {
 	mSyncTime[0].y += t;
 }
 
-void core_sgct::Statistics::draw(unsigned long long frameNumber)
+void sgct_core::Statistics::draw(unsigned long long frameNumber)
 {
 	//make sure to only update the VBOs once per frame
 	static unsigned long long lastFrameNumber = 0;

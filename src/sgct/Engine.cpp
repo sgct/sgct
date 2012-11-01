@@ -46,7 +46,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <sstream>
 #include <deque>
 
-using namespace core_sgct;
+using namespace sgct_core;
 
 sgct::Engine *  sgct::Engine::mThis     = NULL;
 
@@ -54,6 +54,9 @@ sgct::Engine *  sgct::Engine::mThis     = NULL;
 GLEWContext * glewGetContext();
 #endif
 
+/*!
+This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
+*/
 sgct::Engine::Engine( int& argc, char**& argv )
 {
 	//init pointers
@@ -140,6 +143,21 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	parseArguments( argc, argv );
 }
 
+/*!
+Engine destructor destructs GLFW and releases resources/memory.
+*/
+sgct::Engine::~Engine()
+{
+	clean();
+}
+
+/*!
+Engine initiation that: 
+ 1. Parse the configuration file
+ 2. Set up the network communication
+ 3. Create a window
+ 4. Set up OpenGL
+*/
 bool sgct::Engine::init()
 {
 	if(mTerminate)
@@ -187,6 +205,9 @@ bool sgct::Engine::init()
 	return true;
 }
 
+/*!
+Initiates network communication.
+*/
 bool sgct::Engine::initNetwork()
 {
 	try
@@ -231,6 +252,9 @@ bool sgct::Engine::initNetwork()
 	return true;
 }
 
+/*!
+Create and initiate a window.
+*/
 bool sgct::Engine::initWindow()
 {
 	int tmpGlfwVer[3];
@@ -286,6 +310,9 @@ bool sgct::Engine::initWindow()
 	return true;
 }
 
+/*!
+Initiates OpenGL.
+*/
 void sgct::Engine::initOGL()
 {
 	//Get OpenGL version
@@ -323,14 +350,14 @@ void sgct::Engine::initOGL()
 	//
 	if( mConfig->getFontPath().empty() )
 	{
-	    if( !FontManager::Instance()->AddFont( "SGCTFont", mConfig->getFontName() ) )
-            FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+	    if( !sgct_text::FontManager::Instance()->AddFont( "SGCTFont", mConfig->getFontName() ) )
+            sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
     }
     else
     {
 	    std::string tmpPath = mConfig->getFontPath() + mConfig->getFontName();
-	    if( !FontManager::Instance()->AddFont( "SGCTFont", tmpPath, FontManager::FontPath_Local ) )
-            FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+	    if( !sgct_text::FontManager::Instance()->AddFont( "SGCTFont", tmpPath, sgct_text::FontManager::FontPath_Local ) )
+            sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
     }
 
 	//init swap group barrier when ready to render
@@ -343,6 +370,9 @@ void sgct::Engine::initOGL()
 	sgct::MessageHandler::Instance()->print("\nReady to render!\n");
 }
 
+/*!
+Clean up all resources and release memory.
+*/
 void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
@@ -390,7 +420,7 @@ void sgct::Engine::clean()
 
 	// Destroy explicitly to avoid memory leak messages
 	sgct::MessageHandler::Instance()->print("Destroying font manager...\n");
-	FontManager::Destroy();
+	sgct_text::FontManager::Destroy();
 	sgct::MessageHandler::Instance()->print("Destroying shader manager...\n");
 	ShaderManager::Destroy();
 	sgct::MessageHandler::Instance()->print("Destroying shared data...\n");
@@ -430,6 +460,9 @@ void sgct::Engine::clean()
 	std::cout << " Done." << std::endl;
 }
 
+/*!
+Un-binds all callbacks.
+*/
 void sgct::Engine::clearAllCallbacks()
 {
 	glfwSetKeyCallback( NULL );
@@ -459,6 +492,12 @@ void sgct::Engine::clearAllCallbacks()
 	}
 }
 
+/*!
+Locks the rendering thread for synchronization. The two stages are:
+
+1. PreStage, locks the slaves until data is successfully received
+2. PostStage, locks master until slaves have rendered to the backbuffer
+*/
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
 	if(mIgnoreSync)
@@ -517,6 +556,9 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 	}
 }
 
+/*!
+	This is SGCT's renderloop where rendeing & synchronization takes place.
+*/
 void sgct::Engine::render()
 {
 	mRunning = GL_TRUE;
@@ -560,7 +602,7 @@ void sgct::Engine::render()
 
 		//if any stereo type (except passive) then set frustum mode to left eye
 		mActiveFrustum = tmpNode->stereo != static_cast<int>(ReadConfig::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
-		setRenderTarget(0); //Set correct render target (Backbuffer, FBO etc..)
+		setRenderTarget(LeftEye); //Set correct render target (Backbuffer, FBO etc..)
 
 		//render all viewports for mono or left eye
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -585,7 +627,7 @@ void sgct::Engine::render()
 		if( tmpNode->stereo != ReadConfig::NoStereo )
 		{
 			mActiveFrustum = Frustum::StereoRightEye;
-			setRenderTarget(1); //Set correct render target (Backbuffer, FBO etc..)
+			setRenderTarget(RightEye); //Set correct render target (Backbuffer, FBO etc..)
 
 			//render all viewports for right eye
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -690,6 +732,9 @@ void sgct::Engine::render()
 	}
 }
 
+/*!
+	This function renders basic text info and statistics on screen.
+*/
 void sgct::Engine::renderDisplayInfo()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -700,25 +745,25 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Node ip: %s (%s)",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Draw time: %.2f ms", getDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
 		getSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
-	Freetype::print(FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
 		tmpNode->getCurrentViewport()->isTracked() ? "true" : "false",
 		getUserPtr()->getXPos(),
 		getUserPtr()->getYPos(),
@@ -728,25 +773,28 @@ void sgct::Engine::renderDisplayInfo()
 	if( tmpNode->stereo == ReadConfig::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
-		Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
-		Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 	}
 	else //if passive stereo
 	{
 		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
 		}
 		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
-			Freetype::print( FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
 		}
 	}
 	glPopAttrib();
 }
 
+/*!
+	This function enters the correct viewport, frustum, stereo mode and calls the draw callback.
+*/
 void sgct::Engine::draw()
 {
 	enterCurrentViewport();
@@ -808,7 +856,14 @@ void sgct::Engine::draw()
 	}
 }
 
-void sgct::Engine::setRenderTarget(int bufferIndex)
+/*!
+	This function clears and sets the correct buffer like:
+	
+	- Backbuffer
+	- FBO
+	- Multisampled FBO
+*/
+void sgct::Engine::setRenderTarget(FBOBufferIndexes bi)
 {
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
@@ -816,9 +871,9 @@ void sgct::Engine::setRenderTarget(int bufferIndex)
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[bufferIndex]);
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[ bi ]);
 		else
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[bufferIndex]);
+			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[ bi ]);
 
 		setAndClearBuffer(RenderToTexture);
 	}
@@ -826,6 +881,10 @@ void sgct::Engine::setRenderTarget(int bufferIndex)
 		setAndClearBuffer(BackBuffer);
 }
 
+/*!
+	Draw geometry and bind FBO as texture in screenspace (ortho mode).
+	The geometry can be a simple quad or a geometry correction and blending mesh.
+*/
 void sgct::Engine::renderFBOTexture()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -923,13 +982,17 @@ void sgct::Engine::renderFBOTexture()
 	glPopMatrix();
 }
 
+/*!
+	This function loads shaders that handles different 3D modes.
+	The shaders are only loaded once in the initOGL function.
+*/
 void sgct::Engine::loadShaders()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	if( tmpNode->stereo == ReadConfig::Anaglyph_Red_Cyan )
 	{
-		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
@@ -939,7 +1002,7 @@ void sgct::Engine::loadShaders()
 	}
 	else if( tmpNode->stereo == ReadConfig::Anaglyph_Amber_Blue )
 	{
-		sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
@@ -949,7 +1012,7 @@ void sgct::Engine::loadShaders()
 	}
 	else if( tmpNode->stereo == ReadConfig::Checkerboard )
 	{
-		sgct::ShaderManager::Instance()->addShader("Checkerboard", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
@@ -959,7 +1022,7 @@ void sgct::Engine::loadShaders()
 	}
 	else if( tmpNode->stereo == ReadConfig::Checkerboard_Inverted )
 	{
-		sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", core_sgct::shaders::Anaglyph_Vert_Shader, core_sgct::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
 		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
 		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
@@ -969,6 +1032,10 @@ void sgct::Engine::loadShaders()
 	}
 }
 
+/*!
+	This function creates FBOs if they are supported.
+	This is done in the initOGL function.
+*/
 void sgct::Engine::createFBOs()
 {
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
@@ -1052,6 +1119,9 @@ void sgct::Engine::createFBOs()
 
 }
 
+/*!
+	This function resizes the FBOs when the window is resized to achive 1:1 pixel-texel mapping.
+*/
 void sgct::Engine::resizeFBOs()
 {
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
@@ -1082,6 +1152,19 @@ void sgct::Engine::resizeFBOs()
 	}
 }
 
+/*!
+	\param mode is the one of the following:
+
+	- Backbuffer (transparent)
+	- Backbuffer (black)
+	- RenderToTexture
+	
+	This function clears and sets the appropriate buffer from:
+
+	- Back buffer
+	- Left back buffer
+	- Right back buffer
+*/
 void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 {
 	if(mode < RenderToTexture)
@@ -1109,6 +1192,10 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 	}
 }
 
+/*!
+	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
+	This function is called at the end of each render loop iteration but can also be called on demand.
+*/
 void sgct::Engine::checkForOGLErrors()
 {
 	GLenum oglError = glGetError();
@@ -1145,6 +1232,14 @@ void sgct::Engine::checkForOGLErrors()
 	}
 }
 
+/*!
+	This functions saves a png screenshot or a stereoscopic pair in the current working directory.
+	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
+	This function is running in the same thread as the renderloop so calling this function for each frame will slow down rendering.
+	Performance is improved by using SSD drives.
+	
+	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
+*/
 void sgct::Engine::captureBuffer()
 {
 	double t0 = getTime();
@@ -1258,6 +1353,10 @@ void sgct::Engine::captureBuffer()
 	sgct::MessageHandler::Instance()->print("Screenshot %d completed in %fs\n", shotCounter, getTime()-t0 );
 }
 
+/*!
+	This function waits for all windows to be created on the whole cluster in order to set the barrier (hardware swap-lock).
+	Under some Nvida drivers the stability is improved by first join a swapgroup and then set the barrier then all windows in a swapgroup are created.
+*/
 void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 {
 	sgct::MessageHandler::Instance()->print("Joining swap group if enabled/supported...\n");
@@ -1306,6 +1405,9 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 		sgct::MessageHandler::Instance()->print("Swapgroups (swap-lock) are disabled.\n");
 }
 
+/*!
+	This functions updates the frustum of all viewports on demand. However if the viewport is tracked this is done on the fly.
+*/
 void sgct::Engine::calculateFrustums()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -1334,6 +1436,12 @@ void sgct::Engine::calculateFrustums()
 		}
 }
 
+/*!
+	\param argc is the number of arguments separated by whitespace
+	\param argv is the string array of arguments
+	
+	This function parses all SGCT arguments and removes them from the argument list.
+*/
 void sgct::Engine::parseArguments( int& argc, char**& argv )
 {
 	//parse arguments
@@ -1425,45 +1533,156 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 	sgct::MessageHandler::Instance()->print(" Done\n");
 }
 
+/*!
+	\param fnPtr is the function pointer to a draw callback
+	
+	This function sets the draw callback. It's possible to have several draw functions and change the callback on the fly preferably in a stage before the draw like the post-sync-pre-draw stage or the pre-sync stage.
+	The draw callback can be called several times per frame since it's called once for every viewport and once for every eye if stereoscopy is used.
+*/
 void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 {
 	mDrawFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a pre-sync callback
+	
+	This function sets the pre-sync callback. The Engine will then use the callback before the sync stage.
+	In the callback set the variables that will be shared. 
+*/
 void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 {
 	mPreSyncFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a post-sync-pre-draw callback
+	
+	This function sets the post-sync-pre-draw callback. The Engine will then use the callback after the sync stage but before the draw stage. Compared to the draw callback the post-sync-pre-draw callback is called only once per frame.
+	In this callback synchronized variables can be applied or simulations depending on synchronized input can run.
+*/
 void sgct::Engine::setPostSyncPreDrawFunction(void(*fnPtr)(void))
 {
 	mPostSyncPreDrawFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a post-draw callback
+	
+	This function sets the post-draw callback. The Engine will then use the callback after the draw stage but before the OpenGL buffer swap. Compared to the draw callback the post-draw callback is called only once per frame.
+	In this callback data/buffer swaps can be made.
+*/
 void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))
 {
 	mPostDrawFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a initiation of OpenGL callback
+	
+	This function sets the initOGL callback. The Engine will then use the callback only once before the starting the render loop.
+	Textures, Models, Buffers, etc. can be loaded/allocated here.
+*/
 void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 {
 	mInitOGLFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a clear buffer function callback
+	
+	This function sets the clear buffer callback which will override the default clear buffer function:
+
+	\code
+	void sgct::Engine::clearBuffer(void)
+	{
+		const float * colorPtr = sgct::Engine::getPtr()->getClearColor();
+		glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
+	\endcode
+*/
 void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 {
 	mClearBufferFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to a clean up function callback
+	
+	This function sets the clean up callback which will be called in the Engine destructor before all sgct components (like window, OpenGL context, network, etc.) will be destroyed.
+*/
 void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 {
 	mCleanUpFn = fnPtr;
 }
 
+/*!
+	\param fnPtr is the function pointer to an external control function callback
+	
+	This function sets the external control callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
+	Example:
+	\code
+	<Cluster masterAddress="127.0.0.1" externalControlPort="20500">
+	\endcode
+
+	All TCP messages must be separated by carriage return (CR) followed by a newline (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
+
+*/
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))
 {
 	mNetworkCallbackFn = fnPtr;
 }
+
+/*!
+	\param fnPtr is the function pointer to a keyboard function callback
+	
+	This function sets the keyboard callback (GLFW wrapper) where the two parameters are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a special character defined in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
+
+	Name          | Description
+	------------- | -------------
+	SGCT_KEY_UNKNOWN  | Unknown
+	SGCT_KEY_SPACE  | Space
+	SGCT_KEY_SPECIAL | Special
+	SGCT_KEY_ESC  | Escape
+	SGCT_KEY_Fn  | Function key n (n can be in the range 1..25)
+	SGCT_KEY_UP  | Arrow/Cursor up
+	SGCT_KEY_DOWN  | Arrow/Cursor down
+	SGCT_KEY_LEFT  | Arrow/Cursor left
+	SGCT_KEY_RIGHT  | Arrow/Cursor right
+	SGCT_KEY_LSHIFT  | Left shift key
+	SGCT_KEY_RSHIFT  | Right shift key
+	SGCT_KEY_LCTRL  | Left control key
+	SGCT_KEY_RCTRL  | Right control key
+	SGCT_KEY_LALT  | Left alternate function key
+	SGCT_KEY_RALT  | Right alternate function key
+	SGCT_KEY_TAB  | Tabulator
+	SGCT_KEY_ENTER  | Enter
+	SGCT_KEY_BACKSPACE  | Backspace
+	SGCT_KEY_INSERT  | Insert
+	SGCT_KEY_DEL  | Delete
+	SGCT_KEY_PAGEUP  | Page up
+	SGCT_KEY_PAGEDOWN  | Page down
+	SGCT_KEY_HOME  | Home
+	SGCT_KEY_END  | End
+	SGCT_KEY_KP_n  | Keypad numeric key n (n can be in the range 0..9)
+	SGCT_KEY_KP_DIVIDE  | Keypad divide
+	SGCT_KEY_KP_MULTIPLY  | Keypad multiply
+	SGCT_KEY_KP_SUBTRACT  | Keypad subtract
+	SGCT_KEY_KP_ADD  | Keypad add
+	SGCT_KEY_KP_DECIMAL  | Keypad decimal
+	SGCT_KEY_KP_EQUAL  | Keypad equal
+	SGCT_KEY_KP_ENTER  | Keypad enter
+	SGCT_KEY_KP_NUM_LOCK  | Keypad num lock
+	SGCT_KEY_CAPS_LOCK  | Caps lock
+	SGCT_KEY_SCROLL_LOCK  | Scroll lock
+	SGCT_KEY_PAUSE  | Pause key
+	SGCT_KEY_LSUPER  | Left super key, WinKey, or command key
+	SGCT_KEY_RSUPER  | Right super key, WinKey, or command key
+	SGCT_KEY_MENU  | Menu key
+	SGCT_KEY_LAST  | Last key index
+
+*/
 
 void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 {

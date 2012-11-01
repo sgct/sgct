@@ -107,7 +107,7 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 	}
 
 	//load image
-	core_sgct::Image img;
+	sgct_core::Image img;
 	if( !img.load(filename.c_str()) )
 		return false;
 

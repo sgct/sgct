@@ -28,7 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _FRUSTUM
 #define _FRUSTUM
 
-namespace core_sgct
+namespace sgct_core
 {
 
 class Frustum

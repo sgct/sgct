@@ -33,7 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <string>
 
-namespace Freetype
+namespace sgct_text
 {
 
 /*!

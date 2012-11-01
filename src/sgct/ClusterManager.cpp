@@ -28,9 +28,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ClusterManager.h"
 #include <glm/gtx/euler_angles.hpp>
 
-core_sgct::ClusterManager * core_sgct::ClusterManager::mInstance = NULL;
+sgct_core::ClusterManager * sgct_core::ClusterManager::mInstance = NULL;
 
-core_sgct::ClusterManager::ClusterManager(void)
+sgct_core::ClusterManager::ClusterManager(void)
 {
 	masterIndex = -1;
 	mThisNodeId = -1;
@@ -41,7 +41,7 @@ core_sgct::ClusterManager::ClusterManager(void)
 	mMeshImpl = DISPLAY_LIST; //default
 }
 
-core_sgct::ClusterManager::~ClusterManager()
+sgct_core::ClusterManager::~ClusterManager()
 {
 	nodes.clear();
 	
@@ -52,22 +52,22 @@ core_sgct::ClusterManager::~ClusterManager()
 	mTrackingManager = NULL;
 }
 
-void core_sgct::ClusterManager::addNode(core_sgct::SGCTNode node)
+void sgct_core::ClusterManager::addNode(sgct_core::SGCTNode node)
 {
 	nodes.push_back(node);
 }
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getNodePtr(unsigned int index)
+sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(unsigned int index)
 {
 	return &nodes[index];
 }
 
-core_sgct::SGCTNode * core_sgct::ClusterManager::getThisNodePtr()
+sgct_core::SGCTNode * sgct_core::ClusterManager::getThisNodePtr()
 {
 	return mThisNodeId < 0 ? NULL : &nodes[mThisNodeId];
 }
 
-void core_sgct::ClusterManager::updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset)
+void sgct_core::ClusterManager::updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset)
 {
 	mSceneTrans =
 		glm::yawPitchRoll(

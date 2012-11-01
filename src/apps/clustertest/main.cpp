@@ -75,7 +75,7 @@ int main( int argc, char* argv[] )
 	//gEngine->setExternalControlBufferSize( 16384 );
 
 	//double t0 = sgct::Engine::getTime();
-	/*core_sgct::PLYReader myPLYReader;
+	/*sgct_core::PLYReader myPLYReader;
 	if( myPLYReader.readfile("bunny.ply") )
 	{
 		double duration = sgct::Engine::getTime() - t0;
@@ -116,9 +116,9 @@ void myDrawFun()
 
 	glPushMatrix();
 
-	/*if( core_sgct::Frustum::Mono == gEngine->getActiveFrustum() )
+	/*if( sgct_core::Frustum::Mono == gEngine->getActiveFrustum() )
 		sgct::MessageHandler::Instance()->print("Mono!\n");
-	else if( core_sgct::Frustum::StereoLeftEye == gEngine->getActiveFrustum() )
+	else if( sgct_core::Frustum::StereoLeftEye == gEngine->getActiveFrustum() )
 		sgct::MessageHandler::Instance()->print("Left eye!\n");
 	else
 		sgct::MessageHandler::Instance()->print("Right eye!\n");*/
@@ -169,14 +169,14 @@ void myDrawFun()
 
 	glPopMatrix();
 
-	if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoLeftEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 50, "Left");
-	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::StereoRightEye )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 100, "Right");
-	else if( gEngine->getActiveFrustum() == core_sgct::Frustum::Mono )
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 150, "Mono");
+	if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoLeftEye )
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 50, "Left");
+	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye )
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 100, "Right");
+	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::Mono )
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 150, "Mono");
 
-	/*Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
+	/*sgct_text::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
 		myTestClass.d1,
 		myTestClass.d2,
 		myTestClass.f1,
@@ -184,9 +184,9 @@ void myDrawFun()
 		myTestClass.i1,
 		myTestClass.i2);*/
 
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Size test: %f",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Size test: %f",
 		extraData[EXTENDED_SIZE-1]);
-	Freetype::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 0, "String: %s...",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 0, "String: %s...",
 		mySharedString.substr(0, 16).c_str());
 	//drawGrid(10.0, 100);
 }

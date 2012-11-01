@@ -36,7 +36,7 @@ struct StatsVertex
 	double x, y;
 };
 
-namespace core_sgct
+namespace sgct_core
 {
 
 /*!
@@ -69,6 +69,6 @@ private:
 	unsigned int mVboPtrs[4];
 };
 
-} //core_sgct
+} //sgct_core
 
 #endif

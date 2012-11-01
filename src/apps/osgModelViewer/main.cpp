@@ -261,8 +261,8 @@ void myDrawFun()
 	
 	if( gEngine->isMaster() )
 	{
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 35, "Scale: %.10f", scale);
-		Freetype::print(sgct::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 35, "Scale: %.10f", scale);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
 	}
 }
 

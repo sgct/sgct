@@ -42,7 +42,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <algorithm>
 #include <stdio.h>
 
-using namespace sgct;
+using namespace sgct_text;
 
 //----------------------------------------------------------------------
 // Helper functions
@@ -106,12 +106,12 @@ Destructor cleans up all font objects
 */
 FontManager::~FontManager(void)
 {
-	std::set<Freetype::Font>::iterator it = mFonts.begin();
-	std::set<Freetype::Font>::iterator end = mFonts.end();
+	std::set<Font>::iterator it = mFonts.begin();
+	std::set<Font>::iterator end = mFonts.end();
 
 	for( ; it != end; ++it )
 	{
-		const_cast<Freetype::Font&>( (*it) ).clean();
+		const_cast<Font&>( (*it) ).clean();
 	}
 
 	if( mFTLibrary != NULL )
@@ -162,13 +162,13 @@ Get a font face that is loaded into memory.
 @param	height	Height in  pixels for the font
 @return	Pointer to the font face, NULL if not found
 */
-const Freetype::Font * FontManager::GetFont( const std::string & fontName, unsigned int height )
+const Font * FontManager::GetFont( const std::string & fontName, unsigned int height )
 {
 	// If there will be a lot of switching between font sizes consider saving every font face as a unique font instead
 	// of resizing
-	Freetype::Font searchFont( fontName, static_cast<float>( height ) );
+	Font searchFont( fontName, static_cast<float>( height ) );
 
-	std::set<Freetype::Font>::iterator it = std::find( mFonts.begin(), mFonts.end(), searchFont );
+	std::set<Font>::iterator it = std::find( mFonts.begin(), mFonts.end(), searchFont );
 
 	if( it == mFonts.end() )
 	{
@@ -184,7 +184,7 @@ Creates font textures with a specific height if a path to the font exists
 @param	height		Height of the font in pixels
 @return	Iterator to the newly created font, end of the Fonts container if something went wrong
 */
-std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & fontName, unsigned int height )
+std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, unsigned int height )
 {
 	std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
 
@@ -221,7 +221,7 @@ std::set<Freetype::Font>::iterator FontManager::CreateFont( const std::string & 
 	}
 
 	// Create the font when all error tests are done
-	Freetype::Font newFont = Freetype::Font();
+	Font newFont = Font();
 	newFont.init( fontName, height );
 
 
@@ -249,7 +249,7 @@ Create a display list for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::MakeDisplayList ( FT_Face face, char ch, Freetype::Font & font )
+bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 {
 
 	//The first thing we do is get FreeType to render our character

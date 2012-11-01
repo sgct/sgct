@@ -30,7 +30,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include <string>
 
-namespace core_sgct
+namespace sgct_core
 {
 	/*
 		All shaders are in GLSL 1.2 for compability with Mac OS X

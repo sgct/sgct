@@ -39,7 +39,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define SAFE_DELETE( p ) { if( p != NULL ) { delete p; p = NULL; } };
 #define SAFE_DELETE_A( p ) { if( p != NULL ) { delete[] p; p = NULL; } };
 
-using namespace Freetype;
+using namespace sgct_text;
 
 /*!
 Default constructor does not allocate any resources for the font.

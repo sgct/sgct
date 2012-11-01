@@ -33,7 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include <vector>
 
-namespace core_sgct
+namespace sgct_core
 {
 class SGCTNode
 {

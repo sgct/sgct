@@ -37,7 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
 
-bool core_sgct::Image::load(const char * filename)
+bool sgct_core::Image::load(const char * filename)
 {
 	int length = 0;
 
@@ -70,7 +70,7 @@ bool core_sgct::Image::load(const char * filename)
 
 #define PNG_BYTES_TO_CHECK 8
 
-bool core_sgct::Image::loadPNG(const char *filename)
+bool sgct_core::Image::loadPNG(const char *filename)
 {
 	mFilename = NULL;
 	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
@@ -196,7 +196,7 @@ bool core_sgct::Image::loadPNG(const char *filename)
 	return true;
 }
 
-bool core_sgct::Image::savePNG(const char * filename)
+bool sgct_core::Image::savePNG(const char * filename)
 {
 	mFilename = NULL;
 	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
@@ -298,7 +298,7 @@ bool core_sgct::Image::savePNG(const char * filename)
 	return true;
 }
 
-void core_sgct::Image::cleanup()
+void sgct_core::Image::cleanup()
 {
 	//delete data;
 	free(mData);
@@ -308,37 +308,37 @@ void core_sgct::Image::cleanup()
 	mFilename = NULL;
 }
 
-unsigned char * core_sgct::Image::getData()
+unsigned char * sgct_core::Image::getData()
 {
 	return mData;
 }
-int core_sgct::Image::getChannels()
+int sgct_core::Image::getChannels()
 {
 	return mChannels;
 }
 
-int core_sgct::Image::getSizeX()
+int sgct_core::Image::getSizeX()
 {
 	return mSize_x;
 }
 
-int core_sgct::Image::getSizeY()
+int sgct_core::Image::getSizeY()
 {
 	return mSize_y;
 }
 
-void core_sgct::Image::setDataPtr(unsigned char * dPtr)
+void sgct_core::Image::setDataPtr(unsigned char * dPtr)
 {
 	mData = dPtr;
 }
 
-void core_sgct::Image::setSize(int width, int height)
+void sgct_core::Image::setSize(int width, int height)
 {
 	mSize_x = width;
 	mSize_y = height;
 }
 
-void core_sgct::Image::setChannels(int channels)
+void sgct_core::Image::setChannels(int channels)
 {
 	mChannels = channels;
 }

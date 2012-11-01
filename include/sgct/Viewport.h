@@ -33,7 +33,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "CorrectionMesh.h"
 #include <stddef.h> //get definition for NULL
 
-namespace core_sgct
+namespace sgct_core
 {
 
 class Viewport
@@ -50,7 +50,7 @@ public:
 	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
 	void loadData();
-	void calculateFrustum(const core_sgct::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
+	void calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void renderMesh();
 
@@ -59,10 +59,10 @@ public:
 	inline double getXSize() { return mXSize; }
 	inline double getYSize() { return mYSize; }
 	inline Frustum::FrustumMode getEye() { return mEye; }
-	inline Frustum * getFrustum(core_sgct::Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
+	inline Frustum * getFrustum(sgct_core::Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
-	inline const glm::mat4 & getProjectionMatrix( core_sgct::Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
-	inline const glm::mat4 & getFrustumMatrix( core_sgct::Frustum::FrustumMode frustumMode ) { return mFrustumMat[frustumMode]; }
+	inline const glm::mat4 & getProjectionMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
+	inline const glm::mat4 & getFrustumMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mFrustumMat[frustumMode]; }
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }

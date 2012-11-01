@@ -47,7 +47,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 typedef void * GLFWmutex;
 typedef void * GLFWcond;
 
-namespace core_sgct //small graphics cluster toolkit
+namespace sgct_core //small graphics cluster toolkit
 {
 
 class SGCTNetwork

@@ -39,7 +39,7 @@ struct CorrectionMeshVertex
 	unsigned char padding[5]; //32 - 8 - 8 - 8 - 3 = 5
 };
 
-namespace core_sgct
+namespace sgct_core
 {
 
 /*!
@@ -81,6 +81,6 @@ private:
 	bool hasMesh;
 };
 
-} //core_sgct
+} //sgct_core
 
 #endif

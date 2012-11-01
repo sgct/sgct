@@ -35,7 +35,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 using namespace tinyxml2;
 
-core_sgct::ReadConfig::ReadConfig( const std::string filename )
+sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 	useExternalControlPort = false;
@@ -87,7 +87,7 @@ core_sgct::ReadConfig::ReadConfig( const std::string filename )
 		ClusterManager::Instance()->getNodePtr(i)->port.c_str());
 }
 
-bool core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
+bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
 {
     size_t foundIndex = filename.find('%');
     if( foundIndex != std::string::npos )
@@ -158,7 +158,7 @@ bool core_sgct::ReadConfig::replaceEnvVars( const std::string &filename )
     return true;
 }
 
-void core_sgct::ReadConfig::readAndParseXML()
+void sgct_core::ReadConfig::readAndParseXML()
 {
 	if( xmlFileName.empty() )
         throw "Invalid XML file!";
@@ -595,7 +595,7 @@ void core_sgct::ReadConfig::readAndParseXML()
 	}
 }
 
-int core_sgct::ReadConfig::getStereoType( const std::string type )
+int sgct_core::ReadConfig::getStereoType( const std::string type )
 {
 	if( strcmp( type.c_str(), "none" ) == 0 )
 		return NoStereo;

@@ -114,7 +114,7 @@ void sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
 	const glm::dmat4 & preTransform =
-        core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
+        sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
 
     //swap
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];

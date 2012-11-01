@@ -38,7 +38,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ClusterManager.h"
 #include <cstring>
 
-core_sgct::CorrectionMesh::CorrectionMesh()
+sgct_core::CorrectionMesh::CorrectionMesh()
 {
 	mVertices = NULL;
 	mVertexList = NULL;
@@ -60,7 +60,7 @@ core_sgct::CorrectionMesh::CorrectionMesh()
 	hasMesh = false;
 }
 
-core_sgct::CorrectionMesh::~CorrectionMesh()
+sgct_core::CorrectionMesh::~CorrectionMesh()
 {
 	if( hasMesh )
 	{
@@ -73,7 +73,7 @@ core_sgct::CorrectionMesh::~CorrectionMesh()
 	}
 }
 
-void core_sgct::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos)
+void sgct_core::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos)
 {
 	mXSize = vpXSize;
 	mYSize = vpYSize;
@@ -81,7 +81,7 @@ void core_sgct::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, 
 	mYOffset = vpYPos;
 }
 
-bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
+bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 {
 	if( meshPath == NULL )
 	{
@@ -258,7 +258,7 @@ bool core_sgct::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	return true;
 }
 
-void core_sgct::CorrectionMesh::createMesh()
+void sgct_core::CorrectionMesh::createMesh()
 {
 	//sgct::MessageHandler::Instance()->print("Uploading mesh data...\n");
 
@@ -320,7 +320,7 @@ void core_sgct::CorrectionMesh::createMesh()
 	}
 }
 
-void core_sgct::CorrectionMesh::render()
+void sgct_core::CorrectionMesh::render()
 {
 	if(hasMesh)
 		renderMesh();
@@ -351,7 +351,7 @@ void core_sgct::CorrectionMesh::render()
 	}
 }
 
-void core_sgct::CorrectionMesh::cleanUp()
+void sgct_core::CorrectionMesh::cleanUp()
 {
 	//clean up
 	if( mVertices != NULL )
@@ -373,7 +373,7 @@ void core_sgct::CorrectionMesh::cleanUp()
 	}
 }
 
-void core_sgct::CorrectionMesh::renderMesh()
+void sgct_core::CorrectionMesh::renderMesh()
 {
 	if( ClusterManager::Instance()->getMeshImplementation() != ClusterManager::DISPLAY_LIST )
 	{

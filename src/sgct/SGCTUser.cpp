@@ -27,7 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../include/sgct/SGCTUser.h"
 
-core_sgct::SGCTUser::SGCTUser()
+sgct_core::SGCTUser::SGCTUser()
 {
 	for(unsigned int i=0; i<3; i++)
 		mPos[i] = glm::vec3(0.0f);
@@ -35,7 +35,7 @@ core_sgct::SGCTUser::SGCTUser()
 	mTransform = glm::dmat4(1.0);
 }
 
-void core_sgct::SGCTUser::setPos(float x, float y, float z)
+void sgct_core::SGCTUser::setPos(float x, float y, float z)
 {
 	mPos[Frustum::Mono].x = x;
 	mPos[Frustum::Mono].y = y;
@@ -43,19 +43,19 @@ void core_sgct::SGCTUser::setPos(float x, float y, float z)
 	updateEyeSeparation();
 }
 
-void core_sgct::SGCTUser::setPos(glm::vec3 pos)
+void sgct_core::SGCTUser::setPos(glm::vec3 pos)
 {
 	mPos[Frustum::Mono] = pos;
 	updateEyeSeparation();
 }
 
-void core_sgct::SGCTUser::setPos(glm::dvec4 pos)
+void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
 {
 	mPos[Frustum::Mono] = glm::vec3(pos);
 	updateEyeSeparation();
 }
 
-void core_sgct::SGCTUser::setPos(double * pos)
+void sgct_core::SGCTUser::setPos(double * pos)
 {
 	mPos[Frustum::Mono].x = static_cast<float>(pos[0]);
 	mPos[Frustum::Mono].y = static_cast<float>(pos[1]);
@@ -63,25 +63,25 @@ void core_sgct::SGCTUser::setPos(double * pos)
 	updateEyeSeparation();
 }
 
-void core_sgct::SGCTUser::setHeadTracker(const char * trackerName, const char * deviceName)
+void sgct_core::SGCTUser::setHeadTracker(const char * trackerName, const char * deviceName)
 {
 	mHeadTrackerDeviceName.assign(deviceName);
 	mHeadTrackerName.assign(trackerName);
 }
 
-void core_sgct::SGCTUser::setTransform(const glm::dmat4 & transform)
+void sgct_core::SGCTUser::setTransform(const glm::dmat4 & transform)
 {
 	mTransform = glm::dmat4( transform );
 	updateEyeTransform();
 }
 
-void core_sgct::SGCTUser::setTransform(const glm::mat4 & transform)
+void sgct_core::SGCTUser::setTransform(const glm::mat4 & transform)
 {
 	mTransform = transform;
 	updateEyeTransform();
 }
 
-void core_sgct::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
+void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 {
 	//create rotation quaternion based on x, y, z rotations
 	glm::quat rotQuat;
@@ -98,20 +98,20 @@ void core_sgct::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 	updateEyeTransform();
 }
 
-void core_sgct::SGCTUser::setEyeSeparation(float eyeSeparation)
+void sgct_core::SGCTUser::setEyeSeparation(float eyeSeparation)
 {
 	mEyeSeparation = eyeSeparation;
 	updateEyeSeparation();
 }
 
-void core_sgct::SGCTUser::updateEyeSeparation()
+void sgct_core::SGCTUser::updateEyeSeparation()
 {
 	glm::vec3 eyeOffsetVec( mEyeSeparation/2.0f, 0.0f, 0.0f );
 	mPos[Frustum::StereoLeftEye] = mPos[Frustum::Mono] - eyeOffsetVec;
 	mPos[Frustum::StereoRightEye] = mPos[Frustum::Mono] + eyeOffsetVec;
 }
 
-void core_sgct::SGCTUser::updateEyeTransform()
+void sgct_core::SGCTUser::updateEyeTransform()
 {
 	glm::vec4 eyeOffsetVec( mEyeSeparation/2.0f, 0.0f, 0.0f, 0.0f );
 	
@@ -125,7 +125,7 @@ void core_sgct::SGCTUser::updateEyeTransform()
 	mPos[Frustum::StereoRightEye] = glm::vec3( mTransform * pos[Frustum::StereoRightEye] );
 }
 
-const glm::vec3 & core_sgct::SGCTUser::getPos(Frustum::FrustumMode fm)
+const glm::vec3 & sgct_core::SGCTUser::getPos(Frustum::FrustumMode fm)
 {
 	return mPos[fm];
 }

@@ -105,7 +105,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe);
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
-	core_sgct::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking );
+	sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking );
 
 	if( takeScreenshot )
 	{
@@ -259,7 +259,7 @@ void keyCallback(int key, int action)
 			if(action == GLFW_PRESS)
 			{
 				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
-				core_sgct::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
+				sgct_core::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
 			}
 			break;
 

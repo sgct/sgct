@@ -33,7 +33,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "SGCTTrackingManager.h"
 #include <string>
 
-namespace core_sgct
+/*! \namespace sgct_core
+\brief simple graphics cluster toolkit core namespace.
+This namespace is used internally within sgct.
+*/
+namespace sgct_core
 {
 
 class ClusterManager

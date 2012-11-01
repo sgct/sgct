@@ -34,7 +34,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <string>
 #include "Frustum.h"
 
-namespace core_sgct
+namespace sgct_core
 {
 
 /*!
@@ -82,6 +82,6 @@ private:
 
 };
 
-} // core_sgct
+} // sgct_core
 
 #endif

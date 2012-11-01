@@ -32,7 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <vector>
 #include <glm/glm.hpp>
 
-namespace core_sgct //simple graphics cluster toolkit
+namespace sgct_core //simple graphics cluster toolkit
 {
 
 class ReadConfig

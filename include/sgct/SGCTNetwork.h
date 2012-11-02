@@ -36,6 +36,12 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include <tr1/functional>
 #endif
 
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+namespace sgct_cppxeleven = std;
+#else
+namespace sgct_cppxeleven = std::tr1;
+#endif
+
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
 #ifdef __WIN32__
@@ -57,9 +63,9 @@ public:
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
 	void closeNetwork(bool forced);
 	void initShutdown();
-	void setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback);
-	void setUpdateFunction(std::tr1::function<void (int)> callback);
-	void setConnectedFunction(std::tr1::function<void (void)> callback);
+	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
+	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
+	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
 	void setOptions(SOCKET * socketPtr);
@@ -84,9 +90,9 @@ public:
 
 	SOCKET mSocket;
 	SOCKET mListenSocket;
-	std::tr1::function< void(const char*, int, int) > mDecoderCallbackFn;
-	std::tr1::function< void(int) > mUpdateCallbackFn;
-	std::tr1::function< void(void) > mConnectedCallbackFn;
+	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
+	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
+	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
 	int mCommThreadId;
 
     bool mTerminate; //set to true upon exit

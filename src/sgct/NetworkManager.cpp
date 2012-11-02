@@ -113,11 +113,11 @@ bool sgct_core::NetworkManager::init()
 		if(addConnection(ClusterManager::Instance()->getThisNodePtr()->port, tmpIp))
 		{
 			//bind
-			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
-				std::tr1::placeholders::_1,
-				std::tr1::placeholders::_2,
-				std::tr1::placeholders::_3);
+			sgct_cppxeleven::function< void(const char*, int, int) > callback;
+			callback = sgct_cppxeleven::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
+				sgct_cppxeleven::placeholders::_1,
+				sgct_cppxeleven::placeholders::_2,
+				sgct_cppxeleven::placeholders::_3);
 			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 		}
 		else
@@ -140,11 +140,11 @@ bool sgct_core::NetworkManager::init()
 			}
 			else //bind
 			{
-				std::tr1::function< void(const char*, int, int) > callback;
-				callback = std::tr1::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
-					std::tr1::placeholders::_1,
-					std::tr1::placeholders::_2,
-					std::tr1::placeholders::_3);
+				sgct_cppxeleven::function< void(const char*, int, int) > callback;
+				callback = sgct_cppxeleven::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
+					sgct_cppxeleven::placeholders::_1,
+					sgct_cppxeleven::placeholders::_2,
+					sgct_cppxeleven::placeholders::_3);
 				mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 			}
 		}
@@ -158,11 +158,11 @@ bool sgct_core::NetworkManager::init()
 		{
 			mIsExternalControlPresent = true;
 
-			std::tr1::function< void(const char*, int, int) > callback;
-			callback = std::tr1::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
-				std::tr1::placeholders::_1,
-				std::tr1::placeholders::_2,
-				std::tr1::placeholders::_3);
+			sgct_cppxeleven::function< void(const char*, int, int) > callback;
+			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
+				sgct_cppxeleven::placeholders::_1,
+				sgct_cppxeleven::placeholders::_2,
+				sgct_cppxeleven::placeholders::_3);
 			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 		}
 	}
@@ -404,14 +404,14 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
 
 		//bind callback
-		std::tr1::function< void(int) > updateCallback;
-		updateCallback = std::tr1::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
-			std::tr1::placeholders::_1);
+		sgct_cppxeleven::function< void(int) > updateCallback;
+		updateCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
+			sgct_cppxeleven::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
 
 		//bind callback
-		std::tr1::function< void(void) > connectedCallback;
-		connectedCallback = std::tr1::bind(&sgct_core::NetworkManager::setAllNodesConnected, this);
+		sgct_cppxeleven::function< void(void) > connectedCallback;
+		connectedCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::setAllNodesConnected, this);
 		netPtr->setConnectedFunction(connectedCallback);
     }
     catch( const char * err )

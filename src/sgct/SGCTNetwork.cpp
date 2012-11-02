@@ -70,9 +70,15 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mMainThreadId		= -1;
 	mSocket				= INVALID_SOCKET;
 	mListenSocket		= INVALID_SOCKET;
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	mDecoderCallbackFn	= nullptr;
+	mUpdateCallbackFn	= nullptr;
+	mConnectedCallbackFn = nullptr;
+#else
 	mDecoderCallbackFn	= NULL;
 	mUpdateCallbackFn	= NULL;
 	mConnectedCallbackFn = NULL;
+#endif
 	mServerType			= SyncServer;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
@@ -420,17 +426,17 @@ void sgct_core::SGCTNetwork::swapFrames()
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
-void sgct_core::SGCTNetwork::setDecodeFunction(std::tr1::function<void (const char*, int, int)> callback)
+void sgct_core::SGCTNetwork::setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback)
 {
 	mDecoderCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setUpdateFunction(std::tr1::function<void (int)> callback)
+void sgct_core::SGCTNetwork::setUpdateFunction(sgct_cppxeleven::function<void (int)> callback)
 {
 	mUpdateCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setConnectedFunction(std::tr1::function<void (void)> callback)
+void sgct_core::SGCTNetwork::setConnectedFunction(sgct_cppxeleven::function<void (void)> callback)
 {
 	mConnectedCallbackFn = callback;
 }
@@ -605,7 +611,11 @@ void GLFWCALL communicationHandler(void *arg)
 		if (nPtr->mSocket == INVALID_SOCKET)
 		{
             sgct::MessageHandler::Instance()->printDebug("Accept connection %d failed! Error: %d\n", nPtr->getId(), accErr);
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+			if(nPtr->mUpdateCallbackFn != nullptr)
+#else
 			if(nPtr->mUpdateCallbackFn != NULL)
+#endif
                 nPtr->mUpdateCallbackFn( nPtr->getId() );
 			return;
 		}
@@ -614,7 +624,11 @@ void GLFWCALL communicationHandler(void *arg)
 	nPtr->setConnectedStatus(true);
 	sgct::MessageHandler::Instance()->print("Connection %d established!\n", nPtr->getId());
 
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	if(nPtr->mUpdateCallbackFn != nullptr)
+#else
 	if(nPtr->mUpdateCallbackFn != NULL)
+#endif
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
 	//init buffers
@@ -794,8 +808,13 @@ void GLFWCALL communicationHandler(void *arg)
             }
 			else if( nPtr->getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
 			{
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+				if( packageId == sgct_core::SGCTNetwork::SyncByte &&
+					nPtr->mDecoderCallbackFn != nullptr)
+#else
 				if( packageId == sgct_core::SGCTNetwork::SyncByte &&
 					nPtr->mDecoderCallbackFn != NULL)
+#endif
 				{
 					nPtr->setRecvFrame( syncFrameNumber );
 					if( syncFrameNumber < 0 )
@@ -812,8 +831,13 @@ void GLFWCALL communicationHandler(void *arg)
 					sgct::Engine::signalCond( sgct_core::NetworkManager::gCond );
                     sgct::MessageHandler::Instance()->printDebug("Done.\n");
 				}
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+				else if( packageId == sgct_core::SGCTNetwork::ConnectedByte &&
+					nPtr->mConnectedCallbackFn != nullptr)
+#else
 				else if( packageId == sgct_core::SGCTNetwork::ConnectedByte &&
 					nPtr->mConnectedCallbackFn != NULL)
+#endif
 				{
                     sgct::MessageHandler::Instance()->printDebug("Signaling slave is connected... ");
 					(nPtr->mConnectedCallbackFn)();
@@ -882,7 +906,11 @@ void GLFWCALL communicationHandler(void *arg)
 
 					sgct::Engine::lockMutex(sgct_core::NetworkManager::gMutex);
 						extBuffer = extBuffer.substr(found+2);//jump over \r\n
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+						if( nPtr->mDecoderCallbackFn != nullptr )
+#else
 						if( nPtr->mDecoderCallbackFn != NULL )
+#endif
 						{
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
 						}
@@ -937,7 +965,11 @@ void GLFWCALL communicationHandler(void *arg)
     //contains mutex
 	nPtr->closeSocket( nPtr->mSocket );
 
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	if(nPtr->mUpdateCallbackFn != nullptr)
+#else
 	if(nPtr->mUpdateCallbackFn != NULL)
+#endif
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
 	sgct::MessageHandler::Instance()->print("Node %d disconnected!\n", nPtr->getId());
@@ -1028,7 +1060,11 @@ void sgct_core::SGCTNetwork::initShutdown()
 	sgct::MessageHandler::Instance()->print("Closing connection %d... \n", getId());
 	sgct::Engine::lockMutex(mConnectionMutex);
         mTerminate = true;
-        mDecoderCallbackFn = NULL;
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+        mDecoderCallbackFn = nullptr;
+#else
+		 mDecoderCallbackFn = NULL;
+#endif
         mConnected = false;
 	sgct::Engine::unlockMutex(mConnectionMutex);
 

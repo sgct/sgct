@@ -1,0 +1,29 @@
+﻿
+Microsoft Visual Studio Solution File, Format Version 12.00
+# Visual Studio Express 2012 for Windows Desktop
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "glew_static_msvc11", "glew_static_msvc11.vcxproj", "{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}"
+EndProject
+Global
+	GlobalSection(SolutionConfigurationPlatforms) = preSolution
+		Debug MX|Win32 = Debug MX|Win32
+		Debug|Win32 = Debug|Win32
+		Release MX|Win32 = Release MX|Win32
+		Release|Win32 = Release|Win32
+		Template|Win32 = Template|Win32
+	EndGlobalSection
+	GlobalSection(ProjectConfigurationPlatforms) = postSolution
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Debug MX|Win32.ActiveCfg = Debug MX|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Debug MX|Win32.Build.0 = Debug MX|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Debug|Win32.ActiveCfg = Debug|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Debug|Win32.Build.0 = Debug|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Release MX|Win32.ActiveCfg = Release MX|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Release MX|Win32.Build.0 = Release MX|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Release|Win32.ActiveCfg = Release|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Release|Win32.Build.0 = Release|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Template|Win32.ActiveCfg = Template|Win32
+		{D2079C8B-1D77-469C-BF4B-FCE0007DE47A}.Template|Win32.Build.0 = Template|Win32
+	EndGlobalSection
+	GlobalSection(SolutionProperties) = preSolution
+		HideSolutionNode = FALSE
+	EndGlobalSection
+EndGlobal

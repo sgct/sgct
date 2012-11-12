@@ -41,6 +41,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/SGCTInternalShaders.h"
 #include "../include/sgct/Image.h"
+#include "../include/sgct/SGCTVersion.h"
 #include <math.h>
 #include <iostream>
 #include <sstream>
@@ -160,28 +161,30 @@ Engine initiation that:
 */
 bool sgct::Engine::init()
 {
+	MessageHandler::Instance()->print("%s\n", getSGCTVersion().c_str() );
+	
 	if(mTerminate)
 	{
-		sgct::MessageHandler::Instance()->print("Failed to init GLFW.\n");
+		MessageHandler::Instance()->print("Failed to init GLFW.\n");
 		return false;
 	}
 
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
-		sgct::MessageHandler::Instance()->print("Error in xml config file parsing.\n");
+		MessageHandler::Instance()->print("Error in xml config file parsing.\n");
 		return false;
 	}
 
 	if( !initNetwork() )
 	{
-		sgct::MessageHandler::Instance()->print("Network init error.\n");
+		MessageHandler::Instance()->print("Network init error.\n");
 		return false;
 	}
 
 	if( !initWindow() )
 	{
-		sgct::MessageHandler::Instance()->print("Window init error.\n");
+		MessageHandler::Instance()->print("Window init error.\n");
 		return false;
 	}
 

@@ -32,17 +32,20 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #define GLEW_STATIC
 #endif
 
-#include <GL/glew.h>
-#ifdef __WIN32__
-    #include <GL/wglew.h>
-#elif defined __APPLE__
-    #include <OpenGL/glext.h>
-    //#include <GL/glxew.h>
-#else  //linux
-    #include <GL/glext.h>
-    #include <GL/glxew.h>
+#ifndef SGCT_OGL_HEADERS
+	#define SGCT_OGL_HEADERS
+	#include <GL/glew.h>
+	#ifdef __WIN32__
+		#include <GL/wglew.h>
+	#elif defined __APPLE__
+		#include <OpenGL/glext.h>
+		//#include <GL/glxew.h>
+	#else  //linux
+		#include <GL/glext.h>
+		#include <GL/glxew.h>
+	#endif
+	
+	#include <GL/glfw.h>
 #endif
-
-#include <GL/glfw.h>
 
 #endif

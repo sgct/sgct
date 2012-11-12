@@ -71,13 +71,19 @@ public:
 	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
 	glm::dmat4 getTransformMat(DataLoc i = CURRENT);
 
-	double getTrackerTime();
-	double getAnalogTime();
+	double getTrackerTimeStamp(DataLoc i = CURRENT);
+	double getAnalogTimeStamp(DataLoc i = CURRENT);
+	double getButtonTimeStamp(size_t index, DataLoc i = CURRENT);
+
+	double getTrackerDeltaTime();
+	double getAnalogDeltaTime();
+	double getButtonDeltaTime(size_t index);
 
 private:
 	void calculateTransform();
-	void setTrackerTime();
-	void setAnalogTime();
+	void setTrackerTimeStamp();
+	void setAnalogTimeStamp();
+	void setButtonTimeStamp(size_t index);
 
 private:
 	bool mEnabled;
@@ -94,6 +100,7 @@ private:
 
 	double mTrackerTime[2];
 	double mAnalogTime[2];
+	double * mButtonTime;
 	bool * mButtons;
 	double * mAxes;
 };

@@ -142,7 +142,7 @@ void myDrawFun()
 					glPopMatrix();
 				}
 				
-				double trackerTime = devicePtr->getTrackerTime();
+				double trackerTime = devicePtr->getTrackerDeltaTime();
 				glColor3f(0.0f,1.0f,1.0f);
 				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
 					"Sensor id:%d, freq: %.1f Hz", devicePtr->getSensorId(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
@@ -181,7 +181,7 @@ void myDrawFun()
 			if( devicePtr->hasAnalogs() )
 			{
 				glColor3f(0.0f,1.0f,1.0f);
-				double analogTime = devicePtr->getAnalogTime();
+				double analogTime = devicePtr->getAnalogDeltaTime();
 				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
 					"Analog axes, freq: %.1f Hz", analogTime <= 0.0 ? 0.0 : 1.0/analogTime);
 				textVerticalPos -= lineSpace;

@@ -35,6 +35,7 @@
 		<Compiler>
 			<Add option="-O3" />
 			<Add option="-Wall" />
+			<Add option="-std=c++11" />
 			<Add option="-D__WIN32__" />
 			<Add directory="$(SGCT_ROOT_DIR)\include" />
 		</Compiler>

@@ -49,6 +49,7 @@ sgct::SGCTTrackingDevice::SGCTTrackingDevice(size_t parentIndex, std::string nam
 
 	mButtons = NULL;
 	mAxes = NULL;
+	mButtonTime = NULL;
 	mTrackerTime[0] = 0.0;
 	mTrackerTime[1] = 0.0;
 	mAnalogTime[0] = 0.0;
@@ -64,6 +65,12 @@ sgct::SGCTTrackingDevice::~SGCTTrackingDevice()
 	{
 		delete [] mButtons;
 		mButtons = NULL;
+	}
+
+	if( mButtonTime != NULL )
+	{
+		delete [] mButtonTime;
+		mButtonTime = NULL;
 	}
 
 	if( mAxes != NULL )
@@ -89,10 +96,13 @@ void sgct::SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons)
 	{
 		//double buffered
 		mButtons = new bool[numOfButtons * 2];
+		mButtonTime = new double[numOfButtons * 2];
+
 		mNumberOfButtons = numOfButtons;
 		for(size_t i=0; i<mNumberOfButtons; i++)
 		{
 			mButtons[i] = false;
+			mButtonTime[i] = 0.0;
 		}
 	}
 }
@@ -120,7 +130,7 @@ void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
     mWorldTransform[CURRENT] = (preTransform * mat) * mPostTransform;
 
-    setTrackerTime();
+    setTrackerTimeStamp();
 }
 
 void sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
@@ -130,6 +140,8 @@ void sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
 		//swap
         mButtons[index + mNumberOfButtons] = mButtons[index];
         mButtons[index] = val;
+
+		setButtonTimeStamp( index );
     }
 }
 
@@ -142,7 +154,7 @@ void sgct::SGCTTrackingDevice::setAnalogVal(const double * array, size_t size)
             mAxes[i] = array[i];
         }
 
-    setAnalogTime();
+    setAnalogTimeStamp();
 }
 
 void sgct::SGCTTrackingDevice::setOrientation(double xRot, double yRot, double zRot)
@@ -264,41 +276,104 @@ bool sgct::SGCTTrackingDevice::isEnabled()
     return tmpVal;
 }
 
-void sgct::SGCTTrackingDevice::setTrackerTime()
+void sgct::SGCTTrackingDevice::setTrackerTimeStamp()
 {
-	double current_time = sgct::Engine::getTime();
-    mTrackerTime[0] = current_time - mTrackerTime[1];
-	mTrackerTime[1] = current_time;
+	mTrackerTime[0] = sgct::Engine::getTime();
+	//swap
+	mTrackerTime[1] = mTrackerTime[0];
 }
 
-double sgct::SGCTTrackingDevice::getTrackerTime()
+void sgct::SGCTTrackingDevice::setAnalogTimeStamp()
+{
+	mAnalogTime[0] = sgct::Engine::getTime();
+	//swap
+	mAnalogTime[1] = mAnalogTime[0];
+}
+
+void sgct::SGCTTrackingDevice::setButtonTimeStamp(size_t index)
+{
+	mButtonTime[index] = sgct::Engine::getTime();
+	//swap
+	mButtonTime[index + mNumberOfButtons] = mButtonTime[index];
+}
+
+double sgct::SGCTTrackingDevice::getTrackerTimeStamp(DataLoc i)
 {
 	double tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Get device tracker time...\n");
+    fprintf(stderr, "Get device tracker time stamp...\n");
 #endif
 	Engine::lockMutex(gTrackingMutex);
-		tmpVal = mTrackerTime[0];
+		tmpVal = mTrackerTime[i];
 	Engine::unlockMutex(gTrackingMutex);
 
 	return tmpVal;
 }
 
-void sgct::SGCTTrackingDevice::setAnalogTime()
-{
-	double current_time = sgct::Engine::getTime();
-	mAnalogTime[0] = current_time - mAnalogTime[1];
-	mAnalogTime[1] = current_time;
-}
-
-double sgct::SGCTTrackingDevice::getAnalogTime()
+double sgct::SGCTTrackingDevice::getAnalogTimeStamp(DataLoc i)
 {
 	double tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Set device analog time...\n");
+    fprintf(stderr, "Get device analog time stamp...\n");
 #endif
 	Engine::lockMutex(gTrackingMutex);
-		tmpVal = mAnalogTime[0];
+		tmpVal = mAnalogTime[i];
+	Engine::unlockMutex(gTrackingMutex);
+
+	return tmpVal;
+}
+
+double sgct::SGCTTrackingDevice::getButtonTimeStamp(size_t index, DataLoc i)
+{
+	double tmpVal;
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Get device button time stamp...\n");
+#endif
+
+	Engine::lockMutex(gTrackingMutex);
+		tmpVal = mButtonTime[index + mNumberOfButtons * i];
+	Engine::unlockMutex(gTrackingMutex);
+
+	return tmpVal;
+}
+
+double sgct::SGCTTrackingDevice::getTrackerDeltaTime()
+{
+	double tmpVal;
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Get device tracker delta time...\n");
+#endif
+
+	Engine::lockMutex(gTrackingMutex);
+		tmpVal = mTrackerTime[0] - mTrackerTime[1];
+	Engine::unlockMutex(gTrackingMutex);
+
+	return tmpVal;
+}
+
+double sgct::SGCTTrackingDevice::getAnalogDeltaTime()
+{
+	double tmpVal;
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Get device analog delta time...\n");
+#endif
+
+	Engine::lockMutex(gTrackingMutex);
+		tmpVal = mAnalogTime[0] - mAnalogTime[1];
+	Engine::unlockMutex(gTrackingMutex);
+
+	return tmpVal;
+}
+
+double sgct::SGCTTrackingDevice::getButtonDeltaTime(size_t index)
+{
+	double tmpVal;
+#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
+    fprintf(stderr, "Get device button delta time...\n");
+#endif
+
+	Engine::lockMutex(gTrackingMutex);
+		tmpVal = mButtonTime[index] - mButtonTime[index + mNumberOfButtons];
 	Engine::unlockMutex(gTrackingMutex);
 
 	return tmpVal;

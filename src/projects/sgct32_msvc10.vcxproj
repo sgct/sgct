@@ -57,6 +57,7 @@
     <ClInclude Include="..\..\include\sgct\SGCTTrackingDevice.h" />
     <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h" />
     <ClInclude Include="..\..\include\sgct\SGCTUser.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTVersion.h" />
     <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
     <ClInclude Include="..\..\include\sgct\Shader.h" />
     <ClInclude Include="..\..\include\sgct\ShaderManager.h" />

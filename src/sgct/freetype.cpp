@@ -25,20 +25,7 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-
-#if defined(__APPLE__)
-#  include <OpenGL/gl.h>
-#  include <OpenGL/glu.h>
-#elif __LINUX__
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#else
-#include <windows.h>
-#  include <GL/gl.h>
-#  include <GL/glu.h>
-#endif
-
-//Include our header file.
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/ClusterManager.h"
 

@@ -41,7 +41,7 @@ namespace sgct
 	/*!
 		This function returns the version string of SGCT.
 	*/
-	std::string getSGCTVersion()
+	static std::string getSGCTVersion()
 	{
 		char buffer[64];
 #if (_MSC_VER >= 1400) //visual studio 2005 or later

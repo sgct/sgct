@@ -55,8 +55,8 @@ public:
 	~Engine();
 
 	bool init();
+	void terminate();
 	void render();
-	void terminate() { mTerminate = true; }
 	static Engine * getPtr() { return mThis; }
 
 	const double & getDt();
@@ -125,6 +125,8 @@ public:
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
+	//! Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
+	inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
 	inline const sgct_core::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 	//will only return valid values when called in the draw callback function
@@ -142,6 +144,7 @@ private:
 	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -158,12 +161,15 @@ private:
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
-	void enterCurrentViewport();
+	void enterCurrentViewport(ViewportSpace vs);
 	const char * getBasicInfo();
 
 	void draw();
+	void drawOverlays();
 	void setRenderTarget(FBOBufferIndexes bi);
 	void renderFBOTexture();
+	void updateRenderingTargets();
+	void updateTimers(double timeStamp);
 	void loadShaders();
 	void createFBOs();
 	void resizeFBOs();
@@ -214,6 +220,7 @@ private:
 	bool mTakeScreenshot;
 	bool mTerminate;
 	bool mIgnoreSync;
+	bool mRenderingOffScreen;
 
 	//objects
 	sgct_core::Statistics	mStatistics;

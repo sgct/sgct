@@ -28,6 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/Engine.h"
 
 #define TEXT_RENDER_BUFFER_SIZE 512
 
@@ -46,19 +47,39 @@ inline void pushScreenCoordinateMatrix()
 	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
 	//set current viewport
 	//user or external scenegraph may change the viewport so it's important to reset it.
-	glViewport(
-		static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
-		static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())));
+
+	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
+	{
+		glViewport(
+			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution())));
 	
-	gluOrtho2D(
-		0.0,
-		tmpNode->getCurrentViewport()->getXSize() *
-		static_cast<double>(tmpNode->getWindowPtr()->getHResolution()),
-		0.0,
-		tmpNode->getCurrentViewport()->getYSize() *
-		static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
+		gluOrtho2D(
+			0.0,
+			tmpNode->getCurrentViewport()->getXSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution()),
+			0.0,
+			tmpNode->getCurrentViewport()->getYSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution()));
+	}
+	else
+	{
+		glViewport(
+			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())));
+	
+		gluOrtho2D(
+			0.0,
+			tmpNode->getCurrentViewport()->getXSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getHResolution()),
+			0.0,
+			tmpNode->getCurrentViewport()->getYSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
+	}
 	glPopAttrib();
 }
 

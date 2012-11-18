@@ -303,6 +303,17 @@ void sgct_core::ReadConfig::readAndParseXML()
                             else
                                 sgct::MessageHandler::Instance()->print("Failed to parse window resolution from XML!\n");
 						}
+						else if( strcmp("Res", val[2]) == 0 )
+						{
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+							{
+                                tmpNode.getWindowPtr()->setFramebufferResolution(tmpWinData[0],tmpWinData[1]);
+								tmpNode.getWindowPtr()->setFixResolution(true);
+							}
+                            else
+                                sgct::MessageHandler::Instance()->print("Failed to parse frame buffer resolution from XML!\n");
+						}
 
 						//iterate
 						element[2] = element[2]->NextSiblingElement();

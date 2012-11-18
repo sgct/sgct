@@ -55,6 +55,7 @@ void GLFWCALL windowResizeCallback( int width, int height );
 
 sgct_core::SGCTWindow::SGCTWindow()
 {
+	mUseFixResolution = false;
 	mUseSwapGroups = false;
 	mSwapGroupMaster = false;
 	mUseQuadBuffer = false;
@@ -66,6 +67,8 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mWindowResOld[1] = mWindowRes[1];
 	mWindowPos[0] = 0;
 	mWindowPos[1] = 0;
+	mFramebufferResolution[0] = 512;
+	mFramebufferResolution[1] = 256;
 	mWindowMode = GLFW_WINDOW;
 }
 
@@ -112,30 +115,65 @@ void sgct_core::SGCTWindow::init()
 
 /*!
 	Sets the window title.
-	@param	Title of the window.
+	@param title The title of the window.
 */
 void sgct_core::SGCTWindow::setWindowTitle(const char * title)
 {
 	glfwSetWindowTitle( title );
 }
 
+/*!
+	Sets the window resolution.
+	
+	@param x The width of the window in pixels.
+	@param y The height of the window in pixels.
+*/
 void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
+
+	if( !mUseFixResolution )
+	{
+		mFramebufferResolution[0] = x;
+		mFramebufferResolution[1] = y;
+	}
 }
 
+/*!
+	Sets the framebuffer resolution. Theese parameters will only be used if a fixed resolution is used that is different from the window resolution.
+	This might be useful in fullscreen mode on Apples retina displays to force 1080p resolution or similar.
+	
+	@param x The width of the frame buffer in pixels.
+	@param y The height of the frame buffer in pixels.
+*/
+void sgct_core::SGCTWindow::setFramebufferResolution(const int x, const int y)
+{
+	mFramebufferResolution[0] = x;
+	mFramebufferResolution[1] = y;
+}
+
+/*!
+	Don't use this function if you want to set the window resolution. Use setWindowResolution(const int x, const int y) instead.
+	This function is called within sgct when the window is created.
+*/
 void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
 	mWindowResOld[0] = mWindowRes[0];
 	mWindowResOld[1] = mWindowRes[1];
+
+	if( !mUseFixResolution )
+	{
+		mFramebufferResolution[0] = x;
+		mFramebufferResolution[1] = y;
+	}
 }
 
 bool sgct_core::SGCTWindow::isWindowResized()
 {
-	if( mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1] )
+	if( !mUseFixResolution && (mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1]) )
 	{
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
@@ -174,11 +212,29 @@ void sgct_core::SGCTWindow::setBarrier(const bool state)
 //#endif
 }
 
+/*!
+	Force the frame buffer to have a fixed size which may be different from the window size.
+*/
+void sgct_core::SGCTWindow::setFixResolution(const bool state)
+{
+	mUseFixResolution = state;
+}
+
+/*!
+	Use nvidia swap groups. This freature is only supported on quadro cards together with a compatible sync card.
+	This function can only be used before the window is created.
+*/
 void sgct_core::SGCTWindow::useSwapGroups(const bool state)
 {
 	mUseSwapGroups = state;
 }
 
+/*!
+	Use quad buffer (hardware stereoscopic rendering).
+	This function can only be used before the window is created. 
+	The quad buffer feature is only supported on professional CAD graphics cards such as
+	Nvidia Quadro or AMD/ATI FireGL.
+*/
 void sgct_core::SGCTWindow::useQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
@@ -186,6 +242,11 @@ void sgct_core::SGCTWindow::useQuadbuffer(const bool state)
 		glfwOpenWindowHint(GLFW_STEREO, GL_TRUE);
 }
 
+/*!
+	This function is used internally within sgct to open the window.
+
+	/returns True if window was created successfully.
+*/
 bool sgct_core::SGCTWindow::openWindow()
 {
 	/* Open an OpenGL window

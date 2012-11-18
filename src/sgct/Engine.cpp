@@ -83,6 +83,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	mTerminate = false;
 	mIgnoreSync = false;
+	mRenderingOffScreen = false;
 
 	localRunningMode = NetworkManager::NotLocal;
 
@@ -206,6 +207,14 @@ bool sgct::Engine::init()
 		getTrackingManager()->startSampling();
 
 	return true;
+}
+
+/*!
+	Terminates SGCT.
+*/
+void sgct::Engine::terminate()
+{
+	mTerminate = true;
 }
 
 /*!
@@ -568,6 +577,8 @@ void sgct::Engine::render()
 
 	while( mRunning )
 	{
+		mRenderingOffScreen = false;
+		
 		//update tracking data
 		if( isMaster() )
 			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
@@ -599,6 +610,9 @@ void sgct::Engine::render()
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
 			resizeFBOs();
+
+		//rendering offscreen if using FBOs
+		mRenderingOffScreen = (mFBOMode != NoFBO);
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
@@ -652,32 +666,13 @@ void sgct::Engine::render()
 		//restore
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		//copy AA-buffer to "regular"/non-AA buffer
-		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-		{
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]); // source
-			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[0]); // dest
-			glBlitFramebufferEXT(
-				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-				0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		//updates render targets and draw texture(s)
+		updateRenderingTargets();
 
-			//copy right buffers if used
-			if( tmpNode->stereo != ReadConfig::NoStereo )
-			{
-				glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]); // source
-				glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[1]); // dest
-				glBlitFramebufferEXT(
-					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-					0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(),
-					GL_COLOR_BUFFER_BIT, GL_NEAREST);
-			}
+		mRenderingOffScreen = false;
 
-			//Draw FBO texture here
-			renderFBOTexture();
-		}
-		else if(mFBOMode == RegularFBO && GLEW_EXT_framebuffer_object)
-			renderFBOTexture();
+		//draw viewport overlays if any
+		drawOverlays();
 
         double endFrameTime = glfwGetTime();
 		mStatistics.setDrawTime(endFrameTime - startFrameTime);
@@ -690,27 +685,18 @@ void sgct::Engine::render()
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		{
 			tmpNode->setCurrentViewport(i);
-			enterCurrentViewport();
+			enterCurrentViewport(ScreenSpace);
+
 			if( mShowGraph )
 				mStatistics.draw(mFrameCounter);
+			/*
+				The text renderer enters automatically the correct viewport
+			*/
 			if( mShowInfo )
 				renderDisplayInfo();
 		}
 
-        // check all timers if one of them has expired
-        if ( isMaster() )
-        {
-            for( size_t i = 0; i < mTimers.size(); ++i )
-            {
-                TimerInformation& currentTimer = mTimers[i];
-                const double timeSinceLastFiring = endFrameTime - currentTimer.mLastFired;
-                if( timeSinceLastFiring > currentTimer.mInterval )
-                {
-                    currentTimer.mLastFired = endFrameTime;
-                    currentTimer.mCallback(currentTimer.mId);
-                }
-            }
-        }
+        updateTimers( endFrameTime );
 
 		//take screenshot
 		if( mTakeScreenshot )
@@ -800,7 +786,7 @@ void sgct::Engine::renderDisplayInfo()
 */
 void sgct::Engine::draw()
 {
-	enterCurrentViewport();
+	enterCurrentViewport(FBOSpace);
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -814,48 +800,63 @@ void sgct::Engine::draw()
 
 	if( mDrawFn != NULL )
 		mDrawFn();
+}
 
-	//if use overlay
-	if( tmpVP->hasOverlayTexture() )
-	{
-		//enter ortho mode
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-		glPushMatrix();
-		/*
-			Some code (using OpenSceneGraph) can mess up the viewport settings.
-			To ensure correct mapping enter the current viewport.
-		*/
-		enterCurrentViewport();
-		gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+/*!
+	Draw viewport overlays if there are any.
+*/
+void sgct::Engine::drawOverlays()
+{
+	glDrawBuffer(GL_BACK); //draw into both back buffers
+	
+	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < tmpNode->getNumberOfViewports(); i++)
+	{	
+		//if viewport has overlay
+		sgct_core::Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
+		if( tmpVP->hasOverlayTexture() )
+		{
+			tmpNode->setCurrentViewport(i);
+				
+			//enter ortho mode
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			glPushMatrix();
+			/*
+				Some code (using OpenSceneGraph) can mess up the viewport settings.
+				To ensure correct mapping enter the current viewport.
+			*/
+			enterCurrentViewport(ScreenSpace);
+			gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 
-		glMatrixMode(GL_MODELVIEW);
+			glMatrixMode(GL_MODELVIEW);
 
-		glPushAttrib( GL_ALL_ATTRIB_BITS );
-		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+			glPushAttrib( GL_ALL_ATTRIB_BITS );
+			glDisable(GL_LIGHTING);
+			glDisable(GL_DEPTH_TEST);
+			glEnable(GL_BLEND);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-		glLoadIdentity();
+			glLoadIdentity();
 
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
+			glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
+			glEnable(GL_TEXTURE_2D);
+			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
 
-		glBegin(GL_QUADS);
-		glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
-		glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
-		glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
-		glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
-		glEnd();
+			glBegin(GL_QUADS);
+			glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
+			glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
+			glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
+			glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
+			glEnd();
 
-		glPopAttrib();
+			glPopAttrib();
 
-		//exit ortho mode
-		glMatrixMode(GL_PROJECTION);
-		glPopMatrix();
+			//exit ortho mode
+			glMatrixMode(GL_PROJECTION);
+			glPopMatrix();
+		}
 	}
 }
 
@@ -986,6 +987,61 @@ void sgct::Engine::renderFBOTexture()
 }
 
 /*!
+	This function updates the renderingtargets and draws the rendered texture.
+*/
+void sgct::Engine::updateRenderingTargets()
+{
+	//copy AA-buffer to "regular"/non-AA buffer
+	if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+	{
+		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]); // source
+		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[0]); // dest
+		glBlitFramebufferEXT(
+			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+			GL_COLOR_BUFFER_BIT, GL_NEAREST);
+
+		//copy right buffers if used
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		if( tmpNode->stereo != ReadConfig::NoStereo )
+		{
+			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]); // source
+			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[1]); // dest
+			glBlitFramebufferEXT(
+				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		}
+
+		//Draw FBO texture here
+		renderFBOTexture();
+	}
+	else if(mFBOMode == RegularFBO && GLEW_EXT_framebuffer_object)
+		renderFBOTexture();
+}
+
+/*!
+	This function updates the timers.
+*/
+void sgct::Engine::updateTimers(double timeStamp)
+{
+	// check all timers if one of them has expired
+    if ( isMaster() )
+    {
+        for( size_t i = 0; i < mTimers.size(); ++i )
+        {
+            TimerInformation& currentTimer = mTimers[i];
+            const double timeSinceLastFiring = timeStamp - currentTimer.mLastFired;
+            if( timeSinceLastFiring > currentTimer.mInterval )
+            {
+                currentTimer.mLastFired = timeStamp;
+                currentTimer.mCallback(currentTimer.mId);
+            }
+        }
+    }
+}
+
+/*!
 	This function loads shaders that handles different 3D modes.
 	The shaders are only loaded once in the initOGL function.
 */
@@ -1070,36 +1126,34 @@ void sgct::Engine::createFBOs()
 		for( int i=0; i<2; i++ )
 		{
 			//setup render buffer
-			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			else
+			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]) :
 				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
-			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			else
-				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			
+			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()) :
+				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
 
 			//setup depth buffer
-			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]);
-			else
+			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]) :
 				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+
 			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
-			else
-				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()):
+				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
 
 			//setup non-multisample buffer
 			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), 0, GL_RGBA, GL_INT, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_RGBA, GL_INT, NULL);
 			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
 		}
 
@@ -1248,7 +1302,7 @@ void sgct::Engine::captureBuffer()
 	double t0 = getTime();
 
 	//allocate
-	unsigned char * raw_img = (unsigned char*)malloc( sizeof(unsigned char)*( 4 * getWindowPtr()->getHResolution() * getWindowPtr()->getVResolution() ) );
+	unsigned char * raw_img = (unsigned char*)malloc( sizeof(unsigned char)*( 4 * getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() ) );
 
 	static int shotCounter = 0;
 	char screenShotFilenameLeft[32];
@@ -1317,18 +1371,18 @@ void sgct::Engine::captureBuffer()
 	else if(tmpNode->stereo == ReadConfig::NoStereo)
 	{
 		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
 	}
 	else if(tmpNode->stereo == ReadConfig::Active)
 	{
 		glReadBuffer(GL_FRONT_LEFT);
-		glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
 	}
 
 	Image img;
 	img.setChannels(4);
 	img.setDataPtr( raw_img );
-	img.setSize( getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution() );
+	img.setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
 	img.savePNG(screenShotFilenameLeft);
 
 	if( tmpNode->stereo != ReadConfig::NoStereo )
@@ -1341,7 +1395,7 @@ void sgct::Engine::captureBuffer()
 		else if(tmpNode->stereo == ReadConfig::Active)
 		{
 			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
 		}
 
 		img.savePNG(screenShotFilenameRight);
@@ -1719,23 +1773,47 @@ void sgct::Engine::clearBuffer(void)
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 
+/*!
+	Print the node info to terminal.
+
+	\param nodeId Which node to print
+*/
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
 	sgct::MessageHandler::Instance()->print("This node has index %d.\n", nodeId);
 }
 
-void sgct::Engine::enterCurrentViewport()
+/*!
+	Set up the current viewport.
+
+	\param vs Which space to set up the viewport in.
+*/
+void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	currentViewportCoords[0] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
-	currentViewportCoords[1] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
-	currentViewportCoords[2] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
-	currentViewportCoords[3] =
-		static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
+	if( vs == ScreenSpace || mFBOMode == NoFBO )
+	{
+		currentViewportCoords[0] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
+		currentViewportCoords[1] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
+		currentViewportCoords[2] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
+		currentViewportCoords[3] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
+	}
+	else
+	{
+		currentViewportCoords[0] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+		currentViewportCoords[1] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+		currentViewportCoords[2] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+		currentViewportCoords[3] =
+			static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+	}
 
 	glViewport( currentViewportCoords[0],
 		currentViewportCoords[1],
@@ -1890,6 +1968,15 @@ void sgct::Engine::sleep(double secs)
 	glfwSleep(secs);
 }
 
+/*!
+	Create a timer that counts down and call the given callback when finished.
+	The timer runs only on the master and is not precies since it is triggered in end of the renderloop.
+
+	\param millisec is the countdown time
+	\param fnPtr is the function pointer to a timer callback (the argument will be the timer handle/id).
+
+	\returns Handle/id to the created timer
+*/
 size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
 {
     if ( isMaster() )

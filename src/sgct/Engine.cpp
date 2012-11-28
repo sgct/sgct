@@ -42,10 +42,16 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/SGCTInternalShaders.h"
 #include "../include/sgct/Image.h"
 #include "../include/sgct/SGCTVersion.h"
+#include "../include/sgct/SGCTSettings.h"
 #include <math.h>
 #include <iostream>
 #include <sstream>
 #include <deque>
+
+//test
+#include <glm/gtc/constants.hpp>
+#include "../include/sgct/utils/SGCTSphere.h"
+sgct_utils::SGCTSphere * sphere = NULL;
 
 using namespace sgct_core;
 
@@ -278,11 +284,24 @@ bool sgct::Engine::initWindow()
 
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ReadConfig::Active );
 
-	int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
-	if( antiAliasingSamples > 1 && mFBOMode == NoFBO ) //if multisample is used
-		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
-	else if( antiAliasingSamples < 2 && mFBOMode == MultiSampledFBO ) //on sample or less => no multisampling
-		mFBOMode = RegularFBO;
+	/*
+		If fisheye FXAA anti-aliasing will be used instead of MSAA.
+		The cubemap FBO maps the scene on the inside of a cube and then uses a mirror to create a fisheye reflection.
+	*/
+	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
+	{
+		mFBOMode = CubeMapFBO;
+		mActiveFrustum = Frustum::Mono;
+		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
+	}
+	else
+	{
+		int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
+		if( antiAliasingSamples > 1 && mFBOMode == NoFBO ) //if multisample is used
+			glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+		else if( antiAliasingSamples < 2 && mFBOMode == MultiSampledFBO ) //on sample or less => no multisampling
+			mFBOMode = RegularFBO;
+	}
 
     //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
     //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
@@ -332,9 +351,15 @@ void sgct::Engine::initOGL()
 	glfwGetGLVersion( &version[0], &version[1], &version[2] );
 	sgct::MessageHandler::Instance()->print("OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
 
-	if (!GLEW_ARB_texture_non_power_of_two)
+	if( !GLEW_ARB_texture_non_power_of_two )
 	{
 		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
+	}
+
+	if( !GLEW_EXT_framebuffer_object )
+	{
+		sgct::MessageHandler::Instance()->print("Warning! Frame buffer objects are not supported!\n");
+		mFBOMode = NoFBO;
 	}
 
 	ClusterManager::Instance()->updateSceneTransformation(
@@ -399,12 +424,12 @@ void sgct::Engine::clean()
 	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
 	{
 		sgct::MessageHandler::Instance()->print("Releasing OpenGL buffers...\n");
-		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
+		glDeleteFramebuffers(2,	&mFrameBuffers[0]);
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-			glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+			glDeleteFramebuffers(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
-		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
-		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
+		glDeleteRenderbuffers(2, &mRenderBuffers[0]);
+		glDeleteRenderbuffers(2, &mDepthBuffers[0]);
 	}
 
 	sgct::ShaderManager::Destroy();
@@ -431,16 +456,18 @@ void sgct::Engine::clean()
 	}
 
 	// Destroy explicitly to avoid memory leak messages
-	sgct::MessageHandler::Instance()->print("Destroying font manager...\n");
+	MessageHandler::Instance()->print("Destroying font manager...\n");
 	sgct_text::FontManager::Destroy();
-	sgct::MessageHandler::Instance()->print("Destroying shader manager...\n");
+	MessageHandler::Instance()->print("Destroying shader manager...\n");
 	ShaderManager::Destroy();
-	sgct::MessageHandler::Instance()->print("Destroying shared data...\n");
+	MessageHandler::Instance()->print("Destroying shared data...\n");
 	SharedData::Destroy();
-	sgct::MessageHandler::Instance()->print("Destroying texture manager...\n");
+	MessageHandler::Instance()->print("Destroying texture manager...\n");
 	TextureManager::Destroy();
-	sgct::MessageHandler::Instance()->print("Destroying cluster manager...\n");
+	MessageHandler::Instance()->print("Destroying cluster manager...\n");
 	ClusterManager::Destroy();
+	MessageHandler::Instance()->print("Destroying settings...\n");
+	SGCTSettings::Destroy();
 
     sgct::MessageHandler::Instance()->print("Destroying network mutex...\n");
 	if( NetworkManager::gMutex != NULL )
@@ -617,49 +644,157 @@ void sgct::Engine::render()
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
-		//if any stereo type (except passive) then set frustum mode to left eye
-		mActiveFrustum = tmpNode->stereo != static_cast<int>(ReadConfig::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
-		setRenderTarget(LeftEye); //Set correct render target (Backbuffer, FBO etc..)
-
-		//render all viewports for mono or left eye
-		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+		//if fisheye rendering is used then render the cubemap
+		if( mFBOMode == CubeMapFBO )
 		{
-			tmpNode->setCurrentViewport(i);
-			//if passive stereo or mono
-			if( tmpNode->stereo == ReadConfig::NoStereo )
-				mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
-
-			if( tmpNode->getCurrentViewport()->isTracked() )
-			{
-				tmpNode->getCurrentViewport()->calculateFrustum(
-					mActiveFrustum,
-					usrPtr->getPosPtr(mActiveFrustum),
-					mNearClippingPlaneDist,
-					mFarClippingPlaneDist);
-			}
-			(this->*mInternalRenderFn)();
-		}
-
-		//render right eye view port(s)
-		if( tmpNode->stereo != ReadConfig::NoStereo )
-		{
-			mActiveFrustum = Frustum::StereoRightEye;
-			setRenderTarget(RightEye); //Set correct render target (Backbuffer, FBO etc..)
-
-			//render all viewports for right eye
+			glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[CubeMapBuffer] );
+			
+			//iterate the cube sides
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
 				tmpNode->setCurrentViewport(i);
-
-				if( tmpNode->getCurrentViewport()->isTracked() )
+				
+				if( tmpNode->getCurrentViewport()->isEnabled() )
 				{
-					tmpNode->getCurrentViewport()->calculateFrustum(
-						mActiveFrustum,
-						usrPtr->getPosPtr(mActiveFrustum),
-						mNearClippingPlaneDist,
-						mFarClippingPlaneDist);
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ CubeMapBuffer ], 0);
+
+					//render
+					setAndClearBuffer(RenderToTexture);
+					(this->*mInternalRenderFn)();
 				}
-				(this->*mInternalRenderFn)();
+			}//end for
+
+			//unbind buffer
+			glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+			glDrawBuffer(GL_BACK);
+			glClearColor(0.0f, 0.0f, 0.5f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+			
+			glPushMatrix();
+			glMatrixMode(GL_PROJECTION);
+			glLoadIdentity();
+			// play around with the near and far values
+			//glOrtho(-1.0, 1.0, -1.0, 1.0, 0.01, 10.0);
+			//glTranslatef(0.0f, 0.0f, -3.0f);
+			//gluPerspective(60.0, 1.0, 1.0, 100.0);
+			double fisheyeFOV = static_cast<double>( SGCTSettings::Instance()->getFisheyeFOV() );
+			double fulldomeDist = sin( glm::half_pi<double>() - glm::radians<double>(fisheyeFOV/4.0) );
+			double orthoSize = sin( glm::radians<double>(fisheyeFOV/4.0) );
+			double ZTRANS = 100.0;
+			//glFrustum(-1.0, 1.0, -1.0, 1.0, ZTRANS - 1.0, 100.0);
+			//glOrtho(-fulldomeDist, fulldomeDist, -fulldomeDist, fulldomeDist, ZTRANS - 1.0, ZTRANS + 1.0);
+			//glOrtho(-fulldomeDist, fulldomeDist, -fulldomeDist, fulldomeDist, ZTRANS - 1.0, ZTRANS + 1.0);
+			glOrtho(-orthoSize, orthoSize, -orthoSize, orthoSize, ZTRANS - 1.0, ZTRANS - fulldomeDist ); //clip backside
+			//glOrtho(-1.0, 1.0, -1.0, 1.0, ZTRANS - 1.0, ZTRANS - fulldomeDist ); //clip backside
+			//glOrtho(-0.535, 0.535, -0.535, 0.535, ZTRANS - 1.0, 10.0);
+			//glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
+			glMatrixMode(GL_MODELVIEW);
+			glLoadIdentity();
+			glViewport(0, 0, 1024, 1024);
+			/*gluLookAt(0, 0, 2, //eye
+				0, 0, 0, //center
+				0, 1, 0); //up*/
+
+			glMatrixMode(GL_TEXTURE);
+			glPushMatrix();
+			glLoadIdentity();
+			glRotated(45.0, 0.0, 1.0, 0.0);
+			//glRotatef(-45.0f, 1.0f, 0.0f, 0.0f);
+			//glTranslated(0.0, 0.0, fulldomeDist/2.0);
+			//glTranslated(0.0, 0.0, 0.29);
+			glMatrixMode(GL_MODELVIEW);
+
+			glEnable(GL_DEPTH_TEST);
+			glDisable(GL_TEXTURE_2D);
+			glEnable(GL_TEXTURE_CUBE_MAP);
+		    glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[CubeMapBuffer]);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
+			glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP); 
+			glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP); 
+			glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
+			glEnable(GL_TEXTURE_GEN_S);
+			glEnable(GL_TEXTURE_GEN_T);
+			glEnable(GL_TEXTURE_GEN_R);
+
+			glPushMatrix();
+			glColor3f(1.0f, 1.0f, 1.0f);
+			glTranslated(0.0, 0.0, -ZTRANS);
+			glDisable(GL_CULL_FACE);
+			//glEnable(GL_CULL_FACE);
+			//glFrontFace(GL_CCW);//remove back face
+			sphere->draw();
+			//glDisable(GL_CULL_FACE);
+			glEnable(GL_CULL_FACE);
+			glPopMatrix();
+
+			//restore texture matrix
+			glMatrixMode(GL_TEXTURE);
+			glPopMatrix();
+			glMatrixMode(GL_MODELVIEW);
+
+			glDisable(GL_TEXTURE_GEN_R);
+			glDisable(GL_TEXTURE_GEN_T);
+			glDisable(GL_TEXTURE_GEN_S);
+			glDisable(GL_TEXTURE_CUBE_MAP);
+			glEnable(GL_TEXTURE_2D);
+			glDisable(GL_DEPTH_TEST);
+			glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_MODULATE);
+			glPopMatrix();
+		}
+		else
+		{
+			//if any stereo type (except passive) then set frustum mode to left eye
+			mActiveFrustum = tmpNode->stereo != static_cast<int>(ReadConfig::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
+			setRenderTarget(LeftEyeBuffer); //Set correct render target (Backbuffer, FBO etc..)
+
+			//render all viewports for mono or left eye
+			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			{
+				tmpNode->setCurrentViewport(i);
+				
+				if( tmpNode->getCurrentViewport()->isEnabled() )
+				{
+					//if passive stereo or mono
+					if( tmpNode->stereo == ReadConfig::NoStereo )
+						mActiveFrustum = tmpNode->getCurrentViewport()->getEye();
+
+					if( tmpNode->getCurrentViewport()->isTracked() )
+					{
+						tmpNode->getCurrentViewport()->calculateFrustum(
+							mActiveFrustum,
+							usrPtr->getPosPtr(mActiveFrustum),
+							mNearClippingPlaneDist,
+							mFarClippingPlaneDist);
+					}
+					(this->*mInternalRenderFn)();
+				}
+			}
+
+			//render right eye view port(s)
+			if( tmpNode->stereo != ReadConfig::NoStereo )
+			{
+				mActiveFrustum = Frustum::StereoRightEye;
+				setRenderTarget(RightEyeBuffer); //Set correct render target (Backbuffer, FBO etc..)
+
+				//render all viewports for right eye
+				for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+				{
+					tmpNode->setCurrentViewport(i);
+
+					if( tmpNode->getCurrentViewport()->isEnabled() )
+					{
+						if( tmpNode->getCurrentViewport()->isTracked() )
+						{
+							tmpNode->getCurrentViewport()->calculateFrustum(
+								mActiveFrustum,
+								usrPtr->getPosPtr(mActiveFrustum),
+								mNearClippingPlaneDist,
+								mFarClippingPlaneDist);
+						}
+						(this->*mInternalRenderFn)();
+					}
+				}
 			}
 		}
 
@@ -869,15 +1004,15 @@ void sgct::Engine::drawOverlays()
 */
 void sgct::Engine::setRenderTarget(FBOBufferIndexes bi)
 {
-	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	if(mFBOMode != NoFBO)
 	{
 		//un-bind texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[ bi ]);
+			glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffers[ bi ]);
 		else
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[ bi ]);
+			glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[ bi ]);
 
 		setAndClearBuffer(RenderToTexture);
 	}
@@ -894,7 +1029,7 @@ void sgct::Engine::renderFBOTexture()
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	//unbind framebuffer
-	glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
@@ -994,9 +1129,9 @@ void sgct::Engine::updateRenderingTargets()
 	//copy AA-buffer to "regular"/non-AA buffer
 	if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
 	{
-		glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[0]); // source
-		glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[0]); // dest
-		glBlitFramebufferEXT(
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffers[0]); // source
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffers[0]); // dest
+		glBlitFramebuffer(
 			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 			GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -1005,9 +1140,9 @@ void sgct::Engine::updateRenderingTargets()
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		if( tmpNode->stereo != ReadConfig::NoStereo )
 		{
-			glBindFramebufferEXT(GL_READ_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[1]); // source
-			glBindFramebufferEXT(GL_DRAW_FRAMEBUFFER_EXT, mFrameBuffers[1]); // dest
-			glBlitFramebufferEXT(
+			glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffers[1]); // source
+			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffers[1]); // dest
+			glBlitFramebuffer(
 				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
@@ -1016,7 +1151,7 @@ void sgct::Engine::updateRenderingTargets()
 		//Draw FBO texture here
 		renderFBOTexture();
 	}
-	else if(mFBOMode == RegularFBO && GLEW_EXT_framebuffer_object)
+	else if(mFBOMode == RegularFBO)
 		renderFBOTexture();
 }
 
@@ -1096,69 +1231,126 @@ void sgct::Engine::loadShaders()
 	This is done in the initOGL function.
 */
 void sgct::Engine::createFBOs()
-{
-	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+{	
+	if(mFBOMode != NoFBO)
 	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		glEnable(GL_TEXTURE_2D);
-		glGenFramebuffersEXT(2,		&mFrameBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mDepthBuffers[0]);
-		glGenRenderbuffersEXT(2,	&mRenderBuffers[0]);
+		glGenFramebuffers(2,		&mFrameBuffers[0]);
+		glGenRenderbuffers(2,		&mDepthBuffers[0]);
+		glGenRenderbuffers(2,		&mRenderBuffers[0]);
 		glGenTextures(2,			&mFrameBufferTextures[0]);
 
-		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
+		if( !GLEW_EXT_framebuffer_multisample )
+			sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported!\n");
+		else
 		{
-			GLint MaxSamples;
-			glGetIntegerv(GL_MAX_SAMPLES_EXT, &MaxSamples);
-			if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > MaxSamples )
-				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = MaxSamples;
-			if( MaxSamples < 2 )
-				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 0;
+			//create a multisampled buffer
+			if(mFBOMode == MultiSampledFBO)
+			{	
+				GLint MaxSamples;
+				glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
+				if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > MaxSamples )
+					ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = MaxSamples;
+				if( MaxSamples < 2 )
+					ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 0;
 
-			sgct::MessageHandler::Instance()->print("Max samples supported: %d\n", MaxSamples);
+				sgct::MessageHandler::Instance()->print("Max samples supported: %d\n", MaxSamples);
 
-			//generate the multisample buffer
-			glGenFramebuffersEXT(2, &mMultiSampledFrameBuffers[0]);
+				//generate the multisample buffer
+				glGenFramebuffers(2, &mMultiSampledFrameBuffers[0]);
+			}
+		}
+		
+		if(mFBOMode == CubeMapFBO)
+		{
+			sphere = new sgct_utils::SGCTSphere(1.0f, 256);
+
+			GLint cubeMapRes = SGCTSettings::Instance()->getCubeMapResolution();
+			GLint MaxCubeMapRes;
+			glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
+			if(cubeMapRes > MaxCubeMapRes)
+			{
+				cubeMapRes = MaxCubeMapRes;
+				sgct::MessageHandler::Instance()->print("Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
+			}
+
+			//set up texture target
+			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ CubeMapBuffer ]);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[CubeMapBuffer] );
+			
+			for (int i = 0; i < 6; ++i)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, cubeMapRes, cubeMapRes, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			
+			//attach one of the faces
+			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, mFrameBufferTextures[ CubeMapBuffer ], 0);
+			//set up depth buffer
+			glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffers[ CubeMapBuffer ]);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, cubeMapRes, cubeMapRes);
+			//Attach depth buffer to FBO
+			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[ CubeMapBuffer ]);
+			//Does the GPU support current FBO configuration?
+			if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
+				MessageHandler::Instance()->print("Engine: Something went wrong creating the fisheye cubemap FBO!\n");
+			else //render faces
+			{
+				glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[CubeMapBuffer] );
+				for(int i=0; i<6; i++)
+				{
+					glFramebufferTexture2DEXT(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ CubeMapBuffer ], 0);
+					glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+				}
+
+				MessageHandler::Instance()->print("Engine info: Initial cube map rendered.\n");
+			}
 		}
 		else
-			sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported or enabled!\n");
-
-		for( int i=0; i<2; i++ )
 		{
-			//setup render buffer
-			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]) :
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+			for( int i=0; i<2; i++ )
+			{
+				//setup render buffer
+				(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+					glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffers[i]) :
+					glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[i]);
+				glBindRenderbuffer(GL_RENDERBUFFER, mRenderBuffers[i]);
 			
-			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
-				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()) :
-				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_RENDERBUFFER_EXT, mRenderBuffers[i]);
+				//Set render buffer storage depending on if buffer is multisampled or not
+				(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+					glRenderbufferStorageMultisample(GL_RENDERBUFFER, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()) :
+					glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRenderBuffers[i]);
 
-			//setup depth buffer
-			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mMultiSampledFrameBuffers[i]) :
-				glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
+				//setup depth buffer
+				(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+					glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffers[i]) :
+					glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[i]);
+				glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffers[i]);
 
-			glBindRenderbufferEXT(GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
-			(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
-				glRenderbufferStorageMultisampleEXT(GL_RENDERBUFFER_EXT, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()):
-				glRenderbufferStorageEXT(GL_RENDERBUFFER_EXT, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
-			glFramebufferRenderbufferEXT(GL_FRAMEBUFFER_EXT, GL_DEPTH_ATTACHMENT_EXT, GL_RENDERBUFFER_EXT, mDepthBuffers[i]);
+				(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample) ?
+					glRenderbufferStorageMultisample(GL_RENDERBUFFER, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()):
+					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
+				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[i]);
 
-			//setup non-multisample buffer
-			glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, mFrameBuffers[i]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_RGBA, GL_INT, NULL);
-			glFramebufferTexture2DEXT(GL_FRAMEBUFFER_EXT, GL_COLOR_ATTACHMENT0_EXT, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
+				//setup non-multisample buffer
+				glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[i]);
+				glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_RGBA, GL_INT, NULL);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
+			}
 		}
 
 		// Unbind / Go back to regular frame buffer rendering
-		glBindFramebufferEXT(GL_FRAMEBUFFER_EXT, 0);
+		glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 		glPopAttrib();
 
@@ -1181,15 +1373,15 @@ void sgct::Engine::createFBOs()
 */
 void sgct::Engine::resizeFBOs()
 {
-	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	if(mFBOMode != NoFBO)
 	{
 		//delete all
-		glDeleteFramebuffersEXT(2,	&mFrameBuffers[0]);
+		glDeleteFramebuffers(2,	&mFrameBuffers[0]);
 		if(mFBOMode == MultiSampledFBO && GLEW_EXT_framebuffer_multisample)
-			glDeleteFramebuffersEXT(2,	&mMultiSampledFrameBuffers[0]);
+			glDeleteFramebuffers(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
-		glDeleteRenderbuffersEXT(2, &mRenderBuffers[0]);
-		glDeleteRenderbuffersEXT(2, &mDepthBuffers[0]);
+		glDeleteRenderbuffers(2, &mRenderBuffers[0]);
+		glDeleteRenderbuffers(2, &mDepthBuffers[0]);
 
 		//init
 		mFrameBuffers[0] = 0;
@@ -1253,7 +1445,7 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
 	This function is called at the end of each render loop iteration but can also be called on demand.
 */
-void sgct::Engine::checkForOGLErrors()
+bool sgct::Engine::checkForOGLErrors()
 {
 	GLenum oglError = glGetError();
 
@@ -1269,6 +1461,10 @@ void sgct::Engine::checkForOGLErrors()
 
 	case GL_INVALID_OPERATION:
 		sgct::MessageHandler::Instance()->print("OpenGL error: GL_INVALID_OPERATION\n");
+		break;
+
+	case GL_INVALID_FRAMEBUFFER_OPERATION:
+		sgct::MessageHandler::Instance()->print("OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n");
 		break;
 
 	case GL_STACK_OVERFLOW:
@@ -1287,6 +1483,8 @@ void sgct::Engine::checkForOGLErrors()
 		sgct::MessageHandler::Instance()->print("OpenGL error: GL_TABLE_TOO_LARGE\n");
 		break;
 	}
+
+	return oglError == GL_NO_ERROR; //returns true if no errors
 }
 
 /*!
@@ -1362,7 +1560,7 @@ void sgct::Engine::captureBuffer()
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+	if(mFBOMode != NoFBO)
 	{
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, mFrameBuffers[0]);
@@ -1387,7 +1585,7 @@ void sgct::Engine::captureBuffer()
 
 	if( tmpNode->stereo != ReadConfig::NoStereo )
 	{
-		if(mFBOMode != NoFBO && GLEW_EXT_framebuffer_object)
+		if(mFBOMode != NoFBO)
 		{
 			glBindTexture(GL_TEXTURE_2D, mFrameBuffers[1]);
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
@@ -1766,7 +1964,7 @@ void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(int) )
 	mMouseWheelCallbackFn = fnPtr;
 }
 
-void sgct::Engine::clearBuffer(void)
+void sgct::Engine::clearBuffer()
 {
 	const float * colorPtr = sgct::Engine::getPtr()->getClearColor();
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
@@ -1792,27 +1990,38 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	if( vs == ScreenSpace || mFBOMode == NoFBO )
+	if( mFBOMode == CubeMapFBO )
 	{
-		currentViewportCoords[0] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
-		currentViewportCoords[1] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
-		currentViewportCoords[2] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
-		currentViewportCoords[3] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
+		int cmRes = sgct_core::SGCTSettings::Instance()->getCubeMapResolution();
+		currentViewportCoords[0] = 0;
+		currentViewportCoords[1] = 0;
+		currentViewportCoords[2] = cmRes;
+		currentViewportCoords[3] = cmRes;
 	}
 	else
 	{
-		currentViewportCoords[0] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
-		currentViewportCoords[1] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
-		currentViewportCoords[2] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
-		currentViewportCoords[3] =
-			static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+		if( vs == ScreenSpace || mFBOMode == NoFBO )
+		{
+			currentViewportCoords[0] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
+			currentViewportCoords[1] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
+			currentViewportCoords[2] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
+			currentViewportCoords[3] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
+		}
+		else
+		{
+			currentViewportCoords[0] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+			currentViewportCoords[1] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+			currentViewportCoords[2] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+			currentViewportCoords[3] =
+				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+		}
 	}
 
 	glViewport( currentViewportCoords[0],

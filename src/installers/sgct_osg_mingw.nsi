@@ -224,6 +224,9 @@ Section "OSG 3.0.1 MinGW x86"
 	SetOutPath "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86"
 	File /r "D:\bin\osg\OpenSceneGraph-3.0.1-MinGW\"
 	
+	SetOutPath "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\data"
+	File /r "D:\bin\osg\OpenSceneGraph-Data-3.0.0\"
+	
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osg" "OSG file"
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osgb" "OSG bin file"
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\bin\osgviewer.exe" ".osgt" "OSG text file"
@@ -235,10 +238,12 @@ Section "OSG environment variables"
 	DeleteRegValue ${env_hklm} OSG_PATH
     DeleteRegValue ${env_hklm} OSG_ROOT
     DeleteRegValue ${env_hklm} OSGHOME
+	DeleteRegValue ${env_hklm} OSG_FILE_PATH
 	
 	${EnvVarUpdate} $0 "OSG_ROOT" "P" "HKLM" "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86"
 	${EnvVarUpdate} $0 "OSG_PATH" "P" "HKLM" "%OSG_ROOT%\bin"
     ${EnvVarUpdate} $0 "OSGHOME" "P" "HKLM" "%OSG_ROOT%"
+	${EnvVarUpdate} $0 "OSG_FILE_PATH" "P" "HKLM" "$INSTDIR\osg\osg_3.0.1_MinGW_4.7.0_x86\data"
   
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
 	
@@ -263,6 +268,7 @@ Section "Uninstall"
   DeleteRegValue ${env_hklm} OSG_PATH
   DeleteRegValue ${env_hklm} OSG_ROOT
   DeleteRegValue ${env_hklm} OSGHOME
+  DeleteRegValue ${env_hklm} OSG_FILE_PATH
 	
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "%OSG_ROOT%\bin"
   

@@ -59,6 +59,7 @@ private:
     bool replaceEnvVars( const std::string &filename );
 	void readAndParseXML();
 	int getStereoType( const std::string type );
+	int getFisheyeCubemapRes( const std::string quality );
 
 	bool valid;
 	bool useMasterSyncLock;

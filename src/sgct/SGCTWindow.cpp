@@ -114,7 +114,7 @@ void sgct_core::SGCTWindow::init()
 }
 
 /*!
-	Sets the window title.
+	Set the window title
 	@param title The title of the window.
 */
 void sgct_core::SGCTWindow::setWindowTitle(const char * title)

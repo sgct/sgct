@@ -28,6 +28,14 @@
 #include "sgct/freetype.h"
 #include "sgct/SGCTVersion.h"
 
+//utilities
+/*!
+	Ths namespace contains helper classes to draw simple geometry.
+*/
+namespace sgct_utils{}; //empty for doxygen documentation only
+#include "sgct/utils/SGCTSphere.h"
+#include "sgct/utils/SGCTDome.h"
+
 //for backwards compability for sgct 0.9.5 and backwards
 namespace Freetype = sgct_text;
 namespace core_sgct = sgct_core;

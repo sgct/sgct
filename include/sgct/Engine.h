@@ -66,7 +66,7 @@ public:
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setClearColor(float red, float green, float blue, float alpha);
 	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
-	const float& getFarClippingPlaine() const { return mFarClippingPlaneDist; }
+	const float& getFarClippingPlane() const { return mFarClippingPlaneDist; }
 	void setWireframe(bool state) { mShowWireframe = state; }
 	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
 	void setStatsGraphVisibility(bool state) { mShowGraph = state; }
@@ -121,7 +121,7 @@ public:
 	static sgct_core::SGCTWindow * getWindowPtr() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
 	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
-	static void checkForOGLErrors();
+	static bool checkForOGLErrors();
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
@@ -140,8 +140,9 @@ public:
 
 //all enums
 private:
-	enum FBOBufferIndexes { LeftEye = 0, RightEye };
-	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO };
+	enum FBOBufferIndexes { LeftEyeBuffer = 0, RightEyeBuffer };
+	enum FBOCubeMapBufferIndexes { CubeMapBuffer = 0, FishEyeBuffer };
+	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
@@ -177,7 +178,7 @@ private:
 	void captureBuffer();
 	void waitForAllWindowsInSwapGroupToOpen();
 
-	static void clearBuffer(void);
+	static void clearBuffer();
 
 private:
 	// Convinience typedef

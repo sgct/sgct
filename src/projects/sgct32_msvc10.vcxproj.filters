@@ -7,6 +7,12 @@
     <Filter Include="source">
       <UniqueIdentifier>{84c34eb6-9b75-4d19-aa13-41aac760a327}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\utils">
+      <UniqueIdentifier>{49c26ff2-d10b-4437-becb-894633a54c32}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="source\utils">
+      <UniqueIdentifier>{feaf81dc-cea6-4a5c-8726-aa00e0a42576}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\sgct.h">
@@ -96,6 +102,18 @@
     <ClInclude Include="..\..\include\sgct\SGCTVersion.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTSettings.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\utils\SGCTSphere.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\utils\SGCTBox.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\utils\SGCTDome.h">
+      <Filter>include\utils</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -169,6 +187,18 @@
     </ClCompile>
     <ClCompile Include="..\sgct\SGCTTracker.cpp">
       <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTSettings.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\utils\SGCTSphere.cpp">
+      <Filter>source\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\utils\SGCTBox.cpp">
+      <Filter>source\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\utils\SGCTDome.cpp">
+      <Filter>source\utils</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

@@ -26,11 +26,14 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
 #include "../include/sgct/SGCTNode.h"
+#include "../include/sgct/SGCTSettings.h"
+#include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::SGCTNode::SGCTNode()
 {
 	mCurrentViewportIndex = 0;
 	numberOfSamples = 1;
+	mFisheyeMode = false;
 
 	//init optional parameters
 	swapInterval = 1;
@@ -45,6 +48,101 @@ void sgct_core::SGCTNode::addViewport(float left, float right, float bottom, flo
 void sgct_core::SGCTNode::addViewport(sgct_core::Viewport &vp)
 {
 	mViewports.push_back(vp);
+}
+
+/*!
+	Clears the vector containing all viewport data.
+*/
+void sgct_core::SGCTNode::deleteAllViewports()
+{
+	mCurrentViewportIndex = 0;
+	mViewports.clear();
+}
+
+/*!
+	Returns if fisheye rendering is active.
+*/
+bool sgct_core::SGCTNode::isUsingFisheyeRendering()
+{
+	return mFisheyeMode;
+}
+
+/*!
+	Generates six viewports that renders the inside of a cube. The method used in SGCT is to only use four faces by rotating the cube 45 degrees.
+*/
+void sgct_core::SGCTNode::generateCubeMapViewports()
+{
+	mFisheyeMode = true;
+	glm::vec4 lowerLeft, upperLeft, upperRight;
+	
+	float radius = sgct_core::SGCTSettings::Instance()->getCubeMapSize()/2.0f;
+
+	//+Z face
+	lowerLeft.x = -1.0f * radius;
+	lowerLeft.y = -1.0f * radius;
+	lowerLeft.z = 1.0f * radius;
+	lowerLeft.w = 1.0f;
+
+	upperLeft.x = -1.0f * radius;
+	upperLeft.y = 1.0f * radius;
+	upperLeft.z = 1.0f * radius;
+	upperLeft.w = 1.0f; 
+
+	upperRight.x = 1.0f * radius;
+	upperRight.y = 1.0f * radius;
+	upperRight.z = 1.0f * radius;
+	upperRight.w = 1.0f;
+
+	//tilt
+	float tilt = sgct_core::SGCTSettings::Instance()->getFisheyeTilt();
+	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-tilt, glm::vec3(1, 0, 0));
+
+	//pan 45 deg
+	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0, 1, 0));
+
+	//add viewports
+	for(unsigned int i=0; i<6; i++)
+	{
+		Viewport tmpVP;
+		
+		glm::mat4 rotMat(1.0f);
+
+		switch(i)
+		{
+		case 0: //+X face
+			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0, 1, 0));
+			break;
+
+		case 1: //-X face
+			tmpVP.setEnabled( false );
+			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0, 1, 0));
+			break;
+
+		case 2: //+Y face
+			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1, 0, 0));
+			break;
+
+		case 3: //-Y face
+			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1, 0, 0));
+			break;
+
+		case 4: //+Z face
+			rotMat = panRot;
+			break;
+
+		case 5: //-Z face
+			tmpVP.setEnabled( false );
+			rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0, 1, 0));
+			break;
+		}
+
+		//add viewplane vertices
+		tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft);
+		tmpVP.setViewPlaneCoords(1, rotMat * upperLeft);
+		tmpVP.setViewPlaneCoords(2, rotMat * upperRight);
+
+		addViewport( tmpVP );
+	}
 }
 
 sgct_core::Viewport * sgct_core::SGCTNode::getCurrentViewport()

@@ -32,6 +32,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/external/tinyxml2.h"
+#include "../include/sgct/SGCTSettings.h"
 
 using namespace tinyxml2;
 
@@ -411,6 +412,31 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 					tmpNode.addViewport(tmpVp);
 				}//end viewport
+				else if(strcmp("Fisheye", val[1]) == 0)
+				{
+					float fov;
+					if( element[1]->QueryFloatAttribute("fov", &fov) == XML_NO_ERROR )
+						sgct_core::SGCTSettings::Instance()->setFisheyeFOV( fov );
+					
+					if( element[1]->Attribute("quality") != NULL )
+					{
+						int resolution = getFisheyeCubemapRes( std::string(element[1]->Attribute("quality")) );
+						if( resolution > 0 )
+							sgct_core::SGCTSettings::Instance()->setCubeMapResolution( resolution );
+					}
+
+					float tilt;
+					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
+						sgct_core::SGCTSettings::Instance()->setFisheyeTilt( tilt );
+					
+					//disable stereo
+					tmpNode.stereo = NoStereo;
+					
+					//erase all viewport settings
+					tmpNode.deleteAllViewports();
+					tmpNode.generateCubeMapViewports();
+
+				}//end fisheye
 
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
@@ -621,6 +647,23 @@ int sgct_core::ReadConfig::getStereoType( const std::string type )
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
 		return Anaglyph_Amber_Blue;
 
+	//if match not found
+	return -1;
+}
+
+int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )
+{
+	if( strcmp( quality.c_str(), "low" ) == 0 )
+		return 256;
+	else if( strcmp( quality.c_str(), "medium" ) == 0 )
+		return 512;
+	else if( strcmp( quality.c_str(), "high" ) == 0 )
+		return 1024;
+	else if( strcmp( quality.c_str(), "ultra" ) == 0 )
+		return 2048;
+	else if( strcmp( quality.c_str(), "insane" ) == 0 )
+		return 4096;
+	
 	//if match not found
 	return -1;
 }

@@ -36,6 +36,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 namespace sgct_core
 {
 
+/*!
+	This class holds and manages viewportdata.
+*/
 class Viewport
 {
 public:
@@ -49,9 +52,11 @@ public:
 	void setOverlayTexture(const char * texturePath);
 	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
+	void setEnabled(bool state);
 	void loadData();
 	void calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
+	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void renderMesh();
 
 	inline double getX() { return mX; }
@@ -66,6 +71,7 @@ public:
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
+	inline bool isEnabled() { return mEnabled; }
 	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
@@ -89,6 +95,7 @@ private:
 	bool mOverlayTexture;
 	bool mCorrectionMesh;
 	bool mTracked;
+	bool mEnabled;
 	unsigned int mTextureIndex;
 };
 

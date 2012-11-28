@@ -41,6 +41,9 @@ public:
 	SGCTNode();
 	void addViewport(float left, float right, float bottom, float top);
 	void addViewport(Viewport &vp);
+	void deleteAllViewports();
+	bool isUsingFisheyeRendering();
+	void generateCubeMapViewports();
 	Viewport * getCurrentViewport();
 	Viewport * getViewport(unsigned int index);
 	void getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
@@ -60,6 +63,7 @@ private:
 	unsigned int mCurrentViewportIndex;
 	std::vector<Viewport> mViewports;
 	SGCTWindow mWindow;
+	bool mFisheyeMode;
 };
 }
 

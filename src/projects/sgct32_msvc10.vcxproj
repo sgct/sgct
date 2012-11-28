@@ -23,6 +23,7 @@
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
     <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
     <ClCompile Include="..\sgct\SGCTNode.cpp" />
+    <ClCompile Include="..\sgct\SGCTSettings.cpp" />
     <ClCompile Include="..\sgct\SGCTTracker.cpp" />
     <ClCompile Include="..\sgct\SGCTTrackingDevice.cpp" />
     <ClCompile Include="..\sgct\SGCTTrackingManager.cpp" />
@@ -34,6 +35,9 @@
     <ClCompile Include="..\sgct\SharedData.cpp" />
     <ClCompile Include="..\sgct\Statistics.cpp" />
     <ClCompile Include="..\sgct\TextureManager.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTBox.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTDome.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTSphere.cpp" />
     <ClCompile Include="..\sgct\Viewport.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -53,6 +57,7 @@
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTSettings.h" />
     <ClInclude Include="..\..\include\sgct\SGCTTracker.h" />
     <ClInclude Include="..\..\include\sgct\SGCTTrackingDevice.h" />
     <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h" />
@@ -65,6 +70,9 @@
     <ClInclude Include="..\..\include\sgct\SharedData.h" />
     <ClInclude Include="..\..\include\sgct\Statistics.h" />
     <ClInclude Include="..\..\include\sgct\TextureManager.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTBox.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTDome.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTSphere.h" />
     <ClInclude Include="..\..\include\sgct\Viewport.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">

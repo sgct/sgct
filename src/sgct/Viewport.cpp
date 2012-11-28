@@ -67,6 +67,8 @@ void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
 	mMeshFilename = NULL;
 	mTextureIndex = 0;
 	mTracked = false;
+	mEnabled = true;
+
 	mCM.setViewportCoords(static_cast<float>(mXSize), 
 		static_cast<float>(mYSize),
 		static_cast<float>(mX),
@@ -131,6 +133,11 @@ void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 void sgct_core::Viewport::setTracked(bool state)
 {
 	mTracked = state;
+}
+
+void sgct_core::Viewport::setEnabled(bool state)
+{
+	mEnabled = state;
 }
 
 void sgct_core::Viewport::loadData()
@@ -211,6 +218,11 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
 {
 	mViewPlaneCoords[cornerIndex] = cornerPos;
+}
+
+void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos)
+{
+	mViewPlaneCoords[cornerIndex] = glm::vec3(cornerPos);
 }
 
 void sgct_core::Viewport::renderMesh()

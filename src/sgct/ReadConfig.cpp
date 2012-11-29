@@ -41,10 +41,6 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 	valid = false;
 	useExternalControlPort = false;
 	useMasterSyncLock = false;
-	sceneOffset = glm::vec3(0.0f, 0.0f, 0.0f);
-	mYaw = 0.0f;
-	mPitch = 0.0f;
-	mRoll = 0.0f;
 
 	//font stuff
 	mFontSize = 10;
@@ -217,13 +213,16 @@ void sgct_core::ReadConfig::readAndParseXML()
                         element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == XML_NO_ERROR &&
                         element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == XML_NO_ERROR)
                     {
-                        sceneOffset.x = tmpOffset[0];
+                        glm::vec3 sceneOffset(1.0f);
+						sceneOffset.x = tmpOffset[0];
                         sceneOffset.y = tmpOffset[1];
                         sceneOffset.z = tmpOffset[2];
                         sgct::MessageHandler::Instance()->print("Setting scene offset to (%f, %f, %f)\n",
                                                                 sceneOffset.x,
                                                                 sceneOffset.y,
                                                                 sceneOffset.z);
+
+						ClusterManager::Instance()->setSceneOffset( sceneOffset );
                     }
                     else
                         sgct::MessageHandler::Instance()->print("Failed to parse scene offset from XML!\n");
@@ -235,13 +234,28 @@ void sgct_core::ReadConfig::readAndParseXML()
                         element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == XML_NO_ERROR &&
                         element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == XML_NO_ERROR)
                     {
-                        mYaw = glm::radians( tmpOrientation[0] );
-                        mPitch = glm::radians( tmpOrientation[1] );
-                        mRoll = glm::radians( tmpOrientation[2] );
+                        float mYaw = glm::radians( tmpOrientation[0] );
+                        float mPitch = glm::radians( tmpOrientation[1] );
+                        float mRoll = glm::radians( tmpOrientation[2] );
                         sgct::MessageHandler::Instance()->print("Setting scene orientation to (%f, %f, %f) radians\n",
                                                                 mYaw,
                                                                 mPitch,
                                                                 mRoll);
+
+						ClusterManager::Instance()->setSceneRotation( mYaw, mPitch, mRoll );
+                    }
+                    else
+                        sgct::MessageHandler::Instance()->print("Failed to parse scene orientation from XML!\n");
+				}
+				else if( strcmp("Scale", val[1]) == 0 )
+				{
+					float tmpScale = 1.0f;
+					if( element[1]->QueryFloatAttribute("value", &tmpScale ) == XML_NO_ERROR )
+                    {
+                        sgct::MessageHandler::Instance()->print("Setting scene scale to %f\n",
+                                                                tmpScale );
+
+						ClusterManager::Instance()->setSceneScale( tmpScale );
                     }
                     else
                         sgct::MessageHandler::Instance()->print("Failed to parse scene orientation from XML!\n");
@@ -428,9 +442,39 @@ void sgct_core::ReadConfig::readAndParseXML()
 					float tilt;
 					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
 						sgct_core::SGCTSettings::Instance()->setFisheyeTilt( tilt );
+
+					element[2] = element[1]->FirstChildElement();
+					while( element[2] != NULL )
+					{
+						val[2] = element[2]->Value();
+
+						if( strcmp("Crop", val[2]) == 0 )
+						{
+							double tmpDArr[] = { 0.0, 0.0, 0.0, 0.0 };
+							double dtmp;
+
+							if( element[2]->QueryDoubleAttribute("left", &dtmp) == XML_NO_ERROR )
+                                tmpDArr[sgct_core::SGCTSettings::Left] = dtmp;
+							if( element[2]->QueryDoubleAttribute("right", &dtmp) == XML_NO_ERROR )
+                                tmpDArr[sgct_core::SGCTSettings::Right] = dtmp;
+							if( element[2]->QueryDoubleAttribute("bottom", &dtmp) == XML_NO_ERROR )
+                                tmpDArr[sgct_core::SGCTSettings::Bottom] = dtmp;
+							if( element[2]->QueryDoubleAttribute("top", &dtmp) == XML_NO_ERROR )
+                                tmpDArr[sgct_core::SGCTSettings::Top] = dtmp;
+
+							sgct_core::SGCTSettings::Instance()->setFisheyeCropValues(
+								tmpDArr[sgct_core::SGCTSettings::Left],
+								tmpDArr[sgct_core::SGCTSettings::Right],
+								tmpDArr[sgct_core::SGCTSettings::Bottom],
+								tmpDArr[sgct_core::SGCTSettings::Top]);
+						}
+
+						//iterate
+						element[2] = element[2]->NextSiblingElement();
+					}
 					
 					//disable stereo
-					tmpNode.stereo = NoStereo;
+					tmpNode.stereo = ClusterManager::NoStereo;
 					
 					//erase all viewport settings
 					tmpNode.deleteAllViewports();
@@ -635,17 +679,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 int sgct_core::ReadConfig::getStereoType( const std::string type )
 {
 	if( strcmp( type.c_str(), "none" ) == 0 )
-		return NoStereo;
+		return ClusterManager::NoStereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 )
-		return Active;
+		return ClusterManager::Active;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
-		return Checkerboard;
+		return ClusterManager::Checkerboard;
 	else if( strcmp( type.c_str(), "checkerboard_inverted" ) == 0 )
-		return Checkerboard_Inverted;
+		return ClusterManager::Checkerboard_Inverted;
 	else if( strcmp( type.c_str(), "anaglyph_red_cyan" ) == 0 )
-		return Anaglyph_Red_Cyan;
+		return ClusterManager::Anaglyph_Red_Cyan;
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
-		return Anaglyph_Amber_Blue;
+		return ClusterManager::Anaglyph_Amber_Blue;
 
 	//if match not found
 	return -1;
@@ -657,12 +701,14 @@ int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )
 		return 256;
 	else if( strcmp( quality.c_str(), "medium" ) == 0 )
 		return 512;
-	else if( strcmp( quality.c_str(), "high" ) == 0 )
+	else if( strcmp( quality.c_str(), "high" ) == 0 || strcmp( quality.c_str(), "1k" ) == 0 )
 		return 1024;
-	else if( strcmp( quality.c_str(), "ultra" ) == 0 )
+	else if( strcmp( quality.c_str(), "2k" ) == 0 )
 		return 2048;
-	else if( strcmp( quality.c_str(), "insane" ) == 0 )
+	else if( strcmp( quality.c_str(), "4k" ) == 0 )
 		return 4096;
+	else if( strcmp( quality.c_str(), "8k" ) == 0 )
+		return 8192;
 	
 	//if match not found
 	return -1;

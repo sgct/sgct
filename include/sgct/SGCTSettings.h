@@ -39,6 +39,8 @@ namespace sgct_core
 class SGCTSettings
 {
 public:
+	enum CropSides { Left = 0, Right, Bottom, Top };
+
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * Instance()
 	{
@@ -64,15 +66,21 @@ public:
 	void setCubeMapSize(float size);
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
+	void setFisheyeCropValues(double left, double right, double bottom, double top);
 	
 	int getCubeMapResolution();
 	float getCubeMapSize();
 	float getFisheyeTilt();
 	float getFisheyeFOV();
+	double getFisheyeCropValue(CropSides side);
 
 private:
 	SGCTSettings();
 	~SGCTSettings();
+
+	// Don't implement these, should give compile warning if used
+	SGCTSettings( const SGCTSettings & settings );
+	const SGCTSettings & operator=(const SGCTSettings & settings );
 
 private:
 	static SGCTSettings * mInstance;
@@ -84,6 +92,7 @@ private:
 	//fisheye settings
 	float mFisheyeTilt;
 	float mFieldOfView;
+	double cropFactors[4];
 };
 }
 

@@ -65,6 +65,7 @@ public:
 	}
 
 	enum MeshImplementation { VBO_INDEX=0, VBO_ARRAY, DISPLAY_LIST };
+	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Checkerboard, Checkerboard_Inverted };
 
 	void addNode(SGCTNode node);
 	unsigned int getNumberOfNodes() const { return nodes.size(); }
@@ -72,7 +73,7 @@ public:
 	SGCTNode * getThisNodePtr();
 	SGCTUser * getUserPtr() { return mUser; }
 
-	const glm::mat4 & getSceneTrans() { return mSceneTrans; }
+	const glm::mat4 & getSceneTransform() { return mSceneTransform; }
 	void setThisNodeId(int id) { mThisNodeId = id; }
 	int getThisNodeId() { return mThisNodeId; }
 
@@ -81,7 +82,10 @@ public:
 
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
-	void updateSceneTransformation(float yaw, float pitch, float roll, glm::vec3 offset);
+
+	void setSceneOffset(glm::vec3 offset);
+	void setSceneRotation(float yaw, float pitch, float roll);
+	void setSceneScale(float scale);
 
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
 	inline MeshImplementation getMeshImplementation() { return mMeshImpl; }
@@ -96,6 +100,8 @@ private:
 	ClusterManager( const ClusterManager & nm );
 	const ClusterManager & operator=(const ClusterManager & nm );
 
+	void calculateSceneTransform();
+
 private:
 	static ClusterManager * mInstance;
 
@@ -109,7 +115,10 @@ private:
 	SGCTUser * mUser;
 	sgct::SGCTTrackingManager * mTrackingManager;
 
-	glm::mat4 mSceneTrans;
+	glm::mat4 mSceneTransform;
+	glm::mat4 mSceneScale;
+	glm::mat4 mSceneTranslate;
+	glm::mat4 mSceneRotation;
 	MeshImplementation mMeshImpl;
 };
 }

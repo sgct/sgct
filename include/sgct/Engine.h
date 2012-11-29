@@ -63,8 +63,10 @@ public:
 	const double & getDrawTime();
 	const double & getSyncTime();
 	const float * getClearColor() { return mClearColor; }
+	const float * getFisheyeClearColor() { return mFisheyeClearColor; }
 	void setNearAndFarClippingPlanes(float _near, float _far);
 	void setClearColor(float red, float green, float blue, float alpha);
+	void setFisheyeClearColor(float red, float green, float blue);
 	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
 	const float& getFarClippingPlane() const { return mFarClippingPlaneDist; }
 	void setWireframe(bool state) { mShowWireframe = state; }
@@ -134,14 +136,16 @@ public:
 	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 	inline const int * getActiveViewport() { return currentViewportCoords; }
 	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
+	//! Returns the framebuffer's aspect ratio
+	inline double getAspectRatio() { return mAspectRatio; }
 
 	//can be called any time after Engine init
-	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTrans(); }
+	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
 //all enums
 private:
 	enum FBOBufferIndexes { LeftEyeBuffer = 0, RightEyeBuffer };
-	enum FBOCubeMapBufferIndexes { CubeMapBuffer = 0, FishEyeBuffer };
+	enum FBOCubeMapBufferIndexes { FishEyeBuffer = 0, CubeMapBuffer };
 	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
@@ -157,7 +161,7 @@ private:
 	void clearAllCallbacks();
 
 	void frameSyncAndLock(SyncStage stage);
-	void calcFPS(double timestamp);
+	void calculateFPS(double timestamp);
 	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();
 	void calculateFrustums();
@@ -169,11 +173,13 @@ private:
 	void drawOverlays();
 	void setRenderTarget(FBOBufferIndexes bi);
 	void renderFBOTexture();
+	void renderFisheye();
 	void updateRenderingTargets();
 	void updateTimers(double timeStamp);
 	void loadShaders();
 	void createFBOs();
 	void resizeFBOs();
+	void calculateFisheyeProjection();
 	void setAndClearBuffer(BufferMode mode);
 	void captureBuffer();
 	void waitForAllWindowsInSwapGroupToOpen();
@@ -210,6 +216,8 @@ private:
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;
 	float mClearColor[4];
+	float mFisheyeClearColor[4];
+	double mFisheyeOrthoValues[6];
 
 	int localRunningMode;
 	sgct_core::Frustum::FrustumMode mActiveFrustum;
@@ -241,6 +249,7 @@ private:
 
 	std::string configFilename;
 	int mRunning;
+	double mAspectRatio;
 	char basicInfo[48];
 
 	unsigned long long mFrameCounter;

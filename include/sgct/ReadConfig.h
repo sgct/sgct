@@ -40,15 +40,9 @@ class ReadConfig
 public:
 	ReadConfig( const std::string filename );
 
-	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Checkerboard, Checkerboard_Inverted };
-
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 	bool isMasterSyncLocked() { return useMasterSyncLock; }
-	const glm::vec3 * getSceneOffset() { return &sceneOffset; }
-	const float & getYaw() { return mYaw; }
-	const float & getPitch() { return mPitch; }
-	const float & getRoll() { return mRoll; }
 
 	//font stuff
 	const int & getFontSize() { return mFontSize; }
@@ -69,8 +63,6 @@ private:
 	std::string mFontName;
 	std::string mFontPath;
 	int mFontSize;
-	glm::vec3 sceneOffset;
-	float mYaw, mPitch, mRoll;
 };
 
 }

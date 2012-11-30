@@ -40,6 +40,87 @@ namespace sgct_core
 		/*
 
 		#version 120
+
+		void main()
+		{
+			gl_TexCoord[0] = gl_MultiTexCoord0;
+			gl_TexCoord[1] = gl_MultiTexCoord1;
+			gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+		}
+
+		*/
+		const std::string Base_Vert_Shader = "\
+			#version 120\n\
+			\n\
+			void main()\n\
+			{\n\
+				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+				gl_TexCoord[1] = gl_MultiTexCoord1;\n\
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+			}\n";
+
+		/*
+
+		#version 120
+		
+		uniform samplerCube cubemap;
+		uniform float halfFov;
+		float quarter_pi = 0.7853981634;
+		
+		void main()
+		{
+			float s = gl_TexCoord[0].s;
+			float t = gl_TexCoord[0].t;
+			vec4 color;
+			if( s*s + t*t <= 1.0 )
+			{
+				float phi = sqrt(s*s + t*t) * halfFov;
+				float theta = atan(s,t);
+				float x = sin(phi) * sin(theta);
+				float y = -sin(phi) * cos(theta);
+				float z = cos(phi);
+				vec3 ReflectDir = vec3(x, y, z);
+				\\Since we only use four faces the cubemap is rotated 45 degrees
+				vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);
+				color = vec4(textureCube(cubemap, rotVec));
+			}
+			else
+				color = vec4(0.0, 0.0, 0.0, 0.0);
+			gl_FragColor = color;
+		}
+
+		*/
+		const std::string Fisheye_Frag_Shader = "\
+			#version 120\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform float halfFov;\n\
+			float quarter_pi = 0.7853981634;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = gl_TexCoord[0].s;\n\
+				float t = gl_TexCoord[0].t;\n\
+				vec4 color;\n\
+				if( s*s + t*t <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(s*s + t*t) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta);\n\
+					float y = -sin(phi) * cos(theta);\n\
+					float z = cos(phi);\n\
+					vec3 ReflectDir = vec3(x, y, z);\n\
+					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
+					color = vec4(textureCube(cubemap, rotVec));\n\
+				}\n\
+				else\n\
+					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+				gl_FragColor = color;\n\
+			}\n";
+		
+		/*
+
+		#version 120
 		uniform sampler2D LeftTex;
 		uniform sampler2D RightTex;
 

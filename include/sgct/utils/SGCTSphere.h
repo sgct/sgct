@@ -41,7 +41,7 @@ namespace sgct_utils
 {
 
 /*!
-
+	This class creates and renders a textured sphere.
 */
 class SGCTSphere
 {
@@ -60,6 +60,11 @@ private:
 	void cleanUp();
 
 private:
+	// Don't implement these, should give compile warning if used
+	SGCTSphere();
+	SGCTSphere( const SGCTSphere & sphere );
+	const SGCTSphere & operator=(const SGCTSphere & sphere );
+	
 	VertexData * mVerts;
 	unsigned int * mIndices;
 

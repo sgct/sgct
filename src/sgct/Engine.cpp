@@ -43,15 +43,11 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "../include/sgct/Image.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
+#include <glm/gtc/constants.hpp>
 #include <math.h>
 #include <iostream>
 #include <sstream>
 #include <deque>
-
-//test
-#include <glm/gtc/constants.hpp>
-#include "../include/sgct/utils/SGCTSphere.h"
-sgct_utils::SGCTSphere * sphere = NULL;
 
 using namespace sgct_core;
 
@@ -60,9 +56,6 @@ sgct::Engine *  sgct::Engine::mThis     = NULL;
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
 #endif
-
-//constants
-static const double ZTRANS = 100.0;
 
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
@@ -112,8 +105,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRenderBuffers[1] = 0;
 	mDepthBuffers[0] = 0;
 	mDepthBuffers[1] = 0;
-	mFrameBufferTextureLocs[0] = -1;
-	mFrameBufferTextureLocs[1] = -1;
+	mShaderLocs[0] = -1;
+	mShaderLocs[1] = -1;
 	mFBOMode = MultiSampledFBO;
 
 	mAspectRatio = 1.0;
@@ -149,13 +142,6 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mFisheyeClearColor[1] = 0.3f;
 	mFisheyeClearColor[2] = 0.3f;
 	mFisheyeClearColor[3] = 1.0f;
-
-	mFisheyeOrthoValues[0] = -1.0;
-	mFisheyeOrthoValues[1] = 1.0;
-	mFisheyeOrthoValues[2] = 1.0;
-	mFisheyeOrthoValues[3] = -1.0;
-	mFisheyeOrthoValues[4] = mNearClippingPlaneDist;
-	mFisheyeOrthoValues[5] = mFarClippingPlaneDist;
 	
 	mShowInfo = false;
 	mShowGraph = false;
@@ -311,6 +297,8 @@ bool sgct::Engine::initWindow()
 		mFBOMode = CubeMapFBO;
 		mActiveFrustum = Frustum::Mono;
 		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
+		//create the cube mapped viewports
+		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
 	}
 	else
 	{
@@ -996,8 +984,8 @@ void sgct::Engine::renderFBOTexture()
 			break;
 		}
 
-		glUniform1i( mFrameBufferTextureLocs[0], 0);
-		glUniform1i( mFrameBufferTextureLocs[1], 1);
+		glUniform1i( mShaderLocs[0], 0);
+		glUniform1i( mShaderLocs[1], 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
@@ -1047,7 +1035,7 @@ void sgct::Engine::renderFBOTexture()
 /*!
 	This functions works in two steps:
 	1. Render a cubemap
-	2. Render to a fisheye using a mirror and reflection from the cubemap
+	2. Render to a fisheye using a GLSL shader
 */
 void sgct::Engine::renderFisheye()
 {
@@ -1078,52 +1066,66 @@ void sgct::Engine::renderFisheye()
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 			
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
 	*/
-	glOrtho( mFisheyeOrthoValues[0],
-		mFisheyeOrthoValues[1],
-		mFisheyeOrthoValues[2],
-		mFisheyeOrthoValues[3], 
-		mFisheyeOrthoValues[4],
-		mFisheyeOrthoValues[5] );
+
+	glOrtho( -1.0,
+		1.0,
+		-1.0,
+		1.0,	
+		0.1,
+		2.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glViewport(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
-			
-	glMatrixMode(GL_TEXTURE);
-	glPushMatrix();
-	glLoadIdentity();
-	glRotated(45.0, 0.0, 1.0, 0.0);
-	glMatrixMode(GL_MODELVIEW);
+	
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glEnable(GL_DEPTH_TEST);
-	glDisable(GL_TEXTURE_2D);
-	glEnable(GL_TEXTURE_CUBE_MAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[CubeMapBuffer]);
-	glTexEnvi(GL_TEXTURE_ENV, GL_TEXTURE_ENV_MODE, GL_DECAL);
-	glTexGeni(GL_S, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP); 
-	glTexGeni(GL_T, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP); 
-	glTexGeni(GL_R, GL_TEXTURE_GEN_MODE, GL_REFLECTION_MAP);
-	glEnable(GL_TEXTURE_GEN_S);
-	glEnable(GL_TEXTURE_GEN_T);
-	glEnable(GL_TEXTURE_GEN_R);
 
 	glPushMatrix();
-	glColor3f(1.0f, 1.0f, 1.0f);
-	glTranslated(0.0, 0.0, -ZTRANS);
 	glDisable(GL_CULL_FACE);
-	sphere->draw();
 
-	//restore texture matrix
-	glMatrixMode(GL_TEXTURE);
-	glPopMatrix();
-	glMatrixMode(GL_MODELVIEW);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	
+	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
+	glUniform1i( mShaderLocs[0], 0);
+	glUniform1f( mShaderLocs[1], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
+
+	double leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
+	double rightcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
+	double bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Bottom);
+	double topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Top);
+
+	double cropAspect = ((1.0-2.0 * bottomcrop) + (1.0-2.0*topcrop)) / ((1.0-2.0*leftcrop) + (1.0-2.0*rightcrop));
+
+	double x = 1.0;
+	double y = 1.0;
+	double aspect = mAspectRatio * cropAspect;
+	( aspect >= 1.0 ) ? x = 1.0f / aspect : y = aspect;
+
+	glBegin(GL_QUADS);
+		glTexCoord2d(2.0*leftcrop-1.0, 2.0*bottomcrop-1.0);
+		glVertex3d(-x, -y, -1.0);
+
+		glTexCoord2d(2.0*leftcrop-1.0, 1.0-2.0*topcrop);
+		glVertex3d(-x, y, -1.0);
+
+		glTexCoord2d(1.0-2.0*rightcrop, 1.0-2.0*topcrop);
+		glVertex3d(x, y, -1.0);
+
+		glTexCoord2d(1.0-2.0*rightcrop, 2.0*bottomcrop-1.0);
+		glVertex3d(x, -y, -1.0);
+	glEnd();
+
+	sgct::ShaderManager::Instance()->unBindShader();
 
 	glPopMatrix();
 	glPopAttrib();
@@ -1197,45 +1199,58 @@ void sgct::Engine::loadShaders()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan )
+	if( mFBOMode == CubeMapFBO )
 	{
-		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
-		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
-		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextureLocs[0], 0 );
-		glUniform1i( mFrameBufferTextureLocs[1], 1 );
+		sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
+		mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "cubemap" );
+		glUniform1i( mShaderLocs[0], 0 );
+		mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "halfFov" );
+		glUniform1f( mShaderLocs[1], glm::half_pi<float>() );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
-	else if( tmpNode->stereo == ClusterManager::Anaglyph_Amber_Blue )
+	else //stereo not supported using cubemap
 	{
-		sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
-		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
-		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextureLocs[0], 0 );
-		glUniform1i( mFrameBufferTextureLocs[1], 1 );
-		sgct::ShaderManager::Instance()->unBindShader();
-	}
-	else if( tmpNode->stereo == ClusterManager::Checkerboard )
-	{
-		sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
-		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
-		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextureLocs[0], 0 );
-		glUniform1i( mFrameBufferTextureLocs[1], 1 );
-		sgct::ShaderManager::Instance()->unBindShader();
-	}
-	else if( tmpNode->stereo == ClusterManager::Checkerboard_Inverted )
-	{
-		sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
-		mFrameBufferTextureLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
-		mFrameBufferTextureLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
-		glUniform1i( mFrameBufferTextureLocs[0], 0 );
-		glUniform1i( mFrameBufferTextureLocs[1], 1 );
-		sgct::ShaderManager::Instance()->unBindShader();
+		if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan )
+		{
+			sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
+			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[0], 0 );
+			glUniform1i( mShaderLocs[1], 1 );
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
+		else if( tmpNode->stereo == ClusterManager::Anaglyph_Amber_Blue )
+		{
+			sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
+			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[0], 0 );
+			glUniform1i( mShaderLocs[1], 1 );
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
+		else if( tmpNode->stereo == ClusterManager::Checkerboard )
+		{
+			sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
+			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[0], 0 );
+			glUniform1i( mShaderLocs[1], 1 );
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
+		else if( tmpNode->stereo == ClusterManager::Checkerboard_Inverted )
+		{
+			sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[0], 0 );
+			glUniform1i( mShaderLocs[1], 1 );
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
 	}
 }
 
@@ -1283,11 +1298,6 @@ void sgct::Engine::createFBOs()
 		
 		if(mFBOMode == CubeMapFBO)
 		{
-			calculateFisheyeProjection();
-			
-			//the cubemap FBO is only set once since it doesn't resize during rendering
-			sphere = new sgct_utils::SGCTSphere(1.0f, 256);
-
 			GLint cubeMapRes = SGCTSettings::Instance()->getCubeMapResolution();
 			GLint MaxCubeMapRes;
 			glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
@@ -1314,7 +1324,7 @@ void sgct::Engine::createFBOs()
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, mFrameBufferTextures[ CubeMapBuffer ], 0);
 			//set up depth buffer
 			glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffers[ CubeMapBuffer ]);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, cubeMapRes, cubeMapRes);
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, cubeMapRes, cubeMapRes);
 			//Attach depth buffer to FBO
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[ CubeMapBuffer ]);
 				
@@ -1346,7 +1356,7 @@ void sgct::Engine::createFBOs()
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[FishEyeBuffer], 0);
 			//set up depth buffer
 			glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffers[ FishEyeBuffer ]);
-			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
+			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[ FishEyeBuffer ]);
 
 			//Does the GPU support current FBO configuration?
@@ -1441,44 +1451,6 @@ void sgct::Engine::resizeFBOs()
 
 		sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
 	}
-}
-
-/*!
-	This function calculates the orthographic mirror projection for the fisheye renderer.
-*/
-void sgct::Engine::calculateFisheyeProjection()
-{
-	//calc crop values
-	double leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
-	double rightcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
-	double bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Bottom);
-	double topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Top);
-
-	double cropAspect = ((1.0-2.0 * bottomcrop) + (1.0-2.0*topcrop)) / ((1.0-2.0*leftcrop) + (1.0-2.0*rightcrop));
-	double width, height;
-
-	//based on a sphere model
-	double fisheyeFOV = static_cast<double>( SGCTSettings::Instance()->getFisheyeFOV() );
-	double fulldomeDist = sin( glm::half_pi<double>() - glm::radians<double>(fisheyeFOV/4.0) );
-	double orthoSize = sin( glm::radians<double>(fisheyeFOV/4.0) );
-
-	if( mAspectRatio >= 1.0 )
-	{
-		width = orthoSize * (mAspectRatio * cropAspect);
-		height = orthoSize;
-	}
-	else
-	{
-		width = orthoSize;
-		height = orthoSize / (mAspectRatio * cropAspect);
-	}
-
-	mFisheyeOrthoValues[ 0 ] = -width*(1.0-2.0*leftcrop);
-	mFisheyeOrthoValues[ 1 ] = width*(1.0-2.0*rightcrop);
-	mFisheyeOrthoValues[ 2 ] = height*(1.0-2.0*bottomcrop);
-	mFisheyeOrthoValues[ 3 ] = -height*(1.0-2.0*topcrop);
-	mFisheyeOrthoValues[ 4 ] = ZTRANS - 1.0;
-	mFisheyeOrthoValues[ 5 ] = ZTRANS - fulldomeDist;
 }
 
 /*!
@@ -2070,7 +2042,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	if( mFBOMode == CubeMapFBO )
+	if( mFBOMode == CubeMapFBO && vs != ScreenSpace )
 	{
 		int cmRes = sgct_core::SGCTSettings::Instance()->getCubeMapResolution();
 		currentViewportCoords[0] = 0;

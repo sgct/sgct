@@ -179,7 +179,6 @@ private:
 	void loadShaders();
 	void createFBOs();
 	void resizeFBOs();
-	void calculateFisheyeProjection();
 	void setAndClearBuffer(BufferMode mode);
 	void captureBuffer();
 	void waitForAllWindowsInSwapGroupToOpen();
@@ -217,7 +216,6 @@ private:
 	float mFarClippingPlaneDist;
 	float mClearColor[4];
 	float mFisheyeClearColor[4];
-	double mFisheyeOrthoValues[6];
 
 	int localRunningMode;
 	sgct_core::Frustum::FrustumMode mActiveFrustum;
@@ -240,8 +238,10 @@ private:
 	unsigned int mRenderBuffers[2];
 	unsigned int mDepthBuffers[2];
 	unsigned int mFrameBufferTextures[2];
-	int mFrameBufferTextureLocs[2];
 	int mFBOMode;
+
+	//glsl
+	int mShaderLocs[2];
 
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;

@@ -21,7 +21,6 @@ void myDecodeFun();
 void myCleanUpFun();
 
 //other functions
-void drawDome();
 void setAudioSource(ALuint &buffer,ALuint &source, const char * filename);
 
 //open AL data
@@ -35,7 +34,9 @@ float speed = 25.0f;
 float radius = 7.4f;
 float objectRadius = 5.0f;
 float PI = 3.141592654f;
-GLUquadricObj *quadratic;
+
+sgct_utils::SGCTSphere *sphere;
+sgct_utils::SGCTDome * dome;
 
 int main( int argc, char* argv[] )
 {
@@ -70,9 +71,8 @@ void myInitOGLFun()
 {
 	glEnable( GL_DEPTH_TEST );
 
-	//generate quadric
-	quadratic=gluNewQuadric();
-	gluQuadricDrawStyle(quadratic, GLU_LINE);
+	sphere = new sgct_utils::SGCTSphere(0.5f, 8);
+	dome   = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10);
 
 	alutInit(NULL, 0);
 
@@ -118,54 +118,20 @@ void myDrawFun()
 	glPushMatrix();
 		glTranslatef(audioPos.x, audioPos.y, audioPos.z);
 		glColor4f(1.0f, 0.4f, 0.1f, 0.8f);
-		gluSphere(quadratic, 0.5f, 8, 8);
+		//wireframe mode
+		glPolygonMode( GL_FRONT_AND_BACK, GL_LINE );
+		sphere->draw();
+		//reset to normal rendering
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	glPopMatrix();
 
 	glPushMatrix();
+		glColor4f(0.0f, 0.4f, 1.0f, 0.8f);
 		glRotatef( -26.7f, 1.0f, 0.0f, 0.0f );
-		drawDome();
+		dome->draw();
 	glPopMatrix();
 
 	glDisable(GL_BLEND);
-}
-
-void drawDome()
-{
-	float x, y, z;
-
-	glColor4f(0.1f, 0.2f, 1.0f, 0.5f);
-
-	//draw latitude
-	for(float theta=PI/2.0f; theta > 0.0f; theta -= (PI/40.0f))
-	{
-		glBegin(GL_LINE_LOOP);
-
-		y = radius * cosf( theta );
-		for(float phi=0.0f; phi < (PI*2.0f); phi += (PI/40.0f))
-		{
-			x = radius * sinf( theta ) * cosf( phi );
-			z = radius * sinf( theta ) * sinf( phi );
-
-			glVertex3f(x, y, z);
-		}
-		glEnd();
-	}
-
-	//draw longitude
-	for(float phi=0.0f; phi < (PI*2.0f); phi += (PI/40.0f))
-	{
-		glBegin(GL_LINE_STRIP);
-
-		for(float theta=PI/2.0f; theta > 0.0f; theta -= (PI/40.0f))
-		{
-			x = radius * sinf( theta ) * cosf( phi );
-			y = radius * cosf( theta );
-			z = radius * sinf( theta ) * sinf( phi );
-			glVertex3f(x, y, z);
-		}
-
-		glEnd();
-	}
 }
 
 void myPreSyncFun()
@@ -193,6 +159,9 @@ void myCleanUpFun()
 	alDeleteSources(1, &source0);
 	alDeleteBuffers(1, &audio_buffer0);
 	alutExit();
+
+	delete sphere;
+	delete dome;
 }
 
 void setAudioSource(ALuint &buffer, ALuint &source, const char * filename)

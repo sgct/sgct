@@ -161,7 +161,11 @@ void myPostSyncPreDrawFun()
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
-      mViewer->eventTraversal();
+	{
+		mViewer->eventTraversal();
+		//update travelsal needed for pagelod object like terrain data etc.
+		mViewer->updateTraversal();
+	}
 }
 
 void myDrawFun()

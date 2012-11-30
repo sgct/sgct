@@ -377,6 +377,7 @@ void sgct_core::CorrectionMesh::renderMesh()
 {
 	if( ClusterManager::Instance()->getMeshImplementation() != ClusterManager::DISPLAY_LIST )
 	{
+		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 	
 		glEnableClientState(GL_VERTEX_ARRAY);
@@ -400,7 +401,6 @@ void sgct_core::CorrectionMesh::renderMesh()
 
 			glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
-			glDisableClientState(GL_INDEX_ARRAY);
 			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		}
 		else
@@ -408,14 +408,8 @@ void sgct_core::CorrectionMesh::renderMesh()
 			glDrawArrays(GL_TRIANGLES, 0, mNumberOfFaces*3);
 		}
 
-		glDisableClientState(GL_COLOR_ARRAY);
-		glClientActiveTexture(GL_TEXTURE1);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
-		glDisableClientState(GL_VERTEX_ARRAY);
-
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glPopClientAttrib();
 	}
 	else
 	{

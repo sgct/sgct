@@ -172,6 +172,7 @@ void sgct_core::Statistics::draw(unsigned long long frameNumber)
 		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f);
 	glEnd();
 
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	GLvoid* PositionBuffer;
 
@@ -211,10 +212,9 @@ void sgct_core::Statistics::draw(unsigned long long frameNumber)
 	glVertexPointer(2, GL_DOUBLE, 0, NULL);
 	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glPopClientAttrib();
 	glPopAttrib();
 
 	//exit ortho mode

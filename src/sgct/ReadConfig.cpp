@@ -475,10 +475,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					
 					//disable stereo
 					tmpNode.stereo = ClusterManager::NoStereo;
-					
-					//erase all viewport settings
-					tmpNode.deleteAllViewports();
-					tmpNode.generateCubeMapViewports();
+					tmpNode.setFisheyeRendering(true);
 
 				}//end fisheye
 

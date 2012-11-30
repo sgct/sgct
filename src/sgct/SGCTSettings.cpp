@@ -89,15 +89,15 @@ void sgct_core::SGCTSettings::setFisheyeFOV(float angle)
 }
 
 /*!
-Set the fisheye crop values (%). Theese values are used when rendering content for a single projector dome.
+Set the fisheye crop values. Theese values are used when rendering content for a single projector dome.
 The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fisheye is cropped 25% (350 pixels) at the top.
 */
 void sgct_core::SGCTSettings::setFisheyeCropValues(double left, double right, double bottom, double top)
 {
-	cropFactors[ Left ] = left;
-	cropFactors[ Right ] = right;
-	cropFactors[ Bottom ] = bottom;
-	cropFactors[ Top ] = top;
+	cropFactors[ Left ] = (left < 1.0 && left > 0.0) ? left : 0.0;
+	cropFactors[ Right ] = (right < 1.0 && right > 0.0) ? right : 0.0;
+	cropFactors[ Bottom ] = (bottom < 1.0 && bottom > 0.0) ? bottom : 0.0;
+	cropFactors[ Top ] = (top < 1.0 && top > 0.0) ? top : 0.0;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer
@@ -124,7 +124,7 @@ float sgct_core::SGCTSettings::getFisheyeFOV()
 	return mFieldOfView;
 }
 
-/*! Get the fisheye crop value (%) for a side:
+/*! Get the fisheye crop value for a side:
 	- Left
 	- Right
 	- Bottom

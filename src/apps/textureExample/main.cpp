@@ -115,6 +115,7 @@ void myDrawFun()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
 	glLineWidth(3.0f);
+	glTranslated(0.0, 0.0, 4.0);
 	gDome->draw();
 	glDisable(GL_BLEND);
 	glEnable(GL_DEPTH_TEST);

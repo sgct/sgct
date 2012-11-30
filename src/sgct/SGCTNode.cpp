@@ -27,6 +27,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 #include "../include/sgct/SGCTNode.h"
 #include "../include/sgct/SGCTSettings.h"
+#include "../include/sgct/ClusterManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::SGCTNode::SGCTNode()
@@ -72,7 +73,8 @@ bool sgct_core::SGCTNode::isUsingFisheyeRendering()
 */
 void sgct_core::SGCTNode::generateCubeMapViewports()
 {
-	mFisheyeMode = true;
+	//clear the viewports since they will be replaced
+	deleteAllViewports();
 	glm::vec4 lowerLeft, upperLeft, upperRight;
 	
 	float radius = sgct_core::SGCTSettings::Instance()->getCubeMapSize()/2.0f;
@@ -95,10 +97,10 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 
 	//tilt
 	float tilt = sgct_core::SGCTSettings::Instance()->getFisheyeTilt();
-	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-tilt, glm::vec3(1, 0, 0));
+	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-tilt, glm::vec3(1.0f, 0.0f, 0.0f));
 
 	//pan 45 deg
-	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0, 1, 0));
+	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 
 	//add viewports
 	for(unsigned int i=0; i<6; i++)
@@ -110,20 +112,20 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 		switch(i)
 		{
 		case 0: //+X face
-			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0, 1, 0));
+			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 			break;
 
 		case 1: //-X face
 			tmpVP.setEnabled( false );
-			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0, 1, 0));
+			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 			break;
 
 		case 2: //+Y face
-			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1, 0, 0));
+			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 			break;
 
 		case 3: //-Y face
-			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1, 0, 0));
+			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
 			break;
 
 		case 4: //+Z face
@@ -132,14 +134,21 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 
 		case 5: //-Z face
 			tmpVP.setEnabled( false );
-			rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0, 1, 0));
+			rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 			break;
 		}
 
+		//Compensate for users pos
+		glm::vec4 userVec = glm::vec4(
+			ClusterManager::Instance()->getUserPtr()->getXPos(),
+			ClusterManager::Instance()->getUserPtr()->getYPos(),
+			ClusterManager::Instance()->getUserPtr()->getZPos(),
+			1.0f );
+
 		//add viewplane vertices
-		tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft);
-		tmpVP.setViewPlaneCoords(1, rotMat * upperLeft);
-		tmpVP.setViewPlaneCoords(2, rotMat * upperRight);
+		tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
+		tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
+		tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
 
 		addViewport( tmpVP );
 	}

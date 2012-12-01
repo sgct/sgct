@@ -105,9 +105,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRenderBuffers[1] = 0;
 	mDepthBuffers[0] = 0;
 	mDepthBuffers[1] = 0;
-	mShaderLocs[0] = -1;
-	mShaderLocs[1] = -1;
 	mFBOMode = MultiSampledFBO;
+
+	for(unsigned int i=0; i<MAX_UNIFORM_LOCATIONS; i++)
+		mShaderLocs[i] = -1;
 
 	mAspectRatio = 1.0f;
 
@@ -288,10 +289,12 @@ bool sgct::Engine::initWindow()
 
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ClusterManager::Active );
 
-	/*
-		If fisheye FXAA anti-aliasing will be used instead of MSAA.
-		The cubemap FBO maps the scene on the inside of a cube and then uses a mirror to create a fisheye reflection.
-	*/
+	//disable MSAA if FXAA is in use
+	if( SGCTSettings::Instance()->useFXAA() )
+	{
+		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
+	}
+	
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		mFBOMode = CubeMapFBO;
@@ -997,8 +1000,8 @@ void sgct::Engine::renderFBOTexture()
 			break;
 		}
 
-		glUniform1i( mShaderLocs[0], 0);
-		glUniform1i( mShaderLocs[1], 1);
+		glUniform1i( mShaderLocs[LeftTex], 0);
+		glUniform1i( mShaderLocs[RightTex], 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
@@ -1017,8 +1020,19 @@ void sgct::Engine::renderFBOTexture()
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
 		glEnable(GL_TEXTURE_2D);
 
+		if( SGCTSettings::Instance()->useFXAA() )
+		{
+			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
+			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+			glUniform1i( mShaderLocs[FXAATexture], 0 );
+		}
+
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
+
+		if( SGCTSettings::Instance()->useFXAA() )
+			sgct::ShaderManager::Instance()->unBindShader();
 	}
 
 	//render right eye in active stereo mode
@@ -1034,8 +1048,19 @@ void sgct::Engine::renderFBOTexture()
 
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
 
+		if( SGCTSettings::Instance()->useFXAA() )
+		{
+			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
+			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+			glUniform1i( mShaderLocs[FXAATexture], 0 );
+		}
+
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
+
+		if( SGCTSettings::Instance()->useFXAA() )
+			sgct::ShaderManager::Instance()->unBindShader();
 	}
 
 	glPopAttrib();
@@ -1110,8 +1135,8 @@ void sgct::Engine::renderFisheye()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	
 	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
-	glUniform1i( mShaderLocs[0], 0);
-	glUniform1f( mShaderLocs[1], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
+	glUniform1i( mShaderLocs[Cubemap], 0);
+	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
@@ -1193,14 +1218,43 @@ void sgct::Engine::loadShaders()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
+	//create FXAA shaders
+	sgct::ShaderManager::Instance()->addShader("FXAA", sgct_core::shaders::FXAA_Vert_Shader,
+		sgct_core::shaders::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+	sgct::ShaderManager::Instance()->bindShader( "FXAA" );
+
+	mShaderLocs[SizeX] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "rt_w" );
+	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
+
+	mShaderLocs[SizeY] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "rt_h" );
+	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+
+	mShaderLocs[FXAASubPixShift] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_SUBPIX_SHIFT" );
+	glUniform1f( mShaderLocs[FXAASubPixShift], 0.25f );
+
+	mShaderLocs[FXAASpanMax] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_SPAN_MAX" );
+	glUniform1f( mShaderLocs[FXAASpanMax], 8.0f );
+
+	mShaderLocs[FXAARedMul] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_REDUCE_MUL" );
+	glUniform1f( mShaderLocs[FXAARedMul], 1.0f/8.0f );
+
+	mShaderLocs[FXAAOffset] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "vx_offset" );
+	glUniform1f( mShaderLocs[FXAAOffset], 0.0f );
+
+	mShaderLocs[FXAATexture] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "tex0" );
+	glUniform1i( mShaderLocs[FXAATexture], 0 );
+
+	sgct::ShaderManager::Instance()->unBindShader();
+		
+
 	if( mFBOMode == CubeMapFBO )
 	{
 		sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
-		mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "cubemap" );
-		glUniform1i( mShaderLocs[0], 0 );
-		mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "halfFov" );
-		glUniform1f( mShaderLocs[1], glm::half_pi<float>() );
+		mShaderLocs[Cubemap] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "cubemap" );
+		glUniform1i( mShaderLocs[Cubemap], 0 );
+		mShaderLocs[FishEyeHalfFov] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "halfFov" );
+		glUniform1f( mShaderLocs[FishEyeHalfFov], glm::half_pi<float>() );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 	else //stereo not supported using cubemap
@@ -1209,40 +1263,40 @@ void sgct::Engine::loadShaders()
 		{
 			sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
-			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[0], 0 );
-			glUniform1i( mShaderLocs[1], 1 );
+			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[LeftTex], 0 );
+			glUniform1i( mShaderLocs[RightTex], 1 );
 			sgct::ShaderManager::Instance()->unBindShader();
 		}
 		else if( tmpNode->stereo == ClusterManager::Anaglyph_Amber_Blue )
 		{
 			sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
-			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[0], 0 );
-			glUniform1i( mShaderLocs[1], 1 );
+			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[LeftTex], 0 );
+			glUniform1i( mShaderLocs[RightTex], 1 );
 			sgct::ShaderManager::Instance()->unBindShader();
 		}
 		else if( tmpNode->stereo == ClusterManager::Checkerboard )
 		{
 			sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
-			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[0], 0 );
-			glUniform1i( mShaderLocs[1], 1 );
+			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[LeftTex], 0 );
+			glUniform1i( mShaderLocs[RightTex], 1 );
 			sgct::ShaderManager::Instance()->unBindShader();
 		}
 		else if( tmpNode->stereo == ClusterManager::Checkerboard_Inverted )
 		{
 			sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
-			mShaderLocs[0] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[1] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[0], 0 );
-			glUniform1i( mShaderLocs[1], 1 );
+			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[LeftTex], 0 );
+			glUniform1i( mShaderLocs[RightTex], 1 );
 			sgct::ShaderManager::Instance()->unBindShader();
 		}
 	}

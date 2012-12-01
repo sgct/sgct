@@ -284,6 +284,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR )
 						tmpNode.numberOfSamples = tmpSamples;
 
+					if( element[1]->Attribute("fxaa") != NULL )
+						SGCTSettings::Instance()->setFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
+
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 

@@ -33,6 +33,8 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #include "Statistics.h"
 #include "ReadConfig.h"
 
+#define MAX_UNIFORM_LOCATIONS 64
+
 /*! \namespace sgct
 \brief simple graphics cluster toolkit.
 This namespace contains the most basic functionality of the toolkit.
@@ -150,6 +152,8 @@ private:
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
+	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov,
+			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture }; 
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -245,7 +249,7 @@ private:
 	int mFBOMode;
 
 	//glsl
-	int mShaderLocs[2];
+	int mShaderLocs[MAX_UNIFORM_LOCATIONS];
 
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;

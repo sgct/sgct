@@ -42,6 +42,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mCropFactors[3] = 0.0f;
 
 	mFisheyeOverlayFilename = NULL;
+	mUseFXAA = false;
 }
 
 sgct_core::SGCTSettings::~SGCTSettings()
@@ -108,6 +109,14 @@ Set the fisheye overlay image.
 void sgct_core::SGCTSettings::setFisheyeOverlay(const char * filename)
 {
 	mFisheyeOverlayFilename = filename;
+}
+
+/*!
+Set if FXAA should be used.
+*/
+void sgct_core::SGCTSettings::setFXAA(bool state)
+{
+	mUseFXAA = state;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer

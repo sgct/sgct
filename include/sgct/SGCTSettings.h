@@ -68,6 +68,7 @@ public:
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
 	void setFisheyeOverlay(const char * filename);
+	void setFXAA(bool state);
 	
 	int getCubeMapResolution();
 	float getCubeMapSize();
@@ -75,6 +76,9 @@ public:
 	float getFisheyeFOV();
 	float getFisheyeCropValue(CropSides side);
 	const char * getFisheyeOverlay();
+
+	//! Set to true if FXAA should be used.
+	inline bool useFXAA() { return mUseFXAA; }
 
 private:
 	SGCTSettings();
@@ -96,6 +100,9 @@ private:
 	float mFieldOfView;
 	float mCropFactors[4];
 	const char * mFisheyeOverlayFilename;
+
+	//FXAA
+	bool mUseFXAA;
 };
 }
 

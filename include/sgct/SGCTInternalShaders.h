@@ -292,6 +292,132 @@ namespace sgct_core
 				else\n\
 					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
 			}\n";
-	}
+
+		const std::string FXAA_Vert_Shader = "\
+			varying vec4 posPos;\n\
+			//#define FXAA_SUBPIX_SHIFT (1.0/4.0)\n\
+			uniform float FXAA_SUBPIX_SHIFT = 0.0; //1.0/4.0;\n\
+			\n\
+			uniform float rt_w;\n\
+			uniform float rt_h;\n\
+			\n\
+			void main(void)\n\
+			{\n\
+			  gl_Position = ftransform();\n\
+			  gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+			  \n\
+			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
+			  posPos.xy = gl_MultiTexCoord0.xy;\n\
+			  posPos.zw = gl_MultiTexCoord0.xy - (rcpFrame * (0.5 + FXAA_SUBPIX_SHIFT));\n\
+			}\n";
+
+		const std::string FXAA_FRAG_Shader = "\
+			#version 120\n\
+			#extension GL_EXT_gpu_shader4 : enable // For NVIDIA cards.\n\
+			uniform sampler2D tex0; // 0\n\
+			uniform float vx_offset;\n\
+			uniform float rt_w;\n\
+			uniform float rt_h;\n\
+			uniform float FXAA_SPAN_MAX = 8.0;\n\
+			uniform float FXAA_REDUCE_MUL = 0.0; //1.0/8.0;\n\
+			varying vec4 posPos;\n\
+			\n\
+			#define FxaaInt2 ivec2\n\
+			#define FxaaFloat2 vec2\n\
+			#define FxaaTexLod0(t, p) texture2DLod(t, p, 0.0)\n\
+			#define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, p, 0.0, o)\n\
+			\n\
+			vec3 FxaaPixelShader( \n\
+			  vec4 posPos,       // Output of FxaaVertexShader interpolated across screen.\n\
+			  sampler2D tex,     // Input texture.\n\
+			  vec2 rcpFrame) // Constant {1.0/frameWidth, 1.0/frameHeight}.\n\
+			{\n\
+			/*--------------------------------------------------------------------------*/\n\
+			#define FXAA_REDUCE_MIN   (1.0/128.0)\n\
+			//#define FXAA_REDUCE_MUL   (1.0/8.0)\n\
+			//#define FXAA_SPAN_MAX     8.0\n\
+			/*--------------------------------------------------------------------------*/\n\
+			vec3 rgbNW = FxaaTexLod0(tex, posPos.zw).xyz;\n\
+			vec3 rgbNE = FxaaTexOff(tex, posPos.zw, FxaaInt2(1,0), rcpFrame.xy).xyz;\n\
+			vec3 rgbSW = FxaaTexOff(tex, posPos.zw, FxaaInt2(0,1), rcpFrame.xy).xyz;\n\
+			vec3 rgbSE = FxaaTexOff(tex, posPos.zw, FxaaInt2(1,1), rcpFrame.xy).xyz;\n\
+			vec3 rgbM  = FxaaTexLod0(tex, posPos.xy).xyz;\n\
+			/*--------------------------------------------------------------------------*/\n\
+			vec3 luma = vec3(0.299, 0.587, 0.114);\n\
+			float lumaNW = dot(rgbNW, luma);\n\
+			float lumaNE = dot(rgbNE, luma);\n\
+			float lumaSW = dot(rgbSW, luma);\n\
+			float lumaSE = dot(rgbSE, luma);\n\
+			float lumaM  = dot(rgbM,  luma);\n\
+			/*--------------------------------------------------------------------------*/\n\
+			float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));\n\
+			float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));\n\
+			/*--------------------------------------------------------------------------*/\n\
+			vec2 dir;\n\
+			dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));\n\
+			dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));\n\
+			/*--------------------------------------------------------------------------*/\n\
+			float dirReduce = max( \n\
+				(lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL),\n\
+				FXAA_REDUCE_MIN);\n\
+			float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);\n\
+			dir = min(FxaaFloat2( FXAA_SPAN_MAX,  FXAA_SPAN_MAX), \n\
+				max(FxaaFloat2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), \n\
+				dir * rcpDirMin)) * rcpFrame.xy; \n\
+			/*--------------------------------------------------------------------------*/\n\
+			vec3 rgbA = (1.0/2.0) * (\n\
+				FxaaTexLod0(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
+				FxaaTexLod0(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
+			vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (\n\
+				FxaaTexLod0(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
+				FxaaTexLod0(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz); \n\
+			float lumaB = dot(rgbB, luma); \n\
+			if((lumaB < lumaMin) || (lumaB > lumaMax)) return rgbA;\n\
+				return rgbB; }\n\
+			\n\
+			vec4 PostFX(sampler2D tex, vec2 uv, float time)\n\
+			{\n\
+			  vec4 c = vec4(0.0);\n\
+			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
+				c.rgb = FxaaPixelShader(posPos, tex, rcpFrame);\n\
+				//c.rgb = 1.0 - texture2D(tex, posPos.xy).rgb;\n\
+				c.a = 1.0;\n\
+				return c;\n\
+			}\n\
+			\n\
+			void main()\n\
+			{\n\
+				/*\n\
+				vec2 uv = gl_TexCoord[0].xy;\n\
+				vec3 tc = vec3(1.0, 0.0, 0.0);\n\
+				if (uv.x < (vx_offset-0.005))\n\
+				{\n\
+					tc = PostFX(tex0, uv, 0.0).xyz;\n\
+				}\n\
+				else if (uv.x>=(vx_offset+0.005))\n\
+				{\n\
+					tc = texture2D(tex0, uv).rgb;\n\
+				}\n\
+				gl_FragColor = vec4(tc, 1.0);\n\
+				*/\n\
+				\n\
+				/*\n\
+				vec2 uv = gl_TexCoord[0].st;\n\
+				if (uv.y > 0.5)\n\
+				{\n\
+					gl_FragColor = PostFX(tex0, uv, 0.0);\n\
+				}\n\
+				else\n\
+				{\n\
+					uv.y += 0.5;\n\
+					vec4 c1 = texture2D(tex0, uv);\n\
+					gl_FragColor = c1;\n\
+				}\n\
+				*/\n\
+				vec2 uv = gl_TexCoord[0].st;\n\
+				gl_FragColor = PostFX(tex0, uv, 0.0);\n\
+			}\n";
+
+	}//end shaders
 }
 #endif

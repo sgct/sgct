@@ -41,6 +41,7 @@
 			<Add option="-framework Opengl" />
 			<Add option="-framework AGL" />
 			<Add option="-framework Cocoa" />
+			<Add option="-framework IOKit" />
 			<Add library="sgct" />
 			<Add library="gl" />
 			<Add library="glu" />

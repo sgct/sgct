@@ -138,12 +138,12 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mClearColor[1] = 0.0f;
 	mClearColor[2] = 0.0f;
 	mClearColor[3] = 0.0f;
-	
+
 	mFisheyeClearColor[0] = 0.3f;
 	mFisheyeClearColor[1] = 0.3f;
 	mFisheyeClearColor[2] = 0.3f;
 	mFisheyeClearColor[3] = 1.0f;
-	
+
 	mShowInfo = false;
 	mShowGraph = false;
 	mShowWireframe = false;
@@ -165,7 +165,7 @@ sgct::Engine::~Engine()
 }
 
 /*!
-Engine initiation that: 
+Engine initiation that:
  1. Parse the configuration file
  2. Set up the network communication
  3. Create a window
@@ -174,7 +174,7 @@ Engine initiation that:
 bool sgct::Engine::init()
 {
 	MessageHandler::Instance()->print("%s\n", getSGCTVersion().c_str() );
-	
+
 	if(mTerminate)
 	{
 		MessageHandler::Instance()->print("Failed to init GLFW.\n");
@@ -294,7 +294,7 @@ bool sgct::Engine::initWindow()
 	{
 		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
 	}
-	
+
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		mFBOMode = CubeMapFBO;
@@ -609,7 +609,7 @@ void sgct::Engine::render()
 	while( mRunning )
 	{
 		mRenderingOffScreen = false;
-		
+
 		//update tracking data
 		if( isMaster() )
 			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
@@ -663,7 +663,7 @@ void sgct::Engine::render()
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			{
 				tmpNode->setCurrentViewport(i);
-				
+
 				if( tmpNode->getCurrentViewport()->isEnabled() )
 				{
 					//if passive stereo or mono
@@ -857,18 +857,18 @@ void sgct::Engine::draw()
 void sgct::Engine::drawOverlays()
 {
 	glDrawBuffer(GL_BACK); //draw into both back buffers
-	
+
 	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	unsigned int numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
 	for(unsigned int i=0; i < numberOfIterations; i++)
-	{	
+	{
 		tmpNode->setCurrentViewport(i);
-		
+
 		//if viewport has overlay
 		sgct_core::Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 		if( tmpVP->hasOverlayTexture() )
-		{		
+		{
 			//enter ortho mode
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
@@ -878,7 +878,7 @@ void sgct::Engine::drawOverlays()
 				To ensure correct mapping enter the current viewport.
 			*/
 			enterCurrentViewport(ScreenSpace);
-			
+
 			gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 
 			glMatrixMode(GL_MODELVIEW);
@@ -924,7 +924,7 @@ void sgct::Engine::drawOverlays()
 
 /*!
 	This function clears and sets the correct buffer like:
-	
+
 	- Backbuffer
 	- FBO
 	- Multisampled FBO
@@ -1078,14 +1078,14 @@ void sgct::Engine::renderFBOTexture()
 void sgct::Engine::renderFisheye()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[CubeMapBuffer] );
-			
+
 	//iterate the cube sides
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 	{
 		tmpNode->setCurrentViewport(i);
-				
+
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ CubeMapBuffer ], 0);
@@ -1106,7 +1106,7 @@ void sgct::Engine::renderFisheye()
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
-			
+
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
 	*/
@@ -1114,14 +1114,14 @@ void sgct::Engine::renderFisheye()
 	glOrtho( -1.0,
 		1.0,
 		-1.0,
-		1.0,	
+		1.0,
 		0.1,
 		2.0);
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glViewport(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
-	
+
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glEnable(GL_DEPTH_TEST);
@@ -1133,7 +1133,7 @@ void sgct::Engine::renderFisheye()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	
+
 	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
 	glUniform1i( mShaderLocs[Cubemap], 0);
 	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
@@ -1245,7 +1245,7 @@ void sgct::Engine::loadShaders()
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
 
 	sgct::ShaderManager::Instance()->unBindShader();
-		
+
 
 	if( mFBOMode == CubeMapFBO )
 	{
@@ -1307,10 +1307,10 @@ void sgct::Engine::loadShaders()
 	This is done in the initOGL function.
 */
 void sgct::Engine::createFBOs()
-{	
+{
 	mAspectRatio = static_cast<float>( getWindowPtr()->getHFramebufferResolution() ) /
 		static_cast<float>( getWindowPtr()->getVFramebufferResolution() );
-	
+
 	if(mFBOMode != NoFBO)
 	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
@@ -1329,7 +1329,7 @@ void sgct::Engine::createFBOs()
 		{
 			//create a multisampled buffer
 			if(mFBOMode == MultiSampledFBO)
-			{	
+			{
 				GLint MaxSamples;
 				glGetIntegerv(GL_MAX_SAMPLES, &MaxSamples);
 				if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > MaxSamples )
@@ -1343,7 +1343,7 @@ void sgct::Engine::createFBOs()
 				glGenFramebuffers(2, &mMultiSampledFrameBuffers[0]);
 			}
 		}
-		
+
 		if(mFBOMode == CubeMapFBO)
 		{
 			GLint cubeMapRes = SGCTSettings::Instance()->getCubeMapResolution();
@@ -1364,10 +1364,10 @@ void sgct::Engine::createFBOs()
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 			glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[CubeMapBuffer] );
-			
+
 			for (int i = 0; i < 6; ++i)
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, cubeMapRes, cubeMapRes, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-			
+
 			//attach one of the faces
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X, mFrameBufferTextures[ CubeMapBuffer ], 0);
 			//set up depth buffer
@@ -1375,7 +1375,7 @@ void sgct::Engine::createFBOs()
 			glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT24, cubeMapRes, cubeMapRes);
 			//Attach depth buffer to FBO
 			glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[ CubeMapBuffer ]);
-				
+
 			//Does the GPU support current FBO configuration?
 			if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
 				MessageHandler::Instance()->print("Engine: Something went wrong creating the fisheye cubemap FBO!\n");
@@ -1423,7 +1423,7 @@ void sgct::Engine::createFBOs()
 					glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffers[i]) :
 					glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[i]);
 				glBindRenderbuffer(GL_RENDERBUFFER, mRenderBuffers[i]);
-			
+
 				//Set render buffer storage depending on if buffer is multisampled or not
 				(mFBOMode == MultiSampledFBO) ?
 					glRenderbufferStorageMultisample(GL_RENDERBUFFER, ClusterManager::Instance()->getThisNodePtr()->numberOfSamples, GL_RGBA, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution()) :
@@ -1510,7 +1510,7 @@ void sgct::Engine::resizeFBOs()
 	- Backbuffer (transparent)
 	- Backbuffer (black)
 	- RenderToTexture
-	
+
 	This function clears and sets the appropriate buffer from:
 
 	- Back buffer
@@ -1595,7 +1595,7 @@ bool sgct::Engine::checkForOGLErrors()
 	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
 	This function is running in the same thread as the renderloop so calling this function for each frame will slow down rendering.
 	Performance is improved by using SSD drives.
-	
+
 	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
 */
 void sgct::Engine::captureBuffer()
@@ -1797,7 +1797,7 @@ void sgct::Engine::calculateFrustums()
 /*!
 	\param argc is the number of arguments separated by whitespace
 	\param argv is the string array of arguments
-	
+
 	This function parses all SGCT arguments and removes them from the argument list.
 */
 void sgct::Engine::parseArguments( int& argc, char**& argv )
@@ -1893,7 +1893,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 
 /*!
 	\param fnPtr is the function pointer to a draw callback
-	
+
 	This function sets the draw callback. It's possible to have several draw functions and change the callback on the fly preferably in a stage before the draw like the post-sync-pre-draw stage or the pre-sync stage.
 	The draw callback can be called several times per frame since it's called once for every viewport and once for every eye if stereoscopy is used.
 */
@@ -1904,9 +1904,9 @@ void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a pre-sync callback
-	
+
 	This function sets the pre-sync callback. The Engine will then use the callback before the sync stage.
-	In the callback set the variables that will be shared. 
+	In the callback set the variables that will be shared.
 */
 void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 {
@@ -1915,7 +1915,7 @@ void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a post-sync-pre-draw callback
-	
+
 	This function sets the post-sync-pre-draw callback. The Engine will then use the callback after the sync stage but before the draw stage. Compared to the draw callback the post-sync-pre-draw callback is called only once per frame.
 	In this callback synchronized variables can be applied or simulations depending on synchronized input can run.
 */
@@ -1926,7 +1926,7 @@ void sgct::Engine::setPostSyncPreDrawFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a post-draw callback
-	
+
 	This function sets the post-draw callback. The Engine will then use the callback after the draw stage but before the OpenGL buffer swap. Compared to the draw callback the post-draw callback is called only once per frame.
 	In this callback data/buffer swaps can be made.
 */
@@ -1937,7 +1937,7 @@ void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a initiation of OpenGL callback
-	
+
 	This function sets the initOGL callback. The Engine will then use the callback only once before the starting the render loop.
 	Textures, Models, Buffers, etc. can be loaded/allocated here.
 */
@@ -1948,7 +1948,7 @@ void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a clear buffer function callback
-	
+
 	This function sets the clear buffer callback which will override the default clear buffer function:
 
 	\code
@@ -1967,7 +1967,7 @@ void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 
 /*!
 	\param fnPtr is the function pointer to a clean up function callback
-	
+
 	This function sets the clean up callback which will be called in the Engine destructor before all sgct components (like window, OpenGL context, network, etc.) will be destroyed.
 */
 void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
@@ -1977,7 +1977,7 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 
 /*!
 	\param fnPtr is the function pointer to an external control function callback
-	
+
 	This function sets the external control callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
 	Example:
 	\code
@@ -1994,7 +1994,7 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 
 /*!
 	\param fnPtr is the function pointer to a keyboard function callback
-	
+
 	This function sets the keyboard callback (GLFW wrapper) where the two parameters are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a special character defined in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
 
 	Name          | Description
@@ -2150,7 +2150,7 @@ void sgct::Engine::initFisheye()
 	float y = 1.0f;
 	float aspect = mAspectRatio * cropAspect;
 	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
-			
+
 	mFisheyeQuadVerts[0] = leftcrop;
 	mFisheyeQuadVerts[1] = bottomcrop;
 	mFisheyeQuadVerts[2] = -x;
@@ -2223,9 +2223,9 @@ void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
 Set the clear color (background color).
 
 @param red the red color component
-@param green the green color component 
-@param blue the blue color component 
-@param alpha the alpha color component 
+@param green the green color component
+@param blue the blue color component
+@param alpha the alpha color component
 */
 void sgct::Engine::setClearColor(float red, float green, float blue, float alpha)
 {
@@ -2239,8 +2239,8 @@ void sgct::Engine::setClearColor(float red, float green, float blue, float alpha
 Set the clear color (background color) for the fisheye renderer. Alpha is not supported in this mode.
 
 @param red the red color component
-@param green the green color component 
-@param blue the blue color component 
+@param green the green color component
+@param blue the blue color component
 */
 void sgct::Engine::setFisheyeClearColor(float red, float green, float blue)
 {

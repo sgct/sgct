@@ -109,7 +109,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mShaderLocs[1] = -1;
 	mFBOMode = MultiSampledFBO;
 
-	mAspectRatio = 1.0;
+	mAspectRatio = 1.0f;
 
 	// Initialize GLFW
 	if( !glfwInit() )
@@ -856,14 +856,16 @@ void sgct::Engine::drawOverlays()
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	
 	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	for(unsigned int i=0; i < tmpNode->getNumberOfViewports(); i++)
+	
+	unsigned int numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
+	for(unsigned int i=0; i < numberOfIterations; i++)
 	{	
+		tmpNode->setCurrentViewport(i);
+		
 		//if viewport has overlay
 		sgct_core::Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 		if( tmpVP->hasOverlayTexture() )
-		{
-			tmpNode->setCurrentViewport(i);
-				
+		{		
 			//enter ortho mode
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
@@ -873,7 +875,8 @@ void sgct::Engine::drawOverlays()
 				To ensure correct mapping enter the current viewport.
 			*/
 			enterCurrentViewport(ScreenSpace);
-			gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+			
+			gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 
 			glMatrixMode(GL_MODELVIEW);
 
@@ -890,13 +893,23 @@ void sgct::Engine::drawOverlays()
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
 
-			glBegin(GL_QUADS);
-			glTexCoord2d(0.0, 0.0);	glVertex2d(0.0, 0.0);
-			glTexCoord2d(0.0, 1.0);	glVertex2d(0.0, 1.0);
-			glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
-			glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, 0.0);
-			glEnd();
-
+			if( mFBOMode == CubeMapFBO )
+			{
+				glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+				glEnableClientState(GL_VERTEX_ARRAY);
+				glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
+				glDrawArrays(GL_QUADS, 0, 4);
+				glPopClientAttrib();
+			}
+			else
+			{
+				glBegin(GL_QUADS);
+				glTexCoord2d(0.0, 0.0);	glVertex2d(-1.0, -1.0);
+				glTexCoord2d(0.0, 1.0);	glVertex2d(-1.0, 1.0);
+				glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
+				glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, -1.0);
+				glEnd();
+			}
 			glPopAttrib();
 
 			//exit ortho mode
@@ -1087,6 +1100,7 @@ void sgct::Engine::renderFisheye()
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glEnable(GL_DEPTH_TEST);
+
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[CubeMapBuffer]);
 
 	glPushMatrix();
@@ -1099,31 +1113,11 @@ void sgct::Engine::renderFisheye()
 	glUniform1i( mShaderLocs[0], 0);
 	glUniform1f( mShaderLocs[1], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
 
-	double leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
-	double rightcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
-	double bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Bottom);
-	double topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Top);
-
-	double cropAspect = ((1.0-2.0 * bottomcrop) + (1.0-2.0*topcrop)) / ((1.0-2.0*leftcrop) + (1.0-2.0*rightcrop));
-
-	double x = 1.0;
-	double y = 1.0;
-	double aspect = mAspectRatio * cropAspect;
-	( aspect >= 1.0 ) ? x = 1.0f / aspect : y = aspect;
-
-	glBegin(GL_QUADS);
-		glTexCoord2d(2.0*leftcrop-1.0, 2.0*bottomcrop-1.0);
-		glVertex3d(-x, -y, -1.0);
-
-		glTexCoord2d(2.0*leftcrop-1.0, 1.0-2.0*topcrop);
-		glVertex3d(-x, y, -1.0);
-
-		glTexCoord2d(1.0-2.0*rightcrop, 1.0-2.0*topcrop);
-		glVertex3d(x, y, -1.0);
-
-		glTexCoord2d(1.0-2.0*rightcrop, 2.0*bottomcrop-1.0);
-		glVertex3d(x, -y, -1.0);
-	glEnd();
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
+    glDrawArrays(GL_QUADS, 0, 4);
+	glPopClientAttrib();
 
 	sgct::ShaderManager::Instance()->unBindShader();
 
@@ -1260,8 +1254,8 @@ void sgct::Engine::loadShaders()
 */
 void sgct::Engine::createFBOs()
 {	
-	mAspectRatio = static_cast<double>( getWindowPtr()->getHFramebufferResolution() ) /
-		static_cast<double>( getWindowPtr()->getVFramebufferResolution() );
+	mAspectRatio = static_cast<float>( getWindowPtr()->getHFramebufferResolution() ) /
+		static_cast<float>( getWindowPtr()->getVFramebufferResolution() );
 	
 	if(mFBOMode != NoFBO)
 	{
@@ -1350,7 +1344,7 @@ void sgct::Engine::createFBOs()
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_INT, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 			//bind the fbo and assign the frame buffer
 			glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[FishEyeBuffer] );
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[FishEyeBuffer], 0);
@@ -1362,6 +1356,9 @@ void sgct::Engine::createFBOs()
 			//Does the GPU support current FBO configuration?
 			if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
 				MessageHandler::Instance()->print("Engine: Something went wrong creating the fisheye target FBO!\n");
+
+			//set ut the fisheye geometry etc.
+			initFisheye();
 		}
 		else
 		{
@@ -1396,7 +1393,7 @@ void sgct::Engine::createFBOs()
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_INT, NULL);
+				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
 			}
 		}
@@ -2080,6 +2077,49 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 		currentViewportCoords[1],
 		currentViewportCoords[2],
 		currentViewportCoords[3]);
+}
+
+/*!
+	Init the fisheye data by creating geometry and precalculate textures
+*/
+void sgct::Engine::initFisheye()
+{
+	//create proxy geometry
+	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
+	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
+	float bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Bottom);
+	float topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Top);
+
+	float cropAspect = ((1.0f-2.0f * bottomcrop) + (1.0f-2.0f*topcrop)) / ((1.0f-2.0f*leftcrop) + (1.0f-2.0f*rightcrop));
+
+	float x = 1.0f;
+	float y = 1.0f;
+	float aspect = mAspectRatio * cropAspect;
+	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
+			
+	mFisheyeQuadVerts[0] = leftcrop;
+	mFisheyeQuadVerts[1] = bottomcrop;
+	mFisheyeQuadVerts[2] = -x;
+	mFisheyeQuadVerts[3] = -y;
+	mFisheyeQuadVerts[4] = -1.0f;
+
+	mFisheyeQuadVerts[5] = leftcrop;
+	mFisheyeQuadVerts[6] = 1.0f - topcrop;
+	mFisheyeQuadVerts[7] = -x;
+	mFisheyeQuadVerts[8] = y;
+	mFisheyeQuadVerts[9] = -1.0f;
+
+	mFisheyeQuadVerts[10] = 1.0f - rightcrop;
+	mFisheyeQuadVerts[11] = 1.0f - topcrop;
+	mFisheyeQuadVerts[12] = x;
+	mFisheyeQuadVerts[13] = y;
+	mFisheyeQuadVerts[14] = -1.0f;
+
+	mFisheyeQuadVerts[15] = 1.0f - rightcrop;
+	mFisheyeQuadVerts[16] = bottomcrop;
+	mFisheyeQuadVerts[17] = x;
+	mFisheyeQuadVerts[18] = -y;
+	mFisheyeQuadVerts[19] = -1.0f;
 }
 
 void sgct::Engine::calculateFPS(double timestamp)

@@ -66,13 +66,15 @@ public:
 	void setCubeMapSize(float size);
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
-	void setFisheyeCropValues(double left, double right, double bottom, double top);
+	void setFisheyeCropValues(float left, float right, float bottom, float top);
+	void setFisheyeOverlay(const char * filename);
 	
 	int getCubeMapResolution();
 	float getCubeMapSize();
 	float getFisheyeTilt();
 	float getFisheyeFOV();
-	double getFisheyeCropValue(CropSides side);
+	float getFisheyeCropValue(CropSides side);
+	const char * getFisheyeOverlay();
 
 private:
 	SGCTSettings();
@@ -92,7 +94,8 @@ private:
 	//fisheye settings
 	float mFisheyeTilt;
 	float mFieldOfView;
-	double cropFactors[4];
+	float mCropFactors[4];
+	const char * mFisheyeOverlayFilename;
 };
 }
 

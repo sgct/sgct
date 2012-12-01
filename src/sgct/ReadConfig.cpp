@@ -439,6 +439,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 							sgct_core::SGCTSettings::Instance()->setCubeMapResolution( resolution );
 					}
 
+					if( element[1]->Attribute("overlay") != NULL )
+						sgct_core::SGCTSettings::Instance()->setFisheyeOverlay( element[1]->Attribute("overlay") );
+
 					float tilt;
 					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
 						sgct_core::SGCTSettings::Instance()->setFisheyeTilt( tilt );
@@ -450,23 +453,23 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 						if( strcmp("Crop", val[2]) == 0 )
 						{
-							double tmpDArr[] = { 0.0, 0.0, 0.0, 0.0 };
-							double dtmp;
+							float tmpFArr[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+							float ftmp;
 
-							if( element[2]->QueryDoubleAttribute("left", &dtmp) == XML_NO_ERROR )
-                                tmpDArr[sgct_core::SGCTSettings::Left] = dtmp;
-							if( element[2]->QueryDoubleAttribute("right", &dtmp) == XML_NO_ERROR )
-                                tmpDArr[sgct_core::SGCTSettings::Right] = dtmp;
-							if( element[2]->QueryDoubleAttribute("bottom", &dtmp) == XML_NO_ERROR )
-                                tmpDArr[sgct_core::SGCTSettings::Bottom] = dtmp;
-							if( element[2]->QueryDoubleAttribute("top", &dtmp) == XML_NO_ERROR )
-                                tmpDArr[sgct_core::SGCTSettings::Top] = dtmp;
+							if( element[2]->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[sgct_core::SGCTSettings::Left] = ftmp;
+							if( element[2]->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[sgct_core::SGCTSettings::Right] = ftmp;
+							if( element[2]->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[sgct_core::SGCTSettings::Bottom] = ftmp;
+							if( element[2]->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[sgct_core::SGCTSettings::Top] = ftmp;
 
 							sgct_core::SGCTSettings::Instance()->setFisheyeCropValues(
-								tmpDArr[sgct_core::SGCTSettings::Left],
-								tmpDArr[sgct_core::SGCTSettings::Right],
-								tmpDArr[sgct_core::SGCTSettings::Bottom],
-								tmpDArr[sgct_core::SGCTSettings::Top]);
+								tmpFArr[sgct_core::SGCTSettings::Left],
+								tmpFArr[sgct_core::SGCTSettings::Right],
+								tmpFArr[sgct_core::SGCTSettings::Bottom],
+								tmpFArr[sgct_core::SGCTSettings::Top]);
 						}
 
 						//iterate

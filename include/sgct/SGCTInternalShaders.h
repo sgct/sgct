@@ -69,8 +69,8 @@ namespace sgct_core
 		
 		void main()
 		{
-			float s = gl_TexCoord[0].s;
-			float t = gl_TexCoord[0].t;
+			float s = 2.0 * (gl_TexCoord[0].s - 0.5);
+			float t = 2.0 * (gl_TexCoord[0].t - 0.5);
 			vec4 color;
 			if( s*s + t*t <= 1.0 )
 			{
@@ -99,8 +99,8 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				float s = gl_TexCoord[0].s;\n\
-				float t = gl_TexCoord[0].t;\n\
+				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
+				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
 				vec4 color;\n\
 				if( s*s + t*t <= 1.0 )\n\
 				{\n\

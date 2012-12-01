@@ -28,9 +28,9 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_VERSION_H_
 #define _SGCT_VERSION_H_
 
-#define SGCT_VERSION_MAJOR    0
-#define SGCT_VERSION_MINOR    9
-#define SGCT_VERSION_REVISION 6
+#define SGCT_VERSION_MAJOR    1
+#define SGCT_VERSION_MINOR    0
+#define SGCT_VERSION_REVISION 0
 
 #include <stdio.h>
 #include <string>

@@ -152,6 +152,9 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 
 		addViewport( tmpVP );
 	}
+
+	if( SGCTSettings::Instance()->getFisheyeOverlay() != NULL )
+		mViewports[0].setOverlayTexture( SGCTSettings::Instance()->getFisheyeOverlay() );
 }
 
 sgct_core::Viewport * sgct_core::SGCTNode::getCurrentViewport()

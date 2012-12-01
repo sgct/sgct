@@ -76,7 +76,7 @@ void sgct_core::Statistics::initVBO()
 	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mSyncTime, GL_STREAM_DRAW );
 
 	//unbind
-	glBindBufferARB(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void sgct_core::Statistics::setAvgFPS(double afps)
@@ -174,6 +174,8 @@ void sgct_core::Statistics::draw(unsigned long long frameNumber)
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
+	glDisableClientState(GL_COLOR_ARRAY);
+
 	GLvoid* PositionBuffer;
 
 	//frame time (yellow)

@@ -67,11 +67,11 @@ void myDrawFun()
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIds[0] ));
 	glEnable(GL_TEXTURE_2D);
 
-	glActiveTextureARB(GL_TEXTURE1_ARB);
+	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( myTextureIds[1] ));
 	glEnable(GL_TEXTURE_2D);
 
@@ -85,10 +85,10 @@ void myDrawFun()
 	//unset current shader program
 	sgct::ShaderManager::Instance()->unBindShader();
 
-	glActiveTextureARB(GL_TEXTURE1_ARB);
+	glActiveTexture(GL_TEXTURE1);
 	glDisable(GL_TEXTURE_2D);
 
-	glActiveTextureARB(GL_TEXTURE0_ARB);
+	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
 }
 
@@ -211,12 +211,12 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 			float wPos = wStart + dW * static_cast<float>( widthIndex );
 			float wTexCoord = widthIndex / static_cast<float>( wRes );
 
-			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, wTexCoord, dTexCoordLow);
-			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, wTexCoord, dTexCoordLow);
+			glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordLow);
+			glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordLow);
 			glVertex3f( wPos, 0.0f, dPosLow );
 
-			glMultiTexCoord2fARB(GL_TEXTURE0_ARB, wTexCoord, dTexCoordHigh);
-			glMultiTexCoord2fARB(GL_TEXTURE1_ARB, wTexCoord, dTexCoordHigh);
+			glMultiTexCoord2f(GL_TEXTURE0, wTexCoord, dTexCoordHigh);
+			glMultiTexCoord2f(GL_TEXTURE1, wTexCoord, dTexCoordHigh);
 			glVertex3f( wPos, 0.0f, dPosHigh );
         }
 

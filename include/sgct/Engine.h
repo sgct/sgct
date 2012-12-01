@@ -137,7 +137,7 @@ public:
 	inline const int * getActiveViewport() { return currentViewportCoords; }
 	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
 	//! Returns the framebuffer's aspect ratio
-	inline double getAspectRatio() { return mAspectRatio; }
+	inline float getAspectRatio() { return mAspectRatio; }
 
 	//can be called any time after Engine init
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
@@ -178,6 +178,7 @@ private:
 	void updateTimers(double timeStamp);
 	void loadShaders();
 	void createFBOs();
+	void initFisheye();
 	void resizeFBOs();
 	void setAndClearBuffer(BufferMode mode);
 	void captureBuffer();
@@ -215,7 +216,10 @@ private:
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;
 	float mClearColor[4];
+
+	//fisheye stuff
 	float mFisheyeClearColor[4];
+	float mFisheyeQuadVerts[20];
 
 	int localRunningMode;
 	sgct_core::Frustum::FrustumMode mActiveFrustum;
@@ -249,7 +253,7 @@ private:
 
 	std::string configFilename;
 	int mRunning;
-	double mAspectRatio;
+	float mAspectRatio;
 	char basicInfo[48];
 
 	unsigned long long mFrameCounter;

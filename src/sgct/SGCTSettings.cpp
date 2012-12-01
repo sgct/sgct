@@ -36,10 +36,12 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mFisheyeTilt = 0.0f;
 	mFieldOfView = 180.0f;
 
-	cropFactors[0] = 0.0f;
-	cropFactors[1] = 0.0f;
-	cropFactors[2] = 0.0f;
-	cropFactors[3] = 0.0f;
+	mCropFactors[0] = 0.0f;
+	mCropFactors[1] = 0.0f;
+	mCropFactors[2] = 0.0f;
+	mCropFactors[3] = 0.0f;
+
+	mFisheyeOverlayFilename = NULL;
 }
 
 sgct_core::SGCTSettings::~SGCTSettings()
@@ -92,12 +94,20 @@ void sgct_core::SGCTSettings::setFisheyeFOV(float angle)
 Set the fisheye crop values. Theese values are used when rendering content for a single projector dome.
 The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fisheye is cropped 25% (350 pixels) at the top.
 */
-void sgct_core::SGCTSettings::setFisheyeCropValues(double left, double right, double bottom, double top)
+void sgct_core::SGCTSettings::setFisheyeCropValues(float left, float right, float bottom, float top)
 {
-	cropFactors[ Left ] = (left < 1.0 && left > 0.0) ? left : 0.0;
-	cropFactors[ Right ] = (right < 1.0 && right > 0.0) ? right : 0.0;
-	cropFactors[ Bottom ] = (bottom < 1.0 && bottom > 0.0) ? bottom : 0.0;
-	cropFactors[ Top ] = (top < 1.0 && top > 0.0) ? top : 0.0;
+	mCropFactors[ Left ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
+	mCropFactors[ Right ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
+	mCropFactors[ Bottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
+	mCropFactors[ Top ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
+}
+
+/*!
+Set the fisheye overlay image.
+*/
+void sgct_core::SGCTSettings::setFisheyeOverlay(const char * filename)
+{
+	mFisheyeOverlayFilename = filename;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer
@@ -130,7 +140,13 @@ float sgct_core::SGCTSettings::getFisheyeFOV()
 	- Bottom
 	- Top
 */
-double sgct_core::SGCTSettings::getFisheyeCropValue(CropSides side)
+float sgct_core::SGCTSettings::getFisheyeCropValue(CropSides side)
 {
-	return cropFactors[side];
+	return mCropFactors[side];
+}
+
+//! Get the fisheye overlay image filename/path.
+const char * sgct_core::SGCTSettings::getFisheyeOverlay()
+{
+	return mFisheyeOverlayFilename;
 }

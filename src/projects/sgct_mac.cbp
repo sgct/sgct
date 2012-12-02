@@ -109,6 +109,7 @@
 		<Unit filename="../sgct/SGCTTrackingDevice.cpp" />
 		<Unit filename="../sgct/SGCTTrackingManager.cpp" />
 		<Unit filename="../sgct/SGCTUser.cpp" />
+		<Unit filename="../sgct/SGCTVersion.cpp" />
 		<Unit filename="../sgct/SGCTWindow.cpp" />
 		<Unit filename="../sgct/Shader.cpp" />
 		<Unit filename="../sgct/ShaderManager.cpp" />

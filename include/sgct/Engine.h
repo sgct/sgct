@@ -153,7 +153,7 @@ private:
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
 	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov,
-			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture }; 
+			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -172,6 +172,7 @@ private:
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport(ViewportSpace vs);
 	const char * getBasicInfo();
+	const char * getAAInfo();
 
 	void draw();
 	void drawOverlays();
@@ -258,7 +259,8 @@ private:
 	std::string configFilename;
 	int mRunning;
 	float mAspectRatio;
-	char basicInfo[48];
+	char basicInfo[128];
+	char aaInfo[16];
 
 	unsigned long long mFrameCounter;
 

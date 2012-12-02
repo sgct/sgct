@@ -2276,18 +2276,51 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f",
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics.getAvgFPS());
+		mStatistics.getAvgFPS(),
+        getAAInfo());
     #else
-    sprintf( basicInfo, "Node: %s (%s) | fps: %.2f",
+    sprintf( basicInfo, "Node: %s (%s) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics.getAvgFPS());
+		mStatistics.getAvgFPS(),
+        getAAInfo());
     #endif
 
 	return basicInfo;
+}
+
+const char * sgct::Engine::getAAInfo()
+{
+    if( SGCTSettings::Instance()->useFXAA() )
+    #if (_MSC_VER >= 1400) //visual studio 2005 or later
+        strcpy_s(aaInfo, sizeof(aaInfo), "FXAA");
+    #else
+        strcpy(aaInfo, "FXAA");
+    #endif
+    else
+    {
+        if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > 1  && mFBOMode != RegularFBO )
+        {
+            #if (_MSC_VER >= 1400) //visual studio 2005 or later
+            sprintf_s( aaInfo, sizeof(aaInfo), "MSAAx%d",
+                ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
+            #else
+            sprintf( aaInfo, "MSAAx%d",
+                ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
+            #endif
+        }
+        else
+        #if (_MSC_VER >= 1400) //visual studio 2005 or later
+        strcpy_s(aaInfo, sizeof(aaInfo), "none");
+        #else
+            strcpy(aaInfo, "none");
+        #endif
+    }
+
+    return aaInfo;
 }
 
 int sgct::Engine::getKey( const int &key )

@@ -37,21 +37,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 
 namespace sgct
 {
-
-	/*!
-		This function returns the version string of SGCT.
-	*/
-	static std::string getSGCTVersion()
-	{
-		char buffer[64];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s(buffer, sizeof(buffer), "SGCT ver %d.%d.%d", SGCT_VERSION_MAJOR, SGCT_VERSION_MINOR, SGCT_VERSION_REVISION);
-#else
-		sprintf(buffer, "SGCT ver %d.%d.%d", SGCT_VERSION_MAJOR, SGCT_VERSION_MINOR, SGCT_VERSION_REVISION);
-#endif
-		return std::string(buffer);
-	}
-
+	std::string getSGCTVersion();
 }
 
 #endif

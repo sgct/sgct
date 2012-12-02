@@ -281,7 +281,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						tmpNode.getWindowPtr()->setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
 
 					int tmpSamples = 0;
-					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR )
+					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
 						tmpNode.numberOfSamples = tmpSamples;
 
 					if( element[1]->Attribute("fxaa") != NULL )
@@ -434,7 +434,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					float fov;
 					if( element[1]->QueryFloatAttribute("fov", &fov) == XML_NO_ERROR )
 						sgct_core::SGCTSettings::Instance()->setFisheyeFOV( fov );
-					
+
 					if( element[1]->Attribute("quality") != NULL )
 					{
 						int resolution = getFisheyeCubemapRes( std::string(element[1]->Attribute("quality")) );
@@ -478,7 +478,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
 					}
-					
+
 					//disable stereo
 					tmpNode.stereo = ClusterManager::NoStereo;
 					tmpNode.setFisheyeRendering(true);
@@ -533,7 +533,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 							element[1]->Attribute("tracker"), element[1]->Attribute("device") );
 					}
 					else
-						sgct::MessageHandler::Instance()->print("Failed to parse user tracking data from XML!\n");	
+						sgct::MessageHandler::Instance()->print("Failed to parse user tracking data from XML!\n");
 				}
 
 				//iterate
@@ -577,7 +577,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					ClusterManager::Instance()->getTrackingManagerPtr()->addDeviceToCurrentTracker( std::string(element[1]->Attribute("name")) );
 
 					element[2] = element[1]->FirstChildElement();
-					
+
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
@@ -712,7 +712,7 @@ int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )
 		return 4096;
 	else if( strcmp( quality.c_str(), "8k" ) == 0 )
 		return 8192;
-	
+
 	//if match not found
 	return -1;
 }

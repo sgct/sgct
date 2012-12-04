@@ -2,7 +2,7 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 
-!define SGCT_VERSION "0.9.5"
+!define SGCT_VERSION "1.0.0"
 
 ; The name of the installer
 Name "SGCT ${SGCT_VERSION} msvc10 x86 installer"
@@ -105,6 +105,10 @@ Section "SGCT ${SGCT_VERSION} MSVC10 x86"
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\lib\msvc10"
 	File "..\..\lib\msvc10\sgct32.lib"
 	File "..\..\lib\msvc10\sgct32_d.lib"
+	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86"
+	File "..\..\license.txt"
+	File "..\..\Attribution.txt"
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\config"
 	File /r "..\..\config\"
@@ -223,6 +227,9 @@ Section "OSG 3.0.1 MSVC10 x86"
 	SetOutPath "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
 	File /r "D:\bin\osg\OpenSceneGraph-3.0.1-VS10.0.30319-x86-release-12741\"
 	
+	SetOutPath "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\data"
+	File /r "D:\bin\osg\OpenSceneGraph-Data-3.0.0\"
+	
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osg" "OSG file"
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osgb" "OSG bin file"
 	${registerExtension} "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\bin\osgviewer.exe" ".osgt" "OSG text file"
@@ -234,10 +241,12 @@ Section "OSG environment variables"
 	DeleteRegValue ${env_hklm} OSG_PATH
     DeleteRegValue ${env_hklm} OSG_ROOT
     DeleteRegValue ${env_hklm} OSGHOME
+	DeleteRegValue ${env_hklm} OSG_FILE_PATH
 	
 	${EnvVarUpdate} $0 "OSG_ROOT" "P" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC10_x86"
 	${EnvVarUpdate} $0 "OSG_PATH" "P" "HKLM" "%OSG_ROOT%\bin"
     ${EnvVarUpdate} $0 "OSGHOME" "P" "HKLM" "%OSG_ROOT%"
+	${EnvVarUpdate} $0 "OSG_FILE_PATH" "P" "HKLM" "$INSTDIR\osg\osg_3.0.1_MSVC10_x86\data"
   
     ${EnvVarUpdate} $0 "PATH" "A" "HKLM" "%OSG_ROOT%\bin"
 	
@@ -262,6 +271,7 @@ Section "Uninstall"
   DeleteRegValue ${env_hklm} OSG_PATH
   DeleteRegValue ${env_hklm} OSG_ROOT
   DeleteRegValue ${env_hklm} OSGHOME
+  DeleteRegValue ${env_hklm} OSG_FILE_PATH
 	
   ${un.EnvVarUpdate} $0 "PATH" "R" "HKLM" "%OSG_ROOT%\bin"
   

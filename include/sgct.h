@@ -1,3 +1,103 @@
+/*************************************************************************
+Copyright (c) 2012 Miroslav Andel
+All rights reserved.
+
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson
+
+For any questions or information about the SGCT project please contact: miroslav.andel@liu.se
+
+Redistribution and use in source and binary forms, with or without modification,
+are permitted provided that the following conditions are met:
+
+1.	Redistributions of source code must retain the above copyright
+    notice, this list of conditions and the following disclaimer.
+	
+2.	Redistributions in binary form must reproduce the above copyright
+    notice, this list of conditions and the following disclaimer in the
+    documentation and/or other materials provided with the distribution.
+	
+3.	All advertising materials mentioning features or use of this software
+    must display the following acknowledgement:
+    This product includes software developed by Miroslav Andel, Linköping University.
+	
+4.	Neither the name of the Linköping University nor the
+    names of its contributors may be used to endorse or promote products
+	derived from this software without specific prior written permission.
+
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT,
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+*************************************************************************/
+
+/*************************************************************************
+SGCT is using the following libraries:
+
+GLFW
+=========================================================
+Copyright © 2002-2006 Marcus Geelnard
+Copyright © 2006-2011 Camilla Berglund
+Web: http://www.glfw.org
+License: http://www.glfw.org/license.html
+---------------------------------------------------------
+
+GLM - OpenGL Mathematics
+=========================================================
+Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
+Web: http://glm.g-truc.net/
+License: http://glm.g-truc.net/copying.txt
+---------------------------------------------------------
+
+Freetype
+=========================================================
+Copyright 1996-2002, 2006 by David Turner, Robert Wilhelm, and Werner Lemberg
+Web: http://www.freetype.org
+License: http://www.freetype.org/license.html
+---------------------------------------------------------
+
+GLEW - The OpenGL Extension Wrangler Library
+=========================================================
+Copyright (C) 2002-2007, Milan Ikits <milan.ikits@ieee.org>
+Copyright (C) 2002-2007, Marcelo E. Magallon <mmagallo@debian.org>
+Copyright (C) 2002, Lev Povalahev
+
+All rights reserved.
+Web: http://glew.sourceforge.net/
+---------------------------------------------------------
+
+libPNG - Portable Network Graphics library
+=========================================================
+Copyright (c) 1998-2011 Glenn Randers-Pehrson
+ * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
+ * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
+Web: http://www.libpng.org/
+License: http://www.libpng.org/pub/png/src/libpng-LICENSE.txt
+---------------------------------------------------------
+
+TinyXML-2
+=========================================================
+Original code by Lee Thomason (www.grinninglizard.com)
+Web: http://www.grinninglizard.com/tinyxml2/index.html
+---------------------------------------------------------
+
+VRPN - Virtual Reality Peripheral Network
+=========================================================
+The Virtual Reality Peripheral Network (VRPN) is public-domain software released by the Department of Computer Science at the University of North Carolina at Chapel Hill
+Web: http://www.cs.unc.edu/Research/vrpn/
+---------------------------------------------------------
+
+ZLib
+=========================================================
+Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
+Web: http://www.zlib.net/
+---------------------------------------------------------
+*************************************************************************/
+
 #ifdef __WIN32__
 #ifndef WIN32_LEAN_AND_MEAN
 #define WIN32_LEAN_AND_MEAN

@@ -1,10 +1,5 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1">
-	<Scene>
-		<Orientation yaw="0.0" pitch="110.0" roll="0.0" />
-		<Offset x="0.0" y="-1.0" z="-12.0" />
-		<Scale value="4.0" />
-	</Scene>
 	<Node ip="127.0.0.1" port="20401">
 		<Window fullscreen="false" fxaa="false">
 			<Stereo type="none" />

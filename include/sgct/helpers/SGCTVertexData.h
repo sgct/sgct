@@ -25,34 +25,31 @@ ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED
 OF THE POSSIBILITY OF SUCH DAMAGE.
 *************************************************************************/
 
-#ifndef _SGCT_BOX
-#define _SGCT_BOX
+#ifndef _SGCT_VERTEX_DATA
+#define _SGCT_VERTEX_DATA
 
-#include "../helpers/SGCTVertexData.h"
-
-namespace sgct_utils
+namespace sgct_helpers
 {
-class SGCTBox
-{
+class SGCTVertexData
+{	
 public:
-	enum TextureMappingMode { Regular = 0, CubeMap, SkyBox };
-
-	SGCTBox(float size, TextureMappingMode tmm = Regular);
-	~SGCTBox();
-	void draw();
-
+	void set(float s, float t, float nx, float ny, float nz, float x, float y, float z)
+	{
+		mS = s;
+		mT = t;
+		mNx = nx;
+		mNy = ny;
+		mNz = nz;
+		mX = x;
+		mY = y;
+		mZ = z;
+	}
+	
 private:
-	// Don't implement these, should give compile warning if used
-	SGCTBox();
-	SGCTBox( const SGCTBox & box );
-	const SGCTBox & operator=(const SGCTBox & box );
-
-	void cleanUp();
-	void createVBO();
-
-private:	
-	unsigned int mVBO;
-	sgct_helpers::SGCTVertexData * mVerts;
+	float mS, mT;	//Texcoord0 8
+	float mNx, mNy, mNz; //12
+	float mX, mY, mZ;	//12 = total 32 = power of two
+	//ATI performs better using sizes of power of two
 };
 }
 

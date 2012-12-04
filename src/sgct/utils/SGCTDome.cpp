@@ -96,14 +96,48 @@ sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, u
 	}
 
 	createVBO();
+
+	if( !sgct::Engine::checkForOGLErrors() ) //if error occured
+	{
+		sgct::MessageHandler::Instance()->print("SGCT Utils: Dome creation error!\n");
+		void cleanup();
+	}
+
+	//free data
+	if(mVerts != NULL)
+	{
+		delete [] mVerts;
+		mVerts = NULL;
+	}
+}
+
+sgct_utils::SGCTDome::~SGCTDome()
+{
+	cleanup();
+}
+
+void sgct_utils::SGCTDome::cleanup()
+{
+	//cleanup
+	if(mVBO != 0)
+	{
+		glDeleteBuffers(1, &mVBO);
+		mVBO = 0;
+	}
 }
 
 void sgct_utils::SGCTDome::draw()
 {
+	//if not set
+	if(mVBO == 0)
+		return;
+
 	glPushMatrix();
 	glRotatef(-sgct_core::SGCTSettings::Instance()->getFisheyeTilt(), 1.0f, 0.0f, 0.0f); 
 	
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
+
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
 	glVertexPointer(3, GL_FLOAT, 0, NULL);
@@ -113,10 +147,9 @@ void sgct_utils::SGCTDome::draw()
 	for(unsigned int s=0; s<mSegments; s++)
 		glDrawArrays(GL_LINE_STRIP, mRings * mResolution + s * ((mResolution/4)+1), (mResolution/4)+1);
 
-	glDisableClientState(GL_VERTEX_ARRAY);
-
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glPopClientAttrib();
 	glPopMatrix();
 }
 

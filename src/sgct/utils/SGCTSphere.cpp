@@ -51,8 +51,8 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	mNumberOfVertices = 1 + (vsegs-1)*(hsegs+1) + 1; // top + middle + bottom
 	mNumberOfFaces = hsegs + (vsegs-2)*hsegs*2 + hsegs; // top + middle + bottom
 	
-	mVerts = new VertexData[mNumberOfVertices];
-	memset(mVerts, 0, mNumberOfVertices * sizeof(VertexData));
+	mVerts = new sgct_helpers::SGCTVertexData[mNumberOfVertices];
+	memset(mVerts, 0, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData));
 
 	mIndices = new unsigned int[mNumberOfFaces * 3];
 	memset(mIndices, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
@@ -131,8 +131,19 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 		sgct::MessageHandler::Instance()->print("SGCT Utils: Sphere creation error!\n");
 		void cleanup();
 	}
-	else
-		sgct::MessageHandler::Instance()->print("SGCT Utils: Sphere created, number of triangles: %u\n", mNumberOfFaces);
+
+	//free data
+	if( mVerts != NULL )
+	{
+		delete [] mVerts;
+		mVerts = NULL;
+	}
+
+	if( mIndices != NULL )
+	{
+		delete [] mIndices;
+		mIndices = NULL;
+	}
 }
 
 sgct_utils::SGCTSphere::~SGCTSphere()
@@ -145,30 +156,11 @@ void sgct_utils::SGCTSphere::addVertexData(unsigned int pos,
 		const float &nx, const float &ny, const float &nz,
 		const float &x, const float &y, const float &z)
 {
-	mVerts[ pos ].s = s;
-	mVerts[ pos ].t = t;
-	mVerts[ pos ].nx = nx;
-	mVerts[ pos ].ny = ny;
-	mVerts[ pos ].nz = nz;
-	mVerts[ pos ].x = x;
-	mVerts[ pos ].y = y;
-	mVerts[ pos ].z = z;
+	mVerts[ pos ].set(s,t,nx,ny,nz,x,y,z);
 }
 
 void sgct_utils::SGCTSphere::cleanUp()
 {
-	if( mVerts != NULL )
-	{
-		delete [] mVerts;
-		mVerts = NULL;
-	}
-
-	if( mIndices != NULL )
-	{
-		delete [] mIndices;
-		mIndices = NULL;
-	}
-
 	//cleanup
 	if(mVBO[0] != 0)
 	{
@@ -181,8 +173,14 @@ void sgct_utils::SGCTSphere::cleanUp()
 void sgct_utils::SGCTSphere::draw()
 {
 	//if not set
-	if( mVerts == NULL || mIndices == NULL )
+	if( mVBO[Vertex] == 0 || mVBO[Index] == 0 )
 		return;
+
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glEnableClientState(GL_INDEX_ARRAY);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
@@ -192,6 +190,8 @@ void sgct_utils::SGCTSphere::draw()
 	
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	glPopClientAttrib();
 }
 
 void sgct_utils::SGCTSphere::createVBO()
@@ -199,7 +199,7 @@ void sgct_utils::SGCTSphere::createVBO()
 	glGenBuffers(2, &mVBO[0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(VertexData), mVerts, GL_STATIC_DRAW);
+	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces * 3 * sizeof(unsigned int), mIndices, GL_STATIC_DRAW);

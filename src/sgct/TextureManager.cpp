@@ -37,7 +37,7 @@ sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 sgct::TextureManager::TextureManager()
 {
 	setAnisotropicFilterSize(1.0f);
-	setCompression(false);
+	setCompression(No_Compression);
 	setAlphaModeForSingleChannelTextures(false);
 }
 
@@ -83,9 +83,9 @@ void sgct::TextureManager::setAnisotropicFilterSize(float fval)
 
 }
 
-void sgct::TextureManager::setCompression(bool state)
+void sgct::TextureManager::setCompression(CompressionMode cm)
 {
-	mCompression = state;
+	mCompression = cm;
 }
 
 bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
@@ -122,33 +122,49 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
 		else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
 		else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
 
-		GLint components;
+		GLint internalFormat;
 
-		if(mCompression)
+		switch(img.getChannels())
 		{
-			if( img.getChannels() == 4 )
+		case 4:
 			{
-				components = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels DXT3 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+				if( mCompression == No_Compression)
+					internalFormat = GL_RGBA8;
+				else if( mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RGBA;
+				else
+					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
 			}
-			else if( img.getChannels() == 3 )
+			break;
+		case 3:
 			{
-				components = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels DXT1 compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
+				if( mCompression == No_Compression)
+					internalFormat = GL_RGB8;
+				else if( mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RGB;
+				else
+					internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
 			}
-			else
-			{
-				components = img.getChannels();
-				sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
-			}
-		}
-		else
-		{
-			components = img.getChannels();
-			sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels no compression\n", img.getSizeX(), img.getSizeY(), img.getChannels() );
-		}
+			break;
+		case 2:
+			internalFormat = (mCompression == No_Compression) ? GL_LUMINANCE8_ALPHA8 : GL_COMPRESSED_LUMINANCE_ALPHA;
+			break;
+		case 1:
+			internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			break;
 
-		glTexImage2D(GL_TEXTURE_2D, 0, components, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+		default:
+			internalFormat = GL_RGBA8;
+			break;
+		}
+		
+		sgct::MessageHandler::Instance()->print("Creating texture... size: %dx%d, %d-channels compression: %s\n",
+			img.getSizeX(),
+			img.getSizeY(),
+			img.getChannels(),
+			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
+
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
 		
 		if(mipmapLevels > 1)
 		{

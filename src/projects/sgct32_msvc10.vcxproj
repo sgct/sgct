@@ -28,6 +28,7 @@
     <ClCompile Include="..\sgct\SGCTTrackingDevice.cpp" />
     <ClCompile Include="..\sgct\SGCTTrackingManager.cpp" />
     <ClCompile Include="..\sgct\SGCTUser.cpp" />
+    <ClCompile Include="..\sgct\SGCTVersion.cpp" />
     <ClCompile Include="..\sgct\SGCTWindow.cpp" />
     <ClCompile Include="..\sgct\Shader.cpp" />
     <ClCompile Include="..\sgct\ShaderManager.cpp" />
@@ -49,6 +50,7 @@
     <ClInclude Include="..\..\include\sgct\FontManager.h" />
     <ClInclude Include="..\..\include\sgct\freetype.h" />
     <ClInclude Include="..\..\include\sgct\Frustum.h" />
+    <ClInclude Include="..\..\include\sgct\helpers\SGCTVertexData.h" />
     <ClInclude Include="..\..\include\sgct\Image.h" />
     <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
     <ClInclude Include="..\..\include\sgct\NetworkManager.h" />

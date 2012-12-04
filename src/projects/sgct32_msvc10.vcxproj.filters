@@ -13,6 +13,9 @@
     <Filter Include="source\utils">
       <UniqueIdentifier>{feaf81dc-cea6-4a5c-8726-aa00e0a42576}</UniqueIdentifier>
     </Filter>
+    <Filter Include="include\helpers">
+      <UniqueIdentifier>{2dba1bba-5d36-46c3-ab78-1823646c4106}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\..\include\sgct.h">
@@ -114,6 +117,9 @@
     <ClInclude Include="..\..\include\sgct\utils\SGCTDome.h">
       <Filter>include\utils</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\helpers\SGCTVertexData.h">
+      <Filter>include\helpers</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -199,6 +205,9 @@
     </ClCompile>
     <ClCompile Include="..\sgct\utils\SGCTDome.cpp">
       <Filter>source\utils</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTVersion.cpp">
+      <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

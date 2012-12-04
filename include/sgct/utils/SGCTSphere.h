@@ -28,14 +28,7 @@ OF THE POSSIBILITY OF SUCH DAMAGE.
 #ifndef _SGCT_SPHERE
 #define _SGCT_SPHERE
 
-struct VertexData
-{	
-	float s, t;	//Texcoord0 8
-	float nx, ny, nz; //12
-	float x, y, z;	//12 = total 32 = power of two
-
-	//ATI performs better using sizes of power of two
-};
+#include "../helpers/SGCTVertexData.h"
 
 namespace sgct_utils
 {
@@ -65,7 +58,7 @@ private:
 	SGCTSphere( const SGCTSphere & sphere );
 	const SGCTSphere & operator=(const SGCTSphere & sphere );
 	
-	VertexData * mVerts;
+	sgct_helpers::SGCTVertexData * mVerts;
 	unsigned int * mIndices;
 
 	unsigned int mNumberOfVertices;

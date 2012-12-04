@@ -37,6 +37,8 @@ namespace sgct //simple graphics cluster toolkit
 class TextureManager
 {
 public:
+	enum CompressionMode { No_Compression = 0, Generic, S3TC_DXT };
+
 	/*! Get the TextureManager instance */
 	static TextureManager * Instance()
 	{
@@ -63,9 +65,9 @@ public:
 
 	void setAnisotropicFilterSize(float fval);
 	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
-	void setCompression(bool state);
-	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
-	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 4);
+	void setCompression(CompressionMode cm);
+	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
+	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 
 private:
 	TextureManager();
@@ -83,7 +85,7 @@ private:
 	static TextureManager * mInstance;
 	
 	float mAnisotropicFilterSize;
-	bool mCompression;
+	CompressionMode mCompression;
 	bool mAlphaMode;
 	std::vector< std::pair<std::string, unsigned int> > mTextures;
 };

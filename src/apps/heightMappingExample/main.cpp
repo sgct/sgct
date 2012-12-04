@@ -52,8 +52,6 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	glDeleteLists(myTerrainDisplayList, 1);
-	sgct::ShaderManager::Destroy();
-	sgct::TextureManager::Destroy();
 	delete gEngine;
 
 	// Exit program

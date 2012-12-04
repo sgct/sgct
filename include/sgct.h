@@ -34,6 +34,7 @@
 */
 namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTSphere.h"
+#include "sgct/utils/SGCTBox.h"
 #include "sgct/utils/SGCTDome.h"
 
 //for backwards compability for sgct 0.9.5 and backwards

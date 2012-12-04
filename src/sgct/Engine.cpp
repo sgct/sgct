@@ -200,6 +200,10 @@ bool sgct::Engine::init()
 		return false;
 	}
 
+	//if a single node, skip syncing
+	if(ClusterManager::Instance()->getNumberOfNodes() == 1)
+		mIgnoreSync = true;
+
 	if( mKeyboardCallbackFn != NULL )
         glfwSetKeyCallback( mKeyboardCallbackFn );
 	if( mMouseButtonCallbackFn != NULL )
@@ -543,11 +547,12 @@ Locks the rendering thread for synchronization. The two stages are:
 */
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
+	static double syncTime = 0.0;
+	
 	if(mIgnoreSync)
 		return;
 
 	double t0 = glfwGetTime();
-	static double syncTime = 0.0;
 
 	if( stage == PreStage )
 	{
@@ -605,11 +610,11 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 void sgct::Engine::render()
 {
 	mRunning = GL_TRUE;
-
+	
 	while( mRunning )
 	{
 		mRenderingOffScreen = false;
-
+		
 		//update tracking data
 		if( isMaster() )
 			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
@@ -647,7 +652,7 @@ void sgct::Engine::render()
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
-
+		
 		//if fisheye rendering is used then render the cubemap
 		if( mFBOMode == CubeMapFBO )
 		{
@@ -2294,7 +2299,7 @@ const char * sgct::Engine::getBasicInfo()
 
 const char * sgct::Engine::getAAInfo()
 {
-    if( SGCTSettings::Instance()->useFXAA() )
+    if( SGCTSettings::Instance()->useFXAA() && mFBOMode != NoFBO)
     #if (_MSC_VER >= 1400) //visual studio 2005 or later
         strcpy_s(aaInfo, sizeof(aaInfo), "FXAA");
     #else

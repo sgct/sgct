@@ -2,9 +2,6 @@
 #include <stdio.h>
 #include "sgct.h"
 
-//test
-sgct_utils::SGCTDome * gDome;
-
 sgct::Engine * gEngine;
 
 void myDrawFun();
@@ -14,6 +11,7 @@ void myEncodeFun();
 void myDecodeFun();
 
 unsigned int myTextureIndex;
+sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
 double curr_time = 0.0;
@@ -39,8 +37,8 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
-	sgct::TextureManager::Destroy();
 	delete gEngine;
+	if(myBox != NULL) delete myBox;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -48,78 +46,23 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glFrontFace(GL_CW);
+	glPushAttrib( GL_ENABLE_BIT );
 	glEnable(GL_CULL_FACE);
-	
-	float speed = 50.0f;
-	glPushMatrix();
-	glTranslatef(0.0f, 0.0f, -2.0f);
-	glRotatef(static_cast<float>( curr_time ) * speed, 0.0f, 1.0f, 0.0f);
-	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
-
-	/*glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
-			//glRotatef(45.0f, 0.0f, 1.0f, 0.0f);
-	glMatrixMode(GL_MODELVIEW);*/
-
-	float boxSize = 2.0f;
-	glBegin(GL_QUADS);
-
-	//front
-	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-
-	//back
-	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-
-	//left
-	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-
-	//right
-	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-
-	//top
-	glTexCoord2d(1.0,0.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,0.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( -boxSize/2.0f,	boxSize/2.0f,	boxSize/2.0f);
-
-	//bottom
-	glTexCoord2d(0.0,0.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-	glTexCoord2d(0.0,1.0);	glVertex3f( -boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,1.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	boxSize/2.0f);
-	glTexCoord2d(1.0,0.0);	glVertex3f( boxSize/2.0f,	-boxSize/2.0f,	-boxSize/2.0f);
-
-	glEnd();
-	glPopMatrix();
-
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_CULL_FACE);
-
+	
+	double speed = 25.0;
+	
 	glPushMatrix();
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glColor4f(1.0f, 1.0f, 1.0f, 0.3f);
-	glLineWidth(3.0f);
-	glTranslated(0.0, 0.0, 4.0);
-	gDome->draw();
-	glDisable(GL_BLEND);
-	glEnable(GL_DEPTH_TEST);
+	glTranslatef(0.0f, 0.0f, -3.0f);
+	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
+	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
+	glColor3f(1.0f,1.0f,1.0f);
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
+	//draw the box
+	myBox->draw();
 	glPopMatrix();
+
+	glPopAttrib();
 }
 
 void myPreSyncFun()
@@ -132,18 +75,20 @@ void myPreSyncFun()
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
+	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
+	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::S3TC_DXT);
 	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "box", "box.png", true);
 
-	gDome = new sgct_utils::SGCTDome(15.0f, 180.0f, 36, 9);
+	myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
+	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
+	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
+
 	glEnable(GL_COLOR_MATERIAL);
 	glDisable(GL_LIGHTING);
-	//gEngine->setWireframe(true);
 
-	//Enable backface culling
-	//glCullFace(GL_BACK);
-	//glFrontFace(GL_CW); //our polygon winding is counter clockwise
-	//glEnable(GL_CULL_FACE);
+	//Set up backface culling
+	glCullFace(GL_BACK);
+	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 }
 
 void myEncodeFun()

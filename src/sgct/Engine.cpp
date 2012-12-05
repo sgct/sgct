@@ -392,6 +392,9 @@ void sgct::Engine::initOGL()
 	sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
 	getWindowPtr()->resetSwapGroupFrameNumber();
 
+	//check for errors
+	checkForOGLErrors();
+
 	sgct::MessageHandler::Instance()->print("\nReady to render!\n");
 }
 
@@ -736,8 +739,10 @@ void sgct::Engine::render()
 		if( mTakeScreenshot )
 			captureBuffer();
 
+#ifdef __SGCT_DEBUG__
 		//check for errors
 		checkForOGLErrors();
+#endif
 
 		//wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
@@ -1535,7 +1540,7 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 
 /*!
 	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
-	This function is called at the end of each render loop iteration but can also be called on demand.
+	Avoid this function in the render loop for release code since it can reduse performance.
 */
 bool sgct::Engine::checkForOGLErrors()
 {

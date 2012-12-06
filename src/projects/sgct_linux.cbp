@@ -18,6 +18,7 @@
 				<Compiler>
 					<Add option="-Wall" />
 					<Add option="-g" />
+					<Add option="-D__SGCT_DEBUG__" />
 				</Compiler>
 				<Linker>
 					<Add library="GLEW" />
@@ -80,10 +81,12 @@
 		<Unit filename="../../include/sgct/SGCTInternalShaders.h" />
 		<Unit filename="../../include/sgct/SGCTNetwork.h" />
 		<Unit filename="../../include/sgct/SGCTNode.h" />
+		<Unit filename="../../include/sgct/SGCTSettings.h" />
 		<Unit filename="../../include/sgct/SGCTTracker.h" />
 		<Unit filename="../../include/sgct/SGCTTrackingDevice.h" />
 		<Unit filename="../../include/sgct/SGCTTrackingManager.h" />
 		<Unit filename="../../include/sgct/SGCTUser.h" />
+		<Unit filename="../../include/sgct/SGCTVersion.h" />
 		<Unit filename="../../include/sgct/SGCTWindow.h" />
 		<Unit filename="../../include/sgct/Shader.h" />
 		<Unit filename="../../include/sgct/ShaderManager.h" />
@@ -93,7 +96,11 @@
 		<Unit filename="../../include/sgct/TextureManager.h" />
 		<Unit filename="../../include/sgct/Viewport.h" />
 		<Unit filename="../../include/sgct/freetype.h" />
+		<Unit filename="../../include/sgct/helpers/SGCTVertexData.h" />
 		<Unit filename="../../include/sgct/ogl_headers.h" />
+		<Unit filename="../../include/sgct/utils/SGCTBox.h" />
+		<Unit filename="../../include/sgct/utils/SGCTDome.h" />
+		<Unit filename="../../include/sgct/utils/SGCTSphere.h" />
 		<Unit filename="../sgct/ClusterManager.cpp" />
 		<Unit filename="../sgct/CorrectionMesh.cpp" />
 		<Unit filename="../sgct/Engine.cpp" />
@@ -105,10 +112,12 @@
 		<Unit filename="../sgct/ReadConfig.cpp" />
 		<Unit filename="../sgct/SGCTNetwork.cpp" />
 		<Unit filename="../sgct/SGCTNode.cpp" />
+		<Unit filename="../sgct/SGCTSettings.cpp" />
 		<Unit filename="../sgct/SGCTTracker.cpp" />
 		<Unit filename="../sgct/SGCTTrackingDevice.cpp" />
 		<Unit filename="../sgct/SGCTTrackingManager.cpp" />
 		<Unit filename="../sgct/SGCTUser.cpp" />
+		<Unit filename="../sgct/SGCTVersion.cpp" />
 		<Unit filename="../sgct/SGCTWindow.cpp" />
 		<Unit filename="../sgct/Shader.cpp" />
 		<Unit filename="../sgct/ShaderManager.cpp" />
@@ -118,6 +127,9 @@
 		<Unit filename="../sgct/TextureManager.cpp" />
 		<Unit filename="../sgct/Viewport.cpp" />
 		<Unit filename="../sgct/freetype.cpp" />
+		<Unit filename="../sgct/utils/SGCTBox.cpp" />
+		<Unit filename="../sgct/utils/SGCTDome.cpp" />
+		<Unit filename="../sgct/utils/SGCTSphere.cpp" />
 		<Extensions>
 			<code_completion />
 			<envvars />

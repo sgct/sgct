@@ -110,6 +110,9 @@ Section "SGCT ${SGCT_VERSION} MSVC10 x86"
 	File "..\..\license.txt"
 	File "..\..\Attribution.txt"
 	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\doc"
+	File "..\..\docs\latex\refman.pdf"
+	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\config"
 	File /r "..\..\config\"
 	
@@ -196,6 +199,9 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\C-Student_wiki.lnk" "$INSTDIR\C-Student_wiki.url" "" "$INSTDIR\C_transparent.ico"
   CreateShortCut "$SMPROGRAMS\SGCT\SGCT_tutorials.lnk" "$INSTDIR\SGCT_tutorials.url" "" "$INSTDIR\C_transparent.ico"
   
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\doc"
+  CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\doc\refman.pdf" ""
+  
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\spinning_triangle"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\spinning_triangle\example1_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
@@ -210,6 +216,8 @@ Section "Start Menu Shortcuts"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation\simpleNavigationExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation\simpleNavigationExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\simple_navigation\simpleNavigationExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\" --FXAA"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_x86\examples\gamepad\gamepadExample_msvc10.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""

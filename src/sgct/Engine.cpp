@@ -296,11 +296,10 @@ bool sgct::Engine::initWindow()
 			mFBOMode = RegularFBO;
 	}
 
-    //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-    //glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE);
-    //glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
-    //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
-    //glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
+	/*glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
+    glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
+	glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
+    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 
 	if( !getWindowPtr()->openWindow() )
 		return false;
@@ -838,7 +837,11 @@ void sgct::Engine::draw()
 	glLoadMatrixf( glm::value_ptr( getSceneTransform() ) );
 
 	if( mDrawFn != NULL )
+	{
+		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		mDrawFn();
+		glPopClientAttrib();
+	}
 }
 
 /*!
@@ -883,12 +886,14 @@ void sgct::Engine::drawOverlays()
 
 			glColor4f(1.0f,1.0f,1.0f,1.0f);
 
+			glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
 
 			if( mFBOMode == CubeMapFBO )
 			{
 				glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 				glEnableClientState(GL_VERTEX_ARRAY);
 				glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
 				glDrawArrays(GL_QUADS, 0, 4);
@@ -1007,6 +1012,7 @@ void sgct::Engine::renderFBOTexture()
 	}
 	else
 	{
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
 		glEnable(GL_TEXTURE_2D);
 
@@ -1079,9 +1085,9 @@ void sgct::Engine::renderFisheye()
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ CubeMapBuffer ], 0);
-
-			//render
+			
 			setAndClearBuffer(RenderToTexture);
+			//render
 			(this->*mInternalRenderFn)();
 		}
 	}//end for
@@ -1108,40 +1114,43 @@ void sgct::Engine::renderFisheye()
 		0.1,
 		2.0);
 
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
+	glPushMatrix();
 	glViewport(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-
-	glEnable(GL_DEPTH_TEST);
-
+	
+	//if for some reson the active texture has been reset
+	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+	glEnable(GL_TEXTURE_CUBE_MAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[CubeMapBuffer]);
 
-	glPushMatrix();
 	glDisable(GL_CULL_FACE);
-
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
 		
 	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
 	glUniform1i( mShaderLocs[Cubemap], 0);
 	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glDisableClientState(GL_COLOR_ARRAY); //osg enables this which messes up the rendering
-
 	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
-    glDrawArrays(GL_QUADS, 0, 4);
-	glPopClientAttrib();
-
+	glDrawArrays(GL_QUADS, 0, 4);
+	
 	sgct::ShaderManager::Instance()->unBindShader();
 
-	glPopMatrix();
+	glPopClientAttrib();
 	glPopAttrib();
+	glPopMatrix();
 
 	//unbind FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1856,6 +1865,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			argumentsToRemove.push_back(i);
 			i++;
 		}
+		else if( strcmp(argv[i],"--FXAA") == 0 )
+		{
+			SGCTSettings::Instance()->setFXAA(true);
+			argumentsToRemove.push_back(i);
+			i++;
+		}
 		else
 			i++; //iterate
 	}
@@ -2150,24 +2165,24 @@ void sgct::Engine::initFisheye()
 	mFisheyeQuadVerts[2] = -x;
 	mFisheyeQuadVerts[3] = -y;
 	mFisheyeQuadVerts[4] = -1.0f;
-
+	
 	mFisheyeQuadVerts[5] = leftcrop;
 	mFisheyeQuadVerts[6] = 1.0f - topcrop;
 	mFisheyeQuadVerts[7] = -x;
 	mFisheyeQuadVerts[8] = y;
 	mFisheyeQuadVerts[9] = -1.0f;
-
+	
 	mFisheyeQuadVerts[10] = 1.0f - rightcrop;
 	mFisheyeQuadVerts[11] = 1.0f - topcrop;
 	mFisheyeQuadVerts[12] = x;
 	mFisheyeQuadVerts[13] = y;
 	mFisheyeQuadVerts[14] = -1.0f;
-
+	
 	mFisheyeQuadVerts[15] = 1.0f - rightcrop;
 	mFisheyeQuadVerts[16] = bottomcrop;
 	mFisheyeQuadVerts[17] = x;
 	mFisheyeQuadVerts[18] = -y;
-	mFisheyeQuadVerts[19] = -1.0f;
+	mFisheyeQuadVerts[19] = -1.0f;	
 }
 
 void sgct::Engine::calculateFPS(double timestamp)

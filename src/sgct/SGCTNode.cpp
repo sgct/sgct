@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTNode.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::SGCTNode::SGCTNode()
@@ -134,7 +135,10 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 	}
 
 	if( SGCTSettings::Instance()->getFisheyeOverlay() != NULL )
+	{
 		mViewports[0].setOverlayTexture( SGCTSettings::Instance()->getFisheyeOverlay() );
+		//sgct::MessageHandler::Instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::Instance()->getFisheyeOverlay());
+	}
 }
 
 sgct_core::Viewport * sgct_core::SGCTNode::getCurrentViewport()

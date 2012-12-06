@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SGCT_SETTINGS
 
 #include <stdio.h>
+#include <string>
 
 namespace sgct_core
 {
@@ -47,7 +48,7 @@ public:
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
-	void setFisheyeOverlay(const char * filename);
+	void setFisheyeOverlay(std::string filename);
 	void setFXAA(bool state);
 	
 	int getCubeMapResolution();
@@ -55,7 +56,7 @@ public:
 	float getFisheyeTilt();
 	float getFisheyeFOV();
 	float getFisheyeCropValue(CropSides side);
-	const char * getFisheyeOverlay();
+	const char *  getFisheyeOverlay();
 
 	//! Set to true if FXAA should be used.
 	inline bool useFXAA() { return mUseFXAA; }
@@ -79,7 +80,7 @@ private:
 	float mFisheyeTilt;
 	float mFieldOfView;
 	float mCropFactors[4];
-	const char * mFisheyeOverlayFilename;
+	std::string mFisheyeOverlayFilename;
 
 	//FXAA
 	bool mUseFXAA;

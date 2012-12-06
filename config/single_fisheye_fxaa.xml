@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1">
 	<Node ip="127.0.0.1" port="20401">
-		<Window fullscreen="false">
+		<Window fullscreen="false" fxaa="true">
 			<Stereo type="none" />
 			<Pos x="100" y="0" />
 			<!-- 16:9 aspect ratio -->

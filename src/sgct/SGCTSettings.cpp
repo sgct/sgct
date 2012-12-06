@@ -22,7 +22,6 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mCropFactors[2] = 0.0f;
 	mCropFactors[3] = 0.0f;
 
-	mFisheyeOverlayFilename = NULL;
 	mUseFXAA = false;
 }
 
@@ -87,9 +86,9 @@ void sgct_core::SGCTSettings::setFisheyeCropValues(float left, float right, floa
 /*!
 Set the fisheye overlay image.
 */
-void sgct_core::SGCTSettings::setFisheyeOverlay(const char * filename)
+void sgct_core::SGCTSettings::setFisheyeOverlay(std::string filename)
 {
-	mFisheyeOverlayFilename = filename;
+	mFisheyeOverlayFilename.assign(filename);
 }
 
 /*!
@@ -98,7 +97,7 @@ Set if FXAA should be used.
 void sgct_core::SGCTSettings::setFXAA(bool state)
 {
 	mUseFXAA = state;
-	sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
+	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer
@@ -137,7 +136,7 @@ float sgct_core::SGCTSettings::getFisheyeCropValue(CropSides side)
 }
 
 //! Get the fisheye overlay image filename/path.
-const char * sgct_core::SGCTSettings::getFisheyeOverlay()
+const char *   sgct_core::SGCTSettings::getFisheyeOverlay()
 {
-	return mFisheyeOverlayFilename;
+	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
 }

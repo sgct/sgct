@@ -11,6 +11,42 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="..\..\include\sgct.h" />
+    <ClInclude Include="..\..\include\sgct\ClusterManager.h" />
+    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h" />
+    <ClInclude Include="..\..\include\sgct\Engine.h" />
+    <ClInclude Include="..\..\include\sgct\Font.h" />
+    <ClInclude Include="..\..\include\sgct\FontManager.h" />
+    <ClInclude Include="..\..\include\sgct\freetype.h" />
+    <ClInclude Include="..\..\include\sgct\Frustum.h" />
+    <ClInclude Include="..\..\include\sgct\helpers\SGCTVertexData.h" />
+    <ClInclude Include="..\..\include\sgct\Image.h" />
+    <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
+    <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
+    <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
+    <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTSettings.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTTracker.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTTrackingDevice.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTUser.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTVersion.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
+    <ClInclude Include="..\..\include\sgct\Shader.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
+    <ClInclude Include="..\..\include\sgct\SharedData.h" />
+    <ClInclude Include="..\..\include\sgct\Statistics.h" />
+    <ClInclude Include="..\..\include\sgct\TextureManager.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTBox.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTDome.h" />
+    <ClInclude Include="..\..\include\sgct\utils\SGCTSphere.h" />
+    <ClInclude Include="..\..\include\sgct\Viewport.h" />
+  </ItemGroup>
+  <ItemGroup>
     <ClCompile Include="..\sgct\ClusterManager.cpp" />
     <ClCompile Include="..\sgct\CorrectionMesh.cpp" />
     <ClCompile Include="..\sgct\Engine.cpp" />
@@ -23,10 +59,12 @@
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
     <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
     <ClCompile Include="..\sgct\SGCTNode.cpp" />
+    <ClCompile Include="..\sgct\SGCTSettings.cpp" />
     <ClCompile Include="..\sgct\SGCTTracker.cpp" />
     <ClCompile Include="..\sgct\SGCTTrackingDevice.cpp" />
     <ClCompile Include="..\sgct\SGCTTrackingManager.cpp" />
     <ClCompile Include="..\sgct\SGCTUser.cpp" />
+    <ClCompile Include="..\sgct\SGCTVersion.cpp" />
     <ClCompile Include="..\sgct\SGCTWindow.cpp" />
     <ClCompile Include="..\sgct\Shader.cpp" />
     <ClCompile Include="..\sgct\ShaderManager.cpp" />
@@ -34,37 +72,10 @@
     <ClCompile Include="..\sgct\SharedData.cpp" />
     <ClCompile Include="..\sgct\Statistics.cpp" />
     <ClCompile Include="..\sgct\TextureManager.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTBox.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTDome.cpp" />
+    <ClCompile Include="..\sgct\utils\SGCTSphere.cpp" />
     <ClCompile Include="..\sgct\Viewport.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <ClInclude Include="..\..\include\sgct.h" />
-    <ClInclude Include="..\..\include\sgct\ClusterManager.h" />
-    <ClInclude Include="..\..\include\sgct\CorrectionMesh.h" />
-    <ClInclude Include="..\..\include\sgct\Engine.h" />
-    <ClInclude Include="..\..\include\sgct\Font.h" />
-    <ClInclude Include="..\..\include\sgct\FontManager.h" />
-    <ClInclude Include="..\..\include\sgct\freetype.h" />
-    <ClInclude Include="..\..\include\sgct\Frustum.h" />
-    <ClInclude Include="..\..\include\sgct\Image.h" />
-    <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
-    <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
-    <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
-    <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTTracker.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTTrackingDevice.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTTrackingManager.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTUser.h" />
-    <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
-    <ClInclude Include="..\..\include\sgct\Shader.h" />
-    <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
-    <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
-    <ClInclude Include="..\..\include\sgct\SharedData.h" />
-    <ClInclude Include="..\..\include\sgct\Statistics.h" />
-    <ClInclude Include="..\..\include\sgct\TextureManager.h" />
-    <ClInclude Include="..\..\include\sgct\Viewport.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{0516E457-A21E-4D14-8DBC-63D918909A23}</ProjectGuid>
@@ -109,7 +120,7 @@
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
       <WarningLevel>Level3</WarningLevel>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
-      <PreprocessorDefinitions>GLEW_STATIC;__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>GLEW_STATIC;__WIN32__;__SGCT_DEBUG__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>

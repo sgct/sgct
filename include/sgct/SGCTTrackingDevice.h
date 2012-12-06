@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_TRACKING_DEVICE_H_

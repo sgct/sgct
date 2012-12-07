@@ -314,83 +314,83 @@ void keyCallback(int key, int action)
 		switch( key )
 		{
 		case 'C':
-			if( modifierKey && action == GLFW_PRESS)
+			if( modifierKey && action == SGCT_PRESS)
 				culling = !culling;
 			break;
 
 		case 'S':
-			if( modifierKey && action == GLFW_PRESS)
+			if( modifierKey && action == SGCT_PRESS)
 				stats = !stats;
 			else
-				arrowButtonStatus[BACKWARD] = (action == GLFW_PRESS ? true : false);
+				arrowButtonStatus[BACKWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
 		case 'I':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				info = !info;
 			break;
 
 		case 'L':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				light = !light;
 			break;
 
 		case 'W':
-			if( modifierKey && action == GLFW_PRESS)
+			if( modifierKey && action == SGCT_PRESS)
 				wireframe = !wireframe;
 			else
-				arrowButtonStatus[FORWARD] = (action == GLFW_PRESS ? true : false);
+				arrowButtonStatus[FORWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
 		case 'P':
-		case GLFW_KEY_F10:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_F10:
+			if(action == SGCT_PRESS)
 				takeScreenshot = true;
 			break;
 
-		case GLFW_KEY_UP:
-			arrowButtonStatus[FORWARD] = (action == GLFW_PRESS ? true : false);
+		case SGCT_KEY_UP:
+			arrowButtonStatus[FORWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_DOWN:
-			arrowButtonStatus[BACKWARD] = (action == GLFW_PRESS ? true : false);
+		case SGCT_KEY_DOWN:
+			arrowButtonStatus[BACKWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_RIGHT:
+		case SGCT_KEY_RIGHT:
 		case 'D':
-			arrowButtonStatus[RIGHT] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[RIGHT] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_LEFT:
+		case SGCT_KEY_LEFT:
 		case 'A':
-			arrowButtonStatus[LEFT] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[LEFT] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_SPACE:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_SPACE:
+			if(action == SGCT_PRESS)
 				animate = !animate;
 			break;
 
-		case GLFW_KEY_LCTRL:
-		case GLFW_KEY_RCTRL:
-			modifierKey = (action == GLFW_PRESS ? true : false);
+		case SGCT_KEY_LCTRL:
+		case SGCT_KEY_RCTRL:
+			modifierKey = (action == SGCT_PRESS ? true : false);
 			break;
 
 		case 'Q':
-			arrowButtonStatus[DOWNWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[DOWNWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
 		case 'E':
-			arrowButtonStatus[UPWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtonStatus[UPWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_PAGEUP:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_PAGEUP:
+			if(action == SGCT_PRESS)
 				scale *= 2.0f;
 			break;
 
-		case GLFW_KEY_PAGEDOWN:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_PAGEDOWN:
+			if(action == SGCT_PRESS)
 				scale /= 2.0f;
 			break;
 		}
@@ -403,8 +403,8 @@ void mouseButtonCallback(int button, int action)
 	{
 		switch( button )
 		{
-		case GLFW_MOUSE_BUTTON_LEFT:
-			mouseButtonStatus[ LEFT_MB ] = (action == GLFW_PRESS ? true : false);
+		case SGCT_MOUSE_BUTTON_LEFT:
+			mouseButtonStatus[ LEFT_MB ] = (action == SGCT_PRESS ? true : false);
 			
 			//set refPos
 			sgct::Engine::getMousePos( &mouseXPos[1], &mouseYPos[1] );

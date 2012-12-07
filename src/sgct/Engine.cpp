@@ -46,6 +46,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mThis = this;
 	mNetworkConnections = NULL;
 	mConfig = NULL;
+	mRunMode = Default_Mode;
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -150,9 +151,13 @@ Engine initiation that:
  2. Set up the network communication
  3. Create a window
  4. Set up OpenGL
+
+ @param rm rm is the optional run mode. If any problems are experienced with Open Scene Graph then use the OSG_Encapsulation_Mode.
 */
-bool sgct::Engine::init()
+bool sgct::Engine::init(RunMode rm)
 {
+	mRunMode = rm;
+
 	MessageHandler::Instance()->print("%s\n", getSGCTVersion().c_str() );
 
 	if(mTerminate)
@@ -838,9 +843,19 @@ void sgct::Engine::draw()
 
 	if( mDrawFn != NULL )
 	{
-		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-		mDrawFn();
-		glPopClientAttrib();
+		if( mRunMode == OSG_Encapsulation_Mode)
+		{
+			//glPushAttrib(GL_ALL_ATTRIB_BITS);
+			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+			//glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
+			mDrawFn();
+			glPopClientAttrib();
+			//glPopAttrib();
+		}
+		else
+		{
+			mDrawFn();
+		}
 	}
 }
 

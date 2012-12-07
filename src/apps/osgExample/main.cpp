@@ -213,42 +213,42 @@ void keyCallback(int key, int action)
 		switch( key )
 		{
 		case 'S':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				stats = !stats;
 			break;
 
 		case 'I':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				info = !info;
 			break;
 
 		case 'L':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				light = !light;
 			break;
 
 		case 'W':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				wireframe = !wireframe;
 			break;
 
 		case 'Q':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				gEngine->terminate();
 			break;
 
 		case 'P':
-		case GLFW_KEY_F10:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_F10:
+			if(action == SGCT_PRESS)
 				takeScreenshot = true;
 			break;
 
-		case GLFW_KEY_UP:
-			arrowButtons[FORWARD] = (action == GLFW_PRESS ? true : false);
+		case SGCT_KEY_UP:
+			arrowButtons[FORWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_DOWN:
-			arrowButtons[BACKWARD] = (action == GLFW_PRESS ? true : false);
+		case SGCT_KEY_DOWN:
+			arrowButtons[BACKWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 		}
 	}

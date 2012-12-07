@@ -229,32 +229,32 @@ void keyCallback(int key, int action)
 		switch( key )
 		{
 		case 'S':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				stats = !stats;
 			break;
 
 		case 'I':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				info = !info;
 			break;
 
 		case 'W':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				wireframe = !wireframe;
 			break;
 
 		case 'Q':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				gEngine->terminate();
 			break;
 
 		case 'T':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				useTracking = !useTracking;
 			break;
 
 		case 'E':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 			{
 				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
 				sgct_core::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
@@ -262,8 +262,8 @@ void keyCallback(int key, int action)
 			break;
 
 		case 'P':
-		case GLFW_KEY_F10:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_F10:
+			if(action == SGCT_PRESS)
 				takeScreenshot = true;
 			break;
 		}

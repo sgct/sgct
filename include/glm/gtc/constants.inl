@@ -8,10 +8,10 @@
 /// to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
 /// copies of the Software, and to permit persons to whom the Software is
 /// furnished to do so, subject to the following conditions:
-/// 
+///
 /// The above copyright notice and this permission notice shall be included in
 /// all copies or substantial portions of the Software.
-/// 
+///
 /// THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
 /// IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
 /// FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
@@ -34,11 +34,11 @@ namespace glm
 		return std::numeric_limits<T>::epsilon();
 	}
 
-	template <>
+	/*template <>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR half epsilon()
 	{
 		return half(1.19209290e-007);
-	}
+	}*/
 
 	template <typename T>
 	GLM_FUNC_QUALIFIER GLM_CONSTEXPR T zero()

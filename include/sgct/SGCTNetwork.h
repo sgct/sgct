@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_NETWORK
@@ -25,9 +25,9 @@ namespace sgct_cppxeleven = std::tr1;
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
 #ifdef __WIN32__
-	typedef unsigned int SOCKET;
+	typedef unsigned int SGCT_SOCKET;
 #else
-	typedef int SOCKET;
+	typedef int SGCT_SOCKET;
 #endif
 
 typedef void * GLFWmutex;
@@ -48,8 +48,8 @@ public:
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
-	void setOptions(SOCKET * socketPtr);
-	void closeSocket(SOCKET lSocket);
+	void setOptions(SGCT_SOCKET * socketPtr);
+	void closeSocket(SGCT_SOCKET lSocket);
 
 	int getTypeOfServer();
 	int getId();
@@ -62,14 +62,14 @@ public:
 	void swapFrames();
 	int sendData(void * data, int length);
 	int sendStr(std::string msg);
-	static int receiveData(SOCKET & lsocket, char * buffer, int length, int flags);
+	static int receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
 	static int parseInt(char * str);
 	static unsigned int parseUnsignedInt(char * str);
 	void iterateFrameCounter();
 	void pushClientMessage();
 
-	SOCKET mSocket;
-	SOCKET mListenSocket;
+	SGCT_SOCKET mSocket;
+	SGCT_SOCKET mListenSocket;
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;

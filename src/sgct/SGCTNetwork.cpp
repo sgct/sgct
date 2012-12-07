@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #if !(_MSC_VER >= 1400) //if not visual studio 2005 or later
@@ -246,7 +246,7 @@ void GLFWCALL connectionHandler(void *arg)
 	sgct::MessageHandler::Instance()->print("Closing connection handler for connection %d... \n", nPtr->getId());
 }
 
-void sgct_core::SGCTNetwork::setOptions(SOCKET * socketPtr)
+void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 {
 	if(socketPtr != NULL)
 	{
@@ -277,7 +277,7 @@ void sgct_core::SGCTNetwork::setOptions(SOCKET * socketPtr)
 	}
 }
 
-void sgct_core::SGCTNetwork::closeSocket(SOCKET lSocket)
+void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
 {
     if( lSocket != INVALID_SOCKET )
 	{
@@ -487,7 +487,7 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
-int sgct_core::SGCTNetwork::receiveData(SOCKET & lsocket, char * buffer, int length, int flags)
+int sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
 {
     int iResult = 0;
     int attempts = 1;

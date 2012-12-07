@@ -17,7 +17,6 @@ namespace sgct_text
 
 inline void pushScreenCoordinateMatrix()
 {
-	glPushAttrib(GL_TRANSFORM_BIT);
 	//GLint	viewport[4];
 	//glGetIntegerv(GL_VIEWPORT, viewport);
 	glMatrixMode(GL_PROJECTION);
@@ -60,16 +59,14 @@ inline void pushScreenCoordinateMatrix()
 			tmpNode->getCurrentViewport()->getYSize() *
 			static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
 	}
-	glPopAttrib();
 }
 
 /// Pops the projection matrix without changing the current
 /// MatrixMode.
-inline void pop_projection_matrix() {
-	glPushAttrib(GL_TRANSFORM_BIT);
+inline void pop_projection_matrix()
+{
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
-	glPopAttrib();
 }
 
 ///Much like Nehe's glPrint function, but modified to work
@@ -130,6 +127,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 	glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 	glMatrixMode(GL_MODELVIEW);
 	glDisable(GL_LIGHTING);
+	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glEnable(GL_TEXTURE_2D);
 	glDisable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);

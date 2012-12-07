@@ -32,11 +32,25 @@ The figure below illustrates when different callbacks (gray boxes) are called in
 */
 class Engine
 {
+//all enums
+public:
+	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
+
+private:
+	enum FBOBufferIndexes { LeftEyeBuffer = 0, RightEyeBuffer };
+	enum FBOCubeMapBufferIndexes { FishEyeBuffer = 0, CubeMapBuffer };
+	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
+	enum SyncStage { PreStage = 0, PostStage };
+	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
+	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov,
+			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
+
 public:
 	Engine( int& argc, char**& argv );
 	~Engine();
 
-	bool init();
+	bool init(RunMode rm = Default_Mode);
 	void terminate();
 	void render();
 	static Engine * getPtr() { return mThis; }
@@ -123,17 +137,6 @@ public:
 
 	//can be called any time after Engine init
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
-
-//all enums
-private:
-	enum FBOBufferIndexes { LeftEyeBuffer = 0, RightEyeBuffer };
-	enum FBOCubeMapBufferIndexes { FishEyeBuffer = 0, CubeMapBuffer };
-	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
-	enum SyncStage { PreStage = 0, PostStage };
-	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
-	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov,
-			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -255,6 +258,7 @@ private:
     size_t mTimerID; //< the timer created next will use this ID
 
 	static Engine * mThis;
+	RunMode mRunMode;
 };
 
 }

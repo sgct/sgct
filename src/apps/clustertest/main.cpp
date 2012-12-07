@@ -112,7 +112,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	if(slowRendering)
-		glfwSleep(1.0/5.0);
+		gEngine->sleep(1.0/5.0);
 
 	glPushMatrix();
 
@@ -124,7 +124,7 @@ void myDrawFun()
 		sgct::MessageHandler::Instance()->print("Right eye!\n");*/
 
 	//sgct::MessageHandler::Instance()->print("Mouse wheel: %d\n", sgct::Engine::getMouseWheel());
-	//sgct::MessageHandler::Instance()->print("Right mouse button: %d\n", sgct::Engine::getMouseButton(GLFW_MOUSE_BUTTON_RIGHT));
+	//sgct::MessageHandler::Instance()->print("Right mouse button: %d\n", sgct::Engine::getMouseButton(SGCT_MOUSE_BUTTON_RIGHT));
 	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
 	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
@@ -376,54 +376,54 @@ void keyCallback(int key, int action)
 		switch( key )
 		{
 		case 'I':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				showFPS = !showFPS;
 			break;
 
 		case 'E':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				extraPackages = !extraPackages;
 			break;
 
 		case 'B':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				barrier = !barrier;
 			break;
 
 		case 'R':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				resetCounter = true;
 			break;
 
 		case 'S':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 				stats = !stats;
 			break;
 
 		case 'M':
-			if(action == GLFW_PRESS)
+			if(action == SGCT_PRESS)
 			{
 				mousePointer = !mousePointer; //toggle
 				sgct::Engine::setMousePointerVisibility(mousePointer);
 			}
 			break;
 
-		case GLFW_KEY_F9:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_F9:
+			if(action == SGCT_PRESS)
 				slowRendering = !slowRendering;
 			break;
 
-		case GLFW_KEY_F10:
-			if(action == GLFW_PRESS)
+		case SGCT_KEY_F10:
+			if(action == SGCT_PRESS)
 				takeScreenshot = true;
 			break;
 
-		case GLFW_KEY_UP:
+		case SGCT_KEY_UP:
 			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() + glm::vec3(0.0f, 0.0f, 0.1f) );
 			sgct::MessageHandler::Instance()->print("Up was pressed.\n");
 			break;
 
-		case GLFW_KEY_DOWN:
+		case SGCT_KEY_DOWN:
 			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() - glm::vec3(0.0f, 0.0f, 0.1f) );
 			sgct::MessageHandler::Instance()->print("Down was pressed.\n");
 			break;

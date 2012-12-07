@@ -179,24 +179,24 @@ void keyCallback(int key, int action)
 	{
 		switch( key )
 		{
-		case GLFW_KEY_UP:
+		case SGCT_KEY_UP:
 		case 'W':
-			arrowButtons[FORWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtons[FORWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_DOWN:
+		case SGCT_KEY_DOWN:
 		case 'S':
-			arrowButtons[BACKWARD] = (action == GLFW_PRESS ? true : false);
+			arrowButtons[BACKWARD] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_LEFT:
+		case SGCT_KEY_LEFT:
 		case 'A':
-			arrowButtons[LEFT] = (action == GLFW_PRESS ? true : false);
+			arrowButtons[LEFT] = (action == SGCT_PRESS ? true : false);
 			break;
 
-		case GLFW_KEY_RIGHT:
+		case SGCT_KEY_RIGHT:
 		case 'D':
-			arrowButtons[RIGHT] = (action == GLFW_PRESS ? true : false);
+			arrowButtons[RIGHT] = (action == SGCT_PRESS ? true : false);
 			break;
 		}
 	}
@@ -208,8 +208,8 @@ void mouseButtonCallback(int button, int action)
 	{
 		switch( button )
 		{
-		case GLFW_MOUSE_BUTTON_LEFT:
-			mouseLeftButton = (action == GLFW_PRESS ? true : false);
+		case SGCT_MOUSE_BUTTON_LEFT:
+			mouseLeftButton = (action == SGCT_PRESS ? true : false);
 			int tmpYPos;
 			//set refPos
 			sgct::Engine::getMousePos( &mouseXPos[1], &tmpYPos );

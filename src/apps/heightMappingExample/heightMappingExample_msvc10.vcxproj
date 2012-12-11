@@ -14,12 +14,13 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="simple.frag" />
-    <None Include="simple.vert" />
+    <None Include="heightmap.frag" />
+    <None Include="heightmap.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{1C0F277A-22C5-477B-9535-1EC4F3146F38}</ProjectGuid>
-    <RootNamespace>simpleShaderExample</RootNamespace>
+    <ProjectGuid>{DE236993-0678-4638-8180-39DE3D8B74C7}</ProjectGuid>
+    <RootNamespace>shaderExample</RootNamespace>
+    <ProjectName>heightMappingExample_msvc10</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -43,9 +44,9 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\..\..\..\bin\simpleShaderExample\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectDir)\..\..\..\bin\heightMappingExample\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\..\..\..\bin\simpleShaderExample\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(ProjectDir)\..\..\..\bin\heightMappingExample\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)</TargetName>
   </PropertyGroup>

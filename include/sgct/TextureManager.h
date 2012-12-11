@@ -46,6 +46,7 @@ public:
 	void setAnisotropicFilterSize(float fval);
 	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
 	void setCompression(CompressionMode cm);
+	void setWarpingMode(int warp_s, int warp_t);
 	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 
@@ -68,6 +69,7 @@ private:
 	CompressionMode mCompression;
 	bool mAlphaMode;
 	std::vector< std::pair<std::string, unsigned int> > mTextures;
+	int mWarpMode[2];
 };
 
 }

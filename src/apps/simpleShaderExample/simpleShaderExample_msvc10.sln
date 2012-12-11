@@ -1,7 +1,7 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 11.00
-# Visual Studio 2010
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "heightMappingExample_msvc2010", "heightMappingExample_msvc2010.vcxproj", "{DE236993-0678-4638-8180-39DE3D8B74C7}"
+# Visual C++ Express 2010
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simpleShaderExample_msvc10", "simpleShaderExample_msvc10.vcxproj", "{DE236993-0678-4638-8180-39DE3D8B74C7}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

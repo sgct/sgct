@@ -19,6 +19,8 @@ sgct::TextureManager::TextureManager()
 	setAnisotropicFilterSize(1.0f);
 	setCompression(No_Compression);
 	setAlphaModeForSingleChannelTextures(false);
+	mWarpMode[0] = GL_CLAMP_TO_EDGE;
+	mWarpMode[1] = GL_CLAMP_TO_EDGE;
 }
 
 sgct::TextureManager::~TextureManager()
@@ -63,9 +65,33 @@ void sgct::TextureManager::setAnisotropicFilterSize(float fval)
 
 }
 
+/*!
+	Set texture compression. Can be one of the following:
+	- sgct::TextureManager::No_Compression
+	- sgct::TextureManager::Generic
+	- sgct::TextureManager::S3TC_DXT
+
+	@param cm the compression mode
+*/
 void sgct::TextureManager::setCompression(CompressionMode cm)
 {
 	mCompression = cm;
+}
+
+/*!
+	Set the OpenGL texture warping mode. Can be one of the following:
+	- GL_CLAMP_TO_EDGE (Default)
+	- GL_CLAMP_TO_BORDER
+	- GL_MIRRORED_REPEAT
+	- GL_REPEAT
+
+	@param warp_s warping parameter along the s-axis (x-axis) 
+	@param warp_t warping parameter along the t-axis (y-axis)
+*/
+void sgct::TextureManager::setWarpingMode(int warp_s, int warp_t)
+{
+	mWarpMode[0] = warp_s;
+	mWarpMode[1] = warp_t;
 }
 
 bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
@@ -162,8 +188,8 @@ bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string nam
             glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
 		}
 
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0] );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1] );
 
 		mTextures.push_back( std::pair<std::string, unsigned int>( name, (unsigned int)texID ) );
 

@@ -504,6 +504,45 @@ namespace detail
 		//return gtc::quaternion::cross(q, detail::tquat<T>(cos(AngleRad * T(0.5)), Tmp.x * fSin, Tmp.y * fSin, Tmp.z * fSin));
 	}
 
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER valType roll
+	(
+		detail::tquat<valType> const & q
+	)
+	{
+#ifdef GLM_FORCE_RADIANS
+		return atan2(valType(2) * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
+#else
+		return glm::degrees(atan2(valType(2) * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
+#endif
+	}
+
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER valType pitch
+	(
+		detail::tquat<valType> const & q
+	)
+	{
+#ifdef GLM_FORCE_RADIANS
+		return atan2(valType(2) * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
+#else
+		return glm::degrees(atan2(valType(2) * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
+#endif
+	}
+
+	template <typename valType> 
+	GLM_FUNC_QUALIFIER valType yaw
+	(
+		detail::tquat<valType> const & q
+	)
+	{
+#ifdef GLM_FORCE_RADIANS
+		return asin(valType(-2) * (q.x * q.z - q.w * q.y));
+#else
+		return glm::degrees(asin(valType(-2) * (q.x * q.z - q.w * q.y)));
+#endif
+	}
+
 	template <typename T>
 	GLM_FUNC_QUALIFIER detail::tvec3<T> eulerAngles
 	(

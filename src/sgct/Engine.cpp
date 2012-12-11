@@ -279,10 +279,13 @@ bool sgct::Engine::initWindow()
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ClusterManager::Active );
 
 	//disable MSAA if FXAA is in use
-	if( SGCTSettings::Instance()->useFXAA() )
+	if( SGCTSettings::Instance()->useFXAA() && 
+		ClusterManager::Instance()->getThisNodePtr()->stereo <= ClusterManager::Active)
 	{
 		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
 	}
+	else //for glsl stereo types
+		SGCTSettings::Instance()->setFXAA(false);
 
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
@@ -1001,6 +1004,10 @@ void sgct::Engine::renderFBOTexture()
 			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
 			break;
 
+		case ClusterManager::Anaglyph_Red_Cyan_Wimmer:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan_Wimmer" );
+			break;
+
 		case ClusterManager::Checkerboard:
 			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
 			break;
@@ -1293,6 +1300,16 @@ void sgct::Engine::loadShaders()
 			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
 			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
 			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
+			glUniform1i( mShaderLocs[LeftTex], 0 );
+			glUniform1i( mShaderLocs[RightTex], 1 );
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
+		else if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan_Wimmer )
+		{
+			sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan_Wimmer", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, ShaderManager::SHADER_SRC_STRING );
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan_Wimmer" );
+			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "LeftTex" );
+			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "RightTex" );
 			glUniform1i( mShaderLocs[LeftTex], 0 );
 			glUniform1i( mShaderLocs[RightTex], 1 );
 			sgct::ShaderManager::Instance()->unBindShader();

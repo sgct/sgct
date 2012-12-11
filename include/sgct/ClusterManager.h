@@ -45,7 +45,7 @@ public:
 	}
 
 	enum MeshImplementation { VBO_INDEX=0, VBO_ARRAY, DISPLAY_LIST };
-	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Checkerboard, Checkerboard_Inverted };
+	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted };
 
 	void addNode(SGCTNode node);
 	unsigned int getNumberOfNodes() const { return nodes.size(); }

@@ -673,6 +673,8 @@ int sgct_core::ReadConfig::getStereoType( const std::string type )
 		return ClusterManager::Anaglyph_Red_Cyan;
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
 		return ClusterManager::Anaglyph_Amber_Blue;
+	else if( strcmp( type.c_str(), "anaglyph_wimmer" ) == 0 )
+		return ClusterManager::Anaglyph_Red_Cyan_Wimmer;
 
 	//if match not found
 	return -1;

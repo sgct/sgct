@@ -141,10 +141,10 @@ namespace sgct_core
 			vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);
 			float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;
 
-			gl_FragColor.r = gl_Color.r * leftLum;
-			gl_FragColor.g = gl_Color.g * rightLum;
-			gl_FragColor.b = gl_Color.b * rightLum;
-			gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);
+			gl_FragColor.r = leftLum;
+			gl_FragColor.g = rightLum;
+			gl_FragColor.b = rightLum;
+			gl_FragColor.a = max(leftVals.a, rightVals.a);
 		}
 
 		*/
@@ -158,10 +158,24 @@ namespace sgct_core
 				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
 				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
 				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
-				gl_FragColor.r = gl_Color.r * leftLum;\n\
-				gl_FragColor.g = gl_Color.g * rightLum;\n\
-				gl_FragColor.b = gl_Color.b * rightLum;\n\
-				gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);\n\
+				gl_FragColor.r = leftLum;\n\
+				gl_FragColor.g = rightLum;\n\
+				gl_FragColor.b = rightLum;\n\
+				gl_FragColor.a = max(leftVals.a, rightVals.a);\n\
+			}\n";
+
+		const std::string Anaglyph_Red_Cyan_Frag_Shader_Wimmer = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				gl_FragColor.r = 0.7*leftVals.g + 0.3*leftVals.b;\n\
+				gl_FragColor.g = rightVals.r;\n\
+				gl_FragColor.b = rightVals.b;\n\
+				gl_FragColor.a = max(leftVals.a, rightVals.a);\n\
 			}\n";
 
 		/*
@@ -182,7 +196,7 @@ namespace sgct_core
 			gl_FragColor.r = gl_Color.r * leftVals.r;
 			gl_FragColor.g = gl_Color.g * leftVals.g;
 			gl_FragColor.b = gl_Color.b * rightMix;
-			gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);
+			gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);
 		}
 
 		*/
@@ -199,7 +213,7 @@ namespace sgct_core
 				gl_FragColor.r = gl_Color.r * leftVals.r;\n\
 				gl_FragColor.g = gl_Color.g * leftVals.g;\n\
 				gl_FragColor.b = gl_Color.b * rightMix;\n\
-				gl_FragColor.a = gl_Color.a * (leftVals.a*0.5 + rightVals.a*0.5);\n\
+				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
 		/*

@@ -47,7 +47,7 @@ public:
     void setSendFeedbackToServer( bool state ) { mLocal = !state; }
     void clearBuffer();
 
-	inline unsigned int getDataSize() { return mBuffer.size(); }
+	inline std::size_t getDataSize() { return mBuffer.size(); }
 
 	char * getMessage();
 

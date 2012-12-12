@@ -725,8 +725,8 @@ void sgct::Engine::render()
 		//draw info & stats
 		//the cubemap viewports are all the same so it makes no sense to render everything several times
 		//therefore just loop one iteration in that case.
-		unsigned int numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
-		for(unsigned int i=0; i < numberOfIterations; i++)
+		std::size_t numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
+		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			tmpNode->setCurrentViewport(i);
 			enterCurrentViewport(ScreenSpace);
@@ -871,8 +871,8 @@ void sgct::Engine::drawOverlays()
 
 	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	unsigned int numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
-	for(unsigned int i=0; i < numberOfIterations; i++)
+	std::size_t numberOfIterations = ( mFBOMode == CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
+	for(std::size_t i=0; i < numberOfIterations; i++)
 	{
 		tmpNode->setCurrentViewport(i);
 
@@ -1910,7 +1910,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
     // remove the arguments that have been processed
     if( argumentsToRemove.size() > 0 )
     {
-        int newArgc = argc - argumentsToRemove.size();
+        int newArgc = argc - static_cast<int>(argumentsToRemove.size());
         char** newArgv = new char*[newArgc];
         int newIterator = 0;
         for( int oldIterator = 0; oldIterator < argc; ++oldIterator )
@@ -2305,7 +2305,7 @@ void sgct::Engine::sendMessageToExternalControl(void * data, int length)
 void sgct::Engine::sendMessageToExternalControl(const std::string msg)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
-		mNetworkConnections->getExternalControlPtr()->sendData( (void *)msg.c_str(), msg.size() );
+		mNetworkConnections->getExternalControlPtr()->sendData( (void *)msg.c_str(), static_cast<int>(msg.size()) );
 }
 
 void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)

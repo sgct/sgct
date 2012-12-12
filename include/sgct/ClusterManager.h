@@ -48,7 +48,7 @@ public:
 	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted };
 
 	void addNode(SGCTNode node);
-	unsigned int getNumberOfNodes() const { return nodes.size(); }
+	std::size_t getNumberOfNodes() const { return nodes.size(); }
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
 	SGCTUser * getUserPtr() { return mUser; }

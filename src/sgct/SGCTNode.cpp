@@ -163,7 +163,7 @@ void sgct_core::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSi
 		static_cast<double>(getWindowPtr()->getVResolution()));
 }
 
-unsigned int sgct_core::SGCTNode::getNumberOfViewports()
+std::size_t sgct_core::SGCTNode::getNumberOfViewports()
 {
 	return mViewports.size();
 }

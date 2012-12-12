@@ -26,11 +26,11 @@ public:
 	Viewport * getCurrentViewport();
 	Viewport * getViewport(unsigned int index);
 	void getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
-	unsigned int getNumberOfViewports();
+	std::size_t getNumberOfViewports();
 
 	SGCTWindow * getWindowPtr() { return &mWindow; }
 
-	inline void setCurrentViewport(unsigned int index) { mCurrentViewportIndex = index; }
+	inline void setCurrentViewport(std::size_t index) { mCurrentViewportIndex = index; }
 	//! Set if fisheye rendering is active (only valid before init).
 	inline void setFisheyeRendering(bool state) { mFisheyeMode = state; }
 
@@ -44,7 +44,7 @@ private:
 	void deleteAllViewports();
 
 private:
-	unsigned int mCurrentViewportIndex;
+	std::size_t mCurrentViewportIndex;
 	std::vector<Viewport> mViewports;
 	SGCTWindow mWindow;
 	bool mFisheyeMode;

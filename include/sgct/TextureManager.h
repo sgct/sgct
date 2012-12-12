@@ -40,14 +40,14 @@ public:
 		}
 	}
 
-	const unsigned int getTextureByIndex(const unsigned int index);
+	const unsigned int getTextureByIndex(const std::size_t index);
 	const unsigned int getTextureByName(const std::string name);
 
 	void setAnisotropicFilterSize(float fval);
 	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
 	void setCompression(CompressionMode cm);
 	void setWarpingMode(int warp_s, int warp_t);
-	bool loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
+	bool loadTexure(std::size_t &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 
 private:
@@ -61,7 +61,7 @@ private:
 	const TextureManager & operator=(const TextureManager & rhs );
 
 private:
-	bool getIndexByName(unsigned int &index, const std::string name);
+	bool getIndexByName(std::size_t &index, const std::string name);
 
 	static TextureManager * mInstance;
 	

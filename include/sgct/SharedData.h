@@ -89,9 +89,9 @@ public:
 	void decode(const char * receivedData, int receivedlength, int clientIndex);
 
 	inline unsigned char * getDataBlock() { return &dataBlock[0]; }
-	inline unsigned int getDataSize() { return dataBlock.size(); }
-	inline unsigned int getBufferSize() { return dataBlock.capacity(); }
-	unsigned int getUserDataSize();
+	inline std::size_t getDataSize() { return dataBlock.size(); }
+	inline std::size_t getBufferSize() { return dataBlock.capacity(); }
+	std::size_t getUserDataSize();
 
 private:
 	SharedData();
@@ -111,8 +111,8 @@ private:
 	std::vector<unsigned char> dataBlockToCompress;
 	std::vector<unsigned char> * currentStorage;
 	unsigned char * mCompressedBuffer;
-	unsigned int mCompressedBufferSize;
-	unsigned int mCompressedSize;
+    std::size_t mCompressedBufferSize;
+	std::size_t mCompressedSize;
 	unsigned char * headerSpace;
 	unsigned int pos;
 	int mCompressionLevel;

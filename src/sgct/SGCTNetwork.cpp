@@ -17,6 +17,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
 #else //Use BSD sockets
+    #ifdef _XCODE
+        #include <unistd.h>
+    #endif
 	#include <sys/types.h>
 	#include <sys/socket.h>
 	#include <netinet/in.h>
@@ -24,6 +27,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#include <arpa/inet.h>
 	#include <netdb.h>
 	#include <errno.h>
+    #ifdef _XCode
+        typedef unsigned int SOCKET;
+    #endif
 	#define SOCKET_ERROR (-1)
 	#define INVALID_SOCKET (SGCT_SOCKET)(~0)
 	#define NO_ERROR 0L
@@ -339,12 +345,12 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
 
-		unsigned int currentMessageSize =
+		std::size_t currentMessageSize =
 			sgct::MessageHandler::Instance()->getDataSize() > mBufferSize ?
 			mBufferSize :
 			sgct::MessageHandler::Instance()->getDataSize();
 
-        unsigned int dataSize = currentMessageSize - mHeaderSize;
+        std::size_t dataSize = currentMessageSize - mHeaderSize;
 		unsigned char *currentMessageSizePtr = (unsigned char *)&dataSize;
 		messageToSend[5] = currentMessageSizePtr[0];
 		messageToSend[6] = currentMessageSizePtr[1];
@@ -352,7 +358,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[8] = currentMessageSizePtr[3];
 
 		//crop if needed
-		if( sendData((void*)messageToSend, currentMessageSize) == SOCKET_ERROR )
+		if( sendData((void*)messageToSend, static_cast<int>(currentMessageSize)) == SOCKET_ERROR )
             sgct::MessageHandler::Instance()->print("Failed to send sync header + client log message!\n");
 
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
@@ -487,14 +493,14 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
-int sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
+ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
 {
-    int iResult = 0;
+    ssize_t iResult = 0;
     int attempts = 1;
 
     while( iResult < length )
     {
-        int tmpRes = recv( lsocket, buffer + iResult, length - iResult, flags);
+        ssize_t tmpRes = recv( lsocket, buffer + iResult, length - iResult, flags);
 #ifdef __SGCT_NETWORK_DEBUG__
         sgct::MessageHandler::Instance()->print("Received %d bytes of %d...\n", tmpRes, length);
         for(int i=0; i<tmpRes; i++)
@@ -621,7 +627,7 @@ void GLFWCALL communicationHandler(void *arg)
 	std::string extBuffer; //for external comm
 
 	// Receive data until the server closes the connection
-	int iResult = 0;
+	ssize_t iResult = 0;
 	do
 	{
 		//resize buffer request
@@ -892,7 +898,7 @@ void GLFWCALL communicationHandler(void *arg)
 						if( nPtr->mDecoderCallbackFn != NULL )
 #endif
 						{
-							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), extMessage.size(), nPtr->getId());
+							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
 						}
 					sgct::Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
 
@@ -955,7 +961,7 @@ void GLFWCALL communicationHandler(void *arg)
 	sgct::MessageHandler::Instance()->print("Node %d disconnected!\n", nPtr->getId());
 }
 
-int sgct_core::SGCTNetwork::sendData(void * data, int length)
+ssize_t sgct_core::SGCTNetwork::sendData(void * data, int length)
 {
 	//fprintf(stderr, "Send data size: %d\n", length);
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -966,7 +972,7 @@ int sgct_core::SGCTNetwork::sendData(void * data, int length)
 	return send(mSocket, (const char *)data, length, 0);
 }
 
-int sgct_core::SGCTNetwork::sendStr(std::string msg)
+ssize_t sgct_core::SGCTNetwork::sendStr(std::string msg)
 {
 	//fprintf(stderr, "Send message: %s, size: %d\n", msg.c_str(), msg.size());
 	return send(mSocket, msg.c_str(), msg.size(), 0);

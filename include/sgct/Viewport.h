@@ -52,7 +52,7 @@ public:
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline bool isEnabled() { return mEnabled; }
-	inline unsigned int getOverlayTextureIndex() { return mTextureIndex; }
+	inline std::size_t getOverlayTextureIndex() { return mTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
 	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
@@ -76,7 +76,7 @@ private:
 	bool mCorrectionMesh;
 	bool mTracked;
 	bool mEnabled;
-	unsigned int mTextureIndex;
+	std::size_t mTextureIndex;
 };
 
 }

@@ -14,6 +14,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
+    #ifdef _XCODE
+        #include <unistd.h>
+    #endif
     #include <sys/types.h>
     #include <sys/socket.h>
     #include <netinet/in.h>
@@ -158,7 +161,7 @@ void sgct_core::NetworkManager::sync()
 			mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
 			mNetworkConnections[i]->isServer())
 		{
-			unsigned int currentSize =
+			std::size_t currentSize =
                 sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
 			//iterate counter
@@ -184,9 +187,9 @@ void sgct_core::NetworkManager::sync()
 				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
-				int sendErr = mNetworkConnections[i]->sendData(
+				ssize_t sendErr = mNetworkConnections[i]->sendData(
                                 sgct::SharedData::Instance()->getDataBlock(),
-                                sgct::SharedData::Instance()->getDataSize() );
+                                static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
 			sgct::Engine::unlockMutex(gMutex);
 
             if (sendErr == SOCKET_ERROR)
@@ -271,7 +274,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	{
 		sgct::Engine::lockMutex(gMutex);
             //local copy (thread safe) -- don't count server, therefore -1
-            unsigned int numberOfSlavesInConfig = ClusterManager::Instance()->getNumberOfNodes()-1;
+            std::size_t numberOfSlavesInConfig = ClusterManager::Instance()->getNumberOfNodes()-1;
             //local copy (thread safe)
             bool allNodesConnectedCopy =
                 (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
@@ -290,7 +293,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 						for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
 							tmpc[j] = SGCTNetwork::FillByte;
 					
-						int sendErr = mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
+						ssize_t sendErr = mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 						if (sendErr == SOCKET_ERROR)
 							sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
 					}
@@ -299,7 +302,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		if( mNetworkConnections[index]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl &&
 			 mNetworkConnections[index]->isConnected())
 		{
-			int sendErr = mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
+			ssize_t sendErr = mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
 			if (sendErr == SOCKET_ERROR)
 							sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
 		}

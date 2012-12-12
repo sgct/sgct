@@ -28,12 +28,12 @@ sgct::TextureManager::~TextureManager()
 	freeTextureData();
 }
 
-const unsigned int sgct::TextureManager::getTextureByIndex(const unsigned int index)
+const unsigned int sgct::TextureManager::getTextureByIndex(const std::size_t index)
 {
 	return index >= mTextures.size() ? 0 : mTextures[index].second;
 }
 
-bool sgct::TextureManager::getIndexByName(unsigned int &index, const std::string name)
+bool sgct::TextureManager::getIndexByName(std::size_t &index, const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
 		if( mTextures[i].first.compare(name) == 0 )
@@ -96,12 +96,12 @@ void sgct::TextureManager::setWarpingMode(int warp_s, int warp_t)
 
 bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
-	unsigned int tmpId = 0;
+	std::size_t tmpId = 0;
 
 	return loadTexure(tmpId, name, filename, interpolate, mipmapLevels);
 }
 
-bool sgct::TextureManager::loadTexure(unsigned int &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
+bool sgct::TextureManager::loadTexure(std::size_t &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	GLuint texID = 0;
 

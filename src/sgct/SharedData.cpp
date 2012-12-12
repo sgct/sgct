@@ -74,7 +74,7 @@ void SharedData::setCompression(bool state, int level)
 	}
 }
 
-unsigned int SharedData::getUserDataSize()
+std::size_t SharedData::getUserDataSize()
 {
 	return mUseCompression ? mCompressedSize : (dataBlock.size() - sgct_core::SGCTNetwork::mHeaderSize);
 }
@@ -206,7 +206,7 @@ void SharedData::encode()
 		if(err == Z_OK)
 		{
 			//add size of uncompressed data
-			unsigned int originalSize = dataBlockToCompress.size();
+			std::size_t originalSize = dataBlockToCompress.size();
 			unsigned char *p = (unsigned char *)&originalSize;
 			dataBlock.insert( dataBlock.end(), p, p+4);
 
@@ -292,7 +292,7 @@ void SharedData::writeString(const std::string& s)
     MessageHandler::Instance()->printDebug("SharedData::writeString\n");
     Engine::lockMutex(sgct_core::NetworkManager::gMutex);
     const char* stringData = s.c_str();
-    unsigned int length = s.size() + 1;  // +1 for the \0 character
+    std::size_t length = s.size() + 1;  // +1 for the \0 character
     unsigned char *p = (unsigned char *)&length;
     (*currentStorage).insert( (*currentStorage).end(), p, p+4);
     (*currentStorage).insert( (*currentStorage).end(), stringData, stringData+length);

@@ -163,7 +163,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	{
 		//png_bytep row = info_ptr->row_pointers[r];
         png_bytep row = row_pointers[r];
-		int rowbytes = png_get_rowbytes(png_ptr, info_ptr);
+		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
 			*(pb)++ = row[c];

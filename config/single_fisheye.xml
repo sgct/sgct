@@ -6,7 +6,8 @@
 			<Pos x="100" y="0" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="512" y="512" />
-			<!-- <Res x="4096" y="4096" /> -->
+			<!-- Frame buffer resolution
+			<Res x="4096" y="4096" /> -->
 		</Window>
 		<!--
 			quality options (cubemap size):

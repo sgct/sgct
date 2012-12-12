@@ -2,12 +2,14 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="soundExample" />
+		<Option title="osgExample" />
+		<Option platforms="Windows;" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="$(SGCT_ROOT_DIR)\bin\soundExample\mingw\soundExample_d" prefix_auto="1" extension_auto="1" />
+				<Option platforms="Windows;" />
+				<Option output="$(SGCT_ROOT_DIR)\bin\osgExample\mingw\osgExample_mingw_d" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -21,7 +23,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="$(SGCT_ROOT_DIR)\bin\soundExample\mingw\soundExample" prefix_auto="1" extension_auto="1" />
+				<Option output="$(SGCT_ROOT_DIR)\bin\osgExample\mingw\osgExample_mingw" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -37,21 +39,26 @@
 			</Target>
 		</Build>
 		<Compiler>
+			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add option="-D__WIN32__" />
 			<Add directory="$(SGCT_ROOT_DIR)\include" />
-			<Add directory="$(SGCT_ROOT_DIR)\additional_includes" />
+			<Add directory="$(OSGHOME)\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
 			<Add option="-static-libstdc++" />
 			<Add library="opengl32" />
 			<Add library="glu32" />
-			<Add library="OpenAL32" />
-			<Add library="alut" />
 			<Add library="ws2_32" />
+			<Add library="OpenThreads.dll" />
+			<Add library="osg.dll" />
+			<Add library="osgUtil.dll" />
+			<Add library="osgDB.dll" />
+			<Add library="osgGA.dll" />
+			<Add library="osgViewer.dll" />
 			<Add directory="$(SGCT_ROOT_DIR)\lib\mingw" />
-			<Add directory="$(SGCT_ROOT_DIR)\additional_libs" />
+			<Add directory="$(OSGHOME)\lib" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>

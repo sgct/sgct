@@ -25,7 +25,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#include <netdb.h>
 	#include <errno.h>
 	#define SOCKET_ERROR (-1)
-	#define INVALID_SOCKET (SOCKET)(~0)
+	#define INVALID_SOCKET (SGCT_SOCKET)(~0)
 	#define NO_ERROR 0L
 #endif
 

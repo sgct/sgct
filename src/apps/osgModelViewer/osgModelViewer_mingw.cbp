@@ -2,12 +2,12 @@
 <CodeBlocks_project_file>
 	<FileVersion major="1" minor="6" />
 	<Project>
-		<Option title="orthoTexture" />
+		<Option title="osgModelViewer" />
 		<Option pch_mode="2" />
 		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
-				<Option output="$(SGCT_ROOT_DIR)\bin\orthoTexture\mingw\orthoTexture_d" prefix_auto="1" extension_auto="1" />
+				<Option output="$(SGCT_ROOT_DIR)\bin\osgModelViewer\mingw\osgModelViewer_mingw_d" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -21,7 +21,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="$(SGCT_ROOT_DIR)\bin\orthoTexture\mingw\orthoTexture" prefix_auto="1" extension_auto="1" />
+				<Option output="$(SGCT_ROOT_DIR)\bin\osgModelViewer\mingw\osgModelViewer_mingw" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />
@@ -41,6 +41,7 @@
 			<Add option="-Wall" />
 			<Add option="-D__WIN32__" />
 			<Add directory="$(SGCT_ROOT_DIR)\include" />
+			<Add directory="$(OSGHOME)\include" />
 		</Compiler>
 		<Linker>
 			<Add option="-static-libgcc" />
@@ -48,7 +49,14 @@
 			<Add library="opengl32" />
 			<Add library="glu32" />
 			<Add library="ws2_32" />
+			<Add library="OpenThreads" />
+			<Add library="osg" />
+			<Add library="osgUtil" />
+			<Add library="osgGA" />
+			<Add library="osgDB" />
+			<Add library="osgViewer" />
 			<Add directory="$(SGCT_ROOT_DIR)\lib\mingw" />
+			<Add directory="$(OSGHOME)\lib" />
 		</Linker>
 		<Unit filename="main.cpp" />
 		<Extensions>

@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_workspace_file>
+	<Workspace title="Workspace">
+		<Project filename="../apps/osgExample/osgExample_mingw.cbp" active="1" />
+		<Project filename="../apps/osgModelViewer/osgModelViewer_mingw.cbp" />
+		<Project filename="../apps/sgct_template/sgct_template_mingw.cbp" />
+		<Project filename="../apps/SGCTRemote/remote_app_mingw.cbp" />
+		<Project filename="../apps/simpleNavigationExample/simpleNavigationExample_mingw.cbp" />
+		<Project filename="../apps/simpleShaderExample/simpleShaderExample_mingw.cbp" />
+		<Project filename="../apps/soundExample/soundExample_mingw.cbp" />
+		<Project filename="../apps/textureExample/textureExample_mingw.cbp" />
+		<Project filename="../apps/trackingExample/trackingExample_mingw.cbp" />
+		<Project filename="../apps/clustertest/clustertest_mingw.cbp" />
+		<Project filename="../apps/example1/example1_mingw.cbp" />
+		<Project filename="../apps/gamepadExample/gamepadExample_mingw.cbp" />
+		<Project filename="../apps/heightMappingExample/heightMappingExample_mingw.cbp" />
+		<Project filename="../apps/kinectExample/kinectExample_mingw.cbp" />
+		<Project filename="../apps/orthoTexture/orthoTexture_mingw.cbp" />
+	</Workspace>
+</CodeBlocks_workspace_file>

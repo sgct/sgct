@@ -207,6 +207,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\sgct\SGCTSettings.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\sgct\SGCTTracker.cpp"
 				>
 			</File>
@@ -220,6 +224,10 @@
 			</File>
 			<File
 				RelativePath="..\sgct\SGCTUser.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\sgct\SGCTVersion.cpp"
 				>
 			</File>
 			<File
@@ -254,6 +262,22 @@
 				RelativePath="..\sgct\Viewport.cpp"
 				>
 			</File>
+			<Filter
+				Name="utils"
+				>
+				<File
+					RelativePath="..\sgct\utils\SGCTBox.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sgct\utils\SGCTDome.cpp"
+					>
+				</File>
+				<File
+					RelativePath="..\sgct\utils\SGCTSphere.cpp"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Header Files"
@@ -301,7 +325,7 @@
 				>
 			</File>
 			<File
-				RelativePath="..\..\include\sgct\Point3.h"
+				RelativePath="..\..\include\sgct\ogl_headers.h"
 				>
 			</File>
 			<File
@@ -325,6 +349,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\sgct\SGCTSettings.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\sgct\SGCTTracker.h"
 				>
 			</File>
@@ -338,6 +366,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sgct\SGCTUser.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\SGCTVersion.h"
 				>
 			</File>
 			<File
@@ -372,6 +404,30 @@
 				RelativePath="..\..\include\sgct\Viewport.h"
 				>
 			</File>
+			<Filter
+				Name="utils"
+				>
+				<File
+					RelativePath="..\..\include\sgct\utils\SGCTBox.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\sgct\utils\SGCTDome.h"
+					>
+				</File>
+				<File
+					RelativePath="..\..\include\sgct\utils\SGCTSphere.h"
+					>
+				</File>
+			</Filter>
+			<Filter
+				Name="helpers"
+				>
+				<File
+					RelativePath="..\..\include\sgct\helpers\SGCTVertexData.h"
+					>
+				</File>
+			</Filter>
 		</Filter>
 		<Filter
 			Name="Resource Files"

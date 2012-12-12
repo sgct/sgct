@@ -20,7 +20,7 @@
 	!define PRJ_SUFFIX "vcxproj"
 !else	
 	!define PRJ_SUFFIX "cbp"
-	!define OSG_BIN_DIR "D:\bin\osg\OpenSceneGraph-${OSG_VERSION}-MinGW-Build\"
+	!define OSG_BIN_DIR "D:\bin\osg\OpenSceneGraph-${OSG_VERSION}-MinGW\"
 !endif
 
 !define OSG_DATA_DIR "D:\bin\osg\OpenSceneGraph-Data-3.0.0\"

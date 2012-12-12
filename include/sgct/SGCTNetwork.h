@@ -26,6 +26,7 @@ namespace sgct_cppxeleven = std::tr1;
 
 #ifdef __WIN32__
 	typedef unsigned int SGCT_SOCKET;
+	typedef int ssize_t;
 #else
 	typedef int SGCT_SOCKET;
 #endif

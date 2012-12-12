@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifdef __WIN32__
@@ -279,7 +279,7 @@ bool sgct::Engine::initWindow()
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ClusterManager::Active );
 
 	//disable MSAA if FXAA is in use
-	if( SGCTSettings::Instance()->useFXAA() && 
+	if( SGCTSettings::Instance()->useFXAA() &&
 		ClusterManager::Instance()->getThisNodePtr()->stereo <= ClusterManager::Active)
 	{
 		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
@@ -309,17 +309,17 @@ bool sgct::Engine::initWindow()
 	glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
     glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
 
-	if( !getWindowPtr()->openWindow() )
+    if( !getWindowPtr()->openWindow() )
 		return false;
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
 	{
 	  //Problem: glewInit failed, something is seriously wrong.
-	  sgct::MessageHandler::Instance()->print("Error: %s.\n", glewGetErrorString(err));
+	  MessageHandler::Instance()->print("Error: %s.\n", glewGetErrorString(err));
 	  return false;
 	}
-	sgct::MessageHandler::Instance()->print("Using GLEW %s.\n", glewGetString(GLEW_VERSION));
+	MessageHandler::Instance()->print("Using GLEW %s.\n", glewGetString(GLEW_VERSION));
 
     /*
         Swap inerval:
@@ -538,7 +538,7 @@ Locks the rendering thread for synchronization. The two stages are:
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
 	static double syncTime = 0.0;
-	
+
 	if(mIgnoreSync)
 		return;
 
@@ -600,11 +600,11 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 void sgct::Engine::render()
 {
 	mRunning = GL_TRUE;
-	
+
 	while( mRunning )
 	{
 		mRenderingOffScreen = false;
-		
+
 		//update tracking data
 		if( isMaster() )
 			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
@@ -642,7 +642,7 @@ void sgct::Engine::render()
 
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
-		
+
 		//if fisheye rendering is used then render the cubemap
 		if( mFBOMode == CubeMapFBO )
 		{
@@ -1107,7 +1107,7 @@ void sgct::Engine::renderFisheye()
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
 			glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ CubeMapBuffer ], 0);
-			
+
 			setAndClearBuffer(RenderToTexture);
 			//render
 			(this->*mInternalRenderFn)();
@@ -1145,7 +1145,7 @@ void sgct::Engine::renderFisheye()
 	glViewport(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
-	
+
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glEnable(GL_TEXTURE_CUBE_MAP);
@@ -1156,7 +1156,7 @@ void sgct::Engine::renderFisheye()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-		
+
 	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
 	glUniform1i( mShaderLocs[Cubemap], 0);
 	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
@@ -1167,7 +1167,7 @@ void sgct::Engine::renderFisheye()
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
 	glDrawArrays(GL_QUADS, 0, 4);
-	
+
 	sgct::ShaderManager::Instance()->unBindShader();
 
 	glPopClientAttrib();
@@ -2197,24 +2197,24 @@ void sgct::Engine::initFisheye()
 	mFisheyeQuadVerts[2] = -x;
 	mFisheyeQuadVerts[3] = -y;
 	mFisheyeQuadVerts[4] = -1.0f;
-	
+
 	mFisheyeQuadVerts[5] = leftcrop;
 	mFisheyeQuadVerts[6] = 1.0f - topcrop;
 	mFisheyeQuadVerts[7] = -x;
 	mFisheyeQuadVerts[8] = y;
 	mFisheyeQuadVerts[9] = -1.0f;
-	
+
 	mFisheyeQuadVerts[10] = 1.0f - rightcrop;
 	mFisheyeQuadVerts[11] = 1.0f - topcrop;
 	mFisheyeQuadVerts[12] = x;
 	mFisheyeQuadVerts[13] = y;
 	mFisheyeQuadVerts[14] = -1.0f;
-	
+
 	mFisheyeQuadVerts[15] = 1.0f - rightcrop;
 	mFisheyeQuadVerts[16] = bottomcrop;
 	mFisheyeQuadVerts[17] = x;
 	mFisheyeQuadVerts[18] = -y;
-	mFisheyeQuadVerts[19] = -1.0f;	
+	mFisheyeQuadVerts[19] = -1.0f;
 }
 
 void sgct::Engine::calculateFPS(double timestamp)

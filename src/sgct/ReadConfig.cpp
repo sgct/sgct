@@ -6,6 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
+#define MAX_XML_DEPTH 16
 
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/ReadConfig.h"
@@ -172,8 +173,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 		useMasterSyncLock = strcmp( XMLroot->Attribute( "lockMasterSync" ), "true" ) == 0 ? true : false;
 	}
 
-	XMLElement* element[10];
-	const char * val[10];
+	XMLElement* element[MAX_XML_DEPTH];
+	for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
+		element[i] = NULL;
+	const char * val[MAX_XML_DEPTH];
 	element[0] = XMLroot->FirstChildElement();
 	while( element[0] != NULL )
 	{

@@ -124,6 +124,10 @@ Web: http://www.zlib.net/
 #include "sgct/freetype.h"
 #include "sgct/SGCTVersion.h"
 
+#ifndef TINYXML_H
+	#define TINYXML_H "../include/external/tinyxml2.h"
+#endif
+
 //utilities
 /*!
 	Ths namespace contains helper classes to draw simple geometry.

@@ -38,6 +38,7 @@ public:
 
 	bool AddFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
 	const Font * GetFont( const std::string & name, unsigned int height = mDefaultHeight );
+	const Font * GetDefaultFont( unsigned int height = mDefaultHeight );
 
 	void SetDefaultFontPath( const std::string & path );
 

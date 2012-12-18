@@ -1,9 +1,9 @@
 #include "sgct.h"
+
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
-#include <osg/Matrix>
-#include <osg/Transform>
 #include <osg/MatrixTransform>
+#include <osg/ComputeBoundsVisitor>
 #include <osgUtil/Optimizer>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -49,7 +49,7 @@ float scale = 0.00002f;
 bool animate = false;
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 position(0.00f, 0.60f, -1.170f);
+glm::vec3 position(0.00f, 1.60f, -1.170f);
 bool arrowButtonStatus[6];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UPWARD, DOWNWARD };
 bool mouseButtonStatus[3];
@@ -129,23 +129,28 @@ void myInitOGLFun()
 		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
 		mModelTrans->addChild(mModel.get());
 
-		//get the bounding sphere
-		osg::BoundingSphere bs;
-		bs = mModel->getBound();
+		//get the bounding box
+		osg::ComputeBoundsVisitor cbv;
+		osg::BoundingBox &bb(cbv.getBoundingBox());
+		mModel->accept( cbv );
+			
 		osg::Vec3f tmpVec;
-		tmpVec = bs.center();
+		tmpVec = bb.center();
 
 		//translate model center to origin
 		//mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
 
-		osgUtil::Optimizer optimizer;
-		optimizer.optimize(mRootNode.get());
-
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );
+		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
 	}
 	else
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+
+	setupLightSource();
+
+	//optimize scenegraph
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(mRootNode.get());
 }
 
 void myPreSyncFun()
@@ -265,8 +270,8 @@ void myDrawFun()
 	
 	if( gEngine->isMaster() )
 	{
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 35, "Scale: %.10f", scale);
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "Verdana", 10 ), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 35, "Scale: %.10f", scale);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
 	}
 }
 
@@ -439,8 +444,6 @@ void initOSG()
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
 
 	mViewer->setSceneData(mRootNode.get());
-
-	setupLightSource();
 }
 
 void setupLightSource()

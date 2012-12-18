@@ -53,14 +53,18 @@ public:
 	bool init(RunMode rm = Default_Mode);
 	void terminate();
 	void render();
-	static Engine * getPtr() { return mThis; }
+	//! Get the static pointer to the engine
+	static Engine * getPtr() { return mInstance; }
+	//! Get the static pointer to the engine
+	static Engine * Instance() { return mInstance; }
 
 	const double & getDt();
 	const double & getDrawTime();
 	const double & getSyncTime();
 	const float * getClearColor() { return mClearColor; }
 	const float * getFisheyeClearColor() { return mFisheyeClearColor; }
-	void setNearAndFarClippingPlanes(float _near, float _far);
+	void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
+	void setEyeSeparation(float eyeSeparation);
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
 	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
@@ -120,6 +124,8 @@ public:
 	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
 	static bool checkForOGLErrors();
+	//! Get the user's eye separation in meters.
+	static float getEyeSeparation() { return mInstance->getUserPtr()->getEyeSeparation(); }
 
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
@@ -175,6 +181,8 @@ private:
 	static void clearBuffer();
 
 private:
+	static Engine * mInstance;
+
 	// Convinience typedef
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
@@ -257,7 +265,6 @@ private:
     std::vector<TimerInformation> mTimers; //< stores all active timers
     size_t mTimerID; //< the timer created next will use this ID
 
-	static Engine * mThis;
 	RunMode mRunMode;
 };
 

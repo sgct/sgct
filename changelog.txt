@@ -1,0 +1,6 @@
+2012-12-18 SGCT ver 1.0.1
+---------------------------
+* Added GetDefaultFont into the FontManager that returns the SGCT default font.
+* Modified/Simplified osgExample & osgExampleRTT
+* Added a static Instance() funtion to engine to be concise
+* Added set & get eye separation in the Engine class

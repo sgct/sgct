@@ -31,7 +31,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 using namespace sgct_core;
 
-sgct::Engine *  sgct::Engine::mThis     = NULL;
+sgct::Engine * sgct::Engine::mInstance = NULL;
 
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
@@ -43,7 +43,7 @@ This is the only valid constructor that also initiates [GLFW](http://www.glfw.or
 sgct::Engine::Engine( int& argc, char**& argv )
 {
 	//init pointers
-	mThis = this;
+	mInstance = this;
 	mNetworkConnections = NULL;
 	mConfig = NULL;
 	mRunMode = Default_Mode;
@@ -2253,10 +2253,27 @@ const double & sgct::Engine::getSyncTime()
 	return mStatistics.getSyncTime();
 }
 
-void sgct::Engine::setNearAndFarClippingPlanes(float _near, float _far)
+/*!
+	Set the near and far clipping planes. This operation recalculates all frustums for all viewports.
+
+	@param nearClippingPlane near clipping plane in meters
+	@param farClippingPlane far clipping plane in meters
+*/
+void sgct::Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane)
 {
-	mNearClippingPlaneDist = _near;
-	mFarClippingPlaneDist = _far;
+	mNearClippingPlaneDist = nearClippingPlane;
+	mFarClippingPlaneDist = farClippingPlane;
+	calculateFrustums();
+}
+
+/*!
+	Set the eye separation (interocular distance) for the user. This operation recalculates all frustums for all viewports.
+
+	@param eyeSeparation eye separation in meters
+*/
+void sgct::Engine::setEyeSeparation(float eyeSeparation)
+{
+	getUserPtr()->setEyeSeparation( eyeSeparation );
 	calculateFrustums();
 }
 

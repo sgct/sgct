@@ -3,8 +3,6 @@
 
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
-#include <osg/Matrix>
-#include <osg/Transform>
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
 #include <osg/ShapeDrawable>
@@ -129,7 +127,7 @@ void myInitOGLFun()
 		tmpVec = bb.center();
 
 		//translate model center to origin
-		mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
+		mModelTrans->postMult(osg::Matrix::translate( -tmpVec ) );
 		mModelTrans->postMult(osg::Matrix::scale( 1.0f/bb.radius(), 1.0f/bb.radius(), 1.0f/bb.radius() ));
 
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );

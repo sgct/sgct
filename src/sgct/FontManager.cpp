@@ -159,6 +159,16 @@ const Font * FontManager::GetFont( const std::string & fontName, unsigned int he
 }
 
 /*!
+Get the SGCT default font face that is loaded into memory.
+@param	height	Height in  pixels for the font
+@return	Pointer to the font face, NULL if not found
+*/
+const Font * FontManager::GetDefaultFont( unsigned int height )
+{
+	return GetFont("SGCTFont", height);
+}
+
+/*!
 Creates font textures with a specific height if a path to the font exists
 @param	fontName	Name of the font
 @param	height		Height of the font in pixels

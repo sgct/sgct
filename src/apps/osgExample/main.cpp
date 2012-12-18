@@ -2,9 +2,8 @@
 
 #include <osgViewer/Viewer>
 #include <osgDB/ReadFile>
-#include <osg/Matrix>
-#include <osg/Transform>
 #include <osg/MatrixTransform>
+#include <osg/ComputeBoundsVisitor>
 
 sgct::Engine * gEngine;
 
@@ -31,7 +30,7 @@ void setupLightSource();
 
 //variables to share across cluster
 double curr_time = 0.0;
-double dist = -10.0;
+double dist = -2.0;
 bool wireframe = false;
 bool info = false;
 bool stats = false;
@@ -79,7 +78,6 @@ int main( int argc, char* argv[] )
 void myInitOGLFun()
 {
 	initOSG();
-	setupLightSource();
 
 	osg::ref_ptr<osg::Node>            mModel;
 	osg::ref_ptr<osg::MatrixTransform> mModelTrans;
@@ -102,17 +100,20 @@ void myInitOGLFun()
 		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
 		mModelTrans->addChild(mModel.get());
 
-		//get the bounding sphere
-		osg::BoundingSphere bs;
-		bs = mModel->getBound();
+		//get the bounding box
+		osg::ComputeBoundsVisitor cbv;
+		osg::BoundingBox &bb(cbv.getBoundingBox());
+		mModel->accept( cbv );
+			
 		osg::Vec3f tmpVec;
-		tmpVec = bs.center();
+		tmpVec = bb.center();
 
-		//translate model center to origin
-		mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
+		//scale to fit model and translate model center to origin
+		mModelTrans->postMult(osg::Matrix::translate( -tmpVec ) );
+		mModelTrans->postMult(osg::Matrix::scale( 1.0f/bb.radius(), 1.0f/bb.radius(), 1.0f/bb.radius() ));
 
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bs.radius() );
+		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
 
 		//disable face culling
 		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE,
@@ -120,6 +121,8 @@ void myInitOGLFun()
 	}
 	else
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+
+	setupLightSource();
 }
 
 void myPreSyncFun()
@@ -152,7 +155,7 @@ void myPostSyncPreDrawFun()
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, -1.0, dist));
+	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));

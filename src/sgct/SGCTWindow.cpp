@@ -266,6 +266,16 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 			mUseSwapGroups = false;
 			return;
 		}
+
+		/*
+		May crasch on bad drivers.
+
+		//init swap group barrier when ready to render
+		sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
+		setBarrier(true);
+
+		sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
+		resetSwapGroupFrameNumber();*/
 	}
 	else
 		mUseSwapGroups = false;

@@ -256,9 +256,23 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
 		hDC = wglGetCurrentDC();
-		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
 
-		if( wglJoinSwapGroupNV(hDC,1) )
+		unsigned int maxBarrier = 0;
+		unsigned int maxGroup = 0;
+		wglQueryMaxSwapGroupsNV( hDC, &maxGroup, &maxBarrier );
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n");
+
+		/*
+		wglJoinSwapGroupNV adds <hDC> to the swap group specified by <group>.
+		If <hDC> is already a member of a different group, it is 
+		implicitly removed from that group first. A swap group is specified as 
+		an integer value between 0 and the value returned in <maxGroups> by 
+		wglQueryMaxSwapGroupsNV. If <group> is zero, the hDC is unbound from its 
+		current group, if any. If <group> is larger than <maxGroups>, 
+		wglJoinSwapGroupNV fails.
+
+		*/
+		if( wglJoinSwapGroupNV(hDC, 1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{
@@ -286,9 +300,13 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 	{
 		hDC = glXGetCurrentDrawable();
 		disp = glXGetCurrentDisplay();
-		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group is supported\n");
 
-		if( glXJoinSwapGroupNV(disp,hDC,1) )
+		unsigned int maxBarrier = 0;
+		unsigned int maxGroup = 0;
+		glXQueryMaxSwapGroupsNV( disp, hDC, &maxGroup, &maxBarrier );
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n");
+
+		if( glXJoinSwapGroupNV(disp, hDC, 1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");
 		else
 		{

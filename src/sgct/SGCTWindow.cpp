@@ -90,7 +90,10 @@ void sgct_core::SGCTWindow::init()
 		glfwSetWindowSizeCallback( windowResizeCallback );
 	}
 
-	initNvidiaSwapGroups();
+	//swap the buffers and update the window
+	glfwSwapBuffers();
+
+	//initNvidiaSwapGroups();
 }
 
 /*!
@@ -260,7 +263,8 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		wglQueryMaxSwapGroupsNV( hDC, &maxGroup, &maxBarrier );
-		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n");
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+			maxGroup, maxBarrier);
 
 		/*
 		wglJoinSwapGroupNV adds <hDC> to the swap group specified by <group>.
@@ -280,16 +284,6 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 			mUseSwapGroups = false;
 			return;
 		}
-
-		/*
-		May crasch on bad drivers.
-
-		//init swap group barrier when ready to render
-		sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
-		setBarrier(true);
-
-		sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
-		resetSwapGroupFrameNumber();*/
 	}
 	else
 		mUseSwapGroups = false;
@@ -304,7 +298,8 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		glXQueryMaxSwapGroupsNV( disp, hDC, &maxGroup, &maxBarrier );
-		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n");
+		sgct::MessageHandler::Instance()->print("WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+			maxGroup, maxBarrier);
 
 		if( glXJoinSwapGroupNV(disp, hDC, 1) )
 			sgct::MessageHandler::Instance()->print("Joining swapgroup 1 [ok].\n");

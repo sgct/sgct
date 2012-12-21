@@ -246,6 +246,7 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
+	unsigned char * mScreen_raw_img;
 
 	std::string configFilename;
 	int mRunning;

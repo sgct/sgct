@@ -17,7 +17,7 @@ public:
 	bool load(const char * filename);
 	bool loadPNG(const char * filename);
 	bool savePNG(const char * filename);
-	void cleanup();
+	void cleanup(bool releaseMemory = true);
 	unsigned char * getData();
 	int getChannels();
 	int getSizeX();

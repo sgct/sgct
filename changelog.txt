@@ -4,3 +4,10 @@
 * Modified/Simplified osgExample & osgExampleRTT
 * Added a static Instance() funtion to engine to be concise
 * Added set & get eye separation in the Engine class
+
+2012-12-21 SGCT ver 1.0.1
+---------------------------
+* Modified when swap groups are joined to debug latest nvidia drivers (307.45)
+* Modified image class to be able to manage memory more efficient in screen capturing
+* Modified screen capturing to not delete buffer and re allocate every time
+* Added osgExampleRTT in installer

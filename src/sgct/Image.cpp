@@ -278,11 +278,13 @@ bool sgct_core::Image::savePNG(const char * filename)
 	return true;
 }
 
-void sgct_core::Image::cleanup()
+void sgct_core::Image::cleanup(bool releaseMemory)
 {
-	//delete data;
-	free(mData);
-	sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
+	if(releaseMemory)
+	{
+		free(mData);
+		sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
+	}
 
 	delete [] mFilename;
 	mFilename = NULL;

@@ -4,7 +4,7 @@
 !include LogicLib.nsh ;if statements and loops
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "1.0.0"
+!define SGCT_VERSION "1.0.1"
 !define SGCT_COMPILER "msvc10"
 !define ARCH "x86"
 !define OSG_VERSION "3.0.1"
@@ -185,11 +185,17 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	
 	!if ${INC_OSG} == 1
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
-	File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}.exe"
-	File "..\..\src\apps\osgExample\airplane.ive"
-	File "..\..\src\apps\osgExample\main.cpp"
-	File "..\..\src\apps\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
+		File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}.exe"
+		File "..\..\src\apps\osgExample\airplane.ive"
+		File "..\..\src\apps\osgExample\main.cpp"
+		File "..\..\src\apps\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+		
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT"
+		File "..\..\bin\osgExampleRTT\${SGCT_COMPILER}\osgExampleRTT_${SGCT_COMPILER}.exe"
+		File "..\..\src\apps\osgExample\airplane.ive"
+		File "..\..\src\apps\osgExampleRTT\main.cpp"
+		File "..\..\src\apps\osgExampleRTT\osgExampleRTT_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	!endif
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\remote_app"
@@ -250,8 +256,11 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad\gamepadExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
   !if ${INC_OSG} == 1
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example\osgExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example\osgExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_exampleRTT.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT\osgExampleRTT_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   !endif
   
   CreateDirectory "$SMPROGRAMS\SGCT\examples\remote"

@@ -46,6 +46,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInstance = this;
 	mNetworkConnections = NULL;
 	mConfig = NULL;
+	mScreen_raw_img = NULL;
 	mRunMode = Default_Mode;
 
 	//init function pointers
@@ -331,12 +332,19 @@ bool sgct::Engine::initWindow()
 
     glfwSwapInterval( ClusterManager::Instance()->getThisNodePtr()->swapInterval );
 
-	//Also join swap group if enabled
 	getWindowPtr()->init();
 
 	getWindowPtr()->setWindowTitle( getBasicInfo() );
 
 	waitForAllWindowsInSwapGroupToOpen();
+
+	//init swap group if enabled 
+	getWindowPtr()->initNvidiaSwapGroups();
+	//init swap barrier
+	sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
+	getWindowPtr()->setBarrier(true);
+	sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
+	getWindowPtr()->resetSwapGroupFrameNumber();
 
 	return true;
 }
@@ -392,13 +400,6 @@ void sgct::Engine::initOGL()
             sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
     }
 
-	//init swap group barrier when ready to render
-	sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
-	getWindowPtr()->setBarrier(true);
-
-	sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
-	getWindowPtr()->resetSwapGroupFrameNumber();
-
 	//check for errors
 	checkForOGLErrors();
 
@@ -411,6 +412,15 @@ Clean up all resources and release memory.
 void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
+
+	if( mScreen_raw_img != NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Clearing screen capture buffer...\n");
+		
+		delete [] mScreen_raw_img;
+		mScreen_raw_img = NULL;
+	}
+
 
 	if( mCleanUpFn != NULL )
 		mCleanUpFn();
@@ -1638,7 +1648,17 @@ void sgct::Engine::captureBuffer()
 	double t0 = getTime();
 
 	//allocate
-	unsigned char * raw_img = (unsigned char*)malloc( sizeof(unsigned char)*( 4 * getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() ) );
+	if( mScreen_raw_img == NULL )
+	{
+		size_t dataSize = sizeof(unsigned char)*( 4 * getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() );
+		mScreen_raw_img = new unsigned char[ dataSize ];
+
+		if( mScreen_raw_img == NULL )
+		{
+			sgct::MessageHandler::Instance()->print("SGCT error: Failed to allocate %u bytes for screen capture.", dataSize);
+			return;
+		}
+	}
 
 	static int shotCounter = 0;
 	char screenShotFilenameLeft[32];
@@ -1702,42 +1722,43 @@ void sgct::Engine::captureBuffer()
 	{
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, mFrameBuffers[0]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 	}
 	else if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
 		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 	}
 	else if(tmpNode->stereo == ClusterManager::Active)
 	{
 		glReadBuffer(GL_FRONT_LEFT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 	}
 
 	Image img;
 	img.setChannels(4);
-	img.setDataPtr( raw_img );
+	img.setDataPtr( mScreen_raw_img );
 	img.setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
 	img.savePNG(screenShotFilenameLeft);
 
+	//save right eye image if stereo
 	if( tmpNode->stereo != ClusterManager::NoStereo )
 	{
 		if(mFBOMode != NoFBO)
 		{
 			glBindTexture(GL_TEXTURE_2D, mFrameBuffers[1]);
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 		}
 		else if(tmpNode->stereo == ClusterManager::Active)
 		{
 			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, raw_img);
+			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 		}
 
 		img.savePNG(screenShotFilenameRight);
 	}
 
-	img.cleanup();
+	img.cleanup(false);
 
 	glPopAttrib();
 

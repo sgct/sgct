@@ -37,6 +37,9 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 GLEWContext * glewGetContext();
 #endif
 
+//to test if depth maps works
+//#define __SGCT_DEPTH_MAP_DEBUG__
+
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
 */
@@ -83,6 +86,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mMultiSampledFrameBuffers[1] = 0;
 	mFrameBufferTextures[0] = 0;
 	mFrameBufferTextures[1] = 0;
+	mDepthBufferTextures[0] = 0;
+	mDepthBufferTextures[1] = 0;
 	mRenderBuffers[0] = 0;
 	mRenderBuffers[1] = 0;
 	mDepthBuffers[0] = 0;
@@ -436,8 +441,9 @@ void sgct::Engine::clean()
 		if(mFBOMode == MultiSampledFBO)
 			glDeleteFramebuffers(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
-		glDeleteRenderbuffers(2, &mRenderBuffers[0]);
-		glDeleteRenderbuffers(2, &mDepthBuffers[0]);
+		glDeleteTextures(2,			&mDepthBufferTextures[0]);
+		glDeleteRenderbuffers(2,	&mRenderBuffers[0]);
+		glDeleteRenderbuffers(2,	&mDepthBuffers[0]);
 	}
 
 	sgct::ShaderManager::Destroy();
@@ -767,6 +773,9 @@ void sgct::Engine::render()
 		//swap frame id to keep track of sync
 		mNetworkConnections->swapData();
 
+		//swap window size values
+		getWindowPtr()->swap();
+
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 
@@ -790,6 +799,7 @@ void sgct::Engine::renderDisplayInfo()
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
+	glReadBuffer(GL_BACK);
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
@@ -818,10 +828,13 @@ void sgct::Engine::renderDisplayInfo()
 	if( tmpNode->stereo == ClusterManager::Active )
 	{
 		glDrawBuffer(GL_BACK_LEFT);
+		glReadBuffer(GL_BACK_LEFT);
 		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
+		glReadBuffer(GL_BACK_RIGHT);
 		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
+		glReadBuffer(GL_BACK);
 	}
 	else //if passive stereo
 	{
@@ -878,6 +891,7 @@ void sgct::Engine::draw()
 void sgct::Engine::drawOverlays()
 {
 	glDrawBuffer(GL_BACK); //draw into both back buffers
+	glReadBuffer(GL_BACK);
 
 	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
@@ -1031,11 +1045,19 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( mShaderLocs[RightTex], 1);
 
 		glActiveTexture(GL_TEXTURE0);
+#ifdef __SGCT_DEPTH_MAP_DEBUG__
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[0]);
+#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+#endif
 		glEnable(GL_TEXTURE_2D);
 
 		glActiveTexture(GL_TEXTURE1);
+#ifdef __SGCT_DEPTH_MAP_DEBUG__
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[1]);
+#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
+#endif
 		glEnable(GL_TEXTURE_2D);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -1045,7 +1067,11 @@ void sgct::Engine::renderFBOTexture()
 	else
 	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+#ifdef __SGCT_DEPTH_MAP_DEBUG__
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[0]);
+#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+#endif
 		glEnable(GL_TEXTURE_2D);
 
 		if( SGCTSettings::Instance()->useFXAA() )
@@ -1198,10 +1224,19 @@ void sgct::Engine::updateRenderingTargets()
 	{
 		glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffers[0]); // source
 		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffers[0]); // dest
+		//blit color
 		glBlitFramebuffer(
 			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 			0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 			GL_COLOR_BUFFER_BIT, GL_NEAREST);
+		//blit depth
+		if( SGCTSettings::Instance()->useDepthMap() )
+		{
+			glBlitFramebuffer(
+				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+				GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+		}
 
 		//copy right buffers if used
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -1209,10 +1244,19 @@ void sgct::Engine::updateRenderingTargets()
 		{
 			glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffers[1]); // source
 			glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffers[1]); // dest
+			//blit color
 			glBlitFramebuffer(
 				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 				0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
 				GL_COLOR_BUFFER_BIT, GL_NEAREST);
+			//blit depth
+			if( SGCTSettings::Instance()->useDepthMap() )
+			{
+				glBlitFramebuffer(
+					0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+					0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(),
+					GL_DEPTH_BUFFER_BIT, GL_NEAREST);
+			}
 		}
 
 		//Draw FBO texture here
@@ -1364,6 +1408,8 @@ void sgct::Engine::createFBOs()
 		glGenRenderbuffers(2,		&mDepthBuffers[0]);
 		glGenRenderbuffers(2,		&mRenderBuffers[0]);
 		glGenTextures(2,			&mFrameBufferTextures[0]);
+		if( SGCTSettings::Instance()->useDepthMap() )
+			glGenTextures(2,			&mDepthBufferTextures[0]);
 
 		if( !GLEW_EXT_framebuffer_multisample )
 		{
@@ -1486,16 +1532,41 @@ void sgct::Engine::createFBOs()
 					glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
 				glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffers[i]);
 
-				//setup non-multisample buffer
+				//setup non-multisample color buffer
 				glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffers[i]);
 				glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-				glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
+				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+				glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, mFrameBufferTextures[i], 0);
+				
+				//setup non-multisample depth buffer
+				if( SGCTSettings::Instance()->useDepthMap() )
+				{
+					glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[i]);
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+#ifdef __SGCT_DEPTH_MAP_DEBUG__
+					glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
+#else
+					glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY );
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
+#endif
+				
+					glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
+					glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
+					glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, mDepthBufferTextures[i], 0);
+				}
 			}
 		}
+
+		//doesn't seem to be nessasery
+		//glDrawBuffer(GL_NONE);
+		//glReadBuffer(GL_NONE);
 
 		// Unbind / Go back to regular frame buffer rendering
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -1528,9 +1599,11 @@ void sgct::Engine::resizeFBOs()
 		if(mFBOMode == MultiSampledFBO)
 			glDeleteFramebuffers(2,	&mMultiSampledFrameBuffers[0]);
 		glDeleteTextures(2,			&mFrameBufferTextures[0]);
-		glDeleteRenderbuffers(2, &mRenderBuffers[0]);
-		glDeleteRenderbuffers(2, &mDepthBuffers[0]);
-
+		if( SGCTSettings::Instance()->useDepthMap() )
+			glDeleteTextures(2,			&mDepthBufferTextures[0]);
+		glDeleteRenderbuffers(2,	&mRenderBuffers[0]);
+		glDeleteRenderbuffers(2,	&mDepthBuffers[0]);
+		
 		//init
 		mFrameBuffers[0] = 0;
 		mFrameBuffers[1] = 0;
@@ -1538,6 +1611,8 @@ void sgct::Engine::resizeFBOs()
 		mMultiSampledFrameBuffers[1] = 0;
 		mFrameBufferTextures[0] = 0;
 		mFrameBufferTextures[1] = 0;
+		mDepthBufferTextures[0] = 0;
+		mDepthBufferTextures[1] = 0;
 		mRenderBuffers[0] = 0;
 		mRenderBuffers[1] = 0;
 		mDepthBuffers[0] = 0;
@@ -1570,12 +1645,26 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 
 		//Set buffer
 		if( tmpNode->stereo != ClusterManager::Active )
+		{
 			glDrawBuffer(GL_BACK);
+			glReadBuffer(GL_BACK);
+		}
 		else if( mActiveFrustum == Frustum::StereoLeftEye ) //if active left
+		{
 			glDrawBuffer(GL_BACK_LEFT);
+			glReadBuffer(GL_BACK_LEFT);
+		}
 		else if( mActiveFrustum == Frustum::StereoRightEye ) //if active right
+		{
 			glDrawBuffer(GL_BACK_RIGHT);
+			glReadBuffer(GL_BACK_RIGHT);
+		}
 	}
+	/*else //doesn't work
+	{
+		glDrawBuffer(GL_NONE);
+		glReadBuffer(GL_NONE);
+	}*/
 
 	//clear
 	if( mode != BackBufferBlack && mClearBufferFn != NULL )

@@ -82,9 +82,10 @@ void myInitOGLFun()
 	myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-
-	glEnable(GL_COLOR_MATERIAL);
-	glDisable(GL_LIGHTING);
+	
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_COLOR_MATERIAL );
+	glDisable( GL_LIGHTING );
 
 	//Set up backface culling
 	glCullFace(GL_BACK);

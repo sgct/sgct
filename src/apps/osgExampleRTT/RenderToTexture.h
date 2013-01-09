@@ -4,6 +4,7 @@
 #include "sgct.h"
 #include <osg/Node>
 #include <osg/Camera>
+#include <osg/Texture2D>
 
 /*!
 	Render whole scene to a texture.
@@ -26,8 +27,8 @@ public:
 
 private:
 	osg::ref_ptr<osg::Camera> camera;
-	osg::Texture* tFrameBuffer;
-	//osg::Texture* tDepthBuffer;
+	osg::ref_ptr<osg::Texture2D> tFrameBuffer;
+	//osg::ref_ptr<osg::Texture2D> tDepthBuffer;
 	osg::ref_ptr<osg::StateSet> stateset;
 	bool enabled;
 };

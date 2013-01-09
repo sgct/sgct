@@ -23,6 +23,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mCropFactors[3] = 0.0f;
 
 	mUseFXAA = false;
+	mUseDepthMap = false;
 }
 
 sgct_core::SGCTSettings::~SGCTSettings()
@@ -98,6 +99,14 @@ void sgct_core::SGCTSettings::setFXAA(bool state)
 {
 	mUseFXAA = state;
 	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
+}
+
+/*!
+Set if depth texture maps should be generated from FBO.
+*/
+void sgct_core::SGCTSettings::setDepthMapUsage(bool state)
+{
+	mUseDepthMap = state;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer

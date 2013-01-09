@@ -1,5 +1,4 @@
 #include "RenderToTexture.h"
-#include <osg/Texture2D>
 
 /*!
 	Default constructor.

@@ -50,6 +50,7 @@ public:
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
 	void setFisheyeOverlay(std::string filename);
 	void setFXAA(bool state);
+	void setDepthMapUsage(bool state);
 	
 	int getCubeMapResolution();
 	float getCubeMapSize();
@@ -60,6 +61,8 @@ public:
 
 	//! Set to true if FXAA should be used.
 	inline bool useFXAA() { return mUseFXAA; }
+	//! Set to true if SGCT should generate depth maps from FBO
+	inline bool useDepthMap() { return mUseDepthMap; }
 
 private:
 	SGCTSettings();
@@ -84,6 +87,7 @@ private:
 
 	//FXAA
 	bool mUseFXAA;
+	bool mUseDepthMap;
 };
 }
 

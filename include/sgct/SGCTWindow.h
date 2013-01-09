@@ -24,6 +24,7 @@ public:
 	void setWindowResolution(const int x, const int y);
 	void setFramebufferResolution(const int x, const int y);
 	void initWindowResolution(const int x, const int y);
+	void swap();
 	bool isWindowResized();
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(const int mode);

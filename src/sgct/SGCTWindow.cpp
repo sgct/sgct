@@ -137,6 +137,15 @@ void sgct_core::SGCTWindow::setFramebufferResolution(const int x, const int y)
 }
 
 /*!
+	Swap previus data and current data. This is done at the end of the render loop.
+*/
+void sgct_core::SGCTWindow::swap()
+{
+	mWindowResOld[0] = mWindowRes[0];
+	mWindowResOld[1] = mWindowRes[1];
+}
+
+/*!
 	Don't use this function if you want to set the window resolution. Use setWindowResolution(const int x, const int y) instead.
 	This function is called within sgct when the window is created.
 */
@@ -157,11 +166,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 bool sgct_core::SGCTWindow::isWindowResized()
 {
 	if( !mUseFixResolution && (mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1]) )
-	{
-		mWindowResOld[0] = mWindowRes[0];
-		mWindowResOld[1] = mWindowRes[1];
 		return true;
-	}
 	else
 		return false;
 }

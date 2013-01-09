@@ -8,7 +8,7 @@
 #include <osg/ShapeDrawable>
 
 sgct::Engine * gEngine;
-RenderToTexture * gPP;
+RenderToTexture * gRTT;
 
 //Not using ref pointers enables
 //more controlled termination
@@ -103,8 +103,9 @@ void myInitOGLFun()
 	mAirplaneRoll->addChild( mModelTrans.get() );
 	mSceneTrans->addChild( boxGroup.get() );
 
-	gPP = new RenderToTexture();
-	boxGroup->addChild( gPP->createOrGetOffScreenRenderer( 
+	gRTT = new RenderToTexture();
+	//create a 512x512 texture target and attach a sub graph to it
+	boxGroup->addChild( gRTT->createOrGetOffScreenRenderer( 
 					mAirplaneRoll.get(),
 					boxGeode->getOrCreateStateSet(),
 					512, 

@@ -238,6 +238,7 @@ private:
 	unsigned int mRenderBuffers[2];
 	unsigned int mDepthBuffers[2];
 	unsigned int mFrameBufferTextures[2];
+	unsigned int mDepthBufferTextures[2];
 	int mFBOMode;
 
 	//glsl

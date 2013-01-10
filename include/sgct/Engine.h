@@ -37,8 +37,7 @@ public:
 	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
 
 private:
-	enum FBOBufferIndexes { LeftEyeBuffer = 0, RightEyeBuffer };
-	enum FBOCubeMapBufferIndexes { FishEyeBuffer = 0, CubeMapBuffer };
+	enum TextureIndexes { LeftEye = 0, RightEye, FishEye };
 	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
@@ -165,10 +164,10 @@ private:
 
 	void draw();
 	void drawOverlays();
-	void setRenderTarget(FBOBufferIndexes bi);
+	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
 	void renderFisheye();
-	void updateRenderingTargets();
+	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
 	void createFBOs();
@@ -233,11 +232,11 @@ private:
 	sgct_core::Statistics	mStatistics;
 
 	//FBO stuff
-	unsigned int mFrameBuffers[2];
-	unsigned int mMultiSampledFrameBuffers[2];
-	unsigned int mRenderBuffers[2];
-	unsigned int mDepthBuffers[2];
-	unsigned int mFrameBufferTextures[2];
+	unsigned int mFrameBuffer;
+	unsigned int mMultiSampledFrameBuffer;
+	unsigned int mRenderBuffer;
+	unsigned int mDepthBuffer;
+	unsigned int mFrameBufferTextures[3];
 	unsigned int mDepthBufferTextures[2];
 	int mFBOMode;
 

@@ -20,6 +20,7 @@
     <ClCompile Include="..\sgct\Image.cpp" />
     <ClCompile Include="..\sgct\MessageHandler.cpp" />
     <ClCompile Include="..\sgct\NetworkManager.cpp" />
+    <ClCompile Include="..\sgct\OffScreenBuffer.cpp" />
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
     <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
     <ClCompile Include="..\sgct\SGCTNode.cpp" />
@@ -54,6 +55,7 @@
     <ClInclude Include="..\..\include\sgct\Image.h" />
     <ClInclude Include="..\..\include\sgct\MessageHandler.h" />
     <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
+    <ClInclude Include="..\..\include\sgct\OffScreenBuffer.h" />
     <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />

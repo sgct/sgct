@@ -120,6 +120,9 @@
     <ClInclude Include="..\..\include\sgct\helpers\SGCTVertexData.h">
       <Filter>include\helpers</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\OffScreenBuffer.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -207,6 +210,9 @@
       <Filter>source\utils</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\SGCTVersion.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\OffScreenBuffer.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

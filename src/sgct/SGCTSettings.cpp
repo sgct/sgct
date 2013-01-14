@@ -24,6 +24,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 
 	mUseFXAA = false;
 	mUseDepthMap = false;
+	mFBOMode = MultiSampledFBO;
 }
 
 sgct_core::SGCTSettings::~SGCTSettings()
@@ -107,6 +108,14 @@ Set if depth texture maps should be generated from FBO.
 void sgct_core::SGCTSettings::setDepthMapUsage(bool state)
 {
 	mUseDepthMap = state;
+}
+
+/*!
+Set the FBO mode. This is done internally using SGCT config file.
+*/
+void sgct_core::SGCTSettings::setFBOMode(sgct_core::SGCTSettings::FBOMode mode)
+{
+	mFBOMode = mode;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer

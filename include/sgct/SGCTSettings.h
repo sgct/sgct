@@ -21,6 +21,7 @@ class SGCTSettings
 {
 public:
 	enum CropSides { Left = 0, Right, Bottom, Top };
+	enum FBOMode { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * Instance()
@@ -51,6 +52,7 @@ public:
 	void setFisheyeOverlay(std::string filename);
 	void setFXAA(bool state);
 	void setDepthMapUsage(bool state);
+	void setFBOMode(FBOMode mode);
 	
 	int getCubeMapResolution();
 	float getCubeMapSize();
@@ -63,6 +65,8 @@ public:
 	inline bool useFXAA() { return mUseFXAA; }
 	//! Set to true if SGCT should generate depth maps from FBO
 	inline bool useDepthMap() { return mUseDepthMap; }
+	//! Returns the FBO mode.
+	inline FBOMode getFBOMode() { return mFBOMode; }
 
 private:
 	SGCTSettings();
@@ -87,7 +91,10 @@ private:
 
 	//FXAA
 	bool mUseFXAA;
+
+	//FBO settings
 	bool mUseDepthMap;
+	FBOMode mFBOMode;
 };
 }
 

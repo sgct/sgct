@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "NetworkManager.h"
 #include "Statistics.h"
 #include "ReadConfig.h"
+#include "OffScreenBuffer.h"
 
 #define MAX_UNIFORM_LOCATIONS 64
 
@@ -38,7 +39,6 @@ public:
 
 private:
 	enum TextureIndexes { LeftEye = 0, RightEye, FishEye };
-	enum FBOModes { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
@@ -170,6 +170,7 @@ private:
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
+	void createTextures();
 	void createFBOs();
 	void initFisheye();
 	void resizeFBOs();
@@ -232,13 +233,11 @@ private:
 	sgct_core::Statistics	mStatistics;
 
 	//FBO stuff
-	unsigned int mFrameBuffer;
-	unsigned int mMultiSampledFrameBuffer;
-	unsigned int mRenderBuffer;
-	unsigned int mDepthBuffer;
+	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
+	sgct_core::OffScreenBuffer * mCubeMapFBO_Ptr;
+
 	unsigned int mFrameBufferTextures[3];
 	unsigned int mDepthBufferTextures[2];
-	int mFBOMode;
 
 	//glsl
 	int mShaderLocs[MAX_UNIFORM_LOCATIONS];

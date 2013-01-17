@@ -833,7 +833,7 @@ void sgct::Engine::renderDisplayInfo()
 	/*
 		Get memory info from nvidia and ati/amd cards.
 	*/
-	int tot_mem = 0;
+	static int tot_mem = 0;
 	int av_mem = 0;
 	if( GLEW_NVX_gpu_memory_info )
 	{
@@ -842,10 +842,27 @@ void sgct::Engine::renderDisplayInfo()
 	}
 	else if( GLEW_ATI_meminfo )
 	{
+		unsigned int tmpui = 0;
+		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
+#ifdef __WIN32__ 
+		if( tot_mem == 0 && wglewIsSupported("WGL_AMD_gpu_association") && wglGetGPUIDsAMD(8, gpu_ids) != 0 )
+		{
+			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
+			if( gpu_ids[0] != 0 && wglGetGPUInfoAMD(gpu_ids[0], WGL_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
+				tot_mem = static_cast<int>( tmpui ) * 1024;
+		}
+#else
+		if( tot_mem == 0 && glewIsSupported("GLX_AMD_gpu_association") && glXGetGPUIDsAMD(8, gpu_ids) != 0 )
+		{
+			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
+			if( gpu_ids[0] != 0 && glXGetGPUInfoAMD(gpu_ids[0], GLX_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
+				tot_mem = static_cast<int>( tmpui ) * 1024;
+		}
+#endif
+		
 		int mem[] = {0, 0, 0, 0};
-		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, &mem[0]);
-		tot_mem = mem[0];
-		av_mem = mem[2];
+		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, mem);
+		av_mem = mem[0];
 	}
 	
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Memory usage: %d %%, %d of %d (MB)",

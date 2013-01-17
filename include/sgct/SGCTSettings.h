@@ -45,7 +45,7 @@ public:
 	}
 
 	void setCubeMapResolution(int res);
-	void setCubeMapSize(float size);
+	void setDomeDiameter(float size);
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
@@ -55,7 +55,7 @@ public:
 	void setFBOMode(FBOMode mode);
 	
 	int getCubeMapResolution();
-	float getCubeMapSize();
+	float getDomeDiameter();
 	float getFisheyeTilt();
 	float getFisheyeFOV();
 	float getFisheyeCropValue(CropSides side);

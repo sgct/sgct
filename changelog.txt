@@ -11,3 +11,12 @@
 * Modified image class to be able to manage memory more efficient in screen capturing
 * Modified screen capturing to not delete buffer and re allocate every time
 * Added osgExampleRTT in installer
+
+2013-01-17 SGCT ver 1.1.0
+---------------------------
+* Modified FBO handling, using a single FBO in stereo but two in fisheye mode
+* Added video memory info in on-screen-info
+* Not allocating right texture if stereo is not used
+* Started testing stereoscopic fisheye (Not working yet)
+* Resolved issue with scaling a window that stretched the fisheye
+* Added option to generate depth buffer textures from FBO

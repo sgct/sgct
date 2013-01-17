@@ -290,7 +290,7 @@ bool sgct::Engine::initWindow()
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		SGCTSettings::Instance()->setFBOMode(SGCTSettings::CubeMapFBO);
-		mActiveFrustum = Frustum::Mono;
+		//mActiveFrustum = Frustum::Mono;
 		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
 		//create the cube mapped viewports
 		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
@@ -667,7 +667,14 @@ void sgct::Engine::render()
 		//if fisheye rendering is used then render the cubemap
 		if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
 		{
-			renderFisheye();
+			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
+			renderFisheye(LeftEye);
+
+			if( tmpNode->stereo != ClusterManager::NoStereo )
+			{
+				mActiveFrustum = Frustum::StereoRightEye;
+				renderFisheye(RightEye);
+			}
 		}
 		else
 		{
@@ -1170,7 +1177,7 @@ void sgct::Engine::renderFBOTexture()
 	1. Render a cubemap
 	2. Render to a fisheye using a GLSL shader
 */
-void sgct::Engine::renderFisheye()
+void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 	
@@ -1197,7 +1204,7 @@ void sgct::Engine::renderFisheye()
 
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind(false);
-	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[LeftEye] );
+	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1346,58 +1353,56 @@ void sgct::Engine::loadShaders()
 		glUniform1f( mShaderLocs[FishEyeHalfFov], glm::half_pi<float>() );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
-	else //stereo not supported using cubemap
+
+	if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan )
 	{
-		if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan )
-		{
-			sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
-			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[LeftTex], 0 );
-			glUniform1i( mShaderLocs[RightTex], 1 );
-			sgct::ShaderManager::Instance()->unBindShader();
-		}
-		else if( tmpNode->stereo == ClusterManager::Anaglyph_Amber_Blue )
-		{
-			sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
-			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[LeftTex], 0 );
-			glUniform1i( mShaderLocs[RightTex], 1 );
-			sgct::ShaderManager::Instance()->unBindShader();
-		}
-		else if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan_Wimmer )
-		{
-			sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan_Wimmer", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, ShaderManager::SHADER_SRC_STRING );
-			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan_Wimmer" );
-			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[LeftTex], 0 );
-			glUniform1i( mShaderLocs[RightTex], 1 );
-			sgct::ShaderManager::Instance()->unBindShader();
-		}
-		else if( tmpNode->stereo == ClusterManager::Checkerboard )
-		{
-			sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
-			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[LeftTex], 0 );
-			glUniform1i( mShaderLocs[RightTex], 1 );
-			sgct::ShaderManager::Instance()->unBindShader();
-		}
-		else if( tmpNode->stereo == ClusterManager::Checkerboard_Inverted )
-		{
-			sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
-			mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
-			mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
-			glUniform1i( mShaderLocs[LeftTex], 0 );
-			glUniform1i( mShaderLocs[RightTex], 1 );
-			sgct::ShaderManager::Instance()->unBindShader();
-		}
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Anaglyph_Amber_Blue )
+	{
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Amber_Blue", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Amber_Blue" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Anaglyph_Red_Cyan_Wimmer )
+	{
+		sgct::ShaderManager::Instance()->addShader("Anaglyph_Red_Cyan_Wimmer", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan_Wimmer" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Anaglyph_Red_Cyan_Wimmer" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Checkerboard )
+	{
+		sgct::ShaderManager::Instance()->addShader("Checkerboard", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Checkerboard_Inverted )
+	{
+		sgct::ShaderManager::Instance()->addShader("Checkerboard_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
 	}
 }
 
@@ -1546,12 +1551,14 @@ void sgct::Engine::createFBOs()
 */
 void sgct::Engine::resizeFBOs()
 {
+	mAspectRatio = static_cast<float>( getWindowPtr()->getHFramebufferResolution() ) /
+		static_cast<float>( getWindowPtr()->getVFramebufferResolution() );
+	
 	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{
 		glDeleteTextures(3,			&mFrameBufferTextures[0]);
 		if( SGCTSettings::Instance()->useDepthMap() )
 			glDeleteTextures(2,			&mDepthBufferTextures[0]);
-		
 
 		createTextures();
 		
@@ -1718,64 +1725,64 @@ void sgct::Engine::captureBuffer()
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( shotCounter < 10 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_00000%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_00000%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_0000%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_0000%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_0000%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_0000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_000%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_000%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_000%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 10000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_00%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_00%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_00%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_00%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_0%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_0%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_0%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_0%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000000 )
 	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_%d_l.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_%d_r.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_%d.png", thisNodeId, shotCounter);
 	}
 #else
     if( shotCounter < 10 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_00000%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_00000%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_00000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_0000%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_0000%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_0000%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_0000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_000%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_000%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_000%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 10000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_00%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_00%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_00%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_00%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_0%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_0%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_0%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_0%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 1000000 )
 	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_%d_l.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_%d_r.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameLeft, "sgct_node%d_l_%d.png", thisNodeId, shotCounter);
+		sprintf( screenShotFilenameRight, "sgct_node%d_r_%d.png", thisNodeId, shotCounter);
 	}
 #endif
 
@@ -2267,7 +2274,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 	Init the fisheye data by creating geometry and precalculate textures
 */
 void sgct::Engine::initFisheye()
-{
+{	
 	//create proxy geometry
 	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
 	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);

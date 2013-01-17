@@ -43,11 +43,11 @@ void sgct_core::SGCTSettings::setCubeMapResolution(int res)
 }
 
 /*!
-Set the cubemap size used in the fisheye renderer (used for the viewplane distance calculations)
+Set the dome diameter used in the fisheye renderer (used for the viewplane distance calculations)
 
-@param size size of the cubemap sides in meters
+@param size size of the dome diameter (cube side) in meters
 */
-void sgct_core::SGCTSettings::setCubeMapSize(float size)
+void sgct_core::SGCTSettings::setDomeDiameter(float size)
 {
 	mCubeMapSize = size;
 }
@@ -124,8 +124,8 @@ int sgct_core::SGCTSettings::getCubeMapResolution()
 	return mCubeMapResolution;
 }
 
-//! Get the cubemap size in meters used in the fisheye renderer
-float sgct_core::SGCTSettings::getCubeMapSize()
+//! Get the dome diameter in meters used in the fisheye renderer
+float sgct_core::SGCTSettings::getDomeDiameter()
 {
 	return mCubeMapSize;
 }

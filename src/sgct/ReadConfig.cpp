@@ -462,8 +462,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 						element[2] = element[2]->NextSiblingElement();
 					}
 
-					//disable stereo
-					tmpNode.stereo = ClusterManager::NoStereo;
 					tmpNode.setFisheyeRendering(true);
 
 				}//end fisheye

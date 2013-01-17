@@ -166,7 +166,7 @@ private:
 	void drawOverlays();
 	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
-	void renderFisheye();
+	void renderFisheye(TextureIndexes ti);
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();

@@ -91,8 +91,6 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	for(unsigned int i=0; i<MAX_UNIFORM_LOCATIONS; i++)
 		mShaderLocs[i] = -1;
 
-	mAspectRatio = 1.0f;
-
 	// Initialize GLFW
 	if( !glfwInit() )
 	{
@@ -656,7 +654,7 @@ void sgct::Engine::render()
 
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
-			resizeFBOs();
+			resizeFBOs();	
 
 		//rendering offscreen if using FBOs
 		mRenderingOffScreen = (SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO);
@@ -1196,7 +1194,16 @@ void sgct::Engine::renderFBOTexture()
 */
 void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
+	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	SGCTSettings * setPtr = SGCTSettings::Instance();
+	
+	if( mActiveFrustum == Frustum::StereoLeftEye )
+		setPtr->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+	else if( mActiveFrustum == Frustum::StereoRightEye )
+		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
 	
 	mCubeMapFBO_Ptr->bind(false);
 
@@ -1264,6 +1271,10 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
 	glUniform1i( mShaderLocs[Cubemap], 0);
 	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
+	if( setPtr->isFisheyeOffaxis() )
+	{
+		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
+	}
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -1362,12 +1373,24 @@ void sgct::Engine::loadShaders()
 
 	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
 	{
-		sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
+			sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
+		else
+			sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+
 		sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
 		mShaderLocs[Cubemap] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "cubemap" );
 		glUniform1i( mShaderLocs[Cubemap], 0 );
 		mShaderLocs[FishEyeHalfFov] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "halfFov" );
 		glUniform1f( mShaderLocs[FishEyeHalfFov], glm::half_pi<float>() );
+		if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
+		{
+			mShaderLocs[FisheyeOffset] = sgct::ShaderManager::Instance()->getShader( "Fisheye" ).getUniformLocation( "offset" );
+			glUniform3f( mShaderLocs[FisheyeOffset],
+				SGCTSettings::Instance()->getFisheyeOffset(0),
+				SGCTSettings::Instance()->getFisheyeOffset(1),
+				SGCTSettings::Instance()->getFisheyeOffset(2) );
+		}
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 
@@ -1519,9 +1542,6 @@ void sgct::Engine::createTextures()
 */
 void sgct::Engine::createFBOs()
 {
-	mAspectRatio = static_cast<float>( getWindowPtr()->getHFramebufferResolution() ) /
-		static_cast<float>( getWindowPtr()->getVFramebufferResolution() );
-
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
 	{
 		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -1568,42 +1588,42 @@ void sgct::Engine::createFBOs()
 */
 void sgct::Engine::resizeFBOs()
 {
-	mAspectRatio = static_cast<float>( getWindowPtr()->getHFramebufferResolution() ) /
-		static_cast<float>( getWindowPtr()->getVFramebufferResolution() );
-	
-	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	if(!getWindowPtr()->isFixResolution())
 	{
-		glDeleteTextures(3,			&mFrameBufferTextures[0]);
-		if( SGCTSettings::Instance()->useDepthMap() )
-			glDeleteTextures(2,			&mDepthBufferTextures[0]);
-
-		createTextures();
-		
-		mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getHFramebufferResolution(),
-			getWindowPtr()->getVFramebufferResolution(),
-			ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
-
-		if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
+		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
-				SGCTSettings::Instance()->getCubeMapResolution(),
-				1);
-			
-			mCubeMapFBO_Ptr->bind(false);
-			for(int i=0; i<6; i++)
+			glDeleteTextures(3,			&mFrameBufferTextures[0]);
+			if( SGCTSettings::Instance()->useDepthMap() )
+				glDeleteTextures(2,			&mDepthBufferTextures[0]);
+
+			createTextures();
+		
+			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getHFramebufferResolution(),
+				getWindowPtr()->getVFramebufferResolution(),
+				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
+
+			if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
 			{
-				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ FishEye ], 0);
-				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+				mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
+					SGCTSettings::Instance()->getCubeMapResolution(),
+					1);
+			
+				mCubeMapFBO_Ptr->bind(false);
+				for(int i=0; i<6; i++)
+				{
+					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ FishEye ], 0);
+					glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+				}
+
+				mCubeMapFBO_Ptr->unBind();
+
+				//set ut the fisheye geometry etc.
+				initFisheye();
 			}
 
-			mCubeMapFBO_Ptr->unBind();
-
-			//set ut the fisheye geometry etc.
-			initFisheye();
+			sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
 		}
-
-		sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
 	}
 }
 
@@ -1743,7 +1763,7 @@ void sgct::Engine::captureBuffer()
 	if( shotCounter < 10 )
 	{
 		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
+		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_00000%d.png", thisNodeId, shotCounter);
 	}
 	else if( shotCounter < 100 )
 	{
@@ -1922,23 +1942,50 @@ void sgct::Engine::calculateFrustums()
 		if( !tmpNode->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 		{
 			SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
-			tmpNode->getViewport(i)->calculateFrustum(
-				Frustum::Mono,
-				usrPtr->getPosPtr(),
-				mNearClippingPlaneDist,
-				mFarClippingPlaneDist);
+			
+			if( SGCTSettings::Instance()->getFBOMode() != SGCTSettings::CubeMapFBO )
+			{
+				tmpNode->getViewport(i)->calculateFrustum(
+					Frustum::Mono,
+					usrPtr->getPosPtr(),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
 
-			tmpNode->getViewport(i)->calculateFrustum(
-				Frustum::StereoLeftEye,
-				usrPtr->getPosPtr(Frustum::StereoLeftEye),
-				mNearClippingPlaneDist,
-				mFarClippingPlaneDist);
+				tmpNode->getViewport(i)->calculateFrustum(
+					Frustum::StereoLeftEye,
+					usrPtr->getPosPtr(Frustum::StereoLeftEye),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
 
-			tmpNode->getViewport(i)->calculateFrustum(
-				Frustum::StereoRightEye,
-				usrPtr->getPosPtr(Frustum::StereoRightEye),
-				mNearClippingPlaneDist,
-				mFarClippingPlaneDist);
+				tmpNode->getViewport(i)->calculateFrustum(
+					Frustum::StereoRightEye,
+					usrPtr->getPosPtr(Frustum::StereoRightEye),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
+			}
+			else
+			{
+				tmpNode->getViewport(i)->calculateFisheyeFrustum(
+					Frustum::Mono,
+					usrPtr->getPosPtr(),
+					usrPtr->getPosPtr(),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
+
+				tmpNode->getViewport(i)->calculateFisheyeFrustum(
+					Frustum::StereoLeftEye,
+					usrPtr->getPosPtr(),
+					usrPtr->getPosPtr(Frustum::StereoLeftEye),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
+
+				tmpNode->getViewport(i)->calculateFisheyeFrustum(
+					Frustum::StereoRightEye,
+					usrPtr->getPosPtr(),
+					usrPtr->getPosPtr(Frustum::StereoRightEye),
+					mNearClippingPlaneDist,
+					mFarClippingPlaneDist);
+			}
 		}
 }
 
@@ -2302,7 +2349,7 @@ void sgct::Engine::initFisheye()
 
 	float x = 1.0f;
 	float y = 1.0f;
-	float aspect = mAspectRatio * cropAspect;
+	float aspect = getWindowPtr()->getAspectRatio() * cropAspect;
 	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
 
 	mFisheyeQuadVerts[0] = leftcrop;

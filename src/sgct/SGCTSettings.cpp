@@ -22,6 +22,11 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mCropFactors[2] = 0.0f;
 	mCropFactors[3] = 0.0f;
 
+	mFisheyeOffset[0] = 0.0f;
+	mFisheyeOffset[1] = 0.0f;
+	mFisheyeOffset[2] = 0.0f;
+	mFisheyeOffaxis = false;
+
 	mUseFXAA = false;
 	mUseDepthMap = false;
 	mFBOMode = MultiSampledFBO;
@@ -83,6 +88,22 @@ void sgct_core::SGCTSettings::setFisheyeCropValues(float left, float right, floa
 	mCropFactors[ Right ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
 	mCropFactors[ Bottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
 	mCropFactors[ Top ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
+}
+
+/*!
+	Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
+	Base of fisheye is the XY-plane.
+*/
+void sgct_core::SGCTSettings::setFisheyeOffset(float x, float y, float z)
+{
+	mFisheyeOffset[0] = x;
+	mFisheyeOffset[1] = y;
+	mFisheyeOffset[2] = z;
+
+	if( x == 0.0f && y == 0.0f && z == 0.0f )
+		mFisheyeOffaxis = false;
+	else
+		mFisheyeOffaxis = true;
 }
 
 /*!
@@ -151,6 +172,18 @@ float sgct_core::SGCTSettings::getFisheyeFOV()
 float sgct_core::SGCTSettings::getFisheyeCropValue(CropSides side)
 {
 	return mCropFactors[side];
+}
+
+//! Get if fisheye is offaxis (not rendered from centre)
+bool sgct_core::SGCTSettings::isFisheyeOffaxis()
+{
+	return mFisheyeOffaxis;
+}
+
+//! Get the offset (3-float vec) if fisheye is offaxis.
+float sgct_core::SGCTSettings::getFisheyeOffset(unsigned int axis)
+{
+	return mFisheyeOffset[axis];
 }
 
 //! Get the fisheye overlay image filename/path.

@@ -3,10 +3,15 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
-void myPreSyncFun();
+void myPostSyncPreDrawFun();
 void myInitOGLFun();
+void keyCallback(int key, int action);
 
 unsigned int textureIndexes[4];
+
+bool info = false;
+bool stats = false;
+bool takeScreenshot = false;
 
 int main( int argc, char* argv[] )
 {
@@ -17,6 +22,8 @@ int main( int argc, char* argv[] )
 	// Bind your functions
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
+	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+	gEngine->setKeyboardCallbackFunction( keyCallback );
 
 	// Init the engine
 	if( !gEngine->init() )
@@ -38,44 +45,105 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glColor3f(1.0f,1.0f,1.0f);
+	glEnable(GL_TEXTURE_2D);
 
-	float dd = 15.0f; //dome diameter
+	float r = 7.5f; //dome radius
 
 	//right face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[0]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -dd, -dd);
-		glTexCoord2d(1.0,0.0); glVertex3f(dd, -dd, 0.0f);
-		glTexCoord2d(1.0,1.0); glVertex3f(dd, dd, 0.0f);
-		glTexCoord2d(0.0,1.0); glVertex3f(0.0f, dd, -dd);
+		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
+		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
+		glTexCoord2d(1.0,1.0); glVertex3f(r, r, 0.0f);
+		glTexCoord2d(0.0,1.0); glVertex3f(0.0f, r, -r);
 	glEnd();
 
 	//left face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[1]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(-dd, -dd, 0.0f);
-		glTexCoord2d(1.0,0.0); glVertex3f(0.0f, -dd, -dd);
-		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, dd, -dd);
-		glTexCoord2d(0.0,1.0); glVertex3f(-dd, dd, 0.0f);
+		glTexCoord2d(0.0,0.0); glVertex3f(-r, -r, 0.0f);
+		glTexCoord2d(1.0,0.0); glVertex3f(0.0f, -r, -r);
+		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r, -r);
+		glTexCoord2d(0.0,1.0); glVertex3f(-r, r, 0.0f);
 	glEnd();
 
 	//top face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[2]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, dd, -dd);
-		glTexCoord2d(1.0,0.0); glVertex3f(-dd, dd, 0.0f);
-		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, dd, dd);
-		glTexCoord2d(0.0,1.0); glVertex3f(dd, dd, 0.0f);
+		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r, -r);
+		glTexCoord2d(1.0,0.0); glVertex3f(-r, r, 0.0f);
+		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r, r);
+		glTexCoord2d(0.0,1.0); glVertex3f(r, r, 0.0f);
 	glEnd();
 
 	//bottom face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[3]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -dd, -dd);
-		glTexCoord2d(1.0,0.0); glVertex3f(dd, -dd, 0.0f);
-		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, -dd, dd);
-		glTexCoord2d(0.0,1.0); glVertex3f(-dd, -dd, 0.0f);
+		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
+		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
+		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, -r, r);
+		glTexCoord2d(0.0,1.0); glVertex3f(-r, -r, 0.0f);
 	glEnd();
+
+	/*glDisable(GL_TEXTURE_2D);
+	
+	glColor3f(1.0f,1.0f,0.0f);
+	glLineWidth(5.0);
+	glBegin(GL_LINES);
+		glVertex3f(-r/2.0f, r/2.0f, 0.0f);
+		glVertex3f(0.0f, r/2.0f, -r/2.0f);
+
+		glVertex3f(-r/2.0f, -r/2.0f, 0.0f);
+		glVertex3f(0.0f, -r/2.0f, -r/2.0f);
+
+		glVertex3f(r/2.0f, r/2.0f, 0.0f);
+		glVertex3f(0.0f, r/2.0f, -r/2.0f);
+
+		glVertex3f(r/2.0f, -r/2.0f, 0.0f);
+		glVertex3f(0.0f, -r/2.0f, -r/2.0f);
+
+		glVertex3f(0.0f, -r/2.0f, -r/2.0f);
+		glVertex3f(0.0f, r/2.0f, -r/2.0f);
+	glEnd();
+
+	glColor3f(1.0f,0.0f,1.0f);
+	glLineWidth(5.0);
+	glBegin(GL_LINES);
+		glVertex3f(-r*2.0f, r*2.0f, 0.0f);
+		glVertex3f(0.0f, r*2.0f, -r*2.0f);
+
+		glVertex3f(-r*2.0f, -r*2.0f, 0.0f);
+		glVertex3f(0.0f, -r*2.0f, -r*2.0f);
+
+		glVertex3f(r*2.0f, r*2.0f, 0.0f);
+		glVertex3f(0.0f, r*2.0f, -r*2.0f);
+
+		glVertex3f(r*2.0f, -r*2.0f, 0.0f);
+		glVertex3f(0.0f, -r*2.0f, -r*2.0f);
+
+		glVertex3f(0.0f, -r*2.0f, -r*2.0f);
+		glVertex3f(0.0f, r*2.0f, -r*2.0f);
+	glEnd();
+
+	glColor3f(0.0f,1.0f,1.0f);
+	glLineWidth(5.0);
+	glBegin(GL_LINES);
+		glVertex3f(-r, r, 0.0f);
+		glVertex3f(0.0f, r, -r);
+
+		glVertex3f(-r, -r, 0.0f);
+		glVertex3f(0.0f, -r, -r);
+
+		glVertex3f(r, r, 0.0f);
+		glVertex3f(0.0f, r, -r);
+
+		glVertex3f(r, -r, 0.0f);
+		glVertex3f(0.0f, -r, -r);
+
+		glVertex3f(0.0f, -r, -r);
+		glVertex3f(0.0f, r, -r);
+	glEnd();
+	*/
 }
 
 void myInitOGLFun()
@@ -94,4 +162,41 @@ void myInitOGLFun()
 	glEnable( GL_COLOR_MATERIAL );
 	glDisable( GL_LIGHTING );
 	glEnable(GL_TEXTURE_2D);
+}
+
+void myPostSyncPreDrawFun()
+{
+	gEngine->setDisplayInfoVisibility(info);
+	gEngine->setStatsGraphVisibility(stats);
+	
+	if( takeScreenshot )
+	{
+		gEngine->takeScreenshot();
+		takeScreenshot = false;
+	}
+}
+
+void keyCallback(int key, int action)
+{
+	if( gEngine->isMaster() )
+	{
+		switch( key )
+		{
+		case 'S':
+			if(action == SGCT_PRESS)
+				stats = !stats;
+			break;
+
+		case 'I':
+			if(action == SGCT_PRESS)
+				info = !info;
+			break;
+
+		case 'P':
+		case SGCT_KEY_F10:
+			if(action == SGCT_PRESS)
+				takeScreenshot = true;
+			break;
+		}
+	}
 }

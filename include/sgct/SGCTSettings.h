@@ -49,6 +49,7 @@ public:
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
+	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
 	void setFXAA(bool state);
 	void setDepthMapUsage(bool state);
@@ -59,6 +60,8 @@ public:
 	float getFisheyeTilt();
 	float getFisheyeFOV();
 	float getFisheyeCropValue(CropSides side);
+	bool isFisheyeOffaxis();
+	float getFisheyeOffset(unsigned int axis);
 	const char *  getFisheyeOverlay();
 
 	//! Set to true if FXAA should be used.
@@ -86,6 +89,8 @@ private:
 	//fisheye settings
 	float mFisheyeTilt;
 	float mFieldOfView;
+	float mFisheyeOffset[3];
+	bool mFisheyeOffaxis;
 	float mCropFactors[4];
 	std::string mFisheyeOverlayFilename;
 

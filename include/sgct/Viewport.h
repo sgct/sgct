@@ -35,6 +35,7 @@ public:
 	void setEnabled(bool state);
 	void loadData();
 	void calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
+	void calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near, float far);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void renderMesh();

@@ -195,6 +195,72 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
 }
 
+void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near, float far)
+{
+	//calculate viewplane's internal coordinate system bases
+	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
+	glm::vec3 plane_y = mViewPlaneCoords[ UpperLeft ] - mViewPlaneCoords[ LowerLeft ];
+	glm::vec3 plane_z = glm::cross(plane_x, plane_y);
+	
+	//normalize
+	plane_x = glm::normalize(plane_x);
+	plane_y = glm::normalize(plane_y);
+	plane_z = glm::normalize(plane_z);
+
+	glm::vec3 world_x(1.0f, 0.0f, 0.0f);
+	glm::vec3 world_y(0.0f, 1.0f, 0.0f);
+	glm::vec3 world_z(0.0f, 0.0f, 1.0f);
+
+	//calculate plane rotation using
+	//Direction Cosine Matrix (DCM)
+	glm::mat3 DCM(1.0f); //init as identity matrix
+	DCM[0][0] = glm::dot( plane_x, world_x );
+	DCM[0][1] = glm::dot( plane_x, world_y );
+	DCM[0][2] = glm::dot( plane_x, world_z );
+
+	DCM[1][0] = glm::dot( plane_y, world_x );
+	DCM[1][1] = glm::dot( plane_y, world_y );
+	DCM[1][2] = glm::dot( plane_y, world_z );
+
+	DCM[2][0] = glm::dot( plane_z, world_x );
+	DCM[2][1] = glm::dot( plane_z, world_y );
+	DCM[2][2] = glm::dot( plane_z, world_z );
+
+	//invert & transform
+	glm::mat3 DCM_inv = glm::inverse(DCM);
+	glm::vec3 transformedViewPlaneCoords[3];
+	transformedViewPlaneCoords[ LowerLeft ] = DCM_inv * mViewPlaneCoords[ LowerLeft ];
+	transformedViewPlaneCoords[ UpperLeft ] = DCM_inv * mViewPlaneCoords[ UpperLeft ];
+	transformedViewPlaneCoords[ UpperRight ] = DCM_inv * mViewPlaneCoords[ UpperRight ];
+	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
+
+	//nearFactor = near clipping plane / focus plane dist
+	float nearFactor = near / (transformedViewPlaneCoords[ LowerLeft ].z - transformedEyePos.z);
+	if( nearFactor < 0 )
+		nearFactor = -nearFactor;
+
+	mFrustums[frustumMode].set(
+		(transformedViewPlaneCoords[ LowerLeft ].x - transformedEyePos.x)*nearFactor,
+		(transformedViewPlaneCoords[ UpperRight ].x - transformedEyePos.x)*nearFactor,
+		(transformedViewPlaneCoords[ LowerLeft ].y - transformedEyePos.y)*nearFactor,
+		(transformedViewPlaneCoords[ UpperRight ].y - transformedEyePos.y)*nearFactor,
+		near,
+		far);
+
+	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*offset));
+
+	//calc frustum matrix
+	mFrustumMat[frustumMode] = glm::frustum( 
+		mFrustums[frustumMode].getLeft(),
+		mFrustums[frustumMode].getRight(),
+        mFrustums[frustumMode].getBottom(),
+		mFrustums[frustumMode].getTop(),
+        mFrustums[frustumMode].getNear(),
+		mFrustums[frustumMode].getFar() );
+
+	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
+}
+
 void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)
 {
 	mViewPlaneCoords[cornerIndex] = cornerPos;

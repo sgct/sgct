@@ -42,7 +42,7 @@ private:
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
-	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov,
+	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov, FisheyeOffset,
 			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 public:
@@ -137,8 +137,6 @@ public:
 	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 	inline const int * getActiveViewport() { return currentViewportCoords; }
 	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
-	//! Returns the framebuffer's aspect ratio
-	inline float getAspectRatio() { return mAspectRatio; }
 
 	//can be called any time after Engine init
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
@@ -249,7 +247,6 @@ private:
 
 	std::string configFilename;
 	int mRunning;
-	float mAspectRatio;
 	char basicInfo[128];
 	char aaInfo[16];
 

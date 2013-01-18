@@ -432,6 +432,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
 						sgct_core::SGCTSettings::Instance()->setFisheyeTilt( tilt );
 
+					float diameter;
+					if( element[1]->QueryFloatAttribute("diameter", &diameter) == XML_NO_ERROR )
+						sgct_core::SGCTSettings::Instance()->setDomeDiameter( diameter );
+
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{

@@ -89,7 +89,34 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 ReflectDir = vec3(x, y, z);\n\
+					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
+					color = vec4(textureCube(cubemap, rotVec));\n\
+				}\n\
+				else\n\
+					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+				gl_FragColor = color;\n\
+			}\n";
+
+		const std::string Fisheye_Frag_Shader_OffAxis = "\
+			#version 120\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform float halfFov;\n\
+			uniform vec3 offset;\n\
+			float quarter_pi = 0.7853981634;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
+				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
+				vec4 color;\n\
+				if( s*s + t*t <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(s*s + t*t) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta) - offset.x;\n\
+					float y = -sin(phi) * cos(theta) - offset.y;\n\
+					float z = cos(phi) - offset.z;\n\
 					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
 				}\n\

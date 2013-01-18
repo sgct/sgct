@@ -20,3 +20,9 @@
 * Started testing stereoscopic fisheye (Not working yet)
 * Resolved issue with scaling a window that stretched the fisheye
 * Added option to generate depth buffer textures from FBO
+
+2013-01-18 SGCT ver 1.1.0
+---------------------------
+* Implemented off-axis fisheye stereo
+* Moved apect ratio handling to window class
+* Resolved wireframe rendering problem for right eye in stereo fisheye

@@ -61,6 +61,8 @@ public:
 		\returns Get the vertical frame buffer resolution.
 	*/
 	inline int getVFramebufferResolution() { return mFramebufferResolution[1]; }
+	//! \returns the aspect ratio of the window 
+	inline float getAspectRatio() { return mAspectRatio; }
 
 private:
 	bool mUseFixResolution;
@@ -73,6 +75,7 @@ private:
 	int mWindowPos[2];
 	int mWindowResOld[2];
 	int mWindowMode;
+	float mAspectRatio;
 };
 }
 

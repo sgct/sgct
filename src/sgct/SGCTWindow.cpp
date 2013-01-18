@@ -50,6 +50,7 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
 	mWindowMode = GLFW_WINDOW;
+	mAspectRatio = 1.0f;
 }
 
 void sgct_core::SGCTWindow::close()
@@ -115,6 +116,8 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
+	mAspectRatio = static_cast<float>( x ) /
+			static_cast<float>( y );
 
 	if( !mUseFixResolution )
 	{
@@ -156,6 +159,9 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 	mWindowResOld[0] = mWindowRes[0];
 	mWindowResOld[1] = mWindowRes[1];
 
+	mAspectRatio = static_cast<float>( x ) /
+			static_cast<float>( y );
+
 	if( !mUseFixResolution )
 	{
 		mFramebufferResolution[0] = x;
@@ -165,7 +171,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 
 bool sgct_core::SGCTWindow::isWindowResized()
 {
-	if( !mUseFixResolution && (mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1]) )
+	if( mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1] )
 		return true;
 	else
 		return false;

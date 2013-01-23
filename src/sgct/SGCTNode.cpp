@@ -19,6 +19,7 @@ sgct_core::SGCTNode::SGCTNode()
 
 	//init optional parameters
 	swapInterval = 1;
+	stereo = ClusterManager::NoStereo;
 }
 
 void sgct_core::SGCTNode::addViewport(float left, float right, float bottom, float top)

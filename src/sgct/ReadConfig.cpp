@@ -461,6 +461,20 @@ void sgct_core::ReadConfig::readAndParseXML()
 								tmpFArr[sgct_core::SGCTSettings::Bottom],
 								tmpFArr[sgct_core::SGCTSettings::Top]);
 						}
+						else if( strcmp("Offset", val[2]) == 0 )
+						{
+							float tmpFArr[] = { 0.0f, 0.0f, 0.0f };
+							float ftmp;
+
+							if( element[2]->QueryFloatAttribute("x", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[0] = ftmp;
+							if( element[2]->QueryFloatAttribute("y", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[1] = ftmp;
+							if( element[2]->QueryFloatAttribute("z", &ftmp) == XML_NO_ERROR )
+                                tmpFArr[2] = ftmp;
+
+							sgct_core::SGCTSettings::Instance()->setFisheyeOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
+						}
 
 						//iterate
 						element[2] = element[2]->NextSiblingElement();

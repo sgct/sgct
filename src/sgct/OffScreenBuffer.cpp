@@ -30,6 +30,8 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	mWidth = width;
 	mHeight = height;
 
+	mMultiSampled = (samples > 1);
+
 	//create a multisampled buffer
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
 	{
@@ -86,6 +88,8 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 {
 	mWidth = width;
 	mHeight = height;
+
+	mMultiSampled = (samples > 1);
 	
 	//delete all
 	glDeleteFramebuffers(1,	&mFrameBuffer);
@@ -103,25 +107,17 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 	createFBO(width, height, samples);
 }
 
-void sgct_core::OffScreenBuffer::bind(bool multisample)
+void sgct_core::OffScreenBuffer::bind()
 {
-	multisample ? 
+	mMultiSampled ? 
 		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
 		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer );
 }
 
-void sgct_core::OffScreenBuffer::bindRead(bool multisample)
+void sgct_core::OffScreenBuffer::bindBlit()
 {
-	multisample ? 
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffer) :
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, mFrameBuffer);
-}
-
-void sgct_core::OffScreenBuffer::bindDraw(bool multisample)
-{
-	multisample ? 
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mMultiSampledFrameBuffer) :
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer);
+	glBindFramebuffer(GL_READ_FRAMEBUFFER, mMultiSampledFrameBuffer);
+	glBindFramebuffer(GL_DRAW_FRAMEBUFFER, mFrameBuffer);
 }
 
 void sgct_core::OffScreenBuffer::unBind()
@@ -159,7 +155,7 @@ void sgct_core::OffScreenBuffer::destroy()
 
 void sgct_core::OffScreenBuffer::attachColorTexture(unsigned int texId)
 {
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
 }
 
 void sgct_core::OffScreenBuffer::attachDepthTexture(unsigned int texId)
@@ -169,5 +165,5 @@ void sgct_core::OffScreenBuffer::attachDepthTexture(unsigned int texId)
 
 void sgct_core::OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face)
 {
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
 }

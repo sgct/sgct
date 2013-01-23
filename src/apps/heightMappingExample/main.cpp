@@ -77,7 +77,7 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
-	//glLineWidth(2.0); //for wireframe
+	glLineWidth(3.0); //for wireframe
 	glCallList(myTerrainDisplayList);
 
 	//unset current shader program
@@ -202,7 +202,6 @@ void drawTerrainGrid( float width, float depth, unsigned int wRes, unsigned int 
 		float dTexCoordHigh = (depthIndex+1) / static_cast<float>( dRes );
 
 		glBegin( GL_TRIANGLE_STRIP );
-
 		glNormal3f(0.0f,1.0f,0.0);
         for( unsigned widthIndex = 0; widthIndex < wRes; ++widthIndex )
         {

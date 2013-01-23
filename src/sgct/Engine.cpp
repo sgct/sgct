@@ -1031,7 +1031,7 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::MultiSampledFBO)
 		{
-			mFinalFBO_Ptr->bind(false);
+			mFinalFBO_Ptr->bind();
 
 			//update attachments
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
@@ -1039,7 +1039,7 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 				mFinalFBO_Ptr->attachDepthTexture( mDepthBufferTextures[ti] );
 		}
 		else
-			mFinalFBO_Ptr->bind(true);
+			mFinalFBO_Ptr->bind();
 
 		setAndClearBuffer(RenderToTexture);
 	}
@@ -1205,8 +1205,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	else if( mActiveFrustum == Frustum::StereoRightEye )
 		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
 	
-	mCubeMapFBO_Ptr->bind(false);
-
 	//iterate the cube sides
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 	{
@@ -1214,10 +1212,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
-			//attach buffer
+			//bind & attach buffer 
+			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 
 			setAndClearBuffer(RenderToTexture);
+
 			//render
 			(this->*mInternalRenderFn)();
 		}
@@ -1227,7 +1227,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 	//bind fisheye target FBO
-	mFinalFBO_Ptr->bind(false);
+	mFinalFBO_Ptr->bind();
 	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1301,8 +1301,7 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 	//copy AA-buffer to "regular"/non-AA buffer
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
 	{
-		mFinalFBO_Ptr->bindRead(true); // source
-		mFinalFBO_Ptr->bindDraw(false); // dest
+		mFinalFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 		//update attachments
 		mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
@@ -1563,7 +1562,7 @@ void sgct::Engine::createFBOs()
 				SGCTSettings::Instance()->getCubeMapResolution(),
 				1);
 			
-			mCubeMapFBO_Ptr->bind(false);
+			mCubeMapFBO_Ptr->bind();
 			for(int i=0; i<6; i++)
 			{
 				mCubeMapFBO_Ptr->attachCubeMapTexture(mFrameBufferTextures[ FishEye ], i);
@@ -1608,7 +1607,7 @@ void sgct::Engine::resizeFBOs()
 					SGCTSettings::Instance()->getCubeMapResolution(),
 					1);
 			
-				mCubeMapFBO_Ptr->bind(false);
+				mCubeMapFBO_Ptr->bind();
 				for(int i=0; i<6; i++)
 				{
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ FishEye ], 0);
@@ -2703,4 +2702,23 @@ void sgct::Engine::waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout)
 void sgct::Engine::signalCond(GLFWcond &cond)
 {
     glfwSignalCond(cond);
+}
+
+sgct_core::OffScreenBuffer * sgct::Engine::getFBOPtr()
+{ 
+	return SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
+}
+
+void sgct::Engine::getFBODimensions( int & width, int & height )
+{
+	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+	{
+		width = SGCTSettings::Instance()->getCubeMapResolution();
+		height = SGCTSettings::Instance()->getCubeMapResolution();
+	}
+	else
+	{
+		width = getWindowPtr()->getHFramebufferResolution();
+		height = getWindowPtr()->getVFramebufferResolution();
+	}
 }

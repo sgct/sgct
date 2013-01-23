@@ -27,7 +27,7 @@ public:
 	Viewport * getViewport(unsigned int index);
 	void getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
 	std::size_t getNumberOfViewports();
-
+	inline std::size_t getCurrentViewportIndex() { return mCurrentViewportIndex; }
 	SGCTWindow * getWindowPtr() { return &mWindow; }
 
 	inline void setCurrentViewport(std::size_t index) { mCurrentViewportIndex = index; }

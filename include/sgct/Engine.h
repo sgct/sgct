@@ -119,27 +119,93 @@ public:
 	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues);
 	static void sleep(double secs);
 
+	/*!
+		Returns a pointer to the window object
+	*/
 	static sgct_core::SGCTWindow * getWindowPtr() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr(); }
+
+	/*!
+		Returns a pinter to the user (VR observer position) object
+	*/
 	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
+	
+	/*!
+		Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
+	*/
+	static int getStereoMode() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->stereo; }
+
+	/*!
+		Returns true if any kind of stereo is enabled
+	*/
+	static bool isStereo() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->stereo != sgct_core::ClusterManager::NoStereo; }
+	
+	/*!
+		Returns a pointer to the tracking manager pointer
+	*/
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
+	
+	/*!
+		Check and print if any openGL error has occured
+	*/
 	static bool checkForOGLErrors();
-	//! Get the user's eye separation in meters.
+
+	//! Get the user's eye separation in meters
 	static float getEyeSeparation() { return mInstance->getUserPtr()->getEyeSeparation(); }
 
+	/*!
+		Returns true if this node is the master
+	*/
 	inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
+
+	/*!
+		Returns true if on-screen info is rendered.
+	*/
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
+
 	//! Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
 	inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
+	
+	/*! Returns the active frustum which can be one of the following:
+		- Mono
+		- Stereo Left
+		- Stereo Right
+	*/
 	inline const sgct_core::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
-	//will only return valid values when called in the draw callback function
+	/*!
+		Returns the active frustum matrix (only valid inside in the draw callback function)
+	*/
 	inline const glm::mat4 & getActiveFrustumMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
+	
+	/*!
+		Returns the active projection matrix (only valid inside in the draw callback function)
+	*/
 	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	
+	/*!
+		Returns the active viewport in pixels (only valid inside in the draw callback function)
+	*/
 	inline const int * getActiveViewport() { return currentViewportCoords; }
+	
+	/*!
+		Returns the active frustum matrix (only valid inside in the draw callback function)
+	*/
 	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
 
-	//can be called any time after Engine init
+	/*!
+		Returns the scene transform specified in the XML configuration default is a identity matrix
+	*/
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+
+	/*!
+		Returns pointer to FBO container
+	*/
+	sgct_core::OffScreenBuffer * getFBOPtr();
+
+	/*!
+		Get width and height of FBO in pixels
+	*/
+	void getFBODimensions( int & width, int & height );
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters

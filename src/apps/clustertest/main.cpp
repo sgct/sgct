@@ -288,6 +288,20 @@ void myInitOGLFun()
 
 	glEnable(GL_LINE_SMOOTH);
 	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
+
+	unsigned int numberOfActiveViewports = 0;
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
+		if( thisNode->getViewport(i)->isEnabled() )
+		{
+			numberOfActiveViewports++;
+
+			glm::mat4 prjMatMono  = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::Mono );
+			glm::mat4 prjMatLeft  = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
+			glm::mat4 prjMatRight = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::StereoRightEye );
+		}
+
+	sgct::MessageHandler::Instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
 }
 
 void myEncodeFun()

@@ -20,12 +20,13 @@ public:
 	void attachColorTexture(unsigned int texId);
 	void attachDepthTexture(unsigned int texId);
 	void attachCubeMapTexture(unsigned int texId, unsigned int face);
-	void bind(bool multisample);
-	void bindRead(bool multisample);
-	void bindDraw(bool multisample);
+	void bind();
+	void bindBlit();
 	void blit();
 	static void unBind();
 	void destroy();
+
+	inline unsigned int getBufferID() { return mMultiSampled ? mMultiSampledFrameBuffer : mFrameBuffer; }
 
 private:
 	unsigned int mFrameBuffer;
@@ -35,6 +36,7 @@ private:
 
 	int mWidth;
 	int mHeight;
+	bool mMultiSampled;
 };
 
 }

@@ -17,11 +17,12 @@ void drawScene();
 void createFBO();
 void resizeFBO();
 void createTextures();
+int width, height;
 
 unsigned int fbo = 0;
 unsigned int renderBuffer = 0;
 unsigned int depthBuffer = 0;
-unsigned int numberOfTargets = 0;
+unsigned int numberOfTargets = 1;
 unsigned int * textureTargets;
 
 unsigned int myTextureIndex;
@@ -72,6 +73,7 @@ void myDrawFun()
 {
 	//render a quad in ortho/2D mode with target texture
 
+	//enter ortho mode (2D projection)
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
@@ -81,16 +83,18 @@ void myDrawFun()
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
+	glEnable(GL_TEXTURE_2D);
 
 	glLoadIdentity();
 
 	glBindTexture(GL_TEXTURE_2D, textureTargets[0]);
 
+	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_QUADS);
-		glTexCoord2f(0.0f, 0.0f); glVertex3f(0.0f, 0.0f, 0.0f);
-		glTexCoord2f(1.0f, 0.0f); glVertex3f(1.0f, 0.0f, 0.0f);
-		glTexCoord2f(1.0f, 1.0f); glVertex3f(1.0f, 1.0f, 0.0f);
-		glTexCoord2f(0.0f, 1.0f); glVertex3f(0.0f, 1.0f, 0.0f);
+		glTexCoord2f(0.0f, 0.0f); glVertex2f(0.0f, 0.0f);
+		glTexCoord2f(1.0f, 0.0f); glVertex2f(1.0f, 0.0f);
+		glTexCoord2f(1.0f, 1.0f); glVertex2f(1.0f, 1.0f);
+		glTexCoord2f(0.0f, 1.0f); glVertex2f(0.0f, 1.0f);
 	glEnd();
 
 	//restore
@@ -99,8 +103,6 @@ void myDrawFun()
 	//exit ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
-
-	//sgct::MessageHandler::Instance()->print("Draw\n");
 }
 
 void drawScene()
@@ -108,14 +110,14 @@ void drawScene()
 	glPushAttrib( GL_ENABLE_BIT );
 	glEnable(GL_CULL_FACE);
 	glEnable(GL_TEXTURE_2D);
-	
+
 	double speed = 25.0;
 	
 	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, -3.0f);
 	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
-	glColor3f(1.0f,1.0f,1.0f);
+	glColor3f(1.0f, 1.0f, 1.0f);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
 	//draw the box
 	myBox->draw();
@@ -137,40 +139,42 @@ void myPostSyncPreDrawFun()
 	//bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo );
 	
-	unsigned int counter = 0;
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
 	sgct_core::Viewport * tmpVP;
 
-	for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
-		if( thisNode->getViewport(i)->isEnabled() )
-		{
-			glMatrixMode(GL_PROJECTION);
-			glLoadIdentity();
+	int vp_coords[4];
 
-			tmpVP = thisNode->getViewport(i);
+	for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
+	{
+		tmpVP = thisNode->getViewport(i);
+		if( tmpVP->isEnabled() )
+		{	
+			//bind texture to frame buffer
+			unsigned int id = gEngine->getTextureTargetIndex(i, 
+				gEngine->isStereo() ? sgct_core::Frustu
+			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureTargets[id], 0);
+			
+			gEngine->getViewportCoords(i, vp_coords);
+			glViewport(vp_coords[0], vp_coords[1], vp_coords[2], vp_coords[3]);
+
+			glMatrixMode(GL_PROJECTION);
+
 			glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix( sgct_core::Frustum::Mono )) );
 
 			glMatrixMode(GL_MODELVIEW);
-
 			glLoadMatrixf( glm::value_ptr( gEngine->getSceneTransform() ) );
 
-			//attach texture target to color buffer
-			glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, textureTargets[counter], 0);
-			
 			//clear
-			glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-			glClear(GL_COLOR_BUFFER_BIT);
+			glClearColor(0.0f, 0.0f, 0.2f, 1.0f);
+			glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 			//draw scene to texture target
 			drawScene();
-
-			counter++;
 		}
+	}
 
 	//unbind FBO
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	//sgct::MessageHandler::Instance()->print("Post sync\n");
 }
 
 void myInitOGLFun()
@@ -191,24 +195,15 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	//get texture target count
-	unsigned int numberOfActiveViewports = 0;
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
-		if( thisNode->getViewport(i)->isEnabled() )
-		{
-			numberOfActiveViewports++;
-		}
-
-	numberOfTargets = (gEngine->isStereo() ? numberOfActiveViewports * 2 : numberOfActiveViewports);
+	numberOfTargets = gEngine->getNumberOfTextureTargets();
 	sgct::MessageHandler::Instance()->print("Number of targets: %d\n", numberOfTargets);
+
 	//create array of texture target indexes
 	textureTargets = new unsigned int[ numberOfTargets ];
 	//init to 0
 	memset(textureTargets, 0, numberOfTargets * sizeof(unsigned int));
 
 	createFBO();
-	sgct::MessageHandler::Instance()->print("Init\n");
 }
 
 void myEncodeFun()
@@ -223,6 +218,9 @@ void myDecodeFun()
 
 void createFBO()
 {
+	//get the dimensions
+	gEngine->getFBODimensions(width, height);
+	
 	//create targets
 	createTextures();
 	
@@ -230,14 +228,13 @@ void createFBO()
 	glGenRenderbuffers(1, &renderBuffer);
 	glGenRenderbuffers(1, &depthBuffer);
 
-	int width, height;
-	gEngine->getFBODimensions(width, height);
 	sgct::MessageHandler::Instance()->print("Creating a %dx%d fbo...\n", width, height);
 
-	//attach color buffer
+	//setup color buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, renderBuffer);
 	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, renderBuffer);	
 
 	//setup depth buffer
 	glBindFramebuffer(GL_FRAMEBUFFER, fbo);
@@ -281,9 +278,6 @@ void createTextures()
 
 	//allocate
 	glGenTextures(numberOfTargets, &textureTargets[0]);
-
-	int width, height;
-	gEngine->getFBODimensions(width, height);
 
 	for( unsigned int i=0; i<numberOfTargets; i++ )
 	{

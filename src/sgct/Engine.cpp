@@ -914,8 +914,7 @@ void sgct::Engine::draw()
 	enterCurrentViewport(FBOSpace);
 
 	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
+	
 	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
 
@@ -1683,6 +1682,8 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 /*!
 	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
 	Avoid this function in the render loop for release code since it can reduse performance.
+
+	Returns true if no errors occured
 */
 bool sgct::Engine::checkForOGLErrors()
 {
@@ -1749,6 +1750,8 @@ void sgct::Engine::captureBuffer()
 			sgct::MessageHandler::Instance()->print("SGCT error: Failed to allocate %u bytes for screen capture.", dataSize);
 			return;
 		}
+		else
+			sgct::MessageHandler::Instance()->print("Allocating %u bytes for screen capture.", dataSize);
 	}
 
 	static int shotCounter = 0;
@@ -1824,8 +1827,10 @@ void sgct::Engine::captureBuffer()
 
 	shotCounter++;
 
+	glFinish(); //wait for all rendering to finish
+
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
@@ -1847,10 +1852,16 @@ void sgct::Engine::captureBuffer()
 	}
 
 	Image img;
-	img.setChannels(4);
-	img.setDataPtr( mScreen_raw_img );
-	img.setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
-	img.savePNG(screenShotFilenameLeft);
+	bool error = false;
+	if( checkForOGLErrors() ) //if no errors save the file
+	{
+		img.setChannels(4);
+		img.setDataPtr( mScreen_raw_img );
+		img.setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
+		img.savePNG(screenShotFilenameLeft);
+	}
+	else
+		error = true;
 
 	//save right eye image if stereo
 	if( tmpNode->stereo != ClusterManager::NoStereo )
@@ -1866,7 +1877,12 @@ void sgct::Engine::captureBuffer()
 			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
 		}
 
-		img.savePNG(screenShotFilenameRight);
+		if( checkForOGLErrors() ) //if no errors
+		{
+			img.savePNG(screenShotFilenameRight);
+		}
+		else
+			error = true;
 	}
 
 	img.cleanup(false);
@@ -1875,7 +1891,10 @@ void sgct::Engine::captureBuffer()
 
 	mTakeScreenshot = false;
 
-	sgct::MessageHandler::Instance()->print("Screenshot %d completed in %fs\n", shotCounter, getTime()-t0 );
+	if(error)
+		sgct::MessageHandler::Instance()->print("Error in taking screenshot/capture!\n");
+	else
+		sgct::MessageHandler::Instance()->print("Screenshot %d completed in %fs\n", shotCounter, getTime()-t0 );
 }
 
 /*!
@@ -2704,11 +2723,18 @@ void sgct::Engine::signalCond(GLFWcond &cond)
     glfwSignalCond(cond);
 }
 
+
+/*!
+	Returns pointer to FBO container
+*/
 sgct_core::OffScreenBuffer * sgct::Engine::getFBOPtr()
 { 
 	return SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
 }
 
+/*!
+	Get the width and height of FBO in pixels
+*/
 void sgct::Engine::getFBODimensions( int & width, int & height )
 {
 	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
@@ -2721,4 +2747,77 @@ void sgct::Engine::getFBODimensions( int & width, int & height )
 		width = getWindowPtr()->getHFramebufferResolution();
 		height = getWindowPtr()->getVFramebufferResolution();
 	}
+}
+
+/*!
+	Returns the number of FBO texture targets
+*/
+unsigned int sgct::Engine::getNumberOfTextureTargets()
+{
+	unsigned int textureTargets = 1;
+
+	//if stereo multiply by two
+	if( isStereo() )
+		textureTargets *= 2;
+
+	//if fisheye multiply by 4
+	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+		textureTargets *= 4;
+
+	return textureTargets;
+}
+
+/*!
+	Get the viewport coordinates in pixels for a specific viewport
+*/
+void sgct::Engine::getViewportCoords( unsigned int viewportIndex, int * coords )
+{
+	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+	{
+		int cmRes = SGCTSettings::Instance()->getCubeMapResolution();
+		coords[0] = 0;
+		coords[1] = 0;
+		coords[2] = cmRes;
+		coords[3] = cmRes;
+	}
+	else
+	{
+		sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+
+		if( viewportIndex < thisNode->getNumberOfViewports() )
+		{
+			sgct_core::Viewport * tmpVP = thisNode->getViewport( viewportIndex );
+
+			coords[0] =
+				static_cast<int>( tmpVP->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+			coords[1] =
+				static_cast<int>( tmpVP->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+			coords[2] =
+				static_cast<int>( tmpVP->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+			coords[3] =
+				static_cast<int>( tmpVP->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+		}
+		else
+			MessageHandler::Instance()->print("Error: Invalid viewport index specified!\n");
+	}
+}
+
+/*!
+	Get the texture target for a specific viewport
+*/
+unsigned int sgct::Engine::getTextureTargetIndex( unsigned int viewportIndex, sgct_core::Frustum::FrustumMode fm )
+{
+	unsigned int index = 0;
+	
+	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+	{
+		index = viewportIndex;
+		index += (fm == Frustum::StereoRightEye ? 4 : 0); //add by four if right eye 
+	}
+	else
+	{
+		index = (fm == Frustum::StereoRightEye ? 1 : 0);
+	}
+
+	return index;
 }

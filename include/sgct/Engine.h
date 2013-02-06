@@ -197,15 +197,11 @@ public:
 	*/
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
-	/*!
-		Returns pointer to FBO container
-	*/
 	sgct_core::OffScreenBuffer * getFBOPtr();
-
-	/*!
-		Get width and height of FBO in pixels
-	*/
 	void getFBODimensions( int & width, int & height );
+	unsigned int getNumberOfTextureTargets();
+	void getViewportCoords( unsigned int viewportIndex, int * coords );
+	unsigned int getTextureTargetIndex( unsigned int viewportIndex, sgct_core::Frustum::FrustumMode fm );
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters

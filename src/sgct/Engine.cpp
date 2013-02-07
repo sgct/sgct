@@ -20,7 +20,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/SGCTInternalShaders.h"
-#include "../include/sgct/Image.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
 #include <glm/gtc/constants.hpp>
@@ -32,6 +31,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 using namespace sgct_core;
 
 sgct::Engine * sgct::Engine::mInstance = NULL;
+
+void GLFWCALL screenCaptureHandler(void *arg);
 
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
@@ -49,10 +50,14 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInstance = this;
 	mNetworkConnections = NULL;
 	mConfig = NULL;
-	mScreen_raw_img = NULL;
 	mRunMode = Default_Mode;
 	mFinalFBO_Ptr = NULL;
 	mCubeMapFBO_Ptr = NULL;
+	for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
+	{
+		mframeBufferImagePtrs[i] = NULL;
+		mFrameCaptureThreads[i] = -1;
+	}
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -415,14 +420,21 @@ void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
 
-	if( mScreen_raw_img != NULL )
+	for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
 	{
-		sgct::MessageHandler::Instance()->print("Clearing screen capture buffer...\n");
-		
-		delete [] mScreen_raw_img;
-		mScreen_raw_img = NULL;
-	}
+		if( mframeBufferImagePtrs[i] != NULL )
+		{
+			sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
 
+			//kill threads that are still running
+			if( mFrameCaptureThreads[i] > 0 &&
+				glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
+				glfwDestroyThread( mFrameCaptureThreads[i] );
+		
+			delete mframeBufferImagePtrs[i];
+			mframeBufferImagePtrs[i] = NULL;
+		}
+	}
 
 	if( mCleanUpFn != NULL )
 		mCleanUpFn();
@@ -1727,6 +1739,26 @@ bool sgct::Engine::checkForOGLErrors()
 	return oglError == GL_NO_ERROR; //returns true if no errors
 }
 
+int sgct::Engine::getAvailibleCaptureThread()
+{
+	while( true )
+	{
+		for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
+		{
+			//check if thread is dead
+			if( glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_TRUE )
+			{
+				mFrameCaptureThreads[i] = -1;
+				return i;
+			}
+		}
+
+		glfwSleep( 0.01 );
+	}
+
+	return -1;
+}
+
 /*!
 	This functions saves a png screenshot or a stereoscopic pair in the current working directory.
 	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
@@ -1737,24 +1769,8 @@ bool sgct::Engine::checkForOGLErrors()
 */
 void sgct::Engine::captureBuffer()
 {
-	double t0 = getTime();
-
-	//allocate
-	if( mScreen_raw_img == NULL )
-	{
-		size_t dataSize = sizeof(unsigned char)*( 4 * getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() );
-		mScreen_raw_img = new unsigned char[ dataSize ];
-
-		if( mScreen_raw_img == NULL )
-		{
-			sgct::MessageHandler::Instance()->print("SGCT error: Failed to allocate %u bytes for screen capture.", dataSize);
-			return;
-		}
-		else
-			sgct::MessageHandler::Instance()->print("Allocating %u bytes for screen capture.", dataSize);
-	}
-
 	static int shotCounter = 0;
+	bool error = false;
 	char screenShotFilenameLeft[32];
 	char screenShotFilenameRight[32];
 
@@ -1827,65 +1843,93 @@ void sgct::Engine::captureBuffer()
 
 	shotCounter++;
 
-	glFinish(); //wait for all rendering to finish
+	if( !checkForOGLErrors() )
+		sgct::MessageHandler::Instance()->print("OpenGL error occured before capture!\n");
 
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
+	int threadIndex = getAvailibleCaptureThread();
+	if( threadIndex == -1 )
+	{
+		sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
+		return;
+	}
+	//sgct::MessageHandler::Instance()->print("Info: Thread %d selected!\n", threadIndex);
+
+	Image ** imPtr = &mframeBufferImagePtrs[ threadIndex ];
+	if( (*imPtr) == NULL )
+	{
+		(*imPtr) = new sgct_core::Image();
+		(*imPtr)->setChannels(4);
+		(*imPtr)->setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
+		(*imPtr)->allocateOrResizeData();
+	}
+	(*imPtr)->setFilename( screenShotFilenameLeft );
+
+	glFinish(); //wait for all rendering to finish
 	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{
 		glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
 		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(tmpNode->stereo == ClusterManager::Active)
 	{
 		glReadBuffer(GL_FRONT_LEFT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 
-	Image img;
-	bool error = false;
-	if( checkForOGLErrors() ) //if no errors save the file
-	{
-		img.setChannels(4);
-		img.setDataPtr( mScreen_raw_img );
-		img.setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
-		img.savePNG(screenShotFilenameLeft);
-	}
+	if( checkForOGLErrors() )
+		mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
 	else
 		error = true;
 
 	//save right eye image if stereo
 	if( tmpNode->stereo != ClusterManager::NoStereo )
 	{
+		threadIndex = getAvailibleCaptureThread();
+		if( threadIndex == -1 )
+		{
+			sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
+			return;
+		}
+		//sgct::MessageHandler::Instance()->print("Info: Thread %d selected!\n", threadIndex);
+
+		imPtr = &mframeBufferImagePtrs[ threadIndex ];
+		
+		if( (*imPtr) == NULL )
+		{
+			(*imPtr) = new sgct_core::Image();
+			(*imPtr)->setChannels(4);
+			(*imPtr)->setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
+			(*imPtr)->allocateOrResizeData();
+		}
+		(*imPtr)->setFilename( screenShotFilenameRight );
+		
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 		}
 		else if(tmpNode->stereo == ClusterManager::Active)
 		{
 			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, mScreen_raw_img);
+			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 		}
 
-		if( checkForOGLErrors() ) //if no errors
-		{
-			img.savePNG(screenShotFilenameRight);
-		}
+		if( checkForOGLErrors() )
+			mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
 		else
 			error = true;
 	}
-
-	img.cleanup(false);
 
 	glPopAttrib();
 
@@ -1893,8 +1937,15 @@ void sgct::Engine::captureBuffer()
 
 	if(error)
 		sgct::MessageHandler::Instance()->print("Error in taking screenshot/capture!\n");
-	else
-		sgct::MessageHandler::Instance()->print("Screenshot %d completed in %fs\n", shotCounter, getTime()-t0 );
+}
+
+//multi-threaded screenshot saver
+void GLFWCALL screenCaptureHandler(void *arg)
+{
+	sgct_core::Image * imPtr = reinterpret_cast<sgct_core::Image *>(arg);
+	
+	if( !imPtr->savePNG(1) )
+		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", imPtr->getFilename());
 }
 
 /*!

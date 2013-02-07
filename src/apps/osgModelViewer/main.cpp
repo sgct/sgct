@@ -4,6 +4,7 @@
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
+#include <osg/PositionAttitudeTransform>
 #include <osgUtil/Optimizer>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -17,6 +18,9 @@ osg::ref_ptr<osg::Group>			mRootNode;
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
 osg::ref_ptr<osg::Node>				mModel;
+osg::ref_ptr<osg::Switch>			mSwitch;
+osg::ref_ptr<osg::AnimationPath> animationPath;
+osg::PositionAttitudeTransform* animation;
 
 //callbacks
 void myInitOGLFun();
@@ -43,9 +47,18 @@ bool stats = false;
 bool takeScreenshot = false;
 bool light = true;
 bool culling = true;
-float scale = 0.00002f;
+
+//local only
+bool recordMode = false;
+bool addAnimationSample = false;
+bool startRecoding = false;
+double startRecodingTime = 0.0;
+
+//float scale = 0.00002f;
+float scale = 1.00000f;
 
 //other var
+double current_time = 0.0;
 bool animate = false;
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
@@ -57,7 +70,7 @@ bool modifierKey = false;
 enum mouseButtons { LEFT_MB = 0, MIDDLE_MB, RIGHT_MB };
 enum axes { X = 0, Y, Z};
 float rotationSpeed = 0.003f;
-float navigation_speed = 0.1f;
+float navigation_speed = 0.5f;
 int mouseDiff[] = { 0, 0 };
 /* Stores the positions that will be compared to measure the difference. */
 int mouseXPos[] = { 0, 0 };
@@ -74,6 +87,7 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
+	gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
 
 	for(int i=0; i<6; i++)
 		arrowButtonStatus[i] = false;
@@ -109,6 +123,7 @@ void myInitOGLFun()
 	mSceneTrans = new osg::MatrixTransform();
 	mModelTrans  = new osg::MatrixTransform();
 	mSceneScale = new osg::MatrixTransform();
+	mSwitch = new osg::Switch();
 
 	//rotate osg coordinate system to match sgct
 	mSceneScale->setMatrix( osg::Matrix::scale(scale, scale, scale) );
@@ -117,12 +132,26 @@ void myInitOGLFun()
 
 	mRootNode->getOrCreateStateSet()->setMode( GL_RESCALE_NORMAL, osg::StateAttribute::ON );
 
-	mRootNode->addChild( mSceneTrans.get() );
+	animationPath = new osg::AnimationPath;
+	animationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
+	//animationPath->setLoopMode(osg::AnimationPath::LOOP);
+
+	animation = new osg::PositionAttitudeTransform;   
+	animation->addChild( mSceneScale.get() );
+
+	mRootNode->addChild( mSwitch.get() );
+	mSwitch->insertChild( 0, mSceneTrans.get() );
+	mSwitch->insertChild( 1, animation );
 	mSceneTrans->addChild( mSceneScale.get() );
 	mSceneScale->addChild( mModelTrans.get() );
 
+	mSwitch->setSingleChildOn( 0 );
+
 	sgct::MessageHandler::Instance()->print("Loading model 'iss_all_maps_no_opacity.ive'...\n");
-	mModel = osgDB::readNodeFile("iss_all_maps_no_opacity.ive");
+	//mModel = osgDB::readNodeFile("iss_all_maps_no_opacity.ive");
+	
+	mModel = osgDB::readNodeFile("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive");
+	//mModel = osgDB::readNodeFile("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive");
 
 	if ( mModel.valid() )
 	{
@@ -142,6 +171,9 @@ void myInitOGLFun()
 
 		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
 		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
+		sgct::MessageHandler::Instance()->print("Model bounding xMin:%.3f\txMax:%.3f\txSize: %.3f\n", bb.xMin(), bb.xMax(), bb.xMax() - bb.xMin() );
+		sgct::MessageHandler::Instance()->print("Model bounding yMin:%.3f\tyMax:%.3f\tySize: %.3f\n", bb.yMin(), bb.yMax(), bb.yMax() - bb.yMin() );
+		sgct::MessageHandler::Instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
 	}
 	else
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
@@ -157,7 +189,8 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		dt = gEngine->getDt();
+		//dt = gEngine->getDt();
+		dt = 1.0 / 30.0; //30 fps
 
 		if( animate )
 			animateAngle += dt * 2.0;
@@ -227,6 +260,39 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
 
+	current_time += dt;
+
+	//set correct subtree
+	//recordMode ? mSwitch->setSingleChildOn(1) : mSwitch->setSingleChildOn(0);
+	static double t0 = 0.0;
+	if(recordMode)
+	{
+		if( startRecoding )
+		{
+			animation->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
+			startRecoding = false;
+			startRecodingTime = current_time;
+			t0 = sgct::Engine::getTime();
+		}
+
+		//fprintf(stderr, "Animationpath: %lf %lf\n", current_time - startRecodingTime, animationPath->getPeriod() );
+		if( (current_time - startRecodingTime) > animationPath->getPeriod() ) //animation has ended
+		{
+			recordMode = false;
+			sgct::MessageHandler::Instance()->print("Info: Rendering took %lfs\n", sgct::Engine::getTime() - t0);
+		}
+		else
+		{
+			mSwitch->setSingleChildOn(1);
+			gEngine->takeScreenshot();
+		}
+	}
+	else
+	{
+		mSwitch->setSingleChildOn(0);
+	}
+
+
 	if( culling )
 		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
 	else
@@ -249,7 +315,17 @@ void myPostSyncPreDrawFun()
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
 
-	mViewer->advance(dt);
+	if( addAnimationSample )
+	{
+		addAnimationSample = false;
+		static double timeStamp = 0.0;
+		animationPath->insert(timeStamp, osg::AnimationPath::ControlPoint( mSceneTrans->getMatrix().getTrans(),
+			mSceneTrans->getMatrix().getRotate()) );
+		sgct::MessageHandler::Instance()->print("Adding animation sample at: %lf (total duration: %lfs)\n", timeStamp, animationPath->getPeriod());
+		timeStamp += 1.0;
+	}
+
+	mViewer->advance(current_time);
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -268,11 +344,11 @@ void myDrawFun()
 
 	mViewer->renderingTraversals();
 	
-	if( gEngine->isMaster() )
+	/*if( gEngine->isMaster() )
 	{
 		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 35, "Scale: %.10f", scale);
 		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
-	}
+	}*/
 }
 
 void myEncodeFun()
@@ -352,6 +428,15 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				takeScreenshot = true;
 			break;
+		
+		case 'R':
+			if(action == SGCT_PRESS)
+			{
+				recordMode = !recordMode;
+				if(recordMode)
+					startRecoding = true;
+			}
+			break;
 
 		case SGCT_KEY_UP:
 			arrowButtonStatus[FORWARD] = (action == SGCT_PRESS ? true : false);
@@ -373,7 +458,12 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_SPACE:
 			if(action == SGCT_PRESS)
-				animate = !animate;
+			{
+				if(modifierKey)
+					animate = !animate;
+				else
+					addAnimationSample = true;
+			}
 			break;
 
 		case SGCT_KEY_LCTRL:

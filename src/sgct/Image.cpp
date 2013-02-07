@@ -17,6 +17,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
 
+sgct_core::Image::Image()
+{
+	mFilename = NULL;
+	mData = NULL;
+}
+
 bool sgct_core::Image::load(const char * filename)
 {
 	int length = 0;
@@ -157,7 +163,8 @@ bool sgct_core::Image::loadPNG(const char *filename)
 		return false;
 	}
 
-	mData = pb = (unsigned char*)malloc( sizeof(unsigned char)*( mChannels * mSize_x * mSize_y ) );
+	mData = pb = new unsigned char[ mChannels * mSize_x * mSize_y ];
+	//mData = pb = (unsigned char*)malloc( sizeof(unsigned char)*( mChannels * mSize_x * mSize_y ) );
     png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -176,23 +183,21 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	return true;
 }
 
-bool sgct_core::Image::savePNG(const char * filename)
+/*!
+		Compression levels 1-9.
+		-1 = Default compression
+		0 = No compression
+		1 = Best speed
+		9 = Best compression
+*/
+bool sgct_core::Image::savePNG(const char * filename, int compressionLevel)
 {
-	mFilename = NULL;
-	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
-	{
-	    return false;
-	}
+	setFilename( filename );
+	return savePNG( compressionLevel );
+}
 
-	//copy filename
-	mFilename = new char[strlen(filename)+1];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
-		return false;
-    #else
-    strcpy(mFilename, filename );
-    #endif
-
+bool sgct_core::Image::savePNG(int compressionLevel)
+{
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
@@ -213,6 +218,9 @@ bool sgct_core::Image::savePNG(const char * filename)
     png_structp png_ptr = png_create_write_struct(PNG_LIBPNG_VER_STRING, NULL, NULL, NULL);
     if (!png_ptr)
 		return false;
+
+	//set compression
+	png_set_compression_level( png_ptr, compressionLevel );
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
@@ -257,14 +265,18 @@ bool sgct_core::Image::savePNG(const char * filename)
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
 
-	png_bytep * rows = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
-    if (!rows)//alloc error
+	//png_bytep * rows = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
+	png_bytep * rows = NULL;
+	rows = new png_bytep[mSize_y];
+    if (rows == NULL)//alloc error
 		return false;
 
 	for (int y = (mSize_y-1);  y >= 0;  y--)
         rows[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
     png_write_image(png_ptr, rows);
-	free(rows); //clean up
+	
+	//free(rows); //clean up
+	delete [] rows;
 
     /* end write */
     if (setjmp(png_jmpbuf(png_ptr)))
@@ -278,16 +290,44 @@ bool sgct_core::Image::savePNG(const char * filename)
 	return true;
 }
 
+void sgct_core::Image::setFilename(const char * filename)
+{
+	if( mFilename != NULL )
+	{
+		delete [] mFilename;
+		mFilename = NULL;
+	}
+
+	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	{
+	    sgct::MessageHandler::Instance()->print("Image error: Invalid filename!\n");
+		return;
+	}
+
+	//copy filename
+	mFilename = new char[strlen(filename)+1];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
+		return;
+    #else
+		strcpy(mFilename, filename );
+    #endif
+}
+
 void sgct_core::Image::cleanup(bool releaseMemory)
 {
-	if(releaseMemory)
+	if(releaseMemory && mData != NULL)
 	{
-		free(mData);
+		delete [] mData;
+		mData = NULL;
 		sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
 	}
 
-	delete [] mFilename;
-	mFilename = NULL;
+	if( mFilename != NULL )
+	{
+		delete [] mFilename;
+		mFilename = NULL;
+	}
 }
 
 unsigned char * sgct_core::Image::getData()
@@ -323,4 +363,37 @@ void sgct_core::Image::setSize(int width, int height)
 void sgct_core::Image::setChannels(int channels)
 {
 	mChannels = channels;
+}
+
+void sgct_core::Image::allocateOrResizeData()
+{
+	if(mData == NULL)
+	{
+		try
+		{
+			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
+		}
+		catch(std::bad_alloc& ba)
+		{
+			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
+			return;
+		}
+	}
+	else //re-allocate
+	{
+		delete [] mData;
+		mData = NULL;
+
+		try
+		{
+			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
+		}
+		catch(std::bad_alloc& ba)
+		{
+			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
+			return;
+		}
+	}
+
+	sgct::MessageHandler::Instance()->print("Info: Allocated %d bytes for image data\n", mChannels * mSize_x * mSize_y);
 }

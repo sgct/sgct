@@ -198,6 +198,12 @@ bool sgct_core::Image::savePNG(const char * filename, int compressionLevel)
 
 bool sgct_core::Image::savePNG(int compressionLevel)
 {
+	if( mData == NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Can't save PNG texture file '%s'. Out of memory!\n", mFilename);
+		return false;
+	}
+	
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
@@ -376,6 +382,7 @@ void sgct_core::Image::allocateOrResizeData()
 		catch(std::bad_alloc& ba)
 		{
 			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
+			mData = NULL;
 			return;
 		}
 	}
@@ -391,6 +398,7 @@ void sgct_core::Image::allocateOrResizeData()
 		catch(std::bad_alloc& ba)
 		{
 			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
+			mData = NULL;
 			return;
 		}
 	}

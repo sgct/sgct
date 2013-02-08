@@ -1776,6 +1776,22 @@ void sgct::Engine::captureBuffer()
 
 	int thisNodeId = ClusterManager::Instance()->getThisNodeId();
 
+	/*
+		test code below
+	*/
+	static bool firstTime = true;
+	static int dataSize = getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() * 4;
+	static unsigned int pboId;
+	if(firstTime)
+	{
+		firstTime = false;
+		glGenBuffers(1, &pboId);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER,pboId);
+		glBufferData(GL_PIXEL_PACK_BUFFER, dataSize, 0, GL_STREAM_READ);
+		//unbind
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	}
+
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( shotCounter < 10 )
@@ -1851,14 +1867,34 @@ void sgct::Engine::captureBuffer()
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
+	glFinish(); //wait for all rendering to finish
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
+	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	{
+		glEnable(GL_TEXTURE_2D);	
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
+		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //invalid operaton
+	}
+	else if(tmpNode->stereo == ClusterManager::NoStereo)
+	{
+		glReadBuffer(GL_FRONT);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	}
+	else if(tmpNode->stereo == ClusterManager::Active)
+	{
+		glReadBuffer(GL_FRONT_LEFT);
+		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
+	}
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+
 	int threadIndex = getAvailibleCaptureThread();
 	if( threadIndex == -1 )
 	{
 		sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
 		return;
 	}
-	//sgct::MessageHandler::Instance()->print("Info: Thread %d selected!\n", threadIndex);
-
+	
 	Image ** imPtr = &mframeBufferImagePtrs[ threadIndex ];
 	if( (*imPtr) == NULL )
 	{
@@ -1869,39 +1905,45 @@ void sgct::Engine::captureBuffer()
 	}
 	(*imPtr)->setFilename( screenShotFilenameLeft );
 
-	glFinish(); //wait for all rendering to finish
-	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	// map the PBO to process its data by CPU
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
+	GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+	if(ptr)
 	{
-		glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-	else if(tmpNode->stereo == ClusterManager::NoStereo)
-	{
-		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-	else if(tmpNode->stereo == ClusterManager::Active)
-	{
-		glReadBuffer(GL_FRONT_LEFT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
+		memcpy( (*imPtr)->getData(), ptr, dataSize );
+		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 
-	if( checkForOGLErrors() )
-		mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+		if(checkForOGLErrors())
+			mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+		else
+			error = true;
+	}
 	else
-		error = true;
+		sgct::MessageHandler::Instance()->print("Error: Can't map data (0) from GPU in frame capture!\n");
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	//save right eye image if stereo
 	if( tmpNode->stereo != ClusterManager::NoStereo )
-	{
+	{	
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
+		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+		{
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
+			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		}
+		else if(tmpNode->stereo == ClusterManager::Active)
+		{
+			glReadBuffer(GL_FRONT_RIGHT);
+			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
+		}
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);//unmap
+
 		threadIndex = getAvailibleCaptureThread();
 		if( threadIndex == -1 )
 		{
 			sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
 			return;
 		}
-		//sgct::MessageHandler::Instance()->print("Info: Thread %d selected!\n", threadIndex);
 
 		imPtr = &mframeBufferImagePtrs[ threadIndex ];
 		
@@ -1913,23 +1955,25 @@ void sgct::Engine::captureBuffer()
 			(*imPtr)->allocateOrResizeData();
 		}
 		(*imPtr)->setFilename( screenShotFilenameRight );
-		
-		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-		{
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-		}
-		else if(tmpNode->stereo == ClusterManager::Active)
-		{
-			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-		}
 
-		if( checkForOGLErrors() )
-			mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId);
+		ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		if(ptr)
+		{
+			memcpy( (*imPtr)->getData(), ptr, dataSize );
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+
+			if(checkForOGLErrors())
+				mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+			else
+				error = true;
+		}
 		else
-			error = true;
+			sgct::MessageHandler::Instance()->print("Error: Can't map data (1) from GPU in frame capture!\n");
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	}
+
+	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 
 	glPopAttrib();
 

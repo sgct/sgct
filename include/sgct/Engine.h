@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "Image.h"
 
 #define MAX_UNIFORM_LOCATIONS 64
-#define NUMBER_OF_CAPTURE_THREADS 16
+#define NUMBER_OF_CAPTURE_THREADS 12
 
 /*! \namespace sgct
 \brief simple graphics cluster toolkit.

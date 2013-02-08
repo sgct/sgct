@@ -271,24 +271,27 @@ bool sgct_core::Image::savePNG(int compressionLevel)
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
 
-	//png_bytep * rows = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
-	png_bytep * rows = NULL;
-	rows = new png_bytep[mSize_y];
-    if (rows == NULL)//alloc error
+	png_bytep * row_ptrs = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
+    if (row_ptrs == NULL)//alloc error
 		return false;
 
 	for (int y = (mSize_y-1);  y >= 0;  y--)
-        rows[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
-    png_write_image(png_ptr, rows);
+        row_ptrs[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
+    png_write_image(png_ptr, row_ptrs);
 	
-	//free(rows); //clean up
-	delete [] rows;
-
-    /* end write */
+	/* end write */
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
 
     png_write_end(png_ptr, NULL);
+
+	//cleanup
+	/* cleanup heap allocation */
+    for (int y=0; y<mSize_y; y++)
+            free(row_ptrs[y]);
+    free(row_ptrs);
+
+	png_destroy_write_struct (&png_ptr, &info_ptr);
 
 	fclose(fp);
 

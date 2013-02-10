@@ -1,6 +1,6 @@
 tinyxml2 ver 78a773d?
-zlib 1.2.5
-lpng 1.5.8
+zlib 1.2.7
+lpng 1.5.14
 glew 1.9.0
 freetype 2.4.8
 glfw 2.7.6

@@ -21,6 +21,12 @@ sgct_core::Image::Image()
 {
 	mFilename = NULL;
 	mData = NULL;
+	mRowPtrs = NULL;
+}
+
+sgct_core::Image::~Image()
+{
+	cleanup();
 }
 
 bool sgct_core::Image::load(const char * filename)
@@ -164,8 +170,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	}
 
 	mData = pb = new unsigned char[ mChannels * mSize_x * mSize_y ];
-	//mData = pb = (unsigned char*)malloc( sizeof(unsigned char)*( mChannels * mSize_x * mSize_y ) );
-    png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
 		//png_bytep row = info_ptr->row_pointers[r];
@@ -180,6 +185,14 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	fclose(fp);
 
 	sgct::MessageHandler::Instance()->print("Image loaded %s\n", mFilename);
+
+	//clean up filename
+	if( mFilename != NULL )
+	{
+		delete [] mFilename;
+		mFilename = NULL;
+	}
+
 	return true;
 }
 
@@ -198,11 +211,8 @@ bool sgct_core::Image::savePNG(const char * filename, int compressionLevel)
 
 bool sgct_core::Image::savePNG(int compressionLevel)
 {
-	if( mData == NULL )
-	{
-		sgct::MessageHandler::Instance()->print("Can't save PNG texture file '%s'. Out of memory!\n", mFilename);
+	if( mData == NULL && !allocateOrResizeData())
 		return false;
-	}
 	
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -227,6 +237,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	//set compression
 	png_set_compression_level( png_ptr, compressionLevel );
+	png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
@@ -271,13 +282,9 @@ bool sgct_core::Image::savePNG(int compressionLevel)
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
 
-	png_bytep * row_ptrs = (png_bytep*) malloc(mSize_y * sizeof(png_bytep));
-    if (row_ptrs == NULL)//alloc error
-		return false;
-
 	for (int y = (mSize_y-1);  y >= 0;  y--)
-        row_ptrs[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
-    png_write_image(png_ptr, row_ptrs);
+        mRowPtrs[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
+    png_write_image(png_ptr, mRowPtrs);
 	
 	/* end write */
     if (setjmp(png_jmpbuf(png_ptr)))
@@ -285,17 +292,12 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
     png_write_end(png_ptr, NULL);
 
-	//cleanup
-	/* cleanup heap allocation */
-    for (int y=0; y<mSize_y; y++)
-            free(row_ptrs[y]);
-    free(row_ptrs);
-
 	png_destroy_write_struct (&png_ptr, &info_ptr);
 
 	fclose(fp);
 
 	sgct::MessageHandler::Instance()->print("Image '%s' was saved successfully!\n", mFilename);
+
 	return true;
 }
 
@@ -323,13 +325,18 @@ void sgct_core::Image::setFilename(const char * filename)
     #endif
 }
 
-void sgct_core::Image::cleanup(bool releaseMemory)
+void sgct_core::Image::cleanup()
 {
-	if(releaseMemory && mData != NULL)
+	if(mData != NULL)
 	{
 		delete [] mData;
 		mData = NULL;
-		sgct::MessageHandler::Instance()->print("Image data deleted %s\n", mFilename);
+	}
+
+	if(mRowPtrs != NULL)
+	{
+		delete [] mRowPtrs;
+		mRowPtrs = NULL;
 	}
 
 	if( mFilename != NULL )
@@ -374,19 +381,21 @@ void sgct_core::Image::setChannels(int channels)
 	mChannels = channels;
 }
 
-void sgct_core::Image::allocateOrResizeData()
+bool sgct_core::Image::allocateOrResizeData()
 {
 	if(mData == NULL)
 	{
 		try
 		{
 			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
+			mRowPtrs = new png_bytep[ mSize_y ];
 		}
 		catch(std::bad_alloc& ba)
 		{
 			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
 			mData = NULL;
-			return;
+			mRowPtrs = NULL;
+			return false;
 		}
 	}
 	else //re-allocate
@@ -394,17 +403,23 @@ void sgct_core::Image::allocateOrResizeData()
 		delete [] mData;
 		mData = NULL;
 
+		delete [] mRowPtrs;
+		mRowPtrs = NULL;
+
 		try
 		{
 			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
+			mRowPtrs = new png_bytep[ mSize_y ];
 		}
 		catch(std::bad_alloc& ba)
 		{
 			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
 			mData = NULL;
-			return;
+			mRowPtrs = NULL;
+			return false;
 		}
 	}
 
 	sgct::MessageHandler::Instance()->print("Info: Allocated %d bytes for image data\n", mChannels * mSize_x * mSize_y);
+	return true;
 }

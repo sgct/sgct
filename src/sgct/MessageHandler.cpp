@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/NetworkManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
 #include <stdlib.h>
 #include <stdio.h>

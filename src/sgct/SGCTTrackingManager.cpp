@@ -5,7 +5,6 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <GL/glfw.h>
 #include "../include/sgct/Engine.h"
 
 #include "../include/vrpn/vrpn_Tracker.h"
@@ -15,6 +14,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTTracker.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
+
+#include <GL/glfw.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

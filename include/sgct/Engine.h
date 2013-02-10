@@ -8,8 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _RENDER_ENGINE_H_
 #define _RENDER_ENGINE_H_
 
-#include "ClusterManager.h"
 #include "NetworkManager.h"
+#include "ClusterManager.h"
 #include "Statistics.h"
 #include "ReadConfig.h"
 #include "OffScreenBuffer.h"

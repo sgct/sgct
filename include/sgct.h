@@ -114,7 +114,6 @@ Web: http://www.zlib.net/
 	#endif	
 #endif
 
-#include "sgct/ogl_headers.h"
 #include "sgct/Engine.h"
 #include "sgct/SharedData.h"
 #include "sgct/TextureManager.h"
@@ -123,6 +122,7 @@ Web: http://www.zlib.net/
 #include "sgct/ShaderManager.h"
 #include "sgct/freetype.h"
 #include "sgct/SGCTVersion.h"
+#include "sgct/ogl_headers.h"
 
 #ifndef TINYXML_H
 	#define TINYXML_H "../include/external/tinyxml2.h"

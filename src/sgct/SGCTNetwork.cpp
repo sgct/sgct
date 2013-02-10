@@ -35,13 +35,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#define NO_ERROR 0L
 #endif
 
-#include <GL/glfw.h>
-#include "../include/sgct/SGCTNetwork.h"
+#include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/Engine.h"
+#include <GL/glfw.h>
 #include <stdlib.h>
 #include <stdio.h>
 

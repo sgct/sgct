@@ -26,3 +26,11 @@
 * Implemented off-axis fisheye stereo
 * Moved apect ratio handling to window class
 * Resolved wireframe rendering problem for right eye in stereo fisheye
+
+2013-02-09 SGCT ver 1.1.1 - 1.1.2
+---------------------------
+* Modified screenshot handling, now multithreaded using PBOs
+* Updated zlib (zlib 1.2.7) and libpng (lpng 1.5.14) to resolve memory leaking problems
+* Removed to include opengl32.lib and glu32.lib for visual studio libs
+* Improved image class. Better memory handling.
+* Removed some visual studio warning by moving order of includes

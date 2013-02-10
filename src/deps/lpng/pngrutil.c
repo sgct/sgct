@@ -1,8 +1,8 @@
 
 /* pngrutil.c - utilities to read a PNG file
  *
- * Last changed in libpng 1.5.7 [December 15, 2011]
- * Copyright (c) 1998-2011 Glenn Randers-Pehrson
+ * Last changed in libpng 1.5.14 [January 24, 2013]
+ * Copyright (c) 1998-2013 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
  * (Version 0.88 Copyright (c) 1995, 1996 Guy Eric Schalnat, Group 42, Inc.)
  *
@@ -432,15 +432,16 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
       /* Now check the limits on this chunk - if the limit fails the
        * compressed data will be removed, the prefix will remain.
        */
-#ifdef PNG_SET_CHUNK_MALLOC_LIMIT_SUPPORTED
-      if (png_ptr->user_chunk_malloc_max &&
+      if (prefix_size >= (~(png_size_t)0) - 1 ||
+         expanded_size >= (~(png_size_t)0) - 1 - prefix_size
+#ifdef PNG_USER_LIMITS_SUPPORTED
+         || (png_ptr->user_chunk_malloc_max &&
           (prefix_size + expanded_size >= png_ptr->user_chunk_malloc_max - 1))
 #else
-#  ifdef PNG_USER_CHUNK_MALLOC_MAX
-      if ((PNG_USER_CHUNK_MALLOC_MAX > 0) &&
+         || ((PNG_USER_CHUNK_MALLOC_MAX > 0) &&
           prefix_size + expanded_size >= PNG_USER_CHUNK_MALLOC_MAX - 1)
-#  endif
 #endif
+         )
          png_warning(png_ptr, "Exceeded size limit while expanding chunk");
 
       /* If the size is zero either there was an error and a message
@@ -448,12 +449,7 @@ png_decompress_chunk(png_structp png_ptr, int comp_type,
        * and we have nothing to do - the code will exit through the
        * error case below.
        */
-#if defined(PNG_SET_CHUNK_MALLOC_LIMIT_SUPPORTED) || \
-    defined(PNG_USER_CHUNK_MALLOC_MAX)
       else if (expanded_size > 0)
-#else
-      if (expanded_size > 0)
-#endif
       {
          /* Success (maybe) - really uncompress the chunk. */
          png_size_t new_size = 0;
@@ -1261,12 +1257,15 @@ png_handle_iCCP(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       /* Should be an error, but we can cope with it */
       png_warning(png_ptr, "Out of place iCCP chunk");
 
-   if (info_ptr != NULL && (info_ptr->valid & PNG_INFO_iCCP))
+   if ((png_ptr->mode & PNG_HAVE_iCCP) || (info_ptr != NULL &&
+      (info_ptr->valid & (PNG_INFO_iCCP|PNG_INFO_sRGB))))
    {
       png_warning(png_ptr, "Duplicate iCCP chunk");
       png_crc_finish(png_ptr, length);
       return;
    }
+
+   png_ptr->mode |= PNG_HAVE_iCCP;
 
 #ifdef PNG_MAX_MALLOC_64K
    if (length > (png_uint_32)65535L)
@@ -1279,7 +1278,7 @@ png_handle_iCCP(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
 
    png_free(png_ptr, png_ptr->chunkdata);
    png_ptr->chunkdata = (png_charp)png_malloc(png_ptr, length + 1);
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, skip))
@@ -1429,7 +1428,7 @@ png_handle_sPLT(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
     * that the PNG_MAX_MALLOC_64K test is enabled in this case, but this is a
     * potential breakage point if the types in pngconf.h aren't exactly right.
     */
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, skip))
@@ -1797,15 +1796,15 @@ png_handle_hIST(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   num = length / 2 ;
-
-   if (num != (unsigned int)png_ptr->num_palette || num >
-       (unsigned int)PNG_MAX_PALETTE_LENGTH)
+   if (length > 2*PNG_MAX_PALETTE_LENGTH ||
+       length != (unsigned int) (2*png_ptr->num_palette))
    {
       png_warning(png_ptr, "Incorrect hIST chunk length");
       png_crc_finish(png_ptr, length);
       return;
    }
+
+   num = length / 2 ;
 
    for (i = 0; i < num; i++)
    {
@@ -1956,7 +1955,7 @@ png_handle_pCAL(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, 0))
@@ -2105,7 +2104,7 @@ png_handle_sCAL(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
    png_ptr->chunkdata[slength] = 0x00; /* Null terminate the last string */
 
@@ -2265,7 +2264,7 @@ png_handle_tEXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
      return;
    }
 
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, skip))
@@ -2373,7 +2372,7 @@ png_handle_zTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, 0))
@@ -2453,7 +2452,7 @@ png_handle_iTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
    png_textp text_ptr;
    png_charp key, lang, text, lang_key;
    int comp_flag;
-   int comp_type = 0;
+   int comp_type;
    int ret;
    png_size_t slength, prefix_len, data_len;
 
@@ -2504,7 +2503,7 @@ png_handle_iTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   slength = (png_size_t)length;
+   slength = length;
    png_crc_read(png_ptr, (png_bytep)png_ptr->chunkdata, slength);
 
    if (png_crc_finish(png_ptr, 0))
@@ -2534,15 +2533,24 @@ png_handle_iTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   else
+   comp_flag = *lang++;
+   comp_type = *lang++;
+
+   /* 1.5.14: The spec says "for uncompressed text decoders shall ignore [the
+    * compression type]".  The compression flag shall be 0 (no compression) or
+    * 1 (compressed with method 0 - deflate.)
+    */
+   if (comp_flag != 0 && comp_flag != 1)
    {
-      comp_flag = *lang++;
-      comp_type = *lang++;
+      png_warning(png_ptr, "invalid iTXt compression flag");
+      png_free(png_ptr, png_ptr->chunkdata);
+      png_ptr->chunkdata = NULL;
+      return;
    }
 
-   if (comp_type || (comp_flag && comp_flag != PNG_TEXT_COMPRESSION_zTXt))
+   if (comp_flag/*compressed*/ && comp_type != 0)
    {
-      png_warning(png_ptr, "Unknown iTXt compression type or method");
+      png_warning(png_ptr, "unknown iTXt compression type");
       png_free(png_ptr, png_ptr->chunkdata);
       png_ptr->chunkdata = NULL;
       return;
@@ -2578,7 +2586,7 @@ png_handle_iTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
 
    key=png_ptr->chunkdata;
 
-   if (comp_flag)
+   if (comp_flag/*compressed*/)
       png_decompress_chunk(png_ptr, comp_type,
           (size_t)length, prefix_len, &data_len);
 
@@ -2596,7 +2604,8 @@ png_handle_iTXt(png_structp png_ptr, png_infop info_ptr, png_uint_32 length)
       return;
    }
 
-   text_ptr->compression = (int)comp_flag + 1;
+   text_ptr->compression =
+      (comp_flag ? PNG_ITXT_COMPRESSION_zTXt : PNG_ITXT_COMPRESSION_NONE);
    text_ptr->lang_key = png_ptr->chunkdata + (lang_key - key);
    text_ptr->lang = png_ptr->chunkdata + (lang - key);
    text_ptr->itxt_length = data_len;
@@ -3661,66 +3670,6 @@ png_read_filter_row_paeth_multibyte_pixel(png_row_infop row_info, png_bytep row,
    }
 }
 
-#ifdef PNG_ARM_NEON
-
-#ifdef __linux__
-#include <stdio.h>
-#include <elf.h>
-#include <asm/hwcap.h>
-
-static int png_have_hwcap(unsigned cap)
-{
-   FILE *f = fopen("/proc/self/auxv", "r");
-   Elf32_auxv_t aux;
-   int have_cap = 0;
-
-   if (!f)
-      return 0;
-
-   while (fread(&aux, sizeof(aux), 1, f) > 0)
-   {
-      if (aux.a_type == AT_HWCAP &&
-          aux.a_un.a_val & cap)
-      {
-         have_cap = 1;
-         break;
-      }
-   }
-
-   fclose(f);
-
-   return have_cap;
-}
-#endif /* __linux__ */
-
-static void
-png_init_filter_functions_neon(png_structp pp, unsigned int bpp)
-{
-#ifdef __linux__
-   if (!png_have_hwcap(HWCAP_NEON))
-      return;
-#endif
-
-   pp->read_filter[PNG_FILTER_VALUE_UP-1] = png_read_filter_row_up_neon;
-
-   if (bpp == 3)
-   {
-      pp->read_filter[PNG_FILTER_VALUE_SUB-1] = png_read_filter_row_sub3_neon;
-      pp->read_filter[PNG_FILTER_VALUE_AVG-1] = png_read_filter_row_avg3_neon;
-      pp->read_filter[PNG_FILTER_VALUE_PAETH-1] = 
-         png_read_filter_row_paeth3_neon;
-   }
-
-   else if (bpp == 4)
-   {
-      pp->read_filter[PNG_FILTER_VALUE_SUB-1] = png_read_filter_row_sub4_neon;
-      pp->read_filter[PNG_FILTER_VALUE_AVG-1] = png_read_filter_row_avg4_neon;
-      pp->read_filter[PNG_FILTER_VALUE_PAETH-1] =
-          png_read_filter_row_paeth4_neon;
-   }
-}
-#endif /* PNG_ARM_NEON */
-
 static void
 png_init_filter_functions(png_structp pp)
 {
@@ -3736,8 +3685,16 @@ png_init_filter_functions(png_structp pp)
       pp->read_filter[PNG_FILTER_VALUE_PAETH-1] =
          png_read_filter_row_paeth_multibyte_pixel;
 
-#ifdef PNG_ARM_NEON
-   png_init_filter_functions_neon(pp, bpp);
+#ifdef PNG_FILTER_OPTIMIZATIONS
+   /* To use this define PNG_FILTER_OPTIMIZATIONS as the name of a function to
+    * call to install hardware optimizations for the above functions; simply
+    * replace whatever elements of the pp->read_filter[] array with a hardware
+    * specific (or, for that matter, generic) optimization.
+    *
+    * To see an example of this examine what configure.ac does when
+    * --enable-arm-neon is specified on the command line.
+    */
+   PNG_FILTER_OPTIMIZATIONS(pp, bpp);
 #endif
 }
 

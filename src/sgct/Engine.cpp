@@ -18,10 +18,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/ShaderManager.h"
-#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/SGCTInternalShaders.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
+#include "../include/sgct/ogl_headers.h"
 #include <glm/gtc/constants.hpp>
 #include <math.h>
 #include <iostream>

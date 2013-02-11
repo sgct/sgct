@@ -22,6 +22,7 @@
     <ClCompile Include="..\sgct\NetworkManager.cpp" />
     <ClCompile Include="..\sgct\OffScreenBuffer.cpp" />
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
+    <ClCompile Include="..\sgct\ScreenCapture.cpp" />
     <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
     <ClCompile Include="..\sgct\SGCTNode.cpp" />
     <ClCompile Include="..\sgct\SGCTSettings.cpp" />
@@ -58,6 +59,7 @@
     <ClInclude Include="..\..\include\sgct\OffScreenBuffer.h" />
     <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
+    <ClInclude Include="..\..\include\sgct\ScreenCapture.h" />
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNode.h" />

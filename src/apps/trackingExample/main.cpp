@@ -98,7 +98,7 @@ void myDrawFun()
 			glPopMatrix();
 		}
 
-	float textVerticalPos = static_cast<float>(sgct::Engine::getWindowPtr()->getVResolution()) - 100.0f;
+	float textVerticalPos = static_cast<float>(sgct::Engine::getWindowPtr()->getYResolution()) - 100.0f;
 	float lineSpace = 14.0f;
 	int fontSize = 10;
 

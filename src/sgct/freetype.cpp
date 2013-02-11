@@ -30,34 +30,34 @@ inline void pushScreenCoordinateMatrix()
 	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
 	{
 		glViewport(
-			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution())));
+			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution())));
 	
 		gluOrtho2D(
 			0.0,
 			tmpNode->getCurrentViewport()->getXSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getHFramebufferResolution()),
+			static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution()),
 			0.0,
 			tmpNode->getCurrentViewport()->getYSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getVFramebufferResolution()));
+			static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution()));
 	}
 	else
 	{
 		glViewport(
-			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getHResolution())),
-			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getVResolution())));
+			static_cast<int>(tmpNode->getCurrentViewport()->getX() * static_cast<double>(tmpNode->getWindowPtr()->getXResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getYResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getXResolution())),
+			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getYResolution())));
 	
 		gluOrtho2D(
 			0.0,
 			tmpNode->getCurrentViewport()->getXSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getHResolution()),
+			static_cast<double>(tmpNode->getWindowPtr()->getXResolution()),
 			0.0,
 			tmpNode->getCurrentViewport()->getYSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getVResolution()));
+			static_cast<double>(tmpNode->getWindowPtr()->getYResolution()));
 	}
 }
 

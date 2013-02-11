@@ -13,10 +13,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "Statistics.h"
 #include "ReadConfig.h"
 #include "OffScreenBuffer.h"
-#include "Image.h"
+#include "ScreenCapture.h"
 
 #define MAX_UNIFORM_LOCATIONS 64
-#define NUMBER_OF_CAPTURE_THREADS 12
 
 /*! \namespace sgct
 \brief simple graphics cluster toolkit.
@@ -237,7 +236,6 @@ private:
 	void initFisheye();
 	void resizeFBOs();
 	void setAndClearBuffer(BufferMode mode);
-	int getAvailibleCaptureThread(); 
 	void captureBuffer();
 	void waitForAllWindowsInSwapGroupToOpen();
 
@@ -308,8 +306,7 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
-	sgct_core::Image * mframeBufferImagePtrs[NUMBER_OF_CAPTURE_THREADS];
-	int mFrameCaptureThreads[NUMBER_OF_CAPTURE_THREADS];
+	sgct_core::ScreenCapture * mScreenCapture;
 
 	std::string configFilename;
 	int mRunning;

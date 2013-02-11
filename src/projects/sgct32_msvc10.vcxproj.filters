@@ -123,6 +123,9 @@
     <ClInclude Include="..\..\include\sgct\OffScreenBuffer.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\ScreenCapture.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">
@@ -213,6 +216,9 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\OffScreenBuffer.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\ScreenCapture.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

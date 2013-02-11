@@ -32,8 +32,6 @@ using namespace sgct_core;
 
 sgct::Engine * sgct::Engine::mInstance = NULL;
 
-void GLFWCALL screenCaptureHandler(void *arg);
-
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
 #endif
@@ -53,11 +51,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRunMode = Default_Mode;
 	mFinalFBO_Ptr = NULL;
 	mCubeMapFBO_Ptr = NULL;
-	for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
-	{
-		mframeBufferImagePtrs[i] = NULL;
-		mFrameCaptureThreads[i] = -1;
-	}
+	mScreenCapture = NULL;
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -386,6 +380,18 @@ void sgct::Engine::initOGL()
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 		tmpNode->getViewport(i)->loadData();
 
+	//init PBO in screen capture
+	mScreenCapture = new ScreenCapture(12);
+	char nodeName[16];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		sprintf_s( nodeName, 16, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
+    #else
+		sprintf( nodeName, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
+    #endif
+	
+	mScreenCapture->setFilename( nodeName );
+	mScreenCapture->initOrResizePBO( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
+	
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -419,22 +425,6 @@ Clean up all resources and release memory.
 void sgct::Engine::clean()
 {
 	sgct::MessageHandler::Instance()->print("Cleaning up...\n");
-
-	for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
-	{
-		if( mframeBufferImagePtrs[i] != NULL )
-		{
-			sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
-
-			//kill threads that are still running
-			if( mFrameCaptureThreads[i] > 0 &&
-				glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
-				glfwDestroyThread( mFrameCaptureThreads[i] );
-		
-			delete mframeBufferImagePtrs[i];
-			mframeBufferImagePtrs[i] = NULL;
-		}
-	}
 
 	if( mCleanUpFn != NULL )
 		mCleanUpFn();
@@ -482,6 +472,12 @@ void sgct::Engine::clean()
 	{
 		delete mConfig;
 		mConfig = NULL;
+	}
+
+	if( mScreenCapture != NULL )
+	{
+		delete mScreenCapture;
+		mScreenCapture = NULL;
 	}
 
 	// Destroy explicitly to avoid memory leak messages
@@ -666,7 +662,10 @@ void sgct::Engine::render()
 
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
-			resizeFBOs();	
+		{
+			resizeFBOs();
+			mScreenCapture->initOrResizePBO( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
+		}
 
 		//rendering offscreen if using FBOs
 		mRenderingOffScreen = (SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO);
@@ -1088,7 +1087,7 @@ void sgct::Engine::renderFBOTexture()
 
 	glLoadIdentity();
 
-	glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+	glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
 
 	if( tmpNode->stereo > ClusterManager::Active )
 	{
@@ -1151,8 +1150,8 @@ void sgct::Engine::renderFBOTexture()
 		if( SGCTSettings::Instance()->useFXAA() )
 		{
 			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
-			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
-			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 			glUniform1i( mShaderLocs[FXAATexture], 0 );
 		}
 
@@ -1172,15 +1171,15 @@ void sgct::Engine::renderFBOTexture()
 
 		glLoadIdentity();
 
-		glViewport (0, 0, getWindowPtr()->getHResolution(), getWindowPtr()->getVResolution());
+		glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
 
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
 
 		if( SGCTSettings::Instance()->useFXAA() )
 		{
 			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
-			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
-			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
+			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 			glUniform1i( mShaderLocs[FXAATexture], 0 );
 		}
 
@@ -1264,7 +1263,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 	glPushMatrix();
-	glViewport(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution());
+	glViewport(0, 0, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution());
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
@@ -1358,10 +1357,10 @@ void sgct::Engine::loadShaders()
 	sgct::ShaderManager::Instance()->bindShader( "FXAA" );
 
 	mShaderLocs[SizeX] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "rt_w" );
-	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getHFramebufferResolution()) );
+	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
 
 	mShaderLocs[SizeY] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "rt_h" );
-	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getVFramebufferResolution()) );
+	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 
 	mShaderLocs[FXAASubPixShift] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_SUBPIX_SHIFT" );
 	glUniform1f( mShaderLocs[FXAASubPixShift], 0.25f );
@@ -1488,7 +1487,7 @@ void sgct::Engine::createTextures()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 				
 		//setup non-multisample depth buffer
 		if( SGCTSettings::Instance()->useDepthMap() )
@@ -1507,7 +1506,7 @@ void sgct::Engine::createTextures()
 #endif
 				
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
 		}
 	}
 
@@ -1563,8 +1562,8 @@ void sgct::Engine::createFBOs()
 	}
 	else
 	{
-		mFinalFBO_Ptr->createFBO(getWindowPtr()->getHFramebufferResolution(),
-			getWindowPtr()->getVFramebufferResolution(),
+		mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
+			getWindowPtr()->getYFramebufferResolution(),
 			ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
 
 		if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
@@ -1608,8 +1607,8 @@ void sgct::Engine::resizeFBOs()
 
 			createTextures();
 		
-			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getHFramebufferResolution(),
-				getWindowPtr()->getVFramebufferResolution(),
+			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
+				getWindowPtr()->getYFramebufferResolution(),
 				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
 
 			if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
@@ -1739,257 +1738,41 @@ bool sgct::Engine::checkForOGLErrors()
 	return oglError == GL_NO_ERROR; //returns true if no errors
 }
 
-int sgct::Engine::getAvailibleCaptureThread()
-{
-	while( true )
-	{
-		for(int i=0; i<NUMBER_OF_CAPTURE_THREADS; i++)
-		{
-			//check if thread is dead
-			if( glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_TRUE )
-			{
-				mFrameCaptureThreads[i] = -1;
-				return i;
-			}
-		}
-
-		glfwSleep( 0.01 );
-	}
-
-	return -1;
-}
-
 /*!
 	This functions saves a png screenshot or a stereoscopic pair in the current working directory.
 	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
-	This function is running in the same thread as the renderloop so calling this function for each frame will slow down rendering.
-	Performance is improved by using SSD drives.
-
+	
 	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
 */
 void sgct::Engine::captureBuffer()
 {
 	static int shotCounter = 0;
-	bool error = false;
-	char screenShotFilenameLeft[32];
-	char screenShotFilenameRight[32];
-
-	int thisNodeId = ClusterManager::Instance()->getThisNodeId();
-
-	/*
-		test code below
-	*/
-	static bool firstTime = true;
-	static int dataSize = getWindowPtr()->getHFramebufferResolution() * getWindowPtr()->getVFramebufferResolution() * 4;
-	static unsigned int pboId;
-	if(firstTime)
-	{
-		firstTime = false;
-		glGenBuffers(1, &pboId);
-		glBindBuffer(GL_PIXEL_PACK_BUFFER,pboId);
-		glBufferData(GL_PIXEL_PACK_BUFFER, dataSize, 0, GL_STREAM_READ);
-		//unbind
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-	}
-
-
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if( shotCounter < 10 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_00000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 100 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_0000%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_0000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 1000 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_000%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 10000 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_00%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_00%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 100000 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_0%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_0%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 1000000 )
-	{
-		sprintf_s( screenShotFilenameLeft, sizeof(screenShotFilenameLeft), "sgct_node%d_l_%d.png", thisNodeId, shotCounter);
-		sprintf_s( screenShotFilenameRight, sizeof(screenShotFilenameRight), "sgct_node%d_r_%d.png", thisNodeId, shotCounter);
-	}
-#else
-    if( shotCounter < 10 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_00000%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_00000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 100 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_0000%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_0000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 1000 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_000%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_000%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 10000 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_00%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_00%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 100000 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_0%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_0%d.png", thisNodeId, shotCounter);
-	}
-	else if( shotCounter < 1000000 )
-	{
-		sprintf( screenShotFilenameLeft, "sgct_node%d_l_%d.png", thisNodeId, shotCounter);
-		sprintf( screenShotFilenameRight, "sgct_node%d_r_%d.png", thisNodeId, shotCounter);
-	}
-#endif
-
-	shotCounter++;
-
-	if( !checkForOGLErrors() )
-		sgct::MessageHandler::Instance()->print("OpenGL error occured before capture!\n");
-
-	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	glFinish(); //wait for all rendering to finish
-
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
-	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
-		glEnable(GL_TEXTURE_2D);	
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-		glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0); //invalid operaton
-	}
-	else if(tmpNode->stereo == ClusterManager::NoStereo)
-	{
-		glReadBuffer(GL_FRONT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	}
-	else if(tmpNode->stereo == ClusterManager::Active)
-	{
-		glReadBuffer(GL_FRONT_LEFT);
-		glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
-	}
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-	int threadIndex = getAvailibleCaptureThread();
-	if( threadIndex == -1 )
-	{
-		sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
-		return;
-	}
-	
-	Image ** imPtr = &mframeBufferImagePtrs[ threadIndex ];
-	if( (*imPtr) == NULL )
-	{
-		(*imPtr) = new sgct_core::Image();
-		(*imPtr)->setChannels(4);
-		(*imPtr)->setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
-		(*imPtr)->allocateOrResizeData();
-	}
-	(*imPtr)->setFilename( screenShotFilenameLeft );
-
-	// map the PBO to process its data by CPU
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
-	GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-	if(ptr)
-	{
-		memcpy( (*imPtr)->getData(), ptr, dataSize );
-		glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-
-		if(checkForOGLErrors())
-			mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], shotCounter, ScreenCapture::FBO_Texture );
 		else
-			error = true;
+			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
-		sgct::MessageHandler::Instance()->print("Error: Can't map data (0) from GPU in frame capture!\n");
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-	//save right eye image if stereo
-	if( tmpNode->stereo != ClusterManager::NoStereo )
-	{	
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId); //map pbo
+	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0);
-		}
-		else if(tmpNode->stereo == ClusterManager::Active)
-		{
-			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution(), GL_RGBA, GL_UNSIGNED_BYTE, 0);
-		}
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);//unmap
-
-		threadIndex = getAvailibleCaptureThread();
-		if( threadIndex == -1 )
-		{
-			sgct::MessageHandler::Instance()->print("Error in finding availible thread for screenshot/capture!\n");
-			return;
-		}
-
-		imPtr = &mframeBufferImagePtrs[ threadIndex ];
-		
-		if( (*imPtr) == NULL )
-		{
-			(*imPtr) = new sgct_core::Image();
-			(*imPtr)->setChannels(4);
-			(*imPtr)->setSize( getWindowPtr()->getHFramebufferResolution(), getWindowPtr()->getVFramebufferResolution() );
-			(*imPtr)->allocateOrResizeData();
-		}
-		(*imPtr)->setFilename( screenShotFilenameRight );
-
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, pboId);
-		ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-		if(ptr)
-		{
-			memcpy( (*imPtr)->getData(), ptr, dataSize );
-			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-
-			if(checkForOGLErrors())
-				mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
-			else
-				error = true;
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], shotCounter, ScreenCapture::FBO_Left_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[RightEye], shotCounter, ScreenCapture::FBO_Right_Texture );
 		}
 		else
-			sgct::MessageHandler::Instance()->print("Error: Can't map data (1) from GPU in frame capture!\n");
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		{
+			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Left_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Right_Front_Buffer );
+		}
 	}
 
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
-
-	glPopAttrib();
-
+	shotCounter++;
 	mTakeScreenshot = false;
-
-	if(error)
-		sgct::MessageHandler::Instance()->print("Error in taking screenshot/capture!\n");
-}
-
-//multi-threaded screenshot saver
-void GLFWCALL screenCaptureHandler(void *arg)
-{
-	sgct_core::Image * imPtr = reinterpret_cast<sgct_core::Image *>(arg);
-	
-	if( !imPtr->savePNG(1) )
-		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", imPtr->getFilename());
 }
 
 /*!
@@ -2420,24 +2203,24 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 		if( vs == ScreenSpace || SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO )
 		{
 			currentViewportCoords[0] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getXResolution()));
 			currentViewportCoords[1] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getYResolution()));
 			currentViewportCoords[2] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getXResolution()));
 			currentViewportCoords[3] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getYResolution()));
 		}
 		else
 		{
 			currentViewportCoords[0] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getX() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
 			currentViewportCoords[1] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getY() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
 			currentViewportCoords[2] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
 			currentViewportCoords[3] =
-				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+				static_cast<int>( tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
 		}
 	}
 
@@ -2839,8 +2622,8 @@ void sgct::Engine::getFBODimensions( int & width, int & height )
 	}
 	else
 	{
-		width = getWindowPtr()->getHFramebufferResolution();
-		height = getWindowPtr()->getVFramebufferResolution();
+		width = getWindowPtr()->getXFramebufferResolution();
+		height = getWindowPtr()->getYFramebufferResolution();
 	}
 }
 
@@ -2884,13 +2667,13 @@ void sgct::Engine::getViewportCoords( unsigned int viewportIndex, int * coords )
 			sgct_core::Viewport * tmpVP = thisNode->getViewport( viewportIndex );
 
 			coords[0] =
-				static_cast<int>( tmpVP->getX() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+				static_cast<int>( tmpVP->getX() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
 			coords[1] =
-				static_cast<int>( tmpVP->getY() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+				static_cast<int>( tmpVP->getY() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
 			coords[2] =
-				static_cast<int>( tmpVP->getXSize() * static_cast<double>(getWindowPtr()->getHFramebufferResolution()));
+				static_cast<int>( tmpVP->getXSize() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
 			coords[3] =
-				static_cast<int>( tmpVP->getYSize() * static_cast<double>(getWindowPtr()->getVFramebufferResolution()));
+				static_cast<int>( tmpVP->getYSize() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
 		}
 		else
 			MessageHandler::Instance()->print("Error: Invalid viewport index specified!\n");

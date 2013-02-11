@@ -48,19 +48,19 @@ public:
 	/*!
 		\returns Get the horizontal window resolution.
 	*/
-	inline int getHResolution() { return mWindowRes[0]; }
+	inline int getXResolution() { return mWindowRes[0]; }
 	/*!
 		\returns Get the vertical window resolution.
 	*/
-	inline int getVResolution() { return mWindowRes[1]; }
+	inline int getYResolution() { return mWindowRes[1]; }
 	/*!
 		\returns Get the horizontal frame buffer resolution.
 	*/
-	inline int getHFramebufferResolution() { return mFramebufferResolution[0]; }
+	inline int getXFramebufferResolution() { return mFramebufferResolution[0]; }
 	/*!
 		\returns Get the vertical frame buffer resolution.
 	*/
-	inline int getVFramebufferResolution() { return mFramebufferResolution[1]; }
+	inline int getYFramebufferResolution() { return mFramebufferResolution[1]; }
 	//! \returns the aspect ratio of the window 
 	inline float getAspectRatio() { return mAspectRatio; }
 

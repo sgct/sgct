@@ -76,7 +76,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
     if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
 		return false;
     #else
-    strcpy(mFilename, filename );
+		strcpy(mFilename, filename );
     #endif
 
 	unsigned char *pb;

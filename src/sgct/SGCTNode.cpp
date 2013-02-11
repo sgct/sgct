@@ -155,13 +155,13 @@ sgct_core::Viewport * sgct_core::SGCTNode::getViewport(unsigned int index)
 void sgct_core::SGCTNode::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *
-		static_cast<double>(getWindowPtr()->getHResolution()));
+		static_cast<double>(getWindowPtr()->getXResolution()));
 	y = static_cast<int>(getCurrentViewport()->getY() *
-		static_cast<double>(getWindowPtr()->getVResolution()));
+		static_cast<double>(getWindowPtr()->getYResolution()));
 	xSize = static_cast<int>(getCurrentViewport()->getXSize() *
-		static_cast<double>(getWindowPtr()->getHResolution()));
+		static_cast<double>(getWindowPtr()->getXResolution()));
 	ySize = static_cast<int>(getCurrentViewport()->getYSize() *
-		static_cast<double>(getWindowPtr()->getVResolution()));
+		static_cast<double>(getWindowPtr()->getYResolution()));
 }
 
 std::size_t sgct_core::SGCTNode::getNumberOfViewports()

@@ -383,41 +383,35 @@ void sgct_core::Image::setChannels(int channels)
 
 bool sgct_core::Image::allocateOrResizeData()
 {
-	if(mData == NULL)
-	{
-		try
-		{
-			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
-			mRowPtrs = new png_bytep[ mSize_y ];
-		}
-		catch(std::bad_alloc& ba)
-		{
-			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
-			mData = NULL;
-			mRowPtrs = NULL;
-			return false;
-		}
-	}
-	else //re-allocate
+	if(mData != NULL) //re-allocate
 	{
 		delete [] mData;
 		mData = NULL;
 
 		delete [] mRowPtrs;
 		mRowPtrs = NULL;
+	}
 
-		try
-		{
-			mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
-			mRowPtrs = new png_bytep[ mSize_y ];
-		}
-		catch(std::bad_alloc& ba)
-		{
-			sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s)\n", mChannels * mSize_x * mSize_y, ba.what());
-			mData = NULL;
-			mRowPtrs = NULL;
-			return false;
-		}
+	try
+	{
+		mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
+	}
+	catch(std::bad_alloc& ba)
+	{
+		sgct::MessageHandler::Instance()->print("Error: Failed to allocate %d bytes of image data (%s).\n", mChannels * mSize_x * mSize_y, ba.what());
+		mData = NULL;
+		return false;
+	}
+
+	try
+	{
+		mRowPtrs = new png_bytep[ mSize_y ];
+	}
+	catch(std::bad_alloc& ba)
+	{
+		sgct::MessageHandler::Instance()->print("Error: Failed to allocate pointers for image data (%s).\n", ba.what());
+		mRowPtrs = NULL;
+		return false;
 	}
 
 	sgct::MessageHandler::Instance()->print("Info: Allocated %d bytes for image data\n", mChannels * mSize_x * mSize_y);

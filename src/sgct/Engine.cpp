@@ -41,6 +41,20 @@ GLEWContext * glewGetContext();
 
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
+Note that parameter with one '\-' are followed by arguments but parameters with '\-\-' are just options without arguments.
+
+Parameter     | Description
+------------- | -------------
+-config <filename> | set xml confiuration file
+-local <integer> | set which node in configuration that is the localhost (index starts at 0)
+-numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
+--client | run the application as client (only available when running as local) 
+--slave | run the application as client (only available when running as local)
+--Ignore-Sync | disable frame sync
+--No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
+--Regular-FBO | use regular frame buffer objects without multi sampling
+--MultiSampled-FBO | use multisampled frame buffer objects (default)
+--FXAA | use fast approximate anti-aliasing shader
 */
 sgct::Engine::Engine( int& argc, char**& argv )
 {
@@ -86,6 +100,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mFrameBufferTextures[2] = 0;
 	mDepthBufferTextures[0] = 0;
 	mDepthBufferTextures[1] = 0;
+
+	mShotCounter = 0;
 
 	for(unsigned int i=0; i<MAX_UNIFORM_LOCATIONS; i++)
 		mShaderLocs[i] = -1;
@@ -148,6 +164,10 @@ Engine initiation that:
  2. Set up the network communication
  3. Create a window
  4. Set up OpenGL
+	4.1 Create textures
+	4.2 Init FBOs
+	4.3 Init VBOs
+	4.4 Init PBOs
 
  @param rm rm is the optional run mode. If any problems are experienced with Open Scene Graph then use the OSG_Encapsulation_Mode.
 */
@@ -381,7 +401,7 @@ void sgct::Engine::initOGL()
 		tmpNode->getViewport(i)->loadData();
 
 	//init PBO in screen capture
-	mScreenCapture = new ScreenCapture(12);
+	mScreenCapture = new ScreenCapture();
 	char nodeName[16];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 		sprintf_s( nodeName, 16, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
@@ -1746,32 +1766,30 @@ bool sgct::Engine::checkForOGLErrors()
 */
 void sgct::Engine::captureBuffer()
 {
-	static int shotCounter = 0;
-
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], shotCounter, ScreenCapture::FBO_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
 		else
-			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], shotCounter, ScreenCapture::FBO_Left_Texture );
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[RightEye], shotCounter, ScreenCapture::FBO_Right_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
 		}
 		else
 		{
-			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Left_Front_Buffer );
-			mScreenCapture->SaveScreenCapture( 0, shotCounter, ScreenCapture::Right_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
 		}
 	}
 
-	shotCounter++;
+	mShotCounter++;
 	mTakeScreenshot = false;
 }
 
@@ -1958,6 +1976,19 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			SGCTSettings::Instance()->setFXAA(true);
 			argumentsToRemove.push_back(i);
 			i++;
+		}
+		else if( strcmp(argv[i],"-numberOfCaptureThreads") == 0 && argc > (i+1) )
+		{
+			int tmpi = -1;
+			std::stringstream ss( argv[i+1] );
+			ss >> tmpi;
+			
+			if(tmpi > 0)
+				SGCTSettings::Instance()->setNumberOfCaptureThreads( tmpi );
+
+            argumentsToRemove.push_back(i);
+            argumentsToRemove.push_back(i+1);
+			i+=2;
 		}
 		else
 			i++; //iterate

@@ -5,19 +5,18 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
-
 #include "../include/sgct/ScreenCapture.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Engine.h"
+#include "../include/sgct/SGCTSettings.h"
 #include <string>
 
 void GLFWCALL screenCaptureHandler(void *arg);
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
-	mNumberOfThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
+	mNumberOfThreads = SGCTSettings::Instance()->getNumberOfCaptureThreads();
 	init();
 }
 
@@ -67,6 +66,14 @@ sgct_core::ScreenCapture::~ScreenCapture()
 	}
 }
 
+/*!
+	Inits the pixel buffer object (PBO) or re-sizes it if the frame buffer size have changed.
+
+	@param x x is the horizontal pixel resolution of the frame buffer
+	@param y y is the vertical pixel resolution of the frame buffer
+
+	If PBOs are not supported nothing will and the screenshot process will fall back on slower GPU data fetching.
+*/
 void sgct_core::ScreenCapture::initOrResizePBO(int x, int y)
 {
 	if(!GLEW_EXT_pixel_buffer_object)
@@ -112,6 +119,19 @@ void sgct_core::ScreenCapture::initOrResizePBO(int x, int y)
 	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 }
 
+/*!
+This function saves the images to disc.
+
+@param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering. If normal front buffer is used then this parameter has no effect.
+@param frameNumber frameNumber is the index that will be added to the filename
+@param cm cm is the capture mode used and can be one of the following:
+	1. FBO_Texture
+	2. FBO_Left_Texture
+	3. FBO_Right_Texture
+	4. Front_Buffer
+	5. Left_Front_Buffer
+	6. Right_Front_Buffer
+*/
 void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
 {
 	bool error = false;
@@ -131,7 +151,18 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		(*imPtr) = new sgct_core::Image();
 		(*imPtr)->setChannels( mChannels );
 		(*imPtr)->setSize( mX, mY );
-		(*imPtr)->allocateOrResizeData();
+		
+		if( !(*imPtr)->allocateOrResizeData() ) //if allocation fails
+		{
+			//wait and try again
+			sgct::MessageHandler::Instance()->print("Warning: Failed to allocate image memory! Trying again...\n");
+			glfwSleep(0.1);
+			if( !(*imPtr)->allocateOrResizeData() ) 
+			{
+				sgct::MessageHandler::Instance()->print("Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename);
+				return;
+			}
+		}
 	}
 	(*imPtr)->setFilename( mScreenShotFilename );
 	
@@ -248,6 +279,8 @@ void sgct_core::ScreenCapture::init()
 		mframeBufferImagePtrs[i] = NULL;
 		mFrameCaptureThreads[i] = -1;
 	}
+
+	sgct::MessageHandler::Instance()->print("Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
 
 void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
@@ -263,12 +296,12 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 
 	case FBO_Left_Texture:
 	case Left_Front_Buffer:
-		eye.assign("_L_");
+		eye.assign("_L");
 		break;
 
 	case FBO_Right_Texture:
 	case Right_Front_Buffer:
-		eye.assign("_R_");
+		eye.assign("_R");
 		break;
 	}
 	
@@ -327,5 +360,7 @@ void GLFWCALL screenCaptureHandler(void *arg)
 	sgct_core::Image * imPtr = reinterpret_cast<sgct_core::Image *>(arg);
 	
 	if( !imPtr->savePNG(1) )
+	{
 		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", imPtr->getFilename());
+	}
 }

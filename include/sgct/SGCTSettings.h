@@ -54,6 +54,7 @@ public:
 	void setFXAA(bool state);
 	void setDepthMapUsage(bool state);
 	void setFBOMode(FBOMode mode);
+	void setNumberOfCaptureThreads(int count);
 	
 	int getCubeMapResolution();
 	float getDomeDiameter();
@@ -70,6 +71,8 @@ public:
 	inline bool useDepthMap() { return mUseDepthMap; }
 	//! Returns the FBO mode.
 	inline FBOMode getFBOMode() { return mFBOMode; }
+	//! Get the number of capture threads (for screenshot recording)
+	inline int getNumberOfCaptureThreads() { return mNumberOfCaptureThreads; }
 
 private:
 	SGCTSettings();
@@ -92,6 +95,7 @@ private:
 	float mFisheyeOffset[3];
 	bool mFisheyeOffaxis;
 	float mCropFactors[4];
+	int mNumberOfCaptureThreads;
 	std::string mFisheyeOverlayFilename;
 
 	//FXAA

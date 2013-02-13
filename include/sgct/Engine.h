@@ -36,6 +36,9 @@ class Engine
 {
 //all enums
 public:
+	/*!
+		The different run modes used by the init function
+	*/
 	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
 
 private:
@@ -53,26 +56,74 @@ public:
 	bool init(RunMode rm = Default_Mode);
 	void terminate();
 	void render();
-	//! Get the static pointer to the engine
+	/*!
+		\returns the static pointer to the engine instance
+	*/
 	static Engine * getPtr() { return mInstance; }
-	//! Get the static pointer to the engine
+	/*!
+		\returns the static pointer to the engine instance
+	*/
 	static Engine * Instance() { return mInstance; }
 
 	const double & getDt();
 	const double & getDrawTime();
 	const double & getSyncTime();
+	
+	/*!
+		\returns the clear color as 4 floats (RGBA)
+	*/
 	const float * getClearColor() { return mClearColor; }
+	/*!
+		\returns the clear color surrounding the fisheye circle as 4 floats (RGBA)
+	*/
 	const float * getFisheyeClearColor() { return mFisheyeClearColor; }
+	/*!
+		\returns the near clipping plane distance in meters
+	*/
+	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
+	/*!
+		\returns the far clipping plane distance in meters
+	*/
+	const float& getFarClippingPlane() const { return mFarClippingPlaneDist; }
+
 	void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
 	void setEyeSeparation(float eyeSeparation);
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
-	const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
-	const float& getFarClippingPlane() const { return mFarClippingPlaneDist; }
+	
+	/*!
+		\param state of the wireframe rendering
+	*/
 	void setWireframe(bool state) { mShowWireframe = state; }
+	/*!
+		Set if the info text should be visible or not
+		
+		\param state of the info text rendering
+	*/
 	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
+
+	/*!
+		Set if the statistics graph should be visible or not
+		
+		\param state of the statistics graph rendering
+	*/
 	void setStatsGraphVisibility(bool state) { mShowGraph = state; }
+	
+	/*!
+		Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled then two screenshots will be saved per frame, one for the left eye and one for the right eye.
+		To record frames for a movie simply call this function every frame you wish to record. The read to disk is multi-threaded and maximum number of threads can be set using:
+		-numberOfCaptureThreads command line argument.
+	*/
 	void takeScreenshot() { mTakeScreenshot = true; }
+	/*! 
+		\returns the current screenshot number (file index)
+	*/
+	int getScreenShotNumber() { return mShotCounter; }
+	/*!
+		Set the screenshot number (exising images will be replaced)
+		\param mShotCounter is the frame number which will be added to the filename of the screenshot
+	*/
+	void setScreenShotNumber(int number) {  mShotCounter = number; }
 
 	size_t createTimer( double millisec, void(*fnPtr)(size_t) );
 	void stopTimer(size_t id);
@@ -147,10 +198,14 @@ public:
 	
 	/*!
 		Check and print if any openGL error has occured
+
+		/returns false if any error occured
 	*/
 	static bool checkForOGLErrors();
 
-	//! Get the user's eye separation in meters
+	/*!
+		Get the user's eye separation in meters
+		*/
 	static float getEyeSeparation() { return mInstance->getUserPtr()->getEyeSeparation(); }
 
 	/*!
@@ -163,10 +218,13 @@ public:
 	*/
 	inline bool isDisplayInfoRendered() { return mShowInfo; }
 
-	//! Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
+	/*!
+		Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
+	*/
 	inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
 	
-	/*! Returns the active frustum which can be one of the following:
+	/*! 
+		Returns the active frustum which can be one of the following:
 		- Mono
 		- Stereo Left
 		- Stereo Right
@@ -279,6 +337,7 @@ private:
 	float mFisheyeQuadVerts[20];
 
 	int localRunningMode;
+	int mShotCounter;
 	sgct_core::Frustum::FrustumMode mActiveFrustum;
 	int currentViewportCoords[4];
 

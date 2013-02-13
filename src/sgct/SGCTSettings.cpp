@@ -8,6 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/MessageHandler.h"
 
+#define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
+
 sgct_core::SGCTSettings * sgct_core::SGCTSettings::mInstance = NULL;
 
 sgct_core::SGCTSettings::SGCTSettings()
@@ -26,6 +28,8 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mFisheyeOffset[1] = 0.0f;
 	mFisheyeOffset[2] = 0.0f;
 	mFisheyeOffaxis = false;
+
+	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseFXAA = false;
 	mUseDepthMap = false;
@@ -137,6 +141,14 @@ Set the FBO mode. This is done internally using SGCT config file.
 void sgct_core::SGCTSettings::setFBOMode(sgct_core::SGCTSettings::FBOMode mode)
 {
 	mFBOMode = mode;
+}
+
+/*!
+Set the number of capture threads used by SGCT (multi-threaded screenshots)
+*/
+void sgct_core::SGCTSettings::setNumberOfCaptureThreads(int count)
+{
+	mNumberOfCaptureThreads = count;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer

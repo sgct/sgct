@@ -15,9 +15,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core
 {
 
+/*!
+	This class is used internally by SGCT and is called when using the takeScreenshot function from the Engine.
+	Screenshots are saved as PNG-files and and can also be used for movie recording.
+*/
 class ScreenCapture
 {
 public:
+	//! The different capture enums used by the SaveScreenCapture function
 	enum CaptureMode { FBO_Texture = 0, FBO_Left_Texture, FBO_Right_Texture, Front_Buffer, Left_Front_Buffer, Right_Front_Buffer };
 
 	ScreenCapture();

@@ -17,7 +17,7 @@ namespace sgct_core
 {
 
 /*!
-	This class holds and manages viewportdata.
+	This class holds and manages viewportdata and calculates frustums
 */
 class Viewport
 {

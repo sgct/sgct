@@ -14,7 +14,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{74BC8ED9-61EE-468E-8A44-B421A04286D4}</ProjectGuid>
+    <ProjectGuid>{5A40274C-19EB-4B0E-956C-B0C042287469}</ProjectGuid>
     <RootNamespace>postProcessing</RootNamespace>
     <ProjectName>postProcessing</ProjectName>
   </PropertyGroup>

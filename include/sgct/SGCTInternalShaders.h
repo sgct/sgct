@@ -314,6 +314,33 @@ namespace sgct_core
 					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
 			}\n";
 
+		//--------> vertical interlaced shaders
+		const std::string Vertical_Interlaced_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				float fval = gl_FragCoord.y * 0.5;\n\
+				if( (fval - floor(fval)) > 0.5 )\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+				else\n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
+			}\n";
+
+		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				float fval = gl_FragCoord.y * 0.5;\n\
+				if( (fval - floor(fval)) > 0.5 )\n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
+				else\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+			}\n";
+
 		const std::string FXAA_Vert_Shader = "\
 			varying vec4 posPos;\n\
 			//#define FXAA_SUBPIX_SHIFT (1.0/4.0)\n\

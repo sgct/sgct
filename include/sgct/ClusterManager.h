@@ -44,8 +44,14 @@ public:
 		}
 	}
 
+	/*!
+		Different modes for warping/edge blending meshes 
+	*/
 	enum MeshImplementation { VBO_INDEX=0, VBO_ARRAY, DISPLAY_LIST };
-	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted };
+	/*!
+		Different stereo modes used for rendering
+	*/
+	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted };
 
 	void addNode(SGCTNode node);
 	std::size_t getNumberOfNodes() const { return nodes.size(); }

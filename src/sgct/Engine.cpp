@@ -916,10 +916,10 @@ void sgct::Engine::renderDisplayInfo()
 	{
 		glDrawBuffer(GL_BACK_LEFT);
 		glReadBuffer(GL_BACK_LEFT);
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye: Left");
 		glDrawBuffer(GL_BACK_RIGHT);
 		glReadBuffer(GL_BACK_RIGHT);
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye:          Right");
 		glDrawBuffer(GL_BACK);
 		glReadBuffer(GL_BACK);
 	}
@@ -927,11 +927,11 @@ void sgct::Engine::renderDisplayInfo()
 	{
 		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
-			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye: Left");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye: Left");
 		}
 		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
-			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Active eye:          Right");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye:          Right");
 		}
 	}
 	glPopAttrib();
@@ -1131,6 +1131,14 @@ void sgct::Engine::renderFBOTexture()
 
 		case ClusterManager::Checkerboard_Inverted:
 			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+			break;
+
+		case ClusterManager::Vertical_Interlaced:
+			sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced" );
+			break;
+
+		case ClusterManager::Vertical_Interlaced_Inverted:
+			sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced_Inverted" );
 			break;
 		}
 
@@ -1469,6 +1477,26 @@ void sgct::Engine::loadShaders()
 		sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
 		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "LeftTex" );
 		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Checkerboard_Inverted" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Vertical_Interlaced )
+	{
+		sgct::ShaderManager::Instance()->addShader("Vertical_Interlaced", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Vertical_Interlaced_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Vertical_Interlaced" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Vertical_Interlaced" ).getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+		glUniform1i( mShaderLocs[RightTex], 1 );
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else if( tmpNode->stereo == ClusterManager::Vertical_Interlaced_Inverted )
+	{
+		sgct::ShaderManager::Instance()->addShader("Vertical_Interlaced_Inverted", sgct_core::shaders::Anaglyph_Vert_Shader, sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced_Inverted" );
+		mShaderLocs[LeftTex] = sgct::ShaderManager::Instance()->getShader( "Vertical_Interlaced_Inverted" ).getUniformLocation( "LeftTex" );
+		mShaderLocs[RightTex] = sgct::ShaderManager::Instance()->getShader( "Vertical_Interlaced_Inverted" ).getUniformLocation( "RightTex" );
 		glUniform1i( mShaderLocs[LeftTex], 0 );
 		glUniform1i( mShaderLocs[RightTex], 1 );
 		sgct::ShaderManager::Instance()->unBindShader();

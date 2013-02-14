@@ -34,3 +34,7 @@
 * Removed to include opengl32.lib and glu32.lib for visual studio libs
 * Improved image class. Better memory handling.
 * Removed some visual studio warning by moving order of includes
+
+2013-02-14 SGCT ver 1.1.3
+---------------------------
+* Added support for vertical interlaced stereo for polirized LCD screens

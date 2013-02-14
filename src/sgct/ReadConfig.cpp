@@ -694,6 +694,10 @@ int sgct_core::ReadConfig::getStereoType( const std::string type )
 		return ClusterManager::Anaglyph_Amber_Blue;
 	else if( strcmp( type.c_str(), "anaglyph_wimmer" ) == 0 )
 		return ClusterManager::Anaglyph_Red_Cyan_Wimmer;
+	else if( strcmp( type.c_str(), "vertical_interlaced" ) == 0 )
+		return ClusterManager::Vertical_Interlaced;
+	else if( strcmp( type.c_str(), "vertical_interlaced_inverted" ) == 0 )
+		return ClusterManager::Vertical_Interlaced_Inverted;
 
 	//if match not found
 	return ClusterManager::NoStereo;

@@ -696,7 +696,7 @@ int sgct_core::ReadConfig::getStereoType( const std::string type )
 		return ClusterManager::Anaglyph_Red_Cyan_Wimmer;
 
 	//if match not found
-	return -1;
+	return ClusterManager::NoStereo;
 }
 
 int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )

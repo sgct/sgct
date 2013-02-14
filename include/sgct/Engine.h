@@ -189,7 +189,7 @@ public:
 	/*!
 		Returns true if any kind of stereo is enabled
 	*/
-	static bool isStereo() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->stereo != sgct_core::ClusterManager::NoStereo; }
+	static bool isStereo() { return (sgct_core::ClusterManager::Instance()->getThisNodePtr()->stereo != sgct_core::ClusterManager::NoStereo); }
 	
 	/*!
 		Returns a pointer to the tracking manager pointer
@@ -256,11 +256,9 @@ public:
 	*/
 	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
+	bool isFisheye();
 	sgct_core::OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
-	unsigned int getNumberOfTextureTargets();
-	void getViewportCoords( unsigned int viewportIndex, int * coords );
-	unsigned int getTextureTargetIndex( unsigned int viewportIndex, sgct_core::Frustum::FrustumMode fm );
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters

@@ -327,7 +327,9 @@ void sgct_core::SGCTNetwork::iterateFrameCounter()
 
 void sgct_core::SGCTNetwork::pushClientMessage()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::pushClientMessage\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::pushClientMessage\n");
+#endif
 
 	//The servers' render function is locked until a message starting with the ack-byte is received.
 	int currentFrame = getSendFrame();
@@ -385,7 +387,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
 int sgct_core::SGCTNetwork::getSendFrame()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getSendFrame\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getSendFrame\n");
+#endif
 	int tmpi;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpi = mSendFrame;
@@ -395,7 +399,9 @@ int sgct_core::SGCTNetwork::getSendFrame()
 
 bool sgct_core::SGCTNetwork::compareFrames()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::compareFrames\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::compareFrames\n");
+#endif
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpb = (mRecvFrame[0] == mRecvFrame[1]);
@@ -405,7 +411,9 @@ bool sgct_core::SGCTNetwork::compareFrames()
 
 void sgct_core::SGCTNetwork::swapFrames()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::swapFrames\n");
+#ifdef __SGCT_NETWORK_DEBUG__ 
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::swapFrames\n");
+#endif
 	sgct::Engine::lockMutex(mConnectionMutex);
 		mRecvFrame[1] = mRecvFrame[0];
 	sgct::Engine::unlockMutex(mConnectionMutex);
@@ -428,7 +436,9 @@ void sgct_core::SGCTNetwork::setConnectedFunction(sgct_cppxeleven::function<void
 
 void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
+#endif
 	sgct::Engine::lockMutex(mConnectionMutex);
 		mConnected = state;
 	sgct::Engine::unlockMutex(mConnectionMutex);
@@ -436,7 +446,9 @@ void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 
 bool sgct_core::SGCTNetwork::isConnected()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isConnected\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isConnected\n");
+#endif
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpb = mConnected;
@@ -446,7 +458,9 @@ bool sgct_core::SGCTNetwork::isConnected()
 
 int sgct_core::SGCTNetwork::getTypeOfServer()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getTypeOfServer\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getTypeOfServer\n");
+#endif
 	int tmpi;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpi = mServerType;
@@ -456,7 +470,9 @@ int sgct_core::SGCTNetwork::getTypeOfServer()
 
 int sgct_core::SGCTNetwork::getId()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getId\n");
+#ifdef __SGCT_NETWORK_DEBUG__    
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getId\n");
+#endif
 	int tmpi;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpi = mId;
@@ -466,7 +482,9 @@ int sgct_core::SGCTNetwork::getId()
 
 bool sgct_core::SGCTNetwork::isServer()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isServer\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isServer\n");
+#endif
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpb = mServer;
@@ -476,7 +494,9 @@ bool sgct_core::SGCTNetwork::isServer()
 
 bool sgct_core::SGCTNetwork::isTerminated()
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isTerminated\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isTerminated\n");
+#endif
     bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		tmpb = mTerminate;
@@ -486,7 +506,9 @@ bool sgct_core::SGCTNetwork::isTerminated()
 
 void sgct_core::SGCTNetwork::setRecvFrame(int i)
 {
-    sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setRecvFrame\n");
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setRecvFrame\n");
+#endif
 	sgct::Engine::lockMutex(mConnectionMutex);
 	mRecvFrame[0] = i;
 	sgct::Engine::unlockMutex(mConnectionMutex);
@@ -632,10 +654,9 @@ void GLFWCALL communicationHandler(void *arg)
 		//resize buffer request
 		if( nPtr->mRequestedSize > nPtr->mBufferSize )
 		{
-                sgct::MessageHandler::Instance()->printDebug("Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
+            sgct::MessageHandler::Instance()->print("Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
 
-            sgct::MessageHandler::Instance()->print("Network: New package size is %d\n", nPtr->mRequestedSize);
-			sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+            sgct::Engine::lockMutex(nPtr->mConnectionMutex);
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 
 				//clean up
@@ -657,9 +678,9 @@ void GLFWCALL communicationHandler(void *arg)
 
                 sgct::MessageHandler::Instance()->printDebug("Done.\n");
 		}
-
+#ifdef __SGCT_NETWORK_DEBUG__
         sgct::MessageHandler::Instance()->printDebug("Receiving message header...\n");
-
+#endif
         /*
             Get & parse the message header if not external control
         */
@@ -691,7 +712,9 @@ void GLFWCALL communicationHandler(void *arg)
         if( iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
         {
             packageId = recvHeader[0];
+#ifdef __SGCT_NETWORK_DEBUG__
             sgct::MessageHandler::Instance()->printDebug("Package id=%d...\n", packageId);
+#endif
             if( packageId == sgct_core::SGCTNetwork::SyncByte )
             {
                 //parse the sync frame number
@@ -719,8 +742,9 @@ void GLFWCALL communicationHandler(void *arg)
             }
         }
 
-
+#ifdef __SGCT_NETWORK_DEBUG__
         sgct::MessageHandler::Instance()->printDebug("Receiving data (buffer size: %d)...\n", dataSize);
+#endif
         /*
             Get the data/message
         */
@@ -730,8 +754,10 @@ void GLFWCALL communicationHandler(void *arg)
                                         recvBuf,
                                         dataSize,
                                         0);
-        sgct::MessageHandler::Instance()->printDebug("Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
-        }
+#ifdef __SGCT_NETWORK_DEBUG__
+			sgct::MessageHandler::Instance()->printDebug("Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
+#endif
+		}
 
 		/*
 			Get external message
@@ -807,14 +833,17 @@ void GLFWCALL communicationHandler(void *arg)
 						sgct::MessageHandler::Instance()->print("Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
 					}
 
+#ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::Instance()->printDebug("Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
-
-                    //decode callback
+#endif
+					//decode callback
                     if(dataSize > 0)
                         (nPtr->mDecoderCallbackFn)(recvBuf, dataSize, nPtr->getId());
 
 					sgct::Engine::signalCond( sgct_core::NetworkManager::gCond );
+#ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::Instance()->printDebug("Done.\n");
+#endif
 				}
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 				else if( packageId == sgct_core::SGCTNetwork::ConnectedByte &&
@@ -824,15 +853,21 @@ void GLFWCALL communicationHandler(void *arg)
 					nPtr->mConnectedCallbackFn != NULL)
 #endif
 				{
-                    sgct::MessageHandler::Instance()->printDebug("Signaling slave is connected... ");
+#ifdef __SGCT_NETWORK_DEBUG__                    
+					sgct::MessageHandler::Instance()->printDebug("Signaling slave is connected... ");
+#endif
 					(nPtr->mConnectedCallbackFn)();
 					sgct::Engine::signalCond( sgct_core::NetworkManager::gCond );
+#ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::Instance()->printDebug("Done.\n");
+#endif
 				}
 			}
 			else if(nPtr->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl)
 			{
-                sgct::MessageHandler::Instance()->printDebug("Parsing external TCP data... ");
+#ifdef __SGCT_NETWORK_DEBUG__
+				sgct::MessageHandler::Instance()->printDebug("Parsing external TCP data... ");
+#endif
 				std::string tmpStr(recvBuf);
 				extBuffer += tmpStr.substr(0, iResult);
 
@@ -905,14 +940,20 @@ void GLFWCALL communicationHandler(void *arg)
 					nPtr->sendStr("OK\r\n");
                     found = extBuffer.find("\r\n");
 				}
+#ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::Instance()->printDebug("Done.\n");
+#endif
 			}
 		}
 		else if (iResult == 0)
 		{
-            sgct::MessageHandler::Instance()->printDebug("Setting connection status to false... ");
+#ifdef __SGCT_NETWORK_DEBUG__
+			sgct::MessageHandler::Instance()->printDebug("Setting connection status to false... ");
+#endif
 			nPtr->setConnectedStatus(false);
+#ifdef __SGCT_NETWORK_DEBUG__
             sgct::MessageHandler::Instance()->printDebug("Done.\n");
+#endif
 
 #ifdef __WIN32__
 			sgct::MessageHandler::Instance()->print("TCP Connection %d closed (error: %d)\n", nPtr->getId(), WSAGetLastError());
@@ -922,9 +963,13 @@ void GLFWCALL communicationHandler(void *arg)
 		}
 		else
 		{
-            sgct::MessageHandler::Instance()->printDebug("Setting connection status to false... ");
+#ifdef __SGCT_NETWORK_DEBUG__
+			sgct::MessageHandler::Instance()->printDebug("Setting connection status to false... ");
+#endif
 			nPtr->setConnectedStatus(false);
+#ifdef __SGCT_NETWORK_DEBUG__
             sgct::MessageHandler::Instance()->printDebug("Done.\n");
+#endif
 
 #ifdef __WIN32__
             sgct::MessageHandler::Instance()->print("TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());

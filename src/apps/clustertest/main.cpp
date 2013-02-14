@@ -65,7 +65,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
-	
+
 	if( !gEngine->init() )
 	{
 		delete gEngine;
@@ -192,7 +192,7 @@ void myDrawFun()
 }
 
 void myPreSyncFun()
-{	
+{
 	if( gEngine->isMaster() )
 	{
 		dt = gEngine->getDt();

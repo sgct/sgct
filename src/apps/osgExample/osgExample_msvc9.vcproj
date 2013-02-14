@@ -59,7 +59,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32_d.lib"
+				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32_d.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;;&quot;$(OSGHOME)\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -133,7 +133,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32.lib"
+				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
 				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;;&quot;$(OSGHOME)\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"

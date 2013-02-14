@@ -734,7 +734,7 @@ void sgct::Engine::render()
 				}
 			}
 
-			updateRenderingTargets(LeftEye);
+			updateRenderingTargets(LeftEye); //only used if multisampled FBOs
 
 			//render right eye view port(s)
 			if( tmpNode->stereo != ClusterManager::NoStereo )
@@ -2632,6 +2632,14 @@ void sgct::Engine::signalCond(GLFWcond &cond)
     glfwSignalCond(cond);
 }
 
+/*!
+	Returns true if fisheye rendering is active
+*/
+bool sgct::Engine::isFisheye()
+{
+	return (SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO);
+}
+
 
 /*!
 	Returns pointer to FBO container
@@ -2656,77 +2664,4 @@ void sgct::Engine::getFBODimensions( int & width, int & height )
 		width = getWindowPtr()->getXFramebufferResolution();
 		height = getWindowPtr()->getYFramebufferResolution();
 	}
-}
-
-/*!
-	Returns the number of FBO texture targets
-*/
-unsigned int sgct::Engine::getNumberOfTextureTargets()
-{
-	unsigned int textureTargets = 1;
-
-	//if stereo multiply by two
-	if( isStereo() )
-		textureTargets *= 2;
-
-	//if fisheye multiply by 4
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
-		textureTargets *= 4;
-
-	return textureTargets;
-}
-
-/*!
-	Get the viewport coordinates in pixels for a specific viewport
-*/
-void sgct::Engine::getViewportCoords( unsigned int viewportIndex, int * coords )
-{
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
-	{
-		int cmRes = SGCTSettings::Instance()->getCubeMapResolution();
-		coords[0] = 0;
-		coords[1] = 0;
-		coords[2] = cmRes;
-		coords[3] = cmRes;
-	}
-	else
-	{
-		sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-
-		if( viewportIndex < thisNode->getNumberOfViewports() )
-		{
-			sgct_core::Viewport * tmpVP = thisNode->getViewport( viewportIndex );
-
-			coords[0] =
-				static_cast<int>( tmpVP->getX() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
-			coords[1] =
-				static_cast<int>( tmpVP->getY() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
-			coords[2] =
-				static_cast<int>( tmpVP->getXSize() * static_cast<double>(getWindowPtr()->getXFramebufferResolution()));
-			coords[3] =
-				static_cast<int>( tmpVP->getYSize() * static_cast<double>(getWindowPtr()->getYFramebufferResolution()));
-		}
-		else
-			MessageHandler::Instance()->print("Error: Invalid viewport index specified!\n");
-	}
-}
-
-/*!
-	Get the texture target for a specific viewport
-*/
-unsigned int sgct::Engine::getTextureTargetIndex( unsigned int viewportIndex, sgct_core::Frustum::FrustumMode fm )
-{
-	unsigned int index = 0;
-	
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
-	{
-		index = viewportIndex;
-		index += (fm == Frustum::StereoRightEye ? 4 : 0); //add by four if right eye 
-	}
-	else
-	{
-		index = (fm == Frustum::StereoRightEye ? 1 : 0);
-	}
-
-	return index;
 }

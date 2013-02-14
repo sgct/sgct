@@ -37,7 +37,6 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
-	sgct::ShaderManager::Destroy();
 	delete gEngine;
 
 	// Exit program

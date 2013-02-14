@@ -121,6 +121,7 @@ Web: http://www.zlib.net/
 #include "sgct/MessageHandler.h"
 #include "sgct/ShaderManager.h"
 #include "sgct/freetype.h"
+#include "sgct/SGCTSettings.h"
 #include "sgct/SGCTVersion.h"
 #include "sgct/ogl_headers.h"
 

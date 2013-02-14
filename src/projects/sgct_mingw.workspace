@@ -16,5 +16,7 @@
 		<Project filename="../apps/heightMappingExample/heightMappingExample_mingw.cbp" />
 		<Project filename="../apps/kinectExample/kinectExample_mingw.cbp" />
 		<Project filename="../apps/orthoTexture/orthoTexture_mingw.cbp" />
+		<Project filename="../apps/fisheyeTest/fisheyeTest_mingw.cbp" />
+		<Project filename="../apps/osgExampleRTT/osgExampleRTT_mingw.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

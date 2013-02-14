@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="postProcessing_msvc9"
-	ProjectGUID="{2542A416-9EBE-43C6-88E1-253219402FB3}"
-	RootNamespace="postProcessing"
+	Name="fisheyeTest_msvc9"
+	ProjectGUID="{BEE7E3E0-CC55-4E5E-A38E-7C59C85A06AB}"
+	RootNamespace="sgct_template_msvc9"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\..\bin\postProcessing\msvc9\"
+			OutputDirectory="$(ProjectDir)\..\..\..\bin\fisheyeTest_msvc9\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -90,7 +90,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\..\bin\postProcessing\msvc9\"
+			OutputDirectory="$(ProjectDir)\..\..\..\bin\fisheyeTest_msvc9\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"

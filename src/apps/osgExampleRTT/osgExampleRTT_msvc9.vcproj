@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="postProcessing_msvc9"
-	ProjectGUID="{2542A416-9EBE-43C6-88E1-253219402FB3}"
-	RootNamespace="postProcessing"
+	Name="osgExampleRTT_msvc9"
+	ProjectGUID="{9A65DAB6-FCE4-4BC6-816D-762C052A325B}"
+	RootNamespace="osgExampleRTT_msvc9"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\..\bin\postProcessing\msvc9\"
+			OutputDirectory="$(ProjectDir)\..\..\..\bin\osgExampleRTT\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -40,7 +40,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SGCT_ROOT_DIR)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SGCT_ROOT_DIR)\include&quot;;&quot;$(OSGHOME)\include&quot;"
 				PreprocessorDefinitions="__WIN32__"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -59,9 +59,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sgct32_d.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32_d.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;"
+				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;;&quot;$(OSGHOME)\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				GenerateDebugInformation="true"
 				TargetMachine="1"
@@ -90,7 +90,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(ProjectDir)\..\..\..\bin\postProcessing\msvc9\"
+			OutputDirectory="$(ProjectDir)\..\..\..\bin\osgExampleRTT\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -115,7 +115,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				EnableIntrinsicFunctions="true"
-				AdditionalIncludeDirectories="&quot;$(SGCT_ROOT_DIR)\include&quot;"
+				AdditionalIncludeDirectories="&quot;$(SGCT_ROOT_DIR)\include&quot;;&quot;$(OSGHOME)\include&quot;"
 				PreprocessorDefinitions="__WIN32__"
 				RuntimeLibrary="2"
 				EnableFunctionLevelLinking="true"
@@ -133,9 +133,9 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sgct32.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="OpenThreads.lib osg.lib osgUtil.lib osgText.lib osgDB.lib osgGA.lib osgViewer.lib sgct32.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName).exe"
-				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;"
+				AdditionalLibraryDirectories="&quot;$(SGCT_ROOT_DIR)\lib\msvc9&quot;;&quot;$(OSGHOME)\lib&quot;"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
 				GenerateDebugInformation="false"
 				OptimizeReferences="2"
@@ -177,12 +177,20 @@
 				RelativePath=".\main.cpp"
 				>
 			</File>
+			<File
+				RelativePath=".\RenderToTexture.cpp"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Header Files"
 			Filter="h;hpp;hxx;hm;inl;inc;xsd"
 			UniqueIdentifier="{93995380-89BD-4b04-88EB-625FBE52EBFB}"
 			>
+			<File
+				RelativePath=".\RenderToTexture.h"
+				>
+			</File>
 		</Filter>
 		<Filter
 			Name="Resource Files"

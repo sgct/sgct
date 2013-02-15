@@ -325,6 +325,9 @@ void sgct_core::SGCTNetwork::iterateFrameCounter()
 		mSendFrame = 0;
 }
 
+/*!
+	The client sends ack message to server + console messages
+*/
 void sgct_core::SGCTNetwork::pushClientMessage()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -397,6 +400,18 @@ int sgct_core::SGCTNetwork::getSendFrame()
 	return tmpi;
 }
 
+int sgct_core::SGCTNetwork::getRecvFrame()
+{
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getRecvFrame\n");
+#endif
+	int tmpi;
+	sgct::Engine::lockMutex(mConnectionMutex);
+		tmpi = mRecvFrame[0];
+	sgct::Engine::unlockMutex(mConnectionMutex);
+	return tmpi;
+}
+
 bool sgct_core::SGCTNetwork::compareFrames()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -404,7 +419,7 @@ bool sgct_core::SGCTNetwork::compareFrames()
 #endif
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
-		tmpb = (mRecvFrame[0] == mRecvFrame[1]);
+		tmpb = (mRecvFrame[0] == mRecvFrame[1] && mRecvFrame[0] != mSendFrame);
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpb;
 }

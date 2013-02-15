@@ -58,6 +58,7 @@ public:
 	bool isConnected();
 	bool isTerminated();
 	int getSendFrame();
+	int getRecvFrame();
 	bool compareFrames();
 	void setRecvFrame(int i);
 	void swapFrames();

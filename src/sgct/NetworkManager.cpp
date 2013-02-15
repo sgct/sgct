@@ -153,62 +153,77 @@ bool sgct_core::NetworkManager::init()
 	return true;
 }
 
-void sgct_core::NetworkManager::sync()
+/*!
+	\param if this application is server/master in cluster then set to true
+*/
+void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm)
 {
-	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-	{
-		if( mNetworkConnections[i]->isConnected() &&
-			mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
-			mNetworkConnections[i]->isServer())
+	if(sm == SendDataToClients)
+		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
-			std::size_t currentSize =
-                sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
+			if( mNetworkConnections[i]->isServer() &&
+				mNetworkConnections[i]->isConnected() &&
+				mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+			{
+				std::size_t currentSize =
+					sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
-			//iterate counter
-			mNetworkConnections[i]->iterateFrameCounter();
+				//iterate counter
+				mNetworkConnections[i]->iterateFrameCounter();
 
-            //set bytes in header
-			int currentFrame = mNetworkConnections[i]->getSendFrame();
+				//set bytes in header
+				int currentFrame = mNetworkConnections[i]->getSendFrame();
 
-			sgct::Engine::lockMutex(gMutex);
-				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
-				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
+				sgct::Engine::lockMutex(gMutex);
+					unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
+					unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
 
-				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncByte;
-				sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
-				sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
-				sgct::SharedData::Instance()->getDataBlock()[3] = currentFrameDataPtr[2];
-				sgct::SharedData::Instance()->getDataBlock()[4] = currentFrameDataPtr[3];
-				sgct::SharedData::Instance()->getDataBlock()[5] = currentSizeDataPtr[0];
-				sgct::SharedData::Instance()->getDataBlock()[6] = currentSizeDataPtr[1];
-				sgct::SharedData::Instance()->getDataBlock()[7] = currentSizeDataPtr[2];
-				sgct::SharedData::Instance()->getDataBlock()[8] = currentSizeDataPtr[3];
+					sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncByte;
+					sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
+					sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
+					sgct::SharedData::Instance()->getDataBlock()[3] = currentFrameDataPtr[2];
+					sgct::SharedData::Instance()->getDataBlock()[4] = currentFrameDataPtr[3];
+					sgct::SharedData::Instance()->getDataBlock()[5] = currentSizeDataPtr[0];
+					sgct::SharedData::Instance()->getDataBlock()[6] = currentSizeDataPtr[1];
+					sgct::SharedData::Instance()->getDataBlock()[7] = currentSizeDataPtr[2];
+					sgct::SharedData::Instance()->getDataBlock()[8] = currentSizeDataPtr[3];
 
-				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
+					//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
-				//send
-				ssize_t sendErr = mNetworkConnections[i]->sendData(
-                                sgct::SharedData::Instance()->getDataBlock(),
-                                static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
-			sgct::Engine::unlockMutex(gMutex);
+					//send
+					ssize_t sendErr = mNetworkConnections[i]->sendData(
+									sgct::SharedData::Instance()->getDataBlock(),
+									static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
+				sgct::Engine::unlockMutex(gMutex);
 
-            if (sendErr == SOCKET_ERROR)
-                sgct::MessageHandler::Instance()->print("Send data failed!\n");
+				if (sendErr == SOCKET_ERROR)
+					sgct::MessageHandler::Instance()->print("Send data failed!\n");
 
+			}
 		}
-		//Client
-		else if( mNetworkConnections[i]->isConnected() &&
-				 mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
-		{
-			//The servers's render function is locked until a message starting with the ack-byte is received.
-			//iterate counter
-			mNetworkConnections[i]->iterateFrameCounter();
 
-			mNetworkConnections[i]->pushClientMessage();
-        }
-	}
+	else if(sm == AcknowledgeData)
+		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+		{
+			//Client
+			if( !mNetworkConnections[i]->isServer() &&
+				mNetworkConnections[i]->isConnected() &&
+				mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+			{
+				//The servers's render function is locked until a message starting with the ack-byte is received.
+				//iterate counter
+				mNetworkConnections[i]->iterateFrameCounter();
+
+				//send message to server
+				mNetworkConnections[i]->pushClientMessage();
+			}
+		}
 }
 
+/*!
+	Compare if the last frame and current frames are different -> data update
+	And if send frame == recieved frame
+*/
 bool sgct_core::NetworkManager::isSyncComplete()
 {
 	unsigned int counter = 0;

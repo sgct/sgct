@@ -21,10 +21,12 @@ namespace sgct_core
 class NetworkManager
 {
 public:
+	enum SyncMode { SendDataToClients = 0, AcknowledgeData };
+
 	NetworkManager(int mode);
 	~NetworkManager();
 	bool init();
-	void sync();
+	void sync(SyncMode sm);
 	bool isSyncComplete();
 	void swapData();
 	void close();
@@ -37,6 +39,7 @@ public:
 	SGCTNetwork * getExternalControlPtr();
 
 	unsigned int getConnectionsCount() { return mNumberOfConnections; }
+	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
 
 private:
 	bool addConnection(const std::string port, const std::string ip, int serverType = SGCTNetwork::SyncServer);

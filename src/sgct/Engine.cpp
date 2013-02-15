@@ -593,14 +593,15 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 
 	if( stage == PreStage )
 	{
-		mNetworkConnections->sync();
+		mNetworkConnections->sync(NetworkManager::SendDataToClients);
 
 		//run only on clients/slaves
 		if( !mNetworkConnections->isComputerServer() ) //not server
 		{
-			glfwLockMutex( NetworkManager::gSyncMutex );
+			double tmpTime = glfwGetTime();
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
+				glfwLockMutex( NetworkManager::gSyncMutex );
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
@@ -608,32 +609,57 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				glfwWaitCond( NetworkManager::gCond,
 					NetworkManager::gSyncMutex,
 					1.0 );
-			}
 
-			glfwUnlockMutex( NetworkManager::gSyncMutex );
+				glfwUnlockMutex( NetworkManager::gSyncMutex );
+
+				//for debuging
+				if( glfwGetTime() - tmpTime > 1.0 )
+					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
+					{
+						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d\n", i,
+							mNetworkConnections->getConnection(i)->getSendFrame(),
+							mNetworkConnections->getConnection(i)->getRecvFrame());
+					}
+			}
 		}
 
 		syncTime = glfwGetTime() - t0;
 	}
 	else //post stage
 	{
+		mNetworkConnections->sync(NetworkManager::AcknowledgeData);
+
+		/*
+			Doesn't lock if swap barrier is used.
+		*/
 		if( mNetworkConnections->isComputerServer() &&
 			mConfig->isMasterSyncLocked() &&
 			/*localRunningMode == NetworkManager::NotLocal &&*/
 			!getWindowPtr()->isBarrierActive() )//post stage
 		{
-			glfwLockMutex( NetworkManager::gSyncMutex );
-			while(mNetworkConnections->isRunning() && mRunning)
+			double tmpTime = glfwGetTime();
+			while(mNetworkConnections->isRunning() &&
+				mRunning &&
+				mNetworkConnections->getConnectionsCount() > 0)
 			{
+				glfwLockMutex( NetworkManager::gSyncMutex );
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
 				glfwWaitCond( NetworkManager::gCond,
 					NetworkManager::gSyncMutex,
 					1.0 );
-			}
+				glfwUnlockMutex( NetworkManager::gSyncMutex );
 
-			glfwUnlockMutex( NetworkManager::gSyncMutex );
+				//for debuging
+				if( glfwGetTime() - tmpTime > 1.0 )
+					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
+					{
+						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d\n", i,
+							mNetworkConnections->getConnection(i)->getSendFrame(),
+							mNetworkConnections->getConnection(i)->getRecvFrame());
+					}
+			}
 			syncTime += glfwGetTime() - t0;
 		}
 
@@ -1830,19 +1856,23 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 	sgct::MessageHandler::Instance()->print("Joining swap group if enabled/supported...\n");
 
 	//Must wait until all nodes are running if using swap barrier
-	if( getWindowPtr()->isUsingSwapGroups() && ClusterManager::Instance()->getNumberOfNodes() > 1)
+	if( ClusterManager::Instance()->getNumberOfNodes() > 1)
 	{
-		//check if swapgroups are supported
-		#ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") )
-			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
-		#else
-		if( glewIsSupported("GLX_NV_swap_group") )
-			sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
-		#endif
-        else
-            sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
-
+		if( getWindowPtr()->isUsingSwapGroups() )
+		{
+			//check if swapgroups are supported
+			#ifdef __WIN32__
+			if( wglewIsSupported("WGL_NV_swap_group") )
+				sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+			#else
+			if( glewIsSupported("GLX_NV_swap_group") )
+				sgct::MessageHandler::Instance()->print("Swap groups are supported by hardware.\n");
+			#endif
+			else
+				sgct::MessageHandler::Instance()->print("Swap groups are not supported by hardware.\n");
+		}
+		else
+			sgct::MessageHandler::Instance()->print("Swapgroups (swap-lock) are disabled.\n");
 
 		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect.");
 		glfwSwapBuffers(); //render just black....
@@ -1869,8 +1899,6 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 
 		sgct::MessageHandler::Instance()->print("\n");
 	}
-	else
-		sgct::MessageHandler::Instance()->print("Swapgroups (swap-lock) are disabled.\n");
 }
 
 /*!

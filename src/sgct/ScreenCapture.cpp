@@ -169,8 +169,6 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
-	glFinish(); //wait for all rendering to finish
-
 	if(GLEW_EXT_pixel_buffer_object)
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //bind pbo
 

@@ -17,10 +17,15 @@ typedef void * GLFWcond;
 
 namespace sgct_core
 {
-
+/*!
+	The network manager manages all network connections for SGCT.
+*/
 class NetworkManager
 {
 public:
+	/*!
+		Different sync stages. Server sync data to clients and clients syncs acknowlagement
+	*/
 	enum SyncMode { SendDataToClients = 0, AcknowledgeData };
 
 	NetworkManager(int mode);
@@ -28,7 +33,6 @@ public:
 	bool init();
 	void sync(SyncMode sm);
 	bool isSyncComplete();
-	void swapData();
 	void close();
 
 	bool matchHostName(const std::string name);

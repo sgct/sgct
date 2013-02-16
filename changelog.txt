@@ -40,3 +40,9 @@
 * Added support for vertical interlaced stereo for polirized LCD screens
 * Added more accurate frame sync
 * Added cluster barrier - All nodes wait until all are connected
+
+2013-02-14 SGCT ver 1.2.0
+---------------------------
+* Forcing full frame sync
+* Changing frame number to unsigned int from long long for better compability with other software (OSG)
+* Timing is now more accurate for draw and sync

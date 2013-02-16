@@ -580,16 +580,14 @@ void sgct::Engine::clearAllCallbacks()
 Locks the rendering thread for synchronization. The two stages are:
 
 1. PreStage, locks the slaves until data is successfully received
-2. PostStage, locks master until slaves have rendered to the backbuffer
+2. PostStage, locks master until slaves are ready to swap buffers
+
+Sync time from statistics is the time each computer waits for sync.
 */
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
-	static double syncTime = 0.0;
-
 	if(mIgnoreSync)
 		return;
-
-	double t0 = glfwGetTime();
 
 	if( stage == PreStage )
 	{
@@ -598,7 +596,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 		//run only on clients/slaves
 		if( !mNetworkConnections->isComputerServer() ) //not server
 		{
-			double tmpTime = glfwGetTime();
+			double t0 = glfwGetTime();
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
 				glfwLockMutex( NetworkManager::gSyncMutex );
@@ -613,17 +611,17 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				glfwUnlockMutex( NetworkManager::gSyncMutex );
 
 				//for debuging
-				if( glfwGetTime() - tmpTime > 1.0 )
+				if( glfwGetTime() - t0 > 1.0 )
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d\n", i,
+						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d [%d]\n", i,
 							mNetworkConnections->getConnection(i)->getSendFrame(),
-							mNetworkConnections->getConnection(i)->getRecvFrame());
+							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
+							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
 					}
-			}
-		}
-
-		syncTime = glfwGetTime() - t0;
+			}//end while wait loop
+			mStatistics.setSyncTime(glfwGetTime() - t0);
+		}//end if client
 	}
 	else //post stage
 	{
@@ -632,12 +630,12 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 		/*
 			Doesn't lock if swap barrier is used.
 		*/
-		if( mNetworkConnections->isComputerServer() &&
-			mConfig->isMasterSyncLocked() &&
+		if( mNetworkConnections->isComputerServer() )//&&
+			//mConfig->isMasterSyncLocked() &&
 			/*localRunningMode == NetworkManager::NotLocal &&*/
-			!getWindowPtr()->isBarrierActive() )//post stage
+			//!getWindowPtr()->isBarrierActive() )//post stage
 		{
-			double tmpTime = glfwGetTime();
+			double t0 = glfwGetTime();
 			while(mNetworkConnections->isRunning() &&
 				mRunning &&
 				mNetworkConnections->getConnectionsCount() > 0)
@@ -652,18 +650,17 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				glfwUnlockMutex( NetworkManager::gSyncMutex );
 
 				//for debuging
-				if( glfwGetTime() - tmpTime > 1.0 )
+				if( glfwGetTime() - t0 > 1.0 )
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d\n", i,
+						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d [%d]\n", i,
 							mNetworkConnections->getConnection(i)->getSendFrame(),
-							mNetworkConnections->getConnection(i)->getRecvFrame());
+							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
+							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
 					}
-			}
-			syncTime += glfwGetTime() - t0;
-		}
-
-		mStatistics.setSyncTime(syncTime);
+			}//end while
+			mStatistics.setSyncTime(glfwGetTime() - t0);
+		}//end if server
 	}
 }
 
@@ -701,7 +698,7 @@ void sgct::Engine::render()
 			mPostSyncPreDrawFn();
 
 		double startFrameTime = glfwGetTime();
-		calculateFPS(startFrameTime);
+		calculateFPS(startFrameTime); //measures time between calls 
 
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -801,12 +798,33 @@ void sgct::Engine::render()
 		//draw viewport overlays if any
 		drawOverlays();
 
-        double endFrameTime = glfwGetTime();
-		mStatistics.setDrawTime(endFrameTime - startFrameTime);
-
 		//run post frame actions
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
+
+		/*
+			For single threaded rendering glFinish should be fine to use for frame sync.
+			For multitheded usage a glFenceSync fence should be used to synchronize all GPU threads.
+
+			example: GLsync mFence = glFenceSync( GL_SYNC_GPU_COMMANDS_COMPLETE, 0 );
+			Then on each thread: glWaitSync(mFence); 
+		*/
+		glFinish(); //wait for all rendering to finish
+		double endFrameTime = glfwGetTime();
+		mStatistics.setDrawTime(endFrameTime - startFrameTime);
+        updateTimers( endFrameTime );
+
+		//take screenshot
+		if( mTakeScreenshot )
+			captureBuffer();
+
+#ifdef __SGCT_DEBUG__
+		//check for errors
+		checkForOGLErrors();
+#endif
+
+		//wait for nodes render before swapping
+		frameSyncAndLock(PostStage);
 
 		//draw info & stats
 		//the cubemap viewports are all the same so it makes no sense to render everything several times
@@ -825,23 +843,6 @@ void sgct::Engine::render()
 			if( mShowInfo )
 				renderDisplayInfo();
 		}
-
-        updateTimers( endFrameTime );
-
-		//take screenshot
-		if( mTakeScreenshot )
-			captureBuffer();
-
-#ifdef __SGCT_DEBUG__
-		//check for errors
-		checkForOGLErrors();
-#endif
-
-		//wait for nodes render before swapping
-		frameSyncAndLock(PostStage);
-
-		//swap frame id to keep track of sync
-		mNetworkConnections->swapData();
 
 		//swap window size values
 		getWindowPtr()->swap();
@@ -875,14 +876,14 @@ void sgct::Engine::renderDisplayInfo()
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Frame rate: %.3f Hz, frame: %llu", mStatistics.getAvgFPS(), mFrameCounter);
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Frame rate: %.3f Hz, frame: %u", mStatistics.getAvgFPS(), mFrameCounter);
 	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Draw time: %.2f ms", getDrawTime()*1000.0);
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Avg. draw time: %.2f ms", mStatistics.getAvgDrawTime()*1000.0);
 	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
-		getSyncTime()*1000.0);
+		mStatistics.getAvgSyncTime()*1000.0);
 	glColor4f(0.8f,0.8f,0.8f,1.0f);
 
 	/*

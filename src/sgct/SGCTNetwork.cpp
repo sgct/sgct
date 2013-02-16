@@ -68,8 +68,8 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
 	mSendFrame			= 0;
-	mRecvFrame[0]		= 0;
-	mRecvFrame[1]		= 0;
+	mRecvFrame[Current]	= 0;
+	mRecvFrame[Previous]= 0;
 	mConnected			= false;
 	mTerminate          = false;
 	mId					= -1;
@@ -400,38 +400,40 @@ int sgct_core::SGCTNetwork::getSendFrame()
 	return tmpi;
 }
 
-int sgct_core::SGCTNetwork::getRecvFrame()
+int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getRecvFrame\n");
 #endif
 	int tmpi;
 	sgct::Engine::lockMutex(mConnectionMutex);
-		tmpi = mRecvFrame[0];
+		tmpi = mRecvFrame[ri];
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpi;
 }
 
-bool sgct_core::SGCTNetwork::compareFrames()
+/*!
+This function compares the received frame number with the sent frame number.
+
+The server starts by sending a frame sync number to the client.
+The client receives the sync frame number and sends it back after drawing when ready for buffer swap.
+When the server recieves a frame sync number equal to the send frame number it swaps buffers.
+
+\returns true if updates has been received
+*/
+bool sgct_core::SGCTNetwork::isUpdated()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::compareFrames\n");
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isUpdated\n");
 #endif
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
-		tmpb = (mRecvFrame[0] == mRecvFrame[1] && mRecvFrame[0] != mSendFrame);
+		if(mServer)
+			tmpb = (mRecvFrame[Current] == mSendFrame); //master sends first -> so on reply they should be equal
+		else
+			tmpb = (mRecvFrame[Previous] == mSendFrame); //slaves receives first and then sends so the prevois should be equal to the send
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpb;
-}
-
-void sgct_core::SGCTNetwork::swapFrames()
-{
-#ifdef __SGCT_NETWORK_DEBUG__ 
-	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::swapFrames\n");
-#endif
-	sgct::Engine::lockMutex(mConnectionMutex);
-		mRecvFrame[1] = mRecvFrame[0];
-	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
 void sgct_core::SGCTNetwork::setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback)
@@ -525,7 +527,8 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setRecvFrame\n");
 #endif
 	sgct::Engine::lockMutex(mConnectionMutex);
-	mRecvFrame[0] = i;
+	mRecvFrame[Previous] = mRecvFrame[Current];
+	mRecvFrame[Current] = i;
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 

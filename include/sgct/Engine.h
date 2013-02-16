@@ -247,9 +247,9 @@ public:
 	inline const int * getActiveViewport() { return currentViewportCoords; }
 	
 	/*!
-		Returns the active frustum matrix (only valid inside in the draw callback function)
+		Returns the current frame number
 	*/
-	inline unsigned long long getCurrentFrameNumber() { return mFrameCounter; }
+	inline unsigned int getCurrentFrameNumber() { return mFrameCounter; }
 
 	/*!
 		Returns the scene transform specified in the XML configuration default is a identity matrix
@@ -370,7 +370,7 @@ private:
 	char basicInfo[128];
 	char aaInfo[16];
 
-	unsigned long long mFrameCounter;
+	unsigned int mFrameCounter;
 
     typedef struct  {
         size_t mId;

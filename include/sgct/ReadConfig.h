@@ -22,7 +22,6 @@ public:
 
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
-	bool isMasterSyncLocked() { return useMasterSyncLock; }
 
 	//font stuff
 	const int & getFontSize() { return mFontSize; }
@@ -36,7 +35,6 @@ private:
 	int getFisheyeCubemapRes( const std::string quality );
 
 	bool valid;
-	bool useMasterSyncLock;
 	bool useExternalControlPort;
 	std::string xmlFileName;
 	//fontdata

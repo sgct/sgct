@@ -37,9 +37,17 @@ typedef void * GLFWcond;
 namespace sgct_core //small graphics cluster toolkit
 {
 
+/*!
+SGCTNetwork manages peer-to-peer tcp connections.
+*/
 class SGCTNetwork
 {
 public:
+	//ASCII device control chars = 17, 18, 19 & 20
+	enum PackageHeaders { SyncByte = 17, ConnectedByte, DisconnectByte, FillByte };
+	enum ServerTypes { SyncServer = 0, ExternalControl };
+	enum ReceivedIndex { Current = 0, Previous };
+
 	SGCTNetwork();
 	void init(const std::string port, const std::string ip, bool _isServer, int id, int serverType);
 	void closeNetwork(bool forced);
@@ -58,10 +66,9 @@ public:
 	bool isConnected();
 	bool isTerminated();
 	int getSendFrame();
-	int getRecvFrame();
-	bool compareFrames();
+	int getRecvFrame(ReceivedIndex ri);
+	bool isUpdated();
 	void setRecvFrame(int i);
-	void swapFrames();
 	ssize_t sendData(void * data, int length);
 	ssize_t sendStr(std::string msg);
 	static ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
@@ -82,9 +89,6 @@ public:
 	std::size_t mBufferSize;
 	std::size_t mRequestedSize;
 	static const std::size_t mHeaderSize = 9;
-	//ASCII device control chars = 17, 18, 19 & 20
-	enum PackageHeaders { SyncByte = 17, ConnectedByte, DisconnectByte, FillByte };
-	enum ServerTypes { SyncServer = 0, ExternalControl };
 
 	GLFWmutex mConnectionMutex;
 	GLFWcond mDoneCond;

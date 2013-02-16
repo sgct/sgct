@@ -21,7 +21,6 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
 	useExternalControlPort = false;
-	useMasterSyncLock = false;
 
 	//font stuff
 	mFontSize = 10;
@@ -166,11 +165,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 		std::string tmpStr( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::Instance()->setExternalControlPort(tmpStr);
 		useExternalControlPort = true;
-	}
-
-	if( XMLroot->Attribute( "lockMasterSync" ) != NULL )
-	{
-		useMasterSyncLock = strcmp( XMLroot->Attribute( "lockMasterSync" ), "true" ) == 0 ? true : false;
 	}
 
 	XMLElement* element[MAX_XML_DEPTH];

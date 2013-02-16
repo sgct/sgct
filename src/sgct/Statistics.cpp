@@ -21,6 +21,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 sgct_core::Statistics::Statistics()
 {
 	mAvgFPS = 0.0;
+	mAvgDrawTime = 0.0;
+	mAvgSyncTime = 0.0;
+	mAvgFrameTime = 0.0;
+
 	for(unsigned int i=0; i<4; i++)
 		mVboPtrs[i] = 0;
 
@@ -66,29 +70,50 @@ void sgct_core::Statistics::setAvgFPS(double afps)
 
 void sgct_core::Statistics::setFrameTime(double t)
 {
+	mAvgFrameTime = 0.0;
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
 		mFrameTime[i+1].y = mFrameTime[i].y;
+
+		if(i < STATS_AVERAGE_LENGTH)
+			mAvgFrameTime += mFrameTime[i].y;
 	}
 	mFrameTime[0].y = t;
+	mAvgFrameTime += mFrameTime[0].y;
+	
+	mAvgFrameTime /= static_cast<double>(STATS_AVERAGE_LENGTH);
 }
 
 void sgct_core::Statistics::setDrawTime(double t)
 {
+	mAvgDrawTime = 0.0;
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
 		mDrawTime[i+1].y = mDrawTime[i].y;
+
+		if(i < STATS_AVERAGE_LENGTH)
+			mAvgDrawTime += mDrawTime[i].y;
 	}
 	mDrawTime[0].y = t;
+	mAvgDrawTime += mDrawTime[0].y;
+
+	mAvgDrawTime /= static_cast<double>(STATS_AVERAGE_LENGTH);
 }
 
 void sgct_core::Statistics::setSyncTime(double t)
 {
+	mAvgSyncTime = 0.0;
 	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
 	{
 		mSyncTime[i+1].y = mSyncTime[i].y;
+
+		if(i < STATS_AVERAGE_LENGTH)
+			mAvgSyncTime += mSyncTime[i].y;
 	}
 	mSyncTime[0].y = t;
+	mAvgSyncTime += mSyncTime[0].y;
+
+	mAvgSyncTime /= static_cast<double>(STATS_AVERAGE_LENGTH);
 }
 
 void sgct_core::Statistics::addSyncTime(double t)
@@ -96,10 +121,10 @@ void sgct_core::Statistics::addSyncTime(double t)
 	mSyncTime[0].y += t;
 }
 
-void sgct_core::Statistics::draw(unsigned long long frameNumber)
+void sgct_core::Statistics::draw(unsigned int frameNumber)
 {
 	//make sure to only update the VBOs once per frame
-	static unsigned long long lastFrameNumber = 0;
+	static unsigned int lastFrameNumber = 0;
 	bool updateGPU = true;
 	if( lastFrameNumber == frameNumber )
 		updateGPU = false;

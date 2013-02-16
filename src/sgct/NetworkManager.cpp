@@ -229,7 +229,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 	unsigned int counter = 0;
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
-			!mNetworkConnections[i]->compareFrames())
+			mNetworkConnections[i]->isUpdated()) //has all data been received?
 		{
 			counter++;
 		}
@@ -251,12 +251,6 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 	}
 
 	return netPtr;
-}
-
-void sgct_core::NetworkManager::swapData()
-{
-	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-		mNetworkConnections[i]->swapFrames();
 }
 
 void sgct_core::NetworkManager::updateConnectionStatus(int index)

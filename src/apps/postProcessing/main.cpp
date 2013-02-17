@@ -32,7 +32,7 @@ struct fbData
 std::vector<fbData> buffers;
 unsigned int draw_counter = 0;
 
-unsigned int myTextureIndex; //the box's texture
+unsigned int myTextureHandle; //the box's texture
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
@@ -154,7 +154,7 @@ void drawScene()
 	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
 	//draw the box
 	myBox->draw();
 	glPopMatrix();
@@ -184,7 +184,7 @@ void myInitOGLFun()
 {
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "box", "box.png", true);
+	sgct::TextureManager::Instance()->loadTexure(myTextureHandle, "box", "box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);

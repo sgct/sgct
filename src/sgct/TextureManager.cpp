@@ -28,24 +28,44 @@ sgct::TextureManager::~TextureManager()
 	freeTextureData();
 }
 
-const unsigned int sgct::TextureManager::getTextureByIndex(const std::size_t index)
+/*!
+	This function is for direct access to a texture in TextureManager's storage.
+	
+	\param handle to texture
+	\returns openGL texture id if handle exists otherwise GL_FALSE/0.
+*/
+const unsigned int sgct::TextureManager::getTextureByHandle(const std::size_t handle)
 {
-	return index >= mTextures.size() ? 0 : mTextures[index].second;
+	return handle >= mTextures.size() ? 0 : mTextures[handle].second;
 }
 
-bool sgct::TextureManager::getIndexByName(std::size_t &index, const std::string name)
+/*!
+	This function searches for a specific texute and returns a texture handle
+
+	\param index/handle to texture
+	\param name to search for
+	\returns true if texture index/handle is found
+*/
+bool sgct::TextureManager::getIndexByName(std::size_t &handle, const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
 		if( mTextures[i].first.compare(name) == 0 )
 		{
-			index = i;
+			handle = i;
 			return true;
 		}
 
-	index = 0;
+	handle = 0;
 	return false;
 }
 
+/*!
+	This function performs a search for a texture by it's name. If many textures are stored in the
+	TextureManager then it might be better to use direct access using \link getTextureByIndex \endlink
+
+	\param name of texture
+	\returns openGL texture id if texture is found otherwise GL_FALSE/0.
+*/
 const unsigned int sgct::TextureManager::getTextureByName(const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
@@ -54,6 +74,10 @@ const unsigned int sgct::TextureManager::getTextureByName(const std::string name
 	return 0;
 }
 
+/*!
+	Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables anisotropic filtering.
+	This filtering mode can slow down performace. For more info look at: <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">Anisotropic filtering</a>
+*/
 void sgct::TextureManager::setAnisotropicFilterSize(float fval)
 {
 	//get max
@@ -62,7 +86,11 @@ void sgct::TextureManager::setAnisotropicFilterSize(float fval)
 
 	if( fval >= 1.0f && fval <= maximumAnistropy )
 		mAnisotropicFilterSize = fval;
-
+	else
+	{
+		sgct::MessageHandler::Instance()->print("TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and min values for your hardware is %.1f and 1.0.\n",
+			maximumAnistropy);
+	}
 }
 
 /*!
@@ -94,6 +122,14 @@ void sgct::TextureManager::setWarpingMode(int warp_s, int warp_t)
 	mWarpMode[1] = warp_t;
 }
 
+/*!
+	Load a texture to the TextureManager.
+	\param name the name of the texture
+	\param filename the filename or path to the texture
+	\param interpolate set to true for using interpolation (bi-linear filtering)
+	\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+	\return true if texture loaded successfully
+*/
 bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	std::size_t tmpId = 0;
@@ -101,14 +137,23 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 	return loadTexure(tmpId, name, filename, interpolate, mipmapLevels);
 }
 
-bool sgct::TextureManager::loadTexure(std::size_t &index, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
+/*!
+	Load a texture to the TextureManager.
+	\param handle the handle to the texture
+	\param name the name of the texture
+	\param filename the filename or path to the texture
+	\param interpolate set to true for using interpolation (bi-linear filtering)
+	\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+	\return true if texture loaded successfully
+*/
+bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	GLuint texID = 0;
 
 	//check if texture exits in manager
-	if( getIndexByName(index, name) ) //texture with that name exists already
+	if( getIndexByName(handle, name) ) //texture with that name exists already
 	{
-		sgct::MessageHandler::Instance()->print("Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByIndex( index ) );
+		sgct::MessageHandler::Instance()->print("Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 		return true;
 	}
 
@@ -176,11 +221,10 @@ bool sgct::TextureManager::loadTexure(std::size_t &index, const std::string name
 		{
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-			//openGL ver >= 3.0
-			glGenerateMipmap( GL_TEXTURE_2D );
 			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, mAnisotropicFilterSize);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels);
+			glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
 		}
 		else
 		{
@@ -199,7 +243,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &index, const std::string name
 	else //image data not valid
 		return false;
 
-    index = mTextures.size()-1;
+    handle = mTextures.size()-1;
 	return true;
 }
 

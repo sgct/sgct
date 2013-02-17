@@ -50,7 +50,7 @@ void myDrawFun()
 	float r = 7.5f; //dome radius
 
 	//right face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[0]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[0]) );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
 		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
@@ -59,7 +59,7 @@ void myDrawFun()
 	glEnd();
 
 	//left face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[1]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[1]) );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(-r, -r, 0.0f);
 		glTexCoord2d(1.0,0.0); glVertex3f(0.0f, -r, -r);
@@ -68,7 +68,7 @@ void myDrawFun()
 	glEnd();
 
 	//top face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[2]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[2]) );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r, -r);
 		glTexCoord2d(1.0,0.0); glVertex3f(-r, r, 0.0f);
@@ -77,7 +77,7 @@ void myDrawFun()
 	glEnd();
 
 	//bottom face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(textureIndexes[3]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[3]) );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
 		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);

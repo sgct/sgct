@@ -18,7 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define MAX_UNIFORM_LOCATIONS 64
 
 /*! \namespace sgct
-\brief simple graphics cluster toolkit.
+\brief Simple Graphics Cluster Toolkit.
 This namespace contains the most basic functionality of the toolkit.
 */
 namespace sgct
@@ -90,6 +90,7 @@ public:
 	void setEyeSeparation(float eyeSeparation);
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
+	void setExitKey(int key);
 	
 	/*!
 		\param state of the wireframe rendering
@@ -159,16 +160,16 @@ public:
 	static void waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout);
 	static void signalCond(GLFWcond &cond);
 	static double getTime();
-	static int getKey( const int &key );
-	static int getMouseButton( const int &button );
+	static int getKey( int key );
+	static int getMouseButton( int button );
 	static void getMousePos( int * xPos, int * yPos );
-	static void setMousePos( const int &xPos, const int &yPos );
+	static void setMousePos( int xPos, int yPos );
 	static int getMouseWheel();
-	static void setMouseWheel( const int &pos );
+	static void setMouseWheel( int pos );
 	static void setMousePointerVisibility( bool state );
-	static int getJoystickParam( const int &joystick, const int &param );
-	static int getJoystickAxes( const int &joystick, float * values, const int &numOfValues);
-	static int getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues);
+	static int getJoystickParam( int joystick, int param );
+	static int getJoystickAxes( int joystick, float * values, int numOfValues);
+	static int getJoystickButtons( int joystick, unsigned char * values, int numOfValues);
 	static void sleep(double secs);
 
 	/*!
@@ -383,6 +384,7 @@ private:
     size_t mTimerID; //< the timer created next will use this ID
 
 	RunMode mRunMode;
+	int mExitKey;
 };
 
 }

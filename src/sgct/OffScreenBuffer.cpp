@@ -35,9 +35,8 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	//create a multisampled buffer
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
 	{
-		if(!GLEW_EXT_framebuffer_multisample || samples <= 1)
+		if( samples <= 1 )
 		{
-			sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported!\n");
 			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 		}
 
@@ -78,7 +77,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffer);
 
 	//Does the GPU support current FBO configuration?
-	if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
+	if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || glGetError() != GL_NO_ERROR )
 		sgct::MessageHandler::Instance()->print("OffScreenBuffer: Something went wrong creating FBO!\n");
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);

@@ -39,6 +39,8 @@ GLEWContext * glewGetContext();
 //to test if depth maps works
 //#define __SGCT_DEPTH_MAP_DEBUG__
 
+#define USE_SLEEP_TO_WAIT_FOR_NODES 0
+
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
 Note that parameter with one '\-' are followed by arguments but parameters with '\-\-' are just options without arguments.
@@ -148,6 +150,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
+
+	mExitKey = GLFW_KEY_ESC;
 }
 
 /*!
@@ -321,10 +325,20 @@ bool sgct::Engine::initWindow()
 			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 	}
 
-	/*glfwOpenWindowHint( GLFW_OPENGL_VERSION_MAJOR, 3 );
-    glfwOpenWindowHint( GLFW_OPENGL_VERSION_MINOR, 2 );
-	glfwOpenWindowHint( GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE );
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);*/
+	/*
+	//OSX ogl 3.2 code
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+    glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	*/
+
+	/*
+	//win & linux code
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3); // We want OpenGL 3.3
+	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
+	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
+	*/
 
     if( !getWindowPtr()->openWindow() )
 		return false;
@@ -371,19 +385,19 @@ Initiates OpenGL.
 void sgct::Engine::initOGL()
 {
 	//Get OpenGL version
-	int version[3];
-	glfwGetGLVersion( &version[0], &version[1], &version[2] );
-	sgct::MessageHandler::Instance()->print("OpenGL version %d.%d.%d\n", version[0], version[1], version[2]);
+	int mOpenGL_Version[3];
+	glfwGetGLVersion( &mOpenGL_Version[0], &mOpenGL_Version[1], &mOpenGL_Version[2] );
+	sgct::MessageHandler::Instance()->print("OpenGL version %d.%d.%d\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2]);
 
-	if( !GLEW_ARB_texture_non_power_of_two )
+	if( !GLEW_EXT_framebuffer_object && mOpenGL_Version[0] < 2)
 	{
-		sgct::MessageHandler::Instance()->print("Warning! Only power of two textures are supported!\n");
-	}
-
-	if( !GLEW_EXT_framebuffer_object )
-	{
-		sgct::MessageHandler::Instance()->print("Warning! Frame buffer objects are not supported!\n");
+		sgct::MessageHandler::Instance()->print("Warning! Frame buffer objects are not supported! A lot of features in SGCT will not work!\n");
 		SGCTSettings::Instance()->setFBOMode( SGCTSettings::NoFBO );
+	}
+	else if(!GLEW_EXT_framebuffer_multisample && mOpenGL_Version[0] < 2)
+	{
+		sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported!\n");
+		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 	}
 
 	createTextures();
@@ -410,7 +424,8 @@ void sgct::Engine::initOGL()
     #endif
 	
 	mScreenCapture->setFilename( nodeName );
-	mScreenCapture->initOrResizePBO( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
+	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
+	mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
 	
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -455,7 +470,7 @@ void sgct::Engine::clean()
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL && 
 		mCubeMapFBO_Ptr != NULL && 
-		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO && GLEW_EXT_framebuffer_object)
+		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{
 		sgct::MessageHandler::Instance()->print("Releasing OpenGL buffers...\n");
 		mFinalFBO_Ptr->destroy();
@@ -586,29 +601,32 @@ Sync time from statistics is the time each computer waits for sync.
 */
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 {
-	if(mIgnoreSync)
-		return;
-
 	if( stage == PreStage )
 	{
-		mNetworkConnections->sync(NetworkManager::SendDataToClients);
+		//double tmpTimer = glfwGetTime();
+		mNetworkConnections->sync(NetworkManager::SendDataToClients); //from server to clients
+		//mStatistics.setSyncTime(glfwGetTime() - tmpTimer);
 
 		//run only on clients/slaves
-		if( !mNetworkConnections->isComputerServer() ) //not server
+		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
 		{
 			double t0 = glfwGetTime();
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
-				glfwLockMutex( NetworkManager::gSyncMutex );
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
-				//release lock once per second
-				glfwWaitCond( NetworkManager::gCond,
-					NetworkManager::gSyncMutex,
-					1.0 );
-
-				glfwUnlockMutex( NetworkManager::gSyncMutex );
+				if(USE_SLEEP_TO_WAIT_FOR_NODES)
+					glfwSleep(0.001);
+				else
+				{
+					glfwLockMutex( NetworkManager::gSyncMutex );
+					//release lock once per second
+					glfwWaitCond( NetworkManager::gCond,
+						NetworkManager::gSyncMutex,
+						1.0 );
+					glfwUnlockMutex( NetworkManager::gSyncMutex );
+				}
 
 				//for debuging
 				if( glfwGetTime() - t0 > 1.0 )
@@ -625,12 +643,14 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 	}
 	else //post stage
 	{
+		//double tmpTimer = glfwGetTime();
 		mNetworkConnections->sync(NetworkManager::AcknowledgeData);
+		//mStatistics.setSyncTime(glfwGetTime() - tmpTimer);
 
 		/*
 			Doesn't lock if swap barrier is used.
 		*/
-		if( mNetworkConnections->isComputerServer() )//&&
+		if( !mIgnoreSync && mNetworkConnections->isComputerServer() )//&&
 			//mConfig->isMasterSyncLocked() &&
 			/*localRunningMode == NetworkManager::NotLocal &&*/
 			//!getWindowPtr()->isBarrierActive() )//post stage
@@ -640,14 +660,20 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				mRunning &&
 				mNetworkConnections->getConnectionsCount() > 0)
 			{
-				glfwLockMutex( NetworkManager::gSyncMutex );
 				if( mNetworkConnections->isSyncComplete() )
 						break;
 
-				glfwWaitCond( NetworkManager::gCond,
-					NetworkManager::gSyncMutex,
-					1.0 );
-				glfwUnlockMutex( NetworkManager::gSyncMutex );
+				if(USE_SLEEP_TO_WAIT_FOR_NODES)
+					glfwSleep(0.001);
+				else
+				{
+					glfwLockMutex( NetworkManager::gSyncMutex );
+					//release lock once per second
+					glfwWaitCond( NetworkManager::gCond,
+						NetworkManager::gSyncMutex,
+						1.0 );
+					glfwUnlockMutex( NetworkManager::gSyncMutex );
+				}
 
 				//for debuging
 				if( glfwGetTime() - t0 > 1.0 )
@@ -707,7 +733,7 @@ void sgct::Engine::render()
 		if( getWindowPtr()->isWindowResized() )
 		{
 			resizeFBOs();
-			mScreenCapture->initOrResizePBO( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
+			mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
 		}
 
 		//rendering offscreen if using FBOs
@@ -851,7 +877,7 @@ void sgct::Engine::render()
 		glfwSwapBuffers();
 
 		// Check if ESC key was pressed or window was closed
-		mRunning = !glfwGetKey( GLFW_KEY_ESC ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
+		mRunning = !glfwGetKey( mExitKey ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
 
 		mFrameCounter++;
 	}
@@ -1043,7 +1069,7 @@ void sgct::Engine::drawOverlays()
 
 			glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex( tmpVP->getOverlayTextureIndex() ) );
+			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
 
 			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
 			{
@@ -1537,7 +1563,7 @@ void sgct::Engine::createTextures()
 {
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glEnable(GL_TEXTURE_2D);
-	
+
 	//init
 	mFrameBufferTextures[0] = 0;
 	mFrameBufferTextures[1] = 0;
@@ -1584,7 +1610,6 @@ void sgct::Engine::createTextures()
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
 		}
 	}
-
 	/*
 		Create cubemap texture for fisheye rendering if enabled.
 	*/
@@ -1880,7 +1905,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 
 		glfwLockMutex( NetworkManager::gSyncMutex );
 		while(mNetworkConnections->isRunning() &&
-			!glfwGetKey( GLFW_KEY_ESC ) &&
+			!glfwGetKey( mExitKey ) &&
 			glfwGetWindowParam( GLFW_OPENED ) &&
 			!mTerminate)
 		{
@@ -2451,30 +2476,59 @@ void sgct::Engine::setFisheyeClearColor(float red, float green, float blue)
 	mFisheyeClearColor[2] = blue;
 }
 
+/*!
+Set the exit key that will kill SGCT or abort certain SGCT functions.
+Default value is: SGCT_KEY_ESC. To diable shutdown or escaping SGCT then use: SGCT_KEY_UNKNOWN
+\param key can be either an uppercase printable ISO 8859-1 (Latin 1) character (e.g. 'A', '3' or '.'), or
+a special key identifier described in \link setKeyboardCallbackFunction \endlink description.
+*/
+void sgct::Engine::setExitKey(int key)
+{
+	mExitKey = key;
+}
+
+/*!
+	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
+*/
 void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
 	if(mNetworkCallbackFn != NULL && receivedlength > 0)
 		mNetworkCallbackFn(receivedData, receivedlength, clientIndex);
 }
 
+/*!
+	This function sends a message to the external control interface.
+	\param data a pointer to the data buffer
+	\param length is the number of bytes of data that will be sent
+*/
 void sgct::Engine::sendMessageToExternalControl(void * data, int length)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->sendData( data, length );
 }
 
+/*!
+	This function sends a message to the external control interface.
+	\param msg the message string that will be sent
+*/
 void sgct::Engine::sendMessageToExternalControl(const std::string msg)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->sendData( (void *)msg.c_str(), static_cast<int>(msg.size()) );
 }
 
+/*!
+	Set the buffer size for the communication buffer. This size must be equal or larger than the receive buffer size.
+*/
 void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->setBufferSize(newSize);
 }
 
+/*!
+	This function returns the window name string containing info as node ip, if its master or slave, fps and AA settings.
+*/
 const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -2494,6 +2548,9 @@ const char * sgct::Engine::getBasicInfo()
 	return basicInfo;
 }
 
+/*!
+	This function returns the Anti-Aliasing (AA) settings.
+*/
 const char * sgct::Engine::getAAInfo()
 {
     if( SGCTSettings::Instance()->useFXAA() &&
@@ -2527,12 +2584,20 @@ const char * sgct::Engine::getAAInfo()
     return aaInfo;
 }
 
-int sgct::Engine::getKey( const int &key )
+/*!
+	Checks the keyboard is if the specified key has been pressed.
+	\returns SGCT_PRESS or SGCT_RELEASE
+*/
+int sgct::Engine::getKey( int key )
 {
 	return glfwGetKey(key);
 }
 
-int sgct::Engine::getMouseButton( const int &button )
+/*!
+	Checks if specified mouse button has been pressed.
+	\returns SGCT_PRESS or SGCT_RELEASE
+*/
+int sgct::Engine::getMouseButton( int button )
 {
 	return glfwGetMouseButton(button);
 }
@@ -2542,7 +2607,7 @@ void sgct::Engine::getMousePos( int * xPos, int * yPos )
 	glfwGetMousePos(xPos, yPos);
 }
 
-void sgct::Engine::setMousePos( const int &xPos, const int &yPos )
+void sgct::Engine::setMousePos( int xPos, int yPos )
 {
 	glfwSetMousePos(xPos, yPos);
 }
@@ -2552,7 +2617,7 @@ int sgct::Engine::getMouseWheel()
 	return glfwGetMouseWheel();
 }
 
-void sgct::Engine::setMouseWheel( const int &pos )
+void sgct::Engine::setMouseWheel( int pos )
 {
 	glfwSetMouseWheel(pos);
 }
@@ -2562,17 +2627,17 @@ void sgct::Engine::setMousePointerVisibility( bool state )
 	state ? glfwEnable( GLFW_MOUSE_CURSOR ) : glfwDisable( GLFW_MOUSE_CURSOR );
 }
 
-int sgct::Engine::getJoystickParam( const int &joystick, const int &param )
+int sgct::Engine::getJoystickParam( int joystick, int param )
 {
 	return glfwGetJoystickParam(joystick,param);
 }
 
-int sgct::Engine::getJoystickAxes( const int &joystick, float * values, const int &numOfValues)
+int sgct::Engine::getJoystickAxes( int joystick, float * values, int numOfValues)
 {
 	return glfwGetJoystickPos( joystick, values, numOfValues );
 }
 
-int sgct::Engine::getJoystickButtons( const int &joystick, unsigned char * values, const int &numOfValues)
+int sgct::Engine::getJoystickButtons( int joystick, unsigned char * values, int numOfValues)
 {
 	return glfwGetJoystickButtons( joystick, values, numOfValues );
 }
@@ -2608,6 +2673,10 @@ size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
 		return std::numeric_limits<size_t>::max();
 }
 
+/*!
+Stops the specified timer
+\param id/handle to a timer
+*/
 void sgct::Engine::stopTimer( size_t id )
 {
     if ( isMaster() )
@@ -2626,7 +2695,7 @@ void sgct::Engine::stopTimer( size_t id )
         }
 
         // if we get this far, the searched ID did not exist
-        sgct::MessageHandler::Instance()->print("There was no timer with id: %i", id);
+        sgct::MessageHandler::Instance()->print("There was no timer with id: %d", id);
     }
 }
 

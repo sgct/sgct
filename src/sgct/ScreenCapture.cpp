@@ -74,15 +74,9 @@ sgct_core::ScreenCapture::~ScreenCapture()
 
 	If PBOs are not supported nothing will and the screenshot process will fall back on slower GPU data fetching.
 */
-void sgct_core::ScreenCapture::initOrResizePBO(int x, int y)
-{
-	if(!GLEW_EXT_pixel_buffer_object)
-	{
-		sgct::MessageHandler::Instance()->print("Warning: pixel buffer objects are not supported by hardware!");
-		return;
-	}
-	
-	if( mPBO != 0 ) //delete if buffer exitsts
+void sgct_core::ScreenCapture::initOrResize(int x, int y)
+{	
+	if( mUsePBO && mPBO != 0 ) //delete if buffer exitsts
 	{
 		glDeleteBuffersARB(1, &mPBO);
 		mPBO = 0;
@@ -111,12 +105,15 @@ void sgct_core::ScreenCapture::initOrResizePBO(int x, int y)
 		}
 	}
 
-	glGenBuffers(1, &mPBO);
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
-	glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ);
+	if( mUsePBO )
+	{
+		glGenBuffers(1, &mPBO);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
+		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ);
 		
-	//unbind
-	glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+		//unbind
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
+	}
 }
 
 /*!
@@ -169,7 +166,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
-	if(GLEW_EXT_pixel_buffer_object)
+	if(mUsePBO)
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //bind pbo
 
 	if(cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
@@ -177,33 +174,33 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		glEnable(GL_TEXTURE_2D);	
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
-		GLEW_EXT_pixel_buffer_object ? 
+		mUsePBO ? 
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
 			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT);
-		GLEW_EXT_pixel_buffer_object ?
+		mUsePBO ?
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Left_Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT_LEFT);
-		GLEW_EXT_pixel_buffer_object ?
+		mUsePBO ?
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Right_Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT_RIGHT);
-		GLEW_EXT_pixel_buffer_object ?
+		mUsePBO ?
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
 			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 
-	if(GLEW_EXT_pixel_buffer_object)
+	if(mUsePBO)
 	{
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //map pbo
 		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
@@ -253,11 +250,17 @@ void sgct_core::ScreenCapture::setFilename( const char * filename )
     #endif
 }
 
+void sgct_core::ScreenCapture::setUsePBO(bool state)
+{
+	mUsePBO = state;
+}
+
 void sgct_core::ScreenCapture::init()
 {
 	mPBO = 0;
 	mDataSize = 0;
 	mChannels = 4;
+	mUsePBO = true;
 	
 	mframeBufferImagePtrs = NULL;
 	mFrameCaptureThreads = NULL;

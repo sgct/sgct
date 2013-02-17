@@ -57,7 +57,7 @@ void myDrawFun()
 	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
 	glColor3f(1.0f,1.0f,1.0f);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByIndex(myTextureIndex) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureIndex) );
 	//draw the box
 	myBox->draw();
 	glPopMatrix();

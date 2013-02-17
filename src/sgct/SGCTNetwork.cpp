@@ -89,7 +89,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 	mStartConnectionCond = sgct::Engine::createCondition();
     if(mConnectionMutex == NULL ||
 		mDoneCond == NULL ||
-		mStartConnectionCond == NULL )
+		mStartConnectionCond == NULL)
         throw "Failed to create connection mutex & conditions.";
 
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
@@ -265,7 +265,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 		sizeof(int));    /* length of option value */
 
         if( iResult != NO_ERROR )
-            sgct::MessageHandler::Instance()->print("Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
+            sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
 
 		//set timeout
 		int timeout = 0; //infinite
@@ -276,9 +276,32 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
                 (char *)&timeout,
                 sizeof(timeout));
 
-		//iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_DONTLINGER, (char*)&flag, sizeof(int));
-        iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
-        iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
+		iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
+        if (iResult == SOCKET_ERROR)
+			sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set reuse address with error: %d\n!", errno);
+
+		//set only on external control, cluster nodes sends data several times per second so there is no need so send alive packages
+		if( getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl )
+		{
+			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
+			if (iResult == SOCKET_ERROR)
+				sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set keep alive with error: %d\n!", errno);
+		}
+
+		/*
+			The default buffer value is 8k (8192 bytes) which is good for external control
+			but might be a bit to big for sync data.
+		*/
+		if( getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
+		{
+			int bufferSize = 1024;
+			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(int));
+			if (iResult == SOCKET_ERROR)
+				sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, errno);
+			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_SNDBUF, (char*)&bufferSize, sizeof(int));
+			if (iResult == SOCKET_ERROR)
+				sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, errno);
+		}
 	}
 }
 
@@ -362,8 +385,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[8] = currentMessageSizePtr[3];
 
 		//crop if needed
-		if( sendData((void*)messageToSend, static_cast<int>(currentMessageSize)) == SOCKET_ERROR )
-            sgct::MessageHandler::Instance()->print("Failed to send sync header + client log message!\n");
+		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
     }
@@ -383,8 +405,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		tmpca[7] = currentMessageSizePtr[2];
 		tmpca[8] = currentMessageSizePtr[3];
 
-		if( sendData((void *)tmpca, mHeaderSize) == SOCKET_ERROR )
-            sgct::MessageHandler::Instance()->print("Failed to send sync header!\n");
+		sendData((void *)tmpca, mHeaderSize);
 	}
 }
 
@@ -1023,7 +1044,7 @@ void GLFWCALL communicationHandler(void *arg)
 	sgct::MessageHandler::Instance()->print("Node %d disconnected!\n", nPtr->getId());
 }
 
-ssize_t sgct_core::SGCTNetwork::sendData(void * data, int length)
+void sgct_core::SGCTNetwork::sendData(void * data, int length)
 {
 	//fprintf(stderr, "Send data size: %d\n", length);
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -1031,13 +1052,17 @@ ssize_t sgct_core::SGCTNetwork::sendData(void * data, int length)
         fprintf(stderr, "%u ", ((const char *)data)[i]);
     fprintf(stderr, "\n");
 #endif
-	return send(mSocket, (const char *)data, length, 0);
+
+	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(data), length, 0 );
+	if (sendErr == SOCKET_ERROR)
+		sgct::MessageHandler::Instance()->print("Send data failed!\n");
 }
 
-ssize_t sgct_core::SGCTNetwork::sendStr(std::string msg)
+void sgct_core::SGCTNetwork::sendStr(std::string msg)
 {
-	//fprintf(stderr, "Send message: %s, size: %d\n", msg.c_str(), msg.size());
-	return send(mSocket, msg.c_str(), msg.size(), 0);
+	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(msg.c_str()), msg.size(), 0 );
+	if (sendErr == SOCKET_ERROR)
+		sgct::MessageHandler::Instance()->print("Send data failed!\n");
 }
 
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)

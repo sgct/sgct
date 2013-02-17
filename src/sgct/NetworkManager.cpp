@@ -191,14 +191,10 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm)
 					//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 					//send
-					ssize_t sendErr = mNetworkConnections[i]->sendData(
-									sgct::SharedData::Instance()->getDataBlock(),
-									static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
+					mNetworkConnections[i]->sendData(
+						sgct::SharedData::Instance()->getDataBlock(),
+						static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
 				sgct::Engine::unlockMutex(gMutex);
-
-				if (sendErr == SOCKET_ERROR)
-					sgct::MessageHandler::Instance()->print("Send data failed!\n");
-
 			}
 		}
 
@@ -302,18 +298,14 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 						for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
 							tmpc[j] = SGCTNetwork::FillByte;
 					
-						ssize_t sendErr = mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
-						if (sendErr == SOCKET_ERROR)
-							sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
+						mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 					}
 				}
 
 		if( mNetworkConnections[index]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl &&
 			 mNetworkConnections[index]->isConnected())
 		{
-			ssize_t sendErr = mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
-			if (sendErr == SOCKET_ERROR)
-							sgct::MessageHandler::Instance()->print("Send connect data failed!\n");
+			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
 		}
 
         sgct::MessageHandler::Instance()->print("Number of connections: %u (IG slaves %u of %u)\n",

@@ -65,6 +65,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	//gEngine->setExitKey( 'Y' );
 
 	if( !gEngine->init() )
 	{
@@ -412,6 +413,11 @@ void keyCallback(int key, int action)
 		case 'S':
 			if(action == SGCT_PRESS)
 				stats = !stats;
+			break;
+
+		case 'G':
+			if(action == SGCT_PRESS)
+				gEngine->sendMessageToExternalControl("Testar!!\r\n");
 			break;
 
 		case 'M':

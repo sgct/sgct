@@ -46,3 +46,6 @@
 * Forcing full frame sync
 * Changing frame number to unsigned int from long long for better compability with other software (OSG)
 * Timing is now more accurate for draw and sync
+* Added setExitKey function to engine
+* Changed socket buffer size for cluster nodes to 1024 instead of default 8192 for faster communications
+* TextureManager: getTextureByIndex renamed to getTextureByHandle for not confusing with openGL texture indexes 

@@ -69,8 +69,8 @@ public:
 	int getRecvFrame(ReceivedIndex ri);
 	bool isUpdated();
 	void setRecvFrame(int i);
-	ssize_t sendData(void * data, int length);
-	ssize_t sendStr(std::string msg);
+	void sendData(void * data, int length);
+	void sendStr(std::string msg);
 	static ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
 	static int parseInt(char * str);
 	static unsigned int parseUnsignedInt(char * str);

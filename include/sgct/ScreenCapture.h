@@ -29,9 +29,10 @@ public:
 	ScreenCapture( unsigned int numberOfThreads );
 	~ScreenCapture();
 
-	void initOrResizePBO(int x, int y);
+	void initOrResize(int x, int y);
 	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
 	void setFilename( const char * filename );
+	void setUsePBO(bool state);
 
 private: 
 	void init();
@@ -49,6 +50,7 @@ private:
 
 	char mScreenShotFilename[FILENAME_BUFFER_LENGTH];
 	char * mFilename;
+	bool mUsePBO;
 };
 
 }

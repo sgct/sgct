@@ -306,6 +306,10 @@ void sgct_core::CorrectionMesh::render()
 		renderMesh();
 	else
 	{
+		/*
+			counter clock wise winding
+		*/
+		
 		glColor4f(1.0f,1.0f,1.0f,1.0f);
 		glBegin(GL_QUADS);
 		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
@@ -313,20 +317,20 @@ void sgct_core::CorrectionMesh::render()
 		//glTexCoord2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
 		glVertex2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
 
-		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		//glTexCoord2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glVertex2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		//glTexCoord2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glVertex2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
 
 		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 		//glTexCoord2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 		glVertex2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 
-		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		//glTexCoord2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glVertex2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		//glTexCoord2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glVertex2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
 		glEnd();
 	}
 }

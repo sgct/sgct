@@ -10,6 +10,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_helpers
 {
+
+/*!
+	This class stores a vertex which are used to generate vertex buffer objects (VBOs) in SGCT.
+*/
 class SGCTVertexData
 {	
 public:

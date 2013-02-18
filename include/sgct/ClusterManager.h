@@ -14,12 +14,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 
 /*! \namespace sgct_core
-\brief simple graphics cluster toolkit core namespace.
+\brief Simple Graphics Cluster Toolkit core namespace.
 This namespace is used internally within sgct.
 */
 namespace sgct_core
 {
 
+/*!
+The ClusterManager manages all nodes and cluster settings.
+This class is a static singleton and is accessed using it's instance.
+*/
 class ClusterManager
 {
 public:
@@ -54,28 +58,75 @@ public:
 	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted };
 
 	void addNode(SGCTNode node);
-	std::size_t getNumberOfNodes() const { return nodes.size(); }
+
 	SGCTNode * getNodePtr(unsigned int index);
 	SGCTNode * getThisNodePtr();
+
+	/*!
+		\returns the pointer to the user (where all the projections are calculated from)
+	*/
 	SGCTUser * getUserPtr() { return mUser; }
 
+	/*!
+		\returns the number of nodes in the cluster
+	*/
+	std::size_t getNumberOfNodes() const { return nodes.size(); }
+	
+	/*!
+		\returns the scene transform specified in the configuration file
+	*/
 	const glm::mat4 & getSceneTransform() { return mSceneTransform; }
+
+	/*!
+		Don't set this, this is done automatically using from the Network Manager which compares
+		ip addresses from this computer to the XML config file.
+		
+		\param the index to the node where this application is running on
+	*/
 	void setThisNodeId(int id) { mThisNodeId = id; }
+
+	/*!
+		\returns the id to the node which runs this application
+	*/
 	int getThisNodeId() { return mThisNodeId; }
 
+	/*!
+		\returns the ip address to the master in the cluster
+	*/
 	std::string * getMasterIp() { return &masterIp; }
+
+	/*!
+		\param the ip address to the master
+	*/
 	void setMasterIp(std::string ip) { masterIp.assign(ip); }
 
+	/*!
+		\returns the external control port number if it's set or specified in the XML configuration
+	*/
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
+
+	/*!
+		\param the external control port number
+	*/
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
 
 	void setSceneOffset(glm::vec3 offset);
 	void setSceneRotation(float yaw, float pitch, float roll);
 	void setSceneScale(float scale);
 
+	/*!
+		Sets the warping and blending mesh implemtation
+	*/
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
+
+	/*!
+		\returns the mesh implementation
+	*/
 	inline MeshImplementation getMeshImplementation() { return mMeshImpl; }
 
+	/*!
+		\returns the pointer to the tracking manager
+	*/
 	inline sgct::SGCTTrackingManager * getTrackingManagerPtr() { return mTrackingManager; }
 
 private:

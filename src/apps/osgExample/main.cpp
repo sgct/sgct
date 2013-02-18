@@ -13,6 +13,7 @@ sgct::Engine * gEngine;
 osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
+osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
 
 //callbacks
 void myInitOGLFun();
@@ -82,8 +83,8 @@ void myInitOGLFun()
 	osg::ref_ptr<osg::Node>            mModel;
 	osg::ref_ptr<osg::MatrixTransform> mModelTrans;
 
-	mSceneTrans = new osg::MatrixTransform();
-	mModelTrans  = new osg::MatrixTransform();
+	mSceneTrans		= new osg::MatrixTransform();
+	mModelTrans		= new osg::MatrixTransform();
 
 	//rotate osg coordinate system to match sgct
 	mModelTrans->preMult(osg::Matrix::rotate(glm::radians(-90.0f),
@@ -160,7 +161,13 @@ void myPostSyncPreDrawFun()
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
 
-	mViewer->advance(curr_time);
+	//update the frame stamp in the viewer to sync all
+	//time based events in osg
+	mFrameStamp->setFrameNumber( gEngine->getCurrentFrameNumber() );
+	mFrameStamp->setReferenceTime( curr_time );
+	mFrameStamp->setSimulationTime( curr_time );
+	mViewer->setFrameStamp( mFrameStamp );
+	mViewer->advance(); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -264,6 +271,9 @@ void initOSG()
 
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
+
+	// Create a time stamp instance
+	mFrameStamp	= new osg::FrameStamp();
 
 	//run single threaded when embedded
 	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);

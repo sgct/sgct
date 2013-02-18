@@ -1151,7 +1151,8 @@ void sgct::Engine::renderFBOTexture()
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	//glEnable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
+	//glDisable(GL_BLEND);
 	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//clear buffers

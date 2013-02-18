@@ -46,13 +46,8 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glPushAttrib( GL_ENABLE_BIT );
-	glEnable(GL_CULL_FACE);
-	glEnable(GL_TEXTURE_2D);
-	
 	double speed = 25.0;
 	
-	glPushMatrix();
 	glTranslatef(0.0f, 0.0f, -3.0f);
 	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
@@ -60,9 +55,6 @@ void myDrawFun()
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureIndex) );
 	//draw the box
 	myBox->draw();
-	glPopMatrix();
-
-	glPopAttrib();
 }
 
 void myPreSyncFun()
@@ -86,6 +78,8 @@ void myInitOGLFun()
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );
 	glDisable( GL_LIGHTING );
+	glEnable( GL_CULL_FACE );
+	glEnable( GL_TEXTURE_2D );
 
 	//Set up backface culling
 	glCullFace(GL_BACK);

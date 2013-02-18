@@ -15,6 +15,7 @@ sgct::Engine * gEngine;
 //and prevents segfault on Linux
 osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group>			mRootNode;
+osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
 osg::ref_ptr<osg::Node>				mModel;
@@ -54,8 +55,8 @@ bool addAnimationSample = false;
 bool startRecoding = false;
 double startRecodingTime = 0.0;
 
-//float scale = 0.00002f;
-float scale = 1.00000f;
+float scale = 0.00002f;
+//float scale = 1.00000f;
 
 //other var
 double current_time = 0.0;
@@ -95,7 +96,7 @@ int main( int argc, char* argv[] )
 	for(int i=0; i<3; i++)
 		mouseButtonStatus[i] = false;
 
-	if( !gEngine->init(sgct::Engine::OSG_Encapsulation_Mode) )
+	if( !gEngine->init() )//sgct::Engine::OSG_Encapsulation_Mode) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
@@ -147,11 +148,12 @@ void myInitOGLFun()
 
 	mSwitch->setSingleChildOn( 0 );
 
-	sgct::MessageHandler::Instance()->print("Loading model 'iss_all_maps_no_opacity.ive'...\n");
-	//mModel = osgDB::readNodeFile("iss_all_maps_no_opacity.ive");
-	
-	mModel = osgDB::readNodeFile("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive");
-	//mModel = osgDB::readNodeFile("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive");
+	std::string filename = "iss_all_maps_no_opacity.ive";
+	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive";
+	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive"
+
+	sgct::MessageHandler::Instance()->print("Loading model '%s'...\n", filename.c_str());
+	mModel = osgDB::readNodeFile( filename );
 
 	if ( mModel.valid() )
 	{
@@ -176,7 +178,10 @@ void myInitOGLFun()
 		sgct::MessageHandler::Instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
 	}
 	else
+	{
+		mModel = new osg::Node(); //dummy to prevent crashes
 		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+	}
 
 	setupLightSource();
 
@@ -325,7 +330,15 @@ void myPostSyncPreDrawFun()
 		timeStamp += 1.0;
 	}
 
-	mViewer->advance(current_time);
+	//double tmpTime = gEngine->getTime();
+
+	//update the frame stamp in the viewer to sync all
+	//time based events in osg
+	mFrameStamp->setFrameNumber( gEngine->getCurrentFrameNumber() );
+	mFrameStamp->setReferenceTime( current_time );
+	mFrameStamp->setSimulationTime( current_time );
+	mViewer->setFrameStamp( mFrameStamp );
+	mViewer->advance(); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -334,6 +347,8 @@ void myPostSyncPreDrawFun()
 		//update travelsal needed for pagelod object like terrain data etc.
 		mViewer->updateTraversal();
 	}
+
+	//fprintf(stderr, "Post Sync OSG time: %.0f ms\n", (gEngine->getTime() - tmpTime) * 1000.0);
 }
 
 void myDrawFun()
@@ -342,7 +357,9 @@ void myDrawFun()
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveProjectionMatrix() ) ));
 
+	//double tmpTime = gEngine->getTime();
 	mViewer->renderingTraversals();
+	//fprintf(stderr, "Draw OSG time: %.0f ms\n", (gEngine->getTime() - tmpTime) * 1000.0);
 	
 	/*if( gEngine->isMaster() )
 	{
@@ -516,7 +533,12 @@ void initOSG()
 	// Create the osgViewer instance
 	mViewer = new osgViewer::Viewer;
 
+	// Create a time stamp instance
+	mFrameStamp	= new osg::FrameStamp();
+
 	mViewer->setThreadingModel(osgViewer::Viewer::SingleThreaded);
+	//mViewer->setEndBarrierPosition( osgViewer::ViewerBase::BeforeSwapBuffers );
+	//mViewer->setEndBarrierPosition( osgViewer::ViewerBase::AfterSwapBuffers );
 
 	// Set up osgViewer::GraphicsWindowEmbedded for this context
 	osg::ref_ptr< ::osg::GraphicsContext::Traits > traits =

@@ -29,7 +29,7 @@ public:
 	ScreenCapture( unsigned int numberOfThreads );
 	~ScreenCapture();
 
-	void initOrResize(int x, int y);
+	void initOrResize(int x, int y, int channels=4);
 	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
 	void setFilename( const char * filename );
 	void setUsePBO(bool state);

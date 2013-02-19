@@ -9,7 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _STATISTICS_H_
 
 #define STATS_HISTORY_LENGTH 512
-#define STATS_AVERAGE_LENGTH 60
+#define STATS_AVERAGE_LENGTH 32
 #define VERT_SCALE 10000.0f
 
 struct StatsVertex

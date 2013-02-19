@@ -69,12 +69,13 @@ sgct_core::ScreenCapture::~ScreenCapture()
 /*!
 	Inits the pixel buffer object (PBO) or re-sizes it if the frame buffer size have changed.
 
-	@param x x is the horizontal pixel resolution of the frame buffer
-	@param y y is the vertical pixel resolution of the frame buffer
+	\param x the horizontal pixel resolution of the frame buffer
+	\param y the vertical pixel resolution of the frame buffer
+	\param channels the number of color channels
 
 	If PBOs are not supported nothing will and the screenshot process will fall back on slower GPU data fetching.
 */
-void sgct_core::ScreenCapture::initOrResize(int x, int y)
+void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 {	
 	if( mUsePBO && mPBO != 0 ) //delete if buffer exitsts
 	{
@@ -84,6 +85,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y)
 	
 	mX = x;
 	mY = y;
+	mChannels = channels;
 	mDataSize = mX * mY * mChannels;
 
 	for(unsigned int i=0; i<mNumberOfThreads; i++)
@@ -166,6 +168,26 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
+	GLenum colorType;
+	switch(mChannels)
+	{
+	default:
+		colorType = GL_RGBA;
+		break;
+
+	case 1:
+		colorType = GL_LUMINANCE;
+		break;
+
+	case 2:
+		colorType = GL_LUMINANCE_ALPHA;
+		break;
+
+	case 3:
+		colorType = GL_RGB;
+		break;
+	}
+
 	if(mUsePBO)
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //bind pbo
 
@@ -175,29 +197,29 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
 		mUsePBO ? 
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
-			glGetTexImage(GL_TEXTURE_2D, 0, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
+			glGetTexImage(GL_TEXTURE_2D, 0, colorType, GL_UNSIGNED_BYTE, 0) :
+			glGetTexImage(GL_TEXTURE_2D, 0, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT);
 		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Left_Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT_LEFT);
 		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 	else if(cm == Right_Front_Buffer)
 	{
 		glReadBuffer(GL_FRONT_RIGHT);
 		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, GL_RGBA, GL_UNSIGNED_BYTE, (*imPtr)->getData());
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
+			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
 	}
 
 	if(mUsePBO)
@@ -259,7 +281,6 @@ void sgct_core::ScreenCapture::init()
 {
 	mPBO = 0;
 	mDataSize = 0;
-	mChannels = 4;
 	mUsePBO = true;
 	
 	mframeBufferImagePtrs = NULL;

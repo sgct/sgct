@@ -425,8 +425,11 @@ void sgct::Engine::initOGL()
 	
 	mScreenCapture->setFilename( nodeName );
 	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
-	mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
-	
+	if( isFisheye() )
+		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
+	else
+		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -600,17 +603,17 @@ Locks the rendering thread for synchronization. The two stages are:
 Sync time from statistics is the time each computer waits for sync.
 */
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
-{
+{	
 	if( stage == PreStage )
 	{
-		//double tmpTimer = glfwGetTime();
+		double t0 = glfwGetTime();
 		mNetworkConnections->sync(NetworkManager::SendDataToClients); //from server to clients
-		//mStatistics.setSyncTime(glfwGetTime() - tmpTimer);
+		mStatistics.setSyncTime(glfwGetTime() - t0);
 
 		//run only on clients/slaves
 		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
 		{
-			double t0 = glfwGetTime();
+			t0 = glfwGetTime();
 			while(mNetworkConnections->isRunning() && mRunning)
 			{
 				if( mNetworkConnections->isSyncComplete() )
@@ -630,26 +633,28 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 
 				//for debuging
 				if( glfwGetTime() - t0 > 1.0 )
+				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d [%d]\n", i,
+						MessageHandler::Instance()->print("Waiting for master... connection %d: send frame %d recv frame %d [%d]\n", i,
 							mNetworkConnections->getConnection(i)->getSendFrame(),
 							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
 							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
 					}
+				}
 			}//end while wait loop
-			mStatistics.setSyncTime(glfwGetTime() - t0);
+
+			/*
+				A this point all date for rendering a frame is received.
+				Let's signal that back to the master/server.
+			*/
+			mNetworkConnections->sync(NetworkManager::AcknowledgeData);
+
+			mStatistics.addSyncTime(glfwGetTime() - t0);
 		}//end if client
 	}
 	else //post stage
 	{
-		//double tmpTimer = glfwGetTime();
-		mNetworkConnections->sync(NetworkManager::AcknowledgeData);
-		//mStatistics.setSyncTime(glfwGetTime() - tmpTimer);
-
-		/*
-			Doesn't lock if swap barrier is used.
-		*/
 		if( !mIgnoreSync && mNetworkConnections->isComputerServer() )//&&
 			//mConfig->isMasterSyncLocked() &&
 			/*localRunningMode == NetworkManager::NotLocal &&*/
@@ -677,15 +682,17 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 
 				//for debuging
 				if( glfwGetTime() - t0 > 1.0 )
+				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for nodes... connection %d: send frame %d recv frame %d [%d]\n", i,
+						MessageHandler::Instance()->print("Waiting for slaves... connection %d: send frame %d recv frame %d [%d]\n", i,
 							mNetworkConnections->getConnection(i)->getSendFrame(),
 							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
 							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
 					}
+				}
 			}//end while
-			mStatistics.setSyncTime(glfwGetTime() - t0);
+			mStatistics.addSyncTime(glfwGetTime() - t0);
 		}//end if server
 	}
 }
@@ -733,7 +740,9 @@ void sgct::Engine::render()
 		if( getWindowPtr()->isWindowResized() )
 		{
 			resizeFBOs();
-			mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution() );
+			isFisheye() ?
+				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
+				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 		}
 
 		//rendering offscreen if using FBOs
@@ -835,10 +844,7 @@ void sgct::Engine::render()
 			example: GLsync mFence = glFenceSync( GL_SYNC_GPU_COMMANDS_COMPLETE, 0 );
 			Then on each thread: glWaitSync(mFence); 
 		*/
-		glFinish(); //wait for all rendering to finish
-		double endFrameTime = glfwGetTime();
-		mStatistics.setDrawTime(endFrameTime - startFrameTime);
-        updateTimers( endFrameTime );
+		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
 		//take screenshot
 		if( mTakeScreenshot )
@@ -848,9 +854,6 @@ void sgct::Engine::render()
 		//check for errors
 		checkForOGLErrors();
 #endif
-
-		//wait for nodes render before swapping
-		frameSyncAndLock(PostStage);
 
 		//draw info & stats
 		//the cubemap viewports are all the same so it makes no sense to render everything several times
@@ -870,11 +873,24 @@ void sgct::Engine::render()
 				renderDisplayInfo();
 		}
 
+		double endFrameTime = glfwGetTime();
+		mStatistics.setDrawTime(endFrameTime - startFrameTime);
+        updateTimers( endFrameTime );
+
 		//swap window size values
 		getWindowPtr()->swap();
 
+		//master will wait for nodes render before swapping
+		if(!getWindowPtr()->isBarrierActive())
+			frameSyncAndLock(PostStage);
+
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
+
+		//If barriers are active then the lock can take place after the swap buffers,
+		//since it can be assumed that the buffer swaps concurrently on all nodes
+		if(getWindowPtr()->isBarrierActive())
+			frameSyncAndLock(PostStage);
 
 		// Check if ESC key was pressed or window was closed
 		mRunning = !glfwGetKey( mExitKey ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
@@ -2408,16 +2424,33 @@ void sgct::Engine::calculateFPS(double timestamp)
 	}
 }
 
+/*!
+\returns the frame time (delta time) in seconds
+*/
 const double & sgct::Engine::getDt()
 {
 	return mStatistics.getFrameTime();
 }
 
+/*!
+\returns the average frame time (delta time) in seconds
+*/
+const double & sgct::Engine::getAvgDt()
+{
+	return mStatistics.getAvgFrameTime();
+}
+
+/*!
+\returns the draw time in seconds
+*/
 const double & sgct::Engine::getDrawTime()
 {
 	return mStatistics.getDrawTime();
 }
 
+/*!
+\returns the sync time (time waiting for other nodes and network) in seconds
+*/
 const double & sgct::Engine::getSyncTime()
 {
 	return mStatistics.getSyncTime();

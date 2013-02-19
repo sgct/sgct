@@ -16,7 +16,7 @@
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5A40274C-19EB-4B0E-956C-B0C042287469}</ProjectGuid>
     <RootNamespace>postProcessing</RootNamespace>
-    <ProjectName>postProcessing</ProjectName>
+    <ProjectName>postProcessing_msvc10</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">

@@ -74,7 +74,7 @@ public:
 	static ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
 	static int parseInt(char * str);
 	static unsigned int parseUnsignedInt(char * str);
-	void iterateFrameCounter();
+	int iterateFrameCounter();
 	void pushClientMessage();
 
 	SGCT_SOCKET mSocket;

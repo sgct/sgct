@@ -18,7 +18,8 @@ osg::ref_ptr<osg::Group>			mRootNode;
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
-osg::ref_ptr<osg::Node>				mModel;
+std::vector< osg::ref_ptr<osg::Node> > mModels;
+std::vector< std::string > mFilenames;
 osg::ref_ptr<osg::Switch>			mSwitch;
 osg::ref_ptr<osg::AnimationPath> animationPath;
 osg::PositionAttitudeTransform* animation;
@@ -55,15 +56,18 @@ bool addAnimationSample = false;
 bool startRecoding = false;
 double startRecodingTime = 0.0;
 
-float scale = 0.00002f;
-//float scale = 1.00000f;
+//float scale = 0.00002f;
+float scale = 1.00000f;
+//float scale = 0.00010f;
 
 //other var
 double current_time = 0.0;
 bool animate = false;
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
-glm::vec3 position(0.00f, 1.60f, -1.170f);
+//glm::vec3 position(0.00f, 1.60f, -1.170f);
+//glm::vec3 position( -0.741910f, -0.303285f, 5.952151f );
+glm::vec3 position( 0.0f, 0.0f, 0.0f );
 bool arrowButtonStatus[6];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT, UPWARD, DOWNWARD };
 bool mouseButtonStatus[3];
@@ -88,7 +92,7 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
-	gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
+	//gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
 
 	for(int i=0; i<6; i++)
 		arrowButtonStatus[i] = false;
@@ -96,7 +100,7 @@ int main( int argc, char* argv[] )
 	for(int i=0; i<3; i++)
 		mouseButtonStatus[i] = false;
 
-	if( !gEngine->init() )//sgct::Engine::OSG_Encapsulation_Mode) )
+	if( !gEngine->init(sgct::Engine::OSG_Encapsulation_Mode) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
@@ -148,46 +152,57 @@ void myInitOGLFun()
 
 	mSwitch->setSingleChildOn( 0 );
 
-	std::string filename = "iss_all_maps_no_opacity.ive";
-	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive";
+	//mFilenames.push_back( std::string("D:\\Projects\\2013\\WSP\\BIMBoost_dometest\\BIMBoost_dometest\\00_terrang_korridor\\paged.osg") );
+	//mFilenames.push_back( std::string("D:\\Projects\\2013\\WSP\\BIMBoost_dometest\\BIMBoost_dometest\\stationer\\paged.osg") );
+	//mFilenames.push_back( std::string("iss_all_maps_no_opacity.ive") );
+	mFilenames.push_back( std::string("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive"));
 	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive"
+	
+	osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip"); 
 
-	sgct::MessageHandler::Instance()->print("Loading model '%s'...\n", filename.c_str());
-	mModel = osgDB::readNodeFile( filename );
-
-	if ( mModel.valid() )
+	for(size_t i=0; i<mFilenames.size(); i++)
 	{
-		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
-		mModelTrans->addChild(mModel.get());
+		osg::Node * tmpNode = NULL;
+		tmpNode = new (std::nothrow) osg::Node();
+		sgct::MessageHandler::Instance()->print("Loading model '%s'...\n", mFilenames[i].c_str());
+		tmpNode = osgDB::readNodeFile( mFilenames[i], options );
 
-		//get the bounding box
-		osg::ComputeBoundsVisitor cbv;
-		osg::BoundingBox &bb(cbv.getBoundingBox());
-		mModel->accept( cbv );
+		if ( tmpNode != NULL )
+		{
+			sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
+			mModelTrans->addChild( tmpNode );
+
+			//get the bounding box
+			osg::ComputeBoundsVisitor cbv;
+			osg::BoundingBox &bb(cbv.getBoundingBox());
+			tmpNode->accept( cbv );
 			
-		osg::Vec3f tmpVec;
-		tmpVec = bb.center();
+			osg::Vec3f tmpVec;
+			tmpVec = bb.center();
 
-		//translate model center to origin
-		//mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
+			//translate model center to origin
+			//mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
 
-		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
-		sgct::MessageHandler::Instance()->print("Model bounding xMin:%.3f\txMax:%.3f\txSize: %.3f\n", bb.xMin(), bb.xMax(), bb.xMax() - bb.xMin() );
-		sgct::MessageHandler::Instance()->print("Model bounding yMin:%.3f\tyMax:%.3f\tySize: %.3f\n", bb.yMin(), bb.yMax(), bb.yMax() - bb.yMin() );
-		sgct::MessageHandler::Instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
-	}
-	else
-	{
-		mModel = new osg::Node(); //dummy to prevent crashes
-		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+			sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
+			sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
+			sgct::MessageHandler::Instance()->print("Model bounding xMin:%.3f\txMax:%.3f\txSize: %.3f\n", bb.xMin(), bb.xMax(), bb.xMax() - bb.xMin() );
+			sgct::MessageHandler::Instance()->print("Model bounding yMin:%.3f\tyMax:%.3f\tySize: %.3f\n", bb.yMin(), bb.yMax(), bb.yMax() - bb.yMin() );
+			sgct::MessageHandler::Instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
+
+			mModels.push_back( tmpNode );
+		}
+		else
+		{
+			sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+
+		}
 	}
 
 	setupLightSource();
 
 	//optimize scenegraph
-	osgUtil::Optimizer optimizer;
-	optimizer.optimize(mRootNode.get());
+	//osgUtil::Optimizer optimizer;
+	//optimizer.optimize(mRootNode.get());
 }
 
 void myPreSyncFun()
@@ -297,11 +312,12 @@ void myPostSyncPreDrawFun()
 		mSwitch->setSingleChildOn(0);
 	}
 
-
-	if( culling )
-		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE);
-	else
-		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	for(size_t i = 0; i<mModels.size(); i++)
+	{
+		culling ?
+			mModels[i]->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
+			mModels[i]->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
+	}
 
 	if( takeScreenshot )
 	{
@@ -473,6 +489,10 @@ void keyCallback(int key, int action)
 			arrowButtonStatus[LEFT] = (action == SGCT_PRESS ? true : false);
 			break;
 
+		case 'B':
+			sgct::MessageHandler::Instance()->print("Pos: %f %f %f\n", position.x, position.y, position.z);
+			break;
+
 		case SGCT_KEY_SPACE:
 			if(action == SGCT_PRESS)
 			{
@@ -498,12 +518,18 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_PAGEUP:
 			if(action == SGCT_PRESS)
+			{
 				scale *= 2.0f;
+				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale);
+			}
 			break;
 
 		case SGCT_KEY_PAGEDOWN:
 			if(action == SGCT_PRESS)
+			{
 				scale /= 2.0f;
+				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale);
+			}
 			break;
 		}
 	}

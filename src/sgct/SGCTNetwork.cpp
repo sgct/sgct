@@ -48,6 +48,7 @@ void GLFWCALL communicationHandler(void *arg);
 void GLFWCALL connectionHandler(void *arg);
 
 #define MAX_NUMBER_OF_ATTEMPS 10
+#define SGCT_SOCKET_BUFFER_SIZE 4096
 
 sgct_core::SGCTNetwork::SGCTNetwork()
 {
@@ -294,7 +295,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 		*/
 		if( getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
 		{
-			int bufferSize = 1024;
+			int bufferSize = SGCT_SOCKET_BUFFER_SIZE;
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(int));
 			if (iResult == SOCKET_ERROR)
 				sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, errno);
@@ -340,12 +341,19 @@ void sgct_core::SGCTNetwork::setBufferSize(unsigned int newSize)
 	mRequestedSize = newSize;
 }
 
-void sgct_core::SGCTNetwork::iterateFrameCounter()
+/*!
+	Iterates the send frame number and returns the new frame number
+*/
+int sgct_core::SGCTNetwork::iterateFrameCounter()
 {
+	sgct::Engine::lockMutex(mConnectionMutex);
 	if( mSendFrame < MAX_NET_SYNC_FRAME_NUMBER )
 		mSendFrame++;
 	else
 		mSendFrame = 0;
+	sgct::Engine::unlockMutex(mConnectionMutex);
+
+	return mSendFrame;
 }
 
 /*!
@@ -358,7 +366,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 #endif
 
 	//The servers' render function is locked until a message starting with the ack-byte is received.
-	int currentFrame = getSendFrame();
+	int currentFrame = iterateFrameCounter();
 	unsigned char *p = (unsigned char *)&currentFrame;
 
     if(sgct::MessageHandler::Instance()->getDataSize() > mHeaderSize)

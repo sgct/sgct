@@ -4,7 +4,7 @@
 !include LogicLib.nsh ;if statements and loops
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "1.1.1"
+!define SGCT_VERSION "1.2.0"
 !define SGCT_COMPILER "msvc10"
 !define ARCH "x86"
 !define OSG_VERSION "3.0.1"
@@ -184,6 +184,14 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\gamepadExample\main.cpp"
 	File "..\..\src\apps\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_processing"
+	File "..\..\bin\postProcessing\${SGCT_COMPILER}\postProcessing_${SGCT_COMPILER}.exe"
+	File "..\..\src\apps\postProcessing\simple.frag"
+	File "..\..\src\apps\postProcessing\simple.vert"
+	File "..\..\src\apps\postProcessing\main.cpp"
+	File "..\..\src\apps\textureExample\box.png"
+	File "..\..\src\apps\postProcessing\postProcessing_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	
 	!if ${INC_OSG} == 1
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
 		File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}.exe"
@@ -254,6 +262,9 @@ Section "Start Menu Shortcuts"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad\gamepadExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_processing"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_processing.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_processing\postProcessing_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
   !if ${INC_OSG} == 1
 	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"

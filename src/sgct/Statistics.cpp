@@ -119,6 +119,7 @@ void sgct_core::Statistics::setSyncTime(double t)
 void sgct_core::Statistics::addSyncTime(double t)
 {
 	mSyncTime[0].y += t;
+	mAvgSyncTime += (t/static_cast<double>(STATS_AVERAGE_LENGTH));
 }
 
 void sgct_core::Statistics::draw(unsigned int frameNumber)

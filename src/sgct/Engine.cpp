@@ -949,6 +949,8 @@ void sgct::Engine::renderDisplayInfo()
 			if( gpu_ids[0] != 0 && wglGetGPUInfoAMD(gpu_ids[0], WGL_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
 				tot_mem = static_cast<int>( tmpui ) * 1024;
 		}
+#elif defined __APPLE__
+		//might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
 #else
 		if( tot_mem == 0 && glewIsSupported("GLX_AMD_gpu_association") && glXGetGPUIDsAMD(8, gpu_ids) != 0 )
 		{
@@ -962,11 +964,21 @@ void sgct::Engine::renderDisplayInfo()
 		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, mem);
 		av_mem = mem[0];
 	}
-	
+
+	if( av_mem == 0 || tot_mem == 0 )
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Available memory: na\n");
+	else
+	{
+#ifdef __APPLE__
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Available memory: %d (MB)",
+		av_mem/1024);
+#else
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Memory usage: %d %%, %d of %d (MB)",
 		tot_mem > 0 ? (100*(tot_mem-av_mem))/tot_mem : 0, //if not supported card, prevent div by zero
 		(tot_mem-av_mem)/1024,
 		tot_mem/1024);
+#endif
+	}
 
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",

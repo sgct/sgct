@@ -34,6 +34,7 @@ GLFWcond sgct_core::NetworkManager::gCond = NULL;
 sgct_core::NetworkManager::NetworkManager(int mode)
 {
 	mNumberOfConnections = 0;
+	mNumberOfSyncConnections = 0;
 	mAllNodesConnected = false;
 	mIsExternalControlPresent = false;
 	mIsRunning = true;
@@ -226,7 +227,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 			counter++;
 		}
 
-	return counter == getConnectionsCount();
+	return counter == getSyncConnectionsCount();
 }
 
 sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
@@ -263,6 +264,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 
 	sgct::Engine::lockMutex(gMutex);
         mNumberOfConnections = numberOfConnectionsCounter;
+		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
         bool isServer = mIsServer;
 

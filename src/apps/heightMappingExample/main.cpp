@@ -15,7 +15,7 @@ void myDecodeFun();
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
-unsigned int myTextureHandles[2];
+size_t myTextureHandles[2];
 int myTextureLocations[2];
 int curr_timeLoc;
 GLuint myTerrainDisplayList = 0;

@@ -17,13 +17,20 @@ void GLFWCALL screenCaptureHandler(void *arg);
 sgct_core::ScreenCapture::ScreenCapture()
 {
 	mNumberOfThreads = SGCTSettings::Instance()->getNumberOfCaptureThreads();
-	init();
-}
+	mPBO = 0;
+	mDataSize = 0;
+	mUsePBO = true;
+	mFormat = PNG;
+	
+	mframeBufferImagePtrs = NULL;
+	mFrameCaptureThreads = NULL;
 
-sgct_core::ScreenCapture::ScreenCapture( unsigned int numberOfThreads )
-{
-	mNumberOfThreads = (numberOfThreads > 0 ? numberOfThreads : 1);
-	init();
+	mFilename = new char [32];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		strcpy_s(mFilename, 32, "SGCT_frame");
+	#else
+		strcpy(mFilename, "SGCT_frame" );
+    #endif
 }
 
 sgct_core::ScreenCapture::~ScreenCapture()
@@ -119,6 +126,22 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 }
 
 /*!
+Set the image format to use
+*/
+void sgct_core::ScreenCapture::setFormat(CaptureFormat cf)
+{ 
+	mFormat = cf;
+}
+
+/*!
+Get the image format
+*/
+sgct_core::ScreenCapture::CaptureFormat sgct_core::ScreenCapture::getFormat()
+{
+	return mFormat;
+}
+
+/*!
 This function saves the images to disc.
 
 @param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering. If normal front buffer is used then this parameter has no effect.
@@ -172,7 +195,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	switch(mChannels)
 	{
 	default:
-		colorType = GL_RGBA;
+		colorType = (mFormat == TGA ? GL_BGRA : GL_RGBA);
 		break;
 
 	case 1:
@@ -184,7 +207,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		break;
 
 	case 3:
-		colorType = GL_RGB;
+		colorType = (mFormat == TGA ? GL_BGR : GL_RGB);
 		break;
 	}
 
@@ -277,22 +300,11 @@ void sgct_core::ScreenCapture::setUsePBO(bool state)
 	mUsePBO = state;
 }
 
+/*!
+	Init
+*/
 void sgct_core::ScreenCapture::init()
 {
-	mPBO = 0;
-	mDataSize = 0;
-	mUsePBO = true;
-	
-	mframeBufferImagePtrs = NULL;
-	mFrameCaptureThreads = NULL;
-
-	mFilename = new char [32];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		strcpy_s(mFilename, 32, "SGCT_frame");
-	#else
-		strcpy(mFilename, "SGCT_frame" );
-    #endif
-	
 	mframeBufferImagePtrs = new Image*[mNumberOfThreads];
 	mFrameCaptureThreads = new int[mNumberOfThreads];
 	
@@ -326,33 +338,39 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 		eye.assign("_R");
 		break;
 	}
+
+	std::string suffix;
+	if(mFormat == PNG)
+		suffix.assign("png");
+	else/* if(mFormat == TGA)*/
+		suffix.assign("tga");
 	
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( frameNumber < 10 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 #else
     if( frameNumber < 10 )
-		sprintf( mScreenShotFilename, "%s%s_00000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_00000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf( mScreenShotFilename, "%s%s_0000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_0000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf( mScreenShotFilename, "%s%s_000%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf( mScreenShotFilename, "%s%s_00%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_00%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf( mScreenShotFilename, "%s%s_0%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_0%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf( mScreenShotFilename, "%s%s_%d.png", mFilename, eye.c_str(), frameNumber);
+		sprintf( mScreenShotFilename, "%s%s_%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
 #endif
 }
 
@@ -381,7 +399,7 @@ void GLFWCALL screenCaptureHandler(void *arg)
 {
 	sgct_core::Image * imPtr = reinterpret_cast<sgct_core::Image *>(arg);
 	
-	if( !imPtr->savePNG(1) )
+	if( !imPtr->save() )
 	{
 		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", imPtr->getFilename());
 	}

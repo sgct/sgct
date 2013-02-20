@@ -57,6 +57,9 @@ Parameter     | Description
 --Regular-FBO | use regular frame buffer objects without multi sampling
 --MultiSampled-FBO | use multisampled frame buffer objects (default)
 --FXAA | use fast approximate anti-aliasing shader
+--Capture-PNG | use png images for screen capture (default)
+--Capture-TGA | use tga images for screen capture
+
 */
 sgct::Engine::Engine( int& argc, char**& argv )
 {
@@ -67,7 +70,6 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRunMode = Default_Mode;
 	mFinalFBO_Ptr = NULL;
 	mCubeMapFBO_Ptr = NULL;
-	mScreenCapture = NULL;
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -370,11 +372,6 @@ bool sgct::Engine::initWindow()
 
 	//init swap group if enabled 
 	getWindowPtr()->initNvidiaSwapGroups();
-	//init swap barrier
-	sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
-	getWindowPtr()->setBarrier(true);
-	sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
-	getWindowPtr()->resetSwapGroupFrameNumber();
 
 	return true;
 }
@@ -415,7 +412,7 @@ void sgct::Engine::initOGL()
 		tmpNode->getViewport(i)->loadData();
 
 	//init PBO in screen capture
-	mScreenCapture = new ScreenCapture();
+	mScreenCapture.init();
 	char nodeName[16];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 		sprintf_s( nodeName, 16, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
@@ -423,12 +420,12 @@ void sgct::Engine::initOGL()
 		sprintf( nodeName, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
     #endif
 	
-	mScreenCapture->setFilename( nodeName );
-	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
+	mScreenCapture.setFilename( nodeName );
+	mScreenCapture.setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
 	if( isFisheye() )
-		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
+		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
 	else
-		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -453,6 +450,12 @@ void sgct::Engine::initOGL()
 
 	//check for errors
 	checkForOGLErrors();
+
+	//init swap barrier is swap groups are active
+	sgct::MessageHandler::Instance()->print("Joining swap barrier if enabled...\n");
+	getWindowPtr()->setBarrier(true);
+	sgct::MessageHandler::Instance()->print("Reseting swap group frame number...\n");
+	getWindowPtr()->resetSwapGroupFrameNumber();
 
 	sgct::MessageHandler::Instance()->print("\nReady to render!\n");
 }
@@ -510,12 +513,6 @@ void sgct::Engine::clean()
 	{
 		delete mConfig;
 		mConfig = NULL;
-	}
-
-	if( mScreenCapture != NULL )
-	{
-		delete mScreenCapture;
-		mScreenCapture = NULL;
 	}
 
 	// Destroy explicitly to avoid memory leak messages
@@ -741,8 +738,8 @@ void sgct::Engine::render()
 		{
 			resizeFBOs();
 			isFisheye() ?
-				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
-				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
+				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 		}
 
 		//rendering offscreen if using FBOs
@@ -1880,21 +1877,21 @@ void sgct::Engine::captureBuffer()
 	if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
+			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
 		else
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
+			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
+			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
+			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
 		}
 		else
 		{
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
+			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
+			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
 		}
 	}
 
@@ -2085,6 +2082,18 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		else if( strcmp(argv[i],"--FXAA") == 0 )
 		{
 			SGCTSettings::Instance()->setFXAA(true);
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--Capture-TGA") == 0 )
+		{
+			mScreenCapture.setFormat( ScreenCapture::TGA );
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--Capture-PNG") == 0 )
+		{
+			mScreenCapture.setFormat( ScreenCapture::PNG );
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -2812,7 +2821,6 @@ bool sgct::Engine::isFisheye()
 	return (SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO);
 }
 
-
 /*!
 	Returns pointer to FBO container
 */
@@ -2836,4 +2844,12 @@ void sgct::Engine::getFBODimensions( int & width, int & height )
 		width = getWindowPtr()->getXFramebufferResolution();
 		height = getWindowPtr()->getYFramebufferResolution();
 	}
+}
+
+/*!
+	Set the screen capture format.
+*/
+void sgct::Engine::setScreenCaptureFormat( sgct_core::ScreenCapture::CaptureFormat cf )
+{
+	mScreenCapture.setFormat( cf );
 }

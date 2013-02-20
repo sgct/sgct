@@ -20,8 +20,10 @@ public:
 	~Image();
 	bool load(const char * filename);
 	bool loadPNG(const char * filename);
+	bool save();
 	bool savePNG(const char * filename, int compressionLevel = -1);
 	bool savePNG(int compressionLevel = -1);
+	bool saveTGA();
 	void setFilename(const char * filename);
 	void cleanup();
 	unsigned char * getData();

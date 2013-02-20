@@ -261,6 +261,7 @@ public:
 	bool isFisheye();
 	sgct_core::OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
+	void setScreenCaptureFormat( sgct_core::ScreenCapture::CaptureFormat cf );
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -350,7 +351,8 @@ private:
 	bool mRenderingOffScreen;
 
 	//objects
-	sgct_core::Statistics	mStatistics;
+	sgct_core::Statistics	 mStatistics;
+	sgct_core::ScreenCapture mScreenCapture;
 
 	//FBO stuff
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
@@ -365,7 +367,6 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
-	sgct_core::ScreenCapture * mScreenCapture;
 
 	std::string configFilename;
 	int mRunning;

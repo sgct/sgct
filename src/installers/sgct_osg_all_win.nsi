@@ -203,6 +203,8 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "..\..\bin\osgExampleRTT\${SGCT_COMPILER}\osgExampleRTT_${SGCT_COMPILER}.exe"
 		File "..\..\src\apps\osgExample\airplane.ive"
 		File "..\..\src\apps\osgExampleRTT\main.cpp"
+		File "..\..\src\apps\osgExampleRTT\RenderToTexture.cpp"
+		File "..\..\src\apps\osgExampleRTT\RenderToTexture.h"
 		File "..\..\src\apps\osgExampleRTT\osgExampleRTT_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	!endif
 	

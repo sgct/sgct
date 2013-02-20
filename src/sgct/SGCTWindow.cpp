@@ -194,6 +194,8 @@ void sgct_core::SGCTWindow::setBarrier(const bool state)
 
 	if( mUseSwapGroups && state != mBarrier)
 	{
+		sgct::MessageHandler::Instance()->print("SGCTWindow: Enabling Nvidia swap barrier.\n");
+
 #ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
 #else //Apple and Linux uses glext.h
@@ -269,6 +271,8 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
+		sgct::MessageHandler::Instance()->print("SGCTWindow: Joining Nvidia swap group.\n");
+		
 		hDC = wglGetCurrentDC();
 
 		unsigned int maxBarrier = 0;
@@ -303,6 +307,8 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 
     if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
+		sgct::MessageHandler::Instance()->print("SGCTWindow: Joining Nvidia swap group.\n");
+		
 		hDC = glXGetCurrentDrawable();
 		disp = glXGetCurrentDisplay();
 

@@ -197,6 +197,48 @@ bool sgct_core::Image::loadPNG(const char *filename)
 }
 
 /*!
+	Save the buffer to file. Type is automatically set by filename suffix.
+*/
+bool sgct_core::Image::save()
+{
+	int length = 0;
+
+	if(mFilename == NULL)
+	{
+		sgct::MessageHandler::Instance()->print("Filename not set for image save.\n");
+		return false;
+	}
+
+	while(mFilename[length] != '\0')
+		length++;
+
+	char type[5];
+	if(length > 5)
+	{
+		type[0] = mFilename[length-4];
+		type[1] = mFilename[length-3];
+		type[2] = mFilename[length-2];
+		type[3] = mFilename[length-1];
+		type[4] = '\0';
+
+		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
+			return savePNG(1);
+		if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
+			return saveTGA();
+		else
+		{
+			sgct::MessageHandler::Instance()->print("Failed to save image! Unknown filesuffix: \"%s\"\n", type);
+			return false;
+		}
+	}
+	else
+	{
+		sgct::MessageHandler::Instance()->print("Failed to save image! Bad filename: %s\n", mFilename);
+		return false;
+	}
+}
+
+/*!
 		Compression levels 1-9.
 		-1 = Default compression
 		0 = No compression
@@ -301,6 +343,89 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	return true;
 }
 
+bool sgct_core::Image::saveTGA()
+{
+	if( mData == NULL && !allocateOrResizeData())
+		return false;
+	
+	FILE *fp = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
+	{
+		sgct::MessageHandler::Instance()->print("Can't create TGA texture file '%s'\n", mFilename);
+		return false;
+	}
+#else
+    fp = fopen(mFilename, "wb");
+    if( fp == NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Can't create TGA texture file '%s'\n", mFilename);
+		return false;
+	}
+#endif
+
+	if( mChannels == 2 )
+	{
+		sgct::MessageHandler::Instance()->print("Can't create TGA texture file '%s'.\nLuminance alpha not supported by the TGA format.\n", mFilename);
+		return false;
+	}
+
+	/*
+	TGA data type field
+
+	0  -  No image data included.
+    1  -  Uncompressed, color-mapped images.
+    2  -  Uncompressed, RGB images.
+    3  -  Uncompressed, black and white images.
+    9  -  Runlength encoded color-mapped images.
+	10  -  Runlength encoded RGB images.
+	11  -  Compressed, black and white images.
+	32  -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding.
+	33  -  Compressed color-mapped data, using Huffman, Delta, and runlength encoding.  4-pass quadtree-type process.
+	*/
+
+	unsigned char data_type;
+	switch( mChannels )
+	{
+	default:
+		data_type = 2;
+		break;
+
+	case 1:
+		data_type = 3; //bw
+		break;
+	}
+
+	// The image header
+	unsigned char header[ 18 ] = { 0 };
+	header[  2 ] = 2; //datatype
+	header[ 12 ] =  mSize_x        & 0xFF;
+	header[ 13 ] = (mSize_x  >> 8) & 0xFF;
+	header[ 14 ] =  mSize_y       & 0xFF;
+	header[ 15 ] = (mSize_y >> 8) & 0xFF;
+	header[ 16 ] = mChannels * 8;  // bits per pixel
+
+	fwrite(header, sizeof(unsigned char), sizeof(header), fp);
+
+	// The file footer. This part is totally optional.
+	static const char footer[ 26 ] =
+		"\0\0\0\0"  // no extension area
+		"\0\0\0\0"  // no developer directory
+		"TRUEVISION-XFILE"  // yep, this is a TGA file
+		".";
+
+	for(int y=0; y<mSize_y; y++)
+		fwrite( &mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
+
+	fwrite(footer, sizeof(char), sizeof(footer), fp);
+
+	fclose(fp);
+
+	sgct::MessageHandler::Instance()->print("Image '%s' was saved successfully!\n", mFilename);
+
+	return true;
+}
+
 void sgct_core::Image::setFilename(const char * filename)
 {
 	if( mFilename != NULL )
@@ -383,6 +508,13 @@ void sgct_core::Image::setChannels(int channels)
 
 bool sgct_core::Image::allocateOrResizeData()
 {
+	if(mSize_x <= 0 || mSize_y <= 0 || mChannels <= 0)
+	{
+		sgct::MessageHandler::Instance()->print("Error: Invalid image size %dx%d %d channels!\n", 
+			mSize_x, mSize_y, mChannels);
+		return false;
+	}
+	
 	if(mData != NULL) //re-allocate
 	{
 		delete [] mData;

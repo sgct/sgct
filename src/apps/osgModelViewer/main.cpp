@@ -106,6 +106,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
+	//gEngine->setScreenCaptureFormat( sgct_core::ScreenCapture::TGA );
+
 	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
 	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
 
@@ -156,6 +158,7 @@ void myInitOGLFun()
 	//mFilenames.push_back( std::string("D:\\Projects\\2013\\WSP\\BIMBoost_dometest\\BIMBoost_dometest\\stationer\\paged.osg") );
 	//mFilenames.push_back( std::string("iss_all_maps_no_opacity.ive") );
 	mFilenames.push_back( std::string("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive"));
+	//mFilenames.push_back( std::string("Y:\\models\\test_harmony_20130219\\harmony_test\\harmony_test.ive"));
 	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive"
 	
 	osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip"); 
@@ -201,8 +204,8 @@ void myInitOGLFun()
 	setupLightSource();
 
 	//optimize scenegraph
-	//osgUtil::Optimizer optimizer;
-	//optimizer.optimize(mRootNode.get());
+	osgUtil::Optimizer optimizer;
+	optimizer.optimize(mRootNode.get());
 }
 
 void myPreSyncFun()

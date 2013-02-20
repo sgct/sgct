@@ -356,10 +356,10 @@ bool sgct::Engine::initWindow()
 
     /*
         Swap inerval:
-
-        0 = vertical sync off
-        1 = wait for vertical sync
-        2 = fix when using swapgroups in xp and running half the framerate
+        -1 = adaptive sync
+        0  = vertical sync off
+        1  = wait for vertical sync
+        2  = fix when using swapgroups in xp and running half the framerate
     */
 
     glfwSwapInterval( ClusterManager::Instance()->getThisNodePtr()->swapInterval );
@@ -870,6 +870,8 @@ void sgct::Engine::render()
 				renderDisplayInfo();
 		}
 
+        //glFlush();
+        //glFinish();
 		double endFrameTime = glfwGetTime();
 		mStatistics.setDrawTime(endFrameTime - startFrameTime);
         updateTimers( endFrameTime );

@@ -77,7 +77,7 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
 
-	glLineWidth(3.0); //for wireframe
+	glLineWidth(2.0); //for wireframe
 	glCallList(myTerrainDisplayList);
 
 	//unset current shader program

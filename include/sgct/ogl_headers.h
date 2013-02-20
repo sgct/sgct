@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_OGL_HEADERS_
@@ -19,12 +19,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 		#include <GL/wglew.h>
 	#elif defined __APPLE__
 		#include <OpenGL/glext.h>
+		/*
+            glxew depends on X11 libs
+            X11 is not included with Mountain Lion, but X11 server and client libraries for OS X Mountain Lion
+            are available from the XQuartz project: http://xquartz.macosforge.org. You should use XQuartz version 2.7.2 or later.
+        */
 		//#include <GL/glxew.h>
 	#else  //linux
 		#include <GL/glext.h>
 		#include <GL/glxew.h>
 	#endif
-	
+
 	#include <GL/glfw.h>
 #endif
 

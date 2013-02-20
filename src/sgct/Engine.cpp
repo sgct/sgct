@@ -50,7 +50,7 @@ Parameter     | Description
 -config <filename> | set xml confiuration file
 -local <integer> | set which node in configuration that is the localhost (index starts at 0)
 -numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
---client | run the application as client (only available when running as local) 
+--client | run the application as client (only available when running as local)
 --slave | run the application as client (only available when running as local)
 --Ignore-Sync | disable frame sync
 --No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
@@ -370,7 +370,7 @@ bool sgct::Engine::initWindow()
 
 	waitForAllWindowsInSwapGroupToOpen();
 
-	//init swap group if enabled 
+	//init swap group if enabled
 	getWindowPtr()->initNvidiaSwapGroups();
 
 	return true;
@@ -419,7 +419,7 @@ void sgct::Engine::initOGL()
     #else
 		sprintf( nodeName, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
     #endif
-	
+
 	mScreenCapture.setFilename( nodeName );
 	mScreenCapture.setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
 	if( isFisheye() )
@@ -474,8 +474,8 @@ void sgct::Engine::clean()
 	clearAllCallbacks();
 
 	//delete FBO stuff
-	if(mFinalFBO_Ptr != NULL && 
-		mCubeMapFBO_Ptr != NULL && 
+	if(mFinalFBO_Ptr != NULL &&
+		mCubeMapFBO_Ptr != NULL &&
 		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{
 		sgct::MessageHandler::Instance()->print("Releasing OpenGL buffers...\n");
@@ -600,7 +600,7 @@ Locks the rendering thread for synchronization. The two stages are:
 Sync time from statistics is the time each computer waits for sync.
 */
 void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
-{	
+{
 	if( stage == PreStage )
 	{
 		double t0 = glfwGetTime();
@@ -728,7 +728,7 @@ void sgct::Engine::render()
 			mPostSyncPreDrawFn();
 
 		double startFrameTime = glfwGetTime();
-		calculateFPS(startFrameTime); //measures time between calls 
+		calculateFPS(startFrameTime); //measures time between calls
 
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -839,7 +839,7 @@ void sgct::Engine::render()
 			For multitheded usage a glFenceSync fence should be used to synchronize all GPU threads.
 
 			example: GLsync mFence = glFenceSync( GL_SYNC_GPU_COMMANDS_COMPLETE, 0 );
-			Then on each thread: glWaitSync(mFence); 
+			Then on each thread: glWaitSync(mFence);
 		*/
 		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
@@ -937,9 +937,9 @@ void sgct::Engine::renderDisplayInfo()
 	}
 	else if( GLEW_ATI_meminfo )
 	{
-		unsigned int tmpui = 0;
+#ifdef __WIN32__
+        unsigned int tmpui = 0;
 		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
-#ifdef __WIN32__ 
 		if( tot_mem == 0 && wglewIsSupported("WGL_AMD_gpu_association") && wglGetGPUIDsAMD(8, gpu_ids) != 0 )
 		{
 			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
@@ -948,7 +948,9 @@ void sgct::Engine::renderDisplayInfo()
 		}
 #elif defined __APPLE__
 		//might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
-#else
+#else //Linux
+		unsigned int tmpui = 0;
+		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
 		if( tot_mem == 0 && glewIsSupported("GLX_AMD_gpu_association") && glXGetGPUIDsAMD(8, gpu_ids) != 0 )
 		{
 			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
@@ -956,7 +958,7 @@ void sgct::Engine::renderDisplayInfo()
 				tot_mem = static_cast<int>( tmpui ) * 1024;
 		}
 #endif
-		
+
 		int mem[] = {0, 0, 0, 0};
 		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, mem);
 		av_mem = mem[0];
@@ -1023,7 +1025,7 @@ void sgct::Engine::draw()
 	enterCurrentViewport(FBOSpace);
 
 	glMatrixMode(GL_PROJECTION);
-	
+
 	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
 
@@ -1312,16 +1314,16 @@ void sgct::Engine::renderFBOTexture()
 void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
 	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-	
+
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	SGCTSettings * setPtr = SGCTSettings::Instance();
-	
+
 	if( mActiveFrustum == Frustum::StereoLeftEye )
 		setPtr->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
 	else if( mActiveFrustum == Frustum::StereoRightEye )
 		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
-	
+
 	//iterate the cube sides
 	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 	{
@@ -1329,7 +1331,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
-			//bind & attach buffer 
+			//bind & attach buffer
 			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 
@@ -1424,7 +1426,7 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 		mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 		if( SGCTSettings::Instance()->useDepthMap() )
 			mFinalFBO_Ptr->attachDepthTexture( mDepthBufferTextures[ti] );
-		
+
 		mFinalFBO_Ptr->blit();
 	}
 }
@@ -1594,10 +1596,10 @@ void sgct::Engine::createTextures()
 	mFrameBufferTextures[0] = 0;
 	mFrameBufferTextures[1] = 0;
 	mFrameBufferTextures[2] = 0;
-	
+
 	mDepthBufferTextures[0] = 0;
 	mDepthBufferTextures[1] = 0;
-	
+
 	//allocate
 	glGenTextures(3,			&mFrameBufferTextures[0]);
 	if( SGCTSettings::Instance()->useDepthMap() )
@@ -1615,7 +1617,7 @@ void sgct::Engine::createTextures()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-				
+
 		//setup non-multisample depth buffer
 		if( SGCTSettings::Instance()->useDepthMap() )
 		{
@@ -1631,7 +1633,7 @@ void sgct::Engine::createTextures()
 			glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
 #endif
-				
+
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
 			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
 		}
@@ -1697,7 +1699,7 @@ void sgct::Engine::createFBOs()
 			mCubeMapFBO_Ptr->createFBO(SGCTSettings::Instance()->getCubeMapResolution(),
 				SGCTSettings::Instance()->getCubeMapResolution(),
 				1);
-			
+
 			mCubeMapFBO_Ptr->bind();
 			for(int i=0; i<6; i++)
 			{
@@ -1713,7 +1715,7 @@ void sgct::Engine::createFBOs()
 			//set ut the fisheye geometry etc.
 			initFisheye();
 		}
-		
+
 		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
 	}
 }
@@ -1732,7 +1734,7 @@ void sgct::Engine::resizeFBOs()
 				glDeleteTextures(2,			&mDepthBufferTextures[0]);
 
 			createTextures();
-		
+
 			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
 				getWindowPtr()->getYFramebufferResolution(),
 				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
@@ -1742,7 +1744,7 @@ void sgct::Engine::resizeFBOs()
 				mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
 					SGCTSettings::Instance()->getCubeMapResolution(),
 					1);
-			
+
 				mCubeMapFBO_Ptr->bind();
 				for(int i=0; i<6; i++)
 				{
@@ -1867,7 +1869,7 @@ bool sgct::Engine::checkForOGLErrors()
 /*!
 	This functions saves a png screenshot or a stereoscopic pair in the current working directory.
 	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
-	
+
 	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
 */
 void sgct::Engine::captureBuffer()
@@ -1964,7 +1966,7 @@ void sgct::Engine::calculateFrustums()
 		if( !tmpNode->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 		{
 			SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
-			
+
 			if( SGCTSettings::Instance()->getFBOMode() != SGCTSettings::CubeMapFBO )
 			{
 				tmpNode->getViewport(i)->calculateFrustum(
@@ -2102,7 +2104,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
-			
+
 			if(tmpi > 0)
 				SGCTSettings::Instance()->setNumberOfCaptureThreads( tmpi );
 
@@ -2385,7 +2387,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 	Init the fisheye data by creating geometry and precalculate textures
 */
 void sgct::Engine::initFisheye()
-{	
+{
 	//create proxy geometry
 	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
 	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
@@ -2825,7 +2827,7 @@ bool sgct::Engine::isFisheye()
 	Returns pointer to FBO container
 */
 sgct_core::OffScreenBuffer * sgct::Engine::getFBOPtr()
-{ 
+{
 	return SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
 }
 

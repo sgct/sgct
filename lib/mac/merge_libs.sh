@@ -5,7 +5,7 @@ rm libsgct.a
 ar x deps/libGLEW.a
 ar x deps/libglfw.a
 ar x deps/libz.a
-ar x deps/libpng.a
+ar x deps/libpng15.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
 ar x deps/libvrpn.a
@@ -17,7 +17,7 @@ rm libsgct_d.a
 ar x deps/libGLEW.a
 ar x deps/libglfw.a
 ar x deps/libz.a
-ar x deps/libpng.a
+ar x deps/libpng15.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2_d.a
 ar x deps/libvrpn.a

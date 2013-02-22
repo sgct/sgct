@@ -1291,7 +1291,7 @@ void sgct::Engine::renderFBOTexture()
 			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
 			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
 			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
-			glUniform1i( mShaderLocs[FXAATexture], 0 );
+			glUniform1i( mShaderLocs[FXAATexture], 1 );
 		}
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -1909,10 +1909,8 @@ void sgct::Engine::captureBuffer()
 */
 void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 {
-	sgct::MessageHandler::Instance()->print("Joining swap group if enabled/supported...\n");
-
 	//Must wait until all nodes are running if using swap barrier
-	if( ClusterManager::Instance()->getNumberOfNodes() > 1)
+	if( !mIgnoreSync && ClusterManager::Instance()->getNumberOfNodes() > 1)
 	{
 		if( getWindowPtr()->isUsingSwapGroups() )
 		{

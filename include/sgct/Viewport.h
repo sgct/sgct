@@ -22,6 +22,8 @@ namespace sgct_core
 class Viewport
 {
 public:
+	enum ViewPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
+
 	Viewport();
 	Viewport(double x, double y, double xSize, double ySize);
 
@@ -49,14 +51,13 @@ public:
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
 	inline const glm::mat4 & getProjectionMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
 	inline const glm::mat4 & getFrustumMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mFrustumMat[frustumMode]; }
+	inline const glm::vec3 getViewPlaneCoords( ViewPlaneCorner vpc ) { return mViewPlaneCoords[ vpc ]; }
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline bool isEnabled() { return mEnabled; }
 	inline std::size_t getOverlayTextureIndex() { return mTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
-
-	enum corners { LowerLeft = 0, UpperLeft, UpperRight };
 
 private:
 	glm::vec3 mViewPlaneCoords[3];

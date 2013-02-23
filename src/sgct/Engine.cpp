@@ -1397,8 +1397,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
 	}
 
+	//make sure that VBO:s are unbinded, to not mess up the vertex array
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
@@ -1474,13 +1475,15 @@ void sgct::Engine::loadShaders()
 	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 
 	mShaderLocs[FXAASubPixShift] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_SUBPIX_SHIFT" );
-	glUniform1f( mShaderLocs[FXAASubPixShift], 0.25f );
+	//glUniform1f( mShaderLocs[FXAASubPixShift], 0.25f );
+	glUniform1f( mShaderLocs[FXAASubPixShift], 0.0f ); //better quality
 
 	mShaderLocs[FXAASpanMax] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_SPAN_MAX" );
 	glUniform1f( mShaderLocs[FXAASpanMax], 8.0f );
 
 	mShaderLocs[FXAARedMul] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "FXAA_REDUCE_MUL" );
-	glUniform1f( mShaderLocs[FXAARedMul], 1.0f/8.0f );
+	//glUniform1f( mShaderLocs[FXAARedMul], 1.0f/8.0f );
+	glUniform1f( mShaderLocs[FXAARedMul], 0.0f ); //better quality
 
 	mShaderLocs[FXAAOffset] = sgct::ShaderManager::Instance()->getShader( "FXAA" ).getUniformLocation( "vx_offset" );
 	glUniform1f( mShaderLocs[FXAAOffset], 0.0f );

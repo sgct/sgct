@@ -39,7 +39,7 @@ void myDrawFun()
 {	
 	size_t numberOfNodes = sgct_core::ClusterManager::Instance()->getNumberOfNodes();
 	int counter = 0;
-	glLineWidth(5.0);
+	glLineWidth(3.0);
 	for(size_t i=0; i<numberOfNodes; i++)
 	{
 		sgct_core::SGCTNode * node = sgct_core::ClusterManager::Instance()->getNodePtr(i);
@@ -70,10 +70,10 @@ void myDrawFun()
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 0.3f);
 	glm::vec3 userPos = sgct_core::ClusterManager::Instance()->getUserPtr()->getPos();
-	glPushMatrix();
-	glTranslatef( userPos.x, userPos.y, userPos.z );
+	//glPushMatrix();
+	//glTranslatef( userPos.x, userPos.y, userPos.z );
 	dome->draw();
-	glPopMatrix();
+	//glPopMatrix();
 
 	/*counter = 0;
 	for(size_t i=0; i<numberOfNodes; i++)

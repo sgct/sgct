@@ -54,6 +54,8 @@ public:
 	void setFXAA(bool state);
 	void setFBOMode(FBOMode mode);
 	void setNumberOfCaptureThreads(int count);
+	void setCapturePath(std::string path);
+	void setCaptureFormat(const char * format);
 	
 	int getCubeMapResolution();
 	float getDomeDiameter();
@@ -62,7 +64,9 @@ public:
 	float getFisheyeCropValue(CropSides side);
 	bool isFisheyeOffaxis();
 	float getFisheyeOffset(unsigned int axis);
-	const char *  getFisheyeOverlay();
+	const char * getFisheyeOverlay();
+	const char * getCapturePath();
+	int getCaptureFormat();
 
 	//! Set to true if FXAA should be used.
 	inline bool useFXAA() { return mUseFXAA; }
@@ -103,6 +107,9 @@ private:
 
 	//FBO settings
 	FBOMode mFBOMode;
+
+	std::string mCapturePath;
+	int mCaptureFormat;
 };
 }
 

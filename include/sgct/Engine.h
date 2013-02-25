@@ -261,7 +261,6 @@ public:
 	bool isFisheye();
 	sgct_core::OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
-	void setScreenCaptureFormat( sgct_core::ScreenCapture::CaptureFormat cf );
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters

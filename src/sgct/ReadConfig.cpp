@@ -556,6 +556,18 @@ void sgct_core::ReadConfig::readAndParseXML()
 					sgct::MessageHandler::Instance()->print("Info: Font size not specified. Setting to default size=10!\n");
             }
         }
+		else if( strcmp("Capture", val[0]) == 0 )
+		{
+			if( element[0]->Attribute("path") != NULL )
+			{
+			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path") );
+            }
+
+            if( element[0]->Attribute("format") != NULL )
+			{
+			    SGCTSettings::Instance()->setCaptureFormat( element[0]->Attribute("format") );
+            }
+        }
 		else if( strcmp("Tracker", val[0]) == 0 && element[0]->Attribute("name") != NULL )
 		{
 			ClusterManager::Instance()->getTrackingManagerPtr()->addTracker( std::string(element[0]->Attribute("name")) );

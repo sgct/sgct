@@ -36,9 +36,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 GLEWContext * glewGetContext();
 #endif
 
-//to test if depth maps works
-//#define __SGCT_DEPTH_MAP_DEBUG__
-
+#define MAX_SGCT_PATH_LENGTH 256
 #define USE_SLEEP_TO_WAIT_FOR_NODES 0
 
 /*!
@@ -433,11 +431,15 @@ void sgct::Engine::initOGL()
 
 	//init PBO in screen capture
 	mScreenCapture.init();
-	char nodeName[16];
+	char nodeName[MAX_SGCT_PATH_LENGTH];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s( nodeName, 16, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
+		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "%s_node%d",
+			SGCTSettings::Instance()->getCapturePath(),
+			ClusterManager::Instance()->getThisNodeId());
     #else
-		sprintf( nodeName, "sgct_node%d", ClusterManager::Instance()->getThisNodeId());
+		sprintf( nodeName, "%s_node%d",
+			SGCTSettings::Instance()->getCapturePath(),
+			ClusterManager::Instance()->getThisNodeId());
     #endif
 
 	mScreenCapture.setFilename( nodeName );
@@ -446,6 +448,8 @@ void sgct::Engine::initOGL()
 		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
 	else
 		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+	if( SGCTSettings::Instance()->getCaptureFormat() != ScreenCapture::NOT_SET )
+		mScreenCapture.setFormat( static_cast<ScreenCapture::CaptureFormat>(SGCTSettings::Instance()->getCaptureFormat()) );
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -2908,12 +2912,4 @@ void sgct::Engine::getFBODimensions( int & width, int & height )
 		width = getWindowPtr()->getXFramebufferResolution();
 		height = getWindowPtr()->getYFramebufferResolution();
 	}
-}
-
-/*!
-	Set the screen capture format.
-*/
-void sgct::Engine::setScreenCaptureFormat( sgct_core::ScreenCapture::CaptureFormat cf )
-{
-	mScreenCapture.setFormat( cf );
 }

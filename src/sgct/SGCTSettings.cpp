@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/ScreenCapture.h"
 
 #define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
 
@@ -34,6 +35,9 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mUseFXAA = false;
 	mUsePostFX = false;
 	mFBOMode = MultiSampledFBO;
+
+	mCapturePath.assign("SGCT");
+	mCaptureFormat = ScreenCapture::NOT_SET;
 }
 
 sgct_core::SGCTSettings::~SGCTSettings()
@@ -144,6 +148,31 @@ void sgct_core::SGCTSettings::setNumberOfCaptureThreads(int count)
 	mNumberOfCaptureThreads = count;
 }
 
+/*!
+Set capture/screenshot path used by SGCT
+*/
+void sgct_core::SGCTSettings::setCapturePath(std::string path)
+{
+	mCapturePath.assign(path);
+}
+
+/*!
+Set the capture format which can be one of the following:
+-PNG
+-TGA
+*/
+void sgct_core::SGCTSettings::setCaptureFormat(const char * format)
+{
+	if( strcmp("png", format) == 0 || strcmp("PNG", format) == 0 )
+	{
+		mCaptureFormat = ScreenCapture::PNG;
+	}
+	else if( strcmp("tga", format) == 0 || strcmp("TGA", format) == 0 )
+	{
+		mCaptureFormat = ScreenCapture::TGA;
+	}
+}
+
 //! Get the cubemap size in pixels used in the fisheye renderer
 int sgct_core::SGCTSettings::getCubeMapResolution()
 {
@@ -192,7 +221,25 @@ float sgct_core::SGCTSettings::getFisheyeOffset(unsigned int axis)
 }
 
 //! Get the fisheye overlay image filename/path.
-const char *   sgct_core::SGCTSettings::getFisheyeOverlay()
+const char * sgct_core::SGCTSettings::getFisheyeOverlay()
 {
 	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
+}
+
+/*!
+	Get the capture/screenshot path
+*/
+const char * sgct_core::SGCTSettings::getCapturePath()
+{
+	return mCapturePath.c_str();
+}
+
+/*!
+	Get the capture/screenshot path
+
+	\return the captureformat if set, otherwise -1 is returned
+*/
+int sgct_core::SGCTSettings::getCaptureFormat()
+{
+	return mCaptureFormat;
 }

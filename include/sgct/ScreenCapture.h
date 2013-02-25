@@ -25,7 +25,7 @@ public:
 	//! The different capture enums used by the SaveScreenCapture function
 	enum CaptureMode { FBO_Texture = 0, FBO_Left_Texture, FBO_Right_Texture, Front_Buffer, Left_Front_Buffer, Right_Front_Buffer };
 	//! The different file formats supported
-	enum CaptureFormat { PNG = 0, TGA };
+	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA };
 
 	ScreenCapture();
 	~ScreenCapture();

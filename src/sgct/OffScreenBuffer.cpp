@@ -131,15 +131,6 @@ void sgct_core::OffScreenBuffer::blit()
 		0, 0, mWidth, mHeight,
 		0, 0, mWidth, mHeight,
 		GL_COLOR_BUFFER_BIT, GL_LINEAR);
-	
-	//blit depth
-	if( SGCTSettings::Instance()->useDepthMap() )
-	{
-		glBlitFramebuffer(
-			0, 0, mWidth, mHeight,
-			0, 0, mWidth, mHeight,
-			GL_DEPTH_BUFFER_BIT, GL_LINEAR);
-	}
 }
 
 void sgct_core::OffScreenBuffer::destroy()

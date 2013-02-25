@@ -42,7 +42,7 @@ public:
 	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
 
 private:
-	enum TextureIndexes { LeftEye = 0, RightEye, FishEye };
+	enum TextureIndexes { PostFX = 0, LeftEye, RightEye, FishEye };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
@@ -287,6 +287,7 @@ private:
 	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
 	void renderFisheye(TextureIndexes ti);
+	void renderPostFx(TextureIndexes ti ); 
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
@@ -358,8 +359,7 @@ private:
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
 	sgct_core::OffScreenBuffer * mCubeMapFBO_Ptr;
 
-	unsigned int mFrameBufferTextures[3];
-	unsigned int mDepthBufferTextures[2];
+	unsigned int mFrameBufferTextures[4];
 
 	//glsl
 	int mShaderLocs[MAX_UNIFORM_LOCATIONS];
@@ -367,6 +367,8 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
+
+	float mPostFxQuadVerts[20];
 
 	std::string configFilename;
 	int mRunning;

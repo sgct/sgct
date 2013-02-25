@@ -102,8 +102,31 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mFrameBufferTextures[0] = 0;
 	mFrameBufferTextures[1] = 0;
 	mFrameBufferTextures[2] = 0;
-	mDepthBufferTextures[0] = 0;
-	mDepthBufferTextures[1] = 0;
+	mFrameBufferTextures[3] = 0;
+
+	mPostFxQuadVerts[0] = 0.0f;
+	mPostFxQuadVerts[1] = 0.0f;
+	mPostFxQuadVerts[2] = 0.0f;
+	mPostFxQuadVerts[3] = 0.0f;
+	mPostFxQuadVerts[4] = -1.0f;
+
+	mPostFxQuadVerts[5] = 1.0f;
+	mPostFxQuadVerts[6] = 0.0f;
+	mPostFxQuadVerts[7] = 1.0f;
+	mPostFxQuadVerts[8] = 0.0f;
+	mPostFxQuadVerts[9] = -1.0f;
+
+	mPostFxQuadVerts[10] = 1.0f;
+	mPostFxQuadVerts[11] = 1.0f;
+	mPostFxQuadVerts[12] = 1.0f;
+	mPostFxQuadVerts[13] = 1.0f;
+	mPostFxQuadVerts[14] = -1.0f;
+
+	mPostFxQuadVerts[15] = 0.0f;
+	mPostFxQuadVerts[16] = 1.0f;
+	mPostFxQuadVerts[17] = 0.0f;
+	mPostFxQuadVerts[18] = 1.0f;
+	mPostFxQuadVerts[19] = -1.0f;
 
 	mShotCounter = 0;
 
@@ -302,13 +325,10 @@ bool sgct::Engine::initWindow()
 	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ClusterManager::Active );
 
 	//disable MSAA if FXAA is in use
-	if( SGCTSettings::Instance()->useFXAA() &&
-		ClusterManager::Instance()->getThisNodePtr()->stereo <= ClusterManager::Active)
+	if( SGCTSettings::Instance()->useFXAA() )
 	{
 		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
 	}
-	else //for glsl stereo types
-		SGCTSettings::Instance()->setFXAA(false);
 
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
@@ -488,8 +508,7 @@ void sgct::Engine::clean()
 		delete mCubeMapFBO_Ptr;
 		mCubeMapFBO_Ptr = NULL;
 
-		glDeleteTextures(3,			&mFrameBufferTextures[0]);
-		glDeleteTextures(2,			&mDepthBufferTextures[0]);
+		glDeleteTextures(4,	&mFrameBufferTextures[0]);
 	}
 
 	sgct::ShaderManager::Destroy();
@@ -754,10 +773,16 @@ void sgct::Engine::render()
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 			renderFisheye(LeftEye);
 
+			if( SGCTSettings::Instance()->usePostFX() )
+				renderPostFx(LeftEye);
+
 			if( tmpNode->stereo != ClusterManager::NoStereo )
 			{
 				mActiveFrustum = Frustum::StereoRightEye;
 				renderFisheye(RightEye);
+
+				if( SGCTSettings::Instance()->usePostFX() )
+					renderPostFx(RightEye);
 			}
 		}
 		else
@@ -790,6 +815,8 @@ void sgct::Engine::render()
 			}
 
 			updateRenderingTargets(LeftEye); //only used if multisampled FBOs
+			if( SGCTSettings::Instance()->usePostFX() )
+				renderPostFx(LeftEye);
 
 			//render right eye view port(s)
 			if( tmpNode->stereo != ClusterManager::NoStereo )
@@ -817,6 +844,8 @@ void sgct::Engine::render()
 				}
 
 				updateRenderingTargets(RightEye);
+				if( SGCTSettings::Instance()->usePostFX() )
+					renderPostFx(RightEye);
 			}
 
 			//restore polygon mode
@@ -1138,6 +1167,9 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 {
 	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{
+		if( SGCTSettings::Instance()->usePostFX() )
+			ti = PostFX;
+		
 		//un-bind texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1147,8 +1179,6 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 
 			//update attachments
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
-			if( SGCTSettings::Instance()->useDepthMap() )
-				mFinalFBO_Ptr->attachDepthTexture( mDepthBufferTextures[ti] );
 		}
 		else
 			mFinalFBO_Ptr->bind();
@@ -1168,7 +1198,7 @@ void sgct::Engine::renderFBOTexture()
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
 	//unbind framebuffer
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+	OffScreenBuffer::unBind();
 
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
@@ -1230,17 +1260,17 @@ void sgct::Engine::renderFBOTexture()
 
 		glActiveTexture(GL_TEXTURE0);
 #ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[0]);
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[LeftEye]);
 #else
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
 #endif
 		glEnable(GL_TEXTURE_2D);
 
 		glActiveTexture(GL_TEXTURE1);
 #ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[1]);
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[RightEye]);
 #else
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
 #endif
 		glEnable(GL_TEXTURE_2D);
 
@@ -1252,25 +1282,14 @@ void sgct::Engine::renderFBOTexture()
 	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 #ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[0]);
+		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[LeftEye]);
 #else
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[0]);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
 #endif
 		glEnable(GL_TEXTURE_2D);
 
-		if( SGCTSettings::Instance()->useFXAA() )
-		{
-			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
-			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
-			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
-			glUniform1i( mShaderLocs[FXAATexture], 0 );
-		}
-
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-
-		if( SGCTSettings::Instance()->useFXAA() )
-			sgct::ShaderManager::Instance()->unBindShader();
 	}
 
 	//render right eye in active stereo mode
@@ -1284,21 +1303,10 @@ void sgct::Engine::renderFBOTexture()
 
 		glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
 
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[1]);
-
-		if( SGCTSettings::Instance()->useFXAA() )
-		{
-			sgct::ShaderManager::Instance()->bindShader( "FXAA" );
-			glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
-			glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
-			glUniform1i( mShaderLocs[FXAATexture], 1 );
-		}
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-
-		if( SGCTSettings::Instance()->useFXAA() )
-			sgct::ShaderManager::Instance()->unBindShader();
 	}
 
 	glPopAttrib();
@@ -1349,7 +1357,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind();
-	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
+	SGCTSettings::Instance()->usePostFX() ? mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
+		mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1410,9 +1419,72 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glPopClientAttrib();
 	glPopAttrib();
 	glPopMatrix();
+}
 
-	//unbind FBO
-	OffScreenBuffer::unBind();
+/*!
+	This function combines a texture and a shader into a new texture
+*/
+void sgct::Engine::renderPostFx(TextureIndexes ti)
+{
+	//bind fisheye target FBO
+	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ ti ] );
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	glMatrixMode(GL_PROJECTION);
+	glLoadIdentity();
+
+	/*
+		The code below flips the viewport vertically. Top & bottom coords are flipped.
+	*/
+
+	glOrtho( 0.0,
+		1.0,
+		0.0,
+		1.0,
+		0.1,
+		2.0);
+
+	glMatrixMode(GL_TEXTURE);
+	glLoadIdentity();
+
+	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
+	glPushMatrix();
+	glViewport(0, 0, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution());
+
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+
+	//if for some reson the active texture has been reset
+	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+	glEnable(GL_TEXTURE_2D);
+	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ PostFX ] );
+
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_LIGHTING);
+	glDisable(GL_DEPTH_TEST);
+
+	sgct::ShaderManager::Instance()->bindShader( "FXAA" );
+	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
+	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
+	glUniform1i( mShaderLocs[FXAATexture], 0 );
+
+	//make sure that VBO:s are unbinded, to not mess up the vertex array
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glInterleavedArrays(GL_T2F_V3F, 0, mPostFxQuadVerts);
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	sgct::ShaderManager::Instance()->unBindShader();
+
+	glPopClientAttrib();
+	glPopAttrib();
+	glPopMatrix();
 }
 
 /*!
@@ -1423,12 +1495,13 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 	//copy AA-buffer to "regular"/non-AA buffer
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
 	{
+		if( SGCTSettings::Instance()->usePostFX() )
+			ti = PostFX; 
+		
 		mFinalFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 		//update attachments
 		mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
-		if( SGCTSettings::Instance()->useDepthMap() )
-			mFinalFBO_Ptr->attachDepthTexture( mDepthBufferTextures[ti] );
 
 		mFinalFBO_Ptr->blit();
 	}
@@ -1601,20 +1674,18 @@ void sgct::Engine::createTextures()
 	mFrameBufferTextures[0] = 0;
 	mFrameBufferTextures[1] = 0;
 	mFrameBufferTextures[2] = 0;
-
-	mDepthBufferTextures[0] = 0;
-	mDepthBufferTextures[1] = 0;
+	mFrameBufferTextures[3] = 0;
 
 	//allocate
-	glGenTextures(3,			&mFrameBufferTextures[0]);
-	if( SGCTSettings::Instance()->useDepthMap() )
-		glGenTextures(2,			&mDepthBufferTextures[0]);
+	glGenTextures(4,			&mFrameBufferTextures[0]);
 
 	/*
 		Create left and right color & depth textures.
 	*/
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	int numberOfTexturesToGenerate = (tmpNode->stereo > ClusterManager::NoStereo ? 2 : 1); //don't allocate the right eye image if stereo is not used
+	//don't allocate the right eye image if stereo is not used
+	//create a postFX texture for effects
+	int numberOfTexturesToGenerate = (tmpNode->stereo > ClusterManager::NoStereo ? 2 : 1) + 1;
 	for( int i=0; i<numberOfTexturesToGenerate; i++ )
 	{
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
@@ -1622,26 +1693,6 @@ void sgct::Engine::createTextures()
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-
-		//setup non-multisample depth buffer
-		if( SGCTSettings::Instance()->useDepthMap() )
-		{
-			glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[i]);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-
-#ifdef __SGCT_DEPTH_MAP_DEBUG__
-			glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_LUMINANCE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_NONE );
-#else
-			glTexParameteri( GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE );
-#endif
-
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_DEPTH_COMPONENT, GL_UNSIGNED_INT, NULL );
-		}
 	}
 	/*
 		Create cubemap texture for fisheye rendering if enabled.
@@ -1734,10 +1785,7 @@ void sgct::Engine::resizeFBOs()
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			glDeleteTextures(3,			&mFrameBufferTextures[0]);
-			if( SGCTSettings::Instance()->useDepthMap() )
-				glDeleteTextures(2,			&mDepthBufferTextures[0]);
-
+			glDeleteTextures(4,			&mFrameBufferTextures[0]);
 			createTextures();
 
 			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
@@ -1953,6 +2001,17 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			glfwSwapBuffers();
 		}
 		glfwUnlockMutex( NetworkManager::gSyncMutex );
+
+		//wait for user to release exit key
+		while( glfwGetKey( mExitKey ) == GLFW_PRESS )
+		{
+			sgct::MessageHandler::Instance()->print("x");
+			// Swap front and back rendering buffers
+			// key buffers also swapped
+			glfwSwapBuffers();
+			
+			glfwSleep(0.05);
+		}
 
 		sgct::MessageHandler::Instance()->print("\n");
 	}

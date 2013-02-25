@@ -32,7 +32,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseFXAA = false;
-	mUseDepthMap = false;
+	mUsePostFX = false;
 	mFBOMode = MultiSampledFBO;
 }
 
@@ -124,15 +124,8 @@ Set if FXAA should be used.
 void sgct_core::SGCTSettings::setFXAA(bool state)
 {
 	mUseFXAA = state;
+	mUsePostFX = state;
 	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
-}
-
-/*!
-Set if depth texture maps should be generated from FBO.
-*/
-void sgct_core::SGCTSettings::setDepthMapUsage(bool state)
-{
-	mUseDepthMap = state;
 }
 
 /*!

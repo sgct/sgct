@@ -18,6 +18,7 @@ void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int
 size_t myTextureHandles[2];
 int myTextureLocations[2];
 int curr_timeLoc;
+bool pause = false;
 GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
@@ -92,9 +93,9 @@ void myDrawFun()
 
 void myPreSyncFun()
 {
-	if( gEngine->isMaster() )
+	if( gEngine->isMaster() && !pause)
 	{
-		curr_time = sgct::Engine::getTime();
+		curr_time += gEngine->getAvgDt();
 	}
 }
 
@@ -258,6 +259,16 @@ void keyCallback(int key, int action)
 				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
 				sgct_core::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
 			}
+			break;
+
+		case SGCT_KEY_SPACE:
+			if(action == SGCT_PRESS)
+				pause = !pause;
+			break;
+
+		case 'F':
+			if(action == SGCT_PRESS)
+				sgct_core::SGCTSettings::Instance()->setFXAA( !sgct_core::SGCTSettings::Instance()->useFXAA() );
 			break;
 
 		case 'P':

@@ -52,7 +52,6 @@ public:
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
 	void setFXAA(bool state);
-	void setDepthMapUsage(bool state);
 	void setFBOMode(FBOMode mode);
 	void setNumberOfCaptureThreads(int count);
 	
@@ -67,8 +66,8 @@ public:
 
 	//! Set to true if FXAA should be used.
 	inline bool useFXAA() { return mUseFXAA; }
-	//! Set to true if SGCT should generate depth maps from FBO
-	inline bool useDepthMap() { return mUseDepthMap; }
+	//! Set to true if PostFX pass should be used
+	inline bool usePostFX() { return mUsePostFX; }
 	//! Returns the FBO mode.
 	inline FBOMode getFBOMode() { return mFBOMode; }
 	//! Get the number of capture threads (for screenshot recording)
@@ -100,9 +99,9 @@ private:
 
 	//FXAA
 	bool mUseFXAA;
+	bool mUsePostFX;
 
 	//FBO settings
-	bool mUseDepthMap;
 	FBOMode mFBOMode;
 };
 }

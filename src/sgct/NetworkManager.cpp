@@ -38,6 +38,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 	mAllNodesConnected = false;
 	mIsExternalControlPresent = false;
 	mIsRunning = true;
+	mIsServer = true;
 
 	mMode = mode;
 

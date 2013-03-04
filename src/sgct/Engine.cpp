@@ -1381,6 +1381,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		0.1,
 		2.0);
 
+	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
@@ -1392,7 +1393,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	//if for some reson the active texture has been reset
-	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glEnable(GL_TEXTURE_CUBE_MAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[FishEye]);
 
@@ -1409,10 +1409,11 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	{
 		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
 	}
-
+	
+	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	//make sure that VBO:s are unbinded, to not mess up the vertex array
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
@@ -1450,6 +1451,8 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 		0.1,
 		2.0);
 
+	//if for some reson the active texture has been reset
+	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
@@ -1460,8 +1463,6 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	//if for some reson the active texture has been reset
-	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ PostFX ] );
 
@@ -1479,6 +1480,7 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	//make sure that VBO:s are unbinded, to not mess up the vertex array
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glInterleavedArrays(GL_T2F_V3F, 0, mPostFxQuadVerts);

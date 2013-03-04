@@ -4,7 +4,7 @@
 !include LogicLib.nsh ;if statements and loops
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "1.2.0"
+!define SGCT_VERSION "1.3.0"
 !define SGCT_COMPILER "msvc10"
 !define ARCH "x86"
 !define OSG_VERSION "3.0.1"
@@ -256,6 +256,9 @@ Section "Start Menu Shortcuts"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\" --FXAA"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""

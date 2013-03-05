@@ -2643,6 +2643,14 @@ void sgct::Engine::sendMessageToExternalControl(const std::string msg)
 }
 
 /*!
+	Check if the external control is connected.
+*/
+bool sgct::Engine::isExternalControlConnected()
+{
+	return (mNetworkConnections->getExternalControlPtr() != NULL && mNetworkConnections->getExternalControlPtr()->isConnected());
+}
+
+/*!
 	Set the buffer size for the communication buffer. This size must be equal or larger than the receive buffer size.
 */
 void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)

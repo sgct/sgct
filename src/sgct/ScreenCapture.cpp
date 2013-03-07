@@ -35,27 +35,27 @@ sgct_core::ScreenCapture::ScreenCapture()
 
 sgct_core::ScreenCapture::~ScreenCapture()
 {
-	for(unsigned int i=0; i<mNumberOfThreads; i++)
-	{
-		if( mframeBufferImagePtrs[i] != NULL )
-		{
-			sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
-
-			//kill threads that are still running
-			if( mFrameCaptureThreads[i] > 0 &&
-				glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
-			{
-				glfwDestroyThread( mFrameCaptureThreads[i] );
-				mFrameCaptureThreads[i] = -1;
-			}
-		
-			delete mframeBufferImagePtrs[i];
-			mframeBufferImagePtrs[i] = NULL;
-		}
-	}
-
 	if( mframeBufferImagePtrs != NULL )
 	{
+		for(unsigned int i=0; i<mNumberOfThreads; i++)
+		{
+			if( mframeBufferImagePtrs[i] != NULL )
+			{
+				sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
+
+				//kill threads that are still running
+				if( mFrameCaptureThreads[i] > 0 &&
+					glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
+				{
+					glfwDestroyThread( mFrameCaptureThreads[i] );
+					mFrameCaptureThreads[i] = -1;
+				}
+		
+				delete mframeBufferImagePtrs[i];
+				mframeBufferImagePtrs[i] = NULL;
+			}
+		}
+
 		delete [] mframeBufferImagePtrs;
 		mframeBufferImagePtrs = NULL;
 	}

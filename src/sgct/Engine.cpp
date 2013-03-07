@@ -753,9 +753,6 @@ void sgct::Engine::render()
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
 
-		glLineWidth(1.0);
-		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
 		{
@@ -851,9 +848,6 @@ void sgct::Engine::render()
 				if( SGCTSettings::Instance()->usePostFX() )
 					renderPostFx(RightEye);
 			}
-
-			//restore polygon mode
-			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 		}
 
 		mRenderingOffScreen = false;
@@ -1070,6 +1064,9 @@ void sgct::Engine::draw()
 
 	if( mDrawFn != NULL )
 	{
+		glLineWidth(1.0);
+		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+		
 		if( mRunMode == OSG_Encapsulation_Mode)
 		{
 			//glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -1083,6 +1080,9 @@ void sgct::Engine::draw()
 		{
 			mDrawFn();
 		}
+
+		//restore polygon mode
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	}
 }
 

@@ -5,7 +5,7 @@ sgct::Engine * gEngine;
 void myDrawFun();
 void myInitOGLFun();
 
-unsigned int texHandle = 0;
+size_t texHandle = 0;
 
 int main( int argc, char* argv[] )
 {

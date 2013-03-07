@@ -7,7 +7,7 @@ void myPostSyncPreDrawFun();
 void myInitOGLFun();
 void keyCallback(int key, int action);
 
-unsigned int textureIndexes[4];
+size_t textureIndexes[4];
 
 bool info = false;
 bool stats = false;

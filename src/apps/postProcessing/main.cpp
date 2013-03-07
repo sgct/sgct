@@ -32,7 +32,7 @@ struct fbData
 std::vector<fbData> buffers;
 unsigned int draw_counter = 0;
 
-unsigned int myTextureHandle; //the box's texture
+size_t myTextureHandle; //the box's texture
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster

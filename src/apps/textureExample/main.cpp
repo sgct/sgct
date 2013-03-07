@@ -10,7 +10,7 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 
-unsigned int myTextureIndex;
+size_t myTextureIndex;
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster

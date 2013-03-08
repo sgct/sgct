@@ -18,7 +18,7 @@ void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int
 size_t myTextureHandles[2];
 int myTextureLocations[2];
 int curr_timeLoc;
-bool pause = false;
+bool mPause = false;
 GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
@@ -93,7 +93,7 @@ void myDrawFun()
 
 void myPreSyncFun()
 {
-	if( gEngine->isMaster() && !pause)
+	if( gEngine->isMaster() && !mPause)
 	{
 		curr_time += gEngine->getAvgDt();
 	}
@@ -263,7 +263,7 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_SPACE:
 			if(action == SGCT_PRESS)
-				pause = !pause;
+				mPause = !mPause;
 			break;
 
 		case 'F':

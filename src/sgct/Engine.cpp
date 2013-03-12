@@ -978,14 +978,16 @@ void sgct::Engine::renderDisplayInfo()
 #elif defined __APPLE__
 		//might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
 #else //Linux
-		unsigned int tmpui = 0;
+        //might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
+
+		/*unsigned int tmpui = 0;
 		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
 		if( tot_mem == 0 && glewIsSupported("GLX_AMD_gpu_association") && glXGetGPUIDsAMD(8, gpu_ids) != 0 )
 		{
 			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
 			if( gpu_ids[0] != 0 && glXGetGPUInfoAMD(gpu_ids[0], GLX_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
 				tot_mem = static_cast<int>( tmpui ) * 1024;
-		}
+		}*/
 #endif
 
 		int mem[] = {0, 0, 0, 0};
@@ -1066,7 +1068,7 @@ void sgct::Engine::draw()
 	{
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-		
+
 		if( mRunMode == OSG_Encapsulation_Mode)
 		{
 			//glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -1173,7 +1175,7 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 	{
 		if( SGCTSettings::Instance()->usePostFX() )
 			ti = PostFX;
-		
+
 		//un-bind texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1409,7 +1411,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	{
 		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
 	}
-	
+
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	//make sure that VBO:s are unbinded, to not mess up the vertex array
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -1502,8 +1504,8 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
 	{
 		if( SGCTSettings::Instance()->usePostFX() )
-			ti = PostFX; 
-		
+			ti = PostFX;
+
 		mFinalFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 		//update attachments
@@ -2015,7 +2017,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			// Swap front and back rendering buffers
 			// key buffers also swapped
 			glfwSwapBuffers();
-			
+
 			glfwSleep(0.05);
 		}
 

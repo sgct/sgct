@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <stdio.h>
@@ -255,7 +255,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 {
 	if( mData == NULL && !allocateOrResizeData())
 		return false;
-	
+
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
@@ -327,7 +327,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	for (int y = (mSize_y-1);  y >= 0;  y--)
         mRowPtrs[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
     png_write_image(png_ptr, mRowPtrs);
-	
+
 	/* end write */
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
@@ -347,7 +347,7 @@ bool sgct_core::Image::saveTGA()
 {
 	if( mData == NULL && !allocateOrResizeData())
 		return false;
-	
+
 	FILE *fp = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
@@ -398,7 +398,7 @@ bool sgct_core::Image::saveTGA()
 
 	// The image header
 	unsigned char header[ 18 ] = { 0 };
-	header[  2 ] = 2; //datatype
+	header[  2 ] = data_type; //datatype
 	header[ 12 ] =  mSize_x        & 0xFF;
 	header[ 13 ] = (mSize_x  >> 8) & 0xFF;
 	header[ 14 ] =  mSize_y       & 0xFF;
@@ -510,11 +510,11 @@ bool sgct_core::Image::allocateOrResizeData()
 {
 	if(mSize_x <= 0 || mSize_y <= 0 || mChannels <= 0)
 	{
-		sgct::MessageHandler::Instance()->print("Error: Invalid image size %dx%d %d channels!\n", 
+		sgct::MessageHandler::Instance()->print("Error: Invalid image size %dx%d %d channels!\n",
 			mSize_x, mSize_y, mChannels);
 		return false;
 	}
-	
+
 	if(mData != NULL) //re-allocate
 	{
 		delete [] mData;

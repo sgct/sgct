@@ -12,6 +12,7 @@ sgct_core::SGCTUser::SGCTUser()
 	for(unsigned int i=0; i<3; i++)
 		mPos[i] = glm::vec3(0.0f);
 	mEyeSeparation = 0.069f;
+	mHalfEyeSeparation = mEyeSeparation / 2.0f;
 	mTransform = glm::dmat4(1.0);
 }
 
@@ -81,19 +82,20 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 void sgct_core::SGCTUser::setEyeSeparation(float eyeSeparation)
 {
 	mEyeSeparation = eyeSeparation;
+	mHalfEyeSeparation = mEyeSeparation / 2.0f;
 	updateEyeSeparation();
 }
 
 void sgct_core::SGCTUser::updateEyeSeparation()
 {
-	glm::vec3 eyeOffsetVec( mEyeSeparation/2.0f, 0.0f, 0.0f );
+	glm::vec3 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f );
 	mPos[Frustum::StereoLeftEye] = mPos[Frustum::Mono] - eyeOffsetVec;
 	mPos[Frustum::StereoRightEye] = mPos[Frustum::Mono] + eyeOffsetVec;
 }
 
 void sgct_core::SGCTUser::updateEyeTransform()
 {
-	glm::vec4 eyeOffsetVec( mEyeSeparation/2.0f, 0.0f, 0.0f, 0.0f );
+	glm::vec4 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f, 0.0f );
 	
 	glm::vec4 pos[3];
 	pos[Frustum::Mono] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);

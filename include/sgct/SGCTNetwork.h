@@ -25,7 +25,7 @@ namespace sgct_cppxeleven = std::tr1;
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
 #ifdef __WIN32__
-	typedef unsigned int SGCT_SOCKET;
+	typedef size_t SGCT_SOCKET;
 	typedef int ssize_t;
 #else
 	typedef int SGCT_SOCKET;
@@ -86,8 +86,8 @@ public:
 
     bool mTerminate; //set to true upon exit
 
-	std::size_t mBufferSize;
-	std::size_t mRequestedSize;
+	int mBufferSize;
+	int mRequestedSize;
 	static const std::size_t mHeaderSize = 9;
 
 	GLFWmutex mConnectionMutex;

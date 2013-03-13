@@ -410,25 +410,28 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					float fov;
 					if( element[1]->QueryFloatAttribute("fov", &fov) == XML_NO_ERROR )
-						sgct_core::SGCTSettings::Instance()->setFisheyeFOV( fov );
+						SGCTSettings::Instance()->setFisheyeFOV( fov );
 
 					if( element[1]->Attribute("quality") != NULL )
 					{
 						int resolution = getFisheyeCubemapRes( std::string(element[1]->Attribute("quality")) );
 						if( resolution > 0 )
-							sgct_core::SGCTSettings::Instance()->setCubeMapResolution( resolution );
+							SGCTSettings::Instance()->setCubeMapResolution( resolution );
 					}
 
 					if( element[1]->Attribute("overlay") != NULL )
-						sgct_core::SGCTSettings::Instance()->setFisheyeOverlay( std::string(element[1]->Attribute("overlay")) );
+						SGCTSettings::Instance()->setFisheyeOverlay( std::string(element[1]->Attribute("overlay")) );
 
 					float tilt;
 					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
-						sgct_core::SGCTSettings::Instance()->setFisheyeTilt( tilt );
+						SGCTSettings::Instance()->setFisheyeTilt( tilt );
 
 					float diameter;
 					if( element[1]->QueryFloatAttribute("diameter", &diameter) == XML_NO_ERROR )
-						sgct_core::SGCTSettings::Instance()->setDomeDiameter( diameter );
+					{
+						SGCTSettings::Instance()->setDomeDiameter( diameter );
+						sgct::MessageHandler::Instance()->print("Setting fisheye diameter to %f meters.\n", diameter);
+					}
 
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
@@ -441,19 +444,19 @@ void sgct_core::ReadConfig::readAndParseXML()
 							float ftmp;
 
 							if( element[2]->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[sgct_core::SGCTSettings::Left] = ftmp;
+                                tmpFArr[SGCTSettings::Left] = ftmp;
 							if( element[2]->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[sgct_core::SGCTSettings::Right] = ftmp;
+                                tmpFArr[SGCTSettings::Right] = ftmp;
 							if( element[2]->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[sgct_core::SGCTSettings::Bottom] = ftmp;
+                                tmpFArr[SGCTSettings::Bottom] = ftmp;
 							if( element[2]->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[sgct_core::SGCTSettings::Top] = ftmp;
+                                tmpFArr[SGCTSettings::Top] = ftmp;
 
-							sgct_core::SGCTSettings::Instance()->setFisheyeCropValues(
-								tmpFArr[sgct_core::SGCTSettings::Left],
-								tmpFArr[sgct_core::SGCTSettings::Right],
-								tmpFArr[sgct_core::SGCTSettings::Bottom],
-								tmpFArr[sgct_core::SGCTSettings::Top]);
+							SGCTSettings::Instance()->setFisheyeCropValues(
+								tmpFArr[SGCTSettings::Left],
+								tmpFArr[SGCTSettings::Right],
+								tmpFArr[SGCTSettings::Bottom],
+								tmpFArr[SGCTSettings::Top]);
 						}
 						else if( strcmp("Offset", val[2]) == 0 )
 						{
@@ -467,7 +470,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 							if( element[2]->QueryFloatAttribute("z", &ftmp) == XML_NO_ERROR )
                                 tmpFArr[2] = ftmp;
 
-							sgct_core::SGCTSettings::Instance()->setFisheyeOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
+							SGCTSettings::Instance()->setFisheyeOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
 						}
 
 						//iterate

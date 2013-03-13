@@ -50,7 +50,7 @@ void myInitOGLFun()
 {
 	glEnable(GL_DEPTH_TEST);
 
-	unsigned int numberOfTrackedDevices =
+	size_t numberOfTrackedDevices =
 		sgct::Engine::getTrackingManager()->getNumberOfDevices();
 
 	//allocate the array

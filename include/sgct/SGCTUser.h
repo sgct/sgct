@@ -41,6 +41,7 @@ public:
 	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
 
 	inline const float & getEyeSeparation() { return mEyeSeparation; }
+	inline const float & getHalfEyeSeparation() { return mHalfEyeSeparation; }
 	inline const float & getXPos() { return mPos[Frustum::Mono].x; }
 	inline const float & getYPos() { return mPos[Frustum::Mono].y; }
 	inline const float & getZPos() { return mPos[Frustum::Mono].z; }
@@ -56,6 +57,7 @@ private:
 	glm::mat4 mTransform;
 
 	float mEyeSeparation;
+	float mHalfEyeSeparation;
 
 	std::string mHeadTrackerDeviceName;
 	std::string mHeadTrackerName;

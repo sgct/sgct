@@ -82,7 +82,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 {
 	mServer = _isServer;
 	mServerType = serverType;
-	mBufferSize = sgct::SharedData::Instance()->getBufferSize();
+	mBufferSize = static_cast<int>(sgct::SharedData::Instance()->getBufferSize());
 	mId = id;
 
 	mConnectionMutex = sgct::Engine::createMutex();
@@ -732,7 +732,7 @@ void GLFWCALL communicationHandler(void *arg)
             Get & parse the message header if not external control
         */
         int syncFrameNumber = -1;
-        unsigned int dataSize = 0;
+        int dataSize = 0;
         unsigned char packageId = sgct_core::SGCTNetwork::FillByte;
 
         if( nPtr->getTypeOfServer() != sgct_core::SGCTNetwork::ExternalControl )
@@ -767,7 +767,7 @@ void GLFWCALL communicationHandler(void *arg)
                 //parse the sync frame number
                 syncFrameNumber = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
                 //parse the data size
-                dataSize = sgct_core::SGCTNetwork::parseUnsignedInt(&recvHeader[5]);
+                dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
 
                 //resize buffer if needed
                 sgct::Engine::lockMutex(nPtr->mConnectionMutex);
@@ -1068,7 +1068,7 @@ void sgct_core::SGCTNetwork::sendData(void * data, int length)
 
 void sgct_core::SGCTNetwork::sendStr(std::string msg)
 {
-	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(msg.c_str()), msg.size(), 0 );
+	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(msg.c_str()), static_cast<int>(msg.size()), 0 );
 	if (sendErr == SOCKET_ERROR)
 		sgct::MessageHandler::Instance()->print("Send data failed!\n");
 }

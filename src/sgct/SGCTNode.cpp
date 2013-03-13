@@ -132,6 +132,9 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 		tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
 		tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
 
+		/*
+			Each viewport contains frustums for mono, left stereo and right stereo
+		*/
 		addViewport( tmpVP );
 	}
 

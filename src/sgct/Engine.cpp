@@ -328,11 +328,12 @@ bool sgct::Engine::initWindow()
 		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
 	}
 
+	//if using fisheye rendering for a dome display
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		SGCTSettings::Instance()->setFBOMode(SGCTSettings::CubeMapFBO);
-		//mActiveFrustum = Frustum::Mono;
 		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
+		
 		//create the cube mapped viewports
 		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
 	}

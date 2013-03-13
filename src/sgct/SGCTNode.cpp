@@ -59,7 +59,7 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 	deleteAllViewports();
 	glm::vec4 lowerLeft, upperLeft, upperRight;
 	
-	float radius = sgct_core::SGCTSettings::Instance()->getDomeDiameter()/2.0f;
+	float radius = sgct_core::SGCTSettings::Instance()->getDomeDiameter() / 2.0f;
 
 	//+Z face
 	lowerLeft.x = -1.0f * radius;

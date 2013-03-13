@@ -16,7 +16,7 @@ sgct_core::SGCTSettings * sgct_core::SGCTSettings::mInstance = NULL;
 sgct_core::SGCTSettings::SGCTSettings()
 {
 	mCubeMapResolution = 256; //low
-	mCubeMapSize = 10.0f;
+	mCubeMapSize = 14.8f; //dome diamter
 	mFisheyeTilt = 0.0f;
 	mFieldOfView = 180.0f;
 

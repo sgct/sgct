@@ -92,7 +92,6 @@ namespace sgct_core
 					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
 					color.a = 1.0;\n\
-                    color.a = 1.0;\n\
 				}\n\
 				else\n\
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\

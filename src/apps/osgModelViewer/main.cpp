@@ -4,7 +4,9 @@
 #include <osgDB/ReadFile>
 #include <osg/MatrixTransform>
 #include <osg/ComputeBoundsVisitor>
-#include <osg/PositionAttitudeTransform>
+//#include <osg/PositionAttitudeTransform>
+//#include "AnimationCallbacks.h"
+#include "Animation.h"
 #include <osgUtil/Optimizer>
 #include <glm/gtx/euler_angles.hpp>
 
@@ -13,16 +15,23 @@ sgct::Engine * gEngine;
 //Not using ref pointers enables
 //more controlled termination
 //and prevents segfault on Linux
-osgViewer::Viewer * mViewer;
+osgViewer::Viewer * mViewer = NULL;
 osg::ref_ptr<osg::Group>			mRootNode;
 osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
 std::vector< osg::ref_ptr<osg::Node> > mModels;
 std::vector< std::string > mFilenames;
-osg::ref_ptr<osg::Switch>			mSwitch;
-osg::ref_ptr<osg::AnimationPath> animationPath;
-osg::PositionAttitudeTransform* animation;
+osg::ref_ptr<osg::Switch> mSwitch;
+//osg::ref_ptr<osg::AnimationPath> animationPath;
+//osg::PositionAttitudeTransform* animation;
+/*osg::ref_ptr<osg::MatrixTransform> mAnimatedTransform;
+osg::ref_ptr<osgAnimation::Vec3CubicBezierKeyframeContainer> mKeyFrames;
+AnimtkUpdateCallback* mAnimationCallback = NULL;*/
+
+AnimationData ad;
+
+Animation mAnimation(true);
 
 //callbacks
 void myInitOGLFun();
@@ -139,36 +148,45 @@ void myInitOGLFun()
 
 	mRootNode->getOrCreateStateSet()->setMode( GL_RESCALE_NORMAL, osg::StateAttribute::ON );
 
-	animationPath = new osg::AnimationPath;
-	animationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
+	//animationPath = new osg::AnimationPath;
+	//animationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
 	//animationPath->setLoopMode(osg::AnimationPath::LOOP);
 
-	animation = new osg::PositionAttitudeTransform;   
-	animation->addChild( mSceneScale.get() );
+	//animation = new osg::PositionAttitudeTransform;   
+	//animation->addChild( mSceneScale.get() );
+
+	/*mAnimatedTransform = new osg::MatrixTransform;
+	mAnimatedTransform->addChild( mSceneScale.get() );
+	mAnimationCallback = new AnimtkUpdateCallback;
+	mAnimatedTransform->setUpdateCallback( mAnimationCallback );
+	mKeyFrames = mAnimationCallback->_sampler->getOrCreateKeyframeContainer();*/
+
+	//animation stuff
+	mAnimation.getOrCreateAnimation()->addChild( mSceneScale.get() );
+	mRootNode->setUpdateCallback( mAnimation.getManager() );
+	ad.mSpeed = 0.5;
 
 	mRootNode->addChild( mSwitch.get() );
 	mSwitch->insertChild( 0, mSceneTrans.get() );
-	mSwitch->insertChild( 1, animation );
+	mSwitch->insertChild( 1, mAnimation.getOrCreateAnimation() );
 	mSceneTrans->addChild( mSceneScale.get() );
 	mSceneScale->addChild( mModelTrans.get() );
 
 	mSwitch->setSingleChildOn( 0 );
 
-	//mFilenames.push_back( std::string("D:\\Projects\\2013\\WSP\\BIMBoost_dometest\\BIMBoost_dometest\\00_terrang_korridor\\paged.osg") );
-	//mFilenames.push_back( std::string("D:\\Projects\\2013\\WSP\\BIMBoost_dometest\\BIMBoost_dometest\\stationer\\paged.osg") );
 	//mFilenames.push_back( std::string("iss_all_maps_no_opacity.ive") );
 	mFilenames.push_back( std::string("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive"));
 	//mFilenames.push_back( std::string("Y:\\models\\test_harmony_20130219\\harmony_test\\harmony_test.ive"));
 	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive"
 	
-	osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip"); 
+	//osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip"); 
 
 	for(size_t i=0; i<mFilenames.size(); i++)
 	{
 		osg::Node * tmpNode = NULL;
 		tmpNode = new (std::nothrow) osg::Node();
 		sgct::MessageHandler::Instance()->print("Loading model '%s'...\n", mFilenames[i].c_str());
-		tmpNode = osgDB::readNodeFile( mFilenames[i], options );
+		tmpNode = osgDB::readNodeFile( mFilenames[i] );
 
 		if ( tmpNode != NULL )
 		{
@@ -292,14 +310,75 @@ void myPostSyncPreDrawFun()
 	{
 		if( startRecoding )
 		{
-			animation->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
+			//animation->setUpdateCallback(new osg::AnimationPathCallback(animationPath, 0.0, 1.0));
 			startRecoding = false;
 			startRecodingTime = current_time;
 			t0 = sgct::Engine::getTime();
+
+			if( ad.mPositions.size() > 1 )
+			{
+				double time = 0.0;
+				double dist;
+				const double timeStep = 2.0;
+				const float weight = 1.0f/3.0f;
+
+				if( mAnimation.isCubic() )
+				{
+					//first
+					mAnimation.addCubicPositionKeyFrame(time,
+						ad.mPositions[0],
+                        ad.mPositions[0],
+                        ad.mPositions[0] + (ad.mPositions[1] - ad.mPositions[0]) * weight);
+
+					mAnimation.addQuatKeyFrame(time, ad.mQuats[0]);
+
+					for(size_t i=1; i<ad.mPositions.size()-1; i++)
+					{
+						//dist = static_cast<double>((ad.mPositions[i] - ad.mPositions[i-1]).length());
+						//time += dist/ad.speed; //to get constant speed
+						
+						time += timeStep;
+						
+						mAnimation.addCubicPositionKeyFrame(time,
+							ad.mPositions[i] - (ad.mPositions[i] - ad.mPositions[i-1]) * weight,
+							ad.mPositions[i],
+                            ad.mPositions[i] + (ad.mPositions[i+1] - ad.mPositions[i]) * weight);
+						mAnimation.addQuatKeyFrame(time, ad.mQuats[i]);
+					}
+
+					//dist = static_cast<double>((ad.mPositions.back() - ad.mPositions[ ad.mPositions.size()-2 ]).length());
+					//time += dist/ad.speed;
+					time += timeStep;
+
+					//last
+					mAnimation.addCubicPositionKeyFrame(time,
+						ad.mPositions.back() - (ad.mPositions.back() - ad.mPositions[ ad.mPositions.size()-2 ]) * weight,
+                        ad.mPositions.back(),
+                        ad.mPositions.back());
+					
+					mAnimation.addQuatKeyFrame(time, ad.mQuats.back());
+				}
+				else
+				{
+					mAnimation.addPositionKeyFrame(time, ad.mPositions[0]);
+					mAnimation.addQuatKeyFrame(time, ad.mQuats[0]);
+					
+					for(size_t i=1; i<ad.mPositions.size(); i++)
+					{
+						dist = static_cast<double>((ad.mPositions[i] - ad.mPositions[i-1]).length());
+						time += dist/ad.mSpeed; //to get constant speed
+						mAnimation.addPositionKeyFrame(time, ad.mPositions[i]);
+						mAnimation.addQuatKeyFrame(time, ad.mQuats[i]);
+					}
+				}
+
+				mAnimation.play();
+			}
 		}
 
-		//fprintf(stderr, "Animationpath: %lf %lf\n", current_time - startRecodingTime, animationPath->getPeriod() );
-		if( (current_time - startRecodingTime) > animationPath->getPeriod() ) //animation has ended
+		mSwitch->setSingleChildOn(1);
+
+		if( !mAnimation.isPlaying() ) //animation has ended
 		{
 			recordMode = false;
 			sgct::MessageHandler::Instance()->print("Info: Rendering took %lfs\n", sgct::Engine::getTime() - t0);
@@ -307,7 +386,7 @@ void myPostSyncPreDrawFun()
 		else
 		{
 			mSwitch->setSingleChildOn(1);
-			gEngine->takeScreenshot();
+			//gEngine->takeScreenshot();
 		}
 	}
 	else
@@ -342,11 +421,15 @@ void myPostSyncPreDrawFun()
 	if( addAnimationSample )
 	{
 		addAnimationSample = false;
-		static double timeStamp = 0.0;
-		animationPath->insert(timeStamp, osg::AnimationPath::ControlPoint( mSceneTrans->getMatrix().getTrans(),
-			mSceneTrans->getMatrix().getRotate()) );
-		sgct::MessageHandler::Instance()->print("Adding animation sample at: %lf (total duration: %lfs)\n", timeStamp, animationPath->getPeriod());
-		timeStamp += 1.0;
+		//static double timeStamp = 0.0;
+		//animationPath->insert(timeStamp, osg::AnimationPath::ControlPoint( mSceneTrans->getMatrix().getTrans(),
+		//	mSceneTrans->getMatrix().getRotate()) );
+		//sgct::MessageHandler::Instance()->print("Adding animation sample at: %lf (total duration: %lfs)\n", timeStamp, animationPath->getPeriod());
+
+		ad.mPositions.push_back( osg::Vec3( position[0], position[1], position[2] ) );
+		ad.mQuats.push_back( mSceneTrans->getMatrix().getRotate() );
+		sgct::MessageHandler::Instance()->print("Adding animation sample.\n");
+		//timeStamp += 1.0;
 	}
 
 	//double tmpTime = gEngine->getTime();
@@ -357,7 +440,7 @@ void myPostSyncPreDrawFun()
 	mFrameStamp->setReferenceTime( current_time );
 	mFrameStamp->setSimulationTime( current_time );
 	mViewer->setFrameStamp( mFrameStamp );
-	mViewer->advance(); //update
+	mViewer->advance( ); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -437,7 +520,7 @@ void keyCallback(int key, int action)
 
 		case 'S':
 			if( modifierKey && action == SGCT_PRESS)
-				stats = !stats;
+				ad.save("Test.path");
 			else
 				arrowButtonStatus[BACKWARD] = (action == SGCT_PRESS ? true : false);
 			break;
@@ -472,6 +555,11 @@ void keyCallback(int key, int action)
 				if(recordMode)
 					startRecoding = true;
 			}
+			break;
+
+		case 'O':
+			if( modifierKey && action == SGCT_PRESS)
+				ad.read("Test.path");
 			break;
 
 		case SGCT_KEY_UP:

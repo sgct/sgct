@@ -183,6 +183,11 @@ public:
 		Returns a pinter to the user (VR observer position) object
 	*/
 	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
+
+	/*!
+		Returns pointer to screen capture object/handler
+	*/
+	sgct_core::ScreenCapture * getScreenCapturePointer() { return &mScreenCapture; }
 	
 	/*!
 		Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum

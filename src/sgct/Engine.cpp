@@ -2134,6 +2134,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			argumentsToRemove.push_back(i);
 			i++;
 		}
+		else if( strcmp(argv[i],"--No-Sync") == 0 )
+		{
+			mIgnoreSync = true;
+			argumentsToRemove.push_back(i);
+			i++;
+		}
 		else if( strcmp(argv[i],"--No-FBO") == 0 )
 		{
 			SGCTSettings::Instance()->setFBOMode( SGCTSettings::NoFBO );
@@ -2840,27 +2846,27 @@ double sgct::Engine::getTime()
 	return glfwGetTime();
 }
 
-GLFWmutex sgct::Engine::createMutex()
+sgct::SGCTmutex sgct::Engine::createMutex()
 {
     return glfwCreateMutex();
 }
 
-GLFWcond sgct::Engine::createCondition()
+sgct::SGCTcond sgct::Engine::createCondition()
 {
     return glfwCreateCond();
 }
 
-void sgct::Engine::destroyCond(GLFWcond &cond)
+void sgct::Engine::destroyCond(sgct::SGCTcond cond)
 {
     glfwDestroyCond(cond);
 }
 
-void sgct::Engine::destroyMutex(GLFWmutex &mutex)
+void sgct::Engine::destroyMutex(sgct::SGCTmutex mutex)
 {
     glfwDestroyMutex(mutex);
 }
 
-void sgct::Engine::lockMutex(GLFWmutex &mutex)
+void sgct::Engine::lockMutex(sgct::SGCTmutex mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Locking mutex...\n");
@@ -2872,7 +2878,7 @@ void sgct::Engine::lockMutex(GLFWmutex &mutex)
 #endif
 }
 
-void sgct::Engine::unlockMutex(GLFWmutex &mutex)
+void sgct::Engine::unlockMutex(sgct::SGCTmutex mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Unlocking mutex...\n");
@@ -2884,12 +2890,12 @@ void sgct::Engine::unlockMutex(GLFWmutex &mutex)
 #endif
 }
 
-void sgct::Engine::waitCond(GLFWcond &cond, GLFWmutex &mutex, double timeout)
+void sgct::Engine::waitCond(sgct::SGCTcond cond, sgct::SGCTmutex mutex, double timeout)
 {
     glfwWaitCond(cond, mutex, timeout);
 }
 
-void sgct::Engine::signalCond(GLFWcond &cond)
+void sgct::Engine::signalCond(sgct::SGCTcond cond)
 {
     glfwSignalCond(cond);
 }

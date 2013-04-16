@@ -29,39 +29,13 @@ bool takeScreenshot = false;
 bool slowRendering = false;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
-std::string mySharedString;
 
 void drawGrid(float size, int steps);
 
-class TestC
-{
-public:
-	TestC()
-	{
-		d1 = 1.0;
-		d2 = 1.0;
-		f1 = 5.0f;
-		f2 = 5.0f;
-		i1 = -1;
-		i2 = -1;
-	}
-
-	double d1;
-	double d2;
-	float f1;
-	float f2;
-	int i1;
-	int i2;
-};
-
-TestC myTestClass;
-
 int main( int argc, char* argv[] )
 {
-	mySharedString = "Test!";
-
 	gEngine = new sgct::Engine( argc, argv );
-	gEngine->setClearColor(1.0f, 0.0f, 0.0f, 0.0f);
+	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
@@ -72,19 +46,6 @@ int main( int argc, char* argv[] )
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
-
-	//gEngine->setExternalControlBufferSize( 16384 );
-
-	//double t0 = sgct::Engine::getTime();
-	/*sgct_core::PLYReader myPLYReader;
-	if( myPLYReader.readfile("bunny.ply") )
-	{
-		double duration = sgct::Engine::getTime() - t0;
-		sgct::MessageHandler::Instance()->print("PLY File read in %f s\n", duration);
-	}
-	else
-		sgct::MessageHandler::Instance()->print("Failed to parse ply file.\n");
-		*/
 
 	//allocate extra data
 	if( gEngine->isMaster() )
@@ -129,7 +90,7 @@ void myDrawFun()
 	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
 	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
-	glRotatef(static_cast<float>(curr_time)*10.0f, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>(curr_time)*20.0f, 0.0f, 1.0f, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glLineWidth(2.0);
@@ -170,26 +131,41 @@ void myDrawFun()
 
 	glPopMatrix();
 
+	float xPos = static_cast<float>( gEngine->getWindowPtr()->getXFramebufferResolution() ) / 2.0f;
+
+	glColor3f(1.0f,1.0f,0.0f);
 	if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoLeftEye )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 50, "Left");
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 200, "Left");
 	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 100, "Right");
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 150, "Right");
 	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::Mono )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 100, 150, "Mono");
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 200, "Mono");
 
-	/*sgct_text::print(sgct::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Template test: %.3f %.3f %.3f %.3f %d %d",
-		myTestClass.d1,
-		myTestClass.d2,
-		myTestClass.f1,
-		myTestClass.f2,
-		myTestClass.i1,
-		myTestClass.i2);*/
+	if( gEngine->getWindowPtr()->isUsingSwapGroups() )
+	{
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 20, "Size test: %f",
-		extraData[EXTENDED_SIZE-1]);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 10 ), 20, 0, "String: %s...",
-		mySharedString.substr(0, 16).c_str());
-	//drawGrid(10.0, 100);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
+		
+		if( gEngine->getWindowPtr()->isBarrierActive() )
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
+		else
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
+
+		if( gEngine->getWindowPtr()->isSwapGroupMaster() )
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: True");
+		else
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: False");
+
+		unsigned int fr_number;
+		gEngine->getWindowPtr()->getSwapGroupFrameNumber(fr_number);
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
+	}
+	else
+	{
+		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
+	}
 }
 
 void myPreSyncFun()
@@ -198,59 +174,7 @@ void myPreSyncFun()
 	{
 		dt = gEngine->getDt();
 		curr_time = gEngine->getTime();
-
-		myTestClass.d1 = 95.0;
-		myTestClass.d2 = 45.0;
-		myTestClass.f1 = 34.0f;
-		myTestClass.f2 = 3456.425f;
-		myTestClass.i1 = 544;
-		myTestClass.i2 = -345;
-
-		mySharedString = "Long text... With many words..\
-			Test tests tets dfgdnf jndjgdn fjgi fdgujdn f\
-			fgdjfh gdfiuohgdfuigh dfuihg duighdui fhduifh gduif\
-			fgdjkfhgdjkfh gdjfkhgdfhgeriu gnweuirgbe riugberu beu\
-			geirohgerwasfjisogjioseg ioeriog eirog egj wiowj io\
-			ldfgjeirohtw kjweo iohgrgohsofjwe io\
-			sdiojgs iojoi hwiog wioweioj twepow ij\
-			skjhfsdjkhf uihwuie twuisnbaf \
-			sfhgwe gweyfe guyfgweygt jas jkfsdfgwei qwe we\
-			rwere wew rter twrqew erytwe twtwet wetw wertwe\
-			wet ewtwe tewt ehyert wgsdhyrwe twetsegsgywet\
-			retre treher gsgdfhgwertegsxgfdgretgw  fdgdfe\
-			rtre tery eryery ter teery erreger er\
-			ter terte rre tesd gsdgert wegsdg ew twe\
-			dsg wwet wtwe tegwet wegerwtwe twe wettwe\
-			ghf  tyf   rf gvgfjc rffgc gffj tytyftr\
-			jhff yr fddrdrtc ghfgjf tffyftyf hffgfgf\
-			juhiugi yufuyf mgyugy ygffjhgjg jfgft hgftyf\
-			ljjhgftxxr jhgyfvcgh gvhgfhg gfhgft ygffyycfcf\
-			bvdbfd nfhgfj jfjfyj fhfhdr hfhdt fhgfht fhgfhtf\
-			hgdt ddghf hgttjts fjdgndr dgrdssndt jtydsesfegr\
-			yruruyr vuturf hffdhd sdgdjg jfjft dhdthd ghfhfh\
-			jgygkjg jfjyfhf fhfhfdh dhdtd hftygdhd hfyfyufuy\
-			fguuyfuyf ufkfkuyf hffjfvjy dtdyudc jhgyff dtd\
-			hjfh fdsdrtsssd kgkfctd ngtyurfde rsdjglityr\
-			dhfhgfvfj fhjfdhd drgdfh kgkgf jy fyfyyf hddh\
-			hfjfj jfjrfyudfj jfjfjf jfyfjkfde dsrrtg ljhfset\
-			qers3fddgyy77 fhfdgsd5 dhd55 hfcddssarr4e hfy7t\
-			t464dydstrw jgfgkjgd cvbcg ghdtt ngjyd hfhfj yyu\
-			gdyty jfhfh hft u jhfjfj jyfyjf yu yy iu\
-			ddhyf jgfyjdj yurfyd fjfjf hdtydj jddyrf hgf\
-			gdfd hdhd jyjh srsty syy jwje u7t5e hr7ej iutw\
-			jrfj j 6ddhd sgfdh jjgjf trsyfd uytgfj dtrsd5r\
-			rhfyu hfudht uhfst5 kgfy ggfd nvgtft ddrttcccy\
-			lhgyjiuhtyh jgy6 hfhf hgdgdr hfsawar\
-			sfwgr hrefsdg sfe seth stht stet stet ste\
-			seg dht jtyt drt hhfjgk dhr dhjk dhtk hdht\
-			fghgf utrg dgeh dghjr dhjt drth dghjr dhnuu\
-			hft jgki crtdu lyug fchhy jhy ,jj gjfytf ggt";
 	}
-	/*else //slave only
-	{
-		for(int i=0; i<100; i++)
-			sgct::MessageHandler::Instance()->print("Testing... %d!\n", i);
-	}*/
 }
 
 void myPostSyncPreDrawFun()
@@ -316,10 +240,8 @@ void myEncodeFun()
 	flags = slowRendering ? flags | 64 : flags & ~64; //bit 7
 
 	sgct::SharedData::Instance()->writeDouble(dt);
-	sgct::SharedData::Instance()->writeString(mySharedString);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
 	sgct::SharedData::Instance()->writeUChar(flags);
-	sgct::SharedData::Instance()->writeObj<TestC>( myTestClass );
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -329,10 +251,8 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	dt = sgct::SharedData::Instance()->readDouble();
-	mySharedString = sgct::SharedData::Instance()->readString();
 	curr_time = sgct::SharedData::Instance()->readDouble();
 	flags = sgct::SharedData::Instance()->readUChar();
-	myTestClass = sgct::SharedData::Instance()->readObj<TestC>();
 
 	showFPS	= flags & 0x0001;
 	extraPackages = (flags>>1) & 0x0001;
@@ -345,41 +265,6 @@ void myDecodeFun()
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
 			extraData[i] = sgct::SharedData::Instance()->readFloat();
-}
-
-void drawGrid(float size, int steps)
-{
-	glDisable( GL_DEPTH_TEST );
-	glEnable( GL_BLEND );
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glPushMatrix();
-	glTranslatef(-size/2.0f, -size/2.0f, 0.0f);
-	glColor4f(1.0f,1.0f,1.0f,0.5f);
-	glLineWidth(1.0);
-
-	glBegin(GL_LINES);
-	//horizontal lines
-	for( float f=0.0f; f<=size; f+= (size/static_cast<float>(steps)))
-	{
-		glVertex3f( 0.0f, f, 0.0f);
-		glVertex3f( size, f, 0.0f);
-	}
-	//Vertical lines
-	for( float f=0.0f; f<=size; f+= (size/static_cast<float>(steps)))
-	{
-		glVertex3f( f, 0.0f, 0.0f);
-		glVertex3f( f, size, 0.0f);
-	}
-	glEnd();
-
-	glVertex3f( -1.0f,  0.01f, 0.0f);
-	glVertex3f(  1.0f,  0.01f, 0.0f);
-	glVertex3f(  1.0f, -0.01f, 0.0f);
-	glVertex3f( -1.0f, -0.01f, 0.0f);
-
-	glPopMatrix();
-	glDisable( GL_BLEND );
-	glEnable( GL_DEPTH_TEST );
 }
 
 void keyCallback(int key, int action)

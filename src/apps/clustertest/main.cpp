@@ -27,6 +27,7 @@ bool resetCounter = false;
 bool stats = false;
 bool takeScreenshot = false;
 bool slowRendering = false;
+float speed = 5.0f;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
 
@@ -90,10 +91,10 @@ void myDrawFun()
 	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
 	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
-	glRotatef(static_cast<float>(curr_time)*20.0f, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>(curr_time)*speed, 0.0f, 1.0f, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
-	glLineWidth(2.0);
+	glLineWidth(3.0);
 
 	//draw a cube
 	//bottom
@@ -209,10 +210,6 @@ void myInitOGLFun()
 	glEnable(GL_NORMALIZE);
 	glDisable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
-	glShadeModel(GL_SMOOTH);
-
-	glEnable(GL_LINE_SMOOTH);
-	glHint(GL_LINE_SMOOTH_HINT,GL_NICEST);
 
 	unsigned int numberOfActiveViewports = 0;
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
@@ -241,6 +238,7 @@ void myEncodeFun()
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
+	sgct::SharedData::Instance()->writeFloat( speed );
 	sgct::SharedData::Instance()->writeUChar(flags);
 
 	if(extraPackages)
@@ -252,6 +250,7 @@ void myDecodeFun()
 {
 	dt = sgct::SharedData::Instance()->readDouble();
 	curr_time = sgct::SharedData::Instance()->readDouble();
+	speed = sgct::SharedData::Instance()->readFloat();
 	flags = sgct::SharedData::Instance()->readUChar();
 
 	showFPS	= flags & 0x0001;
@@ -324,13 +323,11 @@ void keyCallback(int key, int action)
 			break;
 
 		case SGCT_KEY_UP:
-			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() + glm::vec3(0.0f, 0.0f, 0.1f) );
-			sgct::MessageHandler::Instance()->print("Up was pressed.\n");
+			speed *= 1.1f;
 			break;
 
 		case SGCT_KEY_DOWN:
-			gEngine->getUserPtr()->setPos( gEngine->getUserPtr()->getPos() - glm::vec3(0.0f, 0.0f, 0.1f) );
-			sgct::MessageHandler::Instance()->print("Down was pressed.\n");
+			speed /= 1.1f;
 			break;
 		}
 	}

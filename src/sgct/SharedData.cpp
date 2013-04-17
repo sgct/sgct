@@ -522,7 +522,7 @@ unsigned char * SharedData::readUCharArray(size_t length)
     Engine::lockMutex(sgct_core::NetworkManager::gMutex);
 
 	unsigned char * p = &dataBlock[pos];
-    pos += length;
+    pos += static_cast<unsigned int>(length);
 
 	Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
 

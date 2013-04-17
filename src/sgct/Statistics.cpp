@@ -203,10 +203,10 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f);
 	glEnd();
 
-	//2 ms lines
+	//1 ms lines
 	glColor4f(1.0f,1.0f,1.0f,0.2f);
 	glBegin(GL_LINES);
-	for(float f = 0.002f; f < (1.0f/30.0f); f += 0.002f )
+	for(float f = 0.001f; f < (1.0f/30.0f); f += 0.001f )
 	{
 		glVertex2f(0.0f, f);
 		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), f);

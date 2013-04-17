@@ -745,7 +745,7 @@ int  _glfwPlatformOpenWindow( int width, int height,
     [_glfwWin.window setAcceptsMouseMovedEvents:YES];
     [_glfwWin.window center];
 
-    if( [_glfwWin.window respondsToSelector:@selector(setRestorable)] )
+    if( [_glfwWin.window respondsToSelector:@selector(setRestorable:)] )
     {
         [_glfwWin.window setRestorable:NO];
     }
@@ -1042,8 +1042,6 @@ void _glfwPlatformRefreshWindowParams( void )
                        forAttribute:NSOpenGLPFASamples
                    forVirtualScreen:0];
     _glfwWin.samples = value;
-
-    _glfwWin.glDebug = GL_FALSE;
 }
 
 
@@ -1123,7 +1121,7 @@ void _glfwPlatformSetMouseCursorPos( int x, int y )
 {
     if( _glfwWin.fullscreen )
     {
-        NSPoint globalPoint = NSMakePoint( x, y );
+        CGPoint globalPoint = CGPointMake( x, y );
         CGDisplayMoveCursorToPoint( CGMainDisplayID(), globalPoint );
     }
     else

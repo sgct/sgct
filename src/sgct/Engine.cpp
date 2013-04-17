@@ -1997,15 +1997,15 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 		{
 			sgct::MessageHandler::Instance()->print(".");
 
+			// Swap front and back rendering buffers
+			glfwSwapBuffers();
+
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
 			glfwWaitCond( NetworkManager::gCond,
 				NetworkManager::gSyncMutex,
 				0.1 ); //wait maximum 0.1 sec per iteration
-
-			// Swap front and back rendering buffers
-			glfwSwapBuffers();
 		}
 		glfwUnlockMutex( NetworkManager::gSyncMutex );
 

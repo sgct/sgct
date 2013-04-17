@@ -169,7 +169,10 @@ int _glfwPlatformInit( void )
 
 int _glfwPlatformTerminate( void )
 {
-    // TODO: Fail unless this is the main thread
+    if( pthread_self() != _glfwThrd.First.PosixID )
+    {
+        return GL_FALSE;
+    }
 
     glfwCloseWindow();
 

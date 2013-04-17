@@ -68,9 +68,13 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mServerType			= SyncServer;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
-	mSendFrame			= 0;
+	mSendFrame[Current]	= 0;
+	mSendFrame[Previous]= -1;
 	mRecvFrame[Current]	= 0;
-	mRecvFrame[Previous]= 0;
+	mRecvFrame[Previous]= mRecvFrame[Current];
+	mTimeStamp[Send]	= 0.0;
+	mTimeStamp[Total]	= 0.0;
+
 	mConnected			= false;
 	mTerminate          = false;
 	mId					= -1;
@@ -347,13 +351,18 @@ void sgct_core::SGCTNetwork::setBufferSize(unsigned int newSize)
 int sgct_core::SGCTNetwork::iterateFrameCounter()
 {
 	sgct::Engine::lockMutex(mConnectionMutex);
-	if( mSendFrame < MAX_NET_SYNC_FRAME_NUMBER )
-		mSendFrame++;
+	
+	mSendFrame[Previous] = mSendFrame[Current];
+	
+	if( mSendFrame[Current] < MAX_NET_SYNC_FRAME_NUMBER )
+		mSendFrame[Current]++;
 	else
-		mSendFrame = 0;
+		mSendFrame[Current] = 0;
+
+	mTimeStamp[Send] = sgct::Engine::getTime();
 	sgct::Engine::unlockMutex(mConnectionMutex);
 
-	return mSendFrame;
+	return mSendFrame[Current];
 }
 
 /*!
@@ -371,7 +380,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
     if(sgct::MessageHandler::Instance()->getDataSize() > mHeaderSize)
     {
-        //Don't remove this pointer, somehow the send function doesn't
+        sgct::Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+		
+		//Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
 		char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
 		messageToSend[0] = SGCTNetwork::SyncByte;
@@ -381,8 +392,8 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[4] = p[3];
 
 		std::size_t currentMessageSize =
-			sgct::MessageHandler::Instance()->getDataSize() > mBufferSize ?
-			mBufferSize :
+			sgct::MessageHandler::Instance()->getDataSize() > static_cast<size_t>(mBufferSize) ?
+			static_cast<size_t>(mBufferSize) :
 			sgct::MessageHandler::Instance()->getDataSize();
 
         std::size_t dataSize = currentMessageSize - mHeaderSize;
@@ -394,6 +405,8 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
 		//crop if needed
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
+		
+		sgct::Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
 
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
     }
@@ -417,14 +430,14 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 	}
 }
 
-int sgct_core::SGCTNetwork::getSendFrame()
+int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getSendFrame\n");
 #endif
 	int tmpi;
 	sgct::Engine::lockMutex(mConnectionMutex);
-		tmpi = mSendFrame;
+		tmpi = mSendFrame[ri];
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpi;
 }
@@ -439,6 +452,21 @@ int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 		tmpi = mRecvFrame[ri];
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpi;
+}
+
+/*!
+	Get the time in seconds from send to receive of sync data.
+*/
+double sgct_core::SGCTNetwork::getLoopTime()
+{
+	#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getLoopTime\n");
+#endif
+	double tmpd;
+	sgct::Engine::lockMutex(mConnectionMutex);
+		tmpd = mTimeStamp[Total];
+	sgct::Engine::unlockMutex(mConnectionMutex);
+	return tmpd;
 }
 
 /*!
@@ -458,9 +486,13 @@ bool sgct_core::SGCTNetwork::isUpdated()
 	bool tmpb;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		if(mServer)
-			tmpb = (mRecvFrame[Current] == mSendFrame); //master sends first -> so on reply they should be equal
+		{
+			tmpb = (mRecvFrame[Current] == mSendFrame[Current]); //master sends first -> so on reply they should be equal
+		}
 		else
-			tmpb = (mRecvFrame[Previous] == mSendFrame); //slaves receives first and then sends so the prevois should be equal to the send
+		{
+			tmpb = (mRecvFrame[Previous] == mSendFrame[Current]); //slaves receives first and then sends so the prevois should be equal to the send
+		}
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpb;
 }
@@ -558,6 +590,8 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	sgct::Engine::lockMutex(mConnectionMutex);
 	mRecvFrame[Previous] = mRecvFrame[Current];
 	mRecvFrame[Current] = i;
+
+	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
@@ -886,6 +920,11 @@ void GLFWCALL communicationHandler(void *arg)
 					//decode callback
                     if(dataSize > 0)
                         (nPtr->mDecoderCallbackFn)(recvBuf, dataSize, nPtr->getId());
+
+					/*if(!nPtr->isServer())
+					{
+						nPtr->pushClientMessage();
+					}*/
 
 					sgct::Engine::signalCond( sgct_core::NetworkManager::gCond );
 #ifdef __SGCT_NETWORK_DEBUG__

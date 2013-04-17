@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _NETWORK_MANAGER_H_
 
 #include "SGCTNetwork.h"
+#include "Statistics.h"
 #include <vector>
 #include <string>
 
@@ -31,7 +32,7 @@ public:
 	NetworkManager(int mode);
 	~NetworkManager();
 	bool init();
-	void sync(SyncMode sm);
+	void sync(SyncMode sm, Statistics * statsPtr);
 	bool isSyncComplete();
 	void close();
 

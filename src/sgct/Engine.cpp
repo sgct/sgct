@@ -628,7 +628,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 	if( stage == PreStage )
 	{
 		double t0 = glfwGetTime();
-		mNetworkConnections->sync(NetworkManager::SendDataToClients); //from server to clients
+		mNetworkConnections->sync(NetworkManager::SendDataToClients, &mStatistics); //from server to clients
 		mStatistics.setSyncTime(glfwGetTime() - t0);
 
 		//run only on clients/slaves
@@ -657,19 +657,21 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for master... connection %d: send frame %d recv frame %d [%d]\n", i,
-							mNetworkConnections->getConnection(i)->getSendFrame(),
-							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
-							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
+						if( !mNetworkConnections->getConnection(i)->isUpdated() )
+						{
+							MessageHandler::Instance()->print("Waiting for master... send frame %d, recv frame %d\n",
+								mNetworkConnections->getConnection(i)->getSendFrame(),
+								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
+						}
 					}
 				}
 			}//end while wait loop
 
 			/*
-				A this point all date for rendering a frame is received.
+				A this point all data needed for rendering a frame is received.
 				Let's signal that back to the master/server.
 			*/
-			mNetworkConnections->sync(NetworkManager::AcknowledgeData);
+			mNetworkConnections->sync(NetworkManager::AcknowledgeData, &mStatistics);
 
 			mStatistics.addSyncTime(glfwGetTime() - t0);
 		}//end if client
@@ -706,10 +708,12 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
-						MessageHandler::Instance()->print("Waiting for slaves... connection %d: send frame %d recv frame %d [%d]\n", i,
-							mNetworkConnections->getConnection(i)->getSendFrame(),
-							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
-							mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Previous));
+						if( !mNetworkConnections->getConnection(i)->isUpdated() )
+						{
+							MessageHandler::Instance()->print("Waiting for slave at connection %d: send frame %d != recv frame %d\n", i,
+								mNetworkConnections->getConnection(i)->getSendFrame(),
+								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
+						}
 					}
 				}
 			}//end while
@@ -908,16 +912,10 @@ void sgct::Engine::render()
 		getWindowPtr()->swap();
 
 		//master will wait for nodes render before swapping
-		if(!getWindowPtr()->isBarrierActive())
-			frameSyncAndLock(PostStage);
+		frameSyncAndLock(PostStage);
 
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
-
-		//If barriers are active then the lock can take place after the swap buffers,
-		//since it can be assumed that the buffer swaps concurrently on all nodes
-		if(getWindowPtr()->isBarrierActive())
-			frameSyncAndLock(PostStage);
 
 		// Check if ESC key was pressed or window was closed
 		mRunning = !glfwGetKey( mExitKey ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;

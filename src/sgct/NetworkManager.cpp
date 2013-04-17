@@ -158,15 +158,27 @@ bool sgct_core::NetworkManager::init()
 /*!
 	\param if this application is server/master in cluster then set to true
 */
-void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm)
+void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgct_core::Statistics * statsPtr)
 {
 	if(sm == SendDataToClients)
+	{
+		double maxTime = -999999.0;
+		double minTime = 999999.0;
+		
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
 			if( mNetworkConnections[i]->isServer() &&
 				mNetworkConnections[i]->isConnected() &&
 				mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
 			{
+				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mNetworkConnections[i]->getLoopTime()*1000.0);
+				
+				if( mNetworkConnections[i]->getLoopTime() > maxTime )
+					maxTime = mNetworkConnections[i]->getLoopTime();
+
+				if( mNetworkConnections[i]->getLoopTime() < minTime )
+					minTime = mNetworkConnections[i]->getLoopTime();
+
 				std::size_t currentSize =
 					sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
@@ -196,7 +208,11 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm)
 					static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
 				//sgct::Engine::unlockMutex(gMutex);
 			}
-		}
+		}//end for
+
+		if( isComputerServer() )
+			statsPtr->setLoopTime(minTime, maxTime);
+	}
 
 	else if(sm == AcknowledgeData)
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)

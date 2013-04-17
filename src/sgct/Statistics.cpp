@@ -33,22 +33,26 @@ sgct_core::Statistics::Statistics()
 		mFrameTime[i].x = static_cast<double>(i*2);
 		mDrawTime[i].x = static_cast<double>(i*2);
 		mSyncTime[i].x = static_cast<double>(i*2);
+		mLoopTimeMax[i].x = static_cast<double>(i*2);
+		mLoopTimeMin[i].x = static_cast<double>(i*2);
 
 		mFrameTime[i].y = 0.0;
 		mDrawTime[i].y = 0.0;
 		mSyncTime[i].y = 0.0;
+		mLoopTimeMax[i].y = 0.0;
+		mLoopTimeMin[i].y = 0.0;
 	}
 }
 
 sgct_core::Statistics::~Statistics()
 {
 	if(mVboPtrs[0] != 0)
-		glDeleteBuffers(3, &mVboPtrs[0]);
+		glDeleteBuffers(5, &mVboPtrs[0]);
 }
 
 void sgct_core::Statistics::initVBO()
 {
-	glGenBuffers(3, &mVboPtrs[0]);
+	glGenBuffers(5, &mVboPtrs[0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[FRAME_TIME]);
 	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mFrameTime, GL_STREAM_DRAW );
@@ -58,6 +62,12 @@ void sgct_core::Statistics::initVBO()
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[SYNC_TIME]);
 	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mSyncTime, GL_STREAM_DRAW );
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[LOOP_TIME_MAX]);
+	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mLoopTimeMax, GL_STREAM_DRAW );
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[LOOP_TIME_MIN]);
+	glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), mLoopTimeMin, GL_STREAM_DRAW );
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -115,6 +125,21 @@ void sgct_core::Statistics::setSyncTime(double t)
 
 	mAvgSyncTime /= static_cast<double>(STATS_AVERAGE_LENGTH);
 }
+
+/*!
+	Set the minimum and maximum time it takes for a sync message from send to receive
+*/
+void sgct_core::Statistics::setLoopTime(double min, double max)
+{
+	for(int i=STATS_HISTORY_LENGTH-2; i>=0; i--)
+	{
+		mLoopTimeMax[i+1].y = mLoopTimeMax[i].y;
+		mLoopTimeMin[i+1].y = mLoopTimeMin[i].y;
+	}
+	mLoopTimeMax[0].y = max;
+	mLoopTimeMax[0].y = min;
+}
+
 
 void sgct_core::Statistics::addSyncTime(double t)
 {
@@ -178,6 +203,16 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f);
 	glEnd();
 
+	//2 ms lines
+	glColor4f(1.0f,1.0f,1.0f,0.2f);
+	glBegin(GL_LINES);
+	for(float f = 0.002f; f < (1.0f/30.0f); f += 0.002f )
+	{
+		glVertex2f(0.0f, f);
+		glVertex2f(static_cast<float>(STATS_HISTORY_LENGTH*2), f);
+	}
+	glEnd();
+
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glDisableClientState(GL_COLOR_ARRAY); //osg enables this which messes up the rendering
@@ -215,6 +250,29 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	{
 		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 		memcpy(PositionBuffer, mSyncTime, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	glVertexPointer(2, GL_DOUBLE, 0, NULL);
+	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
+
+	//loop time max
+	glColor4f(0.2f,0.2f,1.0f,0.8f);
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[LOOP_TIME_MAX]);
+	if( updateGPU )
+	{
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memcpy(PositionBuffer, mLoopTimeMax, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+		glUnmapBuffer(GL_ARRAY_BUFFER);
+	}
+	glVertexPointer(2, GL_DOUBLE, 0, NULL);
+	glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
+
+	glColor4f(0.2f,0.2f,1.0f,0.8f);
+	glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[LOOP_TIME_MIN]);
+	if( updateGPU )
+	{
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		memcpy(PositionBuffer, mLoopTimeMin, STATS_HISTORY_LENGTH * sizeof(StatsVertex));
 		glUnmapBuffer(GL_ARRAY_BUFFER);
 	}
 	glVertexPointer(2, GL_DOUBLE, 0, NULL);

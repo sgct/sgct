@@ -65,8 +65,9 @@ public:
 	bool isServer();
 	bool isConnected();
 	bool isTerminated();
-	int getSendFrame();
+	int getSendFrame(ReceivedIndex ri = Current);
 	int getRecvFrame(ReceivedIndex ri);
+	double getLoopTime();
 	bool isUpdated();
 	void setRecvFrame(int i);
 	void sendData(void * data, int length);
@@ -95,12 +96,15 @@ public:
 	GLFWcond mStartConnectionCond;
 
 private:
+	enum timeStampIndex { Send = 0, Total };
+	
 	int mServerType;
 	bool mServer;
 	int mMainThreadId;
 	bool mConnected;
-	int mSendFrame;
+	int mSendFrame[2];
 	int mRecvFrame[2];
+	double mTimeStamp[2];
 	int mId;
 };
 }

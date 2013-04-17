@@ -33,6 +33,7 @@ public:
 	void setFrameTime(double t);
 	void setDrawTime(double t);
 	void setSyncTime(double t);
+	void setLoopTime(double min, double max);
 	void addSyncTime(double t);
 	void draw(unsigned int frameNumber);
 
@@ -49,11 +50,13 @@ private:
 	double mAvgDrawTime;
 	double mAvgSyncTime;
 	double mAvgFrameTime;
+	StatsVertex mLoopTimeMax[STATS_HISTORY_LENGTH];
+	StatsVertex mLoopTimeMin[STATS_HISTORY_LENGTH];
 	StatsVertex mFrameTime[STATS_HISTORY_LENGTH];
 	StatsVertex mDrawTime[STATS_HISTORY_LENGTH];
 	StatsVertex mSyncTime[STATS_HISTORY_LENGTH];
-	enum mStatsType { FRAME_TIME = 0, DRAW_TIME, SYNC_TIME };
-	unsigned int mVboPtrs[4];
+	enum mStatsType { FRAME_TIME = 0, DRAW_TIME, SYNC_TIME, LOOP_TIME_MAX, LOOP_TIME_MIN };
+	unsigned int mVboPtrs[5];
 };
 
 } //sgct_core

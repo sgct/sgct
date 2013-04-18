@@ -51,6 +51,7 @@ Parameter     | Description
 --client | run the application as client (only available when running as local)
 --slave | run the application as client (only available when running as local)
 --Firm-Sync | enable firm frame sync
+--Loose-Sync | disable firm frame sync
 --Ignore-Sync | disable frame sync
 --No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
 --Regular-FBO | use regular frame buffer objects without multi sampling
@@ -2130,6 +2131,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		else if( strcmp(argv[i],"--Firm-Sync") == 0 )
 		{
 			ClusterManager::Instance()->setFirmFrameLockSyncStatus(true);
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--Loose-Sync") == 0 )
+		{
+			ClusterManager::Instance()->setFirmFrameLockSyncStatus(false);
 			argumentsToRemove.push_back(i);
 			i++;
 		}

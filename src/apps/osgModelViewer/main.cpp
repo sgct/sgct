@@ -440,7 +440,7 @@ void myPostSyncPreDrawFun()
 	mFrameStamp->setReferenceTime( current_time );
 	mFrameStamp->setSimulationTime( current_time );
 	mViewer->setFrameStamp( mFrameStamp );
-	mViewer->advance( ); //update
+	mViewer->advance( current_time ); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())

@@ -2,7 +2,7 @@
 Copyright (c) 2012 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/NetworkManager.h"
@@ -152,6 +152,9 @@ bool sgct_core::NetworkManager::init()
 		}
 	}
 
+	sgct::MessageHandler::Instance()->print("Cluster sync is set to %s\n",
+        ClusterManager::Instance()->getFirmFrameLockSyncStatus() ? "firm/strict" : "loose" );
+
 	return true;
 }
 
@@ -164,7 +167,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 	{
 		double maxTime = -999999.0;
 		double minTime = 999999.0;
-		
+
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
 			if( mNetworkConnections[i]->isServer() &&
@@ -172,7 +175,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 			{
 				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mNetworkConnections[i]->getLoopTime()*1000.0);
-				
+
 				if( mNetworkConnections[i]->getLoopTime() > maxTime )
 					maxTime = mNetworkConnections[i]->getLoopTime();
 
@@ -223,7 +226,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 			{
 				//The servers's render function is locked until a message starting with the ack-byte is received.
-				
+
 				//send message to server
 				mNetworkConnections[i]->pushClientMessage();
 			}
@@ -248,7 +251,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 }
 
 sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
-{ 
+{
 	sgct_core::SGCTNetwork * netPtr = NULL;
 
 	if( mIsExternalControlPresent )
@@ -312,7 +315,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 						tmpc[0] = SGCTNetwork::ConnectedByte;
 						for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
 							tmpc[j] = SGCTNetwork::FillByte;
-					
+
 						mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 					}
 				}

@@ -50,6 +50,7 @@ Parameter     | Description
 -numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
 --client | run the application as client (only available when running as local)
 --slave | run the application as client (only available when running as local)
+--Firm-Sync | enable firm frame sync
 --Ignore-Sync | disable frame sync
 --No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
 --Regular-FBO | use regular frame buffer objects without multi sampling
@@ -333,7 +334,7 @@ bool sgct::Engine::initWindow()
 	{
 		SGCTSettings::Instance()->setFBOMode(SGCTSettings::CubeMapFBO);
 		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
-		
+
 		//create the cube mapped viewports
 		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
 	}
@@ -2125,6 +2126,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
+		}
+		else if( strcmp(argv[i],"--Firm-Sync") == 0 )
+		{
+			ClusterManager::Instance()->setFirmFrameLockSyncStatus(true);
+			argumentsToRemove.push_back(i);
+			i++;
 		}
 		else if( strcmp(argv[i],"--Ignore-Sync") == 0 )
 		{

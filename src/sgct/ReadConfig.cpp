@@ -167,6 +167,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 		useExternalControlPort = true;
 	}
 
+	if( XMLroot->Attribute( "firmSync" ) != NULL )
+	{
+		ClusterManager::Instance()->setFirmFrameLockSyncStatus(
+			strcmp( XMLroot->Attribute( "firmSync" ), "true" ) == 0 ? true : false );
+	}
+
 	XMLElement* element[MAX_XML_DEPTH];
 	for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
 		element[i] = NULL;

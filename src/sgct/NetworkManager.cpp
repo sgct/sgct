@@ -139,7 +139,7 @@ bool sgct_core::NetworkManager::init()
 	if( mIsServer )
 	{
 		if(addConnection( (*ClusterManager::Instance()->getExternalControlPort()),
-            "127.0.0.1", SGCTNetwork::ExternalControl))
+            "127.0.0.1", SGCTNetwork::ExternalControlConnection))
 		{
 			mIsExternalControlPresent = true;
 
@@ -169,7 +169,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 		{
 			if( mNetworkConnections[i]->isServer() &&
 				mNetworkConnections[i]->isConnected() &&
-				mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 			{
 				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mNetworkConnections[i]->getLoopTime()*1000.0);
 				
@@ -220,7 +220,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 			//Client
 			if( !mNetworkConnections[i]->isServer() &&
 				mNetworkConnections[i]->isConnected() &&
-				mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 			{
 				//The servers's render function is locked until a message starting with the ack-byte is received.
 				
@@ -238,7 +238,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 {
 	unsigned int counter = 0;
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-		if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer &&
+		if(mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection &&
 			mNetworkConnections[i]->isUpdated()) //has all data been received?
 		{
 			counter++;
@@ -255,7 +255,7 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 	{
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
-			if( mNetworkConnections[i]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl )
+			if( mNetworkConnections[i]->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection )
 				return mNetworkConnections[i];
 		}
 	}
@@ -274,7 +274,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		if( mNetworkConnections[i]->isConnected() )
 		{
 			numberOfConnectionsCounter++;
-			if(mNetworkConnections[i]->getTypeOfServer() == SGCTNetwork::SyncServer)
+			if(mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 				numberOfConnectedSyncNodesCounter++;
 		}
 	}
@@ -306,7 +306,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 				if( mNetworkConnections[i]->isConnected() )
 				{
-					if( mNetworkConnections[i]->getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
+					if( mNetworkConnections[i]->getTypeOfConnection() == sgct_core::SGCTNetwork::SyncConnection )
 					{
 						char tmpc[SGCTNetwork::mHeaderSize];
 						tmpc[0] = SGCTNetwork::ConnectedByte;
@@ -317,7 +317,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 					}
 				}
 
-		if( mNetworkConnections[index]->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl &&
+		if( mNetworkConnections[index]->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection &&
 			 mNetworkConnections[index]->isConnected())
 		{
 			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
@@ -374,7 +374,7 @@ void sgct_core::NetworkManager::close()
 	sgct::MessageHandler::Instance()->print("Network API closed!\n");
 }
 
-bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, int serverType)
+bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType)
 {
 	SGCTNetwork * netPtr = NULL;
 
@@ -400,7 +400,8 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 	try
 	{
 		sgct::MessageHandler::Instance()->print("Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
-		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), serverType);
+		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
+			ClusterManager::Instance()->getFirmFrameLockSyncStatus());
 
 		//bind callback
 		sgct_cppxeleven::function< void(int) > updateCallback;

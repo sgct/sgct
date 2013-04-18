@@ -15,6 +15,7 @@ sgct_core::ClusterManager::ClusterManager(void)
 	masterIndex = -1;
 	mThisNodeId = -1;
 	validCluster = false;
+	mFirmFrameLockSync = false;
 
 	mUser = new SGCTUser();
 	mTrackingManager = new sgct::SGCTTrackingManager();

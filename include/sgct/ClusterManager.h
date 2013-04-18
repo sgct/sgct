@@ -101,6 +101,16 @@ public:
 	void setMasterIp(std::string ip) { masterIp.assign(ip); }
 
 	/*!
+		\returns state of the firm frame lock lock sync
+	*/
+	bool getFirmFrameLockSyncStatus() { return mFirmFrameLockSync; }
+
+	/*!
+		\param the state of the firm frame lock sync
+	*/
+	void setFirmFrameLockSyncStatus( bool state ) { mFirmFrameLockSync = state; }
+
+	/*!
 		\returns the external control port number if it's set or specified in the XML configuration
 	*/
 	std::string * getExternalControlPort() { return &mExternalControlPort; }
@@ -146,6 +156,7 @@ private:
 	int masterIndex;
 	int mThisNodeId;
 	bool validCluster;
+	bool mFirmFrameLockSync;
 	std::string masterIp;
 	std::string mExternalControlPort;
 

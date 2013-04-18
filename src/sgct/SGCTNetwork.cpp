@@ -65,7 +65,7 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mUpdateCallbackFn	= NULL;
 	mConnectedCallbackFn = NULL;
 #endif
-	mServerType			= SyncServer;
+	mConnectionType		= SyncConnection;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
 	mSendFrame[Current]	= 0;
@@ -75,6 +75,8 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mTimeStamp[Send]	= 0.0;
 	mTimeStamp[Total]	= 0.0;
 
+	mFirmSync			= false;
+	mUpdated			= false;
 	mConnected			= false;
 	mTerminate          = false;
 	mId					= -1;
@@ -82,12 +84,23 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mDoneCond			= NULL;
 }
 
-void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, int id, int serverType)
+/*!
+	Inits this network connection.
+
+	\param port is the network port (TCP)
+	\param ip is the ip4 address
+	\param _isServer indicates if this connection is a server or client
+	\param id is a unique id of this connection
+	\param connectionType is the type of connection
+	\param firmSync if set to true then firm framesync will be used for the whole cluster
+*/
+void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, int id, sgct_core::SGCTNetwork::ConnectionTypes connectionType, bool firmSync)
 {
 	mServer = _isServer;
-	mServerType = serverType;
+	mConnectionType = connectionType;
 	mBufferSize = static_cast<int>(sgct::SharedData::Instance()->getBufferSize());
 	mId = id;
+	mFirmSync = firmSync;
 
 	mConnectionMutex = sgct::Engine::createMutex();
 	mDoneCond = sgct::Engine::createCondition();
@@ -286,7 +299,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 			sgct::MessageHandler::Instance()->print("SGCTNetwork: Failed to set reuse address with error: %d\n!", errno);
 
 		//set only on external control, cluster nodes sends data several times per second so there is no need so send alive packages
-		if( getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl )
+		if( getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection )
 		{
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
 			if (iResult == SOCKET_ERROR)
@@ -297,7 +310,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 			The default buffer value is 8k (8192 bytes) which is good for external control
 			but might be a bit to big for sync data.
 		*/
-		if( getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
+		if( getTypeOfConnection() == sgct_core::SGCTNetwork::SyncConnection )
 		{
 			int bufferSize = SGCT_SOCKET_BUFFER_SIZE;
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(int));
@@ -358,6 +371,8 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 		mSendFrame[Current]++;
 	else
 		mSendFrame[Current] = 0;
+
+	mUpdated = false;
 
 	mTimeStamp[Send] = sgct::Engine::getTime();
 	sgct::Engine::unlockMutex(mConnectionMutex);
@@ -483,15 +498,21 @@ bool sgct_core::SGCTNetwork::isUpdated()
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isUpdated\n");
 #endif
-	bool tmpb;
+	bool tmpb = false;
 	sgct::Engine::lockMutex(mConnectionMutex);
 		if(mServer)
 		{
-			tmpb = (mRecvFrame[Current] == mSendFrame[Current]); //master sends first -> so on reply they should be equal
+			if(mFirmSync)
+				tmpb = (mRecvFrame[Current] == mSendFrame[Current]); //master sends first -> so on reply they should be equal
+			else
+				tmpb = true;
 		}
 		else
 		{
-			tmpb = (mRecvFrame[Previous] == mSendFrame[Current]); //slaves receives first and then sends so the prevois should be equal to the send
+			if(mFirmSync)
+				tmpb = (mRecvFrame[Previous] == mSendFrame[Current]); //slaves receives first and then sends so the prevois should be equal to the send
+			else
+				tmpb = mUpdated;
 		}
 	sgct::Engine::unlockMutex(mConnectionMutex);
 	return tmpb;
@@ -534,16 +555,16 @@ bool sgct_core::SGCTNetwork::isConnected()
     return tmpb;
 }
 
-int sgct_core::SGCTNetwork::getTypeOfServer()
+sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnection()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getTypeOfServer\n");
 #endif
-	int tmpi;
+	ConnectionTypes tmpct;
 	sgct::Engine::lockMutex(mConnectionMutex);
-		tmpi = mServerType;
+		tmpct = mConnectionType;
 	sgct::Engine::unlockMutex(mConnectionMutex);
-	return tmpi;
+	return tmpct;
 }
 
 int sgct_core::SGCTNetwork::getId()
@@ -592,6 +613,7 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	mRecvFrame[Current] = i;
 
 	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
+	mUpdated = true;
 	sgct::Engine::unlockMutex(mConnectionMutex);
 }
 
@@ -769,7 +791,7 @@ void GLFWCALL communicationHandler(void *arg)
         int dataSize = 0;
         unsigned char packageId = sgct_core::SGCTNetwork::FillByte;
 
-        if( nPtr->getTypeOfServer() != sgct_core::SGCTNetwork::ExternalControl )
+        if( nPtr->getTypeOfConnection() != sgct_core::SGCTNetwork::ExternalControlConnection )
         {
             iResult = sgct_core::SGCTNetwork::receiveData(nPtr->mSocket,
                                recvHeader,
@@ -843,7 +865,7 @@ void GLFWCALL communicationHandler(void *arg)
 		/*
 			Get external message
 		*/
-		if( nPtr->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl )
+		if( nPtr->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection )
 		{
 			//do a normal read
 			iResult = recv( nPtr->mSocket,
@@ -898,7 +920,7 @@ void GLFWCALL communicationHandler(void *arg)
 
                 break; //exit loop
             }
-			else if( nPtr->getTypeOfServer() == sgct_core::SGCTNetwork::SyncServer )
+			else if( nPtr->getTypeOfConnection() == sgct_core::SGCTNetwork::SyncConnection )
 			{
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 				if( packageId == sgct_core::SGCTNetwork::SyncByte &&
@@ -949,7 +971,7 @@ void GLFWCALL communicationHandler(void *arg)
 #endif
 				}
 			}
-			else if(nPtr->getTypeOfServer() == sgct_core::SGCTNetwork::ExternalControl)
+			else if(nPtr->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection)
 			{
 #ifdef __SGCT_NETWORK_DEBUG__
 				sgct::MessageHandler::Instance()->printDebug("Parsing external TCP data... ");

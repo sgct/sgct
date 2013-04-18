@@ -48,7 +48,7 @@ public:
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
 
 private:
-	bool addConnection(const std::string port, const std::string ip, int serverType = SGCTNetwork::SyncServer);
+	bool addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
 	void initAPI();
 	void getHostInfo();
 	void updateConnectionStatus(int index);

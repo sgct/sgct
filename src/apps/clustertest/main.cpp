@@ -27,6 +27,7 @@ bool resetCounter = false;
 bool stats = false;
 bool takeScreenshot = false;
 bool slowRendering = false;
+bool frametest = false;
 float speed = 5.0f;
 float extraData[EXTENDED_SIZE];
 unsigned char flags = 0;
@@ -76,6 +77,29 @@ void myDrawFun()
 {
 	if(slowRendering)
 		gEngine->sleep(1.0/5.0);
+
+	//test quadbuffer
+	if(frametest)
+	{
+		if( gEngine->getCurrentFrameNumber()%2 == 0 ) //even
+		{
+			if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+				gEngine->setClearColor(0.0f, 0.0f, 1.0f, 1.0f); //is paired with red
+			else //right
+				gEngine->setClearColor(1.0f, 0.0f, 0.0f, 1.0f); //is paired with blue
+		}
+		else //odd
+		{
+			if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+				gEngine->setClearColor(0.5f, 0.5f, 0.5f, 1.0f);
+			else //right
+				gEngine->setClearColor(0.0f, 1.0f, 0.0f, 1.0f);
+		}
+
+		//gEngine->takeScreenshot();
+	}
+	else
+		gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 
 	glPushMatrix();
 
@@ -235,6 +259,7 @@ void myEncodeFun()
 	flags = stats ? flags | 16 : flags & ~16; //bit 5
 	flags = takeScreenshot ? flags | 32 : flags & ~32; //bit 6
 	flags = slowRendering ? flags | 64 : flags & ~64; //bit 7
+	flags = frametest ? flags | 128 : flags & ~128; //bit 8
 
 	sgct::SharedData::Instance()->writeDouble(dt);
 	sgct::SharedData::Instance()->writeDouble(curr_time);
@@ -260,6 +285,7 @@ void myDecodeFun()
 	stats = (flags>>4) & 0x0001;
 	takeScreenshot = (flags>>5) & 0x0001;
 	slowRendering = (flags>>6) & 0x0001;
+	frametest = (flags>>7) & 0x0001;
 
 	if(extraPackages)
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -274,6 +300,11 @@ void keyCallback(int key, int action)
 
 		switch( key )
 		{
+		case 'F':
+			if(action == SGCT_PRESS)
+				frametest = !frametest;
+			break;
+		
 		case 'I':
 			if(action == SGCT_PRESS)
 				showFPS = !showFPS;

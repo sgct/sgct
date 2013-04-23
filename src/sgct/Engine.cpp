@@ -177,6 +177,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	parseArguments( argc, argv );
 
 	mExitKey = GLFW_KEY_ESC;
+
+	mVBO[RenderQuad] = 0; //default to openGL false
 }
 
 /*!
@@ -423,6 +425,7 @@ void sgct::Engine::initOGL()
 	mFinalFBO_Ptr = new OffScreenBuffer();
 	mCubeMapFBO_Ptr = new OffScreenBuffer();
 
+	createVBOs(); //must be created before FBO
 	createFBOs();
 	loadShaders();
 	mStatistics.initVBO();
@@ -436,16 +439,29 @@ void sgct::Engine::initOGL()
 	mScreenCapture.init();
 	char nodeName[MAX_SGCT_PATH_LENGTH];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "%s_node%d",
-			SGCTSettings::Instance()->getCapturePath(),
+		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
 			ClusterManager::Instance()->getThisNodeId());
-    #else
-		sprintf( nodeName, "%s_node%d",
-			SGCTSettings::Instance()->getCapturePath(),
+
+		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
+			ClusterManager::Instance()->getThisNodeId());
+
+		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
+			ClusterManager::Instance()->getThisNodeId());
+	#else
+		sprintf( nodeName, "_node%d",
+			ClusterManager::Instance()->getThisNodeId());
+
+		sprintf( nodeName, "_node%d",
+			ClusterManager::Instance()->getThisNodeId());
+
+		sprintf( nodeName, "_node%d",
 			ClusterManager::Instance()->getThisNodeId());
     #endif
 
-	mScreenCapture.setFilename( nodeName );
+	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
+	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
+	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
+	
 	mScreenCapture.setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
 	if( isFisheye() )
 		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
@@ -578,6 +594,9 @@ void sgct::Engine::clean()
 
 	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
 	MessageHandler::Destroy();
+
+	sgct::MessageHandler::Instance()->print("Deleting VBOs...\n");
+	glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
@@ -1118,7 +1137,10 @@ void sgct::Engine::drawOverlays()
 			*/
 			enterCurrentViewport(ScreenSpace);
 
-			gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+			else
+				gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 
 			glMatrixMode(GL_MODELVIEW);
 
@@ -1132,11 +1154,13 @@ void sgct::Engine::drawOverlays()
 
 			glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-			glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+			//glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
 
-			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+			/*if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
 			{
 				glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 				glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -1153,7 +1177,26 @@ void sgct::Engine::drawOverlays()
 				glTexCoord2d(1.0, 1.0);	glVertex2d(1.0, 1.0);
 				glTexCoord2d(1.0, 0.0);	glVertex2d(1.0, -1.0);
 				glEnd();
-			}
+			}*/
+
+			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+				glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+			else
+				glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+
+			glClientActiveTexture(GL_TEXTURE0);
+
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
+
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
+			
+			glDrawArrays(GL_QUADS, 0, 4);
+
+			glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
+
+			glPopClientAttrib();
 			glPopAttrib();
 
 			//exit ortho mode
@@ -1415,13 +1458,25 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	//make sure that VBO:s are unbinded, to not mess up the vertex array
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+	glClientActiveTexture(GL_TEXTURE0);
+
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
+
+	glEnableClientState(GL_VERTEX_ARRAY);
+	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
+	glDrawArrays(GL_QUADS, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
+	
+	/*
 	glClientActiveTexture(GL_TEXTURE0);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
 	glDrawArrays(GL_QUADS, 0, 4);
-
+	*/
 	sgct::ShaderManager::Instance()->unBindShader();
 
 	glPopClientAttrib();
@@ -1480,14 +1535,22 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
 
-	//make sure that VBO:s are unbinded, to not mess up the vertex array
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+	//glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glClientActiveTexture(GL_TEXTURE0);
+
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
+
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glInterleavedArrays(GL_T2F_V3F, 0, mPostFxQuadVerts);
+	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
+	//glInterleavedArrays(GL_T2F_V3F, 0, mPostFxQuadVerts);
+	//glInterleavedArrays(GL_T2F_V3F, 0, 0);
 	glDrawArrays(GL_QUADS, 0, 4);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 
 	sgct::ShaderManager::Instance()->unBindShader();
 
@@ -1783,6 +1846,20 @@ void sgct::Engine::createFBOs()
 
 		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
 	}
+}
+
+void sgct::Engine::createVBOs()
+{
+	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
+		
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mPostFxQuadVerts, GL_STATIC_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
+
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mFisheyeQuadVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
+
+	//unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 /*!
@@ -2478,10 +2555,10 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 void sgct::Engine::initFisheye()
 {
 	//create proxy geometry
-	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Left);
-	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Right);
-	float bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Bottom);
-	float topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::Top);
+	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropLeft);
+	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropRight);
+	float bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropBottom);
+	float topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropTop);
 
 	float cropAspect = ((1.0f-2.0f * bottomcrop) + (1.0f-2.0f*topcrop)) / ((1.0f-2.0f*leftcrop) + (1.0f-2.0f*rightcrop));
 
@@ -2513,6 +2590,15 @@ void sgct::Engine::initFisheye()
 	mFisheyeQuadVerts[17] = x;
 	mFisheyeQuadVerts[18] = -y;
 	mFisheyeQuadVerts[19] = -1.0f;
+
+	//update VBO
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+	
+	GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+	memcpy(PositionBuffer, mFisheyeQuadVerts, 20 * sizeof(float));
+	glUnmapBuffer(GL_ARRAY_BUFFER);
+	
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void sgct::Engine::calculateFPS(double timestamp)

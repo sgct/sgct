@@ -450,19 +450,19 @@ void sgct_core::ReadConfig::readAndParseXML()
 							float ftmp;
 
 							if( element[2]->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[SGCTSettings::Left] = ftmp;
+                                tmpFArr[SGCTSettings::CropLeft] = ftmp;
 							if( element[2]->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[SGCTSettings::Right] = ftmp;
+                                tmpFArr[SGCTSettings::CropRight] = ftmp;
 							if( element[2]->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[SGCTSettings::Bottom] = ftmp;
+                                tmpFArr[SGCTSettings::CropBottom] = ftmp;
 							if( element[2]->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR )
-                                tmpFArr[SGCTSettings::Top] = ftmp;
+                                tmpFArr[SGCTSettings::CropTop] = ftmp;
 
 							SGCTSettings::Instance()->setFisheyeCropValues(
-								tmpFArr[SGCTSettings::Left],
-								tmpFArr[SGCTSettings::Right],
-								tmpFArr[SGCTSettings::Bottom],
-								tmpFArr[SGCTSettings::Top]);
+								tmpFArr[SGCTSettings::CropLeft],
+								tmpFArr[SGCTSettings::CropRight],
+								tmpFArr[SGCTSettings::CropBottom],
+								tmpFArr[SGCTSettings::CropTop]);
 						}
 						else if( strcmp("Offset", val[2]) == 0 )
 						{
@@ -569,7 +569,15 @@ void sgct_core::ReadConfig::readAndParseXML()
 		{
 			if( element[0]->Attribute("path") != NULL )
 			{
-			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path") );
+			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::Mono );
+            }
+			if( element[0]->Attribute("leftPath") != NULL )
+			{
+			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("leftPath"), sgct_core::SGCTSettings::LeftStereo );
+            }
+			if( element[0]->Attribute("rightPath") != NULL )
+			{
+			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("rightPath"), sgct_core::SGCTSettings::RightStereo );
             }
 
             if( element[0]->Attribute("format") != NULL )

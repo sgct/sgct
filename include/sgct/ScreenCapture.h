@@ -9,8 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SCREEN_CAPTURE_H_
 
 #include "Image.h"
-
-#define FILENAME_BUFFER_LENGTH 256
+#include <string>
 
 namespace sgct_core
 {
@@ -35,7 +34,6 @@ public:
 	void setFormat(CaptureFormat cf);
 	CaptureFormat getFormat();
 	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
-	void setFilename( const char * filename );
 	void setUsePBO(bool state);
 
 private: 
@@ -51,8 +49,7 @@ private:
 	int mY;
 	int mChannels;
 
-	char mScreenShotFilename[FILENAME_BUFFER_LENGTH];
-	char * mFilename;
+	std::string mScreenShotFilename;
 	bool mUsePBO;
 	CaptureFormat mFormat;
 };

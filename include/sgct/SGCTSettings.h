@@ -20,8 +20,9 @@ namespace sgct_core
 class SGCTSettings
 {
 public:
-	enum CropSides { Left = 0, Right, Bottom, Top };
+	enum CropSides { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum FBOMode { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
+	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * Instance()
@@ -54,7 +55,8 @@ public:
 	void setFXAA(bool state);
 	void setFBOMode(FBOMode mode);
 	void setNumberOfCaptureThreads(int count);
-	void setCapturePath(std::string path);
+	void setCapturePath(std::string path, CapturePathIndexes cpi = Mono);
+	void appendCapturePath(std::string str, CapturePathIndexes cpi = Mono);
 	void setCaptureFormat(const char * format);
 	
 	int getCubeMapResolution();
@@ -65,7 +67,7 @@ public:
 	bool isFisheyeOffaxis();
 	float getFisheyeOffset(unsigned int axis);
 	const char * getFisheyeOverlay();
-	const char * getCapturePath();
+	const char * getCapturePath(CapturePathIndexes cpi = Mono);
 	int getCaptureFormat();
 
 	//! Set to true if FXAA should be used.
@@ -108,7 +110,7 @@ private:
 	//FBO settings
 	FBOMode mFBOMode;
 
-	std::string mCapturePath;
+	std::string mCapturePath[3];
 	int mCaptureFormat;
 };
 }

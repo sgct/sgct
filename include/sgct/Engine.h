@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ScreenCapture.h"
 
 #define MAX_UNIFORM_LOCATIONS 64
+#define NUMBER_OF_VBOS 2
 
 /*! \namespace sgct
 \brief Simple Graphics Cluster Toolkit.
@@ -53,6 +54,7 @@ public:
 	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
 
 private:
+	enum VBOIndexes { RenderQuad = 0, FishEyeQuad };
 	enum TextureIndexes { PostFX = 0, LeftEye, RightEye, FishEye };
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
@@ -309,6 +311,7 @@ private:
 	void loadShaders();
 	void createTextures();
 	void createFBOs();
+	void createVBOs();
 	void initFisheye();
 	void resizeFBOs();
 	void setAndClearBuffer(BufferMode mode);
@@ -402,6 +405,9 @@ private:
 
     std::vector<TimerInformation> mTimers; //< stores all active timers
     size_t mTimerID; //< the timer created next will use this ID
+
+	//VBO:s
+	unsigned int mVBO[NUMBER_OF_VBOS];
 
 	RunMode mRunMode;
 	int mExitKey;

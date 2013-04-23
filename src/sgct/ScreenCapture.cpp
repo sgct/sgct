@@ -12,6 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include <string>
 
+#define FILENAME_APPEND_BUFFER_LENGTH 128
+
 void GLFWCALL screenCaptureHandler(void *arg);
 
 sgct_core::ScreenCapture::ScreenCapture()
@@ -24,13 +26,6 @@ sgct_core::ScreenCapture::ScreenCapture()
 	
 	mframeBufferImagePtrs = NULL;
 	mFrameCaptureThreads = NULL;
-
-	mFilename = new char [32];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		strcpy_s(mFilename, 32, "SGCT_frame");
-	#else
-		strcpy(mFilename, "SGCT_frame" );
-    #endif
 }
 
 sgct_core::ScreenCapture::~ScreenCapture()
@@ -64,12 +59,6 @@ sgct_core::ScreenCapture::~ScreenCapture()
 	{
 		delete [] mFrameCaptureThreads;
 		mFrameCaptureThreads = NULL;
-	}
-
-	if( mFilename != NULL )
-	{
-		delete [] mFilename;
-		mFilename = NULL;
 	}
 }
 
@@ -181,12 +170,12 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 			glfwSleep(0.1);
 			if( !(*imPtr)->allocateOrResizeData() ) 
 			{
-				sgct::MessageHandler::Instance()->print("Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename);
+				sgct::MessageHandler::Instance()->print("Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str() );
 				return;
 			}
 		}
 	}
-	(*imPtr)->setFilename( mScreenShotFilename );
+	(*imPtr)->setFilename( mScreenShotFilename.c_str() );
 	
 	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
@@ -271,30 +260,6 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		sgct::MessageHandler::Instance()->print("Error in taking screenshot/capture!\n");
 }
 
-void sgct_core::ScreenCapture::setFilename( const char * filename )
-{
-	if( filename == NULL || strlen(filename) < 1 ) //invalid filename
-	{
-		sgct::MessageHandler::Instance()->print("ScreenCapture: Invalid filename!\n");
-		return;
-	}
-	
-	if( mFilename != NULL )
-	{
-		delete [] mFilename;
-		mFilename = NULL;
-	}
-
-	//copy filename
-	mFilename = new char[strlen(filename)+1];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
-		return;
-    #else
-		strcpy(mFilename, filename );
-    #endif
-}
-
 void sgct_core::ScreenCapture::setUsePBO(bool state)
 {
 	mUsePBO = state;
@@ -326,16 +291,19 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 	case Front_Buffer:
 	default:
 		eye.assign("");
+		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::Mono ) );
 		break;
 
 	case FBO_Left_Texture:
 	case Left_Front_Buffer:
 		eye.assign("_L");
+		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::LeftStereo ) );
 		break;
 
 	case FBO_Right_Texture:
 	case Right_Front_Buffer:
 		eye.assign("_R");
+		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::RightStereo ) );
 		break;
 	}
 
@@ -344,34 +312,38 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 		suffix.assign("png");
 	else/* if(mFormat == TGA)*/
 		suffix.assign("tga");
+
+	char tmpStr[FILENAME_APPEND_BUFFER_LENGTH];
 	
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( frameNumber < 10 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_00000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_0000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_00%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_00%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_0%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_0%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf_s( mScreenShotFilename, FILENAME_BUFFER_LENGTH, "%s%s_%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s_%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 #else
     if( frameNumber < 10 )
-		sprintf( mScreenShotFilename, "%s%s_00000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_00000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf( mScreenShotFilename, "%s%s_0000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_0000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf( mScreenShotFilename, "%s%s_000%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_000%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf( mScreenShotFilename, "%s%s_00%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_00%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf( mScreenShotFilename, "%s%s_0%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_0%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf( mScreenShotFilename, "%s%s_%d.%s", mFilename, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s_%d.%s", eye.c_str(), frameNumber, suffix.c_str());
 #endif
+
+	mScreenShotFilename.append( std::string(tmpStr) );
 }
 
 int sgct_core::ScreenCapture::getAvailibleCaptureThread()

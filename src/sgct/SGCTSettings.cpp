@@ -36,7 +36,8 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mUsePostFX = false;
 	mFBOMode = MultiSampledFBO;
 
-	mCapturePath.assign("SGCT");
+	for(size_t i=0; i<3; i++)
+		mCapturePath[i].assign("SGCT");
 	mCaptureFormat = ScreenCapture::NOT_SET;
 }
 
@@ -92,10 +93,10 @@ The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fish
 */
 void sgct_core::SGCTSettings::setFisheyeCropValues(float left, float right, float bottom, float top)
 {
-	mCropFactors[ Left ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
-	mCropFactors[ Right ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
-	mCropFactors[ Bottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
-	mCropFactors[ Top ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
+	mCropFactors[ CropLeft ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
+	mCropFactors[ CropRight ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
+	mCropFactors[ CropBottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
+	mCropFactors[ CropTop ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
 }
 
 /*!
@@ -150,10 +151,30 @@ void sgct_core::SGCTSettings::setNumberOfCaptureThreads(int count)
 
 /*!
 Set capture/screenshot path used by SGCT
+
+\param path the path including filename without suffix
+\param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct_core::SGCTSettings::setCapturePath(std::string path)
+void sgct_core::SGCTSettings::setCapturePath(std::string path, sgct_core::SGCTSettings::CapturePathIndexes cpi)
 {
-	mCapturePath.assign(path);
+	if( path.empty() ) //invalid filename
+	{
+		sgct::MessageHandler::Instance()->print("SGCTSettings: Empty screen capture path!\n");
+		return;
+	}
+		
+	mCapturePath[cpi].assign(path);
+}
+
+/*!
+Append capture/screenshot path used by SGCT
+
+\param str the string to append including filename without suffix
+\param cpi index to which path to set (Mono = default, Left or Right)
+*/
+void sgct_core::SGCTSettings::appendCapturePath(std::string str, sgct_core::SGCTSettings::CapturePathIndexes cpi)
+{
+	mCapturePath[cpi].append( str );
 }
 
 /*!
@@ -228,10 +249,12 @@ const char * sgct_core::SGCTSettings::getFisheyeOverlay()
 
 /*!
 	Get the capture/screenshot path
+
+	\param cpi index to which path to get (Mono = default, Left or Right)
 */
-const char * sgct_core::SGCTSettings::getCapturePath()
+const char * sgct_core::SGCTSettings::getCapturePath(sgct_core::SGCTSettings::CapturePathIndexes cpi)
 {
-	return mCapturePath.c_str();
+	return mCapturePath[cpi].c_str();
 }
 
 /*!

@@ -172,6 +172,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	glDisable(GL_DEPTH_TEST);
 	glDepthMask(GL_FALSE);
 	glEnable(GL_BLEND);
+	glDisable(GL_CULL_FACE);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	glLoadIdentity();
@@ -180,9 +181,9 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	glColor4f(0.0f,0.0f,0.0f,0.5f);
 	glBegin(GL_QUADS);
 		glVertex2i(0, 0);
-		glVertex2i(0, STATS_HISTORY_LENGTH);
-		glVertex2i(STATS_HISTORY_LENGTH*2, STATS_HISTORY_LENGTH);
 		glVertex2i(STATS_HISTORY_LENGTH*2, 0);
+		glVertex2i(STATS_HISTORY_LENGTH*2, STATS_HISTORY_LENGTH);
+		glVertex2i(0, STATS_HISTORY_LENGTH);
 	glEnd();
 
 	glTranslatef(0.0f, 32.0f, 0.0f);

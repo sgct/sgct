@@ -179,6 +179,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mExitKey = GLFW_KEY_ESC;
 
 	mVBO[RenderQuad] = 0; //default to openGL false
+	mVBO[FishEyeQuad] = 0; //default to openGL false
 }
 
 /*!
@@ -595,8 +596,11 @@ void sgct::Engine::clean()
 	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
 	MessageHandler::Destroy();
 
-	sgct::MessageHandler::Instance()->print("Deleting VBOs...\n");
-	glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
+	if( mVBO[RenderQuad] )
+	{
+		sgct::MessageHandler::Instance()->print("Deleting VBOs...\n");
+		glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
+	}
 
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";

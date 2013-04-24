@@ -49,8 +49,17 @@ public:
 	const unsigned int getTextureByHandle(const std::size_t handle);
 	const unsigned int getTextureByName(const std::string name);
 
-	void setAnisotropicFilterSize(float fval);
+	/*!
+		Sets if a single channel texture should be interpreted as alpha or luminance.
+	*/
 	void setAlphaModeForSingleChannelTextures(bool alpha) {mAlphaMode = alpha;}
+
+	/*!
+		Sets if loading a texture with an existing name should be overwritten or not.
+	*/
+	void setOverWriteMode(bool mode) {mOverWriteMode = mode;}
+
+	void setAnisotropicFilterSize(float fval);
 	void setCompression(CompressionMode cm);
 	void setWarpingMode(int warp_s, int warp_t);
 	bool loadTexure(std::size_t &handle, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
@@ -74,6 +83,7 @@ private:
 	float mAnisotropicFilterSize;
 	CompressionMode mCompression;
 	bool mAlphaMode;
+	bool mOverWriteMode;
 	std::vector< std::pair<std::string, unsigned int> > mTextures;
 	int mWarpMode[2];
 };

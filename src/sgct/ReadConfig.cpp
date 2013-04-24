@@ -570,6 +570,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 			if( element[0]->Attribute("path") != NULL )
 			{
 			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::Mono );
+				SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::LeftStereo );
+				SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::RightStereo );
+            }
+			if( element[0]->Attribute("monoPath") != NULL )
+			{
+			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("monoPath"), sgct_core::SGCTSettings::Mono );
             }
 			if( element[0]->Attribute("leftPath") != NULL )
 			{

@@ -1152,6 +1152,7 @@ void sgct::Engine::drawOverlays()
 			glDisable(GL_LIGHTING);
 			glDisable(GL_DEPTH_TEST);
 			glEnable(GL_BLEND);
+			glDisable(GL_CULL_FACE);
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glLoadIdentity();

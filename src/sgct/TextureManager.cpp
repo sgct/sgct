@@ -21,6 +21,8 @@ sgct::TextureManager::TextureManager()
 	setAlphaModeForSingleChannelTextures(false);
 	mWarpMode[0] = GL_CLAMP_TO_EDGE;
 	mWarpMode[1] = GL_CLAMP_TO_EDGE;
+
+	mOverWriteMode = true;
 }
 
 sgct::TextureManager::~TextureManager()
@@ -152,9 +154,20 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 
 	//check if texture exits in manager
 	if( getIndexByName(handle, name) ) //texture with that name exists already
-	{
-		sgct::MessageHandler::Instance()->print("Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
-		return true;
+	{	
+		if( mOverWriteMode )
+		{
+			sgct::MessageHandler::Instance()->print("Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			
+			texID = getTextureByHandle(handle);
+			glDeleteTextures(1, &texID);
+			texID = 0;
+		}
+		else
+		{
+			sgct::MessageHandler::Instance()->print("Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			return true;
+		}
 	}
 
 	//load image

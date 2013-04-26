@@ -23,6 +23,9 @@ sgct::TextureManager::TextureManager()
 	mWarpMode[1] = GL_CLAMP_TO_EDGE;
 
 	mOverWriteMode = true;
+
+	//add empty texture
+	mTextures.push_back( std::pair<std::string, unsigned int>( "NOTSET", 0 ) );
 }
 
 sgct::TextureManager::~TextureManager()
@@ -151,6 +154,7 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	GLuint texID = 0;
+	bool reload = false;
 
 	//check if texture exits in manager
 	if( getIndexByName(handle, name) ) //texture with that name exists already
@@ -162,6 +166,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			texID = getTextureByHandle(handle);
 			glDeleteTextures(1, &texID);
 			texID = 0;
+			reload = true;
 		}
 		else
 		{
@@ -173,12 +178,14 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	//load image
 	sgct_core::Image img;
 	if( !img.load(filename.c_str()) )
+	{
+		handle = 0;
 		return false;
-
-	glGenTextures( 1, &texID );
+	}
 
 	if(img.getData() != NULL)
 	{
+		glGenTextures( 1, &texID );
 		glBindTexture(GL_TEXTURE_2D, texID);
 
 		int textureType = GL_RGB;
@@ -248,15 +255,23 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0] );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1] );
 
-		mTextures.push_back( std::pair<std::string, unsigned int>( name, (unsigned int)texID ) );
+		if(!reload)
+		{
+			mTextures.push_back( std::pair<std::string, unsigned int>( name, (unsigned int)texID ) );
+			handle = mTextures.size()-1;
+		}
+		else if(handle != 0) //valid handle
+			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, (unsigned int)texID );
 
 		sgct::MessageHandler::Instance()->print("Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
 		img.cleanup();
 	}
 	else //image data not valid
+	{
+		handle = 0;
 		return false;
+	}
 
-    handle = mTextures.size()-1;
 	return true;
 }
 
@@ -265,6 +280,7 @@ void sgct::TextureManager::freeTextureData()
 	//the textures might not be stored in a sequence so
 	//let's erase them one by one
 	for(unsigned int i=0; i<mTextures.size(); i++)
-		glDeleteTextures(1, &mTextures[i].second);
+		if(mTextures[i].second) //if set, delete
+			glDeleteTextures(1, &mTextures[i].second);
 	mTextures.clear();
 }

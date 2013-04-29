@@ -164,7 +164,8 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			sgct::MessageHandler::Instance()->print("Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 			
 			texID = getTextureByHandle(handle);
-			glDeleteTextures(1, &texID);
+			if( texID != 0 )
+				glDeleteTextures(1, &texID);
 			texID = 0;
 			reload = true;
 		}
@@ -179,7 +180,10 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	sgct_core::Image img;
 	if( !img.load(filename.c_str()) )
 	{
-		handle = 0;
+		if( reload )
+			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, 0); //point to zero texture
+		else
+			handle = 0;
 		return false;
 	}
 

@@ -1082,11 +1082,11 @@ void sgct::Engine::draw()
 	glMatrixMode(GL_PROJECTION);
 
 	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
-	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
+	glLoadMatrixf( glm::value_ptr(tmpVP->getViewProjectionMatrix(mActiveFrustum)) );
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glLoadMatrixf( glm::value_ptr( getSceneTransform() ) );
+	glLoadMatrixf( glm::value_ptr( getModelMatrix() ) );
 
 	if( mDrawFn != NULL )
 	{

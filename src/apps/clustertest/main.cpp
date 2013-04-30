@@ -242,9 +242,9 @@ void myInitOGLFun()
 		{
 			numberOfActiveViewports++;
 
-			glm::mat4 prjMatMono  = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::Mono );
-			glm::mat4 prjMatLeft  = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
-			glm::mat4 prjMatRight = thisNode->getViewport(i)->getProjectionMatrix( sgct_core::Frustum::StereoRightEye );
+			glm::mat4 prjMatMono  = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::Mono );
+			glm::mat4 prjMatLeft  = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
+			glm::mat4 prjMatRight = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );
 		}
 
 	sgct::MessageHandler::Instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);

@@ -416,7 +416,7 @@ void myPostSyncPreDrawFun()
 	mSceneTrans->postMult(osg::Matrix( glm::value_ptr(xform) ));
 
 	//transform to scene transformation from configuration file
-	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
+	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));
 
 	if( addAnimationSample )
 	{
@@ -457,7 +457,7 @@ void myDrawFun()
 {
 	const int * curr_vp = gEngine->getActiveViewport();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
-	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveProjectionMatrix() ) ));
+	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));
 
 	//double tmpTime = gEngine->getTime();
 	mViewer->renderingTraversals();

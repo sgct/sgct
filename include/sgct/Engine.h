@@ -253,14 +253,30 @@ public:
 	inline const sgct_core::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
 
 	/*!
-		Returns the active frustum matrix (only valid inside in the draw callback function)
-	*/
-	inline const glm::mat4 & getActiveFrustumMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getFrustumMatrix( mActiveFrustum ); }
-	
-	/*!
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
 	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	
+	/*!
+		Returns the active view matrix (only valid inside in the draw callback function)
+	*/
+	inline const glm::mat4 & getActiveViewMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum ); }
+
+	/*!
+		Returns the scene transform specified in the XML configuration, default is a identity matrix
+	*/
+	inline const glm::mat4 & getModelMatrix() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+
+	/*!
+		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
+	*/
+	inline const glm::mat4 & getActiveViewProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum ); }
+
+	/*!
+		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
+	*/
+	inline glm::mat4 getActiveModelViewProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
+		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 	
 	/*!
 		Returns the active viewport in pixels (only valid inside in the draw callback function)
@@ -271,11 +287,6 @@ public:
 		Returns the current frame number
 	*/
 	inline unsigned int getCurrentFrameNumber() { return mFrameCounter; }
-
-	/*!
-		Returns the scene transform specified in the XML configuration default is a identity matrix
-	*/
-	inline const glm::mat4 & getSceneTransform() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
 	bool isFisheye();
 	sgct_core::OffScreenBuffer * getFBOPtr();

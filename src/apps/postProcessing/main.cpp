@@ -82,10 +82,10 @@ void myDrawFun()
 
 	glMatrixMode(GL_PROJECTION);
 
-	glLoadMatrixf( glm::value_ptr(gEngine->getActiveProjectionMatrix()) );
+	glLoadMatrixf( glm::value_ptr(gEngine->getActiveViewProjectionMatrix()) );
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadMatrixf( glm::value_ptr( gEngine->getSceneTransform() ) );
+	glLoadMatrixf( glm::value_ptr( gEngine->getModelMatrix() ) );
 
 	//clear
 	glClearColor(0.0f, 0.0f, 0.2f, 1.0f);

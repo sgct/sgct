@@ -16,9 +16,9 @@ sgct_core::Viewport::Viewport()
 
 	for(int i=0; i<3; i++)
 	{
-		mViewMatrix[i]			= glm::mat4(1.0f);
-		mProjectionMatrix[i]	= glm::mat4(1.0f);
-		mFrustumMat[i]			= glm::mat4(1.0f);
+		mViewMatrix[i]				= glm::mat4(1.0f);
+		mProjectionMatrix[i]		= glm::mat4(1.0f);
+		mViewProjectionMatrix[i]	= glm::mat4(1.0f);
 	}
 }
 
@@ -28,9 +28,9 @@ sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
 
 	for(int i=0; i<3; i++)
 	{
-		mViewMatrix[i]			= glm::mat4(1.0f);
-		mProjectionMatrix[i]	= glm::mat4(1.0f);
-		mFrustumMat[i]			= glm::mat4(1.0f);
+		mViewMatrix[i]				= glm::mat4(1.0f);
+		mProjectionMatrix[i]		= glm::mat4(1.0f);
+		mViewProjectionMatrix[i]	= glm::mat4(1.0f);
 	}
 }
 
@@ -184,7 +184,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*eyePos));
 
 	//calc frustum matrix
-	mFrustumMat[frustumMode] = glm::frustum( 
+	mProjectionMatrix[frustumMode] = glm::frustum( 
 		mFrustums[frustumMode].getLeft(),
 		mFrustums[frustumMode].getRight(),
         mFrustums[frustumMode].getBottom(),
@@ -192,7 +192,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
         mFrustums[frustumMode].getNear(),
 		mFrustums[frustumMode].getFar() );
 
-	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
+	mViewProjectionMatrix[frustumMode] = mProjectionMatrix[frustumMode] * mViewMatrix[frustumMode];
 }
 
 void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near, float far)
@@ -250,7 +250,7 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
 	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*offset));
 
 	//calc frustum matrix
-	mFrustumMat[frustumMode] = glm::frustum( 
+	mProjectionMatrix[frustumMode] = glm::frustum( 
 		mFrustums[frustumMode].getLeft(),
 		mFrustums[frustumMode].getRight(),
         mFrustums[frustumMode].getBottom(),
@@ -258,7 +258,7 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
         mFrustums[frustumMode].getNear(),
 		mFrustums[frustumMode].getFar() );
 
-	mProjectionMatrix[frustumMode] = mFrustumMat[frustumMode] * mViewMatrix[frustumMode];
+	mViewProjectionMatrix[frustumMode] = mProjectionMatrix[frustumMode] * mViewMatrix[frustumMode];
 }
 
 void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos)

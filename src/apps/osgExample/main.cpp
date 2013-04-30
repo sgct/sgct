@@ -159,7 +159,7 @@ void myPostSyncPreDrawFun()
 	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
 
 	//transform to scene transformation from configuration file
-	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getSceneTransform() ) ));
+	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));
 
 	//update the frame stamp in the viewer to sync all
 	//time based events in osg
@@ -182,7 +182,7 @@ void myDrawFun()
 {
 	const int * curr_vp = gEngine->getActiveViewport();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
-	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveProjectionMatrix() ) ));
+	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));
 
 	mViewer->renderingTraversals();
 }

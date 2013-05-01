@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -40,7 +40,6 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b );
 void VRPN_CALLBACK update_analog_cb(void * userdata, const vrpn_ANALOGCB a );
 
 void GLFWCALL samplingLoop(void *arg);
-GLFWmutex gTrackingMutex = NULL;
 
 sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
@@ -49,12 +48,6 @@ sgct::SGCTTrackingManager::SGCTTrackingManager()
 	mSamplingThreadId = -1;
 	mSamplingTime = 0.0;
 	mRunning = true;
-
-	gTrackingMutex = sgct::Engine::createMutex();
-	if( gTrackingMutex == NULL )
-	{
-		MessageHandler::Instance()->print("Tracking manager: Failed to create mutex!\n");
-	}
 }
 
 bool sgct::SGCTTrackingManager::isRunning()
@@ -63,9 +56,9 @@ bool sgct::SGCTTrackingManager::isRunning()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-	sgct::Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mRunning;
-	sgct::Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -77,9 +70,9 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
             fprintf(stderr, "Destructing, setting running to false...\n");
 #endif
-	sgct::Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mRunning = false;
-	sgct::Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	//destroy thread
 	if( mSamplingThreadId != -1 )
@@ -127,13 +120,6 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 
 	mTrackers.clear();
 	gTrackers.clear();
-
-	//destroy mutex
-	if( gTrackingMutex != NULL )
-	{
-		sgct::Engine::destroyMutex(gTrackingMutex);
-		gTrackingMutex = NULL;
-	}
 
 	MessageHandler::Instance()->print(" done.\n");
 }
@@ -377,9 +363,9 @@ void sgct::SGCTTrackingManager::setSamplingTime(double t)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop...\n");
 #endif
-	sgct::Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mSamplingTime = t;
-	sgct::Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 double sgct::SGCTTrackingManager::getSamplingTime()
@@ -388,9 +374,9 @@ double sgct::SGCTTrackingManager::getSamplingTime()
     fprintf(stderr, "Get sampling time for vrpn loop...\n");
 #endif
 	double tmpVal;
-	sgct::Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mSamplingTime;
-	sgct::Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -410,7 +396,7 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Updating tracker...\n");
 #endif
-	sgct::Engine::lockMutex(gTrackingMutex);
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	posVec *= trackerPtr->getScale();
@@ -420,7 +406,7 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 
     devicePtr->setSensorTransform( transMat * rotMat );
 
-    sgct::Engine::unlockMutex(gTrackingMutex);
+    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
@@ -428,7 +414,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Update button value...\n");
 #endif
-	sgct::Engine::lockMutex(gTrackingMutex);
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	sgct::SGCTTrackingDevice * devicePtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
@@ -439,7 +425,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 		devicePtr->setButtonVal( false, b.button) :
 		devicePtr->setButtonVal( true, b.button);
 
-    sgct::Engine::unlockMutex(gTrackingMutex);
+    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
@@ -447,12 +433,12 @@ void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Update analog values...\n");
 #endif
-	sgct::Engine::lockMutex(gTrackingMutex);
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
 
 	tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
 
-	sgct::Engine::unlockMutex(gTrackingMutex);
+	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }

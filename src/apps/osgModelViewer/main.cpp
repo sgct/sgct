@@ -49,25 +49,22 @@ void initOSG();
 void setupLightSource();
 
 //variables to share across cluster
-double dt = 0.0;
-double animateAngle = 0.0;
-glm::mat4 xform(1.0f);
-bool wireframe = false;
-bool info = false;
-bool stats = false;
-bool takeScreenshot = false;
-bool light = true;
-bool culling = true;
+sgct::SharedDouble dt(0.0);
+sgct::SharedDouble animateAngle(0.0);
+sgct::SharedObject<glm::mat4> xform(glm::mat4(1.0f));
+sgct::SharedFloat scale(1.0f);
+sgct::SharedBool wireframe(false);
+sgct::SharedBool info(false);
+sgct::SharedBool stats(false);
+sgct::SharedBool takeScreenshot(false);
+sgct::SharedBool light(true);
+sgct::SharedBool culling(true);
 
 //local only
 bool recordMode = false;
 bool addAnimationSample = false;
 bool startRecoding = false;
 double startRecodingTime = 0.0;
-
-//float scale = 0.00002f;
-float scale = 1.00000f;
-//float scale = 0.00010f;
 
 //other var
 double current_time = 0.0;
@@ -142,7 +139,8 @@ void myInitOGLFun()
 	mSwitch = new osg::Switch();
 
 	//rotate osg coordinate system to match sgct
-	mSceneScale->setMatrix( osg::Matrix::scale(scale, scale, scale) );
+	float tmpf = scale.getVal();
+	mSceneScale->setMatrix( osg::Matrix::scale(tmpf, tmpf, tmpf) );
 	mModelTrans->setMatrix(osg::Matrix::rotate(glm::radians(-90.0f),
                                             1.0f, 0.0f, 0.0f));
 
@@ -230,11 +228,12 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		//dt = gEngine->getDt();
-		dt = 1.0 / 30.0; //30 fps
+		//dt.setVal(gEngine->getDt());
+		dt.setVal(1.0 / 30.0); //30 fps
+		double deltaTime = dt.getVal();
 
 		if( animate )
-			animateAngle += dt * 2.0;
+			animateAngle.setVal( animateAngle.getVal() + deltaTime * 2.0);
 
 		if( mouseButtonStatus[ LEFT_MB ] )
 		{
@@ -249,8 +248,8 @@ void myPreSyncFun()
 		}
 
 		static float rotation [] = {0.0f, 0.0f, 0.0f};
-		rotation[ Y ] -= (static_cast<float>(mouseDiff[ X ]) * rotationSpeed * static_cast<float>(dt));
-		rotation[ X ] += (static_cast<float>(mouseDiff[ Y ]) * rotationSpeed * static_cast<float>(dt));
+		rotation[ Y ] -= (static_cast<float>(mouseDiff[ X ]) * rotationSpeed * static_cast<float>(deltaTime));
+		rotation[ X ] += (static_cast<float>(mouseDiff[ Y ]) * rotationSpeed * static_cast<float>(deltaTime));
 
 		glm::mat4 ViewRotate = glm::eulerAngleXY( rotation[ X ], rotation[ Y ] );
 
@@ -260,17 +259,17 @@ void myPreSyncFun()
 		glm::vec3 right = glm::cross(view, up);
 
 		if( arrowButtonStatus[FORWARD] )
-			position += (navigation_speed * static_cast<float>(dt) * view);
+			position += (navigation_speed * static_cast<float>(deltaTime) * view);
 		if( arrowButtonStatus[BACKWARD] )
-			position -= (navigation_speed * static_cast<float>(dt) * view);
+			position -= (navigation_speed * static_cast<float>(deltaTime) * view);
 		if( arrowButtonStatus[LEFT] )
-			position -= (navigation_speed * static_cast<float>(dt) * right);
+			position -= (navigation_speed * static_cast<float>(deltaTime) * right);
 		if( arrowButtonStatus[RIGHT] )
-			position += (navigation_speed * static_cast<float>(dt) * right);
+			position += (navigation_speed * static_cast<float>(deltaTime) * right);
 		if( arrowButtonStatus[UPWARD] )
-			position -= (navigation_speed * static_cast<float>(dt) * up);
+			position -= (navigation_speed * static_cast<float>(deltaTime) * up);
 		if( arrowButtonStatus[DOWNWARD] )
-			position += (navigation_speed * static_cast<float>(dt) * up);
+			position += (navigation_speed * static_cast<float>(deltaTime) * up);
 
 		/*
 			To get a first person camera, the world needs
@@ -286,22 +285,24 @@ void myPreSyncFun()
 		*/
 
 		//3. transform user back to original position
-		xform = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
+		glm::mat4 result;
+		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
 		//2. apply transformation
-		xform *= (ViewRotate * glm::translate( glm::mat4(1.0f), position ));
+		result *= (ViewRotate * glm::translate( glm::mat4(1.0f), position ));
 		//1. transform user to coordinate system origin
-		xform *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
+		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
 
+		xform.setVal( result );
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setWireframe(wireframe);
-	gEngine->setDisplayInfoVisibility(info);
-	gEngine->setStatsGraphVisibility(stats);
+	gEngine->setWireframe(wireframe.getVal());
+	gEngine->setDisplayInfoVisibility(info.getVal());
+	gEngine->setStatsGraphVisibility(stats.getVal());
 
-	current_time += dt;
+	current_time += dt.getVal();
 
 	//set correct subtree
 	//recordMode ? mSwitch->setSingleChildOn(1) : mSwitch->setSingleChildOn(0);
@@ -396,24 +397,24 @@ void myPostSyncPreDrawFun()
 
 	for(size_t i = 0; i<mModels.size(); i++)
 	{
-		culling ?
+		culling.getVal() ?
 			mModels[i]->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 			mModels[i]->getOrCreateStateSet()->setMode( GL_CULL_FACE, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 	}
 
-	if( takeScreenshot )
+	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot = false;
+		takeScreenshot.setVal(false);
 	}
 
-	mSceneScale->setMatrix( osg::Matrix::scale( scale, scale, scale ) );
+	mSceneScale->setMatrix( osg::Matrix::scale( scale.getVal(), scale.getVal(), scale.getVal() ) );
 
-	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
+	light.getVal() ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(animateAngle), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix( glm::value_ptr(xform) ));
+	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(animateAngle.getVal()), 0.0, 1.0, 0.0));
+	mSceneTrans->postMult(osg::Matrix( glm::value_ptr(xform.getVal()) ));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));
@@ -472,32 +473,30 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( dt );
-	sgct::SharedData::Instance()->writeDouble( animateAngle );
-	for(int i=0; i<16; i++)
-		sgct::SharedData::Instance()->writeFloat( glm::value_ptr(xform)[i] );
-	sgct::SharedData::Instance()->writeBool( wireframe );
-	sgct::SharedData::Instance()->writeBool( info );
-	sgct::SharedData::Instance()->writeBool( stats );
-	sgct::SharedData::Instance()->writeBool( takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( light );
-	sgct::SharedData::Instance()->writeBool( culling );
-	sgct::SharedData::Instance()->writeFloat( scale );
+	sgct::SharedData::Instance()->writeDouble( &dt );
+	sgct::SharedData::Instance()->writeDouble( &animateAngle );
+	sgct::SharedData::Instance()->writeObj( &xform );
+	sgct::SharedData::Instance()->writeBool( &wireframe );
+	sgct::SharedData::Instance()->writeBool( &info );
+	sgct::SharedData::Instance()->writeBool( &stats );
+	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( &light );
+	sgct::SharedData::Instance()->writeBool( &culling );
+	sgct::SharedData::Instance()->writeFloat( &scale );
 }
 
 void myDecodeFun()
 {
-	dt = sgct::SharedData::Instance()->readDouble();
-	animateAngle = sgct::SharedData::Instance()->readDouble();
-	for(int i=0; i<16; i++)
-		glm::value_ptr(xform)[i] = sgct::SharedData::Instance()->readFloat();
-	wireframe = sgct::SharedData::Instance()->readBool();
-	info = sgct::SharedData::Instance()->readBool();
-	stats = sgct::SharedData::Instance()->readBool();
-	takeScreenshot = sgct::SharedData::Instance()->readBool();
-	light = sgct::SharedData::Instance()->readBool();
-	culling = sgct::SharedData::Instance()->readBool();
-	scale = sgct::SharedData::Instance()->readFloat();
+	sgct::SharedData::Instance()->readDouble( &dt );
+	sgct::SharedData::Instance()->readDouble( &animateAngle );
+	sgct::SharedData::Instance()->readObj( &xform );
+	sgct::SharedData::Instance()->readBool( &wireframe );
+	sgct::SharedData::Instance()->readBool( &info );
+	sgct::SharedData::Instance()->readBool( &stats );
+	sgct::SharedData::Instance()->readBool( &takeScreenshot );
+	sgct::SharedData::Instance()->readBool( &light );
+	sgct::SharedData::Instance()->readBool( &culling );
+	sgct::SharedData::Instance()->readFloat( &scale );
 }
 
 void myCleanUpFun()
@@ -515,7 +514,7 @@ void keyCallback(int key, int action)
 		{
 		case 'C':
 			if( modifierKey && action == SGCT_PRESS)
-				culling = !culling;
+				culling.toggle();
 			break;
 
 		case 'S':
@@ -527,17 +526,17 @@ void keyCallback(int key, int action)
 
 		case 'I':
 			if(action == SGCT_PRESS)
-				info = !info;
+				info.toggle();
 			break;
 
 		case 'L':
 			if(action == SGCT_PRESS)
-				light = !light;
+				light.toggle();
 			break;
 
 		case 'W':
 			if( modifierKey && action == SGCT_PRESS)
-				wireframe = !wireframe;
+				wireframe.toggle();
 			else
 				arrowButtonStatus[FORWARD] = (action == SGCT_PRESS ? true : false);
 			break;
@@ -545,7 +544,7 @@ void keyCallback(int key, int action)
 		case 'P':
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
-				takeScreenshot = true;
+				takeScreenshot.setVal( true );
 			break;
 		
 		case 'R':
@@ -610,16 +609,16 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_PAGEUP:
 			if(action == SGCT_PRESS)
 			{
-				scale *= 2.0f;
-				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale);
+				scale.setVal( scale.getVal() * 2.0f );
+				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale.getVal());
 			}
 			break;
 
 		case SGCT_KEY_PAGEDOWN:
 			if(action == SGCT_PRESS)
 			{
-				scale /= 2.0f;
-				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale);
+				scale.setVal( scale.getVal() / 2.0f );
+				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale.getVal());
 			}
 			break;
 		}

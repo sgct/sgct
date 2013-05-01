@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "NetworkManager.h"
 #include "ClusterManager.h"
+#include "SGCTMutexManager.h"
 #include "Statistics.h"
 #include "ReadConfig.h"
 #include "OffScreenBuffer.h"
@@ -33,11 +34,6 @@ The figure below illustrates when different callbacks (gray boxes) are called in
 \image html render_diagram.jpg
 \image latex render_diagram.eps "Render diagram" width=7cm
 */
-
-/*!
-	Wrapper for GLFWmutex
-*/
-typedef void * SGCTmutex;
 
 /*!
 	Wrapper for GLFWcond
@@ -166,12 +162,8 @@ public:
 	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
 
     //GLFW wrapped functions
-    static SGCTmutex createMutex();
     static SGCTcond createCondition();
     static void destroyCond(SGCTcond cond);
-    static void destroyMutex(SGCTmutex mutex);
-	static void lockMutex(SGCTmutex mutex);
-	static void unlockMutex(SGCTmutex mutex);
 	static void waitCond(SGCTcond cond, SGCTmutex mutex, double timeout);
 	static void signalCond(SGCTcond cond);
 	static double getTime();

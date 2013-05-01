@@ -22,12 +22,12 @@ bool mPause = false;
 GLuint myTerrainDisplayList = 0;
 
 //variables to share across cluster
-double curr_time = 0.0;
-bool wireframe = false;
-bool info = false;
-bool stats = false;
-bool takeScreenshot = false;
-bool useTracking = false;
+sgct::SharedDouble curr_time(0.0);
+sgct::SharedBool wireframe(false);
+sgct::SharedBool info(false);
+sgct::SharedBool stats(false);
+sgct::SharedBool takeScreenshot(false);
+sgct::SharedBool useTracking(false);
 
 int main( int argc, char* argv[] )
 {
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glTranslatef( 0.0f, -0.15f, 2.5f );
-	glRotatef( static_cast<float>( curr_time ) * 8.0f, 0.0f, 1.0f, 0.0f );
+	glRotatef( static_cast<float>( curr_time.getVal() ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
@@ -76,7 +76,7 @@ void myDrawFun()
 
 	//set current shader program
 	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
-	glUniform1f( curr_timeLoc, static_cast<float>( curr_time ) );
+	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
 
 	glLineWidth(2.0); //for wireframe
 	glCallList(myTerrainDisplayList);
@@ -95,21 +95,21 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() && !mPause)
 	{
-		curr_time += gEngine->getAvgDt();
+		curr_time.setVal( curr_time.getVal() + gEngine->getAvgDt());
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setWireframe(wireframe);
-	gEngine->setDisplayInfoVisibility(info);
-	gEngine->setStatsGraphVisibility(stats);
-	sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking );
+	gEngine->setWireframe(wireframe.getVal());
+	gEngine->setDisplayInfoVisibility(info.getVal());
+	gEngine->setStatsGraphVisibility(stats.getVal());
+	sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 
-	if( takeScreenshot )
+	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot = false;
+		takeScreenshot.setVal(false);
 	}
 }
 
@@ -162,22 +162,22 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( curr_time );
-	sgct::SharedData::Instance()->writeBool( wireframe );
-	sgct::SharedData::Instance()->writeBool( info );
-	sgct::SharedData::Instance()->writeBool( stats );
-	sgct::SharedData::Instance()->writeBool( takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( useTracking );
+	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::Instance()->writeBool( &wireframe );
+	sgct::SharedData::Instance()->writeBool( &info );
+	sgct::SharedData::Instance()->writeBool( &stats );
+	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( &useTracking );
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
-	wireframe = sgct::SharedData::Instance()->readBool();
-	info = sgct::SharedData::Instance()->readBool();
-	stats = sgct::SharedData::Instance()->readBool();
-	takeScreenshot = sgct::SharedData::Instance()->readBool();
-	useTracking = sgct::SharedData::Instance()->readBool();
+	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::Instance()->readBool( &wireframe );
+	sgct::SharedData::Instance()->readBool( &info );
+	sgct::SharedData::Instance()->readBool( &stats );
+	sgct::SharedData::Instance()->readBool( &takeScreenshot );
+	sgct::SharedData::Instance()->readBool( &useTracking );
 }
 
 /*!
@@ -230,17 +230,17 @@ void keyCallback(int key, int action)
 		{
 		case 'S':
 			if(action == SGCT_PRESS)
-				stats = !stats;
+				stats.toggle();
 			break;
 
 		case 'I':
 			if(action == SGCT_PRESS)
-				info = !info;
+				info.toggle();
 			break;
 
 		case 'W':
 			if(action == SGCT_PRESS)
-				wireframe = !wireframe;
+				wireframe.toggle();
 			break;
 
 		case 'Q':
@@ -250,7 +250,7 @@ void keyCallback(int key, int action)
 
 		case 'T':
 			if(action == SGCT_PRESS)
-				useTracking = !useTracking;
+				useTracking.toggle();
 			break;
 
 		case 'E':
@@ -274,7 +274,7 @@ void keyCallback(int key, int action)
 		case 'P':
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
-				takeScreenshot = true;
+				takeScreenshot.setVal( true );
 			break;
 		}
 	}

@@ -6,6 +6,19 @@
 #include <osg/Camera>
 #include <osg/Texture2D>
 
+struct preDrawCB : public osg::Camera::DrawCallback
+{
+	preDrawCB() {;}
+	
+	void operator()(const osg::Camera&) const{;}
+	void operator()(osg::RenderInfo & renderInfo) const
+	{
+		//bind SGCT FBO just before main rendering
+		//OSG renders a full-screen quad to the SGCT main FBO
+		sgct::Engine::Instance()->getFBOPtr()->bind();
+	}
+};
+
 /*!
 	Render whole scene to a texture.
 */

@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -140,13 +140,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
 		return;
 	}
 
-    NetworkManager::gMutex = createMutex();
-	NetworkManager::gSyncMutex = createMutex();
+
     NetworkManager::gCond = createCondition();
 
-    if(NetworkManager::gMutex == NULL ||
-		NetworkManager::gSyncMutex == NULL ||
-		NetworkManager::gCond == NULL)
+    if( !SGCTMutexManager::Instance()->isValid() || NetworkManager::gCond == NULL )
     {
 		mTerminate = true;
 		return;
@@ -572,19 +569,8 @@ void sgct::Engine::clean()
 	MessageHandler::Instance()->print("Destroying settings...\n");
 	SGCTSettings::Destroy();
 
-    sgct::MessageHandler::Instance()->print("Destroying network mutex...\n");
-	if( NetworkManager::gMutex != NULL )
-	{
-		destroyMutex( NetworkManager::gMutex );
-		NetworkManager::gMutex = NULL;
-	}
-
-	sgct::MessageHandler::Instance()->print("Destroying sync mutex...\n");
-	if( NetworkManager::gSyncMutex != NULL )
-	{
-		destroyMutex( NetworkManager::gSyncMutex );
-		NetworkManager::gSyncMutex = NULL;
-	}
+    MessageHandler::Instance()->print("Destroying mutexes...\n");
+	SGCTMutexManager::Destroy();
 
 	sgct::MessageHandler::Instance()->print("Destroying condition...\n");
 	if( NetworkManager::gCond != NULL )
@@ -669,12 +655,12 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					glfwSleep(0.001);
 				else
 				{
-					glfwLockMutex( NetworkManager::gSyncMutex );
+					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
 					//release lock once per second
 					glfwWaitCond( NetworkManager::gCond,
-						NetworkManager::gSyncMutex,
+						SGCTMutexManager::Instance()->getMutex( SGCTMutexManager::SyncMutex ),
 						1.0 );
-					glfwUnlockMutex( NetworkManager::gSyncMutex );
+					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
 				//for debuging
@@ -720,12 +706,12 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					glfwSleep(0.001);
 				else
 				{
-					glfwLockMutex( NetworkManager::gSyncMutex );
+					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
 					//release lock once per second
 					glfwWaitCond( NetworkManager::gCond,
-						NetworkManager::gSyncMutex,
+						SGCTMutexManager::Instance()->getMutex( SGCTMutexManager::SyncMutex ),
 						1.0 );
-					glfwUnlockMutex( NetworkManager::gSyncMutex );
+					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
 				//for debuging
@@ -2073,7 +2059,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect.");
 		glfwSwapBuffers(); //render just black....
 
-		glfwLockMutex( NetworkManager::gSyncMutex );
+		SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
 		while(mNetworkConnections->isRunning() &&
 			!glfwGetKey( mExitKey ) &&
 			glfwGetWindowParam( GLFW_OPENED ) &&
@@ -2088,10 +2074,10 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 				break;
 
 			glfwWaitCond( NetworkManager::gCond,
-				NetworkManager::gSyncMutex,
+				SGCTMutexManager::Instance()->getMutex(SGCTMutexManager::SyncMutex ),
 				0.1 ); //wait maximum 0.1 sec per iteration
 		}
-		glfwUnlockMutex( NetworkManager::gSyncMutex );
+		SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 
 		//wait for user to release exit key
 		while( glfwGetKey( mExitKey ) == GLFW_PRESS )
@@ -2949,11 +2935,6 @@ double sgct::Engine::getTime()
 	return glfwGetTime();
 }
 
-sgct::SGCTmutex sgct::Engine::createMutex()
-{
-    return glfwCreateMutex();
-}
-
 sgct::SGCTcond sgct::Engine::createCondition()
 {
     return glfwCreateCond();
@@ -2962,35 +2943,6 @@ sgct::SGCTcond sgct::Engine::createCondition()
 void sgct::Engine::destroyCond(sgct::SGCTcond cond)
 {
     glfwDestroyCond(cond);
-}
-
-void sgct::Engine::destroyMutex(sgct::SGCTmutex mutex)
-{
-    glfwDestroyMutex(mutex);
-}
-
-void sgct::Engine::lockMutex(sgct::SGCTmutex mutex)
-{
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex...\n");
-#endif
-    if(mutex != NULL)
-		glfwLockMutex(mutex);
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Done\n");
-#endif
-}
-
-void sgct::Engine::unlockMutex(sgct::SGCTmutex mutex)
-{
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Unlocking mutex...\n");
-#endif
-	if(mutex != NULL)
-		glfwUnlockMutex(mutex);
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Done\n");
-#endif
 }
 
 void sgct::Engine::waitCond(sgct::SGCTcond cond, sgct::SGCTmutex mutex, double timeout)

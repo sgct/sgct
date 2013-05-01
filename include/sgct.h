@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson

@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -112,7 +112,7 @@ sgct::SGCTTrackingDevice * sgct::SGCTTracker::getDevicePtrBySensorId(int id)
 
 void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
 {
-	Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		//create rotation quaternion based on x, y, z rotations
 		glm::dquat rotQuat;
 		rotQuat = glm::rotate( rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0) );
@@ -123,26 +123,26 @@ void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
 		mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
 
 		calculateTransform();
-	Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::setOffset(double x, double y, double z)
 {
-	Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mOffset[0] = x;
 		mOffset[1] = y;
 		mOffset[2] = z;
 
 		calculateTransform();
-	Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::setScale(double scaleVal)
 {
-	Engine::lockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		if( scaleVal > 0.0 )
 			mScale = scaleVal;
-	Engine::unlockMutex( gTrackingMutex );
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::calculateTransform()

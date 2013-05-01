@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -7,7 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include "../include/sgct/SGCTMutexManager.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
@@ -49,12 +49,12 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-    Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
+    SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
 }
 
 
@@ -90,9 +90,9 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 
 void sgct::MessageHandler::clearBuffer()
 {
-	Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
 	mBuffer.clear();
-	Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
+	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
 }
 
 char * sgct::MessageHandler::getMessage()
@@ -144,12 +144,12 @@ void sgct::MessageHandler::sendMessageToServer(const char * str)
 		return;
 
 	//if client send to server
-    if(!mLocal && sgct_core::NetworkManager::gMutex != NULL)
+    if(!mLocal)
     {
-        Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+        SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
         if(mBuffer.empty())
             mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));
-        Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
+        SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
     }
 }

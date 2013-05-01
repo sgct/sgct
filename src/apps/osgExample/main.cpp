@@ -30,13 +30,13 @@ void initOSG();
 void setupLightSource();
 
 //variables to share across cluster
-double curr_time = 0.0;
-double dist = -2.0;
-bool wireframe = false;
-bool info = false;
-bool stats = false;
-bool takeScreenshot = false;
-bool light = true;
+sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble dist(-2.0);
+sgct::SharedBool wireframe(false);
+sgct::SharedBool info(false);
+sgct::SharedBool stats(false);
+sgct::SharedBool takeScreenshot(false);
+sgct::SharedBool light(true);
 
 //other var
 bool arrowButtons[4];
@@ -130,33 +130,32 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		curr_time = sgct::Engine::getTime();
+		curr_time.setVal( sgct::Engine::getTime() );
 
 		if( arrowButtons[FORWARD] )
-			dist += (navigation_speed * gEngine->getDt());
+			dist.setVal( dist.getVal() + (navigation_speed * gEngine->getDt()));
 		if( arrowButtons[BACKWARD] )
-			dist -= (navigation_speed * gEngine->getDt());
-
+			dist.setVal( dist.getVal() - (navigation_speed * gEngine->getDt()));
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setWireframe(wireframe);
-	gEngine->setDisplayInfoVisibility(info);
-	gEngine->setStatsGraphVisibility(stats);
+	gEngine->setWireframe(wireframe.getVal());
+	gEngine->setDisplayInfoVisibility(info.getVal());
+	gEngine->setStatsGraphVisibility(stats.getVal());
 
-	if( takeScreenshot )
+	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot = false;
+		takeScreenshot.setVal(false);
 	}
 
-	light ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
+	light.getVal() ? mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
+	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time.getVal() * 8.0), 0.0, 1.0, 0.0));
+	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist.getVal()));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));
@@ -164,10 +163,10 @@ void myPostSyncPreDrawFun()
 	//update the frame stamp in the viewer to sync all
 	//time based events in osg
 	mFrameStamp->setFrameNumber( gEngine->getCurrentFrameNumber() );
-	mFrameStamp->setReferenceTime( curr_time );
-	mFrameStamp->setSimulationTime( curr_time );
+	mFrameStamp->setReferenceTime( curr_time.getVal() );
+	mFrameStamp->setSimulationTime( curr_time.getVal() );
 	mViewer->setFrameStamp( mFrameStamp );
-	mViewer->advance( curr_time ); //update
+	mViewer->advance( curr_time.getVal() ); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -189,24 +188,24 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( curr_time );
-	sgct::SharedData::Instance()->writeDouble( dist );
-	sgct::SharedData::Instance()->writeBool( wireframe );
-	sgct::SharedData::Instance()->writeBool( info );
-	sgct::SharedData::Instance()->writeBool( stats );
-	sgct::SharedData::Instance()->writeBool( takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( light );
+	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::Instance()->writeDouble( &dist );
+	sgct::SharedData::Instance()->writeBool( &wireframe );
+	sgct::SharedData::Instance()->writeBool( &info );
+	sgct::SharedData::Instance()->writeBool( &stats );
+	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( &light );
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
-	dist = sgct::SharedData::Instance()->readDouble();
-	wireframe = sgct::SharedData::Instance()->readBool();
-	info = sgct::SharedData::Instance()->readBool();
-	stats = sgct::SharedData::Instance()->readBool();
-	takeScreenshot = sgct::SharedData::Instance()->readBool();
-	light = sgct::SharedData::Instance()->readBool();
+	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::Instance()->readDouble( &dist );
+	sgct::SharedData::Instance()->readBool( &wireframe );
+	sgct::SharedData::Instance()->readBool( &info );
+	sgct::SharedData::Instance()->readBool( &stats );
+	sgct::SharedData::Instance()->readBool( &takeScreenshot );
+	sgct::SharedData::Instance()->readBool( &light );
 }
 
 void myCleanUpFun()
@@ -224,22 +223,22 @@ void keyCallback(int key, int action)
 		{
 		case 'S':
 			if(action == SGCT_PRESS)
-				stats = !stats;
+				stats.toggle();
 			break;
 
 		case 'I':
 			if(action == SGCT_PRESS)
-				info = !info;
+				info.toggle();
 			break;
 
 		case 'L':
 			if(action == SGCT_PRESS)
-				light = !light;
+				light.toggle();
 			break;
 
 		case 'W':
 			if(action == SGCT_PRESS)
-				wireframe = !wireframe;
+				wireframe.toggle();
 			break;
 
 		case 'Q':
@@ -250,7 +249,7 @@ void keyCallback(int key, int action)
 		case 'P':
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
-				takeScreenshot = true;
+				takeScreenshot.setVal( true );
 			break;
 
 		case SGCT_KEY_UP:

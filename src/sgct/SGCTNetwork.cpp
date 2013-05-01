@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -102,7 +102,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 	mId = id;
 	mFirmSync = firmSync;
 
-	mConnectionMutex = sgct::Engine::createMutex();
+	mConnectionMutex = sgct::SGCTMutexManager::createMutex();
 	mDoneCond = sgct::Engine::createCondition();
 	mStartConnectionCond = sgct::Engine::createCondition();
     if(mConnectionMutex == NULL ||
@@ -246,11 +246,11 @@ void GLFWCALL connectionHandler(void *arg)
 			//wait for signal until next iteration in loop
             if( !nPtr->isTerminated() )
             {
-                sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+                sgct::SGCTMutexManager::lockMutex(nPtr->mConnectionMutex);
                     sgct::Engine::waitCond( nPtr->mStartConnectionCond,
                         nPtr->mConnectionMutex,
                         GLFW_INFINITY );
-                sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+                sgct::SGCTMutexManager::unlockMutex(nPtr->mConnectionMutex);
             }
 		}
 	}
@@ -339,7 +339,7 @@ void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
             * SHUT_RDWR (Disables further send and receive operations)
 		*/
 
-        sgct::Engine::lockMutex(mConnectionMutex);
+        sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 #ifdef __WIN32__
         shutdown(lSocket, SD_BOTH);
 		closesocket( lSocket );
@@ -349,7 +349,7 @@ void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
 #endif
 
 		lSocket = INVALID_SOCKET;
-		sgct::Engine::unlockMutex(mConnectionMutex);
+		sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	}
 }
 
@@ -363,7 +363,7 @@ void sgct_core::SGCTNetwork::setBufferSize(unsigned int newSize)
 */
 int sgct_core::SGCTNetwork::iterateFrameCounter()
 {
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 	
 	mSendFrame[Previous] = mSendFrame[Current];
 	
@@ -375,7 +375,7 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 	mUpdated = false;
 
 	mTimeStamp[Send] = sgct::Engine::getTime();
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 
 	return mSendFrame[Current];
 }
@@ -395,7 +395,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
     if(sgct::MessageHandler::Instance()->getDataSize() > mHeaderSize)
     {
-        sgct::Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+        sgct::SGCTMutexManager::Instance()->lockMutex(sgct::SGCTMutexManager::MainMutex);
 		
 		//Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
@@ -421,7 +421,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		//crop if needed
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 		
-		sgct::Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
+		sgct::SGCTMutexManager::Instance()->unlockMutex(sgct::SGCTMutexManager::MainMutex);
 
 		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
     }
@@ -451,9 +451,9 @@ int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getSendFrame\n");
 #endif
 	int tmpi;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpi = mSendFrame[ri];
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpi;
 }
 
@@ -463,9 +463,9 @@ int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getRecvFrame\n");
 #endif
 	int tmpi;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpi = mRecvFrame[ri];
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpi;
 }
 
@@ -478,9 +478,9 @@ double sgct_core::SGCTNetwork::getLoopTime()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getLoopTime\n");
 #endif
 	double tmpd;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpd = mTimeStamp[Total];
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpd;
 }
 
@@ -499,7 +499,7 @@ bool sgct_core::SGCTNetwork::isUpdated()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isUpdated\n");
 #endif
 	bool tmpb = false;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		if(mServer)
 		{
 			if(mFirmSync)
@@ -514,7 +514,7 @@ bool sgct_core::SGCTNetwork::isUpdated()
 			else
 				tmpb = mUpdated;
 		}
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpb;
 }
 
@@ -538,9 +538,9 @@ void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
 #endif
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		mConnected = state;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 }
 
 bool sgct_core::SGCTNetwork::isConnected()
@@ -549,9 +549,9 @@ bool sgct_core::SGCTNetwork::isConnected()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isConnected\n");
 #endif
 	bool tmpb;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpb = mConnected;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
     return tmpb;
 }
 
@@ -561,9 +561,9 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnect
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getTypeOfServer\n");
 #endif
 	ConnectionTypes tmpct;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpct = mConnectionType;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpct;
 }
 
@@ -573,9 +573,9 @@ int sgct_core::SGCTNetwork::getId()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::getId\n");
 #endif
 	int tmpi;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpi = mId;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpi;
 }
 
@@ -585,9 +585,9 @@ bool sgct_core::SGCTNetwork::isServer()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isServer\n");
 #endif
 	bool tmpb;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpb = mServer;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpb;
 }
 
@@ -597,9 +597,9 @@ bool sgct_core::SGCTNetwork::isTerminated()
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::isTerminated\n");
 #endif
     bool tmpb;
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		tmpb = mTerminate;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpb;
 }
 
@@ -608,13 +608,13 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::Instance()->printDebug("SGCTNetwork::setRecvFrame\n");
 #endif
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 	mRecvFrame[Previous] = mRecvFrame[Current];
 	mRecvFrame[Current] = i;
 
 	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
 	mUpdated = true;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 }
 
 ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
@@ -759,7 +759,7 @@ void GLFWCALL communicationHandler(void *arg)
 		{
             sgct::MessageHandler::Instance()->print("Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
 
-            sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+            sgct::SGCTMutexManager::lockMutex(nPtr->mConnectionMutex);
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 
 				//clean up
@@ -772,7 +772,7 @@ void GLFWCALL communicationHandler(void *arg)
                 if(recvBuf == NULL)
                     allocError = true;
 
-			sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+			sgct::SGCTMutexManager::unlockMutex(nPtr->mConnectionMutex);
 
 			if(allocError)
 				sgct::MessageHandler::Instance()->print("Network error: Buffer failed to resize!\n");
@@ -826,7 +826,7 @@ void GLFWCALL communicationHandler(void *arg)
                 dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
 
                 //resize buffer if needed
-                sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+                sgct::SGCTMutexManager::lockMutex(nPtr->mConnectionMutex);
                 if( dataSize > nPtr->mBufferSize )
                 {
                     //clean up
@@ -841,7 +841,7 @@ void GLFWCALL communicationHandler(void *arg)
                     }
                 }
 
-                sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+                sgct::SGCTMutexManager::unlockMutex(nPtr->mConnectionMutex);
             }
         }
 
@@ -911,9 +911,9 @@ void GLFWCALL communicationHandler(void *arg)
                 */
                 if( !nPtr->isServer() )
                 {
-                    sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+                    sgct::SGCTMutexManager::lockMutex(nPtr->mConnectionMutex);
                         nPtr->mTerminate = true;
-                    sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+                    sgct::SGCTMutexManager::unlockMutex(nPtr->mConnectionMutex);
                 }
 
 				sgct::MessageHandler::Instance()->print("Network: Client %d terminated connection.\n", nPtr->getId());
@@ -1032,7 +1032,7 @@ void GLFWCALL communicationHandler(void *arg)
 					//extracted message
 					//fprintf(stderr, "Extracted: '%s'\n", extMessage.c_str());
 
-					sgct::Engine::lockMutex(sgct_core::NetworkManager::gMutex);
+					sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 						extBuffer = extBuffer.substr(found+2);//jump over \r\n
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 						if( nPtr->mDecoderCallbackFn != nullptr )
@@ -1042,7 +1042,7 @@ void GLFWCALL communicationHandler(void *arg)
 						{
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
 						}
-					sgct::Engine::unlockMutex(sgct_core::NetworkManager::gMutex);
+					sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
 					//reply
 					nPtr->sendStr("OK\r\n");
@@ -1090,14 +1090,14 @@ void GLFWCALL communicationHandler(void *arg)
 
 
 	//cleanup
-	sgct::Engine::lockMutex(nPtr->mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(nPtr->mConnectionMutex);
 	if( recvBuf != NULL )
     {
         //free(recvbuf);
         delete [] recvBuf;
         recvBuf = NULL;
     }
-    sgct::Engine::unlockMutex(nPtr->mConnectionMutex);
+    sgct::SGCTMutexManager::unlockMutex(nPtr->mConnectionMutex);
 
     //Close socket
     //contains mutex
@@ -1155,15 +1155,15 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 	//wait for everything to really close!
 	//Otherwise the mutex can be called after
 	//it is destroyed.
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
     sgct::Engine::waitCond( mDoneCond,
         mConnectionMutex,
         0.25 );
-    sgct::Engine::unlockMutex(mConnectionMutex);
+    sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 
     if( mConnectionMutex != NULL )
 	{
-		sgct::Engine::destroyMutex(mConnectionMutex);
+		sgct::SGCTMutexManager::destroyMutex(mConnectionMutex);
 		mConnectionMutex = NULL;
 	}
 
@@ -1200,7 +1200,7 @@ void sgct_core::SGCTNetwork::initShutdown()
 	}
 
 	sgct::MessageHandler::Instance()->print("Closing connection %d... \n", getId());
-	sgct::Engine::lockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
         mTerminate = true;
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
         mDecoderCallbackFn = nullptr;
@@ -1208,7 +1208,7 @@ void sgct_core::SGCTNetwork::initShutdown()
 		 mDecoderCallbackFn = NULL;
 #endif
         mConnected = false;
-	sgct::Engine::unlockMutex(mConnectionMutex);
+	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 
 	//wake up the connection handler thread (in order to finish)
 	if( isServer() )

@@ -29,7 +29,7 @@ ALuint source0;
 glm::vec4 audioPos;
 
 //pther variables
-double curr_time = 0.0;
+sgct::SharedDouble curr_time(0.0);
 float speed = 25.0f;
 float radius = 7.4f;
 float objectRadius = 5.0f;
@@ -96,7 +96,7 @@ void myInitOGLFun()
 
 void myPostSyncPreDrawFun()
 {
-	float angle = glm::radians( static_cast<float>( curr_time ) * speed );
+	float angle = glm::radians( static_cast<float>( curr_time.getVal() ) * speed );
 	glm::vec4 p;
 	p.x = objectRadius * sinf(angle);
 	p.z = objectRadius * cosf(angle);
@@ -140,18 +140,18 @@ void myPreSyncFun()
 	if( gEngine->isMaster() )
 	{
 		//get the time in seconds
-		curr_time = sgct::Engine::getTime();
+		curr_time.setVal( sgct::Engine::getTime() );
 	}
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( curr_time );
+	sgct::SharedData::Instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
+	sgct::SharedData::Instance()->readDouble( &curr_time );
 }
 
 void myCleanUpFun()

@@ -35,14 +35,14 @@ void initOSG();
 void setupLightSource();
 
 //variables to share across cluster
-double curr_time = 0.0;
-double dist = -2.0;
-bool wireframe = false;
-bool info = false;
-bool stats = false;
-bool takeScreenshot = false;
-bool light = true;
-bool texture = true;
+sgct::SharedDouble curr_time(0.0);
+sgct::SharedDouble dist(2.0);
+sgct::SharedBool wireframe(false);
+sgct::SharedBool info(false);
+sgct::SharedBool stats(false);
+sgct::SharedBool takeScreenshot(false);
+sgct::SharedBool light(true);
+sgct::SharedBool texture(true);
 
 //other var
 bool arrowButtons[4];
@@ -149,39 +149,39 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		curr_time = sgct::Engine::getTime();
+		curr_time.setVal( sgct::Engine::getTime() );
 
 		if( arrowButtons[FORWARD] )
-			dist += (navigation_speed * gEngine->getDt());
+			dist.setVal( dist.getVal() + (navigation_speed * gEngine->getDt()));
 		if( arrowButtons[BACKWARD] )
-			dist -= (navigation_speed * gEngine->getDt());
+			dist.setVal( dist.getVal() - (navigation_speed * gEngine->getDt()));
 
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setWireframe(wireframe);
-	gEngine->setDisplayInfoVisibility(info);
-	gEngine->setStatsGraphVisibility(stats);
+	gEngine->setWireframe(wireframe.getVal());
+	gEngine->setDisplayInfoVisibility(info.getVal());
+	gEngine->setStatsGraphVisibility(stats.getVal());
 
-	if( takeScreenshot )
+	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot = false;
+		takeScreenshot.setVal(false);
 	}
 
-	light ? mAirplaneRoll->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
+	light.getVal() ? mAirplaneRoll->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE) :
 		mAirplaneRoll->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
-	texture ? mRootNode->getOrCreateStateSet()->setTextureMode( 0, GL_TEXTURE_2D, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE ) :
+	texture.getVal() ? mRootNode->getOrCreateStateSet()->setTextureMode( 0, GL_TEXTURE_2D, osg::StateAttribute::ON | osg::StateAttribute::OVERRIDE ) :
 		mRootNode->getOrCreateStateSet()->setTextureMode( 0, GL_TEXTURE_2D, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE );
 
 	//set/update the roll matrix
-	mAirplaneRoll->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 16.0), 0.0, 0.0, 1.0));
+	mAirplaneRoll->setMatrix(osg::Matrix::rotate( glm::radians(curr_time.getVal() * 16.0), 0.0, 0.0, 1.0));
 
-	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist));
+	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time.getVal() * 8.0), 0.0, 1.0, 0.0));
+	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist.getVal()));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));
@@ -189,10 +189,10 @@ void myPostSyncPreDrawFun()
 	//update the frame stamp in the viewer to sync all
 	//time based events in osg
 	mFrameStamp->setFrameNumber( gEngine->getCurrentFrameNumber() );
-	mFrameStamp->setReferenceTime( curr_time );
-	mFrameStamp->setSimulationTime( curr_time );
+	mFrameStamp->setReferenceTime( curr_time.getVal() );
+	mFrameStamp->setSimulationTime( curr_time.getVal() );
 	mViewer->setFrameStamp( mFrameStamp );
-	mViewer->advance( curr_time ); //update
+	mViewer->advance( curr_time.getVal() ); //update
 
 	//traverse if there are any tasks to do
 	if (!mViewer->done())
@@ -205,6 +205,8 @@ void myPostSyncPreDrawFun()
 
 void myDrawFun()
 {
+	gEngine->getFBOPtr()->unBind();
+	
 	const int * curr_vp = gEngine->getActiveViewport();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));
@@ -214,26 +216,26 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( curr_time );
-	sgct::SharedData::Instance()->writeDouble( dist );
-	sgct::SharedData::Instance()->writeBool( wireframe );
-	sgct::SharedData::Instance()->writeBool( info );
-	sgct::SharedData::Instance()->writeBool( stats );
-	sgct::SharedData::Instance()->writeBool( takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( light );
-	sgct::SharedData::Instance()->writeBool( texture );
+	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::Instance()->writeDouble( &dist );
+	sgct::SharedData::Instance()->writeBool( &wireframe );
+	sgct::SharedData::Instance()->writeBool( &info );
+	sgct::SharedData::Instance()->writeBool( &stats );
+	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::Instance()->writeBool( &light );
+	sgct::SharedData::Instance()->writeBool( &texture );
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
-	dist = sgct::SharedData::Instance()->readDouble();
-	wireframe = sgct::SharedData::Instance()->readBool();
-	info = sgct::SharedData::Instance()->readBool();
-	stats = sgct::SharedData::Instance()->readBool();
-	takeScreenshot = sgct::SharedData::Instance()->readBool();
-	light = sgct::SharedData::Instance()->readBool();
-	texture = sgct::SharedData::Instance()->readBool();
+	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::Instance()->readDouble( &dist );
+	sgct::SharedData::Instance()->readBool( &wireframe );
+	sgct::SharedData::Instance()->readBool( &info );
+	sgct::SharedData::Instance()->readBool( &stats );
+	sgct::SharedData::Instance()->readBool( &takeScreenshot );
+	sgct::SharedData::Instance()->readBool( &light );
+	sgct::SharedData::Instance()->readBool( &texture );
 }
 
 void myCleanUpFun()
@@ -251,27 +253,27 @@ void keyCallback(int key, int action)
 		{
 		case 'S':
 			if(action == SGCT_PRESS)
-				stats = !stats;
+				stats.toggle();
 			break;
 
 		case 'I':
 			if(action == SGCT_PRESS)
-				info = !info;
+				info.toggle();
 			break;
 
 		case 'L':
 			if(action == SGCT_PRESS)
-				light = !light;
+				light.toggle();
 			break;
 
 		case 'W':
 			if(action == SGCT_PRESS)
-				wireframe = !wireframe;
+				wireframe.toggle();
 			break;
 
 		case 'T':
 			if(action == SGCT_PRESS)
-				texture = !texture;
+				texture.toggle();
 			break;
 
 		case 'Q':
@@ -282,7 +284,7 @@ void keyCallback(int key, int action)
 		case 'P':
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
-				takeScreenshot = true;
+				takeScreenshot.setVal(true);
 			break;
 
 		case SGCT_KEY_UP:
@@ -326,6 +328,7 @@ void initOSG()
 	//disable osg from clearing the buffers that will be done by SGCT
 	GLbitfield tmpMask = mViewer->getCamera()->getClearMask();
 	mViewer->getCamera()->setClearMask(tmpMask & (~(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT)));
+	mViewer->getCamera()->setPreDrawCallback( new preDrawCB() );
 
 	mViewer->setSceneData(mRootNode.get());
 }

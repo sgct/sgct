@@ -78,8 +78,7 @@ osg::Camera * RenderToTexture::createOrGetOffScreenRenderer(osg::Node * localRoo
 			static_cast<int>(height));
 	
 		// set the camera to render before the main camera.
-		//camera->setRenderOrder(osg::Camera::PRE_RENDER); //doesn't work within sgct since nested FBOs are not supported in OpenGL
-		camera->setRenderOrder(osg::Camera::POST_RENDER);
+		camera->setRenderOrder(osg::Camera::PRE_RENDER);
 
 		// tell the camera to use OpenGL frame buffer object where supported.
 		camera->setRenderTargetImplementation(osg::Camera::FRAME_BUFFER_OBJECT);

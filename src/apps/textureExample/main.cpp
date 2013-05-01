@@ -14,7 +14,7 @@ size_t myTextureIndex;
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
-double curr_time = 0.0;
+sgct::SharedDouble curr_time(0.0);
 
 int main( int argc, char* argv[] )
 {
@@ -49,8 +49,8 @@ void myDrawFun()
 	double speed = 25.0;
 	
 	glTranslatef(0.0f, 0.0f, -3.0f);
-	glRotated(curr_time * speed, 0.0, -1.0, 0.0);
-	glRotated(curr_time * (speed/2.0), 1.0, 0.0, 0.0);
+	glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
+	glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
 	glColor3f(1.0f,1.0f,1.0f);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureIndex) );
 	//draw the box
@@ -61,7 +61,7 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		curr_time = sgct::Engine::getTime();
+		curr_time.setVal( sgct::Engine::getTime() );
 	}
 }
 
@@ -88,10 +88,10 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble(curr_time);
+	sgct::SharedData::Instance()->writeDouble(&curr_time);
 }
 
 void myDecodeFun()
 {
-	curr_time = sgct::SharedData::Instance()->readDouble();
+	sgct::SharedData::Instance()->readDouble(&curr_time);
 }

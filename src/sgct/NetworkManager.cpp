@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -27,8 +27,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <GL/glfw.h>
 
-GLFWmutex sgct_core::NetworkManager::gMutex = NULL;
-GLFWmutex sgct_core::NetworkManager::gSyncMutex = NULL;
 GLFWcond sgct_core::NetworkManager::gCond = NULL;
 
 sgct_core::NetworkManager::NetworkManager(int mode)
@@ -282,7 +280,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		}
 	}
 
-	sgct::Engine::lockMutex(gMutex);
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
         mNumberOfConnections = numberOfConnectionsCounter;
 		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
@@ -291,18 +289,18 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
         //if clients disconnect it's not longer running
         if(mNumberOfConnections == 0 && !isServer)
             mIsRunning = false;
-    sgct::Engine::unlockMutex(gMutex);
+    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
 	if(isServer)
 	{
-		sgct::Engine::lockMutex(gMutex);
+		sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
             //local copy (thread safe) -- don't count server, therefore -1
             std::size_t numberOfSlavesInConfig = ClusterManager::Instance()->getNumberOfNodes()-1;
             //local copy (thread safe)
             bool allNodesConnectedCopy =
                 (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
             mAllNodesConnected = allNodesConnectedCopy;
-        sgct::Engine::unlockMutex(gMutex);
+        sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
         //send cluster connected message to nodes/slaves
 		if(allNodesConnectedCopy)

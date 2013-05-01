@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stddef.h> //get definition for NULL
 #include <vector>
 #include <string>
+#include "SharedDataTypes.h"
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -58,25 +59,25 @@ public:
 	*/
 	inline float getCompressionRatio() { return mCompressionRatio; }
 
-	void writeFloat(float f);
-	void writeDouble(double d);
-	void writeInt32(int i);
-	void writeUChar(unsigned char c);
-	void writeUCharArray(unsigned char * c, size_t length);
-	void writeBool(bool b);
-	void writeShort(short s);
-    void writeString(const std::string& s);
-	template<class T> void writeObj(const T& obj);
+	template<class T>
+	void writeObj(SharedObject<T> * sobj);
+	void writeFloat(SharedFloat * sf);
+	void writeDouble(SharedDouble * sd);
+	void writeInt(SharedInt * si);
+	void writeUChar(SharedUChar * suc);
+	void writeBool(SharedBool * sb);
+	void writeShort(SharedShort * ss);
+    void writeString(SharedString * ss);
 
-	float			readFloat();
-	double			readDouble();
-	int				readInt32();
-	unsigned char	readUChar();
-	unsigned char * readUCharArray(size_t length);
-	bool			readBool();
-	short			readShort();
-    std::string     readString();
-    template<class T> T readObj();
+	template<class T>
+	void readObj(SharedObject<T> * sobj);
+	void readFloat(SharedFloat * f);
+	void readDouble(SharedDouble * d);
+	void readInt(SharedInt * si);
+	void readUChar(SharedUChar * suc);
+	void readBool(SharedBool * sb);
+	void readShort(SharedShort * ss);
+    void readString(SharedString * ss);
 
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );
@@ -110,6 +111,9 @@ private:
 	SharedData( const SharedData & tm );
 	const SharedData & operator=(const SharedData & rhs );
 
+	void writeUCharArray(unsigned char * c, size_t length);
+	unsigned char * readUCharArray(size_t length);
+
 private:
 	//function pointers
 	void (*mEncodeFn) (void);
@@ -129,16 +133,17 @@ private:
 	bool mUseCompression;
 };
 
-template<class T>
-void SharedData::writeObj( const T& obj )
+template <class T>
+void SharedData::writeObj( SharedObject<T> * sobj )
 {
-    unsigned char *p = (unsigned char *)&obj;
-    size_t size = sizeof(obj);
+	T val = sobj->getVal();
+	unsigned char *p = (unsigned char *)&val;
+    size_t size = sizeof(val);
     writeUCharArray(p, size);
 }
 
 template<class T>
-T SharedData::readObj()
+void SharedData::readObj(SharedObject<T> * sobj)
 {
 	size_t size = sizeof(T);
     unsigned char* data = new unsigned char[size];
@@ -147,9 +152,10 @@ T SharedData::readObj()
 	for(size_t i = 0; i < size; i++)
 		data[i] = c[i];
 
-    T result = *reinterpret_cast<T*>(data);
+    T val = *reinterpret_cast<T*>(data);
     delete[] data;
-    return result;
+    
+	sobj->setVal( val );
 }
 
 }

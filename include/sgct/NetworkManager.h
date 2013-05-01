@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012 Miroslav Andel
+Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -13,7 +13,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <string>
 
-typedef void * GLFWmutex;
 typedef void * GLFWcond;
 
 namespace sgct_core
@@ -56,8 +55,6 @@ private:
 
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
-	static GLFWmutex gMutex;
-	static GLFWmutex gSyncMutex;
 	static GLFWcond gCond;
 
 private:

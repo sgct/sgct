@@ -18,19 +18,18 @@ void keyCallback(int key, int action);
 void externalControlCallback(const char * receivedChars, int size, int clientId);
 
 //variables to share across cluster
-double dt = 0.0;
-double curr_time = 0.0;
-bool showFPS = false;
-bool extraPackages = false;
-bool barrier = false;
-bool resetCounter = false;
-bool stats = false;
-bool takeScreenshot = false;
-bool slowRendering = false;
-bool frametest = false;
-float speed = 5.0f;
-float extraData[EXTENDED_SIZE];
-unsigned char flags = 0;
+sgct::SharedDouble dt(0.0);
+sgct::SharedDouble curr_time(0.0);
+sgct::SharedBool showFPS(false);
+sgct::SharedBool extraPackages(false);
+sgct::SharedBool barrier(false);
+sgct::SharedBool resetCounter(false);
+sgct::SharedBool stats(false);
+sgct::SharedBool takeScreenshot(false);
+sgct::SharedBool slowRendering(false);
+sgct::SharedBool frametest(false);
+sgct::SharedFloat speed( 5.0f );
+sgct::SharedFloat extraData[EXTENDED_SIZE];
 
 void drawGrid(float size, int steps);
 
@@ -52,7 +51,7 @@ int main( int argc, char* argv[] )
 	//allocate extra data
 	if( gEngine->isMaster() )
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			extraData[i] = static_cast<float>(rand()%500)/500.0f;
+			extraData[i].setVal(static_cast<float>(rand()%500)/500.0f);
 
 	sgct::SharedData::Instance()->setCompression(true);
 	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
@@ -75,11 +74,11 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	if(slowRendering)
+	if(slowRendering.getVal())
 		gEngine->sleep(1.0/5.0);
 
 	//test quadbuffer
-	if(frametest)
+	if(frametest.getVal())
 	{
 		if( gEngine->getCurrentFrameNumber()%2 == 0 ) //even
 		{
@@ -115,7 +114,7 @@ void myDrawFun()
 	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
 	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
-	glRotatef(static_cast<float>(curr_time)*speed, 0.0f, 1.0f, 0.0f);
+	glRotatef(static_cast<float>(curr_time.getVal())*speed.getVal(), 0.0f, 1.0f, 0.0f);
 	glScalef(1.0f, 0.5f, 1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glLineWidth(3.0);
@@ -197,24 +196,24 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() )
 	{
-		dt = gEngine->getDt();
-		curr_time = gEngine->getTime();
+		dt.setVal( gEngine->getDt() );
+		curr_time.setVal( gEngine->getTime() );
 	}
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setDisplayInfoVisibility( showFPS );
-	gEngine->getWindowPtr()->setBarrier( barrier );
-	gEngine->setStatsGraphVisibility( stats );
+	gEngine->setDisplayInfoVisibility( showFPS.getVal() );
+	gEngine->getWindowPtr()->setBarrier( barrier.getVal() );
+	gEngine->setStatsGraphVisibility( stats.getVal() );
 
-	if( takeScreenshot )
+	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot = false;
+		takeScreenshot.setVal(false);
 	}
 
-	if(resetCounter)
+	if(resetCounter.getVal())
 	{
 		gEngine->getWindowPtr()->resetSwapGroupFrameNumber();
 	}
@@ -224,7 +223,7 @@ void myPostDrawFun()
 {
 	if( gEngine->isMaster() )
 	{
-		resetCounter = false;
+		resetCounter.setVal(false);
 	}
 }
 
@@ -252,44 +251,49 @@ void myInitOGLFun()
 
 void myEncodeFun()
 {
-	flags = showFPS	? flags | 1 : flags & ~1; //bit 1
-	flags = extraPackages ? flags | 2 : flags & ~2; //bit 2
-	flags = barrier ? flags | 4 : flags & ~4; //bit 3
-	flags = resetCounter ? flags | 8 : flags & ~8; //bit 4
-	flags = stats ? flags | 16 : flags & ~16; //bit 5
-	flags = takeScreenshot ? flags | 32 : flags & ~32; //bit 6
-	flags = slowRendering ? flags | 64 : flags & ~64; //bit 7
-	flags = frametest ? flags | 128 : flags & ~128; //bit 8
+	unsigned char flags = 0;
+	flags = showFPS.getVal()	? flags | 1 : flags & ~1; //bit 1
+	flags = extraPackages.getVal() ? flags | 2 : flags & ~2; //bit 2
+	flags = barrier.getVal() ? flags | 4 : flags & ~4; //bit 3
+	flags = resetCounter.getVal() ? flags | 8 : flags & ~8; //bit 4
+	flags = stats.getVal() ? flags | 16 : flags & ~16; //bit 5
+	flags = takeScreenshot.getVal() ? flags | 32 : flags & ~32; //bit 6
+	flags = slowRendering.getVal() ? flags | 64 : flags & ~64; //bit 7
+	flags = frametest.getVal() ? flags | 128 : flags & ~128; //bit 8
 
-	sgct::SharedData::Instance()->writeDouble(dt);
-	sgct::SharedData::Instance()->writeDouble(curr_time);
-	sgct::SharedData::Instance()->writeFloat( speed );
-	sgct::SharedData::Instance()->writeUChar(flags);
+	sgct::SharedUChar sf(flags);
 
-	if(extraPackages)
+	sgct::SharedData::Instance()->writeDouble( &dt);
+	sgct::SharedData::Instance()->writeDouble( &curr_time);
+	sgct::SharedData::Instance()->writeFloat( &speed );
+	sgct::SharedData::Instance()->writeUChar( &sf );
+
+	if(extraPackages.getVal())
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			sgct::SharedData::Instance()->writeFloat( extraData[i] );
+			sgct::SharedData::Instance()->writeFloat( &extraData[i] );
 }
 
 void myDecodeFun()
 {
-	dt = sgct::SharedData::Instance()->readDouble();
-	curr_time = sgct::SharedData::Instance()->readDouble();
-	speed = sgct::SharedData::Instance()->readFloat();
-	flags = sgct::SharedData::Instance()->readUChar();
+	sgct::SharedUChar sf;
+	sgct::SharedData::Instance()->readDouble( &dt );
+	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::Instance()->readFloat( &speed );
+	sgct::SharedData::Instance()->readUChar( &sf );
 
-	showFPS	= flags & 0x0001;
-	extraPackages = (flags>>1) & 0x0001;
-	barrier = (flags>>2) & 0x0001;
-	resetCounter = (flags>>3) & 0x0001;
-	stats = (flags>>4) & 0x0001;
-	takeScreenshot = (flags>>5) & 0x0001;
-	slowRendering = (flags>>6) & 0x0001;
-	frametest = (flags>>7) & 0x0001;
+	unsigned char flags = sf.getVal();
+	showFPS.setVal(flags & 0x0001);
+	extraPackages.setVal((flags>>1) & 0x0001);
+	barrier.setVal((flags>>2) & 0x0001);
+	resetCounter.setVal((flags>>3) & 0x0001);
+	stats.setVal((flags>>4) & 0x0001);
+	takeScreenshot.setVal((flags>>5) & 0x0001);
+	slowRendering.setVal((flags>>6) & 0x0001);
+	frametest.setVal((flags>>7) & 0x0001);
 
-	if(extraPackages)
+	if(extraPackages.getVal())
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			extraData[i] = sgct::SharedData::Instance()->readFloat();
+			sgct::SharedData::Instance()->readFloat( &extraData[i] );
 }
 
 void keyCallback(int key, int action)
@@ -302,32 +306,32 @@ void keyCallback(int key, int action)
 		{
 		case 'F':
 			if(action == SGCT_PRESS)
-				frametest = !frametest;
+				frametest.toggle();
 			break;
 		
 		case 'I':
 			if(action == SGCT_PRESS)
-				showFPS = !showFPS;
+				showFPS.toggle();
 			break;
 
 		case 'E':
 			if(action == SGCT_PRESS)
-				extraPackages = !extraPackages;
+				extraPackages.toggle();
 			break;
 
 		case 'B':
 			if(action == SGCT_PRESS)
-				barrier = !barrier;
+				barrier.toggle();
 			break;
 
 		case 'R':
 			if(action == SGCT_PRESS)
-				resetCounter = true;
+				resetCounter.toggle();
 			break;
 
 		case 'S':
 			if(action == SGCT_PRESS)
-				stats = !stats;
+				stats.toggle();
 			break;
 
 		case 'G':
@@ -345,20 +349,20 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_F9:
 			if(action == SGCT_PRESS)
-				slowRendering = !slowRendering;
+				slowRendering.toggle();
 			break;
 
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
-				takeScreenshot = true;
+				takeScreenshot.setVal(true);
 			break;
 
 		case SGCT_KEY_UP:
-			speed *= 1.1f;
+			speed.setVal( speed.getVal() * 1.1f );
 			break;
 
 		case SGCT_KEY_DOWN:
-			speed /= 1.1f;
+			speed.setVal( speed.getVal() / 1.1f );
 			break;
 		}
 	}
@@ -369,7 +373,7 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 	if( gEngine->isMaster() )
 	{
 		if(strcmp(receivedChars, "info") == 0)
-			showFPS = !showFPS;
+			showFPS.toggle();
 		else if(strcmp(receivedChars, "size") == 0)
 			gEngine->setExternalControlBufferSize(4096);
 	}

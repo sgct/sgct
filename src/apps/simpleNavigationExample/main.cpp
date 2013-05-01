@@ -38,7 +38,9 @@ int mouseXPos[] = { 0, 0 };
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
 glm::vec3 pos(0.0f, 0.0f, 0.0f);
-glm::mat4 xform(1.0f);
+//glm::mat4 xform(1.0f);
+
+sgct::SharedObject<glm::mat4> xform;
 
 int main( int argc, char* argv[] )
 {
@@ -147,30 +149,33 @@ void myPreSyncFun()
 		*/
 
 		//3. transform user back to original position
-		xform = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
+		glm::mat4 result;
+		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
 		//2. apply transformation
-		xform *= (ViewRotateX * glm::translate( glm::mat4(1.0f), pos ));
+		result *= (ViewRotateX * glm::translate( glm::mat4(1.0f), pos ));
 		//1. transform user to coordinate system origin
-		xform *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
+		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
+
+		xform.setVal( result );
 	}
 }
 
 void myDrawFun()
 {
-	glMultMatrixf(glm::value_ptr(xform));
+	glMultMatrixf(glm::value_ptr(xform.getVal()));
 	glCallList(myLandscapeDisplayList);
 }
 
 void myEncodeFun()
 {
 	for(int i=0; i<16; i++)
-		sgct::SharedData::Instance()->writeFloat( glm::value_ptr(xform)[i] );
+		sgct::SharedData::Instance()->writeObj( &xform );
 }
 
 void myDecodeFun()
 {
 	for(int i=0; i<16; i++)
-		glm::value_ptr(xform)[i] = sgct::SharedData::Instance()->readFloat();
+		sgct::SharedData::Instance()->readObj( &xform );
 }
 
 void keyCallback(int key, int action)

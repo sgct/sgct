@@ -57,3 +57,9 @@
 ---------------------------
 * Removed possibility to render depth buffers from sgct, the user can do that in code
 * Added extra render pass if FXAA is used to be able to save effects/AA to file
+
+2013-05-01 SGCT ver 1.4.0
+---------------------------
+* Added Mutex manager
+* Redesigned SharedData to use mutex protected SharedDataTypes to prevent data from being simultaneously accessed by multiple threads
+* Changed get matrix function names for viewport and Engine to more correct terms for better compability with openGL 3 & 4. Previously the projection matrix did return projection * view matrix which was incorrect.

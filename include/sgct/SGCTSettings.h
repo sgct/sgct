@@ -52,6 +52,7 @@ public:
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
+	void setFisheyeAlpha(bool state);
 	void setFXAA(bool state);
 	void setFBOMode(FBOMode mode);
 	void setNumberOfCaptureThreads(int count);
@@ -70,6 +71,8 @@ public:
 	const char * getCapturePath(CapturePathIndexes cpi = Mono);
 	int getCaptureFormat();
 
+	//! Set to true if alpha should be used in fisheye rendering
+	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
 	//! Set to true if FXAA should be used.
 	inline bool useFXAA() { return mUseFXAA; }
 	//! Set to true if PostFX pass should be used
@@ -99,6 +102,7 @@ private:
 	float mFieldOfView;
 	float mFisheyeOffset[3];
 	bool mFisheyeOffaxis;
+	bool mFisheyeAlpha;
 	float mCropFactors[4];
 	int mNumberOfCaptureThreads;
 	std::string mFisheyeOverlayFilename;

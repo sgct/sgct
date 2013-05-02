@@ -428,6 +428,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("overlay") != NULL )
 						SGCTSettings::Instance()->setFisheyeOverlay( std::string(element[1]->Attribute("overlay")) );
 
+					if( element[1]->Attribute("alpha") != NULL )
+						SGCTSettings::Instance()->setFisheyeAlpha( strcmp( element[1]->Attribute("alpha"), "true" ) == 0 ? true : false );
+
 					float tilt;
 					if( element[1]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
 						SGCTSettings::Instance()->setFisheyeTilt( tilt );

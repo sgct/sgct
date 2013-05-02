@@ -29,6 +29,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mFisheyeOffset[1] = 0.0f;
 	mFisheyeOffset[2] = 0.0f;
 	mFisheyeOffaxis = false;
+	mFisheyeAlpha = false;
 
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
@@ -131,6 +132,14 @@ void sgct_core::SGCTSettings::setFXAA(bool state)
 	mUseFXAA = state;
 	mUsePostFX = state;
 	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
+}
+
+/*!
+Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
+*/
+void sgct_core::SGCTSettings::setFisheyeAlpha(bool state)
+{
+	mFisheyeAlpha = state;
 }
 
 /*!

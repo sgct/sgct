@@ -106,7 +106,8 @@ int main( int argc, char* argv[] )
 	for(int i=0; i<3; i++)
 		mouseButtonStatus[i] = false;
 
-	if( !gEngine->init(sgct::Engine::OSG_Encapsulation_Mode) )
+	if( !gEngine->init() )
+	//if( !gEngine->init(sgct::Engine::OSG_Encapsulation_Mode) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;

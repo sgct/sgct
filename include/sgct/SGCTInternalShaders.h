@@ -91,7 +91,7 @@ namespace sgct_core
 					float z = cos(phi);\n\
 					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
-					color.a = 1.0;\n\
+					//color.a = 1.0;\n\
 				}\n\
 				else\n\
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
@@ -124,7 +124,7 @@ namespace sgct_core
 					double z = cos(phi) - offset.z;\n\
 					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
-					color.a = 1.0;\n\
+					//color.a = 1.0;\n\
 				}\n\
 				else\n\
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
@@ -154,7 +154,7 @@ namespace sgct_core
 					float z = cos(phi) - offset.z;\n\
 					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
-					color.a = 1.0;\n\
+					//color.a = 1.0;\n\
 				}\n\
 				else\n\
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
@@ -465,6 +465,7 @@ namespace sgct_core
 			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
 				c.rgb = FxaaPixelShader(posPos, tex, rcpFrame);\n\
 				//c.rgb = 1.0 - texture2D(tex, posPos.xy).rgb;\n\
+				//c.a = texture2D(tex0, gl_TexCoord[0].st).a;\n\
 				c.a = 1.0;\n\
 				return c;\n\
 			}\n\

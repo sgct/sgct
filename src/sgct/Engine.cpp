@@ -334,7 +334,7 @@ bool sgct::Engine::initWindow()
 	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		SGCTSettings::Instance()->setFBOMode(SGCTSettings::CubeMapFBO);
-		mClearColor[3] = 1.0f; //reflections of alpha will be white in cube map, therefore disable alpha
+		mClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 
 		//create the cube mapped viewports
 		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
@@ -461,7 +461,7 @@ void sgct::Engine::initOGL()
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
 	
 	mScreenCapture.setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
-	if( isFisheye() )
+	if( isFisheye() && !SGCTSettings::Instance()->useFisheyeAlpha())
 		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
 	else
 		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
@@ -773,7 +773,7 @@ void sgct::Engine::render()
 		if( getWindowPtr()->isWindowResized() )
 		{
 			resizeFBOs();
-			isFisheye() ?
+			(isFisheye() && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
 				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
 				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 		}
@@ -1823,7 +1823,7 @@ void sgct::Engine::createFBOs()
 			for(int i=0; i<6; i++)
 			{
 				mCubeMapFBO_Ptr->attachCubeMapTexture(mFrameBufferTextures[ FishEye ], i);
-				glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				SGCTSettings::Instance()->useFisheyeAlpha() ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 			}
 
@@ -1869,6 +1869,7 @@ void sgct::Engine::resizeFBOs()
 				getWindowPtr()->getYFramebufferResolution(),
 				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
 
+			//if fisheye
 			if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
 			{
 				mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
@@ -1879,7 +1880,7 @@ void sgct::Engine::resizeFBOs()
 				for(int i=0; i<6; i++)
 				{
 					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ FishEye ], 0);
-					glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+					SGCTSettings::Instance()->useFisheyeAlpha() ?  glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 					glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 				}
 
@@ -2590,6 +2591,9 @@ void sgct::Engine::initFisheye()
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
+	//set alpha value
+	mFisheyeClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 }
 
 void sgct::Engine::calculateFPS(double timestamp)
@@ -2697,6 +2701,7 @@ void sgct::Engine::setFisheyeClearColor(float red, float green, float blue)
 	mFisheyeClearColor[0] = red;
 	mFisheyeClearColor[1] = green;
 	mFisheyeClearColor[2] = blue;
+	mFisheyeClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 }
 
 /*!

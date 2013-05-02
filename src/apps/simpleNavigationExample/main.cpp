@@ -38,7 +38,6 @@ int mouseXPos[] = { 0, 0 };
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
 glm::vec3 pos(0.0f, 0.0f, 0.0f);
-//glm::mat4 xform(1.0f);
 
 sgct::SharedObject<glm::mat4> xform;
 
@@ -168,14 +167,12 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	for(int i=0; i<16; i++)
-		sgct::SharedData::Instance()->writeObj( &xform );
+	sgct::SharedData::Instance()->writeObj( &xform );
 }
 
 void myDecodeFun()
 {
-	for(int i=0; i<16; i++)
-		sgct::SharedData::Instance()->readObj( &xform );
+	sgct::SharedData::Instance()->readObj( &xform );
 }
 
 void keyCallback(int key, int action)

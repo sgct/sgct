@@ -1470,6 +1470,36 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	*/
 	sgct::ShaderManager::Instance()->unBindShader();
 
+	if(mTakeScreenshot)
+	{
+		glDisable(GL_TEXTURE_CUBE_MAP);
+		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
+
+		int size = getWindowPtr()->getXFramebufferResolution();
+		unsigned int fontSize = 0;
+
+		if( size > 512 )
+			fontSize = static_cast<unsigned int>(size)/96;
+		else if( size == 512 )
+			fontSize = 8;
+
+		if( fontSize != 0 )
+		{
+			float x = static_cast<float>( size - size/4 );
+			float y = static_cast<float>( fontSize );
+			
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", mShotCounter);
+
+			if( mActiveFrustum == Frustum::Mono )
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Mono");
+			else if( mActiveFrustum == Frustum::StereoLeftEye )
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Left");
+			else
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
+		}
+	}
+
+
 	glPopClientAttrib();
 	glPopAttrib();
 	glPopMatrix();

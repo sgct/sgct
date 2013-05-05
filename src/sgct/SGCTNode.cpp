@@ -80,10 +80,12 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 	//tilt
 	float tilt = sgct_core::SGCTSettings::Instance()->getFisheyeTilt();
 	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-tilt, glm::vec3(1.0f, 0.0f, 0.0f));
+	//glm::mat4 tiltMat(1.0f);
 
 	//pan 45 deg
 	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-
+	//glm::mat4 panRot(1.0f);
+	
 	//add viewports
 	for(unsigned int i=0; i<6; i++)
 	{
@@ -136,6 +138,13 @@ void sgct_core::SGCTNode::generateCubeMapViewports()
 			Each viewport contains frustums for mono, left stereo and right stereo
 		*/
 		addViewport( tmpVP );
+
+		/*
+		fprintf(stderr, "View #%d:\n", i);
+		fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).z);
+		fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).z);
+		fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).z);
+		*/
 	}
 
 	if( SGCTSettings::Instance()->getFisheyeOverlay() != NULL )

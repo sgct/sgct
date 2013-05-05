@@ -107,7 +107,8 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	{
 		glGenBuffers(1, &mPBO);
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
-		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ);
+		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
+		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
 		
 		//unbind
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);

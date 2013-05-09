@@ -208,6 +208,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\sgct\SGCTMutexManager.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\sgct\SGCTNetwork.cpp"
 				>
 			</File>
@@ -257,6 +261,10 @@
 			</File>
 			<File
 				RelativePath="..\sgct\SharedData.cpp"
+				>
+			</File>
+			<File
+				RelativePath="..\sgct\SharedDataTypes.cpp"
 				>
 			</File>
 			<File
@@ -358,6 +366,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\sgct\SGCTMutexManager.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\sgct\SGCTNetwork.h"
 				>
 			</File>
@@ -407,6 +419,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sgct\SharedData.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\SharedDataTypes.h"
 				>
 			</File>
 			<File

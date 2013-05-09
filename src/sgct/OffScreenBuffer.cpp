@@ -61,6 +61,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRenderBuffer);
 
 	//setup depth buffer
+	//needed for depth testing
 	mMultiSampled ?
 		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
 		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
@@ -76,6 +77,8 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		sgct::MessageHandler::Instance()->print("OffScreenBuffer: Something went wrong creating FBO!\n");
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	//sgct::MessageHandler::Instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
 }
 
 void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)

@@ -777,20 +777,20 @@ void sgct::Engine::render()
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
 
+		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
+
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
 		{
 			resizeFBOs();
-			(isFisheye() && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
+			(tmpNode->isUsingFisheyeRendering() && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
 				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
 				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 		}
 
 		//rendering offscreen if using FBOs
 		mRenderingOffScreen = (SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO);
-
-		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//if fisheye rendering is used then render the cubemap
 		if( tmpNode->isUsingFisheyeRendering() )
@@ -1387,9 +1387,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 		if( tmpNode->getCurrentViewport()->isEnabled() )
 		{
+			//un-bind texture
+			glBindTexture(GL_TEXTURE_2D, 0);
+			
 			//bind & attach buffer
 			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-			if(!mCubeMapFBO_Ptr->isMultiSampled())
+			if( !mCubeMapFBO_Ptr->isMultiSampled() )
 			{								
 				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 			}
@@ -1415,9 +1418,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//restore polygon mode
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
+	//un-bind texture
+	glBindTexture(GL_TEXTURE_2D, 0);
+
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind();
-	SGCTSettings::Instance()->usePostFX() ? mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
+	SGCTSettings::Instance()->usePostFX() ? 
+			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1927,6 +1934,8 @@ void sgct::Engine::createVBOs()
 */
 void sgct::Engine::resizeFBOs()
 {
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	
 	if(!getWindowPtr()->isFixResolution())
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
@@ -1934,29 +1943,22 @@ void sgct::Engine::resizeFBOs()
 			glDeleteTextures(4,			&mFrameBufferTextures[0]);
 			createTextures();
 
-			mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
-				getWindowPtr()->getYFramebufferResolution(),
-				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
-
-			//if fisheye
-			if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
+			if( tmpNode->isUsingFisheyeRendering() )
 			{
-				mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
-					SGCTSettings::Instance()->getCubeMapResolution(),
-					1);
+				mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
+				getWindowPtr()->getYFramebufferResolution(),
+				1);
 
-				mCubeMapFBO_Ptr->bind();
-				for(int i=0; i<6; i++)
-				{
-					glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, mFrameBufferTextures[ FishEye ], 0);
-					SGCTSettings::Instance()->useFisheyeAlpha() ?  glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-					glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-				}
-
-				mCubeMapFBO_Ptr->unBind();
-
+				//Cube map FBO is constant in size so we don't need to resize that one
+			
 				//set ut the fisheye geometry etc.
 				initFisheye();
+			}
+			else //regular viewport rendering
+			{
+				mFinalFBO_Ptr->resizeFBO(getWindowPtr()->getXFramebufferResolution(),
+				getWindowPtr()->getYFramebufferResolution(),
+				tmpNode->numberOfSamples);
 			}
 
 			sgct::MessageHandler::Instance()->print("FBOs resized successfully!\n");
@@ -2002,8 +2004,8 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 	}
 	/*else //doesn't work
 	{
-		glDrawBuffer(GL_NONE);
 		glReadBuffer(GL_NONE);
+		glDrawBuffer(GL_NONE);
 	}*/
 
 	//clear
@@ -2625,7 +2627,10 @@ void sgct::Engine::initFisheye()
 
 	float x = 1.0f;
 	float y = 1.0f;
-	float aspect = getWindowPtr()->getAspectRatio() * cropAspect;
+	float frameBufferAspect = static_cast<float>( getWindowPtr()->getXFramebufferResolution() ) /
+		static_cast<float>( getWindowPtr()->getYFramebufferResolution() );
+	
+	float aspect = frameBufferAspect * cropAspect;
 	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
 
 	mFisheyeQuadVerts[0] = leftcrop;

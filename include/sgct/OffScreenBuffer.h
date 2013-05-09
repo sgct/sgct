@@ -25,6 +25,7 @@ public:
 	void blit();
 	static void unBind();
 	void destroy();
+	inline bool isMultiSampled() { return mMultiSampled; }
 
 	inline unsigned int getBufferID() { return mMultiSampled ? mMultiSampledFrameBuffer : mFrameBuffer; }
 

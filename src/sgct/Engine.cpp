@@ -322,31 +322,39 @@ bool sgct::Engine::initWindow()
                                          tmpGlfwVer[1],
                                          tmpGlfwVer[2]);
 
-	getWindowPtr()->useQuadbuffer( ClusterManager::Instance()->getThisNodePtr()->stereo == ClusterManager::Active );
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	getWindowPtr()->useQuadbuffer( tmpNode->stereo == ClusterManager::Active );
 
-	//disable MSAA if FXAA is in use
-	if( SGCTSettings::Instance()->useFXAA() )
+	//disable MSAA if FXAA is in use and fisheye is not enabled
+	/*
+		Fisheye can use MSAA for cubemap rendering and FXAA for screen space rendering
+		It's a bit overkill but usefull for rendering fisheye movies
+	*/
+	if( SGCTSettings::Instance()->useFXAA() && !tmpNode->isUsingFisheyeRendering())
 	{
-		ClusterManager::Instance()->getThisNodePtr()->numberOfSamples = 1;
+		tmpNode->numberOfSamples = 1;
 	}
 
 	//if using fisheye rendering for a dome display
-	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
+	if( tmpNode->isUsingFisheyeRendering() )
 	{
-		SGCTSettings::Instance()->setFBOMode(SGCTSettings::CubeMapFBO);
+		if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO )
+		{
+			MessageHandler::Instance()->print("Engine: Forcing FBOs for fisheye mode!\n");
+			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
+		}
+		
 		mClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 
 		//create the cube mapped viewports
-		ClusterManager::Instance()->getThisNodePtr()->generateCubeMapViewports();
+		tmpNode->generateCubeMapViewports();
 	}
-	else
-	{
-		int antiAliasingSamples = ClusterManager::Instance()->getThisNodePtr()->numberOfSamples;
-		if( antiAliasingSamples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO ) //if multisample is used
-			glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
-		else if( antiAliasingSamples < 2 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO ) //on sample or less => no multisampling
-			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
-	}
+	
+	int antiAliasingSamples = tmpNode->numberOfSamples;
+	if( antiAliasingSamples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO ) //if multisample is used
+		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+	else if( antiAliasingSamples < 2 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO ) //on sample or less => no multisampling
+		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 
 	/*
 	//OSX ogl 3.2 code
@@ -383,7 +391,7 @@ bool sgct::Engine::initWindow()
         2  = fix when using swapgroups in xp and running half the framerate
     */
 
-    glfwSwapInterval( ClusterManager::Instance()->getThisNodePtr()->swapInterval );
+    glfwSwapInterval( tmpNode->swapInterval );
 
 	getWindowPtr()->init();
 
@@ -521,7 +529,7 @@ void sgct::Engine::clean()
 	{
 		sgct::MessageHandler::Instance()->print("Releasing OpenGL buffers...\n");
 		mFinalFBO_Ptr->destroy();
-		if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+		if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 			mCubeMapFBO_Ptr->destroy();
 
 		delete mFinalFBO_Ptr;
@@ -785,7 +793,7 @@ void sgct::Engine::render()
 		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//if fisheye rendering is used then render the cubemap
-		if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+		if( tmpNode->isUsingFisheyeRendering() )
 		{
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 			renderFisheye(LeftEye);
@@ -802,7 +810,7 @@ void sgct::Engine::render()
 					renderPostFx(RightEye);
 			}
 		}
-		else
+		else //regular viewport rendering
 		{
 			//if any stereo type (except passive) then set frustum mode to left eye
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
@@ -898,7 +906,7 @@ void sgct::Engine::render()
 		//draw info & stats
 		//the cubemap viewports are all the same so it makes no sense to render everything several times
 		//therefore just loop one iteration in that case.
-		std::size_t numberOfIterations = ( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
+		std::size_t numberOfIterations = ( tmpNode->isUsingFisheyeRendering() ? 1 : tmpNode->getNumberOfViewports() );
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			tmpNode->setCurrentViewport(i);
@@ -1108,7 +1116,7 @@ void sgct::Engine::drawOverlays()
 
 	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	std::size_t numberOfIterations = ( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ) ? 1 : tmpNode->getNumberOfViewports();
+	std::size_t numberOfIterations = ( tmpNode->isUsingFisheyeRendering() ? 1 : tmpNode->getNumberOfViewports() );
 	for(std::size_t i=0; i < numberOfIterations; i++)
 	{
 		tmpNode->setCurrentViewport(i);
@@ -1127,7 +1135,7 @@ void sgct::Engine::drawOverlays()
 			*/
 			enterCurrentViewport(ScreenSpace);
 
-			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+			if( tmpNode->isUsingFisheyeRendering() )
 				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
 			else
 				gluOrtho2D(0.0, 1.0, 0.0, 1.0);
@@ -1170,7 +1178,7 @@ void sgct::Engine::drawOverlays()
 				glEnd();
 			}*/
 
-			if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+			if( tmpNode->isUsingFisheyeRendering() )
 				glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 			else
 				glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
@@ -1214,15 +1222,12 @@ void sgct::Engine::setRenderTarget(TextureIndexes ti)
 		//un-bind texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::MultiSampledFBO)
+		mFinalFBO_Ptr->bind();
+		if( !mFinalFBO_Ptr->isMultiSampled() )
 		{
-			mFinalFBO_Ptr->bind();
-
 			//update attachments
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 		}
-		else
-			mFinalFBO_Ptr->bind();
 
 		setAndClearBuffer(RenderToTexture);
 	}
@@ -1384,12 +1389,26 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		{
 			//bind & attach buffer
 			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-			mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+			if(!mCubeMapFBO_Ptr->isMultiSampled())
+			{								
+				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+			}
 
 			setAndClearBuffer(RenderToTexture);
 
 			//render
 			(this->*mInternalRenderFn)();
+
+			//copy AA-buffer to "regular"/non-AA buffer
+			if( mCubeMapFBO_Ptr->isMultiSampled() )
+			{
+				mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+
+				//update attachments
+				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+
+				mCubeMapFBO_Ptr->blit();
+			}
 		}
 	}//end for
 
@@ -1399,7 +1418,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind();
 	SGCTSettings::Instance()->usePostFX() ? mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
-		mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
+			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1499,7 +1518,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		}
 	}
 
-
 	glPopClientAttrib();
 	glPopAttrib();
 	glPopMatrix();
@@ -1586,7 +1604,7 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 {
 	//copy AA-buffer to "regular"/non-AA buffer
-	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO)
+	if( mFinalFBO_Ptr->isMultiSampled() )
 	{
 		if( SGCTSettings::Instance()->usePostFX() )
 			ti = PostFX;
@@ -1660,7 +1678,7 @@ void sgct::Engine::loadShaders()
 	sgct::ShaderManager::Instance()->unBindShader();
 
 
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+	if( tmpNode->isUsingFisheyeRendering() )
 	{
 		if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
 			sgct::ShaderManager::Instance()->addShader("Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
@@ -1790,7 +1808,7 @@ void sgct::Engine::createTextures()
 	/*
 		Create cubemap texture for fisheye rendering if enabled.
 	*/
-	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
+	if(tmpNode->isUsingFisheyeRendering())
 	{
 		GLint cubeMapRes = SGCTSettings::Instance()->getCubeMapResolution();
 		GLint MaxCubeMapRes;
@@ -1828,10 +1846,10 @@ void sgct::Engine::createTextures()
 */
 void sgct::Engine::createFBOs()
 {
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
 	{
-		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-
 		//disable anaglyph & checkerboard stereo if FBOs are not used
 		if( tmpNode->stereo > ClusterManager::Active )
 			tmpNode->stereo = ClusterManager::NoStereo;
@@ -1839,22 +1857,37 @@ void sgct::Engine::createFBOs()
 	}
 	else
 	{
-		mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
-			getWindowPtr()->getYFramebufferResolution(),
-			ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
-
-		if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
+		if( tmpNode->isUsingFisheyeRendering() )
 		{
+			mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
+			getWindowPtr()->getYFramebufferResolution(),
+			1);
+			
 			mCubeMapFBO_Ptr->createFBO(SGCTSettings::Instance()->getCubeMapResolution(),
 				SGCTSettings::Instance()->getCubeMapResolution(),
-				1);
+				tmpNode->numberOfSamples);
 
 			mCubeMapFBO_Ptr->bind();
 			for(int i=0; i<6; i++)
 			{
-				mCubeMapFBO_Ptr->attachCubeMapTexture(mFrameBufferTextures[ FishEye ], i);
+				if(!mCubeMapFBO_Ptr->isMultiSampled())
+				{								
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+				}
+				
 				SGCTSettings::Instance()->useFisheyeAlpha() ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
+
+				//copy AA-buffer to "regular"/non-AA buffer
+				if( mCubeMapFBO_Ptr->isMultiSampled() )
+				{
+					mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+
+					//update attachments
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+
+					mCubeMapFBO_Ptr->blit();
+				}
 			}
 
 			OffScreenBuffer::unBind();
@@ -1863,6 +1896,12 @@ void sgct::Engine::createFBOs()
 
 			//set ut the fisheye geometry etc.
 			initFisheye();
+		}
+		else //regular viewport rendering
+		{
+			mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
+			getWindowPtr()->getYFramebufferResolution(),
+			tmpNode->numberOfSamples);
 		}
 
 		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
@@ -1900,7 +1939,7 @@ void sgct::Engine::resizeFBOs()
 				ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
 
 			//if fisheye
-			if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO)
+			if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 			{
 				mCubeMapFBO_Ptr->resizeFBO(SGCTSettings::Instance()->getCubeMapResolution(),
 					SGCTSettings::Instance()->getCubeMapResolution(),
@@ -2137,7 +2176,7 @@ void sgct::Engine::calculateFrustums()
 		{
 			SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
-			if( SGCTSettings::Instance()->getFBOMode() != SGCTSettings::CubeMapFBO )
+			if( !tmpNode->isUsingFisheyeRendering() )
 			{
 				tmpNode->getViewport(i)->calculateFrustum(
 					Frustum::Mono,
@@ -2531,7 +2570,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO && vs != ScreenSpace )
+	if( tmpNode->isUsingFisheyeRendering() && vs != ScreenSpace )
 	{
 		int cmRes = SGCTSettings::Instance()->getCubeMapResolution();
 		currentViewportCoords[0] = 0;
@@ -2794,6 +2833,7 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 
 /*!
 	This function returns the window name string containing info as node ip, if its master or slave, fps and AA settings.
+	This function is called once per second.
 */
 const char * sgct::Engine::getBasicInfo()
 {
@@ -2816,27 +2856,43 @@ const char * sgct::Engine::getBasicInfo()
 
 /*!
 	This function returns the Anti-Aliasing (AA) settings.
+	This function is called once per second.
 */
 const char * sgct::Engine::getAAInfo()
 {
-    if( SGCTSettings::Instance()->useFXAA() &&
+    SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	
+	if( SGCTSettings::Instance()->useFXAA() &&
 		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-    #if (_MSC_VER >= 1400) //visual studio 2005 or later
-        strcpy_s(aaInfo, sizeof(aaInfo), "FXAA");
-    #else
-        strcpy(aaInfo, "FXAA");
-    #endif
+	{
+		if( tmpNode->isUsingFisheyeRendering() && tmpNode->numberOfSamples > 1 )
+		{
+			#if (_MSC_VER >= 1400) //visual studio 2005 or later
+				sprintf_s(aaInfo, sizeof(aaInfo), "FXAA+MSAAx%d", tmpNode->numberOfSamples);
+			#else
+				sprintf(aaInfo, "FXAA+MSAAx%d", tmpNode->numberOfSamples);
+			#endif
+		}
+		else
+		{
+			#if (_MSC_VER >= 1400) //visual studio 2005 or later
+				strcpy_s(aaInfo, sizeof(aaInfo), "FXAA");
+			#else
+				strcpy(aaInfo, "FXAA");
+			#endif
+		}
+	}
     else
     {
-        if( ClusterManager::Instance()->getThisNodePtr()->numberOfSamples > 1  &&
+        if( tmpNode->numberOfSamples > 1  &&
 			SGCTSettings::Instance()->getFBOMode() != SGCTSettings::RegularFBO )
         {
             #if (_MSC_VER >= 1400) //visual studio 2005 or later
             sprintf_s( aaInfo, sizeof(aaInfo), "MSAAx%d",
-                ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
+                tmpNode->numberOfSamples);
             #else
             sprintf( aaInfo, "MSAAx%d",
-                ClusterManager::Instance()->getThisNodePtr()->numberOfSamples);
+                tmpNode->numberOfSamples);
             #endif
         }
         else
@@ -2995,7 +3051,7 @@ void sgct::Engine::signalCond(sgct::SGCTcond cond)
 */
 bool sgct::Engine::isFisheye()
 {
-	return (SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO);
+	return ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering();
 }
 
 /*!
@@ -3003,7 +3059,7 @@ bool sgct::Engine::isFisheye()
 */
 sgct_core::OffScreenBuffer * sgct::Engine::getFBOPtr()
 {
-	return SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
+	return ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
 }
 
 /*!
@@ -3011,7 +3067,7 @@ sgct_core::OffScreenBuffer * sgct::Engine::getFBOPtr()
 */
 void sgct::Engine::getFBODimensions( int & width, int & height )
 {
-	if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::CubeMapFBO )
+	if( ClusterManager::Instance()->getThisNodePtr()->isUsingFisheyeRendering() )
 	{
 		width = SGCTSettings::Instance()->getCubeMapResolution();
 		height = SGCTSettings::Instance()->getCubeMapResolution();

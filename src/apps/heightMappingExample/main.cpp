@@ -95,7 +95,8 @@ void myPreSyncFun()
 {
 	if( gEngine->isMaster() && !mPause)
 	{
-		curr_time.setVal( curr_time.getVal() + gEngine->getAvgDt());
+		//curr_time.setVal( curr_time.getVal() + gEngine->getAvgDt());
+		curr_time.setVal( 345.23 );
 	}
 }
 

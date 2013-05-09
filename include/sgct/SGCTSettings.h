@@ -21,7 +21,7 @@ class SGCTSettings
 {
 public:
 	enum CropSides { CropLeft = 0, CropRight, CropBottom, CropTop };
-	enum FBOMode { NoFBO = 0, RegularFBO, MultiSampledFBO, CubeMapFBO };
+	enum FBOMode { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 
 	/*! Get the SGCTSettings instance */

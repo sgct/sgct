@@ -65,7 +65,7 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 
 			addVertexData( 1+j*(hsegs+1)+i, 
 				static_cast<float>( i )/static_cast<float>( hsegs ), //s
-				static_cast<float>( j+1 )/static_cast<float>( vsegs ), //t
+				1.0f - static_cast<float>( j+1 )/static_cast<float>( vsegs ), //t
 				x, y, z, //normals
 				radius * x, radius * y, radius * z);
         }
@@ -132,7 +132,7 @@ sgct_utils::SGCTSphere::~SGCTSphere()
 }
 
 void sgct_utils::SGCTSphere::addVertexData(unsigned int pos,
-		const float &t, const float &s,
+		const float &s, const float &t,
 		const float &nx, const float &ny, const float &nz,
 		const float &x, const float &y, const float &z)
 {

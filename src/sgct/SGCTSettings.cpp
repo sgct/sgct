@@ -31,6 +31,8 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mFisheyeOffaxis = false;
 	mFisheyeAlpha = false;
 
+	mPNGCompressionLevel = 1;
+
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseFXAA = false;
@@ -156,6 +158,20 @@ Set the number of capture threads used by SGCT (multi-threaded screenshots)
 void sgct_core::SGCTSettings::setNumberOfCaptureThreads(int count)
 {
 	mNumberOfCaptureThreads = count;
+}
+
+/*!
+Set the zlib compression level used for saving png files
+
+Compression levels 1-9.
+	-1 = Default compression
+	0 = No compression
+	1 = Best speed
+	9 = Best compression
+*/
+void sgct_core::SGCTSettings::setPNGCompressionLevel(int level)
+{
+	mPNGCompressionLevel = level;
 }
 
 /*!

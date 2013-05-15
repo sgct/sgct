@@ -56,6 +56,7 @@ public:
 	void setFXAA(bool state);
 	void setFBOMode(FBOMode mode);
 	void setNumberOfCaptureThreads(int count);
+	void setPNGCompressionLevel(int level);
 	void setCapturePath(std::string path, CapturePathIndexes cpi = Mono);
 	void appendCapturePath(std::string str, CapturePathIndexes cpi = Mono);
 	void setCaptureFormat(const char * format);
@@ -81,6 +82,8 @@ public:
 	inline FBOMode getFBOMode() { return mFBOMode; }
 	//! Get the number of capture threads (for screenshot recording)
 	inline int getNumberOfCaptureThreads() { return mNumberOfCaptureThreads; }
+	//! Get the zlib compression level if png files used for saving screenshots
+	inline int getPNGCompressionLevel() { return mPNGCompressionLevel; }
 
 private:
 	SGCTSettings();
@@ -105,6 +108,7 @@ private:
 	bool mFisheyeAlpha;
 	float mCropFactors[4];
 	int mNumberOfCaptureThreads;
+	int mPNGCompressionLevel;
 	std::string mFisheyeOverlayFilename;
 
 	//FXAA

@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/SGCTSettings.h"
 
 sgct_core::Image::Image()
 {
@@ -222,7 +223,7 @@ bool sgct_core::Image::save()
 		type[4] = '\0';
 
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
-			return savePNG(1);
+			return savePNG( SGCTSettings::Instance()->getPNGCompressionLevel() );
 		if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
 			return saveTGA();
 		else

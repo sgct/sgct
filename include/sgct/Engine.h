@@ -47,7 +47,7 @@ public:
 	/*!
 		The different run modes used by the init function
 	*/
-	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode };
+	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode, OpenGL_Compablity_Profile, OpenGL_3_3_Core_Profile };
 
 private:
 	enum VBOIndexes { RenderQuad = 0, FishEyeQuad };
@@ -56,8 +56,7 @@ private:
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
 	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov, FisheyeOffset,
-			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture,
-			ArcTanLookupTable};
+			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture};
 
 public:
 	Engine( int& argc, char**& argv );
@@ -305,6 +304,7 @@ private:
 	const char * getAAInfo();
 
 	void draw();
+	void drawFixedPipeline();
 	void drawOverlays();
 	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();

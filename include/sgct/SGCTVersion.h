@@ -9,8 +9,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SGCT_VERSION_H_
 
 #define SGCT_VERSION_MAJOR    1
-#define SGCT_VERSION_MINOR    4
-#define SGCT_VERSION_REVISION 2
+#define SGCT_VERSION_MINOR    5
+#define SGCT_VERSION_REVISION 0
 
 #include <stdio.h>
 #include <string>

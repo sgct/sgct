@@ -356,6 +356,18 @@ bool sgct::Engine::initWindow()
 	else if( antiAliasingSamples < 2 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO ) //on sample or less => no multisampling
 		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 
+	switch( mRunMode )
+	{
+	case OpenGL_3_3_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
+			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+	}
+
 	/*
 	//OSX ogl 3.2 code
 	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
@@ -480,7 +492,11 @@ void sgct::Engine::initOGL()
 		mInitOGLFn();
 
 	calculateFrustums();
-	mInternalRenderFn = &Engine::draw;
+
+	if( mRunMode > OpenGL_Compablity_Profile )
+		mInternalRenderFn = &Engine::draw;
+	else
+		mInternalRenderFn = &Engine::drawFixedPipeline;
 
 	//
 	// Add fonts
@@ -1070,6 +1086,27 @@ void sgct::Engine::renderDisplayInfo()
 	This function enters the correct viewport, frustum, stereo mode and calls the draw callback.
 */
 void sgct::Engine::draw()
+{
+	enterCurrentViewport(FBOSpace);
+
+	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
+
+	if( mDrawFn != NULL )
+	{
+		glLineWidth(1.0);
+		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+		mDrawFn();
+
+		//restore polygon mode
+		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	}
+}
+
+/*!
+	This function enters the correct viewport, frustum, stereo mode and calls the draw callback.
+*/
+void sgct::Engine::drawFixedPipeline()
 {
 	enterCurrentViewport(FBOSpace);
 
@@ -1785,8 +1822,11 @@ void sgct::Engine::loadShaders()
 */
 void sgct::Engine::createTextures()
 {
-	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-	glEnable(GL_TEXTURE_2D);
+	if( mRunMode <= OpenGL_Compablity_Profile )
+	{
+		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+		glEnable(GL_TEXTURE_2D);
+	}
 
 	//init
 	mFrameBufferTextures[0] = 0;
@@ -1795,7 +1835,7 @@ void sgct::Engine::createTextures()
 	mFrameBufferTextures[3] = 0;
 
 	//allocate
-	glGenTextures(4,			&mFrameBufferTextures[0]);
+	glGenTextures(4, &mFrameBufferTextures[0]);
 
 	/*
 		Create left and right color & depth textures.
@@ -1839,7 +1879,8 @@ void sgct::Engine::createTextures()
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, cubeMapRes, cubeMapRes, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 	}
 
-	glPopAttrib();
+	if( mRunMode <= OpenGL_Compablity_Profile )
+		glPopAttrib();
 
 	if( checkForOGLErrors() )
 		sgct::MessageHandler::Instance()->print("Texture targets initiated successfully!\n");

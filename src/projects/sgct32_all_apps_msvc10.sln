@@ -93,6 +93,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postProcessing_msvc10", "..
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1_opengl3_msvc10", "..\apps\example1_opengl3\example1_opengl3_msvc10.vcxproj", "{6BEED415-7744-4E36-B6FA-6924C16751A5}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -253,6 +258,14 @@ Global
 		{5A40274C-19EB-4B0E-956C-B0C042287469}.Release|Win32.Build.0 = Release|Win32
 		{5A40274C-19EB-4B0E-956C-B0C042287469}.Release|x64.ActiveCfg = Release|x64
 		{5A40274C-19EB-4B0E-956C-B0C042287469}.Release|x64.Build.0 = Release|x64
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Debug|Win32.ActiveCfg = Debug|Win32
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Debug|Win32.Build.0 = Debug|Win32
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Debug|x64.ActiveCfg = Debug|x64
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Debug|x64.Build.0 = Debug|x64
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Release|Win32.ActiveCfg = Release|Win32
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Release|Win32.Build.0 = Release|Win32
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Release|x64.ActiveCfg = Release|x64
+		{6BEED415-7744-4E36-B6FA-6924C16751A5}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

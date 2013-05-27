@@ -70,26 +70,30 @@ namespace sgct_core
 		}
 
 		*/
+
 		const std::string Fisheye_Frag_Shader = "\
 			#version 120\n\
+			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
+			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
-			float quarter_pi = 0.7853981634;\n\
+			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
 			{\n\
 				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
 				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
 				vec4 color;\n\
-				if( s*s + t*t <= 1.0 )\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
 				{\n\
-					float phi = sqrt(s*s + t*t) * halfFov;\n\
+					float phi = sqrt(r2) * halfFov;\n\
 					float theta = atan(s,t);\n\
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
 					//color.a = 1.0;\n\
 				}\n\
@@ -97,13 +101,14 @@ namespace sgct_core
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
 				gl_FragColor = color;\n\
 			}\n";
-
-		/*
+		
 		//test with double precition fp64 
-		//atan not working in fp64 mode
-		const std::string Fisheye_Frag_Shader_OffAxis = "\
-			#version 400 compatibility\n\
+		//atan & sin not working in fp64 mode
+		/*const std::string Fisheye_Frag_Shader_OffAxis = "\
+			#version 150 compatibility\n\
 			#extension GL_ARB_gpu_shader_fp64 : enable // For NVIDIA cards.\n\
+			#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
+			#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
@@ -117,12 +122,12 @@ namespace sgct_core
 				vec4 color;\n\
 				if( s*s + t*t <= 1.0 )\n\
 				{\n\
-					double phi = sqrt(s*s + t*t) * double(halfFov);\n\
+					double phi = sqrt(s*s + t*t) * halfFov);\n\
 					double theta = atan(s,t);\n\
 					double x = sin(phi) * sin(theta) - offset.x;\n\
 					double y = -sin(phi) * cos(theta) - offset.y;\n\
 					double z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
+					dvec3 rotVec = dvec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
 					//color.a = 1.0;\n\
 				}\n\
@@ -138,21 +143,22 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
 			uniform vec3 offset;\n\
-			float quarter_pi = 0.7853981634;\n\
+			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
 			{\n\
 				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
 				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
 				vec4 color;\n\
-				if( s*s + t*t <= 1.0 )\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
 				{\n\
-					float phi = sqrt(s*s + t*t) * halfFov;\n\
+					float phi = sqrt(r2) * halfFov;\n\
 					float theta = atan(s,t);\n\
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
 					color = vec4(textureCube(cubemap, rotVec));\n\
 					//color.a = 1.0;\n\
 				}\n\
@@ -160,7 +166,6 @@ namespace sgct_core
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
 				gl_FragColor = color;\n\
 			}\n";
-
 		/*
 
 		#version 120

@@ -68,3 +68,7 @@
 ---------------------------
 * Resolved FBO bugs while using MSAA in fisheyemode
 * Added support to use MSAA + FXAA in fisheye rendering
+
+2013-05-27 SGCT ver 1.4.2
+---------------------------
+* Optimized shader performance for fisheye by using constants for constant trigonometric expressions

@@ -85,7 +85,7 @@ void myDrawFun()
 		glTexCoord2d(0.0,1.0); glVertex3f(-r, -r, 0.0f);
 	glEnd();
 
-	/*glDisable(GL_TEXTURE_2D);
+	glDisable(GL_TEXTURE_2D);
 	
 	glColor3f(1.0f,1.0f,0.0f);
 	glLineWidth(5.0);
@@ -106,8 +106,27 @@ void myDrawFun()
 		glVertex3f(0.0f, r/2.0f, -r/2.0f);
 	glEnd();
 
-	glColor3f(1.0f,0.0f,1.0f);
+	glColor3f(1.0f,0.5f,0.5f);
 	glLineWidth(5.0);
+	glBegin(GL_LINES);
+		glVertex3f(-r/4.0f, r/4.0f, 0.0f);
+		glVertex3f(0.0f, r/4.0f, -r/4.0f);
+
+		glVertex3f(-r/4.0f, -r/4.0f, 0.0f);
+		glVertex3f(0.0f, -r/4.0f, -r/4.0f);
+
+		glVertex3f(r/4.0f, r/4.0f, 0.0f);
+		glVertex3f(0.0f, r/4.0f, -r/4.0f);
+
+		glVertex3f(r/4.0f, -r/4.0f, 0.0f);
+		glVertex3f(0.0f, -r/4.0f, -r/4.0f);
+
+		glVertex3f(0.0f, -r/4.0f, -r/4.0f);
+		glVertex3f(0.0f, r/4.0f, -r/4.0f);
+	glEnd();
+
+	glColor3f(1.0f,0.0f,1.0f);
+	glLineWidth(2.0);
 	glBegin(GL_LINES);
 		glVertex3f(-r*2.0f, r*2.0f, 0.0f);
 		glVertex3f(0.0f, r*2.0f, -r*2.0f);
@@ -126,7 +145,7 @@ void myDrawFun()
 	glEnd();
 
 	glColor3f(0.0f,1.0f,1.0f);
-	glLineWidth(5.0);
+	glLineWidth(2.0);
 	glBegin(GL_LINES);
 		glVertex3f(-r, r, 0.0f);
 		glVertex3f(0.0f, r, -r);
@@ -143,7 +162,6 @@ void myDrawFun()
 		glVertex3f(0.0f, -r, -r);
 		glVertex3f(0.0f, r, -r);
 	glEnd();
-	*/
 }
 
 void myInitOGLFun()

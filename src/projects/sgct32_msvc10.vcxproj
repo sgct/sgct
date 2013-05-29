@@ -71,6 +71,7 @@
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
     <ClInclude Include="..\..\include\sgct\ScreenCapture.h" />
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders_modern.h" />
     <ClInclude Include="..\..\include\sgct\SGCTMutexManager.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNode.h" />

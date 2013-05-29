@@ -25,6 +25,7 @@ public:
 	/*! If shader source should be loaded from file or read as is */
 	enum ShaderSourceType{ SHADER_SOURCE_FILE, SHADER_SOURCE_STRING };
 
+	ShaderProgram();
 	ShaderProgram( const std::string & name );
 	~ShaderProgram( void );
 
@@ -51,6 +52,15 @@ public:
 
 	/*! Equal to string operator */
 	inline bool operator==( const std::string & rhs ) const { return mName == rhs; }
+
+	/*! Get the name of the program */
+	inline std::string getName() { return mName; }
+
+	/*! Check if the program is linked */
+	inline bool isLinked() { return mIsLinked; }
+
+	/*! Get the program ID */
+	inline int getId() { return mProgramId; }
 
 private:
 

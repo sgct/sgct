@@ -132,6 +132,9 @@
     <ClInclude Include="..\..\include\sgct\SGCTMutexManager.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders_modern.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\Viewport.cpp">

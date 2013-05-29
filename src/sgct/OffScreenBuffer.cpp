@@ -19,6 +19,7 @@ sgct_core::OffScreenBuffer::OffScreenBuffer()
 
 	mWidth = 1;
 	mHeight = 1;
+	mMultiSampled = false;
 }
 
 void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)

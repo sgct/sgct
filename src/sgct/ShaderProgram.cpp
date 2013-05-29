@@ -12,6 +12,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 
 /*!
+	Creates a dummy ShaderProgram
+*/
+sgct::ShaderProgram::ShaderProgram() :
+	mIsLinked( false ),
+	mProgramId( 0 ),
+	mVertexShader( GL_VERTEX_SHADER ),
+	mFragmentShader( GL_FRAGMENT_SHADER )
+{
+	mName.assign("SGCT_NULL");
+}
+//----------------------------------------------------------------------------//
+
+/*!
 Default only sets the program name.Shaders objects won't be created until
 the any shader source code is set. The program will be created when the
 createAndLink() function is called. Make sure the shader sources are

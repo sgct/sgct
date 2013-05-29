@@ -178,7 +178,8 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	}
 	(*imPtr)->setFilename( mScreenShotFilename.c_str() );
 	
-	glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	GLenum colorType;
@@ -206,7 +207,8 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 
 	if(cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
 	{
-		glEnable(GL_TEXTURE_2D);	
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+			glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
 		mUsePBO ? 
@@ -255,7 +257,8 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	else
 		error = true;
 
-	glPopAttrib();
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		glPopAttrib();
 
 	if(error)
 		sgct::MessageHandler::Instance()->print("Error in taking screenshot/capture!\n");

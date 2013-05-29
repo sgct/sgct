@@ -125,8 +125,7 @@ void sgct_core::Viewport::loadData()
 	if( mOverlayFilename != NULL )
 		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
 
-	if( mMeshFilename != NULL )
-		mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
+	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
 }
 
 void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)

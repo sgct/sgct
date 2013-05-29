@@ -15,8 +15,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ReadConfig.h"
 #include "OffScreenBuffer.h"
 #include "ScreenCapture.h"
+#include "ShaderProgram.h"
 
 #define MAX_UNIFORM_LOCATIONS 64
+#define NUMBER_OF_SHADER_POINTERS 6
 #define NUMBER_OF_VBOS 2
 
 /*! \namespace sgct
@@ -55,8 +57,10 @@ private:
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
+	enum ShaderPointerIndexes { FBOQuadShader = 0, FBOQuadStereoShader, FXAAShader, FisheyeShader, StereoShader, NULLShader };
 	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov, FisheyeOffset,
-			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture};
+			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture,
+			MVP };
 
 public:
 	Engine( int& argc, char**& argv );
@@ -280,6 +284,11 @@ public:
 	*/
 	inline unsigned int getCurrentFrameNumber() { return mFrameCounter; }
 
+	/*!
+		Return true if OpenGL pipeline is fixed (openGL 1-2) or false if OpenGL pipeline is programmable (openGL 3-4)
+	*/
+	inline bool isOGLPipelineFixed() { return mFixedOGLPipeline; }
+
 	bool isFisheye();
 	sgct_core::OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
@@ -308,6 +317,7 @@ private:
 	void drawOverlays();
 	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
+	void renderFBOTextureFixedPipeline();
 	void renderFisheye(TextureIndexes ti);
 	void renderPostFx(TextureIndexes ti ); 
 	void updateRenderingTargets(TextureIndexes ti);
@@ -343,7 +353,8 @@ private:
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
 	CallbackFn mCleanUpFn;
-	InternalCallbackFn mInternalRenderFn;
+	InternalCallbackFn mInternalDrawFn;
+	InternalCallbackFn mInternalRenderFBOFn;
 	NetworkCallbackFn mNetworkCallbackFn;
 
 	//GLFW wrapped function pointers
@@ -373,10 +384,12 @@ private:
 	bool mTerminate;
 	bool mIgnoreSync;
 	bool mRenderingOffScreen;
+	bool mFixedOGLPipeline;
 
 	//objects
 	sgct_core::Statistics	 mStatistics;
 	sgct_core::ScreenCapture mScreenCapture;
+	ShaderProgram mShaders[NUMBER_OF_SHADER_POINTERS];
 
 	//FBO stuff
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
@@ -390,7 +403,7 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
-
+	
 	float mPostFxQuadVerts[20];
 
 	std::string configFilename;

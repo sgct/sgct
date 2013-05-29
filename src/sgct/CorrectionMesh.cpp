@@ -21,7 +21,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 sgct_core::CorrectionMesh::CorrectionMesh()
 {
 	mVertices = NULL;
-	mVertexList = NULL;
 	mFaces = NULL;
 
 	mXSize = 1.0f;
@@ -36,20 +35,18 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 
 	mMeshData[0] = 0;
 	mMeshData[1] = 0;
-
-	hasMesh = false;
+	mMeshData[2] = 0;
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {
-	if( hasMesh )
+	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
+		glDeleteLists(mMeshData[0], 1);
+	else
 	{
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX)
-			glDeleteBuffers(2, &mMeshData[0]);
-		else if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
-			glDeleteBuffers(1, &mMeshData[0]);
-		else
-			glDeleteLists(mMeshData[0], 1);
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+			glDeleteVertexArrays(1, &mMeshData[2]);
+		glDeleteBuffers(2, &mMeshData[0]);
 	}
 }
 
@@ -65,7 +62,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 {
 	if( meshPath == NULL )
 	{
-	    sgct::MessageHandler::Instance()->print("Error: cannot read mesh path (string is null)!\n", meshPath);
+	    setupSimpleMesh();
 		return false;
 	}
 
@@ -158,11 +155,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 				{
 					mFaces = new unsigned int[ mNumberOfFaces * 3 ];
 					memset(mFaces, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
-					if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
-					{
-						mVertexList = new CorrectionMeshVertex[ mNumberOfFaces * 3 ];
-						memset(mVertexList, 0, mNumberOfFaces * 3 * sizeof(CorrectionMeshVertex));
-					}
 				}
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -209,64 +201,83 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	fclose( meshFile );
 
-	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY)
-	{
-		for(unsigned int i=0; i<mNumberOfFaces; i++)
-			for(unsigned int j=0; j<3; j++)
-			{
-				mVertexList[i*3 + j].x = mVertices[mFaces[i*3 + j]].x;
-				mVertexList[i*3 + j].y = mVertices[mFaces[i*3 + j]].y;
-				mVertexList[i*3 + j].s0 = mVertices[mFaces[i*3 + j]].s0;
-				mVertexList[i*3 + j].t0 = mVertices[mFaces[i*3 + j]].t0;
-				mVertexList[i*3 + j].s1 = mVertices[mFaces[i*3 + j]].s1;
-				mVertexList[i*3 + j].t1 = mVertices[mFaces[i*3 + j]].t1;
-				mVertexList[i*3 + j].r = mVertices[mFaces[i*3 + j]].r;
-				mVertexList[i*3 + j].g = mVertices[mFaces[i*3 + j]].g;
-				mVertexList[i*3 + j].b = mVertices[mFaces[i*3 + j]].b;
-			}
-	}
-
 	createMesh();
 
 	cleanUp();
-
-	//indicate that a mesh is loaded and can be used
-	hasMesh = true;
 
 	sgct::MessageHandler::Instance()->print("Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
 
 	return true;
 }
 
+void sgct_core::CorrectionMesh::setupSimpleMesh()
+{
+	mNumberOfVertices = 4;
+	mNumberOfFaces = 2;
+	
+	mVertices = new CorrectionMeshVertex[ mNumberOfVertices ];
+	memset(mVertices, 0, mNumberOfVertices * sizeof(CorrectionMeshVertex));
+
+	mFaces = new unsigned int[ mNumberOfFaces * 3 ];
+	memset(mFaces, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
+
+	mFaces[0] = 0;
+	mFaces[1] = 1;
+	mFaces[2] = 2;
+	mFaces[3] = 2;
+	mFaces[4] = 3;
+	mFaces[5] = 0;
+
+	mVertices[0].r = 255;
+	mVertices[0].g = 255;
+	mVertices[0].b = 255;
+	mVertices[0].s0 = 0.0f * mXSize + mXOffset;
+	mVertices[0].s1 = 0.0f * mXSize + mXOffset;
+	mVertices[0].t0 = 0.0f * mYSize + mYOffset;
+	mVertices[0].t1 = 0.0f * mYSize + mYOffset;
+	mVertices[0].x = 0.0f*mXSize + mXOffset;
+	mVertices[0].y = 0.0f*mYSize + mYOffset;
+
+	mVertices[1].r = 255;
+	mVertices[1].g = 255;
+	mVertices[1].b = 255;
+	mVertices[1].s0 = 1.0f * mXSize + mXOffset;
+	mVertices[1].s1 = 1.0f * mXSize + mXOffset;
+	mVertices[1].t0 = 0.0f * mYSize + mYOffset;
+	mVertices[1].t1 = 0.0f * mYSize + mYOffset;
+	mVertices[1].x = 1.0f*mXSize + mXOffset;
+	mVertices[1].y = 0.0f*mYSize + mYOffset;
+
+	mVertices[2].r = 255;
+	mVertices[2].g = 255;
+	mVertices[2].b = 255;
+	mVertices[2].s0 = 1.0f * mXSize + mXOffset;
+	mVertices[2].s1 = 1.0f * mXSize + mXOffset;
+	mVertices[2].t0 = 1.0f * mYSize + mYOffset;
+	mVertices[2].t1 = 1.0f * mYSize + mYOffset;
+	mVertices[2].x = 1.0f*mXSize + mXOffset;
+	mVertices[2].y = 1.0f*mYSize + mYOffset;
+
+	mVertices[3].r = 255;
+	mVertices[3].g = 255;
+	mVertices[3].b = 255;
+	mVertices[3].s0 = 0.0f * mXSize + mXOffset;
+	mVertices[3].s1 = 0.0f * mXSize + mXOffset;
+	mVertices[3].t0 = 1.0f * mYSize + mYOffset;
+	mVertices[3].t1 = 1.0f * mYSize + mYOffset;
+	mVertices[3].x = 0.0f*mXSize + mXOffset;
+	mVertices[3].y = 1.0f*mYSize + mYOffset;
+
+	createMesh();
+
+	cleanUp();
+}
+
 void sgct_core::CorrectionMesh::createMesh()
 {
 	//sgct::MessageHandler::Instance()->print("Uploading mesh data...\n");
 
-	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX )
-	{
-		glGenBuffers(2, &mMeshData[0]);
-
-		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
-
-		//unbind
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	}
-	else if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_ARRAY )
-	{
-		glGenBuffers(1, &mMeshData[0]);
-		
-		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-		glBufferData(GL_ARRAY_BUFFER, mNumberOfFaces * 3 * sizeof(CorrectionMeshVertex), mVertexList, GL_STATIC_DRAW);
-
-		//unbind
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
-	else
+	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST )
 	{
 		mMeshData[Vertex] = glGenLists(1);
 		glNewList(mMeshData[Vertex], GL_COMPILE);
@@ -298,40 +309,28 @@ void sgct_core::CorrectionMesh::createMesh()
 #endif
 		glEndList();
 	}
-}
-
-void sgct_core::CorrectionMesh::render()
-{
-	if(hasMesh)
-		renderMesh();
 	else
 	{
-		/*
-			counter clock wise winding
-		*/
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		{
+			glGenVertexArrays(1, &mMeshData[Array]);
+			glBindVertexArray(mMeshData[Array]);
+		}
 		
-		glColor4f(1.0f,1.0f,1.0f,1.0f);
-		glBegin(GL_QUADS);
-		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		//glTexCoord2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glVertex2f(0.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glGenBuffers(2, &mMeshData[0]);
 
-		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		//glTexCoord2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
-		glVertex2f(1.0f*mXSize + mXOffset, 0.0f*mYSize + mYOffset);
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
 
-		glMultiTexCoord2f(GL_TEXTURE0, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		//glTexCoord2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glVertex2f(1.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
 
-		glMultiTexCoord2f(GL_TEXTURE0, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glMultiTexCoord2f(GL_TEXTURE1, 0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		//glTexCoord2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glVertex2f(0.0f*mXSize + mXOffset, 1.0f*mYSize + mYOffset);
-		glEnd();
+		//unbind
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+			glBindVertexArray(0);
 	}
 }
 
@@ -344,12 +343,6 @@ void sgct_core::CorrectionMesh::cleanUp()
 		mVertices = NULL;
 	}
 
-	if( mVertexList != NULL )
-	{
-		delete [] mVertexList;
-		mVertexList = NULL;
-	}
-
 	if( mFaces != NULL )
 	{
 		delete [] mFaces;
@@ -357,9 +350,9 @@ void sgct_core::CorrectionMesh::cleanUp()
 	}
 }
 
-void sgct_core::CorrectionMesh::renderMesh()
+void sgct_core::CorrectionMesh::render()
 {
-	if( ClusterManager::Instance()->getMeshImplementation() != ClusterManager::DISPLAY_LIST )
+	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX )
 	{
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
@@ -378,22 +371,74 @@ void sgct_core::CorrectionMesh::renderMesh()
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
 		
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX)
-		{
-			glEnableClientState(GL_INDEX_ARRAY);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		glEnableClientState(GL_INDEX_ARRAY);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
-			glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
+		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
-		else
-		{
-			glDrawArrays(GL_TRIANGLES, 0, mNumberOfFaces*3);
-		}
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glPopClientAttrib();
+	}
+	else if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO )
+	{
+		glBindVertexArray(mMeshData[Array]);
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+			0, // The attribute we want to configure
+			2,                           // size
+			GL_FLOAT,                    // type
+			GL_FALSE,                    // normalized?
+			sizeof(CorrectionMeshVertex),// stride
+			reinterpret_cast<void*>(0)   // array buffer offset
+		);
+
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(
+			1, // The attribute we want to configure
+			2,                           // size
+			GL_FLOAT,                    // type
+			GL_FALSE,                    // normalized?
+			sizeof(CorrectionMeshVertex),// stride
+			reinterpret_cast<void*>(8)   // array buffer offset
+		);
+
+		glEnableVertexAttribArray(2);
+		glVertexAttribPointer(
+			2, // The attribute we want to configure
+			2,                           // size
+			GL_FLOAT,                    // type
+			GL_FALSE,                    // normalized?
+			sizeof(CorrectionMeshVertex),// stride
+			reinterpret_cast<void*>(16)  // array buffer offset
+		);
+
+		glEnableVertexAttribArray(3);
+		glVertexAttribPointer(
+			3, // The attribute we want to configure
+			3,                           // size
+			GL_UNSIGNED_BYTE,            // type
+			GL_TRUE,                    // normalized?
+			sizeof(CorrectionMeshVertex),// stride
+			reinterpret_cast<void*>(24)  // array buffer offset
+		);
+
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+
+		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
+
+		glDisableVertexAttribArray(3);
+		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+
+		//unbind
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
 	}
 	else
 	{

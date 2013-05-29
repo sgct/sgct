@@ -12,7 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
-	/*
+	/*!
 		All shaders are in GLSL 1.2 for compability with Mac OS X
 	*/
 	namespace shaders

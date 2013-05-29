@@ -51,7 +51,7 @@ public:
 	/*!
 		Different modes for warping/edge blending meshes 
 	*/
-	enum MeshImplementation { VBO_INDEX=0, VBO_ARRAY, DISPLAY_LIST };
+	enum MeshImplementation { VBO_INDEX=0, DISPLAY_LIST, VAO };
 	/*!
 		Different stereo modes used for rendering
 	*/

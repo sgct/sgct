@@ -19,6 +19,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/SGCTInternalShaders.h"
+#include "../include/sgct/SGCTInternalShaders_modern.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ogl_headers.h"
@@ -79,7 +80,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mCleanUpFn = NULL;
-	mInternalRenderFn = NULL;
+	mInternalDrawFn = NULL;
+	mInternalRenderFBOFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -90,6 +92,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mTerminate = false;
 	mIgnoreSync = false;
 	mRenderingOffScreen = false;
+	mFixedOGLPipeline = true;
 
 	localRunningMode = NetworkManager::NotLocal;
 
@@ -395,6 +398,9 @@ bool sgct::Engine::initWindow()
 	}
 	MessageHandler::Instance()->print("Using GLEW %s.\n", glewGetString(GLEW_VERSION));
 
+	if( !checkForOGLErrors() )
+		MessageHandler::Instance()->print("GLEW init triggered an OpenGL error.\n");
+
     /*
         Swap inerval:
         -1 = adaptive sync
@@ -436,6 +442,23 @@ void sgct::Engine::initOGL()
 	{
 		sgct::MessageHandler::Instance()->print("Warning! FBO multisampling is not supported!\n");
 		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
+	}
+
+	/*
+		Set up function pointers etc. depending on if fixed or programmable pipeline is used
+	*/
+	if( mRunMode > OpenGL_Compablity_Profile )
+	{
+		mInternalDrawFn = &Engine::draw;
+		mInternalRenderFBOFn = &Engine::renderFBOTexture;
+		ClusterManager::Instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
+		mFixedOGLPipeline = false;
+	}
+	else
+	{
+		mInternalDrawFn = &Engine::drawFixedPipeline;
+		mInternalRenderFBOFn = &Engine::renderFBOTextureFixedPipeline;
+		mFixedOGLPipeline = true;
 	}
 
 	createTextures();
@@ -492,11 +515,6 @@ void sgct::Engine::initOGL()
 		mInitOGLFn();
 
 	calculateFrustums();
-
-	if( mRunMode > OpenGL_Compablity_Profile )
-		mInternalRenderFn = &Engine::draw;
-	else
-		mInternalRenderFn = &Engine::drawFixedPipeline;
 
 	//
 	// Add fonts
@@ -636,7 +654,8 @@ void sgct::Engine::clearAllCallbacks()
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mCleanUpFn = NULL;
-	mInternalRenderFn = NULL;
+	mInternalDrawFn = NULL;
+	mInternalRenderFBOFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -851,7 +870,7 @@ void sgct::Engine::render()
 							mNearClippingPlaneDist,
 							mFarClippingPlaneDist);
 					}
-					(this->*mInternalRenderFn)();
+					(this->*mInternalDrawFn)();
 				}
 			}
 
@@ -880,7 +899,7 @@ void sgct::Engine::render()
 								mNearClippingPlaneDist,
 								mFarClippingPlaneDist);
 						}
-						(this->*mInternalRenderFn)();
+						(this->*mInternalDrawFn)();
 					}
 				}
 
@@ -892,7 +911,7 @@ void sgct::Engine::render()
 
 		mRenderingOffScreen = false;
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-			renderFBOTexture();
+			(this->*mInternalRenderFBOFn)();
 
 		//draw viewport overlays if any
 		drawOverlays();
@@ -1284,6 +1303,109 @@ void sgct::Engine::renderFBOTexture()
 	OffScreenBuffer::unBind();
 
 	//enter ortho mode
+	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
+
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
+	
+	//clear buffers
+	mActiveFrustum = tmpNode->stereo == ClusterManager::Active ? Frustum::StereoLeftEye : Frustum::Mono;
+	setAndClearBuffer(BackBufferBlack);
+
+	glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
+
+	if( tmpNode->stereo > ClusterManager::Active )
+	{
+		switch(tmpNode->stereo)
+		{
+		case ClusterManager::Anaglyph_Red_Cyan:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan" );
+			break;
+
+		case ClusterManager::Anaglyph_Amber_Blue:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Amber_Blue" );
+			break;
+
+		case ClusterManager::Anaglyph_Red_Cyan_Wimmer:
+			sgct::ShaderManager::Instance()->bindShader( "Anaglyph_Red_Cyan_Wimmer" );
+			break;
+
+		case ClusterManager::Checkerboard:
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard" );
+			break;
+
+		case ClusterManager::Checkerboard_Inverted:
+			sgct::ShaderManager::Instance()->bindShader( "Checkerboard_Inverted" );
+			break;
+
+		case ClusterManager::Vertical_Interlaced:
+			sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced" );
+			break;
+
+		case ClusterManager::Vertical_Interlaced_Inverted:
+			sgct::ShaderManager::Instance()->bindShader( "Vertical_Interlaced_Inverted" );
+			break;
+		}
+
+		glUniform1i( mShaderLocs[LeftTex], 0);
+		glUniform1i( mShaderLocs[RightTex], 1);
+
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
+		glEnable(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
+		glEnable(GL_TEXTURE_2D);
+
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			tmpNode->getViewport(i)->renderMesh();
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+	else
+	{	
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
+
+		mShaders[FBOQuadShader].use(); //bind
+		glUniform1i( mShaderLocs[LeftTex], 0);
+		glUniformMatrix4fv( mShaderLocs[MVP], 1, GL_FALSE, &orthoMat[0][0]);
+
+		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+			tmpNode->getViewport(i)->renderMesh();
+
+		//render right eye in active stereo mode
+		if( tmpNode->stereo == ClusterManager::Active )
+		{
+			//clear buffers
+			mActiveFrustum = Frustum::StereoRightEye;
+			setAndClearBuffer(BackBufferBlack);
+
+			glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
+
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
+
+			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+				tmpNode->getViewport(i)->renderMesh();
+		}
+
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+}
+
+
+/*!
+	Draw geometry and bind FBO as texture in screenspace (ortho mode).
+	The geometry can be a simple quad or a geometry correction and blending mesh.
+*/
+void sgct::Engine::renderFBOTextureFixedPipeline()
+{
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	//unbind framebuffer
+	OffScreenBuffer::unBind();
+
+	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
@@ -1342,19 +1464,11 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( mShaderLocs[RightTex], 1);
 
 		glActiveTexture(GL_TEXTURE0);
-#ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[LeftEye]);
-#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-#endif
 		glEnable(GL_TEXTURE_2D);
 
 		glActiveTexture(GL_TEXTURE1);
-#ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[RightEye]);
-#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
-#endif
 		glEnable(GL_TEXTURE_2D);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
@@ -1364,32 +1478,28 @@ void sgct::Engine::renderFBOTexture()
 	else
 	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-#ifdef __SGCT_DEPTH_MAP_DEBUG__
-		glBindTexture(GL_TEXTURE_2D, mDepthBufferTextures[LeftEye]);
-#else
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-#endif
 		glEnable(GL_TEXTURE_2D);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
-	}
 
-	//render right eye in active stereo mode
-	if( tmpNode->stereo == ClusterManager::Active )
-	{
-		//clear buffers
-		mActiveFrustum = Frustum::StereoRightEye;
-		setAndClearBuffer(BackBufferBlack);
+		//render right eye in active stereo mode
+		if( tmpNode->stereo == ClusterManager::Active )
+		{
+			//clear buffers
+			mActiveFrustum = Frustum::StereoRightEye;
+			setAndClearBuffer(BackBufferBlack);
 
-		glLoadIdentity();
+			glLoadIdentity();
 
-		glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
+			glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
 
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
 
-		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
-			tmpNode->getViewport(i)->renderMesh();
+			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+				tmpNode->getViewport(i)->renderMesh();
+		}
 	}
 
 	glPopAttrib();
@@ -1437,7 +1547,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			setAndClearBuffer(RenderToTexture);
 
 			//render
-			(this->*mInternalRenderFn)();
+			(this->*mInternalDrawFn)();
 
 			//copy AA-buffer to "regular"/non-AA buffer
 			if( mCubeMapFBO_Ptr->isMultiSampled() )
@@ -1691,6 +1801,21 @@ void sgct::Engine::loadShaders()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
+	//set null shader
+	mShaders[NULLShader] = sgct::ShaderManager::Instance()->getShader( "SGCT_NULL" );
+
+	if( mRunMode > OpenGL_Compablity_Profile )
+	{
+		sgct::ShaderManager::Instance()->addShader( mShaders[FBOQuadShader], "FBOQuad",
+			sgct_core::shaders_modern::TexPos_Vert_Shader,
+			sgct_core::shaders_modern::TexPos_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].use();
+
+		mShaderLocs[MVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
+		mShaderLocs[LeftTex] = mShaders[FBOQuadShader].getUniformLocation( "LeftTex" );
+		glUniform1i( mShaderLocs[LeftTex], 0 );
+	}
+
 	//create FXAA shaders
 	sgct::ShaderManager::Instance()->addShader("FXAA", sgct_core::shaders::FXAA_Vert_Shader,
 		sgct_core::shaders::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
@@ -1822,6 +1947,10 @@ void sgct::Engine::loadShaders()
 */
 void sgct::Engine::createTextures()
 {
+	//no target textures needed if not using FBO
+	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
+		return;
+	
 	if( mRunMode <= OpenGL_Compablity_Profile )
 	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
@@ -1848,6 +1977,7 @@ void sgct::Engine::createTextures()
 	{
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
@@ -1947,9 +2077,10 @@ void sgct::Engine::createFBOs()
 		}
 		else //regular viewport rendering
 		{
-			mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
-			getWindowPtr()->getYFramebufferResolution(),
-			tmpNode->numberOfSamples);
+			mFinalFBO_Ptr->createFBO(
+				getWindowPtr()->getXFramebufferResolution(),
+				getWindowPtr()->getYFramebufferResolution(),
+				tmpNode->numberOfSamples);
 		}
 
 		sgct::MessageHandler::Instance()->print("FBOs initiated successfully!\n");
@@ -2043,11 +2174,6 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 			glReadBuffer(GL_BACK_RIGHT);
 		}
 	}
-	/*else //doesn't work
-	{
-		glReadBuffer(GL_NONE);
-		glDrawBuffer(GL_NONE);
-	}*/
 
 	//clear
 	if( mode != BackBufferBlack && mClearBufferFn != NULL )

@@ -37,28 +37,27 @@ public:
 	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
+	void setupSimpleMesh();
 	void createMesh();
 	void cleanUp();
 	void renderMesh();
 
-	enum buffer { Vertex = 0, Index };
+	enum buffer { Vertex = 0, Index, Array };
 
 	CorrectionMeshVertex * mVertices;
-	CorrectionMeshVertex * mVertexList;
+	//CorrectionMeshVertex * mVertexList;
 	unsigned int * mFaces;
     double mOrthoCoords[5];
 	unsigned int mResolution[2];
 
 	unsigned int mNumberOfVertices;
 	unsigned int mNumberOfFaces;
-	unsigned int mMeshData[2];
+	unsigned int mMeshData[3];
 
 	float mXSize;
 	float mYSize;
 	float mXOffset;
 	float mYOffset;
-	
-	bool hasMesh;
 };
 
 } //sgct_core

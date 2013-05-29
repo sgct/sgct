@@ -108,10 +108,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 					mVertices[ numOfVerticesRead ].r = static_cast<unsigned char>(intensity);
 					mVertices[ numOfVerticesRead ].g = static_cast<unsigned char>(intensity);
 					mVertices[ numOfVerticesRead ].b = static_cast<unsigned char>(intensity);
-					mVertices[ numOfVerticesRead ].s0 = (1.0f - t) * mXSize + mXOffset;
-					mVertices[ numOfVerticesRead ].t0 = (1.0f - s) * mYSize + mYOffset;
-					mVertices[ numOfVerticesRead ].s1 = (1.0f - t) * mXSize + mXOffset;
-					mVertices[ numOfVerticesRead ].t1 = (1.0f - s) * mYSize + mYOffset;
+					mVertices[ numOfVerticesRead ].s = (1.0f - t) * mXSize + mXOffset;
+					mVertices[ numOfVerticesRead ].t = (1.0f - s) * mYSize + mYOffset;
 
 					numOfVerticesRead++;
 				}
@@ -231,40 +229,32 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 	mVertices[0].r = 255;
 	mVertices[0].g = 255;
 	mVertices[0].b = 255;
-	mVertices[0].s0 = 0.0f * mXSize + mXOffset;
-	mVertices[0].s1 = 0.0f * mXSize + mXOffset;
-	mVertices[0].t0 = 0.0f * mYSize + mYOffset;
-	mVertices[0].t1 = 0.0f * mYSize + mYOffset;
+	mVertices[0].s = 0.0f * mXSize + mXOffset;
+	mVertices[0].t = 0.0f * mYSize + mYOffset;
 	mVertices[0].x = 0.0f*mXSize + mXOffset;
 	mVertices[0].y = 0.0f*mYSize + mYOffset;
 
 	mVertices[1].r = 255;
 	mVertices[1].g = 255;
 	mVertices[1].b = 255;
-	mVertices[1].s0 = 1.0f * mXSize + mXOffset;
-	mVertices[1].s1 = 1.0f * mXSize + mXOffset;
-	mVertices[1].t0 = 0.0f * mYSize + mYOffset;
-	mVertices[1].t1 = 0.0f * mYSize + mYOffset;
+	mVertices[1].s = 1.0f * mXSize + mXOffset;
+	mVertices[1].t = 0.0f * mYSize + mYOffset;
 	mVertices[1].x = 1.0f*mXSize + mXOffset;
 	mVertices[1].y = 0.0f*mYSize + mYOffset;
 
 	mVertices[2].r = 255;
 	mVertices[2].g = 255;
 	mVertices[2].b = 255;
-	mVertices[2].s0 = 1.0f * mXSize + mXOffset;
-	mVertices[2].s1 = 1.0f * mXSize + mXOffset;
-	mVertices[2].t0 = 1.0f * mYSize + mYOffset;
-	mVertices[2].t1 = 1.0f * mYSize + mYOffset;
+	mVertices[2].s = 1.0f * mXSize + mXOffset;
+	mVertices[2].t = 1.0f * mYSize + mYOffset;
 	mVertices[2].x = 1.0f*mXSize + mXOffset;
 	mVertices[2].y = 1.0f*mYSize + mYOffset;
 
 	mVertices[3].r = 255;
 	mVertices[3].g = 255;
 	mVertices[3].b = 255;
-	mVertices[3].s0 = 0.0f * mXSize + mXOffset;
-	mVertices[3].s1 = 0.0f * mXSize + mXOffset;
-	mVertices[3].t0 = 1.0f * mYSize + mYOffset;
-	mVertices[3].t1 = 1.0f * mYSize + mYOffset;
+	mVertices[3].s = 0.0f * mXSize + mXOffset;
+	mVertices[3].t = 1.0f * mYSize + mYOffset;
 	mVertices[3].x = 0.0f*mXSize + mXOffset;
 	mVertices[3].y = 1.0f*mYSize + mYOffset;
 
@@ -289,8 +279,7 @@ void sgct_core::CorrectionMesh::createMesh()
 			for(unsigned int j=0; j<3; j++)
 			{
 				glColor3ub( mVertices[mFaces[i*3 + j]].r, 0, 255 - mVertices[mFaces[i*3 + j]].r );
-				glMultiTexCoord2f( GL_TEXTURE0, mVertices[mFaces[i*3 + j]].s0, mVertices[mFaces[i*3 + j]].t0 );
-				glMultiTexCoord2f( GL_TEXTURE1, mVertices[mFaces[i*3 + j]].s1, mVertices[mFaces[i*3 + j]].t1 );
+				glTexCoord2f( mVertices[mFaces[i*3 + j]].s, mVertices[mFaces[i*3 + j]].t );
 				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
 			}
 			glEnd();
@@ -301,8 +290,7 @@ void sgct_core::CorrectionMesh::createMesh()
 			for(unsigned int j=0; j<3; j++)
 			{
 				glColor3ub( mVertices[mFaces[i*3 + j]].r, mVertices[mFaces[i*3 + j]].g, mVertices[mFaces[i*3 + j]].b );
-				glMultiTexCoord2f( GL_TEXTURE0, mVertices[mFaces[i*3 + j]].s0, mVertices[mFaces[i*3 + j]].t0 );
-				glMultiTexCoord2f( GL_TEXTURE1, mVertices[mFaces[i*3 + j]].s1, mVertices[mFaces[i*3 + j]].t1 );
+				glTexCoord2f( mVertices[mFaces[i*3 + j]].s, mVertices[mFaces[i*3 + j]].t );
 				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
 			}
 		glEnd();
@@ -363,13 +351,9 @@ void sgct_core::CorrectionMesh::render()
 		glClientActiveTexture(GL_TEXTURE0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
-	
-		glClientActiveTexture(GL_TEXTURE1);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(24));
+		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 		
 		glEnableClientState(GL_INDEX_ARRAY);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
@@ -409,28 +393,17 @@ void sgct_core::CorrectionMesh::render()
 		glEnableVertexAttribArray(2);
 		glVertexAttribPointer(
 			2, // The attribute we want to configure
-			2,                           // size
-			GL_FLOAT,                    // type
-			GL_FALSE,                    // normalized?
-			sizeof(CorrectionMeshVertex),// stride
-			reinterpret_cast<void*>(16)  // array buffer offset
-		);
-
-		glEnableVertexAttribArray(3);
-		glVertexAttribPointer(
-			3, // The attribute we want to configure
 			3,                           // size
 			GL_UNSIGNED_BYTE,            // type
 			GL_TRUE,                    // normalized?
 			sizeof(CorrectionMeshVertex),// stride
-			reinterpret_cast<void*>(24)  // array buffer offset
+			reinterpret_cast<void*>(16)  // array buffer offset
 		);
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
 		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
-		glDisableVertexAttribArray(3);
 		glDisableVertexAttribArray(2);
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);

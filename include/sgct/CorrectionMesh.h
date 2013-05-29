@@ -11,12 +11,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 struct CorrectionMeshVertex
 {
 	float x, y;	//Vertex 8
-	float s0, t0;	//Texcoord0 8
-	float s1, t1;	//Texcoord1 8
+	float s, t;	//Texcoord0 8
 	unsigned char r, g, b; //color 3
 
 	//ATI performs better using sizes of power of two
-	unsigned char padding[5]; //32 - 8 - 8 - 8 - 3 = 5
+	unsigned char padding[13]; //32 - 8 - 8 - 3 = 13
 };
 
 namespace sgct_core

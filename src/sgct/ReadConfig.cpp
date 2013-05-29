@@ -730,6 +730,8 @@ int sgct_core::ReadConfig::getStereoType( const std::string type )
 		return ClusterManager::Vertical_Interlaced;
 	else if( strcmp( type.c_str(), "vertical_interlaced_inverted" ) == 0 )
 		return ClusterManager::Vertical_Interlaced_Inverted;
+	else if( strcmp( type.c_str(), "test" ) == 0 || strcmp( type.c_str(), "dummy" ) == 0 )
+		return ClusterManager::DummyStereo;
 
 	//if match not found
 	return ClusterManager::NoStereo;

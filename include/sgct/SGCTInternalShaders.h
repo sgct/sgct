@@ -17,59 +17,14 @@ namespace sgct_core
 	*/
 	namespace shaders
 	{
-		/*
-
-		#version 120
-
-		void main()
-		{
-			gl_TexCoord[0] = gl_MultiTexCoord0;
-			gl_TexCoord[1] = gl_MultiTexCoord1;
-			gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-		}
-
-		*/
 		const std::string Base_Vert_Shader = "\
 			#version 120\n\
 			\n\
 			void main()\n\
 			{\n\
 				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_TexCoord[1] = gl_MultiTexCoord1;\n\
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
 			}\n";
-
-		/*
-
-		#version 120
-
-		uniform samplerCube cubemap;
-		uniform float halfFov;
-		float quarter_pi = 0.7853981634;
-
-		void main()
-		{
-			float s = 2.0 * (gl_TexCoord[0].s - 0.5);
-			float t = 2.0 * (gl_TexCoord[0].t - 0.5);
-			vec4 color;
-			if( s*s + t*t <= 1.0 )
-			{
-				float phi = sqrt(s*s + t*t) * halfFov;
-				float theta = atan(s,t);
-				float x = sin(phi) * sin(theta);
-				float y = -sin(phi) * cos(theta);
-				float z = cos(phi);
-				vec3 ReflectDir = vec3(x, y, z);
-				\\Since we only use four faces the cubemap is rotated 45 degrees
-				vec3 rotVec = vec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);
-				color = vec4(textureCube(cubemap, rotVec));
-			}
-			else
-				color = vec4(0.0, 0.0, 0.0, 0.0);
-			gl_FragColor = color;
-		}
-
-		*/
 
 		const std::string Fisheye_Frag_Shader = "\
 			#version 120\n\
@@ -102,41 +57,6 @@ namespace sgct_core
 				gl_FragColor = color;\n\
 			}\n";
 		
-		//test with double precition fp64 
-		//atan & sin not working in fp64 mode
-		/*const std::string Fisheye_Frag_Shader_OffAxis = "\
-			#version 150 compatibility\n\
-			#extension GL_ARB_gpu_shader_fp64 : enable // For NVIDIA cards.\n\
-			#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
-			#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			double quarter_pi = 0.7853981634;\n\
-			\n\
-			void main()\n\
-			{\n\
-				double s = 2.0 * double(gl_TexCoord[0].s - 0.5);\n\
-				double t = 2.0 * double(gl_TexCoord[0].t - 0.5);\n\
-				vec4 color;\n\
-				if( s*s + t*t <= 1.0 )\n\
-				{\n\
-					double phi = sqrt(s*s + t*t) * halfFov);\n\
-					double theta = atan(s,t);\n\
-					double x = sin(phi) * sin(theta) - offset.x;\n\
-					double y = -sin(phi) * cos(theta) - offset.y;\n\
-					double z = cos(phi) - offset.z;\n\
-					dvec3 rotVec = dvec3( cos(quarter_pi)*x + sin(quarter_pi)*z, y, -sin(quarter_pi)*x + cos(quarter_pi)*z);\n\
-					color = vec4(textureCube(cubemap, rotVec));\n\
-					//color.a = 1.0;\n\
-				}\n\
-				else\n\
-					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
-				gl_FragColor = color;\n\
-			}\n";
-		*/
-
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
 			#version 120\n\
 			\n\
@@ -166,56 +86,17 @@ namespace sgct_core
 					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
 				gl_FragColor = color;\n\
 			}\n";
-		/*
-
-		#version 120
-		uniform sampler2D LeftTex;
-		uniform sampler2D RightTex;
-
-		void main()
-		{
-			gl_TexCoord[0] = gl_MultiTexCoord0;
-			gl_TexCoord[1] = gl_MultiTexCoord1;
-
-			gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
-			gl_FrontColor = gl_Color;
-		}
-
-		*/
+		
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 120\n\
-			uniform sampler2D LeftTex;\n\
-			uniform sampler2D RightTex;\n\
+			\n\
 			void main()\n\
 			{\n\
 				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_TexCoord[1] = gl_MultiTexCoord1;\n\
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
 				gl_FrontColor = gl_Color;\n\
 			}\n";
-
-		/*
-
-		#version 120
-
-		uniform sampler2D LeftTex;
-		uniform sampler2D RightTex;
-
-		void main()
-		{
-			vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);
-			float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;
-
-			vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);
-			float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;
-
-			gl_FragColor.r = leftLum;
-			gl_FragColor.g = rightLum;
-			gl_FragColor.b = rightLum;
-			gl_FragColor.a = max(leftVals.a, rightVals.a);
-		}
-
-		*/
+		
 		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
@@ -224,12 +105,12 @@ namespace sgct_core
 			{\n\
 				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
-				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[0].st);\n\
 				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
-				gl_FragColor.r = leftLum;\n\
-				gl_FragColor.g = rightLum;\n\
-				gl_FragColor.b = rightLum;\n\
-				gl_FragColor.a = max(leftVals.a, rightVals.a);\n\
+				gl_FragColor.r = gl_Color.r * leftLum;\n\
+				gl_FragColor.g = gl_Color.g * rightLum;\n\
+				gl_FragColor.b = gl_Color.b * rightLum;\n\
+				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Frag_Shader_Wimmer = "\
@@ -239,35 +120,13 @@ namespace sgct_core
 			void main()\n\
 			{\n\
 				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
-				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
-				gl_FragColor.r = 0.7*leftVals.g + 0.3*leftVals.b;\n\
-				gl_FragColor.g = rightVals.r;\n\
-				gl_FragColor.b = rightVals.b;\n\
-				gl_FragColor.a = max(leftVals.a, rightVals.a);\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[0].st);\n\
+				gl_FragColor.r = gl_Color.r * (0.7*leftVals.g + 0.3*leftVals.b);\n\
+				gl_FragColor.g = gl_Color.g * rightVals.r;\n\
+				gl_FragColor.b = gl_Color.b * rightVals.b;\n\
+				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
-		/*
-
-		#version 120
-
-		uniform sampler2D LeftTex;
-		uniform sampler2D RightTex;
-
-		void main()
-		{
-			vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);
-			vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);
-
-			vec3 coef = vec3(0.15, 0.15, 0.70);
-
-			float rightMix = dot(rightVals.rbg, coef);
-			gl_FragColor.r = gl_Color.r * leftVals.r;
-			gl_FragColor.g = gl_Color.g * leftVals.g;
-			gl_FragColor.b = gl_Color.b * rightMix;
-			gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);
-		}
-
-		*/
 		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
@@ -275,7 +134,7 @@ namespace sgct_core
 			void main()\n\
 			{\n\
 				vec4 leftVals = texture2D( LeftTex, gl_TexCoord[0].st);\n\
-				vec4 rightVals = texture2D( RightTex, gl_TexCoord[1].st);\n\
+				vec4 rightVals = texture2D( RightTex, gl_TexCoord[0].st);\n\
 				vec3 coef = vec3(0.15, 0.15, 0.70);\n\
 				float rightMix = dot(rightVals.rbg, coef);\n\
 				gl_FragColor.r = gl_Color.r * leftVals.r;\n\
@@ -283,29 +142,6 @@ namespace sgct_core
 				gl_FragColor.b = gl_Color.b * rightMix;\n\
 				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
-
-		/*
-
-		#version 120
-
-		uniform sampler2D LeftTex;
-		uniform sampler2D RightTex;
-
-		void main()
-		{
-			//slow
-			//float fval = gl_FragCoord.y + gl_FragCoord.x;
-			//if( mod(fval,2.0) == 0.0 )
-
-			//fast
-			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
-			if( (fval - floor(fval)) == 0.0 )
-				gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);
-			else
-				gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);
-		}
-
-		*/
 
 		const std::string CheckerBoard_Frag_Shader = "\
 			#version 120\n\
@@ -315,32 +151,10 @@ namespace sgct_core
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st);\n\
 				else\n\
 					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
 			}\n";
-
-		/*
-
-		#version 120
-		uniform sampler2D LeftTex;
-		uniform sampler2D RightTex;
-
-		void main()
-		{
-			//slow
-			//float fval = gl_FragCoord.y + gl_FragCoord.x;
-			//if( mod(fval,2.0) == 0.0 )
-
-			//faster
-			float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;
-			if( (fval - floor(fval)) == 0.0 )
-				gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);
-			else
-				gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);
-		}
-
-		*/
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
 			#version 120\n\
@@ -352,7 +166,7 @@ namespace sgct_core
 				if( (fval - floor(fval)) == 0.0 )\n\
 					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				else\n\
-					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st);\n\
 			}\n";
 
 		//--------> vertical interlaced shaders
@@ -364,9 +178,19 @@ namespace sgct_core
 			{\n\
 				float fval = gl_FragCoord.y * 0.5;\n\
 				if( (fval - floor(fval)) > 0.5 )\n\
-					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st);\n\
 				else\n\
 					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
+			}\n";
+
+		//------------> dummy stereo shader
+		const std::string Dummy_Stereo_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				gl_FragColor = gl_Color * (0.5 * texture2D( LeftTex, gl_TexCoord[0].st) + 0.5 * texture2D( RightTex, gl_TexCoord[0].st));\n\
 			}\n";
 
 		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
@@ -379,7 +203,7 @@ namespace sgct_core
 				if( (fval - floor(fval)) > 0.5 )\n\
 					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st);\n\
 				else\n\
-					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[1].st);\n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st);\n\
 			}\n";
 
 		const std::string FXAA_Vert_Shader = "\

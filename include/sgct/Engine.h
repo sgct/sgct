@@ -61,7 +61,7 @@ private:
 	enum ShaderLocIndexes { MonoMVP = 0, MonoTex,
 			OverlayMVP, OverlayTex,
 			StereoMVP, StereoLeftTex, StereoRightTex,
-			Cubemap, FishEyeHalfFov, FisheyeOffset,
+			FisheyeMVP, Cubemap, FishEyeHalfFov, FisheyeOffset,
 			SizeX, SizeY, FXAAMVP, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 public:
@@ -315,15 +315,18 @@ private:
 	const char * getAAInfo();
 
 	void draw();
-	void drawFixedPipeline();
 	void drawOverlays();
-	void drawOverlaysFixedPipeline();
-	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
-	void renderFBOTextureFixedPipeline();
-	void renderFisheye(TextureIndexes ti);
 	void renderPostFx(TextureIndexes ti );
+	void renderFisheye(TextureIndexes ti);
+
+	void drawFixedPipeline();
+	void drawOverlaysFixedPipeline();
+	void renderFBOTextureFixedPipeline();
 	void renderPostFxFixedPipeline(TextureIndexes ti );
+	void renderFisheyeFixedPipeline(TextureIndexes ti);
+
+	void setRenderTarget(TextureIndexes ti);	
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
@@ -362,6 +365,7 @@ private:
 	InternalCallbackFn			mInternalRenderFBOFn;
 	InternalCallbackFn			mInternalDrawOverlaysFn;
 	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
+	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
 	NetworkCallbackFn			mNetworkCallbackFn;
 
 	//GLFW wrapped function pointers

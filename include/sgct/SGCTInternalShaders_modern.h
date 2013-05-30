@@ -77,6 +77,80 @@ namespace sgct_core
 				Color = texture2D(Tex, UV.st);\n\
 			};\n";
 
+		const std::string Fisheye_Vert_Shader = "\
+			#version 330 core\n\
+			\n\
+			layout (location = 0) in vec2 TexCoords;\n\
+			layout (location = 1) in vec3 Position;\n\
+			\n\
+			uniform mat4 MVP;\n\
+			out vec2 UV;\n\
+			\n\
+			void main()\n\
+			{\n\
+			   gl_Position = MVP * vec4(Position, 1.0);\n\
+			   UV = TexCoords;\n\
+			};\n";
+
+		const std::string Fisheye_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform float halfFov;\n\
+			float angle45Factor = 0.7071067812;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (UV.s - 0.5);\n\
+				float t = 2.0 * (UV.t - 0.5);\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(r2) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta);\n\
+					float y = -sin(phi) * cos(theta);\n\
+					float z = cos(phi);\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					Color = vec4(texture(cubemap, rotVec));\n\
+				}\n\
+				else\n\
+					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+			}\n";
+
+		const std::string Fisheye_Frag_Shader_OffAxis = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform float halfFov;\n\
+			uniform vec3 offset;\n\
+			float angle45Factor = 0.7071067812;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (UV.s - 0.5);\n\
+				float t = 2.0 * (UV.t - 0.5);\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(r2) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta) - offset.x;\n\
+					float y = -sin(phi) * cos(theta) - offset.y;\n\
+					float z = cos(phi) - offset.z;\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					Color = vec4(texture(cubemap, rotVec));\n\
+				}\n\
+				else\n\
+					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+			}\n";
+
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 330 core\n\
 			\n\

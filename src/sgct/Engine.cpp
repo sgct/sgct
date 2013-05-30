@@ -84,6 +84,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
+	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -441,6 +442,7 @@ void sgct::Engine::initOGL()
 		mInternalRenderFBOFn = &Engine::renderFBOTexture;
 		mInternalDrawOverlaysFn = &Engine::drawOverlays;
 		mInternalRenderPostFXFn = &Engine::renderPostFx;
+		mInternalRenderFisheyeFn = &Engine::renderFisheye;
 
 		ClusterManager::Instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
 		mFixedOGLPipeline = false;
@@ -451,6 +453,7 @@ void sgct::Engine::initOGL()
 		mInternalRenderFBOFn = &Engine::renderFBOTextureFixedPipeline;
 		mInternalDrawOverlaysFn = &Engine::drawOverlaysFixedPipeline;
 		mInternalRenderPostFXFn = &Engine::renderPostFxFixedPipeline;
+		mInternalRenderFisheyeFn = &Engine::renderFisheyeFixedPipeline;
 
 		mFixedOGLPipeline = true;
 	}
@@ -675,6 +678,7 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
+	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -850,7 +854,7 @@ void sgct::Engine::render()
 		if( tmpNode->isUsingFisheyeRendering() )
 		{
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
-			renderFisheye(LeftEye);
+			(this->*mInternalRenderFisheyeFn)(LeftEye);
 
 			if( SGCTSettings::Instance()->usePostFX() )
 				renderPostFx(LeftEye);
@@ -858,7 +862,7 @@ void sgct::Engine::render()
 			if( tmpNode->stereo != ClusterManager::NoStereo )
 			{
 				mActiveFrustum = Frustum::StereoRightEye;
-				renderFisheye(RightEye);
+				(this->*mInternalRenderFisheyeFn)(RightEye);
 
 				if( SGCTSettings::Instance()->usePostFX() )
 					renderPostFx(RightEye);
@@ -1595,6 +1599,157 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//restore polygon mode
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
+	//bind fisheye target FBO
+	mFinalFBO_Ptr->bind();
+	SGCTSettings::Instance()->usePostFX() ? 
+			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
+			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
+
+	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+	/*
+		The code below flips the viewport vertically. Top & bottom coords are flipped.
+	*/
+	glm::mat4 orthoMat = glm::ortho( -1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 2.0f );
+
+	glViewport(0, 0, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution());
+
+	//if for some reson the active texture has been reset
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[FishEye]);
+
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+
+	mShaders[FisheyeShader].use();
+
+	glUniformMatrix4fv( mShaderLocs[FisheyeMVP], 1, GL_FALSE, &orthoMat[0][0]);
+	glUniform1i( mShaderLocs[Cubemap], 0);
+	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
+	if( setPtr->isFisheyeOffaxis() )
+	{
+		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
+	}
+
+	glBindVertexArray( mVAO[FishEyeQuad] );
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		5*sizeof(float),    // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(
+		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		5*sizeof(float),    // stride
+		reinterpret_cast<void*>(8) // array buffer offset
+	);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		//unbind
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	
+	sgct::ShaderManager::Instance()->unBindShader();
+
+	if(mTakeScreenshot)
+	{
+		int size = getWindowPtr()->getXFramebufferResolution();
+		unsigned int fontSize = 0;
+
+		if( size > 512 )
+			fontSize = static_cast<unsigned int>(size)/96;
+		else if( size == 512 )
+			fontSize = 8;
+
+		if( fontSize != 0 )
+		{
+			float x = static_cast<float>( size - size/4 );
+			float y = static_cast<float>( fontSize );
+			
+			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", mShotCounter);
+
+			if( mActiveFrustum == Frustum::Mono )
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Mono");
+			else if( mActiveFrustum == Frustum::StereoLeftEye )
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Left");
+			else
+				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
+		}
+	}
+}
+
+/*!
+	This functions works in two steps:
+	1. Render a cubemap
+	2. Render to a fisheye using a GLSL shader
+*/
+void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
+{
+	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	SGCTSettings * setPtr = SGCTSettings::Instance();
+
+	if( mActiveFrustum == Frustum::StereoLeftEye )
+		setPtr->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+	else if( mActiveFrustum == Frustum::StereoRightEye )
+		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+
+	//iterate the cube sides
+	for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
+	{
+		tmpNode->setCurrentViewport(i);
+
+		if( tmpNode->getCurrentViewport()->isEnabled() )
+		{
+			//un-bind texture
+			glBindTexture(GL_TEXTURE_2D, 0);
+			
+			//bind & attach buffer
+			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
+			if( !mCubeMapFBO_Ptr->isMultiSampled() )
+			{								
+				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+			}
+
+			setAndClearBuffer(RenderToTexture);
+
+			//render
+			(this->*mInternalDrawFn)();
+
+			//copy AA-buffer to "regular"/non-AA buffer
+			if( mCubeMapFBO_Ptr->isMultiSampled() )
+			{
+				mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+
+				//update attachments
+				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
+
+				mCubeMapFBO_Ptr->blit();
+			}
+		}
+	}//end for
+
+	//restore polygon mode
+	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
 	//un-bind texture
 	glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -1642,7 +1797,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-	sgct::ShaderManager::Instance()->bindShader( "Fisheye" );
+	mShaders[FisheyeShader].use();
 	glUniform1i( mShaderLocs[Cubemap], 0);
 	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
 	if( setPtr->isFisheyeOffaxis() )
@@ -1938,11 +2093,24 @@ void sgct::Engine::loadShaders()
 
 	if( tmpNode->isUsingFisheyeRendering() )
 	{
-		if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
-			sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
+		if( mFixedOGLPipeline )
+		{
+			if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
+				sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Fisheye_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
+			else
+				sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Fisheye_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		}
 		else
-			sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Base_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		{
+			if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
+				sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
+			else
+				sgct::ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct_core::shaders_modern::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		}
 		mShaders[FisheyeShader].use();
+
+		if( !mFixedOGLPipeline )
+			mShaderLocs[FisheyeMVP] = mShaders[FisheyeShader].getUniformLocation( "MVP" );
 		
 		mShaderLocs[Cubemap] = mShaders[FisheyeShader].getUniformLocation( "cubemap" );
 		glUniform1i( mShaderLocs[Cubemap], 0 );

@@ -26,6 +26,15 @@ namespace sgct_core
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
 			}\n";
 
+		const std::string Fisheye_Vert_Shader = "\
+			#version 120\n\
+			\n\
+			void main()\n\
+			{\n\
+				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+			}\n";
+
 		const std::string Fisheye_Frag_Shader = "\
 			#version 120\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\

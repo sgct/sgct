@@ -82,6 +82,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mCleanUpFn = NULL;
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
+	mInternalDrawOverlaysFn = NULL;
+	mInternalRenderPostFXFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -119,15 +121,15 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mPostFxQuadVerts[8] = 0.0f;
 	mPostFxQuadVerts[9] = -1.0f;
 
-	mPostFxQuadVerts[10] = 1.0f;
+	mPostFxQuadVerts[10] = 0.0f;
 	mPostFxQuadVerts[11] = 1.0f;
-	mPostFxQuadVerts[12] = 1.0f;
+	mPostFxQuadVerts[12] = 0.0f;
 	mPostFxQuadVerts[13] = 1.0f;
 	mPostFxQuadVerts[14] = -1.0f;
 
-	mPostFxQuadVerts[15] = 0.0f;
+	mPostFxQuadVerts[15] = 1.0f;
 	mPostFxQuadVerts[16] = 1.0f;
-	mPostFxQuadVerts[17] = 0.0f;
+	mPostFxQuadVerts[17] = 1.0f;
 	mPostFxQuadVerts[18] = 1.0f;
 	mPostFxQuadVerts[19] = -1.0f;
 
@@ -178,8 +180,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	mExitKey = GLFW_KEY_ESC;
 
-	mVBO[RenderQuad] = 0; //default to openGL false
-	mVBO[FishEyeQuad] = 0; //default to openGL false
+	mVBO[RenderQuad]	= 0; //default to openGL false
+	mVBO[FishEyeQuad]	= 0; //default to openGL false
+	mVAO[RenderQuad]	= 0;
+	mVAO[FishEyeQuad]	= 0;
 }
 
 /*!
@@ -435,6 +439,9 @@ void sgct::Engine::initOGL()
 	{
 		mInternalDrawFn = &Engine::draw;
 		mInternalRenderFBOFn = &Engine::renderFBOTexture;
+		mInternalDrawOverlaysFn = &Engine::drawOverlays;
+		mInternalRenderPostFXFn = &Engine::renderPostFx;
+
 		ClusterManager::Instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
 		mFixedOGLPipeline = false;
 	}
@@ -442,6 +449,9 @@ void sgct::Engine::initOGL()
 	{
 		mInternalDrawFn = &Engine::drawFixedPipeline;
 		mInternalRenderFBOFn = &Engine::renderFBOTextureFixedPipeline;
+		mInternalDrawOverlaysFn = &Engine::drawOverlaysFixedPipeline;
+		mInternalRenderPostFXFn = &Engine::renderPostFxFixedPipeline;
+
 		mFixedOGLPipeline = true;
 	}
 	
@@ -631,6 +641,12 @@ void sgct::Engine::clean()
 		glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 	}
 
+	if( mVAO[RenderQuad] )
+	{
+		sgct::MessageHandler::Instance()->print("Deleting VAOs...\n");
+		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
+	}
+
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
 	glfwTerminate();
@@ -657,6 +673,8 @@ void sgct::Engine::clearAllCallbacks()
 	mCleanUpFn = NULL;
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
+	mInternalDrawOverlaysFn = NULL;
+	mInternalRenderPostFXFn = NULL;
 	mNetworkCallbackFn = NULL;
 	mKeyboardCallbackFn = NULL;
 	mCharCallbackFn = NULL;
@@ -877,7 +895,7 @@ void sgct::Engine::render()
 
 			updateRenderingTargets(LeftEye); //only used if multisampled FBOs
 			if( SGCTSettings::Instance()->usePostFX() )
-				renderPostFx(LeftEye);
+				(this->*mInternalRenderPostFXFn)(LeftEye);
 
 			//render right eye view port(s)
 			if( tmpNode->stereo != ClusterManager::NoStereo )
@@ -906,7 +924,7 @@ void sgct::Engine::render()
 
 				updateRenderingTargets(RightEye);
 				if( SGCTSettings::Instance()->usePostFX() )
-					renderPostFx(RightEye);
+					(this->*mInternalRenderPostFXFn)(RightEye);
 			}
 		}
 
@@ -915,7 +933,7 @@ void sgct::Engine::render()
 			(this->*mInternalRenderFBOFn)();
 
 		//draw viewport overlays if any
-		drawOverlays();
+		(this->*mInternalDrawOverlaysFn)();
 
 		//run post frame actions
 		if( mPostDrawFn != NULL )
@@ -1182,6 +1200,94 @@ void sgct::Engine::drawOverlays()
 		sgct_core::Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 		if( tmpVP->hasOverlayTexture() )
 		{
+			/*
+				Some code (using OpenSceneGraph) can mess up the viewport settings.
+				To ensure correct mapping enter the current viewport.
+			*/
+			enterCurrentViewport(ScreenSpace);
+
+			//enter ortho mode
+			glm::mat4 orthoMat;
+			if( tmpNode->isUsingFisheyeRendering() )
+				orthoMat = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+			else
+				orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
+
+			glDisable(GL_DEPTH_TEST);
+			glEnable(GL_BLEND);
+			glDisable(GL_CULL_FACE);
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
+
+			mShaders[OverlayShader].use();
+
+			glUniform1i( mShaderLocs[OverlayTex], 0);
+			glUniformMatrix4fv( mShaderLocs[OverlayMVP], 1, GL_FALSE, &orthoMat[0][0]);
+
+			if( tmpNode->isUsingFisheyeRendering() )
+			{
+				glBindVertexArray( mVAO[FishEyeQuad] );
+				glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
+			}
+			else
+			{
+				glBindVertexArray( mVAO[RenderQuad] );
+				glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+			}
+
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(
+				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+				2,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				5*sizeof(float),    // stride
+				reinterpret_cast<void*>(0) // array buffer offset
+			);
+
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(
+				1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+				3,                  // size
+				GL_FLOAT,           // type
+				GL_FALSE,           // normalized?
+				5*sizeof(float),    // stride
+				reinterpret_cast<void*>(8) // array buffer offset
+			);
+
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+			 //unbind
+			glDisableVertexAttribArray(1);
+			glDisableVertexAttribArray(0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindVertexArray(0);
+			sgct::ShaderManager::Instance()->unBindShader();
+		}
+	}
+}
+
+/*!
+	Draw viewport overlays if there are any.
+*/
+void sgct::Engine::drawOverlaysFixedPipeline()
+{
+	glDrawBuffer(GL_BACK); //draw into both back buffers
+	glReadBuffer(GL_BACK);
+
+	sgct_core::SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
+	std::size_t numberOfIterations = ( tmpNode->isUsingFisheyeRendering() ? 1 : tmpNode->getNumberOfViewports() );
+	for(std::size_t i=0; i < numberOfIterations; i++)
+	{
+		tmpNode->setCurrentViewport(i);
+
+		//if viewport has overlay
+		sgct_core::Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
+		if( tmpVP->hasOverlayTexture() )
+		{
 			//enter ortho mode
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
@@ -1229,7 +1335,7 @@ void sgct::Engine::drawOverlays()
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
 			
-			glDrawArrays(GL_QUADS, 0, 4);
+			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 
@@ -1298,17 +1404,17 @@ void sgct::Engine::renderFBOTexture()
 
 	if( tmpNode->stereo > ClusterManager::Active )
 	{
-		mShaders[StereoShader].use();
-
-		glUniform1i( mShaderLocs[LeftTex], 0);
-		glUniform1i( mShaderLocs[RightTex], 1);
-		glUniformMatrix4fv( mShaderLocs[MVP], 1, GL_FALSE, &orthoMat[0][0]);
-
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
 		
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
+
+		mShaders[StereoShader].use();
+
+		glUniform1i( mShaderLocs[StereoLeftTex], 0);
+		glUniform1i( mShaderLocs[StereoRightTex], 1);
+		glUniformMatrix4fv( mShaderLocs[StereoMVP], 1, GL_FALSE, &orthoMat[0][0]);
 		
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
@@ -1320,8 +1426,8 @@ void sgct::Engine::renderFBOTexture()
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
 
 		mShaders[FBOQuadShader].use(); //bind
-		glUniform1i( mShaderLocs[LeftTex], 0);
-		glUniformMatrix4fv( mShaderLocs[MVP], 1, GL_FALSE, &orthoMat[0][0]);
+		glUniform1i( mShaderLocs[MonoTex], 0);
+		glUniformMatrix4fv( mShaderLocs[MonoMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
@@ -1336,7 +1442,7 @@ void sgct::Engine::renderFBOTexture()
 			glViewport (0, 0, getWindowPtr()->getXResolution(), getWindowPtr()->getYResolution());
 
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
-			glUniform1i( mShaderLocs[LeftTex], 0);
+			glUniform1i( mShaderLocs[MonoTex], 0);
 
 			for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 				tmpNode->getViewport(i)->renderMesh();
@@ -1384,8 +1490,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	{
 		mShaders[StereoShader].use();
 
-		glUniform1i( mShaderLocs[LeftTex], 0);
-		glUniform1i( mShaderLocs[RightTex], 1);
+		glUniform1i( mShaderLocs[StereoLeftTex], 0);
+		glUniform1i( mShaderLocs[StereoRightTex], 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
@@ -1554,17 +1660,10 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	
-	/*
-	glClientActiveTexture(GL_TEXTURE0);
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glInterleavedArrays(GL_T2F_V3F, 0, mFisheyeQuadVerts);
-	glDrawArrays(GL_QUADS, 0, 4);
-	*/
 	sgct::ShaderManager::Instance()->unBindShader();
 
 	if(mTakeScreenshot)
@@ -1612,6 +1711,72 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
+	/*
+		The code below flips the viewport vertically. Top & bottom coords are flipped.
+	*/
+	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
+
+	//if for some reson the active texture has been reset
+	glViewport(0, 0, getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution());
+
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ PostFX ] );
+
+	glDisable(GL_CULL_FACE);
+	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_DEPTH_TEST);
+
+	mShaders[FXAAShader].use();
+	glUniformMatrix4fv( mShaderLocs[FXAAMVP], 1, GL_FALSE, &orthoMat[0][0]);
+	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
+	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
+	glUniform1i( mShaderLocs[FXAATexture], 0 );
+
+	glBindVertexArray( mVAO[RenderQuad] );
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+	
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		5*sizeof(float),    // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
+
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(
+		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		5*sizeof(float),    // stride
+		reinterpret_cast<void*>(8) // array buffer offset
+	);
+
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+	//unbind
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+	sgct::ShaderManager::Instance()->unBindShader();
+}
+
+/*!
+	This function combines a texture and a shader into a new texture
+*/
+void sgct::Engine::renderPostFxFixedPipeline(TextureIndexes ti)
+{
+	//bind fisheye target FBO
+	mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ ti ] );
+
+	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 
@@ -1647,7 +1812,7 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-	sgct::ShaderManager::Instance()->bindShader( "FXAA" );
+	mShaders[FXAAShader].use();
 	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
 	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getWindowPtr()->getYFramebufferResolution()) );
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
@@ -1665,7 +1830,7 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
 	//glInterleavedArrays(GL_T2F_V3F, 0, mPostFxQuadVerts);
 	//glInterleavedArrays(GL_T2F_V3F, 0, 0);
-	glDrawArrays(GL_QUADS, 0, 4);
+	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 
@@ -1729,10 +1894,22 @@ void sgct::Engine::loadShaders()
 	mShaders[NULLShader] = sgct::ShaderManager::Instance()->getShader( "SGCT_NULL" );
 
 	//create FXAA shaders
-	sgct::ShaderManager::Instance()->addShader( mShaders[FXAAShader], "FXAA",
-		sgct_core::shaders::FXAA_Vert_Shader,
-		sgct_core::shaders::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+	if( mFixedOGLPipeline )
+	{
+		sgct::ShaderManager::Instance()->addShader( mShaders[FXAAShader], "FXAA",
+			sgct_core::shaders::FXAA_Vert_Shader,
+			sgct_core::shaders::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+	}
+	else
+	{
+		sgct::ShaderManager::Instance()->addShader( mShaders[FXAAShader], "FXAA",
+			sgct_core::shaders_modern::FXAA_Vert_Shader,
+			sgct_core::shaders_modern::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+	}
 	mShaders[FXAAShader].use();
+
+	if( !mFixedOGLPipeline )
+		mShaderLocs[FXAAMVP] = mShaders[FXAAShader].getUniformLocation( "MVP" );
 
 	mShaderLocs[SizeX] = mShaders[FXAAShader].getUniformLocation( "rt_w" );
 	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getWindowPtr()->getXFramebufferResolution()) );
@@ -1877,11 +2054,11 @@ void sgct::Engine::loadShaders()
 
 		mShaders[StereoShader].use();
 		if( !mFixedOGLPipeline )
-			mShaderLocs[MVP] = mShaders[StereoShader].getUniformLocation( "MVP" );
-		mShaderLocs[LeftTex] = mShaders[StereoShader].getUniformLocation( "LeftTex" );
-		mShaderLocs[RightTex] = mShaders[StereoShader].getUniformLocation( "RightTex" );
-		glUniform1i( mShaderLocs[LeftTex], 0 );
-		glUniform1i( mShaderLocs[RightTex], 1 );
+			mShaderLocs[StereoMVP] = mShaders[StereoShader].getUniformLocation( "MVP" );
+		mShaderLocs[StereoLeftTex] = mShaders[StereoShader].getUniformLocation( "LeftTex" );
+		mShaderLocs[StereoRightTex] = mShaders[StereoShader].getUniformLocation( "RightTex" );
+		glUniform1i( mShaderLocs[StereoLeftTex], 0 );
+		glUniform1i( mShaderLocs[StereoRightTex], 1 );
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
 	
@@ -1895,9 +2072,20 @@ void sgct::Engine::loadShaders()
 			sgct_core::shaders_modern::Base_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
 		mShaders[FBOQuadShader].use();
 
-		mShaderLocs[MVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
-		mShaderLocs[LeftTex] = mShaders[FBOQuadShader].getUniformLocation( "LeftTex" );
-		glUniform1i( mShaderLocs[LeftTex], 0 );
+		mShaderLocs[MonoMVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
+		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
+		glUniform1i( mShaderLocs[MonoTex], 0 );
+
+		sgct::ShaderManager::Instance()->addShader( mShaders[OverlayShader], "OverlayQuad",
+			sgct_core::shaders_modern::Overlay_Vert_Shader,
+			sgct_core::shaders_modern::Overlay_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[OverlayShader].use();
+
+		mShaderLocs[OverlayMVP] = mShaders[OverlayShader].getUniformLocation( "MVP" );
+		mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );
+		glUniform1i( mShaderLocs[OverlayTex], 0 );
+
+		sgct::ShaderManager::Instance()->unBindShader();
 	}
 }
 
@@ -2048,16 +2236,25 @@ void sgct::Engine::createFBOs()
 
 void sgct::Engine::createVBOs()
 {
+	if( !mFixedOGLPipeline )
+		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
+
 	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 		
+	if( !mFixedOGLPipeline )
+		glBindVertexArray( mVAO[RenderQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mPostFxQuadVerts, GL_STATIC_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
 
+	if( !mFixedOGLPipeline )
+		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mFisheyeQuadVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if( !mFixedOGLPipeline )
+		glBindVertexArray(0);
 }
 
 /*!
@@ -2772,18 +2969,20 @@ void sgct::Engine::initFisheye()
 	mFisheyeQuadVerts[9] = -1.0f;
 
 	mFisheyeQuadVerts[10] = 1.0f - rightcrop;
-	mFisheyeQuadVerts[11] = 1.0f - topcrop;
+	mFisheyeQuadVerts[11] = bottomcrop;
 	mFisheyeQuadVerts[12] = x;
-	mFisheyeQuadVerts[13] = y;
+	mFisheyeQuadVerts[13] = -y;
 	mFisheyeQuadVerts[14] = -1.0f;
 
 	mFisheyeQuadVerts[15] = 1.0f - rightcrop;
-	mFisheyeQuadVerts[16] = bottomcrop;
+	mFisheyeQuadVerts[16] = 1.0f - topcrop;
 	mFisheyeQuadVerts[17] = x;
-	mFisheyeQuadVerts[18] = -y;
+	mFisheyeQuadVerts[18] = y;
 	mFisheyeQuadVerts[19] = -1.0f;
 
 	//update VBO
+	if( !mFixedOGLPipeline )
+		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 	
 	GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
@@ -2791,6 +2990,8 @@ void sgct::Engine::initFisheye()
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if( !mFixedOGLPipeline )
+		glBindVertexArray( 0 );
 
 	//set alpha value
 	mFisheyeClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;

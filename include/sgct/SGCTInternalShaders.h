@@ -237,8 +237,6 @@ namespace sgct_core
 			\n\
 			#define FxaaInt2 ivec2\n\
 			#define FxaaFloat2 vec2\n\
-			#define FxaaTexLod0(t, p) texture2DLod(t, p, 0.0)\n\
-			#define FxaaTexOff(t, p, o, r) texture2DLodOffset(t, p, 0.0, o)\n\
 			\n\
 			vec3 FxaaPixelShader( \n\
 			  vec4 posPos,       // Output of FxaaVertexShader interpolated across screen.\n\
@@ -250,11 +248,11 @@ namespace sgct_core
 			//#define FXAA_REDUCE_MUL   (1.0/8.0)\n\
 			//#define FXAA_SPAN_MAX     8.0\n\
 			/*--------------------------------------------------------------------------*/\n\
-			vec3 rgbNW = FxaaTexLod0(tex, posPos.zw).xyz;\n\
-			vec3 rgbNE = FxaaTexOff(tex, posPos.zw, FxaaInt2(1,0), rcpFrame.xy).xyz;\n\
-			vec3 rgbSW = FxaaTexOff(tex, posPos.zw, FxaaInt2(0,1), rcpFrame.xy).xyz;\n\
-			vec3 rgbSE = FxaaTexOff(tex, posPos.zw, FxaaInt2(1,1), rcpFrame.xy).xyz;\n\
-			vec3 rgbM  = FxaaTexLod0(tex, posPos.xy).xyz;\n\
+			vec3 rgbNW = texture2D(tex, posPos.zw).xyz;\n\
+			vec3 rgbNE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,0)).xyz;\n\
+			vec3 rgbSW = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(0,1)).xyz;\n\
+			vec3 rgbSE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,1)).xyz;\n\
+			vec3 rgbM  = texture2D(tex, posPos.xy).xyz;\n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 luma = vec3(0.299, 0.587, 0.114);\n\
 			float lumaNW = dot(rgbNW, luma);\n\
@@ -279,11 +277,11 @@ namespace sgct_core
 				dir * rcpDirMin)) * rcpFrame.xy; \n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 rgbA = (1.0/2.0) * (\n\
-				FxaaTexLod0(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
-				FxaaTexLod0(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
+				texture2D(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
+				texture2D(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
 			vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (\n\
-				FxaaTexLod0(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
-				FxaaTexLod0(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz); \n\
+				texture2D(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
+				texture2D(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz); \n\
 			float lumaB = dot(rgbB, luma); \n\
 			if((lumaB < lumaMin) || (lumaB > lumaMax)) return rgbA;\n\
 				return rgbB; }\n\
@@ -293,41 +291,12 @@ namespace sgct_core
 			  vec4 c = vec4(0.0);\n\
 			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
 				c.rgb = FxaaPixelShader(posPos, tex, rcpFrame);\n\
-				//c.rgb = 1.0 - texture2D(tex, posPos.xy).rgb;\n\
-				//c.a = texture2D(tex0, gl_TexCoord[0].st).a;\n\
 				c.a = 1.0;\n\
 				return c;\n\
 			}\n\
 			\n\
 			void main()\n\
 			{\n\
-				/*\n\
-				vec2 uv = gl_TexCoord[0].xy;\n\
-				vec3 tc = vec3(1.0, 0.0, 0.0);\n\
-				if (uv.x < (vx_offset-0.005))\n\
-				{\n\
-					tc = PostFX(tex0, uv, 0.0).xyz;\n\
-				}\n\
-				else if (uv.x>=(vx_offset+0.005))\n\
-				{\n\
-					tc = texture2D(tex0, uv).rgb;\n\
-				}\n\
-				gl_FragColor = vec4(tc, 1.0);\n\
-				*/\n\
-				\n\
-				/*\n\
-				vec2 uv = gl_TexCoord[0].st;\n\
-				if (uv.y > 0.5)\n\
-				{\n\
-					gl_FragColor = PostFX(tex0, uv, 0.0);\n\
-				}\n\
-				else\n\
-				{\n\
-					uv.y += 0.5;\n\
-					vec4 c1 = texture2D(tex0, uv);\n\
-					gl_FragColor = c1;\n\
-				}\n\
-				*/\n\
 				vec2 uv = gl_TexCoord[0].st;\n\
 				gl_FragColor = PostFX(tex0, uv, 0.0);\n\
 			}\n";

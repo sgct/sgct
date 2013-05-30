@@ -17,8 +17,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ScreenCapture.h"
 #include "ShaderProgram.h"
 
-#define MAX_UNIFORM_LOCATIONS 64
-#define NUMBER_OF_SHADER_POINTERS 6
+#define MAX_UNIFORM_LOCATIONS 128
+#define NUMBER_OF_SHADERS 6
 #define NUMBER_OF_VBOS 2
 
 /*! \namespace sgct
@@ -57,10 +57,12 @@ private:
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
-	enum ShaderPointerIndexes { FBOQuadShader = 0, FXAAShader, FisheyeShader, StereoShader, NULLShader };
-	enum ShaderLocIndexes { LeftTex = 0, RightTex, Cubemap, FishEyeHalfFov, FisheyeOffset,
-			SizeX, SizeY, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture,
-			MVP };
+	enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, FisheyeShader, StereoShader, OverlayShader, NULLShader };
+	enum ShaderLocIndexes { MonoMVP = 0, MonoTex,
+			OverlayMVP, OverlayTex,
+			StereoMVP, StereoLeftTex, StereoRightTex,
+			Cubemap, FishEyeHalfFov, FisheyeOffset,
+			SizeX, SizeY, FXAAMVP, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 public:
 	Engine( int& argc, char**& argv );
@@ -315,11 +317,13 @@ private:
 	void draw();
 	void drawFixedPipeline();
 	void drawOverlays();
+	void drawOverlaysFixedPipeline();
 	void setRenderTarget(TextureIndexes ti);
 	void renderFBOTexture();
 	void renderFBOTextureFixedPipeline();
 	void renderFisheye(TextureIndexes ti);
-	void renderPostFx(TextureIndexes ti ); 
+	void renderPostFx(TextureIndexes ti );
+	void renderPostFxFixedPipeline(TextureIndexes ti );
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
@@ -340,6 +344,7 @@ private:
 	// Convinience typedef
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
+	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
 	typedef void (*NetworkCallbackFn)(const char *, int, int);
 	typedef void (*inputCallbackFn)(int, int);
 	typedef void (*scrollCallbackFn)(int);
@@ -353,9 +358,11 @@ private:
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
 	CallbackFn mCleanUpFn;
-	InternalCallbackFn mInternalDrawFn;
-	InternalCallbackFn mInternalRenderFBOFn;
-	NetworkCallbackFn mNetworkCallbackFn;
+	InternalCallbackFn			mInternalDrawFn;
+	InternalCallbackFn			mInternalRenderFBOFn;
+	InternalCallbackFn			mInternalDrawOverlaysFn;
+	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
+	NetworkCallbackFn			mNetworkCallbackFn;
 
 	//GLFW wrapped function pointers
 	inputCallbackFn mKeyboardCallbackFn;
@@ -389,7 +396,7 @@ private:
 	//objects
 	sgct_core::Statistics	 mStatistics;
 	sgct_core::ScreenCapture mScreenCapture;
-	ShaderProgram mShaders[NUMBER_OF_SHADER_POINTERS];
+	ShaderProgram mShaders[NUMBER_OF_SHADERS];
 
 	//FBO stuff
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
@@ -425,6 +432,8 @@ private:
 
 	//VBO:s
 	unsigned int mVBO[NUMBER_OF_VBOS];
+	//VAO:s
+	unsigned int mVAO[NUMBER_OF_VBOS];
 
 	RunMode mRunMode;
 	int mExitKey;

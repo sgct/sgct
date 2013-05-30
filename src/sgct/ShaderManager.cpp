@@ -205,7 +205,7 @@ bool sgct::ShaderManager::bindShader( const std::string & name ) const
 		return false;
 	}
 
-	return sp.use();
+	return sp.bind();
 }
 //----------------------------------------------------------------------------//
 
@@ -223,7 +223,7 @@ bool sgct::ShaderManager::bindShader( const ShaderProgram & shader ) const
 		return false;
 	}
 
-	return shader.use();
+	return shader.bind();
 }
 //----------------------------------------------------------------------------//
 

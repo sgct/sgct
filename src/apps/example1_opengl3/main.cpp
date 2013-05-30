@@ -143,6 +143,9 @@ void myPreSyncFun()
 		//get the time in seconds
 		curr_time.setVal(sgct::Engine::getTime());
 	}
+
+	gEngine->setStatsGraphVisibility(true);
+	//gEngine->takeScreenshot();
 }
 
 void myEncodeFun()

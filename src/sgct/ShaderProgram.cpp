@@ -238,7 +238,7 @@ bool sgct::ShaderProgram::checkLinkStatus() const
 /*!
 Use the shader program in the current rendering pipeline
 */
-bool sgct::ShaderProgram::use() const
+bool sgct::ShaderProgram::bind() const
 {
 	//
 	// Make sure the program is linked before it can be used

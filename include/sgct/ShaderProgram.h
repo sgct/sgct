@@ -36,7 +36,7 @@ public:
 
 	bool createAndLinkProgram();
 
-	bool use() const;
+	bool bind() const;
 
 	int getAttribLocation( const std::string & name ) const;
 	int getUniformLocation( const std::string & name ) const;

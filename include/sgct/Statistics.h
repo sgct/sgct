@@ -11,6 +11,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define STATS_HISTORY_LENGTH 512
 #define STATS_AVERAGE_LENGTH 32
 #define VERT_SCALE 10000.0f
+#define STATS_NUMBER_OF_VBOs 5
+
+#include "ShaderProgram.h"
+#include <glm/glm.hpp>
 
 struct StatsVertex
 {
@@ -28,7 +32,7 @@ class Statistics
 public:
 	Statistics();
 	~Statistics();
-	void initVBO();
+	void initVBO(bool fixedPipeline);
 	void setAvgFPS(double afps);
 	void setFrameTime(double t);
 	void setDrawTime(double t);
@@ -46,6 +50,8 @@ public:
 	const double & getSyncTime() { return mSyncTime[0].y; }
 
 private:
+	StatsVertex * getVerts( unsigned int index );
+
 	double mAvgFPS;
 	double mAvgDrawTime;
 	double mAvgSyncTime;
@@ -56,7 +62,17 @@ private:
 	StatsVertex mDrawTime[STATS_HISTORY_LENGTH];
 	StatsVertex mSyncTime[STATS_HISTORY_LENGTH];
 	enum mStatsType { FRAME_TIME = 0, DRAW_TIME, SYNC_TIME, LOOP_TIME_MAX, LOOP_TIME_MIN };
-	unsigned int mVboPtrs[5];
+	unsigned int mVboPtrs[STATS_NUMBER_OF_VBOs];
+	unsigned int mGridVBO;
+	unsigned int mFreqLinesVBO;
+	unsigned int mBackgroundVBO;
+	unsigned int mVAO;
+	size_t mNumberOfLineVerts;
+	bool mFixedPipeline;
+
+	sgct::ShaderProgram mShader;
+	int mMVPLoc, mColLoc;
+	glm::vec4 colors[STATS_NUMBER_OF_VBOs];
 };
 
 } //sgct_core

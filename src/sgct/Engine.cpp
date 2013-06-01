@@ -71,6 +71,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRunMode = Default_Mode;
 	mFinalFBO_Ptr = NULL;
 	mCubeMapFBO_Ptr = NULL;
+	mStatistics = NULL;
+	mScreenCapture = NULL;
 
 	//init function pointers
 	mDrawFn = NULL;
@@ -139,22 +141,6 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	for(unsigned int i=0; i<MAX_UNIFORM_LOCATIONS; i++)
 		mShaderLocs[i] = -1;
 
-	// Initialize GLFW
-	if( !glfwInit() )
-	{
-		mTerminate = true;
-		return;
-	}
-
-
-    NetworkManager::gCond = createCondition();
-
-    if( !SGCTMutexManager::Instance()->isValid() || NetworkManager::gCond == NULL )
-    {
-		mTerminate = true;
-		return;
-	}
-
 	setClearBufferFunction( clearBuffer );
 	mNearClippingPlaneDist = 0.1f;
 	mFarClippingPlaneDist = 100.0f;
@@ -181,10 +167,23 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	mExitKey = GLFW_KEY_ESC;
 
-	mVBO[RenderQuad]	= 0; //default to openGL false
-	mVBO[FishEyeQuad]	= 0; //default to openGL false
-	mVAO[RenderQuad]	= 0;
-	mVAO[FishEyeQuad]	= 0;
+	mVBO[RenderQuad]	= GL_FALSE; //default to openGL false
+	mVBO[FishEyeQuad]	= GL_FALSE; //default to openGL false
+	mVAO[RenderQuad]	= GL_FALSE;
+	mVAO[FishEyeQuad]	= GL_FALSE;
+
+	// Initialize GLFW
+	if( !glfwInit() )
+	{
+		mTerminate = true;
+	}
+
+    NetworkManager::gCond = createCondition();
+
+    if( !SGCTMutexManager::Instance()->isValid() || NetworkManager::gCond == NULL )
+    {
+		mTerminate = true;
+	}
 }
 
 /*!
@@ -477,13 +476,15 @@ void sgct::Engine::initOGL()
 
 	createTextures();
 
+	mStatistics = new Statistics();
+	mScreenCapture = new ScreenCapture();
 	mFinalFBO_Ptr = new OffScreenBuffer();
 	mCubeMapFBO_Ptr = new OffScreenBuffer();
 
 	createVBOs(); //must be created before FBO
 	createFBOs();
 	loadShaders();
-	mStatistics.initVBO(mFixedOGLPipeline);
+	mStatistics->initVBO(mFixedOGLPipeline);
 
 	//load overlays if any
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
@@ -491,7 +492,7 @@ void sgct::Engine::initOGL()
 		tmpNode->getViewport(i)->loadData();
 
 	//init PBO in screen capture
-	mScreenCapture.init();
+	mScreenCapture->init();
 	char nodeName[MAX_SGCT_PATH_LENGTH];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
@@ -517,13 +518,13 @@ void sgct::Engine::initOGL()
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
 	
-	mScreenCapture.setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
+	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
 	if( isFisheye() && !SGCTSettings::Instance()->useFisheyeAlpha())
-		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
+		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
 	else
-		mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 	if( SGCTSettings::Instance()->getCaptureFormat() != ScreenCapture::NOT_SET )
-		mScreenCapture.setFormat( static_cast<ScreenCapture::CaptureFormat>(SGCTSettings::Instance()->getCaptureFormat()) );
+		mScreenCapture->setFormat( static_cast<ScreenCapture::CaptureFormat>(SGCTSettings::Instance()->getCaptureFormat()) );
 
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
@@ -588,6 +589,20 @@ void sgct::Engine::clean()
 		glDeleteTextures(4,	&mFrameBufferTextures[0]);
 	}
 
+	if( mStatistics != NULL )
+	{
+		sgct::MessageHandler::Instance()->print("Deleting stats data...\n");
+		delete mStatistics;
+		mStatistics = NULL;
+	}
+
+	if( mScreenCapture )
+	{
+		sgct::MessageHandler::Instance()->print("Deleting screen capture data...\n");
+		delete mScreenCapture;
+		mScreenCapture = NULL;
+	}
+
 	ShaderManager::Destroy();
 
 	//de-init window and unbind swapgroups...
@@ -649,7 +664,7 @@ void sgct::Engine::clean()
 		sgct::MessageHandler::Instance()->print("Deleting VAOs...\n");
 		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 	}
-
+	
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
 	glfwTerminate();
@@ -705,8 +720,8 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 	if( stage == PreStage )
 	{
 		double t0 = glfwGetTime();
-		mNetworkConnections->sync(NetworkManager::SendDataToClients, &mStatistics); //from server to clients
-		mStatistics.setSyncTime(glfwGetTime() - t0);
+		mNetworkConnections->sync(NetworkManager::SendDataToClients, mStatistics); //from server to clients
+		mStatistics->setSyncTime(glfwGetTime() - t0);
 
 		//run only on clients/slaves
 		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
@@ -748,9 +763,9 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 				A this point all data needed for rendering a frame is received.
 				Let's signal that back to the master/server.
 			*/
-			mNetworkConnections->sync(NetworkManager::AcknowledgeData, &mStatistics);
+			mNetworkConnections->sync(NetworkManager::AcknowledgeData, mStatistics);
 
-			mStatistics.addSyncTime(glfwGetTime() - t0);
+			mStatistics->addSyncTime(glfwGetTime() - t0);
 		}//end if client
 	}
 	else //post stage
@@ -794,7 +809,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					}
 				}
 			}//end while
-			mStatistics.addSyncTime(glfwGetTime() - t0);
+			mStatistics->addSyncTime(glfwGetTime() - t0);
 		}//end if server
 	}
 }
@@ -843,8 +858,8 @@ void sgct::Engine::render()
 		{
 			resizeFBOs();
 			(tmpNode->isUsingFisheyeRendering() && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
-				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
-				mScreenCapture.initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
+				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
+				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 4 );
 		}
 
 		//rendering offscreen if using FBOs
@@ -971,7 +986,7 @@ void sgct::Engine::render()
 			enterCurrentViewport(ScreenSpace);
 
 			if( mShowGraph )
-				mStatistics.draw(mFrameCounter);
+				mStatistics->draw(mFrameCounter);
 			/*
 				The text renderer enters automatically the correct viewport
 			*/
@@ -982,7 +997,7 @@ void sgct::Engine::render()
         //glFlush();
         //glFinish();
 		double endFrameTime = glfwGetTime();
-		mStatistics.setDrawTime(endFrameTime - startFrameTime);
+		mStatistics->setDrawTime(endFrameTime - startFrameTime);
         updateTimers( endFrameTime );
 
 		//swap window size values
@@ -1008,91 +1023,49 @@ void sgct::Engine::renderDisplayInfo()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
 
-	glPushAttrib(GL_CURRENT_BIT);
-	glColor4f(0.8f,0.8f,0.8f,1.0f);
+	if(mFixedOGLPipeline)
+		glPushAttrib(GL_CURRENT_BIT);
+
 	unsigned int lFrameNumber = 0;
 	getWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	glReadBuffer(GL_BACK);
-
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110, "Node ip: %s (%s)",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, 
+		glm::vec4(0.8f,0.8f,0.8f,1.0f),
+		"Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
-	glColor4f(0.8f,0.8f,0.0f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, "Frame rate: %.3f Hz, frame: %u", mStatistics.getAvgFPS(), mFrameCounter);
-	glColor4f(0.8f,0.0f,0.8f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80, "Avg. draw time: %.2f ms", mStatistics.getAvgDrawTime()*1000.0);
-	glColor4f(0.0f,0.8f,0.8f,1.0f);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65, "Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80,
+		glm::vec4(0.8f,0.8f,0.0f,1.0f),
+		"Frame rate: %.3f Hz, frame: %u",
+		mStatistics->getAvgFPS(),
+		mFrameCounter);
+
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65,
+		glm::vec4(0.8f,0.0f,0.8f,1.0f),
+		"Avg. draw time: %.2f ms",
+		mStatistics->getAvgDrawTime()*1000.0);
+	
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50,
+		glm::vec4(0.0f,0.8f,0.8f,1.0f),
+		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
-		mStatistics.getAvgSyncTime()*1000.0);
-	glColor4f(0.8f,0.8f,0.8f,1.0f);
+		mStatistics->getAvgSyncTime()*1000.0);
 
-	/*
-		Get memory info from nvidia and ati/amd cards.
-	*/
-	static int tot_mem = 0;
-	int av_mem = 0;
-	if( GLEW_NVX_gpu_memory_info )
-	{
-		glGetIntegerv(GL_GPU_MEMORY_INFO_TOTAL_AVAILABLE_MEMORY_NVX, &tot_mem);
-		glGetIntegerv(GL_GPU_MEMORY_INFO_CURRENT_AVAILABLE_VIDMEM_NVX, &av_mem);
-	}
-	else if( GLEW_ATI_meminfo )
-	{
-#ifdef __WIN32__
-        unsigned int tmpui = 0;
-		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
-		if( tot_mem == 0 && wglewIsSupported("WGL_AMD_gpu_association") && wglGetGPUIDsAMD(8, gpu_ids) != 0 )
-		{
-			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
-			if( gpu_ids[0] != 0 && wglGetGPUInfoAMD(gpu_ids[0], WGL_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
-				tot_mem = static_cast<int>( tmpui ) * 1024;
-		}
-#elif defined __APPLE__
-		//might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
-#else //Linux
-        //might get availible with GLEW 1.9.1: http://ehc.ac/p/glew/bugs/202/
-
-		/*unsigned int tmpui = 0;
-		unsigned int gpu_ids[] = {0, 0, 0, 0, 0, 0, 0, 0};
-		if( tot_mem == 0 && glewIsSupported("GLX_AMD_gpu_association") && glXGetGPUIDsAMD(8, gpu_ids) != 0 )
-		{
-			MessageHandler::Instance()->print("Polling AMD GPU info...\n");
-			if( gpu_ids[0] != 0 && glXGetGPUInfoAMD(gpu_ids[0], GLX_GPU_RAM_AMD, GL_UNSIGNED_INT, sizeof(unsigned int), &tmpui) != -1 )
-				tot_mem = static_cast<int>( tmpui ) * 1024;
-		}*/
-#endif
-
-		int mem[] = {0, 0, 0, 0};
-		glGetIntegerv(GL_TEXTURE_FREE_MEMORY_ATI, mem);
-		av_mem = mem[0];
-	}
-
-	if( av_mem == 0 || tot_mem == 0 )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Available memory: na\n");
-	else
-	{
-#ifdef __APPLE__
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Available memory: %d (MB)",
-		av_mem/1024);
-#else
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50, "Memory usage: %d %%, %d of %d (MB)",
-		tot_mem > 0 ? (100*(tot_mem-av_mem))/tot_mem : 0, //if not supported card, prevent div by zero
-		(tot_mem-av_mem)/1024,
-		tot_mem/1024);
-#endif
-	}
-
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35, "Swap groups: %s and %s (%s) | Frame: %d",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35,
+		glm::vec4(0.8f,0.8f,0.8f,1.0f),
+		"Swap groups: %s and %s (%s) | Frame: %d",
 		getWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
 		getWindowPtr()->isBarrierActive() ? "active" : "not active",
 		getWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20, "Tracked: %s | User position: %.3f %.3f %.3f",
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20,
+		glm::vec4(0.8f,0.8f,0.8f,1.0f),
+		"Tracked: %s | User position: %.3f %.3f %.3f",
 		tmpNode->getCurrentViewport()->isTracked() ? "true" : "false",
 		getUserPtr()->getXPos(),
 		getUserPtr()->getYPos(),
@@ -1103,10 +1076,16 @@ void sgct::Engine::renderDisplayInfo()
 	{
 		glDrawBuffer(GL_BACK_LEFT);
 		glReadBuffer(GL_BACK_LEFT);
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye: Left");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+			glm::vec4(0.8f,0.8f,0.8f,1.0f),
+			"Active eye: Left");
+		
 		glDrawBuffer(GL_BACK_RIGHT);
 		glReadBuffer(GL_BACK_RIGHT);
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye:          Right");
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+			glm::vec4(0.8f,0.8f,0.8f,1.0f),
+			"Active eye:          Right");
+		
 		glDrawBuffer(GL_BACK);
 		glReadBuffer(GL_BACK);
 	}
@@ -1114,14 +1093,20 @@ void sgct::Engine::renderDisplayInfo()
 	{
 		if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoLeftEye )
 		{
-			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye: Left");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Active eye: Left");
 		}
 		else if( tmpNode->getCurrentViewport()->getEye() == Frustum::StereoRightEye )
 		{
-			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 125, "Active eye:          Right");
+			sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Active eye:          Right");
 		}
 	}
-	glPopAttrib();
+
+	if(mFixedOGLPipeline)
+		glPopAttrib();
 }
 
 /*!
@@ -2569,21 +2554,21 @@ void sgct::Engine::captureBuffer()
 	if(tmpNode->stereo == ClusterManager::NoStereo)
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
-			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
 		else
-			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 		{
-			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
-			mScreenCapture.SaveScreenCapture( mFrameBufferTextures[RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
 		}
 		else
 		{
-			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
-			mScreenCapture.SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
 		}
 	}
 
@@ -2806,13 +2791,13 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"--Capture-TGA") == 0 )
 		{
-			mScreenCapture.setFormat( ScreenCapture::TGA );
+			SGCTSettings::Instance()->setCaptureFormat("TGA");
 			argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--Capture-PNG") == 0 )
 		{
-			mScreenCapture.setFormat( ScreenCapture::PNG );
+			SGCTSettings::Instance()->setCaptureFormat("PNG");
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -3165,15 +3150,15 @@ void sgct::Engine::initFisheye()
 void sgct::Engine::calculateFPS(double timestamp)
 {
 	static double lastTimestamp = glfwGetTime();
-	mStatistics.setFrameTime(timestamp - lastTimestamp);
+	mStatistics->setFrameTime(timestamp - lastTimestamp);
 	lastTimestamp = timestamp;
     static double renderedFrames = 0.0;
 	static double tmpTime = 0.0;
 	renderedFrames += 1.0;
-	tmpTime += mStatistics.getFrameTime();
+	tmpTime += mStatistics->getFrameTime();
 	if( tmpTime >= 1.0 )
 	{
-		mStatistics.setAvgFPS(renderedFrames / tmpTime);
+		mStatistics->setAvgFPS(renderedFrames / tmpTime);
 		renderedFrames = 0.0;
 		tmpTime = 0.0;
 
@@ -3188,7 +3173,7 @@ void sgct::Engine::calculateFPS(double timestamp)
 */
 const double & sgct::Engine::getDt()
 {
-	return mStatistics.getFrameTime();
+	return mStatistics->getFrameTime();
 }
 
 /*!
@@ -3196,7 +3181,7 @@ const double & sgct::Engine::getDt()
 */
 const double & sgct::Engine::getAvgDt()
 {
-	return mStatistics.getAvgFrameTime();
+	return mStatistics->getAvgFrameTime();
 }
 
 /*!
@@ -3204,7 +3189,7 @@ const double & sgct::Engine::getAvgDt()
 */
 const double & sgct::Engine::getDrawTime()
 {
-	return mStatistics.getDrawTime();
+	return mStatistics->getDrawTime();
 }
 
 /*!
@@ -3212,7 +3197,7 @@ const double & sgct::Engine::getDrawTime()
 */
 const double & sgct::Engine::getSyncTime()
 {
-	return mStatistics.getSyncTime();
+	return mStatistics->getSyncTime();
 }
 
 /*!
@@ -3338,7 +3323,7 @@ const char * sgct::Engine::getBasicInfo()
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics.getAvgFPS(),
+		mStatistics->getAvgFPS(),
         getAAInfo());
     #else
     sprintf( basicInfo, "Node: %s (%s) | fps: %.2f | AA: %s",

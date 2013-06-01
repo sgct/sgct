@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 //FreeType Headers
 #include "external/ft2build.h"
-#include "external/freetype/freetype.h"
+#include FT_FREETYPE_H
 #include "external/freetype/ftglyph.h"
 #include "external/freetype/ftoutln.h"
 #include "external/freetype/fttrigon.h"
@@ -20,6 +20,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 //Some STL headers
 #include <string>
 #include <vector>
+#include <glm/glm.hpp>
 
 //Using the STL exception library increases the
 //chances that someone else using our code will corretly
@@ -30,7 +31,9 @@ namespace sgct_text
 {
 
 void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...);
-void print3d(const sgct_text::Font * ft_font, float x, float y, float z, float scale, const char *fmt, ...);
+void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *fmt, ...);
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ...);
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *fmt, ...);
 
 }
 

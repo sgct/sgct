@@ -15,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <GL/glfw.h>
 #include "../include/sgct/Font.h"
+#include "../include/sgct/Engine.h"
 
 using namespace sgct_text;
 
@@ -28,9 +29,12 @@ Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
 	mTextures( NULL ),
-	mListBase( 0 )
+	mListBase( 0 ),
+	mFixedPipeline( true )
 {
-	// Do nothing
+	mVAO = 0;
+	mVBO = 0;
+	mCharWidths = NULL;
 }
 
 /*!
@@ -52,10 +56,19 @@ void Font::init( const std::string & name, unsigned int height )
 	//Allocate some memory to store the texture ids.
 	mName = name;
 	mTextures = new GLuint[128];
+	mCharWidths = new float[128];
 	mHeight = static_cast<float>( height );
 
-	mListBase = glGenLists(128);
 	glGenTextures( 128, mTextures );
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		mListBase = glGenLists(128);
+	}
+	else
+	{
+		glGenVertexArrays(1, &mVAO);
+		glGenBuffers(1, &mVBO);
+	}
 }
 
 /*!
@@ -65,10 +78,24 @@ void Font::clean()
 {
 	if( mTextures )	// Check if init has been called
 	{
-		glDeleteLists( mListBase, 128 );
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+			glDeleteLists( mListBase, 128 );
+		else
+		{
+			if(mVAO != 0)
+				glDeleteVertexArrays(1, &mVAO);
+			if( mVBO != 0)
+				glDeleteBuffers(1, &mVBO);
+		}
 		glDeleteTextures( 128, mTextures );
 		delete [] mTextures;
 		mTextures = NULL;
+	}
+
+	if( mCharWidths )
+	{
+		delete [] mCharWidths;
+		mCharWidths = NULL;
 	}
 
 	std::vector<FT_Glyph>::iterator it = mGlyphs.begin();
@@ -80,5 +107,4 @@ void Font::clean()
 	}
 
 	mGlyphs.clear();
-
 }

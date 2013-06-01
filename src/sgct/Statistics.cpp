@@ -54,8 +54,8 @@ sgct_core::Statistics::Statistics()
 	mAvgFrameTime = 0.0;
 
 	mFixedPipeline = true;
-	mMVPLoc = 0;
-	mColLoc = 0;
+	mMVPLoc = -1;
+	mColLoc = -1;
 	mNumberOfLineVerts = 0;
 
 	colors[0] = glm::vec4( 1.0f,1.0f,0.0f,0.8f );
@@ -86,15 +86,15 @@ sgct_core::Statistics::Statistics()
 
 sgct_core::Statistics::~Statistics()
 {
-	if(mVboPtrs[0] != 0)
+	if(mVboPtrs[0])
 		glDeleteBuffers(STATS_NUMBER_OF_VBOs, &mVboPtrs[0]);
-	if(mVAO != 0)
+	if(mVAO)
 		glDeleteVertexArrays(1, &mVAO);
-	if(mGridVBO !=0)
+	if(mGridVBO)
 		glDeleteBuffers(1, &mGridVBO);
-	if(mFreqLinesVBO !=0)
+	if(mFreqLinesVBO)
 		glDeleteBuffers(1, &mFreqLinesVBO);
-	if(mBackgroundVBO !=0)
+	if(mBackgroundVBO)
 		glDeleteBuffers(1, &mBackgroundVBO);
 }
 
@@ -295,7 +295,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glColor4f(1.0f,1.0f,1.0f,0.2f);
 		glBindBuffer(GL_ARRAY_BUFFER, mGridVBO);
 		glVertexPointer(2, GL_FLOAT, 0, NULL);
-		glDrawArrays(GL_LINES, 0, mNumberOfLineVerts);
+		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 
 		GLvoid* PositionBuffer;
 
@@ -371,7 +371,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 				0,				    // stride
 				reinterpret_cast<void*>(0) // array buffer offset
 			);
-		glDrawArrays(GL_LINES, 0, mNumberOfLineVerts);
+		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 
 		//zero line, 60hz & 30hz
 		glUniform4f( mColLoc, 1.0f,0.0f,0.0f,1.0f );

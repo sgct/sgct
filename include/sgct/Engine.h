@@ -198,7 +198,7 @@ public:
 	/*!
 		Returns pointer to screen capture object/handler
 	*/
-	sgct_core::ScreenCapture * getScreenCapturePointer() { return &mScreenCapture; }
+	const sgct_core::ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
 	
 	/*!
 		Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
@@ -398,8 +398,6 @@ private:
 	bool mFixedOGLPipeline;
 
 	//objects
-	sgct_core::Statistics	 mStatistics;
-	sgct_core::ScreenCapture mScreenCapture;
 	ShaderProgram mShaders[NUMBER_OF_SHADERS];
 
 	//FBO stuff
@@ -414,6 +412,8 @@ private:
 	//pointers
 	sgct_core::NetworkManager * mNetworkConnections;
 	sgct_core::ReadConfig	* mConfig;
+	sgct_core::Statistics	 * mStatistics;
+	sgct_core::ScreenCapture * mScreenCapture;
 	
 	float mPostFxQuadVerts[20];
 

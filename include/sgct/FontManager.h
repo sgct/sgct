@@ -12,10 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <set>
 #include <map>
 
-#include <external/ft2build.h>
-#include FT_FREETYPE_H
-
 #include "Font.h"
+#include "ShaderProgram.h"
 
 /*! \namespace sgct_text
 \brief simple graphics cluster toolkit text namespace.
@@ -41,6 +39,10 @@ public:
 	const Font * GetDefaultFont( unsigned int height = mDefaultHeight );
 
 	void SetDefaultFontPath( const std::string & path );
+	sgct::ShaderProgram getShader() { return mShader; }
+	unsigned int getMVPLoc() { return mMVPLoc; }
+	unsigned int getColLoc() { return mColLoc; }
+	unsigned int getTexLoc() { return mTexLoc; }
 
 	static FontManager * Instance()
 	{
@@ -68,6 +70,7 @@ private:
 	/// Helper functions
 	std::set<Font>::iterator CreateFont( const std::string & fontName, unsigned int height );
 	bool MakeDisplayList( FT_Face face, char ch, Font & font );
+	bool MakeVBO( FT_Face face, Font & font );
 
 	// Don't implement these, should give compile warning if used
 	FontManager( const FontManager & fm );
@@ -75,15 +78,18 @@ private:
 
 private:
 
-	static FontManager * mInstance;					// Singleton instance of the LogManager
-	static const FT_Short mDefaultHeight;			// Default height of font faces in pixels
+	static FontManager * mInstance;			// Singleton instance of the LogManager
+	static const FT_Short mDefaultHeight;	// Default height of font faces in pixels
 
 	std::string mDefaultFontPath;			// The default font path from where to look for font files
 
-	FT_Library  mFTLibrary;							// Freetype library
+	FT_Library  mFTLibrary;					// Freetype library
 
 	std::map<std::string, std::string> mFontPaths;	// Holds all predefined font paths for generating font glyphs
 	std::set<Font> mFonts;				// All generated fonts
+
+	sgct::ShaderProgram mShader;
+	int mMVPLoc, mColLoc, mTexLoc;
 };
 
 } // sgct

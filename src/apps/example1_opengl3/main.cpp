@@ -12,9 +12,9 @@ void myCleanUpFun();
 sgct::SharedDouble curr_time(0.0);
 
 //global vars
-GLuint vertexArray;
-GLuint vertexPositionBuffer;
-GLuint vertexColorBuffer;
+GLuint vertexArray = GL_FALSE;
+GLuint vertexPositionBuffer = GL_FALSE;
+GLuint vertexColorBuffer = GL_FALSE;
 
 GLint Matrix_Loc = -1;
 
@@ -33,6 +33,7 @@ int main( int argc, char* argv[] )
 
 	// Init the engine
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
+	//if( !gEngine->init() )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
@@ -133,6 +134,17 @@ void myDrawFun()
 	glBindVertexArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	sgct::ShaderManager::Instance()->unBindShader();
+
+	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 128 ), MVP, "Halla");
+	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 64 ), MVP, glm::vec4(0.0, 1.0, 0.0, 1.0), "        Halla");
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 45.0f, 200.0f, "YOYOYOY");
+
+	/*glBegin(GL_QUADS);
+	glVertex3i( -1, -1, -4 );
+	glVertex3i( -1, 1, -4 );
+	glVertex3i( 1, 1, -4 );
+	glVertex3i( 1, -1, -4 );
+	glEnd();*/
 }
 
 void myPreSyncFun()
@@ -145,6 +157,7 @@ void myPreSyncFun()
 	}
 
 	gEngine->setStatsGraphVisibility(true);
+	gEngine->setDisplayInfoVisibility(true);
 	//gEngine->takeScreenshot();
 }
 
@@ -160,7 +173,10 @@ void myDecodeFun()
 
 void myCleanUpFun()
 {
-	glDeleteBuffers(1, &vertexPositionBuffer);
-	glDeleteBuffers(1, &vertexColorBuffer);
-	glDeleteVertexArrays(1, &vertexArray);
+	if(vertexPositionBuffer)
+		glDeleteBuffers(1, &vertexPositionBuffer);
+	if(vertexColorBuffer)
+		glDeleteBuffers(1, &vertexColorBuffer);
+	if(vertexArray)
+		glDeleteVertexArrays(1, &vertexArray);
 }

@@ -8,25 +8,21 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/FontManager.h"
+#include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/Engine.h"
+#include <glm/gtc/type_ptr.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 
 #define TEXT_RENDER_BUFFER_SIZE 512
 
 namespace sgct_text
 {
 
-inline void pushScreenCoordinateMatrix()
+inline void setupViewport()
 {
-	//GLint	viewport[4];
-	//glGetIntegerv(GL_VIEWPORT, viewport);
-	glMatrixMode(GL_PROJECTION);
-	glPushMatrix();
-	glLoadIdentity();
-
 	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-	//set current viewport
-	//user or external scenegraph may change the viewport so it's important to reset it.
-
+	
 	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
 	{
 		glViewport(
@@ -34,14 +30,6 @@ inline void pushScreenCoordinateMatrix()
 			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution())),
 			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution())),
 			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution())));
-	
-		gluOrtho2D(
-			0.0,
-			tmpNode->getCurrentViewport()->getXSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution()),
-			0.0,
-			tmpNode->getCurrentViewport()->getYSize() *
-			static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution()));
 	}
 	else
 	{
@@ -50,15 +38,47 @@ inline void pushScreenCoordinateMatrix()
 			static_cast<int>(tmpNode->getCurrentViewport()->getY() * static_cast<double>(tmpNode->getWindowPtr()->getYResolution())),
 			static_cast<int>(tmpNode->getCurrentViewport()->getXSize() * static_cast<double>(tmpNode->getWindowPtr()->getXResolution())),
 			static_cast<int>(tmpNode->getCurrentViewport()->getYSize() * static_cast<double>(tmpNode->getWindowPtr()->getYResolution())));
-	
-		gluOrtho2D(
+	}
+}
+
+inline glm::dmat4 setupOrthoMat()
+{
+	glm::dmat4 orthoMat;
+	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+
+	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
+	{
+		orthoMat = glm::ortho(0.0,
+			tmpNode->getCurrentViewport()->getXSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getXFramebufferResolution()),
 			0.0,
+			tmpNode->getCurrentViewport()->getYSize() *
+			static_cast<double>(tmpNode->getWindowPtr()->getYFramebufferResolution()));
+	}
+	else
+	{
+		orthoMat = glm::ortho(0.0,
 			tmpNode->getCurrentViewport()->getXSize() *
 			static_cast<double>(tmpNode->getWindowPtr()->getXResolution()),
 			0.0,
 			tmpNode->getCurrentViewport()->getYSize() *
 			static_cast<double>(tmpNode->getWindowPtr()->getYResolution()));
 	}
+
+	return orthoMat;
+}
+
+inline void pushScreenCoordinateMatrix()
+{
+	glMatrixMode(GL_PROJECTION);
+	glPushMatrix();
+
+	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	//set current viewport
+	//user or external scenegraph may change the viewport so it's important to reset it.
+
+	setupViewport();
+	glLoadMatrixd( glm::value_ptr( setupOrthoMat() ) );
 }
 
 /// Pops the projection matrix without changing the current
@@ -74,11 +94,7 @@ inline void pop_projection_matrix()
 void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...)
 {
 	if( ft_font == NULL ) { return; }
-
-	// We want a coordinate system where things coresponding to window pixels.
-	pushScreenCoordinateMatrix();
-
-	GLuint font = ft_font->getListBase();
+	
 	float h = ft_font->getHeight() * 1.59f;
 
 	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
@@ -124,56 +140,263 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		lines.push_back(line);
 	}
 
-	glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-	glMatrixMode(GL_MODELVIEW);
-	glDisable(GL_LIGHTING);
-	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-	glEnable(GL_TEXTURE_2D);
-	glDisable(GL_DEPTH_TEST);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
+	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	{
+		pushScreenCoordinateMatrix();
+		GLuint font = ft_font->getListBase();
 
-	glListBase(font);
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	/*float modelview_matrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, modelview_matrix);*/
+		glColor4f( color.r, color.g, color.b, color.a );
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glPushMatrix();
+				glLoadIdentity();
+				glTranslatef( trans.x, trans.y, trans.z );
+				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
+			
+				glColor4f( color.r, color.g, color.b, color.a );
+				glCallList( font + c );
+				glPopMatrix();
+			}
+		}
 
-	//This is where the text display actually happens.
-	//For each line of text we reset the modelview matrix
-	//so that the line's text will start in the correct position.
-	//Notice that we need to reset the matrix, rather than just translating
-	//down by h. This is because when each character is
-	//draw it modifies the current matrix so that the next character
-	//will be drawn immediatly after it.
-	for(unsigned int i=0;i<lines.size();i++) {
+		glPopAttrib();
 
-
-		glPushMatrix();
-		glLoadIdentity();
-		glTranslatef(x,y-h*i,0);
-		//glMultMatrixf(modelview_matrix); we don't want to get affected by current scene's transformation when printing in 2d.
-
-	//  The commented out raster position stuff can be useful if you need to
-	//  know the length of the text that you are creating.
-	//  If you decide to use it make sure to also uncomment the glBitmap command
-	//  in make_dlist().
-	//	glRasterPos2f(0,0);
-		glCallLists(static_cast<GLsizei>(lines[i].length()), GL_UNSIGNED_BYTE, lines[i].c_str());
-	//	float rpos[4];
-	//	glGetFloatv(GL_CURRENT_RASTER_POSITION ,rpos);
-	//	float len=x-rpos[0];
-
-		glPopMatrix();
+		pop_projection_matrix();
 	}
+	else
+	{
+		setupViewport();
+		glm::mat4 projectionMat( setupOrthoMat() );
 
-    glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ZERO);
-	glPopAttrib();
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	pop_projection_matrix();
+		FontManager::Instance()->getShader().bind();
+
+		glBindVertexArray( ft_font->getVAO() );
+		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+
+		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
+
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
+				
+				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+
+				glVertexAttribPointer(
+					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(0) // array buffer offset
+				);
+
+				glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(8) // array buffer offset
+				);
+			
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
+
+		//unbind
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
 }
 
-void print3d(const sgct_text::Font * ft_font, float x, float y, float z, float scale, const char *fmt, ...)
+///Much like Nehe's glPrint function, but modified to work
+///with freetype fonts.
+void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *fmt, ...)
+{
+	if( ft_font == NULL ) { return; }
+
+	float h = ft_font->getHeight() * 1.59f;
+
+	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
+	va_list		ap;										// Pointer To List Of Arguments
+
+	if (fmt == NULL)									// If There's No Text
+		*text=0;											// Do Nothing
+
+	else {
+	va_start(ap, fmt);									// Parses The String For Variables
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+#else
+		vsprintf(text, fmt, ap);
+#endif
+	va_end(ap);											// Results Are Stored In Text
+	}
+
+
+	//Here is some code to split the text that we have been
+	//given into a set of lines.
+	//This could be made much neater by using
+	//a regular expression library such as the one avliable from
+	//boost.org (I've only done it out by hand to avoid complicating
+	//this tutorial with unnecessary library dependencies).
+	const char *start_line=text;
+	std::vector<std::string> lines;
+	char *c;
+	for(c=text;*c;c++)
+	{
+		if(*c=='\n')
+		{
+			std::string line;
+			for(const char *n=start_line;n<c;n++) line.append(1,*n);
+			lines.push_back(line);
+			start_line=c+1;
+		}
+	}
+	if(start_line)
+	{
+		std::string line;
+		for(const char *n=start_line;n<c;n++) line.append(1,*n);
+		lines.push_back(line);
+	}
+
+	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	{
+		pushScreenCoordinateMatrix();
+		GLuint font = ft_font->getListBase();
+
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		glColor4f( color.r, color.g, color.b, color.a );
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glPushMatrix();
+				glLoadIdentity();
+				glTranslatef( trans.x, trans.y, trans.z );
+				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
+			
+				glColor4f( color.r, color.g, color.b, color.a );
+				glCallList( font + c );
+				glPopMatrix();
+			}
+		}
+
+		glPopAttrib();
+
+		pop_projection_matrix();
+	}
+	else
+	{
+		setupViewport();
+		glm::mat4 projectionMat( setupOrthoMat() );
+
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		FontManager::Instance()->getShader().bind();
+
+		glBindVertexArray( ft_font->getVAO() );
+		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+
+		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
+
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
+				
+				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+
+				glVertexAttribPointer(
+					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(0) // array buffer offset
+				);
+
+				glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(8) // array buffer offset
+				);
+			
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
+
+		//unbind
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+}
+
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ...)
 {
 	if( ft_font == NULL ) { return; }
 
@@ -220,27 +443,250 @@ void print3d(const sgct_text::Font * ft_font, float x, float y, float z, float s
 		lines.push_back(line);
 	}
 
-	glDisable(GL_LIGHTING);
-	glEnable(GL_TEXTURE_2D);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-	glListBase(font);
-
-	for(unsigned int i=0;i<lines.size();i++)
+	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
+	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
 	{
-		float textScale = scale / ft_font->getHeight();
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
+	
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		
+		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
-		glTranslatef(x,y-h*i,z);
-		glScalef( textScale, textScale, textScale);
-		glCallLists(static_cast<GLsizei>(lines[i].length()), GL_UNSIGNED_BYTE, lines[i].c_str());
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glLoadMatrixf( glm::value_ptr( trans ) );
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
+			
+				glColor4f( color.r, color.g, color.b, color.a );
+				glCallList( font + c );
+			}
+		}
+
+		glMatrixMode(GL_PROJECTION);
 		glPopMatrix();
+
+		glPopAttrib();
+	}
+	else
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		FontManager::Instance()->getShader().bind();
+
+		glBindVertexArray( ft_font->getVAO() );
+		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+
+		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
+
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
+				
+				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+
+				glVertexAttribPointer(
+					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(0) // array buffer offset
+				);
+
+				glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(8) // array buffer offset
+				);
+			
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
+
+		//unbind
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
+}
+
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *fmt, ...)
+{
+	if( ft_font == NULL ) { return; }
+
+	GLuint font = ft_font->getListBase();
+	float h = ft_font->getHeight();
+
+	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
+	va_list		ap;										// Pointer To List Of Arguments
+
+	if (fmt == NULL)									// If There's No Text
+		*text=0;										// Do Nothing
+
+	else {
+	va_start(ap, fmt);									// Parses The String For Variables
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+#else
+		vsprintf(text, fmt, ap);
+#endif
+	va_end(ap);											// Results Are Stored In Text
 	}
 
-	glEnable(GL_LIGHTING);
-	glDisable(GL_TEXTURE_2D);
-	glDisable(GL_BLEND);
-    glBlendFunc(GL_ONE, GL_ZERO);
+
+	//Here is some code to split the text that we have been
+	//given into a set of lines.
+	//This could be made much neater by using
+	//a regular expression library such as the one avliable from
+	//boost.org (I've only done it out by hand to avoid complicating
+	//this tutorial with unnecessary library dependencies).
+	const char *start_line=text;
+	char *c;
+	std::vector<std::string> lines;
+	for(c=text;*c;c++) {
+		if(*c=='\n') {
+			std::string line;
+			for(const char *n=start_line;n<c;n++) line.append(1,*n);
+			lines.push_back(line);
+			start_line=c+1;
+		}
+	}
+	if(start_line) {
+		std::string line;
+		for(const char *n=start_line;n<c;n++) line.append(1,*n);
+		lines.push_back(line);
+	}
+
+	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	{
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_LIGHTING);
+		glEnable(GL_TEXTURE_2D);
+	
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		
+		glMatrixMode(GL_PROJECTION);
+		glPushMatrix();
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glLoadMatrixf( glm::value_ptr( trans ) );
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
+			
+				glColor4f( color.r, color.g, color.b, color.a );
+				glCallList( font + c );
+			}
+		}
+
+		glMatrixMode(GL_PROJECTION);
+		glPopMatrix();
+
+		glPopAttrib();
+	}
+	else
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+
+		FontManager::Instance()->getShader().bind();
+
+		glBindVertexArray( ft_font->getVAO() );
+		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
+
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glActiveTexture(GL_TEXTURE0);
+
+		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
+
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+
+		for(unsigned int i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+
+			for(int j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
+				
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
+				
+				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+
+				glVertexAttribPointer(
+					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(0) // array buffer offset
+				);
+
+				glVertexAttribPointer(
+					1,                  // attribute 1
+					2,                  // size
+					GL_FLOAT,           // type
+					GL_FALSE,           // normalized?
+					4*sizeof(float),    // stride
+					reinterpret_cast<void*>(8) // array buffer offset
+				);
+			
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
+
+		//unbind
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindVertexArray(0);
+		sgct::ShaderManager::Instance()->unBindShader();
+	}
 }
 
 }

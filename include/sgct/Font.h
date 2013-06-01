@@ -33,6 +33,12 @@ public:
 	/*! Get the list base index */
 	inline unsigned int getListBase() const { return mListBase; }
 
+	/*! Get the vertex array id */
+	inline unsigned int getVAO() const { return mVAO; }
+
+	/*! Get the vertex buffer objects pointer */
+	inline unsigned int getVBO() const { return mVBO; }
+
 	/*! Get height of the font */
 	inline float getHeight() const { return mHeight; }
 
@@ -41,6 +47,12 @@ public:
 
 	/*! Adds a glyph to the font */
 	inline void AddGlyph( const FT_Glyph & glyph ){ mGlyphs.push_back( glyph ); }
+
+	/*! Set the width of a character in the font */
+	inline void setCharWidth( char c, float width ){ mCharWidths[c] = width; }
+	/*! Get the width of a character in the font */
+	inline float getCharWidth( char c ) const { return mCharWidths[c]; }
+
 
 public:
 
@@ -57,8 +69,11 @@ private:
 	float mHeight;					// Holds the height of the font.
 	unsigned int * mTextures;		// Holds the texture id's
 	unsigned int mListBase;			// Holds the first display list id
-
+	unsigned int mVBO;
+	unsigned int mVAO;
+	bool mFixedPipeline;
 	std::vector<FT_Glyph> mGlyphs;	// All glyphs needed by the font
+	float * mCharWidths;
 };
 
 } // sgct

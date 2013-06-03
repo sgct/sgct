@@ -390,6 +390,8 @@ bool sgct::Engine::initWindow()
 	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
 	*/
 
+	mStatistics = new Statistics();
+
     if( !getWindowPtr()->openWindow() )
 		return false;
 
@@ -476,7 +478,6 @@ void sgct::Engine::initOGL()
 
 	createTextures();
 
-	mStatistics = new Statistics();
 	mScreenCapture = new ScreenCapture();
 	mFinalFBO_Ptr = new OffScreenBuffer();
 	mCubeMapFBO_Ptr = new OffScreenBuffer();
@@ -3320,16 +3321,16 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f | AA: %s",
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2lf | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		mStatistics->getAvgFPS(),
         getAAInfo());
     #else
-    sprintf( basicInfo, "Node: %s (%s) | fps: %.2f | AA: %s",
+    sprintf( basicInfo, "Node: %s (%s) | fps: %.2lf | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics.getAvgFPS(),
+		mStatistics->getAvgFPS(),
         getAAInfo());
     #endif
 

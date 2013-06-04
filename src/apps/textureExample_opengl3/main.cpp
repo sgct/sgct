@@ -9,9 +9,11 @@ void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
+void myCleanUpFun();
 
 size_t myTextureIndex;
 sgct_utils::SGCTBox * myBox = NULL;
+GLint Matrix_Loc = -1;
 
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
@@ -23,8 +25,9 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setCleanUpFunction( myCleanUpFun );
 
-	if( !gEngine->init() )
+	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
@@ -38,7 +41,6 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete gEngine;
-	if(myBox != NULL) delete myBox;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -46,15 +48,33 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_CULL_FACE );
+	
 	double speed = 25.0;
 	
-	glTranslatef(0.0f, 0.0f, -3.0f);
-	glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
-	glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-	glColor3f(1.0f,1.0f,1.0f);
+	//create scene transform (animation)
+	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );	
+	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+	
+	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+
+	glActiveTexture(GL_TEXTURE0);
+	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByName("box") );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureIndex) );
+	
+	sgct::ShaderManager::Instance()->bindShader( "xform" );
+		
+	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+
 	//draw the box
 	myBox->draw();
+
+	sgct::ShaderManager::Instance()->unBindShader();
+
+	glDisable( GL_CULL_FACE );
+	glDisable( GL_DEPTH_TEST );
 }
 
 void myPreSyncFun()
@@ -72,18 +92,25 @@ void myInitOGLFun()
 	sgct::TextureManager::Instance()->loadTexure(myTextureIndex, "box", "box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
-	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-	
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_COLOR_MATERIAL );
-	glDisable( GL_LIGHTING );
-	glEnable( GL_CULL_FACE );
-	glEnable( GL_TEXTURE_2D );
+	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
+	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
 
 	//Set up backface culling
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+	glDepthFunc(GL_LESS);
+
+	sgct::ShaderManager::Instance()->addShader( "xform",
+			"SimpleVertexShader.vertexshader",
+			"SimpleFragmentShader.fragmentshader" );
+
+	sgct::ShaderManager::Instance()->bindShader( "xform" );
+ 
+	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
+	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "Tex" );
+	glUniform1i( Tex_Loc, 0 );
+ 
+	sgct::ShaderManager::Instance()->unBindShader();
 }
 
 void myEncodeFun()
@@ -94,4 +121,10 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	sgct::SharedData::Instance()->readDouble(&curr_time);
+}
+
+void myCleanUpFun()
+{
+	if(myBox != NULL)
+		delete myBox;
 }

@@ -11,12 +11,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
 
+/*!
+	This constructor requires a valid openGL contex 
+*/
 sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 {
 	mVerts = NULL;
 	mIndices = NULL;
-	mVBO[Vertex] = 0;
-	mVBO[Index] = 0;
+	mVBO[Vertex] = GL_FALSE;
+	mVBO[Index] = GL_FALSE;
+	mVAO = GL_FALSE;
+
+	mInternalDrawFn = &SGCTSphere::drawVBO;
 
 	unsigned int i, j;
 	float x, y, z, R;
@@ -148,14 +154,27 @@ void sgct_utils::SGCTSphere::cleanUp()
 		mVBO[Vertex] = 0;
 		mVBO[Index] = 0;
 	}
+
+	if(mVAO != 0)
+	{
+		glDeleteBuffers(1, &mVAO);
+		mVAO = 0;
+	}
 }
 
+/*!
+	If openGL 3.3+ is used:
+	layout 0 contains texture coordinates (vec2)
+	layout 1 contains vertex normals (vec3)
+	layout 2 contains vertex positions (vec3).
+*/
 void sgct_utils::SGCTSphere::draw()
 {
-	//if not set
-	if( mVBO[Vertex] == 0 || mVBO[Index] == 0 )
-		return;
+	(this->*mInternalDrawFn)();
+}
 
+void sgct_utils::SGCTSphere::drawVBO()
+{
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -174,12 +193,48 @@ void sgct_utils::SGCTSphere::draw()
 	glPopClientAttrib();
 }
 
+void sgct_utils::SGCTSphere::drawVAO()
+{
+	glBindVertexArray( mVAO );
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
+	glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
+
+	//unbind
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindVertexArray(0);
+}
+
 void sgct_utils::SGCTSphere::createVBO()
 {
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		mInternalDrawFn = &SGCTSphere::drawVAO;
+		
+		glGenVertexArrays(1, &mVAO);
+		glBindVertexArray( mVAO );
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+	}
+	
 	glGenBuffers(2, &mVBO[0]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
 	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);
+
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(0) ); //texcoords
+		glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(8) ); //normals
+		glVertexAttribPointer( 2, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(20) ); //vert positions
+	}
 
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces * 3 * sizeof(unsigned int), mIndices, GL_STATIC_DRAW);
@@ -187,4 +242,11 @@ void sgct_utils::SGCTSphere::createVBO()
 	//unbind
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindVertexArray( 0 );
+	}
 }

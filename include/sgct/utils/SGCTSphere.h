@@ -29,6 +29,12 @@ private:
 		const float &nx, const float &ny, const float &nz,
 		const float &x, const float &y, const float &z);
 
+	void drawVBO();
+	void drawVAO();
+
+	typedef void (SGCTSphere::*InternalCallbackFn)(void);
+	InternalCallbackFn	mInternalDrawFn;
+
 	void createVBO();
 	void cleanUp();
 
@@ -46,6 +52,7 @@ private:
 
 	enum bufferType { Vertex = 0, Index };
 	unsigned int mVBO[2];
+	unsigned int mVAO;
 };
 
 }

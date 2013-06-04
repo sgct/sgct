@@ -135,10 +135,6 @@ void myDrawFun()
 	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 	sgct::ShaderManager::Instance()->unBindShader();
-
-	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 128 ), MVP, "Halla");
-	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 64 ), MVP, glm::vec4(0.0, 1.0, 0.0, 1.0), "        Halla");
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 45.0f, 200.0f, "YOYOYOY");
 }
 
 void myPreSyncFun()
@@ -149,10 +145,6 @@ void myPreSyncFun()
 		//get the time in seconds
 		curr_time.setVal(sgct::Engine::getTime());
 	}
-
-	gEngine->setStatsGraphVisibility(true);
-	gEngine->setDisplayInfoVisibility(true);
-	//gEngine->takeScreenshot();
 }
 
 void myEncodeFun()

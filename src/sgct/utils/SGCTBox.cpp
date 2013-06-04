@@ -10,11 +10,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
 
+/*!
+	This constructor requires a valid openGL contex 
+*/
 sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
 {
 	//init
-	mVBO = 0;
+	mVBO = GL_FALSE;
+	mVAO = GL_FALSE;
 	mVerts = NULL;
+
+	mInternalDrawFn = &SGCTBox::drawVBO;
 
 	mVerts = new sgct_helpers::SGCTVertexData[36];
 	memset(mVerts, 0, 36 * sizeof(sgct_helpers::SGCTVertexData));
@@ -23,152 +29,152 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
 	if(tmm == Regular)
 	{
 		//A (front/+z)
-		mVerts[0].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[1].set(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -size, -size, size);
-		mVerts[2].set(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[3].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[4].set(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[5].set(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, size, size, size);
+		mVerts[0].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[1].set(0.0f, 0.0f, 0.0f, 0.0f, 1.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[2].set(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[3].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[4].set(1.0f, 0.0f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[5].set(1.0f, 1.0f, 0.0f, 0.0f, 1.0f, size/2.0f, size/2.0f, size/2.0f);
 
 		//B (right/+x)
-		mVerts[6].set(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[7].set(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, size, -size, size);
-		mVerts[8].set(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[9].set(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[10].set(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[11].set(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, -size);
+		mVerts[6].set(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[7].set(0.0f, 0.0f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[8].set(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[9].set(0.0f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[10].set(1.0f, 0.0f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[11].set(1.0f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//C (Back/-z)
-		mVerts[12].set(0.0f, 1.0f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[13].set(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, size, -size, -size);
-		mVerts[14].set(1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[15].set(0.0f, 1.0f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[16].set(1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[17].set(1.0f, 1.0f, 0.0f, 0.0f, -1.0f, -size, size, -size);
+		mVerts[12].set(0.0f, 1.0f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[13].set(0.0f, 0.0f, 0.0f, 0.0f, -1.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[14].set(1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[15].set(0.0f, 1.0f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[16].set(1.0f, 0.0f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[17].set(1.0f, 1.0f, 0.0f, 0.0f, -1.0f, -size/2.0f, size/2.0f, -size/2.0f);
 
 		//D (Left/-x)
-		mVerts[18].set(0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[19].set(0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, -size);
-		mVerts[20].set(1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[21].set(0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[22].set(1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[23].set(1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size, size, size);
+		mVerts[18].set(0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[19].set(0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[20].set(1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[21].set(0.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[22].set(1.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[23].set(1.0f, 1.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
 
 		//E (Top/+y)
-		mVerts[24].set(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[25].set(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -size, size, size);
-		mVerts[26].set(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[27].set(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[28].set(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[29].set(1.0f, 1.0f, 0.0f, 1.0f, 0.0f, size, size, -size);
+		mVerts[24].set(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[25].set(0.0f, 0.0f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[26].set(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[27].set(0.0f, 1.0f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[28].set(1.0f, 0.0f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[29].set(1.0f, 1.0f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//F (Bottom/-y)
-		mVerts[30].set(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[31].set(0.0f, 0.0f, 0.0f, -1.0f, 0.0f, -size, -size, -size);
-		mVerts[32].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[33].set(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[34].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[35].set(1.0f, 1.0f, 0.0f, -1.0f, 0.0f, size, -size, size);
+		mVerts[30].set(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[31].set(0.0f, 0.0f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[32].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[33].set(0.0f, 1.0f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[34].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[35].set(1.0f, 1.0f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
 	}
 	else if(tmm == CubeMap)
 	{
 		//A (front/+z)
-		mVerts[0].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[1].set(0.0f, 0.5f, 0.0f, 0.0f, 1.0f, -size, -size, size);
-		mVerts[2].set(0.333333f, 0.5f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[3].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[4].set(0.333333f, 0.5f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[5].set(0.333333f, 1.0f, 0.0f, 0.0f, 1.0f, size, size, size);
+		mVerts[0].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[1].set(0.0f, 0.5f, 0.0f, 0.0f, 1.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[2].set(0.333333f, 0.5f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[3].set(0.0f, 1.0f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[4].set(0.333333f, 0.5f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[5].set(0.333333f, 1.0f, 0.0f, 0.0f, 1.0f, size/2.0f, size/2.0f, size/2.0f);
 
 		//B (right/+x)
-		mVerts[6].set(0.333334f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[7].set(0.333334f, 0.5f, 1.0f, 0.0f, 0.0f, size, -size, size);
-		mVerts[8].set(0.666666f, 0.5f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[9].set(0.333334f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[10].set(0.666666f, 0.5f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[11].set(0.666666f, 1.0f, 1.0f, 0.0f, 0.0f, size, size, -size);
+		mVerts[6].set(0.333334f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[7].set(0.333334f, 0.5f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[8].set(0.666666f, 0.5f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[9].set(0.333334f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[10].set(0.666666f, 0.5f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[11].set(0.666666f, 1.0f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//C (Back/-z)
-		mVerts[12].set(0.666667f, 1.0f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[13].set(0.666667f, 0.5f, 0.0f, 0.0f, -1.0f, size, -size, -size);
-		mVerts[14].set(1.0f, 0.5f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[15].set(0.666667f, 1.0f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[16].set(1.0f, 0.5f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[17].set(1.0f, 1.0f, 0.0f, 0.0f, -1.0f, -size, size, -size);
+		mVerts[12].set(0.666667f, 1.0f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[13].set(0.666667f, 0.5f, 0.0f, 0.0f, -1.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[14].set(1.0f, 0.5f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[15].set(0.666667f, 1.0f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[16].set(1.0f, 0.5f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[17].set(1.0f, 1.0f, 0.0f, 0.0f, -1.0f, -size/2.0f, size/2.0f, -size/2.0f);
 
 		//D (Left/-x)
-		mVerts[18].set(0.0f, 0.5f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[19].set(0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, -size);
-		mVerts[20].set(0.333333f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[21].set(0.0f, 0.5f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[22].set(0.333333f, 0.0f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[23].set(0.333333f, 0.5f, -1.0f, 0.0f, 0.0f, -size, size, size);
+		mVerts[18].set(0.0f, 0.5f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[19].set(0.0f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[20].set(0.333333f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[21].set(0.0f, 0.5f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[22].set(0.333333f, 0.0f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[23].set(0.333333f, 0.5f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
 
 		//E (Top/+y)
-		mVerts[24].set(0.333334f, 0.5f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[25].set(0.333334f, 0.0f, 0.0f, 1.0f, 0.0f, -size, size, size);
-		mVerts[26].set(0.666666f, 0.0f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[27].set(0.333334f, 0.5f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[28].set(0.666666f, 0.0f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[29].set(0.666666f, 0.5f, 0.0f, 1.0f, 0.0f, size, size, -size);
+		mVerts[24].set(0.333334f, 0.5f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[25].set(0.333334f, 0.0f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[26].set(0.666666f, 0.0f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[27].set(0.333334f, 0.5f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[28].set(0.666666f, 0.0f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[29].set(0.666666f, 0.5f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//F (Bottom/-y)
-		mVerts[30].set(0.666667f, 0.5f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[31].set(0.666667f, 0.0f, 0.0f, -1.0f, 0.0f, -size, -size, -size);
-		mVerts[32].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[33].set(0.666667f, 0.5f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[34].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[35].set(1.0f, 0.5f, 0.0f, -1.0f, 0.0f, size, -size, size);
+		mVerts[30].set(0.666667f, 0.5f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[31].set(0.666667f, 0.0f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[32].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[33].set(0.666667f, 0.5f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[34].set(1.0f, 0.0f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[35].set(1.0f, 0.5f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
 	}
 	else //skybox
 	{
 		//A (front/+z)
-		mVerts[0].set(1.000f, 0.666666f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[1].set(1.000f, 0.333334f, 0.0f, 0.0f, 1.0f, -size, -size, size);
-		mVerts[2].set(0.751f, 0.333334f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[3].set(1.000f, 0.666666f, 0.0f, 0.0f, 1.0f, -size, size, size);
-		mVerts[4].set(0.751f, 0.333334f, 0.0f, 0.0f, 1.0f, size, -size, size);
-		mVerts[5].set(0.751f, 0.666666f, 0.0f, 0.0f, 1.0f, size, size, size);
+		mVerts[0].set(1.000f, 0.666666f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[1].set(1.000f, 0.333334f, 0.0f, 0.0f, 1.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[2].set(0.751f, 0.333334f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[3].set(1.000f, 0.666666f, 0.0f, 0.0f, 1.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[4].set(0.751f, 0.333334f, 0.0f, 0.0f, 1.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[5].set(0.751f, 0.666666f, 0.0f, 0.0f, 1.0f, size/2.0f, size/2.0f, size/2.0f);
 
 		//B (right/+x)
-		mVerts[6].set(0.749f, 0.666666f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[7].set(0.749f, 0.333334f, 1.0f, 0.0f, 0.0f, size, -size, size);
-		mVerts[8].set(0.501f, 0.333334f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[9].set(0.749f, 0.666666f, 1.0f, 0.0f, 0.0f, size, size, size);
-		mVerts[10].set(0.501f, 0.333334f, 1.0f, 0.0f, 0.0f, size, -size, -size);
-		mVerts[11].set(0.501f, 0.666666f, 1.0f, 0.0f, 0.0f, size, size, -size);
+		mVerts[6].set(0.749f, 0.666666f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[7].set(0.749f, 0.333334f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[8].set(0.501f, 0.333334f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[9].set(0.749f, 0.666666f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[10].set(0.501f, 0.333334f, 1.0f, 0.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[11].set(0.501f, 0.666666f, 1.0f, 0.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//C (Back/-z)
-		mVerts[12].set(0.499f, 0.666666f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[13].set(0.499f, 0.333334f, 0.0f, 0.0f, -1.0f, size, -size, -size);
-		mVerts[14].set(0.251f, 0.333334f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[15].set(0.499f, 0.666666f, 0.0f, 0.0f, -1.0f, size, size, -size);
-		mVerts[16].set(0.251f, 0.333334f, 0.0f, 0.0f, -1.0f, -size, -size, -size);
-		mVerts[17].set(0.251f, 0.666666f, 0.0f, 0.0f, -1.0f, -size, size, -size);
+		mVerts[12].set(0.499f, 0.666666f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[13].set(0.499f, 0.333334f, 0.0f, 0.0f, -1.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[14].set(0.251f, 0.333334f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[15].set(0.499f, 0.666666f, 0.0f, 0.0f, -1.0f, size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[16].set(0.251f, 0.333334f, 0.0f, 0.0f, -1.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[17].set(0.251f, 0.666666f, 0.0f, 0.0f, -1.0f, -size/2.0f, size/2.0f, -size/2.0f);
 
 		//D (Left/-x)
-		mVerts[18].set(0.249f, 0.666666f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[19].set(0.249f, 0.333334f, -1.0f, 0.0f, 0.0f, -size, -size, -size);
-		mVerts[20].set(0.000f, 0.333334f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[21].set(0.249f, 0.666666f, -1.0f, 0.0f, 0.0f, -size, size, -size);
-		mVerts[22].set(0.000f, 0.333334f, -1.0f, 0.0f, 0.0f, -size, -size, size);
-		mVerts[23].set(0.000f, 0.666666f, -1.0f, 0.0f, 0.0f, -size, size, size);
+		mVerts[18].set(0.249f, 0.666666f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[19].set(0.249f, 0.333334f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[20].set(0.000f, 0.333334f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[21].set(0.249f, 0.666666f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[22].set(0.000f, 0.333334f, -1.0f, 0.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[23].set(0.000f, 0.666666f, -1.0f, 0.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
 
 		//E (Top/+y)
-		mVerts[24].set(0.251f, 0.666667f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[25].set(0.251f, 1.000000f, 0.0f, 1.0f, 0.0f, -size, size, size);
-		mVerts[26].set(0.499f, 1.000000f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[27].set(0.251f, 0.666667f, 0.0f, 1.0f, 0.0f, -size, size, -size);
-		mVerts[28].set(0.499f, 1.000000f, 0.0f, 1.0f, 0.0f, size, size, size);
-		mVerts[29].set(0.499f, 0.666667f, 0.0f, 1.0f, 0.0f, size, size, -size);
+		mVerts[24].set(0.251f, 0.666667f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[25].set(0.251f, 1.000000f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, size/2.0f);
+		mVerts[26].set(0.499f, 1.000000f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[27].set(0.251f, 0.666667f, 0.0f, 1.0f, 0.0f, -size/2.0f, size/2.0f, -size/2.0f);
+		mVerts[28].set(0.499f, 1.000000f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, size/2.0f);
+		mVerts[29].set(0.499f, 0.666667f, 0.0f, 1.0f, 0.0f, size/2.0f, size/2.0f, -size/2.0f);
 
 		//F (Bottom/-y)
-		mVerts[30].set(0.251f, 0.000000f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[31].set(0.251f, 0.333333f, 0.0f, -1.0f, 0.0f, -size, -size, -size);
-		mVerts[32].set(0.499f, 0.333333f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[33].set(0.251f, 0.000000f, 0.0f, -1.0f, 0.0f, -size, -size, size);
-		mVerts[34].set(0.499f, 0.333333f, 0.0f, -1.0f, 0.0f, size, -size, -size);
-		mVerts[35].set(0.499f, 0.000000f, 0.0f, -1.0f, 0.0f, size, -size, size);
+		mVerts[30].set(0.251f, 0.000000f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[31].set(0.251f, 0.333333f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[32].set(0.499f, 0.333333f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[33].set(0.251f, 0.000000f, 0.0f, -1.0f, 0.0f, -size/2.0f, -size/2.0f, size/2.0f);
+		mVerts[34].set(0.499f, 0.333333f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, -size/2.0f);
+		mVerts[35].set(0.499f, 0.000000f, 0.0f, -1.0f, 0.0f, size/2.0f, -size/2.0f, size/2.0f);
 	}
 
 	createVBO();
@@ -192,12 +198,19 @@ sgct_utils::SGCTBox::~SGCTBox()
 	cleanUp();
 }
 
+/*!
+	If openGL 3.3+ is used:
+	layout 0 contains texture coordinates (vec2)
+	layout 1 contains vertex normals (vec3)
+	layout 2 contains vertex positions (vec3).
+*/
 void sgct_utils::SGCTBox::draw()
 {
-	//if not set
-	if( mVBO == 0 )
-		return;
+	(this->*mInternalDrawFn)();
+}
 
+void sgct_utils::SGCTBox::drawVBO()
+{
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
@@ -213,6 +226,22 @@ void sgct_utils::SGCTBox::draw()
 	glPopClientAttrib();
 }
 
+void sgct_utils::SGCTBox::drawVAO()
+{
+	glBindVertexArray( mVAO );
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(2);
+
+	glDrawArrays(GL_TRIANGLES, 0, 36);
+
+	//unbind
+	glDisableVertexAttribArray(2);
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
+	glBindVertexArray(0);
+}
+
 void sgct_utils::SGCTBox::cleanUp()
 {
 	//cleanup
@@ -221,15 +250,46 @@ void sgct_utils::SGCTBox::cleanUp()
 		glDeleteBuffers(1, &mVBO);
 		mVBO = 0;
 	}
+
+	if(mVAO != 0)
+	{
+		glDeleteBuffers(1, &mVAO);
+		mVAO = 0;
+	}
 }
 
 void sgct_utils::SGCTBox::createVBO()
 {
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		mInternalDrawFn = &SGCTBox::drawVAO;
+		
+		glGenVertexArrays(1, &mVAO);
+		glBindVertexArray( mVAO );
+		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+	}
+	
 	glGenBuffers(1, &mVBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);
 
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(0) ); //texcoords
+		glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(8) ); //normals
+		glVertexAttribPointer( 2, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(20) ); //vert positions
+	}
+
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
+		glDisableVertexAttribArray(2);
+		glDisableVertexAttribArray(1);
+		glDisableVertexAttribArray(0);
+		glBindVertexArray( 0 );
+	}
 }

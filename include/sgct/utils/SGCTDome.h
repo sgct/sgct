@@ -12,7 +12,7 @@ namespace sgct_utils
 {
 
 /*!
-
+	Helper class to render a dome grid
 */
 class SGCTDome
 {
@@ -27,6 +27,12 @@ private:
 	SGCTDome( const SGCTDome & dome );
 	const SGCTDome & operator=(const SGCTDome & dome );
 
+	void drawVBO();
+	void drawVAO();
+
+	typedef void (SGCTDome::*InternalCallbackFn)(void);
+	InternalCallbackFn	mInternalDrawFn;
+
 	void createVBO();
 	void cleanup();
 
@@ -37,6 +43,7 @@ private:
 	unsigned int mRings;
 	unsigned int mSegments;
 	unsigned int mVBO;
+	unsigned int mVAO;
 };
 
 }

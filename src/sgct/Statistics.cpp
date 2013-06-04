@@ -114,8 +114,6 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 
 	if(!mFixedPipeline)
 	{
-		glEnableVertexAttribArray(0);
-
 		glGenVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
 		glGenVertexArrays(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
 	}
@@ -126,7 +124,10 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 	{
 		if(!mFixedPipeline)
+		{
 			glBindVertexArray(mDynamicVAOs[i]);
+			glEnableVertexAttribArray(0);
+		}
 		glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
 		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_DYNAMIC_DRAW );
 		if(!mFixedPipeline)
@@ -144,7 +145,10 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	}
 	
 	if(!mFixedPipeline)
+	{
 		glBindVertexArray(mStaticVAOs[ GRID ]);
+		glEnableVertexAttribArray(0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ GRID ]);
 	glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(float), &gridVerts[0], GL_STATIC_DRAW );
 	if(!mFixedPipeline)
@@ -160,7 +164,10 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f };
 	
 	if(!mFixedPipeline)
+	{
 		glBindVertexArray(mStaticVAOs[ FREQ ]);
+		glEnableVertexAttribArray(0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ FREQ ]);
 	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), &lineVerts[0], GL_STATIC_DRAW );
 	if(!mFixedPipeline)
@@ -172,7 +179,10 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f };
 	
 	if(!mFixedPipeline)
+	{
 		glBindVertexArray(mStaticVAOs[ BG ]);
+		glEnableVertexAttribArray(0);
+	}
 	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ BG ]);
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), &bgVerts[0], GL_STATIC_DRAW );
 	if(!mFixedPipeline)
@@ -312,7 +322,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -367,7 +376,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	else //programmable pipeline
 	{	
 		glDisable(GL_DEPTH_TEST);
-		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
 		glDisable(GL_CULL_FACE);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);

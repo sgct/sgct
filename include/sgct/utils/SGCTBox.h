@@ -12,6 +12,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_utils
 {
+
+/*!
+	This class creates and renders a textured box.
+*/
 class SGCTBox
 {
 public:
@@ -27,11 +31,18 @@ private:
 	SGCTBox( const SGCTBox & box );
 	const SGCTBox & operator=(const SGCTBox & box );
 
+	void drawVBO();
+	void drawVAO();
+
+	typedef void (SGCTBox::*InternalCallbackFn)(void);
+	InternalCallbackFn	mInternalDrawFn;
+
 	void cleanUp();
 	void createVBO();
 
 private:	
 	unsigned int mVBO;
+	unsigned int mVAO;
 	sgct_helpers::SGCTVertexData * mVerts;
 };
 }

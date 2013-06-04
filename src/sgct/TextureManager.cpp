@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Image.h"
+#include "../include/sgct/Engine.h"
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 
@@ -193,9 +194,20 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		glBindTexture(GL_TEXTURE_2D, texID);
 
 		int textureType = GL_RGB;
-		if(img.getChannels() == 4)	textureType = GL_RGBA;
-		else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
-		else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
+
+		//if OpenGL 1-2
+		if( Engine::Instance()->isOGLPipelineFixed() )
+		{
+			if(img.getChannels() == 4)	textureType = GL_RGBA;
+			else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
+			else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
+		}
+		else //OpenGL 3+
+		{
+			if(img.getChannels() == 4)	textureType = GL_RGBA;
+			else if(img.getChannels() == 1)	textureType = GL_RED;
+			else if(img.getChannels() == 2)	textureType = GL_RG;
+		}
 
 		GLint internalFormat;
 
@@ -222,10 +234,35 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			}
 			break;
 		case 2:
-			internalFormat = (mCompression == No_Compression) ? GL_LUMINANCE8_ALPHA8 : GL_COMPRESSED_LUMINANCE_ALPHA;
+			if( Engine::Instance()->isOGLPipelineFixed() )
+			{
+				if( mCompression == No_Compression)
+					internalFormat = GL_LUMINANCE8_ALPHA8;
+				else
+					internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
+			}
+			else
+			{
+				if( mCompression == No_Compression)
+					internalFormat = GL_RG8;
+				else if( mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RG;
+				else
+					internalFormat = GL_COMPRESSED_RG_RGTC2;
+			}
 			break;
 		case 1:
-			internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			if( Engine::Instance()->isOGLPipelineFixed() )
+				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			else
+			{
+				if( mCompression == No_Compression)
+					internalFormat = GL_RED;
+				else if( mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RED;
+				else
+					internalFormat = GL_COMPRESSED_RED_RGTC1;
+			}
 			break;
 
 		default:

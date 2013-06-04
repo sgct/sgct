@@ -70,11 +70,32 @@ void myInitFun()
 	glGenBuffers(1, &vertexPositionBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_position_data), vertex_position_data, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
 
 	//vertex colors
 	glGenBuffers(1, &vertexColorBuffer);
 	glBindBuffer(GL_ARRAY_BUFFER, vertexColorBuffer);
 	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_color_data), vertex_color_data, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(1);
+	glVertexAttribPointer(
+		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
+
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
@@ -103,27 +124,8 @@ void myDrawFun()
 
 	glBindVertexArray(vertexArray);
 
-	glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		reinterpret_cast<void*>(0) // array buffer offset
-	);
-
-	glBindBuffer(GL_ARRAY_BUFFER, vertexColorBuffer);
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(
-		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		0,                  // stride
-		reinterpret_cast<void*>(0) // array buffer offset
-	);
 
 	// Draw the triangle !
 	glDrawArrays(GL_TRIANGLES, 0, 3);
@@ -132,19 +134,11 @@ void myDrawFun()
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	sgct::ShaderManager::Instance()->unBindShader();
 
 	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 128 ), MVP, "Halla");
 	sgct_text::print3d(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 64 ), MVP, glm::vec4(0.0, 1.0, 0.0, 1.0), "        Halla");
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 24 ), 45.0f, 200.0f, "YOYOYOY");
-
-	/*glBegin(GL_QUADS);
-	glVertex3i( -1, -1, -4 );
-	glVertex3i( -1, 1, -4 );
-	glVertex3i( 1, 1, -4 );
-	glVertex3i( 1, -1, -4 );
-	glEnd();*/
 }
 
 void myPreSyncFun()

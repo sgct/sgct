@@ -310,6 +310,39 @@ void sgct_core::CorrectionMesh::createMesh()
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
 
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		{
+			glEnableVertexAttribArray(0);
+			glVertexAttribPointer(
+				0, // The attribute we want to configure
+				2,                           // size
+				GL_FLOAT,                    // type
+				GL_FALSE,                    // normalized?
+				sizeof(CorrectionMeshVertex),// stride
+				reinterpret_cast<void*>(0)   // array buffer offset
+			);
+
+			glEnableVertexAttribArray(1);
+			glVertexAttribPointer(
+				1, // The attribute we want to configure
+				2,                           // size
+				GL_FLOAT,                    // type
+				GL_FALSE,                    // normalized?
+				sizeof(CorrectionMeshVertex),// stride
+				reinterpret_cast<void*>(8)   // array buffer offset
+			);
+
+			glEnableVertexAttribArray(2);
+			glVertexAttribPointer(
+				2, // The attribute we want to configure
+				3,                           // size
+				GL_UNSIGNED_BYTE,            // type
+				GL_TRUE,                    // normalized?
+				sizeof(CorrectionMeshVertex),// stride
+				reinterpret_cast<void*>(16)  // array buffer offset
+			);
+		}
+
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
 
@@ -368,39 +401,11 @@ void sgct_core::CorrectionMesh::render()
 	else if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO )
 	{
 		glBindVertexArray(mMeshData[Array]);
-		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
 		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(
-			0, // The attribute we want to configure
-			2,                           // size
-			GL_FLOAT,                    // type
-			GL_FALSE,                    // normalized?
-			sizeof(CorrectionMeshVertex),// stride
-			reinterpret_cast<void*>(0)   // array buffer offset
-		);
-
 		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(
-			1, // The attribute we want to configure
-			2,                           // size
-			GL_FLOAT,                    // type
-			GL_FALSE,                    // normalized?
-			sizeof(CorrectionMeshVertex),// stride
-			reinterpret_cast<void*>(8)   // array buffer offset
-		);
-
 		glEnableVertexAttribArray(2);
-		glVertexAttribPointer(
-			2, // The attribute we want to configure
-			3,                           // size
-			GL_UNSIGNED_BYTE,            // type
-			GL_TRUE,                    // normalized?
-			sizeof(CorrectionMeshVertex),// stride
-			reinterpret_cast<void*>(16)  // array buffer offset
-		);
-
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
 		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
 
@@ -409,7 +414,6 @@ void sgct_core::CorrectionMesh::render()
 		glDisableVertexAttribArray(0);
 
 		//unbind
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}

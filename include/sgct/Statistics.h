@@ -11,7 +11,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define STATS_HISTORY_LENGTH 512
 #define STATS_AVERAGE_LENGTH 32
 #define VERT_SCALE 10000.0f
-#define STATS_NUMBER_OF_VBOs 5
+#define STATS_NUMBER_OF_DYNAMIC_OBJS 5
+#define STATS_NUMBER_OF_STATIC_OBJS 3
 
 #include "ShaderProgram.h"
 #include <glm/glm.hpp>
@@ -61,18 +62,21 @@ private:
 	StatsVertex mFrameTime[STATS_HISTORY_LENGTH];
 	StatsVertex mDrawTime[STATS_HISTORY_LENGTH];
 	StatsVertex mSyncTime[STATS_HISTORY_LENGTH];
-	enum mStatsType { FRAME_TIME = 0, DRAW_TIME, SYNC_TIME, LOOP_TIME_MAX, LOOP_TIME_MIN };
-	unsigned int mVboPtrs[STATS_NUMBER_OF_VBOs];
-	unsigned int mGridVBO;
-	unsigned int mFreqLinesVBO;
-	unsigned int mBackgroundVBO;
-	unsigned int mVAO;
+	enum mStatsDynamicType { FRAME_TIME = 0, DRAW_TIME, SYNC_TIME, LOOP_TIME_MAX, LOOP_TIME_MIN };
+	enum mStatsStaticType { GRID = 0, FREQ, BG };
+	unsigned int mDynamicVBOs[STATS_NUMBER_OF_DYNAMIC_OBJS];
+	unsigned int mDynamicVAOs[STATS_NUMBER_OF_DYNAMIC_OBJS];
+	glm::vec4 mDynamicColors[STATS_NUMBER_OF_DYNAMIC_OBJS];
+	
+	unsigned int mStaticVBOs[STATS_NUMBER_OF_STATIC_OBJS];
+	unsigned int mStaticVAOs[STATS_NUMBER_OF_STATIC_OBJS];
+	glm::vec4 mStaticColors[STATS_NUMBER_OF_STATIC_OBJS];
+
 	size_t mNumberOfLineVerts;
 	bool mFixedPipeline;
 
 	sgct::ShaderProgram mShader;
 	int mMVPLoc, mColLoc;
-	glm::vec4 colors[STATS_NUMBER_OF_VBOs];
 };
 
 } //sgct_core

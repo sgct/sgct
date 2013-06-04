@@ -190,10 +190,9 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
-
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
@@ -211,24 +210,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 				
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-				glVertexAttribPointer(
-					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(0) // array buffer offset
-				);
-
-				glVertexAttribPointer(
-					1,                  // attribute 1
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(8) // array buffer offset
-				);
 			
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
@@ -237,7 +218,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		//unbind
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -343,10 +323,9 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
-
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
+
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
@@ -364,24 +343,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 				
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-				glVertexAttribPointer(
-					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(0) // array buffer offset
-				);
-
-				glVertexAttribPointer(
-					1,                  // attribute 1
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(8) // array buffer offset
-				);
 			
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
@@ -390,7 +351,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		//unbind
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -487,8 +447,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
-
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glActiveTexture(GL_TEXTURE0);
@@ -511,24 +469,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 				
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-				glVertexAttribPointer(
-					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(0) // array buffer offset
-				);
-
-				glVertexAttribPointer(
-					1,                  // attribute 1
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(8) // array buffer offset
-				);
 			
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
@@ -537,7 +477,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		//unbind
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -633,8 +572,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glBindBuffer(GL_ARRAY_BUFFER, ft_font->getVBO() );
-
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glActiveTexture(GL_TEXTURE0);
@@ -657,24 +594,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 				
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-				glVertexAttribPointer(
-					0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(0) // array buffer offset
-				);
-
-				glVertexAttribPointer(
-					1,                  // attribute 1
-					2,                  // size
-					GL_FLOAT,           // type
-					GL_FALSE,           // normalized?
-					4*sizeof(float),    // stride
-					reinterpret_cast<void*>(8) // array buffer offset
-				);
 			
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
@@ -683,7 +602,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		//unbind
 		glDisableVertexAttribArray(1);
 		glDisableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}

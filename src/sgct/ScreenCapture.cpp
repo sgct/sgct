@@ -190,11 +190,11 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		break;
 
 	case 1:
-		colorType = GL_LUMINANCE;
+		colorType = (sgct::Engine::Instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
 		break;
 
 	case 2:
-		colorType = GL_LUMINANCE_ALPHA;
+		colorType = (sgct::Engine::Instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
 		break;
 
 	case 3:

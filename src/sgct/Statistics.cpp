@@ -58,15 +58,27 @@ sgct_core::Statistics::Statistics()
 	mColLoc = -1;
 	mNumberOfLineVerts = 0;
 
-	colors[0] = glm::vec4( 1.0f,1.0f,0.0f,0.8f );
-	colors[1] = glm::vec4( 1.0f,0.0f,1.0f,0.8f );
-	colors[2] = glm::vec4( 0.0f,1.0f,1.0f,0.8f );
-	colors[3] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
-	colors[4] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
+	mDynamicColors[ FRAME_TIME ]	= glm::vec4( 1.0f,1.0f,0.0f,0.8f );
+	mDynamicColors[ DRAW_TIME ]		= glm::vec4( 1.0f,0.0f,1.0f,0.8f );
+	mDynamicColors[ SYNC_TIME ]		= glm::vec4( 0.0f,1.0f,1.0f,0.8f );
+	mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
+	mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
 
-	mVAO = 0;
-	for(unsigned int i=0; i<STATS_NUMBER_OF_VBOs; i++)
-		mVboPtrs[i] = 0;
+	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.2f );
+	mStaticColors[ FREQ ]	= glm::vec4( 1.0f,0.0f,0.0f,1.0f );
+	mStaticColors[ BG ]		= glm::vec4( 0.0f,0.0f,0.0f,0.5f );
+
+	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
+	{
+		mDynamicVBOs[i] = GL_FALSE;
+		mDynamicVAOs[i] = GL_FALSE;
+	}
+
+	for(unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++)
+	{
+		mStaticVBOs[i] = GL_FALSE;
+		mStaticVAOs[i] = GL_FALSE;
+	}
 
 	for(unsigned int i=0; i<STATS_HISTORY_LENGTH; i++)
 	{
@@ -86,24 +98,93 @@ sgct_core::Statistics::Statistics()
 
 sgct_core::Statistics::~Statistics()
 {
-	if(mVboPtrs[0])
-		glDeleteBuffers(STATS_NUMBER_OF_VBOs, &mVboPtrs[0]);
-	if(mVAO)
-		glDeleteVertexArrays(1, &mVAO);
-	if(mGridVBO)
-		glDeleteBuffers(1, &mGridVBO);
-	if(mFreqLinesVBO)
-		glDeleteBuffers(1, &mFreqLinesVBO);
-	if(mBackgroundVBO)
-		glDeleteBuffers(1, &mBackgroundVBO);
+	if(mDynamicVBOs[0])
+		glDeleteBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
+	if(mDynamicVAOs[0])
+		glDeleteVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
+	if(mStaticVBOs[0])
+		glDeleteBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVBOs[0]);
+	if(mStaticVAOs[0])
+		glDeleteBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
 }
 
 void sgct_core::Statistics::initVBO(bool fixedPipeline)
 {
 	mFixedPipeline = fixedPipeline;
-	
+
 	if(!mFixedPipeline)
 	{
+		glEnableVertexAttribArray(0);
+
+		glGenVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
+		glGenVertexArrays(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
+	}
+
+	glGenBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
+	glGenBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVBOs[0]);
+		
+	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
+	{
+		if(!mFixedPipeline)
+			glBindVertexArray(mDynamicVAOs[i]);
+		glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
+		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_DYNAMIC_DRAW );
+		if(!mFixedPipeline)
+			glVertexAttribPointer( 0, 2, GL_DOUBLE, GL_FALSE, 0, NULL );
+	}
+
+	//static data
+	std::vector<float> gridVerts;
+	for(float f = 0.001f; f < (1.0f/30.0f); f += 0.001f )
+	{
+		gridVerts.push_back( 0.0f );
+		gridVerts.push_back( f );
+		gridVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) );
+		gridVerts.push_back( f );
+	}
+	
+	if(!mFixedPipeline)
+		glBindVertexArray(mStaticVAOs[ GRID ]);
+	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ GRID ]);
+	glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(float), &gridVerts[0], GL_STATIC_DRAW );
+	if(!mFixedPipeline)
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) );
+
+	mNumberOfLineVerts = gridVerts.size() / 2;
+
+	float lineVerts[] = { 0.0f, 0.0f,
+		static_cast<float>(STATS_HISTORY_LENGTH*2), 0.0f,
+		0.0f, 1.0f/60.0f,
+		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/60.0f,
+		0.0f, 1.0f/30.0f,
+		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f };
+	
+	if(!mFixedPipeline)
+		glBindVertexArray(mStaticVAOs[ FREQ ]);
+	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ FREQ ]);
+	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), &lineVerts[0], GL_STATIC_DRAW );
+	if(!mFixedPipeline)
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) );
+	
+	float bgVerts[] = { 0.0f, 0.0f,
+		static_cast<float>(STATS_HISTORY_LENGTH*2), 0.0f,
+		0.0f, 1.0f/30.0f,
+		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f };
+	
+	if(!mFixedPipeline)
+		glBindVertexArray(mStaticVAOs[ BG ]);
+	glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ BG ]);
+	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), &bgVerts[0], GL_STATIC_DRAW );
+	if(!mFixedPipeline)
+		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) );
+
+	//unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+	if(!mFixedPipeline)
+	{
+		glBindVertexArray(0);
+		glDisableVertexAttribArray(0);
+
 		sgct::ShaderManager::Instance()->addShader( mShader, "StatisticsShader",
 			Stats_Vert_Shader,
 			Stats_Frag_Shader, sgct::ShaderManager::SHADER_SRC_STRING );
@@ -113,53 +194,7 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		mColLoc = mShader.getUniformLocation( "Col" );
 
 		sgct::ShaderManager::Instance()->unBindShader();
-		
-		glGenVertexArrays(1, &mVAO);
-		glBindVertexArray(mVAO);
 	}
-
-	glGenBuffers(STATS_NUMBER_OF_VBOs, &mVboPtrs[0]);
-	for(unsigned int i=0; i<STATS_NUMBER_OF_VBOs; i++)
-	{
-		glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[i]);
-		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_STREAM_DRAW );
-	}
-
-	std::vector<float> gridVerts;
-	for(float f = 0.001f; f < (1.0f/30.0f); f += 0.001f )
-	{
-		gridVerts.push_back( 0.0f );
-		gridVerts.push_back( f );
-		gridVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) );
-		gridVerts.push_back( f );
-	}
-	glGenBuffers(1, &mGridVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mGridVBO);
-	glBufferData(GL_ARRAY_BUFFER, gridVerts.size() * sizeof(float), &gridVerts[0], GL_STATIC_DRAW );
-	mNumberOfLineVerts = gridVerts.size() / 2;
-
-	float lineVerts[] = { 0.0f, 0.0f,
-		static_cast<float>(STATS_HISTORY_LENGTH*2), 0.0f,
-		0.0f, 1.0f/60.0f,
-		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/60.0f,
-		0.0f, 1.0f/30.0f,
-		static_cast<float>(STATS_HISTORY_LENGTH*2), 1.0f/30.0f };
-	glGenBuffers(1, &mFreqLinesVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mFreqLinesVBO);
-	glBufferData(GL_ARRAY_BUFFER, 12 * sizeof(float), &lineVerts[0], GL_STATIC_DRAW );
-	
-	float bgVerts[] = { 0.0f, 0.0f,
-		static_cast<float>(STATS_HISTORY_LENGTH*2), 0.0f,
-		0.0f, static_cast<float>(STATS_HISTORY_LENGTH),
-		static_cast<float>(STATS_HISTORY_LENGTH*2), static_cast<float>(STATS_HISTORY_LENGTH) };
-	glGenBuffers(1, &mBackgroundVBO);
-	glBindBuffer(GL_ARRAY_BUFFER, mBackgroundVBO);
-	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), &bgVerts[0], GL_STATIC_DRAW );
-
-	//unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if(!mFixedPipeline)
-		glBindVertexArray(0);
 }
 
 void sgct_core::Statistics::setAvgFPS(double afps)
@@ -245,6 +280,22 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		updateGPU = false;
 	lastFrameNumber = frameNumber;
 
+	//update buffers if needed
+	if( updateGPU )
+	{
+		GLvoid* PositionBuffer;
+
+		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
+			PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+			memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+		}
+
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	}
+
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 
 	if(mFixedPipeline)
@@ -272,43 +323,34 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glDisableClientState(GL_COLOR_ARRAY); //osg enables this which messes up the rendering
 
-		//draw background (1024x1024 canvas)
-		glColor4f(0.0f,0.0f,0.0f,0.5f);
-		glBindBuffer(GL_ARRAY_BUFFER, mBackgroundVBO);
-		glVertexPointer(2, GL_FLOAT, 0, NULL);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 		glTranslatef(0.0f, 32.0f, 0.0f);
 		//glPushMatrix();
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
-		//draw graphs
 		glLineWidth(0.9f); //in os X 1.0f was interpreted as 2. Which is a bit weird..
 
+		//draw background (1024x1024 canvas)
+		glColor4fv( glm::value_ptr(mStaticColors[ BG ]) );
+		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ BG ]);
+		glVertexPointer(2, GL_FLOAT, 0, NULL);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
 		//zero line, 60hz & 30hz
-		glColor4f(1.0f,0.0f,0.0f,1.0f);
-		glBindBuffer(GL_ARRAY_BUFFER, mFreqLinesVBO);
+		glColor4fv( glm::value_ptr(mStaticColors[ FREQ ]) );
+		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ FREQ ]);
 		glVertexPointer(2, GL_FLOAT, 0, NULL);
 		glDrawArrays(GL_LINES, 0, 6);
 
 		//1 ms lines
-		glColor4f(1.0f,1.0f,1.0f,0.2f);
-		glBindBuffer(GL_ARRAY_BUFFER, mGridVBO);
+		glColor4fv( glm::value_ptr(mStaticColors[ GRID ]) );
+		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ GRID ]);
 		glVertexPointer(2, GL_FLOAT, 0, NULL);
 		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 
-		GLvoid* PositionBuffer;
-
-		for(unsigned int i=0; i<STATS_NUMBER_OF_VBOs; i++)
+		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
-			glColor4fv( glm::value_ptr(colors[i]) );
-			glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[i]);
-			if( updateGPU )
-			{
-				PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-				memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
-				glUnmapBuffer(GL_ARRAY_BUFFER);
-			}
+			glColor4fv( glm::value_ptr(mDynamicColors[i]) );
+			glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
 			glVertexPointer(2, GL_DOUBLE, 0, NULL);
 			glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 		}
@@ -323,9 +365,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glPopMatrix();
 	}
 	else //programmable pipeline
-	{
-		GLvoid* PositionBuffer;
-		
+	{	
 		glDisable(GL_DEPTH_TEST);
 		glDepthMask(GL_FALSE);
 		glEnable(GL_BLEND);
@@ -336,82 +376,40 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		
 		glm::mat4 orthoMat = glm::ortho( 0.0f, static_cast<float>(STATS_HISTORY_LENGTH)*2.0f,
 			0.0f, static_cast<float>(STATS_HISTORY_LENGTH) );
-
-		mShader.bind();
-		glBindVertexArray( mVAO );
-		glEnableVertexAttribArray(0);
-
-		//draw background (1024x1024 canvas)
-		glUniform4f( mColLoc, 0.0f,0.0f,0.0f,0.5f );
-		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
-		glBindBuffer(GL_ARRAY_BUFFER, mBackgroundVBO);
-		glVertexAttribPointer(
-				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				2,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,				    // stride
-				reinterpret_cast<void*>(0) // array buffer offset
-			);
-		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
 		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, 32.0f, 0.0f) );
 		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, static_cast<float>(VERT_SCALE), 1.0f) );
-		
+
+		mShader.bind();
 		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
+		
+		//draw background (1024x1024 canvas)
+		glUniform4f( mColLoc, mStaticColors[ BG ].r, mStaticColors[ BG ].g, mStaticColors[ BG ].b, mStaticColors[ BG ].a );
+		glBindVertexArray( mStaticVAOs[ BG ] );
+		glEnableVertexAttribArray(0);
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		//1 ms lines
-		glUniform4f( mColLoc, 1.0f,1.0f,1.0f,0.2f );
-		glBindBuffer(GL_ARRAY_BUFFER, mGridVBO);
-		glVertexAttribPointer(
-				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				2,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,				    // stride
-				reinterpret_cast<void*>(0) // array buffer offset
-			);
+		glUniform4f( mColLoc, mStaticColors[ GRID ].r, mStaticColors[ GRID ].g, mStaticColors[ GRID ].b, mStaticColors[ GRID ].a );
+		glBindVertexArray( mStaticVAOs[ GRID ] );
+		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
-
-		//zero line, 60hz & 30hz
-		glUniform4f( mColLoc, 1.0f,0.0f,0.0f,1.0f );
-		glBindBuffer(GL_ARRAY_BUFFER, mFreqLinesVBO);
-		glVertexAttribPointer(
-				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				2,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				0,				    // stride
-				reinterpret_cast<void*>(0) // array buffer offset
-			);
-		glDrawArrays(GL_LINES, 0, 6);
 		
-		for(unsigned int i=0; i<STATS_NUMBER_OF_VBOs; i++)
+		//zero line, 60hz & 30hz
+		glUniform4f( mColLoc, mStaticColors[ FREQ ].r, mStaticColors[ FREQ ].g, mStaticColors[ FREQ ].b, mStaticColors[ FREQ ].a );
+		glBindVertexArray( mStaticVAOs[ FREQ ] );
+		glEnableVertexAttribArray(0);
+		glDrawArrays( GL_LINES, 0, 6 );
+		
+		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
-			glUniform4f( mColLoc, colors[i].r, colors[i].g, colors[i].b, colors[i].a );
-			glBindBuffer(GL_ARRAY_BUFFER, mVboPtrs[i]);
-			if( updateGPU )
-			{
-				PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-				memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
-				glUnmapBuffer(GL_ARRAY_BUFFER);
-			}
-
-			glVertexAttribPointer(
-				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				2,                  // size
-				GL_DOUBLE,          // type
-				GL_FALSE,           // normalized?
-				0,				    // stride
-				reinterpret_cast<void*>(0) // array buffer offset
-			);
-
+			glUniform4f( mColLoc, mDynamicColors[i].r, mDynamicColors[i].g, mDynamicColors[i].b, mDynamicColors[i].a );
+			glBindVertexArray( mDynamicVAOs[ i ] );
+			glEnableVertexAttribArray(0);
 			glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 		}
 		
 		//unbind
 		glDisableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}

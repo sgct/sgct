@@ -1216,43 +1216,14 @@ void sgct::Engine::drawOverlays()
 			glUniform1i( mShaderLocs[OverlayTex], 0);
 			glUniformMatrix4fv( mShaderLocs[OverlayMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
-			if( tmpNode->isUsingFisheyeRendering() )
-			{
-				glBindVertexArray( mVAO[FishEyeQuad] );
-				glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
-			}
-			else
-			{
-				glBindVertexArray( mVAO[RenderQuad] );
-				glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
-			}
-
+			tmpNode->isUsingFisheyeRendering() ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
 			glEnableVertexAttribArray(0);
-			glVertexAttribPointer(
-				0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				2,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				5*sizeof(float),    // stride
-				reinterpret_cast<void*>(0) // array buffer offset
-			);
-
 			glEnableVertexAttribArray(1);
-			glVertexAttribPointer(
-				1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-				3,                  // size
-				GL_FLOAT,           // type
-				GL_FALSE,           // normalized?
-				5*sizeof(float),    // stride
-				reinterpret_cast<void*>(8) // array buffer offset
-			);
-
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-			 //unbind
+			//unbind
 			glDisableVertexAttribArray(1);
 			glDisableVertexAttribArray(0);
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
 			glBindVertexArray(0);
 			ShaderManager::Instance()->unBindShader();
 		}
@@ -1621,34 +1592,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	}
 
 	glBindVertexArray( mVAO[FishEyeQuad] );
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
-	
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		2,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		5*sizeof(float),    // stride
-		reinterpret_cast<void*>(0) // array buffer offset
-	);
-
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(
-		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		5*sizeof(float),    // stride
-		reinterpret_cast<void*>(8) // array buffer offset
-	);
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	//unbind
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	
 	ShaderManager::Instance()->unBindShader();
@@ -1875,34 +1825,13 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
 
 	glBindVertexArray( mVAO[RenderQuad] );
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
-	
 	glEnableVertexAttribArray(0);
-	glVertexAttribPointer(
-		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		2,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		5*sizeof(float),    // stride
-		reinterpret_cast<void*>(0) // array buffer offset
-	);
-
 	glEnableVertexAttribArray(1);
-	glVertexAttribPointer(
-		1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-		3,                  // size
-		GL_FLOAT,           // type
-		GL_FALSE,           // normalized?
-		5*sizeof(float),    // stride
-		reinterpret_cast<void*>(8) // array buffer offset
-	);
-
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	//unbind
 	glDisableVertexAttribArray(1);
 	glDisableVertexAttribArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 	ShaderManager::Instance()->unBindShader();
 }
@@ -2396,11 +2325,55 @@ void sgct::Engine::createVBOs()
 		glBindVertexArray( mVAO[RenderQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mPostFxQuadVerts, GL_STATIC_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
+	if( !mFixedOGLPipeline )
+	{
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			2,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			5*sizeof(float),    // stride
+			reinterpret_cast<void*>(0) // array buffer offset
+		);
+
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(
+			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			5*sizeof(float),    // stride
+			reinterpret_cast<void*>(8) // array buffer offset
+		);
+	}
 
 	if( !mFixedOGLPipeline )
 		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mFisheyeQuadVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
+	if( !mFixedOGLPipeline )
+	{
+		glEnableVertexAttribArray(0);
+		glVertexAttribPointer(
+			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			2,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			5*sizeof(float),    // stride
+			reinterpret_cast<void*>(0) // array buffer offset
+		);
+
+		glEnableVertexAttribArray(1);
+		glVertexAttribPointer(
+			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+			3,                  // size
+			GL_FLOAT,           // type
+			GL_FALSE,           // normalized?
+			5*sizeof(float),    // stride
+			reinterpret_cast<void*>(8) // array buffer offset
+		);
+	}
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);

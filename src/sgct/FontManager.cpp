@@ -561,7 +561,30 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 	glBindBuffer(GL_ARRAY_BUFFER, font.getVBO());
 	glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(float), &coords[0], GL_STATIC_DRAW );
 
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
+
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		4*sizeof(float),    // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
+
+	glVertexAttribPointer(
+		1,                  // attribute 1
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		4*sizeof(float),    // stride
+		reinterpret_cast<void*>(8) // array buffer offset
+	);
+
 	//unbind
+	glDisableVertexAttribArray(1);
+	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 

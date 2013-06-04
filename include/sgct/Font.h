@@ -36,7 +36,7 @@ public:
 	/*! Get the vertex array id */
 	inline unsigned int getVAO() const { return mVAO; }
 
-	/*! Get the vertex buffer objects pointer */
+	/*! Get the vertex buffer objects id */
 	inline unsigned int getVBO() const { return mVBO; }
 
 	/*! Get height of the font */

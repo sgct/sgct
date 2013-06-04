@@ -2,13 +2,14 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SHARED_DATA_TYPES
 #define _SHARED_DATA_TYPES
 
 #include <string>
+#include "SGCTMutexManager.h"
 
 namespace sgct //simple graphics cluster toolkit
 {

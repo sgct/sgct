@@ -86,7 +86,7 @@ void myDrawFun()
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
-	
+	/*
 	glColor3f(1.0f,1.0f,0.0f);
 	glLineWidth(5.0);
 	glBegin(GL_LINES);
@@ -162,6 +162,7 @@ void myDrawFun()
 		glVertex3f(0.0f, -r, -r);
 		glVertex3f(0.0f, r, -r);
 	glEnd();
+	*/
 }
 
 void myInitOGLFun()

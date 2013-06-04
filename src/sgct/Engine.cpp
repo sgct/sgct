@@ -330,6 +330,7 @@ bool sgct::Engine::initWindow()
                                          tmpGlfwVer[2]);
 
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+
 	getWindowPtr()->useQuadbuffer( tmpNode->stereo == ClusterManager::Active );
 
 	//disable MSAA if FXAA is in use and fisheye is not enabled
@@ -350,13 +351,13 @@ bool sgct::Engine::initWindow()
 			MessageHandler::Instance()->print("Engine: Forcing FBOs for fisheye mode!\n");
 			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 		}
-		
+
 		mClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 
 		//create the cube mapped viewports
 		tmpNode->generateCubeMapViewports();
 	}
-	
+
 	int antiAliasingSamples = tmpNode->numberOfSamples;
 	if( antiAliasingSamples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO ) //if multisample is used
 		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
@@ -373,6 +374,20 @@ bool sgct::Engine::initWindow()
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
+
+    /*case OpenGL_3_2_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+			glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;*/
+
+    default:
+
+        break;
 	}
 
 	/*
@@ -458,7 +473,7 @@ void sgct::Engine::initOGL()
 
 		mFixedOGLPipeline = true;
 	}
-	
+
 	//Get OpenGL version
 	int mOpenGL_Version[3];
 	glfwGetGLVersion( &mOpenGL_Version[0], &mOpenGL_Version[1], &mOpenGL_Version[2] );
@@ -518,7 +533,7 @@ void sgct::Engine::initOGL()
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
-	
+
 	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && mOpenGL_Version[0] > 1 ); //if supported then use them
 	if( isFisheye() && !SGCTSettings::Instance()->useFisheyeAlpha())
 		mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 );
@@ -665,7 +680,7 @@ void sgct::Engine::clean()
 		sgct::MessageHandler::Instance()->print("Deleting VAOs...\n");
 		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 	}
-	
+
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
 	glfwTerminate();
@@ -1032,7 +1047,7 @@ void sgct::Engine::renderDisplayInfo()
 
 	glDrawBuffer(GL_BACK); //draw into both back buffers
 	glReadBuffer(GL_BACK);
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95, 
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95,
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Node ip: %s (%s)",
 		tmpNode->ip.c_str(),
@@ -1048,7 +1063,7 @@ void sgct::Engine::renderDisplayInfo()
 		glm::vec4(0.8f,0.0f,0.8f,1.0f),
 		"Avg. draw time: %.2f ms",
 		mStatistics->getAvgDrawTime()*1000.0);
-	
+
 	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50,
 		glm::vec4(0.0f,0.8f,0.8f,1.0f),
 		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
@@ -1080,13 +1095,13 @@ void sgct::Engine::renderDisplayInfo()
 		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye: Left");
-		
+
 		glDrawBuffer(GL_BACK_RIGHT);
 		glReadBuffer(GL_BACK_RIGHT);
 		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye:          Right");
-		
+
 		glDrawBuffer(GL_BACK);
 		glReadBuffer(GL_BACK);
 	}
@@ -1116,8 +1131,6 @@ void sgct::Engine::renderDisplayInfo()
 void sgct::Engine::draw()
 {
 	enterCurrentViewport(FBOSpace);
-
-	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
 
 	if( mDrawFn != NULL )
 	{
@@ -1291,7 +1304,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 
 			glEnableClientState(GL_VERTEX_ARRAY);
 			glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
-			
+
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 			glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
@@ -1352,7 +1365,7 @@ void sgct::Engine::renderFBOTexture()
 
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	
+
 	//clear buffers
 	mActiveFrustum = tmpNode->stereo == ClusterManager::Active ? Frustum::StereoLeftEye : Frustum::Mono;
 	setAndClearBuffer(BackBufferBlack);
@@ -1363,7 +1376,7 @@ void sgct::Engine::renderFBOTexture()
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
-		
+
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[RightEye]);
 
@@ -1372,13 +1385,13 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( mShaderLocs[StereoLeftTex], 0);
 		glUniform1i( mShaderLocs[StereoRightTex], 1);
 		glUniformMatrix4fv( mShaderLocs[StereoMVP], 1, GL_FALSE, &orthoMat[0][0]);
-		
+
 		for(unsigned int i=0; i<tmpNode->getNumberOfViewports(); i++)
 			tmpNode->getViewport(i)->renderMesh();
 		ShaderManager::Instance()->unBindShader();
 	}
 	else
-	{	
+	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[LeftEye]);
 
@@ -1523,11 +1536,11 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		{
 			//un-bind texture
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
+
 			//bind & attach buffer
 			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !mCubeMapFBO_Ptr->isMultiSampled() )
-			{								
+			{
 				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 			}
 
@@ -1554,7 +1567,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind();
-	SGCTSettings::Instance()->usePostFX() ? 
+	SGCTSettings::Instance()->usePostFX() ?
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
@@ -1592,7 +1605,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	//unbind
 	glBindVertexArray(0);
-	
+
 	ShaderManager::Instance()->unBindShader();
 
 	if(mTakeScreenshot)
@@ -1609,7 +1622,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		{
 			float x = static_cast<float>( size - size/4 );
 			float y = static_cast<float>( fontSize );
-			
+
 			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", mShotCounter);
 
 			if( mActiveFrustum == Frustum::Mono )
@@ -1649,11 +1662,11 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		{
 			//un-bind texture
 			glBindTexture(GL_TEXTURE_2D, 0);
-			
+
 			//bind & attach buffer
 			mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !mCubeMapFBO_Ptr->isMultiSampled() )
-			{								
+			{
 				mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 			}
 
@@ -1683,7 +1696,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	//bind fisheye target FBO
 	mFinalFBO_Ptr->bind();
-	SGCTSettings::Instance()->usePostFX() ? 
+	SGCTSettings::Instance()->usePostFX() ?
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[PostFX] ) :
 			mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[ti] );
 
@@ -1746,7 +1759,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
-	
+
 	ShaderManager::Instance()->unBindShader();
 
 	if(mTakeScreenshot)
@@ -1766,7 +1779,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		{
 			float x = static_cast<float>( size - size/4 );
 			float y = static_cast<float>( fontSize );
-			
+
 			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", mShotCounter);
 
 			if( mActiveFrustum == Frustum::Mono )
@@ -2011,13 +2024,13 @@ void sgct::Engine::loadShaders()
 
 		if( !mFixedOGLPipeline )
 			mShaderLocs[FisheyeMVP] = mShaders[FisheyeShader].getUniformLocation( "MVP" );
-		
+
 		mShaderLocs[Cubemap] = mShaders[FisheyeShader].getUniformLocation( "cubemap" );
 		glUniform1i( mShaderLocs[Cubemap], 0 );
-		
+
 		mShaderLocs[FishEyeHalfFov] = mShaders[FisheyeShader].getUniformLocation( "halfFov" );
 		glUniform1f( mShaderLocs[FishEyeHalfFov], glm::half_pi<float>() );
-		
+
 		if( SGCTSettings::Instance()->isFisheyeOffaxis() || tmpNode->stereo != ClusterManager::NoStereo )
 		{
 			mShaderLocs[FisheyeOffset] = mShaders[FisheyeShader].getUniformLocation( "offset" );
@@ -2036,7 +2049,7 @@ void sgct::Engine::loadShaders()
 			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan",
 					sgct_core::shaders::Anaglyph_Vert_Shader,
 					sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ) : 
+					ShaderManager::SHADER_SRC_STRING ) :
 				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan",
 					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
 					sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader,
@@ -2129,7 +2142,7 @@ void sgct::Engine::loadShaders()
 		glUniform1i( mShaderLocs[StereoRightTex], 1 );
 		ShaderManager::Instance()->unBindShader();
 	}
-	
+
 	/*!
 		Used for overlays & mono.
 	*/
@@ -2165,7 +2178,7 @@ void sgct::Engine::createTextures()
 	//no target textures needed if not using FBO
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
 		return;
-	
+
 	if( mRunMode <= OpenGL_Compablity_Profile )
 	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
@@ -2240,7 +2253,7 @@ void sgct::Engine::createTextures()
 void sgct::Engine::createFBOs()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
 	{
 		//disable anaglyph & checkerboard stereo if FBOs are not used
@@ -2255,7 +2268,7 @@ void sgct::Engine::createFBOs()
 			mFinalFBO_Ptr->createFBO(getWindowPtr()->getXFramebufferResolution(),
 			getWindowPtr()->getYFramebufferResolution(),
 			1);
-			
+
 			mCubeMapFBO_Ptr->createFBO(SGCTSettings::Instance()->getCubeMapResolution(),
 				SGCTSettings::Instance()->getCubeMapResolution(),
 				tmpNode->numberOfSamples);
@@ -2264,10 +2277,10 @@ void sgct::Engine::createFBOs()
 			for(int i=0; i<6; i++)
 			{
 				if(!mCubeMapFBO_Ptr->isMultiSampled())
-				{								
+				{
 					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[FishEye], i );
 				}
-				
+
 				SGCTSettings::Instance()->useFisheyeAlpha() ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
@@ -2308,7 +2321,7 @@ void sgct::Engine::createVBOs()
 		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 
 	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
-		
+
 	if( !mFixedOGLPipeline )
 		glBindVertexArray( mVAO[RenderQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
@@ -2375,7 +2388,7 @@ void sgct::Engine::createVBOs()
 void sgct::Engine::resizeFBOs()
 {
 	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	if(!getWindowPtr()->isFixResolution())
 	{
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
@@ -2390,7 +2403,7 @@ void sgct::Engine::resizeFBOs()
 				1);
 
 				//Cube map FBO is constant in size so we don't need to resize that one
-			
+
 				//set ut the fisheye geometry etc.
 				initFisheye();
 			}
@@ -3064,7 +3077,7 @@ void sgct::Engine::initFisheye()
 	float y = 1.0f;
 	float frameBufferAspect = static_cast<float>( getWindowPtr()->getXFramebufferResolution() ) /
 		static_cast<float>( getWindowPtr()->getYFramebufferResolution() );
-	
+
 	float aspect = frameBufferAspect * cropAspect;
 	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
 
@@ -3096,11 +3109,11 @@ void sgct::Engine::initFisheye()
 	if( !mFixedOGLPipeline )
 		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
-	
+
 	GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
 	memcpy(PositionBuffer, mFisheyeQuadVerts, 20 * sizeof(float));
 	glUnmapBuffer(GL_ARRAY_BUFFER);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !mFixedOGLPipeline )
 		glBindVertexArray( 0 );
@@ -3305,7 +3318,7 @@ const char * sgct::Engine::getBasicInfo()
 const char * sgct::Engine::getAAInfo()
 {
     SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-	
+
 	if( SGCTSettings::Instance()->useFXAA() &&
 		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 	{

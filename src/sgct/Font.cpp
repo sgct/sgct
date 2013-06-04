@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <GL/glew.h>
@@ -29,11 +29,11 @@ Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
 	mTextures( NULL ),
-	mListBase( 0 ),
+	mListBase( GL_FALSE ),
 	mFixedPipeline( true )
 {
-	mVAO = 0;
-	mVBO = 0;
+	mVAO = GL_FALSE;
+	mVBO = GL_FALSE;
 	mCharWidths = NULL;
 }
 
@@ -78,7 +78,7 @@ void Font::clean()
 {
 	if( mTextures )	// Check if init has been called
 	{
-		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() && mListBase != 0)
 			glDeleteLists( mListBase, 128 );
 		else
 		{

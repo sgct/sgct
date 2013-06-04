@@ -50,22 +50,22 @@ void myDrawFun()
 {
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
-	
+
 	double speed = 25.0;
-	
+
 	//create scene transform (animation)
-	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );	
+	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
-	
+
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByName("box") );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureIndex) );
-	
+
 	sgct::ShaderManager::Instance()->bindShader( "xform" );
-		
+
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
 	//draw the box
@@ -105,11 +105,11 @@ void myInitOGLFun()
 			"SimpleFragmentShader.fragmentshader" );
 
 	sgct::ShaderManager::Instance()->bindShader( "xform" );
- 
+
 	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
 	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "Tex" );
 	glUniform1i( Tex_Loc, 0 );
- 
+
 	sgct::ShaderManager::Instance()->unBindShader();
 }
 

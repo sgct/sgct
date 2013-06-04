@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel, Linköping University.
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/ogl_headers.h"
@@ -22,7 +22,7 @@ namespace sgct_text
 inline void setupViewport()
 {
 	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-	
+
 	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
 	{
 		glViewport(
@@ -73,10 +73,6 @@ inline void pushScreenCoordinateMatrix()
 	glMatrixMode(GL_PROJECTION);
 	glPushMatrix();
 
-	sgct_core::SGCTNode * tmpNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-	//set current viewport
-	//user or external scenegraph may change the viewport so it's important to reset it.
-
 	setupViewport();
 	glLoadMatrixd( glm::value_ptr( setupOrthoMat() ) );
 }
@@ -94,7 +90,7 @@ inline void pop_projection_matrix()
 void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...)
 {
 	if( ft_font == NULL ) { return; }
-	
+
 	float h = ft_font->getHeight() * 1.59f;
 
 	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
@@ -156,18 +152,18 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glColor4f( color.r, color.g, color.b, color.a );
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glPushMatrix();
 				glLoadIdentity();
 				glTranslatef( trans.x, trans.y, trans.z );
 				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
-			
+
 				glColor4f( color.r, color.g, color.b, color.a );
 				glCallList( font + c );
 				glPopMatrix();
@@ -190,25 +186,25 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		
+
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
 
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
-				
+
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-			
+
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
 		}//end for lines
@@ -285,18 +281,18 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glColor4f( color.r, color.g, color.b, color.a );
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glPushMatrix();
 				glLoadIdentity();
 				glTranslatef( trans.x, trans.y, trans.z );
 				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
-			
+
 				glColor4f( color.r, color.g, color.b, color.a );
 				glCallList( font + c );
 				glPopMatrix();
@@ -324,20 +320,20 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
 
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
-				
+
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-			
+
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
 		}//end for lines
@@ -399,28 +395,28 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
 	{
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-		
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D);
-	
+
 		float textScale = 1.0f / ft_font->getHeight();
 		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-		
+
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glLoadMatrixf( glm::value_ptr( trans ) );
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
-			
+
 				glColor4f( color.r, color.g, color.b, color.a );
 				glCallList( font + c );
 			}
@@ -446,20 +442,20 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		float textScale = 1.0f / ft_font->getHeight();
 		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
 
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
-				
+
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-			
+
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
 		}//end for lines
@@ -520,28 +516,28 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
 	{
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-		
+
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		glDisable(GL_LIGHTING);
 		glEnable(GL_TEXTURE_2D);
-	
+
 		float textScale = 1.0f / ft_font->getHeight();
 		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-		
+
 		glMatrixMode(GL_PROJECTION);
 		glPushMatrix();
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glLoadMatrixf( glm::value_ptr( trans ) );
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
-			
+
 				glColor4f( color.r, color.g, color.b, color.a );
 				glCallList( font + c );
 			}
@@ -567,20 +563,20 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		float textScale = 1.0f / ft_font->getHeight();
 		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-		for(unsigned int i=0;i<lines.size();i++)
+		for(size_t i=0;i<lines.size();i++)
 		{
 			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
 
-			for(int j=0; j < lines[i].length(); j++)
+			for(size_t j=0; j < lines[i].length(); j++)
 			{
 				char c = lines[i].c_str()[j];
-				
+
 				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
-				
+
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-			
+
 				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
 			}//end for chars
 		}//end for lines

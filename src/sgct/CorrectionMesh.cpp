@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 //#define SGCT_SHOW_CORRECTION_MESH_WIREFRAME
@@ -33,18 +33,18 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 	mOrthoCoords[2] = 0.0;
 	mOrthoCoords[3] = 1.0;
 
-	mMeshData[0] = 0;
-	mMeshData[1] = 0;
-	mMeshData[2] = 0;
+	mMeshData[0] = GL_FALSE;
+	mMeshData[1] = GL_FALSE;
+	mMeshData[2] = GL_FALSE;
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {
-	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
+	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != 0)
 		glDeleteLists(mMeshData[0], 1);
-	else
+	else if(mMeshData[0] != 0)
 	{
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != 0)
 			glDeleteVertexArrays(1, &mMeshData[2]);
 		glDeleteBuffers(2, &mMeshData[0]);
 	}
@@ -212,7 +212,7 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 {
 	mNumberOfVertices = 4;
 	mNumberOfFaces = 2;
-	
+
 	mVertices = new CorrectionMeshVertex[ mNumberOfVertices ];
 	memset(mVertices, 0, mNumberOfVertices * sizeof(CorrectionMeshVertex));
 
@@ -271,7 +271,7 @@ void sgct_core::CorrectionMesh::createMesh()
 	{
 		mMeshData[Vertex] = glGenLists(1);
 		glNewList(mMeshData[Vertex], GL_COMPILE);
-	
+
 #ifdef SGCT_SHOW_CORRECTION_MESH_WIREFRAME
 		for(unsigned int i=0; i<mNumberOfFaces; i++)
 		{
@@ -304,7 +304,7 @@ void sgct_core::CorrectionMesh::createMesh()
 			glGenVertexArrays(1, &mMeshData[Array]);
 			glBindVertexArray(mMeshData[Array]);
 		}
-		
+
 		glGenBuffers(2, &mMeshData[0]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
@@ -377,17 +377,17 @@ void sgct_core::CorrectionMesh::render()
 	{
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-	
+
 		glEnableClientState(GL_VERTEX_ARRAY);
 		glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
-	
+
 		glClientActiveTexture(GL_TEXTURE0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
 
 		glEnableClientState(GL_COLOR_ARRAY);
 		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
-		
+
 		glEnableClientState(GL_INDEX_ARRAY);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 

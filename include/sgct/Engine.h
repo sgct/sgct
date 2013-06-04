@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _RENDER_ENGINE_H_
@@ -84,7 +84,7 @@ public:
 	const double & getAvgDt();
 	const double & getDrawTime();
 	const double & getSyncTime();
-	
+
 	/*!
 		\returns the clear color as 4 floats (RGBA)
 	*/
@@ -107,32 +107,32 @@ public:
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
 	void setExitKey(int key);
-	
+
 	/*!
 		\param state of the wireframe rendering
 	*/
 	void setWireframe(bool state) { mShowWireframe = state; }
 	/*!
 		Set if the info text should be visible or not
-		
+
 		\param state of the info text rendering
 	*/
 	void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
 
 	/*!
 		Set if the statistics graph should be visible or not
-		
+
 		\param state of the statistics graph rendering
 	*/
 	void setStatsGraphVisibility(bool state) { mShowGraph = state; }
-	
+
 	/*!
 		Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled then two screenshots will be saved per frame, one for the left eye and one for the right eye.
 		To record frames for a movie simply call this function every frame you wish to record. The read to disk is multi-threaded and maximum number of threads can be set using:
 		-numberOfCaptureThreads command line argument.
 	*/
 	void takeScreenshot() { mTakeScreenshot = true; }
-	/*! 
+	/*!
 		\returns the current screenshot number (file index)
 	*/
 	int getScreenShotNumber() { return mShotCounter; }
@@ -199,7 +199,7 @@ public:
 		Returns pointer to screen capture object/handler
 	*/
 	const sgct_core::ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
-	
+
 	/*!
 		Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
 	*/
@@ -209,12 +209,12 @@ public:
 		Returns true if any kind of stereo is enabled
 	*/
 	static bool isStereo() { return (sgct_core::ClusterManager::Instance()->getThisNodePtr()->stereo != sgct_core::ClusterManager::NoStereo); }
-	
+
 	/*!
 		Returns a pointer to the tracking manager pointer
 	*/
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
-	
+
 	/*!
 		Check and print if any openGL error has occured
 
@@ -241,8 +241,8 @@ public:
 		Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
 	*/
 	inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
-	
-	/*! 
+
+	/*!
 		Returns the active frustum which can be one of the following:
 		- Mono
 		- Stereo Left
@@ -254,7 +254,7 @@ public:
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
 	inline const glm::mat4 & getActiveProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
-	
+
 	/*!
 		Returns the active view matrix (only valid inside in the draw callback function)
 	*/
@@ -275,12 +275,12 @@ public:
 	*/
 	inline glm::mat4 getActiveModelViewProjectionMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
 		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
-	
+
 	/*!
 		Returns the active viewport in pixels (only valid inside in the draw callback function)
 	*/
 	inline const int * getActiveViewport() { return currentViewportCoords; }
-	
+
 	/*!
 		Returns the current frame number
 	*/
@@ -326,7 +326,7 @@ private:
 	void renderPostFxFixedPipeline(TextureIndexes ti );
 	void renderFisheyeFixedPipeline(TextureIndexes ti);
 
-	void setRenderTarget(TextureIndexes ti);	
+	void setRenderTarget(TextureIndexes ti);
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
@@ -414,7 +414,7 @@ private:
 	sgct_core::ReadConfig	* mConfig;
 	sgct_core::Statistics	 * mStatistics;
 	sgct_core::ScreenCapture * mScreenCapture;
-	
+
 	float mPostFxQuadVerts[20];
 
 	std::string configFilename;

@@ -18,7 +18,8 @@ sgct::ShaderProgram::ShaderProgram() :
 	mIsLinked( false ),
 	mProgramId( 0 ),
 	mVertexShader( GL_VERTEX_SHADER ),
-	mFragmentShader( GL_FRAGMENT_SHADER )
+	mFragmentShader( GL_FRAGMENT_SHADER ),
+	mGeometryShader( GL_GEOMETRY_SHADER )
 {
 	mName.assign("SGCT_NULL");
 }
@@ -36,7 +37,8 @@ sgct::ShaderProgram::ShaderProgram( const std::string & name ) :
 	mIsLinked( false ),
 	mProgramId( 0 ),
 	mVertexShader( GL_VERTEX_SHADER ),
-	mFragmentShader( GL_FRAGMENT_SHADER )
+	mFragmentShader( GL_FRAGMENT_SHADER ),
+	mGeometryShader( GL_GEOMETRY_SHADER )
 {
 	; // Do nothing
 }
@@ -69,6 +71,12 @@ void sgct::ShaderProgram::deleteProgram()
 	{
 		glDetachShader( mProgramId, mFragmentShader.getId() );
 		mFragmentShader.getId();
+	}
+
+	if( mGeometryShader.getId() > 0 )
+	{
+		glDetachShader( mProgramId, mGeometryShader.getId() );
+		mGeometryShader.getId();
 	}
 
 	if( mProgramId > 0 )
@@ -138,6 +146,25 @@ bool sgct::ShaderProgram::setFramgentShaderSrc( const std::string & src, sgct::S
 //----------------------------------------------------------------------------//
 
 /*!
+Will set the geometry shader source code.
+@param	src			Where the source is found, can be either a file path or shader source string
+@param	sSrcType	What type of source code should be read, file or string
+@return	Wheter the source code was set correctly or not
+*/
+bool sgct::ShaderProgram::setGeometryShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
+{
+	if( sSrcType == SHADER_SOURCE_FILE )
+	{
+		return mGeometryShader.setSourceFromFile( src );
+	}
+	else
+	{
+		return mGeometryShader.setSourceFromString( src );
+	}
+}
+//----------------------------------------------------------------------------//
+
+/*!
 Will create the program and link the shaders. The shader sources must have been set before the
 program can be linked. After the program is created and linked no modification to the shader
 sources can be made.
@@ -168,6 +195,9 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 	//
 	glAttachShader( mProgramId, mVertexShader.getId() );
 	glAttachShader( mProgramId, mFragmentShader.getId() );
+
+	if( mGeometryShader.getId() != 0 )
+		glAttachShader( mProgramId, mGeometryShader.getId() );
 
 	glLinkProgram( mProgramId );
 

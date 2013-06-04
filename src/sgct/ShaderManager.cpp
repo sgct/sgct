@@ -49,7 +49,7 @@ Both vertex shader and fragment shader source need to be provided, either as a
 link to a shader source code file or as shader source code.
 @param	name		Unique name of the shader
 @param	vertexSrc	The vertex shader source code, can be a file path or source code
-@param	fragmentSrc	The fragment shader source code, van be a file path or source code
+@param	fragmentSrc	The fragment shader source code, can be a file path or source code
 @param	sSrcTyp		Shader source code type, if it is a link to a file or source code
 @return	Wether the shader was created, linked and added to the manager correctly or not.
 */
@@ -109,7 +109,7 @@ link to a shader source code file or as shader source code.
 @param	shaderPtr	Pointer to ShaderProgram
 @param	name		Unique name of the shader
 @param	vertexSrc	The vertex shader source code, can be a file path or source code
-@param	fragmentSrc	The fragment shader source code, van be a file path or source code
+@param	fragmentSrc	The fragment shader source code, can be a file path or source code
 @param	sSrcTyp		Shader source code type, if it is a link to a file or source code
 @return	Wether the shader was created, linked and added to the manager correctly or not.
 */
@@ -148,6 +148,146 @@ bool sgct::ShaderManager::addShader(
 	}
 	
 	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+
+	if( sp.createAndLinkProgram() )
+	{
+		mShaders.push_back( sp );
+		shader = mShaders.back();
+		return true;
+	}
+
+	// If arrived here the creation and linking of the program didn't work.
+	// Return false but printing errors is handled in createAndLinkProgram()
+	return false;
+}
+//----------------------------------------------------------------------------//
+
+/*!
+Add a shader program to the manager. The shaders will be compiled and linked to
+the program. The name of the shader needs to be unique or it won't be added. 
+Both vertex shader and fragment shader source need to be provided, either as a 
+link to a shader source code file or as shader source code.
+@param	name		Unique name of the shader
+@param	vertexSrc	The vertex shader source code, can be a file path or source code
+@param	fragmentSrc	The fragment shader source code, can be a file path or source code
+@param	geometrySrc	The geometry shader source code, can be a file path or source code
+@param	sSrcTyp		Shader source code type, if it is a link to a file or source code
+@return	Wether the shader was created, linked and added to the manager correctly or not.
+*/
+bool sgct::ShaderManager::addShader( 
+	const std::string & name,
+	const std::string & vertexSrc,
+	const std::string & fragmentSrc,
+	const std::string & geometrySrc,
+	ShaderManager::ShaderSourceType sSrcType )
+{
+	//
+	// Check if shader already exists
+	//
+	if( shaderExists( name ) )
+	{
+		sgct::MessageHandler::Instance()->print("Unable to add shader program [%s]: Name already exists.\n", name.c_str() );
+		return false;
+	}
+
+	//
+	// If shader don't exist, create it and add to container
+	//
+	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
+		ShaderProgram::SHADER_SOURCE_FILE :
+		ShaderProgram::SHADER_SOURCE_STRING;
+
+	ShaderProgram sp( name );
+	
+	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+	
+	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+
+	if( !sp.setGeometryShaderSrc( geometrySrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+
+	if( sp.createAndLinkProgram() )
+	{
+		mShaders.push_back( sp );
+		return true;
+	}
+
+	// If arrived here the creation and linking of the program didn't work.
+	// Return false but printing errors is handled in createAndLinkProgram()
+	return false;
+}
+//----------------------------------------------------------------------------//
+
+/*!
+Add a shader program to the manager. The shaders will be compiled and linked to
+the program. The name of the shader needs to be unique or it won't be added. 
+Both vertex shader and fragment shader source need to be provided, either as a 
+link to a shader source code file or as shader source code.
+@param	shaderPtr	Pointer to ShaderProgram
+@param	name		Unique name of the shader
+@param	vertexSrc	The vertex shader source code, can be a file path or source code
+@param	fragmentSrc	The fragment shader source code, can be a file path or source code
+@param	geometrySrc	The geometry shader source code, can be a file path or source code
+@param	sSrcTyp		Shader source code type, if it is a link to a file or source code
+@return	Wether the shader was created, linked and added to the manager correctly or not.
+*/
+bool sgct::ShaderManager::addShader( 
+	ShaderProgram & shader,
+	const std::string & name,
+	const std::string & vertexSrc,
+	const std::string & fragmentSrc,
+	const std::string & geometrySrc,
+	ShaderManager::ShaderSourceType sSrcType )
+{
+	//if something failes set shader pointer to NullShader
+	shader = NullShader;
+	
+	//
+	// Check if shader already exists
+	//
+	if( shaderExists( name ) )
+	{
+		sgct::MessageHandler::Instance()->print("Unable to add shader program [%s]: Name already exists.\n", name.c_str() );
+		return false;
+	}
+
+	//
+	// If shader don't exist, create it and add to container
+	//
+	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
+		ShaderProgram::SHADER_SOURCE_FILE :
+		ShaderProgram::SHADER_SOURCE_STRING;
+
+	ShaderProgram sp( name );
+	
+	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+	
+	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	{
+		// Error messaging handled when setting source
+		return false;
+	}
+
+	if( !sp.setGeometryShaderSrc( geometrySrc, srcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;

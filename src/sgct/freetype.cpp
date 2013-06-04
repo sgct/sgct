@@ -190,9 +190,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-
+		
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
@@ -216,8 +214,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		}//end for lines
 
 		//unbind
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -323,8 +319,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
 
 		glActiveTexture(GL_TEXTURE0);
 
@@ -349,8 +343,6 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		}//end for lines
 
 		//unbind
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -447,8 +439,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
@@ -475,8 +465,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		}//end for lines
 
 		//unbind
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}
@@ -572,8 +560,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		FontManager::Instance()->getShader().bind();
 
 		glBindVertexArray( ft_font->getVAO() );
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
 		glActiveTexture(GL_TEXTURE0);
 
 		glUniform4f( FontManager::Instance()->getColLoc(), color.r, color.g, color.b, color.a );
@@ -600,8 +586,6 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		}//end for lines
 
 		//unbind
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}

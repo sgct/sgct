@@ -1217,13 +1217,9 @@ void sgct::Engine::drawOverlays()
 			glUniformMatrix4fv( mShaderLocs[OverlayMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
 			tmpNode->isUsingFisheyeRendering() ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
-			glEnableVertexAttribArray(0);
-			glEnableVertexAttribArray(1);
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 			//unbind
-			glDisableVertexAttribArray(1);
-			glDisableVertexAttribArray(0);
 			glBindVertexArray(0);
 			ShaderManager::Instance()->unBindShader();
 		}
@@ -1592,13 +1588,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	}
 
 	glBindVertexArray( mVAO[FishEyeQuad] );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	//unbind
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 	
 	ShaderManager::Instance()->unBindShader();
@@ -1825,13 +1817,9 @@ void sgct::Engine::renderPostFx(TextureIndexes ti)
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
 
 	glBindVertexArray( mVAO[RenderQuad] );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 	//unbind
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 	ShaderManager::Instance()->unBindShader();
 }

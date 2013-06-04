@@ -583,8 +583,6 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 	);
 
 	//unbind
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 

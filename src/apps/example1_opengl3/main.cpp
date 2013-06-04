@@ -94,9 +94,6 @@ void myInitFun()
 		reinterpret_cast<void*>(0) // array buffer offset
 	);
 
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
-
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
 
@@ -123,16 +120,11 @@ void myDrawFun()
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
 	glBindVertexArray(vertexArray);
-
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-
+	
 	// Draw the triangle !
 	glDrawArrays(GL_TRIANGLES, 0, 3);
 
 	//unbind
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 	sgct::ShaderManager::Instance()->unBindShader();
 }

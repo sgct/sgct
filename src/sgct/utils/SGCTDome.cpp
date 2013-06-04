@@ -153,7 +153,6 @@ void sgct_utils::SGCTDome::drawVBO()
 void sgct_utils::SGCTDome::drawVAO()
 {
 	glBindVertexArray( mVAO );
-	glEnableVertexAttribArray(0);
 
 	for(unsigned int r=0; r<mRings; r++)
 		glDrawArrays(GL_LINE_LOOP, r * mResolution, mResolution);
@@ -161,7 +160,6 @@ void sgct_utils::SGCTDome::drawVAO()
 		glDrawArrays(GL_LINE_STRIP, mRings * mResolution + s * ((mResolution/4)+1), (mResolution/4)+1);
 
 	//unbind
-	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 }
 
@@ -190,7 +188,6 @@ void sgct_utils::SGCTDome::createVBO()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
-		glDisableVertexAttribArray(0);
 		glBindVertexArray( 0 );
 	}
 }

@@ -403,15 +403,7 @@ void sgct_core::CorrectionMesh::render()
 		glBindVertexArray(mMeshData[Array]);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
 
-		glEnableVertexAttribArray(0);
-		glEnableVertexAttribArray(1);
-		glEnableVertexAttribArray(2);
-
 		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
-
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 
 		//unbind
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);

@@ -229,16 +229,9 @@ void sgct_utils::SGCTBox::drawVBO()
 void sgct_utils::SGCTBox::drawVAO()
 {
 	glBindVertexArray( mVAO );
-	glEnableVertexAttribArray(0);
-	glEnableVertexAttribArray(1);
-	glEnableVertexAttribArray(2);
-
 	glDrawArrays(GL_TRIANGLES, 0, 36);
 
 	//unbind
-	glDisableVertexAttribArray(2);
-	glDisableVertexAttribArray(1);
-	glDisableVertexAttribArray(0);
 	glBindVertexArray(0);
 }
 
@@ -287,9 +280,6 @@ void sgct_utils::SGCTBox::createVBO()
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
-		glDisableVertexAttribArray(2);
-		glDisableVertexAttribArray(1);
-		glDisableVertexAttribArray(0);
 		glBindVertexArray( 0 );
 	}
 }

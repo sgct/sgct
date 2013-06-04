@@ -43,6 +43,21 @@ public:
 		const std::string & fragmentSrc,
 		ShaderSourceType sSrcType = SHADER_SRC_FILE );
 
+	bool addShader( 
+		const std::string & name,
+		const std::string & vertexSrc,
+		const std::string & fragmentSrc,
+		const std::string & geometrySrc,
+		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+
+	bool addShader( 
+		ShaderProgram & shader,
+		const std::string & name,
+		const std::string & vertexSrc,
+		const std::string & fragmentSrc,
+		const std::string & geometrySrc,
+		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+
 	bool removeShader( const std::string & name );
 	bool bindShader( const std::string & name ) const;
 	bool bindShader( const ShaderProgram & shader ) const;

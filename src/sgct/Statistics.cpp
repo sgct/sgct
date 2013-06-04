@@ -193,7 +193,6 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	if(!mFixedPipeline)
 	{
 		glBindVertexArray(0);
-		glDisableVertexAttribArray(0);
 
 		sgct::ShaderManager::Instance()->addShader( mShader, "StatisticsShader",
 			Stats_Vert_Shader,
@@ -393,31 +392,26 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		//draw background (1024x1024 canvas)
 		glUniform4f( mColLoc, mStaticColors[ BG ].r, mStaticColors[ BG ].g, mStaticColors[ BG ].b, mStaticColors[ BG ].a );
 		glBindVertexArray( mStaticVAOs[ BG ] );
-		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		//1 ms lines
 		glUniform4f( mColLoc, mStaticColors[ GRID ].r, mStaticColors[ GRID ].g, mStaticColors[ GRID ].b, mStaticColors[ GRID ].a );
 		glBindVertexArray( mStaticVAOs[ GRID ] );
-		glEnableVertexAttribArray(0);
 		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 		
 		//zero line, 60hz & 30hz
 		glUniform4f( mColLoc, mStaticColors[ FREQ ].r, mStaticColors[ FREQ ].g, mStaticColors[ FREQ ].b, mStaticColors[ FREQ ].a );
 		glBindVertexArray( mStaticVAOs[ FREQ ] );
-		glEnableVertexAttribArray(0);
 		glDrawArrays( GL_LINES, 0, 6 );
 		
 		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
 			glUniform4f( mColLoc, mDynamicColors[i].r, mDynamicColors[i].g, mDynamicColors[i].b, mDynamicColors[i].a );
 			glBindVertexArray( mDynamicVAOs[ i ] );
-			glEnableVertexAttribArray(0);
 			glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 		}
 		
 		//unbind
-		glDisableVertexAttribArray(0);
 		glBindVertexArray(0);
 		sgct::ShaderManager::Instance()->unBindShader();
 	}

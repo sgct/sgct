@@ -111,6 +111,9 @@ void myInitOGLFun()
 	glUniform1i( Tex_Loc, 0 );
 
 	sgct::ShaderManager::Instance()->unBindShader();
+
+	//sgct::Engine::Instance()->setStatsGraphVisibility(true);
+	//sgct::Engine::Instance()->setDisplayInfoVisibility(true);
 }
 
 void myEncodeFun()

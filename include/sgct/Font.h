@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _FREETYPE_FONT_H_
@@ -49,9 +49,9 @@ public:
 	inline void AddGlyph( const FT_Glyph & glyph ){ mGlyphs.push_back( glyph ); }
 
 	/*! Set the width of a character in the font */
-	inline void setCharWidth( char c, float width ){ mCharWidths[c] = width; }
+	inline void setCharWidth( char c, float width ){ mCharWidths[ static_cast<size_t>(c) ] = width; }
 	/*! Get the width of a character in the font */
-	inline float getCharWidth( char c ) const { return mCharWidths[c]; }
+	inline float getCharWidth( char c ) const { return mCharWidths[ static_cast<size_t>(c) ]; }
 
 
 public:

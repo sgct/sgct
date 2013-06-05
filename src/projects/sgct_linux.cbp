@@ -80,6 +80,8 @@
 		<Unit filename="../../include/sgct/OffScreenBuffer.h" />
 		<Unit filename="../../include/sgct/ReadConfig.h" />
 		<Unit filename="../../include/sgct/SGCTInternalShaders.h" />
+		<Unit filename="../../include/sgct/SGCTInternalShaders_modern.h" />
+		<Unit filename="../../include/sgct/SGCTMutexManager.h" />
 		<Unit filename="../../include/sgct/SGCTNetwork.h" />
 		<Unit filename="../../include/sgct/SGCTNode.h" />
 		<Unit filename="../../include/sgct/SGCTSettings.h" />
@@ -94,6 +96,7 @@
 		<Unit filename="../../include/sgct/ShaderManager.h" />
 		<Unit filename="../../include/sgct/ShaderProgram.h" />
 		<Unit filename="../../include/sgct/SharedData.h" />
+		<Unit filename="../../include/sgct/SharedDataTypes.h" />
 		<Unit filename="../../include/sgct/Statistics.h" />
 		<Unit filename="../../include/sgct/TextureManager.h" />
 		<Unit filename="../../include/sgct/Viewport.h" />
@@ -113,6 +116,7 @@
 		<Unit filename="../sgct/NetworkManager.cpp" />
 		<Unit filename="../sgct/OffScreenBuffer.cpp" />
 		<Unit filename="../sgct/ReadConfig.cpp" />
+		<Unit filename="../sgct/SGCTMutexManager.cpp" />
 		<Unit filename="../sgct/SGCTNetwork.cpp" />
 		<Unit filename="../sgct/SGCTNode.cpp" />
 		<Unit filename="../sgct/SGCTSettings.cpp" />
@@ -127,6 +131,7 @@
 		<Unit filename="../sgct/ShaderManager.cpp" />
 		<Unit filename="../sgct/ShaderProgram.cpp" />
 		<Unit filename="../sgct/SharedData.cpp" />
+		<Unit filename="../sgct/SharedDataTypes.cpp" />
 		<Unit filename="../sgct/Statistics.cpp" />
 		<Unit filename="../sgct/TextureManager.cpp" />
 		<Unit filename="../sgct/Viewport.cpp" />

@@ -70,19 +70,19 @@ void myDrawFun()
 	//top face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[2]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r, -r);
-		glTexCoord2d(1.0,0.0); glVertex3f(-r, r, 0.0f);
-		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r, r);
-		glTexCoord2d(0.0,1.0); glVertex3f(r, r, 0.0f);
+		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r,  r);
+		glTexCoord2d(1.0,0.0); glVertex3f(r,    r,  0.0f);
+		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, r,  -r);
+		glTexCoord2d(0.0,1.0); glVertex3f(-r,    r,  0.0f);
 	glEnd();
 
 	//bottom face
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(textureIndexes[3]) );
 	glBegin(GL_QUADS);
-		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
-		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
-		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, -r, r);
-		glTexCoord2d(0.0,1.0); glVertex3f(-r, -r, 0.0f);
+		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, r);
+		glTexCoord2d(1.0,0.0); glVertex3f(-r,   -r, 0.0f);
+		glTexCoord2d(1.0,1.0); glVertex3f(0.0f, -r, -r);
+		glTexCoord2d(0.0,1.0); glVertex3f(r,   -r, 0.0f);
 	glEnd();
 
 	glDisable(GL_TEXTURE_2D);
@@ -169,7 +169,7 @@ void myInitOGLFun()
 {
 	for(unsigned int i=0; i<4; i++)
 		textureIndexes[i] = 0;
-	
+
 	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::No_Compression);
 	sgct::TextureManager::Instance()->loadTexure(textureIndexes[0], "right", "grid_right.png", true, 0);
@@ -187,7 +187,7 @@ void myPostSyncPreDrawFun()
 {
 	gEngine->setDisplayInfoVisibility(info);
 	gEngine->setStatsGraphVisibility(stats);
-	
+
 	if( takeScreenshot )
 	{
 		gEngine->takeScreenshot();

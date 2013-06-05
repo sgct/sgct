@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <GL/glew.h>
@@ -279,10 +279,10 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 			mColLoc = mShader.getUniformLocation( "Col" );
 			mTexLoc = mShader.getUniformLocation( "Tex" );
 			sgct::ShaderManager::Instance()->unBindShader();
-			
+
 			shaderCreated = true;
 		}
-			
+
 		if( !MakeVBO( face, newFont ) )
 		{
 			newFont.clean();
@@ -368,7 +368,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 
 
 	//Now we just setup some texture paramaters.
-	GLuint textureId = font.getTextures()[ch];
+	GLuint textureId = font.getTextures()[ static_cast<size_t>(ch) ];
 	glBindTexture( GL_TEXTURE_2D, textureId );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -421,13 +421,13 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0f, 0.0f );
 		glVertex3f( offset.x, (GLfloat)bitmap.rows + offset.y, 0.0f );
-		
+
 		glTexCoord2f( 0.0f, y );
 		glVertex3f(	offset.x, offset.y, 0.0f );
-		
+
 		glTexCoord2f( x, y );
 		glVertex3f( (GLfloat)bitmap.width + offset.x, offset.y, 0.0f );
-		
+
 		glTexCoord2f( x, 0.0f );
 		glVertex3f( (GLfloat)bitmap.width + offset.x, (GLfloat)bitmap.rows + offset.y, 0.0f );
 	glEnd();
@@ -454,10 +454,10 @@ Create vertex buffer objects for the passed character
 bool FontManager::MakeVBO( FT_Face face, Font & font )
 {
 	std::vector<float> coords;
-	
+
 	for( unsigned char ch = 0; ch < 128; ++ch )
 	{
-		
+
 		if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_FORCE_AUTOHINT ) )
 		{
 			sgct::MessageHandler::Instance()->print("FT_Load_Glyph failed for char [%c].\n", ch );

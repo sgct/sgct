@@ -199,7 +199,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
 
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
@@ -328,7 +328,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
 
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
@@ -450,7 +450,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
 
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
@@ -571,7 +571,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[c] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
 				glUniform1i( FontManager::Instance()->getTexLoc(), 0);
 
 				glUniformMatrix4fv( FontManager::Instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);

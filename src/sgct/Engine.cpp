@@ -3295,16 +3295,16 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 const char * sgct::Engine::getBasicInfo()
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2lf | AA: %s",
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics->getAvgFPS(),
+		static_cast<float>(mStatistics->getAvgFPS()),
         getAAInfo());
     #else
-    sprintf( basicInfo, "Node: %s (%s) | fps: %.2lf | AA: %s",
+    sprintf( basicInfo, "Node: %s (%s) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? ClusterManager::Instance()->getThisNodePtr()->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		mStatistics->getAvgFPS(),
+		static_cast<float>(mStatistics->getAvgFPS()),
         getAAInfo());
     #endif
 

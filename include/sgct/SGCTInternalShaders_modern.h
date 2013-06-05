@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_INTERNAL_SHADERS_MODERN_H_
@@ -46,7 +46,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = Col * texture2D(Tex, UV.st);\n\
+				Color = Col * texture(Tex, UV.st);\n\
 			};\n";
 
 		const std::string Overlay_Vert_Shader = "\
@@ -74,7 +74,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = texture2D(Tex, UV.st);\n\
+				Color = texture(Tex, UV.st);\n\
 			};\n";
 
 		const std::string Fisheye_Vert_Shader = "\
@@ -181,9 +181,9 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture2D( LeftTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV.st);\n\
 				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
-				vec4 rightVals = texture2D( RightTex, UV.st);\n\
+				vec4 rightVals = texture( RightTex, UV.st);\n\
 				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
 				Color.r = Col.r * leftLum;\n\
 				Color.g = Col.g * rightLum;\n\
@@ -203,8 +203,8 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture2D( LeftTex, UV.st);\n\
-				vec4 rightVals = texture2D( RightTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV.st);\n\
+				vec4 rightVals = texture( RightTex, UV.st);\n\
 				Color.r = Col.r * (0.7*leftVals.g + 0.3*leftVals.b);\n\
 				Color.g = Col.g * rightVals.r;\n\
 				Color.b = Col.b * rightVals.b;\n\
@@ -223,8 +223,8 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture2D( LeftTex, UV.st);\n\
-				vec4 rightVals = texture2D( RightTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV.st);\n\
+				vec4 rightVals = texture( RightTex, UV.st);\n\
 				vec3 coef = vec3(0.15, 0.15, 0.70);\n\
 				float rightMix = dot(rightVals.rbg, coef);\n\
 				Color.r = Col.r * leftVals.r;\n\
@@ -247,9 +247,9 @@ namespace sgct_core
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					Color = Col * texture2D( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV.st);\n\
 				else\n\
-					Color = Col * texture2D( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV.st);\n\
 			};\n";
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
@@ -266,9 +266,9 @@ namespace sgct_core
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					Color = Col * texture2D( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV.st);\n\
 				else\n\
-					Color = Col * texture2D( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV.st);\n\
 			};\n";
 
 		const std::string Vertical_Interlaced_Frag_Shader = "\
@@ -285,9 +285,9 @@ namespace sgct_core
 			{\n\
 				float fval = gl_FragCoord.y * 0.5;\n\
 				if( (fval - floor(fval)) > 0.5 )\n\
-					Color = Col * texture2D( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV.st);\n\
 				else\n\
-					Color = Col * texture2D( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV.st);\n\
 			};\n";
 
 		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
@@ -304,9 +304,9 @@ namespace sgct_core
 			{\n\
 				float fval = gl_FragCoord.y * 0.5;\n\
 				if( (fval - floor(fval)) > 0.5 )\n\
-					Color = Col * texture2D( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV.st);\n\
 				else\n\
-					Color = Col * texture2D( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV.st);\n\
 			};\n";
 
 		const std::string Dummy_Stereo_Frag_Shader = "\
@@ -321,7 +321,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = Col * (0.5 * texture2D( LeftTex, UV.st) + 0.5 * texture2D( RightTex, UV.st));\n\
+				Color = Col * (0.5 * texture( LeftTex, UV.st) + 0.5 * texture( RightTex, UV.st));\n\
 			};\n";
 
 		const std::string FXAA_Vert_Shader = "\
@@ -376,11 +376,11 @@ namespace sgct_core
 			//#define FXAA_REDUCE_MUL   (1.0/8.0)\n\
 			//#define FXAA_SPAN_MAX     8.0\n\
 			/*--------------------------------------------------------------------------*/\n\
-			vec3 rgbNW = texture2D(tex, posPos.zw).xyz;\n\
-			vec3 rgbNE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,0)).xyz;\n\
-			vec3 rgbSW = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(0,1)).xyz;\n\
-			vec3 rgbSE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,1)).xyz;\n\
-			vec3 rgbM  = texture2D(tex, posPos.xy).xyz;\n\
+			vec3 rgbNW = texture(tex, posPos.zw).xyz;\n\
+			vec3 rgbNE = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,0)).xyz;\n\
+			vec3 rgbSW = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(0,1)).xyz;\n\
+			vec3 rgbSE = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,1)).xyz;\n\
+			vec3 rgbM  = texture(tex, posPos.xy).xyz;\n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 luma = vec3(0.299, 0.587, 0.114);\n\
 			float lumaNW = dot(rgbNW, luma);\n\
@@ -405,11 +405,11 @@ namespace sgct_core
 				dir * rcpDirMin)) * rcpFrame.xy; \n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 rgbA = (1.0/2.0) * (\n\
-				texture2D(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
-				texture2D(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
+				texture(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
+				texture(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
 			vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (\n\
-				texture2D(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
-				texture2D(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz);\n\
+				texture(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
+				texture(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz);\n\
 			float lumaB = dot(rgbB, luma); \n\
 			if((lumaB < lumaMin) || (lumaB > lumaMax)) return rgbA;\n\
 				return rgbB; }\n\

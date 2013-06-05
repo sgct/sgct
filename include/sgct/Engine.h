@@ -419,8 +419,8 @@ private:
 
 	std::string configFilename;
 	int mRunning;
-	char basicInfo[128];
-	char aaInfo[16];
+	char basicInfo[256];
+	char aaInfo[32];
 
 	unsigned int mFrameCounter;
 

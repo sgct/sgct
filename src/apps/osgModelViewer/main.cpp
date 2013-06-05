@@ -17,7 +17,7 @@ sgct::Engine * gEngine;
 //and prevents segfault on Linux
 osgViewer::Viewer * mViewer = NULL;
 osg::ref_ptr<osg::Group>			mRootNode;
-osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
+osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
 osg::ref_ptr<osg::MatrixTransform>	mSceneTrans;
 osg::ref_ptr<osg::MatrixTransform>	mSceneScale;
 std::vector< osg::ref_ptr<osg::Node> > mModels;
@@ -151,7 +151,7 @@ void myInitOGLFun()
 	//animationPath->setLoopMode(osg::AnimationPath::NO_LOOPING);
 	//animationPath->setLoopMode(osg::AnimationPath::LOOP);
 
-	//animation = new osg::PositionAttitudeTransform;   
+	//animation = new osg::PositionAttitudeTransform;
 	//animation->addChild( mSceneScale.get() );
 
 	/*mAnimatedTransform = new osg::MatrixTransform;
@@ -177,8 +177,8 @@ void myInitOGLFun()
 	mFilenames.push_back( std::string("Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Int\\FLT\\models_current\\iss_esa_int_stage5.ive"));
 	//mFilenames.push_back( std::string("Y:\\models\\test_harmony_20130219\\harmony_test\\harmony_test.ive"));
 	//std::string filename = "Y:\\models\\iss\\ESA-ESTEC_ISS-3DDB\\ESA-ESTEC_ISS_3DDB-20121030\\20121030\\Ext\\FLT\\iss_esa_ext_stage5.ive"
-	
-	//osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip"); 
+
+	//osgDB::ReaderWriter::Options * options = new osgDB::ReaderWriter::Options("dds_flip");
 
 	for(size_t i=0; i<mFilenames.size(); i++)
 	{
@@ -196,7 +196,7 @@ void myInitOGLFun()
 			osg::ComputeBoundsVisitor cbv;
 			osg::BoundingBox &bb(cbv.getBoundingBox());
 			tmpNode->accept( cbv );
-			
+
 			osg::Vec3f tmpVec;
 			tmpVec = bb.center();
 
@@ -338,9 +338,9 @@ void myPostSyncPreDrawFun()
 					{
 						//dist = static_cast<double>((ad.mPositions[i] - ad.mPositions[i-1]).length());
 						//time += dist/ad.speed; //to get constant speed
-						
+
 						time += timeStep;
-						
+
 						mAnimation.addCubicPositionKeyFrame(time,
 							ad.mPositions[i] - (ad.mPositions[i] - ad.mPositions[i-1]) * weight,
 							ad.mPositions[i],
@@ -357,14 +357,14 @@ void myPostSyncPreDrawFun()
 						ad.mPositions.back() - (ad.mPositions.back() - ad.mPositions[ ad.mPositions.size()-2 ]) * weight,
                         ad.mPositions.back(),
                         ad.mPositions.back());
-					
+
 					mAnimation.addQuatKeyFrame(time, ad.mQuats.back());
 				}
 				else
 				{
 					mAnimation.addPositionKeyFrame(time, ad.mPositions[0]);
 					mAnimation.addQuatKeyFrame(time, ad.mQuats[0]);
-					
+
 					for(size_t i=1; i<ad.mPositions.size(); i++)
 					{
 						dist = static_cast<double>((ad.mPositions[i] - ad.mPositions[i-1]).length());
@@ -383,7 +383,8 @@ void myPostSyncPreDrawFun()
 		if( !mAnimation.isPlaying() ) //animation has ended
 		{
 			recordMode = false;
-			sgct::MessageHandler::Instance()->print("Info: Rendering took %lfs\n", sgct::Engine::getTime() - t0);
+			//mingw cannot handle %lf so lets convert to float %f
+			sgct::MessageHandler::Instance()->print("Info: Rendering took %fs\n", static_cast<float>(sgct::Engine::getTime() - t0));
 		}
 		else
 		{
@@ -464,7 +465,7 @@ void myDrawFun()
 	//double tmpTime = gEngine->getTime();
 	mViewer->renderingTraversals();
 	//fprintf(stderr, "Draw OSG time: %.0f ms\n", (gEngine->getTime() - tmpTime) * 1000.0);
-	
+
 	/*if( gEngine->isMaster() )
 	{
 		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 35, "Scale: %.10f", scale);
@@ -547,7 +548,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				takeScreenshot.setVal( true );
 			break;
-		
+
 		case 'R':
 			if(action == SGCT_PRESS)
 			{
@@ -634,7 +635,7 @@ void mouseButtonCallback(int button, int action)
 		{
 		case SGCT_MOUSE_BUTTON_LEFT:
 			mouseButtonStatus[ LEFT_MB ] = (action == SGCT_PRESS ? true : false);
-			
+
 			//set refPos
 			sgct::Engine::getMousePos( &mouseXPos[1], &mouseYPos[1] );
 			break;

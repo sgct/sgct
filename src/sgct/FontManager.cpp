@@ -55,7 +55,7 @@ out vec4 Color;\n\
 \n\
 void main()\n\
 {\n\
-	vec2 LuminanceAlpha = texture2D(Tex, UV.st).rg;\n\
+	vec2 LuminanceAlpha = texture(Tex, UV.st).rg;\n\
 	Color.rgb = Col.rgb * LuminanceAlpha.r;\n\
 	Color.a = Col.a * LuminanceAlpha.g;\n\
 };\n";

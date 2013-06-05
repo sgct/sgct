@@ -2,7 +2,6 @@
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
 		<Project filename="../apps/osgExample/osgExample_mingw.cbp" />
-		<Project filename="../apps/osgModelViewer/osgModelViewer_mingw.cbp" />
 		<Project filename="../apps/sgct_template/sgct_template_mingw.cbp" />
 		<Project filename="../apps/SGCTRemote/remote_app_mingw.cbp" />
 		<Project filename="../apps/simpleNavigationExample/simpleNavigationExample_mingw.cbp" />
@@ -19,6 +18,7 @@
 		<Project filename="../apps/fisheyeTest/fisheyeTest_mingw.cbp" />
 		<Project filename="../apps/osgExampleRTT/osgExampleRTT_mingw.cbp" />
 		<Project filename="../apps/example1_opengl3/example1_opengl3_mingw.cbp" />
-		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" active="1" />
+		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" />
+		<Project filename="../apps/postProcessing/postProcessing_mingw.cbp" active="1" />
 	</Workspace>
 </CodeBlocks_workspace_file>

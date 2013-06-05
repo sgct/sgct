@@ -21,7 +21,7 @@
 				</Linker>
 			</Target>
 			<Target title="Release">
-				<Option output="$(SGCT_ROOT_DIR)\bin\orthoTexture\mingw\orthoTexture_mingw" prefix_auto="1" extension_auto="1" />
+				<Option output="$(SGCT_ROOT_DIR)\bin\orthoTexture\mingw\orthoTexture_mingw_x86" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
 				<Option compiler="gcc" />

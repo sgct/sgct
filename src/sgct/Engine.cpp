@@ -375,6 +375,42 @@ bool sgct::Engine::initWindow()
 		}
 		break;
 
+	case OpenGL_4_0_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0);
+			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+
+	case OpenGL_4_1_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
+			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+
+	case OpenGL_4_2_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
+			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+
+	case OpenGL_4_3_Core_Profile:
+		{
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
+			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
+			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+
     /*case OpenGL_3_2_Core_Profile:
 		{
 			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);

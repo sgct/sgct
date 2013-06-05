@@ -29,6 +29,11 @@ namespace sgct
 {
 
 /*!
+	Wrapper for GLFWcond
+*/
+typedef void * SGCTcond;
+
+/*!
 The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
 
 The figure below illustrates when different callbacks (gray boxes) are called in the renderloop. The blue boxes illustrates internal processess.
@@ -36,12 +41,6 @@ The figure below illustrates when different callbacks (gray boxes) are called in
 \image html render_diagram.jpg
 \image latex render_diagram.eps "Render diagram" width=7cm
 */
-
-/*!
-	Wrapper for GLFWcond
-*/
-typedef void * SGCTcond;
-
 class Engine
 {
 //all enums
@@ -49,7 +48,7 @@ public:
 	/*!
 		The different run modes used by the init function
 	*/
-	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode, OpenGL_Compablity_Profile, OpenGL_3_3_Core_Profile };
+	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode, OpenGL_Compablity_Profile, OpenGL_3_3_Core_Profile, OpenGL_4_0_Core_Profile, OpenGL_4_1_Core_Profile, OpenGL_4_2_Core_Profile, OpenGL_4_3_Core_Profile };
 
 private:
 	enum VBOIndexes { RenderQuad = 0, FishEyeQuad };

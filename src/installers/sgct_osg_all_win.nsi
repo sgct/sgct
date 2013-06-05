@@ -4,7 +4,7 @@
 !include LogicLib.nsh ;if statements and loops
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "1.4.1"
+!define SGCT_VERSION "1.5.0"
 !define SGCT_COMPILER "msvc10"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
@@ -195,6 +195,21 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\textureExample\box.png"
 	File "..\..\src\apps\postProcessing\postProcessing_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3"
+	File "..\..\bin\example1_opengl3\${SGCT_COMPILER}\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
+	File "..\..\src\apps\example1_opengl3\SimpleFragmentShader.fragmentshader"
+	File "..\..\src\apps\example1_opengl3\SimpleVertexShader.vertexshader"
+	File "..\..\src\apps\example1_opengl3\main.cpp"
+	File "..\..\src\apps\example1_opengl3\example1_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\textureExample_opengl3"
+	File "..\..\bin\textureExample_opengl3\${SGCT_COMPILER}\textureExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
+	File "..\..\src\apps\textureExample_opengl3\SimpleFragmentShader.fragmentshader"
+	File "..\..\src\apps\textureExample_opengl3\SimpleVertexShader.vertexshader"
+	File "..\..\src\apps\textureExample_opengl3\main.cpp"
+	File "..\..\src\apps\textureExample_opengl3\box.png"
+	File "..\..\src\apps\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	
 	!if ${INC_OSG} == 1
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
 		File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}_${ARCH}.exe"
@@ -273,6 +288,12 @@ Section "Start Menu Shortcuts"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_processing"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\post_processing.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_processing\postProcessing_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\textureExample_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\textureExample_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
   !if ${INC_OSG} == 1
 	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"

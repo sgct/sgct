@@ -28,9 +28,7 @@ This namespace contains the most basic functionality of the toolkit.
 namespace sgct
 {
 
-/*!
-	Wrapper for GLFWcond
-*/
+//Wrapper for GLFWcond
 typedef void * SGCTcond;
 
 /*!
@@ -45,10 +43,28 @@ class Engine
 {
 //all enums
 public:
-	/*!
-		The different run modes used by the init function
-	*/
-	enum RunMode { Default_Mode = 0, OSG_Encapsulation_Mode, OpenGL_Compablity_Profile, OpenGL_3_3_Core_Profile, OpenGL_4_0_Core_Profile, OpenGL_4_1_Core_Profile, OpenGL_4_2_Core_Profile, OpenGL_4_3_Core_Profile };
+	
+	//! The different run modes used by the init function
+	enum RunMode
+	{ 
+		/// The default mode using fixed OpenGL pipeline (compability mode)
+		Default_Mode = 0,
+		/// This option encapsulates Open Scene Graph (fixed OpenGL pipeline)
+		OSG_Encapsulation_Mode,
+		/// This option is using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
+		OpenGL_Compablity_Profile,
+		/// This option is using a programmable OpenGL 3.3 pipeline using a core profile
+		OpenGL_3_3_Core_Profile,
+		/// This option is using a programmable OpenGL 4.0 pipeline using a core profile
+		OpenGL_4_0_Core_Profile,
+		/// This option is using a programmable OpenGL 4.1 pipeline using a core profile
+		OpenGL_4_1_Core_Profile,
+		/// This option is using a programmable OpenGL 4.2 pipeline using a core profile
+		OpenGL_4_2_Core_Profile,
+		/// This option is using a programmable OpenGL 4.3 pipeline using a core profile
+		OpenGL_4_3_Core_Profile
+	};
+
 
 private:
 	enum VBOIndexes { RenderQuad = 0, FishEyeQuad };

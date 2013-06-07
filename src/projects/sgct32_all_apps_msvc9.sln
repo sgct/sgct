@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 10.00
-# Visual Studio 2008
+# Visual C++ Express 2008
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct32_msvc9", "sgct32_msvc9.vcproj", "{DFB0D737-2A10-43CC-B804-368C88873C4F}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "clustertest_msvc9", "..\apps\clustertest\clustertest_msvc9.vcproj", "{965A932B-A09A-4967-835C-535BDFE0BFB3}"
@@ -93,6 +93,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osgExampleRTT_msvc9", "..\a
 		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1_opengl3_msvc9", "..\apps\example1_opengl3\example1_opengl3_msvc9.vcproj", "{691CF782-52CB-4CBC-80A5-A884A8A423C4}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureExample_opengl3_msvc9", "..\apps\textureExample_opengl3\textureExample_opengl3_msvc9.vcproj", "{768C0B98-CE8F-4D86-B337-F14053DB7E1B}"
+	ProjectSection(ProjectDependencies) = postProject
+		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -175,6 +185,14 @@ Global
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Debug|Win32.Build.0 = Debug|Win32
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Release|Win32.ActiveCfg = Release|Win32
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Release|Win32.Build.0 = Release|Win32
+		{691CF782-52CB-4CBC-80A5-A884A8A423C4}.Debug|Win32.ActiveCfg = Debug|Win32
+		{691CF782-52CB-4CBC-80A5-A884A8A423C4}.Debug|Win32.Build.0 = Debug|Win32
+		{691CF782-52CB-4CBC-80A5-A884A8A423C4}.Release|Win32.ActiveCfg = Release|Win32
+		{691CF782-52CB-4CBC-80A5-A884A8A423C4}.Release|Win32.Build.0 = Release|Win32
+		{768C0B98-CE8F-4D86-B337-F14053DB7E1B}.Debug|Win32.ActiveCfg = Debug|Win32
+		{768C0B98-CE8F-4D86-B337-F14053DB7E1B}.Debug|Win32.Build.0 = Debug|Win32
+		{768C0B98-CE8F-4D86-B337-F14053DB7E1B}.Release|Win32.ActiveCfg = Release|Win32
+		{768C0B98-CE8F-4D86-B337-F14053DB7E1B}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

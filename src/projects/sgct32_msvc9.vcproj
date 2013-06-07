@@ -366,6 +366,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\sgct\SGCTInternalShaders_modern.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\sgct\SGCTMutexManager.h"
 				>
 			</File>

@@ -32,16 +32,44 @@ if( MSVC )
 		${SGCT_RELEASE}
 		${OPENGL_LIBRARY}
 	)
-elseif( MINGW )
+elseif( WIN32 ) #MINGW or similar
 	set(DEBUG_LIBS
 		${SGCT_DEBUG}
 		${OPENGL_LIBRARY}
-		ws_32
+		ws2_32
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE}
 		${OPENGL_LIBRARY}
-		ws_32
+		ws2_32
+	)
+elseif( APPLE )
+	set(DEBUG_LIBS
+		${SGCT_DEBUG}
+		-framework Opengl
+		-framework AGL
+		-framework Cocoa
+		-framework IOKit
+	)
+	set(RELEASE_LIBS
+		${SGCT_RELEASE}
+		-framework Opengl
+		-framework AGL
+		-framework Cocoa
+		-framework IOKit
+	)
+else() #linux
+	set(DEBUG_LIBS
+		${SGCT_DEBUG}
+		${OPENGL_LIBRARY}
+		X11
+		Xrandr
+	)
+	set(RELEASE_LIBS
+		${SGCT_RELEASE}
+		${OPENGL_LIBRARY}
+		X11
+		Xrandr
 	)
 endif()
 

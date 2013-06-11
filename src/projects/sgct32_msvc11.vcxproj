@@ -28,6 +28,8 @@
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
     <ClInclude Include="..\..\include\sgct\ScreenCapture.h" />
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders_modern.h" />
+    <ClInclude Include="..\..\include\sgct\SGCTMutexManager.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNetwork.h" />
     <ClInclude Include="..\..\include\sgct\SGCTNode.h" />
     <ClInclude Include="..\..\include\sgct\SGCTSettings.h" />
@@ -41,6 +43,7 @@
     <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
     <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
     <ClInclude Include="..\..\include\sgct\SharedData.h" />
+    <ClInclude Include="..\..\include\sgct\SharedDataTypes.h" />
     <ClInclude Include="..\..\include\sgct\Statistics.h" />
     <ClInclude Include="..\..\include\sgct\TextureManager.h" />
     <ClInclude Include="..\..\include\sgct\utils\SGCTBox.h" />
@@ -61,6 +64,7 @@
     <ClCompile Include="..\sgct\OffScreenBuffer.cpp" />
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
     <ClCompile Include="..\sgct\ScreenCapture.cpp" />
+    <ClCompile Include="..\sgct\SGCTMutexManager.cpp" />
     <ClCompile Include="..\sgct\SGCTNetwork.cpp" />
     <ClCompile Include="..\sgct\SGCTNode.cpp" />
     <ClCompile Include="..\sgct\SGCTSettings.cpp" />
@@ -74,6 +78,7 @@
     <ClCompile Include="..\sgct\ShaderManager.cpp" />
     <ClCompile Include="..\sgct\ShaderProgram.cpp" />
     <ClCompile Include="..\sgct\SharedData.cpp" />
+    <ClCompile Include="..\sgct\SharedDataTypes.cpp" />
     <ClCompile Include="..\sgct\Statistics.cpp" />
     <ClCompile Include="..\sgct\TextureManager.cpp" />
     <ClCompile Include="..\sgct\utils\SGCTBox.cpp" />

@@ -126,6 +126,15 @@
     <ClInclude Include="..\..\include\sgct\ScreenCapture.h">
       <Filter>include</Filter>
     </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTInternalShaders_modern.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SGCTMutexManager.h">
+      <Filter>include</Filter>
+    </ClInclude>
+    <ClInclude Include="..\..\include\sgct\SharedDataTypes.h">
+      <Filter>include</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="..\sgct\ClusterManager.cpp">
@@ -219,6 +228,12 @@
       <Filter>source</Filter>
     </ClCompile>
     <ClCompile Include="..\sgct\ScreenCapture.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SGCTMutexManager.cpp">
+      <Filter>source</Filter>
+    </ClCompile>
+    <ClCompile Include="..\sgct\SharedDataTypes.cpp">
       <Filter>source</Filter>
     </ClCompile>
   </ItemGroup>

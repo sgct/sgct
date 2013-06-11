@@ -1,6 +1,6 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
-# Visual Studio 2012
+# Visual Studio Express 2012 for Windows Desktop
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct32", "sgct32_msvc11.vcxproj", "{0516E457-A21E-4D14-8DBC-63D918909A23}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1_msvc11", "..\apps\example1\example1_msvc11.vcxproj", "{8303EDAB-3F90-4302-81FB-C5F58923E993}"
@@ -73,6 +73,16 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postProcessing_msvc11", "..
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "example1_opengl3_msvc11", "..\apps\example1_opengl3\example1_opengl3_msvc11.vcxproj", "{9C1949BA-4DB7-4702-8E99-1100F93531FE}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureExample_opengl3_msvc11", "..\apps\textureExample_opengl3\textureExample_opengl3_msvc11.vcxproj", "{3EBA2DD8-9192-4C87-8259-C6F6555E9C2F}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -139,6 +149,14 @@ Global
 		{E2CBA748-18F3-45FE-832F-3DC67E4CDD65}.Debug|Win32.Build.0 = Debug|Win32
 		{E2CBA748-18F3-45FE-832F-3DC67E4CDD65}.Release|Win32.ActiveCfg = Release|Win32
 		{E2CBA748-18F3-45FE-832F-3DC67E4CDD65}.Release|Win32.Build.0 = Release|Win32
+		{9C1949BA-4DB7-4702-8E99-1100F93531FE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{9C1949BA-4DB7-4702-8E99-1100F93531FE}.Debug|Win32.Build.0 = Debug|Win32
+		{9C1949BA-4DB7-4702-8E99-1100F93531FE}.Release|Win32.ActiveCfg = Release|Win32
+		{9C1949BA-4DB7-4702-8E99-1100F93531FE}.Release|Win32.Build.0 = Release|Win32
+		{3EBA2DD8-9192-4C87-8259-C6F6555E9C2F}.Debug|Win32.ActiveCfg = Debug|Win32
+		{3EBA2DD8-9192-4C87-8259-C6F6555E9C2F}.Debug|Win32.Build.0 = Debug|Win32
+		{3EBA2DD8-9192-4C87-8259-C6F6555E9C2F}.Release|Win32.ActiveCfg = Release|Win32
+		{3EBA2DD8-9192-4C87-8259-C6F6555E9C2F}.Release|Win32.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

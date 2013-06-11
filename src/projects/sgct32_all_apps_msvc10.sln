@@ -103,6 +103,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "textureExample_opengl3_msvc
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "simpleShaderExample_opengl3_msvc10", "..\apps\simpleShaderExample_opengl3\simpleShaderExample_opengl3_msvc10.vcxproj", "{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -279,6 +284,14 @@ Global
 		{9A08481F-0935-4730-8FF3-38FCEFC50DAC}.Release|Win32.Build.0 = Release|Win32
 		{9A08481F-0935-4730-8FF3-38FCEFC50DAC}.Release|x64.ActiveCfg = Release|x64
 		{9A08481F-0935-4730-8FF3-38FCEFC50DAC}.Release|x64.Build.0 = Release|x64
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Debug|Win32.Build.0 = Debug|Win32
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Debug|x64.ActiveCfg = Debug|x64
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Debug|x64.Build.0 = Debug|x64
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Release|Win32.ActiveCfg = Release|Win32
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Release|Win32.Build.0 = Release|Win32
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Release|x64.ActiveCfg = Release|x64
+		{8DFD76F3-0C7C-4671-8A8B-DF818853C4C7}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

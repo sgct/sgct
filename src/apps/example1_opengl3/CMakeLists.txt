@@ -16,64 +16,64 @@ add_executable(${APP_NAME}
 	SimpleVertexShader.vertexshader
 	SimpleFragmentShader.fragmentshader)	
 	
-find_library(SGCT_RELEASE REQUIRED)
-find_library(SGCT_DEBUG REQUIRED)
-find_path(SGCT_INCLUDE REQUIRED)
-include_directories(${SGCT_INCLUDE})
+find_library(SGCT_RELEASE_LIBRARY REQUIRED)
+find_library(SGCT_DEBUG_LIBRARY REQUIRED)
+find_path(SGCT_INCLUDE_DIRECTORY REQUIRED)
+include_directories(${SGCT_INCLUDE_DIRECTORY})
 
 find_package(OpenGL REQUIRED)
 
 if( MSVC )
 	set(DEBUG_LIBS
-		${SGCT_DEBUG}
+		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
 	)
 	set(RELEASE_LIBS
-		${SGCT_RELEASE}
+		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(DEBUG_LIBS
-		${SGCT_DEBUG}
+		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
 		ws2_32
 	)
 	set(RELEASE_LIBS
-		${SGCT_RELEASE}
+		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
 		ws2_32
 	)
 elseif( APPLE )
 	find_library(AGL_LIBRARY AGL REQUIRED)
-       	find_library(COCOA_LIBRARY Cocoa REQUIRED)
+    find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
 
 	set(DEBUG_LIBS
-		${SGCT_DEBUG}
-	       ${OPENGL_LIBRARY}
+		${SGCT_DEBUG_LIBRARY}
+	    ${OPENGL_LIBRARY}
 		${AGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
 	)
 	set(RELEASE_LIBS
-		${SGCT_RELEASE}
-	       ${OPENGL_LIBRARY}
+		${SGCT_RELEASE_LIBRARY}
+	    ${OPENGL_LIBRARY}
 		${AGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
-       	find_library(XRANDR_LIBRARY Xrandr REQUIRED)	
+    find_library(XRANDR_LIBRARY Xrandr REQUIRED)	
 
 	set(DEBUG_LIBS
-		${SGCT_DEBUG}
+		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
 	)
 	set(RELEASE_LIBS
-		${SGCT_RELEASE}
+		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}

@@ -44,32 +44,39 @@ elseif( WIN32 ) #MINGW or similar
 		ws2_32
 	)
 elseif( APPLE )
+	find_library(AGL_LIBRARY AGL REQUIRED)
+       	find_library(COCOA_LIBRARY Cocoa REQUIRED)
+	find_library(IOKIT_LIBRARY IOKit REQUIRED)
+
 	set(DEBUG_LIBS
 		${SGCT_DEBUG}
-		-framework Opengl
-		-framework AGL
-		-framework Cocoa
-		-framework IOKit
+	       ${OPENGL_LIBRARY}
+		${AGL_LIBRARY}
+		${COCOA_LIBRARY}
+		${IOKIT_LIBRARY}
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE}
-		-framework Opengl
-		-framework AGL
-		-framework Cocoa
-		-framework IOKit
+	       ${OPENGL_LIBRARY}
+		${AGL_LIBRARY}
+		${COCOA_LIBRARY}
+		${IOKIT_LIBRARY}
 	)
 else() #linux
+	find_library(X11_LIBRARY X11 REQUIRED)
+       	find_library(XRANDR_LIBRARY Xrandr REQUIRED)	
+
 	set(DEBUG_LIBS
 		${SGCT_DEBUG}
 		${OPENGL_LIBRARY}
-		X11
-		Xrandr
+		${X11_LIBRARY}
+		${XRANDR_LIBRARY}
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE}
 		${OPENGL_LIBRARY}
-		X11
-		Xrandr
+		${X11_LIBRARY}
+		${XRANDR_LIBRARY}
 	)
 endif()
 

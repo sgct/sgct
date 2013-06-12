@@ -292,6 +292,12 @@ public:
 		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
 	/*!
+		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
+	*/
+	inline glm::mat4 getActiveModelViewMatrix() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
+		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+
+	/*!
 		Returns the active viewport in pixels (only valid inside in the draw callback function)
 	*/
 	inline const int * getActiveViewport() { return currentViewportCoords; }

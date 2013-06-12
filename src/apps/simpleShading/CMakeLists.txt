@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME heightMappingExample)
+SET(APP_NAME simpleShading)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
@@ -12,9 +12,7 @@ set(AppPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 
 add_executable(${APP_NAME}
-	main.cpp
-	heightmap.vert
-	heightmap.frag)	
+	main.cpp)	
 	
 find_library(SGCT_RELEASE_LIBRARY REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY REQUIRED)

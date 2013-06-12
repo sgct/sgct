@@ -21,6 +21,12 @@ int curr_timeLoc;
 bool mPause = false;
 GLuint myTerrainDisplayList = 0;
 
+//light data
+GLfloat lightPosition[] = { -2.0f, 5.0f, 5.0f, 1.0f };
+GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
+GLfloat lightDiffuse[]= { 0.8f, 0.8f, 0.8f, 1.0f };
+GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
+
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
 sgct::SharedBool wireframe(false);
@@ -60,7 +66,9 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{
+{	
+	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+	
 	glTranslatef( 0.0f, -0.15f, 2.5f );
 	glRotatef( static_cast<float>( curr_time.getVal() ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
@@ -125,11 +133,6 @@ void myInitOGLFun()
 
 	//Set up light 0
 	glEnable(GL_LIGHT0);
-	GLfloat lightPosition[] = { -2.0f, 3.0f, 10.0f, 1.0f };
-	GLfloat lightAmbient[]= { 0.1f, 0.1f, 0.1f, 1.0f };
-	GLfloat lightDiffuse[]= { 1.0f, 1.0f, 1.0f, 1.0f };
-	GLfloat lightSpecular[]= { 1.0f, 1.0f, 1.0f, 1.0f };
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
 	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
 	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);

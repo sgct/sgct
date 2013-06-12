@@ -82,8 +82,8 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
     for(i=0; i<hsegs; i++)
 	{
         mIndices[3*i]=0;
-        mIndices[3*i+1]=1+i;
-        mIndices[3*i+2]=2+i;
+        mIndices[3*i+2]=1+i;
+        mIndices[3*i+1]=2+i;
     }
     // Middle part (possibly empty if vsegs=2)
     for(j=0; j<vsegs-2; j++)
@@ -93,10 +93,10 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
             unsigned int base = 3*(hsegs + 2*(j*hsegs + i));
             unsigned int i0 = 1 + j*(hsegs+1) + i;
             mIndices[base] = i0;
-            mIndices[base+1] = i0+hsegs+1;
-            mIndices[base+2] = i0+1;
-            mIndices[base+3] = i0+1;
-            mIndices[base+4] = i0+hsegs+1;
+            mIndices[base+1] = i0+1;
+			mIndices[base+2] = i0+hsegs+1;
+            mIndices[base+3] = i0+hsegs+1;
+			mIndices[base+4] = i0+1;
             mIndices[base+5] = i0+hsegs+2;
         }
     }
@@ -105,8 +105,8 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	{
         unsigned int base = 3*(hsegs + 2*(vsegs-2)*hsegs);
         mIndices[base+3*i] = mNumberOfVertices-1;
-        mIndices[base+3*i+1] = mNumberOfVertices-2-i;
-        mIndices[base+3*i+2] = mNumberOfVertices-3-i;
+        mIndices[base+3*i+2] = mNumberOfVertices-2-i;
+        mIndices[base+3*i+1] = mNumberOfVertices-3-i;
     }
 
 	//create mesh

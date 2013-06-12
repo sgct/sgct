@@ -38,7 +38,7 @@ bool sgct_core::Image::load(const char * filename)
 		length++;
 
 	char type[5];
-	if(length > 5)
+	if(length > 4)
 	{
 		type[0] = filename[length-4];
 		type[1] = filename[length-3];

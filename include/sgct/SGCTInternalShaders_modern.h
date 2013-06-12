@@ -46,7 +46,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = Col * texture(Tex, UV.st);\n\
+				Color = Col * texture(Tex, UV);\n\
 			};\n";
 
 		const std::string Overlay_Vert_Shader = "\
@@ -74,7 +74,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = texture(Tex, UV.st);\n\
+				Color = texture(Tex, UV);\n\
 			};\n";
 
 		const std::string Fisheye_Vert_Shader = "\
@@ -181,9 +181,9 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture( LeftTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV);\n\
 				float leftLum = 0.3 * leftVals.r + 0.59 * leftVals.g + 0.11 * leftVals.b;\n\
-				vec4 rightVals = texture( RightTex, UV.st);\n\
+				vec4 rightVals = texture( RightTex, UV);\n\
 				float rightLum = 0.3 * rightVals.r + 0.59 * rightVals.g + 0.11 * rightVals.b;\n\
 				Color.r = Col.r * leftLum;\n\
 				Color.g = Col.g * rightLum;\n\
@@ -203,8 +203,8 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture( LeftTex, UV.st);\n\
-				vec4 rightVals = texture( RightTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV);\n\
+				vec4 rightVals = texture( RightTex, UV);\n\
 				Color.r = Col.r * (0.7*leftVals.g + 0.3*leftVals.b);\n\
 				Color.g = Col.g * rightVals.r;\n\
 				Color.b = Col.b * rightVals.b;\n\
@@ -223,8 +223,8 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				vec4 leftVals = texture( LeftTex, UV.st);\n\
-				vec4 rightVals = texture( RightTex, UV.st);\n\
+				vec4 leftVals = texture( LeftTex, UV);\n\
+				vec4 rightVals = texture( RightTex, UV);\n\
 				vec3 coef = vec3(0.15, 0.15, 0.70);\n\
 				float rightMix = dot(rightVals.rbg, coef);\n\
 				Color.r = Col.r * leftVals.r;\n\
@@ -247,9 +247,9 @@ namespace sgct_core
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					Color = Col * texture( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV);\n\
 				else\n\
-					Color = Col * texture( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV);\n\
 			};\n";
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
@@ -266,9 +266,9 @@ namespace sgct_core
 			{\n\
 				float fval = (gl_FragCoord.x + gl_FragCoord.y) * 0.5;\n\
 				if( (fval - floor(fval)) == 0.0 )\n\
-					Color = Col * texture( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV);\n\
 				else\n\
-					Color = Col * texture( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV);\n\
 			};\n";
 
 		const std::string Vertical_Interlaced_Frag_Shader = "\
@@ -285,9 +285,9 @@ namespace sgct_core
 			{\n\
 				float fval = gl_FragCoord.y * 0.5;\n\
 				if( (fval - floor(fval)) > 0.5 )\n\
-					Color = Col * texture( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV);\n\
 				else\n\
-					Color = Col * texture( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV);\n\
 			};\n";
 
 		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
@@ -304,9 +304,9 @@ namespace sgct_core
 			{\n\
 				float fval = gl_FragCoord.y * 0.5;\n\
 				if( (fval - floor(fval)) > 0.5 )\n\
-					Color = Col * texture( LeftTex, UV.st);\n\
+					Color = Col * texture( LeftTex, UV);\n\
 				else\n\
-					Color = Col * texture( RightTex, UV.st);\n\
+					Color = Col * texture( RightTex, UV);\n\
 			};\n";
 
 		const std::string Dummy_Stereo_Frag_Shader = "\
@@ -321,7 +321,7 @@ namespace sgct_core
 			\n\
 			void main()\n\
 			{\n\
-				Color = Col * (0.5 * texture( LeftTex, UV.st) + 0.5 * texture( RightTex, UV.st));\n\
+				Color = Col * (0.5 * texture( LeftTex, UV) + 0.5 * texture( RightTex, UV));\n\
 			};\n";
 
 		const std::string FXAA_Vert_Shader = "\

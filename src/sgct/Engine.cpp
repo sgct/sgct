@@ -1190,11 +1190,11 @@ void sgct::Engine::drawFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 
 	Viewport * tmpVP = ClusterManager::Instance()->getThisNodePtr()->getCurrentViewport();
-	glLoadMatrixf( glm::value_ptr(tmpVP->getViewProjectionMatrix(mActiveFrustum)) );
+	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glLoadMatrixf( glm::value_ptr( getModelMatrix() ) );
+	glLoadMatrixf( glm::value_ptr( tmpVP->getViewMatrix(mActiveFrustum) * getModelMatrix() ) );
 
 	if( mDrawFn != NULL )
 	{

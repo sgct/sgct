@@ -257,11 +257,11 @@ namespace sgct_core
 			//#define FXAA_REDUCE_MUL   (1.0/8.0)\n\
 			//#define FXAA_SPAN_MAX     8.0\n\
 			/*--------------------------------------------------------------------------*/\n\
-			vec3 rgbNW = texture2D(tex, posPos.zw).xyz;\n\
+			vec3 rgbNW = texture2DLod(tex, posPos.zw, 0.0).xyz;\n\
 			vec3 rgbNE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,0)).xyz;\n\
 			vec3 rgbSW = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(0,1)).xyz;\n\
 			vec3 rgbSE = texture2DLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,1)).xyz;\n\
-			vec3 rgbM  = texture2D(tex, posPos.xy).xyz;\n\
+			vec3 rgbM  = texture2DLod(tex, posPos.xy, 0.0).xyz;\n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 luma = vec3(0.299, 0.587, 0.114);\n\
 			float lumaNW = dot(rgbNW, luma);\n\
@@ -286,11 +286,11 @@ namespace sgct_core
 				dir * rcpDirMin)) * rcpFrame.xy; \n\
 			/*--------------------------------------------------------------------------*/\n\
 			vec3 rgbA = (1.0/2.0) * (\n\
-				texture2D(tex, posPos.xy + dir * (1.0/3.0 - 0.5)).xyz +\n\
-				texture2D(tex, posPos.xy + dir * (2.0/3.0 - 0.5)).xyz);\n\
+				texture2DLod(tex, posPos.xy + dir * (1.0/3.0 - 0.5), 0.0).xyz +\n\
+				texture2DLod(tex, posPos.xy + dir * (2.0/3.0 - 0.5), 0.0).xyz);\n\
 			vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (\n\
-				texture2D(tex, posPos.xy + dir * (0.0/3.0 - 0.5)).xyz + \n\
-				texture2D(tex, posPos.xy + dir * (3.0/3.0 - 0.5)).xyz); \n\
+				texture2DLod(tex, posPos.xy + dir * (0.0/3.0 - 0.5), 0.0).xyz + \n\
+				texture2DLod(tex, posPos.xy + dir * (3.0/3.0 - 0.5), 0.0).xyz); \n\
 			float lumaB = dot(rgbB, luma); \n\
 			if((lumaB < lumaMin) || (lumaB > lumaMax)) return rgbA;\n\
 				return rgbB; }\n\

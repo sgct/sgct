@@ -1,0 +1,26 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="127.0.0.1">
+	<Node ip="127.0.0.1" port="20401">
+		<Window fullscreen="false">
+			<Stereo type="none" />
+			<Pos x="200" y="300" />
+			<!-- 16:9 aspect ratio -->
+			<Size x="640" y="360" />
+		</Window>
+		<Viewport>
+			<Pos x="0.0" y="0.0" />
+			<Size x="1.0" y="1.0" />
+			<Viewplane>
+				<!-- Lower left -->
+				<Pos x="-1.778" y="-1.0" z="0.0" />
+				<!-- Upper left -->
+				<Pos x="-1.778" y="1.0" z="0.0" />
+				<!-- Upper right -->
+				<Pos x="1.778" y="1.0" z="0.0" />
+			</Viewplane>
+		</Viewport>
+	</Node>
+	<User eyeSeparation="0.069">
+		<Pos x="0.0" y="0.0" z="4.0" />
+	</User>
+</Cluster>

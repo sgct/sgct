@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME textureExample)
+SET(APP_NAME textureExample_opengl3)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
@@ -12,7 +12,9 @@ set(AppPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 
 add_executable(${APP_NAME}
-	main.cpp)	
+	main.cpp
+	SimpleVertexShader.vertexshader
+	SimpleFragmentShader.fragmentshader)	
 	
 find_library(SGCT_RELEASE_LIBRARY REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY REQUIRED)

@@ -4,11 +4,11 @@
 !include LogicLib.nsh ;if statements and loops
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "1.5.1"
-!define SGCT_COMPILER "msvc10"
-!define ARCH "x86"
+!define SGCT_VERSION "1.5.2"
+!define SGCT_COMPILER "msvc11"
+!define ARCH "x64"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 1
+!define INC_OSG 0
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"

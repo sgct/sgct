@@ -2,13 +2,14 @@
 !include EnvVarUpdate.nsh
 !include FileAssociation.nsh
 !include LogicLib.nsh ;if statements and loops
+!include x64.nsh
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "1.5.2"
-!define SGCT_COMPILER "msvc11"
+!define SGCT_COMPILER "msvc10"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 0
+!define INC_OSG 1
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -30,6 +31,14 @@ Name "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH} installer"
 
 !define REALMSG "$\nOriginal non-restricted account type: $2"
 !define env_hklm 'HKLM "SYSTEM\CurrentControlSet\Control\Session Manager\Environment"'
+
+Function .onInit
+!if "${ARCH}" == "x64"
+	StrCpy $InstDir "$PROGRAMFILES64\SGCT"
+!else	
+	StrCpy $InstDir "$PROGRAMFILES\SGCT"
+!endif
+FunctionEnd
 
 Section
 	ClearErrors
@@ -66,9 +75,6 @@ SectionEnd
 
 ; The file to write
 OutFile "..\..\bin\installers\SGCT_${SGCT_VERSION}_${SGCT_COMPILER}_${ARCH}_setup.exe"
-
-; The default installation directory
-InstallDir "$PROGRAMFILES\SGCT"
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)

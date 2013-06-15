@@ -9,6 +9,7 @@ void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
+void myCleanUpFun();
 
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
@@ -23,6 +24,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setCleanUpFunction( myCleanUpFun );
 
 	if( !gEngine->init() )
 	{
@@ -38,7 +40,6 @@ int main( int argc, char* argv[] )
 
 	// Clean up
 	delete gEngine;
-	if(myBox != NULL) delete myBox;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -98,4 +99,10 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	sgct::SharedData::Instance()->readDouble(&curr_time);
+}
+
+void myCleanUpFun()
+{
+	if(myBox != NULL)
+		delete myBox;
 }

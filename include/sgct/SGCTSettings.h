@@ -51,6 +51,7 @@ public:
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
+	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
 	void setFisheyeAlpha(bool state);
 	void setFXAA(bool state);
@@ -104,6 +105,7 @@ private:
 	float mFisheyeTilt;
 	float mFieldOfView;
 	float mFisheyeOffset[3];
+	float mFisheyeBaseOffset[3]; //set from the config
 	bool mFisheyeOffaxis;
 	bool mFisheyeAlpha;
 	float mCropFactors[4];

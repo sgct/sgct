@@ -479,7 +479,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 							if( element[2]->QueryFloatAttribute("z", &ftmp) == XML_NO_ERROR )
                                 tmpFArr[2] = ftmp;
 
-							SGCTSettings::Instance()->setFisheyeOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
+							SGCTSettings::Instance()->setFisheyeBaseOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
 						}
 
 						//iterate

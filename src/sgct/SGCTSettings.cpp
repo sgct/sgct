@@ -28,6 +28,9 @@ sgct_core::SGCTSettings::SGCTSettings()
 	mFisheyeOffset[0] = 0.0f;
 	mFisheyeOffset[1] = 0.0f;
 	mFisheyeOffset[2] = 0.0f;
+	mFisheyeBaseOffset[0] = 0.0f;
+	mFisheyeBaseOffset[1] = 0.0f;
+	mFisheyeBaseOffset[2] = 0.0f;
 	mFisheyeOffaxis = false;
 	mFisheyeAlpha = false;
 
@@ -103,8 +106,29 @@ void sgct_core::SGCTSettings::setFisheyeCropValues(float left, float right, floa
 }
 
 /*!
+	Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
+	Base of fisheye is the XY-plane. The base offset will be added to the offset specified by setFisheyeOffset.
+	These values are set from the XML config.
+*/
+void sgct_core::SGCTSettings::setFisheyeBaseOffset(float x, float y, float z )
+{
+	mFisheyeBaseOffset[0] = x;
+	mFisheyeBaseOffset[1] = y;
+	mFisheyeBaseOffset[2] = z;
+
+	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
+	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
+	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
+
+	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
+		mFisheyeOffaxis = false;
+	else
+		mFisheyeOffaxis = true;
+}
+
+/*!
 	Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
-	Base of fisheye is the XY-plane.
+	Base of fisheye is the XY-plane. This function is normally used in fisheye stereo rendering.
 */
 void sgct_core::SGCTSettings::setFisheyeOffset(float x, float y, float z)
 {
@@ -112,7 +136,11 @@ void sgct_core::SGCTSettings::setFisheyeOffset(float x, float y, float z)
 	mFisheyeOffset[1] = y;
 	mFisheyeOffset[2] = z;
 
-	if( x == 0.0f && y == 0.0f && z == 0.0f )
+	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
+	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
+	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
+
+	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
 		mFisheyeOffaxis = false;
 	else
 		mFisheyeOffaxis = true;
@@ -263,7 +291,7 @@ bool sgct_core::SGCTSettings::isFisheyeOffaxis()
 //! Get the offset (3-float vec) if fisheye is offaxis.
 float sgct_core::SGCTSettings::getFisheyeOffset(unsigned int axis)
 {
-	return mFisheyeOffset[axis];
+	return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis];
 }
 
 //! Get the fisheye overlay image filename/path.

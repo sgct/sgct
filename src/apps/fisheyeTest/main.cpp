@@ -6,8 +6,11 @@ void myDrawFun();
 void myPostSyncPreDrawFun();
 void myInitOGLFun();
 void keyCallback(int key, int action);
+void myCleanUpFun();
 
 size_t textureIndexes[4];
+size_t myTextureHandle;
+sgct_utils::SGCTBox * myBox = NULL;
 
 bool info = false;
 bool stats = false;
@@ -18,12 +21,14 @@ int main( int argc, char* argv[] )
 
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
+	sgct_core::SGCTSettings::Instance()->setFisheyeAlpha(true);
 
 	// Bind your functions
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	gEngine->setCleanUpFunction( myCleanUpFun );
 
 	// Init the engine
 	if( !gEngine->init() )
@@ -85,7 +90,42 @@ void myDrawFun()
 		glTexCoord2d(0.0,1.0); glVertex3f(r,   -r, 0.0f);
 	glEnd();
 
-	glDisable(GL_TEXTURE_2D);
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0, -1.0f);
+	glColor3f(1.0f,1.0f,1.0f);
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
+	
+	glPushMatrix();
+	glTranslatef(-1.0f, 0.0, 0.0f);
+		myBox->draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0f, 0.0, 0.0f);
+		myBox->draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(1.0f, 0.0, 0.0f);
+		myBox->draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(-1.0f, -1.0, -1.0f);
+		myBox->draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(0.0f, -1.0, -1.0f);
+		myBox->draw();
+	glPopMatrix();
+
+	glPushMatrix();
+	glTranslatef(1.0f, -1.0, -1.0f);
+		myBox->draw();
+	glPopMatrix();
+	glPopMatrix();
+	glDisable(GL_TEXTURE_1D);
 	/*
 	glColor3f(1.0f,1.0f,0.0f);
 	glLineWidth(5.0);
@@ -170,12 +210,15 @@ void myInitOGLFun()
 	for(unsigned int i=0; i<4; i++)
 		textureIndexes[i] = 0;
 
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
+	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(2.0f);
 	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::No_Compression);
-	sgct::TextureManager::Instance()->loadTexure(textureIndexes[0], "right", "grid_right.png", true, 0);
-	sgct::TextureManager::Instance()->loadTexure(textureIndexes[1], "left", "grid_left.png", true, 0);
-	sgct::TextureManager::Instance()->loadTexure(textureIndexes[2], "top", "grid_top.png", true, 0);
-	sgct::TextureManager::Instance()->loadTexure(textureIndexes[3], "bottom", "grid_bottom.png", true, 0);
+	sgct::TextureManager::Instance()->loadTexure(textureIndexes[0], "right", "grid_right.png", true, 4);
+	sgct::TextureManager::Instance()->loadTexure(textureIndexes[1], "left", "grid_left.png", true, 4);
+	sgct::TextureManager::Instance()->loadTexure(textureIndexes[2], "top", "grid_top.png", true, 4);
+	sgct::TextureManager::Instance()->loadTexure(textureIndexes[3], "bottom", "grid_bottom.png", true, 4);
+
+	sgct::TextureManager::Instance()->loadTexure(myTextureHandle, "box", "box.png", true, 4);
+	myBox = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
 
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );
@@ -218,4 +261,10 @@ void keyCallback(int key, int action)
 			break;
 		}
 	}
+}
+
+void myCleanUpFun()
+{
+	if(myBox != NULL)
+		delete myBox;
 }

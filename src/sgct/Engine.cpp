@@ -904,7 +904,7 @@ void sgct::Engine::render()
 		{
 			if( !mNetworkConnections->isRunning() ) //exit if not running
 			{
-				MessageHandler::Instance()->print("Engine fatal error: Network error!\n");
+				MessageHandler::Instance()->print("Engine: Network disconnected. Exiting!\n");
 				break;
 			}
 		}

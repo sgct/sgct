@@ -7,6 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/SGCTMutexManager.h"
 #include "../include/sgct/ogl_headers.h"
+#include <stdio.h>
+
+//#define __SGCT_MUTEX_DEBUG__
 
 sgct::SGCTMutexManager * sgct::SGCTMutexManager::mInstance = NULL;
 
@@ -50,7 +53,7 @@ bool sgct::SGCTMutexManager::isValid()
 void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex %u...\n", mi);
+    fprintf(stderr, "Locking mutex %u %x...\n", mi, mInternalMutexes[mi]);
 #endif
     if(mInternalMutexes[mi] != NULL)
 		glfwLockMutex(mInternalMutexes[mi]);
@@ -62,7 +65,7 @@ void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
 void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Unlocking mutex %u...\n", mi);
+    fprintf(stderr, "Unlocking mutex %u %x...\n", mi, mInternalMutexes[mi]);
 #endif
 	if(mInternalMutexes[mi] != NULL)
 		glfwUnlockMutex(mInternalMutexes[mi]);
@@ -89,7 +92,7 @@ void sgct::SGCTMutexManager::destroyMutex(sgct::SGCTmutex mutex)
 void sgct::SGCTMutexManager::lockMutex(sgct::SGCTmutex mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex...\n");
+    fprintf(stderr, "Locking mutex %x...\n", mutex);
 #endif
     if(mutex != NULL)
 		glfwLockMutex(mutex);
@@ -101,7 +104,7 @@ void sgct::SGCTMutexManager::lockMutex(sgct::SGCTmutex mutex)
 void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTmutex mutex)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Unlocking mutex...\n");
+    fprintf(stderr, "Unlocking mutex %x...\n", mutex);
 #endif
 	if(mutex != NULL)
 		glfwUnlockMutex(mutex);

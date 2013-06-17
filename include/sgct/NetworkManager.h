@@ -42,8 +42,8 @@ public:
 	bool areAllNodesConnected() { return mAllNodesConnected; }
 	SGCTNetwork * getExternalControlPtr();
 
-	unsigned int getConnectionsCount() { return mNumberOfConnections; }
-	unsigned int getSyncConnectionsCount() { return mNumberOfSyncConnections; }
+	unsigned int getConnectionsCount();
+	unsigned int getSyncConnectionsCount();
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
 
 private:

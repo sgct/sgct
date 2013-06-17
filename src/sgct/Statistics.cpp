@@ -61,8 +61,8 @@ sgct_core::Statistics::Statistics()
 	mDynamicColors[ FRAME_TIME ]	= glm::vec4( 1.0f,1.0f,0.0f,0.8f );
 	mDynamicColors[ DRAW_TIME ]		= glm::vec4( 1.0f,0.0f,1.0f,0.8f );
 	mDynamicColors[ SYNC_TIME ]		= glm::vec4( 0.0f,1.0f,1.0f,0.8f );
-	mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
-	mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.2f,0.2f,1.0f,0.8f );
+	mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.4f,0.4f,1.0f,0.8f );
+	mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.0f,0.0f,0.8f,0.8f );
 
 	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.2f );
 	mStaticColors[ FREQ ]	= glm::vec4( 1.0f,0.0f,0.0f,1.0f );
@@ -270,7 +270,7 @@ void sgct_core::Statistics::setLoopTime(double min, double max)
 		mLoopTimeMin[i+1].y = mLoopTimeMin[i].y;
 	}
 	mLoopTimeMax[0].y = max;
-	mLoopTimeMax[0].y = min;
+	mLoopTimeMin[0].y = min;
 }
 
 
@@ -298,8 +298,16 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		{
 			glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
 			PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-			memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
-			glUnmapBuffer(GL_ARRAY_BUFFER);
+			if( PositionBuffer != NULL )
+				memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+			//This shouldn't happen.. but in case
+			if( glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE )
+			{
+				//re-init
+				glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_DYNAMIC_DRAW );
+				if(!mFixedPipeline)
+					glVertexAttribPointer( 0, 2, GL_DOUBLE, GL_FALSE, 0, NULL );
+			}
 		}
 
 		glBindBuffer(GL_ARRAY_BUFFER, 0);

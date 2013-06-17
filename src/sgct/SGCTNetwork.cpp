@@ -502,18 +502,23 @@ bool sgct_core::SGCTNetwork::isUpdated()
 	sgct::SGCTMutexManager::lockMutex(mConnectionMutex);
 		if(mServer)
 		{
-			if(mFirmSync)
-				tmpb = (mRecvFrame[Current] == mSendFrame[Current]); //master sends first -> so on reply they should be equal
-			else
-				tmpb = true;
+			tmpb = mFirmSync ? 
+				//master sends first -> so on reply they should be equal
+				(mRecvFrame[Current] == mSendFrame[Current]) :
+				//don't check if loose sync
+				true;
 		}
 		else
 		{
-			if(mFirmSync)
-				tmpb = (mRecvFrame[Previous] == mSendFrame[Current]); //slaves receives first and then sends so the prevois should be equal to the send
-			else
-				tmpb = mUpdated;
+			tmpb = mFirmSync ? 
+				//slaves receives first and then sends so the prevois should be equal to the send
+				(mRecvFrame[Previous] == mSendFrame[Current]) :
+				//if loose sync just check if updated
+				mUpdated;
 		}
+
+	tmpb = (tmpb && mConnected);
+
 	sgct::SGCTMutexManager::unlockMutex(mConnectionMutex);
 	return tmpb;
 }

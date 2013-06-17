@@ -29,6 +29,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 #include <deque>
 
+//#define __SGCT_RENDER_LOOP_DEBUG__
+
 using namespace sgct_core;
 
 sgct::Engine * sgct::Engine::mInstance = NULL;
@@ -877,25 +879,44 @@ void sgct::Engine::render()
 	{
 		mRenderingOffScreen = false;
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Updating tracking devices.\n");
+#endif
+
 		//update tracking data
 		if( isMaster() )
 			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Running pre-sync.\n");
+#endif
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();
 
 		if( mNetworkConnections->isComputerServer() )
 		{
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Encoding data.\n");
+#endif
 			sgct::SharedData::Instance()->encode();
 		}
 		else
 		{
 			if( !mNetworkConnections->isRunning() ) //exit if not running
+			{
+				MessageHandler::Instance()->print("Engine fatal error: Network error!\n");
 				break;
+			}
 		}
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Sync/framelock\n");
+#endif
 		frameSyncAndLock(PreStage);
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
+#endif
 		if( mPostSyncPreDrawFn != NULL )
 			mPostSyncPreDrawFn();
 
@@ -908,6 +929,9 @@ void sgct::Engine::render()
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
 		{
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Running re-size window actions\n");
+#endif
 			resizeFBOs();
 			(tmpNode->isUsingFisheyeRendering() && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
 				mScreenCapture->initOrResize( getWindowPtr()->getXFramebufferResolution(), getWindowPtr()->getYFramebufferResolution(), 3 ) :
@@ -920,6 +944,9 @@ void sgct::Engine::render()
 		//if fisheye rendering is used then render the cubemap
 		if( tmpNode->isUsingFisheyeRendering() )
 		{
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Rendering fisheye\n");
+#endif
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 			(this->*mInternalRenderFisheyeFn)(LeftEye);
 
@@ -937,6 +964,9 @@ void sgct::Engine::render()
 		}
 		else //regular viewport rendering
 		{
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Rendering\n");
+#endif
 			//if any stereo type (except passive) then set frustum mode to left eye
 			mActiveFrustum = tmpNode->stereo != static_cast<int>(ClusterManager::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 			setRenderTarget(LeftEye); //Set correct render target (Backbuffer, FBO etc..)
@@ -999,13 +1029,22 @@ void sgct::Engine::render()
 			}
 		}
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Rendering FBO quad\n");
+#endif
 		mRenderingOffScreen = false;
 		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
 			(this->*mInternalRenderFBOFn)();
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Rendering overlay\n");
+#endif
 		//draw viewport overlays if any
 		(this->*mInternalDrawOverlaysFn)();
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Running post-sync\n");
+#endif
 		//run post frame actions
 		if( mPostDrawFn != NULL )
 			mPostDrawFn();
@@ -1028,6 +1067,9 @@ void sgct::Engine::render()
 		checkForOGLErrors();
 #endif
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Rendering info & stats\n");
+#endif
 		//draw info & stats
 		//the cubemap viewports are all the same so it makes no sense to render everything several times
 		//therefore just loop one iteration in that case.
@@ -1046,6 +1088,9 @@ void sgct::Engine::render()
 				renderDisplayInfo();
 		}
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: swap and update data\n");
+#endif
         //glFlush();
         //glFinish();
 		double endFrameTime = glfwGetTime();
@@ -1055,9 +1100,15 @@ void sgct::Engine::render()
 		//swap window size values
 		getWindowPtr()->swap();
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: lock\n");
+#endif
 		//master will wait for nodes render before swapping
 		frameSyncAndLock(PostStage);
 
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: Swap buffers\n");
+#endif
 		// Swap front and back rendering buffers
 		glfwSwapBuffers();
 
@@ -1065,6 +1116,9 @@ void sgct::Engine::render()
 		mRunning = !glfwGetKey( mExitKey ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
 
 		mFrameCounter++;
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+    fprintf(stderr, "Render-Loop: End iteration\n");
+#endif
 	}
 }
 

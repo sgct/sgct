@@ -27,6 +27,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <GL/glfw.h>
 
+//#define __SGCT_NETWORK_DEBUG__
+
 GLFWcond sgct_core::NetworkManager::gCond = NULL;
 
 sgct_core::NetworkManager::NetworkManager(int mode)
@@ -174,11 +176,11 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 			{
 				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mNetworkConnections[i]->getLoopTime()*1000.0);
 
-				if( mNetworkConnections[i]->getLoopTime() > maxTime )
-					maxTime = mNetworkConnections[i]->getLoopTime();
-
-				if( mNetworkConnections[i]->getLoopTime() < minTime )
-					minTime = mNetworkConnections[i]->getLoopTime();
+				double currentTime = mNetworkConnections[i]->getLoopTime();
+				if( currentTime > maxTime )
+					maxTime = currentTime;
+				if( currentTime < minTime )
+					minTime = currentTime;
 
 				std::size_t currentSize =
 					sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
@@ -245,6 +247,11 @@ bool sgct_core::NetworkManager::isSyncComplete()
 			counter++;
 		}
 
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::Instance()->printDebug("SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
+		counter, getSyncConnectionsCount());
+#endif
+
 	return counter == getSyncConnectionsCount();
 }
 
@@ -264,8 +271,27 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 	return netPtr;
 }
 
+unsigned int sgct_core::NetworkManager::getConnectionsCount()
+{
+	unsigned int retVal;
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+		retVal = mNumberOfConnections;
+	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	return retVal;
+}
+unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
+{
+	unsigned int retVal;
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+		retVal = mNumberOfSyncConnections;
+	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	return retVal;
+}
+
 void sgct_core::NetworkManager::updateConnectionStatus(int index)
 {
+	sgct::MessageHandler::Instance()->printDebug("NetworkManager: updating connection status %d\n", index);
+	
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
 
@@ -280,13 +306,16 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		}
 	}
 
+	sgct::MessageHandler::Instance()->printDebug("NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
+	sgct::MessageHandler::Instance()->printDebug("NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
+
 	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
         mNumberOfConnections = numberOfConnectionsCounter;
 		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
         bool isServer = mIsServer;
 
-        //if clients disconnect it's not longer running
+        //if all clients disconnect it's not longer running
         if(mNumberOfConnections == 0 && !isServer)
             mIsRunning = false;
     sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );

@@ -20,10 +20,10 @@ sgct::MessageHandler * sgct::MessageHandler::mInstance = NULL;
 sgct::MessageHandler::MessageHandler(void)
 {
     mParseBuffer	= NULL;
-	mParseBuffer	= reinterpret_cast<char*>( malloc(MESSAGE_HANDLER_MAX_SIZE) );
+	mParseBuffer	= new (std::nothrow) char[MESSAGE_HANDLER_MAX_SIZE];
 
 	headerSpace		= NULL;
-	headerSpace		= reinterpret_cast<unsigned char*>( malloc(sgct_core::SGCTNetwork::mHeaderSize) );
+	headerSpace		= new (std::nothrow) unsigned char[ sgct_core::SGCTNetwork::mHeaderSize ];
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
@@ -37,10 +37,12 @@ sgct::MessageHandler::MessageHandler(void)
 
 sgct::MessageHandler::~MessageHandler(void)
 {
-    free(mParseBuffer);
+    if(mParseBuffer)
+		delete [] mParseBuffer;
     mParseBuffer = NULL;
 
-	free(headerSpace);
+	if(headerSpace)
+		delete [] headerSpace;
     headerSpace = NULL;
 
 	mBuffer.clear();

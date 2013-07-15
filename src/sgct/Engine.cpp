@@ -704,9 +704,6 @@ void sgct::Engine::clean()
 		NetworkManager::gCond = NULL;
 	}
 
-	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
-	MessageHandler::Destroy();
-
 	if( mVBO[RenderQuad] )
 	{
 		sgct::MessageHandler::Instance()->print("Deleting VBOs...\n");
@@ -718,6 +715,9 @@ void sgct::Engine::clean()
 		sgct::MessageHandler::Instance()->print("Deleting VAOs...\n");
 		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 	}
+
+	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
+	MessageHandler::Destroy();
 
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";

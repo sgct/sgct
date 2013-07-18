@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <string>
 
-typedef void * GLFWcond;
+#include "external/tinythread.h"
 
 namespace sgct_core
 {
@@ -55,7 +55,7 @@ private:
 
 public:
 	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
-	static GLFWcond gCond;
+	static tthread::condition_variable gCond;
 
 private:
 	std::vector<SGCTNetwork*> mNetworkConnections;

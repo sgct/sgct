@@ -10,9 +10,20 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "Image.h"
 #include <string>
+#include "external/tinythread.h"
 
 namespace sgct_core
 {
+
+class ScreenCaptureThreadInfo
+{
+public:
+	ScreenCaptureThreadInfo();
+
+	sgct_core::Image * mframeBufferImagePtr;
+	tthread::thread * mFrameCaptureThreadPtr;
+	bool mRunning;
+};
 
 /*!
 	This class is used internally by SGCT and is called when using the takeScreenshot function from the Engine.
@@ -40,8 +51,8 @@ private:
 	void addFrameNumberToFilename( int frameNumber, CaptureMode cm = FBO_Texture );
 	int getAvailibleCaptureThread(); 
 
-	sgct_core::Image ** mframeBufferImagePtrs;
-	int * mFrameCaptureThreads;
+	ScreenCaptureThreadInfo * mSCTIPtrs;
+
 	unsigned int mNumberOfThreads;
 	unsigned int mPBO;
 	int mDataSize;

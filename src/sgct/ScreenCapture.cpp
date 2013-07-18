@@ -14,7 +14,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define FILENAME_APPEND_BUFFER_LENGTH 128
 
-void GLFWCALL screenCaptureHandler(void *arg);
+void screenCaptureHandler(void *arg);
+tthread::mutex gMutex;
+
+sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
+{ 
+	mRunning = false;
+	mframeBufferImagePtr = NULL;
+	mFrameCaptureThreadPtr = NULL;
+}
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
@@ -24,41 +32,38 @@ sgct_core::ScreenCapture::ScreenCapture()
 	mUsePBO = true;
 	mFormat = PNG;
 	
-	mframeBufferImagePtrs = NULL;
-	mFrameCaptureThreads = NULL;
+	mSCTIPtrs = NULL;
 }
 
 sgct_core::ScreenCapture::~ScreenCapture()
 {
-	if( mframeBufferImagePtrs != NULL )
+	tthread::lock_guard<tthread::mutex> lock(gMutex);
+	
+	if( mSCTIPtrs != NULL )
 	{
 		for(unsigned int i=0; i<mNumberOfThreads; i++)
 		{
-			if( mframeBufferImagePtrs[i] != NULL )
+			if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 			{
 				sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
 
 				//kill threads that are still running
-				if( mFrameCaptureThreads[i] > 0 &&
-					glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
+				if( mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL )
 				{
-					glfwDestroyThread( mFrameCaptureThreads[i] );
-					mFrameCaptureThreads[i] = -1;
+					mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
+					delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
+					mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
 				}
 		
-				delete mframeBufferImagePtrs[i];
-				mframeBufferImagePtrs[i] = NULL;
+				delete mSCTIPtrs[i].mframeBufferImagePtr;
+				mSCTIPtrs[i].mframeBufferImagePtr = NULL;
 			}
+
+			mSCTIPtrs[i].mRunning = false;
 		}
 
-		delete [] mframeBufferImagePtrs;
-		mframeBufferImagePtrs = NULL;
-	}
-
-	if( mFrameCaptureThreads != NULL )
-	{
-		delete [] mFrameCaptureThreads;
-		mFrameCaptureThreads = NULL;
+		delete [] mSCTIPtrs;
+		mSCTIPtrs = NULL;
 	}
 }
 
@@ -84,23 +89,26 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	mChannels = channels;
 	mDataSize = mX * mY * mChannels;
 
+	tthread::lock_guard<tthread::mutex> lock(gMutex);
 	for(unsigned int i=0; i<mNumberOfThreads; i++)
 	{
-		if( mframeBufferImagePtrs[i] != NULL )
+		if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 		{
 			sgct::MessageHandler::Instance()->print("Clearing screen capture buffer %d...\n", i);
 
 			//kill threads that are still running
-			if( mFrameCaptureThreads[i] > 0 &&
-				glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_FALSE )
+			if( mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL )
 			{
-				glfwDestroyThread( mFrameCaptureThreads[i] );
-				mFrameCaptureThreads[i] = -1;
+				mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
+				delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
+				mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
 			}
 		
-			delete mframeBufferImagePtrs[i];
-			mframeBufferImagePtrs[i] = NULL;
+			delete mSCTIPtrs[i].mframeBufferImagePtr;
+			mSCTIPtrs[i].mframeBufferImagePtr = NULL;
 		}
+
+		mSCTIPtrs[i].mRunning = false;
 	}
 
 	if( mUsePBO )
@@ -157,7 +165,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		return;
 	}
 	
-	Image ** imPtr = &mframeBufferImagePtrs[ threadIndex ];
+	Image ** imPtr = &mSCTIPtrs[ threadIndex ].mframeBufferImagePtr;
 	if( (*imPtr) == NULL )
 	{
 		(*imPtr) = new sgct_core::Image();
@@ -168,7 +176,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		{
 			//wait and try again
 			sgct::MessageHandler::Instance()->print("Warning: Failed to allocate image memory! Trying again...\n");
-			glfwSleep(0.1);
+			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
 			if( !(*imPtr)->allocateOrResizeData() ) 
 			{
 				sgct::MessageHandler::Instance()->print("Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str() );
@@ -253,7 +261,10 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	}
 	
 	if(sgct::Engine::checkForOGLErrors())
-		mFrameCaptureThreads[ threadIndex ] = glfwCreateThread( screenCaptureHandler, (*imPtr) );
+	{
+		mSCTIPtrs[ threadIndex ].mRunning = true;
+		mSCTIPtrs[ threadIndex ].mFrameCaptureThreadPtr = new tthread::thread( screenCaptureHandler, &mSCTIPtrs[ threadIndex ] );
+	}
 	else
 		error = true;
 
@@ -274,14 +285,7 @@ void sgct_core::ScreenCapture::setUsePBO(bool state)
 */
 void sgct_core::ScreenCapture::init()
 {
-	mframeBufferImagePtrs = new Image*[mNumberOfThreads];
-	mFrameCaptureThreads = new int[mNumberOfThreads];
-	
-	for(unsigned int i=0; i<mNumberOfThreads; i++)
-	{
-		mframeBufferImagePtrs[i] = NULL;
-		mFrameCaptureThreads[i] = -1;
-	}
+	mSCTIPtrs = new ScreenCaptureThreadInfo[mNumberOfThreads];
 
 	sgct::MessageHandler::Instance()->print("Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
@@ -356,27 +360,39 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
 	{
 		for(unsigned int i=0; i<mNumberOfThreads; i++)
 		{
+			tthread::lock_guard<tthread::mutex> lock(gMutex);
+			
 			//check if thread is dead
-			if( glfwWaitThread( mFrameCaptureThreads[i], GLFW_NOWAIT ) == GL_TRUE )
+			if( mSCTIPtrs[i].mFrameCaptureThreadPtr == NULL )
 			{
-				mFrameCaptureThreads[i] = -1;
+				return i;
+			}
+			else if( !mSCTIPtrs[i].mRunning && mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL)
+			{
+				mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
+				delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
+				mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
+
 				return i;
 			}
 		}
 
-		glfwSleep( 0.01 );
+		tthread::this_thread::sleep_for(tthread::chrono::milliseconds(10));
 	}
 
 	return -1;
 }
 
 //multi-threaded screenshot saver
-void GLFWCALL screenCaptureHandler(void *arg)
-{
-	sgct_core::Image * imPtr = reinterpret_cast<sgct_core::Image *>(arg);
-	
-	if( !imPtr->save() )
+void screenCaptureHandler(void *arg)
+{	
+	sgct_core::ScreenCaptureThreadInfo * ptr = reinterpret_cast<sgct_core::ScreenCaptureThreadInfo *>(arg);
+
+	if( !ptr->mframeBufferImagePtr->save() )
 	{
-		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", imPtr->getFilename());
+		sgct::MessageHandler::Instance()->print("Error: Failed to save '%s'!\n", ptr->mframeBufferImagePtr->getFilename());
 	}
+
+	tthread::lock_guard<tthread::mutex> lock(gMutex);
+	ptr->mRunning = false;
 }

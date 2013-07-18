@@ -23,6 +23,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ogl_headers.h"
+#include "../include/external/tinythread.h"
 #include <glm/gtc/constants.hpp>
 #include <math.h>
 #include <iostream>
@@ -34,6 +35,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 using namespace sgct_core;
 
 sgct::Engine * sgct::Engine::mInstance = NULL;
+
+//Callback wrappers for GLFW
+void (*gKeyboardCallbackFn)(int, int) = NULL;
+void (*gCharCallbackFn)(unsigned int) = NULL;
+void (*gMouseButtonCallbackFn)(int, int) = NULL;
+void (*gMousePosCallbackFn)(double, double) = NULL;
+void (*gMouseScrollCallbackFn)(double, double) = NULL;
 
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
@@ -90,11 +98,6 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
-	mKeyboardCallbackFn = NULL;
-	mCharCallbackFn = NULL;
-	mMouseButtonCallbackFn = NULL;
-	mMousePosCallbackFn = NULL;
-	mMouseWheelCallbackFn = NULL;
 
 	mTerminate = false;
 	mIgnoreSync = false;
@@ -167,7 +170,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
 
-	mExitKey = GLFW_KEY_ESC;
+	mExitKey = GLFW_KEY_ESCAPE;
 
 	mVBO[RenderQuad]	= GL_FALSE; //default to openGL false
 	mVBO[FishEyeQuad]	= GL_FALSE; //default to openGL false
@@ -175,15 +178,9 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mVAO[FishEyeQuad]	= GL_FALSE;
 
 	// Initialize GLFW
+	glfwSetErrorCallback( internal_glfw_error_callback );
 	if( !glfwInit() )
 	{
-		mTerminate = true;
-	}
-
-    NetworkManager::gCond = createCondition();
-
-    if( !SGCTMutexManager::Instance()->isValid() || NetworkManager::gCond == NULL )
-    {
 		mTerminate = true;
 	}
 }
@@ -244,16 +241,16 @@ bool sgct::Engine::init(RunMode rm)
 	if(ClusterManager::Instance()->getNumberOfNodes() == 1)
 		mIgnoreSync = true;
 
-	if( mKeyboardCallbackFn != NULL )
-        glfwSetKeyCallback( mKeyboardCallbackFn );
-	if( mMouseButtonCallbackFn != NULL )
-		glfwSetMouseButtonCallback( mMouseButtonCallbackFn );
-	if( mMousePosCallbackFn != NULL )
-		glfwSetMousePosCallback( mMousePosCallbackFn );
-	if( mCharCallbackFn != NULL )
-		glfwSetCharCallback( mCharCallbackFn );
-	if( mMouseWheelCallbackFn != NULL )
-		glfwSetMouseWheelCallback( mMouseWheelCallbackFn );
+	if( gKeyboardCallbackFn != NULL )
+        glfwSetKeyCallback( getWindowPtr()->getWindow(), internal_key_callback );
+	if( gMouseButtonCallbackFn != NULL )
+		glfwSetMouseButtonCallback( getWindowPtr()->getWindow(), internal_mouse_button_callback );
+	if( gMousePosCallbackFn != NULL )
+		glfwSetCursorPosCallback( getWindowPtr()->getWindow(), internal_mouse_pos_callback );
+	if( gCharCallbackFn != NULL )
+		glfwSetCharCallback( getWindowPtr()->getWindow(), internal_key_char_callback );
+	if( gMouseScrollCallbackFn != NULL )
+		glfwSetScrollCallback( getWindowPtr()->getWindow(), internal_mouse_scroll_callback );
 
 	initOGL();
 
@@ -362,7 +359,7 @@ bool sgct::Engine::initWindow()
 
 	int antiAliasingSamples = tmpNode->numberOfSamples;
 	if( antiAliasingSamples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO ) //if multisample is used
-		glfwOpenWindowHint( GLFW_FSAA_SAMPLES, antiAliasingSamples );
+		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
 	else if( antiAliasingSamples < 2 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO ) //on sample or less => no multisampling
 		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 
@@ -370,55 +367,55 @@ bool sgct::Engine::initWindow()
 	{
 	case OpenGL_3_3_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
 	case OpenGL_4_0_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 0);
-			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
 	case OpenGL_4_1_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 1);
-			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
 	case OpenGL_4_2_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
 	case OpenGL_4_3_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 4);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-			glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
     /*case OpenGL_3_2_Core_Profile:
 		{
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-			glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-			glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;*/
@@ -430,17 +427,17 @@ bool sgct::Engine::initWindow()
 
 	/*
 	//OSX ogl 3.2 code
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3);
-    glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 2);
-    glfwOpenWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
+    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 	*/
 
 	/*
 	//win & linux code
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MAJOR, 3); // We want OpenGL 3.3
-	glfwOpenWindowHint(GLFW_OPENGL_VERSION_MINOR, 3);
-	glfwOpenWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
 	*/
 
 	mStatistics = new Statistics();
@@ -459,16 +456,6 @@ bool sgct::Engine::initWindow()
 
 	if( !checkForOGLErrors() )
 		MessageHandler::Instance()->print("GLEW init triggered an OpenGL error.\n");
-
-    /*
-        Swap inerval:
-        -1 = adaptive sync
-        0  = vertical sync off
-        1  = wait for vertical sync
-        2  = fix when using swapgroups in xp and running half the framerate
-    */
-
-    glfwSwapInterval( tmpNode->swapInterval );
 
 	getWindowPtr()->init();
 
@@ -514,7 +501,10 @@ void sgct::Engine::initOGL()
 
 	//Get OpenGL version
 	int mOpenGL_Version[3];
-	glfwGetGLVersion( &mOpenGL_Version[0], &mOpenGL_Version[1], &mOpenGL_Version[2] );
+	mOpenGL_Version[0] = glfwGetWindowAttrib( getWindowPtr()->getWindow(), GLFW_CONTEXT_VERSION_MAJOR);
+	mOpenGL_Version[1] = glfwGetWindowAttrib( getWindowPtr()->getWindow(), GLFW_CONTEXT_VERSION_MINOR );
+	mOpenGL_Version[2] = glfwGetWindowAttrib( getWindowPtr()->getWindow(), GLFW_CONTEXT_REVISION);
+	
 	sgct::MessageHandler::Instance()->print("OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
 		mFixedOGLPipeline ? "comp. profile" : "core profile");
 
@@ -694,16 +684,6 @@ void sgct::Engine::clean()
 	MessageHandler::Instance()->print("Destroying settings...\n");
 	SGCTSettings::Destroy();
 
-    MessageHandler::Instance()->print("Destroying mutexes...\n");
-	SGCTMutexManager::Destroy();
-
-	sgct::MessageHandler::Instance()->print("Destroying condition...\n");
-	if( NetworkManager::gCond != NULL )
-	{
-		destroyCond( NetworkManager::gCond );
-		NetworkManager::gCond = NULL;
-	}
-
 	if( mVBO[RenderQuad] )
 	{
 		sgct::MessageHandler::Instance()->print("Deleting VBOs...\n");
@@ -719,6 +699,9 @@ void sgct::Engine::clean()
 	sgct::MessageHandler::Instance()->print("Destroying message handler...\n");
 	MessageHandler::Destroy();
 
+	MessageHandler::Instance()->print("Destroying mutexes...\n");
+	SGCTMutexManager::Destroy();
+
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
 	glfwTerminate();
@@ -730,12 +713,6 @@ Un-binds all callbacks.
 */
 void sgct::Engine::clearAllCallbacks()
 {
-	glfwSetKeyCallback( NULL );
-	glfwSetMouseButtonCallback( NULL );
-	glfwSetMousePosCallback( NULL );
-	glfwSetCharCallback( NULL );
-	glfwSetMouseWheelCallback( NULL );
-
 	mDrawFn = NULL;
 	mPreSyncFn = NULL;
 	mPostSyncPreDrawFn = NULL;
@@ -749,11 +726,13 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
-	mKeyboardCallbackFn = NULL;
-	mCharCallbackFn = NULL;
-	mMouseButtonCallbackFn = NULL;
-	mMousePosCallbackFn = NULL;
-	mMouseWheelCallbackFn = NULL;
+	
+	//global
+	gKeyboardCallbackFn = NULL;
+	gCharCallbackFn = NULL;
+	gMouseButtonCallbackFn = NULL;
+	gMousePosCallbackFn = NULL;
+	gMouseScrollCallbackFn = NULL;
 
 	for(unsigned int i=0; i < mTimers.size(); i++)
 	{
@@ -787,14 +766,11 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 						break;
 
 				if(USE_SLEEP_TO_WAIT_FOR_NODES)
-					glfwSleep(0.001);
+					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
 					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					//release lock once per second
-					glfwWaitCond( NetworkManager::gCond,
-						SGCTMutexManager::Instance()->getMutex( SGCTMutexManager::SyncMutex ),
-						1.0 );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
 					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
@@ -838,14 +814,11 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 						break;
 
 				if(USE_SLEEP_TO_WAIT_FOR_NODES)
-					glfwSleep(0.001);
+					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
 					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					//release lock once per second
-					glfwWaitCond( NetworkManager::gCond,
-						SGCTMutexManager::Instance()->getMutex( SGCTMutexManager::SyncMutex ),
-						1.0 );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
 					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
@@ -874,6 +847,19 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 void sgct::Engine::render()
 {
 	mRunning = GL_TRUE;
+
+	SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
+	SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
+
+	//glfwMakeContextCurrent( getWindowPtr()->getWindow() );
+	/*
+        Swap inerval:
+        -1 = adaptive sync
+        0  = vertical sync off
+        1  = wait for vertical sync
+        2  = fix when using swapgroups in xp and running half the framerate
+    */
+    glfwSwapInterval( tmpNode->swapInterval );
 
 	while( mRunning )
 	{
@@ -922,9 +908,6 @@ void sgct::Engine::render()
 
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
-
-		SGCTNode * tmpNode = ClusterManager::Instance()->getThisNodePtr();
-		SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
 		//check if re-size needed
 		if( getWindowPtr()->isWindowResized() )
@@ -1110,10 +1093,13 @@ void sgct::Engine::render()
     fprintf(stderr, "Render-Loop: Swap buffers\n");
 #endif
 		// Swap front and back rendering buffers
-		glfwSwapBuffers();
+		glfwSwapBuffers( getWindowPtr()->getWindow() );
+		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed
-		mRunning = !glfwGetKey( mExitKey ) && glfwGetWindowParam( GLFW_OPENED ) && !mTerminate;
+		mRunning = !glfwGetKey( getWindowPtr()->getWindow(), mExitKey ) && 
+			!glfwWindowShouldClose( getWindowPtr()->getWindow() ) &&
+			!mTerminate;
 
 		mFrameCounter++;
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -2667,37 +2653,38 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			sgct::MessageHandler::Instance()->print("Swapgroups (swap-lock) are disabled.\n");
 
 		sgct::MessageHandler::Instance()->print("Waiting for all nodes to connect.");
-		glfwSwapBuffers(); //render just black....
+		glfwSwapBuffers( getWindowPtr()->getWindow() );
+		glfwPollEvents();
 
-		SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
 		while(mNetworkConnections->isRunning() &&
-			!glfwGetKey( mExitKey ) &&
-			glfwGetWindowParam( GLFW_OPENED ) &&
+			!glfwGetKey( getWindowPtr()->getWindow(), mExitKey ) &&
+			!glfwWindowShouldClose( getWindowPtr()->getWindow() ) &&
 			!mTerminate)
 		{
 			sgct::MessageHandler::Instance()->print(".");
 
 			// Swap front and back rendering buffers
-			glfwSwapBuffers();
+			glfwSwapBuffers( getWindowPtr()->getWindow() );
+			glfwPollEvents();
 
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
-			glfwWaitCond( NetworkManager::gCond,
-				SGCTMutexManager::Instance()->getMutex(SGCTMutexManager::SyncMutex ),
-				0.1 ); //wait maximum 0.1 sec per iteration
+			SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
+			NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr(SGCTMutexManager::MainMutex )) );
+			SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
 		}
-		SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 
 		//wait for user to release exit key
-		while( glfwGetKey( mExitKey ) == GLFW_PRESS )
+		while( glfwGetKey( getWindowPtr()->getWindow(), mExitKey ) == GLFW_PRESS )
 		{
 			sgct::MessageHandler::Instance()->print("x");
 			// Swap front and back rendering buffers
 			// key buffers also swapped
-			glfwSwapBuffers();
+			glfwSwapBuffers( getWindowPtr()->getWindow() );
+			glfwPollEvents();
 
-			glfwSleep(0.05);
+			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(50));
 		}
 
 		sgct::MessageHandler::Instance()->print("\n");
@@ -3061,27 +3048,27 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 
 void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 {
-	mKeyboardCallbackFn = fnPtr;
+	gKeyboardCallbackFn = fnPtr;
 }
 
-void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(int, int) )
+void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 {
-	mCharCallbackFn = fnPtr;
+	gCharCallbackFn = fnPtr;
 }
 
 void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 {
-	mMouseButtonCallbackFn = fnPtr;
+	gMouseButtonCallbackFn = fnPtr;
 }
 
-void sgct::Engine::setMousePosCallbackFunction( void(*fnPtr)(int, int) )
+void sgct::Engine::setMousePosCallbackFunction( void(*fnPtr)(double, double) )
 {
-	mMousePosCallbackFn = fnPtr;
+	gMousePosCallbackFn = fnPtr;
 }
 
-void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(int) )
+void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(double, double) )
 {
-	mMouseWheelCallbackFn = fnPtr;
+	gMouseScrollCallbackFn = fnPtr;
 }
 
 void sgct::Engine::clearBuffer()
@@ -3089,6 +3076,41 @@ void sgct::Engine::clearBuffer()
 	const float * colorPtr = sgct::Engine::getPtr()->getClearColor();
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+}
+
+void sgct::Engine::internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
+{
+	if( gKeyboardCallbackFn != NULL )
+		gKeyboardCallbackFn(key, action);
+}
+
+void sgct::Engine::internal_key_char_callback(GLFWwindow* window, unsigned int ch)
+{
+	if( gCharCallbackFn != NULL )
+		gCharCallbackFn(ch);
+}
+
+void sgct::Engine::internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
+{
+	if( gMouseButtonCallbackFn != NULL )
+		gMouseButtonCallbackFn(button, action);
+}
+
+void sgct::Engine::internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos)
+{
+	if( gMousePosCallbackFn != NULL )
+		gMousePosCallbackFn(xPos, yPos);
+}
+
+void sgct::Engine::internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
+{
+	if( gMouseScrollCallbackFn != NULL)
+		gMouseScrollCallbackFn(xOffset, yOffset);
+}
+
+void sgct::Engine::internal_glfw_error_callback(int error, const char* description)
+{
+	sgct::MessageHandler::Instance()->print("GLFW error: %s\n", description);
 }
 
 /*!
@@ -3228,8 +3250,7 @@ void sgct::Engine::calculateFPS(double timestamp)
 		tmpTime = 0.0;
 
 		//don't set if in full screen
-		if(getWindowPtr()->getWindowMode() == GLFW_WINDOW)
-			getWindowPtr()->setWindowTitle( getBasicInfo() );
+		getWindowPtr()->setWindowTitle( getBasicInfo() );
 	}
 }
 
@@ -3459,7 +3480,7 @@ const char * sgct::Engine::getAAInfo()
 */
 int sgct::Engine::getKey( int key )
 {
-	return glfwGetKey(key);
+	return glfwGetKey(getWindowPtr()->getWindow(), key);
 }
 
 /*!
@@ -3468,52 +3489,42 @@ int sgct::Engine::getKey( int key )
 */
 int sgct::Engine::getMouseButton( int button )
 {
-	return glfwGetMouseButton(button);
+	return glfwGetMouseButton(getWindowPtr()->getWindow(), button);
 }
 
-void sgct::Engine::getMousePos( int * xPos, int * yPos )
+void sgct::Engine::getMousePos( double * xPos, double * yPos )
 {
-	glfwGetMousePos(xPos, yPos);
+	glfwGetCursorPos(getWindowPtr()->getWindow(), xPos, yPos);
 }
 
-void sgct::Engine::setMousePos( int xPos, int yPos )
+void sgct::Engine::setMousePos( double xPos, double yPos )
 {
-	glfwSetMousePos(xPos, yPos);
-}
-
-int sgct::Engine::getMouseWheel()
-{
-	return glfwGetMouseWheel();
-}
-
-void sgct::Engine::setMouseWheel( int pos )
-{
-	glfwSetMouseWheel(pos);
+	glfwSetCursorPos(getWindowPtr()->getWindow(), xPos, yPos);
 }
 
 void sgct::Engine::setMousePointerVisibility( bool state )
 {
-	state ? glfwEnable( GLFW_MOUSE_CURSOR ) : glfwDisable( GLFW_MOUSE_CURSOR );
+	state ? glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) : glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL );
 }
 
-int sgct::Engine::getJoystickParam( int joystick, int param )
+const char * sgct::Engine::getJoystickName( int joystick )
 {
-	return glfwGetJoystickParam(joystick,param);
+	return glfwGetJoystickName(joystick);
 }
 
-int sgct::Engine::getJoystickAxes( int joystick, float * values, int numOfValues)
+const float * sgct::Engine::getJoystickAxes( int joystick, int * numOfValues)
 {
-	return glfwGetJoystickPos( joystick, values, numOfValues );
+	return glfwGetJoystickAxes( joystick, numOfValues );
 }
 
-int sgct::Engine::getJoystickButtons( int joystick, unsigned char * values, int numOfValues)
+const unsigned char * sgct::Engine::getJoystickButtons( int joystick, int * numOfValues)
 {
-	return glfwGetJoystickButtons( joystick, values, numOfValues );
+	return glfwGetJoystickButtons( joystick, numOfValues );
 }
 
 void sgct::Engine::sleep(double secs)
 {
-	glfwSleep(secs);
+	tthread::this_thread::sleep_for(tthread::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));
 }
 
 /*!
@@ -3571,26 +3582,6 @@ void sgct::Engine::stopTimer( size_t id )
 double sgct::Engine::getTime()
 {
 	return glfwGetTime();
-}
-
-sgct::SGCTcond sgct::Engine::createCondition()
-{
-    return glfwCreateCond();
-}
-
-void sgct::Engine::destroyCond(sgct::SGCTcond cond)
-{
-    glfwDestroyCond(cond);
-}
-
-void sgct::Engine::waitCond(sgct::SGCTcond cond, sgct::SGCTmutex mutex, double timeout)
-{
-    glfwWaitCond(cond, mutex, timeout);
-}
-
-void sgct::Engine::signalCond(sgct::SGCTcond cond)
-{
-    glfwSignalCond(cond);
 }
 
 /*!

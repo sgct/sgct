@@ -30,7 +30,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 		#include <GL/glxew.h>
 	#endif
 
-	#include <GL/glfw.h>
+	#include <GL/glfw3.h>
 #endif
 
 #endif

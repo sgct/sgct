@@ -15,8 +15,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
 
-#include <GL/glfw.h>
-
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtx/euler_angles.hpp>
@@ -39,13 +37,13 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB t );
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b );
 void VRPN_CALLBACK update_analog_cb(void * userdata, const vrpn_ANALOGCB a );
 
-void GLFWCALL samplingLoop(void *arg);
+void samplingLoop(void *arg);
 
 sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
 	mHead = NULL;
 	mNumberOfDevices = 0;
-	mSamplingThreadId = -1;
+	mSamplingThread = NULL;
 	mSamplingTime = 0.0;
 	mRunning = true;
 }
@@ -75,11 +73,11 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	//destroy thread
-	if( mSamplingThreadId != -1 )
+	if( mSamplingThread != NULL )
 	{
-		glfwWaitThread(mSamplingThreadId, GLFW_WAIT);
-		//glfwDestroyThread(mSamplingThreadId);
-		mSamplingThreadId = -1;
+		mSamplingThread->join();
+		delete mSamplingThread;
+		mSamplingThread = NULL;
 	}
 
 	//delete all instances
@@ -132,11 +130,7 @@ void sgct::SGCTTrackingManager::startSampling()
 		setHeadTracker( sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(),
 			sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerDeviceName() );
 
-		mSamplingThreadId = glfwCreateThread( samplingLoop, this );
-		if( mSamplingThreadId < 0)
-		{
-			MessageHandler::Instance()->print("Tracking: Failed to start thread!\n");
-		}
+		mSamplingThread = new tthread::thread( samplingLoop, this );
 	}
 }
 
@@ -285,7 +279,7 @@ void sgct::SGCTTrackingManager::setHeadTracker(const char * trackerName, const c
 				deviceName, trackerName);
 }
 
-void GLFWCALL samplingLoop(void *arg)
+void samplingLoop(void *arg)
 {
 	sgct::SGCTTrackingManager * tmPtr =
 		reinterpret_cast<sgct::SGCTTrackingManager *>(arg);

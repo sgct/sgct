@@ -11,14 +11,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define SGCT_NUMBER_OF_MUTEXES 4
 
 #include <stddef.h>
+#include "external/tinythread.h"
 
 namespace sgct
 {
-
-/*!
-	Wrapper for GLFWmutex
-*/
-typedef void * SGCTmutex;
 
 /*!
 	This singleton class manages SGCTs mutexes
@@ -49,15 +45,9 @@ public:
 		}
 	}
 
-	bool isValid();
 	void lockMutex(MutexIndexes mi);
 	void unlockMutex(MutexIndexes mi);
-	SGCTmutex getMutex(MutexIndexes mi);
-
-	static SGCTmutex createMutex();
-	static void destroyMutex(SGCTmutex mutex);
-	static void lockMutex(SGCTmutex mutex);
-	static void unlockMutex(SGCTmutex mutex);
+	tthread::mutex * getMutexPtr(MutexIndexes mi);
 
 private:
 	SGCTMutexManager();
@@ -69,9 +59,7 @@ private:
 
 private:
 	static SGCTMutexManager * mInstance;
-	
-	SGCTmutex mInternalMutexes[SGCT_NUMBER_OF_MUTEXES];
-	bool mValid;
+	tthread::mutex mInternalMutexes[SGCT_NUMBER_OF_MUTEXES];
 };
 }
 

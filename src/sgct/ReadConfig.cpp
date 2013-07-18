@@ -261,7 +261,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("Window", val[1]) == 0 )
 				{
 					if( element[1]->Attribute("fullscreen") != NULL )
-						tmpNode.getWindowPtr()->setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 ? GLFW_FULLSCREEN : GLFW_WINDOW);
+						tmpNode.getWindowPtr()->setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 );
 
 					int tmpSamples = 0;
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
@@ -271,11 +271,21 @@ void sgct_core::ReadConfig::readAndParseXML()
 						SGCTSettings::Instance()->setFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
 
 					if( element[1]->Attribute("swapLock") != NULL )
-						tmpNode.getWindowPtr()->useSwapGroups(strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+						tmpNode.getWindowPtr()->useSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
                     int tmpInterval = 0;
 					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
 						tmpNode.swapInterval = tmpInterval;
+
+					if( element[1]->Attribute("decorated") != NULL )
+						tmpNode.getWindowPtr()->setWindowDecoration( strcmp( element[1]->Attribute("decorated"), "true" ) == 0 ? true : false);
+
+					if( element[1]->Attribute("border") != NULL )
+						tmpNode.getWindowPtr()->setWindowDecoration( strcmp( element[1]->Attribute("border"), "true" ) == 0 ? true : false);
+
+					int tmpMonitorIndex = 0;
+					if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == XML_NO_ERROR)
+						tmpNode.getWindowPtr()->setFullScreenMonitorIndex( tmpMonitorIndex );
 
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )

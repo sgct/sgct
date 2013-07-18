@@ -82,10 +82,10 @@ enum mouseButtons { LEFT_MB = 0, MIDDLE_MB, RIGHT_MB };
 enum axes { X = 0, Y, Z};
 float rotationSpeed = 0.003f;
 float navigation_speed = 0.5f;
-int mouseDiff[] = { 0, 0 };
+double mouseDiff[] = { 0.0, 0.0 };
 /* Stores the positions that will be compared to measure the difference. */
-int mouseXPos[] = { 0, 0 };
-int mouseYPos[] = { 0, 0 };
+double mouseXPos[] = { 0.0, 0.0 };
+double mouseYPos[] = { 0.0, 0.0 };
 
 int main( int argc, char* argv[] )
 {

@@ -8,6 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_WINDOW_H_
 #define _SGCT_WINDOW_H_
 
+#include "ogl_headers.h"
+
 namespace sgct_core
 {
 
@@ -27,7 +29,9 @@ public:
 	void swap();
 	bool isWindowResized();
 	void setWindowPosition(const int x, const int y);
-	void setWindowMode(const int mode);
+	void setWindowMode(bool fullscreen);
+	void setWindowDecoration(bool state);
+	void setFullScreenMonitorIndex( int index );
 	void setBarrier(const bool state);
 	void setFixResolution(const bool state);
 	void useSwapGroups(const bool state);
@@ -44,7 +48,9 @@ public:
 	inline bool isBarrierActive() { return mBarrier; }
 	inline bool isUsingSwapGroups() { return mUseSwapGroups; }
 	inline bool isSwapGroupMaster() { return mSwapGroupMaster; }
-	inline int getWindowMode() { return mWindowMode; }
+	
+	GLFWmonitor * getMonitor() { return mMonitor; }
+	GLFWwindow * getWindow() { return mWindow; }
 	/*!
 		\returns Get the horizontal window resolution.
 	*/
@@ -65,16 +71,24 @@ public:
 	inline float getAspectRatio() { return mAspectRatio; }
 
 private:
+	static void windowResizeCallback( GLFWwindow * window, int width, int height );
+
+private:
 	bool mUseFixResolution;
 	bool mUseSwapGroups;
 	bool mBarrier;
 	bool mSwapGroupMaster;
 	bool mUseQuadBuffer;
+	bool mFullScreen;
+	bool mSetWindowPos;
+	bool mDecorated;
 	int mFramebufferResolution[2];
 	int mWindowRes[2];
 	int mWindowPos[2];
 	int mWindowResOld[2];
-	int mWindowMode;
+	int mMonitorIndex;
+	GLFWmonitor * mMonitor;
+	GLFWwindow * mWindow;
 	float mAspectRatio;
 };
 }

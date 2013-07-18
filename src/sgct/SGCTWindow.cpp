@@ -5,17 +5,6 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <GL/glew.h>
-#ifdef __WIN32__
-#include <GL/wglew.h>
-#elif __LINUX__
-#include <GL/glext.h>
-#include <GL/glxew.h>
-#else //APPLE
-#include <OpenGL/glext.h>
-#include <GL/glxew.h>
-#endif
-#include <GL/glfw.h>
 #include "../include/sgct/SGCTWindow.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
@@ -31,8 +20,6 @@ GLXEWContext * glxewGetContext();
 #endif
 #endif
 
-void GLFWCALL windowResizeCallback( int width, int height );
-
 sgct_core::SGCTWindow::SGCTWindow()
 {
 	mUseFixResolution = false;
@@ -40,6 +27,9 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mSwapGroupMaster = false;
 	mUseQuadBuffer = false;
 	mBarrier = false;
+	mFullScreen = false;
+	mSetWindowPos = false;
+	mDecorated = true;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -47,9 +37,11 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mWindowResOld[1] = mWindowRes[1];
 	mWindowPos[0] = 0;
 	mWindowPos[1] = 0;
+	mMonitorIndex = 0;
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
-	mWindowMode = GLFW_WINDOW;
+	mMonitor = NULL;
+	mWindow = NULL;
 	mAspectRatio = 1.0f;
 }
 
@@ -85,14 +77,15 @@ void sgct_core::SGCTWindow::close()
 
 void sgct_core::SGCTWindow::init()
 {
-	if(mWindowMode == GLFW_WINDOW)
+	if(!mFullScreen)
 	{
-		glfwSetWindowPos( mWindowPos[0], mWindowPos[1] );
-		glfwSetWindowSizeCallback( windowResizeCallback );
+		if(mSetWindowPos)
+			glfwSetWindowPos( mWindow, mWindowPos[0], mWindowPos[1] );
+		glfwSetWindowSizeCallback( mWindow, windowResizeCallback );
 	}
 
 	//swap the buffers and update the window
-	glfwSwapBuffers();
+	glfwSwapBuffers( mWindow );
 
 	//initNvidiaSwapGroups();
 }
@@ -103,7 +96,7 @@ void sgct_core::SGCTWindow::init()
 */
 void sgct_core::SGCTWindow::setWindowTitle(const char * title)
 {
-	glfwSetWindowTitle( title );
+	glfwSetWindowTitle( mWindow, title );
 }
 
 /*!
@@ -181,11 +174,22 @@ void sgct_core::SGCTWindow::setWindowPosition(const int x, const int y)
 {
 	mWindowPos[0] = x;
 	mWindowPos[1] = y;
+	mSetWindowPos = true;
 }
 
-void sgct_core::SGCTWindow::setWindowMode(const int mode)
+void sgct_core::SGCTWindow::setWindowMode(bool fullscreen)
 {
-	mWindowMode = mode;
+	mFullScreen = fullscreen;
+}
+
+void sgct_core::SGCTWindow::setWindowDecoration(bool state)
+{
+	mDecorated = state;
+}
+
+void sgct_core::SGCTWindow::setFullScreenMonitorIndex( int index )
+{
+	mMonitorIndex = index;
 }
 
 void sgct_core::SGCTWindow::setBarrier(const bool state)
@@ -235,7 +239,7 @@ void sgct_core::SGCTWindow::useQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
-		glfwOpenWindowHint(GLFW_STEREO, GL_TRUE);
+		glfwWindowHint(GLFW_STEREO, GL_TRUE);
 }
 
 /*!
@@ -258,10 +262,53 @@ bool sgct_core::SGCTWindow::openWindow()
 	int mode
 	*/
 
-	return GL_TRUE == glfwOpenWindow( mWindowRes[0],
+	/*return GL_TRUE == glfwOpenWindow( mWindowRes[0],
 		mWindowRes[1],
 		8,8,8,8,32,8,
-		mWindowMode);
+		mWindowMode);*/
+
+	glfwWindowHint(GLFW_DEPTH_BITS, 32);
+	glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
+
+	int count;
+	GLFWmonitor** monitors = glfwGetMonitors(&count);
+
+	/*for(int i=0; i<count; i++)
+	{
+		int numberOfVideoModes;
+		const GLFWvidmode * videoModes = glfwGetVideoModes( monitors[i], &numberOfVideoModes);
+
+		sgct::MessageHandler::Instance()->print("\nMonitor %d '%s' video modes\n========================\n",
+			i, glfwGetMonitorName( monitors[i] ) );
+
+		for(int j=0; j<numberOfVideoModes; j++)
+			sgct::MessageHandler::Instance()->print("%d x %d @ %d\n", videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate );
+
+		sgct::MessageHandler::Instance()->print("\n");
+	}*/
+
+	if( mFullScreen )
+	{
+		if( mMonitorIndex > 0 && mMonitorIndex < count )
+			mMonitor = monitors[ mMonitorIndex ];
+		else
+		{
+			mMonitor = glfwGetPrimaryMonitor();
+			if( mMonitorIndex >= count )
+				sgct::MessageHandler::Instance()->print("SGCTWindow: Invalid monitor index (%d). This computer has %d monitors.\n",
+					mMonitorIndex, count);
+		}
+	}
+
+	mWindow = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, NULL);
+	
+	if( mWindow != NULL )
+	{
+		glfwMakeContextCurrent( mWindow );
+		return true;
+	}
+	else
+		return false;
 }
 
 void sgct_core::SGCTWindow::initNvidiaSwapGroups()
@@ -338,9 +385,9 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 //#endif
 }
 
-void GLFWCALL windowResizeCallback( int width, int height )
+void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int height )
 {
-	sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width, height > 0 ? height : 1);
+	sgct_core::ClusterManager::Instance()->getThisNodePtr()->getWindowPtr()->setWindowResolution(width > 0 ? width : 1, height > 0 ? height : 1);
 }
 
 void sgct_core::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)

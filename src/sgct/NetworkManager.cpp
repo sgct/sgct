@@ -25,11 +25,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#define SOCKET_ERROR (-1)
 #endif
 
-#include <GL/glfw.h>
-
 //#define __SGCT_NETWORK_DEBUG__
 
-GLFWcond sgct_core::NetworkManager::gCond = NULL;
+tthread::condition_variable sgct_core::NetworkManager::gCond;
 
 sgct_core::NetworkManager::NetworkManager(int mode)
 {
@@ -363,11 +361,15 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	//if node disconnects to enable reconnection
 	if( isServer )
 	{
-		sgct::Engine::signalCond( mNetworkConnections[index]->mStartConnectionCond );
+		mNetworkConnections[index]->mConnectionMutex.lock();
+		mNetworkConnections[index]->mStartConnectionCond.notify_all();
+		mNetworkConnections[index]->mConnectionMutex.unlock();
 	}
 
 	//signal done to caller
-	sgct::Engine::signalCond( mNetworkConnections[index]->mDoneCond );
+	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	gCond.notify_all();
+	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 }
 
 void sgct_core::NetworkManager::setAllNodesConnected()
@@ -378,6 +380,9 @@ void sgct_core::NetworkManager::setAllNodesConnected()
 void sgct_core::NetworkManager::close()
 {
 	mIsRunning = false;
+
+	//release condition variables
+	sgct_core::NetworkManager::gCond.notify_all();
 
     //signal to terminate
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)
@@ -421,7 +426,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 		if(netPtr != NULL)
 		{
 		    netPtr->initShutdown();
-		    glfwSleep(1.0);
+		    tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
 		    netPtr->closeNetwork(true);
 		}
 		return false;

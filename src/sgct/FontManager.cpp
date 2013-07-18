@@ -5,15 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <GL/glew.h>
-#ifdef __WIN32__
-#include <GL/wglew.h>
-#elif __LINUX__
-#include <GL/glext.h>
-#else
-#include <OpenGL/glext.h>
-#endif
-#include <GL/glfw.h>
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/FontManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"

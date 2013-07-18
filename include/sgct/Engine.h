@@ -169,10 +169,10 @@ public:
 	void setPostDrawFunction( void(*fnPtr)(void) );
 	void setCleanUpFunction( void(*fnPtr)(void) );
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
-	void setCharCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int character, int action
+	void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
-	void setMousePosCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int x, int y
-	void setMouseScrollCallbackFunction( void(*fnPtr)(int) ); //arguments: int pos
+	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
+	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
 
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: chonst char * buffer, int buffer length, int clientIndex
@@ -183,21 +183,15 @@ public:
 	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
 
     //GLFW wrapped functions
-    static SGCTcond createCondition();
-    static void destroyCond(SGCTcond cond);
-	static void waitCond(SGCTcond cond, SGCTmutex mutex, double timeout);
-	static void signalCond(SGCTcond cond);
 	static double getTime();
 	static int getKey( int key );
 	static int getMouseButton( int button );
-	static void getMousePos( int * xPos, int * yPos );
-	static void setMousePos( int xPos, int yPos );
-	static int getMouseWheel();
-	static void setMouseWheel( int pos );
+	static void getMousePos( double * xPos, double * yPos );
+	static void setMousePos( double xPos, double yPos );
 	static void setMousePointerVisibility( bool state );
-	static int getJoystickParam( int joystick, int param );
-	static int getJoystickAxes( int joystick, float * values, int numOfValues);
-	static int getJoystickButtons( int joystick, unsigned char * values, int numOfValues);
+	static const char * getJoystickName( int joystick );
+	static const float * getJoystickAxes( int joystick, int * numOfValues);
+	static const unsigned char * getJoystickButtons( int joystick, int * numOfValues);
 	static void sleep(double secs);
 
 	/*!
@@ -361,6 +355,12 @@ private:
 	void waitForAllWindowsInSwapGroupToOpen();
 
 	static void clearBuffer();
+	static void internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
+	static void internal_key_char_callback(GLFWwindow* window, unsigned int ch);
+	static void internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
+	static void internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos);
+	static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
+	static void internal_glfw_error_callback(int error, const char* description);
 
 private:
 	static Engine * mInstance;
@@ -370,8 +370,6 @@ private:
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
 	typedef void (*NetworkCallbackFn)(const char *, int, int);
-	typedef void (*inputCallbackFn)(int, int);
-	typedef void (*scrollCallbackFn)(int);
     typedef void (*timerCallbackFn)(size_t);
 
 	//function pointers
@@ -388,13 +386,6 @@ private:
 	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
 	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
 	NetworkCallbackFn			mNetworkCallbackFn;
-
-	//GLFW wrapped function pointers
-	inputCallbackFn mKeyboardCallbackFn;
-	inputCallbackFn mCharCallbackFn;
-	inputCallbackFn mMouseButtonCallbackFn;
-	inputCallbackFn mMousePosCallbackFn;
-	scrollCallbackFn mMouseWheelCallbackFn;
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;

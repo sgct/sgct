@@ -31,9 +31,9 @@ enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
 bool mouseLeftButton = false;
 /* Holds the difference in position between when the left mouse button
     is pressed and when the mouse button is held. */
-int mouseDx = 0;
+double mouseDx = 0.0;
 /* Stores the positions that will be compared to measure the difference. */
-int mouseXPos[] = { 0, 0 };
+double mouseXPos[] = { 0.0, 0.0 };
 
 glm::vec3 view(0.0f, 0.0f, 1.0f);
 glm::vec3 up(0.0f, 1.0f, 0.0f);
@@ -104,13 +104,13 @@ void myPreSyncFun()
 	{
 		if( mouseLeftButton )
 		{
-			int tmpYPos;
+			double tmpYPos;
 			sgct::Engine::getMousePos( &mouseXPos[0], &tmpYPos );
 			mouseDx = mouseXPos[0] - mouseXPos[1];
 		}
 		else
 		{
-			mouseDx = 0;
+			mouseDx = 0.0;
 		}
 
 		static float panRot = 0.0f;
@@ -182,23 +182,23 @@ void keyCallback(int key, int action)
 		switch( key )
 		{
 		case SGCT_KEY_UP:
-		case 'W':
-			arrowButtons[FORWARD] = (action == SGCT_PRESS ? true : false);
+		case SGCT_KEY_W:
+			arrowButtons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
 		case SGCT_KEY_DOWN:
-		case 'S':
-			arrowButtons[BACKWARD] = (action == SGCT_PRESS ? true : false);
+		case SGCT_KEY_S:
+			arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
 		case SGCT_KEY_LEFT:
-		case 'A':
-			arrowButtons[LEFT] = (action == SGCT_PRESS ? true : false);
+		case SGCT_KEY_A:
+			arrowButtons[LEFT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
 		case SGCT_KEY_RIGHT:
-		case 'D':
-			arrowButtons[RIGHT] = (action == SGCT_PRESS ? true : false);
+		case SGCT_KEY_D:
+			arrowButtons[RIGHT] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		}
 	}
@@ -212,7 +212,7 @@ void mouseButtonCallback(int button, int action)
 		{
 		case SGCT_MOUSE_BUTTON_LEFT:
 			mouseLeftButton = (action == SGCT_PRESS ? true : false);
-			int tmpYPos;
+			double tmpYPos;
 			//set refPos
 			sgct::Engine::getMousePos( &mouseXPos[1], &tmpYPos );
 			break;

@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #else
 #include <OpenGL/glext.h>
 #endif
-#include <GL/glfw.h>
+#include <GL/glfw3.h>
 
 #include "../include/sgct/Statistics.h"
 #include "../include/sgct/ShaderManager.h"

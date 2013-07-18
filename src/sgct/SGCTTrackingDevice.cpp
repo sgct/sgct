@@ -7,7 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <GL/glfw.h>
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/SGCTTrackingDevice.h"

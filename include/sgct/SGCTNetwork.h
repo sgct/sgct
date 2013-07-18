@@ -31,8 +31,7 @@ namespace sgct_cppxeleven = std::tr1;
 	typedef int SGCT_SOCKET;
 #endif
 
-typedef void * GLFWmutex;
-typedef void * GLFWcond;
+#include "external/tinythread.h"
 
 namespace sgct_core //small graphics cluster toolkit
 {
@@ -83,7 +82,6 @@ public:
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
-	int mCommThreadId;
 
     bool mTerminate; //set to true upon exit
 
@@ -91,9 +89,10 @@ public:
 	int mRequestedSize;
 	static const std::size_t mHeaderSize = 9;
 
-	GLFWmutex mConnectionMutex;
-	GLFWcond mDoneCond;
-	GLFWcond mStartConnectionCond;
+	tthread::mutex mConnectionMutex;
+	tthread::condition_variable mStartConnectionCond;
+	tthread::thread * mCommThread;
+	tthread::thread * mMainThread;
 
 private:
 	enum timeStampIndex { Send = 0, Total };
@@ -101,7 +100,6 @@ private:
 	bool mFirmSync, mUpdated; 
 	ConnectionTypes mConnectionType;
 	bool mServer;
-	int mMainThreadId;
 	bool mConnected;
 	int mSendFrame[2];
 	int mRecvFrame[2];

@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 /// OpenGL Mathematics (glm.g-truc.net)
 ///
-/// Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
+/// Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
 /// in the Software without restriction, including without limitation the rights
@@ -38,7 +38,7 @@ namespace glm
 	{
 		GLM_STATIC_ASSERT(detail::type<genType>::is_float, "'pow' only accept floating-point input");
 
-		return ::std::pow(x, y);
+		return genType(::std::pow(x, y));
 	}
 
 	VECTORIZE_VEC_VEC(pow)
@@ -52,7 +52,7 @@ namespace glm
 	{
 		GLM_STATIC_ASSERT(detail::type<genType>::is_float, "'exp' only accept floating-point input");
 
-		return ::std::exp(x);
+		return genType(::std::exp(x));
 	}
 
 	VECTORIZE_VEC(exp)
@@ -66,7 +66,7 @@ namespace glm
 	{
 		GLM_STATIC_ASSERT(detail::type<genType>::is_float, "'log' only accept floating-point input");
 
-		return ::std::log(x);
+		return genType(::std::log(x));
 	}
 
 	VECTORIZE_VEC(log)
@@ -80,7 +80,7 @@ namespace glm
 	{
 		GLM_STATIC_ASSERT(detail::type<genType>::is_float, "'exp2' only accept floating-point input");
 
-		return ::std::exp(genType(0.69314718055994530941723212145818) * x);
+		return genType(::std::exp(genType(0.69314718055994530941723212145818) * x));
 	}
 
 	VECTORIZE_VEC(exp2)
@@ -146,6 +146,7 @@ namespace _detail
 	)
 	{
 		GLM_STATIC_ASSERT(detail::type<genType>::is_float, "'inversesqrt' only accept floating-point input");
+		assert(x > genType(0));
 
 		return genType(1) / ::std::sqrt(x);
 	}

@@ -1,5 +1,5 @@
 ///////////////////////////////////////////////////////////////////////////////////////////////////
-// OpenGL Mathematics Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
+// OpenGL Mathematics Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
 ///////////////////////////////////////////////////////////////////////////////////////////////////
 // Created : 2005-12-21
 // Updated : 2008-11-27
@@ -40,7 +40,7 @@ namespace glm
 		detail::tquat<T> const & s2, 
 		T const & h)
 	{
-		return mix(mix(q1, q2, h), mix(s1, s2, h), T(2) * h (T(1) - h));
+		return mix(mix(q1, q2, h), mix(s1, s2, h), T(2) * (T(1) - h) * h);
 	}
 
 	template <typename T> 
@@ -52,20 +52,19 @@ namespace glm
 	)
 	{
 		detail::tquat<T> invQuat = inverse(curr);
-		return ext((log(next + invQuat) + log(prev + invQuat)) / T(-4)) * curr;
+		return exp((log(next + invQuat) + log(prev + invQuat)) / T(-4)) * curr;
 	}
 
 	template <typename T> 
 	GLM_FUNC_QUALIFIER detail::tquat<T> exp
 	(
-		detail::tquat<T> const & q, 
-		T const & exponent
+		detail::tquat<T> const & q
 	)
 	{
 		detail::tvec3<T> u(q.x, q.y, q.z);
-		float a = glm::length(u);
-		detail::tvec3<T> v(u / a);
-		return detail::tquat<T>(cos(a), sin(a) * v);
+		float Angle = glm::length(u);
+		detail::tvec3<T> v(u / Angle);
+		return detail::tquat<T>(cos(Angle), sin(Angle) * v);
 	}
 
 	template <typename T> 
@@ -152,45 +151,6 @@ namespace glm
 			return T(0);
 		else
 			return -sqrt(w);
-	}
-
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER valType roll
-	(
-		detail::tquat<valType> const & q
-	)
-	{
-#ifdef GLM_FORCE_RADIANS
-		return atan2(valType(2) * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z);
-#else
-		return glm::degrees(atan2(valType(2) * (q.x * q.y + q.w * q.z), q.w * q.w + q.x * q.x - q.y * q.y - q.z * q.z));
-#endif
-	}
-
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER valType pitch
-	(
-		detail::tquat<valType> const & q
-	)
-	{
-#ifdef GLM_FORCE_RADIANS
-		return atan2(valType(2) * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z);
-#else
-		return glm::degrees(atan2(valType(2) * (q.y * q.z + q.w * q.x), q.w * q.w - q.x * q.x - q.y * q.y + q.z * q.z));
-#endif
-	}
-
-	template <typename valType> 
-	GLM_FUNC_QUALIFIER valType yaw
-	(
-		detail::tquat<valType> const & q
-	)
-	{
-#ifdef GLM_FORCE_RADIANS
-		return asin(valType(-2) * (q.x * q.z - q.w * q.y));
-#else
-		return glm::degrees(asin(valType(-2) * (q.x * q.z - q.w * q.y)));
-#endif
 	}
 
 	template <typename T>

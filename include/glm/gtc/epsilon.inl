@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 /// OpenGL Mathematics (glm.g-truc.net)
 ///
-/// Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
+/// Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
 /// in the Software without restriction, including without limitation the rights
@@ -270,21 +270,6 @@ namespace glm
 	}
 
 	template <typename valType>
-	GLM_FUNC_QUALIFIER detail::tvec4<bool> epsilonEqual
-	(
-		detail::tquat<valType> const & x, 
-		detail::tquat<valType> const & y, 
-		detail::tquat<valType> const & epsilon
-	)
-	{
-		return detail::tvec4<bool>(
-			abs(x.x - y.x) < epsilon.x,
-			abs(x.y - y.y) < epsilon.y,
-			abs(x.z - y.z) < epsilon.z,
-			abs(x.w - y.w) < epsilon.w);
-	}
-
-	template <typename valType>
 	GLM_FUNC_QUALIFIER detail::tvec4<bool> epsilonNotEqual
 	(
 		detail::tquat<valType> const & x, 
@@ -297,20 +282,5 @@ namespace glm
 			abs(x.y - y.y) >= epsilon,
 			abs(x.z - y.z) >= epsilon,
 			abs(x.w - y.w) >= epsilon);
-	}
-
-	template <typename valType>
-	GLM_FUNC_QUALIFIER detail::tvec4<bool> epsilonNotEqual
-	(
-		detail::tquat<valType> const & x, 
-		detail::tquat<valType> const & y, 
-		detail::tquat<valType> const & epsilon
-	)
-	{
-		return detail::tvec4<bool>(
-			abs(x.x - y.x) >= epsilon.x,
-			abs(x.y - y.y) >= epsilon.y,
-			abs(x.z - y.z) >= epsilon.z,
-			abs(x.w - y.w) >= epsilon.w);
 	}
 }//namespace glm

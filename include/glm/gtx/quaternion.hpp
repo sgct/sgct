@@ -1,7 +1,7 @@
 ///////////////////////////////////////////////////////////////////////////////////
 /// OpenGL Mathematics (glm.g-truc.net)
 ///
-/// Copyright (c) 2005 - 2012 G-Truc Creation (www.g-truc.net)
+/// Copyright (c) 2005 - 2013 G-Truc Creation (www.g-truc.net)
 /// Permission is hereby granted, free of charge, to any person obtaining a copy
 /// of this software and associated documentation files (the "Software"), to deal
 /// in the Software without restriction, including without limitation the rights
@@ -94,8 +94,7 @@ namespace glm
 	/// @see gtx_quaternion
     template <typename valType> 
 	detail::tquat<valType> exp(
-		detail::tquat<valType> const & q, 
-		valType const & exponent);
+		detail::tquat<valType> const & q);
 
 	//! Returns a log of a quaternion. 
 	///
@@ -127,7 +126,7 @@ namespace glm
 		detail::tquat<valType> const & q, 
 		detail::tvec3<valType> const & v);
 
-    /// Rotates a 4 components vector by a quaternion.
+	/// Rotates a 4 components vector by a quaternion.
 	///
 	/// @see gtx_quaternion
 	template <typename valType> 
@@ -142,38 +141,10 @@ namespace glm
 	valType extractRealComponent(
 		detail::tquat<valType> const & q);
 
-    /// Returns roll value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
-	///
-	/// @see gtx_quaternion
-	template <typename valType> 
-	valType roll(
-		detail::tquat<valType> const & x);
-
-	/// Returns pitch value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
-	///
-	/// @see gtx_quaternion
-    template <typename valType> 
-	valType pitch(
-		detail::tquat<valType> const & x);
-
-    /// Returns yaw value of euler angles expressed in radians if GLM_FORCE_RADIANS is define or degrees otherwise.
-	///
-	/// @see gtx_quaternion
-	template <typename valType> 
-	valType yaw(
-		detail::tquat<valType> const & x);
-
-	/// Returns euler angles, yitch as x, yaw as y, roll as z. 
-	///
-	/// @see gtx_quaternion
-	template <typename valType> 
-	detail::tvec3<valType> eulerAngles(
-		detail::tquat<valType> const & x);
-
 	/// Converts a quaternion to a 3 * 3 matrix. 
 	///
 	/// @see gtx_quaternion
-    template <typename valType> 
+	template <typename valType> 
 	detail::tmat3x3<valType> toMat3(
 		detail::tquat<valType> const & x){return mat3_cast(x);}
 

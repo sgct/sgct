@@ -62,8 +62,8 @@
 			<Tool
 				Name="VCLibrarianTool"
 				LinkLibraryDependencies="true"
-				AdditionalOptions="/LTCG"
-				AdditionalDependencies="glew32s.lib glfw_d.lib freetype248_D.lib ws2_32.lib tinyxml2_d.lib zlibstaticd.lib libpng15_staticd.lib vrpn_d.lib"
+				AdditionalOptions="/LTCG /ignore:4006"
+				AdditionalDependencies="glew32s.lib glfw3d.lib freetype248_D.lib ws2_32.lib tinyxml2_d.lib zlibstaticd.lib libpng15_staticd.lib vrpn_d.lib tinythreadppd.lib"
 				OutputFile="$(OutDir)\sgct32_d.lib"
 				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9\deps"
 				IgnoreAllDefaultLibraries="true"
@@ -130,7 +130,8 @@
 			/>
 			<Tool
 				Name="VCLibrarianTool"
-				AdditionalDependencies="glew32s.lib glfw.lib freetype248.lib ws2_32.lib tinyxml2.lib zlibstatic.lib libpng15_static.lib vrpn.lib"
+				AdditionalOptions="/ignore:4006"
+				AdditionalDependencies="glew32s.lib glfw3.lib freetype248.lib ws2_32.lib tinyxml2.lib zlibstatic.lib libpng15_static.lib vrpn.lib tinythreadpp.lib"
 				OutputFile="$(OutDir)\sgct32.lib"
 				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9\deps"
 			/>

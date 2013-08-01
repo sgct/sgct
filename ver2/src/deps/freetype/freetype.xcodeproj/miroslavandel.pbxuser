@@ -1,0 +1,84 @@
+// !$*UTF8*$!
+{
+	00A688760B044721003F7FE5 /* freetypelib */ = {
+		activeExec = 0;
+	};
+	0867D690FE84028FC02AAC07 /* Project object */ = {
+		activeBuildConfigurationName = Release;
+		activeSDKPreference = macosx10.5;
+		activeTarget = 00A688760B044721003F7FE5 /* freetypelib */;
+		addToTargets = (
+			8D07F2BC0486CC7A007CD1D0 /* freetype */,
+			00A688760B044721003F7FE5 /* freetypelib */,
+		);
+		codeSenseManager = CECC2AF1150A350800397350 /* Code sense */;
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					787,
+					20,
+					48.16259765625,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 352990449;
+			PBXWorkspaceStateSaveDate = 352990449;
+		};
+		perUserProjectItems = {
+			CECC2AF8150A35BE00397350 /* PBXBookmark */ = CECC2AF8150A35BE00397350 /* PBXBookmark */;
+			CECC2B0F150A36C700397350 /* PBXTextBookmark */ = CECC2B0F150A36C700397350 /* PBXTextBookmark */;
+		};
+		sourceControlManager = CECC2AF0150A350800397350 /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	8D07F2BC0486CC7A007CD1D0 /* freetype */ = {
+		activeExec = 0;
+	};
+	CECC2AF0150A350800397350 /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+		};
+	};
+	CECC2AF1150A350800397350 /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	CECC2AF2150A355200397350 /* ftconfig.h */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {965, 7392}}";
+			sepNavSelRange = "{0, 0}";
+			sepNavVisRange = "{0, 1900}";
+		};
+	};
+	CECC2AF8150A35BE00397350 /* PBXBookmark */ = {
+		isa = PBXBookmark;
+		fRef = CECC2AF2150A355200397350 /* ftconfig.h */;
+	};
+	CECC2B0F150A36C700397350 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = CECC2AF2150A355200397350 /* ftconfig.h */;
+		name = "ftconfig.h: 1";
+		rLen = 0;
+		rLoc = 0;
+		rType = 0;
+		vrLen = 1900;
+		vrLoc = 0;
+	};
+}

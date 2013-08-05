@@ -467,6 +467,9 @@ void sgct::Engine::initOGL()
 	{
 		MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO multisampling is not supported!\n");
 		SGCTSettings::Instance()->setUseFBO( true );
+
+		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
+			mThisNode->getWindowPtr(i)->setNumberOfAASamples(1);
 	}
 
 	//init buffers
@@ -474,23 +477,17 @@ void sgct::Engine::initOGL()
 	{
 		mThisNode->setCurrentWindowIndex(i);
 		getCurrentWindowPtr()->initOGL();
-	}
+		getCurrentWindowPtr()->makeOpenGLContextCurrent();
 
-	loadShaders();
-	mStatistics->initVBO(mFixedOGLPipeline);
-
-	//load overlays if any
-	for(std::size_t i=0; i<mThisNode->getNumberOfWindows(); i++)
-	{
-		mThisNode->setCurrentWindowIndex(i);
-		mThisNode->getWindowPtr(i)->makeOpenGLContextCurrent();
-
-		for(std::size_t j=0; j<getWindowPtr(i)->getNumberOfViewports(); j++)
-			getWindowPtr(i)->getViewport(j)->loadData();
+		for(std::size_t j=0; j<getCurrentWindowPtr()->getNumberOfViewports(); j++)
+			getCurrentWindowPtr()->getViewport(j)->loadData();
 	}
 
 	//Make "main" context current to make life easier for the end user
 	getCurrentWindowPtr()->makeSharedOpenGLContextCurrent();
+	loadShaders();
+	mStatistics->initVBO(mFixedOGLPipeline);
+
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -802,7 +799,10 @@ void sgct::Engine::render()
 		{
 			mThisNode->setCurrentWindowIndex(i);
 
-			getCurrentWindowPtr()->makeOpenGLContextCurrent();
+			//if( mRenderingOffScreen )
+			//	getCurrentWindowPtr()->makeSharedOpenGLContextCurrent();
+			//else
+				getCurrentWindowPtr()->makeOpenGLContextCurrent();
 
 			//if fisheye rendering is used then render the cubemap
 			if( getCurrentWindowPtr()->isUsingFisheyeRendering() )

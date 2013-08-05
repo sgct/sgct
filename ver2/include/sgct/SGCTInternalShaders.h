@@ -233,7 +233,7 @@ namespace sgct_core
 			  posPos.zw = gl_MultiTexCoord0.xy - (rcpFrame * (0.5 + FXAA_SUBPIX_SHIFT));\n\
 			}\n";
 
-		const std::string FXAA_FRAG_Shader = "\
+		const std::string FXAA_Frag_Shader = "\
 			#version 120\n\
 			#extension GL_EXT_gpu_shader4 : enable // For NVIDIA cards.\n\
 			uniform sampler2D tex0; // 0\n\

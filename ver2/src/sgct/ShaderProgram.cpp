@@ -115,7 +115,7 @@ Will set the vertex shader source code.
 */
 bool sgct::ShaderProgram::setVertexShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
-	if( sSrcType == SHADER_SOURCE_FILE )
+	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mVertexShader.setSourceFromFile( src );
 	}
@@ -132,9 +132,9 @@ Will set the fragment shader source code.
 @param	sSrcType	What type of source code should be read, file or string
 @return	Wheter the source code was set correctly or not
 */
-bool sgct::ShaderProgram::setFramgentShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
+bool sgct::ShaderProgram::setFragmentShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
-	if( sSrcType == SHADER_SOURCE_FILE )
+	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mFragmentShader.setSourceFromFile( src );
 	}
@@ -153,7 +153,7 @@ Will set the geometry shader source code.
 */
 bool sgct::ShaderProgram::setGeometryShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
-	if( sSrcType == SHADER_SOURCE_FILE )
+	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mGeometryShader.setSourceFromFile( src );
 	}
@@ -281,5 +281,14 @@ bool sgct::ShaderProgram::bind() const
 
 	glUseProgram( mProgramId );
 	return true;
+}
+//----------------------------------------------------------------------------//
+
+/*!
+Unset the shader program in the current rendering pipeline
+*/
+void sgct::ShaderProgram::unbind()
+{
+	glUseProgram( GL_FALSE );
 }
 //----------------------------------------------------------------------------//

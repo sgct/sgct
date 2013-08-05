@@ -15,8 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ReadConfig.h"
 #include "ShaderProgram.h"
 
-#define MAX_UNIFORM_LOCATIONS 128
-#define NUMBER_OF_SHADERS 6
+#define MAX_UNIFORM_LOCATIONS 16
+#define NUMBER_OF_SHADERS 8
 
 /*! \namespace sgct
 \brief Simple Graphics Cluster Toolkit.
@@ -64,11 +64,9 @@ private:
 	enum SyncStage { PreStage = 0, PostStage };
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
-	enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, FisheyeShader, StereoShader, OverlayShader, NULLShader };
+	enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
 	enum ShaderLocIndexes { MonoMVP = 0, MonoTex,
 			OverlayMVP, OverlayTex,
-			StereoMVP, StereoLeftTex, StereoRightTex,
-			FisheyeMVP, Cubemap, FishEyeHalfFov, FisheyeOffset,
 			SizeX, SizeY, FXAAMVP, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
 
 public:
@@ -289,8 +287,6 @@ public:
 	*/
 	inline RunMode getRunMode() { return mRunMode; }
 
-	bool isFisheye();
-
 private:
 	Engine() {;} //to prevent users to start without requred parameters
 
@@ -308,7 +304,7 @@ private:
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport(ViewportSpace vs);
 	const char * getBasicInfo(std::size_t winIndex);
-	const char * getAAInfo();
+	const char * getAAInfo(std::size_t winIndex);
 
 	void draw();
 	void drawOverlays();

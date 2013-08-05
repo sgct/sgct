@@ -17,12 +17,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/SharedData.h"
-#include "../include/sgct/ShaderManager.h"
 #include "../include/sgct/SGCTInternalShaders.h"
 #include "../include/sgct/SGCTInternalShaders_modern.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ogl_headers.h"
+#include "../include/sgct/ShaderManager.h"
 #include "../include/external/tinythread.h"
 #include <glm/gtc/constants.hpp>
 #include <math.h>
@@ -57,18 +57,17 @@ Parameter     | Description
 ------------- | -------------
 -config <filename> | set xml confiuration file
 -local <integer> | set which node in configuration that is the localhost (index starts at 0)
--numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
 --client | run the application as client (only available when running as local)
 --slave | run the application as client (only available when running as local)
 --Firm-Sync | enable firm frame sync
 --Loose-Sync | disable firm frame sync
 --Ignore-Sync | disable frame sync
+-notify <integer> | the notify level used in the MessageHandler (0 = highest priority)
 --No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
---Regular-FBO | use regular frame buffer objects without multi sampling
---MultiSampled-FBO | use multisampled frame buffer objects (default)
 --FXAA | use fast approximate anti-aliasing shader
 --Capture-PNG | use png images for screen capture (default)
 --Capture-TGA | use tga images for screen capture
+-numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
 
 */
 sgct::Engine::Engine( int& argc, char**& argv )
@@ -462,23 +461,20 @@ void sgct::Engine::initOGL()
 	if( !GLEW_EXT_framebuffer_object && mOpenGL_Version[0] < 2)
 	{
 		MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! Frame buffer objects are not supported! A lot of features in SGCT will not work!\n");
-		SGCTSettings::Instance()->setFBOMode( SGCTSettings::NoFBO );
+		SGCTSettings::Instance()->setUseFBO( false );
 	}
 	else if(!GLEW_EXT_framebuffer_multisample && mOpenGL_Version[0] < 2)
 	{
 		MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO multisampling is not supported!\n");
-		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
+		SGCTSettings::Instance()->setUseFBO( true );
 	}
 
 	//init buffers
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
 		mThisNode->setCurrentWindowIndex(i);
-		getCurrentWindowPtr()->initBuffers();
+		getCurrentWindowPtr()->initOGL();
 	}
-
-	//set alpha value
-	mFisheyeClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
 
 	loadShaders();
 	mStatistics->initVBO(mFixedOGLPipeline);
@@ -493,6 +489,8 @@ void sgct::Engine::initOGL()
 			getWindowPtr(i)->getViewport(j)->loadData();
 	}
 
+	//Make "main" context current to make life easier for the end user
+	getCurrentWindowPtr()->makeSharedOpenGLContextCurrent();
 	if( mInitOGLFn != NULL )
 		mInitOGLFn();
 
@@ -550,8 +548,6 @@ void sgct::Engine::clean()
 		mStatistics = NULL;
 	}
 
-	ShaderManager::Destroy();
-
 	//de-init window and unbind swapgroups...
 	if(ClusterManager::Instance()->getNumberOfNodes() > 0)
 	{
@@ -578,8 +574,10 @@ void sgct::Engine::clean()
 	// Destroy explicitly to avoid memory leak messages
 	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying font manager...\n");
 	sgct_text::FontManager::Destroy();
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shader manager...\n");
+	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shader manager and internal shaders...\n");
 	ShaderManager::Destroy();
+	for(size_t i = 0; i < NUMBER_OF_SHADERS; i++)
+		mShaders[i].deleteProgram();
 	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
 	SharedData::Destroy();
 	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying texture manager...\n");
@@ -798,20 +796,23 @@ void sgct::Engine::render()
 		}
 
 		//rendering offscreen if using FBOs
-		mRenderingOffScreen = (SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO);
+		mRenderingOffScreen = SGCTSettings::Instance()->useFBO();
 
-		//if fisheye rendering is used then render the cubemap
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			mThisNode->setCurrentWindowIndex(i);
 
 			getCurrentWindowPtr()->makeOpenGLContextCurrent();
 
+			//if fisheye rendering is used then render the cubemap
 			if( getCurrentWindowPtr()->isUsingFisheyeRendering() )
 			{
 	#ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Rendering fisheye\n");
 	#endif
+				//set alpha value
+				mFisheyeClearColor[3] = getCurrentWindowPtr()->useFisheyeAlpha() ? 0.0f : 1.0f;
+		
 				mActiveFrustum = getCurrentWindowPtr()->getStereoMode() != static_cast<int>(SGCTWindow::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 				(this->*mInternalRenderFisheyeFn)(LeftEye);
 
@@ -898,7 +899,7 @@ void sgct::Engine::render()
 		fprintf(stderr, "Render-Loop: Rendering FBO quad\n");
 #endif
 			mRenderingOffScreen = false;
-			if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+			if( SGCTSettings::Instance()->useFBO() )
 				(this->*mInternalRenderFBOFn)();
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -959,10 +960,6 @@ void sgct::Engine::render()
 				if( mShowInfo )
 					renderDisplayInfo();
 			}
-
-			//swap window size values
-			getCurrentWindowPtr()->swap();
-
 		}//end window loop
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -985,8 +982,7 @@ void sgct::Engine::render()
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			mThisNode->setCurrentWindowIndex(i);
-			getCurrentWindowPtr()->makeOpenGLContextCurrent();
-			glfwSwapBuffers( getCurrentWindowPtr()->getWindowHandle() );
+			getCurrentWindowPtr()->swap();
 		}
 		glfwPollEvents();
 
@@ -1203,7 +1199,7 @@ void sgct::Engine::drawOverlays()
 
 			//unbind
 			getActiveWindowPtr()->unbindVAO();
-			ShaderManager::Instance()->unBindShader();
+			ShaderProgram::unbind();
 		}
 	}
 }
@@ -1291,7 +1287,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 */
 void sgct::Engine::setRenderTarget(TextureIndexes ti)
 {
-	if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	if( SGCTSettings::Instance()->useFBO() )
 	{
 		if( SGCTSettings::Instance()->usePostFX() )
 			ti = PostFX;
@@ -1343,11 +1339,11 @@ void sgct::Engine::renderFBOTexture()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, getCurrentWindowPtr()->getFrameBufferTexture(RightEye));
 
-		mShaders[StereoShader].bind();
+		getCurrentWindowPtr()->bindStereoShader();
 
-		glUniform1i( mShaderLocs[StereoLeftTex], 0);
-		glUniform1i( mShaderLocs[StereoRightTex], 1);
-		glUniformMatrix4fv( mShaderLocs[StereoMVP], 1, GL_FALSE, &orthoMat[0][0]);
+		glUniform1i( getCurrentWindowPtr()->getStereoShaderLeftTexLoc(), 0);
+		glUniform1i( getCurrentWindowPtr()->getStereoShaderRightTexLoc(), 1);
+		glUniformMatrix4fv( getCurrentWindowPtr()->getStereoShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 
 		for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
 			getCurrentWindowPtr()->getViewport(i)->renderMesh();
@@ -1419,10 +1415,10 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 	if( getCurrentWindowPtr()->getStereoMode() > SGCTWindow::Active )
 	{
-		mShaders[StereoShader].bind();
+		getCurrentWindowPtr()->bindStereoShader();
 
-		glUniform1i( mShaderLocs[StereoLeftTex], 0);
-		glUniform1i( mShaderLocs[StereoRightTex], 1);
+		glUniform1i( getCurrentWindowPtr()->getStereoShaderLeftTexLoc(), 0);
+		glUniform1i( getCurrentWindowPtr()->getStereoShaderRightTexLoc(), 1);
 
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, getCurrentWindowPtr()->getFrameBufferTexture(LeftEye));
@@ -1479,12 +1475,10 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
 	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-	SGCTSettings * setPtr = SGCTSettings::Instance();
-
 	if( mActiveFrustum == Frustum::StereoLeftEye )
-		setPtr->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+		getCurrentWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getCurrentWindowPtr()->getDomeDiameter(), 0.0f);
 	else if( mActiveFrustum == Frustum::StereoRightEye )
-		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+		getCurrentWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getCurrentWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
 	for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
@@ -1549,14 +1543,17 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_DEPTH_TEST);
 
-	mShaders[FisheyeShader].bind();
+	getCurrentWindowPtr()->bindFisheyeShader();
 
-	glUniformMatrix4fv( mShaderLocs[FisheyeMVP], 1, GL_FALSE, &orthoMat[0][0]);
-	glUniform1i( mShaderLocs[Cubemap], 0);
-	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
-	if( setPtr->isFisheyeOffaxis() )
+	glUniformMatrix4fv( getCurrentWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
+	glUniform1i( getCurrentWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
+	glUniform1f( getCurrentWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getCurrentWindowPtr()->getFisheyeFOV()/2.0f) );
+	if( getCurrentWindowPtr()->isFisheyeOffaxis() )
 	{
-		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
+		glUniform3f( getCurrentWindowPtr()->getFisheyeShaderOffsetLoc(),
+			getCurrentWindowPtr()->getFisheyeOffset(0),
+			getCurrentWindowPtr()->getFisheyeOffset(1),
+			getCurrentWindowPtr()->getFisheyeOffset(2) );
 	}
 
 	getActiveWindowPtr()->bindVAO( SGCTWindow::FishEyeQuad );
@@ -1601,12 +1598,10 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 {
 	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-	SGCTSettings * setPtr = SGCTSettings::Instance();
-
 	if( mActiveFrustum == Frustum::StereoLeftEye )
-		setPtr->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+		getCurrentWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getCurrentWindowPtr()->getDomeDiameter(), 0.0f);
 	else if( mActiveFrustum == Frustum::StereoRightEye )
-		setPtr->setFisheyeOffset( getUserPtr()->getEyeSeparation() / setPtr->getDomeDiameter(), 0.0f);
+		getCurrentWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getCurrentWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
 	for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
@@ -1693,12 +1688,15 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 
-	mShaders[FisheyeShader].bind();
-	glUniform1i( mShaderLocs[Cubemap], 0);
-	glUniform1f( mShaderLocs[FishEyeHalfFov], glm::radians<float>(SGCTSettings::Instance()->getFisheyeFOV()/2.0f) );
-	if( setPtr->isFisheyeOffaxis() )
+	getCurrentWindowPtr()->bindFisheyeShader();
+	glUniform1i( getCurrentWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
+	glUniform1f( getCurrentWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getCurrentWindowPtr()->getFisheyeFOV()/2.0f) );
+	if( getCurrentWindowPtr()->isFisheyeOffaxis() )
 	{
-		glUniform3f( mShaderLocs[FisheyeOffset], setPtr->getFisheyeOffset(0), setPtr->getFisheyeOffset(1), setPtr->getFisheyeOffset(2) );
+		glUniform3f( getCurrentWindowPtr()->getFisheyeShaderOffsetLoc(),
+			getCurrentWindowPtr()->getFisheyeOffset(0),
+			getCurrentWindowPtr()->getFisheyeOffset(1),
+			getCurrentWindowPtr()->getFisheyeOffset(2) );
 	}
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -1911,21 +1909,18 @@ void sgct::Engine::updateTimers(double timeStamp)
 */
 void sgct::Engine::loadShaders()
 {
-	//set null shader
-	mShaders[NULLShader] = ShaderManager::Instance()->getShader( "SGCT_NULL" );
-
 	//create FXAA shaders
 	if( mFixedOGLPipeline )
 	{
-		ShaderManager::Instance()->addShader( mShaders[FXAAShader], "FXAA",
-			sgct_core::shaders::FXAA_Vert_Shader,
-			sgct_core::shaders::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[FXAAShader].setVertexShaderSrc( sgct_core::shaders::FXAA_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].setFragmentShaderSrc( sgct_core::shaders::FXAA_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].createAndLinkProgram();
 	}
 	else
 	{
-		ShaderManager::Instance()->addShader( mShaders[FXAAShader], "FXAA",
-			sgct_core::shaders_modern::FXAA_Vert_Shader,
-			sgct_core::shaders_modern::FXAA_FRAG_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[FXAAShader].setVertexShaderSrc( sgct_core::shaders_modern::FXAA_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].setFragmentShaderSrc( sgct_core::shaders_modern::FXAA_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].createAndLinkProgram();
 	}
 	mShaders[FXAAShader].bind();
 
@@ -1955,171 +1950,30 @@ void sgct::Engine::loadShaders()
 	mShaderLocs[FXAATexture] = mShaders[FXAAShader].getUniformLocation( "tex0" );
 	glUniform1i( mShaderLocs[FXAATexture], 0 );
 
-	ShaderManager::Instance()->unBindShader();
-
-	if( getCurrentWindowPtr()->isUsingFisheyeRendering() )
-	{
-		if( mFixedOGLPipeline )
-		{
-			if( SGCTSettings::Instance()->isFisheyeOffaxis() || getCurrentWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
-				ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Fisheye_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
-			else
-				ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders::Fisheye_Vert_Shader, sgct_core::shaders::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		}
-		else
-		{
-			if( SGCTSettings::Instance()->isFisheyeOffaxis() || getCurrentWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
-				ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, ShaderManager::SHADER_SRC_STRING );
-			else
-				ShaderManager::Instance()->addShader( mShaders[FisheyeShader], "Fisheye", sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct_core::shaders_modern::Fisheye_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
-		}
-		mShaders[FisheyeShader].bind();
-
-		if( !mFixedOGLPipeline )
-			mShaderLocs[FisheyeMVP] = mShaders[FisheyeShader].getUniformLocation( "MVP" );
-
-		mShaderLocs[Cubemap] = mShaders[FisheyeShader].getUniformLocation( "cubemap" );
-		glUniform1i( mShaderLocs[Cubemap], 0 );
-
-		mShaderLocs[FishEyeHalfFov] = mShaders[FisheyeShader].getUniformLocation( "halfFov" );
-		glUniform1f( mShaderLocs[FishEyeHalfFov], glm::half_pi<float>() );
-
-		if( SGCTSettings::Instance()->isFisheyeOffaxis() || getCurrentWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
-		{
-			mShaderLocs[FisheyeOffset] = mShaders[FisheyeShader].getUniformLocation( "offset" );
-			glUniform3f( mShaderLocs[FisheyeOffset],
-				SGCTSettings::Instance()->getFisheyeOffset(0),
-				SGCTSettings::Instance()->getFisheyeOffset(1),
-				SGCTSettings::Instance()->getFisheyeOffset(2) );
-		}
-		ShaderManager::Instance()->unBindShader();
-	}
-
-	if( getCurrentWindowPtr()->getStereoMode() > SGCTWindow::Active )
-	{
-		if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Anaglyph_Red_Cyan )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ) :
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Anaglyph_Amber_Blue )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Amber_Blue",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ) :
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Amber_Blue",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Anaglyph_Amber_Blue_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Anaglyph_Red_Cyan_Wimmer )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan_Wimmer",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer,
-					ShaderManager::SHADER_SRC_STRING ) :
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Anaglyph_Red_Cyan_Wimmer",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader_Wimmer,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Checkerboard )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Checkerboard",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::CheckerBoard_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ):
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Checkerboard",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::CheckerBoard_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Checkerboard_Inverted )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Checkerboard_Inverted",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ):
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Checkerboard_Inverted",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Vertical_Interlaced )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Vertical_Interlaced",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Vertical_Interlaced_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ):
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Vertical_Interlaced",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Vertical_Interlaced_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else if( getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Vertical_Interlaced_Inverted )
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Vertical_Interlaced_Inverted",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ):
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Vertical_Interlaced_Inverted",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-		else
-		{
-			mFixedOGLPipeline ? ShaderManager::Instance()->addShader( mShaders[StereoShader], "Dummy_Stereo",
-					sgct_core::shaders::Anaglyph_Vert_Shader,
-					sgct_core::shaders::Dummy_Stereo_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING ):
-				ShaderManager::Instance()->addShader( mShaders[StereoShader], "Dummy_Stereo",
-					sgct_core::shaders_modern::Anaglyph_Vert_Shader,
-					sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader,
-					ShaderManager::SHADER_SRC_STRING );
-		}
-
-		mShaders[StereoShader].bind();
-		if( !mFixedOGLPipeline )
-			mShaderLocs[StereoMVP] = mShaders[StereoShader].getUniformLocation( "MVP" );
-		mShaderLocs[StereoLeftTex] = mShaders[StereoShader].getUniformLocation( "LeftTex" );
-		mShaderLocs[StereoRightTex] = mShaders[StereoShader].getUniformLocation( "RightTex" );
-		glUniform1i( mShaderLocs[StereoLeftTex], 0 );
-		glUniform1i( mShaderLocs[StereoRightTex], 1 );
-		ShaderManager::Instance()->unBindShader();
-	}
+	ShaderProgram::unbind();
 
 	/*!
 		Used for overlays & mono.
 	*/
 	if( !mFixedOGLPipeline )
 	{
-		ShaderManager::Instance()->addShader( mShaders[FBOQuadShader], "FBOQuad",
-			sgct_core::shaders_modern::Base_Vert_Shader,
-			sgct_core::shaders_modern::Base_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].setVertexShaderSrc( sgct_core::shaders_modern::Base_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].setFragmentShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].createAndLinkProgram();
 		mShaders[FBOQuadShader].bind();
-
 		mShaderLocs[MonoMVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
 		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[MonoTex], 0 );
+		ShaderProgram::unbind();
 
-		ShaderManager::Instance()->addShader( mShaders[OverlayShader], "OverlayQuad",
-			sgct_core::shaders_modern::Overlay_Vert_Shader,
-			sgct_core::shaders_modern::Overlay_Frag_Shader, ShaderManager::SHADER_SRC_STRING );
+		mShaders[OverlayShader].setVertexShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[OverlayShader].setFragmentShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[OverlayShader].createAndLinkProgram();
 		mShaders[OverlayShader].bind();
-
 		mShaderLocs[OverlayMVP] = mShaders[OverlayShader].getUniformLocation( "MVP" );
 		mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[OverlayTex], 0 );
-
-		ShaderManager::Instance()->unBindShader();
+		ShaderProgram::unbind();
 	}
 }
 
@@ -2427,19 +2281,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"--No-FBO") == 0 )
 		{
-			SGCTSettings::Instance()->setFBOMode( SGCTSettings::NoFBO );
-			argumentsToRemove.push_back(i);
-			i++;
-		}
-		else if( strcmp(argv[i],"--Regular-FBO") == 0 )
-		{
-			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
-			argumentsToRemove.push_back(i);
-			i++;
-		}
-		else if( strcmp(argv[i],"--MultiSampled-FBO") == 0 )
-		{
-			SGCTSettings::Instance()->setFBOMode( SGCTSettings::MultiSampledFBO );
+			SGCTSettings::Instance()->setUseFBO(false);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -2683,7 +2525,7 @@ void sgct::Engine::clearBuffer()
 {
 	const float * colorPtr = Engine::getPtr()->getClearColor();
 
-	float alpha = (SGCTSettings::Instance()->useFisheyeAlpha() && Instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
+	float alpha = (Instance()->getActiveWindowPtr()->useFisheyeAlpha() && Instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
 
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], alpha);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -2743,7 +2585,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 {
 	if( getCurrentWindowPtr()->isUsingFisheyeRendering() && vs != ScreenSpace )
 	{
-		int cmRes = SGCTSettings::Instance()->getCubeMapResolution();
+		int cmRes = getCurrentWindowPtr()->getCubeMapResolution();
 		currentViewportCoords[0] = 0;
 		currentViewportCoords[1] = 0;
 		currentViewportCoords[2] = cmRes;
@@ -2751,7 +2593,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 	}
 	else
 	{
-		if( vs == ScreenSpace || SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO )
+		if( vs == ScreenSpace || !SGCTSettings::Instance()->useFBO() )
 		{
 			currentViewportCoords[0] =
 				static_cast<int>( getCurrentWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXResolution()));
@@ -2886,7 +2728,7 @@ void sgct::Engine::setFisheyeClearColor(float red, float green, float blue)
 	mFisheyeClearColor[0] = red;
 	mFisheyeClearColor[1] = green;
 	mFisheyeClearColor[2] = blue;
-	mFisheyeClearColor[3] = SGCTSettings::Instance()->useFisheyeAlpha() ? 0.0f : 1.0f;
+	mFisheyeClearColor[3] = 1.0f;
 }
 
 /*!
@@ -2959,14 +2801,14 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,
 		static_cast<float>(mStatistics->getAvgFPS()),
-        getAAInfo());
+        getAAInfo(winIndex));
     #else
     sprintf( basicInfo, "Node: %s (%s:%d) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,
 		static_cast<float>(mStatistics->getAvgFPS()),
-        getAAInfo());
+        getAAInfo(winIndex));
     #endif
 
 	return basicInfo;
@@ -2976,17 +2818,16 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
 	This function returns the Anti-Aliasing (AA) settings.
 	This function is called once per second.
 */
-const char * sgct::Engine::getAAInfo()
+const char * sgct::Engine::getAAInfo(std::size_t winIndex)
 {
-    if( SGCTSettings::Instance()->useFXAA() &&
-		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+    if( SGCTSettings::Instance()->useFXAA() )
 	{
-		if( getCurrentWindowPtr()->isUsingFisheyeRendering() && getCurrentWindowPtr()->getNumberOfAASamples() > 1 )
+		if( getWindowPtr(winIndex)->isUsingFisheyeRendering() && getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
 		{
 			#if (_MSC_VER >= 1400) //visual studio 2005 or later
-				sprintf_s(aaInfo, sizeof(aaInfo), "FXAA+MSAAx%d", getCurrentWindowPtr()->getNumberOfAASamples());
+				sprintf_s(aaInfo, sizeof(aaInfo), "FXAA+MSAAx%d", getWindowPtr(winIndex)->getNumberOfAASamples() );
 			#else
-				sprintf(aaInfo, "FXAA+MSAAx%d", tmpNode->numberOfSamples);
+				sprintf(aaInfo, "FXAA+MSAAx%d", getWindowPtr(winIndex)->getNumberOfAASamples() );
 			#endif
 		}
 		else
@@ -2998,17 +2839,16 @@ const char * sgct::Engine::getAAInfo()
 			#endif
 		}
 	}
-    else
+    else //no FXAA 
     {
-        if( getCurrentWindowPtr()->getNumberOfAASamples() > 1  &&
-			SGCTSettings::Instance()->getFBOMode() != SGCTSettings::RegularFBO )
+        if( getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
         {
             #if (_MSC_VER >= 1400) //visual studio 2005 or later
             sprintf_s( aaInfo, sizeof(aaInfo), "MSAAx%d",
-                getCurrentWindowPtr()->getNumberOfAASamples());
+                getWindowPtr(winIndex)->getNumberOfAASamples());
             #else
             sprintf( aaInfo, "MSAAx%d",
-                getCurrentWindowPtr()->numberOfSamples);
+                getWindowPtr(winIndex)->numberOfSamples);
             #endif
         }
         else
@@ -3019,7 +2859,7 @@ const char * sgct::Engine::getAAInfo()
         #endif
     }
 
-    return aaInfo;
+	return aaInfo;
 }
 
 /*!
@@ -3127,15 +2967,10 @@ void sgct::Engine::stopTimer( size_t id )
     }
 }
 
+/*!
+	Get the time from program start in seconds
+*/
 double sgct::Engine::getTime()
 {
 	return glfwGetTime();
-}
-
-/*!
-	Returns true if fisheye rendering is active for the current window
-*/
-bool sgct::Engine::isFisheye()
-{
-	return getCurrentWindowPtr()->isUsingFisheyeRendering();
 }

@@ -10,6 +10,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SGCTSettings.h"
+#include "../include/sgct/SGCTInternalShaders.h"
+#include "../include/sgct/SGCTInternalShaders_modern.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
@@ -36,6 +38,7 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mSetWindowPos = false;
 	mDecorated = true;
 	mFisheyeMode = false;
+	mFisheyeAlpha = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -49,6 +52,32 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mAspectRatio = 1.0f;
 	mId = -1;
 	mShotCounter = 0;
+
+	FisheyeMVP		= -1;
+	Cubemap			= -1;
+	FishEyeHalfFov	= -1;
+	FisheyeOffset	= -1;
+	StereoMVP		= -1;
+	StereoLeftTex	= -1;
+	StereoRightTex	= -1;
+
+	mCubeMapResolution = 256; //low
+	mCubeMapSize = 14.8f; //dome diamter
+	mFisheyeTilt = 0.0f;
+	mFieldOfView = 180.0f;
+
+	mCropFactors[0] = 0.0f;
+	mCropFactors[1] = 0.0f;
+	mCropFactors[2] = 0.0f;
+	mCropFactors[3] = 0.0f;
+
+	mFisheyeOffset[0] = 0.0f;
+	mFisheyeOffset[1] = 0.0f;
+	mFisheyeOffset[2] = 0.0f;
+	mFisheyeBaseOffset[0] = 0.0f;
+	mFisheyeBaseOffset[1] = 0.0f;
+	mFisheyeBaseOffset[2] = 0.0f;
+	mFisheyeOffaxis = false;
 
 	mQuadVerts[0] = 0.0f;
 	mQuadVerts[1] = 0.0f;
@@ -138,7 +167,7 @@ void sgct_core::SGCTWindow::close()
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
 		mCubeMapFBO_Ptr != NULL &&
-		SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+		SGCTSettings::Instance()->useFBO() )
 	{
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing OpenGL buffers for window %d...\n", mId);
 		mFinalFBO_Ptr->destroy();
@@ -164,6 +193,10 @@ void sgct_core::SGCTWindow::close()
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Deleting VAOs for window %d...\n", mId);
 		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 	}
+
+	//delete shaders
+	mFisheyeShader.deleteProgram();
+	mStereoShader.deleteProgram();
 }
 
 void sgct_core::SGCTWindow::init(int id)
@@ -186,13 +219,14 @@ void sgct_core::SGCTWindow::init(int id)
 /*!
 	Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs. 
 */
-void sgct_core::SGCTWindow::initBuffers()
+void sgct_core::SGCTWindow::initOGL()
 {
 	glfwMakeContextCurrent( mWindowHandle );
 	createTextures();
 	createVBOs(); //must be created before FBO
 	createFBOs();
 	initScreenCapture();
+	loadShaders();
 }
 
 /*!
@@ -246,6 +280,9 @@ void sgct_core::SGCTWindow::swap()
 {
 	mWindowResOld[0] = mWindowRes[0];
 	mWindowResOld[1] = mWindowRes[1];
+
+	glfwMakeContextCurrent( mWindowHandle );
+	glfwSwapBuffers( mWindowHandle );
 }
 
 /*!
@@ -277,7 +314,7 @@ void sgct_core::SGCTWindow::update()
 		resizeFBOs();
 
 		//resize PBOs
-		(mFisheyeMode && !SGCTSettings::Instance()->useFisheyeAlpha()) ?
+		(mFisheyeMode && !mFisheyeAlpha) ?
 				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 ) :
 				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 );
 	}
@@ -407,10 +444,10 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	//if using fisheye rendering for a dome display
 	if( isUsingFisheyeRendering() )
 	{
-		if( SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO )
+		if( !SGCTSettings::Instance()->useFBO() )
 		{
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Forcing FBOs for fisheye mode!\n", mId);
-			SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
+			SGCTSettings::Instance()->setUseFBO( true );
 		}
 
 		//create the cube mapped viewports
@@ -418,10 +455,8 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	int antiAliasingSamples = getNumberOfAASamples();
-	if( antiAliasingSamples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO ) //if multisample is used
+	if( antiAliasingSamples > 1 && !SGCTSettings::Instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
-	else if( antiAliasingSamples < 2 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO ) //on sample or less => no multisampling
-		SGCTSettings::Instance()->setFBOMode( SGCTSettings::RegularFBO );
 
 	int count;
 	GLFWmonitor** monitors = glfwGetMonitors(&count);
@@ -456,7 +491,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		}
 	}
 
-	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, NULL);
+	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);
 	
 	if( mWindowHandle != NULL )
 	{
@@ -608,7 +643,7 @@ void sgct_core::SGCTWindow::initScreenCapture()
 	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
 
 	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && glfwGetWindowAttrib( mWindowHandle, GLFW_CONTEXT_VERSION_MAJOR) > 1 ); //if supported then use them
-	if( mFisheyeMode && !SGCTSettings::Instance()->useFisheyeAlpha())
+	if( mFisheyeMode && !mFisheyeAlpha )
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
 	else
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
@@ -686,7 +721,7 @@ void sgct_core::SGCTWindow::createTextures()
 	//glfwMakeContextCurrent( mWindowHandle );
 	
 	//no target textures needed if not using FBO
-	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
+	if( !SGCTSettings::Instance()->useFBO() )
 		return;
 
 	if( sgct::Engine::Instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
@@ -720,13 +755,11 @@ void sgct_core::SGCTWindow::createTextures()
 	*/
 	if( mFisheyeMode )
 	{
-		GLint cubeMapRes = SGCTSettings::Instance()->getCubeMapResolution();
 		GLint MaxCubeMapRes;
 		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
-		if(cubeMapRes > MaxCubeMapRes)
+		if(mCubeMapResolution > MaxCubeMapRes)
 		{
-			cubeMapRes = MaxCubeMapRes;
-			SGCTSettings::Instance()->setCubeMapResolution(cubeMapRes);
+			mCubeMapResolution = MaxCubeMapRes;
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
 		}
 
@@ -739,9 +772,9 @@ void sgct_core::SGCTWindow::createTextures()
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
 		for (int i = 0; i < 6; ++i)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, cubeMapRes, cubeMapRes, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
-			cubeMapRes, cubeMapRes, mFrameBufferTextures[ sgct::Engine::FishEye ], mId);
+			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FishEye ], mId);
 	}
 
 	if( sgct::Engine::Instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
@@ -759,12 +792,12 @@ void sgct_core::SGCTWindow::createTextures()
 */
 void sgct_core::SGCTWindow::createFBOs()
 {
-	if(SGCTSettings::Instance()->getFBOMode() == SGCTSettings::NoFBO)
+	if( !SGCTSettings::Instance()->useFBO() )
 	{
 		//disable anaglyph & checkerboard stereo if FBOs are not used
 		if( mStereoMode > Active )
 			mStereoMode = NoStereo;
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning! FBO rendering is not supported or enabled!\nAnaglyph & checkerboard (DLP) stereo modes are disabled.\n");
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning! FBO rendering is not supported or enabled!\nPostFX, fisheye and some stereo modes are disabled.\n");
 	}
 	else
 	{
@@ -774,8 +807,8 @@ void sgct_core::SGCTWindow::createFBOs()
 			mFramebufferResolution[1],
 			1);
 
-			mCubeMapFBO_Ptr->createFBO(SGCTSettings::Instance()->getCubeMapResolution(),
-				SGCTSettings::Instance()->getCubeMapResolution(),
+			mCubeMapFBO_Ptr->createFBO( mCubeMapResolution,
+				mCubeMapResolution,
 				mNumberOfAASamples);
 
 			mCubeMapFBO_Ptr->bind();
@@ -786,7 +819,7 @@ void sgct_core::SGCTWindow::createFBOs()
 					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::FishEye], i );
 				}
 
-				SGCTSettings::Instance()->useFisheyeAlpha() ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+				mFisheyeAlpha ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
 				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
 
 				//copy AA-buffer to "regular"/non-AA buffer
@@ -816,7 +849,7 @@ void sgct_core::SGCTWindow::createFBOs()
 				mNumberOfAASamples);
 		}
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "FBOs initiated successfully!\n");
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Window %d: FBO initiated successfully! Number of samples: %d\n", mId, mNumberOfAASamples);
 	}
 }
 
@@ -892,12 +925,138 @@ void sgct_core::SGCTWindow::createVBOs()
 		glBindVertexArray(0);
 }
 
+void sgct_core::SGCTWindow::loadShaders()
+{
+	//load shaders
+	if( mFisheyeMode )
+	{
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		{
+			mFisheyeShader.setVertexShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			
+			if(mFisheyeOffaxis)
+			{
+				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
+			else
+			{
+				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
+		}
+		else //modern pipeline
+		{
+			mFisheyeShader.setVertexShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			
+			if(mFisheyeOffaxis)
+			{
+				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
+			else
+			{
+				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
+		}
+
+		mFisheyeShader.createAndLinkProgram();
+		mFisheyeShader.bind();
+
+		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+			FisheyeMVP = mFisheyeShader.getUniformLocation( "MVP" );
+
+		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
+		glUniform1i( Cubemap, 0 );
+
+		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );
+		glUniform1f( FishEyeHalfFov, glm::half_pi<float>() );
+
+		if( mFisheyeOffaxis )
+		{
+			FisheyeOffset = mFisheyeShader.getUniformLocation( "offset" );
+			glUniform3f( FisheyeOffset,
+				mFisheyeBaseOffset[0] + mFisheyeOffset[0],
+				mFisheyeBaseOffset[1] + mFisheyeOffset[1],
+				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
+		}
+		sgct::ShaderProgram::unbind();
+	}
+
+	//-------------- end fisheye shader ----------->
+
+	if( mStereoMode > Active )
+	{
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+			mStereoShader.setVertexShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		else
+			mStereoShader.setVertexShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			
+		if( mStereoMode == Anaglyph_Red_Cyan )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+					
+		}
+		else if( mStereoMode == Anaglyph_Amber_Blue )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Checkerboard )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Checkerboard_Inverted )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Vertical_Interlaced )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Vertical_Interlaced_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Vertical_Interlaced_Inverted )
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else
+		{
+			sgct::Engine::Instance()->isOGLPipelineFixed() ?
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+
+		mStereoShader.createAndLinkProgram();
+		mStereoShader.bind();
+		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+			StereoMVP = mStereoShader.getUniformLocation( "MVP" );
+		StereoLeftTex = mStereoShader.getUniformLocation( "LeftTex" );
+		StereoRightTex = mStereoShader.getUniformLocation( "RightTex" );
+		glUniform1i( StereoLeftTex, 0 );
+		glUniform1i( StereoRightTex, 1 );
+		sgct::ShaderProgram::unbind();
+	}
+}
+
 void sgct_core::SGCTWindow::bindVAO()
 {
 	mFisheyeMode ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
 }
 
-void sgct_core::SGCTWindow::bindVAO( VBOIndexes index )
+void sgct_core::SGCTWindow::bindVAO( VBOIndex index )
 {
 	glBindVertexArray( mVAO[ index ] );
 }
@@ -907,7 +1066,7 @@ void sgct_core::SGCTWindow::bindVBO()
 	mFisheyeMode ? glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]) : glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 }
 
-void sgct_core::SGCTWindow::bindVBO( VBOIndexes index )
+void sgct_core::SGCTWindow::bindVBO( VBOIndex index )
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[index]);
 }
@@ -932,14 +1091,14 @@ void sgct_core::SGCTWindow::captureBuffer()
 {
 	if(mStereoMode == Active)
 	{
-		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+		if( SGCTSettings::Instance()->useFBO() )
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
 		else
 			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
 	{
-		if(SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+		if( SGCTSettings::Instance()->useFBO() )
 		{
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
@@ -969,8 +1128,8 @@ void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
 {
 	if( mFisheyeMode )
 	{
-		width = SGCTSettings::Instance()->getCubeMapResolution();
-		height = SGCTSettings::Instance()->getCubeMapResolution();
+		width = mCubeMapResolution;
+		height = mCubeMapResolution;
 	}
 	else
 	{
@@ -985,7 +1144,7 @@ void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
 */
 void sgct_core::SGCTWindow::resizeFBOs()
 {
-	if(!mUseFixResolution && SGCTSettings::Instance()->getFBOMode() != SGCTSettings::NoFBO)
+	if(!mUseFixResolution && SGCTSettings::Instance()->useFBO())
 	{
 		glfwMakeContextCurrent( mWindowHandle );
 		glDeleteTextures(4, &mFrameBufferTextures[0]);
@@ -1019,10 +1178,10 @@ void sgct_core::SGCTWindow::resizeFBOs()
 void sgct_core::SGCTWindow::initFisheye()
 {
 	//create proxy geometry
-	float leftcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropLeft);
-	float rightcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropRight);
-	float bottomcrop	= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropBottom);
-	float topcrop		= SGCTSettings::Instance()->getFisheyeCropValue(SGCTSettings::CropTop);
+	float leftcrop		= mCropFactors[CropLeft];
+	float rightcrop		= mCropFactors[CropRight];
+	float bottomcrop	= mCropFactors[CropBottom];
+	float topcrop		= mCropFactors[CropTop];
 
 	float cropAspect = ((1.0f-2.0f * bottomcrop) + (1.0f-2.0f*topcrop)) / ((1.0f-2.0f*leftcrop) + (1.0f-2.0f*rightcrop));
 
@@ -1116,7 +1275,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	deleteAllViewports();
 	glm::vec4 lowerLeft, upperLeft, upperRight;
 	
-	float radius = sgct_core::SGCTSettings::Instance()->getDomeDiameter() / 2.0f;
+	float radius = getDomeDiameter() / 2.0f;
 
 	//+Z face
 	lowerLeft.x = -1.0f * radius;
@@ -1135,8 +1294,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	upperRight.w = 1.0f;
 
 	//tilt
-	float tilt = sgct_core::SGCTSettings::Instance()->getFisheyeTilt();
-	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-tilt, glm::vec3(1.0f, 0.0f, 0.0f));
+	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
 	//glm::mat4 tiltMat(1.0f);
 
 	//pan 45 deg
@@ -1204,9 +1362,9 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 		*/
 	}
 
-	if( SGCTSettings::Instance()->getFisheyeOverlay() != NULL )
+	if( getFisheyeOverlay() != NULL )
 	{
-		mViewports[0].setOverlayTexture( SGCTSettings::Instance()->getFisheyeOverlay() );
+		mViewports[0].setOverlayTexture( getFisheyeOverlay() );
 		//sgct::MessageHandler::Instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::Instance()->getFisheyeOverlay());
 	}
 }
@@ -1247,3 +1405,161 @@ int sgct_core::SGCTWindow::getNumberOfAASamples()
 {
 	return mNumberOfAASamples;
 }
+
+/*!
+Set the cubemap resolution used in the fisheye renderer
+
+@param res resolution of the cubemap sides (should be a power of two for best performance)
+*/
+void sgct_core::SGCTWindow::setCubeMapResolution(int res)
+{
+	mCubeMapResolution = res;
+}
+
+/*!
+Set the dome diameter used in the fisheye renderer (used for the viewplane distance calculations)
+
+@param size size of the dome diameter (cube side) in meters
+*/
+void sgct_core::SGCTWindow::setDomeDiameter(float size)
+{
+	mCubeMapSize = size;
+}
+
+/*!
+Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
+*/
+void sgct_core::SGCTWindow::setFisheyeAlpha(bool state)
+{
+	mFisheyeAlpha = state;
+}
+
+/*!
+Set the fisheye/dome tilt angle used in the fisheye renderer.
+The tilt angle is from the horizontal.
+
+@param angle the tilt angle in degrees
+*/
+void sgct_core::SGCTWindow::setFisheyeTilt(float angle)
+{
+	mFisheyeTilt = angle;
+}
+
+/*!
+Set the fisheye/dome field-of-view angle used in the fisheye renderer.
+
+@param angle the FOV angle in degrees
+*/
+void sgct_core::SGCTWindow::setFisheyeFOV(float angle)
+{
+	mFieldOfView = angle;
+}
+
+/*!
+Set the fisheye crop values. Theese values are used when rendering content for a single projector dome.
+The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fisheye is cropped 25% (350 pixels) at the top.
+*/
+void sgct_core::SGCTWindow::setFisheyeCropValues(float left, float right, float bottom, float top)
+{
+	mCropFactors[ CropLeft ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
+	mCropFactors[ CropRight ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
+	mCropFactors[ CropBottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
+	mCropFactors[ CropTop ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
+}
+
+/*!
+	Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
+	Base of fisheye is the XY-plane. The base offset will be added to the offset specified by setFisheyeOffset.
+	These values are set from the XML config.
+*/
+void sgct_core::SGCTWindow::setFisheyeBaseOffset(float x, float y, float z )
+{
+	mFisheyeBaseOffset[0] = x;
+	mFisheyeBaseOffset[1] = y;
+	mFisheyeBaseOffset[2] = z;
+
+	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
+	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
+	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
+
+	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
+		mFisheyeOffaxis = false;
+	else
+		mFisheyeOffaxis = true;
+}
+
+/*!
+	Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
+	Base of fisheye is the XY-plane. This function is normally used in fisheye stereo rendering.
+*/
+void sgct_core::SGCTWindow::setFisheyeOffset(float x, float y, float z)
+{
+	mFisheyeOffset[0] = x;
+	mFisheyeOffset[1] = y;
+	mFisheyeOffset[2] = z;
+
+	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
+	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
+	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
+
+	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
+		mFisheyeOffaxis = false;
+	else
+		mFisheyeOffaxis = true;
+}
+
+/*!
+Set the fisheye overlay image.
+*/
+void sgct_core::SGCTWindow::setFisheyeOverlay(std::string filename)
+{
+	mFisheyeOverlayFilename.assign(filename);
+}
+
+//! Get the cubemap size in pixels used in the fisheye renderer
+int sgct_core::SGCTWindow::getCubeMapResolution()
+{
+	return mCubeMapResolution;
+}
+
+//! Get the dome diameter in meters used in the fisheye renderer
+float sgct_core::SGCTWindow::getDomeDiameter()
+{
+	return mCubeMapSize;
+}
+
+//! Get the fisheye/dome tilt angle in degrees
+float sgct_core::SGCTWindow::getFisheyeTilt()
+{
+	return mFisheyeTilt;
+}
+
+//! Get the fisheye/dome field-of-view angle in degrees
+float sgct_core::SGCTWindow::getFisheyeFOV()
+{
+	return mFieldOfView;
+}
+
+/*! Get the fisheye crop value for a side:
+	- Left
+	- Right
+	- Bottom
+	- Top
+*/
+float sgct_core::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side)
+{
+	return mCropFactors[side];
+}
+
+//! Get if fisheye is offaxis (not rendered from centre)
+bool sgct_core::SGCTWindow::isFisheyeOffaxis()
+{
+	return mFisheyeOffaxis;
+}
+
+//! Get the fisheye overlay image filename/path.
+const char * sgct_core::SGCTWindow::getFisheyeOverlay()
+{
+	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
+}
+

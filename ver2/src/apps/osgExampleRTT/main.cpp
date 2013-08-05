@@ -207,7 +207,7 @@ void myDrawFun()
 {
 	//unbind sgct's FBO in order to use osg's FBO
 	//the sgct FBO will be binded again in osg's main camera's pre draw callback
-	gEngine->getFBOPtr()->unBind();
+	sgct::Engine::Instance()->getActiveWindowPtr()->getFBOPtr()->unBind();
 	
 	const int * curr_vp = gEngine->getActiveViewport();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);

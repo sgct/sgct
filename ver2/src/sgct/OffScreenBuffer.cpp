@@ -31,7 +31,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	mWidth = width;
 	mHeight = height;
 
-	mMultiSampled = (samples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO);
+	mMultiSampled = (samples > 1 && SGCTSettings::Instance()->useFBO());
 
 	//create a multisampled buffer
 	if(mMultiSampled)
@@ -87,7 +87,7 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 	mWidth = width;
 	mHeight = height;
 
-	mMultiSampled = (samples > 1 && SGCTSettings::Instance()->getFBOMode() == SGCTSettings::MultiSampledFBO);
+	mMultiSampled = ( samples > 1 && SGCTSettings::Instance()->useFBO() );
 	
 	//delete all
 	glDeleteFramebuffers(1,	&mFrameBuffer);

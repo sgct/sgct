@@ -21,7 +21,10 @@ int main( int argc, char* argv[] )
 
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
-	sgct_core::SGCTSettings::Instance()->setFisheyeAlpha(true);
+
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
+		thisNode->getWindowPtr(i)->setFisheyeAlpha(true);
 
 	// Bind your functions
 	gEngine->setInitOGLFunction( myInitOGLFun );

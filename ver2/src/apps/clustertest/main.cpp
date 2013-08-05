@@ -237,15 +237,16 @@ void myInitOGLFun()
 
 	unsigned int numberOfActiveViewports = 0;
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
-		if( thisNode->getViewport(i)->isEnabled() )
-		{
-			numberOfActiveViewports++;
+	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
+		for(unsigned int j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
+			if( thisNode->getWindowPtr(i)->getViewport(j)->isEnabled() )
+			{
+				numberOfActiveViewports++;
 
-			glm::mat4 prjMatMono  = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::Mono );
-			glm::mat4 prjMatLeft  = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
-			glm::mat4 prjMatRight = thisNode->getViewport(i)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );
-		}
+				glm::mat4 prjMatMono  = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::Mono );
+				glm::mat4 prjMatLeft  = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
+				glm::mat4 prjMatRight = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );
+			}
 
 	sgct::MessageHandler::Instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
 }

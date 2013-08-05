@@ -17,11 +17,13 @@ namespace sgct_utils
 class SGCTDome
 {
 public:
+	SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution = 128);
 	SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution = 128);
 	~SGCTDome();
 	void draw();
 
 private:
+	void init(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution);
 	// Don't implement these, should give compile warning if used
 	SGCTDome();
 	SGCTDome( const SGCTDome & dome );

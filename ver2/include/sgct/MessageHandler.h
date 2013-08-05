@@ -45,6 +45,7 @@ public:
 	}
 
 	void decode(const char * receivedData, int receivedlength, int clientIndex);
+	void print(const char *fmt, ...);
 	void print(NotifyLevel nl, const char *fmt, ...);
     void printDebug(NotifyLevel nl, const char *fmt, ...);
     void printIndent(NotifyLevel nl, unsigned int indentation, const char* fmt, ...);

@@ -59,6 +59,8 @@ public:
 	{
 		if( mInstance != NULL )
 		{
+			mInstance->mShader.deleteProgram();
+			
 			delete mInstance;
 			mInstance = NULL;
 		}

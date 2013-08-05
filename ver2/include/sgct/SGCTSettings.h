@@ -20,8 +20,6 @@ namespace sgct_core
 class SGCTSettings
 {
 public:
-	enum CropSides { CropLeft = 0, CropRight, CropBottom, CropTop };
-	enum FBOMode { NoFBO = 0, RegularFBO, MultiSampledFBO };
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 
 	/*! Get the SGCTSettings instance */
@@ -45,42 +43,23 @@ public:
 		}
 	}
 
-	void setCubeMapResolution(int res);
-	void setDomeDiameter(float size);
-	void setFisheyeTilt(float angle);
-	void setFisheyeFOV(float angle);
-	void setFisheyeCropValues(float left, float right, float bottom, float top);
-	void setFisheyeOffset(float x, float y, float z = 0.0f);
-	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
-	void setFisheyeOverlay(std::string filename);
-	void setFisheyeAlpha(bool state);
 	void setFXAA(bool state);
-	void setFBOMode(FBOMode mode);
+	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
 	void setCapturePath(std::string path, CapturePathIndexes cpi = Mono);
 	void appendCapturePath(std::string str, CapturePathIndexes cpi = Mono);
 	void setCaptureFormat(const char * format);
 	
-	int getCubeMapResolution();
-	float getDomeDiameter();
-	float getFisheyeTilt();
-	float getFisheyeFOV();
-	float getFisheyeCropValue(CropSides side);
-	bool isFisheyeOffaxis();
-	float getFisheyeOffset(unsigned int axis);
-	const char * getFisheyeOverlay();
 	const char * getCapturePath(CapturePathIndexes cpi = Mono);
 	int getCaptureFormat();
 	
-	//! Set to true if alpha should be used in fisheye rendering
-	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
-	//! Set to true if FXAA should be used.
+	//! Set to true if FXAA should be used
 	inline bool useFXAA() { return mUseFXAA; }
 	//! Set to true if PostFX pass should be used
 	inline bool usePostFX() { return mUsePostFX; }
-	//! Returns the FBO mode.
-	inline FBOMode getFBOMode() { return mFBOMode; }
+	//! Returns true if FBOs are used
+	inline bool useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
 	inline int getNumberOfCaptureThreads() { return mNumberOfCaptureThreads; }
 	//! Get the zlib compression level if png files used for saving screenshots
@@ -96,29 +75,16 @@ private:
 
 private:
 	static SGCTSettings * mInstance;
-	
-	//Cubemap settings
-	int mCubeMapResolution;
-	float mCubeMapSize;
 
-	//fisheye settings
-	float mFisheyeTilt;
-	float mFieldOfView;
-	float mFisheyeOffset[3];
-	float mFisheyeBaseOffset[3]; //set from the config
-	bool mFisheyeOffaxis;
-	bool mFisheyeAlpha;
-	float mCropFactors[4];
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
-	std::string mFisheyeOverlayFilename;
 
 	//FXAA
 	bool mUseFXAA;
 	bool mUsePostFX;
 
 	//FBO settings
-	FBOMode mFBOMode;
+	bool mUseFBO;
 
 	std::string mCapturePath[3];
 	int mCaptureFormat;

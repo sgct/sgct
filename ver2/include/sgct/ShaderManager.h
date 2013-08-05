@@ -12,6 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include "ShaderProgram.h"
 
+#define NUMBER_OF_SHADER_BINS 8
+
 namespace sgct
 {
 
@@ -22,11 +24,8 @@ The current implementation of shader programs only support vertex and fragment s
 class ShaderManager
 {
 public:
-	enum ShaderSourceType
-	{ 
-		SHADER_SRC_FILE, 
-		SHADER_SRC_STRING
-	};
+	//! Different shader bin indexes to use with the manager
+	enum ShaderBinIndex { SHADER_BIN_0 = 0, SHADER_BIN_1, SHADER_BIN_2, SHADER_BIN_3, SHADER_BIN_4, SHADER_BIN_5, SHADER_BIN_6, SHADER_BIN_7 };
 
 	~ShaderManager(void);
 
@@ -34,21 +33,21 @@ public:
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
-		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
 	bool addShader( 
 		ShaderProgram & shader,
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
-		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
 	bool addShader( 
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
 		const std::string & geometrySrc,
-		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
 	bool addShader( 
 		ShaderProgram & shader,
@@ -56,8 +55,9 @@ public:
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
 		const std::string & geometrySrc,
-		ShaderSourceType sSrcType = SHADER_SRC_FILE );
+		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
+	void setShaderBin( ShaderBinIndex bin );
 	bool removeShader( const std::string & name );
 	bool bindShader( const std::string & name ) const;
 	bool bindShader( const ShaderProgram & shader ) const;
@@ -104,8 +104,8 @@ public:
 private:
 
 	static ShaderManager * mInstance;		// Instantiation of the manager
-
-	std::vector<ShaderProgram> mShaders;	// Active shaders in the manager
+	std::size_t mCurrentBin;
+	std::vector<ShaderProgram> mShaders[ NUMBER_OF_SHADER_BINS ];	// Active shaders in the manager
 };
 
 } // sgct

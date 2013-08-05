@@ -16,7 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <GL/glfw3.h>
 
 #include "../include/sgct/Statistics.h"
-#include "../include/sgct/ShaderManager.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
@@ -98,6 +97,8 @@ sgct_core::Statistics::Statistics()
 
 sgct_core::Statistics::~Statistics()
 {
+	mShader.deleteProgram();
+	
 	if(mDynamicVBOs[0])
 		glDeleteBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
 	if(mDynamicVAOs[0])
@@ -194,15 +195,15 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	{
 		glBindVertexArray(0);
 
-		sgct::ShaderManager::Instance()->addShader( mShader, "StatisticsShader",
-			Stats_Vert_Shader,
-			Stats_Frag_Shader, sgct::ShaderManager::SHADER_SRC_STRING );
+		mShader.setVertexShaderSrc( Stats_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.setFragmentShaderSrc( Stats_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.createAndLinkProgram();
 		mShader.bind();
 
 		mMVPLoc = mShader.getUniformLocation( "MVP" );
 		mColLoc = mShader.getUniformLocation( "Col" );
 
-		sgct::ShaderManager::Instance()->unBindShader();
+		mShader.unbind();
 	}
 }
 
@@ -421,7 +422,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		
 		//unbind
 		glBindVertexArray(0);
-		sgct::ShaderManager::Instance()->unBindShader();
+		mShader.unbind();
 	}
 }
 

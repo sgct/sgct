@@ -10,12 +10,24 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
-#include "../include/sgct/SGCTSettings.h"
 
 /*!
 	This constructor requires a valid openGL contex 
 */
+sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution)
+{
+	init(radius, FOV, segments, rings, tilt, resolution);
+}
+
+/*!
+	This constructor requires a valid openGL contex
+*/
 sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution)
+{
+	init(radius, FOV, segments, rings, 0.0f, resolution);
+}
+
+void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution)
 {
 	mVerts = NULL;
 	mResolution = resolution;
@@ -41,7 +53,7 @@ sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, u
 	glm::vec3 vertex, transformedVertex;
 	unsigned int pos = 0;
 
-	glm::mat3 rotMat = glm::mat3( glm::rotate( glm::mat4(1.0f), -sgct_core::SGCTSettings::Instance()->getFisheyeTilt(), glm::vec3(1.0f, 0.0f, 0.0f) ) );
+	glm::mat3 rotMat = glm::mat3( glm::rotate( glm::mat4(1.0f), -tilt, glm::vec3(1.0f, 0.0f, 0.0f) ) );
 
 	//create rings
 	for(unsigned int r = 1; r <= mRings; r++)

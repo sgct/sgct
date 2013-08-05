@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/FontManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
-#include "../include/sgct/ShaderManager.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -262,15 +261,15 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 
 		if( !shaderCreated )
 		{
-			sgct::ShaderManager::Instance()->addShader( mShader, "SGCTFontShader",
-			Font_Vert_Shader,
-			Font_Frag_Shader, sgct::ShaderManager::SHADER_SRC_STRING );
+			mShader.setVertexShaderSrc( Font_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.setFragmentShaderSrc( Font_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.createAndLinkProgram();
 			mShader.bind();
 
 			mMVPLoc = mShader.getUniformLocation( "MVP" );
 			mColLoc = mShader.getUniformLocation( "Col" );
 			mTexLoc = mShader.getUniformLocation( "Tex" );
-			sgct::ShaderManager::Instance()->unBindShader();
+			mShader.unbind();
 
 			shaderCreated = true;
 		}

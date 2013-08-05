@@ -82,6 +82,27 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
     sendMessageToServer(mParseBuffer);
 }
 
+/*!
+	Print messages to command line and share to master for easier debuging on a cluster.
+*/
+void sgct::MessageHandler::print(const char *fmt, ...)
+{
+	if ( fmt == NULL )		// If There's No Text
+	{
+		*mParseBuffer=0;	// Do Nothing
+		return;
+	}
+
+	va_list		ap;		// Pointer To List Of Arguments
+    va_start(ap, fmt);	// Parses The String For Variables
+    printv(fmt, ap);
+}
+
+/*!
+	Print messages to command line and share to master for easier debuging on a cluster.
+
+	\param nl is the notify level of this message
+*/
 void sgct::MessageHandler::print(NotifyLevel nl, const char *fmt, ...)
 {
 	if (nl > mLevel || fmt == NULL)		// If There's No Text

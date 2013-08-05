@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "OffScreenBuffer.h"
 #include "ScreenCapture.h"
 #include "Viewport.h"
+#include "ShaderProgram.h"
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
@@ -29,13 +30,14 @@ public:
 		Different stereo modes used for rendering
 	*/
 	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted, DummyStereo };
-	enum VBOIndexes { RenderQuad = 0, FishEyeQuad };
+	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
+	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
 public:
 	SGCTWindow();
 	void close();
 	void init(int id);
-	void initBuffers();
+	void initOGL();
 	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
 	void setFramebufferResolution(const int x, const int y);
@@ -57,11 +59,10 @@ public:
 	void initNvidiaSwapGroups();
 	void getSwapGroupFrameNumber(unsigned int & frameNumber);
 	void resetSwapGroupFrameNumber();
-	bool isUsingFisheyeRendering();
 	void bindVAO();
-	void bindVAO( VBOIndexes index );
+	void bindVAO( VBOIndex index );
 	void bindVBO();
-	void bindVBO( VBOIndexes index );
+	void bindVBO( VBOIndex index );
 	void unbindVBO();
 	void unbindVAO();
 	void captureBuffer();
@@ -83,11 +84,6 @@ public:
 		Returns pointer to screen capture ptr
 	*/
 	sgct_core::ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
-
-	/*!
-		Set if fisheye rendering is active (only valid before init)
-	*/
-	void setFisheyeRendering(bool state);
 
 	/*!
 		\returns Get the horizontal window resolution.
@@ -139,12 +135,45 @@ public:
 	int getNumberOfAASamples();
 
 	inline bool isFullScreen() { return mFullScreen; }
-
 	inline unsigned int getFrameBufferTexture(unsigned int index){ return mFrameBufferTextures[index]; }
 	/*!
 		\returns this window's id
 	*/
 	inline int getId() { return mId; }
+	
+	inline void bindStereoShader() { mStereoShader.bind(); }
+	inline int getStereoShaderMVPLoc() { return StereoMVP; }
+	inline int getStereoShaderLeftTexLoc() { return StereoLeftTex; }
+	inline int getStereoShaderRightTexLoc() { return StereoRightTex; }
+
+	//Fisheye settings
+	inline void bindFisheyeShader() { mFisheyeShader.bind(); }
+	inline int getFisheyeShaderMVPLoc() { return FisheyeMVP; }
+	inline int getFisheyeShaderCubemapLoc() { return Cubemap; }
+	inline int getFisheyeShaderHalfFOVLoc() { return FishEyeHalfFov; }
+	inline int getFisheyeShaderOffsetLoc() { return FisheyeOffset; }
+	inline float getFisheyeOffset(unsigned int axis) { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
+	//! Set to true if alpha should be used in fisheye rendering
+	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
+
+	void setFisheyeRendering(bool state);
+	void setCubeMapResolution(int res);
+	void setDomeDiameter(float size);
+	void setFisheyeAlpha(bool state);
+	void setFisheyeTilt(float angle);
+	void setFisheyeFOV(float angle);
+	void setFisheyeCropValues(float left, float right, float bottom, float top);
+	void setFisheyeOffset(float x, float y, float z = 0.0f);
+	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
+	void setFisheyeOverlay(std::string filename);
+	bool isUsingFisheyeRendering();
+	int getCubeMapResolution();
+	float getDomeDiameter();
+	float getFisheyeTilt();
+	float getFisheyeFOV();
+	float getFisheyeCropValue(FisheyeCropSide side);
+	bool isFisheyeOffaxis();
+	const char * getFisheyeOverlay();
 
 	/*!
 		\returns the current screenshot number (file index)
@@ -164,6 +193,7 @@ private:
 	void createFBOs();
 	void resizeFBOs();
 	void createVBOs();
+	void loadShaders();
 	void initFisheye();
 
 public:
@@ -208,6 +238,24 @@ private:
 	unsigned int mVBO[NUMBER_OF_VBOS];
 	//VAO:s
 	unsigned int mVAO[NUMBER_OF_VBOS];
+
+	//Shaders
+	sgct::ShaderProgram mFisheyeShader;
+	int FisheyeMVP, Cubemap, FishEyeHalfFov, FisheyeOffset;
+	sgct::ShaderProgram mStereoShader;
+	int StereoMVP, StereoLeftTex, StereoRightTex;
+
+	//Fisheye
+	std::string mFisheyeOverlayFilename;
+	bool mFisheyeAlpha;
+	bool mFisheyeOffaxis;
+	float mFisheyeTilt;
+	float mFieldOfView;
+	float mFisheyeOffset[3];
+	float mFisheyeBaseOffset[3]; //set from the config
+	float mCropFactors[4];
+	float mCubeMapSize;
+	int mCubeMapResolution;
 
 	std::size_t mCurrentViewportIndex;
 	std::vector<Viewport> mViewports;

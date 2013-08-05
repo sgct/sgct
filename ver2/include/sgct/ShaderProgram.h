@@ -23,7 +23,7 @@ class ShaderProgram
 {
 public:
 	/*! If shader source should be loaded from file or read as is */
-	enum ShaderSourceType{ SHADER_SOURCE_FILE, SHADER_SOURCE_STRING };
+	enum ShaderSourceType{ SHADER_SRC_FILE, SHADER_SRC_STRING };
 
 	ShaderProgram();
 	ShaderProgram( const std::string & name );
@@ -31,13 +31,14 @@ public:
 
 	void deleteProgram();
 
-	bool setVertexShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SOURCE_FILE );
-	bool setFramgentShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SOURCE_FILE );
-	bool setGeometryShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SOURCE_FILE );
+	bool setVertexShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
+	bool setFragmentShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
+	bool setGeometryShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
 
 	bool createAndLinkProgram();
 
 	bool bind() const;
+	static void unbind();
 
 	int getAttribLocation( const std::string & name ) const;
 	int getUniformLocation( const std::string & name ) const;

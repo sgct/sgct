@@ -71,7 +71,7 @@ void myDrawFun()
 {
 	unsigned int index = draw_counter % buffers.size();
 	
-	gEngine->getFBOPtr()->unBind();
+	gEngine->getActiveWindowPtr()->getFBOPtr()->unBind();
 
 	glViewport( 0, 0, buffers[index].width, buffers[index].height );
 
@@ -97,7 +97,7 @@ void myDrawFun()
 	//un-bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	gEngine->getFBOPtr()->bind();
+	gEngine->getActiveWindowPtr()->getFBOPtr()->bind();
 
 	//render a quad in ortho/2D mode with target texture
 	//--------------------------------------------------
@@ -173,8 +173,13 @@ void myPreSyncFun()
 void myPostSyncPreDrawFun()
 {
 	//Fisheye cubemaps are constant size
-	if( gEngine->getWindowPtr(0)->isWindowResized() && !gEngine->isFisheye() )
-		resizeFBOs();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
+		if( gEngine->getWindowPtr(i)->isWindowResized() && !gEngine->getWindowPtr(i)->isUsingFisheyeRendering() )
+		{
+			resizeFBOs();
+			break;
+		}
 
 	//reset draw counter before draw
 	draw_counter = 0;
@@ -203,20 +208,23 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	if( gEngine->isFisheye() )
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 	{
-		fbData tmpBuffer;
-		buffers.push_back( tmpBuffer );
-	}
-	else
-	{
-		sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
-		for(unsigned int i=0; i < thisNode->getNumberOfViewports(); i++)
-		{	
-			if( thisNode->getViewport(i)->isEnabled() )
-			{
-				fbData tmpBuffer;
-				buffers.push_back( tmpBuffer );
+		if( thisNode->getWindowPtr(i)->isUsingFisheyeRendering() )
+		{
+			fbData tmpBuffer;
+			buffers.push_back( tmpBuffer );
+		}
+		else
+		{
+			for(unsigned int j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
+			{	
+				if( thisNode->getWindowPtr(i)->getViewport(j)->isEnabled() )
+				{
+					fbData tmpBuffer;
+					buffers.push_back( tmpBuffer );
+				}
 			}
 		}
 	}
@@ -246,33 +254,38 @@ void myDecodeFun()
 
 void createFBOs()
 {
-	int fb_width;
-	int fb_height;
-	
-	if(gEngine->isFisheye())
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 	{
-		fb_width = sgct_core::SGCTSettings::Instance()->getCubeMapResolution();
-		fb_height = sgct_core::SGCTSettings::Instance()->getCubeMapResolution();
-	}
-	else
-	{
-		fb_width = gEngine->getWindowPtr(0)->getXFramebufferResolution();
-		fb_height = gEngine->getWindowPtr(0)->getYFramebufferResolution();
-	}
+		int fb_width;
+		int fb_height;
 
-	unsigned int index = 0; //index to buffers
-	sgct_core::SGCTWindow * mainWin = gEngine->getWindowPtr(0);
-	for(std::size_t i=0; i < mainWin->getNumberOfViewports(); i++)
-	{	
-		if( mainWin->getViewport(i)->isEnabled() && index < buffers.size())
+		sgct_core::SGCTWindow * winPtr = gEngine->getWindowPtr(i);
+	
+		if(winPtr->isUsingFisheyeRendering())
 		{
-			buffers[index].fbo = 0;
-			buffers[index].renderBuffer = 0;
-			buffers[index].depthBuffer = 0;
-			buffers[index].texture = 0;
-			buffers[index].width = static_cast<int>(mainWin->getViewport(i)->getXSize() * static_cast<double>(fb_width));
-			buffers[index].height = static_cast<int>(mainWin->getViewport(i)->getYSize() * static_cast<double>(fb_height));
-			index++;
+			fb_width = winPtr->getCubeMapResolution();
+			fb_height = winPtr->getCubeMapResolution();
+		}
+		else
+		{
+			fb_width = winPtr->getXFramebufferResolution();
+			fb_height = winPtr->getYFramebufferResolution();
+		}
+
+		unsigned int index = 0; //index to buffers
+		for(std::size_t j=0; j < winPtr->getNumberOfViewports(); j++)
+		{	
+			if( winPtr->getViewport(j)->isEnabled() && index < buffers.size())
+			{
+				buffers[index].fbo = 0;
+				buffers[index].renderBuffer = 0;
+				buffers[index].depthBuffer = 0;
+				buffers[index].texture = 0;
+				buffers[index].width = static_cast<int>(winPtr->getViewport(j)->getXSize() * static_cast<double>(fb_width));
+				buffers[index].height = static_cast<int>(winPtr->getViewport(j)->getYSize() * static_cast<double>(fb_height));
+				index++;
+			}
 		}
 	}
 	

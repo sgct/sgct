@@ -21,7 +21,7 @@ that can be used for comparison will NULL value shader programs
 sgct::ShaderManager::ShaderManager(void) :
 	NullShader( "SGCT_NULL" )
 {
-	; // Do nothing
+	mCurrentBin = SHADER_BIN_0; //Internal bin
 }
 //----------------------------------------------------------------------------//
 
@@ -30,15 +30,18 @@ Destructor deallocates and deletes all shaders
 */
 sgct::ShaderManager::~ShaderManager(void)
 {
-	std::vector<ShaderProgram>::iterator it = mShaders.begin();
-	std::vector<ShaderProgram>::iterator end = mShaders.end();
-
-	for( ; it != end; ++it )
+	for(unsigned int i=0; i < NUMBER_OF_SHADER_BINS; i++)
 	{
-		it->deleteProgram();
-	}
+		std::vector<ShaderProgram>::iterator it = mShaders[i].begin();
+		std::vector<ShaderProgram>::iterator end = mShaders[i].end();
 
-	mShaders.clear();
+		for( ; it != end; ++it )
+		{
+			it->deleteProgram();
+		}
+
+		mShaders[i].clear();
+	}
 }
 //----------------------------------------------------------------------------//
 
@@ -57,7 +60,7 @@ bool sgct::ShaderManager::addShader(
 	const std::string & name,
 	const std::string & vertexSrc,
 	const std::string & fragmentSrc,
-	ShaderManager::ShaderSourceType sSrcType )
+	sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
 	//
 	// Check if shader already exists
@@ -71,19 +74,16 @@ bool sgct::ShaderManager::addShader(
 	//
 	// If shader don't exist, create it and add to container
 	//
-	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
-		ShaderProgram::SHADER_SOURCE_FILE :
-		ShaderProgram::SHADER_SOURCE_STRING;
 
 	ShaderProgram sp( name );
 	
-	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	if( !sp.setVertexShaderSrc( vertexSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 	
-	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	if( !sp.setFragmentShaderSrc( fragmentSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
@@ -91,7 +91,7 @@ bool sgct::ShaderManager::addShader(
 
 	if( sp.createAndLinkProgram() )
 	{
-		mShaders.push_back( sp );
+		mShaders[mCurrentBin].push_back( sp );
 		return true;
 	}
 
@@ -118,7 +118,7 @@ bool sgct::ShaderManager::addShader(
 	const std::string & name,
 	const std::string & vertexSrc,
 	const std::string & fragmentSrc,
-	ShaderManager::ShaderSourceType sSrcType )
+	sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
 	//if something failes set shader pointer to NullShader
 	shader = NullShader;
@@ -132,22 +132,15 @@ bool sgct::ShaderManager::addShader(
 		return false;
 	}
 
-	//
-	// If shader don't exist, create it and add to container
-	//
-	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
-		ShaderProgram::SHADER_SOURCE_FILE :
-		ShaderProgram::SHADER_SOURCE_STRING;
-
 	ShaderProgram sp( name );
 	
-	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	if( !sp.setVertexShaderSrc( vertexSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 	
-	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	if( !sp.setFragmentShaderSrc( fragmentSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
@@ -155,8 +148,8 @@ bool sgct::ShaderManager::addShader(
 
 	if( sp.createAndLinkProgram() )
 	{
-		mShaders.push_back( sp );
-		shader = mShaders.back();
+		mShaders[mCurrentBin].push_back( sp );
+		shader = mShaders[mCurrentBin].back();
 		return true;
 	}
 
@@ -183,7 +176,7 @@ bool sgct::ShaderManager::addShader(
 	const std::string & vertexSrc,
 	const std::string & fragmentSrc,
 	const std::string & geometrySrc,
-	ShaderManager::ShaderSourceType sSrcType )
+	sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
 	//
 	// Check if shader already exists
@@ -197,25 +190,21 @@ bool sgct::ShaderManager::addShader(
 	//
 	// If shader don't exist, create it and add to container
 	//
-	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
-		ShaderProgram::SHADER_SOURCE_FILE :
-		ShaderProgram::SHADER_SOURCE_STRING;
-
 	ShaderProgram sp( name );
 	
-	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	if( !sp.setVertexShaderSrc( vertexSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 	
-	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	if( !sp.setFragmentShaderSrc( fragmentSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 
-	if( !sp.setGeometryShaderSrc( geometrySrc, srcType ) )
+	if( !sp.setGeometryShaderSrc( geometrySrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
@@ -223,7 +212,7 @@ bool sgct::ShaderManager::addShader(
 
 	if( sp.createAndLinkProgram() )
 	{
-		mShaders.push_back( sp );
+		mShaders[mCurrentBin].push_back( sp );
 		return true;
 	}
 
@@ -252,7 +241,7 @@ bool sgct::ShaderManager::addShader(
 	const std::string & vertexSrc,
 	const std::string & fragmentSrc,
 	const std::string & geometrySrc,
-	ShaderManager::ShaderSourceType sSrcType )
+	sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
 	//if something failes set shader pointer to NullShader
 	shader = NullShader;
@@ -269,25 +258,21 @@ bool sgct::ShaderManager::addShader(
 	//
 	// If shader don't exist, create it and add to container
 	//
-	ShaderProgram::ShaderSourceType srcType = (sSrcType == SHADER_SRC_FILE ) ?
-		ShaderProgram::SHADER_SOURCE_FILE :
-		ShaderProgram::SHADER_SOURCE_STRING;
-
 	ShaderProgram sp( name );
 	
-	if( !sp.setVertexShaderSrc( vertexSrc, srcType ) )
+	if( !sp.setVertexShaderSrc( vertexSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 	
-	if( !sp.setFramgentShaderSrc( fragmentSrc, srcType ) )
+	if( !sp.setFragmentShaderSrc( fragmentSrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
 	}
 
-	if( !sp.setGeometryShaderSrc( geometrySrc, srcType ) )
+	if( !sp.setGeometryShaderSrc( geometrySrc, sSrcType ) )
 	{
 		// Error messaging handled when setting source
 		return false;
@@ -295,8 +280,8 @@ bool sgct::ShaderManager::addShader(
 
 	if( sp.createAndLinkProgram() )
 	{
-		mShaders.push_back( sp );
-		shader = mShaders.back();
+		mShaders[mCurrentBin].push_back( sp );
+		shader = mShaders[mCurrentBin].back();
 		return true;
 	}
 
@@ -305,6 +290,16 @@ bool sgct::ShaderManager::addShader(
 	return false;
 }
 //----------------------------------------------------------------------------//
+
+/*!
+	Select which shader bin to use in the manager.
+
+	\param bin the bin to use in the shader manager
+*/
+void sgct::ShaderManager::setShaderBin( ShaderBinIndex bin )
+{
+	mCurrentBin = bin;
+}
 
 /*!
 Removes a shader program from the manager.
@@ -314,16 +309,16 @@ All resources allocated for the program will be deallocated and remved
 */
 bool sgct::ShaderManager::removeShader( const std::string & name )
 {
-	std::vector<ShaderProgram>::iterator shaderIt = std::find( mShaders.begin(), mShaders.end(), name );
+	std::vector<ShaderProgram>::iterator shaderIt = std::find( mShaders[mCurrentBin].begin(), mShaders[mCurrentBin].end(), name );
 
-	if( shaderIt == mShaders.end() )
+	if( shaderIt == mShaders[mCurrentBin].end() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Unable to remove shader program [%s]: Not found in manager.\n", name.c_str() );
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Unable to remove shader program [%s]: Not found in current bin.\n", name.c_str() );
 		return false;
 	}
 
 	shaderIt->deleteProgram();
-	mShaders.erase( shaderIt );
+	mShaders[mCurrentBin].erase( shaderIt );
 
 	return true;
 }
@@ -384,9 +379,9 @@ can not be set as active or used in the rendering pipeline
 */
 const sgct::ShaderProgram & sgct::ShaderManager::getShader( const std::string & name ) const
 {
-	std::vector<ShaderProgram>::const_iterator shaderIt = std::find( mShaders.begin(), mShaders.end(), name );
+	std::vector<ShaderProgram>::const_iterator shaderIt = std::find( mShaders[mCurrentBin].begin(), mShaders[mCurrentBin].end(), name );
 
-	return (shaderIt != mShaders.end() ) ?
+	return (shaderIt != mShaders[mCurrentBin].end() ) ?
 		*shaderIt :
 		NullShader;
 }
@@ -399,8 +394,8 @@ Check if a shader program exists in the manager
 */
 bool sgct::ShaderManager::shaderExists( const std::string & name ) const
 {
-	std::vector<ShaderProgram>::const_iterator exists = std::find( mShaders.begin(), mShaders.end(), name );
+	std::vector<ShaderProgram>::const_iterator exists = std::find( mShaders[mCurrentBin].begin(), mShaders[mCurrentBin].end(), name );
 
-	return exists != mShaders.end();
+	return exists != mShaders[mCurrentBin].end();
 }
 //----------------------------------------------------------------------------//

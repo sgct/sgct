@@ -70,13 +70,13 @@ void sgct::ShaderProgram::deleteProgram()
 	if( mFragmentShader.getId() > 0 )
 	{
 		glDetachShader( mProgramId, mFragmentShader.getId() );
-		mFragmentShader.getId();
+		mFragmentShader.deleteShader();
 	}
 
 	if( mGeometryShader.getId() > 0 )
 	{
 		glDetachShader( mProgramId, mGeometryShader.getId() );
-		mGeometryShader.getId();
+		mGeometryShader.deleteShader();
 	}
 
 	if( mProgramId > 0 )

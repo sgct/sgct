@@ -63,7 +63,7 @@ sgct_core::Statistics::Statistics()
 	mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.4f,0.4f,1.0f,0.8f );
 	mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.0f,0.0f,0.8f,0.8f );
 
-	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.2f );
+	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.3f );
 	mStaticColors[ FREQ ]	= glm::vec4( 1.0f,0.0f,0.0f,1.0f );
 	mStaticColors[ BG ]		= glm::vec4( 0.0f,0.0f,0.0f,0.5f );
 
@@ -314,8 +314,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
-	glDrawBuffer(GL_BACK); //draw into both back buffers
-
 	if(mFixedPipeline)
 	{
 		//enter ortho mode
@@ -329,10 +327,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 		glDisable(GL_LIGHTING);
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 		glLoadIdentity();
 
@@ -383,11 +377,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	}
 	else //programmable pipeline
 	{	
-		glDisable(GL_DEPTH_TEST);
-		glEnable(GL_BLEND);
-		glDisable(GL_CULL_FACE);
-		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
 		glLineWidth(0.9f); //in os X 1.0f was interpreted as 2. Which is a bit weird..
 		
 		glm::mat4 orthoMat = glm::ortho( 0.0f, static_cast<float>(STATS_HISTORY_LENGTH)*2.0f,

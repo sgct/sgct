@@ -25,8 +25,6 @@ GLXEWContext * glxewGetContext();
 #endif
 #endif
 
-#define MAX_SGCT_PATH_LENGTH 256
-
 sgct_core::SGCTWindow::SGCTWindow()
 {
 	mUseFixResolution = false;
@@ -129,33 +127,7 @@ sgct_core::SGCTWindow::SGCTWindow()
 
 void sgct_core::SGCTWindow::close()
 {
-	glfwMakeContextCurrent( mWindowHandle );
-	
-	if( mUseSwapGroups )
-	{
-//#ifdef __WITHSWAPBARRIERS__
-
-#ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") )
-		{
-			//un-bind
-			wglBindSwapBarrierNV(1,0);
-			//un-join
-			wglJoinSwapGroupNV(hDC,0);
-		}
-#else
-    #ifndef __APPLE__
-		if( glewIsSupported("GLX_NV_swap_group") )
-		{
-			//un-bind
-			glXBindSwapBarrierNV(disp,1,0);
-			//un-join
-			glXJoinSwapGroupNV(disp,hDC,0);
-		}
-    #endif
-#endif
-
-	}
+	makeOpenGLContextCurrent( Shared_Context );
 
 	if( mScreenCapture )
 	{
@@ -197,6 +169,39 @@ void sgct_core::SGCTWindow::close()
 	//delete shaders
 	mFisheyeShader.deleteProgram();
 	mStereoShader.deleteProgram();
+
+	/*
+	Current handle must be set at the end to propely destroy the window
+	*/
+	makeOpenGLContextCurrent( Window_Context );
+	
+	deleteAllViewports();
+
+	if( mUseSwapGroups )
+	{
+//#ifdef __WITHSWAPBARRIERS__
+
+#ifdef __WIN32__
+		if( wglewIsSupported("WGL_NV_swap_group") )
+		{
+			//un-bind
+			wglBindSwapBarrierNV(1,0);
+			//un-join
+			wglJoinSwapGroupNV(hDC,0);
+		}
+#else
+    #ifndef __APPLE__
+		if( glewIsSupported("GLX_NV_swap_group") )
+		{
+			//un-bind
+			glXBindSwapBarrierNV(disp,1,0);
+			//un-join
+			glXJoinSwapGroupNV(disp,hDC,0);
+		}
+    #endif
+#endif
+
+	}
 }
 
 void sgct_core::SGCTWindow::init(int id)
@@ -221,7 +226,7 @@ void sgct_core::SGCTWindow::init(int id)
 */
 void sgct_core::SGCTWindow::initOGL()
 {
-	glfwMakeContextCurrent( mWindowHandle );
+	makeOpenGLContextCurrent( Shared_Context );
 	createTextures();
 	createVBOs(); //must be created before FBO
 	createFBOs();
@@ -281,7 +286,7 @@ void sgct_core::SGCTWindow::swap()
 	mWindowResOld[0] = mWindowRes[0];
 	mWindowResOld[1] = mWindowRes[1];
 
-	glfwMakeContextCurrent( mWindowHandle );
+	makeOpenGLContextCurrent( Window_Context );
 	glfwSwapBuffers( mWindowHandle );
 }
 
@@ -323,17 +328,12 @@ void sgct_core::SGCTWindow::update()
 /*!
 	Set the this window's OpenGL context as current
 */
-void sgct_core::SGCTWindow::makeOpenGLContextCurrent()
+void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
-	glfwMakeContextCurrent( mWindowHandle );
-}
-
-/*!
-	Set the shared OpenGL context as current for this window
-*/
-void sgct_core::SGCTWindow::makeSharedOpenGLContextCurrent()
-{
-	glfwMakeContextCurrent( mSharedHandle );
+	if( context == Window_Context )
+		glfwMakeContextCurrent( mWindowHandle );
+	else
+		glfwMakeContextCurrent( mSharedHandle );
 }
 
 /*!
@@ -500,7 +500,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		else
 			mSharedHandle = mWindowHandle;
 		
-		glfwMakeContextCurrent( mWindowHandle );
+		glfwMakeContextCurrent( mSharedHandle );
 
 		mScreenCapture = new ScreenCapture();
 		mFinalFBO_Ptr = new OffScreenBuffer();
@@ -606,42 +606,9 @@ void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width
 }
 
 void sgct_core::SGCTWindow::initScreenCapture()
-{
-	SGCTNode * thisNode = ClusterManager::Instance()->getThisNodePtr();
-	
-	//find this windows id
-	std::size_t id = 0;
-	for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
-		if( thisNode->getWindowPtr(i)->getWindowHandle() == this->getWindowHandle() )
-			id = i;
-	
+{	
 	//init PBO in screen capture
-	mScreenCapture->init( id );
-	char nodeName[MAX_SGCT_PATH_LENGTH];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-
-		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-
-		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-	#else
-		sprintf( nodeName, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-
-		sprintf( nodeName, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-
-		sprintf( nodeName, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
-    #endif
-
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
-
+	mScreenCapture->init( mId );
 	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && glfwGetWindowAttrib( mWindowHandle, GLFW_CONTEXT_VERSION_MAJOR) > 1 ); //if supported then use them
 	if( mFisheyeMode && !mFisheyeAlpha )
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
@@ -716,10 +683,6 @@ bool sgct_core::SGCTWindow::isUsingFisheyeRendering()
 */
 void sgct_core::SGCTWindow::createTextures()
 {
-	//set to shared context
-	//glfwMakeContextCurrent( mSharedHandle );
-	//glfwMakeContextCurrent( mWindowHandle );
-	
 	//no target textures needed if not using FBO
 	if( !SGCTSettings::Instance()->useFBO() )
 		return;
@@ -858,8 +821,6 @@ void sgct_core::SGCTWindow::createFBOs()
 */
 void sgct_core::SGCTWindow::createVBOs()
 {
-	//glfwMakeContextCurrent( mWindowHandle );
-	
 	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
 		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 
@@ -1089,7 +1050,7 @@ void sgct_core::SGCTWindow::unbindVAO()
 */
 void sgct_core::SGCTWindow::captureBuffer()
 {
-	if(mStereoMode == Active)
+	if(mStereoMode == NoStereo)
 	{
 		if( SGCTSettings::Instance()->useFBO() )
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
@@ -1146,7 +1107,7 @@ void sgct_core::SGCTWindow::resizeFBOs()
 {
 	if(!mUseFixResolution && SGCTSettings::Instance()->useFBO())
 	{
-		glfwMakeContextCurrent( mWindowHandle );
+		makeOpenGLContextCurrent( Shared_Context );
 		glDeleteTextures(4, &mFrameBufferTextures[0]);
 		createTextures();
 

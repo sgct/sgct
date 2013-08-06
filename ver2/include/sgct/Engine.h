@@ -309,16 +309,17 @@ private:
 	void draw();
 	void drawOverlays();
 	void renderFBOTexture();
-	void renderPostFx(TextureIndexes ti );
+	void compose(TextureIndexes ti );
 	void renderFisheye(TextureIndexes ti);
+	void renderViewports(TextureIndexes ti);
 
 	void drawFixedPipeline();
 	void drawOverlaysFixedPipeline();
 	void renderFBOTextureFixedPipeline();
-	void renderPostFxFixedPipeline(TextureIndexes ti );
+	void composeFixedPipeline(TextureIndexes ti );
 	void renderFisheyeFixedPipeline(TextureIndexes ti);
 
-	void setRenderTarget(TextureIndexes ti);
+	void prepareBuffer(TextureIndexes ti);
 	void updateRenderingTargets(TextureIndexes ti);
 	void updateTimers(double timeStamp);
 	void loadShaders();
@@ -357,7 +358,7 @@ private:
 	InternalCallbackFn			mInternalDrawFn;
 	InternalCallbackFn			mInternalRenderFBOFn;
 	InternalCallbackFn			mInternalDrawOverlaysFn;
-	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
+	InternalCallbackTexArgFn	mInternalComposeFn;
 	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
 	NetworkCallbackFn			mNetworkCallbackFn;
 

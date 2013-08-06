@@ -32,6 +32,7 @@ public:
 	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted, DummyStereo };
 	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
+	enum OGL_Context { Shared_Context = 0, Window_Context };
 
 public:
 	SGCTWindow();
@@ -44,8 +45,7 @@ public:
 	void initWindowResolution(const int x, const int y);
 	void swap();
 	void update();
-	void makeOpenGLContextCurrent();
-	void makeSharedOpenGLContextCurrent();
+	void makeOpenGLContextCurrent( OGL_Context context );
 	bool isWindowResized();
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(bool fullscreen);

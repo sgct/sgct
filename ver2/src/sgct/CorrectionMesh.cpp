@@ -40,6 +40,8 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing correction mesh OpenGL data...\n");
+	
 	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != 0)
 		glDeleteLists(mMeshData[0], 1);
 	else if(mMeshData[0] != 0)

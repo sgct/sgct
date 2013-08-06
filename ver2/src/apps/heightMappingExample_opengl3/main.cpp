@@ -92,7 +92,7 @@ void myDrawFun()
 {
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
-	glLineWidth(2.0); //for wireframe
+	glLineWidth(1.0); //for wireframe
 
 	double speed = 8.0;
 

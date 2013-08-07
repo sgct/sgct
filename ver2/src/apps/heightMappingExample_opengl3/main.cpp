@@ -90,7 +90,6 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
 	glLineWidth(1.0); //for wireframe
 
@@ -130,7 +129,6 @@ void myDrawFun()
 	sgct::ShaderManager::Instance()->unBindShader();
 
 	glDisable( GL_CULL_FACE );
-	glDisable( GL_DEPTH_TEST );
 }
 
 void myPreSyncFun()

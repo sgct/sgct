@@ -330,6 +330,9 @@ void sgct_core::SGCTWindow::update()
 */
 void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
+	if( ClusterManager::Instance()->getThisNodePtr()->getNumberOfWindows() < 2 )
+		return;
+	
 	if( context == Window_Context )
 		glfwMakeContextCurrent( mWindowHandle );
 	else

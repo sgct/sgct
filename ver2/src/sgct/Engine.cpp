@@ -92,7 +92,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
-	mInternalComposeFn = NULL;
+	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
 
@@ -433,7 +433,7 @@ void sgct::Engine::initOGL()
 		mInternalDrawFn = &Engine::draw;
 		mInternalRenderFBOFn = &Engine::renderFBOTexture;
 		mInternalDrawOverlaysFn = &Engine::drawOverlays;
-		mInternalComposeFn = &Engine::compose;
+		mInternalRenderPostFXFn = &Engine::renderPostFX;
 		mInternalRenderFisheyeFn = &Engine::renderFisheye;
 
 		ClusterManager::Instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
@@ -444,7 +444,7 @@ void sgct::Engine::initOGL()
 		mInternalDrawFn = &Engine::drawFixedPipeline;
 		mInternalRenderFBOFn = &Engine::renderFBOTextureFixedPipeline;
 		mInternalDrawOverlaysFn = &Engine::drawOverlaysFixedPipeline;
-		mInternalComposeFn = &Engine::composeFixedPipeline;
+		mInternalRenderPostFXFn = &Engine::renderPostFXFixedPipeline;
 		mInternalRenderFisheyeFn = &Engine::renderFisheyeFixedPipeline;
 
 		mFixedOGLPipeline = true;
@@ -637,7 +637,7 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
-	mInternalComposeFn = NULL;
+	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
 	
@@ -1231,7 +1231,9 @@ void sgct::Engine::renderFBOTexture()
 	OffScreenBuffer::unBind();
 
 	getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+	
 	glEnable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//enter ortho mode
 	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
@@ -1501,7 +1503,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		}
 	}
 
-	(this->*mInternalComposeFn)( ti );
+	if( SGCTSettings::Instance()->usePostFX() )
+		(this->*mInternalRenderPostFXFn)(ti);
 }
 
 /*!
@@ -1663,13 +1666,16 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glPopAttrib();
 	glPopMatrix();
 
-	(this->*mInternalComposeFn)(ti);
+	if( SGCTSettings::Instance()->usePostFX() )
+		(this->*mInternalRenderPostFXFn)(ti);
 }
 
 void sgct::Engine::renderViewports(TextureIndexes ti)
 {
 	prepareBuffer( ti );
 	SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
+
+	glEnable(GL_DEPTH_TEST);
 	
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
@@ -1728,13 +1734,13 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	updateRenderingTargets(ti); //only used if multisampled FBOs
 	
 	if( SGCTSettings::Instance()->usePostFX() )
-		(this->*mInternalComposeFn)(ti);
+		(this->*mInternalRenderPostFXFn)(ti);
 }
 
 /*!
 	This function combines a texture and a shader into a new texture
 */
-void sgct::Engine::compose(TextureIndexes ti)
+void sgct::Engine::renderPostFX(TextureIndexes ti)
 {	
 	//bind fisheye target FBO
 	getCurrentWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getCurrentWindowPtr()->getFrameBufferTexture( ti ) );
@@ -1770,7 +1776,7 @@ void sgct::Engine::compose(TextureIndexes ti)
 /*!
 	This function combines a texture and a shader into a new texture
 */
-void sgct::Engine::composeFixedPipeline(TextureIndexes ti)
+void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes ti)
 {
 	//bind fisheye target FBO
 	getCurrentWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getCurrentWindowPtr()->getFrameBufferTexture( ti ) );

@@ -42,11 +42,11 @@ sgct_core::CorrectionMesh::~CorrectionMesh()
 {
 	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing correction mesh OpenGL data...\n");
 	
-	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != 0)
+	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
 		glDeleteLists(mMeshData[0], 1);
 	else if(mMeshData[0] != 0)
 	{
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != 0)
+		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != GL_FALSE)
 			glDeleteVertexArrays(1, &mMeshData[2]);
 		glDeleteBuffers(2, &mMeshData[0]);
 	}
@@ -306,9 +306,12 @@ void sgct_core::CorrectionMesh::createMesh()
 		{
 			glGenVertexArrays(1, &mMeshData[Array]);
 			glBindVertexArray(mMeshData[Array]);
+
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VAO: %d\n", mMeshData[Array]);
 		}
 
 		glGenBuffers(2, &mMeshData[0]);
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", mMeshData[0], mMeshData[1]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);

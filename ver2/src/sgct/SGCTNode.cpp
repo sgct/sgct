@@ -59,8 +59,27 @@ bool sgct_core::SGCTNode::shouldAllWindowsClose()
 	for(std::size_t i=0; i<mWindows.size(); i++)
 		if( glfwWindowShouldClose( mWindows[i].getWindowHandle() ) )
 		{
+			mWindows[i].setVisibility( false );
+			glfwSetWindowShouldClose( mWindows[i].getWindowHandle(), GL_FALSE );
+		}
+
+	for(std::size_t i=0; i<mWindows.size(); i++)
+		if( !mWindows[i].isVisible() )
+		{
 			counter++;
 		}
 
 	return (counter == mWindows.size()) ? true : false;
+}
+
+void sgct_core::SGCTNode::showAllWindows()
+{
+	for(std::size_t i=0; i<mWindows.size(); i++)
+		mWindows[i].setVisibility( true );
+}
+
+void sgct_core::SGCTNode::hideAllWindows()
+{
+	for(std::size_t i=0; i<mWindows.size(); i++)
+		mWindows[i].setVisibility( false );
 }

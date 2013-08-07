@@ -262,9 +262,12 @@ void sgct_utils::SGCTBox::createVBO()
 		glEnableVertexAttribArray(0);
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
+
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VAO: %d\n", mVAO);
 	}
 	
 	glGenBuffers(1, &mVBO);
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VBO: %d\n", mVBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);

@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <GL/glfw3.h>
 
 #include "../include/sgct/Statistics.h"
+#include "../include/sgct/MessageHandler.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
@@ -117,10 +118,24 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	{
 		glGenVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
 		glGenVertexArrays(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
+
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs: ");
+		for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVAOs[i]);
+		for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVAOs[i]);
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 	}
 
 	glGenBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
 	glGenBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVBOs[0]);
+
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs: ");
+	for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVBOs[i]);
+	for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVBOs[i]);
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 		
 	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 	{

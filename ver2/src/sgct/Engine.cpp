@@ -64,7 +64,7 @@ Parameter     | Description
 --Loose-Sync | disable firm frame sync
 --Ignore-Sync | disable frame sync
 -notify <integer> | the notify level used in the MessageHandler (0 = highest priority)
---No-FBO | don't use frame buffer objects (some stereo modes, FXAA and fisheye rendering will be disabled)
+--No-FBO | don't use frame buffer objects (some stereo modes, Multi-Window rendering, FXAA and fisheye rendering will be disabled)
 --FXAA | use fast approximate anti-aliasing shader
 --Capture-PNG | use png images for screen capture (default)
 --Capture-TGA | use tga images for screen capture
@@ -115,9 +115,9 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mNearClippingPlaneDist = 0.1f;
 	mFarClippingPlaneDist = 100.0f;
 	mClearColor[0] = 0.0f;
-	mClearColor[1] = 1.0f;
+	mClearColor[1] = 0.0f;
 	mClearColor[2] = 0.0f;
-	mClearColor[3] = 0.0f;
+	mClearColor[3] = 1.0f;
 
 	mFisheyeClearColor[0] = 0.3f;
 	mFisheyeClearColor[1] = 0.3f;
@@ -547,7 +547,7 @@ void sgct::Engine::clean()
 
 	if( mCleanUpFn != NULL )
 	{
-		if( mThisNode->getNumberOfWindows() > 0 )
+		if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 			mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 		mCleanUpFn();
 	}
@@ -580,7 +580,7 @@ void sgct::Engine::clean()
 
 	// Destroy explicitly to avoid memory leak messages
 	//Shared contex -------------------------------------------------------------------------------->
-	if( mThisNode->getNumberOfWindows() > 0 )
+	if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 		mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 	if( mStatistics != NULL )
 	{
@@ -601,7 +601,7 @@ void sgct::Engine::clean()
 	sgct_text::FontManager::Destroy();
 
 	//Window specific context ------------------------------------------------------------------->
-	if( mThisNode->getNumberOfWindows() > 0 )
+	if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 		mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
 	SharedData::Destroy();
@@ -804,6 +804,12 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
 #endif
+	
+		mRenderingOffScreen = SGCTSettings::Instance()->useFBO();
+		if( mRenderingOffScreen )
+			getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
+		
+		//Make sure correct context is current
 		if( mPostSyncPreDrawFn != NULL )
 			mPostSyncPreDrawFn();
 
@@ -811,16 +817,14 @@ void sgct::Engine::render()
 		calculateFPS(startFrameTime); //measures time between calls
 
 		//check if re-size needed
+		//dont merge with other for loops, number of context switches needs to be minimized
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			mThisNode->getWindowPtr(i)->update();
 		}
 
-		mRenderingOffScreen = SGCTSettings::Instance()->useFBO();
-		if( mRenderingOffScreen )
-			getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
-
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
+		if( mThisNode->getWindowPtr(i)->isVisible() )
 		{
 			mThisNode->setCurrentWindowIndex(i);
 
@@ -871,13 +875,14 @@ void sgct::Engine::render()
 			Draw the rendered textures on the screen
 		*/
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-		{
-			mThisNode->setCurrentWindowIndex(i);
+			if( mThisNode->getWindowPtr(i)->isVisible() )
+			{
+				mThisNode->setCurrentWindowIndex(i);
 
-			mRenderingOffScreen = false;
-			if( SGCTSettings::Instance()->useFBO() )
-				(this->*mInternalRenderFBOFn)();
-		}
+				mRenderingOffScreen = false;
+				if( SGCTSettings::Instance()->useFBO() )
+					(this->*mInternalRenderFBOFn)();
+			}
 		//reset back to shared context
 		getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 
@@ -897,13 +902,13 @@ void sgct::Engine::render()
 		*/
 		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
-		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-		{
-			mThisNode->setCurrentWindowIndex(i);
-
-			if( mTakeScreenshot )
-				getCurrentWindowPtr()->captureBuffer();
-		}
+		if( mTakeScreenshot )
+			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
+				if( mThisNode->getWindowPtr(i)->isVisible() )
+				{
+					mThisNode->setCurrentWindowIndex(i);
+					getCurrentWindowPtr()->captureBuffer();
+				}
 
 #ifdef __SGCT_DEBUG__
 		//check for errors
@@ -1140,7 +1145,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
 			*/
-			enterCurrentViewport(ScreenSpace);
+			enterCurrentViewport(FBOSpace);
 
 			if( getCurrentWindowPtr()->isUsingFisheyeRendering() )
 				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
@@ -1232,7 +1237,7 @@ void sgct::Engine::renderFBOTexture()
 
 	getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 	
-	glEnable(GL_BLEND);
+	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//enter ortho mode
@@ -1260,7 +1265,7 @@ void sgct::Engine::renderFBOTexture()
 
 		for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
 			getCurrentWindowPtr()->getViewport(i)->renderMesh();
-		ShaderManager::Instance()->unBindShader();
+		ShaderProgram::unbind();
 	}
 	else
 	{
@@ -1290,7 +1295,7 @@ void sgct::Engine::renderFBOTexture()
 				getCurrentWindowPtr()->getViewport(i)->renderMesh();
 		}
 
-		ShaderManager::Instance()->unBindShader();
+		ShaderProgram::unbind();
 	}
 
 	glDisable(GL_BLEND);
@@ -1306,6 +1311,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	//unbind framebuffer
 	OffScreenBuffer::unBind();
 
+	getCurrentWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1317,8 +1324,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_CULL_FACE);
-	//glDisable(GL_BLEND);
-	//glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	glDisable(GL_BLEND);
+	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//clear buffers
 	mActiveFrustum = getCurrentWindowPtr()->getStereoMode() == SGCTWindow::Active ? Frustum::StereoLeftEye : Frustum::Mono;
@@ -1345,7 +1352,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 		for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
 			getCurrentWindowPtr()->getViewport(i)->renderMesh();
-		ShaderManager::Instance()->unBindShader();
+		ShaderProgram::unbind();
 	}
 	else
 	{
@@ -1475,7 +1482,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	getActiveWindowPtr()->unbindVAO();
 
-	ShaderManager::Instance()->unBindShader();
+	ShaderProgram::unbind();
 
 	if(mTakeScreenshot)
 	{
@@ -1503,6 +1510,33 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		}
 	}
 
+	//draw viewport overlays if any
+	(this->*mInternalDrawOverlaysFn)();
+
+	//draw info & stats
+	//the cubemap viewports are all the same so it makes no sense to render everything several times
+	//therefore just loop one iteration in that case.
+	if( mShowGraph || mShowInfo )
+	{
+		getCurrentWindowPtr()->setCurrentViewport(0);
+		
+		glViewport( 0, 0, 
+			getCurrentWindowPtr()->getXFramebufferResolution(),
+			getCurrentWindowPtr()->getYFramebufferResolution());
+
+		if( mShowGraph )
+			mStatistics->draw(mFrameCounter);
+		/*
+			The text renderer enters automatically the correct viewport
+		*/
+		if( mShowInfo )
+			renderDisplayInfo();
+	}
+
+	glDisable(GL_BLEND);
+
+	updateRenderingTargets(ti); //only used if multisampled FBOs
+	
 	if( SGCTSettings::Instance()->usePostFX() )
 		(this->*mInternalRenderPostFXFn)(ti);
 }
@@ -1631,11 +1665,15 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	getActiveWindowPtr()->unbindVBO();
 
-	ShaderManager::Instance()->unBindShader();
+	ShaderProgram::unbind();
+	
+	glPopClientAttrib();
+	glPopMatrix();
+
+	glDisable(GL_TEXTURE_CUBE_MAP);
 
 	if(mTakeScreenshot)
 	{
-		glDisable(GL_TEXTURE_CUBE_MAP);
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 		int size = getActiveWindowPtr()->getXFramebufferResolution();
@@ -1662,20 +1700,43 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		}
 	}
 
-	glPopClientAttrib();
+	//draw viewport overlays if any
+	(this->*mInternalDrawOverlaysFn)();
+
+	//draw info & stats
+	//the cubemap viewports are all the same so it makes no sense to render everything several times
+	//therefore just loop one iteration in that case.
+	if( mShowGraph || mShowInfo )
+	{
+		getCurrentWindowPtr()->setCurrentViewport(0);
+		glViewport( 0, 0, 
+			getCurrentWindowPtr()->getXFramebufferResolution(),
+			getCurrentWindowPtr()->getYFramebufferResolution());
+
+		if( mShowGraph )
+			mStatistics->draw(mFrameCounter);
+		/*
+			The text renderer enters automatically the correct viewport
+		*/
+		if( mShowInfo )
+			renderDisplayInfo();
+	}
+
 	glPopAttrib();
-	glPopMatrix();
+
+	updateRenderingTargets(ti); //only used if multisampled FBOs
 
 	if( SGCTSettings::Instance()->usePostFX() )
 		(this->*mInternalRenderPostFXFn)(ti);
 }
 
+/*
+	Works for fixed and programable pipeline
+*/
 void sgct::Engine::renderViewports(TextureIndexes ti)
 {
 	prepareBuffer( ti );
 	SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
-
-	glEnable(GL_DEPTH_TEST);
 	
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
@@ -1700,6 +1761,8 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 		}
 	}
 
+	if( mFixedOGLPipeline )
+		glPushAttrib( GL_ALL_ATTRIB_BITS );
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_BLEND);
 	glDisable(GL_CULL_FACE);
@@ -1713,8 +1776,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	//therefore just loop one iteration in that case.
 	if( mShowGraph || mShowInfo )
 	{
-		std::size_t numberOfIterations = ( getCurrentWindowPtr()->isUsingFisheyeRendering() ? 1 : getCurrentWindowPtr()->getNumberOfViewports() );
-		for(std::size_t i=0; i < numberOfIterations; i++)
+		for(std::size_t i=0; i < getCurrentWindowPtr()->getNumberOfViewports(); i++)
 		{
 			getCurrentWindowPtr()->setCurrentViewport(i);
 			enterCurrentViewport(FBOSpace);
@@ -1729,7 +1791,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 		}
 	}
 
-	glDisable(GL_BLEND);
+	mFixedOGLPipeline ? glPopAttrib() : glDisable(GL_BLEND);
 
 	updateRenderingTargets(ti); //only used if multisampled FBOs
 	
@@ -1770,7 +1832,7 @@ void sgct::Engine::renderPostFX(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVAO();
 
 	//unbind FXAA
-	ShaderManager::Instance()->unBindShader();
+	ShaderProgram::unbind();
 }
 
 /*!
@@ -1838,7 +1900,7 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes ti)
 
 	getActiveWindowPtr()->unbindVBO();
 
-	ShaderManager::Instance()->unBindShader();
+	ShaderProgram::unbind();
 
 	glPopClientAttrib();
 	glPopAttrib();
@@ -2506,7 +2568,7 @@ void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(double, double) 
 
 void sgct::Engine::clearBuffer()
 {
-	const float * colorPtr = Engine::getPtr()->getClearColor();
+	const float * colorPtr = Engine::Instance()->getClearColor();
 
 	float alpha = (Instance()->getActiveWindowPtr()->useFisheyeAlpha() && Instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
 

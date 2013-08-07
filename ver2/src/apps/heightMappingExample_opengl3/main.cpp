@@ -91,6 +91,8 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	glEnable( GL_CULL_FACE );
+	glEnable(GL_DEPTH_TEST);
+
 	glLineWidth(1.0); //for wireframe
 
 	double speed = 8.0;
@@ -127,8 +129,6 @@ void myDrawFun()
 	glBindVertexArray(0);
 
 	sgct::ShaderManager::Instance()->unBindShader();
-
-	glDisable( GL_CULL_FACE );
 }
 
 void myPreSyncFun()

@@ -27,7 +27,7 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 sgct_core::ScreenCapture::ScreenCapture()
 {
 	mNumberOfThreads = SGCTSettings::Instance()->getNumberOfCaptureThreads();
-	mPBO = 0;
+	mPBO = GL_FALSE;
 	mDataSize = 0;
 	mWindowIndex = 0;
 	mUsePBO = true;
@@ -66,6 +66,12 @@ sgct_core::ScreenCapture::~ScreenCapture()
 		delete [] mSCTIPtrs;
 		mSCTIPtrs = NULL;
 	}
+
+	if( mUsePBO && mPBO != GL_FALSE ) //delete if buffer exitsts
+	{
+		glDeleteBuffers(1, &mPBO);
+		mPBO = GL_FALSE;
+	}
 }
 
 /*!
@@ -79,10 +85,10 @@ sgct_core::ScreenCapture::~ScreenCapture()
 */
 void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 {	
-	if( mUsePBO && mPBO != 0 ) //delete if buffer exitsts
+	if( mUsePBO && mPBO != GL_FALSE ) //delete if buffer exitsts
 	{
-		glDeleteBuffersARB(1, &mPBO);
-		mPBO = 0;
+		glDeleteBuffers(1, &mPBO);
+		mPBO = GL_FALSE;
 	}
 	
 	mX = x;
@@ -115,6 +121,8 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	if( mUsePBO )
 	{
 		glGenBuffers(1, &mPBO);
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating PBO: %d\n", mPBO);
+
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
 		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
 		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);

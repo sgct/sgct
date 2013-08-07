@@ -279,6 +279,11 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				takeScreenshot.setVal( true );
 			break;
+
+		case 'R':
+			if(action == SGCT_PRESS)
+				sgct_core::ClusterManager::Instance()->getThisNodePtr()->showAllWindows();
+			break;
 		}
 	}
 }

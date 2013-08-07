@@ -142,7 +142,7 @@ bool sgct_core::NetworkManager::init()
 			mIsExternalControlPresent = true;
 
 			sgct_cppxeleven::function< void(const char*, int, int) > callback;
-			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::getPtr(),
+			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::Instance(),
 				sgct_cppxeleven::placeholders::_1,
 				sgct_cppxeleven::placeholders::_2,
 				sgct_cppxeleven::placeholders::_3);

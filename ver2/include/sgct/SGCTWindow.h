@@ -39,6 +39,7 @@ public:
 	void close();
 	void init(int id);
 	void initOGL();
+	void setVisibility(bool state);
 	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
 	void setFramebufferResolution(const int x, const int y);
@@ -68,6 +69,11 @@ public:
 	void captureBuffer();
 	sgct_core::OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
+
+	/*!
+		\returns if the window is visible or not	
+	*/
+	inline bool isVisible() { return mVisible; }
 
 	/*!
 		\returns If the frame buffer has a fix resolution this function returns true.
@@ -101,6 +107,14 @@ public:
 		\returns Get the vertical frame buffer resolution.
 	*/
 	inline int getYFramebufferResolution() { return mFramebufferResolution[1]; }
+	/*!
+		\returns Get the initial horizontal window resolution.
+	*/
+	inline int getXInitialResolution() { return mWindowInitialRes[0]; }
+	/*!
+		\returns Get the initial vertical window resolution.
+	*/
+	inline int getYInitialResolution() { return mWindowInitialRes[1]; }
 
 	//! \returns the aspect ratio of the window 
 	inline float getAspectRatio() { return mAspectRatio; }
@@ -201,6 +215,7 @@ public:
 	sgct_core::OffScreenBuffer * mCubeMapFBO_Ptr;
 
 private:
+	bool mVisible;
 	bool mUseFixResolution;
 	bool mUseSwapGroups;
 	bool mBarrier;
@@ -210,6 +225,7 @@ private:
 	bool mSetWindowPos;
 	bool mDecorated;
 	int mFramebufferResolution[2];
+	int mWindowInitialRes[2];
 	int mWindowRes[2];
 	int mWindowPos[2];
 	int mWindowResOld[2];

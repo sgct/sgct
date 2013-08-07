@@ -290,11 +290,11 @@ void keyCallback(int key, int action)
 			break;
 
 		case SGCT_KEY_UP:
-			arrowButtons[FORWARD] = (action == SGCT_PRESS ? true : false);
+			arrowButtons[FORWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 
 		case SGCT_KEY_DOWN:
-			arrowButtons[BACKWARD] = (action == SGCT_PRESS ? true : false);
+			arrowButtons[BACKWARD] = ((action == SGCT_REPEAT || action == SGCT_PRESS) ? true : false);
 			break;
 		}
 	}

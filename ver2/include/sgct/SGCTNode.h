@@ -28,6 +28,8 @@ public:
 
 	bool getKeyPressed( int key );
 	bool shouldAllWindowsClose();
+	void showAllWindows();
+	void hideAllWindows();
 
 	std::string ip;
 	std::string port;

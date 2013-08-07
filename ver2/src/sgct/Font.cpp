@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Font.h"
 #include "../include/sgct/Engine.h"
+#include "../include/sgct/MessageHandler.h"
 
 using namespace sgct_text;
 
@@ -60,6 +61,9 @@ void Font::init( const std::string & name, unsigned int height )
 	{
 		glGenVertexArrays(1, &mVAO);
 		glGenBuffers(1, &mVBO);
+
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VAO: %d\n", mVAO);
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VBO: %d\n", mVBO);
 	}
 }
 

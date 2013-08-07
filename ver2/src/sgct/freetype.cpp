@@ -22,22 +22,11 @@ inline void setupViewport()
 {
 	sgct_core::SGCTWindow * cWin = sgct::Engine::getActiveWindowPtr();
 
-	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
-	{
-		glViewport(
+	glViewport(
 			static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution())),
 			static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYFramebufferResolution())),
 			static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution())),
 			static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution())));
-	}
-	else
-	{
-		glViewport(
-			static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYResolution())));
-	}
 }
 
 inline glm::dmat4 setupOrthoMat()
@@ -45,14 +34,14 @@ inline glm::dmat4 setupOrthoMat()
 	glm::dmat4 orthoMat;
 	sgct_core::SGCTWindow * cWin = sgct::Engine::getActiveWindowPtr();
 
-	if( sgct::Engine::getPtr()->isRenderingOffScreen() )
+	if( cWin->isFixResolution() )
 	{
 		orthoMat = glm::ortho(0.0,
 			cWin->getCurrentViewport()->getXSize() *
-			static_cast<double>(cWin->getXFramebufferResolution()),
+			static_cast<double>(cWin->getXInitialResolution()),
 			0.0,
 			cWin->getCurrentViewport()->getYSize() *
-			static_cast<double>(cWin->getYFramebufferResolution()));
+			static_cast<double>(cWin->getYInitialResolution()));
 	}
 	else
 	{
@@ -136,7 +125,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 	}
 
 	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
 		pushScreenCoordinateMatrix();
 		GLuint font = ft_font->getListBase();
@@ -265,7 +254,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		lines.push_back(line);
 	}
 
-	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
 		pushScreenCoordinateMatrix();
 		GLuint font = ft_font->getListBase();
@@ -391,7 +380,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 	}
 
 	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 
@@ -512,7 +501,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		lines.push_back(line);
 	}
 
-	if( sgct::Engine::getPtr()->isOGLPipelineFixed() )
+	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
 	{
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 

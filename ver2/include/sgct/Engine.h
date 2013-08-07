@@ -76,10 +76,7 @@ public:
 	bool init(RunMode rm = Default_Mode);
 	void terminate();
 	void render();
-	/*!
-		\returns the static pointer to the engine instance
-	*/
-	static Engine * getPtr() { return mInstance; }
+	
 	/*!
 		\returns the static pointer to the engine instance
 	*/
@@ -176,14 +173,19 @@ public:
 	static void sleep(double secs);
 
 	/*!
+		Returns a pointer to this node (running on this computer).
+	*/
+	inline sgct_core::SGCTNode * getThisNodePtr(std::size_t index) { return mThisNode; }
+
+	/*!
 		Returns a pointer to a specified window by index on this node.
 	*/
-	sgct_core::SGCTWindow * getWindowPtr(std::size_t index) { return mThisNode->getWindowPtr(index); }
+	inline sgct_core::SGCTWindow * getWindowPtr(std::size_t index) { return mThisNode->getWindowPtr(index); }
 
 	/*!
 		Returns the number of windows for this node.
 	*/
-	std::size_t getNumberOfWindows() { return mThisNode->getNumberOfWindows(); }
+	inline std::size_t getNumberOfWindows() { return mThisNode->getNumberOfWindows(); }
 
 	/*!
 		Returns a pointer to the current window that is beeing rendered

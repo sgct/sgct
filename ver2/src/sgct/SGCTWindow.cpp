@@ -37,11 +37,14 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mDecorated = true;
 	mFisheyeMode = false;
 	mFisheyeAlpha = false;
+	mVisible = true;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
 	mWindowResOld[0] = mWindowRes[0];
 	mWindowResOld[1] = mWindowRes[1];
+	mWindowInitialRes[0] = mWindowRes[0];
+	mWindowInitialRes[1] = mWindowRes[1];
 	mWindowPos[0] = 0;
 	mWindowPos[1] = 0;
 	mMonitorIndex = 0;
@@ -235,6 +238,18 @@ void sgct_core::SGCTWindow::initOGL()
 }
 
 /*!
+	Set the visibility state of this window. If a window is hidden the rendering for that window will be paused.
+*/
+void sgct_core::SGCTWindow::setVisibility(bool state)
+{
+	if( state != mVisible )
+	{
+		state ? glfwShowWindow( mWindowHandle ) : glfwHideWindow( mWindowHandle );
+		mVisible = state;
+	}
+}
+
+/*!
 	Set the window title
 	@param title The title of the window.
 */
@@ -283,11 +298,14 @@ void sgct_core::SGCTWindow::setFramebufferResolution(const int x, const int y)
 */
 void sgct_core::SGCTWindow::swap()
 {
-	mWindowResOld[0] = mWindowRes[0];
-	mWindowResOld[1] = mWindowRes[1];
+	if( mVisible )
+	{
+		mWindowResOld[0] = mWindowRes[0];
+		mWindowResOld[1] = mWindowRes[1];
 
-	makeOpenGLContextCurrent( Window_Context );
-	glfwSwapBuffers( mWindowHandle );
+		makeOpenGLContextCurrent( Window_Context );
+		glfwSwapBuffers( mWindowHandle );
+	}
 }
 
 /*!
@@ -313,7 +331,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 
 void sgct_core::SGCTWindow::update()
 {
-	if( isWindowResized() )
+	if( mVisible && isWindowResized() )
 	{
 		//resize FBOs
 		resizeFBOs();
@@ -495,6 +513,9 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);
+	mWindowInitialRes[0] = mWindowRes[0];
+	mWindowInitialRes[1] = mWindowRes[1];
+	mVisible = true;
 	
 	if( mWindowHandle != NULL )
 	{
@@ -825,9 +846,21 @@ void sgct_core::SGCTWindow::createFBOs()
 void sgct_core::SGCTWindow::createVBOs()
 {
 	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	{
 		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs: ");
+		for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mVAO[i]);
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
+	}
+
 	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
+
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs: ");
+	for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mVBO[i]);
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 
 	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
 		glBindVertexArray( mVAO[RenderQuad] );

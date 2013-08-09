@@ -12,10 +12,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "OffScreenBuffer.h"
 #include "ScreenCapture.h"
 #include "Viewport.h"
-#include "ShaderProgram.h"
+#include "PostFX.h"
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
+#define NUMBER_OF_TEXTURES 6
 
 namespace sgct_core
 {
@@ -54,8 +55,10 @@ public:
 	void setFullScreenMonitorIndex( int index );
 	void setBarrier(const bool state);
 	void setFixResolution(const bool state);
-	void useSwapGroups(const bool state);
-	void useQuadbuffer(const bool state);
+	void setUsePostFX(bool state);
+	void setUseFXAA(bool state);
+	void setUseSwapGroups(const bool state);
+	void setUseQuadbuffer(const bool state);
 	bool openWindow(GLFWwindow* share);
 	void initNvidiaSwapGroups();
 	void getSwapGroupFrameNumber(unsigned int & frameNumber);
@@ -67,7 +70,7 @@ public:
 	void unbindVBO();
 	void unbindVAO();
 	void captureBuffer();
-	sgct_core::OffScreenBuffer * getFBOPtr();
+	OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
 
 	/*!
@@ -86,10 +89,20 @@ public:
 	GLFWmonitor * getMonitor() { return mMonitor; }
 	GLFWwindow * getWindowHandle() { return mWindowHandle; }
 
+	void addPostFX( sgct::PostFX & fx );
+	/*!
+		\returns the pointer to a specific post effect
+	*/
+	inline sgct::PostFX * getPostFXPtr( std::size_t index ) {  return &mPostFXPasses[ index ]; }
+	/*!
+		\returns the number of post effects
+	*/
+    inline std::size_t getNumberOfPostFXs() { return mPostFXPasses.size(); }
+
 	/*!
 		Returns pointer to screen capture ptr
 	*/
-	sgct_core::ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
+	ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
 
 	/*!
 		\returns Get the horizontal window resolution.
@@ -148,7 +161,16 @@ public:
 	void setNumberOfAASamples(int samples);
 	int getNumberOfAASamples();
 
+	/*! \returns true if FXAA should be used */
+	inline bool useFXAA() { return mUseFXAA; }
+	/*! \returns true if PostFX pass should be used */
+	inline bool usePostFX() { return mUsePostFX; }
+	/*! \returns true if full screen rendering is enabled */
 	inline bool isFullScreen() { return mFullScreen; }
+	/*!
+		\param index Index or Engine::TextureIndexes enum
+		\returns texture index of selected frame buffer texture
+	*/
 	inline unsigned int getFrameBufferTexture(unsigned int index){ return mFrameBufferTextures[index]; }
 	/*!
 		\returns this window's id
@@ -235,8 +257,11 @@ private:
 	GLFWwindow * mSharedHandle;
 	float mAspectRatio;
 
+	bool mUseFXAA;
+	bool mUsePostFX;
+
 	//FBO stuff
-	unsigned int mFrameBufferTextures[4];
+	unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];
 
 	sgct_core::ScreenCapture * mScreenCapture;
 
@@ -275,6 +300,8 @@ private:
 
 	std::size_t mCurrentViewportIndex;
 	std::vector<Viewport> mViewports;
+
+	std::vector<sgct::PostFX> mPostFXPasses;
 };
 }
 

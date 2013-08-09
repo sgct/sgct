@@ -20,7 +20,7 @@ namespace sgct_text
 
 inline void setupViewport()
 {
-	sgct_core::SGCTWindow * cWin = sgct::Engine::getActiveWindowPtr();
+	sgct_core::SGCTWindow * cWin = sgct::Engine::Instance()->getActiveWindowPtr();
 
 	glViewport(
 			static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution())),
@@ -32,7 +32,7 @@ inline void setupViewport()
 inline glm::dmat4 setupOrthoMat()
 {
 	glm::dmat4 orthoMat;
-	sgct_core::SGCTWindow * cWin = sgct::Engine::getActiveWindowPtr();
+	sgct_core::SGCTWindow * cWin = sgct::Engine::Instance()->getActiveWindowPtr();
 
 	if( cWin->isFixResolution() )
 	{

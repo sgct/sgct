@@ -19,8 +19,6 @@ sgct_core::SGCTSettings::SGCTSettings()
 
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
-	mUseFXAA = false;
-	mUsePostFX = false;
 	mUseFBO = true;
 
 	for(size_t i=0; i<3; i++)
@@ -31,16 +29,6 @@ sgct_core::SGCTSettings::SGCTSettings()
 sgct_core::SGCTSettings::~SGCTSettings()
 {
 	;
-}
-
-/*!
-Set if FXAA should be used.
-*/
-void sgct_core::SGCTSettings::setFXAA(bool state)
-{
-	mUseFXAA = state;
-	mUsePostFX = state;
-	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
 }
 
 /*!

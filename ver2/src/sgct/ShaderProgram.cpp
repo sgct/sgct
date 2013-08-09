@@ -86,6 +86,14 @@ void sgct::ShaderProgram::deleteProgram()
 }
 
 /*!
+@param name Name of the shader program
+*/
+void sgct::ShaderProgram::setName( const std::string & name )
+{
+	mName = name;
+}
+
+/*!
 Get the location of the attribute, no explicit error checks are performed.
 Users are responsible of checking the return value of the attribute location
 @param	name Name of the attribute
@@ -275,7 +283,7 @@ bool sgct::ShaderProgram::bind() const
 	//
 	if( !mIsLinked )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
+		//sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
 		return false;
 	}
 

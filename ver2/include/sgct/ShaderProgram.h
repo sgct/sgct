@@ -31,6 +31,7 @@ public:
 
 	void deleteProgram();
 
+	void setName( const std::string & name );
 	bool setVertexShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
 	bool setFragmentShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
 	bool setGeometryShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );

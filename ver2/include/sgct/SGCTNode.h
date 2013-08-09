@@ -22,7 +22,7 @@ public:
 	void addWindow(SGCTWindow &window);
 	SGCTWindow * getWindowPtr(std::size_t index);
 	//SGCTWindow * getMasterWindowPtr();
-	SGCTWindow * getCurrentWindowPtr();
+	SGCTWindow * getActiveWindowPtr();
 	std::size_t getNumberOfWindows();
 	void setCurrentWindowIndex(std::size_t index);
 

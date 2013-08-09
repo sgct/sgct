@@ -38,6 +38,8 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mFisheyeMode = false;
 	mFisheyeAlpha = false;
 	mVisible = true;
+	mUseFXAA = false;
+	mUsePostFX = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -139,6 +141,11 @@ void sgct_core::SGCTWindow::close()
 		mScreenCapture = NULL;
 	}
 
+	//delete postFX
+	for(std::size_t i=0; i<getNumberOfPostFXs(); i++)
+		mPostFXPasses[i].destroy();
+	mPostFXPasses.clear();
+
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
 		mCubeMapFBO_Ptr != NULL &&
@@ -154,7 +161,7 @@ void sgct_core::SGCTWindow::close()
 		delete mCubeMapFBO_Ptr;
 		mCubeMapFBO_Ptr = NULL;
 
-		glDeleteTextures(4,	&mFrameBufferTextures[0]);
+		glDeleteTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
 	}
 
 	if( mVBO[RenderQuad] )
@@ -229,7 +236,6 @@ void sgct_core::SGCTWindow::init(int id)
 */
 void sgct_core::SGCTWindow::initOGL()
 {
-	makeOpenGLContextCurrent( Shared_Context );
 	createTextures();
 	createVBOs(); //must be created before FBO
 	createFBOs();
@@ -421,10 +427,30 @@ void sgct_core::SGCTWindow::setFixResolution(const bool state)
 }
 
 /*!
+Set if post effects should be used.
+*/
+void sgct_core::SGCTWindow::setUsePostFX(bool state)
+{
+	mUsePostFX = state;
+	if( !state )
+		mUseFXAA = false;
+}
+
+/*!
+Set if FXAA should be used.
+*/
+void sgct_core::SGCTWindow::setUseFXAA(bool state)
+{
+	mUseFXAA = state;
+	mUsePostFX = state;
+	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
+}
+
+/*!
 	Use nvidia swap groups. This freature is only supported on quadro cards together with a compatible sync card.
 	This function can only be used before the window is created.
 */
-void sgct_core::SGCTWindow::useSwapGroups(const bool state)
+void sgct_core::SGCTWindow::setUseSwapGroups(const bool state)
 {
 	mUseSwapGroups = state;
 }
@@ -435,7 +461,7 @@ void sgct_core::SGCTWindow::useSwapGroups(const bool state)
 	The quad buffer feature is only supported on professional CAD graphics cards such as
 	Nvidia Quadro or AMD/ATI FireGL.
 */
-void sgct_core::SGCTWindow::useQuadbuffer(const bool state)
+void sgct_core::SGCTWindow::setUseQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
@@ -457,7 +483,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		Fisheye can use MSAA for cubemap rendering and FXAA for screen space rendering
 		It's a bit overkill but usefull for rendering fisheye movies
 	*/
-	if( SGCTSettings::Instance()->useFXAA() && !isUsingFisheyeRendering())
+	if( mUseFXAA && !isUsingFisheyeRendering())
 	{
 		setNumberOfAASamples(1);
 	}
@@ -496,7 +522,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		sgct::MessageHandler::Instance()->print("\n");
 	}*/
 
-	useQuadbuffer( mStereoMode == Active );
+	setUseQuadbuffer( mStereoMode == Active );
 
 	if( mFullScreen )
 	{
@@ -523,13 +549,8 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			mSharedHandle = share;
 		else
 			mSharedHandle = mWindowHandle;
-		
-		glfwMakeContextCurrent( mSharedHandle );
 
-		mScreenCapture = new ScreenCapture();
-		mFinalFBO_Ptr = new OffScreenBuffer();
-		mCubeMapFBO_Ptr = new OffScreenBuffer();
-
+		glfwMakeContextCurrent( mWindowHandle );
 		/*
 			Swap inerval:
 			-1 = adaptive sync
@@ -538,6 +559,12 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			2  = fix when using swapgroups in xp and running half the framerate
 		*/
 		glfwSwapInterval( mSwapInterval );
+		
+		glfwMakeContextCurrent( mSharedHandle );
+
+		mScreenCapture = new ScreenCapture();
+		mFinalFBO_Ptr = new OffScreenBuffer();
+		mCubeMapFBO_Ptr = new OffScreenBuffer();
 
 		return true;
 	}
@@ -718,24 +745,46 @@ void sgct_core::SGCTWindow::createTextures()
 	}
 
 	//allocate
-	glGenTextures(4, &mFrameBufferTextures[0]);
+	glGenTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
 
 	/*
 		Create left and right color & depth textures.
 	*/
 	//don't allocate the right eye image if stereo is not used
 	//create a postFX texture for effects
-	int numberOfTexturesToGenerate = (mStereoMode > NoStereo ? 2 : 1) + 1;
-	for( int i=0; i<numberOfTexturesToGenerate; i++ )
+	for( int i=0; i<(NUMBER_OF_TEXTURES-1); i++ ) //all textures except fisheye
 	{
-		glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
-		glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d texture (id: %d) generated for window %d!\n",
-			mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
+		bool create = true;
+		
+		switch( i )
+		{
+		case sgct::Engine::RightEye:
+			if( mStereoMode == NoStereo )
+				create = false;
+			break;
+
+		case sgct::Engine::FX1:
+			if( mPostFXPasses.empty() )
+				create = false;
+			break;
+
+		case sgct::Engine::FX2:
+			if( mPostFXPasses.size() < 2 )
+				create = false;
+			break;
+		}
+		
+		if( create )
+		{
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d texture (id: %d) generated for window %d!\n",
+				mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
+		}
 	}
 	/*
 		Create cubemap texture for fisheye rendering if enabled.
@@ -1135,6 +1184,13 @@ void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
 	}
 }
 
+/*!
+	Add a post effect for this window
+*/
+void sgct_core::SGCTWindow::addPostFX( sgct::PostFX & fx )
+{
+	mPostFXPasses.push_back( fx );
+}
 
 /*!
 	This function resizes the FBOs when the window is resized to achive 1:1 pixel-texel mapping.
@@ -1144,7 +1200,7 @@ void sgct_core::SGCTWindow::resizeFBOs()
 	if(!mUseFixResolution && SGCTSettings::Instance()->useFBO())
 	{
 		makeOpenGLContextCurrent( Shared_Context );
-		glDeleteTextures(4, &mFrameBufferTextures[0]);
+		glDeleteTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
 		createTextures();
 
 		if( mFisheyeMode )

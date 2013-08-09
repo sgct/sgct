@@ -33,7 +33,7 @@ namespace sgct_core
 			   gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
 			   UV = TexCoords;\n\
 			   Col = vec4(VertColor, 1.0);\n\
-			};\n";
+			}\n";
 
 		const std::string Base_Frag_Shader = "\
 			#version 330 core\n\
@@ -47,7 +47,7 @@ namespace sgct_core
 			void main()\n\
 			{\n\
 				Color = Col * texture(Tex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string Overlay_Vert_Shader = "\
 			#version 330 core\n\
@@ -62,7 +62,7 @@ namespace sgct_core
 			{\n\
 			   gl_Position = MVP * vec4(Position, 1.0);\n\
 			   UV = TexCoords;\n\
-			};\n";
+			}\n";
 
 		const std::string Overlay_Frag_Shader = "\
 			#version 330 core\n\
@@ -75,7 +75,7 @@ namespace sgct_core
 			void main()\n\
 			{\n\
 				Color = texture(Tex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string Fisheye_Vert_Shader = "\
 			#version 330 core\n\
@@ -90,7 +90,7 @@ namespace sgct_core
 			{\n\
 			   gl_Position = MVP * vec4(Position, 1.0);\n\
 			   UV = TexCoords;\n\
-			};\n";
+			}\n";
 
 		const std::string Fisheye_Frag_Shader = "\
 			#version 330 core\n\
@@ -167,7 +167,7 @@ namespace sgct_core
 			   gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
 			   UV = TexCoords;\n\
 			   Col = vec4(VertColor, 1.0);\n\
-			};\n";
+			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\
 			#version 330 core\n\
@@ -189,7 +189,7 @@ namespace sgct_core
 				Color.g = Col.g * rightLum;\n\
 				Color.b = Col.b * rightLum;\n\
 				Color.a = Col.a * max(leftVals.a, rightVals.a);\n\
-			};\n";
+			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Frag_Shader_Wimmer = "\
 			#version 330 core\n\
@@ -209,7 +209,7 @@ namespace sgct_core
 				Color.g = Col.g * rightVals.r;\n\
 				Color.b = Col.b * rightVals.b;\n\
 				Color.a = Col.a * max(leftVals.a, rightVals.a);\n\
-			};\n";
+			}\n";
 
 		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\
 			#version 330 core\n\
@@ -231,7 +231,7 @@ namespace sgct_core
 				Color.g = Col.g * leftVals.g;\n\
 				Color.b = Col.b * rightMix;\n\
 				Color.a = Col.a * max(leftVals.a, rightVals.a);\n\
-			};\n";
+			}\n";
 
 		const std::string CheckerBoard_Frag_Shader = "\
 			#version 330 core\n\
@@ -250,7 +250,7 @@ namespace sgct_core
 					Color = Col * texture( RightTex, UV);\n\
 				else\n\
 					Color = Col * texture( LeftTex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
 			#version 330 core\n\
@@ -269,7 +269,7 @@ namespace sgct_core
 					Color = Col * texture( LeftTex, UV);\n\
 				else\n\
 					Color = Col * texture( RightTex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string Vertical_Interlaced_Frag_Shader = "\
 			#version 330 core\n\
@@ -288,7 +288,7 @@ namespace sgct_core
 					Color = Col * texture( RightTex, UV);\n\
 				else\n\
 					Color = Col * texture( LeftTex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
 			#version 330 core\n\
@@ -307,7 +307,7 @@ namespace sgct_core
 					Color = Col * texture( LeftTex, UV);\n\
 				else\n\
 					Color = Col * texture( RightTex, UV);\n\
-			};\n";
+			}\n";
 
 		const std::string Dummy_Stereo_Frag_Shader = "\
 			#version 330 core\n\
@@ -322,7 +322,7 @@ namespace sgct_core
 			void main()\n\
 			{\n\
 				Color = Col * (0.5 * texture( LeftTex, UV) + 0.5 * texture( RightTex, UV));\n\
-			};\n";
+			}\n";
 
 		const std::string FXAA_Vert_Shader = "\
 			#version 330 core\n\

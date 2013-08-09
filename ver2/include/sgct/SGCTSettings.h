@@ -43,7 +43,6 @@ public:
 		}
 	}
 
-	void setFXAA(bool state);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
@@ -54,10 +53,6 @@ public:
 	const char * getCapturePath(CapturePathIndexes cpi = Mono);
 	int getCaptureFormat();
 	
-	//! Set to true if FXAA should be used
-	inline bool useFXAA() { return mUseFXAA; }
-	//! Set to true if PostFX pass should be used
-	inline bool usePostFX() { return mUsePostFX; }
 	//! Returns true if FBOs are used
 	inline bool useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
@@ -78,10 +73,6 @@ private:
 
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
-
-	//FXAA
-	bool mUseFXAA;
-	bool mUsePostFX;
 
 	//FBO settings
 	bool mUseFBO;

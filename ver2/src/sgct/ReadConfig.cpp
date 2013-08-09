@@ -270,10 +270,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 						tmpWin.setNumberOfAASamples(tmpSamples);
 
 					if( element[1]->Attribute("fxaa") != NULL )
-						SGCTSettings::Instance()->setFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
+						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
 
 					if( element[1]->Attribute("swapLock") != NULL )
-						tmpWin.useSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+						tmpWin.setUseSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
                     int tmpInterval = 0;
 					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
@@ -563,7 +563,24 @@ void sgct_core::ReadConfig::readAndParseXML()
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
-		}
+		}//end user
+		else if( strcmp("Settings", val[0]) == 0 )
+		{
+			element[1] = element[0]->FirstChildElement();
+			while( element[1] != NULL )
+			{
+				val[1] = element[1]->Value();
+
+				/*if( strcmp("FXAA", val[1]) == 0 )
+				{
+					if( element[1]->Attribute("value") != NULL )
+						SGCTSettings::Instance()->setUseFXAA( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+				}*/
+
+				//iterate
+				element[1] = element[1]->NextSiblingElement();
+			}
+		}//end settings
 		else if( strcmp("Font", val[0]) == 0 )
 		{
 			if( element[0]->Attribute("name") != NULL )

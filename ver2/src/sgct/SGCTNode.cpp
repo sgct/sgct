@@ -27,7 +27,7 @@ sgct_core::SGCTWindow * sgct_core::SGCTNode::getWindowPtr(std::size_t index)
 	return &mWindows[0];
 }*/
 
-sgct_core::SGCTWindow * sgct_core::SGCTNode::getCurrentWindowPtr()
+sgct_core::SGCTWindow * sgct_core::SGCTNode::getActiveWindowPtr()
 {
 	return &mWindows[mCurrentWindowIndex];
 }

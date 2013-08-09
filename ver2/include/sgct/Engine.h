@@ -58,7 +58,7 @@ public:
 		OpenGL_4_3_Core_Profile
 	};
 	//! The different texture indexes in window buffers
-	enum TextureIndexes { PostFX = 0, LeftEye, RightEye, FishEye };
+	enum TextureIndexes { LeftEye, RightEye, Intermediate, FX1, FX2, FishEye };
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -109,6 +109,10 @@ public:
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
 	void setExitKey(int key);
+	void addPostFX( PostFX & fx );
+	unsigned int getActiveDrawTexture();
+	int getActiveXResolution();
+	int getActiveYResolution();
 
 	/*!
 		\param state of the wireframe rendering
@@ -140,8 +144,8 @@ public:
 
     //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );
-	void setPreSyncFunction( void(*fnPtr)(void));
-	void setPostSyncPreDrawFunction( void(*fnPtr)(void));
+	void setPreSyncFunction( void(*fnPtr)(void) );
+	void setPostSyncPreDrawFunction( void(*fnPtr)(void) );
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
@@ -190,7 +194,7 @@ public:
 	/*!
 		Returns a pointer to the current window that is beeing rendered
 	*/
-	static sgct_core::SGCTWindow * getActiveWindowPtr() { return sgct_core::ClusterManager::Instance()->getThisNodePtr()->getCurrentWindowPtr(); }
+	sgct_core::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
 
 	/*!
 		Returns a pinter to the user (VR observer position) object
@@ -240,12 +244,12 @@ public:
 	/*!
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
 
 	/*!
 		Returns the active view matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum ); }
 
 	/*!
 		Returns the scene transform specified in the XML configuration, default is a identity matrix
@@ -255,18 +259,18 @@ public:
 	/*!
 		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getCurrentWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum ); }
 
 	/*!
 		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
+	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
 		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
+	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
 		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
 
 	/*!
@@ -318,8 +322,8 @@ private:
 	void drawFixedPipeline();
 	void drawOverlaysFixedPipeline();
 	void renderFBOTextureFixedPipeline();
-	void renderPostFXFixedPipeline(TextureIndexes ti );
-	void renderFisheyeFixedPipeline(TextureIndexes ti);
+	void renderPostFXFixedPipeline(TextureIndexes finalTargetIndex );
+	void renderFisheyeFixedPipeline(TextureIndexes finalTargetIndex);
 
 	void prepareBuffer(TextureIndexes ti);
 	void updateRenderingTargets(TextureIndexes ti);
@@ -327,9 +331,6 @@ private:
 	void loadShaders();
 	void setAndClearBuffer(BufferMode mode);
 	void waitForAllWindowsInSwapGroupToOpen();
-
-	//non-static more direct version of the getActiveWindowPtr function
-	sgct_core::SGCTWindow * getCurrentWindowPtr() { return mThisNode->getCurrentWindowPtr(); }
 
 	static void clearBuffer();
 	static void internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

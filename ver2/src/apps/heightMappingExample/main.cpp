@@ -271,7 +271,7 @@ void keyCallback(int key, int action)
 
 		case 'F':
 			if(action == SGCT_PRESS)
-				sgct_core::SGCTSettings::Instance()->setFXAA( !sgct_core::SGCTSettings::Instance()->useFXAA() );
+				sgct_core::SGCTSettings::Instance()->setUseFXAA( !sgct_core::SGCTSettings::Instance()->useFXAA() );
 			break;
 
 		case 'P':

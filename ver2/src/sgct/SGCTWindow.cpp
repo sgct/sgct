@@ -134,17 +134,17 @@ void sgct_core::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
 
+	//delete postFX
+	for(std::size_t i=0; i<getNumberOfPostFXs(); i++)
+		mPostFXPasses[i].destroy();
+	mPostFXPasses.clear();
+
 	if( mScreenCapture )
 	{
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Deleting screen capture data for window %d...\n", mId);
 		delete mScreenCapture;
 		mScreenCapture = NULL;
 	}
-
-	//delete postFX
-	for(std::size_t i=0; i<getNumberOfPostFXs(); i++)
-		mPostFXPasses[i].destroy();
-	mPostFXPasses.clear();
 
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&

@@ -123,6 +123,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postFXExample_opengl3_msvc1
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postFXExample_msvc10", "..\apps\postFXExample\postFXExample_msvc10.vcxproj", "{7D673D22-2901-4F8A-8B43-B09B04526CFF}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -331,6 +336,14 @@ Global
 		{36E4C350-8BC1-4024-B7EB-174182E0CB69}.Release|Win32.Build.0 = Release|Win32
 		{36E4C350-8BC1-4024-B7EB-174182E0CB69}.Release|x64.ActiveCfg = Release|x64
 		{36E4C350-8BC1-4024-B7EB-174182E0CB69}.Release|x64.Build.0 = Release|x64
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Debug|Win32.ActiveCfg = Debug|Win32
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Debug|Win32.Build.0 = Debug|Win32
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Debug|x64.ActiveCfg = Debug|x64
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Debug|x64.Build.0 = Debug|x64
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Release|Win32.ActiveCfg = Release|Win32
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Release|Win32.Build.0 = Release|Win32
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Release|x64.ActiveCfg = Release|x64
+		{7D673D22-2901-4F8A-8B43-B09B04526CFF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

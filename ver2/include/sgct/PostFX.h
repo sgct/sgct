@@ -45,7 +45,12 @@ public:
 	inline const std::string & getName() { return mName; }
 
 private:
+	void internalRender();
+	void internalRenderFixedPipeline();
+
+private:
 	void (*mUpdateFn)(float * mat);
+	void (PostFX::*mRenderFn)(void);
 
 	ShaderProgram mShaderProgram;
 	unsigned int mInputTexture;
@@ -53,6 +58,7 @@ private:
 	
 	int mXSize, mYSize;
 	std::string mName;
+	static bool mDeleted;
 };
 }
 

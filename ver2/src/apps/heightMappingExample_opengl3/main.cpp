@@ -350,7 +350,10 @@ void keyCallback(int key, int action)
 
 		case 'F':
 			if(action == SGCT_PRESS)
-				sgct_core::SGCTSettings::Instance()->setUseFXAA( !sgct_core::SGCTSettings::Instance()->useFXAA() );
+				for(std::size_t i=0; i<gEngine->getNumberOfWindows(); i++)
+				{
+					gEngine->getWindowPtr(i)->setUseFXAA( gEngine->getWindowPtr(i)->useFXAA() );
+				}
 			break;
 
 		case 'P':

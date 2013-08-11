@@ -1886,71 +1886,115 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 */
 void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 {
-	//bind fisheye target FBO
-	getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
+	PostFX * fx = NULL;
+	PostFX * fxPrevious = NULL;
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	std::size_t numberOfPasses = getActiveWindowPtr()->getNumberOfPostFXs();
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
+	if( numberOfPasses > 0 )
+	{
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+	}
 
-	/*
-		The code below flips the viewport vertically. Top & bottom coords are flipped.
-	*/
+	for( std::size_t i = 0; i<numberOfPasses; i++ )
+	{
+		fx = getActiveWindowPtr()->getPostFXPtr( i );
 
-	glOrtho( 0.0,
-		1.0,
-		0.0,
-		1.0,
-		0.1,
-		2.0);
+		//set output
+		if( i == (numberOfPasses-1) && !getActiveWindowPtr()->useFXAA() ) //if last
+			fx->setOutputTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
+		else
+			fx->setOutputTexture( getActiveWindowPtr()->getFrameBufferTexture( (i%2 == 0) ? FX1 : FX2 ) ); //ping pong between the two FX buffers
 
-	//if for some reson the active texture has been reset
-	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-	glMatrixMode(GL_TEXTURE);
-	glLoadIdentity();
+		//set input (dependent on output)
+		if( i == 0 )
+			fx->setInputTexture( getActiveWindowPtr()->getFrameBufferTexture( Intermediate ) );
+		else
+		{
+			fxPrevious = getActiveWindowPtr()->getPostFXPtr( i-1 );
+			fx->setInputTexture( fxPrevious->getOutputTexture() );
+		}
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glPushMatrix();
-	glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
+		fx->render();
+	}
 
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	if( numberOfPasses > 0 )
+		glPopAttrib();
+	
+	if( getActiveWindowPtr()->useFXAA() )
+	{
+		//bind fisheye target FBO
+		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
-	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture( Intermediate ) );
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
+		glMatrixMode(GL_PROJECTION);
+		glLoadIdentity();
 
-	mShaders[FXAAShader].bind();
-	glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
-	glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
-	glUniform1i( mShaderLocs[FXAATexture], 0 );
+		/*
+			The code below flips the viewport vertically. Top & bottom coords are flipped.
+		*/
 
-	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+		glOrtho( 0.0,
+			1.0,
+			0.0,
+			1.0,
+			0.1,
+			2.0);
 
-	getActiveWindowPtr()->bindVBO( SGCTWindow::RenderQuad );
-	glClientActiveTexture(GL_TEXTURE0);
+		//if for some reson the active texture has been reset
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glMatrixMode(GL_TEXTURE);
+		glLoadIdentity();
 
-	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-	glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
+		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
+		glPushMatrix();
+		glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
 
-	glEnableClientState(GL_VERTEX_ARRAY);
-	glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+		glPushAttrib(GL_ALL_ATTRIB_BITS);
 
-	getActiveWindowPtr()->unbindVBO();
+		glEnable(GL_TEXTURE_2D);
+		if( fx != NULL )
+			glBindTexture(GL_TEXTURE_2D, fx->getOutputTexture() );
+		else
+			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture( Intermediate ) );
 
-	ShaderProgram::unbind();
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_LIGHTING);
+		glDisable(GL_DEPTH_TEST);
 
-	glPopClientAttrib();
-	glPopAttrib();
-	glPopMatrix();
+		mShaders[FXAAShader].bind();
+		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
+		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
+		glUniform1i( mShaderLocs[FXAATexture], 0 );
+
+		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+
+		getActiveWindowPtr()->bindVBO( SGCTWindow::RenderQuad );
+		glClientActiveTexture(GL_TEXTURE0);
+
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
+
+		glEnableClientState(GL_VERTEX_ARRAY);
+		glVertexPointer(3, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(8));
+		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+
+		getActiveWindowPtr()->unbindVBO();
+
+		ShaderProgram::unbind();
+
+		glPopClientAttrib();
+		glPopAttrib();
+		glPopMatrix();
+	}
 }
 
 /*!

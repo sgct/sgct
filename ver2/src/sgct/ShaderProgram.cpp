@@ -58,30 +58,29 @@ sgct::ShaderProgram::~ShaderProgram(void)
 Will deattach all attached shaders, delete them and then delete the program
 */
 void sgct::ShaderProgram::deleteProgram()
-{
-	//MessageHandler::Instance()->print("Deleting shader %s...\n", mName.c_str() );
-	
-	if( mVertexShader.getId() > 0 )
+{		
+	if( mVertexShader.getId() > GL_FALSE )
 	{
 		glDetachShader( mProgramId, mVertexShader.getId() );
 		mVertexShader.deleteShader();
 	}
 
-	if( mFragmentShader.getId() > 0 )
+	if( mFragmentShader.getId() > GL_FALSE )
 	{
 		glDetachShader( mProgramId, mFragmentShader.getId() );
 		mFragmentShader.deleteShader();
 	}
 
-	if( mGeometryShader.getId() > 0 )
+	if( mGeometryShader.getId() > GL_FALSE )
 	{
 		glDetachShader( mProgramId, mGeometryShader.getId() );
 		mGeometryShader.deleteShader();
 	}
 
-	if( mProgramId > 0 )
+	if( mProgramId > GL_FALSE )
 	{
 		glDeleteProgram( mProgramId );
+		mProgramId = GL_FALSE;
 	}
 }
 

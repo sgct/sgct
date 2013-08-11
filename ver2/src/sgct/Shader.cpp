@@ -146,6 +146,7 @@ bool sgct_core::Shader::setSourceFromString( const std::string & sourceString )
 void sgct_core::Shader::deleteShader()
 {
 	glDeleteShader( mShaderId );
+	mShaderId = GL_FALSE;
 }
 //----------------------------------------------------------------------------//
 

@@ -105,14 +105,14 @@ void sgct::PostFX::internalRender()
 {
 	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::Instance()->getThisNodePtr()->getActiveWindowPtr();
 	
-	//bind fisheye target FBO
+	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
 
 	mXSize =  win->getXFramebufferResolution();
 	mYSize =  win->getYFramebufferResolution();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
@@ -141,7 +141,7 @@ void sgct::PostFX::internalRenderFixedPipeline()
 {
 	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::Instance()->getThisNodePtr()->getActiveWindowPtr();
 	
-	//bind fisheye target FBO
+	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
 
 	mXSize =  win->getXFramebufferResolution();

@@ -47,8 +47,8 @@ void updatePass3(float * mat)
 void updatePass4(float * mat)
 {
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
-	
+	//glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
+	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDepthTexture() );
 	glUniformMatrix4fv( PostFX_Matrix_Loc[3], 1, GL_FALSE, mat);
 	glUniform1i( PostFX_Texture_Loc[3], 0 );
 	glUniform1i( Tex2_Loc, 1 );
@@ -101,6 +101,7 @@ void setupPostFXs()
 
 	if( gEngine->getNumberOfWindows() > 1 )
 		gEngine->getWindowPtr(1)->setUsePostFX( false );
+	gEngine->setNearAndFarClippingPlanes(0.1f, 50.0f);
 }
 
 int main( int argc, char* argv[] )

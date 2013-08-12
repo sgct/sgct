@@ -20,6 +20,7 @@ public:
 	void attachColorTexture(unsigned int texId);
 	void attachDepthTexture(unsigned int texId);
 	void attachCubeMapTexture(unsigned int texId, unsigned int face);
+	void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 	void bind();
 	void bindBlit();
 	void blit();

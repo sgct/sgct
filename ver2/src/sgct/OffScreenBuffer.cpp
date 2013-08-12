@@ -12,10 +12,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::OffScreenBuffer::OffScreenBuffer()
 {
-	mFrameBuffer = 0;
-	mMultiSampledFrameBuffer = 0;
-	mRenderBuffer = 0;
-	mDepthBuffer = 0;
+	mFrameBuffer = GL_FALSE;
+	mMultiSampledFrameBuffer = GL_FALSE;
+	mRenderBuffer = GL_FALSE;
+	mDepthBuffer = GL_FALSE;
 
 	mWidth = 1;
 	mHeight = 1;
@@ -49,28 +49,25 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		glGenFramebuffers(1, &mMultiSampledFrameBuffer);
 	}
 
-	//setup render buffer
+	//Bind FBO
 	mMultiSampled ?
 		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
 		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+	
+	//Setup color render buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, mRenderBuffer);
-
-	//Set render buffer storage depending on if buffer is multisampled or not
 	mMultiSampled ?
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA, width, height) :
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_RGBA, width, height);
-	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRenderBuffer);
 
-	//setup depth buffer
-	//needed for depth testing
-	mMultiSampled ?
-		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
-		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer);
+	//Setup depth render buffer
 	glBindRenderbuffer(GL_RENDERBUFFER, mDepthBuffer);
-
 	mMultiSampled ?
 		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_DEPTH_COMPONENT32, width, height ):
 		glRenderbufferStorage(GL_RENDERBUFFER, GL_DEPTH_COMPONENT32, width, height );
+
+	//It's time to attach the RBs to the FBO
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, mRenderBuffer);
 	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_RENDERBUFFER, mDepthBuffer);
 
 	//Does the GPU support current FBO configuration?
@@ -78,6 +75,14 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "OffScreenBuffer: Something went wrong creating FBO!\n");
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
+
+	mMultiSampled ?
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+			"OffScreenBuffer: Created buffers:\n\tFrame buffer id=%d\n\tDepth buffer id=%d\n\tRender buffer id=%d\n\tMultisample buffer id=%d\n",
+			mFrameBuffer, mDepthBuffer, mRenderBuffer, mMultiSampledFrameBuffer) :
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+			"OffScreenBuffer: Created buffers:\n\tFrame buffer id=%d\n\tDepth buffer id=%d\n\tRender buffer id=%d\n",
+			mFrameBuffer, mDepthBuffer, mRenderBuffer);
 
 	//sgct::MessageHandler::Instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
 }
@@ -155,4 +160,9 @@ void sgct_core::OffScreenBuffer::attachDepthTexture(unsigned int texId)
 void sgct_core::OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face)
 {
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
+}
+
+void sgct_core::OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int face)
+{
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
 }

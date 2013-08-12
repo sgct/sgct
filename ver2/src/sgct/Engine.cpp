@@ -1224,6 +1224,9 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 		{
 			//update attachments
 			fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( ti ) );
+
+			if( SGCTSettings::Instance()->useDepthBufferTexture() )
+				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
 		}
 
 		setAndClearBuffer(RenderToTexture);
@@ -1423,6 +1426,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			if( !getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
 			{
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1437,6 +1442,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 				//update attachments
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
 
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->blit();
 			}
@@ -1449,8 +1456,11 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//bind fisheye target FBO
 	getActiveWindowPtr()->mFinalFBO_Ptr->bind();
 	getActiveWindowPtr()->usePostFX() ?
-			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
-			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
+		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
+		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
+
+	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+		getActiveWindowPtr()->mFinalFBO_Ptr->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1469,12 +1479,21 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	glDisable(GL_DEPTH_TEST);
+	//glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 
 	getActiveWindowPtr()->bindFisheyeShader();
 
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
+
+	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth));
+		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
+	}
+
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
@@ -1489,6 +1508,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVAO();
 
 	ShaderProgram::unbind();
+	glDisable(GL_DEPTH_TEST);
 
 	if(mTakeScreenshot)
 	{
@@ -1797,12 +1817,14 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 		}
 	}
 
-	mFixedOGLPipeline ? glPopAttrib() : glDisable(GL_BLEND);
-
+	//blit buffers
 	updateRenderingTargets(ti); //only used if multisampled FBOs
-	
+
 	if( getActiveWindowPtr()->usePostFX() )
 		(this->*mInternalRenderPostFXFn)(ti);
+
+	if( mFixedOGLPipeline )
+		glPopAttrib();
 }
 
 /*!
@@ -1814,9 +1836,6 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 	PostFX * fxPrevious = NULL;
 
 	std::size_t numberOfPasses = getActiveWindowPtr()->getNumberOfPostFXs();
-
-	if( numberOfPasses > 0 )
-		glEnable(GL_BLEND);
 
 	for( std::size_t i = 0; i<numberOfPasses; i++ )
 	{
@@ -1840,16 +1859,13 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 		fx->render();
 	}
 
-	if( numberOfPasses > 0 )
-		glDisable(GL_BLEND);
-	
 	if( getActiveWindowPtr()->useFXAA() )
 	{
-		//bind fisheye target FBO
+		//bind target FBO
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 	
 		/*
 			The code below flips the viewport vertically. Top & bottom coords are flipped.
@@ -1928,7 +1944,7 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 	
 	if( getActiveWindowPtr()->useFXAA() )
 	{
-		//bind fisheye target FBO
+		//bind target FBO
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -2003,17 +2019,21 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 {
 	//copy AA-buffer to "regular"/non-AA buffer
-	if( getActiveWindowPtr()->mFinalFBO_Ptr->isMultiSampled() )
+	sgct_core::OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
+	if( fbo->isMultiSampled() )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
 			ti = Intermediate;
 
-		getActiveWindowPtr()->mFinalFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+		fbo->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 		//update attachments
-		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
+		fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-		getActiveWindowPtr()->mFinalFBO_Ptr->blit();
+		if( SGCTSettings::Instance()->useDepthBufferTexture() )
+			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
+
+		fbo->blit();
 	}
 }
 
@@ -2892,6 +2912,14 @@ unsigned int sgct::Engine::getActiveDrawTexture()
 		return getActiveWindowPtr()->getFrameBufferTexture( Intermediate );
 	else
 		return mActiveFrustum == Frustum::StereoRightEye ? getActiveWindowPtr()->getFrameBufferTexture( RightEye ) : getActiveWindowPtr()->getFrameBufferTexture( LeftEye );
+}
+
+/*!
+	\Returns the active depth texture if depth texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE 
+*/
+unsigned int sgct::Engine::getActiveDepthTexture()
+{
+	return getActiveWindowPtr()->getFrameBufferTexture( Depth );
 }
 
 /*!

@@ -19,6 +19,7 @@ sgct_core::SGCTSettings::SGCTSettings()
 
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
+	mUseDepthBufferTexture = false;
 	mUseFBO = true;
 
 	for(size_t i=0; i<3; i++)
@@ -29,6 +30,14 @@ sgct_core::SGCTSettings::SGCTSettings()
 sgct_core::SGCTSettings::~SGCTSettings()
 {
 	;
+}
+
+/*!
+Set to true if depth buffer textures should be allocated and used.
+*/
+void sgct_core::SGCTSettings::setUseDepthBufferTexture(bool state)
+{
+	mUseDepthBufferTexture = state;
 }
 
 /*!

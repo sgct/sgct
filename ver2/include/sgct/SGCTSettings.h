@@ -43,6 +43,7 @@ public:
 		}
 	}
 
+	void setUseDepthBufferTexture(bool state);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
@@ -53,6 +54,8 @@ public:
 	const char * getCapturePath(CapturePathIndexes cpi = Mono);
 	int getCaptureFormat();
 	
+	//! Return true if depth buffer is rendered to texture
+	inline bool useDepthBufferTexture() { return mUseDepthBufferTexture; }
 	//! Returns true if FBOs are used
 	inline bool useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
@@ -74,7 +77,7 @@ private:
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
 
-	//FBO settings
+	bool mUseDepthBufferTexture;
 	bool mUseFBO;
 
 	std::string mCapturePath[3];

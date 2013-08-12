@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
-#define NUMBER_OF_TEXTURES 6
+#define NUMBER_OF_TEXTURES 8
 
 namespace sgct_core
 {
@@ -186,6 +186,7 @@ public:
 	inline void bindFisheyeShader() { mFisheyeShader.bind(); }
 	inline int getFisheyeShaderMVPLoc() { return FisheyeMVP; }
 	inline int getFisheyeShaderCubemapLoc() { return Cubemap; }
+	inline int getFisheyeShaderCubemapDepthLoc() { return CubemapDepth; }
 	inline int getFisheyeShaderHalfFOVLoc() { return FishEyeHalfFov; }
 	inline int getFisheyeShaderOffsetLoc() { return FisheyeOffset; }
 	inline float getFisheyeOffset(unsigned int axis) { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
@@ -282,7 +283,7 @@ private:
 
 	//Shaders
 	sgct::ShaderProgram mFisheyeShader;
-	int FisheyeMVP, Cubemap, FishEyeHalfFov, FisheyeOffset;
+	int FisheyeMVP, Cubemap, CubemapDepth, FishEyeHalfFov, FisheyeOffset;
 	sgct::ShaderProgram mStereoShader;
 	int StereoMVP, StereoLeftTex, StereoRightTex;
 

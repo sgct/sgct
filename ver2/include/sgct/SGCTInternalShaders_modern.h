@@ -121,6 +121,41 @@ namespace sgct_core
 					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
 			}\n";
 
+		const std::string Fisheye_Frag_Shader_Depth = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			out vec4 Color;\n\
+			out float gl_FragDepth;\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform samplerCube depthmap;\n\
+			uniform float halfFov;\n\
+			float angle45Factor = 0.7071067812;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (UV.s - 0.5);\n\
+				float t = 2.0 * (UV.t - 0.5);\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(r2) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta);\n\
+					float y = -sin(phi) * cos(theta);\n\
+					float z = cos(phi);\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					Color = vec4(texture(cubemap, rotVec));\n\
+					gl_FragDepth = texture(depthmap, rotVec).x;\n\
+				}\n\
+				else\n\
+				{\n\
+					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					gl_FragDepth = 1.0f;\n\
+				}\n\
+			}\n";
+
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
 			#version 330 core\n\
 			\n\

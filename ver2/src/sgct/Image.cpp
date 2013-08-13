@@ -223,7 +223,7 @@ bool sgct_core::Image::save()
 		type[4] = '\0';
 
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
-			return savePNG( SGCTSettings::Instance()->getPNGCompressionLevel() );
+			return savePNG( sgct::SGCTSettings::Instance()->getPNGCompressionLevel() );
 		if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
 			return saveTGA();
 		else

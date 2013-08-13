@@ -26,7 +26,7 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
-	mNumberOfThreads = SGCTSettings::Instance()->getNumberOfCaptureThreads();
+	mNumberOfThreads = sgct::SGCTSettings::Instance()->getNumberOfCaptureThreads();
 	mPBO = GL_FALSE;
 	mDataSize = 0;
 	mWindowIndex = 0;
@@ -309,19 +309,19 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 	case Front_Buffer:
 	default:
 		eye.assign("");
-		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::Mono ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::Mono ) );
 		break;
 
 	case FBO_Left_Texture:
 	case Left_Front_Buffer:
 		eye.assign("_L");
-		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::LeftStereo ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::LeftStereo ) );
 		break;
 
 	case FBO_Right_Texture:
 	case Right_Front_Buffer:
 		eye.assign("_R");
-		mScreenShotFilename.assign( SGCTSettings::Instance()->getCapturePath( SGCTSettings::RightStereo ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::RightStereo ) );
 		break;
 	}
 

@@ -43,6 +43,7 @@ public:
 
 	int getAttribLocation( const std::string & name ) const;
 	int getUniformLocation( const std::string & name ) const;
+	void bindFragDataLocation( unsigned int colorNumber, const std::string & name ) const;
 
 	/*! Less than ShaderProgram operator */
 	inline bool operator<( const ShaderProgram & rhs ) const { return mName < rhs.mName; }

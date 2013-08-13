@@ -11,23 +11,24 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
 
-sgct_core::SGCTSettings * sgct_core::SGCTSettings::mInstance = NULL;
+sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
 
-sgct_core::SGCTSettings::SGCTSettings()
+sgct::SGCTSettings::SGCTSettings()
 {
 	mPNGCompressionLevel = 1;
 
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
-	mUseDepthBufferTexture = false;
+	mUseDepthTexture = false;
+	mUseNormalTexture = false;
 	mUseFBO = true;
 
 	for(size_t i=0; i<3; i++)
 		mCapturePath[i].assign("SGCT");
-	mCaptureFormat = ScreenCapture::NOT_SET;
+	mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
 }
 
-sgct_core::SGCTSettings::~SGCTSettings()
+sgct::SGCTSettings::~SGCTSettings()
 {
 	;
 }
@@ -35,15 +36,23 @@ sgct_core::SGCTSettings::~SGCTSettings()
 /*!
 Set to true if depth buffer textures should be allocated and used.
 */
-void sgct_core::SGCTSettings::setUseDepthBufferTexture(bool state)
+void sgct::SGCTSettings::setUseDepthTexture(bool state)
 {
-	mUseDepthBufferTexture = state;
+	mUseDepthTexture = state;
+}
+
+/*!
+Set to true if normal textures should be allocated and used.
+*/
+void sgct::SGCTSettings::setUseNormalTexture(bool state)
+{
+	mUseNormalTexture = state;
 }
 
 /*!
 Set the FBO mode. This is done internally using SGCT config file.
 */
-void sgct_core::SGCTSettings::setUseFBO(bool state)
+void sgct::SGCTSettings::setUseFBO(bool state)
 {
 	mUseFBO = state;
 }
@@ -51,7 +60,7 @@ void sgct_core::SGCTSettings::setUseFBO(bool state)
 /*!
 Set the number of capture threads used by SGCT (multi-threaded screenshots)
 */
-void sgct_core::SGCTSettings::setNumberOfCaptureThreads(int count)
+void sgct::SGCTSettings::setNumberOfCaptureThreads(int count)
 {
 	mNumberOfCaptureThreads = count;
 }
@@ -65,7 +74,7 @@ Compression levels 1-9.
 	1 = Best speed
 	9 = Best compression
 */
-void sgct_core::SGCTSettings::setPNGCompressionLevel(int level)
+void sgct::SGCTSettings::setPNGCompressionLevel(int level)
 {
 	mPNGCompressionLevel = level;
 }
@@ -76,7 +85,7 @@ Set capture/screenshot path used by SGCT
 \param path the path including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct_core::SGCTSettings::setCapturePath(std::string path, sgct_core::SGCTSettings::CapturePathIndexes cpi)
+void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::CapturePathIndexes cpi)
 {
 	if( path.empty() ) //invalid filename
 	{
@@ -93,7 +102,7 @@ Append capture/screenshot path used by SGCT
 \param str the string to append including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct_core::SGCTSettings::appendCapturePath(std::string str, sgct_core::SGCTSettings::CapturePathIndexes cpi)
+void sgct::SGCTSettings::appendCapturePath(std::string str, sgct::SGCTSettings::CapturePathIndexes cpi)
 {
 	mCapturePath[cpi].append( str );
 }
@@ -103,15 +112,15 @@ Set the capture format which can be one of the following:
 -PNG
 -TGA
 */
-void sgct_core::SGCTSettings::setCaptureFormat(const char * format)
+void sgct::SGCTSettings::setCaptureFormat(const char * format)
 {
 	if( strcmp("png", format) == 0 || strcmp("PNG", format) == 0 )
 	{
-		mCaptureFormat = ScreenCapture::PNG;
+		mCaptureFormat = sgct_core::ScreenCapture::PNG;
 	}
 	else if( strcmp("tga", format) == 0 || strcmp("TGA", format) == 0 )
 	{
-		mCaptureFormat = ScreenCapture::TGA;
+		mCaptureFormat = sgct_core::ScreenCapture::TGA;
 	}
 }
 
@@ -120,7 +129,7 @@ void sgct_core::SGCTSettings::setCaptureFormat(const char * format)
 
 	\param cpi index to which path to get (Mono = default, Left or Right)
 */
-const char * sgct_core::SGCTSettings::getCapturePath(sgct_core::SGCTSettings::CapturePathIndexes cpi)
+const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndexes cpi)
 {
 	return mCapturePath[cpi].c_str();
 }
@@ -130,7 +139,7 @@ const char * sgct_core::SGCTSettings::getCapturePath(sgct_core::SGCTSettings::Ca
 
 	\return the captureformat if set, otherwise -1 is returned
 */
-int sgct_core::SGCTSettings::getCaptureFormat()
+int sgct::SGCTSettings::getCaptureFormat()
 {
 	return mCaptureFormat;
 }

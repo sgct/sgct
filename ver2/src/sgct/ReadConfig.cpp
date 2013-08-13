@@ -574,7 +574,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("DepthBufferTexture", val[1]) == 0 )
 				{
 					if( element[1]->Attribute("value") != NULL )
-						SGCTSettings::Instance()->setUseDepthBufferTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+						sgct::SGCTSettings::Instance()->setUseDepthTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+				}
+				else if( strcmp("NormalTexture", val[1]) == 0 )
+				{
+					if( element[1]->Attribute("value") != NULL )
+						sgct::SGCTSettings::Instance()->setUseNormalTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
 				}
 
 				//iterate
@@ -608,26 +613,26 @@ void sgct_core::ReadConfig::readAndParseXML()
 		{
 			if( element[0]->Attribute("path") != NULL )
 			{
-			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::Mono );
-				SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::LeftStereo );
-				SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct_core::SGCTSettings::RightStereo );
+			    sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct::SGCTSettings::Mono );
+				sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct::SGCTSettings::LeftStereo );
+				sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("path"), sgct::SGCTSettings::RightStereo );
             }
 			if( element[0]->Attribute("monoPath") != NULL )
 			{
-			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("monoPath"), sgct_core::SGCTSettings::Mono );
+			    sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("monoPath"), sgct::SGCTSettings::Mono );
             }
 			if( element[0]->Attribute("leftPath") != NULL )
 			{
-			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("leftPath"), sgct_core::SGCTSettings::LeftStereo );
+			    sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("leftPath"), sgct::SGCTSettings::LeftStereo );
             }
 			if( element[0]->Attribute("rightPath") != NULL )
 			{
-			    SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("rightPath"), sgct_core::SGCTSettings::RightStereo );
+			    sgct::SGCTSettings::Instance()->setCapturePath( element[0]->Attribute("rightPath"), sgct::SGCTSettings::RightStereo );
             }
 
             if( element[0]->Attribute("format") != NULL )
 			{
-			    SGCTSettings::Instance()->setCaptureFormat( element[0]->Attribute("format") );
+			    sgct::SGCTSettings::Instance()->setCaptureFormat( element[0]->Attribute("format") );
             }
         }
 		else if( strcmp("Tracker", val[0]) == 0 && element[0]->Attribute("name") != NULL )

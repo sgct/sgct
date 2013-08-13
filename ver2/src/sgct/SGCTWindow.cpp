@@ -58,7 +58,8 @@ sgct_core::SGCTWindow::SGCTWindow()
 
 	FisheyeMVP		= -1;
 	Cubemap			= -1;
-	CubemapDepth	= -1;
+	DepthCubemap	= -1;
+	NormalCubemap	= -1;
 	FishEyeHalfFov	= -1;
 	FisheyeOffset	= -1;
 	StereoMVP		= -1;
@@ -150,7 +151,7 @@ void sgct_core::SGCTWindow::close()
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
 		mCubeMapFBO_Ptr != NULL &&
-		SGCTSettings::Instance()->useFBO() )
+		sgct::SGCTSettings::Instance()->useFBO() )
 	{
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing OpenGL buffers for window %d...\n", mId);
 		mFinalFBO_Ptr->destroy();
@@ -492,10 +493,10 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	//if using fisheye rendering for a dome display
 	if( isUsingFisheyeRendering() )
 	{
-		if( !SGCTSettings::Instance()->useFBO() )
+		if( !sgct::SGCTSettings::Instance()->useFBO() )
 		{
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Forcing FBOs for fisheye mode!\n", mId);
-			SGCTSettings::Instance()->setUseFBO( true );
+			sgct::SGCTSettings::Instance()->setUseFBO( true );
 		}
 
 		//create the cube mapped viewports
@@ -503,7 +504,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	int antiAliasingSamples = getNumberOfAASamples();
-	if( antiAliasingSamples > 1 && !SGCTSettings::Instance()->useFBO() ) //if multisample is used
+	if( antiAliasingSamples > 1 && !sgct::SGCTSettings::Instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
 
 	int count;
@@ -666,8 +667,8 @@ void sgct_core::SGCTWindow::initScreenCapture()
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
 	else
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
-	if( SGCTSettings::Instance()->getCaptureFormat() != ScreenCapture::NOT_SET )
-		mScreenCapture->setFormat( static_cast<ScreenCapture::CaptureFormat>(SGCTSettings::Instance()->getCaptureFormat()) );
+	if( sgct::SGCTSettings::Instance()->getCaptureFormat() != ScreenCapture::NOT_SET )
+		mScreenCapture->setFormat( static_cast<ScreenCapture::CaptureFormat>( sgct::SGCTSettings::Instance()->getCaptureFormat() ) );
 }
 
 void sgct_core::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
@@ -736,7 +737,7 @@ bool sgct_core::SGCTWindow::isUsingFisheyeRendering()
 void sgct_core::SGCTWindow::createTextures()
 {
 	//no target textures needed if not using FBO
-	if( !SGCTSettings::Instance()->useFBO() )
+	if( !sgct::SGCTSettings::Instance()->useFBO() )
 		return;
 
 	if( sgct::Engine::Instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
@@ -753,7 +754,7 @@ void sgct_core::SGCTWindow::createTextures()
 	*/
 	//don't allocate the right eye image if stereo is not used
 	//create a postFX texture for effects
-	for( int i=0; i<(NUMBER_OF_TEXTURES-2); i++ ) //all textures except fisheye cubemap(s)
+	for( int i=0; i<(NUMBER_OF_TEXTURES-3); i++ ) //all textures except fisheye cubemap(s)
 	{
 		bool create = true;
 		
@@ -765,7 +766,12 @@ void sgct_core::SGCTWindow::createTextures()
 			break;
 
 		case sgct::Engine::Depth:
-			if( !SGCTSettings::Instance()->useDepthBufferTexture() )
+			if( !sgct::SGCTSettings::Instance()->useDepthTexture() )
+				create = false;
+			break;
+
+		case sgct::Engine::Normals:
+			if( !sgct::SGCTSettings::Instance()->useNormalTexture() )
 				create = false;
 			break;
 
@@ -798,6 +804,12 @@ void sgct_core::SGCTWindow::createTextures()
 				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d) generated for window %d!\n",
 					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
 			}
+			else if( i == sgct::Engine::Normals )
+			{
+				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB16F, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_RGB, GL_FLOAT, NULL);
+				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d normal texture (id: %d) generated for window %d!\n",
+					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
+			}
 			else
 			{
 				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
@@ -820,7 +832,7 @@ void sgct_core::SGCTWindow::createTextures()
 		}
 
 		//set up texture target
-		glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::FishEye ]);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMap ]);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -830,12 +842,12 @@ void sgct_core::SGCTWindow::createTextures()
 		for (int i = 0; i < 6; ++i)
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FishEye ], mId);
+			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMap ], mId);
 
-		if( SGCTSettings::Instance()->useDepthBufferTexture() )
+		if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 		{
 			//set up texture target
-			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::FishEyeDepth ]);
+			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ]);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
@@ -845,7 +857,23 @@ void sgct_core::SGCTWindow::createTextures()
 			for (int i = 0; i < 6; ++i)
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
-				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FishEyeDepth ], mId);
+				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
+		}
+
+		if( sgct::SGCTSettings::Instance()->useNormalTexture() )
+		{
+			//set up texture target
+			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMapNormals ]);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+			for (int i = 0; i < 6; ++i)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, mCubeMapResolution, mCubeMapResolution, 0, GL_RGB, GL_FLOAT, NULL);
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
+				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
 		}
 	}
 
@@ -864,7 +892,7 @@ void sgct_core::SGCTWindow::createTextures()
 */
 void sgct_core::SGCTWindow::createFBOs()
 {
-	if( !SGCTSettings::Instance()->useFBO() )
+	if( !sgct::SGCTSettings::Instance()->useFBO() )
 	{
 		//disable anaglyph & checkerboard stereo if FBOs are not used
 		if( mStereoMode > Active )
@@ -888,7 +916,7 @@ void sgct_core::SGCTWindow::createFBOs()
 			{
 				if(!mCubeMapFBO_Ptr->isMultiSampled())
 				{
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::FishEye], i );
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::CubeMap], i );
 				}
 
 				mFisheyeAlpha ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -900,7 +928,7 @@ void sgct_core::SGCTWindow::createFBOs()
 					mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 					//update attachments
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::FishEye], i );
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::CubeMap], i );
 
 					mCubeMapFBO_Ptr->blit();
 				}
@@ -1018,14 +1046,14 @@ void sgct_core::SGCTWindow::loadShaders()
 			
 			if(mFisheyeOffaxis)
 			{
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
@@ -1037,14 +1065,14 @@ void sgct_core::SGCTWindow::loadShaders()
 			
 			if(mFisheyeOffaxis)
 			{
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
@@ -1061,10 +1089,16 @@ void sgct_core::SGCTWindow::loadShaders()
 		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
 		glUniform1i( Cubemap, 0 );
 
-		if( SGCTSettings::Instance()->useDepthBufferTexture() )
+		if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 		{
-			CubemapDepth = mFisheyeShader.getUniformLocation( "depthmap" );
-			glUniform1i( CubemapDepth, 1 );
+			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
+			glUniform1i( DepthCubemap, 1 );
+		}
+
+		if( sgct::SGCTSettings::Instance()->useNormalTexture() )
+		{
+			NormalCubemap = mFisheyeShader.getUniformLocation( "normalmap" );
+			glUniform1i( NormalCubemap, 2 );
 		}
 
 		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );
@@ -1193,14 +1227,14 @@ void sgct_core::SGCTWindow::captureBuffer()
 {
 	if(mStereoMode == NoStereo)
 	{
-		if( SGCTSettings::Instance()->useFBO() )
+		if( sgct::SGCTSettings::Instance()->useFBO() )
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
 		else
 			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
 	}
 	else
 	{
-		if( SGCTSettings::Instance()->useFBO() )
+		if( sgct::SGCTSettings::Instance()->useFBO() )
 		{
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
@@ -1253,7 +1287,7 @@ void sgct_core::SGCTWindow::addPostFX( sgct::PostFX & fx )
 */
 void sgct_core::SGCTWindow::resizeFBOs()
 {
-	if(!mUseFixResolution && SGCTSettings::Instance()->useFBO())
+	if(!mUseFixResolution && sgct::SGCTSettings::Instance()->useFBO())
 	{
 		makeOpenGLContextCurrent( Shared_Context );
 		glDeleteTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);

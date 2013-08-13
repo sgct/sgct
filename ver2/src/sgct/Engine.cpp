@@ -1217,7 +1217,7 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 		//un-bind texture
 		glBindTexture(GL_TEXTURE_2D, 0);
 
-		sgct_core::OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
+		OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
 
 		fbo->bind();
 		if( !fbo->isMultiSampled() )
@@ -1225,8 +1225,17 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 			//update attachments
 			fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( ti ) );
 
-			if( SGCTSettings::Instance()->useDepthBufferTexture() )
+			if( SGCTSettings::Instance()->useDepthTexture() )
 				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
+			if( SGCTSettings::Instance()->useNormalTexture() )
+				fbo->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture( Normals ) );
+		}
+
+		//enable both buffers for MRT (Multiple Render Targets)
+		if( SGCTSettings::Instance()->useNormalTexture() )
+		{
+			GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
+			glDrawBuffers(2, buffers);
 		}
 
 		setAndClearBuffer(RenderToTexture);
@@ -1412,6 +1421,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		getActiveWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
+	OffScreenBuffer * CubeMapFBO = getActiveWindowPtr()->mCubeMapFBO_Ptr;
 	for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
 	{
 		getActiveWindowPtr()->setCurrentViewport(i);
@@ -1422,12 +1432,14 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			glBindTexture(GL_TEXTURE_2D, 0);
 
 			//bind & attach buffer
-			getActiveWindowPtr()->mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-			if( !getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
+			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
+			if( !CubeMapFBO->isMultiSampled() )
 			{
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
-					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
+				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthTexture() )
+					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useNormalTexture() )
+					CubeMapFBO->attachSecondaryCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1436,16 +1448,18 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			(this->*mInternalDrawFn)();
 
 			//copy AA-buffer to "regular"/non-AA buffer
-			if( getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
+			if( CubeMapFBO->isMultiSampled() )
 			{
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+				CubeMapFBO->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
-					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
+				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthTexture() )
+					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useNormalTexture() )
+					CubeMapFBO->attachSecondaryCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i) );
 
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->blit();
+				CubeMapFBO->blit();
 			}
 		}
 	}//end for
@@ -1460,13 +1474,16 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	*/
 
 	//bind fisheye target FBO
-	getActiveWindowPtr()->mFinalFBO_Ptr->bind();
+	OffScreenBuffer * finalFBO = getActiveWindowPtr()->mFinalFBO_Ptr;
+	finalFBO->bind();
 	getActiveWindowPtr()->usePostFX() ?
-		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
-		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
+		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
+		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-	if( SGCTSettings::Instance()->useDepthBufferTexture() )
-		getActiveWindowPtr()->mFinalFBO_Ptr->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
+	if( SGCTSettings::Instance()->useDepthTexture() )
+		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
+	if( SGCTSettings::Instance()->useNormalTexture() )
+		finalFBO->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Normals) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1480,7 +1497,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEye));
+	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
 
 	glDisable( GL_CULL_FACE );
 	glEnable( GL_BLEND );
@@ -1493,11 +1510,18 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
-	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+	if( SGCTSettings::Instance()->useDepthTexture() )
 	{
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth));
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
+	}
+
+	if( SGCTSettings::Instance()->useNormalTexture() )
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals));
+		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapNormalsLoc(), 2);
 	}
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
@@ -1601,9 +1625,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			getActiveWindowPtr()->mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
 			{
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
-					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
+				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1617,9 +1641,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useDepthBufferTexture() )
-					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
+				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->blit();
 			}
@@ -1638,7 +1662,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+	if( SGCTSettings::Instance()->useDepthTexture() )
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1671,7 +1695,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	//if for some reson the active texture has been reset
 	glEnable(GL_TEXTURE_CUBE_MAP);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEye));
+	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
 
 	glDisable(GL_CULL_FACE);
 	glEnable(GL_BLEND);
@@ -1683,10 +1707,10 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	getActiveWindowPtr()->bindFisheyeShader();
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
-	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+	if( SGCTSettings::Instance()->useDepthTexture() )
 	{
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth));
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
 	}
 
@@ -1855,11 +1879,12 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 */
 void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 {	
+	glDrawBuffer( GL_COLOR_ATTACHMENT0 );
+
 	PostFX * fx = NULL;
 	PostFX * fxPrevious = NULL;
-
+	
 	std::size_t numberOfPasses = getActiveWindowPtr()->getNumberOfPostFXs();
-
 	for( std::size_t i = 0; i<numberOfPasses; i++ )
 	{
 		fx = getActiveWindowPtr()->getPostFXPtr( i );
@@ -1925,11 +1950,12 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 */
 void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 {
+	glDrawBuffer( GL_COLOR_ATTACHMENT0 );
+	
 	PostFX * fx = NULL;
 	PostFX * fxPrevious = NULL;
 
 	std::size_t numberOfPasses = getActiveWindowPtr()->getNumberOfPostFXs();
-
 	if( numberOfPasses > 0 )
 	{
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2042,20 +2068,22 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 {
 	//copy AA-buffer to "regular"/non-AA buffer
-	sgct_core::OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
+	OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
 	if( fbo->isMultiSampled() )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
 			ti = Intermediate;
 
 		fbo->bindBlit(); //bind separate read and draw buffers to prepare blit operation
-
+		
 		//update attachments
 		fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-		if( SGCTSettings::Instance()->useDepthBufferTexture() )
+		if( SGCTSettings::Instance()->useDepthTexture() )
 			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
-
+		if( SGCTSettings::Instance()->useNormalTexture() )
+			fbo->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture( Normals ) );
+		
 		fbo->blit();
 	}
 }
@@ -2947,6 +2975,14 @@ unsigned int sgct::Engine::getActiveDrawTexture()
 unsigned int sgct::Engine::getActiveDepthTexture()
 {
 	return getActiveWindowPtr()->getFrameBufferTexture( Depth );
+}
+
+/*!
+	\Returns the active normal texture if normal texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE 
+*/
+unsigned int sgct::Engine::getActiveNormalTexture()
+{
+	return getActiveWindowPtr()->getFrameBufferTexture( Normals );
 }
 
 /*!

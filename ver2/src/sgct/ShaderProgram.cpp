@@ -115,6 +115,17 @@ int sgct::ShaderProgram::getUniformLocation( const std::string & name ) const
 }
 
 /*!
+Wrapper for glBindFragDataLocation
+bind a user-defined varying out variable to a fragment shader color number
+@param	colorNumber The color number to bind the user-defined varying out variable to
+@param	name The name of the user-defined varying out variable whose binding to modify
+*/
+void sgct::ShaderProgram::bindFragDataLocation( unsigned int colorNumber, const std::string & name ) const
+{
+	glBindFragDataLocation( mProgramId, colorNumber, name.c_str() );
+}
+
+/*!
 Will set the vertex shader source code.
 @param	src			Where the source is found, can be either a file path or shader source string
 @param	sSrcType	What type of source code should be read, file or string

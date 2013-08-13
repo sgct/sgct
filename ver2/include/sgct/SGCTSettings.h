@@ -11,7 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <string>
 
-namespace sgct_core
+namespace sgct
 {
 
 /*!
@@ -43,7 +43,8 @@ public:
 		}
 	}
 
-	void setUseDepthBufferTexture(bool state);
+	void setUseDepthTexture(bool state);
+	void setUseNormalTexture(bool state);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
@@ -55,7 +56,9 @@ public:
 	int getCaptureFormat();
 	
 	//! Return true if depth buffer is rendered to texture
-	inline bool useDepthBufferTexture() { return mUseDepthBufferTexture; }
+	inline bool useDepthTexture() { return mUseDepthTexture; }
+	//! Return true if normals are rendered to texture
+	inline bool useNormalTexture() { return mUseNormalTexture; }
 	//! Returns true if FBOs are used
 	inline bool useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
@@ -77,7 +80,8 @@ private:
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
 
-	bool mUseDepthBufferTexture;
+	bool mUseDepthTexture;
+	bool mUseNormalTexture;
 	bool mUseFBO;
 
 	std::string mCapturePath[3];

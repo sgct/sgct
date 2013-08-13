@@ -571,11 +571,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 			{
 				val[1] = element[1]->Value();
 
-				/*if( strcmp("FXAA", val[1]) == 0 )
+				if( strcmp("DepthBufferTexture", val[1]) == 0 )
 				{
 					if( element[1]->Attribute("value") != NULL )
-						SGCTSettings::Instance()->setUseFXAA( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
-				}*/
+						SGCTSettings::Instance()->setUseDepthBufferTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+				}
 
 				//iterate
 				element[1] = element[1]->NextSiblingElement();

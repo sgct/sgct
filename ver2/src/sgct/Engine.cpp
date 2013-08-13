@@ -1453,6 +1453,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//restore polygon mode
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
+	/*!
+		ToDo: Correct depth buffer to a spherical model.
+
+		Render to a secondary depth buffer and alter the gl_FragDepth values for each pixel
+	*/
+
 	//bind fisheye target FBO
 	getActiveWindowPtr()->mFinalFBO_Ptr->bind();
 	getActiveWindowPtr()->usePostFX() ?
@@ -1476,11 +1482,11 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEye));
 
-	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-	//glDisable(GL_DEPTH_TEST);
-	glEnable(GL_DEPTH_TEST);
+	glDisable( GL_CULL_FACE );
+	glEnable( GL_BLEND );
+	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	glEnable( GL_DEPTH_TEST );
+	glDepthFunc( GL_LESS );
 
 	getActiveWindowPtr()->bindFisheyeShader();
 
@@ -1596,6 +1602,8 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			if( !getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
 			{
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1610,6 +1618,8 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 				//update attachments
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEye), static_cast<unsigned int>(i) );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					getActiveWindowPtr()->mCubeMapFBO_Ptr->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth), static_cast<unsigned int>(i) );
 
 				getActiveWindowPtr()->mCubeMapFBO_Ptr->blit();
 			}
@@ -1628,8 +1638,11 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 			getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
+	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+		getActiveWindowPtr()->mFinalFBO_Ptr->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
+
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
 
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
@@ -1664,10 +1677,19 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_LIGHTING);
-	glDisable(GL_DEPTH_TEST);
+	glEnable( GL_DEPTH_TEST );
+	glDepthFunc( GL_LESS );
 
 	getActiveWindowPtr()->bindFisheyeShader();
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
+
+	if( SGCTSettings::Instance()->useDepthBufferTexture() )
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(FishEyeDepth));
+		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
+	}
+
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
@@ -1692,6 +1714,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVBO();
 
 	ShaderProgram::unbind();
+	glDisable(GL_DEPTH_TEST);
 	
 	glPopClientAttrib();
 	glPopMatrix();
@@ -1948,7 +1971,7 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
@@ -2065,6 +2088,7 @@ void sgct::Engine::updateTimers(double timeStamp)
 void sgct::Engine::loadShaders()
 {
 	//create FXAA shaders
+	mShaders[FXAAShader].setName("FXAAShader");
 	if( mFixedOGLPipeline )
 	{
 		mShaders[FXAAShader].setVertexShaderSrc( sgct_core::shaders::FXAA_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
@@ -2112,6 +2136,7 @@ void sgct::Engine::loadShaders()
 	*/
 	if( !mFixedOGLPipeline )
 	{
+		mShaders[FBOQuadShader].setName("FBOQuadShader");
 		mShaders[FBOQuadShader].setVertexShaderSrc( sgct_core::shaders_modern::Base_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[FBOQuadShader].setFragmentShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[FBOQuadShader].createAndLinkProgram();
@@ -2121,6 +2146,7 @@ void sgct::Engine::loadShaders()
 		glUniform1i( mShaderLocs[MonoTex], 0 );
 		ShaderProgram::unbind();
 
+		mShaders[OverlayShader].setName("OverlayShader");
 		mShaders[OverlayShader].setVertexShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[OverlayShader].setFragmentShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[OverlayShader].createAndLinkProgram();
@@ -2677,6 +2703,7 @@ void sgct::Engine::clearBuffer()
 	float alpha = (Instance()->getActiveWindowPtr()->useFisheyeAlpha() && Instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
 
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], alpha);
+	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 }
 

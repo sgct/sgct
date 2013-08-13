@@ -151,7 +151,7 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	glLoadIdentity();
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	glClear(GL_COLOR_BUFFER_BIT);
 	
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.

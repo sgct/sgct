@@ -48,7 +48,6 @@ namespace sgct_core
 			{\n\
 				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
 				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
-				vec4 color;\n\
 				float r2 = s*s + t*t;\n\
 				if( r2 <= 1.0 )\n\
 				{\n\
@@ -58,12 +57,43 @@ namespace sgct_core
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
 					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
-					color = vec4(textureCube(cubemap, rotVec));\n\
-					//color.a = 1.0;\n\
+					gl_FragColor = vec4(textureCube(cubemap, rotVec));\n\
 				}\n\
 				else\n\
-					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
-				gl_FragColor = color;\n\
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\
+			}\n";
+
+		const std::string Fisheye_Frag_Shader_Depth = "\
+			#version 120\n\
+			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
+			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform samplerCube depthmap;\n\
+			uniform float halfFov;\n\
+			float angle45Factor = 0.7071067812;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
+				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(r2) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta);\n\
+					float y = -sin(phi) * cos(theta);\n\
+					float z = cos(phi);\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					gl_FragColor = vec4(textureCube(cubemap, rotVec));\n\
+					gl_FragDepth = textureCube(depthmap, rotVec).x;\n\
+				}\n\
+				else\n\
+				{\n\
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					gl_FragDepth = 0.0f;\n\
+				}\n\
 			}\n";
 		
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
@@ -78,7 +108,6 @@ namespace sgct_core
 			{\n\
 				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
 				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
-				vec4 color;\n\
 				float r2 = s*s + t*t;\n\
 				if( r2 <= 1.0 )\n\
 				{\n\
@@ -88,12 +117,42 @@ namespace sgct_core
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
 					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
-					color = vec4(textureCube(cubemap, rotVec));\n\
-					//color.a = 1.0;\n\
+					gl_FragColor = vec4(textureCube(cubemap, rotVec));\n\
 				}\n\
 				else\n\
-					color = vec4(0.0, 0.0, 0.0, 0.0);\n\
-				gl_FragColor = color;\n\
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\
+			}\n";
+
+		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
+			#version 120\n\
+			\n\
+			uniform samplerCube cubemap;\n\
+			uniform samplerCube depthmap;\n\
+			uniform float halfFov;\n\
+			uniform vec3 offset;\n\
+			float angle45Factor = 0.7071067812;\n\
+			\n\
+			void main()\n\
+			{\n\
+				float s = 2.0 * (gl_TexCoord[0].s - 0.5);\n\
+				float t = 2.0 * (gl_TexCoord[0].t - 0.5);\n\
+				float r2 = s*s + t*t;\n\
+				if( r2 <= 1.0 )\n\
+				{\n\
+					float phi = sqrt(r2) * halfFov;\n\
+					float theta = atan(s,t);\n\
+					float x = sin(phi) * sin(theta) - offset.x;\n\
+					float y = -sin(phi) * cos(theta) - offset.y;\n\
+					float z = cos(phi) - offset.z;\n\
+					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					gl_FragColor = vec4(textureCube(cubemap, rotVec));\n\
+					gl_FragDepth = textureCube(depthmap, rotVec).x;\n\
+				}\n\
+				else\n\
+				{\n\
+					gl_FragColor = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					gl_FragDepth = 0.0f;\n\
+				}\n\
 			}\n";
 		
 		const std::string Anaglyph_Vert_Shader = "\

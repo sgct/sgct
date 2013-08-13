@@ -44,7 +44,6 @@ void updatePass4(float * mat)
 {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
-	
 	glUniform1i( PostFX_Texture_Loc[3], 0 );
 	glUniform1i( Tex2_Loc, 1 );
 }

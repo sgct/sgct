@@ -1018,11 +1018,17 @@ void sgct_core::SGCTWindow::loadShaders()
 			
 			if(mFisheyeOffaxis)
 			{
-				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+				else
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
-				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+				else
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 		else //modern pipeline
@@ -1031,7 +1037,10 @@ void sgct_core::SGCTWindow::loadShaders()
 			
 			if(mFisheyeOffaxis)
 			{
-				mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+				if( SGCTSettings::Instance()->useDepthBufferTexture() )
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+				else
+					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
@@ -1042,6 +1051,7 @@ void sgct_core::SGCTWindow::loadShaders()
 			}
 		}
 
+		mFisheyeShader.setName("FisheyeShader");
 		mFisheyeShader.createAndLinkProgram();
 		mFisheyeShader.bind();
 
@@ -1130,6 +1140,7 @@ void sgct_core::SGCTWindow::loadShaders()
 				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 
+		mStereoShader.setName("StereoShader");
 		mStereoShader.createAndLinkProgram();
 		mStereoShader.bind();
 		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )

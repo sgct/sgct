@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
-#define NUMBER_OF_TEXTURES 9
+#define NUMBER_OF_TEXTURES 10
 
 namespace sgct_core
 {
@@ -190,6 +190,11 @@ public:
 	inline int getFisheyeShaderCubemapNormalsLoc() { return NormalCubemap; }
 	inline int getFisheyeShaderHalfFOVLoc() { return FishEyeHalfFov; }
 	inline int getFisheyeShaderOffsetLoc() { return FisheyeOffset; }
+
+	inline void bindFisheyeDepthCorrectionShader() { mFisheyeDepthCorrectionShader.bind(); }
+	inline int getFisheyeSwapShaderMVPLoc() { return FishEyeSwapMVP; }
+	inline int getFisheyeSwapShaderColorLoc() { return FishEyeSwapColor; }
+	inline int getFisheyeSwapShaderDepthLoc() { return FishEyeSwapDepth; }
 	inline float getFisheyeOffset(unsigned int axis) { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
 	//! Set to true if alpha should be used in fisheye rendering
 	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
@@ -283,8 +288,8 @@ private:
 	unsigned int mVAO[NUMBER_OF_VBOS];
 
 	//Shaders
-	sgct::ShaderProgram mFisheyeShader;
-	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FisheyeOffset;
+	sgct::ShaderProgram mFisheyeShader, mFisheyeDepthCorrectionShader;
+	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FisheyeOffset, FishEyeSwapMVP, FishEyeSwapColor, FishEyeSwapDepth;
 	sgct::ShaderProgram mStereoShader;
 	int StereoMVP, StereoLeftTex, StereoRightTex;
 

@@ -120,7 +120,22 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 
 void sgct_core::OffScreenBuffer::bind()
 {
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, GL_FALSE);
+	
 	mMultiSampled ? 
+		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
+		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer );
+}
+
+void sgct_core::OffScreenBuffer::bind( bool multisampled )
+{
+	glActiveTexture(GL_TEXTURE0);
+	glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+	//glBindTexture(GL_TEXTURE_CUBE_MAP, GL_FALSE);
+	
+	multisampled ? 
 		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer) :
 		glBindFramebuffer(GL_FRAMEBUFFER, mFrameBuffer );
 }

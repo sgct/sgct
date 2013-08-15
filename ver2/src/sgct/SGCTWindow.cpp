@@ -62,6 +62,9 @@ sgct_core::SGCTWindow::SGCTWindow()
 	NormalCubemap	= -1;
 	FishEyeHalfFov	= -1;
 	FisheyeOffset	= -1;
+	FishEyeSwapMVP	= -1;
+	FishEyeSwapColor = -1;
+	FishEyeSwapDepth = -1;
 	StereoMVP		= -1;
 	StereoLeftTex	= -1;
 	StereoRightTex	= -1;
@@ -163,7 +166,11 @@ void sgct_core::SGCTWindow::close()
 		delete mCubeMapFBO_Ptr;
 		mCubeMapFBO_Ptr = NULL;
 
-		glDeleteTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
+		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
+		{
+			if( mFrameBufferTextures[i] != GL_FALSE )
+				glDeleteTextures(1, &mFrameBufferTextures[i]);
+		}
 	}
 
 	if( mVBO[RenderQuad] )
@@ -180,6 +187,7 @@ void sgct_core::SGCTWindow::close()
 
 	//delete shaders
 	mFisheyeShader.deleteProgram();
+	mFisheyeDepthCorrectionShader.deleteProgram();
 	mStereoShader.deleteProgram();
 
 	/*
@@ -746,15 +754,12 @@ void sgct_core::SGCTWindow::createTextures()
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	//allocate
-	glGenTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
-
 	/*
 		Create left and right color & depth textures.
 	*/
 	//don't allocate the right eye image if stereo is not used
 	//create a postFX texture for effects
-	for( int i=0; i<(NUMBER_OF_TEXTURES-3); i++ ) //all textures except fisheye cubemap(s)
+	for( int i=0; i<(NUMBER_OF_TEXTURES-4); i++ ) //all textures except fisheye cubemap(s)
 	{
 		bool create = true;
 		
@@ -783,6 +788,7 @@ void sgct_core::SGCTWindow::createTextures()
 		
 		if( create )
 		{
+			glGenTextures(1, &mFrameBufferTextures[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
 			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
@@ -796,14 +802,14 @@ void sgct_core::SGCTWindow::createTextures()
 				//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 				
 				glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d) generated for window %d!\n",
-					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
+				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
+					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], i, mId);
 			}
 			else
 			{
 				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d) generated for window %d!\n",
-					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
+				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
+					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], i, mId);
 			}
 		}
 	}
@@ -821,6 +827,7 @@ void sgct_core::SGCTWindow::createTextures()
 		}
 
 		//set up texture target
+		glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::CubeMap ]);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMap ]);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -836,6 +843,7 @@ void sgct_core::SGCTWindow::createTextures()
 		if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 		{
 			//set up texture target
+			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::CubeMapDepth ]);
 			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ]);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
@@ -843,10 +851,31 @@ void sgct_core::SGCTWindow::createTextures()
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 
-			for (int i = 0; i < 6; ++i)
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+			for (int side = 0; side < 6; ++side)
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
 				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
+
+			//create swap textures
+			//Color
+			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ]);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			//Depth
+			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ]);
+			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ]);
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d fisheye swap textures (id: %d & %d) generated for window %d!\n",
+				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ], mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ], mId);
 		}
 	}
 
@@ -1058,6 +1087,12 @@ void sgct_core::SGCTWindow::loadShaders()
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
 				}
 			}
+
+			if( sgct::SGCTSettings::Instance()->useDepthTexture() )
+			{
+				mFisheyeDepthCorrectionShader.setVertexShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
 		}
 
 		mFisheyeShader.setName("FisheyeShader");
@@ -1090,6 +1125,22 @@ void sgct_core::SGCTWindow::loadShaders()
 				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
 		}
 		sgct::ShaderProgram::unbind();
+
+		if( sgct::SGCTSettings::Instance()->useDepthTexture() )
+		{
+			mFisheyeDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
+			mFisheyeDepthCorrectionShader.createAndLinkProgram();
+			mFisheyeDepthCorrectionShader.bind();
+
+			if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+				FishEyeSwapMVP = mFisheyeDepthCorrectionShader.getUniformLocation( "MVP" );
+			FishEyeSwapColor = mFisheyeDepthCorrectionShader.getUniformLocation( "cTex" );
+			glUniform1i( FishEyeSwapColor, 0 );
+			FishEyeSwapDepth = mFisheyeDepthCorrectionShader.getUniformLocation( "dTex" );
+			glUniform1i( FishEyeSwapDepth, 1 );
+
+			sgct::ShaderProgram::unbind();
+		}
 	}
 
 	//-------------- end fisheye shader ----------->
@@ -1267,7 +1318,11 @@ void sgct_core::SGCTWindow::resizeFBOs()
 	if(!mUseFixResolution && sgct::SGCTSettings::Instance()->useFBO())
 	{
 		makeOpenGLContextCurrent( Shared_Context );
-		glDeleteTextures(NUMBER_OF_TEXTURES, &mFrameBufferTextures[0]);
+		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
+		{
+			if( mFrameBufferTextures[i] != GL_FALSE )
+				glDeleteTextures(1, &mFrameBufferTextures[i]);
+		}
 		createTextures();
 
 		if( mFisheyeMode )

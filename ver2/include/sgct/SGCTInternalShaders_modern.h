@@ -126,7 +126,6 @@ namespace sgct_core
 			\n\
 			in vec2 UV;\n\
 			out vec4 Color;\n\
-			out float gl_FragDepth;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -191,7 +190,6 @@ namespace sgct_core
 			\n\
 			in vec2 UV;\n\
 			out vec4 Color;\n\
-			out float gl_FragDepth;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -220,6 +218,32 @@ namespace sgct_core
 					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 0.0f;\n\
 				}\n\
+			}\n";
+
+		const std::string Fisheye_Depth_Correction_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform sampler2D cTex;\n\
+			uniform sampler2D dTex;\n\
+			\n\
+			void main()\n\
+			{\n\
+				//get angle from -45 to 45 degrees (-pi/4 to +pi/4) \n\
+				float xAngle = 1.570796327 * (UV.s - 0.5);\n\
+				float yAngle = 1.570796327 * (UV.t - 0.5);\n\
+				//Color = texture(cTex, UV);\n\
+				float near = 0.25; // camera z near \n\
+				float far = 5.0; // camera z far \n\
+				float z = texture(dTex, UV).x; \n\
+				//float z = (1.0-texture(dTex, UV).x) * cos(xAngle) * cos(yAngle); \n\
+				//float z = 1.0 - texture(dTex, UV).x;\n\
+				float norm = (2.0 * near) / (far + near - z * (far - near)); \n\
+				float d = (1.0 - norm) * cos(xAngle) * cos(yAngle); \n\
+				Color = vec4( d, d, d, 1.0);\n\
+				gl_FragDepth = texture(dTex, UV).x * cos(xAngle) * cos(yAngle);\n\
 			}\n";
 		
 		const std::string Anaglyph_Vert_Shader = "\

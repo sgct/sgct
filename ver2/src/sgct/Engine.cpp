@@ -1223,9 +1223,6 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 		if( getActiveWindowPtr()->usePostFX() )
 			ti = Intermediate;
 		
-		//un-bind texture
-		glBindTexture(GL_TEXTURE_2D, 0);
-
 		OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
 
 		fbo->bind();
@@ -1413,7 +1410,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 */
 void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
-	mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+	bool statesSet = false;
 
 	if( mActiveFrustum == Frustum::StereoLeftEye )
 		getActiveWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
@@ -1428,16 +1425,19 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 		if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
 		{
-			//un-bind texture
-			glBindTexture(GL_TEXTURE_2D, 0);
-
+			mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+			
 			//bind & attach buffer
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
 			{
-				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				if( SGCTSettings::Instance()->useDepthTexture() )
-					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
+				{
+					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
+					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
+				}
+				else
+					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1451,23 +1451,60 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				if( SGCTSettings::Instance()->useDepthTexture() )
-					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
+				{
+					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
+					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
+				}
+				else
+					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 
 				CubeMapFBO->blit();
 			}
-		}
+
+			//restore polygon mode
+			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
+
+			//re-calculate depth values from a cube to spherical model
+			if( SGCTSettings::Instance()->useDepthTexture() )
+			{	
+				CubeMapFBO->bind( false ); //bind no multi-sampled
+				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
+
+				glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
+				glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+
+				glDisable( GL_CULL_FACE );
+				glEnable( GL_BLEND );
+				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				glDisable( GL_DEPTH_TEST );
+				glDepthFunc( GL_LESS );
+				statesSet = true;
+
+				glm::mat4 mat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
+
+				glActiveTexture(GL_TEXTURE0);
+				glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap));
+
+				glActiveTexture(GL_TEXTURE1);
+				glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap));
+
+				//bind shader
+				getActiveWindowPtr()->bindFisheyeDepthCorrectionShader();
+				glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeSwapShaderMVPLoc(), 1, GL_FALSE, &mat[0][0]);
+				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
+				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
+
+				getActiveWindowPtr()->bindVAO( SGCTWindow::RenderQuad );
+				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
+				getActiveWindowPtr()->unbindVAO();
+
+				//unbind shader
+				ShaderProgram::unbind();
+			}//end if depthmap
+		}//end if viewport is enabled 
 	}//end for
-
-	//restore polygon mode
-	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
-	/*!
-		ToDo: Correct depth buffer to a spherical model.
-
-		Render to a secondary depth buffer and alter the gl_FragDepth values for each pixel
-	*/
 
 	//bind fisheye target FBO
 	OffScreenBuffer * finalFBO = getActiveWindowPtr()->mFinalFBO_Ptr;
@@ -1492,24 +1529,27 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
+	if( SGCTSettings::Instance()->useDepthTexture() )
+	{
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
+	}
 
-	glDisable( GL_CULL_FACE );
-	glEnable( GL_BLEND );
-	glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-	glEnable( GL_DEPTH_TEST );
-	glDepthFunc( GL_LESS );
+	if( !statesSet )
+	{
+		glDisable( GL_CULL_FACE );
+		glEnable( GL_BLEND );
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		glDisable( GL_DEPTH_TEST );
+		glDepthFunc( GL_LESS );
+	}
 
 	getActiveWindowPtr()->bindFisheyeShader();
 
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
-
 	if( SGCTSettings::Instance()->useDepthTexture() )
-	{
-		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
-	}
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
@@ -1605,9 +1645,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 		if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
 		{
-			//un-bind texture
-			glBindTexture(GL_TEXTURE_2D, 0);
-
 			//bind & attach buffer
 			getActiveWindowPtr()->mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !getActiveWindowPtr()->mCubeMapFBO_Ptr->isMultiSampled() )
@@ -1639,9 +1676,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	//restore polygon mode
 	glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-
-	//un-bind texture
-	glBindTexture(GL_TEXTURE_2D, 0);
 
 	//bind fisheye target FBO
 	getActiveWindowPtr()->mFinalFBO_Ptr->bind();

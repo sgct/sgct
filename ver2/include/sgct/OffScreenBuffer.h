@@ -25,6 +25,7 @@ public:
 	void attachCubeMapTexture(unsigned int texId, unsigned int face);
 	void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 	void bind();
+	void bind( bool multisampled );
 	void bindBlit();
 	void blit();
 	static void unBind();

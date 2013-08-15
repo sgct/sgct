@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
-#define NUMBER_OF_TEXTURES 10
+#define NUMBER_OF_TEXTURES 9
 
 namespace sgct_core
 {

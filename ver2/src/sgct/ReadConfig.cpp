@@ -268,6 +268,8 @@ void sgct_core::ReadConfig::readAndParseXML()
 					int tmpSamples = 0;
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
+					else if( element[1]->QueryIntAttribute("msaa", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
+						tmpWin.setNumberOfAASamples(tmpSamples);
 
 					if( element[1]->Attribute("fxaa") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
@@ -575,11 +577,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					if( element[1]->Attribute("value") != NULL )
 						sgct::SGCTSettings::Instance()->setUseDepthTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
-				}
-				else if( strcmp("NormalTexture", val[1]) == 0 )
-				{
-					if( element[1]->Attribute("value") != NULL )
-						sgct::SGCTSettings::Instance()->setUseNormalTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
 				}
 
 				//iterate

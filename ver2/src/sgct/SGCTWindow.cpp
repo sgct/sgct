@@ -770,11 +770,6 @@ void sgct_core::SGCTWindow::createTextures()
 				create = false;
 			break;
 
-		case sgct::Engine::Normals:
-			if( !sgct::SGCTSettings::Instance()->useNormalTexture() )
-				create = false;
-			break;
-
 		case sgct::Engine::FX1:
 			if( mPostFXPasses.empty() )
 				create = false;
@@ -802,12 +797,6 @@ void sgct_core::SGCTWindow::createTextures()
 				
 				glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d) generated for window %d!\n",
-					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
-			}
-			else if( i == sgct::Engine::Normals )
-			{
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGB16F, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_RGB, GL_FLOAT, NULL);
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d normal texture (id: %d) generated for window %d!\n",
 					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], mId);
 			}
 			else
@@ -856,22 +845,6 @@ void sgct_core::SGCTWindow::createTextures()
 
 			for (int i = 0; i < 6; ++i)
 				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
-				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
-		}
-
-		if( sgct::SGCTSettings::Instance()->useNormalTexture() )
-		{
-			//set up texture target
-			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMapNormals ]);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-			for (int i = 0; i < 6; ++i)
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGB16F, mCubeMapResolution, mCubeMapResolution, 0, GL_RGB, GL_FLOAT, NULL);
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
 				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
 		}
@@ -1066,16 +1039,24 @@ void sgct_core::SGCTWindow::loadShaders()
 			if(mFisheyeOffaxis)
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
+				{
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+				}
 				else
+				{
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+				}
 			}
-			else
+			else//not off axis
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
+				{
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
-				else
+				}
+				else //no depth
+				{
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				}
 			}
 		}
 
@@ -1084,7 +1065,9 @@ void sgct_core::SGCTWindow::loadShaders()
 		mFisheyeShader.bind();
 
 		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+		{
 			FisheyeMVP = mFisheyeShader.getUniformLocation( "MVP" );
+		}
 
 		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
 		glUniform1i( Cubemap, 0 );
@@ -1093,12 +1076,6 @@ void sgct_core::SGCTWindow::loadShaders()
 		{
 			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
 			glUniform1i( DepthCubemap, 1 );
-		}
-
-		if( sgct::SGCTSettings::Instance()->useNormalTexture() )
-		{
-			NormalCubemap = mFisheyeShader.getUniformLocation( "normalmap" );
-			glUniform1i( NormalCubemap, 2 );
 		}
 
 		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );

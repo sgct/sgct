@@ -44,7 +44,6 @@ public:
 	}
 
 	void setUseDepthTexture(bool state);
-	void setUseNormalTexture(bool state);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
@@ -57,8 +56,6 @@ public:
 	
 	//! Return true if depth buffer is rendered to texture
 	inline bool useDepthTexture() { return mUseDepthTexture; }
-	//! Return true if normals are rendered to texture
-	inline bool useNormalTexture() { return mUseNormalTexture; }
 	//! Returns true if FBOs are used
 	inline bool useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
@@ -79,9 +76,7 @@ private:
 
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
-
 	bool mUseDepthTexture;
-	bool mUseNormalTexture;
 	bool mUseFBO;
 
 	std::string mCapturePath[3];

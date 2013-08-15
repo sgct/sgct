@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ScreenCapture.h"
+#include "../include/sgct/ogl_headers.h"
 
 #define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
 
@@ -16,11 +17,9 @@ sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
 sgct::SGCTSettings::SGCTSettings()
 {
 	mPNGCompressionLevel = 1;
-
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseDepthTexture = false;
-	mUseNormalTexture = false;
 	mUseFBO = true;
 
 	for(size_t i=0; i<3; i++)
@@ -39,14 +38,6 @@ Set to true if depth buffer textures should be allocated and used.
 void sgct::SGCTSettings::setUseDepthTexture(bool state)
 {
 	mUseDepthTexture = state;
-}
-
-/*!
-Set to true if normal textures should be allocated and used.
-*/
-void sgct::SGCTSettings::setUseNormalTexture(bool state)
-{
-	mUseNormalTexture = state;
 }
 
 /*!

@@ -221,7 +221,7 @@ namespace sgct_core
 					gl_FragDepth = 0.0f;\n\
 				}\n\
 			}\n";
-
+		
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 330 core\n\
 			\n\

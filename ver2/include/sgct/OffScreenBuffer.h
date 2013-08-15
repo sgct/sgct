@@ -11,6 +11,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core
 {
 
+/*!
+Helper class for creating frame buffer objects and render buffer objects.
+*/
 class OffScreenBuffer
 {
 public:
@@ -18,13 +21,10 @@ public:
 	void createFBO(int width, int height, int samples = 1);
 	void resizeFBO(int width, int height, int samples = 1);
 	void attachColorTexture(unsigned int texId);
-	void attachSecondaryColorTexture(unsigned int texId);
 	void attachDepthTexture(unsigned int texId);
 	void attachCubeMapTexture(unsigned int texId, unsigned int face);
-	void attachSecondaryCubeMapTexture(unsigned int texId, unsigned int face);
 	void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 	void bind();
-	void bind( bool multisampled );
 	void bindBlit();
 	void blit();
 	static void unBind();
@@ -37,7 +37,6 @@ private:
 	unsigned int mFrameBuffer;
 	unsigned int mMultiSampledFrameBuffer;
 	unsigned int mColorBuffer;
-	unsigned int mNormalBuffer;
 	unsigned int mDepthBuffer;
 
 	int mWidth;

@@ -349,6 +349,15 @@ bool sgct::Engine::initWindows()
 		}
 		break;
 
+	case OpenGL_4_4_Core_Profile:
+		{
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+			glewExperimental = true; // Needed for core profile
+		}
+		break;
+
     /*case OpenGL_3_2_Core_Profile:
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
@@ -1227,15 +1236,6 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 
 			if( SGCTSettings::Instance()->useDepthTexture() )
 				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
-			if( SGCTSettings::Instance()->useNormalTexture() )
-				fbo->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture( Normals ) );
-		}
-
-		//enable both buffers for MRT (Multiple Render Targets)
-		if( SGCTSettings::Instance()->useNormalTexture() )
-		{
-			GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
-			glDrawBuffers(2, buffers);
 		}
 
 		setAndClearBuffer(RenderToTexture);
@@ -1438,8 +1438,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				if( SGCTSettings::Instance()->useDepthTexture() )
 					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useNormalTexture() )
-					CubeMapFBO->attachSecondaryCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i) );
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1456,8 +1454,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				if( SGCTSettings::Instance()->useDepthTexture() )
 					CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
-				if( SGCTSettings::Instance()->useNormalTexture() )
-					CubeMapFBO->attachSecondaryCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i) );
 
 				CubeMapFBO->blit();
 			}
@@ -1482,8 +1478,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	if( SGCTSettings::Instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
-	if( SGCTSettings::Instance()->useNormalTexture() )
-		finalFBO->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Normals) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -1515,13 +1509,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
-	}
-
-	if( SGCTSettings::Instance()->useNormalTexture() )
-	{
-		glActiveTexture(GL_TEXTURE2);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals));
-		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapNormalsLoc(), 2);
 	}
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
@@ -1589,12 +1576,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			renderDisplayInfo();
 	}
 
-	glDisable(GL_BLEND);
-
 	updateRenderingTargets(ti); //only used if multisampled FBOs
 	
 	if( getActiveWindowPtr()->usePostFX() )
 		(this->*mInternalRenderPostFXFn)(ti);
+
+	glDisable(GL_BLEND);
 }
 
 /*!
@@ -1870,6 +1857,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	if( getActiveWindowPtr()->usePostFX() )
 		(this->*mInternalRenderPostFXFn)(ti);
 
+	glDisable(GL_BLEND);
 	if( mFixedOGLPipeline )
 		glPopAttrib();
 }
@@ -2081,8 +2069,6 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 
 		if( SGCTSettings::Instance()->useDepthTexture() )
 			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
-		if( SGCTSettings::Instance()->useNormalTexture() )
-			fbo->attachSecondaryColorTexture( getActiveWindowPtr()->getFrameBufferTexture( Normals ) );
 		
 		fbo->blit();
 	}
@@ -2978,14 +2964,6 @@ unsigned int sgct::Engine::getActiveDepthTexture()
 }
 
 /*!
-	\Returns the active normal texture if normal texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE 
-*/
-unsigned int sgct::Engine::getActiveNormalTexture()
-{
-	return getActiveWindowPtr()->getFrameBufferTexture( Normals );
-}
-
-/*!
 	\Returns the horizontal resolution in pixels for the active window's framebuffer
 */
 int sgct::Engine::getActiveXResolution()
@@ -3235,4 +3213,15 @@ void sgct::Engine::stopTimer( size_t id )
 double sgct::Engine::getTime()
 {
 	return glfwGetTime();
+}
+
+/*!
+Get the active viewport size in pixels.
+\param x the horizontal size
+\param y the vertical size
+*/
+void sgct::Engine::getActiveViewportSize(int & x, int & y)
+{
+	x = currentViewportCoords[2];
+	y = currentViewportCoords[3];
 }

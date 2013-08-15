@@ -55,10 +55,12 @@ public:
 		/// This option is using a programmable OpenGL 4.2 pipeline using a core profile
 		OpenGL_4_2_Core_Profile,
 		/// This option is using a programmable OpenGL 4.3 pipeline using a core profile
-		OpenGL_4_3_Core_Profile
+		OpenGL_4_3_Core_Profile,
+		/// This option is using a programmable OpenGL 4.4 pipeline using a core profile
+		OpenGL_4_4_Core_Profile
 	};
 	//! The different texture indexes in window buffers
-	enum TextureIndexes { LeftEye, RightEye, Intermediate, FX1, FX2, Depth, Normals, CubeMap, CubeMapDepth, CubeMapNormals };
+	enum TextureIndexes { LeftEye, RightEye, Intermediate, FX1, FX2, Depth, DepthFisheyeCorrected, CubeMap, CubeMapDepth };
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -112,7 +114,6 @@ public:
 	void addPostFX( PostFX & fx );
 	unsigned int getActiveDrawTexture();
 	unsigned int getActiveDepthTexture();
-	unsigned int getActiveNormalTexture();
 	int getActiveXResolution();
 	int getActiveYResolution();
 
@@ -268,7 +269,7 @@ public:
 	*/
 	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
 		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
-
+	
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
@@ -294,6 +295,8 @@ public:
 		Get the current run mode setting (context version and compability modes)
 	*/
 	inline RunMode getRunMode() { return mRunMode; }
+
+	void getActiveViewportSize(int & x, int & y);
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters

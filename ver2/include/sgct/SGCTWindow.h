@@ -195,6 +195,8 @@ public:
 	inline int getFisheyeSwapShaderMVPLoc() { return FishEyeSwapMVP; }
 	inline int getFisheyeSwapShaderColorLoc() { return FishEyeSwapColor; }
 	inline int getFisheyeSwapShaderDepthLoc() { return FishEyeSwapDepth; }
+	inline int getFisheyeSwapShaderNearLoc() { return FishEyeSwapNear; }
+	inline int getFisheyeSwapShaderFarLoc() { return FishEyeSwapFar; }
 	inline float getFisheyeOffset(unsigned int axis) { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
 	//! Set to true if alpha should be used in fisheye rendering
 	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
@@ -289,7 +291,7 @@ private:
 
 	//Shaders
 	sgct::ShaderProgram mFisheyeShader, mFisheyeDepthCorrectionShader;
-	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FisheyeOffset, FishEyeSwapMVP, FishEyeSwapColor, FishEyeSwapDepth;
+	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FisheyeOffset, FishEyeSwapMVP, FishEyeSwapColor, FishEyeSwapDepth, FishEyeSwapNear, FishEyeSwapFar;
 	sgct::ShaderProgram mStereoShader;
 	int StereoMVP, StereoLeftTex, StereoRightTex;
 

@@ -65,6 +65,8 @@ sgct_core::SGCTWindow::SGCTWindow()
 	FishEyeSwapMVP	= -1;
 	FishEyeSwapColor = -1;
 	FishEyeSwapDepth = -1;
+	FishEyeSwapNear	= -1;
+	FishEyeSwapFar	= -1;
 	StereoMVP		= -1;
 	StereoLeftTex	= -1;
 	StereoRightTex	= -1;
@@ -452,8 +454,9 @@ Set if FXAA should be used.
 void sgct_core::SGCTWindow::setUseFXAA(bool state)
 {
 	mUseFXAA = state;
-	mUsePostFX = state;
-	//sgct::MessageHandler::Instance()->print("FXAA status: %s\n", state ? "enabled" : "disabled");
+	if( mUseFXAA )
+		mUsePostFX = true;
+	sgct::MessageHandler::Instance()->print( sgct::MessageHandler::NOTIFY_INFO, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
 }
 
 /*!
@@ -754,6 +757,9 @@ void sgct_core::SGCTWindow::createTextures()
 		glEnable(GL_TEXTURE_2D);
 	}
 
+	//todo: add a flag for warping
+	int interpolationType = mUseFixResolution ? GL_LINEAR : GL_NEAREST;
+
 	/*
 		Create left and right color & depth textures.
 	*/
@@ -790,8 +796,9 @@ void sgct_core::SGCTWindow::createTextures()
 		{
 			glGenTextures(1, &mFrameBufferTextures[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolationType ); //must be linear if warping, blending or fix resolution is used
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolationType );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 			
@@ -1138,6 +1145,8 @@ void sgct_core::SGCTWindow::loadShaders()
 			glUniform1i( FishEyeSwapColor, 0 );
 			FishEyeSwapDepth = mFisheyeDepthCorrectionShader.getUniformLocation( "dTex" );
 			glUniform1i( FishEyeSwapDepth, 1 );
+			FishEyeSwapNear = mFisheyeDepthCorrectionShader.getUniformLocation( "near" );
+			FishEyeSwapFar = mFisheyeDepthCorrectionShader.getUniformLocation( "far" );
 
 			sgct::ShaderProgram::unbind();
 		}

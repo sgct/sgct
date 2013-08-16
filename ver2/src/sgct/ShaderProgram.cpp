@@ -133,6 +133,9 @@ Will set the vertex shader source code.
 */
 bool sgct::ShaderProgram::setVertexShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
+	mVertexShaderData.first = src;
+	mVertexShaderData.second = sSrcType;
+
 	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mVertexShader.setSourceFromFile( src );
@@ -152,6 +155,9 @@ Will set the fragment shader source code.
 */
 bool sgct::ShaderProgram::setFragmentShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
+	mFragmentShaderData.first = src;
+	mFragmentShaderData.second = sSrcType;
+	
 	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mFragmentShader.setSourceFromFile( src );
@@ -171,6 +177,9 @@ Will set the geometry shader source code.
 */
 bool sgct::ShaderProgram::setGeometryShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
 {
+	mGeometryShaderData.first = src;
+	mGeometryShaderData.second = sSrcType;
+	
 	if( sSrcType == SHADER_SRC_FILE )
 	{
 		return mGeometryShader.setSourceFromFile( src );
@@ -222,6 +231,28 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 	return mIsLinked = checkLinkStatus();
 }
 //----------------------------------------------------------------------------//
+
+/*!
+Reloads a shader by deleting, recompiling and re-linking.
+@return	Wheter the program was created and linked correctly or not
+*/
+bool sgct::ShaderProgram::reload()
+{
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ShaderProgram: Reloading program '%s'\n", mName.c_str() );
+	
+	deleteProgram();
+	
+	if(!mVertexShaderData.first.empty())
+		setVertexShaderSrc( mVertexShaderData.first, mVertexShaderData.second );
+
+	if(!mFragmentShaderData.first.empty())
+		setFragmentShaderSrc( mFragmentShaderData.first, mFragmentShaderData.second );
+
+	if(!mGeometryShaderData.first.empty())
+		setGeometryShaderSrc( mGeometryShaderData.first, mGeometryShaderData.second );
+
+	return createAndLinkProgram();
+}
 
 /*!
 Will create the program.

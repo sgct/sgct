@@ -151,7 +151,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";
 
@@ -216,7 +216,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";
 
@@ -228,22 +228,40 @@ namespace sgct_core
 			\n\
 			uniform sampler2D cTex;\n\
 			uniform sampler2D dTex;\n\
+			uniform float near;\n\
+			uniform float far;\n\
+			\n\
+			float getDepth(float bufferVal)\n\
+			{\n\
+				float z_n = 2.0 * bufferVal - 1.0;\n\
+				return 2.0 * near * far / (far + near - z_n * (far - near));\n\
+			}\n\
+			\n\
+			float convertBack(float z)\n\
+			{\n\
+				float za = (2.0 * near * far)/z; \n\
+				float zb = (za - (far + near))/(far - near); \n\
+				return (1.0 - zb)/2.0; \n\
+			}\n\
 			\n\
 			void main()\n\
 			{\n\
 				//get angle from -45 to 45 degrees (-pi/4 to +pi/4) \n\
-				float xAngle = 1.570796327 * (UV.s - 0.5);\n\
-				float yAngle = 1.570796327 * (UV.t - 0.5);\n\
-				//Color = texture(cTex, UV);\n\
-				float near = 0.25; // camera z near \n\
-				float far = 5.0; // camera z far \n\
-				float z = texture(dTex, UV).x; \n\
-				//float z = (1.0-texture(dTex, UV).x) * cos(xAngle) * cos(yAngle); \n\
-				//float z = 1.0 - texture(dTex, UV).x;\n\
-				float norm = (2.0 * near) / (far + near - z * (far - near)); \n\
-				float d = (1.0 - norm) * cos(xAngle) * cos(yAngle); \n\
-				Color = vec4( d, d, d, 1.0);\n\
-				gl_FragDepth = texture(dTex, UV).x * cos(xAngle) * cos(yAngle);\n\
+				//float xAngle = 1.57079632679 * (UV.s - 0.5);\n\
+				//float yAngle = 1.57079632679 * (UV.t - 0.5);\n\
+				float xAngle = 1.45 * (UV.s - 0.5);\n\
+				float yAngle = 1.45 * (UV.t - 0.5);\n\
+				\n\
+				float z = getDepth(texture(dTex, UV).x); \n\
+				float a = tan(xAngle); \n\
+				float b = tan(yAngle); \n\
+				//use r = sqrt(x*x + y*y + z*z) \n\
+				// x = z * tan ( xAngle ) \n\
+				// y = z * tan ( yAngle ) \n\
+				float r = z * sqrt(a*a + b*b + 1.0); \n\
+				\n\
+				Color = texture(cTex, UV);\n\
+				gl_FragDepth = convertBack(r);\n\
 			}\n";
 		
 		const std::string Anaglyph_Vert_Shader = "\

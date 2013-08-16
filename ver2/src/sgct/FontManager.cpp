@@ -368,7 +368,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	//Here we actually create the texture itself, notice
 	//that we are using GL_LUMINANCE_ALPHA to indicate that
 	//we are using 2 channel data.
-    glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA, width, height,
+    glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_LUMINANCE_ALPHA, width, height,
 		  0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data );
 
 	//With the texture created, we don't need to expanded data anymore
@@ -505,7 +505,7 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 
 		//Here we actually create the texture itself, notice
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RG8, width, height,
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
 			  0, GL_RG, GL_UNSIGNED_BYTE, expanded_data );
 
 		//With the texture created, we don't need to expanded data anymore

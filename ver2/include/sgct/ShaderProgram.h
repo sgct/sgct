@@ -37,6 +37,7 @@ public:
 	bool setGeometryShaderSrc( const std::string & src, ShaderSourceType sSrcType = SHADER_SRC_FILE );
 
 	bool createAndLinkProgram();
+	bool reload();
 
 	bool bind() const;
 	static void unbind();
@@ -80,6 +81,10 @@ private:
 	sgct_core::Shader mVertexShader;	// Handler for the vertex shader
 	sgct_core::Shader mFragmentShader;	// Handler for the fragment shader
 	sgct_core::Shader mGeometryShader;	// Handler for the geometry shader
+
+	std::pair<std::string, ShaderSourceType> mVertexShaderData;
+	std::pair<std::string, ShaderSourceType> mFragmentShaderData;
+	std::pair<std::string, ShaderSourceType> mGeometryShaderData;
 };
 
 } // sgct

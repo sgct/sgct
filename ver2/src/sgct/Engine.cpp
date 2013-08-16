@@ -1049,8 +1049,6 @@ void sgct::Engine::draw()
 		//restore polygon mode
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 	}
-
-
 }
 
 /*!
@@ -1442,6 +1440,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 			setAndClearBuffer(RenderToTexture);
 
+			//reset depth function
+			glDepthFunc( GL_LESS );
+
 			//render
 			(this->*mInternalDrawFn)();
 
@@ -1472,14 +1473,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
-				glClearColor( 0.0f, 0.0f, 0.0f, 0.0f );
-				glClear( GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT );
+				mClearBufferFn();
 
 				glDisable( GL_CULL_FACE );
 				glEnable( GL_BLEND );
 				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-				glDisable( GL_DEPTH_TEST );
-				glDepthFunc( GL_LESS );
+				glEnable( GL_DEPTH_TEST );
+				glDepthFunc( GL_ALWAYS );
 				statesSet = true;
 
 				glm::mat4 mat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
@@ -1495,6 +1495,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeSwapShaderMVPLoc(), 1, GL_FALSE, &mat[0][0]);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
+				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderNearLoc(), mNearClippingPlaneDist);
+				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderFarLoc(), mFarClippingPlaneDist);
 
 				getActiveWindowPtr()->bindVAO( SGCTWindow::RenderQuad );
 				glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -1540,8 +1542,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glDisable( GL_CULL_FACE );
 		glEnable( GL_BLEND );
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
-		glDisable( GL_DEPTH_TEST );
-		glDepthFunc( GL_LESS );
+		glEnable( GL_DEPTH_TEST );
+		glDepthFunc( GL_ALWAYS );
 	}
 
 	getActiveWindowPtr()->bindFisheyeShader();
@@ -1928,7 +1930,6 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 
 		fx->render();
 	}
-
 	if( getActiveWindowPtr()->useFXAA() )
 	{
 		//bind target FBO
@@ -2374,28 +2375,28 @@ void sgct::Engine::calculateFrustums()
 {
 	for(size_t w=0; w < mThisNode->getNumberOfWindows(); w++)
 	{
-		mThisNode->setCurrentWindowIndex(w);
+		SGCTWindow * winPtr = mThisNode->getWindowPtr(w);
 		
-		for(unsigned int i=0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
-			if( !getActiveWindowPtr()->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
+		for(unsigned int i=0; i < winPtr->getNumberOfViewports(); i++)
+			if( !winPtr->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 			{
 				SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
 
-				if( !getActiveWindowPtr()->isUsingFisheyeRendering() )
+				if( !winPtr->isUsingFisheyeRendering() )
 				{
-					getActiveWindowPtr()->getViewport(i)->calculateFrustum(
+					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::Mono,
 						usrPtr->getPosPtr(),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
-					getActiveWindowPtr()->getViewport(i)->calculateFrustum(
+					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::StereoLeftEye,
 						usrPtr->getPosPtr(Frustum::StereoLeftEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
-					getActiveWindowPtr()->getViewport(i)->calculateFrustum(
+					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::StereoRightEye,
 						usrPtr->getPosPtr(Frustum::StereoRightEye),
 						mNearClippingPlaneDist,
@@ -2403,21 +2404,21 @@ void sgct::Engine::calculateFrustums()
 				}
 				else
 				{
-					getActiveWindowPtr()->getViewport(i)->calculateFisheyeFrustum(
+					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::Mono,
 						usrPtr->getPosPtr(),
 						usrPtr->getPosPtr(),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
-					getActiveWindowPtr()->getViewport(i)->calculateFisheyeFrustum(
+					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::StereoLeftEye,
 						usrPtr->getPosPtr(),
 						usrPtr->getPosPtr(Frustum::StereoLeftEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
-					getActiveWindowPtr()->getViewport(i)->calculateFisheyeFrustum(
+					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::StereoRightEye,
 						usrPtr->getPosPtr(),
 						usrPtr->getPosPtr(Frustum::StereoRightEye),

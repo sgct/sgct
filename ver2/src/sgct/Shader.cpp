@@ -120,7 +120,7 @@ bool sgct_core::Shader::setSourceFromString( const std::string & sourceString )
 	{
 		sgct::MessageHandler::Instance()->print(
 			sgct::MessageHandler::NOTIFY_WARNING, 
-			"%s is alread set for specified shader.\n",
+			"%s is already set for specified shader.\n",
 			getShaderTypeName( mShaderType ).c_str() );
 		return false;
 	}
@@ -187,7 +187,7 @@ bool sgct_core::Shader::checkCompilationStatus() const
 /*!
 Will return the name of the shader type
 @param	shaderType	The shader type
-@return	Sahder type name
+@return	Shader type name
 */
 std::string sgct_core::Shader::getShaderTypeName( ShaderType shaderType ) const
 {
@@ -197,6 +197,8 @@ std::string sgct_core::Shader::getShaderTypeName( ShaderType shaderType ) const
 		return "Vertex shader";
 	case GL_FRAGMENT_SHADER:
 		return "Fragment shader";
+	case GL_GEOMETRY_SHADER:
+		return "Geometry shader";
 	default:
 		return "Unknown shader";
 	};

@@ -21,7 +21,7 @@ that can be used for comparison will NULL value shader programs
 sgct::ShaderManager::ShaderManager(void) :
 	NullShader( "SGCT_NULL" )
 {
-	mCurrentBin = SHADER_BIN_0; //Internal bin
+	mCurrentBin = SHADER_BIN_0;
 }
 //----------------------------------------------------------------------------//
 

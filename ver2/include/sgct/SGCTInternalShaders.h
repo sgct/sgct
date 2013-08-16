@@ -154,6 +154,47 @@ namespace sgct_core
 					gl_FragDepth = 0.0f;\n\
 				}\n\
 			}\n";
+
+		const std::string Fisheye_Depth_Correction_Frag_Shader = "\
+			#version 120\n\
+			\n\
+			uniform sampler2D cTex;\n\
+			uniform sampler2D dTex;\n\
+			uniform float near;\n\
+			uniform float far;\n\
+			\n\
+			float getDepth(float bufferVal)\n\
+			{\n\
+				float z_n = 2.0 * bufferVal - 1.0;\n\
+				return 2.0 * near * far / (far + near - z_n * (far - near));\n\
+			}\n\
+			\n\
+			float convertBack(float z)\n\
+			{\n\
+				float za = (2.0 * near * far)/z; \n\
+				float zb = (za - (far + near))/(far - near); \n\
+				return (1.0 - zb)/2.0; \n\
+			}\n\
+			\n\
+			void main()\n\
+			{\n\
+				//get angle from -45 to 45 degrees (-pi/4 to +pi/4) \n\
+				//float xAngle = 1.57079632679 * (UV.s - 0.5);\n\
+				//float yAngle = 1.57079632679 * (UV.t - 0.5);\n\
+				float xAngle = 1.45 * (gl_TexCoord[0].s - 0.5);\n\
+				float yAngle = 1.45 * (gl_TexCoord[0].t - 0.5);\n\
+				\n\
+				float z = getDepth(texture2D(dTex, gl_TexCoord[0].st).x); \n\
+				float a = tan(xAngle); \n\
+				float b = tan(yAngle); \n\
+				//use r = sqrt(x*x + y*y + z*z) \n\
+				// x = z * tan ( xAngle ) \n\
+				// y = z * tan ( yAngle ) \n\
+				float r = z * sqrt(a*a + b*b + 1.0); \n\
+				\n\
+				gl_FragColor = texture2D(cTex, gl_TexCoord[0].st);\n\
+				gl_FragDepth = convertBack(r);\n\
+			}\n";
 		
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 120\n\

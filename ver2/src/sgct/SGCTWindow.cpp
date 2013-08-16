@@ -456,6 +456,8 @@ void sgct_core::SGCTWindow::setUseFXAA(bool state)
 	mUseFXAA = state;
 	if( mUseFXAA )
 		mUsePostFX = true;
+	else
+		mUsePostFX = (mPostFXPasses.size() > 0);
 	sgct::MessageHandler::Instance()->print( sgct::MessageHandler::NOTIFY_INFO, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
 }
 
@@ -1066,6 +1068,12 @@ void sgct_core::SGCTWindow::loadShaders()
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
 					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			}
+
+			if( sgct::SGCTSettings::Instance()->useDepthTexture() )
+			{
+				mFisheyeDepthCorrectionShader.setVertexShaderSrc( sgct_core::shaders::Base_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 		else //modern pipeline

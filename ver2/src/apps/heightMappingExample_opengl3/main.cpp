@@ -352,7 +352,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				for(std::size_t i=0; i<gEngine->getNumberOfWindows(); i++)
 				{
-					gEngine->getWindowPtr(i)->setUseFXAA( gEngine->getWindowPtr(i)->useFXAA() );
+					gEngine->getWindowPtr(i)->setUseFXAA( !gEngine->getWindowPtr(i)->useFXAA() );
 				}
 			break;
 

@@ -112,7 +112,7 @@ void myDrawFun()
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 
-	sgct::ShaderManager::Instance()->bindShader( "InvertColor" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "InvertColor" );
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -132,7 +132,7 @@ void myDrawFun()
 
 	//restore
 	glPopAttrib();
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 
 	//exit ortho mode
 	glMatrixMode(GL_PROJECTION);
@@ -196,9 +196,9 @@ void myInitOGLFun()
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
 
 	//set up shader
-	sgct::ShaderManager::Instance()->addShader( "InvertColor", "simple.vert", "simple.frag" );
-	sgct::ShaderManager::Instance()->bindShader( "InvertColor" );
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->addShaderProgram( "InvertColor", "simple.vert", "simple.frag" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "InvertColor" );
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 	
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );

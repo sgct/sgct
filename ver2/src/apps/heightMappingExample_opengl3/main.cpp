@@ -128,7 +128,7 @@ void myDrawFun()
 	//unbind
 	glBindVertexArray(0);
 
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()
@@ -165,7 +165,7 @@ void myInitOGLFun()
 	sgct::TextureManager::Instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
 
 	//setup shader
-	sgct::ShaderManager::Instance()->addShader( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );
+	sgct::ShaderManager::Instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );
 
 	mSp.bind();
 	myTextureLocations[0]	= mSp.getUniformLocation( "hTex" );
@@ -185,7 +185,7 @@ void myInitOGLFun()
 	glUniform4f( lightAmb_Loc, lightAmbient.r, lightAmbient.g, lightAmbient.b, lightAmbient.a );
 	glUniform4f( lightDif_Loc, lightDiffuse.r, lightDiffuse.g, lightDiffuse.b, lightDiffuse.a );
 	glUniform4f( lightSpe_Loc, lightSpecular.r, lightSpecular.g, lightSpecular.b, lightSpecular.a );
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 
 	//generate mesh
 	generateTerrainGrid( 1.0f, 1.0f, 256, 256 );

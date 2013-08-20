@@ -177,13 +177,13 @@ public:
 	*/
 	inline int getId() { return mId; }
 	
-	inline void bindStereoShader() { mStereoShader.bind(); }
+	inline void bindStereoShaderProgram() { mStereoShader.bind(); }
 	inline int getStereoShaderMVPLoc() { return StereoMVP; }
 	inline int getStereoShaderLeftTexLoc() { return StereoLeftTex; }
 	inline int getStereoShaderRightTexLoc() { return StereoRightTex; }
 
 	//Fisheye settings
-	inline void bindFisheyeShader() { mFisheyeShader.bind(); }
+	inline void bindFisheyeShaderProgram() { mFisheyeShader.bind(); }
 	inline int getFisheyeShaderMVPLoc() { return FisheyeMVP; }
 	inline int getFisheyeShaderCubemapLoc() { return Cubemap; }
 	inline int getFisheyeShaderCubemapDepthLoc() { return DepthCubemap; }
@@ -191,7 +191,7 @@ public:
 	inline int getFisheyeShaderHalfFOVLoc() { return FishEyeHalfFov; }
 	inline int getFisheyeShaderOffsetLoc() { return FisheyeOffset; }
 
-	inline void bindFisheyeDepthCorrectionShader() { mFisheyeDepthCorrectionShader.bind(); }
+	inline void bindFisheyeDepthCorrectionShaderProgram() { mFisheyeDepthCorrectionShader.bind(); }
 	inline int getFisheyeSwapShaderMVPLoc() { return FishEyeSwapMVP; }
 	inline int getFisheyeSwapShaderColorLoc() { return FishEyeSwapColor; }
 	inline int getFisheyeSwapShaderDepthLoc() { return FishEyeSwapDepth; }

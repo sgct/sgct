@@ -37,13 +37,13 @@ bool sgct::PostFX::init( const std::string & name, const std::string & vertShade
 	mName = name;
 	mShaderProgram.setName( name );
 
-	if( !mShaderProgram.setVertexShaderSrc( vertShaderSrc, srcType ) )
+	if( !mShaderProgram.addShaderSrc( vertShaderSrc, GL_VERTEX_SHADER, srcType ) )
 	{
 		MessageHandler::Instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set vertex shader.\n", mName.c_str() );
 		return false;
 	}
 
-	if( !mShaderProgram.setFragmentShaderSrc( fragShaderSrc, srcType ) )
+	if( !mShaderProgram.addShaderSrc( fragShaderSrc, GL_FRAGMENT_SHADER, srcType ) )
 	{
 		MessageHandler::Instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set fragment shader.\n", mName.c_str() );
 		return false;

@@ -83,14 +83,14 @@ void myDrawFun()
 	glEnable(GL_TEXTURE_2D);
 
 	//set current shader program
-	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "Heightmap" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
 
 	glLineWidth(2.0); //for wireframe
 	glCallList(myTerrainDisplayList);
 
 	//unset current shader program
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 
 	glActiveTexture(GL_TEXTURE1);
 	glDisable(GL_TEXTURE_2D);
@@ -148,19 +148,19 @@ void myInitOGLFun()
 	sgct::TextureManager::Instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
 	sgct::TextureManager::Instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
 
-	sgct::ShaderManager::Instance()->addShader( "Heightmap", "heightmap.vert", "heightmap.frag" );
+	sgct::ShaderManager::Instance()->addShaderProgram( "Heightmap", "heightmap.vert", "heightmap.frag" );
 
-	sgct::ShaderManager::Instance()->bindShader( "Heightmap" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "Heightmap" );
 	myTextureLocations[0] = -1;
 	myTextureLocations[1] = -1;
 	curr_timeLoc = -1;
-	myTextureLocations[0] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "hTex" );
-	myTextureLocations[1] = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "nTex" );
-	curr_timeLoc = sgct::ShaderManager::Instance()->getShader( "Heightmap").getUniformLocation( "curr_time" );
+	myTextureLocations[0] = sgct::ShaderManager::Instance()->getShaderProgram( "Heightmap").getUniformLocation( "hTex" );
+	myTextureLocations[1] = sgct::ShaderManager::Instance()->getShaderProgram( "Heightmap").getUniformLocation( "nTex" );
+	curr_timeLoc = sgct::ShaderManager::Instance()->getShaderProgram( "Heightmap").getUniformLocation( "curr_time" );
 
 	glUniform1i( myTextureLocations[0], 0 );
 	glUniform1i( myTextureLocations[1], 1 );
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myEncodeFun()

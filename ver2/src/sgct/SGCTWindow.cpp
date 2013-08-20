@@ -759,8 +759,12 @@ void sgct_core::SGCTWindow::createTextures()
 		glEnable(GL_TEXTURE_2D);
 	}
 
-	//todo: add a flag for warping
-	int interpolationType = mUseFixResolution ? GL_LINEAR : GL_NEAREST;
+	/*
+		Anisotropic box filtering needed by FXAA
+	*/
+	GLfloat maxAni;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
+	float anisotropy_filter_size = (maxAni < 4.0f) ? maxAni : 4.0f;
 
 	/*
 		Create left and right color & depth textures.
@@ -770,6 +774,7 @@ void sgct_core::SGCTWindow::createTextures()
 	for( int i=0; i<(NUMBER_OF_TEXTURES-4); i++ ) //all textures except fisheye cubemap(s)
 	{
 		bool create = true;
+		bool anisotropicFiltering = false;
 		
 		switch( i )
 		{
@@ -786,11 +791,20 @@ void sgct_core::SGCTWindow::createTextures()
 		case sgct::Engine::FX1:
 			if( mPostFXPasses.empty() )
 				create = false;
+			else
+				anisotropicFiltering = true;
 			break;
 
 		case sgct::Engine::FX2:
 			if( mPostFXPasses.size() < 2 )
 				create = false;
+			else
+				anisotropicFiltering = true;
+			break;
+
+		case sgct::Engine::Intermediate:
+			if( mPostFXPasses.size() < 2 )
+				anisotropicFiltering = true;
 			break;
 		}
 		
@@ -799,8 +813,10 @@ void sgct_core::SGCTWindow::createTextures()
 			glGenTextures(1, &mFrameBufferTextures[i]);
 			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
 			
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolationType ); //must be linear if warping, blending or fix resolution is used
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolationType );
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+			if( anisotropicFiltering )
+				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy_filter_size);
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 			
@@ -1053,60 +1069,60 @@ void sgct_core::SGCTWindow::loadShaders()
 	{
 		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
 		{
-			mFisheyeShader.setVertexShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			
 			if(mFisheyeOffaxis)
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				else
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 
 			if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.setVertexShaderSrc( sgct_core::shaders::Base_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.setFragmentShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Base_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 		else //modern pipeline
 		{
-			mFisheyeShader.setVertexShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			
 			if(mFisheyeOffaxis)
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 				{
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				}
 				else
 				{
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				}
 			}
 			else//not off axis
 			{
 				if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 				{
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				}
 				else //no depth
 				{
-					mFisheyeShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 				}
 			}
 
 			if( sgct::SGCTSettings::Instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.setVertexShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.setFragmentShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 
@@ -1165,58 +1181,58 @@ void sgct_core::SGCTWindow::loadShaders()
 	if( mStereoMode > Active )
 	{
 		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
-			mStereoShader.setVertexShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		else
-			mStereoShader.setVertexShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			
 		if( mStereoMode == Anaglyph_Red_Cyan )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 					
 		}
 		else if( mStereoMode == Anaglyph_Amber_Blue )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Checkerboard )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Checkerboard_Inverted )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Vertical_Interlaced )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Vertical_Interlaced_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Vertical_Interlaced_Inverted )
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else
 		{
 			sgct::Engine::Instance()->isOGLPipelineFixed() ?
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.setFragmentShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 
 		mStereoShader.setName("StereoShader");

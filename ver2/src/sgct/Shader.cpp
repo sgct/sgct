@@ -12,9 +12,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <fstream>
 #include <sstream>
 #include <iostream>
+
+/*!
+Default constructor
+*/
+sgct_core::Shader::Shader() : 
+	mShaderId( 0 )
+{
+}
+//----------------------------------------------------------------------------//
+
 /*!
 The constructor sets shader type
-@param	shaderType	The shader type: vertex or fragment
+@param	shaderType	The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
 */
 sgct_core::Shader::Shader( sgct_core::Shader::ShaderType shaderType ) :
 	mShaderType( shaderType ),
@@ -31,6 +41,15 @@ sgct_core::Shader::~Shader(void)
 {
 }
 //----------------------------------------------------------------------------//
+
+/*!
+Set the shader type
+@param	shaderType	The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+*/
+void sgct_core::Shader::setShaderType( ShaderType shaderType )
+{
+	mShaderType = shaderType;
+}
 
 /*!
 Set the shader source code from a file, will create and compile the shader if it is not already done.
@@ -199,6 +218,12 @@ std::string sgct_core::Shader::getShaderTypeName( ShaderType shaderType ) const
 		return "Fragment shader";
 	case GL_GEOMETRY_SHADER:
 		return "Geometry shader";
+	case GL_COMPUTE_SHADER:
+		return "Compute shader";
+	case GL_TESS_CONTROL_SHADER:
+		return "Tesselation control shader";
+	case GL_TESS_EVALUATION_SHADER:
+		return "Tesselation evaluation shader";
 	default:
 		return "Unknown shader";
 	};

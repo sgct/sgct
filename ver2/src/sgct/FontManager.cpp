@@ -262,8 +262,8 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 		if( !shaderCreated )
 		{
 			mShader.setName("FontShader");
-			mShader.setVertexShaderSrc( Font_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
-			mShader.setFragmentShaderSrc( Font_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.addShaderSrc( Font_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.addShaderSrc( Font_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			mShader.createAndLinkProgram();
 			mShader.bind();
 

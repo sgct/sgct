@@ -69,7 +69,7 @@ private:
 	enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
 	enum ShaderLocIndexes { MonoMVP = 0, MonoTex,
 			OverlayMVP, OverlayTex,
-			SizeX, SizeY, FXAAMVP, FXAASubPixShift, FXAASpanMax, FXAARedMul, FXAAOffset, FXAATexture };
+			SizeX, SizeY, FXAA_MVP, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture };
 
 public:
 	Engine( int& argc, char**& argv );

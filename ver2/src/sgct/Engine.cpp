@@ -1270,7 +1270,7 @@ void sgct::Engine::renderFBOTexture()
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 
-		getActiveWindowPtr()->bindStereoShader();
+		getActiveWindowPtr()->bindStereoShaderProgram();
 
 		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
 		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
@@ -1350,7 +1350,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 	if( getActiveWindowPtr()->getStereoMode() > SGCTWindow::Active )
 	{
-		getActiveWindowPtr()->bindStereoShader();
+		getActiveWindowPtr()->bindStereoShaderProgram();
 
 		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
 		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
@@ -1491,7 +1491,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap));
 
 				//bind shader
-				getActiveWindowPtr()->bindFisheyeDepthCorrectionShader();
+				getActiveWindowPtr()->bindFisheyeDepthCorrectionShaderProgram();
 				glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeSwapShaderMVPLoc(), 1, GL_FALSE, &mat[0][0]);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
@@ -1546,7 +1546,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glDepthFunc( GL_ALWAYS );
 	}
 
-	getActiveWindowPtr()->bindFisheyeShader();
+	getActiveWindowPtr()->bindFisheyeShaderProgram();
 
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
@@ -1714,7 +1714,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glPushMatrix();
 				
 				//bind shader
-				getActiveWindowPtr()->bindFisheyeDepthCorrectionShader();
+				getActiveWindowPtr()->bindFisheyeDepthCorrectionShaderProgram();
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
 				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderNearLoc(), mNearClippingPlaneDist);
@@ -1809,7 +1809,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_ALWAYS );
 
-	getActiveWindowPtr()->bindFisheyeShader();
+	getActiveWindowPtr()->bindFisheyeShaderProgram();
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
 	if( SGCTSettings::Instance()->useDepthTexture() )
@@ -2040,10 +2040,12 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture( Intermediate ) );
 
 		mShaders[FXAAShader].bind();
-		glUniformMatrix4fv( mShaderLocs[FXAAMVP], 1, GL_FALSE, &orthoMat[0][0]);
+		glUniformMatrix4fv( mShaderLocs[FXAA_MVP], 1, GL_FALSE, &orthoMat[0][0]);
 		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
 		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
-		glUniform1i( mShaderLocs[FXAATexture], 0 );
+		glUniform1i( mShaderLocs[FXAA_Texture], 0 );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
 
 		getActiveWindowPtr()->bindVAO( SGCTWindow::RenderQuad );
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -2147,7 +2149,9 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 		mShaders[FXAAShader].bind();
 		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
 		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
-		glUniform1i( mShaderLocs[FXAATexture], 0 );
+		glUniform1i( mShaderLocs[FXAA_Texture], 0 );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
 
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -2226,20 +2230,19 @@ void sgct::Engine::loadShaders()
 	mShaders[FXAAShader].setName("FXAAShader");
 	if( mFixedOGLPipeline )
 	{
-		mShaders[FXAAShader].setVertexShaderSrc( sgct_core::shaders::FXAA_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].setFragmentShaderSrc( sgct_core::shaders::FXAA_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].createAndLinkProgram();
+		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders::FXAA_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders::FXAA_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 	}
 	else
 	{
-		mShaders[FXAAShader].setVertexShaderSrc( sgct_core::shaders_modern::FXAA_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].setFragmentShaderSrc( sgct_core::shaders_modern::FXAA_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].createAndLinkProgram();
+		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders_modern::FXAA_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders_modern::FXAA_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 	}
+	mShaders[FXAAShader].createAndLinkProgram();
 	mShaders[FXAAShader].bind();
 
 	if( !mFixedOGLPipeline )
-		mShaderLocs[FXAAMVP] = mShaders[FXAAShader].getUniformLocation( "MVP" );
+		mShaderLocs[FXAA_MVP] = mShaders[FXAAShader].getUniformLocation( "MVP" );
 
 	mShaderLocs[SizeX] = mShaders[FXAAShader].getUniformLocation( "rt_w" );
 	glUniform1f( mShaderLocs[SizeX], static_cast<float>( getActiveWindowPtr()->getXFramebufferResolution()) );
@@ -2247,22 +2250,14 @@ void sgct::Engine::loadShaders()
 	mShaderLocs[SizeY] = mShaders[FXAAShader].getUniformLocation( "rt_h" );
 	glUniform1f( mShaderLocs[SizeY], static_cast<float>( getActiveWindowPtr()->getYFramebufferResolution()) );
 
-	mShaderLocs[FXAASubPixShift] = mShaders[FXAAShader].getUniformLocation( "FXAA_SUBPIX_SHIFT" );
-	//glUniform1f( mShaderLocs[FXAASubPixShift], 0.25f );
-	glUniform1f( mShaderLocs[FXAASubPixShift], 0.0f ); //better quality
+	mShaderLocs[FXAA_SUBPIX_TRIM] = mShaders[FXAAShader].getUniformLocation( "FXAA_SUBPIX_TRIM" );
+	glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
 
-	mShaderLocs[FXAASpanMax] = mShaders[FXAAShader].getUniformLocation( "FXAA_SPAN_MAX" );
-	glUniform1f( mShaderLocs[FXAASpanMax], 8.0f );
+	mShaderLocs[FXAA_SUBPIX_OFFSET] = mShaders[FXAAShader].getUniformLocation( "FXAA_SUBPIX_OFFSET" );
+	glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
 
-	mShaderLocs[FXAARedMul] = mShaders[FXAAShader].getUniformLocation( "FXAA_REDUCE_MUL" );
-	//glUniform1f( mShaderLocs[FXAARedMul], 1.0f/8.0f );
-	glUniform1f( mShaderLocs[FXAARedMul], 0.0f ); //better quality
-
-	mShaderLocs[FXAAOffset] = mShaders[FXAAShader].getUniformLocation( "vx_offset" );
-	glUniform1f( mShaderLocs[FXAAOffset], 0.0f );
-
-	mShaderLocs[FXAATexture] = mShaders[FXAAShader].getUniformLocation( "tex0" );
-	glUniform1i( mShaderLocs[FXAATexture], 0 );
+	mShaderLocs[FXAA_Texture] = mShaders[FXAAShader].getUniformLocation( "tex" );
+	glUniform1i( mShaderLocs[FXAA_Texture], 0 );
 
 	ShaderProgram::unbind();
 
@@ -2272,8 +2267,8 @@ void sgct::Engine::loadShaders()
 	if( !mFixedOGLPipeline )
 	{
 		mShaders[FBOQuadShader].setName("FBOQuadShader");
-		mShaders[FBOQuadShader].setVertexShaderSrc( sgct_core::shaders_modern::Base_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FBOQuadShader].setFragmentShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].addShaderSrc( sgct_core::shaders_modern::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].addShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[FBOQuadShader].createAndLinkProgram();
 		mShaders[FBOQuadShader].bind();
 		mShaderLocs[MonoMVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
@@ -2282,8 +2277,8 @@ void sgct::Engine::loadShaders()
 		ShaderProgram::unbind();
 
 		mShaders[OverlayShader].setName("OverlayShader");
-		mShaders[OverlayShader].setVertexShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[OverlayShader].setFragmentShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[OverlayShader].addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[OverlayShader].addShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[OverlayShader].createAndLinkProgram();
 		mShaders[OverlayShader].bind();
 		mShaderLocs[OverlayMVP] = mShaders[OverlayShader].getUniformLocation( "MVP" );

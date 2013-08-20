@@ -63,6 +63,17 @@ public:
 	//! Get the zlib compression level if png files used for saving screenshots
 	inline int getPNGCompressionLevel() { return mPNGCompressionLevel; }
 
+	//--------------------------------------------------------------------------//
+	//FXAA functions
+		
+	/*! \returns the FXAA removal of sub-pixel aliasing */
+	inline float getFXAASubPixTrim() { return mFXAASubPixTrim; }
+	/*! \returns the FXAA sub-pixel offset */
+	inline float getFXAASubPixOffset() { return mFXAASubPixOffset; }
+
+	void setFXAASubPixTrim(float val);
+	void setFXAASubPixOffset(float val);
+
 private:
 	SGCTSettings();
 	~SGCTSettings();
@@ -78,6 +89,10 @@ private:
 	int mPNGCompressionLevel;
 	bool mUseDepthTexture;
 	bool mUseFBO;
+
+	//FXAA parameters
+	float mFXAASubPixTrim;
+	float mFXAASubPixOffset;
 
 	std::string mCapturePath[3];
 	int mCaptureFormat;

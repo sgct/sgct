@@ -99,15 +99,15 @@ void myInitFun()
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
 
-	sgct::ShaderManager::Instance()->addShader( "xform",
+	sgct::ShaderManager::Instance()->addShaderProgram( "xform",
 			"SimpleVertexShader.vertexshader",
 			"SimpleFragmentShader.fragmentshader" );
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
  
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
+	Matrix_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
  
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
@@ -117,7 +117,7 @@ void myDrawFun()
 	glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
 		
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
@@ -128,7 +128,7 @@ void myDrawFun()
 
 	//unbind
 	glBindVertexArray(0);
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()

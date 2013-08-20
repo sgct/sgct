@@ -16,10 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 */
 sgct::ShaderProgram::ShaderProgram() :
 	mIsLinked( false ),
-	mProgramId( 0 ),
-	mVertexShader( GL_VERTEX_SHADER ),
-	mFragmentShader( GL_FRAGMENT_SHADER ),
-	mGeometryShader( GL_GEOMETRY_SHADER )
+	mProgramId( 0 )
 {
 	mName.assign("SGCT_NULL");
 }
@@ -35,22 +32,20 @@ set before calling it.
 sgct::ShaderProgram::ShaderProgram( const std::string & name ) :
 	mName( name ),
 	mIsLinked( false ),
-	mProgramId( 0 ),
-	mVertexShader( GL_VERTEX_SHADER ),
-	mFragmentShader( GL_FRAGMENT_SHADER ),
-	mGeometryShader( GL_GEOMETRY_SHADER )
+	mProgramId( 0 )
 {
 	; // Do nothing
 }
 //----------------------------------------------------------------------------//
 
 /*!
-The destructor does nothing. The program have to be destroyed explicitly
-by calling destroy. This is so that programs can be copied when storing
+The destructor clears the shader data vector but the program can still be used. The program have to be destroyed explicitly
+by calling deleteProgram. This is so that programs can be copied when storing
 in containers.
 */
 sgct::ShaderProgram::~ShaderProgram(void)
 {
+	mShaders.clear();
 }
 //----------------------------------------------------------------------------//
 
@@ -59,22 +54,13 @@ Will deattach all attached shaders, delete them and then delete the program
 */
 void sgct::ShaderProgram::deleteProgram()
 {		
-	if( mVertexShader.getId() > GL_FALSE )
+	for(std::size_t i=0; i<mShaders.size(); i++)
 	{
-		glDetachShader( mProgramId, mVertexShader.getId() );
-		mVertexShader.deleteShader();
-	}
-
-	if( mFragmentShader.getId() > GL_FALSE )
-	{
-		glDetachShader( mProgramId, mFragmentShader.getId() );
-		mFragmentShader.deleteShader();
-	}
-
-	if( mGeometryShader.getId() > GL_FALSE )
-	{
-		glDetachShader( mProgramId, mGeometryShader.getId() );
-		mGeometryShader.deleteShader();
+		if( mShaders[i].mShader.getId() > GL_FALSE )
+		{
+			glDetachShader( mProgramId, mShaders[i].mShader.getId() );
+			mShaders[i].mShader.deleteShader();
+		}
 	}
 
 	if( mProgramId > GL_FALSE )
@@ -90,6 +76,32 @@ void sgct::ShaderProgram::deleteProgram()
 void sgct::ShaderProgram::setName( const std::string & name )
 {
 	mName = name;
+}
+
+/*!
+Will add a shader to the program
+@param	src			Where the source is found, can be either a file path or shader source string
+@param  type		Type of shader can be one of the following: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+@param	sSrcType	What type of source code should be read, file or string
+@return	Wheter the source code was set correctly or not
+*/
+bool sgct::ShaderProgram::addShaderSrc( const std::string & src, sgct_core::Shader::ShaderType type, ShaderSourceType sSrcType )
+{
+	sgct_core::ShaderData sd;
+	sd.mShader.setShaderType( type );
+	sd.mIsSrcFile = (sSrcType == SHADER_SRC_FILE) ? true : false;
+	sd.mShaderSrc = src;
+
+	bool success;
+	if( sd.mIsSrcFile )
+		success = sd.mShader.setSourceFromFile( src );
+	else
+		success = sd.mShader.setSourceFromString( src );
+
+	if( success )
+		mShaders.push_back( sd );
+
+	return success;
 }
 
 /*!
@@ -126,72 +138,6 @@ void sgct::ShaderProgram::bindFragDataLocation( unsigned int colorNumber, const 
 }
 
 /*!
-Will set the vertex shader source code.
-@param	src			Where the source is found, can be either a file path or shader source string
-@param	sSrcType	What type of source code should be read, file or string
-@return	Wheter the source code was set correctly or not
-*/
-bool sgct::ShaderProgram::setVertexShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
-{
-	mVertexShaderData.first = src;
-	mVertexShaderData.second = sSrcType;
-
-	if( sSrcType == SHADER_SRC_FILE )
-	{
-		return mVertexShader.setSourceFromFile( src );
-	}
-	else
-	{
-		return mVertexShader.setSourceFromString( src );
-	}
-}
-//----------------------------------------------------------------------------//
-
-/*!
-Will set the fragment shader source code.
-@param	src			Where the source is found, can be either a file path or shader source string
-@param	sSrcType	What type of source code should be read, file or string
-@return	Wheter the source code was set correctly or not
-*/
-bool sgct::ShaderProgram::setFragmentShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
-{
-	mFragmentShaderData.first = src;
-	mFragmentShaderData.second = sSrcType;
-	
-	if( sSrcType == SHADER_SRC_FILE )
-	{
-		return mFragmentShader.setSourceFromFile( src );
-	}
-	else
-	{
-		return mFragmentShader.setSourceFromString( src );
-	}
-}
-//----------------------------------------------------------------------------//
-
-/*!
-Will set the geometry shader source code.
-@param	src			Where the source is found, can be either a file path or shader source string
-@param	sSrcType	What type of source code should be read, file or string
-@return	Wheter the source code was set correctly or not
-*/
-bool sgct::ShaderProgram::setGeometryShaderSrc( const std::string & src, sgct::ShaderProgram::ShaderSourceType sSrcType )
-{
-	mGeometryShaderData.first = src;
-	mGeometryShaderData.second = sSrcType;
-	
-	if( sSrcType == SHADER_SRC_FILE )
-	{
-		return mGeometryShader.setSourceFromFile( src );
-	}
-	else
-	{
-		return mGeometryShader.setSourceFromString( src );
-	}
-}
-//----------------------------------------------------------------------------//
-
-/*!
 Will create the program and link the shaders. The shader sources must have been set before the
 program can be linked. After the program is created and linked no modification to the shader
 sources can be made.
@@ -199,12 +145,9 @@ sources can be made.
 */
 bool sgct::ShaderProgram::createAndLinkProgram()
 {
-	//
-	// If the shader id's are 0 they are not created yet
-	//
-	if( mVertexShader.getId() == 0 || mFragmentShader.getId() == 0 )
+	if( mShaders.empty() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Can't create shader program [%s], all shader sources not properly set.\n", mName.c_str() );
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: No shaders has been added to program '%s'!\n", mName.c_str() );
 		return false;
 	}
 
@@ -220,11 +163,11 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 	//
 	// Link shaders
 	//
-	glAttachShader( mProgramId, mVertexShader.getId() );
-	glAttachShader( mProgramId, mFragmentShader.getId() );
-
-	if( mGeometryShader.getId() != 0 )
-		glAttachShader( mProgramId, mGeometryShader.getId() );
+	for(std::size_t i=0; i<mShaders.size(); i++)
+		if( mShaders[i].mShader.getId() > GL_FALSE )
+		{
+			glAttachShader( mProgramId, mShaders[i].mShader.getId() );
+		}
 
 	glLinkProgram( mProgramId );
 
@@ -241,15 +184,21 @@ bool sgct::ShaderProgram::reload()
 	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ShaderProgram: Reloading program '%s'\n", mName.c_str() );
 	
 	deleteProgram();
-	
-	if(!mVertexShaderData.first.empty())
-		setVertexShaderSrc( mVertexShaderData.first, mVertexShaderData.second );
 
-	if(!mFragmentShaderData.first.empty())
-		setFragmentShaderSrc( mFragmentShaderData.first, mFragmentShaderData.second );
+	for(std::size_t i=0; i<mShaders.size(); i++)
+	{
+		bool success;
+		if( mShaders[i].mIsSrcFile )
+			success = mShaders[i].mShader.setSourceFromFile( mShaders[i].mShaderSrc );
+		else
+			success = mShaders[i].mShader.setSourceFromString( mShaders[i].mShaderSrc );
 
-	if(!mGeometryShaderData.first.empty())
-		setGeometryShaderSrc( mGeometryShaderData.first, mGeometryShaderData.second );
+		if( !success )
+		{
+			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: Failed to load '%s'!\n", mShaders[i].mShaderSrc.c_str() );
+			return false;
+		}
+	}
 
 	return createAndLinkProgram();
 }

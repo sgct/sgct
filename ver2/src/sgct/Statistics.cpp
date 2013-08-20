@@ -211,8 +211,8 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		glBindVertexArray(0);
 
 		mShader.setName("StatsShader");
-		mShader.setVertexShaderSrc( Stats_Vert_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
-		mShader.setFragmentShaderSrc( Stats_Frag_Shader, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.addShaderSrc( Stats_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.addShaderSrc( Stats_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		mShader.createAndLinkProgram();
 		mShader.bind();
 

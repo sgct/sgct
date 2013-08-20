@@ -444,102 +444,119 @@ namespace sgct_core
 			layout (location = 1) in vec3 Position;\n\
 			\n\
 			uniform mat4 MVP;\n\
-			out vec2 UVCoord;\n\
-			out vec4 posPos;\n\
-			\n\
-			uniform float FXAA_SUBPIX_SHIFT; //1.0/4.0;\n\
 			uniform float rt_w;\n\
 			uniform float rt_h;\n\
+			uniform float FXAA_SUBPIX_OFFSET; \n\
+			\n\
+			out vec2 UVCoord;\n\
+			out vec2 texcoordOffset[4];\n\
 			\n\
 			void main(void)\n\
 			{\n\
-			  gl_Position = MVP * vec4(Position, 1.0);\n\
-			  UVCoord = TexCoords;\n\
-			  \n\
-			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
-			  posPos.xy = TexCoords.xy;\n\
-			  posPos.zw = TexCoords.xy - (rcpFrame * (0.5 + FXAA_SUBPIX_SHIFT));\n\
+				gl_Position = MVP * vec4(Position, 1.0);\n\
+				UVCoord = TexCoords;\n\
+				\n\
+				texcoordOffset[0] = UVCoord + FXAA_SUBPIX_OFFSET * vec2(-1.0/rt_w,  -1.0/rt_h);\n\
+				texcoordOffset[1] = UVCoord + FXAA_SUBPIX_OFFSET * vec2( 1.0/rt_w,  -1.0/rt_h);\n\
+				texcoordOffset[2] = UVCoord + FXAA_SUBPIX_OFFSET * vec2(-1.0/rt_w,  1.0/rt_h);\n\
+				texcoordOffset[3] = UVCoord + FXAA_SUBPIX_OFFSET * vec2( 1.0/rt_w,  1.0/rt_h);\n\
 			}\n";
 
 		const std::string FXAA_Frag_Shader = "\
 			#version 330 core\n\
+			/* \n\
+			FXAA_EDGE_THRESHOLD \n\
+			The minimum amount of local contrast required to apply algorithm. \n\
+			1/3 – too little \n\
+			1/4 – low quality \n\
+			1/8 – high quality \n\
+			1/16 – overkill \n\
 			\n\
-			#extension GL_EXT_gpu_shader4 : enable // For NVIDIA cards.\n\
-			uniform sampler2D tex0; // 0\n\
-			uniform float vx_offset;\n\
+			FXAA_EDGE_THRESHOLD_MIN \n\
+			Trims the algorithm from processing darks. \n\
+			1/32 – visible limit \n\
+			1/16 – high quality \n\
+			1/12 – upper limit (start of visible unfiltered edges) \n\
+			*/ \n\
+			#define FXAA_EDGE_THRESHOLD_MIN 1.0/16.0 \n\
+			#define FXAA_EDGE_THRESHOLD 1.0/8.0 \n\
+			#define FXAA_SPAN_MAX 8.0 \n\
 			uniform float rt_w;\n\
 			uniform float rt_h;\n\
-			uniform float FXAA_SPAN_MAX;\n\
-			uniform float FXAA_REDUCE_MUL; //1.0/8.0;\n\
+			uniform sampler2D tex;\n\
+			/* \n\
+				FXAA_SUBPIX_TRIM \n\
+				Controls removal of sub-pixel aliasing. \n\
+				1/2 – low removal \n\
+				1/3 – medium removal \n\
+				1/4 – default removal \n\
+				1/8 – high removal \n\
+				0 – complete removal \n\
+			*/ \n\
+			uniform float FXAA_SUBPIX_TRIM; //1.0/8.0;\n\
 			\n\
+			in vec2 texcoordOffset[4];\n\
 			in vec2 UVCoord;\n\
-			in vec4 posPos;\n\
 			out vec4 Color;\n\
 			\n\
-			#define FxaaInt2 ivec2\n\
-			#define FxaaFloat2 vec2\n\
-			\n\
-			vec3 FxaaPixelShader( \n\
-			  vec4 posPos,       // Output of FxaaVertexShader interpolated across screen.\n\
-			  sampler2D tex,     // Input texture.\n\
-			  vec2 rcpFrame) // Constant {1.0/frameWidth, 1.0/frameHeight}.\n\
-			{\n\
-			/*--------------------------------------------------------------------------*/\n\
-			#define FXAA_REDUCE_MIN   (1.0/128.0)\n\
-			//#define FXAA_REDUCE_MUL   (1.0/8.0)\n\
-			//#define FXAA_SPAN_MAX     8.0\n\
-			/*--------------------------------------------------------------------------*/\n\
-			vec3 rgbNW = textureLod(tex, posPos.zw, 0.0).xyz;\n\
-			vec3 rgbNE = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,0)).xyz;\n\
-			vec3 rgbSW = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(0,1)).xyz;\n\
-			vec3 rgbSE = textureLodOffset(tex, posPos.zw, 0.0, FxaaInt2(1,1)).xyz;\n\
-			vec3 rgbM  = textureLod(tex, posPos.xy, 0.0).xyz;\n\
-			/*--------------------------------------------------------------------------*/\n\
-			vec3 luma = vec3(0.299, 0.587, 0.114);\n\
-			float lumaNW = dot(rgbNW, luma);\n\
-			float lumaNE = dot(rgbNE, luma);\n\
-			float lumaSW = dot(rgbSW, luma);\n\
-			float lumaSE = dot(rgbSE, luma);\n\
-			float lumaM  = dot(rgbM,  luma);\n\
-			/*--------------------------------------------------------------------------*/\n\
-			float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));\n\
-			float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));\n\
-			/*--------------------------------------------------------------------------*/\n\
-			vec2 dir;\n\
-			dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));\n\
-			dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));\n\
-			/*--------------------------------------------------------------------------*/\n\
-			float dirReduce = max( \n\
-				(lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_REDUCE_MUL),\n\
-				FXAA_REDUCE_MIN);\n\
-			float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);\n\
-			dir = min(FxaaFloat2( FXAA_SPAN_MAX,  FXAA_SPAN_MAX), \n\
-				max(FxaaFloat2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), \n\
-				dir * rcpDirMin)) * rcpFrame.xy; \n\
-			/*--------------------------------------------------------------------------*/\n\
-			vec3 rgbA = (1.0/2.0) * (\n\
-				textureLod(tex, posPos.xy + dir * (1.0/3.0 - 0.5), 0.0).xyz +\n\
-				textureLod(tex, posPos.xy + dir * (2.0/3.0 - 0.5), 0.0).xyz);\n\
-			vec3 rgbB = rgbA * (1.0/2.0) + (1.0/4.0) * (\n\
-				textureLod(tex, posPos.xy + dir * (0.0/3.0 - 0.5), 0.0).xyz + \n\
-				textureLod(tex, posPos.xy + dir * (3.0/3.0 - 0.5), 0.0).xyz);\n\
-			float lumaB = dot(rgbB, luma); \n\
-			if((lumaB < lumaMin) || (lumaB > lumaMax)) return rgbA;\n\
-				return rgbB; }\n\
-			\n\
-			vec4 PostFX(sampler2D tex, vec2 uv, float time)\n\
-			{\n\
-			  vec4 c = vec4(0.0);\n\
-			  vec2 rcpFrame = vec2(1.0/rt_w, 1.0/rt_h);\n\
-				c.rgb = FxaaPixelShader(posPos, tex, rcpFrame);\n\
-				c.a = 1.0;\n\
-				return c;\n\
+			vec3 antialias() \n\
+			{ \n\
+				float FXAA_REDUCE_MIN = 1.0/128.0; \n\
+				vec3 rgbNW = texture(tex, texcoordOffset[0]).xyz; \n\
+				vec3 rgbNE = texture(tex, texcoordOffset[1]).xyz; \n\
+				vec3 rgbSW = texture(tex, texcoordOffset[2]).xyz; \n\
+				vec3 rgbSE = texture(tex, texcoordOffset[3]).xyz; \n\
+				vec3 rgbM  = texture(tex, UVCoord).xyz;\n\
+				\n\
+				vec3 luma = vec3(0.299, 0.587, 0.114);\n\
+				float lumaNW = dot(rgbNW, luma);\n\
+				float lumaNE = dot(rgbNE, luma);\n\
+				float lumaSW = dot(rgbSW, luma);\n\
+				float lumaSE = dot(rgbSE, luma);\n\
+				float lumaM  = dot( rgbM, luma);\n\
+				\n\
+				float lumaMin = min(lumaM, min(min(lumaNW, lumaNE), min(lumaSW, lumaSE)));\n\
+				float lumaMax = max(lumaM, max(max(lumaNW, lumaNE), max(lumaSW, lumaSE)));\n\
+				float range = lumaMax - lumaMin;\n\
+				//local contrast check, for not processing homogenius areas \n\
+				if( range < max(FXAA_EDGE_THRESHOLD_MIN, lumaMax * FXAA_EDGE_THRESHOLD)) \n\
+				{ \n\
+					return rgbM; \n\
+				} \n\
+				\n\
+				vec2 dir;\n\
+				dir.x = -((lumaNW + lumaNE) - (lumaSW + lumaSE));\n\
+				dir.y =  ((lumaNW + lumaSW) - (lumaNE + lumaSE));\n\
+				\n\
+				float dirReduce = max((lumaNW + lumaNE + lumaSW + lumaSE) * (0.25 * FXAA_SUBPIX_TRIM), FXAA_REDUCE_MIN);\n\
+					\n\
+				float rcpDirMin = 1.0/(min(abs(dir.x), abs(dir.y)) + dirReduce);\n\
+				\n\
+				dir = min(vec2(FXAA_SPAN_MAX,  FXAA_SPAN_MAX), \n\
+					max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) / vec2(rt_w, rt_h);\n\
+					\n\
+				vec3 rgbA = 0.5 * (\n\
+							texture(tex, UVCoord + dir * (1.0/3.0 - 0.5)).xyz +\n\
+							texture(tex, UVCoord + dir * (2.0/3.0 - 0.5)).xyz);\n\
+				vec3 rgbB = rgbA * 0.5 + (1.0/4.0) * (\n\
+							texture(tex, UVCoord + dir * (0.0/3.0 - 0.5)).xyz +\n\
+							texture(tex, UVCoord + dir * (3.0/3.0 - 0.5)).xyz);\n\
+				float lumaB = dot(rgbB, luma);\n\
+				\n\
+				if((lumaB < lumaMin) || (lumaB > lumaMax)) \n\
+				{ \n\
+					return rgbA; \n\
+				} \n\
+				else \n\
+				{ \n\
+					return rgbB; \n\
+				} \n\
 			}\n\
 			\n\
-			void main()\n\
-			{\n\
-				Color = PostFX(tex0, UVCoord, 0.0);\n\
-			}\n";
+			void main(void) \n\
+			{ \n\
+				Color = vec4(antialias(), 1.0); \n\
+			}";
 	}
 }
 #endif

@@ -29,43 +29,46 @@ public:
 
 	~ShaderManager(void);
 
-	bool addShader( 
+	bool addShaderProgram( const std::string & name, ShaderProgram & shaderProgram );
+
+	bool addShaderProgram( 
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
 		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
-	bool addShader( 
-		ShaderProgram & shader,
+	bool addShaderProgram( 
+		ShaderProgram & shaderProgram,
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
 		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
-	bool addShader( 
-		const std::string & name,
-		const std::string & vertexSrc,
-		const std::string & fragmentSrc,
-		const std::string & geometrySrc,
-		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
-
-	bool addShader( 
-		ShaderProgram & shader,
+	bool addShaderProgram( 
 		const std::string & name,
 		const std::string & vertexSrc,
 		const std::string & fragmentSrc,
 		const std::string & geometrySrc,
 		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
-	void setShaderBin( ShaderBinIndex bin );
-	bool removeShader( const std::string & name );
-	bool bindShader( const std::string & name ) const;
-	bool bindShader( const ShaderProgram & shader ) const;
-	void unBindShader();
+	bool addShaderProgram( 
+		ShaderProgram & shaderProgram,
+		const std::string & name,
+		const std::string & vertexSrc,
+		const std::string & fragmentSrc,
+		const std::string & geometrySrc,
+		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
-	bool shaderExists( const std::string & name ) const;
+	void setCurrentBin( ShaderBinIndex bin );
+	bool removeShaderProgram( const std::string & name );
+	bool removeShaderProgram( const std::string & name, ShaderBinIndex bin );
+	bool bindShaderProgram( const std::string & name ) const;
+	bool bindShaderProgram( const ShaderProgram & shader ) const;
+	void unBindShaderProgram();
+
+	bool shaderProgramExists( const std::string & name ) const;
 	
-	const ShaderProgram & getShader( const std::string & name ) const;
+	const ShaderProgram & getShaderProgram( const std::string & name ) const;
 
 	/*! Get the manager instance */
 	static ShaderManager * Instance()
@@ -105,7 +108,7 @@ private:
 
 	static ShaderManager * mInstance;		// Instantiation of the manager
 	std::size_t mCurrentBin;
-	std::vector<ShaderProgram> mShaders[ NUMBER_OF_SHADER_BINS ];	// Active shaders in the manager
+	std::vector<ShaderProgram> mShaderPrograms[ NUMBER_OF_SHADER_BINS ];	// Active shaders in the manager
 };
 
 } // sgct

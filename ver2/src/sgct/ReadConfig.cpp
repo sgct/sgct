@@ -578,6 +578,33 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("value") != NULL )
 						sgct::SGCTSettings::Instance()->setUseDepthTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
 				}
+				else if( strcmp("FXAA", val[1]) == 0 )
+				{
+					float offset = 0.0f;
+					if( element[1]->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR)
+					{
+						sgct::SGCTSettings::Instance()->setFXAASubPixOffset( offset );
+						sgct::MessageHandler::Instance()->print( sgct::MessageHandler::NOTIFY_INFO, 
+							"ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset );
+					}
+
+					float trim = 0.0f;
+					if( element[1]->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR )
+					{
+						if(trim > 0.0f)
+						{
+							sgct::SGCTSettings::Instance()->setFXAASubPixTrim( 1.0f/trim );
+							sgct::MessageHandler::Instance()->print( sgct::MessageHandler::NOTIFY_INFO, 
+								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f/trim );
+						}
+						else
+						{
+							sgct::SGCTSettings::Instance()->setFXAASubPixTrim( 0.0f );
+							sgct::MessageHandler::Instance()->print( sgct::MessageHandler::NOTIFY_INFO, 
+								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f );
+						}
+					}
+				}
 
 				//iterate
 				element[1] = element[1]->NextSiblingElement();

@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	//set current shader program
-	sgct::ShaderManager::Instance()->bindShader( "SimpleColor" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "SimpleColor" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
 
 	float speed = 50.0f;
@@ -60,17 +60,17 @@ void myDrawFun()
 	glEnd();
 
 	//unset current shader program
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myInitOGLFun()
 {
-	sgct::ShaderManager::Instance()->addShader( "SimpleColor", "simple.vert", "simple.frag" );
-	sgct::ShaderManager::Instance()->bindShader( "SimpleColor" );
+	sgct::ShaderManager::Instance()->addShaderProgram( "SimpleColor", "simple.vert", "simple.frag" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "SimpleColor" );
 
-	curr_timeLoc = sgct::ShaderManager::Instance()->getShader( "SimpleColor").getUniformLocation( "curr_time" );
+	curr_timeLoc = sgct::ShaderManager::Instance()->getShaderProgram( "SimpleColor").getUniformLocation( "curr_time" );
 
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 }
 
 void myEncodeFun()

@@ -199,7 +199,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 
 		//unbind
 		glBindVertexArray(0);
-		sgct::ShaderManager::Instance()->unBindShader();
+		sgct::ShaderProgram::unbind();
 	}
 }
 
@@ -328,7 +328,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 
 		//unbind
 		glBindVertexArray(0);
-		sgct::ShaderManager::Instance()->unBindShader();
+		sgct::ShaderProgram::unbind();
 	}
 }
 
@@ -450,7 +450,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 
 		//unbind
 		glBindVertexArray(0);
-		sgct::ShaderManager::Instance()->unBindShader();
+		sgct::ShaderProgram::unbind();
 	}
 }
 
@@ -571,7 +571,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 
 		//unbind
 		glBindVertexArray(0);
-		sgct::ShaderManager::Instance()->unBindShader();
+		sgct::ShaderProgram::unbind();
 	}
 }
 

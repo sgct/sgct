@@ -85,6 +85,7 @@
     <ClInclude Include="..\..\include\sgct\SGCTVersion.h" />
     <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
     <ClInclude Include="..\..\include\sgct\Shader.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderData.h" />
     <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
     <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
     <ClInclude Include="..\..\include\sgct\SharedData.h" />

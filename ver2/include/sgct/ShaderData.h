@@ -5,19 +5,23 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_VERSION_H_
-#define _SGCT_VERSION_H_
+#ifndef _SHADER_DATA_H_
+#define _SHADER_DATA_H_
 
-#define SGCT_VERSION_MAJOR    2
-#define SGCT_VERSION_MINOR    0
-#define SGCT_VERSION_REVISION 2
+#include "Shader.h"
+#include "ShaderProgram.h"
 
-#include <stdio.h>
-#include <string>
-
-namespace sgct
+namespace sgct_core
 {
-	std::string getSGCTVersion();
+
+class ShaderData
+{
+public:
+	Shader mShader;
+	std::string mShaderSrc;
+	bool mIsSrcFile;
+};
+
 }
 
 #endif

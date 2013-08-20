@@ -21,12 +21,13 @@ class Shader
 {
 public:
 	/*! Enum for deciding shader type */
-	//enum ShaderType { VERTEX = 0, FRAGMENT};
 	typedef int ShaderType;
 
+	Shader();
 	Shader( ShaderType shaderType );
 	~Shader(void);
 
+	void setShaderType( ShaderType shaderType );
 	bool setSourceFromFile( const std::string & file );
 	bool setSourceFromString( const std::string & srcString );
 

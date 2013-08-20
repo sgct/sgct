@@ -149,14 +149,14 @@ void myDrawFun()
 	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByName("box") );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
 
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
 	//draw the box
 	myBox->draw();
 
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
@@ -184,17 +184,17 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	sgct::ShaderManager::Instance()->addShader( "xform",
+	sgct::ShaderManager::Instance()->addShaderProgram( "xform",
 			"SimpleVertexShader.vertexshader",
 			"SimpleFragmentShader.fragmentshader" );
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
 
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
-	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "Tex" );
+	Matrix_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
 	glUniform1i( Tex_Loc, 0 );
 
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::Instance()->unBindShaderProgram();
 
 	setupPostFXs();
 }

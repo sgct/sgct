@@ -297,7 +297,7 @@ void sgct_core::Statistics::addSyncTime(double t)
 	mAvgSyncTime += (t/static_cast<double>(STATS_AVERAGE_LENGTH));
 }
 
-void sgct_core::Statistics::draw(unsigned int frameNumber)
+void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 {
 	//make sure to only update the VBOs once per frame
 	static unsigned int lastFrameNumber = 0;
@@ -354,7 +354,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 		//glPushMatrix();
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
-		glLineWidth(0.9f); //in os X 1.0f was interpreted as 2. Which is a bit weird..
+		glLineWidth( lineWidth );
 
 		//draw background (1024x1024 canvas)
 		glColor4fv( glm::value_ptr(mStaticColors[ BG ]) );
@@ -393,7 +393,7 @@ void sgct_core::Statistics::draw(unsigned int frameNumber)
 	}
 	else //programmable pipeline
 	{	
-		glLineWidth(0.9f); //in os X 1.0f was interpreted as 2. Which is a bit weird..
+		glLineWidth( lineWidth ); 
 		
 		glm::mat4 orthoMat = glm::ortho( 0.0f, static_cast<float>(STATS_HISTORY_LENGTH)*2.0f,
 			0.0f, static_cast<float>(STATS_HISTORY_LENGTH) );

@@ -977,31 +977,46 @@ void sgct::Engine::renderDisplayInfo()
 	unsigned int lFrameNumber = 0;
 	getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 95,
+	glm::vec4 strokeColor = sgct_text::FontManager::Instance()->getStrokeColor();
+	signed long strokeSize = sgct_text::FontManager::Instance()->getStrokeSize();
+	sgct_text::FontManager::Instance()->SetStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
+	sgct_text::FontManager::Instance()->SetStrokeSize( 1 );
+	
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		75.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Node ip: %s (%s)",
 		mThisNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 80,
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		60.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.0f,1.0f),
 		"Frame rate: %.3f Hz, frame: %u",
 		mStatistics->getAvgFPS(),
 		mFrameCounter);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 65,
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		45.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.0f,0.8f,1.0f),
 		"Avg. draw time: %.2f ms",
 		mStatistics->getAvgDrawTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 50,
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		30.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.0f,0.8f,0.8f,1.0f),
 		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::Instance()->getUserDataSize(),
 		SharedData::Instance()->getCompressionRatio(),
 		mStatistics->getAvgSyncTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 35,
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		15.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Swap groups: %s and %s (%s) | Frame: %d",
 		getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
@@ -1009,7 +1024,9 @@ void sgct::Engine::renderDisplayInfo()
 		getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 20,
+	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Tracked: %s | User position: %.3f %.3f %.3f",
 		getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
@@ -1020,16 +1037,24 @@ void sgct::Engine::renderDisplayInfo()
 	//if active stereoscopic rendering
 	if( mActiveFrustum == Frustum::StereoLeftEye )
 	{
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye: Left");
 	}
 	else if( mActiveFrustum == Frustum::StereoRightEye )
 	{
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ), 100, 110,
+		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
+		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye:          Right");
 	}
+
+	//reset
+	sgct_text::FontManager::Instance()->SetStrokeColor( strokeColor );
+	sgct_text::FontManager::Instance()->SetStrokeSize( strokeSize );
 }
 
 /*!
@@ -1528,6 +1553,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
@@ -1568,6 +1595,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	ShaderProgram::unbind();
 	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	if(mTakeScreenshot)
 	{
@@ -1610,7 +1638,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			getActiveWindowPtr()->getYFramebufferResolution());
 
 		if( mShowGraph )
-			mStatistics->draw(mFrameCounter);
+			mStatistics->draw(mFrameCounter,
+				static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
 		/*
 			The text renderer enters automatically the correct viewport
 		*/
@@ -1798,6 +1827,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	//if for some reson the active texture has been reset
 	glEnable(GL_TEXTURE_CUBE_MAP);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
@@ -1853,6 +1883,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glDisable(GL_TEXTURE_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_CUBE_MAP);
+	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	if(mTakeScreenshot)
 	{
@@ -1896,7 +1927,8 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			getActiveWindowPtr()->getYFramebufferResolution());
 
 		if( mShowGraph )
-			mStatistics->draw(mFrameCounter);
+			mStatistics->draw(mFrameCounter,
+				static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
 		/*
 			The text renderer enters automatically the correct viewport
 		*/
@@ -1964,7 +1996,8 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 			enterCurrentViewport(FBOSpace);
 
 			if( mShowGraph )
-				mStatistics->draw(mFrameCounter);
+				mStatistics->draw(mFrameCounter,
+					static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
 			/*
 				The text renderer enters automatically the correct viewport
 			*/

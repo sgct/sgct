@@ -22,6 +22,9 @@ sgct::SGCTSettings::SGCTSettings()
 	mUseDepthTexture = false;
 	mUseFBO = true;
 
+	mOSDTextOffset[0] = 0.05f;
+	mOSDTextOffset[1] = 0.05f;
+
 	//FXAA parameters
 	mFXAASubPixTrim = 1.0f/8.0f;
 	mFXAASubPixOffset = 1.0f/2.0f;

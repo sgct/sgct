@@ -68,12 +68,11 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {	
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	
+
 	glTranslatef( 0.0f, -0.15f, 2.5f );
 	glRotatef( static_cast<float>( curr_time.getVal() ) * 8.0f, 0.0f, 1.0f, 0.0f );
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
-
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( myTextureHandles[0] ));
 	glEnable(GL_TEXTURE_2D);

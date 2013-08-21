@@ -14,6 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <external/freetype/ftglyph.h>
+#include <external/freetype/ftstroke.h>
 
 #include <algorithm>
 #include <stdio.h>
@@ -39,6 +40,7 @@ const static std::string Font_Frag_Shader = "\
 #version 330 core\n\
 \n\
 uniform vec4 Col;\n\
+uniform vec4 StrokeCol;\n\
 uniform sampler2D Tex;\n\
 \n\
 in vec2 UV;\n\
@@ -47,8 +49,31 @@ out vec4 Color;\n\
 void main()\n\
 {\n\
 	vec2 LuminanceAlpha = texture(Tex, UV.st).rg;\n\
-	Color.rgb = Col.rgb * LuminanceAlpha.r;\n\
-	Color.a = Col.a * LuminanceAlpha.g;\n\
+	vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);\n\
+	Color = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.g);\n\
+};\n";
+
+const static std::string Font_Vert_Shader_Legacy = "\
+#version 120\n\
+\n\
+void main()\n\
+{\n\
+	gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+};\n";
+
+const static std::string Font_Frag_Shader_Legacy = "\
+#version 120\n\
+\n\
+uniform vec4 Col;\n\
+uniform vec4 StrokeCol;\n\
+uniform sampler2D Tex;\n\
+\n\
+void main()\n\
+{\n\
+	vec4 LuminanceAlpha = texture2D(Tex, gl_TexCoord[0].st);\n\
+	vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);\n\
+	gl_FragColor = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.a);\n\
 };\n";
 
 //----------------------------------------------------------------------
@@ -81,6 +106,11 @@ Constructor initiates the freetyp library
 FontManager::FontManager(void)
 {
 	FT_Error error = FT_Init_FreeType( &mFTLibrary );
+	mStrokeSize = 1;
+	mStrokeColor.r = 0.0f;
+	mStrokeColor.g = 0.0f;
+	mStrokeColor.b = 0.0f;
+	mStrokeColor.a = 0.9f;
 
 	if ( error != 0 )
 	{
@@ -108,11 +138,12 @@ FontManager::FontManager(void)
 
 	mMVPLoc = -1;
 	mColLoc = -1;
+	mStkLoc = -1;
 	mTexLoc = -1;
 }
 
 /*!
-Destructor cleans up all font objects
+Destructor cleans up all font objects, textures and shaders
 */
 FontManager::~FontManager(void)
 {
@@ -128,6 +159,8 @@ FontManager::~FontManager(void)
 	{
 		FT_Done_FreeType( mFTLibrary );
 	}
+
+	mShader.deleteProgram();
 }
 
 /*!
@@ -138,6 +171,23 @@ for by default. If not explicitly set the default font path will be the windows 
 void FontManager::SetDefaultFontPath( const std::string & path )
 {
 	mDefaultFontPath = path;
+}
+
+/*!
+Set the stroke (border) size
+@param	size	The stroke size in pixels
+*/
+void FontManager::SetStrokeSize( signed long size )
+{
+	mStrokeSize = size;
+}
+
+/*!
+Set the stroke (border) color
+*/
+void FontManager::SetStrokeColor( glm::vec4 color )
+{
+	mStrokeColor = color;
 }
 
 /*!
@@ -244,6 +294,33 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 	Font newFont = Font();
 	newFont.init( fontName, height );
 
+	static bool shaderCreated = false;
+
+	if( !shaderCreated )
+	{
+		mShader.setName("FontShader");
+		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		{
+			mShader.addShaderSrc( Font_Vert_Shader_Legacy, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.addShaderSrc( Font_Frag_Shader_Legacy, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else
+		{
+			mShader.addShaderSrc( Font_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mShader.addShaderSrc( Font_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		mShader.createAndLinkProgram();
+		mShader.bind();
+
+		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+			mMVPLoc = mShader.getUniformLocation( "MVP" );
+		mColLoc = mShader.getUniformLocation( "Col" );
+		mStkLoc = mShader.getUniformLocation( "StrokeCol" );
+		mTexLoc = mShader.getUniformLocation( "Tex" );
+		mShader.unbind();
+
+		shaderCreated = true;
+	}
 
 	//This is where we actually create each of the fonts display lists.
 	if(sgct::Engine::Instance()->isOGLPipelineFixed() )
@@ -255,26 +332,8 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 				return mFonts.end();
 			}
 	}
-	else if(!sgct::Engine::Instance()->isOGLPipelineFixed())
+	else
 	{
-		static bool shaderCreated = false;
-
-		if( !shaderCreated )
-		{
-			mShader.setName("FontShader");
-			mShader.addShaderSrc( Font_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			mShader.addShaderSrc( Font_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			mShader.createAndLinkProgram();
-			mShader.bind();
-
-			mMVPLoc = mShader.getUniformLocation( "MVP" );
-			mColLoc = mShader.getUniformLocation( "Col" );
-			mTexLoc = mShader.getUniformLocation( "Tex" );
-			mShader.unbind();
-
-			shaderCreated = true;
-		}
-
 		if( !MakeVBO( face, newFont ) )
 		{
 			newFont.clean();
@@ -314,56 +373,82 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 		// Implement error message " char %s"
 		return false;
 	}
-
-
+	
 	//Move the face's glyph into a Glyph object.
-    FT_Glyph glyph;
-    if( FT_Get_Glyph( face->glyph, &glyph ) )
+	FT_Glyph glyph;
+	FT_Glyph strokeGlyph;
+	if( FT_Get_Glyph( face->glyph, &glyph ) || FT_Get_Glyph( face->glyph, &strokeGlyph ) )
 	{
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
 		return false;
 	}
 
+	FT_Stroker  stroker = NULL; 
+	FT_Error error = FT_Stroker_New( mFTLibrary, &stroker ); 
+	if ( !error )
+	{
+		FT_Stroker_Set( stroker, 64 * mStrokeSize, 
+						FT_STROKER_LINECAP_ROUND, 
+						FT_STROKER_LINEJOIN_ROUND, 
+						0 );
+
+		error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 ); 
+	}
+
 	//Convert the glyph to a bitmap.
 	FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );
-    FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
+	FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
+
+	FT_Glyph_To_Bitmap( &strokeGlyph, ft_render_mode_normal, 0, 1 );
+	FT_BitmapGlyph bitmap_strokeGlyph = (FT_BitmapGlyph)strokeGlyph;
 
 	//This reference will make accessing the bitmap easier
 	FT_Bitmap& bitmap = bitmap_glyph->bitmap;
+	FT_Bitmap& strokeBitmap = bitmap_strokeGlyph->bitmap;
 
 	//Use our helper function to get the widths of
 	//the bitmap data that we will need in order to create
 	//our texture.
-	int width = NextP2( bitmap.width );
-	int height = NextP2( bitmap.rows );
+	int width = NextP2( strokeBitmap.width ); //stroke is always larger
+	int height = NextP2( strokeBitmap.rows );
 
 	//Allocate memory for the texture data.
 	GLubyte* expanded_data = new GLubyte[ 2 * width * height];
 
-	//Here we fill in the data for the expanded bitmap.
-	//Notice that we are using two channel bitmap (one for
-	//luminocity and one for alpha), but we assign
-	//both luminocity and alpha to the value that we
-	//find in the FreeType bitmap.
+	//read alpha to one channel and stroke - alpha in the second channel
 	//We use the ?: operator so that value which we use
 	//will be 0 if we are in the padding zone, and whatever
 	//is the the Freetype bitmap otherwise.
+	int k, l;
+	int diff_offset[2];
+	diff_offset[0] = (strokeBitmap.width - bitmap.width) >> 1;
+	diff_offset[1] = (strokeBitmap.rows - bitmap.rows) >> 1;
 	for( int j = 0; j < height; ++j )
 	{
 		for( int i = 0; i < width; ++i )
 		{
-			expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] =
-				(i>=bitmap.width || j>=bitmap.rows) ?
-				0 : bitmap.buffer[i + bitmap.width*j];
+			k = i - diff_offset[0];
+			l = j - diff_offset[1];
+			expanded_data[2*(i+j*width)] =
+				(k>=bitmap.width || l>=bitmap.rows || k < 0 || l < 0 ) ?
+				0 : bitmap.buffer[k + bitmap.width*l];
+
+			unsigned char strokeVal = (i>=strokeBitmap.width || j>=strokeBitmap.rows) ?
+				0 : strokeBitmap.buffer[i + strokeBitmap.width*j];
+
+			//simple union
+			expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ? 
+					expanded_data[2*(i+j*width)] : strokeVal;
 		}
 	}
 
-
 	//Now we just setup some texture paramaters.
-	GLuint textureId = font.getTextures()[ static_cast<size_t>(ch) ];
+	GLuint textureId = font.getTextures()[ch];
 	glBindTexture( GL_TEXTURE_2D, textureId );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 	//Here we actually create the texture itself, notice
 	//that we are using GL_LUMINANCE_ALPHA to indicate that
@@ -391,8 +476,8 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	//(this is only true for characters like 'g' or 'y'.
 	//glTranslatef( 0, (GLfloat)bitmap_glyph->top-bitmap.rows, 0 );
 
-	glm::vec2 offset( static_cast<float>(bitmap_glyph->left),
-			static_cast<float>(bitmap_glyph->top-bitmap.rows));
+	glm::vec2 offset( static_cast<float>(bitmap_strokeGlyph->left),
+		static_cast<float>(bitmap_strokeGlyph->top-bitmap.rows));
 
 	//Now we need to account for the fact that many of
 	//our textures are filled with empty padding space.
@@ -401,8 +486,8 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	//the x and y variables, then when we draw the
 	//quad, we will only reference the parts of the texture
 	//that we contain the character itself.
-	float	x=(float)bitmap.width / (float)width,
-			y=(float)bitmap.rows / (float)height;
+	float	x=(float)strokeBitmap.width / (float)width,
+			y=(float)strokeBitmap.rows / (float)height;
 
 	//Here we draw the texturemaped quads.
 	//The bitmap that we got from FreeType was not
@@ -412,22 +497,24 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 
 	glBegin(GL_QUADS);
 		glTexCoord2f( 0.0f, 0.0f );
-		glVertex3f( offset.x, (GLfloat)bitmap.rows + offset.y, 0.0f );
+		glVertex3f( offset.x, (GLfloat)strokeBitmap.rows + offset.y, 0.0f );
 
 		glTexCoord2f( 0.0f, y );
 		glVertex3f(	offset.x, offset.y, 0.0f );
 
 		glTexCoord2f( x, y );
-		glVertex3f( (GLfloat)bitmap.width + offset.x, offset.y, 0.0f );
+		glVertex3f( (GLfloat)strokeBitmap.width + offset.x, offset.y, 0.0f );
 
 		glTexCoord2f( x, 0.0f );
-		glVertex3f( (GLfloat)bitmap.width + offset.x, (GLfloat)bitmap.rows + offset.y, 0.0f );
+		glVertex3f( (GLfloat)strokeBitmap.width + offset.x, (GLfloat)strokeBitmap.rows + offset.y, 0.0f );
 	glEnd();
 	//glPopMatrix();
 
 	//Finnish the display list
 	glEndList();
 
+	//delete the stroke glyph
+	FT_Done_Glyph( strokeGlyph );
 	// Can't delete them while they are used, delete when font is cleaned
 	font.AddGlyph( glyph );
 	font.setCharWidth( ch, static_cast<float>( face->glyph->advance.x >> 6 ) );
@@ -458,43 +545,69 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 
 		//Move the face's glyph into a Glyph object.
 		FT_Glyph glyph;
-		if( FT_Get_Glyph( face->glyph, &glyph ) )
+		FT_Glyph strokeGlyph;
+		if( FT_Get_Glyph( face->glyph, &glyph ) || FT_Get_Glyph( face->glyph, &strokeGlyph ) )
 		{
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
 			return false;
+		}
+
+		FT_Stroker  stroker = NULL; 
+		FT_Error error = FT_Stroker_New( mFTLibrary, &stroker ); 
+		if ( !error )
+		{
+			FT_Stroker_Set( stroker, 64 * mStrokeSize, 
+							FT_STROKER_LINECAP_ROUND, 
+							FT_STROKER_LINEJOIN_ROUND, 
+							0 );
+
+			error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 ); 
 		}
 
 		//Convert the glyph to a bitmap.
 		FT_Glyph_To_Bitmap( &glyph, ft_render_mode_normal, 0, 1 );
 		FT_BitmapGlyph bitmap_glyph = (FT_BitmapGlyph)glyph;
 
+		FT_Glyph_To_Bitmap( &strokeGlyph, ft_render_mode_normal, 0, 1 );
+		FT_BitmapGlyph bitmap_strokeGlyph = (FT_BitmapGlyph)strokeGlyph;
+
 		//This reference will make accessing the bitmap easier
 		FT_Bitmap& bitmap = bitmap_glyph->bitmap;
+		FT_Bitmap& strokeBitmap = bitmap_strokeGlyph->bitmap;
 
 		//Use our helper function to get the widths of
 		//the bitmap data that we will need in order to create
 		//our texture.
-		int width = NextP2( bitmap.width );
-		int height = NextP2( bitmap.rows );
-
+		int width = NextP2( strokeBitmap.width ); //stroke is always larger
+		int height = NextP2( strokeBitmap.rows );
+		
 		//Allocate memory for the texture data.
 		GLubyte* expanded_data = new GLubyte[ 2 * width * height];
 
-		//Here we fill in the data for the expanded bitmap.
-		//Notice that we are using two channel bitmap (one for
-		//luminocity and one for alpha), but we assign
-		//both luminocity and alpha to the value that we
-		//find in the FreeType bitmap.
+		//read alpha to one channel and stroke - alpha in the second channel
 		//We use the ?: operator so that value which we use
 		//will be 0 if we are in the padding zone, and whatever
 		//is the the Freetype bitmap otherwise.
+		int k, l;
+		int diff_offset[2];
+		diff_offset[0] = (strokeBitmap.width - bitmap.width) >> 1;
+		diff_offset[1] = (strokeBitmap.rows - bitmap.rows) >> 1;
 		for( int j = 0; j < height; ++j )
 		{
 			for( int i = 0; i < width; ++i )
 			{
-				expanded_data[2*(i+j*width)]= expanded_data[2*(i+j*width)+1] =
-					(i>=bitmap.width || j>=bitmap.rows) ?
-					0 : bitmap.buffer[i + bitmap.width*j];
+				k = i - diff_offset[0];
+				l = j - diff_offset[1];
+				expanded_data[2*(i+j*width)] =
+					(k>=bitmap.width || l>=bitmap.rows || k < 0 || l < 0 ) ?
+					0 : bitmap.buffer[k + bitmap.width*l];
+
+				unsigned char strokeVal = (i>=strokeBitmap.width || j>=strokeBitmap.rows) ?
+					0 : strokeBitmap.buffer[i + strokeBitmap.width*j];
+
+				//simple union
+				expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ? 
+					 expanded_data[2*(i+j*width)] : strokeVal;
 			}
 		}
 
@@ -503,6 +616,8 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		glBindTexture( GL_TEXTURE_2D, textureId );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 		//Here we actually create the texture itself, notice
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
@@ -511,8 +626,8 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		//With the texture created, we don't need to expanded data anymore
 		delete[] expanded_data;
 
-		glm::vec2 offset( static_cast<float>(bitmap_glyph->left),
-			static_cast<float>(bitmap_glyph->top-bitmap.rows));
+		glm::vec2 offset( static_cast<float>(bitmap_strokeGlyph->left),
+			static_cast<float>(bitmap_strokeGlyph->top-bitmap.rows));
 
 		//Now we need to account for the fact that many of
 		//our textures are filled with empty padding space.
@@ -521,8 +636,8 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		//the x and y variables, then when we draw the
 		//quad, we will only reference the parts of the texture
 		//that we contain the character itself.
-		float	x=(float)bitmap.width / (float)width,
-				y=(float)bitmap.rows / (float)height;
+		float	x=(float)strokeBitmap.width / (float)width,
+				y=(float)strokeBitmap.rows / (float)height;
 
 		coords.push_back( 0.0f );
 		coords.push_back( y );
@@ -531,18 +646,21 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 
 		coords.push_back( x );
 		coords.push_back( y );
-		coords.push_back( static_cast<float>(bitmap.width) + offset.x );
+		coords.push_back( static_cast<float>(strokeBitmap.width) + offset.x );
 		coords.push_back( offset.y );
 
 		coords.push_back( 0.0f ); //s
 		coords.push_back( 0.0f ); //t
 		coords.push_back( offset.x ); //x
-		coords.push_back( static_cast<float>(bitmap.rows) + offset.y ); //y
+		coords.push_back( static_cast<float>(strokeBitmap.rows) + offset.y ); //y
 
 		coords.push_back( x );
 		coords.push_back( 0.0f );
-		coords.push_back( static_cast<float>(bitmap.width) + offset.x );
-		coords.push_back( static_cast<float>(bitmap.rows) + offset.y );
+		coords.push_back( static_cast<float>(strokeBitmap.width) + offset.x );
+		coords.push_back( static_cast<float>(strokeBitmap.rows) + offset.y );
+
+		//delete the stroke glyph
+		FT_Done_Glyph( strokeGlyph );
 
 		// Can't delete them while they are used, delete when font is cleaned
 		font.AddGlyph( glyph );

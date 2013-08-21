@@ -20,8 +20,8 @@ sgct::TextureManager::TextureManager()
 	setAnisotropicFilterSize(1.0f);
 	setCompression(No_Compression);
 	setAlphaModeForSingleChannelTextures(false);
-	mWarpMode[0] = GL_CLAMP_TO_EDGE;
-	mWarpMode[1] = GL_CLAMP_TO_EDGE;
+	mWarpMode[0] = GL_CLAMP_TO_BORDER;
+	mWarpMode[1] = GL_CLAMP_TO_BORDER;
 
 	mOverWriteMode = true;
 
@@ -115,8 +115,8 @@ void sgct::TextureManager::setCompression(CompressionMode cm)
 
 /*!
 	Set the OpenGL texture warping mode. Can be one of the following:
-	- GL_CLAMP_TO_EDGE (Default)
-	- GL_CLAMP_TO_BORDER
+	- GL_CLAMP_TO_EDGE
+	- GL_CLAMP_TO_BORDER (Default)
 	- GL_MIRRORED_REPEAT
 	- GL_REPEAT
 

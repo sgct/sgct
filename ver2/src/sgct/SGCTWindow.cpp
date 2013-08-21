@@ -843,6 +843,8 @@ void sgct_core::SGCTWindow::createTextures()
 	*/
 	if( mFisheyeMode )
 	{
+		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		
 		GLint MaxCubeMapRes;
 		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
 		if(mCubeMapResolution > MaxCubeMapRes)
@@ -902,6 +904,8 @@ void sgct_core::SGCTWindow::createTextures()
 			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d fisheye swap textures (id: %d & %d) generated for window %d!\n",
 				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ], mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ], mId);
 		}
+
+		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
 	if( sgct::Engine::Instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )

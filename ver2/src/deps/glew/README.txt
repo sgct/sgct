@@ -16,4 +16,3 @@ environment (including wget, perl, and GNU make).  The extension data
 is regenerated from the top level source directory with:
 
         make extensions
- make extensions

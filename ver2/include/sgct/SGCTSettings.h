@@ -62,6 +62,10 @@ public:
 	inline int getNumberOfCaptureThreads() { return mNumberOfCaptureThreads; }
 	//! Get the zlib compression level if png files used for saving screenshots
 	inline int getPNGCompressionLevel() { return mPNGCompressionLevel; }
+	//! The relative On-Screen-Display text x-offset in range [0, 1]
+	inline float getOSDTextXOffset() { return mOSDTextOffset[0]; }
+	//! The relative On-Screen-Display text y-offset in range [0, 1]
+	inline float getOSDTextYOffset() { return mOSDTextOffset[1]; }
 
 	//--------------------------------------------------------------------------//
 	//FXAA functions
@@ -89,6 +93,8 @@ private:
 	int mPNGCompressionLevel;
 	bool mUseDepthTexture;
 	bool mUseFBO;
+
+	float mOSDTextOffset[2];
 
 	//FXAA parameters
 	float mFXAASubPixTrim;

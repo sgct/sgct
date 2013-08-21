@@ -14,6 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "Font.h"
 #include "ShaderProgram.h"
+#include <glm/glm.hpp>
 
 /*! \namespace sgct_text
 \brief simple graphics cluster toolkit text namespace.
@@ -39,10 +40,16 @@ public:
 	const Font * GetDefaultFont( unsigned int height = mDefaultHeight );
 
 	void SetDefaultFontPath( const std::string & path );
+	void SetStrokeSize( signed long size );
+	void SetStrokeColor( glm::vec4 color );
+	inline glm::vec4 getStrokeColor() { return mStrokeColor; }
+	inline signed long getStrokeSize() { return mStrokeSize; }
+
 	sgct::ShaderProgram getShader() { return mShader; }
-	unsigned int getMVPLoc() { return mMVPLoc; }
-	unsigned int getColLoc() { return mColLoc; }
-	unsigned int getTexLoc() { return mTexLoc; }
+	inline unsigned int getMVPLoc() { return mMVPLoc; }
+	inline unsigned int getColLoc() { return mColLoc; }
+	inline unsigned int getStkLoc() { return mStkLoc; }
+	inline unsigned int getTexLoc() { return mTexLoc; }
 
 	static FontManager * Instance()
 	{
@@ -59,8 +66,6 @@ public:
 	{
 		if( mInstance != NULL )
 		{
-			mInstance->mShader.deleteProgram();
-			
 			delete mInstance;
 			mInstance = NULL;
 		}
@@ -86,12 +91,14 @@ private:
 	std::string mDefaultFontPath;			// The default font path from where to look for font files
 
 	FT_Library  mFTLibrary;					// Freetype library
+	FT_Fixed mStrokeSize;
+	glm::vec4 mStrokeColor;
 
 	std::map<std::string, std::string> mFontPaths;	// Holds all predefined font paths for generating font glyphs
 	std::set<Font> mFonts;				// All generated fonts
 
 	sgct::ShaderProgram mShader;
-	int mMVPLoc, mColLoc, mTexLoc;
+	int mMVPLoc, mColLoc, mStkLoc, mTexLoc;
 };
 
 } // sgct

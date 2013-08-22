@@ -1623,34 +1623,19 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		}
 	}
 
-	//draw viewport overlays if any
-	(this->*mInternalDrawOverlaysFn)();
-
-	//draw info & stats
-	//the cubemap viewports are all the same so it makes no sense to render everything several times
-	//therefore just loop one iteration in that case.
-	if( mShowGraph || mShowInfo )
-	{
-		getActiveWindowPtr()->setCurrentViewport(0);
-		
-		glViewport( 0, 0, 
-			getActiveWindowPtr()->getXFramebufferResolution(),
-			getActiveWindowPtr()->getYFramebufferResolution());
-
-		if( mShowGraph )
-			mStatistics->draw(mFrameCounter,
-				static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
-		/*
-			The text renderer enters automatically the correct viewport
-		*/
-		if( mShowInfo )
-			renderDisplayInfo();
-	}
-
-	updateRenderingTargets(ti); //only used if multisampled FBOs
-	
 	if( getActiveWindowPtr()->usePostFX() )
+	{
+		//blit buffers
+		updateRenderingTargets(ti); //only used if multisampled FBOs
+		
 		(this->*mInternalRenderPostFXFn)(ti);
+		render2D();
+	}
+	else
+	{
+		render2D();
+		updateRenderingTargets(ti); //only used if multisampled FBOs
+	}
 
 	glDisable(GL_BLEND);
 }
@@ -1913,35 +1898,21 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		}
 	}
 
-	//draw viewport overlays if any
-	(this->*mInternalDrawOverlaysFn)();
-
-	//draw info & stats
-	//the cubemap viewports are all the same so it makes no sense to render everything several times
-	//therefore just loop one iteration in that case.
-	if( mShowGraph || mShowInfo )
+	if( getActiveWindowPtr()->usePostFX() )
 	{
-		getActiveWindowPtr()->setCurrentViewport(0);
-		glViewport( 0, 0, 
-			getActiveWindowPtr()->getXFramebufferResolution(),
-			getActiveWindowPtr()->getYFramebufferResolution());
-
-		if( mShowGraph )
-			mStatistics->draw(mFrameCounter,
-				static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
-		/*
-			The text renderer enters automatically the correct viewport
-		*/
-		if( mShowInfo )
-			renderDisplayInfo();
+		//blit buffers
+		updateRenderingTargets(ti); //only used if multisampled FBOs
+		
+		(this->*mInternalRenderPostFXFn)(ti);
+		render2D();
+	}
+	else
+	{
+		render2D();
+		updateRenderingTargets(ti); //only used if multisampled FBOs
 	}
 
 	glPopAttrib();
-
-	updateRenderingTargets(ti); //only used if multisampled FBOs
-
-	if( getActiveWindowPtr()->usePostFX() )
-		(this->*mInternalRenderPostFXFn)(ti);
 }
 
 /*
@@ -1982,6 +1953,30 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
+	if( getActiveWindowPtr()->usePostFX() )
+	{
+		//blit buffers
+		updateRenderingTargets(ti); //only used if multisampled FBOs
+		
+		(this->*mInternalRenderPostFXFn)(ti);
+		render2D();
+	}
+	else
+	{
+		render2D();
+		updateRenderingTargets(ti); //only used if multisampled FBOs
+	}
+
+	glDisable(GL_BLEND);
+	if( mFixedOGLPipeline )
+		glPopAttrib();
+}
+
+/*!
+	This function renders stats, OSD and overlays
+*/
+void sgct::Engine::render2D()
+{
 	//draw viewport overlays if any
 	(this->*mInternalDrawOverlaysFn)();
 
@@ -2005,16 +2000,6 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 				renderDisplayInfo();
 		}
 	}
-
-	//blit buffers
-	updateRenderingTargets(ti); //only used if multisampled FBOs
-
-	if( getActiveWindowPtr()->usePostFX() )
-		(this->*mInternalRenderPostFXFn)(ti);
-
-	glDisable(GL_BLEND);
-	if( mFixedOGLPipeline )
-		glPopAttrib();
 }
 
 /*!

@@ -462,7 +462,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	//So now we can create the display list
 	glNewList( font.getListBase() + ch, GL_COMPILE );
 
-	glBindTexture( GL_TEXTURE_2D, textureId );
+	//glBindTexture( GL_TEXTURE_2D, textureId );
 
 	//glPushMatrix();
 
@@ -614,13 +614,11 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		//Now we just setup some texture paramaters.
 		GLuint textureId = font.getTextures()[ch];
 		glBindTexture( GL_TEXTURE_2D, textureId );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 		//Here we actually create the texture itself, notice
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RG8, width, height,
 			  0, GL_RG, GL_UNSIGNED_BYTE, expanded_data );
 
 		//With the texture created, we don't need to expanded data anymore

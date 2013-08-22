@@ -15,13 +15,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define FILENAME_APPEND_BUFFER_LENGTH 256
 
 void screenCaptureHandler(void *arg);
-tthread::mutex gMutex;
 
 sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 { 
 	mRunning = false;
 	mframeBufferImagePtr = NULL;
 	mFrameCaptureThreadPtr = NULL;
+	mMutexPtr = NULL;
 }
 
 sgct_core::ScreenCapture::ScreenCapture()
@@ -38,24 +38,24 @@ sgct_core::ScreenCapture::ScreenCapture()
 
 sgct_core::ScreenCapture::~ScreenCapture()
 {
-	tthread::lock_guard<tthread::mutex> lock(gMutex);
+	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
 	
 	if( mSCTIPtrs != NULL )
 	{
 		for(unsigned int i=0; i<mNumberOfThreads; i++)
 		{
+			//kill threads that are still running
+			if( mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL )
+			{
+				mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
+				delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
+				mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
+			}
+			
+			tthread::lock_guard<tthread::mutex> lock(mMutex);
 			if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 			{
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffer %d...\n", i);
-
-				//kill threads that are still running
-				if( mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL )
-				{
-					mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
-					delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
-					mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
-				}
-		
+				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tBuffer %d...\n", i);
 				delete mSCTIPtrs[i].mframeBufferImagePtr;
 				mSCTIPtrs[i].mframeBufferImagePtr = NULL;
 			}
@@ -96,7 +96,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	mChannels = channels;
 	mDataSize = mX * mY * mChannels;
 
-	tthread::lock_guard<tthread::mutex> lock(gMutex);
+	tthread::lock_guard<tthread::mutex> lock(mMutex);
 	for(unsigned int i=0; i<mNumberOfThreads; i++)
 	{
 		if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
@@ -173,6 +173,8 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
 		return;
 	}
+	else
+		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", threadIndex);
 	
 	Image ** imPtr = &mSCTIPtrs[ threadIndex ].mframeBufferImagePtr;
 	if( (*imPtr) == NULL )
@@ -295,6 +297,8 @@ void sgct_core::ScreenCapture::setUsePBO(bool state)
 void sgct_core::ScreenCapture::init(std::size_t windowIndex)
 {
 	mSCTIPtrs = new ScreenCaptureThreadInfo[mNumberOfThreads];
+	for( unsigned int i=0; i<mNumberOfThreads; i++ )
+		mSCTIPtrs[i].mMutexPtr = &mMutex;
 	mWindowIndex = windowIndex;
 
 	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
@@ -369,21 +373,27 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
 	while( true )
 	{
 		for(unsigned int i=0; i<mNumberOfThreads; i++)
-		{
-			tthread::lock_guard<tthread::mutex> lock(gMutex);
-			
+		{	
 			//check if thread is dead
 			if( mSCTIPtrs[i].mFrameCaptureThreadPtr == NULL )
 			{
 				return i;
 			}
-			else if( !mSCTIPtrs[i].mRunning && mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL)
+			else
 			{
-				mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
-				delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
-				mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
+				bool running;
+				mMutex.lock();
+					running = mSCTIPtrs[i].mRunning;
+				mMutex.unlock();
 
-				return i;
+				if( !running )
+				{
+					mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
+					delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
+					mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
+
+					return i;
+				}
 			}
 		}
 
@@ -403,6 +413,6 @@ void screenCaptureHandler(void *arg)
 		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to save '%s'!\n", ptr->mframeBufferImagePtr->getFilename());
 	}
 
-	tthread::lock_guard<tthread::mutex> lock(gMutex);
+	tthread::lock_guard<tthread::mutex> lock( *(ptr->mMutexPtr) );
 	ptr->mRunning = false;
 }

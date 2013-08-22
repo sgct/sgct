@@ -19,10 +19,10 @@ class ScreenCaptureThreadInfo
 {
 public:
 	ScreenCaptureThreadInfo();
-
 	sgct_core::Image * mframeBufferImagePtr;
 	tthread::thread * mFrameCaptureThreadPtr;
-	bool mRunning;
+	tthread::mutex * mMutexPtr;
+	bool mRunning; //needed for test if running without join
 };
 
 /*!
@@ -51,6 +51,7 @@ private:
 	void addFrameNumberToFilename( int frameNumber, CaptureMode cm = FBO_Texture );
 	int getAvailibleCaptureThread(); 
 
+	tthread::mutex mMutex;
 	ScreenCaptureThreadInfo * mSCTIPtrs;
 
 	unsigned int mNumberOfThreads;

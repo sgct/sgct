@@ -323,6 +323,7 @@ private:
 	void renderPostFX(TextureIndexes ti );
 	void renderFisheye(TextureIndexes ti);
 	void renderViewports(TextureIndexes ti);
+	void render2D();
 
 	void drawFixedPipeline();
 	void drawOverlaysFixedPipeline();

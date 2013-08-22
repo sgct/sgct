@@ -37,6 +37,7 @@ public:
 
 public:
 	SGCTWindow();
+	void setName(const std::string & name);
 	void close();
 	void init(int id);
 	void initOGL();
@@ -72,7 +73,10 @@ public:
 	void captureBuffer();
 	OffScreenBuffer * getFBOPtr();
 	void getFBODimensions( int & width, int & height );
-
+	/*!
+		\returns the name of this window if set
+	*/
+	inline std::string getName() { return mName; }
 	/*!
 		\returns if the window is visible or not	
 	*/
@@ -246,6 +250,8 @@ public:
 	sgct_core::OffScreenBuffer * mCubeMapFBO_Ptr;
 
 private:
+	std::string mName;
+
 	bool mVisible;
 	bool mUseFixResolution;
 	bool mUseSwapGroups;

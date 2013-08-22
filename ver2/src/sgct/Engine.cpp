@@ -1501,7 +1501,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				mClearBufferFn();
 
 				glDisable( GL_CULL_FACE );
-				glEnable( GL_BLEND );
+				getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 				glEnable( GL_DEPTH_TEST );
 				glDepthFunc( GL_ALWAYS );
@@ -1567,7 +1567,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if( !statesSet )
 	{
 		glDisable( GL_CULL_FACE );
-		glEnable( GL_BLEND );
+		getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_ALWAYS );
@@ -1622,6 +1622,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
 		}
 	}
+
+	if( !getActiveWindowPtr()->useFisheyeAlpha() )
+		glEnable(GL_BLEND);
 
 	if( getActiveWindowPtr()->usePostFX() )
 	{
@@ -1737,7 +1740,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 				glDisable( GL_CULL_FACE );
-				glEnable( GL_BLEND );
+				getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 				glEnable( GL_DEPTH_TEST );
 				glDepthFunc( GL_ALWAYS );
@@ -1818,7 +1821,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
 
 	glDisable(GL_CULL_FACE);
-	glEnable(GL_BLEND);
+	getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glDisable(GL_LIGHTING);
 	glEnable( GL_DEPTH_TEST );
@@ -1897,6 +1900,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
 		}
 	}
+
+	if( !getActiveWindowPtr()->useFisheyeAlpha() )
+		glEnable(GL_BLEND);
 
 	if( getActiveWindowPtr()->usePostFX() )
 	{
@@ -2355,7 +2361,7 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 
 /*!
 	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
-	Avoid this function in the render loop for release code since it can reduse performance.
+	Avoid this function in the render loop for release code since it can reduce performance.
 
 	Returns true if no errors occured
 */

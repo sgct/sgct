@@ -145,7 +145,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
-	gEngine->takeScreenshot();
+	
 	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();

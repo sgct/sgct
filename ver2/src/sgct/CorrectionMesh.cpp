@@ -379,7 +379,7 @@ void sgct_core::CorrectionMesh::cleanUp()
 
 void sgct_core::CorrectionMesh::render()
 {
-	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO_INDEX )
+	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO )
 	{
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);

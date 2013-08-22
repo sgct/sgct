@@ -64,7 +64,7 @@ sgct_core::Statistics::Statistics()
 	mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.4f,0.4f,1.0f,0.8f );
 	mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.0f,0.0f,0.8f,0.8f );
 
-	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.3f );
+	mStaticColors[ GRID ]	= glm::vec4( 1.0f,1.0f,1.0f,0.2f );
 	mStaticColors[ FREQ ]	= glm::vec4( 1.0f,0.0f,0.0f,1.0f );
 	mStaticColors[ BG ]		= glm::vec4( 0.0f,0.0f,0.0f,0.5f );
 

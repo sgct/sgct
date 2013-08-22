@@ -51,7 +51,7 @@ public:
 	/*!
 		Different modes for warping/edge blending meshes 
 	*/
-	enum MeshImplementation { VBO_INDEX=0, DISPLAY_LIST, VAO };
+	enum MeshImplementation { VBO=0, DISPLAY_LIST, VAO };
 
 	void addNode(SGCTNode node);
 

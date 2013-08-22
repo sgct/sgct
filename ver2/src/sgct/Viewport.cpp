@@ -22,6 +22,9 @@ sgct_core::Viewport::Viewport()
 	}
 }
 
+/*!
+	Create a viewport coordinates are relative to the window size [0, 1]
+*/
 sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
 {
 	set(x, y, xSize, ySize);
@@ -32,6 +35,14 @@ sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
 		mProjectionMatrix[i]		= glm::mat4(1.0f);
 		mViewProjectionMatrix[i]	= glm::mat4(1.0f);
 	}
+}
+
+/*!
+	Name this viewport
+*/
+void sgct_core::Viewport::setName(const std::string & name)
+{
+	mName = name;
 }
 
 void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)

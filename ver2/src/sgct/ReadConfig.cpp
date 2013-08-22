@@ -262,6 +262,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					SGCTWindow tmpWin;
 					
+					if( element[1]->Attribute("name") != NULL )
+						tmpWin.setName( element[1]->Attribute("name") );
+
 					if( element[1]->Attribute("fullscreen") != NULL )
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 );
 
@@ -332,6 +335,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if(strcmp("Viewport", val[2]) == 0)
 						{
 							Viewport tmpVp;
+
+							if( element[2]->Attribute("name") != NULL )
+								tmpVp.setName( element[2]->Attribute("name") );
 
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpVp.setOverlayTexture( element[2]->Attribute("overlay") );

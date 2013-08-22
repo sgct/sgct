@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _VIEWPORT_H
 
 #include <glm/glm.hpp>
+#include <string>
 #include "Frustum.h"
 #include "CorrectionMesh.h"
 #include <stddef.h> //get definition for NULL
@@ -27,6 +28,7 @@ public:
 	Viewport();
 	Viewport(double x, double y, double xSize, double ySize);
 
+	void setName(const std::string & name);
 	void set(double x, double y, double xSize, double ySize);
 	void setPos(double x, double y);
 	void setSize(double x, double y);
@@ -42,6 +44,10 @@ public:
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void renderMesh();
 
+	/*!
+		\returns the name of this viewport
+	*/
+	inline std::string getName() { return mName; }
 	/*!
 		\returns the normalized x viewport coordinate
 	*/
@@ -71,6 +77,7 @@ private:
 	glm::mat4 mViewMatrix[3];
 	glm::mat4 mViewProjectionMatrix[3];
 	glm::mat4 mProjectionMatrix[3];
+	std::string mName;
 
 	double mX;
 	double mY;

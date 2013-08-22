@@ -137,6 +137,14 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mCurrentViewportIndex = 0;
 }
 
+/*!
+Name this window
+*/
+void sgct_core::SGCTWindow::setName(const std::string & name)
+{
+	mName = name;
+}
+
 void sgct_core::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
@@ -1517,6 +1525,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	for(unsigned int i=0; i<6; i++)
 	{
 		Viewport tmpVP;
+		tmpVP.setName("Fisheye");
 		
 		glm::mat4 rotMat(1.0f);
 

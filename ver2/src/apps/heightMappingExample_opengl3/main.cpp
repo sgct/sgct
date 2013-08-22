@@ -75,8 +75,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
-	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
+	sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
+	sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
 
 	// Main loop
 	gEngine->render();
@@ -107,10 +107,10 @@ void myDrawFun()
 	glm::mat3 NM		= glm::inverseTranspose( glm::mat3( MV ) );
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( myTextureHandles[0] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[0] ));
 	
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle( myTextureHandles[1] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[1] ));
 	
 	mSp.bind();
 
@@ -128,7 +128,7 @@ void myDrawFun()
 	//unbind
 	glBindVertexArray(0);
 
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()
@@ -144,7 +144,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setWireframe(wireframe.getVal());
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
-	sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
+	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 	
 	if( takeScreenshot.getVal() )
 	{
@@ -161,11 +161,11 @@ void myInitOGLFun()
 	glDepthFunc(GL_LESS);
 
 	//setup textures
-	sgct::TextureManager::Instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
-	sgct::TextureManager::Instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
 
 	//setup shader
-	sgct::ShaderManager::Instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );
+	sgct::ShaderManager::instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );
 
 	mSp.bind();
 	myTextureLocations[0]	= mSp.getUniformLocation( "hTex" );
@@ -185,7 +185,7 @@ void myInitOGLFun()
 	glUniform4f( lightAmb_Loc, lightAmbient.r, lightAmbient.g, lightAmbient.b, lightAmbient.a );
 	glUniform4f( lightDif_Loc, lightDiffuse.r, lightDiffuse.g, lightDiffuse.b, lightDiffuse.a );
 	glUniform4f( lightSpe_Loc, lightSpecular.r, lightSpecular.g, lightSpecular.b, lightSpecular.a );
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	//generate mesh
 	generateTerrainGrid( 1.0f, 1.0f, 256, 256 );
@@ -228,26 +228,28 @@ void myInitOGLFun()
 	//cleanup
 	mVertPos.clear();
 	mTexCoord.clear();
+
+	gEngine->setClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
-	sgct::SharedData::Instance()->writeBool( &wireframe );
-	sgct::SharedData::Instance()->writeBool( &info );
-	sgct::SharedData::Instance()->writeBool( &stats );
-	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( &useTracking );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeBool( &wireframe );
+	sgct::SharedData::instance()->writeBool( &info );
+	sgct::SharedData::instance()->writeBool( &stats );
+	sgct::SharedData::instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::instance()->writeBool( &useTracking );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
-	sgct::SharedData::Instance()->readBool( &wireframe );
-	sgct::SharedData::Instance()->readBool( &info );
-	sgct::SharedData::Instance()->readBool( &stats );
-	sgct::SharedData::Instance()->readBool( &takeScreenshot );
-	sgct::SharedData::Instance()->readBool( &useTracking );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readBool( &wireframe );
+	sgct::SharedData::instance()->readBool( &info );
+	sgct::SharedData::instance()->readBool( &stats );
+	sgct::SharedData::instance()->readBool( &takeScreenshot );
+	sgct::SharedData::instance()->readBool( &useTracking );
 }
 
 /*!
@@ -339,7 +341,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 			{
 				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
-				sgct_core::ClusterManager::Instance()->getUserPtr()->setTransform(xform);
+				sgct_core::ClusterManager::instance()->getUserPtr()->setTransform(xform);
 			}
 			break;
 

@@ -25,7 +25,7 @@ public:
 	enum MutexIndexes { MainMutex = 0, SyncMutex, SharedDataMutex, TrackingMutex };
 
 	/*! Get the SGCTSettings instance */
-	static SGCTMutexManager * Instance()
+	static SGCTMutexManager * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -36,7 +36,7 @@ public:
 	}
 
 	/*! Destroy the SGCTSettings instance */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

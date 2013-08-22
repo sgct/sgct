@@ -95,7 +95,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 {
 	mServer = _isServer;
 	mConnectionType = connectionType;
-	mBufferSize = static_cast<int>(sgct::SharedData::Instance()->getBufferSize());
+	mBufferSize = static_cast<int>(sgct::SharedData::instance()->getBufferSize());
 	mId = id;
 	mFirmSync = firmSync;
 
@@ -170,7 +170,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 		// Connect to server.
 		while( true )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server...\n");
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server...\n");
 
 			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 			if (mSocket == INVALID_SOCKET)
@@ -227,7 +227,7 @@ void connectionHandler(void *arg)
 		nPtr->mCommThread = new tthread::thread( communicationHandler, nPtr );
 	}
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection handler for connection %d... \n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection handler for connection %d... \n", nPtr->getId());
 }
 
 void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
@@ -244,7 +244,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 		sizeof(int));    /* length of option value */
 
         if( iResult != NO_ERROR )
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
 
 		//set timeout
 		int timeout = 0; //infinite
@@ -257,14 +257,14 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 
 		iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
         if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set reuse address with error: %d\n!", errno);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set reuse address with error: %d\n!", errno);
 
 		//set only on external control, cluster nodes sends data several times per second so there is no need so send alive packages
 		if( getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection )
 		{
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set keep alive with error: %d\n!", errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set keep alive with error: %d\n!", errno);
 		}
 
 		/*
@@ -276,10 +276,10 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 			int bufferSize = SGCT_SOCKET_BUFFER_SIZE;
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, errno);
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_SNDBUF, (char*)&bufferSize, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, errno);
 		}
 	}
 }
@@ -347,20 +347,20 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 void sgct_core::SGCTNetwork::pushClientMessage()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::pushClientMessage\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::pushClientMessage\n");
 #endif
 
 	//The servers' render function is locked until a message starting with the ack-byte is received.
 	int currentFrame = iterateFrameCounter();
 	unsigned char *p = (unsigned char *)&currentFrame;
 
-    if(sgct::MessageHandler::Instance()->getDataSize() > mHeaderSize)
+    if(sgct::MessageHandler::instance()->getDataSize() > mHeaderSize)
     {
-        sgct::SGCTMutexManager::Instance()->lockMutex(sgct::SGCTMutexManager::MainMutex);
+        sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::MainMutex);
 		
 		//Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
-		char * messageToSend = sgct::MessageHandler::Instance()->getMessage();
+		char * messageToSend = sgct::MessageHandler::instance()->getMessage();
 		messageToSend[0] = SGCTNetwork::SyncByte;
 		messageToSend[1] = p[0];
 		messageToSend[2] = p[1];
@@ -368,9 +368,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[4] = p[3];
 
 		std::size_t currentMessageSize =
-			sgct::MessageHandler::Instance()->getDataSize() > static_cast<size_t>(mBufferSize) ?
+			sgct::MessageHandler::instance()->getDataSize() > static_cast<size_t>(mBufferSize) ?
 			static_cast<size_t>(mBufferSize) :
-			sgct::MessageHandler::Instance()->getDataSize();
+			sgct::MessageHandler::instance()->getDataSize();
 
         std::size_t dataSize = currentMessageSize - mHeaderSize;
 		unsigned char *currentMessageSizePtr = (unsigned char *)&dataSize;
@@ -382,9 +382,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		//crop if needed
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 		
-		sgct::SGCTMutexManager::Instance()->unlockMutex(sgct::SGCTMutexManager::MainMutex);
+		sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::MainMutex);
 
-		sgct::MessageHandler::Instance()->clearBuffer(); //clear the buffer
+		sgct::MessageHandler::instance()->clearBuffer(); //clear the buffer
     }
 	else
 	{
@@ -409,7 +409,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getSendFrame\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getSendFrame\n");
 #endif
 	int tmpi;
 	mConnectionMutex.lock();
@@ -421,7 +421,7 @@ int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getRecvFrame\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getRecvFrame\n");
 #endif
 	int tmpi;
 	mConnectionMutex.lock();
@@ -436,7 +436,7 @@ int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 double sgct_core::SGCTNetwork::getLoopTime()
 {
 	#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getLoopTime\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getLoopTime\n");
 #endif
 	double tmpd;
 	mConnectionMutex.lock();
@@ -457,7 +457,7 @@ When the server recieves a frame sync number equal to the send frame number it s
 bool sgct_core::SGCTNetwork::isUpdated()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isUpdated\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isUpdated\n");
 #endif
 	bool tmpb = false;
 	mConnectionMutex.lock();
@@ -502,7 +502,7 @@ void sgct_core::SGCTNetwork::setConnectedFunction(sgct_cppxeleven::function<void
 void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
 #endif
 	mConnectionMutex.lock();
 		mConnected = state;
@@ -512,7 +512,7 @@ void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 bool sgct_core::SGCTNetwork::isConnected()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isConnected\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isConnected\n");
 #endif
 	bool tmpb;
 	mConnectionMutex.lock();
@@ -524,7 +524,7 @@ bool sgct_core::SGCTNetwork::isConnected()
 sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnection()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getTypeOfServer\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getTypeOfServer\n");
 #endif
 	ConnectionTypes tmpct;
 	mConnectionMutex.lock();
@@ -536,7 +536,7 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnect
 int sgct_core::SGCTNetwork::getId()
 {
 #ifdef __SGCT_NETWORK_DEBUG__    
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
 #endif
 	int tmpi;
 	mConnectionMutex.lock();
@@ -548,7 +548,7 @@ int sgct_core::SGCTNetwork::getId()
 bool sgct_core::SGCTNetwork::isServer()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isServer\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isServer\n");
 #endif
 	bool tmpb;
 	mConnectionMutex.lock();
@@ -560,7 +560,7 @@ bool sgct_core::SGCTNetwork::isServer()
 bool sgct_core::SGCTNetwork::isTerminated()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isTerminated\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isTerminated\n");
 #endif
     bool tmpb;
 	mConnectionMutex.lock();
@@ -572,7 +572,7 @@ bool sgct_core::SGCTNetwork::isTerminated()
 void sgct_core::SGCTNetwork::setRecvFrame(int i)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setRecvFrame\n");
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setRecvFrame\n");
 #endif
 	mConnectionMutex.lock();
 	mRecvFrame[Previous] = mRecvFrame[Current];
@@ -592,10 +592,10 @@ ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer
     {
         ssize_t tmpRes = recv( lsocket, buffer + iResult, length - iResult, flags);
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Received %d bytes of %d...\n", tmpRes, length);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Received %d bytes of %d...\n", tmpRes, length);
         for(int i=0; i<tmpRes; i++)
-            sgct::MessageHandler::Instance()->print("%u\t", buffer[i]);
-        sgct::MessageHandler::Instance()->print("\n");
+            sgct::MessageHandler::instance()->print("%u\t", buffer[i]);
+        sgct::MessageHandler::instance()->print("\n");
 #endif
 
         if( tmpRes > 0 )
@@ -606,7 +606,7 @@ ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer
         else if( errno == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
 #endif
         {
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
             //iResult = 0;
             attempts++;
         }
@@ -667,7 +667,7 @@ void communicationHandler(void *arg)
 	//listen for client if server
 	if( nPtr->isServer() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Waiting for client to connect to connection %d...\n", nPtr->getId());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Waiting for client to connect to connection %d...\n", nPtr->getId());
 
         nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 
@@ -679,14 +679,14 @@ void communicationHandler(void *arg)
         while( !nPtr->isTerminated() && nPtr->mSocket == INVALID_SOCKET && accErr == EINTR)
 #endif
 		{
-		    sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-accept after interrupted system on connection %d...\n", nPtr->getId());
+		    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-accept after interrupted system on connection %d...\n", nPtr->getId());
 
 		    nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 		}
 
 		if (nPtr->mSocket == INVALID_SOCKET)
 		{
-            sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", nPtr->getId(), accErr);
+            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", nPtr->getId(), accErr);
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 			if(nPtr->mUpdateCallbackFn != nullptr)
 #else
@@ -698,7 +698,7 @@ void communicationHandler(void *arg)
 	}
 
 	nPtr->setConnectedStatus(true);
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", nPtr->getId());
 
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 	if(nPtr->mUpdateCallbackFn != nullptr)
@@ -723,7 +723,7 @@ void communicationHandler(void *arg)
 		//resize buffer request
 		if( nPtr->mRequestedSize > nPtr->mBufferSize )
 		{
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
 
             nPtr->mConnectionMutex.lock();
 				nPtr->mBufferSize = nPtr->mRequestedSize;
@@ -741,14 +741,14 @@ void communicationHandler(void *arg)
 			nPtr->mConnectionMutex.unlock();
 
 			if(allocError)
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: Buffer failed to resize!\n");
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: Buffer failed to resize!\n");
 			else
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Buffer resized successfully!\n");
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Buffer resized successfully!\n");
 
-            sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 		}
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::Instance()->printDebug("Receiving message header...\n");
+        sgct::MessageHandler::instance()->printDebug("Receiving message header...\n");
 #endif
         /*
             Get & parse the message header if not external control
@@ -766,7 +766,7 @@ void communicationHandler(void *arg)
         }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Header: %u | %u %u %u %u | %u %u %u %u\n",
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Header: %u | %u %u %u %u | %u %u %u %u\n",
                                                 recvHeader[0],
                                                 recvHeader[1],
                                                 recvHeader[2],
@@ -782,7 +782,7 @@ void communicationHandler(void *arg)
         {
             packageId = recvHeader[0];
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package id=%d...\n", packageId);
+            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package id=%d...\n", packageId);
 #endif
             if( packageId == sgct_core::SGCTNetwork::SyncByte )
             {
@@ -812,7 +812,7 @@ void communicationHandler(void *arg)
         }
 
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", dataSize);
+        sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", dataSize);
 #endif
         /*
             Get the data/message
@@ -824,7 +824,7 @@ void communicationHandler(void *arg)
                                         dataSize,
                                         0);
 #ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
+			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
 #endif
 		}
 
@@ -852,7 +852,7 @@ void communicationHandler(void *arg)
                                         nPtr->mBufferSize,
                                         0);
 
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
 				attempts++;
 			}
 		}
@@ -881,7 +881,7 @@ void communicationHandler(void *arg)
                     nPtr->mTerminate = true;
                 }
 
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Client %d terminated connection.\n", nPtr->getId());
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Client %d terminated connection.\n", nPtr->getId());
 
                 break; //exit loop
             }
@@ -898,11 +898,11 @@ void communicationHandler(void *arg)
 					nPtr->setRecvFrame( syncFrameNumber );
 					if( syncFrameNumber < 0 )
 					{
-						sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
 					}
 
 #ifdef __SGCT_NETWORK_DEBUG__
-                    sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
+                    sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
 #endif
 					//decode callback
                     if(dataSize > 0)
@@ -915,7 +915,7 @@ void communicationHandler(void *arg)
 
 					sgct_core::NetworkManager::gCond.notify_all();
 #ifdef __SGCT_NETWORK_DEBUG__
-                    sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+                    sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 				}
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
@@ -927,19 +927,19 @@ void communicationHandler(void *arg)
 #endif
 				{
 #ifdef __SGCT_NETWORK_DEBUG__                    
-					sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
+					sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
 #endif
 					(nPtr->mConnectedCallbackFn)();
 					sgct_core::NetworkManager::gCond.notify_all();
 #ifdef __SGCT_NETWORK_DEBUG__
-                    sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+                    sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 				}
 			}
 			else if(nPtr->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection)
 			{
 #ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP data... ");
+				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP data... ");
 #endif
 				std::string tmpStr(recvBuf);
 				extBuffer += tmpStr.substr(0, iResult);
@@ -997,7 +997,7 @@ void communicationHandler(void *arg)
 					//extracted message
 					//fprintf(stderr, "Extracted: '%s'\n", extMessage.c_str());
 
-					sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 						extBuffer = extBuffer.substr(found+2);//jump over \r\n
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 						if( nPtr->mDecoderCallbackFn != nullptr )
@@ -1007,47 +1007,47 @@ void communicationHandler(void *arg)
 						{
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
 						}
-					sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
 					//reply
 					nPtr->sendStr("OK\r\n");
                     found = extBuffer.find("\r\n");
 				}
 #ifdef __SGCT_NETWORK_DEBUG__
-                sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+                sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 			}
 		}
 		else if (iResult == 0)
 		{
 #ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Setting connection status to false... ");
+			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Setting connection status to false... ");
 #endif
 			nPtr->setConnectedStatus(false);
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
 #ifdef __WIN32__
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), WSAGetLastError());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), WSAGetLastError());
 #else
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), errno);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), errno);
 #endif
 		}
 		else
 		{
 #ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Setting connection status to false... ");
+			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Setting connection status to false... ");
 #endif
 			nPtr->setConnectedStatus(false);
 #ifdef __SGCT_NETWORK_DEBUG__
-            sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
+            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
 #ifdef __WIN32__
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
 #else
-            sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
 #endif
 		}
 
@@ -1075,7 +1075,7 @@ void communicationHandler(void *arg)
 #endif
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", nPtr->getId());
 }
 
 void sgct_core::SGCTNetwork::sendData(void * data, int length)
@@ -1089,22 +1089,22 @@ void sgct_core::SGCTNetwork::sendData(void * data, int length)
 
 	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(data), length, 0 );
 	if (sendErr == SOCKET_ERROR)
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Send data failed!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Send data failed!\n");
 }
 
 void sgct_core::SGCTNetwork::sendStr(std::string msg)
 {
 	ssize_t sendErr = send( mSocket, reinterpret_cast<const char *>(msg.c_str()), static_cast<int>(msg.size()), 0 );
 	if (sendErr == SOCKET_ERROR)
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Send data failed!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Send data failed!\n");
 }
 
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 {
     //release conditions
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 	NetworkManager::gCond.notify_all();
-	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
 	mConnectionMutex.lock();
 	mStartConnectionCond.notify_all();
@@ -1128,7 +1128,7 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 		mMainThread = NULL;
     }
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d successfully terminated.\n", mId);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d successfully terminated.\n", mId);
 }
 
 void sgct_core::SGCTNetwork::initShutdown()
@@ -1148,7 +1148,7 @@ void sgct_core::SGCTNetwork::initShutdown()
         sendData(gameOver, mHeaderSize);
 	}
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d... \n", getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d... \n", getId());
 	mConnectionMutex.lock();
         mTerminate = true;
 #if (_MSC_VER >= 1700) //visual studio 2012 or later

@@ -103,7 +103,7 @@ void sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
 	const glm::dmat4 & preTransform =
-        sgct_core::ClusterManager::Instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
+        sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
 
     //swap
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
@@ -173,9 +173,9 @@ int sgct::SGCTTrackingDevice::getSensorId()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sensor...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mSensorId;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpVal;
 }
 
@@ -185,9 +185,9 @@ bool sgct::SGCTTrackingDevice::getButton(size_t index, DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get button...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = index < mNumberOfButtons ? mButtons[index + mNumberOfButtons * i] : false;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpVal;
 }
 
@@ -197,9 +197,9 @@ double sgct::SGCTTrackingDevice::getAnalog(size_t index, DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get analog array...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = index < mNumberOfAxes ? mAxes[index + mNumberOfAxes * i] : false;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpVal;
 }
 
@@ -209,12 +209,12 @@ glm::dvec3 sgct::SGCTTrackingDevice::getPosition(DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get position...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		glm::dmat4 & matRef = mWorldTransform[i];
 		tmpVal[0] = matRef[3][0];
 		tmpVal[1] = matRef[3][1];
 		tmpVal[2] = matRef[3][2];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpVal;
 }
 
@@ -224,9 +224,9 @@ glm::dvec3 sgct::SGCTTrackingDevice::getEulerAngles(DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get euler angles");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = glm::eulerAngles( glm::quat_cast(mWorldTransform[i]) );
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpVal;
 }
 
@@ -236,9 +236,9 @@ glm::dmat4 sgct::SGCTTrackingDevice::getTransformMat(DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get transform matrix...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpMat = mWorldTransform[i];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 	return tmpMat;
 }
 
@@ -248,9 +248,9 @@ bool sgct::SGCTTrackingDevice::isEnabled()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Is device enabled...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mEnabled;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
     return tmpVal;
 }
@@ -282,9 +282,9 @@ double sgct::SGCTTrackingDevice::getTrackerTimeStamp(DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get device tracker time stamp...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mTrackerTime[i];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -295,9 +295,9 @@ double sgct::SGCTTrackingDevice::getAnalogTimeStamp(DataLoc i)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get device analog time stamp...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mAnalogTime[i];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -309,9 +309,9 @@ double sgct::SGCTTrackingDevice::getButtonTimeStamp(size_t index, DataLoc i)
     fprintf(stderr, "Get device button time stamp...\n");
 #endif
 
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mButtonTime[index + mNumberOfButtons * i];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -323,9 +323,9 @@ double sgct::SGCTTrackingDevice::getTrackerDeltaTime()
     fprintf(stderr, "Get device tracker delta time...\n");
 #endif
 
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mTrackerTime[0] - mTrackerTime[1];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -337,9 +337,9 @@ double sgct::SGCTTrackingDevice::getAnalogDeltaTime()
     fprintf(stderr, "Get device analog delta time...\n");
 #endif
 
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mAnalogTime[0] - mAnalogTime[1];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -351,9 +351,9 @@ double sgct::SGCTTrackingDevice::getButtonDeltaTime(size_t index)
     fprintf(stderr, "Get device button delta time...\n");
 #endif
 
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mButtonTime[index] - mButtonTime[index + mNumberOfButtons];
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }

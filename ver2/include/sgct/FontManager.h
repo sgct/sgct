@@ -35,13 +35,13 @@ public:
 
 	~FontManager(void);
 
-	bool AddFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
-	const Font * GetFont( const std::string & name, unsigned int height = mDefaultHeight );
-	const Font * GetDefaultFont( unsigned int height = mDefaultHeight );
+	bool addFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
+	const Font * getFont( const std::string & name, unsigned int height = mDefaultHeight );
+	const Font * getDefaultFont( unsigned int height = mDefaultHeight );
 
-	void SetDefaultFontPath( const std::string & path );
-	void SetStrokeSize( signed long size );
-	void SetStrokeColor( glm::vec4 color );
+	void setDefaultFontPath( const std::string & path );
+	void setStrokeSize( signed long size );
+	void setStrokeColor( glm::vec4 color );
 	inline glm::vec4 getStrokeColor() { return mStrokeColor; }
 	inline signed long getStrokeSize() { return mStrokeSize; }
 
@@ -51,7 +51,7 @@ public:
 	inline unsigned int getStkLoc() { return mStkLoc; }
 	inline unsigned int getTexLoc() { return mTexLoc; }
 
-	static FontManager * Instance()
+	static FontManager * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -62,7 +62,7 @@ public:
 	}
 
 	/*! Destroy the FontManager */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{
@@ -75,9 +75,9 @@ private:
 	FontManager(void);
 
 	/// Helper functions
-	std::set<Font>::iterator CreateFont( const std::string & fontName, unsigned int height );
-	bool MakeDisplayList( FT_Face face, char ch, Font & font );
-	bool MakeVBO( FT_Face face, Font & font );
+	std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
+	bool makeDisplayList( FT_Face face, char ch, Font & font );
+	bool makeVBO( FT_Face face, Font & font );
 
 	// Don't implement these, should give compile warning if used
 	FontManager( const FontManager & fm );

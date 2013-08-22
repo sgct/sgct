@@ -45,7 +45,7 @@ void myDrawFun()
 	
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(texHandle) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(texHandle) );
 
 	glBegin(GL_QUADS);
 	glTexCoord2d(0.0, 0.0);
@@ -72,5 +72,5 @@ void myDrawFun()
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::Instance()->loadTexure(texHandle, "grid", "grid.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure(texHandle, "grid", "grid.png", true, 0);
 }

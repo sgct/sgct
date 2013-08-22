@@ -114,7 +114,7 @@ FontManager::FontManager(void)
 
 	if ( error != 0 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not initiate Freetype library.\n" );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not initiate Freetype library.\n" );
 		return; // No need to continue
 	}
 
@@ -168,7 +168,7 @@ Set the default font path. This will be the directory where font files will be s
 for by default. If not explicitly set the default font path will be the windows font folder.
 @param	path	The directory where the default font files are located
 */
-void FontManager::SetDefaultFontPath( const std::string & path )
+void FontManager::setDefaultFontPath( const std::string & path )
 {
 	mDefaultFontPath = path;
 }
@@ -177,7 +177,7 @@ void FontManager::SetDefaultFontPath( const std::string & path )
 Set the stroke (border) size
 @param	size	The stroke size in pixels
 */
-void FontManager::SetStrokeSize( signed long size )
+void FontManager::setStrokeSize( signed long size )
 {
 	mStrokeSize = size;
 }
@@ -185,7 +185,7 @@ void FontManager::SetStrokeSize( signed long size )
 /*!
 Set the stroke (border) color
 */
-void FontManager::SetStrokeColor( glm::vec4 color )
+void FontManager::setStrokeColor( glm::vec4 color )
 {
 	mStrokeColor = color;
 }
@@ -196,7 +196,7 @@ Adds a font file to the manager.
 @param	path		Path to the font file
 @param	fontPath	If it is a local font path directory or using the default path
 */
-bool FontManager::AddFont( const std::string & fontName, std::string path, FontPath fontPath )
+bool FontManager::addFont( const std::string & fontName, std::string path, FontPath fontPath )
 {
 	// Perform file exists check
 	if( fontPath == FontPath_Default )
@@ -209,7 +209,7 @@ bool FontManager::AddFont( const std::string & fontName, std::string path, FontP
 	if( !inserted )
 	{
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Font with name '%s' already specified.\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Font with name '%s' already specified.\n", fontName.c_str() );
 		return false;
 	}
 
@@ -222,7 +222,7 @@ Get a font face that is loaded into memory.
 @param	height	Height in  pixels for the font
 @return	Pointer to the font face, NULL if not found
 */
-const Font * FontManager::GetFont( const std::string & fontName, unsigned int height )
+const Font * FontManager::getFont( const std::string & fontName, unsigned int height )
 {
 	// If there will be a lot of switching between font sizes consider saving every font face as a unique font instead
 	// of resizing
@@ -232,7 +232,7 @@ const Font * FontManager::GetFont( const std::string & fontName, unsigned int he
 
 	if( it == mFonts.end() )
 	{
-		it = CreateFont( fontName, height );
+		it = createFont( fontName, height );
 	}
 
 	return (it != mFonts.end() ) ? &(*it) : NULL;
@@ -243,9 +243,9 @@ Get the SGCT default font face that is loaded into memory.
 @param	height	Height in  pixels for the font
 @return	Pointer to the font face, NULL if not found
 */
-const Font * FontManager::GetDefaultFont( unsigned int height )
+const Font * FontManager::getDefaultFont( unsigned int height )
 {
-	return GetFont("SGCTFont", height);
+	return getFont("SGCTFont", height);
 }
 
 /*!
@@ -254,19 +254,19 @@ Creates font textures with a specific height if a path to the font exists
 @param	height		Height of the font in pixels
 @return	Iterator to the newly created font, end of the Fonts container if something went wrong
 */
-std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, unsigned int height )
+std::set<Font>::iterator FontManager::createFont( const std::string & fontName, unsigned int height )
 {
 	std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
 
 	if( it == mFontPaths.end() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "No font file specified for font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "No font file specified for font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
 	if( mFTLibrary == NULL )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -275,7 +275,7 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 
 	if ( error == FT_Err_Unknown_File_Format )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
 		return mFonts.end();
 	}
 	else if( error != 0 || face == NULL )
@@ -286,7 +286,7 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 
 	if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not set pixel size for font[%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not set pixel size for font[%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -299,7 +299,7 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 	if( !shaderCreated )
 	{
 		mShader.setName("FontShader");
-		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		{
 			mShader.addShaderSrc( Font_Vert_Shader_Legacy, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			mShader.addShaderSrc( Font_Frag_Shader_Legacy, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
@@ -312,7 +312,7 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 		mShader.createAndLinkProgram();
 		mShader.bind();
 
-		if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+		if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 			mMVPLoc = mShader.getUniformLocation( "MVP" );
 		mColLoc = mShader.getUniformLocation( "Col" );
 		mStkLoc = mShader.getUniformLocation( "StrokeCol" );
@@ -323,10 +323,10 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 	}
 
 	//This is where we actually create each of the fonts display lists.
-	if(sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if(sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		for( unsigned char i = 0;i < 128; ++i )
-			if(!MakeDisplayList( face, i, newFont ))
+			if(!makeDisplayList( face, i, newFont ))
 			{
 				newFont.clean();
 				return mFonts.end();
@@ -334,7 +334,7 @@ std::set<Font>::iterator FontManager::CreateFont( const std::string & fontName, 
 	}
 	else
 	{
-		if( !MakeVBO( face, newFont ) )
+		if( !makeVBO( face, newFont ) )
 		{
 			newFont.clean();
 			return mFonts.end();
@@ -355,7 +355,7 @@ Create a display list for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
+bool FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
 {
 
 	//The first thing we do is get FreeType to render our character
@@ -369,7 +369,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	//if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_DEFAULT ) )
 	if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_FORCE_AUTOHINT ) )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
 		// Implement error message " char %s"
 		return false;
 	}
@@ -379,7 +379,7 @@ bool FontManager::MakeDisplayList ( FT_Face face, char ch, Font & font )
 	FT_Glyph strokeGlyph;
 	if( FT_Get_Glyph( face->glyph, &glyph ) || FT_Get_Glyph( face->glyph, &strokeGlyph ) )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
 		return false;
 	}
 
@@ -530,7 +530,7 @@ Create vertex buffer objects for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::MakeVBO( FT_Face face, Font & font )
+bool FontManager::makeVBO( FT_Face face, Font & font )
 {
 	std::vector<float> coords;
 
@@ -539,7 +539,7 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 
 		if( FT_Load_Glyph( face, FT_Get_Char_Index( face, ch ), FT_LOAD_FORCE_AUTOHINT ) )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
 			return false;
 		}
 
@@ -548,7 +548,7 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		FT_Glyph strokeGlyph;
 		if( FT_Get_Glyph( face->glyph, &glyph ) || FT_Get_Glyph( face->glyph, &strokeGlyph ) )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch );
 			return false;
 		}
 
@@ -618,7 +618,7 @@ bool FontManager::MakeVBO( FT_Face face, Font & font )
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 		//Here we actually create the texture itself, notice
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RG8, width, height,
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
 			  0, GL_RG, GL_UNSIGNED_BYTE, expanded_data );
 
 		//With the texture created, we don't need to expanded data anymore

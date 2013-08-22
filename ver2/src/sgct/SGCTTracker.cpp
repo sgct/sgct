@@ -50,14 +50,14 @@ void sgct::SGCTTracker::addDevice(std::string name, size_t index)
 
 	mTrackingDevices.push_back( td );
 
-	MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "%s: Adding device '%s'...\n", mName.c_str(), name.c_str());
+	MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "%s: Adding device '%s'...\n", mName.c_str(), name.c_str());
 }
 
 void sgct::SGCTTracker::addSensorToDevice(const char * address, int id)
 {
 	if(mTrackingDevices.empty())
 		return;
-	MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Device: %d\n", id);
+	MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Device: %d\n", id);
 	mTrackingDevices.back()->setSensorId( id );
 }
 
@@ -112,7 +112,7 @@ sgct::SGCTTrackingDevice * sgct::SGCTTracker::getDevicePtrBySensorId(int id)
 
 void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
 {
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		//create rotation quaternion based on x, y, z rotations
 		glm::dquat rotQuat;
 		rotQuat = glm::rotate( rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0) );
@@ -123,26 +123,26 @@ void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
 		mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
 
 		calculateTransform();
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::setOffset(double x, double y, double z)
 {
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mOffset[0] = x;
 		mOffset[1] = y;
 		mOffset[2] = z;
 
 		calculateTransform();
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::setScale(double scaleVal)
 {
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		if( scaleVal > 0.0 )
 			mScale = scaleVal;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 void sgct::SGCTTracker::calculateTransform()

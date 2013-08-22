@@ -30,7 +30,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 	mWidth = width;
 	mHeight = height;
 
-	mMultiSampled = (samples > 1 && sgct::SGCTSettings::Instance()->useFBO());
+	mMultiSampled = (samples > 1 && sgct::SGCTSettings::instance()->useFBO());
 
 	//create a multisampled buffer
 	if(mMultiSampled)
@@ -42,7 +42,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		if( MaxSamples < 2 )
 			samples = 0;
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Max samples supported: %d\n", MaxSamples);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Max samples supported: %d\n", MaxSamples);
 
 		//generate the multisample buffer
 		glGenFramebuffers(1, &mMultiSampledFrameBuffer);
@@ -78,19 +78,19 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 
 	//Does the GPU support current FBO configuration?
 	if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE || glGetError() != GL_NO_ERROR )
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "OffScreenBuffer: Something went wrong creating FBO!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "OffScreenBuffer: Something went wrong creating FBO!\n");
 
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
 	mMultiSampled ?
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
 			"OffScreenBuffer: Created buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
 			mFrameBuffer, mMultiSampledFrameBuffer, mDepthBuffer, mColorBuffer) :
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
 			"OffScreenBuffer: Created buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d\n",
 			mFrameBuffer, mDepthBuffer);
 
-	//sgct::MessageHandler::Instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
+	//sgct::MessageHandler::instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
 }
 
 void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
@@ -98,7 +98,7 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 	mWidth = width;
 	mHeight = height;
 
-	mMultiSampled = ( samples > 1 && sgct::SGCTSettings::Instance()->useFBO() );
+	mMultiSampled = ( samples > 1 && sgct::SGCTSettings::instance()->useFBO() );
 	
 	//delete all
 	glDeleteFramebuffers(1,		&mFrameBuffer);
@@ -158,7 +158,7 @@ void sgct_core::OffScreenBuffer::blit()
 	*/
 	glReadBuffer( GL_COLOR_ATTACHMENT0 );
 	glDrawBuffer( GL_COLOR_ATTACHMENT0 );
-	sgct::SGCTSettings::Instance()->useDepthTexture() ?
+	sgct::SGCTSettings::instance()->useDepthTexture() ?
 		glBlitFramebuffer(
 			0, 0, mWidth, mHeight,
 			0, 0, mWidth, mHeight,

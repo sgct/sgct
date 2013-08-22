@@ -48,8 +48,8 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	if( !gEngine->init() )
 	{
@@ -77,7 +77,7 @@ void myInitOGLFun()
 	alutInit(NULL, 0);
 
 	//Check for errors if any
-	sgct::MessageHandler::Instance()->print("ALUT init: %s\n", alutGetErrorString( alutGetError() ));
+	sgct::MessageHandler::instance()->print("ALUT init: %s\n", alutGetErrorString( alutGetError() ));
 
 	setAudioSource(audio_buffer0, source0, "file1.wav");
 
@@ -146,12 +146,12 @@ void myPreSyncFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &curr_time );
 }
 
 void myCleanUpFun()
@@ -172,7 +172,7 @@ void setAudioSource(ALuint &buffer, ALuint &source, const char * filename)
 	buffer = alutCreateBufferFromFile(filename);
 	if( buffer == AL_NONE )
 	{
-		sgct::MessageHandler::Instance()->print("Failed to read audio file '%s', error: %s\n", filename, alutGetErrorString( alutGetError() ));
+		sgct::MessageHandler::instance()->print("Failed to read audio file '%s', error: %s\n", filename, alutGetErrorString( alutGetError() ));
 	}
 	alSourcei(source, AL_BUFFER, buffer);
 }

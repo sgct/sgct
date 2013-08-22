@@ -181,7 +181,7 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
 
 	if( !sgct::Engine::checkForOGLErrors() ) //if error occured
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCT Utils: Box creation error!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCT Utils: Box creation error!\n");
 		void cleanup();
 	}
 
@@ -253,7 +253,7 @@ void sgct_utils::SGCTBox::cleanUp()
 
 void sgct_utils::SGCTBox::createVBO()
 {
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mInternalDrawFn = &SGCTBox::drawVAO;
 		
@@ -263,16 +263,16 @@ void sgct_utils::SGCTBox::createVBO()
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VAO: %d\n", mVAO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VAO: %d\n", mVAO);
 	}
 	
 	glGenBuffers(1, &mVBO);
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VBO: %d\n", mVBO);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTBox: Generating VBO: %d\n", mVBO);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBufferData(GL_ARRAY_BUFFER, 36 * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);
 
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(0) ); //texcoords
 		glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(8) ); //normals
@@ -281,7 +281,7 @@ void sgct_utils::SGCTBox::createVBO()
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		glBindVertexArray( 0 );
 	}

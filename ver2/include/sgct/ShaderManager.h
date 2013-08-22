@@ -71,7 +71,7 @@ public:
 	const ShaderProgram & getShaderProgram( const std::string & name ) const;
 
 	/*! Get the manager instance */
-	static ShaderManager * Instance()
+	static ShaderManager * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -82,7 +82,7 @@ public:
 	}
 
 	/*! Destroy the ShaderManager */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

@@ -25,7 +25,7 @@ class SharedData
 {
 public:
 	/*! Get the SharedData instance */
-	static SharedData * Instance()
+	static SharedData * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -36,7 +36,7 @@ public:
 	}
 
 	/*! Destroy the SharedData */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

@@ -146,17 +146,17 @@ namespace sgct //simple graphics cluster toolkit
 		T getVal()
 		{
 			T tmpT;
-			SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SharedDataMutex );
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedDataMutex );
 			tmpT = mVal;
-			SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SharedDataMutex );
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedDataMutex );
 			return tmpT;
 		}
 
 		void setVal(T val)
 		{
-			SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SharedDataMutex );
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedDataMutex );
 			mVal = val;
-			SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SharedDataMutex );
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedDataMutex );
 		}
 
 	private:

@@ -53,7 +53,7 @@ void Font::init( const std::string & name, unsigned int height )
 	mHeight = static_cast<float>( height );
 
 	glGenTextures( 128, mTextures );
-	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mListBase = glGenLists(128);
 	}
@@ -62,8 +62,8 @@ void Font::init( const std::string & name, unsigned int height )
 		glGenVertexArrays(1, &mVAO);
 		glGenBuffers(1, &mVBO);
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VAO: %d\n", mVAO);
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VBO: %d\n", mVBO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VAO: %d\n", mVAO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Font: Generating VBO: %d\n", mVBO);
 	}
 }
 
@@ -74,7 +74,7 @@ void Font::clean()
 {
 	if( mTextures )	// Check if init has been called
 	{
-		if( sgct::Engine::Instance()->isOGLPipelineFixed() && mListBase != 0)
+		if( sgct::Engine::instance()->isOGLPipelineFixed() && mListBase != 0)
 			glDeleteLists( mListBase, 128 );
 		else
 		{

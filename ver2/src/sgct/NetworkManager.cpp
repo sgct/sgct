@@ -40,7 +40,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 
 	mMode = mode;
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network API...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network API...\n");
 	try
 	{
 		initAPI();
@@ -50,7 +50,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 		throw err;
 	}
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Getting host info...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Getting host info...\n");
 	try
 	{
 		getHostInfo();
@@ -61,16 +61,16 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 	}
 
 	if(mMode == NotLocal)
-		mIsServer = matchAddress( (*ClusterManager::Instance()->getMasterIp()));
+		mIsServer = matchAddress( (*ClusterManager::instance()->getMasterIp()));
 	else if(mMode == LocalServer)
 		mIsServer = true;
 	else
 		mIsServer = false;
 
 	if( mIsServer )
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network server.\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network server.\n");
 	else
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network client.\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network client.\n");
 }
 
 sgct_core::NetworkManager::~NetworkManager()
@@ -82,22 +82,22 @@ bool sgct_core::NetworkManager::init()
 {
 	//if faking an address (running local) then add it to the search list
 	if(mMode != NotLocal)
-		localAddresses.push_back(ClusterManager::Instance()->getThisNodePtr()->ip);
+		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->ip);
 
 	std::string tmpIp;
 	if( mMode == NotLocal )
-		tmpIp = *ClusterManager::Instance()->getMasterIp();
+		tmpIp = *ClusterManager::instance()->getMasterIp();
 	else
 		tmpIp = "127.0.0.1";
 
 	//if client
 	if( !mIsServer )
 	{
-		if(addConnection(ClusterManager::Instance()->getThisNodePtr()->port, tmpIp))
+		if(addConnection(ClusterManager::instance()->getThisNodePtr()->port, tmpIp))
 		{
 			//bind
 			sgct_cppxeleven::function< void(const char*, int, int) > callback;
-			callback = sgct_cppxeleven::bind(&sgct::SharedData::decode, sgct::SharedData::Instance(),
+			callback = sgct_cppxeleven::bind(&sgct::SharedData::decode, sgct::SharedData::instance(),
 				sgct_cppxeleven::placeholders::_1,
 				sgct_cppxeleven::placeholders::_2,
 				sgct_cppxeleven::placeholders::_3);
@@ -105,26 +105,26 @@ bool sgct_core::NetworkManager::init()
 		}
 		else
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::Instance()->getMasterIp()->c_str());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::instance()->getMasterIp()->c_str());
 			return false;
 		}
 	}
 
 	//add all connections from config file
-	for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
+	for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 	{
 		//dont add itself if server
-		if( mIsServer && !matchAddress( ClusterManager::Instance()->getNodePtr(i)->ip ))
+		if( mIsServer && !matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ))
 		{
-			if(!addConnection(ClusterManager::Instance()->getNodePtr(i)->port, tmpIp))
+			if(!addConnection(ClusterManager::instance()->getNodePtr(i)->port, tmpIp))
 			{
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::Instance()->getNodePtr(i)->ip.c_str());
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::instance()->getNodePtr(i)->ip.c_str());
 				return false;
 			}
 			else //bind
 			{
 				sgct_cppxeleven::function< void(const char*, int, int) > callback;
-				callback = sgct_cppxeleven::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::Instance(),
+				callback = sgct_cppxeleven::bind(&sgct::MessageHandler::decode, sgct::MessageHandler::instance(),
 					sgct_cppxeleven::placeholders::_1,
 					sgct_cppxeleven::placeholders::_2,
 					sgct_cppxeleven::placeholders::_3);
@@ -136,13 +136,13 @@ bool sgct_core::NetworkManager::init()
 	//add connection for external communication
 	if( mIsServer )
 	{
-		if(addConnection( (*ClusterManager::Instance()->getExternalControlPort()),
+		if(addConnection( (*ClusterManager::instance()->getExternalControlPort()),
             "127.0.0.1", SGCTNetwork::ExternalControlConnection))
 		{
 			mIsExternalControlPresent = true;
 
 			sgct_cppxeleven::function< void(const char*, int, int) > callback;
-			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::Instance(),
+			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::instance(),
 				sgct_cppxeleven::placeholders::_1,
 				sgct_cppxeleven::placeholders::_2,
 				sgct_cppxeleven::placeholders::_3);
@@ -150,8 +150,8 @@ bool sgct_core::NetworkManager::init()
 		}
 	}
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Cluster sync is set to %s\n",
-        ClusterManager::Instance()->getFirmFrameLockSyncStatus() ? "firm/strict" : "loose" );
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Cluster sync is set to %s\n",
+        ClusterManager::instance()->getFirmFrameLockSyncStatus() ? "firm/strict" : "loose" );
 
 	return true;
 }
@@ -181,7 +181,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 					minTime = currentTime;
 
 				std::size_t currentSize =
-					sgct::SharedData::Instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
+					sgct::SharedData::instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
 				//iterate counter
 				int currentFrame = mNetworkConnections[i]->iterateFrameCounter();
@@ -191,22 +191,22 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
 				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
 
-				sgct::SharedData::Instance()->getDataBlock()[0] = SGCTNetwork::SyncByte;
-				sgct::SharedData::Instance()->getDataBlock()[1] = currentFrameDataPtr[0];
-				sgct::SharedData::Instance()->getDataBlock()[2] = currentFrameDataPtr[1];
-				sgct::SharedData::Instance()->getDataBlock()[3] = currentFrameDataPtr[2];
-				sgct::SharedData::Instance()->getDataBlock()[4] = currentFrameDataPtr[3];
-				sgct::SharedData::Instance()->getDataBlock()[5] = currentSizeDataPtr[0];
-				sgct::SharedData::Instance()->getDataBlock()[6] = currentSizeDataPtr[1];
-				sgct::SharedData::Instance()->getDataBlock()[7] = currentSizeDataPtr[2];
-				sgct::SharedData::Instance()->getDataBlock()[8] = currentSizeDataPtr[3];
+				sgct::SharedData::instance()->getDataBlock()[0] = SGCTNetwork::SyncByte;
+				sgct::SharedData::instance()->getDataBlock()[1] = currentFrameDataPtr[0];
+				sgct::SharedData::instance()->getDataBlock()[2] = currentFrameDataPtr[1];
+				sgct::SharedData::instance()->getDataBlock()[3] = currentFrameDataPtr[2];
+				sgct::SharedData::instance()->getDataBlock()[4] = currentFrameDataPtr[3];
+				sgct::SharedData::instance()->getDataBlock()[5] = currentSizeDataPtr[0];
+				sgct::SharedData::instance()->getDataBlock()[6] = currentSizeDataPtr[1];
+				sgct::SharedData::instance()->getDataBlock()[7] = currentSizeDataPtr[2];
+				sgct::SharedData::instance()->getDataBlock()[8] = currentSizeDataPtr[3];
 
-				//sgct::MessageHandler::Instance()->print("NetworkManager::sync size %u\n", currentSize);
+				//sgct::MessageHandler::instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
 				mNetworkConnections[i]->sendData(
-					sgct::SharedData::Instance()->getDataBlock(),
-					static_cast<int>(sgct::SharedData::Instance()->getDataSize()) );
+					sgct::SharedData::instance()->getDataBlock(),
+					static_cast<int>(sgct::SharedData::instance()->getDataSize()) );
 				//sgct::Engine::unlockMutex(gMutex);
 			}
 		}//end for
@@ -246,7 +246,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 		}
 
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
 		counter, getSyncConnectionsCount());
 #endif
 
@@ -272,23 +272,23 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 unsigned int sgct_core::NetworkManager::getConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 		retVal = mNumberOfConnections;
-	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 	return retVal;
 }
 unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 		retVal = mNumberOfSyncConnections;
-	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 	return retVal;
 }
 
 void sgct_core::NetworkManager::updateConnectionStatus(int index)
 {
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: updating connection status %d\n", index);
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: updating connection status %d\n", index);
 	
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
@@ -304,10 +304,10 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		}
 	}
 
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
-	sgct::MessageHandler::Instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
 
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
         mNumberOfConnections = numberOfConnectionsCounter;
 		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
@@ -316,18 +316,18 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
         //if all clients disconnect it's not longer running
         if(mNumberOfConnections == 0 && !isServer)
             mIsRunning = false;
-    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
 	if(isServer)
 	{
-		sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
             //local copy (thread safe) -- don't count server, therefore -1
-            std::size_t numberOfSlavesInConfig = ClusterManager::Instance()->getNumberOfNodes()-1;
+            std::size_t numberOfSlavesInConfig = ClusterManager::instance()->getNumberOfNodes()-1;
             //local copy (thread safe)
             bool allNodesConnectedCopy =
                 (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
             mAllNodesConnected = allNodesConnectedCopy;
-        sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+        sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
         //send cluster connected message to nodes/slaves
 		if(allNodesConnectedCopy)
@@ -351,7 +351,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
 		}
 
-        sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of connections: %u (IG slaves %u of %u)\n",
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of connections: %u (IG slaves %u of %u)\n",
              numberOfConnectionsCounter,
              numberOfConnectedSyncNodesCounter,
              numberOfSlavesInConfig);
@@ -367,9 +367,9 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	}
 
 	//signal done to caller
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 	gCond.notify_all();
-	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 }
 
 void sgct_core::NetworkManager::setAllNodesConnected()
@@ -406,7 +406,7 @@ void sgct_core::NetworkManager::close()
 #else
     //No cleanup needed
 #endif
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network API closed!\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network API closed!\n");
 }
 
 bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType)
@@ -422,7 +422,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 	}
 	catch( const char * err )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
 		if(netPtr != NULL)
 		{
 		    netPtr->initShutdown();
@@ -434,9 +434,9 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 
 	try
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
-			ClusterManager::Instance()->getFirmFrameLockSyncStatus());
+			ClusterManager::instance()->getFirmFrameLockSyncStatus());
 
 		//bind callback
 		sgct_cppxeleven::function< void(int) > updateCallback;
@@ -451,7 +451,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
     }
     catch( const char * err )
     {
-        sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
         return false;
     }
 

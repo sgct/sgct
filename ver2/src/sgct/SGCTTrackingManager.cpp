@@ -54,23 +54,23 @@ bool sgct::SGCTTrackingManager::isRunning()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mRunning;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
 
 sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...");
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
             fprintf(stderr, "Destructing, setting running to false...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mRunning = false;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	//destroy thread
 	if( mSamplingThread != NULL )
@@ -119,7 +119,7 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	mTrackers.clear();
 	gTrackers.clear();
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, " done.\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, " done.\n");
 }
 
 void sgct::SGCTTrackingManager::startSampling()
@@ -127,8 +127,8 @@ void sgct::SGCTTrackingManager::startSampling()
 	if( !mTrackers.empty() )
 	{
 		//link the head tracker
-		setHeadTracker( sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerName(),
-			sgct_core::ClusterManager::Instance()->getUserPtr()->getHeadTrackerDeviceName() );
+		setHeadTracker( sgct_core::ClusterManager::instance()->getUserPtr()->getHeadTrackerName(),
+			sgct_core::ClusterManager::instance()->getUserPtr()->getHeadTrackerDeviceName() );
 
 		mSamplingThread = new tthread::thread( samplingLoop, this );
 	}
@@ -145,7 +145,7 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 			SGCTTrackingDevice * tdPtr = mTrackers[i]->getDevicePtr(j);
 			if( tdPtr->isEnabled() && tdPtr == mHead )
 			{
-				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::Instance();
+				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::instance();
 
 				//set head rot & pos
 				cm->getUserPtr()->setTransform( tdPtr->getTransformMat() );
@@ -192,7 +192,7 @@ void sgct::SGCTTrackingManager::addSensorToCurrentDevice(const char * address, i
 
 		if( retVal.second && (*ptr).mSensorDevice == NULL)
 		{
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to sensor '%s'...\n", address);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to sensor '%s'...\n", address);
 			(*ptr).mSensorDevice = new vrpn_Tracker_Remote( address );
 
 			if( (*ptr).mSensorDevice != NULL )
@@ -200,12 +200,12 @@ void sgct::SGCTTrackingManager::addSensorToCurrentDevice(const char * address, i
 				(*ptr).mSensorDevice->register_change_handler( mTrackers.back(), update_tracker_cb);
 			}
 			else
-				MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s' on device %s!\n",
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s' on device %s!\n",
 					address, devicePtr->getName().c_str());
 		}
 	}
 	else
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s'!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s'!\n",
 			address);
 }
 
@@ -219,7 +219,7 @@ void sgct::SGCTTrackingManager::addButtonsToCurrentDevice(const char * address, 
 
 	if( (*ptr).mButtonDevice == NULL && devicePtr != NULL)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to buttons '%s' on device %s...\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to buttons '%s' on device %s...\n",
 					address, devicePtr->getName().c_str());
 
 		(*ptr).mButtonDevice = new vrpn_Button_Remote( address );
@@ -230,11 +230,11 @@ void sgct::SGCTTrackingManager::addButtonsToCurrentDevice(const char * address, 
 			devicePtr->setNumberOfButtons( numOfButtons );
 		}
 		else
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s' on device %s!\n",
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s' on device %s!\n",
 				address, devicePtr->getName().c_str());
 	}
 	else
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s'!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s'!\n",
 			address);
 }
 
@@ -248,7 +248,7 @@ void sgct::SGCTTrackingManager::addAnalogsToCurrentDevice(const char * address, 
 
 	if( (*ptr).mAnalogDevice == NULL && devicePtr != NULL)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to analogs '%s' on device %s...\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to analogs '%s' on device %s...\n",
 				address, devicePtr->getName().c_str());
 
 		(*ptr).mAnalogDevice = new vrpn_Analog_Remote( address );
@@ -259,11 +259,11 @@ void sgct::SGCTTrackingManager::addAnalogsToCurrentDevice(const char * address, 
 			devicePtr->setNumberOfAxes( numOfAxes );
 		}
 		else
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s' on device %s!\n",
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s' on device %s!\n",
 				address, devicePtr->getName().c_str());
 	}
 	else
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s'!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s'!\n",
 				address);
 }
 
@@ -275,7 +275,7 @@ void sgct::SGCTTrackingManager::setHeadTracker(const char * trackerName, const c
 		mHead = trackerPtr->getDevicePtr( deviceName );
 
 	if( mHead == NULL && strlen(trackerName) > 0 && strlen(deviceName) > 0 )
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to set head tracker to %s@%s!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to set head tracker to %s@%s!\n",
 				deviceName, trackerName);
 }
 
@@ -357,9 +357,9 @@ void sgct::SGCTTrackingManager::setSamplingTime(double t)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop...\n");
 #endif
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mSamplingTime = t;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 double sgct::SGCTTrackingManager::getSamplingTime()
@@ -368,9 +368,9 @@ double sgct::SGCTTrackingManager::getSamplingTime()
     fprintf(stderr, "Get sampling time for vrpn loop...\n");
 #endif
 	double tmpVal;
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		tmpVal = mSamplingTime;
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
 	return tmpVal;
 }
@@ -390,7 +390,7 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Updating tracker...\n");
 #endif
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	posVec *= trackerPtr->getScale();
@@ -400,7 +400,7 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 
     devicePtr->setSensorTransform( transMat * rotMat );
 
-    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
+    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
@@ -408,7 +408,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Update button value...\n");
 #endif
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	sgct::SGCTTrackingDevice * devicePtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
@@ -419,7 +419,7 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 		devicePtr->setButtonVal( false, b.button) :
 		devicePtr->setButtonVal( true, b.button);
 
-    sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
+    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
@@ -427,12 +427,12 @@ void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Update analog values...\n");
 #endif
-	sgct::SGCTMutexManager::Instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
 
 	sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
 
 	tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
 
-	sgct::SGCTMutexManager::Instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }

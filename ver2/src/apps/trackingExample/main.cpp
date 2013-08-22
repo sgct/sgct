@@ -111,7 +111,7 @@ void myDrawFun()
 			devicePtr = trackerPtr->getDevicePtr(j);
 
 			glColor3f(1.0f,1.0f,0.0f);
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize + 2 ), 50.0f, textVerticalPos,
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize + 2 ), 50.0f, textVerticalPos,
 				"Device %u (%s)", i, devicePtr->getName().c_str());
 			textVerticalPos -= lineSpace;
 
@@ -144,12 +144,12 @@ void myDrawFun()
 				
 				double trackerTime = devicePtr->getTrackerDeltaTime();
 				glColor3f(0.0f,1.0f,1.0f);
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
 					"Sensor id:%d, freq: %.1f Hz", devicePtr->getSensorId(), trackerTime <= 0.0 ? 0.0 : 1.0/trackerTime);
 				textVerticalPos -= lineSpace;
 				
 				glColor3f(1.0f,1.0f,1.0f);
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Pos x=%.3g y=%.3g z=%.3g",
 					devicePtr->getPosition().x,
 					devicePtr->getPosition().y,
@@ -157,7 +157,7 @@ void myDrawFun()
 				textVerticalPos -= lineSpace;
 				
 				glColor3f(1.0f,1.0f,1.0f);
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Rot rx=%.3g ry=%.3g rz=%.3g",
 					devicePtr->getEulerAngles().x,
 					devicePtr->getEulerAngles().y,
@@ -167,13 +167,13 @@ void myDrawFun()
 			if( devicePtr->hasButtons() )
 			{
 				glColor3f(0.0f,1.0f,1.0f);
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos, "Buttons");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos, "Buttons");
 				textVerticalPos -= lineSpace;
 
 				glColor3f(1.0f,1.0f,1.0f);
 				for(size_t k=0; k < devicePtr->getNumberOfButtons(); k++)
 				{
-					sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+					sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Button %u: %s", k, devicePtr->getButton(k) ? "pressed" : "released");
 					textVerticalPos -= lineSpace;
 				}
@@ -182,14 +182,14 @@ void myDrawFun()
 			{
 				glColor3f(0.0f,1.0f,1.0f);
 				double analogTime = devicePtr->getAnalogDeltaTime();
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 100.0f, textVerticalPos,
 					"Analog axes, freq: %.1f Hz", analogTime <= 0.0 ? 0.0 : 1.0/analogTime);
 				textVerticalPos -= lineSpace;
 
 				glColor3f(1.0f,1.0f,1.0f);
 				for(size_t k=0; k < devicePtr->getNumberOfAxes(); k++)
 				{
-					sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
+					sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), 120.0f, textVerticalPos,
 					"Axis %u: %.3g", j, devicePtr->getAnalog(k));
 					textVerticalPos -= lineSpace;
 				}

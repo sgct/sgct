@@ -54,8 +54,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Main loop
 	gEngine->render();
@@ -112,7 +112,7 @@ void myDrawFun()
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 
-	sgct::ShaderManager::Instance()->bindShaderProgram( "InvertColor" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "InvertColor" );
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
@@ -132,7 +132,7 @@ void myDrawFun()
 
 	//restore
 	glPopAttrib();
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	//exit ortho mode
 	glMatrixMode(GL_PROJECTION);
@@ -154,7 +154,7 @@ void drawScene()
 	glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
 	glColor3f(1.0f, 1.0f, 1.0f);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
 	//draw the box
 	myBox->draw();
 	glPopMatrix();
@@ -173,7 +173,7 @@ void myPreSyncFun()
 void myPostSyncPreDrawFun()
 {
 	//Fisheye cubemaps are constant size
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 		if( gEngine->getWindowPtr(i)->isWindowResized() && !gEngine->getWindowPtr(i)->isUsingFisheyeRendering() )
 		{
@@ -187,18 +187,18 @@ void myPostSyncPreDrawFun()
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::Instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
 
 	//set up shader
-	sgct::ShaderManager::Instance()->addShaderProgram( "InvertColor", "simple.vert", "simple.frag" );
-	sgct::ShaderManager::Instance()->bindShaderProgram( "InvertColor" );
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->addShaderProgram( "InvertColor", "simple.vert", "simple.frag" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "InvertColor" );
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 	
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );
@@ -208,7 +208,7 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 	{
 		if( thisNode->getWindowPtr(i)->isUsingFisheyeRendering() )
@@ -229,7 +229,7 @@ void myInitOGLFun()
 		}
 	}
 
-	sgct::MessageHandler::Instance()->print("Number of targets: %d\n", buffers.size());
+	sgct::MessageHandler::instance()->print("Number of targets: %d\n", buffers.size());
 
 	createFBOs();
 }
@@ -244,17 +244,17 @@ void myCleanUpFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble(  &curr_time  );
+	sgct::SharedData::instance()->readDouble(  &curr_time  );
 }
 
 void createFBOs()
 {
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 	{
 		int fb_width;
@@ -294,7 +294,7 @@ void createFBOs()
 
 	for(unsigned int i=0; i < buffers.size(); i++)
 	{
-		//sgct::MessageHandler::Instance()->print("Creating a %dx%d fbo...\n", buffers[i].width, buffers[i].height);
+		//sgct::MessageHandler::instance()->print("Creating a %dx%d fbo...\n", buffers[i].width, buffers[i].height);
 
 		glGenFramebuffers(1, &(buffers[i].fbo));
 		glGenRenderbuffers(1, &(buffers[i].renderBuffer));
@@ -314,7 +314,7 @@ void createFBOs()
 
 		//Does the GPU support current FBO configuration?
 		if( glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE )
-			sgct::MessageHandler::Instance()->print("Something went wrong creating FBO!\n");
+			sgct::MessageHandler::instance()->print("Something went wrong creating FBO!\n");
 
 		//unbind
 		glBindFramebuffer(GL_FRAMEBUFFER, 0);
@@ -323,7 +323,7 @@ void createFBOs()
 
 void resizeFBOs()
 {
-	sgct::MessageHandler::Instance()->print("Re-sizing buffers\n");
+	sgct::MessageHandler::instance()->print("Re-sizing buffers\n");
 	
 	clearBuffers();
 
@@ -367,7 +367,7 @@ void createTextures()
 	}
 
 	gEngine->checkForOGLErrors();
-	//sgct::MessageHandler::Instance()->print("%d target textures created.\n", numberOfTargets);
+	//sgct::MessageHandler::instance()->print("%d target textures created.\n", numberOfTargets);
 
 	glDisable(GL_TEXTURE_2D);
 }

@@ -114,7 +114,7 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 
 	if( !sgct::Engine::checkForOGLErrors() ) //if error occured
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCT Utils: Sphere creation error!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCT Utils: Sphere creation error!\n");
 		void cleanup();
 	}
 
@@ -207,7 +207,7 @@ void sgct_utils::SGCTSphere::drawVAO()
 
 void sgct_utils::SGCTSphere::createVBO()
 {
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mInternalDrawFn = &SGCTSphere::drawVAO;
 		
@@ -217,16 +217,16 @@ void sgct_utils::SGCTSphere::createVBO()
 		glEnableVertexAttribArray(1);
 		glEnableVertexAttribArray(2);
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VAO: %d\n", mVAO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VAO: %d\n", mVAO);
 	}
 	
 	glGenBuffers(2, &mVBO[0]);
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]);
 
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
 	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData), mVerts, GL_STATIC_DRAW);
 
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(0) ); //texcoords
 		glVertexAttribPointer( 1, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(8) ); //normals
@@ -239,7 +239,7 @@ void sgct_utils::SGCTSphere::createVBO()
 	//unbind
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if( !sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		glBindVertexArray( 0 );
 	}

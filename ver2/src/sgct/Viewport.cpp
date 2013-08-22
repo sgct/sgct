@@ -134,7 +134,7 @@ void sgct_core::Viewport::setEnabled(bool state)
 void sgct_core::Viewport::loadData()
 {
 	if( mOverlayFilename != NULL )
-		mOverlayTexture = sgct::TextureManager::Instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
+		mOverlayTexture = sgct::TextureManager::instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
 
 	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
 }

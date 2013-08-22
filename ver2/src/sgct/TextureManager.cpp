@@ -94,7 +94,7 @@ void sgct::TextureManager::setAnisotropicFilterSize(float fval)
 		mAnisotropicFilterSize = fval;
 	else
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
 			"TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and min values for your hardware is %.1f and 1.0.\n",
 			maximumAnistropy);
 	}
@@ -163,7 +163,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	{	
 		if( mOverWriteMode )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 			
 			texID = getTextureByHandle(handle);
 			if( texID != 0 )
@@ -173,7 +173,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		}
 		else
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 			return true;
 		}
 	}
@@ -197,7 +197,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		int textureType = GL_RGB;
 
 		//if OpenGL 1-2
-		if( Engine::Instance()->isOGLPipelineFixed() )
+		if( Engine::instance()->isOGLPipelineFixed() )
 		{
 			if(img.getChannels() == 4)	textureType = GL_RGBA;
 			else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
@@ -235,7 +235,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			}
 			break;
 		case 2:
-			if( Engine::Instance()->isOGLPipelineFixed() )
+			if( Engine::instance()->isOGLPipelineFixed() )
 			{
 				if( mCompression == No_Compression)
 					internalFormat = GL_LUMINANCE8_ALPHA8;
@@ -253,7 +253,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			}
 			break;
 		case 1:
-			if( Engine::Instance()->isOGLPipelineFixed() )
+			if( Engine::instance()->isOGLPipelineFixed() )
 				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
 			else
 			{
@@ -271,7 +271,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			break;
 		}
 		
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating texture... size: %dx%d, %d-channels compression: %s\n",
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating texture... size: %dx%d, %d-channels compression: %s\n",
 			img.getSizeX(),
 			img.getSizeY(),
 			img.getChannels(),
@@ -285,7 +285,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		{
 			GLfloat maxAni;
 			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-			//sgct::MessageHandler::Instance()->print("Max anisotropy: %f\n", maxAni);
+			//sgct::MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
 			
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR );
 			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
@@ -311,7 +311,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		else if(handle != 0) //valid handle
 			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, (unsigned int)texID );
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
 		img.cleanup();
 	}
 	else //image data not valid

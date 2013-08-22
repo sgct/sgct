@@ -57,12 +57,12 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-    SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
 }
 
 
@@ -118,9 +118,9 @@ void sgct::MessageHandler::print(NotifyLevel nl, const char *fmt, ...)
 
 void sgct::MessageHandler::clearBuffer()
 {
-	SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
 	mBuffer.clear();
-	SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
 }
 
 void sgct::MessageHandler::setNotifyLevel( NotifyLevel nl )
@@ -181,10 +181,10 @@ void sgct::MessageHandler::sendMessageToServer(const char * str)
 	//if client send to server
     if(!mLocal)
     {
-        SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
+        SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
         if(mBuffer.empty())
             mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));
-        SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
+        SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
     }
 }

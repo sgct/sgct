@@ -28,8 +28,8 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Init the engine
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
@@ -99,15 +99,15 @@ void myInitFun()
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
 
-	sgct::ShaderManager::Instance()->addShaderProgram( "xform",
+	sgct::ShaderManager::instance()->addShaderProgram( "xform",
 			"SimpleVertexShader.vertexshader",
 			"SimpleFragmentShader.fragmentshader" );
 
-	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
  
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
@@ -117,7 +117,7 @@ void myDrawFun()
 	glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
-	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 		
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
@@ -128,7 +128,7 @@ void myDrawFun()
 
 	//unbind
 	glBindVertexArray(0);
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()
@@ -143,12 +143,12 @@ void myPreSyncFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &curr_time );
 }
 
 void myCleanUpFun()

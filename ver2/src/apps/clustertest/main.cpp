@@ -53,9 +53,9 @@ int main( int argc, char* argv[] )
 		for(int i=0;i<EXTENDED_SIZE;i++)
 			extraData[i].setVal(static_cast<float>(rand()%500)/500.0f);
 
-	sgct::SharedData::Instance()->setCompression(true);
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setCompression(true);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
@@ -103,15 +103,15 @@ void myDrawFun()
 	glPushMatrix();
 
 	/*if( sgct_core::Frustum::Mono == gEngine->getActiveFrustum() )
-		sgct::MessageHandler::Instance()->print("Mono!\n");
+		sgct::MessageHandler::instance()->print("Mono!\n");
 	else if( sgct_core::Frustum::StereoLeftEye == gEngine->getActiveFrustum() )
-		sgct::MessageHandler::Instance()->print("Left eye!\n");
+		sgct::MessageHandler::instance()->print("Left eye!\n");
 	else
-		sgct::MessageHandler::Instance()->print("Right eye!\n");*/
+		sgct::MessageHandler::instance()->print("Right eye!\n");*/
 
-	//sgct::MessageHandler::Instance()->print("Mouse wheel: %d\n", sgct::Engine::getMouseWheel());
-	//sgct::MessageHandler::Instance()->print("Right mouse button: %d\n", sgct::Engine::getMouseButton(SGCT_MOUSE_BUTTON_RIGHT));
-	//sgct::MessageHandler::Instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
+	//sgct::MessageHandler::instance()->print("Mouse wheel: %d\n", sgct::Engine::getMouseWheel());
+	//sgct::MessageHandler::instance()->print("Right mouse button: %d\n", sgct::Engine::getMouseButton(SGCT_MOUSE_BUTTON_RIGHT));
+	//sgct::MessageHandler::instance()->print("Y key: %d\n", sgct::Engine::getKey('Y'));
 	//sgct::Engine::setMousePos( rand()%600, rand()%400);
 
 	glRotatef(static_cast<float>(curr_time.getVal())*speed.getVal(), 0.0f, 1.0f, 0.0f);
@@ -159,36 +159,36 @@ void myDrawFun()
 
 	glColor3f(1.0f,1.0f,0.0f);
 	if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoLeftEye )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 200, "Left");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
 	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 150, "Right");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
 	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::Mono )
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 32 ), xPos, 200, "Mono");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Mono");
 
 	if( gEngine->getActiveWindowPtr()->isUsingSwapGroups() )
 	{
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
 
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
 		
 		if( gEngine->getActiveWindowPtr()->isBarrierActive() )
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
 		else
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
 
 		if( gEngine->getActiveWindowPtr()->isSwapGroupMaster() )
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: True");
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: True");
 		else
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: False");
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: False");
 
 		unsigned int fr_number;
 		gEngine->getActiveWindowPtr()->getSwapGroupFrameNumber(fr_number);
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
 	}
 	else
 	{
-		sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
 	}
 }
 
@@ -236,7 +236,7 @@ void myInitOGLFun()
 	glEnable(GL_COLOR_MATERIAL);
 
 	unsigned int numberOfActiveViewports = 0;
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::Instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 		for(unsigned int j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
 			if( thisNode->getWindowPtr(i)->getViewport(j)->isEnabled() )
@@ -248,7 +248,7 @@ void myInitOGLFun()
 				glm::mat4 prjMatRight = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );
 			}
 
-	sgct::MessageHandler::Instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
+	sgct::MessageHandler::instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
 }
 
 void myEncodeFun()
@@ -265,23 +265,23 @@ void myEncodeFun()
 
 	sgct::SharedUChar sf(flags);
 
-	sgct::SharedData::Instance()->writeDouble( &dt);
-	sgct::SharedData::Instance()->writeDouble( &curr_time);
-	sgct::SharedData::Instance()->writeFloat( &speed );
-	sgct::SharedData::Instance()->writeUChar( &sf );
+	sgct::SharedData::instance()->writeDouble( &dt);
+	sgct::SharedData::instance()->writeDouble( &curr_time);
+	sgct::SharedData::instance()->writeFloat( &speed );
+	sgct::SharedData::instance()->writeUChar( &sf );
 
 	if(extraPackages.getVal())
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			sgct::SharedData::Instance()->writeFloat( &extraData[i] );
+			sgct::SharedData::instance()->writeFloat( &extraData[i] );
 }
 
 void myDecodeFun()
 {
 	sgct::SharedUChar sf;
-	sgct::SharedData::Instance()->readDouble( &dt );
-	sgct::SharedData::Instance()->readDouble( &curr_time );
-	sgct::SharedData::Instance()->readFloat( &speed );
-	sgct::SharedData::Instance()->readUChar( &sf );
+	sgct::SharedData::instance()->readDouble( &dt );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readFloat( &speed );
+	sgct::SharedData::instance()->readUChar( &sf );
 
 	unsigned char flags = sf.getVal();
 	showFPS.setVal(flags & 0x0001);
@@ -295,7 +295,7 @@ void myDecodeFun()
 
 	if(extraPackages.getVal())
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			sgct::SharedData::Instance()->readFloat( &extraData[i] );
+			sgct::SharedData::instance()->readFloat( &extraData[i] );
 }
 
 void keyCallback(int key, int action)

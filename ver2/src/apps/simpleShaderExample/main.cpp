@@ -30,8 +30,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Main loop
 	gEngine->render();
@@ -46,7 +46,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	//set current shader program
-	sgct::ShaderManager::Instance()->bindShaderProgram( "SimpleColor" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
 
 	float speed = 50.0f;
@@ -60,27 +60,27 @@ void myDrawFun()
 	glEnd();
 
 	//unset current shader program
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myInitOGLFun()
 {
-	sgct::ShaderManager::Instance()->addShaderProgram( "SimpleColor", "simple.vert", "simple.frag" );
-	sgct::ShaderManager::Instance()->bindShaderProgram( "SimpleColor" );
+	sgct::ShaderManager::instance()->addShaderProgram( "SimpleColor", "simple.vert", "simple.frag" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "SimpleColor" );
 
-	curr_timeLoc = sgct::ShaderManager::Instance()->getShaderProgram( "SimpleColor").getUniformLocation( "curr_time" );
+	curr_timeLoc = sgct::ShaderManager::instance()->getShaderProgram( "SimpleColor").getUniformLocation( "curr_time" );
 
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &curr_time );
 }
 
 void myPreSyncFun()

@@ -60,8 +60,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
-	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
+	sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
+	sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
 
 	// Main loop
 	gEngine->render();
@@ -167,12 +167,12 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeObj( &xform );
+	sgct::SharedData::instance()->writeObj( &xform );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readObj( &xform );
+	sgct::SharedData::instance()->readObj( &xform );
 }
 
 void keyCallback(int key, int action)

@@ -26,7 +26,7 @@ public:
 	enum CompressionMode { No_Compression = 0, Generic, S3TC_DXT };
 
 	/*! Get the TextureManager instance */
-	static TextureManager * Instance()
+	static TextureManager * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -37,7 +37,7 @@ public:
 	}
 
 	/*! Destroy the TextureManager */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

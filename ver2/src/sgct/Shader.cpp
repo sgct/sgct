@@ -66,7 +66,7 @@ bool sgct_core::Shader::setSourceFromFile( const std::string & file )
 
 	if( !shaderFile.is_open() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, 
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, 
 			"Could not open %s file[%s].\n",
 			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
@@ -86,7 +86,7 @@ bool sgct_core::Shader::setSourceFromFile( const std::string & file )
 	//
 	if( fileLength == 0 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, 
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, 
 			"Can't create source for %s: empty file [%s].\n",
 			getShaderTypeName( mShaderType ).c_str(),
 			file.c_str() );
@@ -137,7 +137,7 @@ bool sgct_core::Shader::setSourceFromString( const std::string & sourceString )
 	//
 	if( mShaderId > 0 )
 	{
-		sgct::MessageHandler::Instance()->print(
+		sgct::MessageHandler::instance()->print(
 			sgct::MessageHandler::NOTIFY_WARNING, 
 			"%s is already set for specified shader.\n",
 			getShaderTypeName( mShaderType ).c_str() );
@@ -185,14 +185,14 @@ bool sgct_core::Shader::checkCompilationStatus() const
 
 		if( logLength == 0 )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "%s compile error: Unknown error\n", getShaderTypeName( mShaderType ).c_str() );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "%s compile error: Unknown error\n", getShaderTypeName( mShaderType ).c_str() );
 			return false;
 		}
 
 		GLchar * log = new GLchar[logLength];
 
 		glGetShaderInfoLog( mShaderId, logLength, NULL, log );
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "%s compile error: %s\n", getShaderTypeName( mShaderType ).c_str(), log );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "%s compile error: %s\n", getShaderTypeName( mShaderType ).c_str(), log );
 
 		delete[] log;
 

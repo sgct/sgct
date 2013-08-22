@@ -24,12 +24,12 @@ int main( int argc, char* argv[] )
 	joyStick1Name = sgct::Engine::getJoystickName( SGCT_JOYSTICK_1 );
 	if( joyStick1Name != NULL )
 	{
-		sgct::MessageHandler::Instance()->print("Joystick 1 '%s' is present.\n", joyStick1Name);
+		sgct::MessageHandler::instance()->print("Joystick 1 '%s' is present.\n", joyStick1Name);
 
 		axesPos = sgct::Engine::getJoystickAxes( SGCT_JOYSTICK_1, &numberOfAxes );
 		buttons = sgct::Engine::getJoystickButtons( SGCT_JOYSTICK_1, &numberOfButtons );
 
-		sgct::MessageHandler::Instance()->print("Number of axes %d\nNumber of buttons %d\n", 
+		sgct::MessageHandler::instance()->print("Number of axes %d\nNumber of buttons %d\n", 
 			numberOfAxes,
 			numberOfButtons);
 	}
@@ -52,12 +52,12 @@ void myPreSyncFun()
 	{
 		axesPos = sgct::Engine::getJoystickAxes( SGCT_JOYSTICK_1, &numberOfAxes );
 		for(int i=0; i<numberOfAxes; i++)
-			sgct::MessageHandler::Instance()->print("%.3f ", axesPos[i]);
+			sgct::MessageHandler::instance()->print("%.3f ", axesPos[i]);
 
 		buttons = sgct::Engine::getJoystickButtons( SGCT_JOYSTICK_1, &numberOfButtons );
 		for(int i=0; i<numberOfButtons; i++)
-			sgct::MessageHandler::Instance()->print("%d ", buttons[i]);
+			sgct::MessageHandler::instance()->print("%d ", buttons[i]);
 
-		sgct::MessageHandler::Instance()->print("\r");
+		sgct::MessageHandler::instance()->print("\r");
 	}
 }

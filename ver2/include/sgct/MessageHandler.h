@@ -24,7 +24,7 @@ public:
 	enum NotifyLevel { NOTIFY_ERROR = 0, NOTIFY_IMPORTANT, NOTIFY_VERSION_INFO, NOTIFY_WARNING, NOTIFY_INFO, NOTIFY_DEBUG };
 	
 	/*! Get the MessageHandler instance */
-	static MessageHandler * Instance()
+	static MessageHandler * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -35,7 +35,7 @@ public:
 	}
 
 	/*! Destroy the MessageHandler */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

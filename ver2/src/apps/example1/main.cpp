@@ -18,8 +18,8 @@ int main( int argc, char* argv[] )
 	// Bind your functions
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Init the engine
 	if( !gEngine->init() )
@@ -71,10 +71,10 @@ void myPreSyncFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &curr_time );
 }

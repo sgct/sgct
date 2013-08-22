@@ -28,8 +28,8 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Init the engine
 	if( !gEngine->init() )
@@ -63,7 +63,7 @@ void myInitOGLFun()
 	if(leftHand == NULL || rightHand == NULL)
 	{
 		error = true;
-		sgct::MessageHandler::Instance()->print("Failed to get pointers to hand trackers!\n");
+		sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
 	}
 }
 
@@ -107,12 +107,12 @@ void myPreSyncFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
-	sgct::SharedData::Instance()->writeFloat( &size_factor );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeFloat( &size_factor );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
-	sgct::SharedData::Instance()->readFloat( &size_factor );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readFloat( &size_factor );
 }

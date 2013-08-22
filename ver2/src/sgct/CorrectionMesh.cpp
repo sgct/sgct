@@ -40,13 +40,13 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing correction mesh OpenGL data...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing correction mesh OpenGL data...\n");
 	
-	if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
+	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
 		glDeleteLists(mMeshData[0], 1);
 	else if(mMeshData[0] != 0)
 	{
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != GL_FALSE)
+		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != GL_FALSE)
 			glDeleteVertexArrays(1, &mMeshData[2]);
 		glDeleteBuffers(2, &mMeshData[0]);
 	}
@@ -68,21 +68,21 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 		return false;
 	}
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
 		"Reading mesh data from '%s'.\n", meshPath);
 
 	FILE * meshFile;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( fopen_s(&meshFile, meshPath, "r") != 0 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
 		return false;
 	}
 #else
 	meshFile = fopen(meshPath, "r");
 	if( meshFile == NULL )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
 		return false;
 	}
 #endif
@@ -196,7 +196,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	if( mNumberOfVertices != numOfVerticesRead || mNumberOfFaces != numOfFacesRead )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Incorrect mesh data geometry!");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Incorrect mesh data geometry!");
 		return false;
 	}
 
@@ -206,7 +206,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	cleanUp();
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
 
 	return true;
 }
@@ -268,9 +268,9 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 
 void sgct_core::CorrectionMesh::createMesh()
 {
-	//sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data...\n");
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data...\n");
 
-	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST )
+	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST )
 	{
 		mMeshData[Vertex] = glGenLists(1);
 		glNewList(mMeshData[Vertex], GL_COMPILE);
@@ -302,21 +302,21 @@ void sgct_core::CorrectionMesh::createMesh()
 	}
 	else
 	{
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 		{
 			glGenVertexArrays(1, &mMeshData[Array]);
 			glBindVertexArray(mMeshData[Array]);
 
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VAO: %d\n", mMeshData[Array]);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VAO: %d\n", mMeshData[Array]);
 		}
 
 		glGenBuffers(2, &mMeshData[0]);
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", mMeshData[0], mMeshData[1]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", mMeshData[0], mMeshData[1]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
 
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 		{
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(
@@ -356,7 +356,7 @@ void sgct_core::CorrectionMesh::createMesh()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 
-		if(ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 			glBindVertexArray(0);
 	}
 }
@@ -379,7 +379,7 @@ void sgct_core::CorrectionMesh::cleanUp()
 
 void sgct_core::CorrectionMesh::render()
 {
-	if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VBO )
+	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VBO )
 	{
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
@@ -404,7 +404,7 @@ void sgct_core::CorrectionMesh::render()
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glPopClientAttrib();
 	}
-	else if( ClusterManager::Instance()->getMeshImplementation() == ClusterManager::VAO )
+	else if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO )
 	{
 		glBindVertexArray(mMeshData[Array]);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);

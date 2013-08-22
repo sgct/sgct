@@ -39,23 +39,23 @@ bool sgct::PostFX::init( const std::string & name, const std::string & vertShade
 
 	if( !mShaderProgram.addShaderSrc( vertShaderSrc, GL_VERTEX_SHADER, srcType ) )
 	{
-		MessageHandler::Instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set vertex shader.\n", mName.c_str() );
+		MessageHandler::instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set vertex shader.\n", mName.c_str() );
 		return false;
 	}
 
 	if( !mShaderProgram.addShaderSrc( fragShaderSrc, GL_FRAGMENT_SHADER, srcType ) )
 	{
-		MessageHandler::Instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set fragment shader.\n", mName.c_str() );
+		MessageHandler::instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to load or set fragment shader.\n", mName.c_str() );
 		return false;
 	}
 
 	if( !mShaderProgram.createAndLinkProgram() )
 	{
-		MessageHandler::Instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to link shader!\n", mName.c_str() );
+		MessageHandler::instance()->print( MessageHandler::NOTIFY_ERROR, "PostFX: Pass '%s' failed to link shader!\n", mName.c_str() );
 		return false;
 	}
 
-	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		mRenderFn = &PostFX::internalRenderFixedPipeline;
 	else
 		mRenderFn = &PostFX::internalRender;
@@ -65,7 +65,7 @@ bool sgct::PostFX::init( const std::string & name, const std::string & vertShade
 
 void sgct::PostFX::destroy()
 {
-	MessageHandler::Instance()->print( MessageHandler::NOTIFY_INFO, "PostFX: Pass '%s' destroying shader and texture...\n", mName.c_str() );
+	MessageHandler::instance()->print( MessageHandler::NOTIFY_INFO, "PostFX: Pass '%s' destroying shader and texture...\n", mName.c_str() );
 	
 	mRenderFn = NULL;
 	mUpdateFn = NULL;
@@ -103,7 +103,7 @@ void sgct::PostFX::setOutputTexture( unsigned int outputTex )
 
 void sgct::PostFX::internalRender()
 {
-	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::Instance()->getThisNodePtr()->getActiveWindowPtr();
+	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
 	
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
@@ -139,7 +139,7 @@ void sgct::PostFX::internalRender()
 
 void sgct::PostFX::internalRenderFixedPipeline()
 {
-	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::Instance()->getThisNodePtr()->getActiveWindowPtr();
+	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
 	
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );

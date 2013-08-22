@@ -82,7 +82,7 @@ public:
 	/*!
 		\returns the static pointer to the engine instance
 	*/
-	static Engine * Instance() { return mInstance; }
+	static Engine * instance() { return mInstance; }
 
 	const double & getDt();
 	const double & getAvgDt();
@@ -202,12 +202,12 @@ public:
 	/*!
 		Returns a pinter to the user (VR observer position) object
 	*/
-	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::Instance()->getUserPtr(); }
+	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::instance()->getUserPtr(); }
 
 	/*!
 		Returns a pointer to the tracking manager pointer
 	*/
-	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::Instance()->getTrackingManagerPtr(); }
+	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::instance()->getTrackingManagerPtr(); }
 
 	/*!
 		Check and print if any openGL error has occured
@@ -257,7 +257,7 @@ public:
 	/*!
 		Returns the scene transform specified in the XML configuration, default is a identity matrix
 	*/
-	inline const glm::mat4 & getModelMatrix() { return sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+	inline const glm::mat4 & getModelMatrix() { return sgct_core::ClusterManager::instance()->getSceneTransform(); }
 
 	/*!
 		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
@@ -268,13 +268,13 @@ public:
 		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
 	*/
 	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
-		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 	
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
 	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
-		* sgct_core::ClusterManager::Instance()->getSceneTransform(); }
+		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 
 	/*!
 		Returns the active viewport in pixels (only valid inside in the draw callback function)

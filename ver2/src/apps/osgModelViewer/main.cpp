@@ -115,8 +115,8 @@ int main( int argc, char* argv[] )
 
 	//gEngine->setScreenCaptureFormat( sgct_core::ScreenCapture::TGA );
 
-	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
-	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
+	sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
+	sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
 
 	// Main loop
 	gEngine->render();
@@ -184,12 +184,12 @@ void myInitOGLFun()
 	{
 		osg::Node * tmpNode = NULL;
 		tmpNode = new (std::nothrow) osg::Node();
-		sgct::MessageHandler::Instance()->print("Loading model '%s'...\n", mFilenames[i].c_str());
+		sgct::MessageHandler::instance()->print("Loading model '%s'...\n", mFilenames[i].c_str());
 		tmpNode = osgDB::readNodeFile( mFilenames[i] );
 
 		if ( tmpNode != NULL )
 		{
-			sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
+			sgct::MessageHandler::instance()->print("Model loaded successfully!\n");
 			mModelTrans->addChild( tmpNode );
 
 			//get the bounding box
@@ -203,17 +203,17 @@ void myInitOGLFun()
 			//translate model center to origin
 			//mModelTrans->postMult(osg::Matrix::translate( -tmpVec[0], -tmpVec[1], -tmpVec[2] ) );
 
-			sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-			sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
-			sgct::MessageHandler::Instance()->print("Model bounding xMin:%.3f\txMax:%.3f\txSize: %.3f\n", bb.xMin(), bb.xMax(), bb.xMax() - bb.xMin() );
-			sgct::MessageHandler::Instance()->print("Model bounding yMin:%.3f\tyMax:%.3f\tySize: %.3f\n", bb.yMin(), bb.yMax(), bb.yMax() - bb.yMin() );
-			sgct::MessageHandler::Instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
+			sgct::MessageHandler::instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
+			sgct::MessageHandler::instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
+			sgct::MessageHandler::instance()->print("Model bounding xMin:%.3f\txMax:%.3f\txSize: %.3f\n", bb.xMin(), bb.xMax(), bb.xMax() - bb.xMin() );
+			sgct::MessageHandler::instance()->print("Model bounding yMin:%.3f\tyMax:%.3f\tySize: %.3f\n", bb.yMin(), bb.yMax(), bb.yMax() - bb.yMin() );
+			sgct::MessageHandler::instance()->print("Model bounding zMin:%.3f\tzMax:%.3f\tzSize: %.3f\n", bb.zMin(), bb.zMax(), bb.zMax() - bb.zMin() );
 
 			mModels.push_back( tmpNode );
 		}
 		else
 		{
-			sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+			sgct::MessageHandler::instance()->print("Failed to read model!\n");
 
 		}
 	}
@@ -384,7 +384,7 @@ void myPostSyncPreDrawFun()
 		{
 			recordMode = false;
 			//mingw cannot handle %lf so lets convert to float %f
-			sgct::MessageHandler::Instance()->print("Info: Rendering took %fs\n", static_cast<float>(sgct::Engine::getTime() - t0));
+			sgct::MessageHandler::instance()->print("Info: Rendering took %fs\n", static_cast<float>(sgct::Engine::getTime() - t0));
 		}
 		else
 		{
@@ -427,11 +427,11 @@ void myPostSyncPreDrawFun()
 		//static double timeStamp = 0.0;
 		//animationPath->insert(timeStamp, osg::AnimationPath::ControlPoint( mSceneTrans->getMatrix().getTrans(),
 		//	mSceneTrans->getMatrix().getRotate()) );
-		//sgct::MessageHandler::Instance()->print("Adding animation sample at: %lf (total duration: %lfs)\n", timeStamp, animationPath->getPeriod());
+		//sgct::MessageHandler::instance()->print("Adding animation sample at: %lf (total duration: %lfs)\n", timeStamp, animationPath->getPeriod());
 
 		ad.mPositions.push_back( osg::Vec3( position[0], position[1], position[2] ) );
 		ad.mQuats.push_back( mSceneTrans->getMatrix().getRotate() );
-		sgct::MessageHandler::Instance()->print("Adding animation sample.\n");
+		sgct::MessageHandler::instance()->print("Adding animation sample.\n");
 		//timeStamp += 1.0;
 	}
 
@@ -468,42 +468,42 @@ void myDrawFun()
 
 	/*if( gEngine->isMaster() )
 	{
-		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 35, "Scale: %.10f", scale);
-		sgct_text::print(sgct_text::FontManager::Instance()->GetDefaultFont(), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
+		sgct_text::print(sgct_text::FontManager::instance()->GetDefaultFont(), 20, 35, "Scale: %.10f", scale);
+		sgct_text::print(sgct_text::FontManager::instance()->GetDefaultFont(), 20, 20, "Pos: %.3f %.3f %.3f", position.x, position.y, position.z);
 	}*/
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &dt );
-	sgct::SharedData::Instance()->writeDouble( &animateAngle );
-	sgct::SharedData::Instance()->writeObj( &xform );
-	sgct::SharedData::Instance()->writeBool( &wireframe );
-	sgct::SharedData::Instance()->writeBool( &info );
-	sgct::SharedData::Instance()->writeBool( &stats );
-	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( &light );
-	sgct::SharedData::Instance()->writeBool( &culling );
-	sgct::SharedData::Instance()->writeFloat( &scale );
+	sgct::SharedData::instance()->writeDouble( &dt );
+	sgct::SharedData::instance()->writeDouble( &animateAngle );
+	sgct::SharedData::instance()->writeObj( &xform );
+	sgct::SharedData::instance()->writeBool( &wireframe );
+	sgct::SharedData::instance()->writeBool( &info );
+	sgct::SharedData::instance()->writeBool( &stats );
+	sgct::SharedData::instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::instance()->writeBool( &light );
+	sgct::SharedData::instance()->writeBool( &culling );
+	sgct::SharedData::instance()->writeFloat( &scale );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &dt );
-	sgct::SharedData::Instance()->readDouble( &animateAngle );
-	sgct::SharedData::Instance()->readObj( &xform );
-	sgct::SharedData::Instance()->readBool( &wireframe );
-	sgct::SharedData::Instance()->readBool( &info );
-	sgct::SharedData::Instance()->readBool( &stats );
-	sgct::SharedData::Instance()->readBool( &takeScreenshot );
-	sgct::SharedData::Instance()->readBool( &light );
-	sgct::SharedData::Instance()->readBool( &culling );
-	sgct::SharedData::Instance()->readFloat( &scale );
+	sgct::SharedData::instance()->readDouble( &dt );
+	sgct::SharedData::instance()->readDouble( &animateAngle );
+	sgct::SharedData::instance()->readObj( &xform );
+	sgct::SharedData::instance()->readBool( &wireframe );
+	sgct::SharedData::instance()->readBool( &info );
+	sgct::SharedData::instance()->readBool( &stats );
+	sgct::SharedData::instance()->readBool( &takeScreenshot );
+	sgct::SharedData::instance()->readBool( &light );
+	sgct::SharedData::instance()->readBool( &culling );
+	sgct::SharedData::instance()->readFloat( &scale );
 }
 
 void myCleanUpFun()
 {
-	sgct::MessageHandler::Instance()->print("Cleaning up osg data...\n");
+	sgct::MessageHandler::instance()->print("Cleaning up osg data...\n");
 	delete mViewer;
 	mViewer = NULL;
 }
@@ -582,7 +582,7 @@ void keyCallback(int key, int action)
 			break;
 
 		case 'B':
-			sgct::MessageHandler::Instance()->print("Pos: %f %f %f\n", position.x, position.y, position.z);
+			sgct::MessageHandler::instance()->print("Pos: %f %f %f\n", position.x, position.y, position.z);
 			break;
 
 		case SGCT_KEY_SPACE:
@@ -612,7 +612,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 			{
 				scale.setVal( scale.getVal() * 2.0f );
-				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale.getVal());
+				sgct::MessageHandler::instance()->print("Scale set to %f\n", scale.getVal());
 			}
 			break;
 
@@ -620,7 +620,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 			{
 				scale.setVal( scale.getVal() / 2.0f );
-				sgct::MessageHandler::Instance()->print("Scale set to %f\n", scale.getVal());
+				sgct::MessageHandler::instance()->print("Scale set to %f\n", scale.getVal());
 			}
 			break;
 		}

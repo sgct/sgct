@@ -26,7 +26,7 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
-	mNumberOfThreads = sgct::SGCTSettings::Instance()->getNumberOfCaptureThreads();
+	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
 	mPBO = GL_FALSE;
 	mDataSize = 0;
 	mWindowIndex = 0;
@@ -38,7 +38,7 @@ sgct_core::ScreenCapture::ScreenCapture()
 
 sgct_core::ScreenCapture::~ScreenCapture()
 {
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
 	
 	if( mSCTIPtrs != NULL )
 	{
@@ -55,7 +55,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 			tthread::lock_guard<tthread::mutex> lock(mMutex);
 			if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 			{
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tBuffer %d...\n", i);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tBuffer %d...\n", i);
 				delete mSCTIPtrs[i].mframeBufferImagePtr;
 				mSCTIPtrs[i].mframeBufferImagePtr = NULL;
 			}
@@ -101,7 +101,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	{
 		if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffer %d...\n", i);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffer %d...\n", i);
 
 			//kill threads that are still running
 			if( mSCTIPtrs[i].mFrameCaptureThreadPtr != NULL )
@@ -121,7 +121,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	if( mUsePBO )
 	{
 		glGenBuffers(1, &mPBO);
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating PBO: %d\n", mPBO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating PBO: %d\n", mPBO);
 
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
 		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
@@ -170,11 +170,11 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	int threadIndex = getAvailibleCaptureThread();
 	if( threadIndex == -1 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
 		return;
 	}
 	else
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", threadIndex);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", threadIndex);
 	
 	Image ** imPtr = &mSCTIPtrs[ threadIndex ].mframeBufferImagePtr;
 	if( (*imPtr) == NULL )
@@ -186,18 +186,18 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		if( !(*imPtr)->allocateOrResizeData() ) //if allocation fails
 		{
 			//wait and try again
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
 			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
 			if( !(*imPtr)->allocateOrResizeData() ) 
 			{
-				sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str() );
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str() );
 				return;
 			}
 		}
 	}
 	(*imPtr)->setFilename( mScreenShotFilename.c_str() );
 	
-	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
@@ -209,11 +209,11 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		break;
 
 	case 1:
-		colorType = (sgct::Engine::Instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
 		break;
 
 	case 2:
-		colorType = (sgct::Engine::Instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
 		break;
 
 	case 3:
@@ -226,7 +226,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 
 	if(cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
 	{
-		if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 			glEnable(GL_TEXTURE_2D);
 		glBindTexture(GL_TEXTURE_2D, textureId);
 
@@ -266,7 +266,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		}
 		else
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
 	
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //un-bind pbo
 	}
@@ -279,11 +279,11 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	else
 		error = true;
 
-	if( sgct::Engine::Instance()->isOGLPipelineFixed() )
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		glPopAttrib();
 
 	if(error)
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in taking screenshot/capture!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in taking screenshot/capture!\n");
 }
 
 void sgct_core::ScreenCapture::setUsePBO(bool state)
@@ -301,7 +301,7 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex)
 		mSCTIPtrs[i].mMutexPtr = &mMutex;
 	mWindowIndex = windowIndex;
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
 
 void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
@@ -313,19 +313,19 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 	case Front_Buffer:
 	default:
 		eye.assign("");
-		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::Mono ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::Mono ) );
 		break;
 
 	case FBO_Left_Texture:
 	case Left_Front_Buffer:
 		eye.assign("_L");
-		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::LeftStereo ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::LeftStereo ) );
 		break;
 
 	case FBO_Right_Texture:
 	case Right_Front_Buffer:
 		eye.assign("_R");
-		mScreenShotFilename.assign( sgct::SGCTSettings::Instance()->getCapturePath( sgct::SGCTSettings::RightStereo ) );
+		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::RightStereo ) );
 		break;
 	}
 
@@ -410,7 +410,7 @@ void screenCaptureHandler(void *arg)
 
 	if( !ptr->mframeBufferImagePtr->save() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to save '%s'!\n", ptr->mframeBufferImagePtr->getFilename());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to save '%s'!\n", ptr->mframeBufferImagePtr->getFilename());
 	}
 
 	tthread::lock_guard<tthread::mutex> lock( *(ptr->mMutexPtr) );

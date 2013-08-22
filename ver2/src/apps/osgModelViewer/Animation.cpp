@@ -33,12 +33,12 @@ bool AnimationData::save(std::string filename)
 
 		outFile.close();
 
-		sgct::MessageHandler::Instance()->print("Animation path '%s' saved successfully.\n", filename.c_str());
+		sgct::MessageHandler::instance()->print("Animation path '%s' saved successfully.\n", filename.c_str());
 		return true;
 	}
 	else
 	{
-		sgct::MessageHandler::Instance()->print("Failed to save animation path '%s'!\n", filename.c_str());
+		sgct::MessageHandler::instance()->print("Failed to save animation path '%s'!\n", filename.c_str());
 		return false;
 	}
 }
@@ -76,12 +76,12 @@ bool AnimationData::read(std::string filename)
 
 		inFile.close();
 
-		sgct::MessageHandler::Instance()->print("Animation path '%s' opened successfully. %d samples read.\n", filename.c_str(), i);
+		sgct::MessageHandler::instance()->print("Animation path '%s' opened successfully. %d samples read.\n", filename.c_str(), i);
 		return true;
 	}
 	else
 	{
-		sgct::MessageHandler::Instance()->print("Failed to open animation path '%s'!\n", filename.c_str());
+		sgct::MessageHandler::instance()->print("Failed to open animation path '%s'!\n", filename.c_str());
 		return false;
 	}
 }
@@ -209,7 +209,7 @@ osg::MatrixTransform * Animation::getOrCreateAnimation()
 		mTransform->setMatrix(osg::Matrix::identity());
 		mIsSet = true;
 
-		sgct::MessageHandler::Instance()->print("Initiated animation.\n");
+		sgct::MessageHandler::instance()->print("Initiated animation.\n");
 	}
 
 	return mTransform.get();
@@ -225,7 +225,7 @@ void Animation::play()
 	if( mIsSet )
 	{
 		mAnimation->computeDuration();
-		sgct::MessageHandler::Instance()->print("Staring playback of animation (duration: %lf)\n", mAnimation->getDuration() );
+		sgct::MessageHandler::instance()->print("Staring playback of animation (duration: %lf)\n", mAnimation->getDuration() );
 		mMgr->playAnimation( mAnimation.get() );
 	}
 }

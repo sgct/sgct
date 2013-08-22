@@ -100,6 +100,7 @@ namespace sgct_core
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
+			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -118,7 +119,7 @@ namespace sgct_core
 					Color = vec4(texture(cubemap, rotVec));\n\
 				}\n\
 				else\n\
-					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					Color = bgColor;\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
@@ -130,6 +131,7 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
+			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -150,7 +152,7 @@ namespace sgct_core
 				}\n\
 				else\n\
 				{\n\
-					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					Color = bgColor;\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";
@@ -163,6 +165,7 @@ namespace sgct_core
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
+			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -182,7 +185,7 @@ namespace sgct_core
 					Color = vec4(texture(cubemap, rotVec));\n\
 				}\n\
 				else\n\
-					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					Color = bgColor;\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
@@ -194,6 +197,7 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
+			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -215,7 +219,7 @@ namespace sgct_core
 				}\n\
 				else\n\
 				{\n\
-					Color = vec4(0.0, 0.0, 0.0, 0.0);\n\
+					Color = bgColor;\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";

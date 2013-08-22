@@ -147,7 +147,7 @@ bool sgct::ShaderProgram::createAndLinkProgram()
 {
 	if( mShaders.empty() )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: No shaders has been added to program '%s'!\n", mName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: No shaders has been added to program '%s'!\n", mName.c_str() );
 		return false;
 	}
 
@@ -181,7 +181,7 @@ Reloads a shader by deleting, recompiling and re-linking.
 */
 bool sgct::ShaderProgram::reload()
 {
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ShaderProgram: Reloading program '%s'\n", mName.c_str() );
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ShaderProgram: Reloading program '%s'\n", mName.c_str() );
 	
 	deleteProgram();
 
@@ -195,7 +195,7 @@ bool sgct::ShaderProgram::reload()
 
 		if( !success )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: Failed to load '%s'!\n", mShaders[i].mShaderSrc.c_str() );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ShaderProgram: Failed to load '%s'!\n", mShaders[i].mShaderSrc.c_str() );
 			return false;
 		}
 	}
@@ -216,7 +216,7 @@ bool sgct::ShaderProgram::createProgram()
 		// if it has been linked already it can't be reused
 		if( mIsLinked )
 		{
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not create shader program [%s]: Already linked to shaders.\n", mName.c_str() );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not create shader program [%s]: Already linked to shaders.\n", mName.c_str() );
 			return false;
 		}
 
@@ -228,7 +228,7 @@ bool sgct::ShaderProgram::createProgram()
 
 	if( mProgramId == 0 )
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not create shader program [%s]: Unknown error.\n", mName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not create shader program [%s]: Unknown error.\n", mName.c_str() );
 		return false;
 	}
 
@@ -253,7 +253,7 @@ bool sgct::ShaderProgram::checkLinkStatus() const
 		GLchar * log = new GLchar[logLength];
 		glGetProgramInfoLog( mProgramId, logLength, NULL, log );
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Shader program[%s] linking error: %s\n", mName.c_str(), log );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Shader program[%s] linking error: %s\n", mName.c_str(), log );
 
 		delete[] log;
 		return false;
@@ -273,7 +273,7 @@ bool sgct::ShaderProgram::bind() const
 	//
 	if( !mIsLinked )
 	{
-		//sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
+		//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Could not set shader program [%s] as active: Program is not linked.\n", mName.c_str() );
 		return false;
 	}
 

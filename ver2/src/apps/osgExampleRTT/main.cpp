@@ -69,8 +69,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction( myEncodeFun );
-	sgct::SharedData::Instance()->setDecodeFunction( myDecodeFun );
+	sgct::SharedData::instance()->setEncodeFunction( myEncodeFun );
+	sgct::SharedData::instance()->setDecodeFunction( myDecodeFun );
 
 	// Main loop
 	gEngine->render();
@@ -112,12 +112,12 @@ void myInitOGLFun()
 					512, 
 					512));
 
-	sgct::MessageHandler::Instance()->print("Loading model 'airplane.ive'...\n");
+	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
 	mModel = osgDB::readNodeFile("airplane.ive");
 
 	if ( mModel.valid() )
 	{
-		sgct::MessageHandler::Instance()->print("Model loaded successfully!\n");
+		sgct::MessageHandler::instance()->print("Model loaded successfully!\n");
 		mModelTrans->addChild(mModel.get());
 
 		//get the bounding box
@@ -132,15 +132,15 @@ void myInitOGLFun()
 		mModelTrans->postMult(osg::Matrix::translate( -tmpVec ) );
 		mModelTrans->postMult(osg::Matrix::scale( 1.0f/bb.radius(), 1.0f/bb.radius(), 1.0f/bb.radius() ));
 
-		sgct::MessageHandler::Instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
-		sgct::MessageHandler::Instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
+		sgct::MessageHandler::instance()->print("Model bounding sphere center:\tx=%f\ty=%f\tz=%f\n", tmpVec[0], tmpVec[1], tmpVec[2] );
+		sgct::MessageHandler::instance()->print("Model bounding sphere radius:\t%f\n", bb.radius() );
 
 		//disable face culling
 		mModel->getOrCreateStateSet()->setMode( GL_CULL_FACE,
 			osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 	}
 	else
-		sgct::MessageHandler::Instance()->print("Failed to read model!\n");
+		sgct::MessageHandler::instance()->print("Failed to read model!\n");
 
 	setupLightSource();
 }
@@ -207,7 +207,7 @@ void myDrawFun()
 {
 	//unbind sgct's FBO in order to use osg's FBO
 	//the sgct FBO will be binded again in osg's main camera's pre draw callback
-	sgct::Engine::Instance()->getActiveWindowPtr()->getFBOPtr()->unBind();
+	sgct::Engine::instance()->getActiveWindowPtr()->getFBOPtr()->unBind();
 	
 	const int * curr_vp = gEngine->getActiveViewport();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
@@ -218,31 +218,31 @@ void myDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
-	sgct::SharedData::Instance()->writeDouble( &dist );
-	sgct::SharedData::Instance()->writeBool( &wireframe );
-	sgct::SharedData::Instance()->writeBool( &info );
-	sgct::SharedData::Instance()->writeBool( &stats );
-	sgct::SharedData::Instance()->writeBool( &takeScreenshot );
-	sgct::SharedData::Instance()->writeBool( &light );
-	sgct::SharedData::Instance()->writeBool( &texture );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &dist );
+	sgct::SharedData::instance()->writeBool( &wireframe );
+	sgct::SharedData::instance()->writeBool( &info );
+	sgct::SharedData::instance()->writeBool( &stats );
+	sgct::SharedData::instance()->writeBool( &takeScreenshot );
+	sgct::SharedData::instance()->writeBool( &light );
+	sgct::SharedData::instance()->writeBool( &texture );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
-	sgct::SharedData::Instance()->readDouble( &dist );
-	sgct::SharedData::Instance()->readBool( &wireframe );
-	sgct::SharedData::Instance()->readBool( &info );
-	sgct::SharedData::Instance()->readBool( &stats );
-	sgct::SharedData::Instance()->readBool( &takeScreenshot );
-	sgct::SharedData::Instance()->readBool( &light );
-	sgct::SharedData::Instance()->readBool( &texture );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &dist );
+	sgct::SharedData::instance()->readBool( &wireframe );
+	sgct::SharedData::instance()->readBool( &info );
+	sgct::SharedData::instance()->readBool( &stats );
+	sgct::SharedData::instance()->readBool( &takeScreenshot );
+	sgct::SharedData::instance()->readBool( &light );
+	sgct::SharedData::instance()->readBool( &texture );
 }
 
 void myCleanUpFun()
 {
-	sgct::MessageHandler::Instance()->print("Cleaning up osg data...\n");
+	sgct::MessageHandler::instance()->print("Cleaning up osg data...\n");
 	delete mViewer;
 	mViewer = NULL;
 }

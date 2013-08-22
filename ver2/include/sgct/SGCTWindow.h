@@ -37,19 +37,24 @@ public:
 
 public:
 	SGCTWindow();
-	void setName(const std::string & name);
 	void close();
 	void init(int id);
 	void initOGL();
+	void initNvidiaSwapGroups();
+	void initWindowResolution(const int x, const int y);
+	void swap();
+	void update();
+	void captureBuffer();
+	bool openWindow(GLFWwindow* share);
+	void makeOpenGLContextCurrent( OGL_Context context );
+	void resetSwapGroupFrameNumber();
+
+	// ------------- set functions ----------------- //
+	void setName(const std::string & name);
 	void setVisibility(bool state);
 	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
 	void setFramebufferResolution(const int x, const int y);
-	void initWindowResolution(const int x, const int y);
-	void swap();
-	void update();
-	void makeOpenGLContextCurrent( OGL_Context context );
-	bool isWindowResized();
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(bool fullscreen);
 	void setWindowDecoration(bool state);
@@ -60,40 +65,42 @@ public:
 	void setUseFXAA(bool state);
 	void setUseSwapGroups(const bool state);
 	void setUseQuadbuffer(const bool state);
-	bool openWindow(GLFWwindow* share);
-	void initNvidiaSwapGroups();
-	void getSwapGroupFrameNumber(unsigned int & frameNumber);
-	void resetSwapGroupFrameNumber();
-	void bindVAO();
-	void bindVAO( VBOIndex index );
-	void bindVBO();
-	void bindVBO( VBOIndex index );
-	void unbindVBO();
-	void unbindVAO();
-	void captureBuffer();
-	OffScreenBuffer * getFBOPtr();
-	void getFBODimensions( int & width, int & height );
-	/*!
-		\returns the name of this window if set
-	*/
-	inline std::string getName() { return mName; }
-	/*!
-		\returns if the window is visible or not	
-	*/
-	inline bool isVisible() { return mVisible; }
+	void setNumberOfAASamples(int samples);
+	void setStereoMode( StereoMode sm );
+	void setScreenShotNumber(int number);
 
-	/*!
-		\returns If the frame buffer has a fix resolution this function returns true.
-	*/
-	inline bool isFixResolution() { return mUseFixResolution; }
+	// -------------- is functions --------------- //
+	bool isFullScreen();
+	bool isWindowResized();
+	bool isVisible();
+	bool isFixResolution();
+	bool isStereo();
+	bool isUsingFisheyeRendering();
 	inline bool isBarrierActive() { return mBarrier; }
 	inline bool isUsingSwapGroups() { return mUseSwapGroups; }
 	inline bool isSwapGroupMaster() { return mSwapGroupMaster; }
+		
+	// -------------- get functions ----------------- //
+	std::string getName();
+	/*!
+		\returns the current screenshot number (file index)
+	*/
+	int getNumberOfAASamples();
+	/*!
+		\returns the name of this window if set
+	*/
 	
+	int getScreenShotNumber() { return mShotCounter; }
+	/*!
+		Set the screenshot number (exising images will be replaced)
+		\param mShotCounter is the frame number which will be added to the filename of the screenshot
+	*/
+	StereoMode getStereoMode();
+	void getSwapGroupFrameNumber(unsigned int & frameNumber);
+	void getFBODimensions( int & width, int & height );
+	OffScreenBuffer * getFBOPtr();
 	GLFWmonitor * getMonitor() { return mMonitor; }
 	GLFWwindow * getWindowHandle() { return mWindowHandle; }
-
-	void addPostFX( sgct::PostFX & fx );
 	/*!
 		\returns the pointer to a specific post effect
 	*/
@@ -136,19 +143,15 @@ public:
 	//! \returns the aspect ratio of the window 
 	inline float getAspectRatio() { return mAspectRatio; }
 
-	/*!
-		Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
-	*/
-	StereoMode getStereoMode();
+	// -------------- bind functions -------------------//
+	void bindVAO();
+	void bindVAO( VBOIndex index );
+	void bindVBO();
+	void bindVBO( VBOIndex index );
+	void unbindVBO();
+	void unbindVAO();
 
-	/*!
-		Returns true if any kind of stereo is enabled
-	*/
-	inline bool isStereo() { return (mStereoMode != NoStereo); }
-	/*!
-		Set the stereo mode. This must be done before creating the window (before Engine::Init)
-	*/
-	inline void setStereoMode( StereoMode sm ) { mStereoMode = sm; }
+	void addPostFX( sgct::PostFX & fx );
 
 	//viewport stuff
 	void addViewport(float left, float right, float bottom, float top);
@@ -162,15 +165,10 @@ public:
 	inline void setCurrentViewport(std::size_t index) { mCurrentViewportIndex = index; }
 	inline void setSwapInterval(int val) { mSwapInterval = val; }
 
-	void setNumberOfAASamples(int samples);
-	int getNumberOfAASamples();
-
 	/*! \returns true if FXAA should be used */
 	inline bool useFXAA() { return mUseFXAA; }
 	/*! \returns true if PostFX pass should be used */
 	inline bool usePostFX() { return mUsePostFX; }
-	/*! \returns true if full screen rendering is enabled */
-	inline bool isFullScreen() { return mFullScreen; }
 	/*!
 		\param index Index or Engine::TextureIndexes enum
 		\returns texture index of selected frame buffer texture
@@ -193,6 +191,7 @@ public:
 	inline int getFisheyeShaderCubemapDepthLoc() { return DepthCubemap; }
 	inline int getFisheyeShaderCubemapNormalsLoc() { return NormalCubemap; }
 	inline int getFisheyeShaderHalfFOVLoc() { return FishEyeHalfFov; }
+	inline int getFisheyeBGColorLoc() { return FishEyeBGColor; }
 	inline int getFisheyeShaderOffsetLoc() { return FisheyeOffset; }
 
 	inline void bindFisheyeDepthCorrectionShaderProgram() { mFisheyeDepthCorrectionShader.bind(); }
@@ -215,7 +214,6 @@ public:
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
-	bool isUsingFisheyeRendering();
 	int getCubeMapResolution();
 	float getDomeDiameter();
 	float getFisheyeTilt();
@@ -223,16 +221,6 @@ public:
 	float getFisheyeCropValue(FisheyeCropSide side);
 	bool isFisheyeOffaxis();
 	const char * getFisheyeOverlay();
-
-	/*!
-		\returns the current screenshot number (file index)
-	*/
-	int getScreenShotNumber() { return mShotCounter; }
-	/*!
-		Set the screenshot number (exising images will be replaced)
-		\param mShotCounter is the frame number which will be added to the filename of the screenshot
-	*/
-	void setScreenShotNumber(int number) {  mShotCounter = number; }
 
 private:
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
@@ -297,7 +285,7 @@ private:
 
 	//Shaders
 	sgct::ShaderProgram mFisheyeShader, mFisheyeDepthCorrectionShader;
-	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FisheyeOffset, FishEyeSwapMVP, FishEyeSwapColor, FishEyeSwapDepth, FishEyeSwapNear, FishEyeSwapFar;
+	int FisheyeMVP, Cubemap, DepthCubemap, NormalCubemap, FishEyeHalfFov, FishEyeBGColor, FisheyeOffset, FishEyeSwapMVP, FishEyeSwapColor, FishEyeSwapDepth, FishEyeSwapNear, FishEyeSwapFar;
 	sgct::ShaderProgram mStereoShader;
 	int StereoMVP, StereoLeftTex, StereoRightTex;
 

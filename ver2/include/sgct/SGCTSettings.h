@@ -23,7 +23,7 @@ public:
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 
 	/*! Get the SGCTSettings instance */
-	static SGCTSettings * Instance()
+	static SGCTSettings * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -34,7 +34,7 @@ public:
 	}
 
 	/*! Destroy the SGCTSettings instance */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

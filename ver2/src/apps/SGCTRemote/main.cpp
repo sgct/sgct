@@ -29,8 +29,8 @@ int main( int argc, char* argv[] )
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Init the engine
 	if( !gEngine->init() )
@@ -88,20 +88,20 @@ void myPostSyncPreDrawFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
-	sgct::SharedData::Instance()->writeFloat( &size_factor );
-	sgct::SharedData::Instance()->writeBool( &showStats );
-	sgct::SharedData::Instance()->writeBool( &showGraph );
-	sgct::SharedData::Instance()->writeBool( &showWireframe );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeFloat( &size_factor );
+	sgct::SharedData::instance()->writeBool( &showStats );
+	sgct::SharedData::instance()->writeBool( &showGraph );
+	sgct::SharedData::instance()->writeBool( &showWireframe );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
-	sgct::SharedData::Instance()->readFloat( &size_factor );
-	sgct::SharedData::Instance()->readBool( &showStats );
-	sgct::SharedData::Instance()->readBool( &showGraph );
-	sgct::SharedData::Instance()->readBool( &showWireframe );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readFloat( &size_factor );
+	sgct::SharedData::instance()->readBool( &showStats );
+	sgct::SharedData::instance()->readBool( &showGraph );
+	sgct::SharedData::instance()->readBool( &showWireframe );
 }
 
 void externalControlCallback(const char * receivedChars, int size, int clientId)

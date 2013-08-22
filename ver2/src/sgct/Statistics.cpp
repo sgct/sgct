@@ -119,23 +119,23 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		glGenVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
 		glGenVertexArrays(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
 
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs: ");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs: ");
 		for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVAOs[i]);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVAOs[i]);
 		for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
-			sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVAOs[i]);
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVAOs[i]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 	}
 
 	glGenBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
 	glGenBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVBOs[0]);
 
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs: ");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs: ");
 	for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVBOs[i]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVBOs[i]);
 	for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVBOs[i]);
-	sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVBOs[i]);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 		
 	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 	{
@@ -399,28 +399,28 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 			0.0f, static_cast<float>(STATS_HISTORY_LENGTH) );
 		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, 32.0f, 0.0f) );
 		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, static_cast<float>(VERT_SCALE), 1.0f) );
-
+		
 		mShader.bind();
 		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
 		
 		//draw background (1024x1024 canvas)
-		glUniform4f( mColLoc, mStaticColors[ BG ].r, mStaticColors[ BG ].g, mStaticColors[ BG ].b, mStaticColors[ BG ].a );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]) );
 		glBindVertexArray( mStaticVAOs[ BG ] );
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		//1 ms lines
-		glUniform4f( mColLoc, mStaticColors[ GRID ].r, mStaticColors[ GRID ].g, mStaticColors[ GRID ].b, mStaticColors[ GRID ].a );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
 		glBindVertexArray( mStaticVAOs[ GRID ] );
 		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 		
 		//zero line, 60hz & 30hz
-		glUniform4f( mColLoc, mStaticColors[ FREQ ].r, mStaticColors[ FREQ ].g, mStaticColors[ FREQ ].b, mStaticColors[ FREQ ].a );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
 		glBindVertexArray( mStaticVAOs[ FREQ ] );
 		glDrawArrays( GL_LINES, 0, 6 );
 		
 		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
-			glUniform4f( mColLoc, mDynamicColors[i].r, mDynamicColors[i].g, mDynamicColors[i].b, mDynamicColors[i].a );
+			glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[i]) );
 			glBindVertexArray( mDynamicVAOs[ i ] );
 			glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
 		}

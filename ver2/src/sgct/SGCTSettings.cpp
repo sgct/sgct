@@ -87,7 +87,7 @@ void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::Ca
 {
 	if( path.empty() ) //invalid filename
 	{
-		sgct::MessageHandler::Instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
 		return;
 	}
 		

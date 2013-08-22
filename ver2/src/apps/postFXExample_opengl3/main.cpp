@@ -118,8 +118,8 @@ int main( int argc, char* argv[] )
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Main loop
 	gEngine->render();
@@ -146,17 +146,17 @@ void myDrawFun()
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
+	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
 
-	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
 	//draw the box
 	myBox->draw();
 
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
@@ -172,9 +172,9 @@ void myPreSyncFun()
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::Instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
@@ -184,29 +184,29 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	sgct::ShaderManager::Instance()->addShaderProgram( "xform",
+	sgct::ShaderManager::instance()->addShaderProgram( "xform",
 			"SimpleVertexShader.vertexshader",
 			"SimpleFragmentShader.fragmentshader" );
 
-	sgct::ShaderManager::Instance()->bindShaderProgram( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+	GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
 	glUniform1i( Tex_Loc, 0 );
 
-	sgct::ShaderManager::Instance()->unBindShaderProgram();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	setupPostFXs();
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble(&curr_time);
+	sgct::SharedData::instance()->writeDouble(&curr_time);
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble(&curr_time);
+	sgct::SharedData::instance()->readDouble(&curr_time);
 }
 
 void myCleanUpFun()

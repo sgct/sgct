@@ -169,11 +169,11 @@ bool sgct::Engine::init(RunMode rm)
 {
 	mRunMode = rm;
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "%s\n", getSGCTVersion().c_str() );
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "%s\n", getSGCTVersion().c_str() );
 
 	if(mTerminate)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to init GLFW! Application will close in 5 seconds.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to init GLFW! Application will close in 5 seconds.\n");
 		sleep( 5.0 );
 		return false;
 	}
@@ -181,7 +181,7 @@ bool sgct::Engine::init(RunMode rm)
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Error in xml config file parsing. Application will close in 5 seconds.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Error in xml config file parsing. Application will close in 5 seconds.\n");
 		sleep( 5.0 );
 		
 		return false;
@@ -189,20 +189,20 @@ bool sgct::Engine::init(RunMode rm)
 
 	if( !initNetwork() )
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Network init error. Application will close in 5 seconds.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Network init error. Application will close in 5 seconds.\n");
 		sleep( 5.0 );
 		return false;
 	}
 
 	if( !initWindows() )
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Window init error. Application will close in 5 seconds.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window init error. Application will close in 5 seconds.\n");
 		sleep( 5.0 );
 		return false;
 	}
 
 	//if a single node, skip syncing
-	if(ClusterManager::Instance()->getNumberOfNodes() == 1)
+	if(ClusterManager::instance()->getNumberOfNodes() == 1)
 		mIgnoreSync = true;
 
 	for(std::size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -248,39 +248,39 @@ bool sgct::Engine::initNetwork()
 	}
 	catch(const char * err)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Initiating network connections failed! Error: '%s'\n", err);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Initiating network connections failed! Error: '%s'\n", err);
 		return false;
 	}
 
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
-		for(unsigned int i=0; i<ClusterManager::Instance()->getNumberOfNodes(); i++)
-			if( mNetworkConnections->matchAddress( ClusterManager::Instance()->getNodePtr(i)->ip ) )
+		for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
+			if( mNetworkConnections->matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) )
 			{
-				ClusterManager::Instance()->setThisNodeId(i);
-				mThisNode = ClusterManager::Instance()->getNodePtr(i);
+				ClusterManager::instance()->setThisNodeId(i);
+				mThisNode = ClusterManager::instance()->getNodePtr(i);
 				break;
 			}
 
-	if( ClusterManager::Instance()->getThisNodeId() == -1 ||
-		ClusterManager::Instance()->getThisNodeId() >= static_cast<int>( ClusterManager::Instance()->getNumberOfNodes() )) //fatal error
+	if( ClusterManager::instance()->getThisNodeId() == -1 ||
+		ClusterManager::instance()->getThisNodeId() >= static_cast<int>( ClusterManager::instance()->getNumberOfNodes() )) //fatal error
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "This computer is not a part of the cluster configuration!\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "This computer is not a part of the cluster configuration!\n");
 		mNetworkConnections->close();
 		return false;
 	}
 	else
 	{
-		printNodeInfo( static_cast<unsigned int>(ClusterManager::Instance()->getThisNodeId()) );
+		printNodeInfo( static_cast<unsigned int>(ClusterManager::instance()->getThisNodeId()) );
 	}
 
 	//Set message handler to send messages or not
-	MessageHandler::Instance()->setSendFeedbackToServer( !mNetworkConnections->isComputerServer() );
+	MessageHandler::instance()->setSendFeedbackToServer( !mNetworkConnections->isComputerServer() );
 
 	if(!mNetworkConnections->init())
 		return false;
 
-    MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Done\n");
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Done\n");
 	return true;
 }
 
@@ -291,13 +291,13 @@ bool sgct::Engine::initWindows()
 {
 	if( mThisNode->getNumberOfWindows() == 0 )
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "No windows exist in configuration!\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "No windows exist in configuration!\n");
 		return false;
 	}
 	
 	int tmpGlfwVer[3];
     glfwGetVersion( &tmpGlfwVer[0], &tmpGlfwVer[1], &tmpGlfwVer[2] );
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLFW version %d.%d.%d.\n",
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLFW version %d.%d.%d.\n",
                                          tmpGlfwVer[0],
                                          tmpGlfwVer[1],
                                          tmpGlfwVer[2]);
@@ -397,7 +397,7 @@ bool sgct::Engine::initWindows()
 		
 		if( !mThisNode->getWindowPtr(i)->openWindow( share ) )
 		{
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to open window %d!\n", i);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to open window %d!\n", i);
 			return false;
 		}
 	}
@@ -406,13 +406,13 @@ bool sgct::Engine::initWindows()
 	if (GLEW_OK != err)
 	{
 	  //Problem: glewInit failed, something is seriously wrong.
-	  MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "GLEW error: %s!\n", glewGetErrorString(err));
+	  MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "GLEW error: %s!\n", glewGetErrorString(err));
 	  return false;
 	}
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLEW %s.\n", glewGetString(GLEW_VERSION));
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLEW %s.\n", glewGetString(GLEW_VERSION));
 
 	if( !checkForOGLErrors() )
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "GLEW init triggered an OpenGL error.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "GLEW init triggered an OpenGL error.\n");
 
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
@@ -449,7 +449,7 @@ void sgct::Engine::initOGL()
 		mInternalRenderPostFXFn = &Engine::renderPostFX;
 		mInternalRenderFisheyeFn = &Engine::renderFisheye;
 
-		ClusterManager::Instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
+		ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
 		mFixedOGLPipeline = false;
 	}
 	else
@@ -469,18 +469,18 @@ void sgct::Engine::initOGL()
 	mOpenGL_Version[1] = glfwGetWindowAttrib( getActiveWindowPtr()->getWindowHandle(), GLFW_CONTEXT_VERSION_MINOR );
 	mOpenGL_Version[2] = glfwGetWindowAttrib( getActiveWindowPtr()->getWindowHandle(), GLFW_CONTEXT_REVISION);
 	
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
 		mFixedOGLPipeline ? "comp. profile" : "core profile");
 
 	if( !GLEW_EXT_framebuffer_object && mOpenGL_Version[0] < 2)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! Frame buffer objects are not supported! A lot of features in SGCT will not work!\n");
-		SGCTSettings::Instance()->setUseFBO( false );
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! Frame buffer objects are not supported! A lot of features in SGCT will not work!\n");
+		SGCTSettings::instance()->setUseFBO( false );
 	}
 	else if(!GLEW_EXT_framebuffer_multisample && mOpenGL_Version[0] < 2)
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO multisampling is not supported!\n");
-		SGCTSettings::Instance()->setUseFBO( true );
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO multisampling is not supported!\n");
+		SGCTSettings::instance()->setUseFBO( true );
 
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 			mThisNode->getWindowPtr(i)->setNumberOfAASamples(1);
@@ -489,15 +489,15 @@ void sgct::Engine::initOGL()
 	char nodeName[MAX_SGCT_PATH_LENGTH];
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
+			ClusterManager::instance()->getThisNodeId());
 	#else
 		sprintf( nodeName, "_node%d",
-			ClusterManager::Instance()->getThisNodeId());
+			ClusterManager::instance()->getThisNodeId());
     #endif
 
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
-	SGCTSettings::Instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
+	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
+	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
+	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
 
 	//init window opengl data
 	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
@@ -522,14 +522,14 @@ void sgct::Engine::initOGL()
 	//
 	if( mConfig->getFontPath().empty() )
 	{
-	    if( !sgct_text::FontManager::Instance()->AddFont( "SGCTFont", mConfig->getFontName() ) )
-            sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", mConfig->getFontName() ) )
+            sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
     }
     else
     {
 	    std::string tmpPath = mConfig->getFontPath() + mConfig->getFontName();
-	    if( !sgct_text::FontManager::Instance()->AddFont( "SGCTFont", tmpPath, sgct_text::FontManager::FontPath_Local ) )
-            sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() );
+	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", tmpPath, sgct_text::FontManager::FontPath_Local ) )
+            sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
     }
 
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -542,7 +542,7 @@ void sgct::Engine::initOGL()
 			getActiveWindowPtr()->getViewport(j)->loadData();
 
 		//init swap barrier is swap groups are active
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Joining swap barrier if enabled and reseting counter...\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Joining swap barrier if enabled and reseting counter...\n");
 		mThisNode->getWindowPtr(i)->setBarrier(true);
 		mThisNode->getWindowPtr(i)->resetSwapGroupFrameNumber();
 	}
@@ -550,7 +550,7 @@ void sgct::Engine::initOGL()
 	//check for errors
 	checkForOGLErrors();
 	
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_IMPORTANT, "\nReady to render!\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "\nReady to render!\n");
 }
 
 /*!
@@ -558,7 +558,7 @@ Clean up all resources and release memory.
 */
 void sgct::Engine::clean()
 {
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
 
 	if( mCleanUpFn != NULL )
 	{
@@ -567,11 +567,11 @@ void sgct::Engine::clean()
 		mCleanUpFn();
 	}
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Clearing all callbacks...\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Clearing all callbacks...\n");
 	clearAllCallbacks();
 
 	//de-init window and unbind swapgroups...
-	if(ClusterManager::Instance()->getNumberOfNodes() > 0)
+	if(ClusterManager::instance()->getNumberOfNodes() > 0)
 	{
 		if(mThisNode != NULL)
 			for(std::size_t i=0; i<mThisNode->getNumberOfWindows(); i++)
@@ -599,37 +599,37 @@ void sgct::Engine::clean()
 		mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 	if( mStatistics != NULL )
 	{
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Deleting stats data...\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting stats data...\n");
 		delete mStatistics;
 		mStatistics = NULL;
 	}
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shader manager and internal shaders...\n");
-	ShaderManager::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shader manager and internal shaders...\n");
+	ShaderManager::destroy();
 	for(size_t i = 0; i < NUMBER_OF_SHADERS; i++)
 		mShaders[i].deleteProgram();
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying texture manager...\n");
-	TextureManager::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying texture manager...\n");
+	TextureManager::destroy();
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying font manager...\n");
-	sgct_text::FontManager::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying font manager...\n");
+	sgct_text::FontManager::destroy();
 
 	//Window specific context ------------------------------------------------------------------->
 	if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 		mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
-	SharedData::Destroy();
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying cluster manager...\n");
-	ClusterManager::Destroy();
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying settings...\n");
-	SGCTSettings::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
+	SharedData::destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying cluster manager...\n");
+	ClusterManager::destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying settings...\n");
+	SGCTSettings::destroy();
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying message handler...\n");
-	MessageHandler::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying message handler...\n");
+	MessageHandler::destroy();
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Destroying mutexes...\n");
-	SGCTMutexManager::Destroy();
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying mutexes...\n");
+	SGCTMutexManager::destroy();
 
 	// Close window and terminate GLFW
 	std::cout << std::endl << "Terminating glfw...";
@@ -698,9 +698,9 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
-					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
-					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
+					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SyncMutex );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
+					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
 				//for debuging
@@ -710,7 +710,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for master... send frame %d, recv frame %d\n",
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for master... send frame %d, recv frame %d\n",
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
 						}
@@ -746,9 +746,9 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
-					SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
-					SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::SyncMutex );
+					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SyncMutex );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
+					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SyncMutex );
 				}
 
 				//for debuging
@@ -758,7 +758,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave at connection %d: send frame %d != recv frame %d\n", i,
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave at connection %d: send frame %d != recv frame %d\n", i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
 						}
@@ -787,7 +787,7 @@ void sgct::Engine::render()
 
 		//update tracking data
 		if( isMaster() )
-			ClusterManager::Instance()->getTrackingManagerPtr()->updateTrackingDevices();
+			ClusterManager::instance()->getTrackingManagerPtr()->updateTrackingDevices();
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Running pre-sync.\n");
@@ -800,13 +800,13 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Encoding data.\n");
 #endif
-			SharedData::Instance()->encode();
+			SharedData::instance()->encode();
 		}
 		else
 		{
 			if( !mNetworkConnections->isRunning() ) //exit if not running
 			{
-				MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "Network disconnected! Exiting...\n");
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Network disconnected! Exiting...\n");
 				break;
 			}
 		}
@@ -820,7 +820,7 @@ void sgct::Engine::render()
     fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
 #endif
 	
-		mRenderingOffScreen = SGCTSettings::Instance()->useFBO();
+		mRenderingOffScreen = SGCTSettings::instance()->useFBO();
 		if( mRenderingOffScreen )
 			getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 		
@@ -838,6 +838,9 @@ void sgct::Engine::render()
 			mThisNode->getWindowPtr(i)->update();
 		}
 
+		//--------------------------------------------------------------
+		//     RENDER VIEWPORTS / DRAW
+		//--------------------------------------------------------------
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		if( mThisNode->getWindowPtr(i)->isVisible() )
 		{
@@ -895,7 +898,7 @@ void sgct::Engine::render()
 				mThisNode->setCurrentWindowIndex(i);
 
 				mRenderingOffScreen = false;
-				if( SGCTSettings::Instance()->useFBO() )
+				if( SGCTSettings::instance()->useFBO() )
 					(this->*mInternalRenderFBOFn)();
 			}
 		//reset back to shared context
@@ -977,46 +980,46 @@ void sgct::Engine::renderDisplayInfo()
 	unsigned int lFrameNumber = 0;
 	getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
-	glm::vec4 strokeColor = sgct_text::FontManager::Instance()->getStrokeColor();
-	signed long strokeSize = sgct_text::FontManager::Instance()->getStrokeSize();
-	sgct_text::FontManager::Instance()->SetStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
-	sgct_text::FontManager::Instance()->SetStrokeSize( 1 );
+	glm::vec4 strokeColor = sgct_text::FontManager::instance()->getStrokeColor();
+	signed long strokeSize = sgct_text::FontManager::instance()->getStrokeSize();
+	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
+	sgct_text::FontManager::instance()->setStrokeSize( 1 );
 	
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		75.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		75.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Node ip: %s (%s)",
 		mThisNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		60.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		60.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.0f,1.0f),
 		"Frame rate: %.3f Hz, frame: %u",
 		mStatistics->getAvgFPS(),
 		mFrameCounter);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		45.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		45.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.0f,0.8f,1.0f),
 		"Avg. draw time: %.2f ms",
 		mStatistics->getAvgDrawTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		30.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		30.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.0f,0.8f,0.8f,1.0f),
 		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
-		SharedData::Instance()->getUserDataSize(),
-		SharedData::Instance()->getCompressionRatio(),
+		SharedData::instance()->getUserDataSize(),
+		SharedData::instance()->getCompressionRatio(),
 		mStatistics->getAvgSyncTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		15.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		15.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Swap groups: %s and %s (%s) | Frame: %d",
 		getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
@@ -1024,9 +1027,9 @@ void sgct::Engine::renderDisplayInfo()
 		getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
-	sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Tracked: %s | User position: %.3f %.3f %.3f",
 		getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
@@ -1037,24 +1040,24 @@ void sgct::Engine::renderDisplayInfo()
 	//if active stereoscopic rendering
 	if( mActiveFrustum == Frustum::StereoLeftEye )
 	{
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+		sgct_text::print( sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye: Left");
 	}
 	else if( mActiveFrustum == Frustum::StereoRightEye )
 	{
-		sgct_text::print( sgct_text::FontManager::Instance()->GetFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::Instance()->getOSDTextXOffset(),
-		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::Instance()->getOSDTextYOffset(),
+		sgct_text::print( sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Active eye:          Right");
 	}
 
 	//reset
-	sgct_text::FontManager::Instance()->SetStrokeColor( strokeColor );
-	sgct_text::FontManager::Instance()->SetStrokeSize( strokeSize );
+	sgct_text::FontManager::instance()->setStrokeColor( strokeColor );
+	sgct_text::FontManager::instance()->setStrokeSize( strokeSize );
 }
 
 /*!
@@ -1144,7 +1147,7 @@ void sgct::Engine::drawOverlays()
 				orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureManager::Instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
+			glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
 
 			mShaders[OverlayShader].bind();
 
@@ -1205,7 +1208,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 
 			//glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, TextureManager::Instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
+			glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
 
 			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -1241,7 +1244,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 */
 void sgct::Engine::prepareBuffer(TextureIndexes ti)
 {
-	if( SGCTSettings::Instance()->useFBO() )
+	if( SGCTSettings::instance()->useFBO() )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
 			ti = Intermediate;
@@ -1254,7 +1257,7 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 			//update attachments
 			fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( ti ) );
 
-			if( SGCTSettings::Instance()->useDepthTexture() )
+			if( SGCTSettings::instance()->useDepthTexture() )
 				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
 		}
 
@@ -1454,7 +1457,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
 			{
-				if( SGCTSettings::Instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
 					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
 					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
@@ -1477,7 +1480,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				if( SGCTSettings::Instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
 					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
 					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
@@ -1492,7 +1495,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 			//re-calculate depth values from a cube to spherical model
-			if( SGCTSettings::Instance()->useDepthTexture() )
+			if( SGCTSettings::instance()->useDepthTexture() )
 			{	
 				CubeMapFBO->bind( false ); //bind no multi-sampled
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
@@ -1501,8 +1504,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				mClearBufferFn();
 
 				glDisable( GL_CULL_FACE );
-				getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				if( getActiveWindowPtr()->useFisheyeAlpha() )
+				{	
+					glEnable(GL_BLEND);
+					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				}
+				else
+					glDisable(GL_BLEND);
 				glEnable( GL_DEPTH_TEST );
 				glDepthFunc( GL_ALWAYS );
 				statesSet = true;
@@ -1540,7 +1548,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-	if( SGCTSettings::Instance()->useDepthTexture() )
+	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1558,7 +1566,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
-	if( SGCTSettings::Instance()->useDepthTexture() )
+	if( SGCTSettings::instance()->useDepthTexture() )
 	{
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
@@ -1567,8 +1575,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if( !statesSet )
 	{
 		glDisable( GL_CULL_FACE );
-		getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		if( getActiveWindowPtr()->useFisheyeAlpha() )
+		{	
+			glEnable(GL_BLEND);
+			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+		}
+		else
+			glDisable(GL_BLEND);
 		glEnable( GL_DEPTH_TEST );
 		glDepthFunc( GL_ALWAYS );
 	}
@@ -1577,10 +1590,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
-	if( SGCTSettings::Instance()->useDepthTexture() )
+	if( SGCTSettings::instance()->useDepthTexture() )
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
+	glUniform4f( getActiveWindowPtr()->getFisheyeBGColorLoc(), mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3] );
+
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
 		glUniform3f( getActiveWindowPtr()->getFisheyeShaderOffsetLoc(),
@@ -1594,7 +1609,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVAO();
 
 	ShaderProgram::unbind();
-	glDisable(GL_DEPTH_TEST);
 	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	if(mTakeScreenshot)
@@ -1612,20 +1626,21 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			float x = static_cast<float>( size - size/4 );
 			float y = static_cast<float>( fontSize );
 
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
 
 			if( mActiveFrustum == Frustum::Mono )
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Mono");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
 			else if( mActiveFrustum == Frustum::StereoLeftEye )
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Left");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Left");
 			else
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
 		}
 	}
-
+	
 	if( !getActiveWindowPtr()->useFisheyeAlpha() )
 		glEnable(GL_BLEND);
-
+	
+	glDisable(GL_DEPTH_TEST);
 	if( getActiveWindowPtr()->usePostFX() )
 	{
 		//blit buffers
@@ -1669,7 +1684,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
 			{
-				if( SGCTSettings::Instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
 					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
 					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
@@ -1689,7 +1704,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				CubeMapFBO->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				if( SGCTSettings::Instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
 					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
 					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
@@ -1704,7 +1719,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
 			//re-calculate depth values from a cube to spherical model
-			if( SGCTSettings::Instance()->useDepthTexture() )
+			if( SGCTSettings::instance()->useDepthTexture() )
 			{	
 				CubeMapFBO->bind( false ); //bind no multi-sampled
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
@@ -1740,8 +1755,13 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 				glDisable( GL_CULL_FACE );
-				getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-				glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				if( getActiveWindowPtr()->useFisheyeAlpha() )
+				{	
+					glEnable(GL_BLEND);
+					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+				}
+				else
+					glDisable(GL_BLEND);
 				glEnable( GL_DEPTH_TEST );
 				glDepthFunc( GL_ALWAYS );
 
@@ -1784,7 +1804,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 			finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-	if( SGCTSettings::Instance()->useDepthTexture() )
+	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
 	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1821,8 +1841,13 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
 
 	glDisable(GL_CULL_FACE);
-	getActiveWindowPtr()->useFisheyeAlpha() ? glEnable(GL_BLEND) : glDisable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	if( getActiveWindowPtr()->useFisheyeAlpha() )
+	{	
+		glEnable(GL_BLEND);
+		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
+	}
+	else
+		glDisable(GL_BLEND);
 	glDisable(GL_LIGHTING);
 	glEnable( GL_DEPTH_TEST );
 	glDepthFunc( GL_ALWAYS );
@@ -1830,7 +1855,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	getActiveWindowPtr()->bindFisheyeShaderProgram();
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
-	if( SGCTSettings::Instance()->useDepthTexture() )
+	if( SGCTSettings::instance()->useDepthTexture() )
 	{
 		glActiveTexture(GL_TEXTURE1);
 		glEnable(GL_TEXTURE_CUBE_MAP);
@@ -1839,6 +1864,8 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	}
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
+	glUniform4f( getActiveWindowPtr()->getFisheyeBGColorLoc(), mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3] );
+
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
 		glUniform3f( getActiveWindowPtr()->getFisheyeShaderOffsetLoc(),
@@ -1862,7 +1889,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVBO();
 
 	ShaderProgram::unbind();
-	glDisable(GL_DEPTH_TEST);
 	
 	glPopClientAttrib();
 	glPopMatrix();
@@ -1890,20 +1916,21 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			float x = static_cast<float>( size - size/4 );
 			float y = static_cast<float>( fontSize );
 
-			sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
 
 			if( mActiveFrustum == Frustum::Mono )
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Mono");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
 			else if( mActiveFrustum == Frustum::StereoLeftEye )
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Left");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Left");
 			else
-				sgct_text::print(sgct_text::FontManager::Instance()->GetFont( "SGCTFont", fontSize ), x, y, "Right");
+				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
 		}
 	}
 
 	if( !getActiveWindowPtr()->useFisheyeAlpha() )
 		glEnable(GL_BLEND);
 
+	glDisable(GL_DEPTH_TEST);
 	if( getActiveWindowPtr()->usePostFX() )
 	{
 		//blit buffers
@@ -1927,7 +1954,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 void sgct::Engine::renderViewports(TextureIndexes ti)
 {
 	prepareBuffer( ti );
-	SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
+	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 	
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
@@ -1991,7 +2018,8 @@ void sgct::Engine::render2D()
 	//therefore just loop one iteration in that case.
 	if( mShowGraph || mShowInfo )
 	{
-		for(std::size_t i=0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+		std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
+		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getActiveWindowPtr()->setCurrentViewport(i);
 			enterCurrentViewport(FBOSpace);
@@ -2068,8 +2096,8 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
 		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
 		glUniform1i( mShaderLocs[FXAA_Texture], 0 );
-		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
-		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::instance()->getFXAASubPixTrim() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::instance()->getFXAASubPixOffset() );
 
 		getActiveWindowPtr()->bindVAO( SGCTWindow::RenderQuad );
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -2174,8 +2202,8 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
 		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
 		glUniform1i( mShaderLocs[FXAA_Texture], 0 );
-		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
-		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::instance()->getFXAASubPixTrim() );
+		glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::instance()->getFXAASubPixOffset() );
 
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -2216,7 +2244,7 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 		//update attachments
 		fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-		if( SGCTSettings::Instance()->useDepthTexture() )
+		if( SGCTSettings::instance()->useDepthTexture() )
 			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
 		
 		fbo->blit();
@@ -2275,10 +2303,10 @@ void sgct::Engine::loadShaders()
 	glUniform1f( mShaderLocs[SizeY], static_cast<float>( getActiveWindowPtr()->getYFramebufferResolution()) );
 
 	mShaderLocs[FXAA_SUBPIX_TRIM] = mShaders[FXAAShader].getUniformLocation( "FXAA_SUBPIX_TRIM" );
-	glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::Instance()->getFXAASubPixTrim() );
+	glUniform1f( mShaderLocs[FXAA_SUBPIX_TRIM], SGCTSettings::instance()->getFXAASubPixTrim() );
 
 	mShaderLocs[FXAA_SUBPIX_OFFSET] = mShaders[FXAAShader].getUniformLocation( "FXAA_SUBPIX_OFFSET" );
-	glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::Instance()->getFXAASubPixOffset() );
+	glUniform1f( mShaderLocs[FXAA_SUBPIX_OFFSET], SGCTSettings::instance()->getFXAASubPixOffset() );
 
 	mShaderLocs[FXAA_Texture] = mShaders[FXAAShader].getUniformLocation( "tex" );
 	glUniform1i( mShaderLocs[FXAA_Texture], 0 );
@@ -2372,35 +2400,35 @@ bool sgct::Engine::checkForOGLErrors()
 	switch( oglError )
 	{
 	case GL_INVALID_ENUM:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_ENUM\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_ENUM\n");
 		break;
 
 	case GL_INVALID_VALUE:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_VALUE\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_VALUE\n");
 		break;
 
 	case GL_INVALID_OPERATION:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_OPERATION\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_OPERATION\n");
 		break;
 
 	case GL_INVALID_FRAMEBUFFER_OPERATION:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_INVALID_FRAMEBUFFER_OPERATION\n");
 		break;
 
 	case GL_STACK_OVERFLOW:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_STACK_OVERFLOW\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_STACK_OVERFLOW\n");
 		break;
 
 	case GL_STACK_UNDERFLOW:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_STACK_UNDERFLOW\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_STACK_UNDERFLOW\n");
 		break;
 
 	case GL_OUT_OF_MEMORY:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_OUT_OF_MEMORY\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_OUT_OF_MEMORY\n");
 		break;
 
 	case GL_TABLE_TOO_LARGE:
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_TABLE_TOO_LARGE\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "OpenGL error: GL_TABLE_TOO_LARGE\n");
 		break;
 	}
 
@@ -2414,24 +2442,24 @@ bool sgct::Engine::checkForOGLErrors()
 void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 {
 	//Must wait until all nodes are running if using swap barrier
-	if( !mIgnoreSync && ClusterManager::Instance()->getNumberOfNodes() > 1)
+	if( !mIgnoreSync && ClusterManager::instance()->getNumberOfNodes() > 1)
 	{
 		//check if swapgroups are supported
 		#ifdef __WIN32__
 		if( wglewIsSupported("WGL_NV_swap_group") )
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
 		#else
 		if( glewIsSupported("GLX_NV_swap_group") )
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
 		#endif
 		else
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are not supported by hardware.\n");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are not supported by hardware.\n");
 
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.");
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			if( !mThisNode->getWindowPtr(i)->isUsingSwapGroups() )
-				MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Swapgroups (swap-lock) are disabled for window %d.\n", i);
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swapgroups (swap-lock) are disabled for window %d.\n", i);
 
 			glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
 		}
@@ -2442,7 +2470,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			!mThisNode->shouldAllWindowsClose() &&
 			!mTerminate)
 		{
-			MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, ".");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
 
 			// Swap front and back rendering buffers
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -2452,9 +2480,9 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
-			SGCTMutexManager::Instance()->lockMutex( SGCTMutexManager::MainMutex );
-			NetworkManager::gCond.wait( (*SGCTMutexManager::Instance()->getMutexPtr(SGCTMutexManager::MainMutex )) );
-			SGCTMutexManager::Instance()->unlockMutex( SGCTMutexManager::MainMutex );
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
+			NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::MainMutex )) );
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
 		}
 
 		//wait for user to release exit key
@@ -2469,7 +2497,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(50));
 		}
 
-		MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "\n");
 	}
 }
 
@@ -2485,7 +2513,7 @@ void sgct::Engine::calculateFrustums()
 		for(unsigned int i=0; i < winPtr->getNumberOfViewports(); i++)
 			if( !winPtr->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 			{
-				SGCTUser * usrPtr = ClusterManager::Instance()->getUserPtr();
+				SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 
 				if( !winPtr->isUsingFisheyeRendering() )
 				{
@@ -2543,7 +2571,7 @@ void sgct::Engine::calculateFrustums()
 void sgct::Engine::parseArguments( int& argc, char**& argv )
 {
 	//parse arguments
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "Parsing arguments...");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Parsing arguments...");
 	int i=0;
     std::deque<int> argumentsToRemove;
 	while( i<argc )
@@ -2573,7 +2601,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
-			ClusterManager::Instance()->setThisNodeId(tmpi);
+			ClusterManager::instance()->setThisNodeId(tmpi);
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
@@ -2585,20 +2613,20 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
 			if( tmpi != -1 )
-				MessageHandler::Instance()->setNotifyLevel( static_cast<MessageHandler::NotifyLevel>( tmpi ) );
+				MessageHandler::instance()->setNotifyLevel( static_cast<MessageHandler::NotifyLevel>( tmpi ) );
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
 		}
 		else if( strcmp(argv[i],"--Firm-Sync") == 0 )
 		{
-			ClusterManager::Instance()->setFirmFrameLockSyncStatus(true);
+			ClusterManager::instance()->setFirmFrameLockSyncStatus(true);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--Loose-Sync") == 0 )
 		{
-			ClusterManager::Instance()->setFirmFrameLockSyncStatus(false);
+			ClusterManager::instance()->setFirmFrameLockSyncStatus(false);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -2616,19 +2644,19 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"--No-FBO") == 0 )
 		{
-			SGCTSettings::Instance()->setUseFBO(false);
+			SGCTSettings::instance()->setUseFBO(false);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--Capture-TGA") == 0 )
 		{
-			SGCTSettings::Instance()->setCaptureFormat("TGA");
+			SGCTSettings::instance()->setCaptureFormat("TGA");
 			argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--Capture-PNG") == 0 )
 		{
-			SGCTSettings::Instance()->setCaptureFormat("PNG");
+			SGCTSettings::instance()->setCaptureFormat("PNG");
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -2639,7 +2667,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			ss >> tmpi;
 
 			if(tmpi > 0)
-				SGCTSettings::Instance()->setNumberOfCaptureThreads( tmpi );
+				SGCTSettings::instance()->setNumberOfCaptureThreads( tmpi );
 
             argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
@@ -2671,7 +2699,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
         argc = newArgc;
     }
 
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, " Done\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, " Done\n");
 }
 
 /*!
@@ -2852,9 +2880,9 @@ void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(double, double) 
 
 void sgct::Engine::clearBuffer()
 {
-	const float * colorPtr = Engine::Instance()->getClearColor();
+	const float * colorPtr = Engine::instance()->getClearColor();
 
-	float alpha = (Instance()->getActiveWindowPtr()->useFisheyeAlpha() && Instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
+	float alpha = (instance()->getActiveWindowPtr()->useFisheyeAlpha() && instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
 
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], alpha);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );
@@ -2893,7 +2921,7 @@ void sgct::Engine::internal_mouse_scroll_callback(GLFWwindow* window, double xOf
 
 void sgct::Engine::internal_glfw_error_callback(int error, const char* description)
 {
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "GLFW error: %s\n", description);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "GLFW error: %s\n", description);
 }
 
 /*!
@@ -2903,7 +2931,7 @@ void sgct::Engine::internal_glfw_error_callback(int error, const char* descripti
 */
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
-	MessageHandler::Instance()->print(MessageHandler::NOTIFY_INFO, "This node has index %d.\n", nodeId);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "This node has index %d.\n", nodeId);
 }
 
 /*!
@@ -2923,7 +2951,7 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 	}
 	else
 	{
-		if( vs == ScreenSpace || !SGCTSettings::Instance()->useFBO() )
+		if( vs == ScreenSpace || !SGCTSettings::instance()->useFBO() )
 		{
 			currentViewportCoords[0] =
 				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXResolution()));
@@ -3343,7 +3371,7 @@ void sgct::Engine::stopTimer( size_t id )
         }
 
         // if we get this far, the searched ID did not exist
-        MessageHandler::Instance()->print(MessageHandler::NOTIFY_WARNING, "There was no timer with id: %d", id);
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "There was no timer with id: %d", id);
     }
 }
 

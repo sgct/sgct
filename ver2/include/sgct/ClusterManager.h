@@ -28,7 +28,7 @@ class ClusterManager
 {
 public:
 	/*! Get the ClusterManager instance */
-	static ClusterManager * Instance()
+	static ClusterManager * instance()
 	{
 		if( mInstance == NULL )
 		{
@@ -39,7 +39,7 @@ public:
 	}
 
 	/*! Destroy the ClusterManager */
-	static void Destroy()
+	static void destroy()
 	{
 		if( mInstance != NULL )
 		{

@@ -68,80 +68,76 @@ public:
 	void setNumberOfAASamples(int samples);
 	void setStereoMode( StereoMode sm );
 	void setScreenShotNumber(int number);
+	void setCurrentViewport(std::size_t index);
 
 	// -------------- is functions --------------- //
-	bool isFullScreen();
-	bool isWindowResized();
-	bool isVisible();
-	bool isFixResolution();
-	bool isStereo();
-	bool isUsingFisheyeRendering();
-	inline bool isBarrierActive() { return mBarrier; }
-	inline bool isUsingSwapGroups() { return mUseSwapGroups; }
-	inline bool isSwapGroupMaster() { return mSwapGroupMaster; }
+	bool				isFullScreen();
+	bool				isWindowResized();
+	bool				isVisible();
+	bool				isFixResolution();
+	bool				isStereo();
+	bool				isUsingFisheyeRendering();
+	inline bool			isBarrierActive() { return mBarrier; }
+	inline bool			isUsingSwapGroups() { return mUseSwapGroups; }
+	inline bool			isSwapGroupMaster() { return mSwapGroupMaster; }
 		
 	// -------------- get functions ----------------- //
-	std::string getName();
-	/*!
-		\returns the current screenshot number (file index)
-	*/
-	int getNumberOfAASamples();
-	/*!
-		\returns the name of this window if set
-	*/
+	std::string			getName();
+	ScreenCapture *		getScreenCapturePointer();
+	int					getNumberOfAASamples();
+	int					getScreenShotNumber();
+	StereoMode			getStereoMode();
+	void				getSwapGroupFrameNumber(unsigned int & frameNumber);
+	void				getFBODimensions( int & width, int & height );
+	OffScreenBuffer *	getFBOPtr();
+	GLFWmonitor *		getMonitor();
+	GLFWwindow *		getWindowHandle();
+	Viewport *			getCurrentViewport();
+	Viewport *			getViewport(std::size_t index);
+	void				getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
+	std::size_t			getNumberOfViewports();
 	
-	int getScreenShotNumber() { return mShotCounter; }
+    // ------------------ Inline functions ----------------------- //
 	/*!
-		Set the screenshot number (exising images will be replaced)
-		\param mShotCounter is the frame number which will be added to the filename of the screenshot
+		\returns the index of the current viewport
 	*/
-	StereoMode getStereoMode();
-	void getSwapGroupFrameNumber(unsigned int & frameNumber);
-	void getFBODimensions( int & width, int & height );
-	OffScreenBuffer * getFBOPtr();
-	GLFWmonitor * getMonitor() { return mMonitor; }
-	GLFWwindow * getWindowHandle() { return mWindowHandle; }
+	inline std::size_t		getCurrentViewportIndex() { return mCurrentViewportIndex; }
 	/*!
 		\returns the pointer to a specific post effect
 	*/
-	inline sgct::PostFX * getPostFXPtr( std::size_t index ) {  return &mPostFXPasses[ index ]; }
+	inline sgct::PostFX *	getPostFXPtr( std::size_t index ) {  return &mPostFXPasses[ index ]; }
 	/*!
 		\returns the number of post effects
 	*/
-    inline std::size_t getNumberOfPostFXs() { return mPostFXPasses.size(); }
-
-	/*!
-		Returns pointer to screen capture ptr
-	*/
-	ScreenCapture * getScreenCapturePointer() { return mScreenCapture; }
+    inline std::size_t		getNumberOfPostFXs() { return mPostFXPasses.size(); }
 
 	/*!
 		\returns Get the horizontal window resolution.
 	*/
-	inline int getXResolution() { return mWindowRes[0]; }
+	inline int				getXResolution() { return mWindowRes[0]; }
 	/*!
 		\returns Get the vertical window resolution.
 	*/
-	inline int getYResolution() { return mWindowRes[1]; }
+	inline int				getYResolution() { return mWindowRes[1]; }
 	/*!
 		\returns Get the horizontal frame buffer resolution.
 	*/
-	inline int getXFramebufferResolution() { return mFramebufferResolution[0]; }
+	inline int				getXFramebufferResolution() { return mFramebufferResolution[0]; }
 	/*!
 		\returns Get the vertical frame buffer resolution.
 	*/
-	inline int getYFramebufferResolution() { return mFramebufferResolution[1]; }
+	inline int				getYFramebufferResolution() { return mFramebufferResolution[1]; }
 	/*!
 		\returns Get the initial horizontal window resolution.
 	*/
-	inline int getXInitialResolution() { return mWindowInitialRes[0]; }
+	inline int				getXInitialResolution() { return mWindowInitialRes[0]; }
 	/*!
 		\returns Get the initial vertical window resolution.
 	*/
-	inline int getYInitialResolution() { return mWindowInitialRes[1]; }
+	inline int				getYInitialResolution() { return mWindowInitialRes[1]; }
 
 	//! \returns the aspect ratio of the window 
-	inline float getAspectRatio() { return mAspectRatio; }
+	inline float			getAspectRatio() { return mAspectRatio; }
 
 	// -------------- bind functions -------------------//
 	void bindVAO();
@@ -151,19 +147,11 @@ public:
 	void unbindVBO();
 	void unbindVAO();
 
+	//------------- Other ------------------------- //
 	void addPostFX( sgct::PostFX & fx );
-
-	//viewport stuff
 	void addViewport(float left, float right, float bottom, float top);
 	void addViewport(Viewport &vp);
 	void generateCubeMapViewports();
-	Viewport * getCurrentViewport();
-	Viewport * getViewport(std::size_t index);
-	void getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
-	std::size_t getNumberOfViewports();
-	inline std::size_t getCurrentViewportIndex() { return mCurrentViewportIndex; }
-	inline void setCurrentViewport(std::size_t index) { mCurrentViewportIndex = index; }
-	inline void setSwapInterval(int val) { mSwapInterval = val; }
 
 	/*! \returns true if FXAA should be used */
 	inline bool useFXAA() { return mUseFXAA; }
@@ -269,7 +257,6 @@ private:
 	sgct_core::ScreenCapture * mScreenCapture;
 
 	StereoMode mStereoMode;
-	int mSwapInterval;
 	bool mFisheyeMode;
 	int mNumberOfAASamples;
 	int mId;

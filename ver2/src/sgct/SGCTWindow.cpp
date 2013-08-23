@@ -120,7 +120,6 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mVAO[FishEyeQuad]	= GL_FALSE;
 
 	mStereoMode = NoStereo;
-	mSwapInterval = 1;
 	mNumberOfAASamples = 1;
 
 	//FBO targets init
@@ -622,7 +621,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			1  = wait for vertical sync
 			2  = fix when using swapgroups in xp and running half the framerate
 		*/
-		glfwSwapInterval( mSwapInterval );
+		glfwSwapInterval( sgct::SGCTSettings::instance()->getSwapInterval() );
 		
 		glfwMakeContextCurrent( mSharedHandle );
 
@@ -1376,6 +1375,22 @@ sgct_core::OffScreenBuffer * sgct_core::SGCTWindow::getFBOPtr()
 }
 
 /*!
+	\returns pointer to GLFW monitor
+*/
+GLFWmonitor * sgct_core::SGCTWindow::getMonitor()
+{
+	return mMonitor;
+}
+
+/*!
+	\returns pointer to GLFW window
+*/
+GLFWwindow * sgct_core::SGCTWindow::getWindowHandle()
+{
+	return mWindowHandle;
+}
+
+/*!
 	Get the width and height of FBO in pixels
 */
 void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
@@ -1638,11 +1653,17 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	}
 }
 
+/*!
+\returns a pointer to the viewport that is beeing rendered to at the moment
+*/
 sgct_core::Viewport * sgct_core::SGCTWindow::getCurrentViewport()
 {
 	return &mViewports[mCurrentViewportIndex];
 }
 
+/*!
+\returns a pointer to a specific viewport
+*/
 sgct_core::Viewport * sgct_core::SGCTWindow::getViewport(std::size_t index)
 {
 	return &mViewports[index];
@@ -1660,6 +1681,9 @@ void sgct_core::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &x
 		static_cast<double>(mFramebufferResolution[1]));
 }
 
+/*!
+\returns the viewport count for this window
+*/
 std::size_t sgct_core::SGCTWindow::getNumberOfViewports()
 {
 	return mViewports.size();
@@ -1690,11 +1714,35 @@ void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
 }
 
 /*!
-	Set the screenshot number
+	Returns pointer to screen capture ptr
+*/
+sgct_core::ScreenCapture * sgct_core::SGCTWindow::getScreenCapturePointer()
+{
+	return mScreenCapture;
+}
+
+/*!
+	Set the screenshot number (file index)
 */
 void sgct_core::SGCTWindow::setScreenShotNumber(int number)
 {
 	mShotCounter = number;
+}
+
+/*!
+	\returns the current screenshot number (file index)
+*/
+int sgct_core::SGCTWindow::getScreenShotNumber()
+{
+	return mShotCounter;
+}
+
+/*!
+	Set the which viewport that is the current. This is done from the sgct::Engine and end users shouldn't change this
+*/
+void sgct_core::SGCTWindow::setCurrentViewport(std::size_t index)
+{
+	mCurrentViewportIndex = index;
 }
 
 /*!

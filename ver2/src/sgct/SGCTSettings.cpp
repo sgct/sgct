@@ -22,6 +22,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUseDepthTexture = false;
 	mUseFBO = true;
 
+	mSwapInterval = 1;
 	mOSDTextOffset[0] = 0.05f;
 	mOSDTextOffset[1] = 0.05f;
 
@@ -37,6 +38,30 @@ sgct::SGCTSettings::SGCTSettings()
 sgct::SGCTSettings::~SGCTSettings()
 {
 	;
+}
+
+/*!
+Set swap interval for all windows
+	- -1 = adaptive sync (Nvidia)
+	- 0  = vertical sync off
+	- 1  = wait for vertical sync
+	- 2  = fix when using swapgroups in xp and running half the framerate
+*/
+void sgct::SGCTSettings::setSwapInterval(int val)
+{
+	mSwapInterval = val;
+}
+
+/*!
+Get swap interval for all windows
+	- -1 = adaptive sync (Nvidia)
+	- 0  = vertical sync off
+	- 1  = wait for vertical sync
+	- 2  = fix when using swapgroups in xp and running half the framerate
+*/
+int sgct::SGCTSettings::getSwapInterval()
+{
+	return mSwapInterval;
 }
 
 /*!

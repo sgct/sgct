@@ -280,10 +280,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpWin.setUseSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
-                    int tmpInterval = 0;
-					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
-						tmpWin.setSwapInterval( tmpInterval );
-
 					if( element[1]->Attribute("decorated") != NULL )
 						tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("decorated"), "true" ) == 0 ? true : false);
 
@@ -583,6 +579,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					if( element[1]->Attribute("value") != NULL )
 						sgct::SGCTSettings::instance()->setUseDepthTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+				}
+				else if( strcmp("Display", val[1]) == 0 )
+				{
+				 int tmpInterval = 0;
+					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
+						sgct::SGCTSettings::instance()->setSwapInterval( tmpInterval );
 				}
 				else if( strcmp("FXAA", val[1]) == 0 )
 				{

@@ -365,7 +365,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 	if( ft_font == NULL ) { return; }
 
 	GLuint font = ft_font->getListBase();
-	float h = ft_font->getHeight();
+	float h = ft_font->getHeight() * 1.59f;
 
 	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
@@ -499,7 +499,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 	if( ft_font == NULL ) { return; }
 
 	GLuint font = ft_font->getListBase();
-	float h = ft_font->getHeight();
+	float h = ft_font->getHeight() * 1.59f;
 
 	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments

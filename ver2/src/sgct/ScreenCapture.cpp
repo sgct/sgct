@@ -301,7 +301,7 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex)
 		mSCTIPtrs[i].mMutexPtr = &mMutex;
 	mWindowIndex = windowIndex;
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
 
 void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)

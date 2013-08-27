@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">GLFW
-   &#160;<span id="projectnumber">3.0.1</span>
+   &#160;<span id="projectnumber">3.0.2</span>
    </div>
    <div id="projectbrief">A multi-platform library for OpenGL, window and input</div>
   </td>
@@ -83,6 +83,8 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <div class="contents">
 <div class="toc"><h3>Table of Contents</h3>
 <ul><li class="level1"><a href="#window_object">Window handles</a></li>
+<li class="level1"><a href="#window_creation">Window creation</a></li>
+<li class="level1"><a href="#window_destruction">Window destruction</a></li>
 <li class="level1"><a href="#window_hints">Window creation hints</a><ul><li class="level2"><a href="#window_hints_hard">Hard and soft constraints</a></li>
 <li class="level2"><a href="#window_hints_wnd">Window related hints</a></li>
 <li class="level2"><a href="#window_hints_fb">Framebuffer related hints</a></li>
@@ -92,6 +94,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 </li>
 <li class="level1"><a href="#window_close">Window close flag</a></li>
 <li class="level1"><a href="#window_size">Window size</a></li>
+<li class="level1"><a href="#window_fbsize">Window framebuffer size</a></li>
 <li class="level1"><a href="#window_pos">Window position</a></li>
 <li class="level1"><a href="#window_title">Window title</a></li>
 <li class="level1"><a href="#window_attribs">Window attributes</a><ul><li class="level2"><a href="#window_attribs_window">Window attributes</a></li>
@@ -101,10 +104,25 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li class="level1"><a href="#window_swap">Swapping buffers</a></li>
 </ul>
 </div>
-<div class="textblock"><p>The primary purpose of GLFW is to provide a simple interface to window management and OpenGL and OpenGL ES context creation. GLFW supports multiple windows, which can be either a normal desktop window or a fullscreen window.</p>
+<div class="textblock"><p>The primary purpose of GLFW is to provide a simple interface to window management and OpenGL and OpenGL ES context creation. GLFW supports multiple windows, which can be either a normal desktop window or a full screen window.</p>
 <h1><a class="anchor" id="window_object"></a>
 Window handles</h1>
 <p>The <a class="el" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a> object encapsulates both a window and a context. They are created with <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> and destroyed with <a class="el" href="group__window.html#gacdf43e51376051d2c091662e9fe3d7b2">glfwDestroyWindow</a> (or <a class="el" href="group__init.html#gaaae48c0a18607ea4a4ba951d939f0901">glfwTerminate</a>, if any remain). As the window and context are inseparably linked, the object pointer is used as both a context and window handle.</p>
+<h1><a class="anchor" id="window_creation"></a>
+Window creation</h1>
+<p>The window and its context are created with <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a>, which returns a handle to the created window object. For example, this creates a 640 by 480 windowed mode window:</p>
+<div class="fragment"><div class="line"><a class="code" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a>* window = <a class="code" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344" title="Creates a window and its associated context.">glfwCreateWindow</a>(640, 480, <span class="stringliteral">&quot;My Title&quot;</span>, NULL, NULL);</div>
+</div><!-- fragment --><p>If window creation fails, <code>NULL</code> will be returned, so you need to check whether it did.</p>
+<p>This handle is then passed to all window related functions, and is provided to you along with input events, so you know which window received the input.</p>
+<p>To create a full screen window, you need to specify which monitor the window should use. In most cases, the user's primary monitor is a good choice. For more information about monitors, see the <a class="el" href="monitor.html">Multi-monitor guide</a>.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a>* window = <a class="code" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344" title="Creates a window and its associated context.">glfwCreateWindow</a>(640, 480, <span class="stringliteral">&quot;My Title&quot;</span>, <a class="code" href="group__monitor.html#ga721867d84c6d18d6790d64d2847ca0b1" title="Returns the primary monitor.">glfwGetPrimaryMonitor</a>(), NULL);</div>
+</div><!-- fragment --><p>Full screen windows cover the entire display area of a monitor, have no border or decorations, and change the monitor's resolution to the one most closely matching the requested window size.</p>
+<p>For more control over how the window and its context are created, see <a class="el" href="window.html#window_hints">Window creation hints</a> below.</p>
+<h1><a class="anchor" id="window_destruction"></a>
+Window destruction</h1>
+<p>When you are done with the window, destroy it with the <a class="el" href="group__window.html#gacdf43e51376051d2c091662e9fe3d7b2">glfwDestroyWindow</a> function.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__window.html#gacdf43e51376051d2c091662e9fe3d7b2" title="Destroys the specified window and its context.">glfwDestroyWindow</a>(window);</div>
+</div><!-- fragment --><p>Once this function is called, no more events will be delivered for that window and its handle becomes invalid.</p>
 <h1><a class="anchor" id="window_hints"></a>
 Window creation hints</h1>
 <p>There are a number of hints that can be set before the creation of a window and context. Some affect the window itself, others affect the framebuffer or context. These hints are set to their default values each time the library is initialized with <a class="el" href="group__init.html#ga317aac130a235ab08c6db0834907d85e">glfwInit</a>, can be set individually with <a class="el" href="group__window.html#ga4fd9e504bb937e79588a0ffdca9f620b">glfwWindowHint</a> and reset all at once to their defaults with <a class="el" href="group__window.html#gaa77c4898dfb83344a6b4f76aa16b9a4a">glfwDefaultWindowHints</a>.</p>
@@ -125,9 +143,9 @@ Hard and soft constraints</h2>
 <p>Hints that do not apply to a given type of window or context are ignored.</p>
 <h2><a class="anchor" id="window_hints_wnd"></a>
 Window related hints</h2>
-<p>The <code>GLFW_RESIZABLE</code> hint specifies whether the window will be resizable <em>by the user</em>. The window will still be resizable using the <a class="el" href="group__window.html#ga371911f12c74c504dd8d47d832d095cb">glfwSetWindowSize</a> function. This hint is ignored for fullscreen windows.</p>
-<p>The <code>GLFW_VISIBLE</code> hint specifies whether the window will be initially visible. This hint is ignored for fullscreen windows.</p>
-<p>The <code>GLFW_DECORATED</code> hint specifies whether the window will have window decorations such as a border, a close widget, etc. This hint is ignored for fullscreen windows. Note that even though a window may lack a close widget, it is usually still possible for the user to generate close events.</p>
+<p>The <code>GLFW_RESIZABLE</code> hint specifies whether the window will be resizable <em>by the user</em>. The window will still be resizable using the <a class="el" href="group__window.html#ga371911f12c74c504dd8d47d832d095cb">glfwSetWindowSize</a> function. This hint is ignored for full screen windows.</p>
+<p>The <code>GLFW_VISIBLE</code> hint specifies whether the window will be initially visible. This hint is ignored for full screen windows.</p>
+<p>The <code>GLFW_DECORATED</code> hint specifies whether the window will have window decorations such as a border, a close widget, etc. This hint is ignored for full screen windows. Note that even though a window may lack a close widget, it is usually still possible for the user to generate close events.</p>
 <h2><a class="anchor" id="window_hints_fb"></a>
 Framebuffer related hints</h2>
 <p>The <code>GLFW_RED_BITS</code>, <code>GLFW_GREEN_BITS</code>, <code>GLFW_BLUE_BITS</code>, <code>GLFW_ALPHA_BITS</code>, <code>GLFW_DEPTH_BITS</code> and <code>GLFW_STENCIL_BITS</code> hints specify the desired bit depths of the various components of the default framebuffer.</p>
@@ -229,16 +247,29 @@ Window size</h1>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> <a class="code" href="group__window.html#ga371911f12c74c504dd8d47d832d095cb" title="Sets the size of the client area of the specified window.">glfwSetWindowSize</a>(window, 640, 480);</div>
 </div><!-- fragment --><p>If you wish to be notified when a window is resized, whether by the user or the system, you can set the size callback with <a class="el" href="group__window.html#gaa40cd24840daa8c62f36cafc847c72b6">glfwSetWindowSizeCallback</a>.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#gaa40cd24840daa8c62f36cafc847c72b6" title="Sets the size callback for the specified window.">glfwSetWindowSizeCallback</a>(window, window_size_callback);</div>
-</div><!-- fragment --><p>The callback function receives the new size of the client area of the window, which can for example be used to update the viewport.</p>
+</div><!-- fragment --><p>The callback function receives the new size of the client area of the window.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">void</span> window_size_callback(<a class="code" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a>* window, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height)</div>
 <div class="line">{</div>
-<div class="line">    glViewport(0, 0, width, height);</div>
 <div class="line">}</div>
 </div><!-- fragment --><p>There is also <a class="el" href="group__window.html#gaeea7cbc03373a41fb51cfbf9f2a5d4c6">glfwGetWindowSize</a> for directly retrieving the current size of a window.</p>
 <div class="fragment"><div class="line"><span class="keywordtype">int</span> width, height;</div>
 <div class="line"><a class="code" href="group__window.html#gaeea7cbc03373a41fb51cfbf9f2a5d4c6" title="Retrieves the size of the client area of the specified window.">glfwGetWindowSize</a>(window, &amp;width, &amp;height);</div>
+</div><!-- fragment --><h1><a class="anchor" id="window_fbsize"></a>
+Window framebuffer size</h1>
+<p>While the size of a window is measured in screen coordinates, OpenGL works with pixels. The size you pass into <code>glViewport</code>, for example, should be in pixels and not screen coordinates. On some platforms screen coordinates and pixels are the same, but this is not the case on all platforms supported by GLFW. There is a second set of functions to retrieve the size in pixels of the framebuffer of a window.</p>
+<p>If you wish to be notified when the framebuffer of a window is resized, whether by the user or the system, you can set the size callback with <a class="el" href="group__window.html#ga3203461a5303bf289f2e05f854b2f7cf">glfwSetFramebufferSizeCallback</a>.</p>
+<div class="fragment"><div class="line"><a class="code" href="group__window.html#ga3203461a5303bf289f2e05f854b2f7cf" title="Sets the framebuffer resize callback for the specified window.">glfwSetFramebufferSizeCallback</a>(window, framebuffer_size_callback);</div>
+</div><!-- fragment --><p>The callback function receives the new size of the client area of the window, which can for example be used to update the OpenGL viewport.</p>
+<div class="fragment"><div class="line"><span class="keywordtype">void</span> framebuffer_size_callback(<a class="code" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a>* window, <span class="keywordtype">int</span> width, <span class="keywordtype">int</span> height)</div>
+<div class="line">{</div>
+<div class="line">    glViewport(0, 0, width, height);</div>
+<div class="line">}</div>
+</div><!-- fragment --><p>There is also <a class="el" href="group__window.html#ga0e2637a4161afb283f5300c7f94785c9">glfwGetFramebufferSize</a> for directly retrieving the current size of the framebuffer of a window.</p>
+<div class="fragment"><div class="line"><span class="keywordtype">int</span> width, height;</div>
+<div class="line"><a class="code" href="group__window.html#ga0e2637a4161afb283f5300c7f94785c9" title="Retrieves the size of the framebuffer of the specified window.">glfwGetFramebufferSize</a>(window, &amp;width, &amp;height);</div>
 <div class="line">glViewport(0, 0, width, height);</div>
-</div><!-- fragment --><h1><a class="anchor" id="window_pos"></a>
+</div><!-- fragment --><p>Note that the size of a framebuffer may change independently of the size of a window, for example if the window is dragged between a regular monitor and a high-DPI one.</p>
+<h1><a class="anchor" id="window_pos"></a>
 Window position</h1>
 <p>The position of a windowed-mode window can be changed with <a class="el" href="group__window.html#ga1abb6d690e8c88e0c8cd1751356dbca8">glfwSetWindowPos</a>. This moves the window so that the upper-left corner of its client area has the specified screen coordinates. Note that the window system may put limitations on placement.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#ga1abb6d690e8c88e0c8cd1751356dbca8" title="Sets the position of the client area of the specified window.">glfwSetWindowPos</a>(window, 100, 100);</div>
@@ -291,7 +322,7 @@ Swapping buffers</h1>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 16 2013 22:34:04 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Aug 25 2013 21:45:13 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3.1
 </small></address>

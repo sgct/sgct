@@ -25,8 +25,9 @@ GLXEWContext * glxewGetContext();
 #endif
 #endif
 
-sgct_core::SGCTWindow::SGCTWindow()
+sgct_core::SGCTWindow::SGCTWindow(int id)
 {
+	mId = id;
 	mUseFixResolution = false;
 	mUseSwapGroups = false;
 	mSwapGroupMaster = false;
@@ -53,7 +54,6 @@ sgct_core::SGCTWindow::SGCTWindow()
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
 	mAspectRatio = 1.0f;
-	mId = -1;
 	mShotCounter = 0;
 
 	FisheyeMVP		= -1;
@@ -153,6 +153,14 @@ std::string sgct_core::SGCTWindow::getName()
 	return mName;
 }
 
+/*!
+	\returns this window's id
+*/
+int sgct_core::SGCTWindow::getId()
+{
+	return mId;
+}
+
 void sgct_core::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
@@ -244,8 +252,6 @@ void sgct_core::SGCTWindow::close()
 
 void sgct_core::SGCTWindow::init(int id)
 {
-	mId = id;
-	
 	if(!mFullScreen)
 	{
 		if(mSetWindowPos)
@@ -269,6 +275,62 @@ void sgct_core::SGCTWindow::initOGL()
 	createFBOs();
 	initScreenCapture();
 	loadShaders();
+}
+
+/*!
+	Get a frame buffer texture. If the texture doesn't exists then it will be created.
+	
+	\param index Index or Engine::TextureIndexes enum
+	\returns texture index of selected frame buffer texture
+*/
+unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
+{
+	if(index < NUMBER_OF_TEXTURES)
+	{
+		if( mFrameBufferTextures[index] == GL_FALSE )
+		{
+			switch(index)
+			{
+			case sgct::Engine::LeftEye:
+			case sgct::Engine::RightEye:
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true);
+				break;
+
+			case sgct::Engine::Intermediate:
+			case sgct::Engine::FX1:
+			case sgct::Engine::FX2:
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true);
+				break;
+
+			case sgct::Engine::Depth:
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, true, true);
+				break;
+
+			case sgct::Engine::CubeMap:
+				generateCubeMap(index, false);
+				break;
+
+			case sgct::Engine::CubeMapDepth:
+				generateCubeMap(index, true);
+				break;
+
+			case sgct::Engine::FisheyeColorSwap:
+				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, false, false);
+				break;
+
+			case sgct::Engine::FisheyeDepthSwap:
+				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, true, false);
+				break;
+
+			default:
+				break;
+			}
+		}
+
+		return mFrameBufferTextures[index];
+	}
+	else
+		return GL_FALSE;
 }
 
 /*!
@@ -506,7 +568,7 @@ void sgct_core::SGCTWindow::setUseFXAA(bool state)
 		mUsePostFX = true;
 	else
 		mUsePostFX = (mPostFXPasses.size() > 0);
-	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_INFO, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
+	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
 }
 
 /*!
@@ -808,13 +870,6 @@ void sgct_core::SGCTWindow::createTextures()
 	}
 
 	/*
-		Anisotropic box filtering needed by FXAA
-	*/
-	GLfloat maxAni;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-	float anisotropy_filter_size = (maxAni < 4.0f) ? maxAni : 4.0f;
-
-	/*
 		Create left and right color & depth textures.
 	*/
 	//don't allocate the right eye image if stereo is not used
@@ -851,39 +906,15 @@ void sgct_core::SGCTWindow::createTextures()
 			break;
 
 		case sgct::Engine::Intermediate:
-			if( mPostFXPasses.size() < 2 )
-				anisotropicFiltering = true;
+			if( !mUsePostFX )
+				create = false;
+			anisotropicFiltering = true;
 			break;
 		}
 		
 		if( create )
-		{
-			glGenTextures(1, &mFrameBufferTextures[i]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[i]);
-			
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-			if( anisotropicFiltering )
-				glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy_filter_size);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			
-			if( i == sgct::Engine::Depth )
-			{
-				//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-				//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-				//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-				
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
-					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], i, mId);
-			}
-			else
-			{
-				glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mFramebufferResolution[0], mFramebufferResolution[1], 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
-					mFramebufferResolution[0], mFramebufferResolution[1], mFrameBufferTextures[i], i, mId);
-			}
+		{	
+			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], anisotropicFiltering, (i == sgct::Engine::Depth), true );
 		}
 	}
 	/*
@@ -891,78 +922,117 @@ void sgct_core::SGCTWindow::createTextures()
 	*/
 	if( mFisheyeMode )
 	{
-		glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		
-		GLint MaxCubeMapRes;
-		glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
-		if(mCubeMapResolution > MaxCubeMapRes)
-		{
-			mCubeMapResolution = MaxCubeMapRes;
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
-		}
-
-		//set up texture target
-		glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::CubeMap ]);
-		glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMap ]);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-		for (int i = 0; i < 6; ++i)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMap ], mId);
+		generateCubeMap(sgct::Engine::CubeMap, false);
 
 		if( sgct::SGCTSettings::instance()->useDepthTexture() )
 		{
 			//set up texture target
-			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::CubeMapDepth ]);
-			glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ]);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-			glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-
-			for (int side = 0; side < 6; ++side)
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
-				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::CubeMapDepth ], mId);
+			generateCubeMap(sgct::Engine::CubeMapDepth, true);
 
 			//create swap textures
 			//Color
-			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ]);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			generateTexture(sgct::Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, false, false);
 			//Depth
-			glGenTextures(1, &mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ]);
-			glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ]);
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
-			glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d fisheye swap textures (id: %d & %d) generated for window %d!\n",
-				mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ sgct::Engine::FisheyeColorSwap ], mFrameBufferTextures[ sgct::Engine::FisheyeDepthSwap ], mId);
+			generateTexture(sgct::Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, true, false);
 		}
-
-		glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	}
 
 	if( sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
 		glPopAttrib();
 
 	if( sgct::Engine::checkForOGLErrors() )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture targets initiated successfully for window %d!\n", mId);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Texture targets initiated successfully for window %d!\n", mId);
 	else
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Texture targets failed to initialize for window %d!\n", mId);
+}
+
+void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, bool depth, bool interpolate)
+{
+	//clean up if needed
+	if( mFrameBufferTextures[id] != GL_FALSE )
+	{
+		glDeleteTextures(1, &mFrameBufferTextures[ id ]);
+		mFrameBufferTextures[id] = GL_FALSE;
+	}
+	
+	/*
+		Anisotropic box filtering needed by FXAA
+	*/
+	GLfloat maxAni;
+	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
+	float anisotropy_filter_size = (maxAni < 4.0f) ? maxAni : 4.0f;
+
+	glGenTextures(1, &mFrameBufferTextures[id]);
+	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[id]);
+			
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
+	if( anisotropicFiltering )
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy_filter_size);
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
+
+	if( depth )
+	{
+		//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
+		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
+				
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
+			xSize, ySize, mFrameBufferTextures[id], id, mId);
+	}
+	else
+	{
+		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
+			xSize, ySize, mFrameBufferTextures[id], id, mId);
+	}
+}
+
+void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
+{
+	if( mFrameBufferTextures[id] != GL_FALSE )
+	{
+		glDeleteTextures(1, &mFrameBufferTextures[ id ]);
+		mFrameBufferTextures[id] = GL_FALSE;
+	}
+	
+	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+		
+	GLint MaxCubeMapRes;
+	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
+	if(mCubeMapResolution > MaxCubeMapRes)
+	{
+		mCubeMapResolution = MaxCubeMapRes;
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
+	}
+
+	//set up texture target
+	glGenTextures(1, &mFrameBufferTextures[ id ]);
+	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ id ]);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+	if( depth )
+	{
+		for (int side = 0; side < 6; ++side)
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
+			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
+	}
+	else
+	{
+		for (int i = 0; i < 6; ++i)
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
+			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
+	}
+
+	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 /*!
@@ -1015,7 +1085,7 @@ void sgct_core::SGCTWindow::createFBOs()
 
 			OffScreenBuffer::unBind();
 
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Window %d: Initial cube map rendered.\n", mId);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: Initial cube map rendered.\n", mId);
 
 			//set ut the fisheye geometry etc.
 			initFisheye();
@@ -1028,7 +1098,7 @@ void sgct_core::SGCTWindow::createFBOs()
 				mNumberOfAASamples);
 		}
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Window %d: FBO initiated successfully! Number of samples: %d\n", mId, mNumberOfAASamples);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully! Number of samples: %d\n", mId, mNumberOfAASamples);
 	}
 }
 
@@ -1119,6 +1189,19 @@ void sgct_core::SGCTWindow::loadShaders()
 	//load shaders
 	if( mFisheyeMode )
 	{
+		float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
+		float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
+		float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
+		
+		if( mStereoMode != NoStereo ) // if any stereo
+			mFisheyeOffaxis = true;
+		else if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
+			mFisheyeOffaxis = false;
+
+		//reload shader program if it exists
+		if( mFisheyeShader.isLinked() )
+			mFisheyeShader.deleteProgram();
+		
 		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		{
 			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
@@ -1236,6 +1319,10 @@ void sgct_core::SGCTWindow::loadShaders()
 
 	if( mStereoMode > Active )
 	{
+		//reload shader program if it exists
+		if( mStereoShader.isLinked() )
+			mStereoShader.deleteProgram();
+		
 		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		else
@@ -1283,6 +1370,30 @@ void sgct_core::SGCTWindow::loadShaders()
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Passive_SBS )
+		{
+			sgct::Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Passive_SBS_Inverted )
+		{
+			sgct::Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Passive_TB )
+		{
+			sgct::Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		}
+		else if( mStereoMode == Passive_TB_Inverted )
+		{
+			sgct::Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
 		else
 		{
@@ -1706,11 +1817,18 @@ int sgct_core::SGCTWindow::getNumberOfAASamples()
 }
 
 /*!
-	Set the stereo mode. This must be done before creating the window (before Engine::Init)
+	Set the stereo mode. Set this mode in your init callback or during runtime in the post-sync-pre-draw callback.
+	GLSL shaders will be recompliled if needed.
 */
 void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
 {
 	mStereoMode = sm;
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
+		getStereoModeStr().c_str(), mId);
+
+	if( mWindowHandle )
+		loadShaders();
 }
 
 /*!
@@ -1900,5 +2018,71 @@ bool sgct_core::SGCTWindow::isFisheyeOffaxis()
 const char * sgct_core::SGCTWindow::getFisheyeOverlay()
 {
 	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
+}
+
+std::string sgct_core::SGCTWindow::getStereoModeStr()
+{
+	std::string mode;
+	
+	switch( mStereoMode )
+	{
+	case Active:
+		mode.assign("active");
+		break;
+
+	case Anaglyph_Red_Cyan:
+		mode.assign("anaglyph_red_cyan");
+		break;
+		
+	case Anaglyph_Amber_Blue:
+		mode.assign("anaglyph_amber_blue");
+		break;
+
+	case Anaglyph_Red_Cyan_Wimmer:
+		mode.assign("anaglyph_wimmer");
+		break;
+
+	case Checkerboard:
+		mode.assign("checkerboard");
+		break;
+
+	case Checkerboard_Inverted:
+		mode.assign("checkerboard_inverted");
+		break;
+
+	case Vertical_Interlaced:
+		mode.assign("vertical_interlaced");
+		break;
+
+	case Vertical_Interlaced_Inverted:
+		mode.assign("vertical_interlaced_inverted");
+		break;
+
+	case DummyStereo:
+		mode.assign("dummy");
+		break;
+
+	case Passive_SBS:
+		mode.assign("side_by_side");
+		break;
+
+	case Passive_SBS_Inverted:
+		mode.assign("side_by_side_inverted");
+		break;
+
+	case Passive_TB:
+		mode.assign("top_bottom");
+		break;
+
+	case Passive_TB_Inverted:
+		mode.assign("top_bottom_inverted");
+		break;
+
+	default:
+		mode.assign("none");
+		break;
+	}
+
+	return mode;
 }
 

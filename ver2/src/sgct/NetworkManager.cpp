@@ -40,7 +40,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 
 	mMode = mode;
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network API...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network API...\n");
 	try
 	{
 		initAPI();
@@ -50,7 +50,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 		throw err;
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Getting host info...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Getting host info...\n");
 	try
 	{
 		getHostInfo();
@@ -68,9 +68,9 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 		mIsServer = false;
 
 	if( mIsServer )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network server.\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: This computer is the network server.\n");
 	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "This computer is the network client.\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: This computer is the network client.\n");
 }
 
 sgct_core::NetworkManager::~NetworkManager()
@@ -105,7 +105,7 @@ bool sgct_core::NetworkManager::init()
 		}
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::instance()->getMasterIp()->c_str());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to add network connection to %s!\n", ClusterManager::instance()->getMasterIp()->c_str());
 			return false;
 		}
 	}
@@ -118,7 +118,7 @@ bool sgct_core::NetworkManager::init()
 		{
 			if(!addConnection(ClusterManager::instance()->getNodePtr(i)->port, tmpIp))
 			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to add network connection to %s!\n", ClusterManager::instance()->getNodePtr(i)->ip.c_str());
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to add network connection to %s!\n", ClusterManager::instance()->getNodePtr(i)->ip.c_str());
 				return false;
 			}
 			else //bind
@@ -150,7 +150,7 @@ bool sgct_core::NetworkManager::init()
 		}
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Cluster sync is set to %s\n",
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Cluster sync is set to %s\n",
         ClusterManager::instance()->getFirmFrameLockSyncStatus() ? "firm/strict" : "loose" );
 
 	return true;
@@ -246,7 +246,7 @@ bool sgct_core::NetworkManager::isSyncComplete()
 		}
 
 #ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
 		counter, getSyncConnectionsCount());
 #endif
 
@@ -351,7 +351,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
 		}
 
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of connections: %u (IG slaves %u of %u)\n",
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connections: %u (IG slaves %u of %u)\n",
              numberOfConnectionsCounter,
              numberOfConnectedSyncNodesCounter,
              numberOfSlavesInConfig);
@@ -406,7 +406,7 @@ void sgct_core::NetworkManager::close()
 #else
     //No cleanup needed
 #endif
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network API closed!\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Network API closed!\n");
 }
 
 bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType)
@@ -422,7 +422,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 	}
 	catch( const char * err )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Network error: %s\n", err);
 		if(netPtr != NULL)
 		{
 		    netPtr->initShutdown();
@@ -434,7 +434,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 
 	try
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
 		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
 			ClusterManager::instance()->getFirmFrameLockSyncStatus());
 
@@ -451,7 +451,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
     }
     catch( const char * err )
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Network error: %s\n", err);
         return false;
     }
 

@@ -34,6 +34,7 @@ sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool useTracking(false);
+sgct::SharedInt stereoMode(0);
 
 int main( int argc, char* argv[] )
 {
@@ -113,6 +114,11 @@ void myPostSyncPreDrawFun()
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 
+	int tmpStereoMode = stereoMode.getVal();
+	for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
+		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
+			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct_core::SGCTWindow::StereoMode>(tmpStereoMode) );
+
 	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
@@ -122,6 +128,8 @@ void myPostSyncPreDrawFun()
 
 void myInitOGLFun()
 {
+	stereoMode.setVal( gEngine->getWindowPtr(0)->getStereoMode() );
+	
 	glEnable( GL_DEPTH_TEST );
 	//glDepthMask( GL_TRUE );
 	//glDisable( GL_CULL_FACE );
@@ -170,6 +178,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool( &stats );
 	sgct::SharedData::instance()->writeBool( &takeScreenshot );
 	sgct::SharedData::instance()->writeBool( &useTracking );
+	sgct::SharedData::instance()->writeInt( &stereoMode );
 }
 
 void myDecodeFun()
@@ -180,6 +189,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool( &stats );
 	sgct::SharedData::instance()->readBool( &takeScreenshot );
 	sgct::SharedData::instance()->readBool( &useTracking );
+	sgct::SharedData::instance()->readInt( &stereoMode );
 }
 
 /*!
@@ -285,6 +295,19 @@ void keyCallback(int key, int action)
 		case 'R':
 			if(action == SGCT_PRESS)
 				sgct_core::ClusterManager::instance()->getThisNodePtr()->showAllWindows();
+			break;
+
+		case SGCT_KEY_LEFT:
+			if(action == SGCT_PRESS)
+				if( stereoMode.getVal() > 0 )
+					stereoMode.setVal( (stereoMode.getVal() - 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
+				else
+					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+			break;
+
+		case SGCT_KEY_RIGHT:
+			if(action == SGCT_PRESS)
+				stereoMode.setVal( (stereoMode.getVal() + 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
 			break;
 		}
 	}

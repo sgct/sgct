@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">GLFW
-   &#160;<span id="projectnumber">3.0.1</span>
+   &#160;<span id="projectnumber">3.0.2</span>
    </div>
    <div id="projectbrief">A multi-platform library for OpenGL, window and input</div>
   </td>
@@ -90,6 +90,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <li class="level2"><a href="#moving_mbcs">Win32 MBCS support</a></li>
 <li class="level2"><a href="#moving_windows">Support for versions of Windows older than XP</a></li>
 <li class="level2"><a href="#moving_syskeys">Capture of system-wide hotkeys</a></li>
+<li class="level2"><a href="#moving_opened">Window open parameter</a></li>
 <li class="level2"><a href="#moving_autopoll">Automatic polling of events</a></li>
 <li class="level2"><a href="#moving_terminate">Automatic termination</a></li>
 <li class="level2"><a href="#moving_glu">GLU header inclusion</a></li>
@@ -147,6 +148,9 @@ Support for versions of Windows older than XP</h2>
 <h2><a class="anchor" id="moving_syskeys"></a>
 Capture of system-wide hotkeys</h2>
 <p>The ability to disable and capture system-wide hotkeys like Alt+Tab has been removed. Modern applications, whether they're games, scientific visualisations or something else, are nowadays expected to be good desktop citizens and allow these hotkeys to function even when running in full screen mode.</p>
+<h2><a class="anchor" id="moving_opened"></a>
+Window open parameter</h2>
+<p>The <code>GLFW_OPENED</code> window parameter has been removed. As long as the <a class="el" href="window.html#window_object">window object</a> is around, the window is "open". To detect when the user attempts to close the window, see <a class="el" href="group__window.html#ga24e02fbfefbb81fc45320989f8140ab5">glfwWindowShouldClose</a> and the <a class="el" href="group__window.html#ga07cff8bd3b3d573ecf49bb02d7669c1f">close callback</a>.</p>
 <h2><a class="anchor" id="moving_autopoll"></a>
 Automatic polling of events</h2>
 <p>GLFW 3 does not automatically poll for events on <a class="el" href="group__context.html#ga15a5a1ee5b3c2ca6b15ca209a12efd14">glfwSwapBuffers</a>, which means you need to call <a class="el" href="group__window.html#ga37bd57223967b4211d60ca1a0bf3c832">glfwPollEvents</a> or <a class="el" href="group__window.html#ga554e37d781f0a997656c26b2c56c835e">glfwWaitEvents</a> yourself. Unlike buffer swap, the event processing functions act on all windows at once.</p>
@@ -278,7 +282,7 @@ Tokens</h2>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 16 2013 22:34:04 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Aug 25 2013 21:45:13 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3.1
 </small></address>

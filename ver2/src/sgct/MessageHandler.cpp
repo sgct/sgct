@@ -28,7 +28,7 @@ sgct::MessageHandler::MessageHandler(void)
 #ifdef __SGCT_DEBUG__
 	mLevel = NOTIFY_DEBUG;
 #else
-	mLevel = NOTIFY_VERSION_INFO;
+	mLevel = NOTIFY_WARNING;
 #endif
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);

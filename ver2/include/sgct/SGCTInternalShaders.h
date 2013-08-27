@@ -319,6 +319,58 @@ namespace sgct_core
 					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st);\n\
 			}\n";
 
+		const std::string SBS_Stereo_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(2.0, 1.0); \n\
+				if( gl_TexCoord[0].s < 0.5 ) \n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st * mul); \n\
+				else \n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st * mul - vec2(1.0, 0.0)); \n\
+			}\n";
+
+		const std::string SBS_Stereo_Inverted_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(2.0, 1.0); \n\
+				if( gl_TexCoord[0].s < 0.5 ) \n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st * mul); \n\
+				else \n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st * mul - vec2(1.0, 0.0)); \n\
+			}\n";
+
+		const std::string TB_Stereo_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(1.0, 2.0); \n\
+				if( gl_TexCoord[0].t < 0.5 ) \n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st * mul); \n\
+				else \n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st * mul - vec2(0.0, 1.0)); \n\
+			}\n";
+
+		const std::string TB_Stereo_Inverted_Frag_Shader = "\
+			#version 120\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(1.0, 2.0); \n\
+				if( gl_TexCoord[0].t < 0.5 ) \n\
+					gl_FragColor = gl_Color * texture2D( LeftTex, gl_TexCoord[0].st * mul); \n\
+				else \n\
+					gl_FragColor = gl_Color * texture2D( RightTex, gl_TexCoord[0].st * mul - vec2(0.0, 1.0)); \n\
+			}\n";
+
 		const std::string FXAA_Vert_Shader = "\
 			#version 120\n\
 			uniform float rt_w;\n\

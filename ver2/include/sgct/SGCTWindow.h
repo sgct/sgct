@@ -30,13 +30,15 @@ public:
 	/*!
 		Different stereo modes used for rendering
 	*/
-	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer, Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted, DummyStereo };
+	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer,
+		Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted, DummyStereo,
+		Passive_SBS, Passive_SBS_Inverted, Passive_TB, Passive_TB_Inverted, Number_Of_Stereo_Items };
 	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum OGL_Context { Shared_Context = 0, Window_Context };
 
 public:
-	SGCTWindow();
+	SGCTWindow(int id);
 	void close();
 	void init(int id);
 	void initOGL();
@@ -83,6 +85,8 @@ public:
 		
 	// -------------- get functions ----------------- //
 	std::string			getName();
+	int					getId();
+	unsigned int		getFrameBufferTexture(unsigned int index);
 	ScreenCapture *		getScreenCapturePointer();
 	int					getNumberOfAASamples();
 	int					getScreenShotNumber();
@@ -96,6 +100,7 @@ public:
 	Viewport *			getViewport(std::size_t index);
 	void				getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
 	std::size_t			getNumberOfViewports();
+	std::string			getStereoModeStr();
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -157,16 +162,7 @@ public:
 	inline bool useFXAA() { return mUseFXAA; }
 	/*! \returns true if PostFX pass should be used */
 	inline bool usePostFX() { return mUsePostFX; }
-	/*!
-		\param index Index or Engine::TextureIndexes enum
-		\returns texture index of selected frame buffer texture
-	*/
-	inline unsigned int getFrameBufferTexture(unsigned int index){ return mFrameBufferTextures[index]; }
-	/*!
-		\returns this window's id
-	*/
-	inline int getId() { return mId; }
-	
+
 	inline void bindStereoShaderProgram() { mStereoShader.bind(); }
 	inline int getStereoShaderMVPLoc() { return StereoMVP; }
 	inline int getStereoShaderLeftTexLoc() { return StereoLeftTex; }
@@ -215,6 +211,8 @@ private:
 	void initScreenCapture();
 	void deleteAllViewports();
 	void createTextures();
+	void generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, bool depth, bool interpolate);
+	void generateCubeMap(unsigned int id, bool depth);
 	void createFBOs();
 	void resizeFBOs();
 	void createVBOs();
@@ -257,7 +255,7 @@ private:
 	sgct_core::ScreenCapture * mScreenCapture;
 
 	StereoMode mStereoMode;
-	bool mFisheyeMode;
+	bool mFisheyeMode; //if fisheye rendering is used
 	int mNumberOfAASamples;
 	int mId;
 	int mShotCounter;

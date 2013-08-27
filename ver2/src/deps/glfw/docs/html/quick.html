@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">GLFW
-   &#160;<span id="projectnumber">3.0.1</span>
+   &#160;<span id="projectnumber">3.0.2</span>
    </div>
    <div id="projectbrief">A multi-platform library for OpenGL, window and input</div>
   </td>
@@ -145,7 +145,7 @@ Creating a window and context</h1>
 </div><!-- fragment --><p>This handle is then passed to all window related functions, and is provided to you along with input events, so you know which window received the input.</p>
 <p>To create a full screen window, you need to specify which monitor the window should use. In most cases, the user's primary monitor is a good choice. You can get this with <a class="el" href="group__monitor.html#ga721867d84c6d18d6790d64d2847ca0b1">glfwGetPrimaryMonitor</a>. To make the above window full screen, just pass along the monitor handle:</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#ga3c96d80d363e67d13a41b5d1821f3242">GLFWwindow</a>* window = <a class="code" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344" title="Creates a window and its associated context.">glfwCreateWindow</a>(640, 480, <span class="stringliteral">&quot;My Title&quot;</span>, <a class="code" href="group__monitor.html#ga721867d84c6d18d6790d64d2847ca0b1" title="Returns the primary monitor.">glfwGetPrimaryMonitor</a>(), NULL);</div>
-</div><!-- fragment --><p>Full screen windows cover the entire screen, have no border or decorations, and change the monitor's resolution to the one most closely matching the requested window size.</p>
+</div><!-- fragment --><p>Full screen windows cover the entire display area of a monitor, have no border or decorations, and change the monitor's resolution to the one most closely matching the requested window size.</p>
 <p>When you are done with the window, destroy it with the <a class="el" href="group__window.html#gacdf43e51376051d2c091662e9fe3d7b2">glfwDestroyWindow</a> function.</p>
 <div class="fragment"><div class="line"><a class="code" href="group__window.html#gacdf43e51376051d2c091662e9fe3d7b2" title="Destroys the specified window and its context.">glfwDestroyWindow</a>(window);</div>
 </div><!-- fragment --><p>Once this function is called, no more events will be delivered for that window and its handle becomes invalid.</p>
@@ -281,7 +281,7 @@ Putting it together: A small GLFW application</h1>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 16 2013 22:34:04 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Aug 25 2013 21:45:13 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3.1
 </small></address>

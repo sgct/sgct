@@ -52,6 +52,7 @@ sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool useTracking(false);
+sgct::SharedInt stereoMode(0);
 
 //geometry
 std::vector<float> mVertPos;
@@ -146,6 +147,11 @@ void myPostSyncPreDrawFun()
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 	
+	int tmpStereoMode = stereoMode.getVal();
+	for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
+		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
+			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct_core::SGCTWindow::StereoMode>(tmpStereoMode) );
+
 	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
@@ -155,6 +161,8 @@ void myPostSyncPreDrawFun()
 
 void myInitOGLFun()
 {
+	stereoMode.setVal( gEngine->getWindowPtr(0)->getStereoMode() );
+	
 	//Set up backface culling
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
@@ -228,8 +236,6 @@ void myInitOGLFun()
 	//cleanup
 	mVertPos.clear();
 	mTexCoord.clear();
-
-	gEngine->setClearColor(0.5f, 0.5f, 0.5f, 0.0f);
 }
 
 void myEncodeFun()
@@ -240,6 +246,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool( &stats );
 	sgct::SharedData::instance()->writeBool( &takeScreenshot );
 	sgct::SharedData::instance()->writeBool( &useTracking );
+	sgct::SharedData::instance()->writeInt( &stereoMode );
 }
 
 void myDecodeFun()
@@ -250,6 +257,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool( &stats );
 	sgct::SharedData::instance()->readBool( &takeScreenshot );
 	sgct::SharedData::instance()->readBool( &useTracking );
+	sgct::SharedData::instance()->readInt( &stereoMode );
 }
 
 /*!
@@ -362,6 +370,19 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_F10:
 			if(action == SGCT_PRESS)
 				takeScreenshot.setVal( true );
+			break;
+
+		case SGCT_KEY_LEFT:
+			if(action == SGCT_PRESS)
+				if( stereoMode.getVal() > 1 )
+					stereoMode.setVal( (stereoMode.getVal() - 0) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
+				else
+					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+			break;
+
+		case SGCT_KEY_RIGHT:
+			if(action == SGCT_PRESS)
+				stereoMode.setVal( (stereoMode.getVal() + 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
 			break;
 		}
 	}

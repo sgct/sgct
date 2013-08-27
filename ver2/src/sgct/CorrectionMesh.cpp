@@ -40,7 +40,7 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing correction mesh OpenGL data...\n");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
 	
 	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
 		glDeleteLists(mMeshData[0], 1);
@@ -69,20 +69,20 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	}
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
-		"Reading mesh data from '%s'.\n", meshPath);
+		"CorrectionMesh: Reading mesh data from '%s'.\n", meshPath);
 
 	FILE * meshFile;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( fopen_s(&meshFile, meshPath, "r") != 0 )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
 		return false;
 	}
 #else
 	meshFile = fopen(meshPath, "r");
 	if( meshFile == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to open warping mesh file!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
 		return false;
 	}
 #endif
@@ -196,7 +196,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	if( mNumberOfVertices != numOfVerticesRead || mNumberOfFaces != numOfFacesRead )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Incorrect mesh data geometry!");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Incorrect mesh data geometry!");
 		return false;
 	}
 
@@ -206,7 +206,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	cleanUp();
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
 
 	return true;
 }

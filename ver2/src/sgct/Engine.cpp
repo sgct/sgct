@@ -280,8 +280,7 @@ bool sgct::Engine::initNetwork()
 	if(!mNetworkConnections->init())
 		return false;
 
-    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Done\n");
-	return true;
+    return true;
 }
 
 /*!
@@ -506,7 +505,11 @@ void sgct::Engine::initOGL()
 	mStatistics->initVBO(mFixedOGLPipeline);
 
 	if( mInitOGLFn != NULL )
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "\n---- Calling init callback ----\n");
 		mInitOGLFn();
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "-------------------------------\n");
+	}
 
 	//create all textures, etc
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -542,7 +545,7 @@ void sgct::Engine::initOGL()
 			getActiveWindowPtr()->getViewport(j)->loadData();
 
 		//init swap barrier is swap groups are active
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Joining swap barrier if enabled and reseting counter...\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Joining swap barrier if enabled and reseting counter...\n");
 		mThisNode->getWindowPtr(i)->setBarrier(true);
 		mThisNode->getWindowPtr(i)->resetSwapGroupFrameNumber();
 	}
@@ -984,42 +987,45 @@ void sgct::Engine::renderDisplayInfo()
 	signed long strokeSize = sgct_text::FontManager::instance()->getStrokeSize();
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
 	sgct_text::FontManager::instance()->setStrokeSize( 1 );
+
+	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
+	float lineHeight = font->getHeight() * 1.59f;
 	
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		75.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Node ip: %s (%s)",
 		mThisNode->ip.c_str(),
 		mNetworkConnections->isComputerServer() ? "master" : "slave");
 
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		60.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.0f,1.0f),
 		"Frame rate: %.3f Hz, frame: %u",
 		mStatistics->getAvgFPS(),
 		mFrameCounter);
 
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		45.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 3.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.0f,0.8f,1.0f),
 		"Avg. draw time: %.2f ms",
 		mStatistics->getAvgDrawTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		30.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.0f,0.8f,0.8f,1.0f),
 		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
 		SharedData::instance()->getUserDataSize(),
 		SharedData::instance()->getCompressionRatio(),
 		mStatistics->getAvgSyncTime()*1000.0);
 
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		15.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Swap groups: %s and %s (%s) | Frame: %d",
 		getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
@@ -1027,9 +1033,9 @@ void sgct::Engine::renderDisplayInfo()
 		getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
 		lFrameNumber);
 
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
+	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		lineHeight * 0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 		glm::vec4(0.8f,0.8f,0.8f,1.0f),
 		"Tracked: %s | User position: %.3f %.3f %.3f",
 		getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
@@ -1040,19 +1046,19 @@ void sgct::Engine::renderDisplayInfo()
 	//if active stereoscopic rendering
 	if( mActiveFrustum == Frustum::StereoLeftEye )
 	{
-		sgct_text::print( sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Active eye: Left");
+			"Stereo type: %s\nActive eye: Left", getActiveWindowPtr()->getStereoModeStr().c_str() );
 	}
 	else if( mActiveFrustum == Frustum::StereoRightEye )
 	{
-		sgct_text::print( sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() ),
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		90.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Active eye:          Right");
+			"Stereo type: %s\nActive eye:          Right", getActiveWindowPtr()->getStereoModeStr().c_str() );
 	}
 
 	//reset
@@ -2921,7 +2927,7 @@ void sgct::Engine::internal_mouse_scroll_callback(GLFWwindow* window, double xOf
 
 void sgct::Engine::internal_glfw_error_callback(int error, const char* description)
 {
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "GLFW error: %s\n", description);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "GLFW error: %s\n", description);
 }
 
 /*!
@@ -2931,7 +2937,7 @@ void sgct::Engine::internal_glfw_error_callback(int error, const char* descripti
 */
 void sgct::Engine::printNodeInfo(unsigned int nodeId)
 {
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "This node has index %d.\n", nodeId);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "This node has index %d.\n", nodeId);
 }
 
 /*!

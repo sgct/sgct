@@ -426,6 +426,82 @@ namespace sgct_core
 					Color = Col * texture( RightTex, UV);\n\
 			}\n";
 
+		const std::string SBS_Stereo_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			in vec4 Col;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(2.0, 1.0); \n\
+				if( UV.s < 0.5 ) \n\
+					Color = Col * texture( LeftTex, UV.st * mul); \n\
+				else \n\
+					Color = Col * texture( RightTex, UV.st * mul - vec2(1.0, 0.0)); \n\
+			}\n";
+
+		const std::string SBS_Stereo_Inverted_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			in vec4 Col;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(2.0, 1.0); \n\
+				if( UV.s < 0.5 ) \n\
+					Color = Col * texture( RightTex, UV.st * mul); \n\
+				else \n\
+					Color = Col * texture( LeftTex, UV.st * mul - vec2(1.0, 0.0)); \n\
+			}\n";
+
+		const std::string TB_Stereo_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			in vec4 Col;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(1.0, 2.0); \n\
+				if( UV.t < 0.5 ) \n\
+					Color = Col * texture( RightTex, UV.st * mul); \n\
+				else \n\
+					Color = Col * texture( LeftTex, UV.st * mul - vec2(0.0, 1.0)); \n\
+			}\n";
+
+		const std::string TB_Stereo_Inverted_Frag_Shader = "\
+			#version 330 core\n\
+			\n\
+			in vec2 UV;\n\
+			in vec4 Col;\n\
+			out vec4 Color;\n\
+			\n\
+			uniform sampler2D LeftTex;\n\
+			uniform sampler2D RightTex;\n\
+			\n\
+			void main()\n\
+			{\n\
+				vec2 mul = vec2(1.0, 2.0); \n\
+				if( UV.t < 0.5 ) \n\
+					Color = Col * texture( LeftTex, UV.st * mul); \n\
+				else \n\
+					Color = Col * texture( RightTex, UV.st * mul - vec2(0.0, 1.0)); \n\
+			}\n";
+
 		const std::string Dummy_Stereo_Frag_Shader = "\
 			#version 330 core\n\
 			\n\

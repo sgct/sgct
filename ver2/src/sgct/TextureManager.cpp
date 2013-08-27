@@ -163,7 +163,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	{	
 		if( mOverWriteMode )
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Reloading texture '%s'! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 			
 			texID = getTextureByHandle(handle);
 			if( texID != 0 )
@@ -173,7 +173,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		}
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: '%s' exists already! [id=%d]\n", filename.c_str(), getTextureByHandle( handle ) );
 			return true;
 		}
 	}
@@ -271,7 +271,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 			break;
 		}
 		
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating texture... size: %dx%d, %d-channels compression: %s\n",
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
 			img.getSizeX(),
 			img.getSizeY(),
 			img.getChannels(),
@@ -311,7 +311,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		else if(handle != 0) //valid handle
 			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, (unsigned int)texID );
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
 		img.cleanup();
 	}
 	else //image data not valid

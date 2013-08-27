@@ -1,6 +1,5 @@
 var searchData=
 [
-  ['gamma_20ramp_20support',['Gamma ramp support',['../group__gamma.html',1,'']]],
   ['glfw3_2eh',['glfw3.h',['../glfw3_8h.html',1,'']]],
   ['glfw3native_2eh',['glfw3native.h',['../glfw3native_8h.html',1,'']]],
   ['glfw_5faccum_5falpha_5fbits',['GLFW_ACCUM_ALPHA_BITS',['../glfw3_8h.html#ae829b55591c18169a40ab4067a041b1f',1,'glfw3.h']]],
@@ -235,7 +234,7 @@ var searchData=
   ['glfwgetegldisplay',['glfwGetEGLDisplay',['../group__native.html#ga1cd8d973f47aacb5532d368147cc3138',1,'glfw3native.h']]],
   ['glfwgeteglsurface',['glfwGetEGLSurface',['../group__native.html#ga2199b36117a6a695fec8441d8052eee6',1,'glfw3native.h']]],
   ['glfwgetframebuffersize',['glfwGetFramebufferSize',['../group__window.html#ga0e2637a4161afb283f5300c7f94785c9',1,'glfw3.h']]],
-  ['glfwgetgammaramp',['glfwGetGammaRamp',['../group__gamma.html#gab7c41deb2219bde3e1eb756ddaa9ec80',1,'glfw3.h']]],
+  ['glfwgetgammaramp',['glfwGetGammaRamp',['../group__monitor.html#gab7c41deb2219bde3e1eb756ddaa9ec80',1,'glfw3.h']]],
   ['glfwgetglxcontext',['glfwGetGLXContext',['../group__native.html#ga62d884114b0abfcdc2930e89f20867e2',1,'glfw3native.h']]],
   ['glfwgetinputmode',['glfwGetInputMode',['../group__input.html#gaf5b859dbe19bdf434e42695ea45cc5f4',1,'glfw3.h']]],
   ['glfwgetjoystickaxes',['glfwGetJoystickAxes',['../group__input.html#ga6271d46a5901ec2c99601ccf4dd14731',1,'glfw3.h']]],
@@ -284,8 +283,8 @@ var searchData=
   ['glfwsetcursorposcallback',['glfwSetCursorPosCallback',['../group__input.html#ga7dad39486f2c7591af7fb25134a2501d',1,'glfw3.h']]],
   ['glfwseterrorcallback',['glfwSetErrorCallback',['../group__error.html#gaa5d796c3cf7c1a7f02f845486333fb5f',1,'glfw3.h']]],
   ['glfwsetframebuffersizecallback',['glfwSetFramebufferSizeCallback',['../group__window.html#ga3203461a5303bf289f2e05f854b2f7cf',1,'glfw3.h']]],
-  ['glfwsetgamma',['glfwSetGamma',['../group__gamma.html#ga6ac582625c990220785ddd34efa3169a',1,'glfw3.h']]],
-  ['glfwsetgammaramp',['glfwSetGammaRamp',['../group__gamma.html#ga583f0ffd0d29613d8cd172b996bbf0dd',1,'glfw3.h']]],
+  ['glfwsetgamma',['glfwSetGamma',['../group__monitor.html#ga6ac582625c990220785ddd34efa3169a',1,'glfw3.h']]],
+  ['glfwsetgammaramp',['glfwSetGammaRamp',['../group__monitor.html#ga583f0ffd0d29613d8cd172b996bbf0dd',1,'glfw3.h']]],
   ['glfwsetinputmode',['glfwSetInputMode',['../group__input.html#gaa92336e173da9c8834558b54ee80563b',1,'glfw3.h']]],
   ['glfwsetkeycallback',['glfwSetKeyCallback',['../group__input.html#ga7e496507126f35ea72f01b2e6ef6d155',1,'glfw3.h']]],
   ['glfwsetmonitorcallback',['glfwSetMonitorCallback',['../group__monitor.html#gac3fe0f647f68b731f99756cd81897378',1,'glfw3.h']]],

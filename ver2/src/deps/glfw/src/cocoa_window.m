@@ -1,8 +1,5 @@
 //========================================================================
-// GLFW - An OpenGL library
-// Platform:    Cocoa/NSOpenGL
-// API Version: 3.0
-// WWW:         http://www.glfw.org/
+// GLFW 3.0 OS X - www.glfw.org
 //------------------------------------------------------------------------
 // Copyright (c) 2009-2010 Camilla Berglund <elmindreda@elmindreda.org>
 //
@@ -73,9 +70,11 @@ static float transformY(float y)
 //
 static NSRect convertRectToBacking(_GLFWwindow* window, NSRect contentRect)
 {
-    if ([window->ns.view respondsToSelector:@selector(convertRectToBacking:)])
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         return [window->ns.view convertRectToBacking:contentRect];
     else
+#endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
         return contentRect;
 }
 
@@ -218,7 +217,7 @@ static void centerCursor(_GLFWwindow *window)
 
 @end
 
-// Translates Mac OS X key modifiers into GLFW ones
+// Translates OS X key modifiers into GLFW ones
 //
 static int translateFlags(NSUInteger flags)
 {
@@ -236,7 +235,7 @@ static int translateFlags(NSUInteger flags)
     return mods;
 }
 
-// Translates a Mac OS X keycode to a GLFW keycode
+// Translates a OS X keycode to a GLFW keycode
 //
 static int translateKey(unsigned int key)
 {
@@ -558,7 +557,7 @@ static int translateKey(unsigned int key)
                                                userInfo:nil];
 
     [self addTrackingArea:trackingArea];
-	[super updateTrackingAreas];
+    [super updateTrackingAreas];
 }
 
 - (void)keyDown:(NSEvent *)event
@@ -566,9 +565,6 @@ static int translateKey(unsigned int key)
     const int key = translateKey([event keyCode]);
     const int mods = translateFlags([event modifierFlags]);
     _glfwInputKey(window, key, [event keyCode], GLFW_PRESS, mods);
-
-    if (mods & GLFW_MOD_SUPER)
-        return;
 
     NSString* characters = [event characters];
     NSUInteger i, length = [characters length];
@@ -604,8 +600,26 @@ static int translateKey(unsigned int key)
 
 - (void)scrollWheel:(NSEvent *)event
 {
-    double deltaX = [event deltaX];
-    double deltaY = [event deltaY];
+    double deltaX, deltaY;
+
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
+    {
+        deltaX = [event scrollingDeltaX];
+        deltaY = [event scrollingDeltaY];
+
+        if ([event hasPreciseScrollingDeltas])
+        {
+            deltaX *= 0.1;
+            deltaY *= 0.1;
+        }
+    }
+    else
+#endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
+    {
+        deltaX = [event deltaX];
+        deltaY = [event deltaY];
+    }
 
     if (fabs(deltaX) > 0.0 || fabs(deltaY) > 0.0)
         _glfwInputScroll(window, deltaX, deltaY);
@@ -666,7 +680,7 @@ static int translateKey(unsigned int key)
 //
 static NSString* findAppName(void)
 {
-    unsigned int i;
+    size_t i;
     NSDictionary* infoDictionary = [[NSBundle mainBundle] infoDictionary];
 
     // Keys to search for as potential application names
@@ -825,8 +839,10 @@ static GLboolean createWindow(_GLFWwindow* window,
 
     window->ns.view = [[GLFWContentView alloc] initWithGlfwWindow:window];
 
-    if ([window->ns.view respondsToSelector:@selector(setWantsBestResolutionOpenGLSurface:)])
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         [window->ns.view setWantsBestResolutionOpenGLSurface:YES];
+#endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
 
     [window->ns.object setTitle:[NSString stringWithUTF8String:wndconfig->title]];
     [window->ns.object setContentView:window->ns.view];
@@ -835,8 +851,10 @@ static GLboolean createWindow(_GLFWwindow* window,
     [window->ns.object disableCursorRects];
     [window->ns.object center];
 
-    if ([window->ns.object respondsToSelector:@selector(setRestorable:)])
+#if MAC_OS_X_VERSION_MAX_ALLOWED >= 1070
+    if (floor(NSAppKitVersionNumber) >= NSAppKitVersionNumber10_7)
         [window->ns.object setRestorable:NO];
+#endif /*MAC_OS_X_VERSION_MAX_ALLOWED*/
 
     return GL_TRUE;
 }
@@ -931,8 +949,9 @@ void _glfwPlatformGetWindowPos(_GLFWwindow* window, int* xpos, int* ypos)
 
 void _glfwPlatformSetWindowPos(_GLFWwindow* window, int x, int y)
 {
-    const NSRect frameRect =
-        [window->ns.object frameRectForContentRect:NSMakeRect(x, y, 0, 0)];
+    const NSRect contentRect = [window->ns.view frame];
+    const NSRect dummyRect = NSMakeRect(x, transformY(y + contentRect.size.height), 0, 0);
+    const NSRect frameRect = [window->ns.object frameRectForContentRect:dummyRect];
     [window->ns.object setFrameOrigin:frameRect.origin];
 }
 

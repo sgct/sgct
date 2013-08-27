@@ -23,7 +23,7 @@
  <tr style="height: 56px;">
   <td style="padding-left: 0.5em;">
    <div id="projectname">GLFW
-   &#160;<span id="projectnumber">3.0.1</span>
+   &#160;<span id="projectnumber">3.0.2</span>
    </div>
    <div id="projectbrief">A multi-platform library for OpenGL, window and input</div>
   </td>
@@ -85,7 +85,7 @@ var searchBox = new SearchBox("searchBox", "search",false,'Search');
 <ul><li class="level1"><a href="#compat_wm">ICCCM and EWMH conformance</a></li>
 <li class="level1"><a href="#compat_glx">GLX extensions</a></li>
 <li class="level1"><a href="#compat_wgl">WGL extensions</a></li>
-<li class="level1"><a href="#cmopat_osx">OpenGL 3.2 on Mac OS X</a></li>
+<li class="level1"><a href="#compat_osx">OpenGL 3.2 and later on OS X</a></li>
 </ul>
 </div>
 <div class="textblock"><p>This chapter describes the various API extensions used by this version of GLFW. It lists what are essentially implementation details, but which are nonetheless vital knowledge for developers wishing to deploy their applications on machines with varied specifications.</p>
@@ -113,15 +113,15 @@ WGL extensions</h1>
 <p>GLFW uses the <code>WGL_ARB_pixel_format</code> and <code>WGL_ARB_multisample</code> extensions to create contexts with multisampling anti-aliasing. Where these extensions are unavailable, the <code>GLFW_SAMPLES</code> hint will have no effect.</p>
 <p>GLFW uses the <code>WGL_ARB_create_context</code> extension when available, even when creating OpenGL contexts of version 2.1 and below. Where this extension is unavailable, the <code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> hints will only be partially supported, the <code>GLFW_OPENGL_DEBUG_CONTEXT</code> hint will have no effect, and setting the <code>GLFW_OPENGL_PROFILE</code> or <code>GLFW_OPENGL_FORWARD_COMPAT</code> hints to a non-zero value will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail.</p>
 <p>GLFW uses the <code>WGL_ARB_create_context_profile</code> extension to provide support for context profiles. Where this extension is unavailable, setting the <code>GLFW_OPENGL_PROFILE</code> hint to anything but zero will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail.</p>
-<h1><a class="anchor" id="cmopat_osx"></a>
-OpenGL 3.2 on Mac OS X</h1>
-<p>Support for OpenGL 3.0 and above was introduced with Mac OS X 10.7, and even then only forward-compatible OpenGL 3.2 core profile contexts are supported. There is also still no mechanism for requesting debug contexts. Versions of Mac OS X earlier than 10.7 support at most OpenGL version 2.1.</p>
-<p>Because of this, on Mac OS X 10.7, the <code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> hints will fail if given a version above 3.2, the <code>GLFW_OPENGL_FORWARD_COMPAT</code> is required for creating OpenGL 3.2 contexts, the <code>GLFW_OPENGL_DEBUG_CONTEXT</code> hint is ignored and setting the <code>GLFW_OPENGL_PROFILE</code> hint to anything except <code>GLFW_OPENGL_CORE_PROFILE</code> will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail.</p>
+<h1><a class="anchor" id="compat_osx"></a>
+OpenGL 3.2 and later on OS X</h1>
+<p>Support for OpenGL 3.2 and above was introduced with OS X 10.7 and even then only forward-compatible, core profile contexts are supported. Support for OpenGL 4.1 was introduced with OS X 10.9, also limited to forward-compatible, core profile contexts. There is also still no mechanism for requesting debug contexts. Versions of Mac OS X earlier than 10.7 support at most OpenGL version 2.1.</p>
+<p>Because of this, on OS X 10.7 and later, the <code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> hints will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail if given version 3.0 or 3.1, the <code>GLFW_OPENGL_FORWARD_COMPAT</code> is required for creating contexts for OpenGL 3.2 and later, the <code>GLFW_OPENGL_DEBUG_CONTEXT</code> hint is ignored and setting the <code>GLFW_OPENGL_PROFILE</code> hint to anything except <code>GLFW_OPENGL_CORE_PROFILE</code> will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail.</p>
 <p>Also, on Mac OS X 10.6 and below, the <code>GLFW_CONTEXT_VERSION_MAJOR</code> and <code>GLFW_CONTEXT_VERSION_MINOR</code> hints will fail if given a version above 2.1, the <code>GLFW_OPENGL_DEBUG_CONTEXT</code> hint will have no effect, and setting the <code>GLFW_OPENGL_PROFILE</code> or <code>GLFW_OPENGL_FORWARD_COMPAT</code> hints to a non-zero value will cause <a class="el" href="group__window.html#ga5c336fddf2cbb5b92f65f10fb6043344">glfwCreateWindow</a> to fail. </p>
 </div></div><!-- contents -->
 <!-- start footer part -->
 <hr class="footer"/><address class="footer"><small>
-Generated on Sun Jun 16 2013 22:34:04 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
+Generated on Sun Aug 25 2013 21:45:13 for GLFW by &#160;<a href="http://www.doxygen.org/index.html">
 <img class="footer" src="doxygen.png" alt="doxygen"/>
 </a> 1.8.3.1
 </small></address>

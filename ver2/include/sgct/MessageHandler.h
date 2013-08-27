@@ -21,7 +21,7 @@ public:
 	/*!
 		Different notify levels for messages
 	*/
-	enum NotifyLevel { NOTIFY_ERROR = 0, NOTIFY_IMPORTANT, NOTIFY_VERSION_INFO, NOTIFY_WARNING, NOTIFY_INFO, NOTIFY_DEBUG };
+	enum NotifyLevel { NOTIFY_ERROR = 0, NOTIFY_IMPORTANT, NOTIFY_VERSION_INFO, NOTIFY_INFO, NOTIFY_WARNING, NOTIFY_DEBUG };
 	
 	/*! Get the MessageHandler instance */
 	static MessageHandler * instance()

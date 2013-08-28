@@ -22,16 +22,6 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 	valid = false;
 	useExternalControlPort = false;
 
-	//font stuff
-	mFontSize = 10;
-	#if __WIN32__
-    mFontName = "verdanab.ttf";
-    #elif __APPLE__
-    mFontName = "Verdana Bold.ttf";
-    #else
-    mFontName = "FreeSansBold.ttf";
-    #endif
-
 	if( filename.empty() )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: No XML config file loaded.\n");
@@ -586,6 +576,37 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
 						sgct::SGCTSettings::instance()->setSwapInterval( tmpInterval );
 				}
+				else if( strcmp("OSDText", val[1]) == 0 )
+				{
+					float x = 0.0f;
+					float y = 0.0f;
+
+					if( element[1]->Attribute("name") != NULL )
+					{
+						sgct::SGCTSettings::instance()->setOSDTextFontName( element[1]->Attribute("name") );
+					}
+
+					if( element[1]->Attribute("path") != NULL )
+					{
+						sgct::SGCTSettings::instance()->setOSDTextFontPath( element[1]->Attribute("path") );
+					}
+
+					if( element[1]->Attribute("size") != NULL )
+					{
+						int tmpi = -1;
+						if( element[1]->QueryIntAttribute("size", &tmpi) == XML_NO_ERROR && tmpi > 0)
+						{
+							sgct::SGCTSettings::instance()->setOSDTextFontSize( tmpi );
+						}
+						else
+							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
+					}
+
+					if( element[1]->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR )
+						sgct::SGCTSettings::instance()->setOSDTextXOffset( x );
+					if( element[1]->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR )
+						sgct::SGCTSettings::instance()->setOSDTextYOffset( y );
+				}
 				else if( strcmp("FXAA", val[1]) == 0 )
 				{
 					float offset = 0.0f;
@@ -618,29 +639,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 				element[1] = element[1]->NextSiblingElement();
 			}
 		}//end settings
-		else if( strcmp("Font", val[0]) == 0 )
-		{
-			if( element[0]->Attribute("name") != NULL )
-			{
-			    mFontName.assign( element[0]->Attribute("name") );
-            }
-
-            if( element[0]->Attribute("path") != NULL )
-			{
-			    mFontPath.assign( element[0]->Attribute("path") );
-            }
-
-            if( element[0]->Attribute("size") != NULL )
-			{
-                int tmpi = -1;
-				if( element[0]->QueryIntAttribute("size", &tmpi) == XML_NO_ERROR && tmpi > 0)
-				{
-					mFontSize = tmpi;
-				}
-				else
-					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
-            }
-        }
 		else if( strcmp("Capture", val[0]) == 0 )
 		{
 			if( element[0]->Attribute("path") != NULL )

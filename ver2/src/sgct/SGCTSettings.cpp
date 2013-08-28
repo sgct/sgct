@@ -33,6 +33,16 @@ sgct::SGCTSettings::SGCTSettings()
 	for(size_t i=0; i<3; i++)
 		mCapturePath[i].assign("SGCT");
 	mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
+
+	//font stuff
+	mFontSize = 10;
+	#if __WIN32__
+    mFontName = "verdanab.ttf";
+    #elif __APPLE__
+    mFontName = "Verdana Bold.ttf";
+    #else
+    mFontName = "FreeSansBold.ttf";
+    #endif
 }
 
 sgct::SGCTSettings::~SGCTSettings()
@@ -189,3 +199,67 @@ void sgct::SGCTSettings::setFXAASubPixOffset(float val)
 	mFXAASubPixOffset = val;
 }
 
+
+/*!
+	Set the horizontal OSD text Offset between 0.0 and 1.0
+*/
+void sgct::SGCTSettings::setOSDTextXOffset(float val)
+{
+	mOSDTextOffset[ 0 ] = val;
+}
+
+/*!
+	Set the vertical OSD text Offset between 0.0 and 1.0
+*/
+void sgct::SGCTSettings::setOSDTextYOffset(float val)
+{
+	mOSDTextOffset[ 1 ] = val;
+}
+
+/*!
+	Set the OSD text font size
+*/
+void sgct::SGCTSettings::setOSDTextFontSize( int size )
+{
+	mFontSize = size;
+}
+
+/*!
+	Set the OSD text font name
+*/
+void sgct::SGCTSettings::setOSDTextFontName( std::string name )
+{
+	mFontName.assign( name );
+}
+
+/*!
+	Set the OSD text font path
+*/
+void sgct::SGCTSettings::setOSDTextFontPath( std::string path )
+{
+	mFontPath.assign( path );
+}
+
+/*!
+	Get the OSD text font size
+*/
+const int &	sgct::SGCTSettings::getOSDTextFontSize()
+{ 
+	return mFontSize;
+}
+
+/*!
+	Get the OSD text font name
+*/
+const std::string & sgct::SGCTSettings::getOSDTextFontName()
+{
+	return mFontName;
+}
+
+/*!
+	Get the OSD text font path
+*/
+const std::string & sgct::SGCTSettings::getOSDTextFontPath()
+{
+	return mFontPath;
+}

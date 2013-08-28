@@ -313,7 +313,7 @@ private:
 	void renderDisplayInfo();
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
-	void enterCurrentViewport(ViewportSpace vs);
+	void enterCurrentViewport();
 	const char * getBasicInfo(std::size_t winIndex);
 	const char * getAAInfo(std::size_t winIndex);
 

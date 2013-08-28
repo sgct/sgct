@@ -523,16 +523,16 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
-	if( mConfig->getFontPath().empty() )
+	if( SGCTSettings::instance()->getOSDTextFontPath().empty() )
 	{
-	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", mConfig->getFontName() ) )
-            sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
+	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontName() ) )
+            sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
     }
     else
     {
-	    std::string tmpPath = mConfig->getFontPath() + mConfig->getFontName();
+	    std::string tmpPath = SGCTSettings::instance()->getOSDTextFontPath() + SGCTSettings::instance()->getOSDTextFontName();
 	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", tmpPath, sgct_text::FontManager::FontPath_Local ) )
-            sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
+            sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
     }
 
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -852,7 +852,9 @@ void sgct::Engine::render()
 			if( !mRenderingOffScreen )
 				getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 
-			//if fisheye rendering is used then render the cubemap
+			//--------------------------------------------------------------
+			//     RENDER FISHEYE/CUBEMAP VIEWPORTS
+			//--------------------------------------------------------------
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
 	#ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -870,7 +872,10 @@ void sgct::Engine::render()
 					(this->*mInternalRenderFisheyeFn)(RightEye);
 				}
 			}
-			else //regular viewport rendering
+			//--------------------------------------------------------------
+			//     RENDER REGULAR VIEWPORTS
+			//--------------------------------------------------------------
+			else
 			{
 	#ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Rendering\n");
@@ -988,7 +993,7 @@ void sgct::Engine::renderDisplayInfo()
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
 	sgct_text::FontManager::instance()->setStrokeSize( 1 );
 
-	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", mConfig->getFontSize() );
+	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
 	float lineHeight = font->getHeight() * 1.59f;
 	
 	sgct_text::print(font,
@@ -1071,7 +1076,7 @@ void sgct::Engine::renderDisplayInfo()
 */
 void sgct::Engine::draw()
 {
-	enterCurrentViewport(FBOSpace);
+	enterCurrentViewport();
 
 	if( mDrawFn != NULL )
 	{
@@ -1090,7 +1095,7 @@ void sgct::Engine::draw()
 */
 void sgct::Engine::drawFixedPipeline()
 {
-	enterCurrentViewport(FBOSpace);
+	enterCurrentViewport();
 
 	glMatrixMode(GL_PROJECTION);
 
@@ -1143,7 +1148,7 @@ void sgct::Engine::drawOverlays()
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
 			*/
-			enterCurrentViewport(FBOSpace);
+			enterCurrentViewport();
 
 			//enter ortho mode
 			glm::mat4 orthoMat;
@@ -1192,7 +1197,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
 			*/
-			enterCurrentViewport(FBOSpace);
+			enterCurrentViewport();
 
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
@@ -2028,7 +2033,7 @@ void sgct::Engine::render2D()
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getActiveWindowPtr()->setCurrentViewport(i);
-			enterCurrentViewport(FBOSpace);
+			enterCurrentViewport();
 
 			if( mShowGraph )
 				mStatistics->draw(mFrameCounter,
@@ -2037,7 +2042,12 @@ void sgct::Engine::render2D()
 				The text renderer enters automatically the correct viewport
 			*/
 			if( mShowInfo )
+			{
+				//choose specified eye from config
+				if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::NoStereo )
+					mActiveFrustum = getActiveWindowPtr()->getCurrentViewport()->getEye();
 				renderDisplayInfo();
+			}
 		}
 	}
 }
@@ -2945,9 +2955,9 @@ void sgct::Engine::printNodeInfo(unsigned int nodeId)
 
 	\param vs Which space to set up the viewport in.
 */
-void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
+void sgct::Engine::enterCurrentViewport()
 {
-	if( getActiveWindowPtr()->isUsingFisheyeRendering() && vs != ScreenSpace )
+	if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 	{
 		int cmRes = getActiveWindowPtr()->getCubeMapResolution();
 		currentViewportCoords[0] = 0;
@@ -2957,28 +2967,14 @@ void sgct::Engine::enterCurrentViewport(ViewportSpace vs)
 	}
 	else
 	{
-		if( vs == ScreenSpace || !SGCTSettings::instance()->useFBO() )
-		{
-			currentViewportCoords[0] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXResolution()));
-			currentViewportCoords[1] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * static_cast<double>(getActiveWindowPtr()->getYResolution()));
-			currentViewportCoords[2] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<double>(getActiveWindowPtr()->getXResolution()));
-			currentViewportCoords[3] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYResolution()));
-		}
-		else
-		{
-			currentViewportCoords[0] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
-			currentViewportCoords[1] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
-			currentViewportCoords[2] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
-			currentViewportCoords[3] =
-				static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
-		}
+		currentViewportCoords[0] =
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
+		currentViewportCoords[1] =
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
+		currentViewportCoords[2] =
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
+		currentViewportCoords[3] =
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
 	}
 
 	glViewport( currentViewportCoords[0],

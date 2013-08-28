@@ -54,11 +54,19 @@ public:
 	void setCaptureFormat(const char * format);
 	void setFXAASubPixTrim(float val);
 	void setFXAASubPixOffset(float val);
+	void setOSDTextXOffset(float val);
+	void setOSDTextYOffset(float val);
+	void setOSDTextFontSize( int size );
+	void setOSDTextFontName( std::string name );
+	void setOSDTextFontPath( std::string path );
 	
 	// ----------- get functions ---------------- //
-	const char *	getCapturePath(CapturePathIndexes cpi = Mono);
-	int				getCaptureFormat();
-	int				getSwapInterval();
+	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
+	int					getCaptureFormat();
+	int					getSwapInterval();
+	const int &			getOSDTextFontSize();
+	const std::string &	getOSDTextFontName();
+	const std::string &	getOSDTextFontPath();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -102,6 +110,11 @@ private:
 	float mFXAASubPixOffset;
 
 	std::string mCapturePath[3];
+
+	//fontdata
+	std::string mFontName;
+	std::string mFontPath;
+	int mFontSize;
 };
 }
 

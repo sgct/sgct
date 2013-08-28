@@ -24,11 +24,6 @@ public:
 	bool isValid() { return valid; }
 	bool isExternalControlPortSet() { return useExternalControlPort; }
 
-	//font stuff
-	const int & getFontSize() { return mFontSize; }
-	const std::string getFontName() { return mFontName; }
-	const std::string getFontPath() { return mFontPath; }
-
 private:
     bool replaceEnvVars( const std::string &filename );
 	void readAndParseXML();
@@ -38,10 +33,6 @@ private:
 	bool valid;
 	bool useExternalControlPort;
 	std::string xmlFileName;
-	//fontdata
-	std::string mFontName;
-	std::string mFontPath;
-	int mFontSize;
 };
 
 }

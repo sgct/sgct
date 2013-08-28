@@ -374,8 +374,8 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_LEFT:
 			if(action == SGCT_PRESS)
-				if( stereoMode.getVal() > 1 )
-					stereoMode.setVal( (stereoMode.getVal() - 0) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
+				if( stereoMode.getVal() > 0 )
+					stereoMode.setVal( (stereoMode.getVal() - 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
 				else
 					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
 			break;

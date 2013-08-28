@@ -197,7 +197,12 @@ public:
 	/*!
 		Returns a pointer to the current window that is beeing rendered
 	*/
-	sgct_core::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
+	inline sgct_core::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
+
+	/*!
+		Returns the active viewport in pixels (only valid inside in the draw callback function)
+	*/
+	inline const int * getActiveViewportPixelCoords() { return currentViewportCoords; }
 
 	/*!
 		Returns a pinter to the user (VR observer position) object
@@ -275,11 +280,6 @@ public:
 	*/
 	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
-
-	/*!
-		Returns the active viewport in pixels (only valid inside in the draw callback function)
-	*/
-	inline const int * getActiveViewport() { return currentViewportCoords; }
 
 	/*!
 		Returns the current frame number

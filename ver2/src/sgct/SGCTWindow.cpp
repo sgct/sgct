@@ -1502,9 +1502,9 @@ GLFWwindow * sgct_core::SGCTWindow::getWindowHandle()
 }
 
 /*!
-	Get the width and height of FBO in pixels
+	Get the dimensions of the FBO that the Engine::draw function renders to.
 */
-void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
+void sgct_core::SGCTWindow::getDrawFBODimensions( int & width, int & height )
 {
 	if( mFisheyeMode )
 	{
@@ -1516,6 +1516,16 @@ void sgct_core::SGCTWindow::getFBODimensions( int & width, int & height )
 		width = mFramebufferResolution[0];
 		height = mFramebufferResolution[1];
 	}
+}
+
+/*!
+	Get the dimensions of the final FBO. Regular viewport rendering renders directly to this FBO but a fisheye renders first a cubemap and then to the final FBO.
+	Post effects are rendered using these dimensions.
+*/
+void sgct_core::SGCTWindow::getFinalFBODimensions( int & width, int & height )
+{
+	width = mFramebufferResolution[0];
+	height = mFramebufferResolution[1];
 }
 
 /*!
@@ -1780,6 +1790,9 @@ sgct_core::Viewport * sgct_core::SGCTWindow::getViewport(std::size_t index)
 	return &mViewports[index];
 }
 
+/*!
+Get the current viewport data in pixels.
+*/
 void sgct_core::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *

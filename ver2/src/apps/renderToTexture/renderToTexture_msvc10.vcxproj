@@ -23,8 +23,8 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{5A40274C-19EB-4B0E-956C-B0C042287469}</ProjectGuid>
-    <RootNamespace>postProcessing</RootNamespace>
-    <ProjectName>postProcessing_msvc10</ProjectName>
+    <RootNamespace>renderToTexture</RootNamespace>
+    <ProjectName>renderToTexture_msvc10</ProjectName>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
@@ -63,12 +63,12 @@
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup>
     <_ProjectFileVersion>10.0.30319.1</_ProjectFileVersion>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SGCT_ROOT_DIR)\bin\postProcessing\msvc10\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SGCT_ROOT_DIR)\bin\postProcessing\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">$(Configuration)\</IntDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SGCT_ROOT_DIR)\bin\postProcessing\msvc10\</OutDir>
-    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SGCT_ROOT_DIR)\bin\postProcessing\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc10\</OutDir>
+    <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc10\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|x64'">$(Configuration)\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_x86</TargetName>

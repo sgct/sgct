@@ -2,9 +2,9 @@
 <VisualStudioProject
 	ProjectType="Visual C++"
 	Version="9,00"
-	Name="postProcessing_msvc9"
+	Name="renderToTexture_msvc9"
 	ProjectGUID="{2542A416-9EBE-43C6-88E1-253219402FB3}"
-	RootNamespace="postProcessing"
+	RootNamespace="renderToTexture"
 	TargetFrameworkVersion="196613"
 	>
 	<Platforms>
@@ -17,7 +17,7 @@
 	<Configurations>
 		<Configuration
 			Name="Debug|Win32"
-			OutputDirectory="$(SGCT_ROOT_DIR)\bin\postProcessing\msvc9\"
+			OutputDirectory="$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"
@@ -90,7 +90,7 @@
 		</Configuration>
 		<Configuration
 			Name="Release|Win32"
-			OutputDirectory="$(SGCT_ROOT_DIR)\bin\postProcessing\msvc9\"
+			OutputDirectory="$(SGCT_ROOT_DIR)\bin\renderToTexture\msvc9\"
 			IntermediateDirectory="$(ConfigurationName)"
 			ConfigurationType="1"
 			CharacterSet="2"

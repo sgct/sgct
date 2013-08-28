@@ -92,7 +92,8 @@ public:
 	int					getScreenShotNumber();
 	StereoMode			getStereoMode();
 	void				getSwapGroupFrameNumber(unsigned int & frameNumber);
-	void				getFBODimensions( int & width, int & height );
+	void				getDrawFBODimensions( int & width, int & height );
+	void				getFinalFBODimensions( int & width, int & height );
 	OffScreenBuffer *	getFBOPtr();
 	GLFWmonitor *		getMonitor();
 	GLFWwindow *		getWindowHandle();

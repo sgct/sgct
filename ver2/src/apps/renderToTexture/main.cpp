@@ -30,7 +30,6 @@ struct fbData
 };
 
 std::vector<fbData> buffers;
-unsigned int draw_counter = 0;
 
 size_t myTextureHandle; //the box's texture
 sgct_utils::SGCTBox * myBox = NULL;
@@ -69,11 +68,17 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	unsigned int index = draw_counter % buffers.size();
-	
-	gEngine->getActiveWindowPtr()->getFBOPtr()->unBind();
+	//get a pointer to the current window
+	sgct_core::SGCTWindow * winPtr = gEngine->getActiveWindowPtr();
 
-	glViewport( 0, 0, buffers[index].width, buffers[index].height );
+	unsigned int index = winPtr->getId();
+	
+	winPtr->getFBOPtr()->unBind();
+
+	//get viewport data and set the viewport
+	const int * coords;
+	coords = gEngine->getActiveViewportPixelCoords();
+	glViewport( coords[0], coords[1], coords[2], coords[3] );
 
 	//bind fbo
 	glBindTexture(GL_TEXTURE_2D, 0);
@@ -97,13 +102,12 @@ void myDrawFun()
 	//un-bind fbo
 	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 
-	gEngine->getActiveWindowPtr()->getFBOPtr()->bind();
+	winPtr->getFBOPtr()->bind();
 
 	//render a quad in ortho/2D mode with target texture
 	//--------------------------------------------------
 	//set viewport
-	const int * curr_vp = gEngine->getActiveViewport();
-	glViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
+	glViewport( coords[0], coords[1], coords[2], coords[3] );
 	
 	//enter ortho mode (2D projection)
 	glMatrixMode(GL_PROJECTION);
@@ -137,8 +141,6 @@ void myDrawFun()
 	//exit ortho mode
 	glMatrixMode(GL_PROJECTION);
 	glPopMatrix();
-
-	draw_counter++;
 }
 
 void drawScene()
@@ -180,9 +182,6 @@ void myPostSyncPreDrawFun()
 			resizeFBOs();
 			break;
 		}
-
-	//reset draw counter before draw
-	draw_counter = 0;
 }
 
 void myInitOGLFun()
@@ -211,22 +210,8 @@ void myInitOGLFun()
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
 	{
-		if( thisNode->getWindowPtr(i)->isUsingFisheyeRendering() )
-		{
-			fbData tmpBuffer;
-			buffers.push_back( tmpBuffer );
-		}
-		else
-		{
-			for(unsigned int j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
-			{	
-				if( thisNode->getWindowPtr(i)->getViewport(j)->isEnabled() )
-				{
-					fbData tmpBuffer;
-					buffers.push_back( tmpBuffer );
-				}
-			}
-		}
+		fbData tmpBuffer;
+		buffers.push_back( tmpBuffer );
 	}
 
 	sgct::MessageHandler::instance()->print("Number of targets: %d\n", buffers.size());
@@ -261,32 +246,14 @@ void createFBOs()
 		int fb_height;
 
 		sgct_core::SGCTWindow * winPtr = gEngine->getWindowPtr(i);
-	
-		if(winPtr->isUsingFisheyeRendering())
-		{
-			fb_width = winPtr->getCubeMapResolution();
-			fb_height = winPtr->getCubeMapResolution();
-		}
-		else
-		{
-			fb_width = winPtr->getXFramebufferResolution();
-			fb_height = winPtr->getYFramebufferResolution();
-		}
+		winPtr->getDrawFBODimensions(fb_width, fb_height);
 
-		unsigned int index = 0; //index to buffers
-		for(std::size_t j=0; j < winPtr->getNumberOfViewports(); j++)
-		{	
-			if( winPtr->getViewport(j)->isEnabled() && index < buffers.size())
-			{
-				buffers[index].fbo = 0;
-				buffers[index].renderBuffer = 0;
-				buffers[index].depthBuffer = 0;
-				buffers[index].texture = 0;
-				buffers[index].width = static_cast<int>(winPtr->getViewport(j)->getXSize() * static_cast<double>(fb_width));
-				buffers[index].height = static_cast<int>(winPtr->getViewport(j)->getYSize() * static_cast<double>(fb_height));
-				index++;
-			}
-		}
+		buffers[i].fbo = 0;
+		buffers[i].renderBuffer = 0;
+		buffers[i].depthBuffer = 0;
+		buffers[i].texture = 0;
+		buffers[i].width = fb_width;
+		buffers[i].height = fb_height;
 	}
 	
 	//create targets
@@ -360,7 +327,8 @@ void createTextures()
 	{
 		glGenTextures(1, &(buffers[i].texture));
 		glBindTexture(GL_TEXTURE_2D, buffers[i].texture);
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR ); //must be linear if warping, blending or fix resolution is used
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE );
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, buffers[i].width, buffers[i].height, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);

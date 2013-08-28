@@ -22,11 +22,68 @@ inline void setupViewport()
 {
 	sgct_core::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
-	glViewport(
-			static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYFramebufferResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution())),
-			static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution())));
+	int x, y, xSize, ySize;
+	x		= static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution()));
+	y		= static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYFramebufferResolution()));
+	xSize	= static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution()));
+	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution()));
+	
+	sgct_core::SGCTWindow::StereoMode sm = cWin->getStereoMode();
+	if( sm >= sgct_core::SGCTWindow::Passive_SBS )
+	{
+		if( sgct::Engine::instance()->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
+		{
+			switch(sm)
+			{
+			case sgct_core::SGCTWindow::Passive_SBS:
+				x = x >> 1; //x offset
+				xSize = xSize >> 1; //x size
+				break;
+				
+			case sgct_core::SGCTWindow::Passive_SBS_Inverted:
+				x = (x >> 1) + (xSize >> 1); //x offset
+				xSize = xSize >> 1; //x size
+				break;
+
+			case sgct_core::SGCTWindow::Passive_TB:
+				y = (y >> 1) + (ySize >> 1); //y offset
+				ySize = ySize >> 1; //y size
+				break;
+				
+			case sgct_core::SGCTWindow::Passive_TB_Inverted:
+				y = y >> 1; //y offset
+				ySize = ySize >> 1; //y size
+				break;
+			}
+		}
+		else
+		{
+			switch(sm)
+			{
+			case sgct_core::SGCTWindow::Passive_SBS:
+				x = (x >> 1) + (xSize >> 1); //x offset
+				xSize = xSize >> 1; //x size
+				break;
+				
+			case sgct_core::SGCTWindow::Passive_SBS_Inverted:
+				x = x >> 1; //x offset
+				xSize = xSize >> 1; //x size
+				break;
+
+			case sgct_core::SGCTWindow::Passive_TB:
+				y = y >> 1; //y offset
+				ySize = ySize >> 1; //y size
+				break;
+				
+			case sgct_core::SGCTWindow::Passive_TB_Inverted:
+				y = (y >> 1) + (ySize >> 1); //y offset
+				ySize = ySize >> 1; //y size
+				break;
+			}
+		}
+	}
+
+	glViewport( x, y, xSize, ySize );
 }
 
 inline glm::dmat4 setupOrthoMat()

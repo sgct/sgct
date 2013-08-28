@@ -127,7 +127,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mShowGraph = false;
 	mShowWireframe = false;
 	mTakeScreenshot = false;
-	mActiveFrustum = Frustum::Mono;
+	mActiveFrustumMode = Frustum::Mono;
 	mFrameCounter = 0;
     mTimerID = 0;
 
@@ -852,6 +852,8 @@ void sgct::Engine::render()
 			if( !mRenderingOffScreen )
 				getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 
+			SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+
 			//--------------------------------------------------------------
 			//     RENDER FISHEYE/CUBEMAP VIEWPORTS
 			//--------------------------------------------------------------
@@ -863,12 +865,12 @@ void sgct::Engine::render()
 				//set alpha value
 				mFisheyeClearColor[3] = getActiveWindowPtr()->useFisheyeAlpha() ? 0.0f : 1.0f;
 		
-				mActiveFrustum = getActiveWindowPtr()->getStereoMode() != static_cast<int>(SGCTWindow::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
+				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 				(this->*mInternalRenderFisheyeFn)(LeftEye);
 
 				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
 				{
-					mActiveFrustum = Frustum::StereoRightEye;
+					mActiveFrustumMode = Frustum::StereoRightEye;
 					(this->*mInternalRenderFisheyeFn)(RightEye);
 				}
 			}
@@ -881,14 +883,19 @@ void sgct::Engine::render()
 		fprintf(stderr, "Render-Loop: Rendering\n");
 	#endif
 				//if any stereo type (except passive) then set frustum mode to left eye
-				mActiveFrustum = getActiveWindowPtr()->getStereoMode() != static_cast<int>(SGCTWindow::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
+				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::NoStereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 				renderViewports(LeftEye);
 
 				//render right eye view port(s)
 				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
 				{
-					mActiveFrustum = Frustum::StereoRightEye;
-					renderViewports(RightEye);
+					mActiveFrustumMode = Frustum::StereoRightEye;
+
+					//use a single texture for side-by-side and top-bottom stereo modes
+					if( sm >= SGCTWindow::Passive_SBS )
+						renderViewports(LeftEye);
+					else
+						renderViewports(RightEye);
 				}
 			}
 
@@ -1049,7 +1056,7 @@ void sgct::Engine::renderDisplayInfo()
 		getUserPtr()->getZPos());
 
 	//if active stereoscopic rendering
-	if( mActiveFrustum == Frustum::StereoLeftEye )
+	if( mActiveFrustumMode == Frustum::StereoLeftEye )
 	{
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
@@ -1057,7 +1064,7 @@ void sgct::Engine::renderDisplayInfo()
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Stereo type: %s\nActive eye: Left", getActiveWindowPtr()->getStereoModeStr().c_str() );
 	}
-	else if( mActiveFrustum == Frustum::StereoRightEye )
+	else if( mActiveFrustumMode == Frustum::StereoRightEye )
 	{
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
@@ -1100,11 +1107,11 @@ void sgct::Engine::drawFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 
 	Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
-	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustum)) );
+	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustumMode)) );
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glLoadMatrixf( glm::value_ptr( tmpVP->getViewMatrix(mActiveFrustum) * getModelMatrix() ) );
+	glLoadMatrixf( glm::value_ptr( tmpVP->getViewMatrix(mActiveFrustumMode) * getModelMatrix() ) );
 
 	if( mDrawFn != NULL )
 	{
@@ -1272,7 +1279,9 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
 		}
 
-		setAndClearBuffer(RenderToTexture);
+		//dont clear buffer if side-by-side or top-bottom stereo
+		if( !(getActiveWindowPtr()->getStereoMode() >= SGCTWindow::Passive_SBS && mActiveFrustumMode == Frustum::StereoRightEye) )
+			setAndClearBuffer(RenderToTexture);
 	}
 	else
 		setAndClearBuffer(BackBuffer);
@@ -1296,12 +1305,13 @@ void sgct::Engine::renderFBOTexture()
 	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
 
 	//clear buffers
-	mActiveFrustum = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active ? Frustum::StereoLeftEye : Frustum::Mono;
+	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active ? Frustum::StereoLeftEye : Frustum::Mono;
 	setAndClearBuffer(BackBufferBlack);
 
 	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
 
-	if( getActiveWindowPtr()->getStereoMode() > SGCTWindow::Active )
+	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	if( sm > SGCTWindow::Active && sm < SGCTWindow::Passive_SBS )
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
@@ -1335,7 +1345,7 @@ void sgct::Engine::renderFBOTexture()
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active )
 		{
 			//clear buffers
-			mActiveFrustum = Frustum::StereoRightEye;
+			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
 
 			glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
@@ -1380,14 +1390,15 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 	//clear buffers
-	mActiveFrustum = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active ? Frustum::StereoLeftEye : Frustum::Mono;
+	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active ? Frustum::StereoLeftEye : Frustum::Mono;
 	setAndClearBuffer(BackBufferBlack);
 
 	glLoadIdentity();
 
 	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
 
-	if( getActiveWindowPtr()->getStereoMode() > SGCTWindow::Active )
+	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	if( sm > SGCTWindow::Active && sm < SGCTWindow::Passive_SBS )
 	{
 		getActiveWindowPtr()->bindStereoShaderProgram();
 
@@ -1419,7 +1430,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active )
 		{
 			//clear buffers
-			mActiveFrustum = Frustum::StereoRightEye;
+			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
 
 			glLoadIdentity();
@@ -1449,9 +1460,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 {
 	bool statesSet = false;
 
-	if( mActiveFrustum == Frustum::StereoLeftEye )
+	if( mActiveFrustumMode == Frustum::StereoLeftEye )
 		getActiveWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
-	else if( mActiveFrustum == Frustum::StereoRightEye )
+	else if( mActiveFrustumMode == Frustum::StereoRightEye )
 		getActiveWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
@@ -1639,9 +1650,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
 
-			if( mActiveFrustum == Frustum::Mono )
+			if( mActiveFrustumMode == Frustum::Mono )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
-			else if( mActiveFrustum == Frustum::StereoLeftEye )
+			else if( mActiveFrustumMode == Frustum::StereoLeftEye )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Left");
 			else
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
@@ -1676,9 +1687,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 */
 void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 {
-	if( mActiveFrustum == Frustum::StereoLeftEye )
+	if( mActiveFrustumMode == Frustum::StereoLeftEye )
 		getActiveWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
-	else if( mActiveFrustum == Frustum::StereoRightEye )
+	else if( mActiveFrustumMode == Frustum::StereoRightEye )
 		getActiveWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
@@ -1929,9 +1940,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
 
-			if( mActiveFrustum == Frustum::Mono )
+			if( mActiveFrustumMode == Frustum::Mono )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
-			else if( mActiveFrustum == Frustum::StereoLeftEye )
+			else if( mActiveFrustumMode == Frustum::StereoLeftEye )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Left");
 			else
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
@@ -1966,6 +1977,8 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 {
 	prepareBuffer( ti );
 	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
+
+	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
@@ -1975,14 +1988,14 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 		if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
 		{
 			//if passive stereo or mono
-			if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::NoStereo )
-				mActiveFrustum = getActiveWindowPtr()->getCurrentViewport()->getEye();
+			if( sm == SGCTWindow::NoStereo )
+				mActiveFrustumMode = getActiveWindowPtr()->getCurrentViewport()->getEye();
 
 			if( getActiveWindowPtr()->getCurrentViewport()->isTracked() )
 			{
 				getActiveWindowPtr()->getCurrentViewport()->calculateFrustum(
-					mActiveFrustum,
-					usrPtr->getPosPtr(mActiveFrustum),
+					mActiveFrustumMode,
+					usrPtr->getPosPtr(mActiveFrustumMode),
 					mNearClippingPlaneDist,
 					mFarClippingPlaneDist);
 			}
@@ -1997,18 +2010,24 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	glDisable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
 
-	if( getActiveWindowPtr()->usePostFX() )
-	{
-		//blit buffers
-		updateRenderingTargets(ti); //only used if multisampled FBOs
-		
-		(this->*mInternalRenderPostFXFn)(ti);
+	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
+	if( sm >= sgct_core::SGCTWindow::Passive_SBS && mActiveFrustumMode == Frustum::StereoLeftEye )
 		render2D();
-	}
 	else
 	{
-		render2D();
-		updateRenderingTargets(ti); //only used if multisampled FBOs
+		if( getActiveWindowPtr()->usePostFX() )
+		{
+			//blit buffers
+			updateRenderingTargets(ti); //only used if multisampled FBOs
+		
+			(this->*mInternalRenderPostFXFn)(ti);
+			render2D();
+		}
+		else
+		{
+			render2D();
+			updateRenderingTargets(ti); //only used if multisampled FBOs
+		}
 	}
 
 	glDisable(GL_BLEND);
@@ -2045,7 +2064,7 @@ void sgct::Engine::render2D()
 			{
 				//choose specified eye from config
 				if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::NoStereo )
-					mActiveFrustum = getActiveWindowPtr()->getCurrentViewport()->getEye();
+					mActiveFrustumMode = getActiveWindowPtr()->getCurrentViewport()->getEye();
 				renderDisplayInfo();
 			}
 		}
@@ -2379,12 +2398,12 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 			glDrawBuffer(GL_BACK);
 			glReadBuffer(GL_BACK);
 		}
-		else if( mActiveFrustum == Frustum::StereoLeftEye ) //if active left
+		else if( mActiveFrustumMode == Frustum::StereoLeftEye ) //if active left
 		{
 			glDrawBuffer(GL_BACK_LEFT);
 			glReadBuffer(GL_BACK_LEFT);
 		}
-		else if( mActiveFrustum == Frustum::StereoRightEye ) //if active right
+		else if( mActiveFrustumMode == Frustum::StereoRightEye ) //if active right
 		{
 			glDrawBuffer(GL_BACK_RIGHT);
 			glReadBuffer(GL_BACK_RIGHT);
@@ -2977,6 +2996,61 @@ void sgct::Engine::enterCurrentViewport()
 			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
 	}
 
+	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	if( sm >= SGCTWindow::Passive_SBS )
+	{
+		if( mActiveFrustumMode == Frustum::StereoLeftEye )
+		{
+			switch(sm)
+			{
+			case SGCTWindow::Passive_SBS:
+				currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
+				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				break;
+				
+			case SGCTWindow::Passive_SBS_Inverted:
+				currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
+				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				break;
+
+			case SGCTWindow::Passive_TB:
+				currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
+				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				break;
+				
+			case SGCTWindow::Passive_TB_Inverted:
+				currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
+				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				break;
+			}
+		}
+		else
+		{
+			switch(sm)
+			{
+			case SGCTWindow::Passive_SBS:
+				currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
+				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				break;
+				
+			case SGCTWindow::Passive_SBS_Inverted:
+				currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
+				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				break;
+
+			case SGCTWindow::Passive_TB:
+				currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
+				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				break;
+				
+			case SGCTWindow::Passive_TB_Inverted:
+				currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
+				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				break;
+			}
+		}
+	}
+
 	glViewport( currentViewportCoords[0],
 		currentViewportCoords[1],
 		currentViewportCoords[2],
@@ -3122,7 +3196,7 @@ unsigned int sgct::Engine::getActiveDrawTexture()
 	if( getActiveWindowPtr()->usePostFX() )
 		return getActiveWindowPtr()->getFrameBufferTexture( Intermediate );
 	else
-		return mActiveFrustum == Frustum::StereoRightEye ? getActiveWindowPtr()->getFrameBufferTexture( RightEye ) : getActiveWindowPtr()->getFrameBufferTexture( LeftEye );
+		return mActiveFrustumMode == Frustum::StereoRightEye ? getActiveWindowPtr()->getFrameBufferTexture( RightEye ) : getActiveWindowPtr()->getFrameBufferTexture( LeftEye );
 }
 
 /*!

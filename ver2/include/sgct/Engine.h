@@ -242,22 +242,22 @@ public:
 	inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
 
 	/*!
-		Returns the active frustum which can be one of the following:
+		Returns the active frustum mode which can be one of the following:
 		- Mono
 		- Stereo Left
 		- Stereo Right
 	*/
-	inline const sgct_core::Frustum::FrustumMode & getActiveFrustum() { return mActiveFrustum; }
+	inline const sgct_core::Frustum::FrustumMode & getActiveFrustumMode() { return mActiveFrustumMode; }
 
 	/*!
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustumMode ); }
 
 	/*!
 		Returns the active view matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustumMode ); }
 
 	/*!
 		Returns the scene transform specified in the XML configuration, default is a identity matrix
@@ -267,18 +267,18 @@ public:
 	/*!
 		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum ); }
+	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustumMode ); }
 
 	/*!
 		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustum )
+	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustumMode )
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 	
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustum )
+	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustumMode )
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 
 	/*!
@@ -377,7 +377,7 @@ private:
 	float mFisheyeClearColor[4];
 
 	int localRunningMode;
-	sgct_core::Frustum::FrustumMode mActiveFrustum;
+	sgct_core::Frustum::FrustumMode mActiveFrustumMode;
 	int currentViewportCoords[4];
 
 	bool mShowInfo;

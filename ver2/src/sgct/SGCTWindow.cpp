@@ -882,7 +882,7 @@ void sgct_core::SGCTWindow::createTextures()
 		switch( i )
 		{
 		case sgct::Engine::RightEye:
-			if( mStereoMode == NoStereo )
+			if( mStereoMode == NoStereo || mStereoMode >= Passive_SBS )
 				create = false;
 			break;
 
@@ -1317,7 +1317,7 @@ void sgct_core::SGCTWindow::loadShaders()
 
 	//-------------- end fisheye shader ----------->
 
-	if( mStereoMode > Active )
+	if( mStereoMode > Active && mStereoMode < Passive_SBS)
 	{
 		//reload shader program if it exists
 		if( mStereoShader.isLinked() )
@@ -1371,7 +1371,7 @@ void sgct_core::SGCTWindow::loadShaders()
 				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Passive_SBS )
+		/*else if( mStereoMode == Passive_SBS )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
@@ -1394,7 +1394,7 @@ void sgct_core::SGCTWindow::loadShaders()
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-		}
+		}*/
 		else
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?

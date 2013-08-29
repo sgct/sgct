@@ -84,11 +84,11 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 
 	mMultiSampled ?
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-			"OffScreenBuffer: Created buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
-			mFrameBuffer, mMultiSampledFrameBuffer, mDepthBuffer, mColorBuffer) :
+			"OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tMultisample FBO id=%d\n\tRBO depth buffer id=%d\n\tRBO color buffer id=%d\n",
+			width, height, mFrameBuffer, mMultiSampledFrameBuffer, mDepthBuffer, mColorBuffer) :
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-			"OffScreenBuffer: Created buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d\n",
-			mFrameBuffer, mDepthBuffer);
+			"OffScreenBuffer: Created %dx%d buffers:\n\tFBO id=%d\n\tRBO Depth buffer id=%d\n",
+			width, height, mFrameBuffer, mDepthBuffer);
 
 	//sgct::MessageHandler::instance()->print("FBO %d x %d (x %d) created!\n", width, height, samples);
 }

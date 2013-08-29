@@ -314,6 +314,7 @@ private:
 	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport();
+	void enterFisheyeViewport();
 	const char * getBasicInfo(std::size_t winIndex);
 	const char * getAAInfo(std::size_t winIndex);
 

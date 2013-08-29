@@ -368,7 +368,7 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 			static_cast<float>( y );
 
 	if( !mUseFixResolution )
-	{
+	{	
 		mFramebufferResolution[0] = x;
 		mFramebufferResolution[1] = y;
 	}
@@ -428,7 +428,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 void sgct_core::SGCTWindow::update()
 {
 	if( mVisible && isWindowResized() )
-	{
+	{	
 		//resize FBOs
 		resizeFBOs();
 
@@ -876,45 +876,35 @@ void sgct_core::SGCTWindow::createTextures()
 	//create a postFX texture for effects
 	for( int i=0; i<(NUMBER_OF_TEXTURES-4); i++ ) //all textures except fisheye cubemap(s)
 	{
-		bool create = true;
-		bool anisotropicFiltering = false;
-		
 		switch( i )
 		{
 		case sgct::Engine::RightEye:
-			if( mStereoMode == NoStereo || mStereoMode >= Passive_SBS )
-				create = false;
+			if( mStereoMode != NoStereo && mStereoMode < Passive_SBS )
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true );
 			break;
 
 		case sgct::Engine::Depth:
-			if( !sgct::SGCTSettings::instance()->useDepthTexture() )
-				create = false;
+			if( sgct::SGCTSettings::instance()->useDepthTexture() )
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, true, true );
 			break;
 
 		case sgct::Engine::FX1:
-			if( mPostFXPasses.empty() )
-				create = false;
-			else
-				anisotropicFiltering = true;
+			if( !mPostFXPasses.empty() )
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 			break;
 
 		case sgct::Engine::FX2:
-			if( mPostFXPasses.size() < 2 )
-				create = false;
-			else
-				anisotropicFiltering = true;
-			break;
+			if( mPostFXPasses.size() > 1 )
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 
 		case sgct::Engine::Intermediate:
-			if( !mUsePostFX )
-				create = false;
-			anisotropicFiltering = true;
+			if( mUsePostFX )
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 			break;
-		}
-		
-		if( create )
-		{	
-			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], anisotropicFiltering, (i == sgct::Engine::Depth), true );
+
+		default:
+			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true );
+			break;
 		}
 	}
 	/*
@@ -1554,8 +1544,8 @@ void sgct_core::SGCTWindow::resizeFBOs()
 		if( mFisheyeMode )
 		{
 			mFinalFBO_Ptr->resizeFBO( mFramebufferResolution[0],
-			mFramebufferResolution[0],
-			1);
+				mFramebufferResolution[1],
+				1);
 
 			//Cube map FBO is constant in size so we don't need to resize that one
 
@@ -1565,8 +1555,8 @@ void sgct_core::SGCTWindow::resizeFBOs()
 		else //regular viewport rendering
 		{
 			mFinalFBO_Ptr->resizeFBO(mFramebufferResolution[0],
-			mFramebufferResolution[1],
-			mNumberOfAASamples);
+				mFramebufferResolution[1],
+				mNumberOfAASamples);
 		}
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "FBOs resized successfully!\n");
@@ -1835,7 +1825,14 @@ int sgct_core::SGCTWindow::getNumberOfAASamples()
 */
 void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
 {
-	mStereoMode = sm;
+	if( sm == Active && !mUseQuadBuffer )
+	{
+		mStereoMode = NoStereo;
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTWindow: Window %d doesn't support Quadbuffer/Active stereo!\nReverting to monoscopic rendering.\n",
+			mId);
+	}
+	else
+		mStereoMode = sm;
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
 		getStereoModeStr().c_str(), mId);

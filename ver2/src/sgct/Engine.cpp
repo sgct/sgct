@@ -871,7 +871,10 @@ void sgct::Engine::render()
 				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::NoStereo )
 				{
 					mActiveFrustumMode = Frustum::StereoRightEye;
-					(this->*mInternalRenderFisheyeFn)(RightEye);
+					
+					sm >= SGCTWindow::Passive_SBS ?
+						(this->*mInternalRenderFisheyeFn)(LeftEye) :
+						(this->*mInternalRenderFisheyeFn)(RightEye);
 				}
 			}
 			//--------------------------------------------------------------
@@ -892,9 +895,8 @@ void sgct::Engine::render()
 					mActiveFrustumMode = Frustum::StereoRightEye;
 
 					//use a single texture for side-by-side and top-bottom stereo modes
-					if( sm >= SGCTWindow::Passive_SBS )
-						renderViewports(LeftEye);
-					else
+					sm >= SGCTWindow::Passive_SBS ? 
+						renderViewports(LeftEye):
 						renderViewports(RightEye);
 				}
 			}
@@ -1573,15 +1575,19 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
-	glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
-	glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	if( !(sm >= SGCTWindow::Passive_SBS && mActiveFrustumMode == Frustum::StereoRightEye) )
+	{
+		glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+	}
 
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
 	*/
 	glm::mat4 orthoMat = glm::ortho( -1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 2.0f );
 
-	glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
+	enterFisheyeViewport();
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -1616,7 +1622,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
-	glUniform4f( getActiveWindowPtr()->getFisheyeBGColorLoc(), mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3] );
+	glUniform4fv( getActiveWindowPtr()->getFisheyeBGColorLoc(), 1, mFisheyeClearColor );
 
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
@@ -1663,18 +1669,38 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glEnable(GL_BLEND);
 	
 	glDisable(GL_DEPTH_TEST);
-	if( getActiveWindowPtr()->usePostFX() )
+	
+	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
+	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Passive_SBS);
+	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
 	{
-		//blit buffers
-		updateRenderingTargets(ti); //only used if multisampled FBOs
+		if( getActiveWindowPtr()->usePostFX() )
+		{
+			//blit buffers
+			updateRenderingTargets(ti); //only used if multisampled FBOs
 		
-		(this->*mInternalRenderPostFXFn)(ti);
-		render2D();
-	}
-	else
-	{
-		render2D();
-		updateRenderingTargets(ti); //only used if multisampled FBOs
+			(this->*mInternalRenderPostFXFn)(ti);
+			
+			render2D();
+			if(split_screen_stereo)
+			{
+				//render left eye info and graph so that all 2D items are rendered after post fx
+				mActiveFrustumMode = Frustum::StereoLeftEye;
+				render2D();
+			}
+		}
+		else
+		{
+			render2D();
+			if(split_screen_stereo)
+			{
+				//render left eye info and graph so that all 2D items are rendered after post fx
+				mActiveFrustumMode = Frustum::StereoLeftEye;
+				render2D();
+			}
+
+			updateRenderingTargets(ti); //only used if multisampled FBOs
+		}
 	}
 
 	glDisable(GL_BLEND);
@@ -2011,9 +2037,8 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	glDisable(GL_DEPTH_TEST);
 
 	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
-	if( sm >= sgct_core::SGCTWindow::Passive_SBS && mActiveFrustumMode == Frustum::StereoLeftEye )
-		render2D();
-	else
+	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Passive_SBS);
+	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
 		{
@@ -2021,11 +2046,25 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 			updateRenderingTargets(ti); //only used if multisampled FBOs
 		
 			(this->*mInternalRenderPostFXFn)(ti);
+			
 			render2D();
+			if(split_screen_stereo)
+			{
+				//render left eye info and graph so that all 2D items are rendered after post fx
+				mActiveFrustumMode = Frustum::StereoLeftEye;
+				render2D();
+			}
 		}
 		else
 		{
 			render2D();
+			if(split_screen_stereo)
+			{
+				//render left eye info and graph so that all 2D items are rendered after post fx
+				mActiveFrustumMode = Frustum::StereoLeftEye;
+				render2D();
+			}
+
 			updateRenderingTargets(ti); //only used if multisampled FBOs
 		}
 	}
@@ -2052,7 +2091,8 @@ void sgct::Engine::render2D()
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getActiveWindowPtr()->setCurrentViewport(i);
-			enterCurrentViewport();
+			
+			getActiveWindowPtr()->isUsingFisheyeRendering() ? enterFisheyeViewport() : enterCurrentViewport();
 
 			if( mShowGraph )
 				mStatistics->draw(mFrameCounter,
@@ -2994,7 +3034,76 @@ void sgct::Engine::enterCurrentViewport()
 			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
 		currentViewportCoords[3] =
 			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
+
+		SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+		if( sm >= SGCTWindow::Passive_SBS )
+		{
+			if( mActiveFrustumMode == Frustum::StereoLeftEye )
+			{
+				switch(sm)
+				{
+				case SGCTWindow::Passive_SBS:
+					currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
+					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+					break;
+				
+				case SGCTWindow::Passive_SBS_Inverted:
+					currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
+					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+					break;
+
+				case SGCTWindow::Passive_TB:
+					currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
+					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+					break;
+				
+				case SGCTWindow::Passive_TB_Inverted:
+					currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
+					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+					break;
+				}
+			}
+			else
+			{
+				switch(sm)
+				{
+				case SGCTWindow::Passive_SBS:
+					currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
+					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+					break;
+				
+				case SGCTWindow::Passive_SBS_Inverted:
+					currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
+					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+					break;
+
+				case SGCTWindow::Passive_TB:
+					currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
+					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+					break;
+				
+				case SGCTWindow::Passive_TB_Inverted:
+					currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
+					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+					break;
+				}
+			}
+		}
 	}
+
+	glViewport( currentViewportCoords[0],
+		currentViewportCoords[1],
+		currentViewportCoords[2],
+		currentViewportCoords[3]);
+}
+
+void sgct::Engine::enterFisheyeViewport()
+{
+	int x, y, xSize, ySize;
+	x = 0;
+	y = 0;
+	xSize = getActiveWindowPtr()->getXFramebufferResolution();
+	ySize = getActiveWindowPtr()->getYFramebufferResolution();
 
 	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( sm >= SGCTWindow::Passive_SBS )
@@ -3004,23 +3113,23 @@ void sgct::Engine::enterCurrentViewport()
 			switch(sm)
 			{
 			case SGCTWindow::Passive_SBS:
-				currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
-				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				x = x >> 1; //x offset
+				xSize = xSize >> 1; //x size
 				break;
 				
 			case SGCTWindow::Passive_SBS_Inverted:
-				currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
-				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				x = (x >> 1) + (xSize >> 1); //x offset
+				xSize = xSize >> 1; //x size
 				break;
 
 			case SGCTWindow::Passive_TB:
-				currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
-				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				y = (y >> 1) + (ySize >> 1); //y offset
+				ySize = ySize >> 1; //y size
 				break;
 				
 			case SGCTWindow::Passive_TB_Inverted:
-				currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
-				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				y = y >> 1; //y offset
+				ySize = ySize >> 1; //y size
 				break;
 			}
 		}
@@ -3029,32 +3138,29 @@ void sgct::Engine::enterCurrentViewport()
 			switch(sm)
 			{
 			case SGCTWindow::Passive_SBS:
-				currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
-				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				x = (x >> 1) + (xSize >> 1); //x offset
+				xSize = xSize >> 1; //x size
 				break;
 				
 			case SGCTWindow::Passive_SBS_Inverted:
-				currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
-				currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
+				x = x >> 1; //x offset
+				xSize = xSize >> 1; //x size
 				break;
 
 			case SGCTWindow::Passive_TB:
-				currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
-				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				y = y >> 1; //y offset
+				ySize = ySize >> 1; //y size
 				break;
 				
 			case SGCTWindow::Passive_TB_Inverted:
-				currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
-				currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
+				y = (y >> 1) + (ySize >> 1); //y offset
+				ySize = ySize >> 1; //y size
 				break;
 			}
 		}
 	}
 
-	glViewport( currentViewportCoords[0],
-		currentViewportCoords[1],
-		currentViewportCoords[2],
-		currentViewportCoords[3]);
+	glViewport( x, y, xSize, ySize );
 }
 
 void sgct::Engine::calculateFPS(double timestamp)

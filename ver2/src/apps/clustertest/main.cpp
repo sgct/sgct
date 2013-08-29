@@ -82,14 +82,14 @@ void myDrawFun()
 	{
 		if( gEngine->getCurrentFrameNumber()%2 == 0 ) //even
 		{
-			if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+			if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
 				gEngine->setClearColor(0.0f, 0.0f, 1.0f, 1.0f); //is paired with red
 			else //right
 				gEngine->setClearColor(1.0f, 0.0f, 0.0f, 1.0f); //is paired with blue
 		}
 		else //odd
 		{
-			if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+			if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
 				gEngine->setClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 			else //right
 				gEngine->setClearColor(0.0f, 1.0f, 0.0f, 1.0f);
@@ -158,11 +158,11 @@ void myDrawFun()
 	float xPos = static_cast<float>( gEngine->getActiveWindowPtr()->getXFramebufferResolution() ) / 2.0f;
 
 	glColor3f(1.0f,1.0f,0.0f);
-	if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoLeftEye )
+	if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
-	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::StereoRightEye )
+	else if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
-	else if( gEngine->getActiveFrustum() == sgct_core::Frustum::Mono )
+	else if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::Mono )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Mono");
 
 	if( gEngine->getActiveWindowPtr()->isUsingSwapGroups() )

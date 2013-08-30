@@ -783,39 +783,37 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 sgct_core::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( const std::string type )
 {
-	if( strcmp( type.c_str(), "none" ) == 0 )
-		return SGCTWindow::NoStereo;
+	if( strcmp( type.c_str(), "none" ) == 0 || strcmp( type.c_str(), "no_stereo" ) == 0  )
+		return SGCTWindow::No_Stereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 || strcmp( type.c_str(), "quadbuffer" ) == 0 )
-		return SGCTWindow::Active;
+		return SGCTWindow::Active_Stereo;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
-		return SGCTWindow::Checkerboard;
+		return SGCTWindow::Checkerboard_Stereo;
 	else if( strcmp( type.c_str(), "checkerboard_inverted" ) == 0 )
-		return SGCTWindow::Checkerboard_Inverted;
+		return SGCTWindow::Checkerboard_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_red_cyan" ) == 0 )
-		return SGCTWindow::Anaglyph_Red_Cyan;
+		return SGCTWindow::Anaglyph_Red_Cyan_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
-		return SGCTWindow::Anaglyph_Amber_Blue;
+		return SGCTWindow::Anaglyph_Amber_Blue_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_wimmer" ) == 0 )
-		return SGCTWindow::Anaglyph_Red_Cyan_Wimmer;
+		return SGCTWindow::Anaglyph_Red_Cyan_Wimmer_Stereo;
 	else if( strcmp( type.c_str(), "vertical_interlaced" ) == 0 )
-		return SGCTWindow::Vertical_Interlaced;
+		return SGCTWindow::Vertical_Interlaced_Stereo;
 	else if( strcmp( type.c_str(), "vertical_interlaced_inverted" ) == 0 )
-		return SGCTWindow::Vertical_Interlaced_Inverted;
+		return SGCTWindow::Vertical_Interlaced_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "test" ) == 0 || strcmp( type.c_str(), "dummy" ) == 0 )
-		return SGCTWindow::DummyStereo;
+		return SGCTWindow::Dummy_Stereo;
 	else if( strcmp( type.c_str(), "side_by_side" ) == 0 )
-		return SGCTWindow::Passive_SBS;
+		return SGCTWindow::Side_By_Side_Stereo;
 	else if( strcmp( type.c_str(), "side_by_side_inverted" ) == 0 )
-		return SGCTWindow::Passive_SBS_Inverted;
+		return SGCTWindow::Side_By_Side_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "top_bottom" ) == 0 )
-		return SGCTWindow::Passive_TB;
+		return SGCTWindow::Top_Bottom_Stereo;
 	else if( strcmp( type.c_str(), "top_bottom_inverted" ) == 0 )
-		return SGCTWindow::Passive_TB_Inverted;
-	else //no match found
-		return SGCTWindow::NoStereo;
+		return SGCTWindow::Top_Bottom_Inverted_Stereo;
 
 	//if match not found
-	return SGCTWindow::NoStereo;
+	return SGCTWindow::No_Stereo;
 }
 
 int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )

@@ -119,7 +119,7 @@ sgct_core::SGCTWindow::SGCTWindow(int id)
 	mVAO[RenderQuad]	= GL_FALSE;
 	mVAO[FishEyeQuad]	= GL_FALSE;
 
-	mStereoMode = NoStereo;
+	mStereoMode = No_Stereo;
 	mNumberOfAASamples = 1;
 
 	//FBO targets init
@@ -195,7 +195,10 @@ void sgct_core::SGCTWindow::close()
 		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
 		{
 			if( mFrameBufferTextures[i] != GL_FALSE )
+			{
 				glDeleteTextures(1, &mFrameBufferTextures[i]);
+				mFrameBufferTextures[i] = GL_FALSE;
+			}
 		}
 	}
 
@@ -284,7 +287,7 @@ void sgct_core::SGCTWindow::initOGL()
 	\returns texture index of selected frame buffer texture
 */
 unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
-{
+{	
 	if(index < NUMBER_OF_TEXTURES)
 	{
 		if( mFrameBufferTextures[index] == GL_FALSE )
@@ -326,11 +329,14 @@ unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
 				break;
 			}
 		}
-
+		
 		return mFrameBufferTextures[index];
 	}
 	else
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTWindow: Requested framebuffer texture index %d is out of bounds!\n", index);
 		return GL_FALSE;
+	}
 }
 
 /*!
@@ -490,7 +496,7 @@ bool sgct_core::SGCTWindow::isFixResolution()
 */
 bool sgct_core::SGCTWindow::isStereo()
 {
-	return mStereoMode != NoStereo;
+	return mStereoMode != No_Stereo;
 }
 
 /*!
@@ -647,7 +653,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		sgct::MessageHandler::instance()->print("\n");
 	}*/
 
-	setUseQuadbuffer( mStereoMode == Active );
+	setUseQuadbuffer( mStereoMode == Active_Stereo );
 
 	if( mFullScreen )
 	{
@@ -879,7 +885,7 @@ void sgct_core::SGCTWindow::createTextures()
 		switch( i )
 		{
 		case sgct::Engine::RightEye:
-			if( mStereoMode != NoStereo && mStereoMode < Passive_SBS )
+			if( mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true );
 			break;
 
@@ -1034,8 +1040,8 @@ void sgct_core::SGCTWindow::createFBOs()
 	if( !sgct::SGCTSettings::instance()->useFBO() )
 	{
 		//disable anaglyph & checkerboard stereo if FBOs are not used
-		if( mStereoMode > Active )
-			mStereoMode = NoStereo;
+		if( mStereoMode > Active_Stereo )
+			mStereoMode = No_Stereo;
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning! FBO rendering is not supported or enabled!\nPostFX, fisheye and some stereo modes are disabled.\n");
 	}
 	else
@@ -1183,7 +1189,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
 		float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
 		
-		if( mStereoMode != NoStereo ) // if any stereo
+		if( mStereoMode != No_Stereo ) // if any stereo
 			mFisheyeOffaxis = true;
 		else if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
 			mFisheyeOffaxis = false;
@@ -1307,7 +1313,7 @@ void sgct_core::SGCTWindow::loadShaders()
 
 	//-------------- end fisheye shader ----------->
 
-	if( mStereoMode > Active && mStereoMode < Passive_SBS)
+	if( mStereoMode > Active_Stereo && mStereoMode < Side_By_Side_Stereo)
 	{
 		//reload shader program if it exists
 		if( mStereoShader.isLinked() )
@@ -1318,68 +1324,68 @@ void sgct_core::SGCTWindow::loadShaders()
 		else
 			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 			
-		if( mStereoMode == Anaglyph_Red_Cyan )
+		if( mStereoMode == Anaglyph_Red_Cyan_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 					
 		}
-		else if( mStereoMode == Anaglyph_Amber_Blue )
+		else if( mStereoMode == Anaglyph_Amber_Blue_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer )
+		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Checkerboard )
+		else if( mStereoMode == Checkerboard_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Checkerboard_Inverted )
+		else if( mStereoMode == Checkerboard_Inverted_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Vertical_Interlaced )
+		else if( mStereoMode == Vertical_Interlaced_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Vertical_Interlaced_Inverted )
+		else if( mStereoMode == Vertical_Interlaced_Inverted_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		/*else if( mStereoMode == Passive_SBS )
+		/*else if( mStereoMode == Side_By_Side_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Passive_SBS_Inverted )
+		else if( mStereoMode == Side_By_Side_Inverted_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Passive_TB )
+		else if( mStereoMode == Top_Bottom_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		}
-		else if( mStereoMode == Passive_TB_Inverted )
+		else if( mStereoMode == Top_Bottom_Inverted_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
@@ -1443,7 +1449,7 @@ void sgct_core::SGCTWindow::unbindVAO()
 */
 void sgct_core::SGCTWindow::captureBuffer()
 {
-	if(mStereoMode == NoStereo)
+	if(mStereoMode == No_Stereo)
 	{
 		if( sgct::SGCTSettings::instance()->useFBO() )
 			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
@@ -1537,7 +1543,10 @@ void sgct_core::SGCTWindow::resizeFBOs()
 		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
 		{
 			if( mFrameBufferTextures[i] != GL_FALSE )
+			{
 				glDeleteTextures(1, &mFrameBufferTextures[i]);
+				mFrameBufferTextures[i] = GL_FALSE;
+			}
 		}
 		createTextures();
 
@@ -1825,9 +1834,9 @@ int sgct_core::SGCTWindow::getNumberOfAASamples()
 */
 void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
 {
-	if( sm == Active && !mUseQuadBuffer )
+	if( sm == Active_Stereo && !mUseQuadBuffer )
 	{
-		mStereoMode = NoStereo;
+		mStereoMode = No_Stereo;
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTWindow: Window %d doesn't support Quadbuffer/Active stereo!\nReverting to monoscopic rendering.\n",
 			mId);
 	}
@@ -2036,55 +2045,55 @@ std::string sgct_core::SGCTWindow::getStereoModeStr()
 	
 	switch( mStereoMode )
 	{
-	case Active:
+	case Active_Stereo:
 		mode.assign("active");
 		break;
 
-	case Anaglyph_Red_Cyan:
+	case Anaglyph_Red_Cyan_Stereo:
 		mode.assign("anaglyph_red_cyan");
 		break;
 		
-	case Anaglyph_Amber_Blue:
+	case Anaglyph_Amber_Blue_Stereo:
 		mode.assign("anaglyph_amber_blue");
 		break;
 
-	case Anaglyph_Red_Cyan_Wimmer:
+	case Anaglyph_Red_Cyan_Wimmer_Stereo:
 		mode.assign("anaglyph_wimmer");
 		break;
 
-	case Checkerboard:
+	case Checkerboard_Stereo:
 		mode.assign("checkerboard");
 		break;
 
-	case Checkerboard_Inverted:
+	case Checkerboard_Inverted_Stereo:
 		mode.assign("checkerboard_inverted");
 		break;
 
-	case Vertical_Interlaced:
+	case Vertical_Interlaced_Stereo:
 		mode.assign("vertical_interlaced");
 		break;
 
-	case Vertical_Interlaced_Inverted:
+	case Vertical_Interlaced_Inverted_Stereo:
 		mode.assign("vertical_interlaced_inverted");
 		break;
 
-	case DummyStereo:
+	case Dummy_Stereo:
 		mode.assign("dummy");
 		break;
 
-	case Passive_SBS:
+	case Side_By_Side_Stereo:
 		mode.assign("side_by_side");
 		break;
 
-	case Passive_SBS_Inverted:
+	case Side_By_Side_Inverted_Stereo:
 		mode.assign("side_by_side_inverted");
 		break;
 
-	case Passive_TB:
+	case Top_Bottom_Stereo:
 		mode.assign("top_bottom");
 		break;
 
-	case Passive_TB_Inverted:
+	case Top_Bottom_Inverted_Stereo:
 		mode.assign("top_bottom_inverted");
 		break;
 

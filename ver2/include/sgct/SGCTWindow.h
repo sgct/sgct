@@ -30,9 +30,10 @@ public:
 	/*!
 		Different stereo modes used for rendering
 	*/
-	enum StereoMode { NoStereo = 0, Active, Anaglyph_Red_Cyan, Anaglyph_Amber_Blue, Anaglyph_Red_Cyan_Wimmer,
-		Checkerboard, Checkerboard_Inverted, Vertical_Interlaced, Vertical_Interlaced_Inverted, DummyStereo,
-		Passive_SBS, Passive_SBS_Inverted, Passive_TB, Passive_TB_Inverted, Number_Of_Stereo_Items };
+	enum StereoMode { No_Stereo = 0, Active_Stereo, Anaglyph_Red_Cyan_Stereo, Anaglyph_Amber_Blue_Stereo, Anaglyph_Red_Cyan_Wimmer_Stereo,
+		Checkerboard_Stereo, Checkerboard_Inverted_Stereo, Vertical_Interlaced_Stereo, Vertical_Interlaced_Inverted_Stereo, Dummy_Stereo,
+		Side_By_Side_Stereo, Side_By_Side_Inverted_Stereo, Top_Bottom_Stereo, Top_Bottom_Inverted_Stereo, Number_Of_Stereo_Items };
+
 	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum OGL_Context { Shared_Context = 0, Window_Context };

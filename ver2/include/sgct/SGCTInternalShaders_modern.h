@@ -286,7 +286,7 @@ namespace sgct_core
 			   Col = vec4(VertColor, 1.0);\n\
 			}\n";
 
-		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\
+		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader = "\
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
@@ -308,7 +308,7 @@ namespace sgct_core
 				Color.a = Col.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
-		const std::string Anaglyph_Red_Cyan_Frag_Shader_Wimmer = "\
+		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = "\
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
@@ -328,7 +328,7 @@ namespace sgct_core
 				Color.a = Col.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
-		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\
+		const std::string Anaglyph_Amber_Blue_Stereo_Frag_Shader = "\
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
@@ -388,7 +388,7 @@ namespace sgct_core
 					Color = Col * texture( RightTex, UV);\n\
 			}\n";
 
-		const std::string Vertical_Interlaced_Frag_Shader = "\
+		const std::string Vertical_Interlaced_Stereo_Frag_Shader = "\
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
@@ -407,7 +407,7 @@ namespace sgct_core
 					Color = Col * texture( LeftTex, UV);\n\
 			}\n";
 
-		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
+		const std::string Vertical_Interlaced_Inverted_Stereo_Frag_Shader = "\
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\

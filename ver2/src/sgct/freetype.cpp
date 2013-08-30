@@ -29,28 +29,28 @@ inline void setupViewport()
 	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution()));
 	
 	sgct_core::SGCTWindow::StereoMode sm = cWin->getStereoMode();
-	if( sm >= sgct_core::SGCTWindow::Passive_SBS )
+	if( sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo )
 	{
 		if( sgct::Engine::instance()->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
 		{
 			switch(sm)
 			{
-			case sgct_core::SGCTWindow::Passive_SBS:
+			case sgct_core::SGCTWindow::Side_By_Side_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
 				
-			case sgct_core::SGCTWindow::Passive_SBS_Inverted:
+			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Passive_TB:
+			case sgct_core::SGCTWindow::Top_Bottom_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
 				
-			case sgct_core::SGCTWindow::Passive_TB_Inverted:
+			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
@@ -60,22 +60,22 @@ inline void setupViewport()
 		{
 			switch(sm)
 			{
-			case sgct_core::SGCTWindow::Passive_SBS:
+			case sgct_core::SGCTWindow::Side_By_Side_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
 				
-			case sgct_core::SGCTWindow::Passive_SBS_Inverted:
+			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Passive_TB:
+			case sgct_core::SGCTWindow::Top_Bottom_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
 				
-			case sgct_core::SGCTWindow::Passive_TB_Inverted:
+			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;

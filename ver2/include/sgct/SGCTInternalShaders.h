@@ -210,7 +210,7 @@ namespace sgct_core
 				gl_FrontColor = gl_Color;\n\
 			}\n";
 		
-		const std::string Anaglyph_Red_Cyan_Frag_Shader = "\
+		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
@@ -226,7 +226,7 @@ namespace sgct_core
 				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
-		const std::string Anaglyph_Red_Cyan_Frag_Shader_Wimmer = "\
+		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
@@ -240,7 +240,7 @@ namespace sgct_core
 				gl_FragColor.a = gl_Color.a * max(leftVals.a, rightVals.a);\n\
 			}\n";
 
-		const std::string Anaglyph_Amber_Blue_Frag_Shader = "\
+		const std::string Anaglyph_Amber_Blue_Stereo_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
@@ -283,7 +283,7 @@ namespace sgct_core
 			}\n";
 
 		//--------> vertical interlaced shaders
-		const std::string Vertical_Interlaced_Frag_Shader = "\
+		const std::string Vertical_Interlaced_Stereo_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
@@ -306,7 +306,7 @@ namespace sgct_core
 				gl_FragColor = gl_Color * (0.5 * texture2D( LeftTex, gl_TexCoord[0].st) + 0.5 * texture2D( RightTex, gl_TexCoord[0].st));\n\
 			}\n";
 
-		const std::string Vertical_Interlaced_Inverted_Frag_Shader = "\
+		const std::string Vertical_Interlaced_Inverted_Stereo_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\

@@ -12,39 +12,25 @@ sgct_core::SGCTNode::SGCTNode()
 	mCurrentWindowIndex = 0;
 }
 
+/*!
+	Add a window to the window vector. Note that a window must be opened to become visible.
+*/
 void sgct_core::SGCTNode::addWindow(sgct_core::SGCTWindow &window)
 {
 	mWindows.push_back(window);
 }
 
-sgct_core::SGCTWindow * sgct_core::SGCTNode::getWindowPtr(std::size_t index)
-{
-	return &mWindows[index];
-}
-
-/*sgct_core::SGCTWindow * sgct_core::SGCTNode::getMasterWindowPtr()
-{
-	return &mWindows[0];
-}*/
-
-sgct_core::SGCTWindow * sgct_core::SGCTNode::getActiveWindowPtr()
-{
-	return &mWindows[mCurrentWindowIndex];
-}
-
+/*!
+	Set which window that will render the draw calls.
+*/
 void sgct_core::SGCTNode::setCurrentWindowIndex(std::size_t index)
 {
 	mCurrentWindowIndex = index;
 }
 
 /*!
-	Get the number of windows
+	Check if a key is pressed for all windows.
 */
-std::size_t sgct_core::SGCTNode::getNumberOfWindows()
-{
-	return mWindows.size();
-}
-
 bool sgct_core::SGCTNode::getKeyPressed( int key )
 {
 	for(std::size_t i=0; i<mWindows.size(); i++)
@@ -53,6 +39,9 @@ bool sgct_core::SGCTNode::getKeyPressed( int key )
 	return false;
 }
 
+/*!
+	Check if all windows are set to close and close them.
+*/
 bool sgct_core::SGCTNode::shouldAllWindowsClose()
 {
 	std::size_t counter = 0;
@@ -72,12 +61,18 @@ bool sgct_core::SGCTNode::shouldAllWindowsClose()
 	return (counter == mWindows.size()) ? true : false;
 }
 
+/*!
+	Show all hidden windows.
+*/
 void sgct_core::SGCTNode::showAllWindows()
 {
 	for(std::size_t i=0; i<mWindows.size(); i++)
 		mWindows[i].setVisibility( true );
 }
 
+/*!
+	Hide all windows.
+*/
 void sgct_core::SGCTNode::hideAllWindows()
 {
 	for(std::size_t i=0; i<mWindows.size(); i++)

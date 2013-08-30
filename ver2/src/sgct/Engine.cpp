@@ -254,24 +254,30 @@ bool sgct::Engine::initNetwork()
 
 	//check in cluster configuration which it is
 	if( localRunningMode == NetworkManager::NotLocal )
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Matching ip address to find node in configuration...\n");
+		
 		for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 			if( mNetworkConnections->matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) )
 			{
 				ClusterManager::instance()->setThisNodeId(i);
-				mThisNode = ClusterManager::instance()->getNodePtr(i);
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Running in cluster mode as node %d\n", ClusterManager::instance()->getThisNodeId());
 				break;
 			}
+	}
+	else
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Running locally as node %d\n", ClusterManager::instance()->getThisNodeId());
 
-	if( ClusterManager::instance()->getThisNodeId() == -1 ||
+	//Set node pointer
+	mThisNode = ClusterManager::instance()->getThisNodePtr();
+
+	//if any error occured
+	if( mThisNode == NULL || ClusterManager::instance()->getThisNodeId() == -1 ||
 		ClusterManager::instance()->getThisNodeId() >= static_cast<int>( ClusterManager::instance()->getNumberOfNodes() )) //fatal error
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "This computer is not a part of the cluster configuration!\n");
 		mNetworkConnections->close();
 		return false;
-	}
-	else
-	{
-		printNodeInfo( static_cast<unsigned int>(ClusterManager::instance()->getThisNodeId()) );
 	}
 
 	//Set message handler to send messages or not

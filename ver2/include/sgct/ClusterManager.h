@@ -55,7 +55,7 @@ public:
 
 	void addNode(SGCTNode node);
 
-	SGCTNode * getNodePtr(unsigned int index);
+	SGCTNode * getNodePtr(std::size_t );
 	SGCTNode * getThisNodePtr();
 
 	/*!

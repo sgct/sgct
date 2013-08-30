@@ -53,9 +53,9 @@ void sgct_core::ClusterManager::addNode(sgct_core::SGCTNode node)
 	\param index the index to a node in the vector
 	\returns the pointer to the requested node
 */
-sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(unsigned int index)
+sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(std::size_t index)
 {
-	return &nodes[index];
+	return (index >= 0 && index < nodes.size()) ? &nodes[index] : NULL;
 }
 
 /*!

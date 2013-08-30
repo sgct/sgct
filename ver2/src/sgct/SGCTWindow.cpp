@@ -38,7 +38,7 @@ sgct_core::SGCTWindow::SGCTWindow(int id)
 	mDecorated = true;
 	mFisheyeMode = false;
 	mFisheyeAlpha = false;
-	mVisible = true;
+	mVisible = false;
 	mUseFXAA = false;
 	mUsePostFX = false;
 

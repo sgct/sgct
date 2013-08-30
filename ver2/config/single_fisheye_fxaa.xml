@@ -7,20 +7,20 @@
 			<!-- 16:9 aspect ratio -->
 			<Size x="512" y="512" />
 			<!-- <Res x="4096" y="4096" /> -->
+			<!--
+				quality options (cubemap size):
+					- low (256)
+					- medium (512)
+					- high/1k (1024)
+					- 2k (2048)
+					- 4k (4096)
+					- 8k (8192)
+				tilt specifies the dome tilt angle in degrees from the horizontal
+			-->
+			<Fisheye fov="165.0" quality="medium" tilt="27.0" />
 		</Window>
-		<!--
-			quality options (cubemap size):
-				- low (256)
-				- medium (512)
-				- high/1k (1024)
-				- 2k (2048)
-				- 4k (4096)
-				- 8k (8192)
-			tilt specifies the dome tilt angle in degrees from the horizontal
-		-->
-		<Fisheye fov="165.0" quality="medium" tilt="27.0" />
 	</Node>
-	<User eyeSeparation="0.069">
+	<User eyeSeparation="0.065">
 		<Pos x="0.0" y="0.0" z="0.0" />
 	</User>
 </Cluster>

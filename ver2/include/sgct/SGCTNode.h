@@ -19,13 +19,26 @@ class SGCTNode
 public:
 	SGCTNode();
 	
-	SGCTWindow *	getWindowPtr(std::size_t index);
-	SGCTWindow *	getActiveWindowPtr();
-	std::size_t		getNumberOfWindows();
-	bool			getKeyPressed( int key );
+	
+	bool getKeyPressed( int key );
+
+	/*!
+		Get the number of windows in the window vector
+	*/
+	inline std::size_t		getNumberOfWindows() { return mWindows.size(); }
+
+	/*!
+		Get the window pointer at index in window vector.
+	*/
+	inline SGCTWindow *		getWindowPtr(std::size_t index) { return &mWindows[index]; }
+	
+	/*!
+		Get the active window pointer.
+	*/
+	inline SGCTWindow *		getActiveWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
 
 	/*! Get the current window index */
-	inline std::size_t getCurrentWindowIndex() { return mCurrentWindowIndex; }
+	inline std::size_t		getCurrentWindowIndex() { return mCurrentWindowIndex; }
 
 	void addWindow(SGCTWindow &window);
 	void setCurrentWindowIndex(std::size_t index);

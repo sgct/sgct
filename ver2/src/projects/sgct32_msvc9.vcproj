@@ -132,7 +132,7 @@
 				Name="VCLibrarianTool"
 				AdditionalOptions="/ignore:4006"
 				AdditionalDependencies="glew32s.lib glfw3.lib freetype248.lib ws2_32.lib tinyxml2.lib zlibstatic.lib libpng15_static.lib vrpn.lib tinythreadpp.lib"
-				OutputFile="$(OutDir)\sgct32.lib"
+				OutputFile="$(OutDir)\sgct.lib"
 				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9\deps"
 			/>
 			<Tool

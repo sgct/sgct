@@ -438,7 +438,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 							float tilt;
 							if( element[2]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
+							{
 								tmpWin.setFisheyeTilt( tilt );
+								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt);
+							}
 
 							float diameter;
 							if( element[2]->QueryFloatAttribute("diameter", &diameter) == XML_NO_ERROR )

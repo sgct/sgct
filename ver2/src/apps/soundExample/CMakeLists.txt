@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME gamepadExample)
+SET(APP_NAME soundExample)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
@@ -16,29 +16,41 @@ add_executable(${APP_NAME}
 	
 find_library(SGCT_RELEASE_LIBRARY REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY REQUIRED)
+find_library(ALUT_LIBRARY ALUT REQUIRED)
 find_path(SGCT_INCLUDE_DIRECTORY REQUIRED)
-include_directories(${SGCT_INCLUDE_DIRECTORY})
+find_path(ALUT_INCLUDE_DIRECTORY REQUIRED)
+include_directories(${SGCT_INCLUDE_DIRECTORY}
+	${ALUT_INCLUDE_DIRECTORY})
 
 find_package(OpenGL REQUIRED)
+find_package(OpenAL REQUIRED)
 
 if( MSVC )
 	set(DEBUG_LIBS
 		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(DEBUG_LIBS
 		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 		ws2_32
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 		ws2_32
 	)
 elseif( APPLE )
@@ -49,6 +61,8 @@ elseif( APPLE )
 	set(DEBUG_LIBS
 		${SGCT_DEBUG_LIBRARY}
 	    ${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 		${AGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
@@ -56,6 +70,8 @@ elseif( APPLE )
 	set(RELEASE_LIBS
 		${SGCT_RELEASE_LIBRARY}
 	    ${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
+		${ALUT_LIBRARY}
 		${AGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
@@ -67,12 +83,14 @@ else() #linux
 	set(DEBUG_LIBS
 		${SGCT_DEBUG_LIBRARY}
 		${OPENGL_LIBRARY}
+		${ALUT_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
 	)
 	set(RELEASE_LIBS
 		${SGCT_RELEASE_LIBRARY}
 		${OPENGL_LIBRARY}
+		${ALUT_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
 	)

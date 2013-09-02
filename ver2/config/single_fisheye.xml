@@ -3,7 +3,6 @@
 	<Node ip="127.0.0.1" port="20401">
 		<Window fullscreen="false">
 			<Stereo type="none" />
-			<Pos x="100" y="0" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="512" y="512" />
 			<!-- Frame buffer resolution

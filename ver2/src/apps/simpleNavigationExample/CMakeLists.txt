@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME gamepadExample)
+SET(APP_NAME simpleNavigationExample)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")

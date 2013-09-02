@@ -34,6 +34,7 @@ float speed = 25.0f;
 float radius = 7.4f;
 float objectRadius = 5.0f;
 float PI = 3.141592654f;
+float domeTilt = 27.0f;
 
 sgct_utils::SGCTSphere *sphere;
 sgct_utils::SGCTDome * dome;
@@ -72,7 +73,7 @@ void myInitOGLFun()
 	glEnable( GL_DEPTH_TEST );
 
 	sphere = new sgct_utils::SGCTSphere(0.5f, 8);
-	dome   = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10, gEngine->getWindowPtr(0)->getFisheyeTilt() );
+	dome   = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10, domeTilt );
 
 	alutInit(NULL, 0);
 
@@ -103,7 +104,7 @@ void myPostSyncPreDrawFun()
 	p.y = 2.0f;
 
 	glm::mat4 rotMat = glm::mat4(1.0f);
-	rotMat = glm::rotate( rotMat, -26.7f, glm::vec3(1.0f, 0.0f, 0.0f ) );
+	rotMat = glm::rotate( rotMat, -domeTilt, glm::vec3(1.0f, 0.0f, 0.0f ) );
 	audioPos = rotMat * p;
 
 	alSource3f(source0, AL_POSITION, audioPos.x, audioPos.y, audioPos.z);
@@ -127,7 +128,6 @@ void myDrawFun()
 
 	glPushMatrix();
 		glColor4f(0.0f, 0.4f, 1.0f, 0.8f);
-		glRotatef( -26.7f, 1.0f, 0.0f, 0.0f );
 		dome->draw();
 	glPopMatrix();
 

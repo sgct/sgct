@@ -339,18 +339,32 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( frameNumber < 10 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%zu%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%u%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 #else
+    #ifdef __WIN32__
+    if( frameNumber < 10 )
+		sprintf( tmpStr, "_win%u%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+	else if( frameNumber < 100 )
+		sprintf( tmpStr, "_win%u%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+	else if( frameNumber < 1000 )
+		sprintf( tmpStr, "_win%u%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+	else if( frameNumber < 10000 )
+		sprintf( tmpStr, "_win%u%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+	else if( frameNumber < 100000 )
+		sprintf( tmpStr, "_win%u%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+	else if( frameNumber < 1000000 )
+		sprintf( tmpStr, "_win%u%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+    #else //linux & mac
     if( frameNumber < 10 )
 		sprintf( tmpStr, "_win%zu%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
@@ -363,6 +377,7 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 		sprintf( tmpStr, "_win%zu%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
 		sprintf( tmpStr, "_win%zu%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+    #endif
 #endif
 
 	mScreenShotFilename.append( std::string(tmpStr) );

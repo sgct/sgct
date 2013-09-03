@@ -19,7 +19,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="sgct32_d" />
+					<Add library="sgctd" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -34,7 +34,7 @@
 				</Compiler>
 				<Linker>
 					<Add option="-s" />
-					<Add library="sgct32" />
+					<Add library="sgct" />
 				</Linker>
 			</Target>
 		</Build>
@@ -50,6 +50,7 @@
 			<Add option="-static-libstdc++" />
 			<Add library="opengl32" />
 			<Add library="glu32" />
+			<Add library="gdi32" />
 			<Add library="ws2_32" />
 			<Add library="OpenThreads.dll" />
 			<Add library="osg.dll" />

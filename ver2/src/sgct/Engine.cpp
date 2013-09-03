@@ -183,7 +183,7 @@ bool sgct::Engine::init(RunMode rm)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Error in xml config file parsing. Application will close in 5 seconds.\n");
 		sleep( 5.0 );
-		
+
 		return false;
 	}
 
@@ -256,7 +256,7 @@ bool sgct::Engine::initNetwork()
 	if( localRunningMode == NetworkManager::NotLocal )
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Matching ip address to find node in configuration...\n");
-		
+
 		for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 			if( mNetworkConnections->matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) )
 			{
@@ -299,7 +299,7 @@ bool sgct::Engine::initWindows()
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "No windows exist in configuration!\n");
 		return false;
 	}
-	
+
 	int tmpGlfwVer[3];
     glfwGetVersion( &tmpGlfwVer[0], &tmpGlfwVer[1], &tmpGlfwVer[2] );
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLFW version %d.%d.%d.\n",
@@ -399,7 +399,7 @@ bool sgct::Engine::initWindows()
 	{
 		if( i > 0 )
 			share = mThisNode->getWindowPtr(0)->getWindowHandle();
-		
+
 		if( !mThisNode->getWindowPtr(i)->openWindow( share ) )
 		{
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to open window %d!\n", i);
@@ -442,7 +442,7 @@ bool sgct::Engine::initWindows()
 Initiates OpenGL.
 */
 void sgct::Engine::initOGL()
-{	
+{
 	/*
 		Set up function pointers etc. depending on if fixed or programmable pipeline is used
 	*/
@@ -473,7 +473,7 @@ void sgct::Engine::initOGL()
 	mOpenGL_Version[0] = glfwGetWindowAttrib( getActiveWindowPtr()->getWindowHandle(), GLFW_CONTEXT_VERSION_MAJOR);
 	mOpenGL_Version[1] = glfwGetWindowAttrib( getActiveWindowPtr()->getWindowHandle(), GLFW_CONTEXT_VERSION_MINOR );
 	mOpenGL_Version[2] = glfwGetWindowAttrib( getActiveWindowPtr()->getWindowHandle(), GLFW_CONTEXT_REVISION);
-	
+
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
 		mFixedOGLPipeline ? "comp. profile" : "core profile");
 
@@ -521,7 +521,7 @@ void sgct::Engine::initOGL()
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
 		mThisNode->setCurrentWindowIndex(i);
-		getActiveWindowPtr()->initOGL(); //sets context to shared 
+		getActiveWindowPtr()->initOGL(); //sets context to shared
 	}
 
 	calculateFrustums();
@@ -558,7 +558,7 @@ void sgct::Engine::initOGL()
 
 	//check for errors
 	checkForOGLErrors();
-	
+
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "\nReady to render!\n");
 }
 
@@ -664,7 +664,7 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
-	
+
 	//global
 	gKeyboardCallbackFn = NULL;
 	gCharCallbackFn = NULL;
@@ -828,11 +828,11 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
 #endif
-	
+
 		mRenderingOffScreen = SGCTSettings::instance()->useFBO();
 		if( mRenderingOffScreen )
 			getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
-		
+
 		//Make sure correct context is current
 		if( mPostSyncPreDrawFn != NULL )
 			mPostSyncPreDrawFn();
@@ -870,14 +870,14 @@ void sgct::Engine::render()
 	#endif
 				//set alpha value
 				mFisheyeClearColor[3] = getActiveWindowPtr()->useFisheyeAlpha() ? 0.0f : 1.0f;
-		
+
 				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::No_Stereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 				(this->*mInternalRenderFisheyeFn)(LeftEye);
 
 				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::No_Stereo )
 				{
 					mActiveFrustumMode = Frustum::StereoRightEye;
-					
+
 					sm >= SGCTWindow::Side_By_Side_Stereo ?
 						(this->*mInternalRenderFisheyeFn)(LeftEye) :
 						(this->*mInternalRenderFisheyeFn)(RightEye);
@@ -901,7 +901,7 @@ void sgct::Engine::render()
 					mActiveFrustumMode = Frustum::StereoRightEye;
 
 					//use a single texture for side-by-side and top-bottom stereo modes
-					sm >= SGCTWindow::Side_By_Side_Stereo ? 
+					sm >= SGCTWindow::Side_By_Side_Stereo ?
 						renderViewports(LeftEye):
 						renderViewports(RightEye);
 				}
@@ -910,8 +910,8 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Rendering FBO quad\n");
 #endif
-		}//end window loop	
-		
+		}//end window loop
+
 		/*
 			Draw the rendered textures on the screen
 		*/
@@ -981,7 +981,7 @@ void sgct::Engine::render()
 		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed
-		mRunning = !mThisNode->getKeyPressed( mExitKey ) && 
+		mRunning = !mThisNode->getKeyPressed( mExitKey ) &&
 			!mThisNode->shouldAllWindowsClose() &&
 			!mTerminate;
 
@@ -1010,7 +1010,7 @@ void sgct::Engine::renderDisplayInfo()
 
 	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
 	float lineHeight = font->getHeight() * 1.59f;
-	
+
 	sgct_text::print(font,
 		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
 		lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
@@ -1274,7 +1274,7 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 	{
 		if( getActiveWindowPtr()->usePostFX() )
 			ti = Intermediate;
-		
+
 		OffScreenBuffer * fbo = getActiveWindowPtr()->mFinalFBO_Ptr;
 
 		fbo->bind();
@@ -1300,12 +1300,12 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 	The geometry can be a simple quad or a geometry correction and blending mesh.
 */
 void sgct::Engine::renderFBOTexture()
-{	
+{
 	//unbind framebuffer
 	OffScreenBuffer::unBind();
 
 	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
-	
+
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -1482,7 +1482,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
 		{
 			mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-			
+
 			//bind & attach buffer
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
@@ -1526,7 +1526,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 			//re-calculate depth values from a cube to spherical model
 			if( SGCTSettings::instance()->useDepthTexture() )
-			{	
+			{
 				CubeMapFBO->bind( false ); //bind no multi-sampled
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
@@ -1535,7 +1535,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 				glDisable( GL_CULL_FACE );
 				if( getActiveWindowPtr()->useFisheyeAlpha() )
-				{	
+				{
 					glEnable(GL_BLEND);
 					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 				}
@@ -1568,13 +1568,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				//unbind shader
 				ShaderProgram::unbind();
 			}//end if depthmap
-		}//end if viewport is enabled 
+		}//end if viewport is enabled
 	}//end for
 
 	//bind fisheye target FBO
 	OffScreenBuffer * finalFBO = getActiveWindowPtr()->mFinalFBO_Ptr;
 	finalFBO->bind();
-	
+
 	getActiveWindowPtr()->usePostFX() ?
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
@@ -1611,7 +1611,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	{
 		glDisable( GL_CULL_FACE );
 		if( getActiveWindowPtr()->useFisheyeAlpha() )
-		{	
+		{
 			glEnable(GL_BLEND);
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 		}
@@ -1671,12 +1671,12 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
 		}
 	}
-	
+
 	if( !getActiveWindowPtr()->useFisheyeAlpha() )
 		glEnable(GL_BLEND);
-	
+
 	glDisable(GL_DEPTH_TEST);
-	
+
 	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
 	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo);
 	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
@@ -1685,9 +1685,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		{
 			//blit buffers
 			updateRenderingTargets(ti); //only used if multisampled FBOs
-		
+
 			(this->*mInternalRenderPostFXFn)(ti);
-			
+
 			render2D();
 			if(split_screen_stereo)
 			{
@@ -1734,7 +1734,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
 		{
 			mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
-			
+
 			//bind & attach buffer
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
@@ -1775,7 +1775,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 			//re-calculate depth values from a cube to spherical model
 			if( SGCTSettings::instance()->useDepthTexture() )
-			{	
+			{
 				CubeMapFBO->bind( false ); //bind no multi-sampled
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
@@ -1799,7 +1799,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glMatrixMode(GL_MODELVIEW);
 				glLoadIdentity();
 				glPushMatrix();
-				
+
 				//bind shader
 				getActiveWindowPtr()->bindFisheyeDepthCorrectionShaderProgram();
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
@@ -1811,7 +1811,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 				glDisable( GL_CULL_FACE );
 				if( getActiveWindowPtr()->useFisheyeAlpha() )
-				{	
+				{
 					glEnable(GL_BLEND);
 					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 				}
@@ -1901,7 +1901,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	glDisable(GL_CULL_FACE);
 	if( getActiveWindowPtr()->useFisheyeAlpha() )
-	{	
+	{
 		glEnable(GL_BLEND);
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
 	}
@@ -1948,7 +1948,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	getActiveWindowPtr()->unbindVBO();
 
 	ShaderProgram::unbind();
-	
+
 	glPopClientAttrib();
 	glPopMatrix();
 
@@ -1998,9 +1998,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		{
 			//blit buffers
 			updateRenderingTargets(ti); //only used if multisampled FBOs
-		
+
 			(this->*mInternalRenderPostFXFn)(ti);
-			
+
 			render2D();
 			if(split_screen_stereo)
 			{
@@ -2035,7 +2035,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 
 	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
-	
+
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
 	{
@@ -2074,9 +2074,9 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 		{
 			//blit buffers
 			updateRenderingTargets(ti); //only used if multisampled FBOs
-		
+
 			(this->*mInternalRenderPostFXFn)(ti);
-			
+
 			render2D();
 			if(split_screen_stereo)
 			{
@@ -2121,7 +2121,7 @@ void sgct::Engine::render2D()
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getActiveWindowPtr()->setCurrentViewport(i);
-			
+
 			getActiveWindowPtr()->isUsingFisheyeRendering() ? enterFisheyeViewport() : enterCurrentViewport();
 
 			if( mShowGraph )
@@ -2145,12 +2145,12 @@ void sgct::Engine::render2D()
 	This function combines a texture and a shader into a new texture
 */
 void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
-{	
+{
 	glDrawBuffer( GL_COLOR_ATTACHMENT0 );
 
 	PostFX * fx = NULL;
 	PostFX * fxPrevious = NULL;
-	
+
 	std::size_t numberOfPasses = getActiveWindowPtr()->getNumberOfPostFXs();
 	for( std::size_t i = 0; i<numberOfPasses; i++ )
 	{
@@ -2180,7 +2180,7 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
-	
+
 		/*
 			The code below flips the viewport vertically. Top & bottom coords are flipped.
 		*/
@@ -2219,7 +2219,7 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 {
 	glDrawBuffer( GL_COLOR_ATTACHMENT0 );
-	
+
 	PostFX * fx = NULL;
 	PostFX * fxPrevious = NULL;
 
@@ -2258,7 +2258,7 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 
 	if( numberOfPasses > 0 )
 		glPopAttrib();
-	
+
 	if( getActiveWindowPtr()->useFXAA() )
 	{
 		//bind target FBO
@@ -2345,13 +2345,13 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 			ti = Intermediate;
 
 		fbo->bindBlit(); //bind separate read and draw buffers to prepare blit operation
-		
+
 		//update attachments
 		fbo->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
 		if( SGCTSettings::instance()->useDepthTexture() )
 			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
-		
+
 		fbo->blit();
 	}
 }
@@ -2614,7 +2614,7 @@ void sgct::Engine::calculateFrustums()
 	for(size_t w=0; w < mThisNode->getNumberOfWindows(); w++)
 	{
 		SGCTWindow * winPtr = mThisNode->getWindowPtr(w);
-		
+
 		for(unsigned int i=0; i < winPtr->getNumberOfViewports(); i++)
 			if( !winPtr->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 			{
@@ -3076,7 +3076,7 @@ void sgct::Engine::enterCurrentViewport()
 					currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
 					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
 					break;
-				
+
 				case SGCTWindow::Side_By_Side_Inverted_Stereo:
 					currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
 					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
@@ -3086,11 +3086,14 @@ void sgct::Engine::enterCurrentViewport()
 					currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
 					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
 					break;
-				
+
 				case SGCTWindow::Top_Bottom_Inverted_Stereo:
 					currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
 					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
 					break;
+
+                default:
+                    break;
 				}
 			}
 			else
@@ -3101,7 +3104,7 @@ void sgct::Engine::enterCurrentViewport()
 					currentViewportCoords[0] = (currentViewportCoords[0] >> 1) + (currentViewportCoords[2] >> 1); //x offset
 					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
 					break;
-				
+
 				case SGCTWindow::Side_By_Side_Inverted_Stereo:
 					currentViewportCoords[0] = currentViewportCoords[0] >> 1; //x offset
 					currentViewportCoords[2] = currentViewportCoords[2] >> 1; //x size
@@ -3111,11 +3114,14 @@ void sgct::Engine::enterCurrentViewport()
 					currentViewportCoords[1] = currentViewportCoords[1] >> 1; //y offset
 					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
 					break;
-				
+
 				case SGCTWindow::Top_Bottom_Inverted_Stereo:
 					currentViewportCoords[1] = (currentViewportCoords[1] >> 1) + (currentViewportCoords[3] >> 1); //y offset
 					currentViewportCoords[3] = currentViewportCoords[3] >> 1; //y size
 					break;
+
+                default:
+                    break;
 				}
 			}
 		}
@@ -3146,7 +3152,7 @@ void sgct::Engine::enterFisheyeViewport()
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
-				
+
 			case SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
@@ -3156,11 +3162,14 @@ void sgct::Engine::enterFisheyeViewport()
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
-				
+
 			case SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
+
+            default:
+                break;
 			}
 		}
 		else
@@ -3171,7 +3180,7 @@ void sgct::Engine::enterFisheyeViewport()
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
-				
+
 			case SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
@@ -3181,11 +3190,14 @@ void sgct::Engine::enterFisheyeViewport()
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
-				
+
 			case SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
+
+            default:
+                break;
 			}
 		}
 	}
@@ -3325,7 +3337,7 @@ void sgct::Engine::addPostFX( PostFX & fx )
 }
 
 /*!
-	\Returns the active draw texture if frame buffer objects are used otherwise GL_FALSE 
+	\Returns the active draw texture if frame buffer objects are used otherwise GL_FALSE
 */
 unsigned int sgct::Engine::getActiveDrawTexture()
 {
@@ -3336,7 +3348,7 @@ unsigned int sgct::Engine::getActiveDrawTexture()
 }
 
 /*!
-	\Returns the active depth texture if depth texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE 
+	\Returns the active depth texture if depth texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
 */
 unsigned int sgct::Engine::getActiveDepthTexture()
 {
@@ -3457,7 +3469,7 @@ const char * sgct::Engine::getAAInfo(std::size_t winIndex)
 			#endif
 		}
 	}
-    else //no FXAA 
+    else //no FXAA
     {
         if( getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
         {
@@ -3466,7 +3478,7 @@ const char * sgct::Engine::getAAInfo(std::size_t winIndex)
                 getWindowPtr(winIndex)->getNumberOfAASamples());
             #else
             sprintf( aaInfo, "MSAAx%d",
-                getWindowPtr(winIndex)->numberOfSamples);
+                getWindowPtr(winIndex)->getNumberOfAASamples());
             #endif
         }
         else

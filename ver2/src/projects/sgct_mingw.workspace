@@ -13,12 +13,15 @@
 		<Project filename="../apps/example1/example1_mingw.cbp" />
 		<Project filename="../apps/gamepadExample/gamepadExample_mingw.cbp" />
 		<Project filename="../apps/heightMappingExample/heightMappingExample_mingw.cbp" />
+		<Project filename="../apps/heightMappingExample_opengl3/heightMappingExample_opengl3_mingw.cbp" />
+		<Project filename="../apps/PostFXExample/PostFXExample_mingw.cbp" />
+		<Project filename="../apps/PostFXExample_opengl3/PostFXExample_opengl3_mingw.cbp" />
 		<Project filename="../apps/kinectExample/kinectExample_mingw.cbp" />
 		<Project filename="../apps/orthoTexture/orthoTexture_mingw.cbp" />
 		<Project filename="../apps/fisheyeTest/fisheyeTest_mingw.cbp" />
 		<Project filename="../apps/osgExampleRTT/osgExampleRTT_mingw.cbp" />
 		<Project filename="../apps/example1_opengl3/example1_opengl3_mingw.cbp" />
 		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" />
-		<Project filename="../apps/postProcessing/postProcessing_mingw.cbp" active="1" />
+		<Project filename="../apps/renderToTexture/renderToTexture_mingw.cbp" active="1" />
 	</Workspace>
 </CodeBlocks_workspace_file>

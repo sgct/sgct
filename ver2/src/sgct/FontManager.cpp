@@ -373,7 +373,7 @@ bool FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
 		// Implement error message " char %s"
 		return false;
 	}
-	
+
 	//Move the face's glyph into a Glyph object.
 	FT_Glyph glyph;
 	FT_Glyph strokeGlyph;
@@ -383,16 +383,16 @@ bool FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
 		return false;
 	}
 
-	FT_Stroker  stroker = NULL; 
-	FT_Error error = FT_Stroker_New( mFTLibrary, &stroker ); 
+	FT_Stroker  stroker = NULL;
+	FT_Error error = FT_Stroker_New( mFTLibrary, &stroker );
 	if ( !error )
 	{
-		FT_Stroker_Set( stroker, 64 * mStrokeSize, 
-						FT_STROKER_LINECAP_ROUND, 
-						FT_STROKER_LINEJOIN_ROUND, 
+		FT_Stroker_Set( stroker, 64 * mStrokeSize,
+						FT_STROKER_LINECAP_ROUND,
+						FT_STROKER_LINEJOIN_ROUND,
 						0 );
 
-		error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 ); 
+		error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 );
 	}
 
 	//Convert the glyph to a bitmap.
@@ -437,13 +437,13 @@ bool FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
 				0 : strokeBitmap.buffer[i + strokeBitmap.width*j];
 
 			//simple union
-			expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ? 
+			expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ?
 					expanded_data[2*(i+j*width)] : strokeVal;
 		}
 	}
 
 	//Now we just setup some texture paramaters.
-	GLuint textureId = font.getTextures()[ch];
+	GLuint textureId = font.getTextures()[ static_cast<unsigned int>(ch) ];
 	glBindTexture( GL_TEXTURE_2D, textureId );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
@@ -552,16 +552,16 @@ bool FontManager::makeVBO( FT_Face face, Font & font )
 			return false;
 		}
 
-		FT_Stroker  stroker = NULL; 
-		FT_Error error = FT_Stroker_New( mFTLibrary, &stroker ); 
+		FT_Stroker  stroker = NULL;
+		FT_Error error = FT_Stroker_New( mFTLibrary, &stroker );
 		if ( !error )
 		{
-			FT_Stroker_Set( stroker, 64 * mStrokeSize, 
-							FT_STROKER_LINECAP_ROUND, 
-							FT_STROKER_LINEJOIN_ROUND, 
+			FT_Stroker_Set( stroker, 64 * mStrokeSize,
+							FT_STROKER_LINECAP_ROUND,
+							FT_STROKER_LINEJOIN_ROUND,
 							0 );
 
-			error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 ); 
+			error = FT_Glyph_Stroke( &strokeGlyph, stroker, 1 );
 		}
 
 		//Convert the glyph to a bitmap.
@@ -580,7 +580,7 @@ bool FontManager::makeVBO( FT_Face face, Font & font )
 		//our texture.
 		int width = NextP2( strokeBitmap.width ); //stroke is always larger
 		int height = NextP2( strokeBitmap.rows );
-		
+
 		//Allocate memory for the texture data.
 		GLubyte* expanded_data = new GLubyte[ 2 * width * height];
 
@@ -606,7 +606,7 @@ bool FontManager::makeVBO( FT_Face face, Font & font )
 					0 : strokeBitmap.buffer[i + strokeBitmap.width*j];
 
 				//simple union
-				expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ? 
+				expanded_data[2*(i+j*width)+1] = strokeVal < expanded_data[2*(i+j*width)] ?
 					 expanded_data[2*(i+j*width)] : strokeVal;
 			}
 		}

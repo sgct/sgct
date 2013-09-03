@@ -101,7 +101,7 @@ void myDrawFun()
 	//create scene transform (animation)
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, -0.15f, 2.5f ) );
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, 1.0f, 0.0f));
-	
+
 	glm::mat4 MVP		= gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 	glm::mat4 MV		= gEngine->getActiveModelViewMatrix() * scene_mat;
 	glm::mat4 MV_light	= gEngine->getActiveModelViewMatrix();
@@ -109,10 +109,10 @@ void myDrawFun()
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[0] ));
-	
+
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[1] ));
-	
+
 	mSp.bind();
 
 	glUniformMatrix4fv(MVP_Loc,		1, GL_FALSE, &MVP[0][0]);
@@ -122,7 +122,7 @@ void myDrawFun()
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
 
 	glBindVertexArray(vertexArray);
-	
+
 	// Draw the triangle !
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, mNumberOfVerts);
 
@@ -146,7 +146,7 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
-	
+
 	int tmpStereoMode = stereoMode.getVal();
 	/*for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
 		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
@@ -165,7 +165,7 @@ void myPostSyncPreDrawFun()
 void myInitOGLFun()
 {
 	stereoMode.setVal( gEngine->getWindowPtr(0)->getStereoMode() );
-	
+
 	//Set up backface culling
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
@@ -200,7 +200,7 @@ void myInitOGLFun()
 
 	//generate mesh
 	generateTerrainGrid( 1.0f, 1.0f, 256, 256 );
-	
+
 	//generate vertex array
 	glGenVertexArrays(1, &vertexArray);
 	glBindVertexArray(vertexArray);
@@ -235,7 +235,7 @@ void myInitOGLFun()
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
-	
+
 	//cleanup
 	mVertPos.clear();
 	mTexCoord.clear();
@@ -377,10 +377,12 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_LEFT:
 			if(action == SGCT_PRESS)
+            {
 				if( stereoMode.getVal() > 0 )
 					stereoMode.setVal( (stereoMode.getVal() - 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
 				else
 					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+            }
 			break;
 
 		case SGCT_KEY_RIGHT:

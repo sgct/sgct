@@ -13,10 +13,8 @@ PROJECT(${LIB_NAME})
 set(LibPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 	
-find_path(TINYTHREAD_INCLUDE_DIR REQUIRED)
-	
 add_library(${LIB_NAME} STATIC tinythread.cpp)
-include_directories(${TINYTHREAD_INCLUDE_DIR})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
 if( NOT WIN32 ) #MINGW or similar
 	find_library(Threads REQUIRED)

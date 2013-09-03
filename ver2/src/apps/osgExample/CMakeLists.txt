@@ -24,8 +24,7 @@ find_path(SGCT_INCLUDE_DIRECTORY
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
 	optimized ${SGCT_RELEASE_LIBRARY}
-)
-	
+)	
 
 find_package(OpenGL REQUIRED)
 find_package(OpenSceneGraph REQUIRED osgUtil osgDB osgGA osgViewer)

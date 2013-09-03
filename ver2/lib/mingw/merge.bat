@@ -1,12 +1,13 @@
-DEL libsgct32.a
-ar x deps/libglew32.a
-ar x deps/libglfw.a
+DEL libsgct.a
+ar x deps/libGLEW.a
+ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
 ar x deps/libpng15.a
 ar x deps/freetype.a
 ar x deps/libtinyxml2.a
+ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
 ar x libsgct32_light.a
-ar r libsgct32.a *.o *.obj
+ar r libsgct.a *.o *.obj
 DEL *.o *.obj
 pause

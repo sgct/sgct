@@ -27,7 +27,7 @@ inline void setupViewport()
 	y		= static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYFramebufferResolution()));
 	xSize	= static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution()));
 	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution()));
-	
+
 	sgct_core::SGCTWindow::StereoMode sm = cWin->getStereoMode();
 	if( sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo )
 	{
@@ -39,7 +39,7 @@ inline void setupViewport()
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
-				
+
 			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
@@ -49,11 +49,14 @@ inline void setupViewport()
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
-				
+
 			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
+
+            default:
+                break;
 			}
 		}
 		else
@@ -64,7 +67,7 @@ inline void setupViewport()
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
-				
+
 			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
@@ -74,11 +77,14 @@ inline void setupViewport()
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
-				
+
 			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
+
+            default:
+                break;
 			}
 		}
 	}

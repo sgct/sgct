@@ -67,7 +67,7 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{	
+{
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 
 	glTranslatef( 0.0f, -0.15f, 2.5f );
@@ -129,7 +129,7 @@ void myPostSyncPreDrawFun()
 void myInitOGLFun()
 {
 	stereoMode.setVal( gEngine->getWindowPtr(0)->getStereoMode() );
-	
+
 	glEnable( GL_DEPTH_TEST );
 	//glDepthMask( GL_TRUE );
 	//glDisable( GL_CULL_FACE );
@@ -299,10 +299,12 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_LEFT:
 			if(action == SGCT_PRESS)
+            {
 				if( stereoMode.getVal() > 0 )
 					stereoMode.setVal( (stereoMode.getVal() - 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
 				else
 					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+            }
 			break;
 
 		case SGCT_KEY_RIGHT:

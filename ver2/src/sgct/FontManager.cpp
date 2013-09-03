@@ -19,8 +19,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <stdio.h>
 
-using namespace sgct_text;
-
 const static std::string Font_Vert_Shader = "\
 #version 330 core\n\
 \n\
@@ -95,15 +93,15 @@ inline int NextP2 ( int a )
 //----------------------------------------------------------------------
 
 /*! Initiate FontManager instance to NULL */
-FontManager * FontManager::mInstance = NULL;
+sgct_text::FontManager * sgct_text::FontManager::mInstance = NULL;
 
 /*! Default height in pixels for all font faces */
-const FT_Short FontManager::mDefaultHeight = 10;
+const FT_Short sgct_text::FontManager::mDefaultHeight = 10;
 
 /*!
 Constructor initiates the freetyp library
 */
-FontManager::FontManager(void)
+sgct_text::FontManager::FontManager(void)
 {
 	FT_Error error = FT_Init_FreeType( &mFTLibrary );
 	mStrokeSize = 1;
@@ -145,7 +143,7 @@ FontManager::FontManager(void)
 /*!
 Destructor cleans up all font objects, textures and shaders
 */
-FontManager::~FontManager(void)
+sgct_text::FontManager::~FontManager(void)
 {
 	std::set<Font>::iterator it = mFonts.begin();
 	std::set<Font>::iterator end = mFonts.end();
@@ -168,7 +166,7 @@ Set the default font path. This will be the directory where font files will be s
 for by default. If not explicitly set the default font path will be the windows font folder.
 @param	path	The directory where the default font files are located
 */
-void FontManager::setDefaultFontPath( const std::string & path )
+void sgct_text::FontManager::setDefaultFontPath( const std::string & path )
 {
 	mDefaultFontPath = path;
 }
@@ -177,7 +175,7 @@ void FontManager::setDefaultFontPath( const std::string & path )
 Set the stroke (border) size
 @param	size	The stroke size in pixels
 */
-void FontManager::setStrokeSize( signed long size )
+void sgct_text::FontManager::setStrokeSize( signed long size )
 {
 	mStrokeSize = size;
 }
@@ -185,7 +183,7 @@ void FontManager::setStrokeSize( signed long size )
 /*!
 Set the stroke (border) color
 */
-void FontManager::setStrokeColor( glm::vec4 color )
+void sgct_text::FontManager::setStrokeColor( glm::vec4 color )
 {
 	mStrokeColor = color;
 }
@@ -196,7 +194,7 @@ Adds a font file to the manager.
 @param	path		Path to the font file
 @param	fontPath	If it is a local font path directory or using the default path
 */
-bool FontManager::addFont( const std::string & fontName, std::string path, FontPath fontPath )
+bool sgct_text::FontManager::addFont( const std::string & fontName, std::string path, FontPath fontPath )
 {
 	// Perform file exists check
 	if( fontPath == FontPath_Default )
@@ -222,13 +220,13 @@ Get a font face that is loaded into memory.
 @param	height	Height in  pixels for the font
 @return	Pointer to the font face, NULL if not found
 */
-const Font * FontManager::getFont( const std::string & fontName, unsigned int height )
+const sgct_text::Font * sgct_text::FontManager::getFont( const std::string & fontName, unsigned int height )
 {
 	// If there will be a lot of switching between font sizes consider saving every font face as a unique font instead
 	// of resizing
-	Font searchFont( fontName, static_cast<float>( height ) );
+	sgct_text::Font searchFont( fontName, static_cast<float>( height ) );
 
-	std::set<Font>::iterator it = std::find( mFonts.begin(), mFonts.end(), searchFont );
+	std::set<sgct_text::Font>::iterator it = std::find( mFonts.begin(), mFonts.end(), searchFont );
 
 	if( it == mFonts.end() )
 	{
@@ -243,7 +241,7 @@ Get the SGCT default font face that is loaded into memory.
 @param	height	Height in  pixels for the font
 @return	Pointer to the font face, NULL if not found
 */
-const Font * FontManager::getDefaultFont( unsigned int height )
+const sgct_text::Font * sgct_text::FontManager::getDefaultFont( unsigned int height )
 {
 	return getFont("SGCTFont", height);
 }
@@ -254,7 +252,7 @@ Creates font textures with a specific height if a path to the font exists
 @param	height		Height of the font in pixels
 @return	Iterator to the newly created font, end of the Fonts container if something went wrong
 */
-std::set<Font>::iterator FontManager::createFont( const std::string & fontName, unsigned int height )
+std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const std::string & fontName, unsigned int height )
 {
 	std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
 
@@ -355,7 +353,7 @@ Create a display list for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
+bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
 {
 
 	//The first thing we do is get FreeType to render our character
@@ -530,7 +528,7 @@ Create vertex buffer objects for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool FontManager::makeVBO( FT_Face face, Font & font )
+bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 {
 	std::vector<float> coords;
 

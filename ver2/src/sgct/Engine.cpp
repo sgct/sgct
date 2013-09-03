@@ -924,8 +924,6 @@ void sgct::Engine::render()
 				if( SGCTSettings::instance()->useFBO() )
 					(this->*mInternalRenderFBOFn)();
 			}
-		//reset back to shared context
-		getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Running post-sync\n");
@@ -944,12 +942,16 @@ void sgct::Engine::render()
 		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
 		if( mTakeScreenshot )
+		{
+            getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
+
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 				if( mThisNode->getWindowPtr(i)->isVisible() )
 				{
 					mThisNode->setCurrentWindowIndex(i);
 					getActiveWindowPtr()->captureBuffer();
 				}
+        }
 
 #ifdef __SGCT_DEBUG__
 		//check for errors
@@ -3426,14 +3428,14 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%d) | fps: %.2f | AA: %s",
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%zu) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,
 		static_cast<float>(mStatistics->getAvgFPS()),
         getAAInfo(winIndex));
     #else
-    sprintf( basicInfo, "Node: %s (%s:%d) | fps: %.2f | AA: %s",
+    sprintf( basicInfo, "Node: %s (%s:%zu) | fps: %.2f | AA: %s",
 		localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,

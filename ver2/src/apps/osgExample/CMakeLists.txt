@@ -47,11 +47,11 @@ elseif( WIN32 ) #MINGW or similar
 	)
 elseif( APPLE )
 	find_library(AGL_LIBRARY AGL REQUIRED)
-    find_library(COCOA_LIBRARY Cocoa REQUIRED)
+	find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
 
 	set(LIBS
-	    ${SGCT_LIBS}
+		${SGCT_LIBS}
 		${OPENSCENEGRAPH_LIBRARIES}
 		${OPENGL_LIBRARY}
 		${AGL_LIBRARY}
@@ -60,7 +60,8 @@ elseif( APPLE )
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)	
+	find_library(XRANDR_LIBRARY Xrandr REQUIRED)
+	find_library(XI_LIBRARY Xi REQUIRED)	
 
 	set(LIBS
 		${SGCT_LIBS}
@@ -68,6 +69,7 @@ else() #linux
 		${OPENGL_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
+		${XI_LIBRARY}
 	)
 endif()
 

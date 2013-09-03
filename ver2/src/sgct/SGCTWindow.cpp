@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/SGCTWindow.h"
@@ -223,7 +223,7 @@ void sgct_core::SGCTWindow::close()
 	Current handle must be set at the end to propely destroy the window
 	*/
 	makeOpenGLContextCurrent( Window_Context );
-	
+
 	deleteAllViewports();
 
 	if( mUseSwapGroups )
@@ -269,7 +269,7 @@ void sgct_core::SGCTWindow::init(int id)
 }
 
 /*!
-	Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs. 
+	Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
 */
 void sgct_core::SGCTWindow::initOGL()
 {
@@ -282,12 +282,12 @@ void sgct_core::SGCTWindow::initOGL()
 
 /*!
 	Get a frame buffer texture. If the texture doesn't exists then it will be created.
-	
+
 	\param index Index or Engine::TextureIndexes enum
 	\returns texture index of selected frame buffer texture
 */
 unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
-{	
+{
 	if(index < NUMBER_OF_TEXTURES)
 	{
 		if( mFrameBufferTextures[index] == GL_FALSE )
@@ -329,7 +329,7 @@ unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
 				break;
 			}
 		}
-		
+
 		return mFrameBufferTextures[index];
 	}
 	else
@@ -362,7 +362,7 @@ void sgct_core::SGCTWindow::setWindowTitle(const char * title)
 
 /*!
 	Sets the window resolution.
-	
+
 	@param x The width of the window in pixels.
 	@param y The height of the window in pixels.
 */
@@ -374,7 +374,7 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 			static_cast<float>( y );
 
 	if( !mUseFixResolution )
-	{	
+	{
 		mFramebufferResolution[0] = x;
 		mFramebufferResolution[1] = y;
 	}
@@ -385,7 +385,7 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 /*!
 	Sets the framebuffer resolution. Theese parameters will only be used if a fixed resolution is used that is different from the window resolution.
 	This might be useful in fullscreen mode on Apples retina displays to force 1080p resolution or similar.
-	
+
 	@param x The width of the frame buffer in pixels.
 	@param y The height of the frame buffer in pixels.
 */
@@ -405,7 +405,6 @@ void sgct_core::SGCTWindow::swap()
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
 
-		makeOpenGLContextCurrent( Window_Context );
 		glfwSwapBuffers( mWindowHandle );
 	}
 }
@@ -434,7 +433,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 void sgct_core::SGCTWindow::update()
 {
 	if( mVisible && isWindowResized() )
-	{	
+	{
 		//resize FBOs
 		resizeFBOs();
 
@@ -452,7 +451,7 @@ void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
 	if( ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 )
 		return;
-	
+
 	if( context == Window_Context )
 		glfwMakeContextCurrent( mWindowHandle );
 	else
@@ -460,7 +459,7 @@ void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 }
 
 /*!
-	\returns true if this window is resized 
+	\returns true if this window is resized
 */
 bool sgct_core::SGCTWindow::isWindowResized()
 {
@@ -476,7 +475,7 @@ bool sgct_core::SGCTWindow::isFullScreen()
 }
 
 /*!
-	\returns if the window is visible or not	
+	\returns if the window is visible or not
 */
 bool sgct_core::SGCTWindow::isVisible()
 {
@@ -588,7 +587,7 @@ void sgct_core::SGCTWindow::setUseSwapGroups(const bool state)
 
 /*!
 	Use quad buffer (hardware stereoscopic rendering).
-	This function can only be used before the window is created. 
+	This function can only be used before the window is created.
 	The quad buffer feature is only supported on professional CAD graphics cards such as
 	Nvidia Quadro or AMD/ATI FireGL.
 */
@@ -605,7 +604,7 @@ void sgct_core::SGCTWindow::setUseQuadbuffer(const bool state)
 	/returns True if window was created successfully.
 */
 bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
-{	
+{
 	glfwWindowHint(GLFW_DEPTH_BITS, 32);
 	glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
 
@@ -673,7 +672,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	mWindowInitialRes[0] = mWindowRes[0];
 	mWindowInitialRes[1] = mWindowRes[1];
 	mVisible = true;
-	
+
 	if( mWindowHandle != NULL )
 	{
 		if( share != NULL )
@@ -690,7 +689,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			2  = fix when using swapgroups in xp and running half the framerate
 		*/
 		glfwSwapInterval( sgct::SGCTSettings::instance()->getSwapInterval() );
-		
+
 		glfwMakeContextCurrent( mSharedHandle );
 
 		mScreenCapture = new ScreenCapture();
@@ -711,7 +710,7 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
-		
+
 		hDC = wglGetCurrentDC();
 
 		unsigned int maxBarrier = 0;
@@ -722,11 +721,11 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 
 		/*
 		wglJoinSwapGroupNV adds <hDC> to the swap group specified by <group>.
-		If <hDC> is already a member of a different group, it is 
-		implicitly removed from that group first. A swap group is specified as 
-		an integer value between 0 and the value returned in <maxGroups> by 
-		wglQueryMaxSwapGroupsNV. If <group> is zero, the hDC is unbound from its 
-		current group, if any. If <group> is larger than <maxGroups>, 
+		If <hDC> is already a member of a different group, it is
+		implicitly removed from that group first. A swap group is specified as
+		an integer value between 0 and the value returned in <maxGroups> by
+		wglQueryMaxSwapGroupsNV. If <group> is zero, the hDC is unbound from its
+		current group, if any. If <group> is larger than <maxGroups>,
 		wglJoinSwapGroupNV fails.
 
 		*/
@@ -747,7 +746,7 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
     if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
-		
+
 		hDC = glXGetCurrentDrawable();
 		disp = glXGetCurrentDisplay();
 
@@ -780,7 +779,7 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int height )
 {
 	SGCTNode * thisNode = ClusterManager::instance()->getThisNodePtr();
-	
+
 	//find the correct window to update
 	for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
 		if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
@@ -788,7 +787,7 @@ void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width
 }
 
 void sgct_core::SGCTWindow::initScreenCapture()
-{	
+{
 	//init PBO in screen capture
 	mScreenCapture->init( mId );
 	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && glfwGetWindowAttrib( mWindowHandle, GLFW_CONTEXT_VERSION_MAJOR) > 1 ); //if supported then use them
@@ -950,7 +949,7 @@ void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySiz
 		glDeleteTextures(1, &mFrameBufferTextures[ id ]);
 		mFrameBufferTextures[id] = GL_FALSE;
 	}
-	
+
 	/*
 		Anisotropic box filtering needed by FXAA
 	*/
@@ -960,7 +959,7 @@ void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySiz
 
 	glGenTextures(1, &mFrameBufferTextures[id]);
 	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[id]);
-			
+
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
 	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
 	if( anisotropicFiltering )
@@ -973,7 +972,7 @@ void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySiz
 		//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-				
+
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
@@ -993,9 +992,9 @@ void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 		glDeleteTextures(1, &mFrameBufferTextures[ id ]);
 		mFrameBufferTextures[id] = GL_FALSE;
 	}
-	
+
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-		
+
 	GLint MaxCubeMapRes;
 	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
 	if(mCubeMapResolution > MaxCubeMapRes)
@@ -1188,7 +1187,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
 		float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
 		float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
-		
+
 		if( mStereoMode != No_Stereo ) // if any stereo
 			mFisheyeOffaxis = true;
 		else if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
@@ -1197,11 +1196,11 @@ void sgct_core::SGCTWindow::loadShaders()
 		//reload shader program if it exists
 		if( mFisheyeShader.isLinked() )
 			mFisheyeShader.deleteProgram();
-		
+
 		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		{
 			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			
+
 			if(mFisheyeOffaxis)
 			{
 				if( sgct::SGCTSettings::instance()->useDepthTexture() )
@@ -1226,7 +1225,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		else //modern pipeline
 		{
 			mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			
+
 			if(mFisheyeOffaxis)
 			{
 				if( sgct::SGCTSettings::instance()->useDepthTexture() )
@@ -1318,18 +1317,18 @@ void sgct_core::SGCTWindow::loadShaders()
 		//reload shader program if it exists
 		if( mStereoShader.isLinked() )
 			mStereoShader.deleteProgram();
-		
+
 		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		else
 			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			
+
 		if( mStereoMode == Anaglyph_Red_Cyan_Stereo )
 		{
 			sgct::Engine::instance()->isOGLPipelineFixed() ?
 				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
 				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-					
+
 		}
 		else if( mStereoMode == Anaglyph_Amber_Blue_Stereo )
 		{
@@ -1677,7 +1676,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	//clear the viewports since they will be replaced
 	deleteAllViewports();
 	glm::vec4 lowerLeft, upperLeft, upperRight;
-	
+
 	float radius = getDomeDiameter() / 2.0f;
 
 	//+Z face
@@ -1689,7 +1688,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	upperLeft.x = -1.0f * radius;
 	upperLeft.y = 1.0f * radius;
 	upperLeft.z = 1.0f * radius;
-	upperLeft.w = 1.0f; 
+	upperLeft.w = 1.0f;
 
 	upperRight.x = 1.0f * radius;
 	upperRight.y = 1.0f * radius;
@@ -1703,13 +1702,13 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	//pan 45 deg
 	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	//glm::mat4 panRot(1.0f);
-	
+
 	//add viewports
 	for(unsigned int i=0; i<6; i++)
 	{
 		Viewport tmpVP;
 		tmpVP.setName("Fisheye");
-		
+
 		glm::mat4 rotMat(1.0f);
 
 		switch(i)
@@ -2042,7 +2041,7 @@ const char * sgct_core::SGCTWindow::getFisheyeOverlay()
 std::string sgct_core::SGCTWindow::getStereoModeStr()
 {
 	std::string mode;
-	
+
 	switch( mStereoMode )
 	{
 	case Active_Stereo:
@@ -2052,7 +2051,7 @@ std::string sgct_core::SGCTWindow::getStereoModeStr()
 	case Anaglyph_Red_Cyan_Stereo:
 		mode.assign("anaglyph_red_cyan");
 		break;
-		
+
 	case Anaglyph_Amber_Blue_Stereo:
 		mode.assign("anaglyph_amber_blue");
 		break;

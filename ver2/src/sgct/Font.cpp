@@ -10,15 +10,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/MessageHandler.h"
 
-using namespace sgct_text;
-
 /*!
 Default constructor does not allocate any resources for the font.
 The init function needs to be called before the font can actually be used
 @param	fontName	Name of the font
 @param	height		Height of the font
 */
-Font::Font( const std::string & fontName, float height ) :
+sgct_text::Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
 	mTextures( NULL ),
@@ -33,7 +31,7 @@ Font::Font( const std::string & fontName, float height ) :
 /*!
 Destructor does nothing. Fonts should be explicitly called for cleanup (Clean())
 */
-Font::~Font()
+sgct_text::Font::~Font()
 {
 	// Do nothing, need to call Clean explicitly to clean up resources
 }
@@ -44,7 +42,7 @@ before creating any textures for the font
 @param	name	FontName of the font that's being created
 @aram	height	Font height in pixels
 */
-void Font::init( const std::string & name, unsigned int height )
+void sgct_text::Font::init( const std::string & name, unsigned int height )
 {
 	//Allocate some memory to store the texture ids.
 	mName = name;
@@ -70,7 +68,7 @@ void Font::init( const std::string & name, unsigned int height )
 /*!
 Cleans up memory used by the Font
 */
-void Font::clean()
+void sgct_text::Font::clean()
 {
 	if( mTextures )	// Check if init has been called
 	{

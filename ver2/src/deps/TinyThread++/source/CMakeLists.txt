@@ -16,9 +16,7 @@ set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 add_library(${LIB_NAME} STATIC tinythread.cpp)
 include_directories(${CMAKE_CURRENT_SOURCE_DIR})
 
-if( NOT WIN32 ) #MINGW or similar
-	find_library(Threads REQUIRED)
-endif()
+find_package(Threads REQUIRED)
 
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
@@ -35,3 +33,5 @@ endif()
 if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
 endif()
+
+target_link_libraries( ${LIB_NAME} ${THREADS_LIBRARY} )

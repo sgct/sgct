@@ -264,7 +264,7 @@ void sgct_core::SGCTWindow::init(int id)
 	{
 		if(mSetWindowPos)
 			glfwSetWindowPos( mWindowHandle, mWindowPos[0], mWindowPos[1] );
-		glfwSetWindowSizeCallback( mWindowHandle, windowResizeCallback );
+		glfwSetFramebufferSizeCallback( mWindowHandle, windowResizeCallback );
 	}
 
 	//swap the buffers and update the window
@@ -674,8 +674,6 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);
-	mWindowInitialRes[0] = mWindowRes[0];
-	mWindowInitialRes[1] = mWindowRes[1];
 	mVisible = true;
 
 	if( mWindowHandle != NULL )
@@ -684,6 +682,13 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			mSharedHandle = share;
 		else
 			mSharedHandle = mWindowHandle;
+
+		/*
+			Mac for example scales the window size != frame buffer size
+		*/
+		glfwGetFramebufferSize(mWindowHandle, &mWindowRes[0], &mWindowRes[1]);
+		mWindowInitialRes[0] = mWindowRes[0];
+		mWindowInitialRes[1] = mWindowRes[1];
 
 		glfwMakeContextCurrent( mWindowHandle );
 		/*

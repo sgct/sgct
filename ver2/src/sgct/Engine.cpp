@@ -82,6 +82,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 	//init function pointers
 	mDrawFn = NULL;
+	mDraw2DFn = NULL;
 	mPreSyncFn = NULL;
 	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
@@ -652,6 +653,7 @@ Un-binds all callbacks.
 void sgct::Engine::clearAllCallbacks()
 {
 	mDrawFn = NULL;
+	mDraw2DFn = NULL;
 	mPreSyncFn = NULL;
 	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
@@ -1011,76 +1013,80 @@ void sgct::Engine::renderDisplayInfo()
 	sgct_text::FontManager::instance()->setStrokeSize( 1 );
 
 	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
-	float lineHeight = font->getHeight() * 1.59f;
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.8f,0.8f,0.8f,1.0f),
-		"Node ip: %s (%s)",
-		mThisNode->ip.c_str(),
-		mNetworkConnections->isComputerServer() ? "master" : "slave");
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.8f,0.8f,0.0f,1.0f),
-		"Frame rate: %.3f Hz, frame: %u",
-		mStatistics->getAvgFPS(),
-		mFrameCounter);
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 3.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.8f,0.0f,0.8f,1.0f),
-		"Avg. draw time: %.2f ms",
-		mStatistics->getAvgDrawTime()*1000.0);
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.0f,0.8f,0.8f,1.0f),
-		"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
-		SharedData::instance()->getUserDataSize(),
-		SharedData::instance()->getCompressionRatio(),
-		mStatistics->getAvgSyncTime()*1000.0);
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.8f,0.8f,0.8f,1.0f),
-		"Swap groups: %s and %s (%s) | Frame: %d",
-		getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
-		getActiveWindowPtr()->isBarrierActive() ? "active" : "not active",
-		getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
-		lFrameNumber);
-
-	sgct_text::print(font,
-		static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-		lineHeight * 0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-		glm::vec4(0.8f,0.8f,0.8f,1.0f),
-		"Tracked: %s | User position: %.3f %.3f %.3f",
-		getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
-		getUserPtr()->getXPos(),
-		getUserPtr()->getYPos(),
-		getUserPtr()->getZPos());
-
-	//if active stereoscopic rendering
-	if( mActiveFrustumMode == Frustum::StereoLeftEye )
+	
+	if( font != NULL )
 	{
+		float lineHeight = font->getHeight() * 1.59f;
+
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Stereo type: %s\nActive eye: Left", getActiveWindowPtr()->getStereoModeStr().c_str() );
-	}
-	else if( mActiveFrustumMode == Frustum::StereoRightEye )
-	{
+			"Node ip: %s (%s)",
+			mThisNode->ip.c_str(),
+			mNetworkConnections->isComputerServer() ? "master" : "slave");
+
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			glm::vec4(0.8f,0.8f,0.0f,1.0f),
+			"Frame rate: %.3f Hz, frame: %u",
+			mStatistics->getAvgFPS(),
+			mFrameCounter);
+
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 3.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			glm::vec4(0.8f,0.0f,0.8f,1.0f),
+			"Avg. draw time: %.2f ms",
+			mStatistics->getAvgDrawTime()*1000.0);
+
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			glm::vec4(0.0f,0.8f,0.8f,1.0f),
+			"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
+			SharedData::instance()->getUserDataSize(),
+			SharedData::instance()->getCompressionRatio(),
+			mStatistics->getAvgSyncTime()*1000.0);
+
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Stereo type: %s\nActive eye:          Right", getActiveWindowPtr()->getStereoModeStr().c_str() );
+			"Swap groups: %s and %s (%s) | Frame: %d",
+			getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
+			getActiveWindowPtr()->isBarrierActive() ? "active" : "not active",
+			getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
+			lFrameNumber);
+
+		sgct_text::print(font,
+			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+			lineHeight * 0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			glm::vec4(0.8f,0.8f,0.8f,1.0f),
+			"Tracked: %s | User position: %.3f %.3f %.3f",
+			getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
+			getUserPtr()->getXPos(),
+			getUserPtr()->getYPos(),
+			getUserPtr()->getZPos());
+
+		//if active stereoscopic rendering
+		if( mActiveFrustumMode == Frustum::StereoLeftEye )
+		{
+			sgct_text::print(font,
+				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+				lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Stereo type: %s\nActive eye: Left", getActiveWindowPtr()->getStereoModeStr().c_str() );
+		}
+		else if( mActiveFrustumMode == Frustum::StereoRightEye )
+		{
+			sgct_text::print(font,
+				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+				lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Stereo type: %s\nActive eye:          Right", getActiveWindowPtr()->getStereoModeStr().c_str() );
+		}
 	}
 
 	//reset
@@ -2141,6 +2147,9 @@ void sgct::Engine::render2D()
 			}
 		}
 	}
+
+	if( mDraw2DFn != NULL )
+		mDraw2DFn();
 }
 
 /*!
@@ -2818,6 +2827,17 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 {
 	mDrawFn = fnPtr;
+}
+
+/*!
+	\param fnPtr is the function pointer to a draw 2D callback
+
+	This function sets the draw 2D callback. This callback will be called after overlays and post effects has been drawn.
+	This makes it possible to render text and HUDs that will not be filtered and antialiasied.
+*/
+void sgct::Engine::setDraw2DFunction( void(*fnPtr)(void) )
+{
+	mDraw2DFn = fnPtr;
 }
 
 /*!

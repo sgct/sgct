@@ -7,6 +7,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
+void myDraw2DFun();
 void myPreSyncFun();
 void myPostSyncPreDrawFun();
 void myPostDrawFun();
@@ -40,6 +41,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setExternalControlCallback( externalControlCallback );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	gEngine->setDraw2DFunction( myDraw2DFun );
 	//gEngine->setExitKey( 'Y' );
 
 	if( !gEngine->init() )
@@ -70,6 +72,12 @@ int main( int argc, char* argv[] )
 
 	// Exit program
 	exit( EXIT_SUCCESS );
+}
+
+void myDraw2DFun()
+{
+	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 50, glm::vec4(1.0, 0.0, 0.0, 1.0), "Draw2D hej ps dej du ar ytr NoR");
 }
 
 void myDrawFun()

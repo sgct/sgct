@@ -127,7 +127,7 @@ sgct_text::FontManager::FontManager(void)
 	mDefaultFontPath += "\\Fonts\\";
 #elif __APPLE__
 	//System Fonts
-    sprintf(fontDir, "/Library/Fonts/");
+    sprintf(fontDir, "/Library/Fonts");
     mDefaultFontPath.assign( fontDir );
 #else
     sprintf(fontDir, "/usr/share/fonts/truetype/freefont/");
@@ -407,8 +407,8 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	//Use our helper function to get the widths of
 	//the bitmap data that we will need in order to create
 	//our texture.
-	int width = NextP2( strokeBitmap.width ); //stroke is always larger
-	int height = NextP2( strokeBitmap.rows );
+	int width = strokeBitmap.width; //stroke is always larger
+	int height = strokeBitmap.rows;
 
 	//Allocate memory for the texture data.
 	GLubyte* expanded_data = new GLubyte[ 2 * width * height];
@@ -451,6 +451,11 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	//Here we actually create the texture itself, notice
 	//that we are using GL_LUMINANCE_ALPHA to indicate that
 	//we are using 2 channel data.
+	/*
+		SGCT2 change: Use non-power-of-two textures for better quality
+	*/
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
     glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_LUMINANCE_ALPHA, width, height,
 		  0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data );
 
@@ -474,18 +479,8 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	//(this is only true for characters like 'g' or 'y'.
 	//glTranslatef( 0, (GLfloat)bitmap_glyph->top-bitmap.rows, 0 );
 
-	glm::vec2 offset( static_cast<float>(bitmap_strokeGlyph->left),
-		static_cast<float>(bitmap_strokeGlyph->top-bitmap.rows));
-
-	//Now we need to account for the fact that many of
-	//our textures are filled with empty padding space.
-	//We figure what portion of the texture is used by
-	//the actual character and store that information in
-	//the x and y variables, then when we draw the
-	//quad, we will only reference the parts of the texture
-	//that we contain the character itself.
-	float	x=(float)strokeBitmap.width / (float)width,
-			y=(float)strokeBitmap.rows / (float)height;
+	glm::vec2 offset( static_cast<float>(bitmap_glyph->left),
+		static_cast<float>(bitmap_glyph->top-bitmap.rows));
 
 	//Here we draw the texturemaped quads.
 	//The bitmap that we got from FreeType was not
@@ -497,13 +492,13 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 		glTexCoord2f( 0.0f, 0.0f );
 		glVertex3f( offset.x, (GLfloat)strokeBitmap.rows + offset.y, 0.0f );
 
-		glTexCoord2f( 0.0f, y );
+		glTexCoord2f( 0.0f, 1.0f );
 		glVertex3f(	offset.x, offset.y, 0.0f );
 
-		glTexCoord2f( x, y );
+		glTexCoord2f( 1.0f, 1.0f );
 		glVertex3f( (GLfloat)strokeBitmap.width + offset.x, offset.y, 0.0f );
 
-		glTexCoord2f( x, 0.0f );
+		glTexCoord2f( 1.0f, 0.0f );
 		glVertex3f( (GLfloat)strokeBitmap.width + offset.x, (GLfloat)strokeBitmap.rows + offset.y, 0.0f );
 	glEnd();
 	//glPopMatrix();
@@ -576,8 +571,8 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 		//Use our helper function to get the widths of
 		//the bitmap data that we will need in order to create
 		//our texture.
-		int width = NextP2( strokeBitmap.width ); //stroke is always larger
-		int height = NextP2( strokeBitmap.rows );
+		int width = strokeBitmap.width; //stroke is always larger
+		int height = strokeBitmap.rows;
 
 		//Allocate memory for the texture data.
 		GLubyte* expanded_data = new GLubyte[ 2 * width * height];
@@ -615,33 +610,27 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
-		//Here we actually create the texture itself, notice
+		/*
+			SGCT2 change: Use non-power-of-two textures for better quality
+		*/
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
 			  0, GL_RG, GL_UNSIGNED_BYTE, expanded_data );
 
 		//With the texture created, we don't need to expanded data anymore
 		delete[] expanded_data;
 
-		glm::vec2 offset( static_cast<float>(bitmap_strokeGlyph->left),
-			static_cast<float>(bitmap_strokeGlyph->top-bitmap.rows));
-
-		//Now we need to account for the fact that many of
-		//our textures are filled with empty padding space.
-		//We figure what portion of the texture is used by
-		//the actual character and store that information in
-		//the x and y variables, then when we draw the
-		//quad, we will only reference the parts of the texture
-		//that we contain the character itself.
-		float	x=(float)strokeBitmap.width / (float)width,
-				y=(float)strokeBitmap.rows / (float)height;
+		glm::vec2 offset( static_cast<float>(bitmap_glyph->left),
+			static_cast<float>(bitmap_glyph->top-bitmap.rows));
 
 		coords.push_back( 0.0f );
-		coords.push_back( y );
+		coords.push_back( 1.0f );
 		coords.push_back( offset.x );
 		coords.push_back( offset.y );
 
-		coords.push_back( x );
-		coords.push_back( y );
+		coords.push_back( 1.0f );
+		coords.push_back( 1.0f );
 		coords.push_back( static_cast<float>(strokeBitmap.width) + offset.x );
 		coords.push_back( offset.y );
 
@@ -650,7 +639,7 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 		coords.push_back( offset.x ); //x
 		coords.push_back( static_cast<float>(strokeBitmap.rows) + offset.y ); //y
 
-		coords.push_back( x );
+		coords.push_back( 1.0f );
 		coords.push_back( 0.0f );
 		coords.push_back( static_cast<float>(strokeBitmap.width) + offset.x );
 		coords.push_back( static_cast<float>(strokeBitmap.rows) + offset.y );

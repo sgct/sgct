@@ -151,6 +151,7 @@ public:
 	void setPostSyncPreDrawFunction( void(*fnPtr)(void) );
 	void setClearBufferFunction( void(*fnPtr)(void) );
 	void setDrawFunction( void(*fnPtr)(void) );
+	void setDraw2DFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
 	void setCleanUpFunction( void(*fnPtr)(void) );
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
@@ -365,6 +366,7 @@ private:
 	CallbackFn mInitOGLFn;
 	CallbackFn mClearBufferFn;
 	CallbackFn mCleanUpFn;
+	CallbackFn mDraw2DFn;
 	InternalCallbackFn			mInternalDrawFn;
 	InternalCallbackFn			mInternalRenderFBOFn;
 	InternalCallbackFn			mInternalDrawOverlaysFn;

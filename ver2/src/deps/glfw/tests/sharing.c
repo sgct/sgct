@@ -164,6 +164,8 @@ int main(int argc, char** argv)
 
     glfwMakeContextCurrent(windows[0]);
 
+    double time = 0.0;
+
     while (!glfwWindowShouldClose(windows[0]) &&
            !glfwWindowShouldClose(windows[1]))
     {
@@ -176,7 +178,11 @@ int main(int argc, char** argv)
         glfwSwapBuffers(windows[0]);
         glfwSwapBuffers(windows[1]);
 
+	fprintf(stderr, "framerate: %.4f\r", 1.0/( glfwGetTime()-time ) );
+
         glfwWaitEvents();
+
+	time = glfwGetTime();
     }
 
     glfwTerminate();

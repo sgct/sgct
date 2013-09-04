@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
@@ -251,7 +251,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("Window", val[1]) == 0 )
 				{
 					SGCTWindow tmpWin( static_cast<int>(tmpNode.getNumberOfWindows()) );
-					
+
 					if( element[1]->Attribute("name") != NULL )
 						tmpWin.setName( element[1]->Attribute("name") );
 
@@ -507,7 +507,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
-			
+
 			}//end while
 
 			ClusterManager::instance()->addNode(tmpNode);
@@ -587,11 +587,15 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("name") != NULL )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextFontName( element[1]->Attribute("name") );
+						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+							"ReadConfig: Setting font name to %s\n", element[1]->Attribute("name") );
 					}
 
 					if( element[1]->Attribute("path") != NULL )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextFontPath( element[1]->Attribute("path") );
+						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+							"ReadConfig: Setting font path to %s\n", element[1]->Attribute("path") );
 					}
 
 					if( element[1]->Attribute("size") != NULL )
@@ -600,15 +604,26 @@ void sgct_core::ReadConfig::readAndParseXML()
 						if( element[1]->QueryIntAttribute("size", &tmpi) == XML_NO_ERROR && tmpi > 0)
 						{
 							sgct::SGCTSettings::instance()->setOSDTextFontSize( tmpi );
+							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+                                "ReadConfig: Setting font size to %d\n", tmpi );
 						}
 						else
 							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
 					}
 
 					if( element[1]->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR )
+                    {
 						sgct::SGCTSettings::instance()->setOSDTextXOffset( x );
+						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+                            "ReadConfig: Setting font x offset to %f\n", x );
+                    }
+
 					if( element[1]->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR )
+					{
 						sgct::SGCTSettings::instance()->setOSDTextYOffset( y );
+						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+                            "ReadConfig: Setting font y offset to %f\n", y );
+                    }
 				}
 				else if( strcmp("FXAA", val[1]) == 0 )
 				{
@@ -616,7 +631,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR)
 					{
 						sgct::SGCTSettings::instance()->setFXAASubPixOffset( offset );
-						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG, 
+						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
 							"ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset );
 					}
 
@@ -626,13 +641,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 						if(trim > 0.0f)
 						{
 							sgct::SGCTSettings::instance()->setFXAASubPixTrim( 1.0f/trim );
-							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG, 
+							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
 								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f/trim );
 						}
 						else
 						{
 							sgct::SGCTSettings::instance()->setFXAASubPixTrim( 0.0f );
-							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG, 
+							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
 								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f );
 						}
 					}

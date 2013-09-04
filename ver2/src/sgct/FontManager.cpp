@@ -127,7 +127,7 @@ sgct_text::FontManager::FontManager(void)
 	mDefaultFontPath += "\\Fonts\\";
 #elif __APPLE__
 	//System Fonts
-    sprintf(fontDir, "/Library/Fonts");
+    sprintf(fontDir, "/Library/Fonts/");
     mDefaultFontPath.assign( fontDir );
 #else
     sprintf(fontDir, "/usr/share/fonts/truetype/freefont/");
@@ -258,13 +258,13 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 
 	if( it == mFontPaths.end() )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "No font file specified for font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: No font file specified for font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
 	if( mFTLibrary == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 
@@ -273,18 +273,18 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 
 	if ( error == FT_Err_Unknown_File_Format )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
 		return mFonts.end();
 	}
 	else if( error != 0 || face == NULL )
 	{
-		// Implement error message "Unable to read font file [%s]"
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str(), fontName.c_str() );
 		return mFonts.end();
 	}
 
 	if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not set pixel size for font[%s].\n", fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str() );
 		return mFonts.end();
 	}
 

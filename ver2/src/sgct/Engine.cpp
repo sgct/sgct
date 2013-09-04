@@ -1013,7 +1013,7 @@ void sgct::Engine::renderDisplayInfo()
 	sgct_text::FontManager::instance()->setStrokeSize( 1 );
 
 	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
-	
+
 	if( font != NULL )
 	{
 		float lineHeight = font->getHeight() * 1.59f;

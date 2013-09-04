@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/ogl_headers.h"
@@ -18,7 +18,7 @@ bool sgct::PostFX::mDeleted = false;
 	Default constructor (doesn't require an OpenGL context)
 */
 sgct::PostFX::PostFX()
-{	
+{
 	mUpdateFn = NULL;
 	mRenderFn = NULL;
 
@@ -30,7 +30,7 @@ sgct::PostFX::PostFX()
 }
 
 /*!
-	\returns true if shader and output/target texture created successfully 
+	\returns true if shader and output/target texture created successfully
 */
 bool sgct::PostFX::init( const std::string & name, const std::string & vertShaderSrc, const std::string & fragShaderSrc, ShaderProgram::ShaderSourceType srcType )
 {
@@ -66,7 +66,7 @@ bool sgct::PostFX::init( const std::string & name, const std::string & vertShade
 void sgct::PostFX::destroy()
 {
 	MessageHandler::instance()->print( MessageHandler::NOTIFY_INFO, "PostFX: Pass '%s' destroying shader and texture...\n", mName.c_str() );
-	
+
 	mRenderFn = NULL;
 	mUpdateFn = NULL;
 
@@ -104,7 +104,7 @@ void sgct::PostFX::setOutputTexture( unsigned int outputTex )
 void sgct::PostFX::internalRender()
 {
 	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
-	
+
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
 
@@ -113,7 +113,7 @@ void sgct::PostFX::internalRender()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
 	*/
@@ -140,7 +140,7 @@ void sgct::PostFX::internalRender()
 void sgct::PostFX::internalRenderFixedPipeline()
 {
 	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
-	
+
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
 
@@ -152,7 +152,7 @@ void sgct::PostFX::internalRenderFixedPipeline()
 
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-	
+
 	/*
 		The code below flips the viewport vertically. Top & bottom coords are flipped.
 	*/
@@ -177,10 +177,6 @@ void sgct::PostFX::internalRenderFixedPipeline()
 
 	if( mUpdateFn != NULL )
 		mUpdateFn( &orthoMat[0][0] );
-
-	win->bindVAO( sgct_core::SGCTWindow::RenderQuad );
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-	win->unbindVAO();
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 

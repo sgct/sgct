@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_VERSION_H_
@@ -10,7 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define SGCT_VERSION_MAJOR    2
 #define SGCT_VERSION_MINOR    0
-#define SGCT_VERSION_REVISION 3
+#define SGCT_VERSION_REVISION 4
 
 #include <stdio.h>
 #include <string>

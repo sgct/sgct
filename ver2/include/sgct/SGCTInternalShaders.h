@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _SGCT_INTERNAL_SHADERS_H_
@@ -97,7 +97,7 @@ namespace sgct_core
 					gl_FragDepth = 0.0f;\n\
 				}\n\
 			}\n";
-		
+
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
 			#version 120\n\
 			\n\
@@ -199,7 +199,7 @@ namespace sgct_core
 				gl_FragColor = texture2D(cTex, gl_TexCoord[0].st);\n\
 				gl_FragDepth = convertBack(r);\n\
 			}\n";
-		
+
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 120\n\
 			\n\
@@ -209,7 +209,7 @@ namespace sgct_core
 				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
 				gl_FrontColor = gl_Color;\n\
 			}\n";
-		
+
 		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader = "\
 			#version 120\n\
 			uniform sampler2D LeftTex;\n\
@@ -429,11 +429,11 @@ namespace sgct_core
 			vec3 antialias() \n\
 			{ \n\
 				float FXAA_REDUCE_MIN = 1.0/128.0; \n\
-				vec3 rgbNW = texture2D(tex, texcoordOffset[0]).xyz; \n\
-				vec3 rgbNE = texture2D(tex, texcoordOffset[1]).xyz; \n\
-				vec3 rgbSW = texture2D(tex, texcoordOffset[2]).xyz; \n\
-				vec3 rgbSE = texture2D(tex, texcoordOffset[3]).xyz; \n\
-				vec3 rgbM  = texture2D(tex, gl_TexCoord[0].st).xyz;\n\
+				vec3 rgbNW = texture2DLod(tex, texcoordOffset[0], 0.0).xyz; \n\
+				vec3 rgbNE = texture2DLod(tex, texcoordOffset[1], 0.0).xyz; \n\
+				vec3 rgbSW = texture2DLod(tex, texcoordOffset[2], 0.0).xyz; \n\
+				vec3 rgbSE = texture2DLod(tex, texcoordOffset[3], 0.0).xyz; \n\
+				vec3 rgbM  = texture2DLod(tex, gl_TexCoord[0].st, 0.0).xyz;\n\
 				\n\
 				vec3 luma = vec3(0.299, 0.587, 0.114);\n\
 				float lumaNW = dot(rgbNW, luma);\n\
@@ -463,20 +463,22 @@ namespace sgct_core
 					max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) / vec2(rt_w, rt_h);\n\
 					\n\
 				vec3 rgbA = 0.5 * (\n\
-							texture2D(tex, gl_TexCoord[0].st + dir * (1.0/3.0 - 0.5)).xyz +\n\
-							texture2D(tex, gl_TexCoord[0].st + dir * (2.0/3.0 - 0.5)).xyz);\n\
+							texture2DLod(tex, gl_TexCoord[0].st + dir * (1.0/3.0 - 0.5), 0.0).xyz +\n\
+							texture2DLod(tex, gl_TexCoord[0].st + dir * (2.0/3.0 - 0.5), 0.0).xyz);\n\
 				vec3 rgbB = rgbA * 0.5 + (1.0/4.0) * (\n\
-							texture2D(tex, gl_TexCoord[0].st + dir * (0.0/3.0 - 0.5)).xyz +\n\
-							texture2D(tex, gl_TexCoord[0].st + dir * (3.0/3.0 - 0.5)).xyz);\n\
+							texture2DLod(tex, gl_TexCoord[0].st + dir * (0.0/3.0 - 0.5), 0.0).xyz +\n\
+							texture2DLod(tex, gl_TexCoord[0].st + dir * (3.0/3.0 - 0.5), 0.0).xyz);\n\
 				float lumaB = dot(rgbB, luma);\n\
 				\n\
 				if((lumaB < lumaMin) || (lumaB > lumaMax)) \n\
 				{ \n\
 					return rgbA; \n\
+					//return vec3(1.0, 0.0, 0.0); \n\
 				} \n\
 				else \n\
 				{ \n\
 					return rgbB; \n\
+					//return vec3(0.0, 1.0, 0.0); \n\
 				} \n\
 			}\n\
 			\n\

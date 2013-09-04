@@ -13,7 +13,7 @@ sgct::Engine * gEngine;
 osgViewer::Viewer * mViewer;
 osg::ref_ptr<osg::Group> mRootNode;
 osg::ref_ptr<osg::MatrixTransform> mSceneTrans;
-osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster 
+osg::ref_ptr<osg::FrameStamp> mFrameStamp; //to sync osg animations across cluster
 
 //callbacks
 void myInitOGLFun();
@@ -105,7 +105,7 @@ void myInitOGLFun()
 		osg::ComputeBoundsVisitor cbv;
 		osg::BoundingBox &bb(cbv.getBoundingBox());
 		mModel->accept( cbv );
-			
+
 		osg::Vec3f tmpVec;
 		tmpVec = bb.center();
 
@@ -165,7 +165,7 @@ void myPostSyncPreDrawFun()
 	mFrameStamp->setFrameNumber( gEngine->getCurrentFrameNumber() );
 	mFrameStamp->setReferenceTime( curr_time.getVal() );
 	mFrameStamp->setSimulationTime( curr_time.getVal() );
-	mViewer->setFrameStamp( mFrameStamp );
+	mViewer->setFrameStamp( mFrameStamp.get() );
 	mViewer->advance( curr_time.getVal() ); //update
 
 	//traverse if there are any tasks to do

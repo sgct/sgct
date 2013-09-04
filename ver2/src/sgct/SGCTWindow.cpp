@@ -17,7 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #ifdef __WIN32__
 HDC hDC;
-#else // APPLE || LINUX
+#elifdef __LINUX__ // APPLE || LINUX
 GLXDrawable hDC;
 Display * disp;
 #ifdef GLEW_MX
@@ -1047,9 +1047,10 @@ void sgct_core::SGCTWindow::createFBOs()
 	{
 		if( mFisheyeMode )
 		{
-			mFinalFBO_Ptr->createFBO( mFramebufferResolution[0],
-			mFramebufferResolution[1],
-			1);
+			mFinalFBO_Ptr->createFBO(
+                mFramebufferResolution[0],
+                mFramebufferResolution[1],
+                1);
 
 			mCubeMapFBO_Ptr->createFBO( mCubeMapResolution,
 				mCubeMapResolution,
@@ -1078,9 +1079,12 @@ void sgct_core::SGCTWindow::createFBOs()
 				}
 			}
 
-			OffScreenBuffer::unBind();
+			if( mCubeMapFBO_Ptr->checkForErrors() )
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
+            else
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
 
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: Initial cube map rendered.\n", mId);
+			OffScreenBuffer::unBind();
 
 			//set ut the fisheye geometry etc.
 			initFisheye();
@@ -1093,7 +1097,18 @@ void sgct_core::SGCTWindow::createFBOs()
 				mNumberOfAASamples);
 		}
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully! Number of samples: %d\n", mId, mNumberOfAASamples);
+        if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
+        {
+            mFinalFBO_Ptr->bind();
+            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[sgct::Engine::LeftEye] );
+            mFinalFBO_Ptr->unBind();
+        }
+
+        if( mFinalFBO_Ptr->checkForErrors() )
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+
 	}
 }
 
@@ -1567,7 +1582,17 @@ void sgct_core::SGCTWindow::resizeFBOs()
 				mNumberOfAASamples);
 		}
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "FBOs resized successfully!\n");
+		if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
+        {
+            mFinalFBO_Ptr->bind();
+            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[sgct::Engine::LeftEye] );
+            mFinalFBO_Ptr->unBind();
+        }
+
+        if( mFinalFBO_Ptr->checkForErrors() )
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBOs resized successfully.\n", mId);
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: FBOs resized with GL errors!\n", mId);
 	}
 }
 

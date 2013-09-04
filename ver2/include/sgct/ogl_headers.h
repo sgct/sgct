@@ -24,7 +24,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
             X11 is not included with Mountain Lion, but X11 server and client libraries for OS X Mountain Lion
             are available from the XQuartz project: http://xquartz.macosforge.org. You should use XQuartz version 2.7.2 or later.
         */
-		//#include <GL/glxew.h>
+        //#include <GL/glxew.h>
 	#else  //linux
 		#include <GL/glext.h>
 		#include <GL/glxew.h>

@@ -267,7 +267,7 @@ namespace sgct_core
 				Color = texture(cTex, UV);\n\
 				gl_FragDepth = convertBack(r);\n\
 			}\n";
-		
+
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 330 core\n\
 			\n\
@@ -582,11 +582,11 @@ namespace sgct_core
 			vec3 antialias() \n\
 			{ \n\
 				float FXAA_REDUCE_MIN = 1.0/128.0; \n\
-				vec3 rgbNW = texture(tex, texcoordOffset[0]).xyz; \n\
-				vec3 rgbNE = texture(tex, texcoordOffset[1]).xyz; \n\
-				vec3 rgbSW = texture(tex, texcoordOffset[2]).xyz; \n\
-				vec3 rgbSE = texture(tex, texcoordOffset[3]).xyz; \n\
-				vec3 rgbM  = texture(tex, UVCoord).xyz;\n\
+				vec3 rgbNW = textureLod(tex, texcoordOffset[0], 0.0).xyz; \n\
+				vec3 rgbNE = textureLod(tex, texcoordOffset[1], 0.0).xyz; \n\
+				vec3 rgbSW = textureLod(tex, texcoordOffset[2], 0.0).xyz; \n\
+				vec3 rgbSE = textureLod(tex, texcoordOffset[3], 0.0).xyz; \n\
+				vec3 rgbM  = textureLod(tex, UVCoord, 0.0).xyz;\n\
 				\n\
 				vec3 luma = vec3(0.299, 0.587, 0.114);\n\
 				float lumaNW = dot(rgbNW, luma);\n\
@@ -616,11 +616,11 @@ namespace sgct_core
 					max(vec2(-FXAA_SPAN_MAX, -FXAA_SPAN_MAX), dir * rcpDirMin)) / vec2(rt_w, rt_h);\n\
 					\n\
 				vec3 rgbA = 0.5 * (\n\
-							texture(tex, UVCoord + dir * (1.0/3.0 - 0.5)).xyz +\n\
-							texture(tex, UVCoord + dir * (2.0/3.0 - 0.5)).xyz);\n\
+							textureLod(tex, UVCoord + dir * (1.0/3.0 - 0.5), 0.0).xyz +\n\
+							textureLod(tex, UVCoord + dir * (2.0/3.0 - 0.5), 0.0).xyz);\n\
 				vec3 rgbB = rgbA * 0.5 + (1.0/4.0) * (\n\
-							texture(tex, UVCoord + dir * (0.0/3.0 - 0.5)).xyz +\n\
-							texture(tex, UVCoord + dir * (3.0/3.0 - 0.5)).xyz);\n\
+							textureLod(tex, UVCoord + dir * (0.0/3.0 - 0.5), 0.0).xyz +\n\
+							textureLod(tex, UVCoord + dir * (3.0/3.0 - 0.5), 0.0).xyz);\n\
 				float lumaB = dot(rgbB, luma);\n\
 				\n\
 				if((lumaB < lumaMin) || (lumaB > lumaMax)) \n\

@@ -19,7 +19,7 @@
 					<Add option="-g" />
 				</Compiler>
 				<Linker>
-					<Add library="sgct_d" />
+					<Add library="sgctd" />
 				</Linker>
 			</Target>
 			<Target title="Release">

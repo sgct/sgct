@@ -32,7 +32,7 @@ void main()\n\
 {\n\
 	gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
 	UV = TexCoord;\n\
-};\n";
+}\n";
 
 const static std::string Font_Frag_Shader = "\
 #version 330 core\n\
@@ -49,7 +49,7 @@ void main()\n\
 	vec2 LuminanceAlpha = texture(Tex, UV.st).rg;\n\
 	vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);\n\
 	Color = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.g);\n\
-};\n";
+}\n";
 
 const static std::string Font_Vert_Shader_Legacy = "\
 #version 120\n\
@@ -58,7 +58,7 @@ void main()\n\
 {\n\
 	gl_TexCoord[0] = gl_MultiTexCoord0;\n\
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
-};\n";
+}\n";
 
 const static std::string Font_Frag_Shader_Legacy = "\
 #version 120\n\
@@ -72,7 +72,7 @@ void main()\n\
 	vec4 LuminanceAlpha = texture2D(Tex, gl_TexCoord[0].st);\n\
 	vec4 blend = mix(StrokeCol, Col, LuminanceAlpha.r);\n\
 	gl_FragColor = blend * vec4(1.0, 1.0, 1.0, LuminanceAlpha.a);\n\
-};\n";
+}\n";
 
 //----------------------------------------------------------------------
 // Helper functions

@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #ifndef _OFF_SCREEN_BUFFER
@@ -33,6 +33,8 @@ public:
 	inline bool isMultiSampled() { return mMultiSampled; }
 
 	inline unsigned int getBufferID() { return mMultiSampled ? mMultiSampledFrameBuffer : mFrameBuffer; }
+
+    bool checkForErrors();
 
 private:
 	unsigned int mFrameBuffer;

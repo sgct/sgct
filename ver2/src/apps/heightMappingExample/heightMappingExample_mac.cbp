@@ -17,6 +17,9 @@
 				<Compiler>
 					<Add option="-g" />
 				</Compiler>
+				<Linker>
+					<Add library="sgctd" />
+				</Linker>
 			</Target>
 			<Target title="Release">
 				<Option platforms="Mac;" />
@@ -28,6 +31,9 @@
 				<Compiler>
 					<Add option="-O3" />
 				</Compiler>
+				<Linker>
+					<Add library="sgct" />
+				</Linker>
 			</Target>
 		</Build>
 		<Compiler>
@@ -40,7 +46,6 @@
 			<Add option="-framework AGL" />
 			<Add option="-framework Cocoa" />
 			<Add option="-framework IOKit" />
-			<Add library="sgct" />
 			<Add directory="../../../lib/mac" />
 		</Linker>
 		<Unit filename="heightmap.frag">

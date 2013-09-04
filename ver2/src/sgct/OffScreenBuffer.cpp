@@ -10,10 +10,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/SGCTSettings.h"
 
-#ifdef __APPLE__
-    #ifndef GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
-        #define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 0x8CD9
-    #endif
+#ifndef GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
+    #define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 0x8CD9
 #endif
 
 

@@ -164,7 +164,9 @@ int main(int argc, char** argv)
 
     glfwMakeContextCurrent(windows[0]);
 
-    double time = 0.0;
+   double t=0.0;
+   char text[64];
+   int counter = 0;
 
     while (!glfwWindowShouldClose(windows[0]) &&
            !glfwWindowShouldClose(windows[1]))
@@ -177,12 +179,18 @@ int main(int argc, char** argv)
 
         glfwSwapBuffers(windows[0]);
         glfwSwapBuffers(windows[1]);
+	double test = 1.0/( glfwGetTime()-t );
+	if(counter == 100)
+	{
+		sprintf(text, "framerate: %.4f", test );
+		counter = 0;
+	}
+	glfwSetWindowTitle( windows[0], text);
 
-	fprintf(stderr, "framerate: %.4f\r", 1.0/( glfwGetTime()-time ) );
+        glfwPollEvents();
 
-        glfwWaitEvents();
-
-	time = glfwGetTime();
+	t = glfwGetTime();
+	counter++;
     }
 
     glfwTerminate();

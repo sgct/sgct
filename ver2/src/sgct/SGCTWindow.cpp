@@ -15,9 +15,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
+/*
+	Apple doesn't support advanced sync features
+
+	Nvidia Quadro Sync technology is only supported in Windows or Linux
+*/
 #ifdef __WIN32__
 HDC hDC;
-#elifdef __LINUX__ // APPLE || LINUX
+#elif defined __LINUX__
 GLXDrawable hDC;
 Display * disp;
 #ifdef GLEW_MX

@@ -55,13 +55,15 @@ elseif( APPLE )
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)	
+    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
+	find_library(XI_LIBRARY Xi REQUIRED)
 
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
+		${XI_LIBRARY}
 	)
 endif()
 

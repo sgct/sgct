@@ -2,7 +2,7 @@
 Copyright (c) 2012-2013 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/SGCTSettings.h"
@@ -39,7 +39,7 @@ sgct::SGCTSettings::SGCTSettings()
 	#if __WIN32__
     mFontName = "verdanab.ttf";
     #elif __APPLE__
-    mFontName = "Verdana Bold.ttf";
+    mFontName = "Tahoma Bold.ttf";
     #else
     mFontName = "FreeSansBold.ttf";
     #endif
@@ -125,7 +125,7 @@ void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::Ca
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
 		return;
 	}
-		
+
 	mCapturePath[cpi].assign(path);
 }
 
@@ -194,7 +194,7 @@ void sgct::SGCTSettings::setFXAASubPixTrim(float val)
 /*!
 	Set the pixel offset for contrast/edge detection. Values should be in the range [1.0f/8.0f, 1.0f]. Default is 0.5f.
 */
-void sgct::SGCTSettings::setFXAASubPixOffset(float val)	
+void sgct::SGCTSettings::setFXAASubPixOffset(float val)
 {
 	mFXAASubPixOffset = val;
 }
@@ -244,7 +244,7 @@ void sgct::SGCTSettings::setOSDTextFontPath( std::string path )
 	Get the OSD text font size
 */
 const int &	sgct::SGCTSettings::getOSDTextFontSize()
-{ 
+{
 	return mFontSize;
 }
 

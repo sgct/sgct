@@ -346,7 +346,7 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\SGCT_tutorials.lnk" "$INSTDIR\SGCT_tutorials.url" "" "$INSTDIR\C_transparent.ico"
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\docs"
-  CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\doc\index.html" ""
+  CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\docs\html\index.html" ""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle\example1_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""

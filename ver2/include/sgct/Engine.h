@@ -187,7 +187,7 @@ public:
 	/*!
 		Returns a pointer to a specified window by index on this node.
 	*/
-	inline sgct_core::SGCTWindow * getWindowPtr(std::size_t index) { return mThisNode->getWindowPtr(index); }
+	inline sgct::SGCTWindow * getWindowPtr(std::size_t index) { return mThisNode->getWindowPtr(index); }
 
 	/*!
 		Returns the number of windows for this node.
@@ -197,7 +197,7 @@ public:
 	/*!
 		Returns a pointer to the current window that is beeing rendered
 	*/
-	inline sgct_core::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
+	inline sgct::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
 
 	/*!
 		Returns the active viewport in pixels (only valid inside in the draw callback function)

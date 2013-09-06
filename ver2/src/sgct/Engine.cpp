@@ -1590,7 +1590,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
-	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
 	{
 		glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1686,7 +1686,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glDisable(GL_DEPTH_TEST);
 
 	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
-	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo);
+	bool split_screen_stereo = (sm >= sgct::SGCTWindow::Side_By_Side_Stereo);
 	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
@@ -1870,7 +1870,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
-	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
 	{
 		glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
@@ -1999,7 +1999,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 	glDisable(GL_DEPTH_TEST);
 	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
-	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo);
+	bool split_screen_stereo = (sm >= sgct::SGCTWindow::Side_By_Side_Stereo);
 	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
@@ -2042,7 +2042,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	prepareBuffer( ti );
 	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 
-	sgct_core::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 
 	//render all viewports for selected eye
 	for(unsigned int i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
@@ -2075,7 +2075,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	glDisable(GL_DEPTH_TEST);
 
 	//if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
-	bool split_screen_stereo = (sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo);
+	bool split_screen_stereo = (sm >= sgct::SGCTWindow::Side_By_Side_Stereo);
 	if( !( split_screen_stereo && mActiveFrustumMode == Frustum::StereoLeftEye) )
 	{
 		if( getActiveWindowPtr()->usePostFX() )
@@ -2931,7 +2931,7 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 }
 
 /*!
-	\param fnPtr is the function pointer to a keyboard function callback
+	\param fnPtr is the function pointer to a keyboard callback function
 
 	This function sets the keyboard callback (GLFW wrapper) where the two parameters are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a special character defined in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
 
@@ -2939,44 +2939,136 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 	------------- | -------------
 	SGCT_KEY_UNKNOWN  | Unknown
 	SGCT_KEY_SPACE  | Space
-	SGCT_KEY_SPECIAL | Special
-	SGCT_KEY_ESC  | Escape
-	SGCT_KEY_Fn  | Function key n (n can be in the range 1..25)
-	SGCT_KEY_UP  | Arrow/Cursor up
-	SGCT_KEY_DOWN  | Arrow/Cursor down
-	SGCT_KEY_LEFT  | Arrow/Cursor left
-	SGCT_KEY_RIGHT  | Arrow/Cursor right
-	SGCT_KEY_LSHIFT  | Left shift key
-	SGCT_KEY_RSHIFT  | Right shift key
-	SGCT_KEY_LCTRL  | Left control key
-	SGCT_KEY_RCTRL  | Right control key
-	SGCT_KEY_LALT  | Left alternate function key
-	SGCT_KEY_RALT  | Right alternate function key
-	SGCT_KEY_TAB  | Tabulator
-	SGCT_KEY_ENTER  | Enter
-	SGCT_KEY_BACKSPACE  | Backspace
-	SGCT_KEY_INSERT  | Insert
-	SGCT_KEY_DEL  | Delete
-	SGCT_KEY_PAGEUP  | Page up
-	SGCT_KEY_PAGEDOWN  | Page down
-	SGCT_KEY_HOME  | Home
-	SGCT_KEY_END  | End
-	SGCT_KEY_KP_n  | Keypad numeric key n (n can be in the range 0..9)
-	SGCT_KEY_KP_DIVIDE  | Keypad divide
-	SGCT_KEY_KP_MULTIPLY  | Keypad multiply
-	SGCT_KEY_KP_SUBTRACT  | Keypad subtract
-	SGCT_KEY_KP_ADD  | Keypad add
-	SGCT_KEY_KP_DECIMAL  | Keypad decimal
-	SGCT_KEY_KP_EQUAL  | Keypad equal
-	SGCT_KEY_KP_ENTER  | Keypad enter
-	SGCT_KEY_KP_NUM_LOCK  | Keypad num lock
-	SGCT_KEY_CAPS_LOCK  | Caps lock
-	SGCT_KEY_SCROLL_LOCK  | Scroll lock
-	SGCT_KEY_PAUSE  | Pause key
-	SGCT_KEY_LSUPER  | Left super key, WinKey, or command key
-	SGCT_KEY_RSUPER  | Right super key, WinKey, or command key
-	SGCT_KEY_MENU  | Menu key
-	SGCT_KEY_LAST  | Last key index
+	SGCT_KEY_APOSTROPHE | Apostrophe
+	SGCT_KEY_COMMA | Comma
+	SGCT_KEY_MINUS | Minus
+	SGCT_KEY_PERIOD | Period
+	SGCT_KEY_SLASH | Slash
+	SGCT_KEY_0 | 0
+	SGCT_KEY_1 | 1
+	SGCT_KEY_2 | 2
+	SGCT_KEY_3 | 3
+	SGCT_KEY_4 | 4
+	SGCT_KEY_5 | 5
+	SGCT_KEY_6 | 6
+	SGCT_KEY_7 | 7
+	SGCT_KEY_8 | 8
+	SGCT_KEY_9 | 9
+	SGCT_KEY_SEMICOLON | Semicolon
+	SGCT_KEY_EQUAL | Equal
+	SGCT_KEY_A | A
+	SGCT_KEY_B | B
+	SGCT_KEY_C | C
+	SGCT_KEY_D | D
+	SGCT_KEY_E | E
+	SGCT_KEY_F | F
+	SGCT_KEY_G | G
+	SGCT_KEY_H | H
+	SGCT_KEY_I | I
+	SGCT_KEY_J | J
+	SGCT_KEY_K | K
+	SGCT_KEY_L | L
+	SGCT_KEY_M | M
+	SGCT_KEY_N | N
+	SGCT_KEY_O | O
+	SGCT_KEY_P | P
+	SGCT_KEY_Q | Q
+	SGCT_KEY_R | R
+	SGCT_KEY_S | S
+	SGCT_KEY_T | T
+	SGCT_KEY_U | U
+	SGCT_KEY_V | V
+	SGCT_KEY_W | W
+	SGCT_KEY_X | X
+	SGCT_KEY_Y | Y
+	SGCT_KEY_Z | Z
+	SGCT_KEY_LEFT_BRACKET | Left bracket
+	SGCT_KEY_BACKSLASH | backslash
+	SGCT_KEY_RIGHT_BRACKET | Right bracket
+	SGCT_KEY_GRAVE_ACCENT | Grave accent
+	SGCT_KEY_WORLD_1 | World 1
+	SGCT_KEY_WORLD_2 | World 2
+	SGCT_KEY_ESC | Escape
+	SGCT_KEY_ESCAPE | Escape
+	SGCT_KEY_ENTER | Enter
+	SGCT_KEY_TAB | Tab
+	SGCT_KEY_BACKSPACE | Backspace
+	SGCT_KEY_INSERT | Insert
+	SGCT_KEY_DEL | Delete
+	SGCT_KEY_DELETE | Delete
+	SGCT_KEY_RIGHT | Right
+	SGCT_KEY_LEFT | Left
+	SGCT_KEY_DOWN | Down
+	SGCT_KEY_UP | Up
+	SGCT_KEY_PAGEUP | Page up
+	SGCT_KEY_PAGEDOWN | Page down
+	SGCT_KEY_PAGE_UP | Page up
+	SGCT_KEY_PAGE_DOWN | Page down
+	SGCT_KEY_HOME | Home
+	SGCT_KEY_END | End
+	SGCT_KEY_CAPS_LOCK | Caps lock
+	SGCT_KEY_SCROLL_LOCK | Scroll lock
+	SGCT_KEY_NUM_LOCK | Num lock
+	SGCT_KEY_PRINT_SCREEN | Print screen
+	SGCT_KEY_PAUSE | Pause
+	SGCT_KEY_F1 | F1
+	SGCT_KEY_F2 | F2
+	SGCT_KEY_F3 | F3
+	SGCT_KEY_F4 | F4
+	SGCT_KEY_F5 | F5
+	SGCT_KEY_F6 | F6
+	SGCT_KEY_F7 | F7
+	SGCT_KEY_F8 | F8
+	SGCT_KEY_F9 | F9
+	SGCT_KEY_F10 | F10
+	SGCT_KEY_F11 | F11
+	SGCT_KEY_F12 | F12
+	SGCT_KEY_F13 | F13
+	SGCT_KEY_F14 | F14
+	SGCT_KEY_F15 | F15
+	SGCT_KEY_F16 | F16
+	SGCT_KEY_F17 | F17
+	SGCT_KEY_F18 | F18
+	SGCT_KEY_F19 | F19
+	SGCT_KEY_F20 | F20
+	SGCT_KEY_F21 | F21
+	SGCT_KEY_F22 | F22
+	SGCT_KEY_F23 | F23
+	SGCT_KEY_F24 | F24
+	SGCT_KEY_F25 | F25
+	SGCT_KEY_KP_0 | Keypad 0
+	SGCT_KEY_KP_1 | Keypad 1
+	SGCT_KEY_KP_2 | Keypad 2
+	SGCT_KEY_KP_3 | Keypad 3
+	SGCT_KEY_KP_4 | Keypad 4
+	SGCT_KEY_KP_5 | Keypad 5
+	SGCT_KEY_KP_6 | Keypad 6
+	SGCT_KEY_KP_7 | Keypad 7
+	SGCT_KEY_KP_8 | Keypad 8
+	SGCT_KEY_KP_9 | Keypad 9
+	SGCT_KEY_KP_DECIMAL| Keypad decimal
+	SGCT_KEY_KP_DIVIDE | Keypad divide
+	SGCT_KEY_KP_MULTIPLY | Keypad multiply
+	SGCT_KEY_KP_SUBTRACT | Keypad subtract
+	SGCT_KEY_KP_ADD | Keypad add
+	SGCT_KEY_KP_ENTER | Keypad enter
+	SGCT_KEY_KP_EQUAL | Keypad equal
+	SGCT_KEY_LSHIFT | Left shift
+	SGCT_KEY_LEFT_SHIFT | Left shift
+	SGCT_KEY_LCTRL | Left control
+	SGCT_KEY_LEFT_CONTROL | Left control
+	SGCT_KEY_LALT | Left alt
+	SGCT_KEY_LEFT_ALT | Left alt
+	SGCT_KEY_LEFT_SUPER | Left super
+	SGCT_KEY_RSHIFT | Right shift
+	SGCT_KEY_RIGHT_SHIFT | Right shift
+	SGCT_KEY_RCTRL | Right control
+	SGCT_KEY_RIGHT_CONTROL | Right control
+	SGCT_KEY_RALT | Right alt
+	SGCT_KEY_RIGHT_ALT | Right alt
+	SGCT_KEY_RIGHT_SUPER | Right super
+	SGCT_KEY_MENU | Menu
+	SGCT_KEY_LAST | Last key index
 
 */
 
@@ -2989,7 +3081,27 @@ void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 {
 	gCharCallbackFn = fnPtr;
 }
+/*!
+	\param fnPtr is the function pointer to a mouse button callback function
 
+	This function sets the mouse button callback (GLFW wrapper) where the two parameters are: int button, int action. Button id's are listed in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
+
+	Name          | Description
+	------------- | -------------
+	SGCT_MOUSE_BUTTON_LEFT | Left button
+	SGCT_MOUSE_BUTTON_RIGHT | Right button
+	SGCT_MOUSE_BUTTON_MIDDLE | Middle button
+	SGCT_MOUSE_BUTTON_1 | Button 1
+	SGCT_MOUSE_BUTTON_2 | Button 2
+	SGCT_MOUSE_BUTTON_3 | Button 3
+	SGCT_MOUSE_BUTTON_4 | Button 4
+	SGCT_MOUSE_BUTTON_5 | Button 5
+	SGCT_MOUSE_BUTTON_6 | Button 6
+	SGCT_MOUSE_BUTTON_7 | Button 7
+	SGCT_MOUSE_BUTTON_8 | Button 8
+	SGCT_MOUSE_BUTTON_LAST | Last mouse button index
+
+*/
 void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 {
 	gMouseButtonCallbackFn = fnPtr;
@@ -3558,21 +3670,55 @@ void sgct::Engine::setMousePointerVisibility( bool state )
 		glfwSetInputMode(mInstance->getActiveWindowPtr()->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL );
 }
 
+/*!
+	\param joystick is the joystick id. Availible id's:
+	   - SGCT_JOYSTICK_1
+	   - SGCT_JOYSTICK_2
+	   - SGCT_JOYSTICK_3
+	   - SGCT_JOYSTICK_4
+	   - SGCT_JOYSTICK_5
+	   - SGCT_JOYSTICK_6
+	   - SGCT_JOYSTICK_7
+	   - SGCT_JOYSTICK_8
+	   - SGCT_JOYSTICK_9
+	   - SGCT_JOYSTICK_10
+	   - SGCT_JOYSTICK_11
+	   - SGCT_JOYSTICK_12
+	   - SGCT_JOYSTICK_13
+	   - SGCT_JOYSTICK_14
+	   - SGCT_JOYSTICK_15
+	   - SGCT_JOYSTICK_16
+	   - SGCT_JOYSTICK_LAST
+*/
 const char * sgct::Engine::getJoystickName( int joystick )
 {
 	return glfwGetJoystickName(joystick);
 }
 
+/*!
+\param joystick the joystick id: Availibe id's are specified here: \link getJoystickName \endlink
+\param numOfValues is the number of analog axes
+\returns the analog float values (array)
+*/
 const float * sgct::Engine::getJoystickAxes( int joystick, int * numOfValues)
 {
 	return glfwGetJoystickAxes( joystick, numOfValues );
 }
 
+/*!
+\param joystick the joystick id: Availibe id's are specified here: \link getJoystickName \endlink
+\param numOfValues is the number of buttons
+\returns the button values (array)
+*/
 const unsigned char * sgct::Engine::getJoystickButtons( int joystick, int * numOfValues)
 {
 	return glfwGetJoystickButtons( joystick, numOfValues );
 }
 
+/*!
+This function puts the current thread to sleep during a specified time
+\param secs is the time to sleep the thread
+*/
 void sgct::Engine::sleep(double secs)
 {
 	tthread::this_thread::sleep_for(tthread::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));

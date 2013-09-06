@@ -15,7 +15,7 @@ sgct_core::SGCTNode::SGCTNode()
 /*!
 	Add a window to the window vector. Note that a window must be opened to become visible.
 */
-void sgct_core::SGCTNode::addWindow(sgct_core::SGCTWindow &window)
+void sgct_core::SGCTNode::addWindow(sgct::SGCTWindow &window)
 {
 	mWindows.push_back(window);
 }

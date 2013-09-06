@@ -20,7 +20,7 @@ namespace sgct_text
 
 inline void setupViewport()
 {
-	sgct_core::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
+	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
 	int x, y, xSize, ySize;
 	x		= static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution()));
@@ -28,29 +28,29 @@ inline void setupViewport()
 	xSize	= static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution()));
 	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution()));
 
-	sgct_core::SGCTWindow::StereoMode sm = cWin->getStereoMode();
-	if( sm >= sgct_core::SGCTWindow::Side_By_Side_Stereo )
+	sgct::SGCTWindow::StereoMode sm = cWin->getStereoMode();
+	if( sm >= sgct::SGCTWindow::Side_By_Side_Stereo )
 	{
 		if( sgct::Engine::instance()->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
 		{
 			switch(sm)
 			{
-			case sgct_core::SGCTWindow::Side_By_Side_Stereo:
+			case sgct::SGCTWindow::Side_By_Side_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
+			case sgct::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Top_Bottom_Stereo:
+			case sgct::SGCTWindow::Top_Bottom_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
 
-			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
+			case sgct::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
@@ -63,22 +63,22 @@ inline void setupViewport()
 		{
 			switch(sm)
 			{
-			case sgct_core::SGCTWindow::Side_By_Side_Stereo:
+			case sgct::SGCTWindow::Side_By_Side_Stereo:
 				x = (x >> 1) + (xSize >> 1); //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Side_By_Side_Inverted_Stereo:
+			case sgct::SGCTWindow::Side_By_Side_Inverted_Stereo:
 				x = x >> 1; //x offset
 				xSize = xSize >> 1; //x size
 				break;
 
-			case sgct_core::SGCTWindow::Top_Bottom_Stereo:
+			case sgct::SGCTWindow::Top_Bottom_Stereo:
 				y = y >> 1; //y offset
 				ySize = ySize >> 1; //y size
 				break;
 
-			case sgct_core::SGCTWindow::Top_Bottom_Inverted_Stereo:
+			case sgct::SGCTWindow::Top_Bottom_Inverted_Stereo:
 				y = (y >> 1) + (ySize >> 1); //y offset
 				ySize = ySize >> 1; //y size
 				break;
@@ -95,7 +95,7 @@ inline void setupViewport()
 inline glm::dmat4 setupOrthoMat()
 {
 	glm::dmat4 orthoMat;
-	sgct_core::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
+	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
 	if( cWin->isFixResolution() )
 	{

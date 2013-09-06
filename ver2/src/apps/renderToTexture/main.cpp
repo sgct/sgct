@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	//get a pointer to the current window
-	sgct_core::SGCTWindow * winPtr = gEngine->getActiveWindowPtr();
+	sgct::SGCTWindow * winPtr = gEngine->getActiveWindowPtr();
 
 	unsigned int index = winPtr->getId();
 	
@@ -245,7 +245,7 @@ void createFBOs()
 		int fb_width;
 		int fb_height;
 
-		sgct_core::SGCTWindow * winPtr = gEngine->getWindowPtr(i);
+		sgct::SGCTWindow * winPtr = gEngine->getWindowPtr(i);
 		winPtr->getDrawFBODimensions(fb_width, fb_height);
 
 		buffers[i].fbo = 0;

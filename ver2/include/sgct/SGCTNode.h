@@ -30,17 +30,17 @@ public:
 	/*!
 		Get the window pointer at index in window vector.
 	*/
-	inline SGCTWindow *		getWindowPtr(std::size_t index) { return &mWindows[index]; }
+	inline sgct::SGCTWindow *	getWindowPtr(std::size_t index) { return &mWindows[index]; }
 	
 	/*!
 		Get the active window pointer.
 	*/
-	inline SGCTWindow *		getActiveWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
+	inline sgct::SGCTWindow *		getActiveWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
 
 	/*! Get the current window index */
 	inline std::size_t		getCurrentWindowIndex() { return mCurrentWindowIndex; }
 
-	void addWindow(SGCTWindow &window);
+	void addWindow(sgct::SGCTWindow &window);
 	void setCurrentWindowIndex(std::size_t index);
 
 	bool shouldAllWindowsClose();
@@ -52,7 +52,7 @@ public:
 
 private:
 	std::size_t mCurrentWindowIndex;
-	std::vector<SGCTWindow> mWindows;
+	std::vector<sgct::SGCTWindow> mWindows;
 };
 }
 

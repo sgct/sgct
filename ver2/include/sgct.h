@@ -206,9 +206,8 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTBox.h"
 #include "sgct/utils/SGCTDome.h"
 
-//for backwards compability for sgct 0.9.5 and backwards
+//for backwards compability
 namespace Freetype = sgct_text;
-namespace core_sgct = sgct_core;
 
 //GLFW wrapping
 #define SGCT_RELEASE		GLFW_RELEASE

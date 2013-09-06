@@ -103,7 +103,7 @@ void sgct::PostFX::setOutputTexture( unsigned int outputTex )
 
 void sgct::PostFX::internalRender()
 {
-	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
+	sgct::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
 
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
@@ -130,7 +130,7 @@ void sgct::PostFX::internalRender()
 	if( mUpdateFn != NULL )
 		mUpdateFn( &orthoMat[0][0] );
 
-	win->bindVAO( sgct_core::SGCTWindow::RenderQuad );
+	win->bindVAO( sgct::SGCTWindow::RenderQuad );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 	win->unbindVAO();
 
@@ -139,7 +139,7 @@ void sgct::PostFX::internalRender()
 
 void sgct::PostFX::internalRenderFixedPipeline()
 {
-	sgct_core::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
+	sgct::SGCTWindow * win = sgct_core::ClusterManager::instance()->getThisNodePtr()->getActiveWindowPtr();
 
 	//bind target FBO
 	win->mFinalFBO_Ptr->attachColorTexture( mOutputTexture );
@@ -180,7 +180,7 @@ void sgct::PostFX::internalRenderFixedPipeline()
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-	win->bindVBO( sgct_core::SGCTWindow::RenderQuad );
+	win->bindVBO( sgct::SGCTWindow::RenderQuad );
 	glClientActiveTexture(GL_TEXTURE0);
 
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);

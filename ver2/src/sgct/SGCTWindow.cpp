@@ -30,7 +30,7 @@ GLXEWContext * glxewGetContext();
 #endif
 #endif
 
-sgct_core::SGCTWindow::SGCTWindow(int id)
+sgct::SGCTWindow::SGCTWindow(int id)
 {
 	mId = id;
 	mUseFixResolution = false;
@@ -46,6 +46,7 @@ sgct_core::SGCTWindow::SGCTWindow(int id)
 	mVisible = false;
 	mUseFXAA = false;
 	mUsePostFX = false;
+	mFullRes = true;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -145,7 +146,7 @@ sgct_core::SGCTWindow::SGCTWindow(int id)
 /*!
 Name this window
 */
-void sgct_core::SGCTWindow::setName(const std::string & name)
+void sgct::SGCTWindow::setName(const std::string & name)
 {
 	mName = name;
 }
@@ -153,7 +154,7 @@ void sgct_core::SGCTWindow::setName(const std::string & name)
 /*!
 \returns the name of this window
 */
-std::string sgct_core::SGCTWindow::getName()
+std::string sgct::SGCTWindow::getName()
 {
 	return mName;
 }
@@ -161,12 +162,12 @@ std::string sgct_core::SGCTWindow::getName()
 /*!
 	\returns this window's id
 */
-int sgct_core::SGCTWindow::getId()
+int sgct::SGCTWindow::getId()
 {
 	return mId;
 }
 
-void sgct_core::SGCTWindow::close()
+void sgct::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
 
@@ -177,7 +178,7 @@ void sgct_core::SGCTWindow::close()
 
 	if( mScreenCapture )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Deleting screen capture data for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting screen capture data for window %d...\n", mId);
 		delete mScreenCapture;
 		mScreenCapture = NULL;
 	}
@@ -185,9 +186,9 @@ void sgct_core::SGCTWindow::close()
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
 		mCubeMapFBO_Ptr != NULL &&
-		sgct::SGCTSettings::instance()->useFBO() )
+		SGCTSettings::instance()->useFBO() )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Releasing OpenGL buffers for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Releasing OpenGL buffers for window %d...\n", mId);
 		mFinalFBO_Ptr->destroy();
 		if( mFisheyeMode )
 			mCubeMapFBO_Ptr->destroy();
@@ -209,13 +210,13 @@ void sgct_core::SGCTWindow::close()
 
 	if( mVBO[RenderQuad] )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Deleting VBOs for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting VBOs for window %d...\n", mId);
 		glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 	}
 
 	if( mVAO[RenderQuad] )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Deleting VAOs for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting VAOs for window %d...\n", mId);
 		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 	}
 
@@ -258,7 +259,7 @@ void sgct_core::SGCTWindow::close()
 	}
 }
 
-void sgct_core::SGCTWindow::init(int id)
+void sgct::SGCTWindow::init(int id)
 {
 	if(!mFullScreen)
 	{
@@ -276,7 +277,7 @@ void sgct_core::SGCTWindow::init(int id)
 /*!
 	Init window buffers such as textures, FBOs, VAOs, VBOs and PBOs.
 */
-void sgct_core::SGCTWindow::initOGL()
+void sgct::SGCTWindow::initOGL()
 {
 	createTextures();
 	createVBOs(); //must be created before FBO
@@ -291,7 +292,7 @@ void sgct_core::SGCTWindow::initOGL()
 	\param index Index or Engine::TextureIndexes enum
 	\returns texture index of selected frame buffer texture
 */
-unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
+unsigned int sgct::SGCTWindow::getFrameBufferTexture(unsigned int index)
 {
 	if(index < NUMBER_OF_TEXTURES)
 	{
@@ -299,34 +300,34 @@ unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
 		{
 			switch(index)
 			{
-			case sgct::Engine::LeftEye:
-			case sgct::Engine::RightEye:
+			case Engine::LeftEye:
+			case Engine::RightEye:
 				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true);
 				break;
 
-			case sgct::Engine::Intermediate:
-			case sgct::Engine::FX1:
-			case sgct::Engine::FX2:
+			case Engine::Intermediate:
+			case Engine::FX1:
+			case Engine::FX2:
 				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true);
 				break;
 
-			case sgct::Engine::Depth:
+			case Engine::Depth:
 				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, true, true);
 				break;
 
-			case sgct::Engine::CubeMap:
+			case Engine::CubeMap:
 				generateCubeMap(index, false);
 				break;
 
-			case sgct::Engine::CubeMapDepth:
+			case Engine::CubeMapDepth:
 				generateCubeMap(index, true);
 				break;
 
-			case sgct::Engine::FisheyeColorSwap:
+			case Engine::FisheyeColorSwap:
 				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, false, false);
 				break;
 
-			case sgct::Engine::FisheyeDepthSwap:
+			case Engine::FisheyeDepthSwap:
 				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, true, false);
 				break;
 
@@ -339,7 +340,7 @@ unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
 	}
 	else
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTWindow: Requested framebuffer texture index %d is out of bounds!\n", index);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTWindow: Requested framebuffer texture index %d is out of bounds!\n", index);
 		return GL_FALSE;
 	}
 }
@@ -347,7 +348,7 @@ unsigned int sgct_core::SGCTWindow::getFrameBufferTexture(unsigned int index)
 /*!
 	Set the visibility state of this window. If a window is hidden the rendering for that window will be paused.
 */
-void sgct_core::SGCTWindow::setVisibility(bool state)
+void sgct::SGCTWindow::setVisibility(bool state)
 {
 	if( state != mVisible )
 	{
@@ -360,7 +361,7 @@ void sgct_core::SGCTWindow::setVisibility(bool state)
 	Set the window title
 	@param title The title of the window.
 */
-void sgct_core::SGCTWindow::setWindowTitle(const char * title)
+void sgct::SGCTWindow::setWindowTitle(const char * title)
 {
 	glfwSetWindowTitle( mWindowHandle, title );
 }
@@ -371,7 +372,7 @@ void sgct_core::SGCTWindow::setWindowTitle(const char * title)
 	@param x The width of the window in pixels.
 	@param y The height of the window in pixels.
 */
-void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
+void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
@@ -380,11 +381,16 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 
 	if( !mUseFixResolution )
 	{
-		mFramebufferResolution[0] = x;
-		mFramebufferResolution[1] = y;
+		if( mFullRes )
+		{
+			mFramebufferResolution[0] = x;
+			mFramebufferResolution[1] = y;
+		}
+		else
+			glfwGetWindowSize( mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1] );
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Resolution changed to %dx%d for window %d...\n", mWindowRes[0], mWindowRes[1], mId);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Resolution changed to %dx%d for window %d...\n", mWindowRes[0], mWindowRes[1], mId);
 }
 
 /*!
@@ -394,7 +400,7 @@ void sgct_core::SGCTWindow::setWindowResolution(const int x, const int y)
 	@param x The width of the frame buffer in pixels.
 	@param y The height of the frame buffer in pixels.
 */
-void sgct_core::SGCTWindow::setFramebufferResolution(const int x, const int y)
+void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 {
 	mFramebufferResolution[0] = x;
 	mFramebufferResolution[1] = y;
@@ -403,7 +409,7 @@ void sgct_core::SGCTWindow::setFramebufferResolution(const int x, const int y)
 /*!
 	Swap previus data and current data. This is done at the end of the render loop.
 */
-void sgct_core::SGCTWindow::swap()
+void sgct::SGCTWindow::swap()
 {
 	if( mVisible )
 	{
@@ -418,7 +424,7 @@ void sgct_core::SGCTWindow::swap()
 	Don't use this function if you want to set the window resolution. Use setWindowResolution(const int x, const int y) instead.
 	This function is called within sgct when the window is created.
 */
-void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
+void sgct::SGCTWindow::initWindowResolution(const int x, const int y)
 {
 	mWindowRes[0] = x;
 	mWindowRes[1] = y;
@@ -435,7 +441,7 @@ void sgct_core::SGCTWindow::initWindowResolution(const int x, const int y)
 	}
 }
 
-void sgct_core::SGCTWindow::update()
+void sgct::SGCTWindow::update()
 {
 	if( mVisible && isWindowResized() )
 	{
@@ -452,9 +458,9 @@ void sgct_core::SGCTWindow::update()
 /*!
 	Set the this window's OpenGL context as current
 */
-void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
+void sgct::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
-	if( ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 )
+	if( sgct_core::ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 )
 		return;
 
 	if( context == Window_Context )
@@ -466,7 +472,7 @@ void sgct_core::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 /*!
 	\returns true if this window is resized
 */
-bool sgct_core::SGCTWindow::isWindowResized()
+bool sgct::SGCTWindow::isWindowResized()
 {
 	return (mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1]);
 }
@@ -474,7 +480,7 @@ bool sgct_core::SGCTWindow::isWindowResized()
 /*!
 	\returns true if full screen rendering is enabled
 */
-bool sgct_core::SGCTWindow::isFullScreen()
+bool sgct::SGCTWindow::isFullScreen()
 {
 	return mFullScreen;
 }
@@ -482,7 +488,7 @@ bool sgct_core::SGCTWindow::isFullScreen()
 /*!
 	\returns if the window is visible or not
 */
-bool sgct_core::SGCTWindow::isVisible()
+bool sgct::SGCTWindow::isVisible()
 {
 	return mVisible;
 }
@@ -490,7 +496,7 @@ bool sgct_core::SGCTWindow::isVisible()
 /*!
 	\returns If the frame buffer has a fix resolution this function returns true.
 */
-bool sgct_core::SGCTWindow::isFixResolution()
+bool sgct::SGCTWindow::isFixResolution()
 {
 	return mUseFixResolution;
 }
@@ -498,7 +504,7 @@ bool sgct_core::SGCTWindow::isFixResolution()
 /*!
 	Returns true if any kind of stereo is enabled
 */
-bool sgct_core::SGCTWindow::isStereo()
+bool sgct::SGCTWindow::isStereo()
 {
 	return mStereoMode != No_Stereo;
 }
@@ -508,35 +514,52 @@ bool sgct_core::SGCTWindow::isStereo()
 	\param x horisontal position in pixels
 	\param y vertical position in pixels
 */
-void sgct_core::SGCTWindow::setWindowPosition(const int x, const int y)
+void sgct::SGCTWindow::setWindowPosition(const int x, const int y)
 {
 	mWindowPos[0] = x;
 	mWindowPos[1] = y;
 	mSetWindowPos = true;
 }
 
-void sgct_core::SGCTWindow::setWindowMode(bool fullscreen)
+/*!
+Set if fullscreen mode should be used
+*/
+void sgct::SGCTWindow::setWindowMode(bool fullscreen)
 {
 	mFullScreen = fullscreen;
 }
 
-void sgct_core::SGCTWindow::setWindowDecoration(bool state)
+/*!
+Set if window borders should be visible
+*/
+void sgct::SGCTWindow::setWindowDecoration(bool state)
 {
 	mDecorated = state;
 }
 
-void sgct_core::SGCTWindow::setFullScreenMonitorIndex( int index )
+/*!
+Set if full resolution should be used on displays which have different point resoultion than pixel resolution like Apple's retina displays
+*/
+void sgct::SGCTWindow::setFullResolutionMode(bool state)
+{
+	mFullRes = state;
+}
+
+/*!
+Set which monitor that should be used for fullscreen mode
+*/
+void sgct::SGCTWindow::setFullScreenMonitorIndex( int index )
 {
 	mMonitorIndex = index;
 }
 
-void sgct_core::SGCTWindow::setBarrier(const bool state)
+void sgct::SGCTWindow::setBarrier(const bool state)
 {
 //#ifdef __WITHSWAPBARRIERS__
 
 	if( mUseSwapGroups && state != mBarrier)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow: Enabling Nvidia swap barrier for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Enabling Nvidia swap barrier for window %d...\n", mId);
 
 #ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
@@ -553,7 +576,7 @@ void sgct_core::SGCTWindow::setBarrier(const bool state)
 /*!
 	Force the frame buffer to have a fixed size which may be different from the window size.
 */
-void sgct_core::SGCTWindow::setFixResolution(const bool state)
+void sgct::SGCTWindow::setFixResolution(const bool state)
 {
 	mUseFixResolution = state;
 }
@@ -561,7 +584,7 @@ void sgct_core::SGCTWindow::setFixResolution(const bool state)
 /*!
 Set if post effects should be used.
 */
-void sgct_core::SGCTWindow::setUsePostFX(bool state)
+void sgct::SGCTWindow::setUsePostFX(bool state)
 {
 	mUsePostFX = state;
 	if( !state )
@@ -571,21 +594,21 @@ void sgct_core::SGCTWindow::setUsePostFX(bool state)
 /*!
 Set if FXAA should be used.
 */
-void sgct_core::SGCTWindow::setUseFXAA(bool state)
+void sgct::SGCTWindow::setUseFXAA(bool state)
 {
 	mUseFXAA = state;
 	if( mUseFXAA )
 		mUsePostFX = true;
 	else
 		mUsePostFX = (mPostFXPasses.size() > 0);
-	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
+	MessageHandler::instance()->print( MessageHandler::NOTIFY_DEBUG, "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId);
 }
 
 /*!
 	Use nvidia swap groups. This freature is only supported on quadro cards together with a compatible sync card.
 	This function can only be used before the window is created.
 */
-void sgct_core::SGCTWindow::setUseSwapGroups(const bool state)
+void sgct::SGCTWindow::setUseSwapGroups(const bool state)
 {
 	mUseSwapGroups = state;
 }
@@ -596,7 +619,7 @@ void sgct_core::SGCTWindow::setUseSwapGroups(const bool state)
 	The quad buffer feature is only supported on professional CAD graphics cards such as
 	Nvidia Quadro or AMD/ATI FireGL.
 */
-void sgct_core::SGCTWindow::setUseQuadbuffer(const bool state)
+void sgct::SGCTWindow::setUseQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
@@ -608,7 +631,7 @@ void sgct_core::SGCTWindow::setUseQuadbuffer(const bool state)
 
 	/returns True if window was created successfully.
 */
-bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
+bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 {
 	glfwWindowHint(GLFW_DEPTH_BITS, 32);
 	glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
@@ -626,10 +649,10 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	//if using fisheye rendering for a dome display
 	if( isUsingFisheyeRendering() )
 	{
-		if( !sgct::SGCTSettings::instance()->useFBO() )
+		if( !SGCTSettings::instance()->useFBO() )
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Forcing FBOs for fisheye mode!\n", mId);
-			sgct::SGCTSettings::instance()->setUseFBO( true );
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Forcing FBOs for fisheye mode!\n", mId);
+			SGCTSettings::instance()->setUseFBO( true );
 		}
 
 		//create the cube mapped viewports
@@ -637,7 +660,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	int antiAliasingSamples = getNumberOfAASamples();
-	if( antiAliasingSamples > 1 && !sgct::SGCTSettings::instance()->useFBO() ) //if multisample is used
+	if( antiAliasingSamples > 1 && !SGCTSettings::instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
 
 	int count;
@@ -648,13 +671,13 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		int numberOfVideoModes;
 		const GLFWvidmode * videoModes = glfwGetVideoModes( monitors[i], &numberOfVideoModes);
 
-		sgct::MessageHandler::instance()->print("\nMonitor %d '%s' video modes\n========================\n",
+		MessageHandler::instance()->print("\nMonitor %d '%s' video modes\n========================\n",
 			i, glfwGetMonitorName( monitors[i] ) );
 
 		for(int j=0; j<numberOfVideoModes; j++)
-			sgct::MessageHandler::instance()->print("%d x %d @ %d\n", videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate );
+			MessageHandler::instance()->print("%d x %d @ %d\n", videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate );
 
-		sgct::MessageHandler::instance()->print("\n");
+		MessageHandler::instance()->print("\n");
 	}*/
 
 	setUseQuadbuffer( mStereoMode == Active_Stereo );
@@ -667,7 +690,7 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		{
 			mMonitor = glfwGetPrimaryMonitor();
 			if( mMonitorIndex >= count )
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO,
 					"SGCTWindow(%d): Invalid monitor index (%d). This computer has %d monitors.\n",
 					mId, mMonitorIndex, count);
 		}
@@ -694,8 +717,13 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
         mWindowInitialRes[1] = mWindowRes[1];
         if( !mUseFixResolution )
         {
-            mFramebufferResolution[0] = mWindowRes[0];
-            mFramebufferResolution[1] = mWindowRes[1];
+            if( mFullRes )
+			{
+				mFramebufferResolution[0] = mWindowRes[0];
+				mFramebufferResolution[1] = mWindowRes[1];
+			}
+			else
+				glfwGetWindowSize( mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1] );
         }
 
 
@@ -706,13 +734,13 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			1  = wait for vertical sync
 			2  = fix when using swapgroups in xp and running half the framerate
 		*/
-		glfwSwapInterval( sgct::SGCTSettings::instance()->getSwapInterval() );
+		glfwSwapInterval( SGCTSettings::instance()->getSwapInterval() );
 
 		glfwMakeContextCurrent( mSharedHandle );
 
-		mScreenCapture = new ScreenCapture();
-		mFinalFBO_Ptr = new OffScreenBuffer();
-		mCubeMapFBO_Ptr = new OffScreenBuffer();
+		mScreenCapture = new sgct_core::ScreenCapture();
+		mFinalFBO_Ptr = new sgct_core::OffScreenBuffer();
+		mCubeMapFBO_Ptr = new sgct_core::OffScreenBuffer();
 
 		return true;
 	}
@@ -720,21 +748,21 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 		return false;
 }
 
-void sgct_core::SGCTWindow::initNvidiaSwapGroups()
+void sgct::SGCTWindow::initNvidiaSwapGroups()
 {
 //#ifdef __WITHSWAPBARRIERS__
 
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
 
 		hDC = wglGetCurrentDC();
 
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		wglQueryMaxSwapGroupsNV( hDC, &maxGroup, &maxBarrier );
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
 			maxGroup, maxBarrier);
 
 		/*
@@ -748,10 +776,10 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 
 		*/
 		if( wglJoinSwapGroupNV(hDC, 1) )
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
 			mUseSwapGroups = false;
 			return;
 		}
@@ -763,7 +791,7 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 
     if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
 
 		hDC = glXGetCurrentDrawable();
 		disp = glXGetCurrentDisplay();
@@ -771,14 +799,14 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		glXQueryMaxSwapGroupsNV( disp, hDC, &maxGroup, &maxBarrier );
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
 			maxGroup, maxBarrier);
 
 		if( glXJoinSwapGroupNV(disp, hDC, 1) )
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
 			mUseSwapGroups = false;
 			return;
 		}
@@ -794,9 +822,9 @@ void sgct_core::SGCTWindow::initNvidiaSwapGroups()
 //#endif
 }
 
-void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int height )
+void sgct::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int height )
 {
-	SGCTNode * thisNode = ClusterManager::instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 
 	//find the correct window to update
 	for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
@@ -804,7 +832,7 @@ void sgct_core::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width
 			thisNode->getWindowPtr(i)->setWindowResolution(width > 0 ? width : 1, height > 0 ? height : 1);
 }
 
-void sgct_core::SGCTWindow::initScreenCapture()
+void sgct::SGCTWindow::initScreenCapture()
 {
 	//init PBO in screen capture
 	mScreenCapture->init( mId );
@@ -813,11 +841,11 @@ void sgct_core::SGCTWindow::initScreenCapture()
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
 	else
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
-	if( sgct::SGCTSettings::instance()->getCaptureFormat() != ScreenCapture::NOT_SET )
-		mScreenCapture->setFormat( static_cast<ScreenCapture::CaptureFormat>( sgct::SGCTSettings::instance()->getCaptureFormat() ) );
+	if( SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET )
+		mScreenCapture->setFormat( static_cast<sgct_core::ScreenCapture::CaptureFormat>( SGCTSettings::instance()->getCaptureFormat() ) );
 }
 
-void sgct_core::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
+void sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 {
 	frameNumber = 0;
 
@@ -839,7 +867,7 @@ void sgct_core::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 //#endif
 }
 
-void sgct_core::SGCTWindow::resetSwapGroupFrameNumber()
+void sgct::SGCTWindow::resetSwapGroupFrameNumber()
 {
 
 //#ifdef __WITHSWAPBARRIERS__
@@ -857,12 +885,12 @@ void sgct_core::SGCTWindow::resetSwapGroupFrameNumber()
 #endif
 		{
 			mSwapGroupMaster = true;
-			sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_INFO, "Resetting frame counter. This computer is the master.\n");
+			MessageHandler::instance()->print( MessageHandler::NOTIFY_INFO, "Resetting frame counter. This computer is the master.\n");
 		}
 		else
 		{
 			mSwapGroupMaster = false;
-			sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_INFO, "Resetting frame counter failed. This computer is the slave.\n");
+			MessageHandler::instance()->print( MessageHandler::NOTIFY_INFO, "Resetting frame counter failed. This computer is the slave.\n");
 		}
 	}
 
@@ -872,7 +900,7 @@ void sgct_core::SGCTWindow::resetSwapGroupFrameNumber()
 /*!
 	Returns if fisheye rendering is active in this window
 */
-bool sgct_core::SGCTWindow::isUsingFisheyeRendering()
+bool sgct::SGCTWindow::isUsingFisheyeRendering()
 {
 	return mFisheyeMode;
 }
@@ -880,13 +908,13 @@ bool sgct_core::SGCTWindow::isUsingFisheyeRendering()
 /*!
 	This function creates textures that will act as FBO targets.
 */
-void sgct_core::SGCTWindow::createTextures()
+void sgct::SGCTWindow::createTextures()
 {
 	//no target textures needed if not using FBO
-	if( !sgct::SGCTSettings::instance()->useFBO() )
+	if( !SGCTSettings::instance()->useFBO() )
 		return;
 
-	if( sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
+	if( Engine::instance()->getRunMode() <= Engine::OpenGL_Compablity_Profile )
 	{
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
 		glEnable(GL_TEXTURE_2D);
@@ -901,26 +929,26 @@ void sgct_core::SGCTWindow::createTextures()
 	{
 		switch( i )
 		{
-		case sgct::Engine::RightEye:
+		case Engine::RightEye:
 			if( mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, false, true );
 			break;
 
-		case sgct::Engine::Depth:
-			if( sgct::SGCTSettings::instance()->useDepthTexture() )
+		case Engine::Depth:
+			if( SGCTSettings::instance()->useDepthTexture() )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, true, true );
 			break;
 
-		case sgct::Engine::FX1:
+		case Engine::FX1:
 			if( !mPostFXPasses.empty() )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 			break;
 
-		case sgct::Engine::FX2:
+		case Engine::FX2:
 			if( mPostFXPasses.size() > 1 )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 
-		case sgct::Engine::Intermediate:
+		case Engine::Intermediate:
 			if( mUsePostFX )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, false, true );
 			break;
@@ -935,31 +963,31 @@ void sgct_core::SGCTWindow::createTextures()
 	*/
 	if( mFisheyeMode )
 	{
-		generateCubeMap(sgct::Engine::CubeMap, false);
+		generateCubeMap(Engine::CubeMap, false);
 
-		if( sgct::SGCTSettings::instance()->useDepthTexture() )
+		if( SGCTSettings::instance()->useDepthTexture() )
 		{
 			//set up texture target
-			generateCubeMap(sgct::Engine::CubeMapDepth, true);
+			generateCubeMap(Engine::CubeMapDepth, true);
 
 			//create swap textures
 			//Color
-			generateTexture(sgct::Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, false, false);
+			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, false, false);
 			//Depth
-			generateTexture(sgct::Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, true, false);
+			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, true, false);
 		}
 	}
 
-	if( sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile )
+	if( Engine::instance()->getRunMode() <= Engine::OpenGL_Compablity_Profile )
 		glPopAttrib();
 
-	if( sgct::Engine::checkForOGLErrors() )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Texture targets initiated successfully for window %d!\n", mId);
+	if( Engine::checkForOGLErrors() )
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Texture targets initiated successfully for window %d!\n", mId);
 	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Texture targets failed to initialize for window %d!\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Texture targets failed to initialize for window %d!\n", mId);
 }
 
-void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, bool depth, bool interpolate)
+void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, bool depth, bool interpolate)
 {
 	//clean up if needed
 	if( mFrameBufferTextures[id] != GL_FALSE )
@@ -992,18 +1020,18 @@ void sgct_core::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySiz
 		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
 
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 	else
 	{
 		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 }
 
-void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
+void sgct::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 {
 	if( mFrameBufferTextures[id] != GL_FALSE )
 	{
@@ -1018,7 +1046,7 @@ void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 	if(mCubeMapResolution > MaxCubeMapRes)
 	{
 		mCubeMapResolution = MaxCubeMapRes;
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
 	}
 
 	//set up texture target
@@ -1034,14 +1062,14 @@ void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 	{
 		for (int side = 0; side < 6; ++side)
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
 	}
 	else
 	{
 		for (int i = 0; i < 6; ++i)
 			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
 	}
 
@@ -1052,14 +1080,14 @@ void sgct_core::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 	This function creates FBOs if they are supported.
 	This is done in the initOGL function.
 */
-void sgct_core::SGCTWindow::createFBOs()
+void sgct::SGCTWindow::createFBOs()
 {
-	if( !sgct::SGCTSettings::instance()->useFBO() )
+	if( !SGCTSettings::instance()->useFBO() )
 	{
 		//disable anaglyph & checkerboard stereo if FBOs are not used
 		if( mStereoMode > Active_Stereo )
 			mStereoMode = No_Stereo;
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning! FBO rendering is not supported or enabled!\nPostFX, fisheye and some stereo modes are disabled.\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO rendering is not supported or enabled!\nPostFX, fisheye and some stereo modes are disabled.\n");
 	}
 	else
 	{
@@ -1079,7 +1107,7 @@ void sgct_core::SGCTWindow::createFBOs()
 			{
 				if(!mCubeMapFBO_Ptr->isMultiSampled())
 				{
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::CubeMap], i );
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], i );
 				}
 
 				mFisheyeAlpha ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
@@ -1091,18 +1119,18 @@ void sgct_core::SGCTWindow::createFBOs()
 					mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 					//update attachments
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[sgct::Engine::CubeMap], i );
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], i );
 
 					mCubeMapFBO_Ptr->blit();
 				}
 			}
 
 			if( mCubeMapFBO_Ptr->checkForErrors() )
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
             else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
 
-			OffScreenBuffer::unBind();
+			sgct_core::OffScreenBuffer::unBind();
 
 			//set ut the fisheye geometry etc.
 			initFisheye();
@@ -1118,14 +1146,14 @@ void sgct_core::SGCTWindow::createFBOs()
         if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
         {
             mFinalFBO_Ptr->bind();
-            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[sgct::Engine::LeftEye] );
+            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::LeftEye] );
             mFinalFBO_Ptr->unBind();
         }
 
         if( mFinalFBO_Ptr->checkForErrors() )
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
         else
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
 
 	}
 }
@@ -1133,30 +1161,30 @@ void sgct_core::SGCTWindow::createFBOs()
 /*!
 	Create vertex buffer objects used to render framebuffer quad
 */
-void sgct_core::SGCTWindow::createVBOs()
+void sgct::SGCTWindow::createVBOs()
 {
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 	{
 		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs: ");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs: ");
 		for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mVAO[i]);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%d ", mVAO[i]);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
 	}
 
 	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs: ");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs: ");
 	for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mVBO[i]);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%d ", mVBO[i]);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
 
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( mVAO[RenderQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mQuadVerts, GL_STATIC_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 	{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(
@@ -1179,11 +1207,11 @@ void sgct_core::SGCTWindow::createVBOs()
 		);
 	}
 
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mFisheyeQuadVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 	{
 		glEnableVertexAttribArray(0);
 		glVertexAttribPointer(
@@ -1208,11 +1236,11 @@ void sgct_core::SGCTWindow::createVBOs()
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray(0);
 }
 
-void sgct_core::SGCTWindow::loadShaders()
+void sgct::SGCTWindow::loadShaders()
 {
 	//load shaders
 	if( mFisheyeMode )
@@ -1230,62 +1258,62 @@ void sgct_core::SGCTWindow::loadShaders()
 		if( mFisheyeShader.isLinked() )
 			mFisheyeShader.deleteProgram();
 
-		if( sgct::Engine::instance()->isOGLPipelineFixed() )
+		if( Engine::instance()->isOGLPipelineFixed() )
 		{
-			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
 
 			if(mFisheyeOffaxis)
 			{
-				if( sgct::SGCTSettings::instance()->useDepthTexture() )
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				if( SGCTSettings::instance()->useDepthTexture() )
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				else
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 			}
 			else
 			{
-				if( sgct::SGCTSettings::instance()->useDepthTexture() )
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				if( SGCTSettings::instance()->useDepthTexture() )
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				else
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 			}
 
-			if( sgct::SGCTSettings::instance()->useDepthTexture() )
+			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Base_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 		else //modern pipeline
 		{
-			mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
 
 			if(mFisheyeOffaxis)
 			{
-				if( sgct::SGCTSettings::instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				}
 				else
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				}
 			}
 			else//not off axis
 			{
-				if( sgct::SGCTSettings::instance()->useDepthTexture() )
+				if( SGCTSettings::instance()->useDepthTexture() )
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				}
 				else //no depth
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 				}
 			}
 
-			if( sgct::SGCTSettings::instance()->useDepthTexture() )
+			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 			}
 		}
 
@@ -1293,7 +1321,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		mFisheyeShader.createAndLinkProgram();
 		mFisheyeShader.bind();
 
-		if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+		if( !Engine::instance()->isOGLPipelineFixed() )
 		{
 			FisheyeMVP = mFisheyeShader.getUniformLocation( "MVP" );
 		}
@@ -1301,7 +1329,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
 		glUniform1i( Cubemap, 0 );
 
-		if( sgct::SGCTSettings::instance()->useDepthTexture() )
+		if( SGCTSettings::instance()->useDepthTexture() )
 		{
 			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
 			glUniform1i( DepthCubemap, 1 );
@@ -1310,7 +1338,7 @@ void sgct_core::SGCTWindow::loadShaders()
 		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );
 		glUniform1f( FishEyeHalfFov, glm::half_pi<float>() );
 
-		const float * bgColor = sgct::Engine::instance()->getFisheyeClearColor();
+		const float * bgColor = Engine::instance()->getFisheyeClearColor();
 		FishEyeBGColor = mFisheyeShader.getUniformLocation( "bgColor" );
 		glUniform4f( FishEyeBGColor, bgColor[0], bgColor[1], bgColor[2], bgColor[3] );
 
@@ -1322,15 +1350,15 @@ void sgct_core::SGCTWindow::loadShaders()
 				mFisheyeBaseOffset[1] + mFisheyeOffset[1],
 				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
 		}
-		sgct::ShaderProgram::unbind();
+		ShaderProgram::unbind();
 
-		if( sgct::SGCTSettings::instance()->useDepthTexture() )
+		if( SGCTSettings::instance()->useDepthTexture() )
 		{
 			mFisheyeDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
 			mFisheyeDepthCorrectionShader.createAndLinkProgram();
 			mFisheyeDepthCorrectionShader.bind();
 
-			if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+			if( !Engine::instance()->isOGLPipelineFixed() )
 				FishEyeSwapMVP = mFisheyeDepthCorrectionShader.getUniformLocation( "MVP" );
 			FishEyeSwapColor = mFisheyeDepthCorrectionShader.getUniformLocation( "cTex" );
 			glUniform1i( FishEyeSwapColor, 0 );
@@ -1339,7 +1367,7 @@ void sgct_core::SGCTWindow::loadShaders()
 			FishEyeSwapNear = mFisheyeDepthCorrectionShader.getUniformLocation( "near" );
 			FishEyeSwapFar = mFisheyeDepthCorrectionShader.getUniformLocation( "far" );
 
-			sgct::ShaderProgram::unbind();
+			ShaderProgram::unbind();
 		}
 	}
 
@@ -1351,124 +1379,124 @@ void sgct_core::SGCTWindow::loadShaders()
 		if( mStereoShader.isLinked() )
 			mStereoShader.deleteProgram();
 
-		if( sgct::Engine::instance()->isOGLPipelineFixed() )
-			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		if( Engine::instance()->isOGLPipelineFixed() )
+			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		else
-			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
 
 		if( mStereoMode == Anaglyph_Red_Cyan_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 
 		}
 		else if( mStereoMode == Anaglyph_Amber_Blue_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Checkerboard_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Checkerboard_Inverted_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Vertical_Interlaced_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Vertical_Interlaced_Inverted_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		/*else if( mStereoMode == Side_By_Side_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Side_By_Side_Inverted_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Top_Bottom_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 		else if( mStereoMode == Top_Bottom_Inverted_Stereo )
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}*/
 		else
 		{
-			sgct::Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			Engine::instance()->isOGLPipelineFixed() ?
+				mStereoShader.addShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
+				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		}
 
 		mStereoShader.setName("StereoShader");
 		mStereoShader.createAndLinkProgram();
 		mStereoShader.bind();
-		if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+		if( !Engine::instance()->isOGLPipelineFixed() )
 			StereoMVP = mStereoShader.getUniformLocation( "MVP" );
 		StereoLeftTex = mStereoShader.getUniformLocation( "LeftTex" );
 		StereoRightTex = mStereoShader.getUniformLocation( "RightTex" );
 		glUniform1i( StereoLeftTex, 0 );
 		glUniform1i( StereoRightTex, 1 );
-		sgct::ShaderProgram::unbind();
+		ShaderProgram::unbind();
 	}
 }
 
-void sgct_core::SGCTWindow::bindVAO()
+void sgct::SGCTWindow::bindVAO()
 {
 	mFisheyeMode ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
 }
 
-void sgct_core::SGCTWindow::bindVAO( VBOIndex index )
+void sgct::SGCTWindow::bindVAO( VBOIndex index )
 {
 	glBindVertexArray( mVAO[ index ] );
 }
 
-void sgct_core::SGCTWindow::bindVBO()
+void sgct::SGCTWindow::bindVBO()
 {
 	mFisheyeMode ? glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]) : glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 }
 
-void sgct_core::SGCTWindow::bindVBO( VBOIndex index )
+void sgct::SGCTWindow::bindVBO( VBOIndex index )
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[index]);
 }
 
-void sgct_core::SGCTWindow::unbindVBO()
+void sgct::SGCTWindow::unbindVBO()
 {
 	glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
 }
 
-void sgct_core::SGCTWindow::unbindVAO()
+void sgct::SGCTWindow::unbindVAO()
 {
 	glBindVertexArray( GL_FALSE );
 }
@@ -1479,26 +1507,26 @@ void sgct_core::SGCTWindow::unbindVAO()
 
 	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
 */
-void sgct_core::SGCTWindow::captureBuffer()
+void sgct::SGCTWindow::captureBuffer()
 {
 	if(mStereoMode == No_Stereo)
 	{
-		if( sgct::SGCTSettings::instance()->useFBO() )
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Texture );
+		if( SGCTSettings::instance()->useFBO() )
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::LeftEye], mShotCounter, sgct_core::ScreenCapture::FBO_Texture );
 		else
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Front_Buffer );
 	}
 	else
 	{
-		if( sgct::SGCTSettings::instance()->useFBO() )
+		if( SGCTSettings::instance()->useFBO() )
 		{
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::LeftEye], mShotCounter, ScreenCapture::FBO_Left_Texture );
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[sgct::Engine::RightEye], mShotCounter, ScreenCapture::FBO_Right_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::LeftEye], mShotCounter, sgct_core::ScreenCapture::FBO_Left_Texture );
+			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::RightEye], mShotCounter, sgct_core::ScreenCapture::FBO_Right_Texture );
 		}
 		else
 		{
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Left_Front_Buffer );
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, ScreenCapture::Right_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Left_Front_Buffer );
+			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Right_Front_Buffer );
 		}
 	}
 
@@ -1508,7 +1536,7 @@ void sgct_core::SGCTWindow::captureBuffer()
 /*!
 	Returns pointer to FBO container
 */
-sgct_core::OffScreenBuffer * sgct_core::SGCTWindow::getFBOPtr()
+sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr()
 {
 	return mFisheyeMode ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
 }
@@ -1516,7 +1544,7 @@ sgct_core::OffScreenBuffer * sgct_core::SGCTWindow::getFBOPtr()
 /*!
 	\returns pointer to GLFW monitor
 */
-GLFWmonitor * sgct_core::SGCTWindow::getMonitor()
+GLFWmonitor * sgct::SGCTWindow::getMonitor()
 {
 	return mMonitor;
 }
@@ -1524,7 +1552,7 @@ GLFWmonitor * sgct_core::SGCTWindow::getMonitor()
 /*!
 	\returns pointer to GLFW window
 */
-GLFWwindow * sgct_core::SGCTWindow::getWindowHandle()
+GLFWwindow * sgct::SGCTWindow::getWindowHandle()
 {
 	return mWindowHandle;
 }
@@ -1532,7 +1560,7 @@ GLFWwindow * sgct_core::SGCTWindow::getWindowHandle()
 /*!
 	Get the dimensions of the FBO that the Engine::draw function renders to.
 */
-void sgct_core::SGCTWindow::getDrawFBODimensions( int & width, int & height )
+void sgct::SGCTWindow::getDrawFBODimensions( int & width, int & height )
 {
 	if( mFisheyeMode )
 	{
@@ -1550,7 +1578,7 @@ void sgct_core::SGCTWindow::getDrawFBODimensions( int & width, int & height )
 	Get the dimensions of the final FBO. Regular viewport rendering renders directly to this FBO but a fisheye renders first a cubemap and then to the final FBO.
 	Post effects are rendered using these dimensions.
 */
-void sgct_core::SGCTWindow::getFinalFBODimensions( int & width, int & height )
+void sgct::SGCTWindow::getFinalFBODimensions( int & width, int & height )
 {
 	width = mFramebufferResolution[0];
 	height = mFramebufferResolution[1];
@@ -1559,7 +1587,7 @@ void sgct_core::SGCTWindow::getFinalFBODimensions( int & width, int & height )
 /*!
 	Add a post effect for this window
 */
-void sgct_core::SGCTWindow::addPostFX( sgct::PostFX & fx )
+void sgct::SGCTWindow::addPostFX( sgct::PostFX & fx )
 {
 	mPostFXPasses.push_back( fx );
 }
@@ -1567,9 +1595,9 @@ void sgct_core::SGCTWindow::addPostFX( sgct::PostFX & fx )
 /*!
 	This function resizes the FBOs when the window is resized to achive 1:1 pixel-texel mapping.
 */
-void sgct_core::SGCTWindow::resizeFBOs()
+void sgct::SGCTWindow::resizeFBOs()
 {
-	if(!mUseFixResolution && sgct::SGCTSettings::instance()->useFBO())
+	if(!mUseFixResolution && SGCTSettings::instance()->useFBO())
 	{
 		makeOpenGLContextCurrent( Shared_Context );
 		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
@@ -1603,21 +1631,21 @@ void sgct_core::SGCTWindow::resizeFBOs()
 		if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
         {
             mFinalFBO_Ptr->bind();
-            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[sgct::Engine::LeftEye] );
+            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::LeftEye] );
             mFinalFBO_Ptr->unBind();
         }
 
         if( mFinalFBO_Ptr->checkForErrors() )
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Window %d: FBOs resized successfully.\n", mId);
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBOs resized successfully.\n", mId);
         else
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Window %d: FBOs resized with GL errors!\n", mId);
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBOs resized with GL errors!\n", mId);
 	}
 }
 
 /*!
 	Init the fisheye data by creating geometry and precalculate textures
 */
-void sgct_core::SGCTWindow::initFisheye()
+void sgct::SGCTWindow::initFisheye()
 {
 	//create proxy geometry
 	float leftcrop		= mCropFactors[CropLeft];
@@ -1660,7 +1688,7 @@ void sgct_core::SGCTWindow::initFisheye()
 	mFisheyeQuadVerts[19] = -1.0f;
 
 	//update VBO
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( mVAO[FishEyeQuad] );
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
 
@@ -1669,14 +1697,14 @@ void sgct_core::SGCTWindow::initFisheye()
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( 0 );
 }
 
 /*!
 	Set if fisheye rendering is used in this window
 */
-void sgct_core::SGCTWindow::setFisheyeRendering(bool state)
+void sgct::SGCTWindow::setFisheyeRendering(bool state)
 {
 	mFisheyeMode = state;
 }
@@ -1684,28 +1712,36 @@ void sgct_core::SGCTWindow::setFisheyeRendering(bool state)
 /*!
 	Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
 */
-sgct_core::SGCTWindow::StereoMode sgct_core::SGCTWindow::getStereoMode()
+sgct::SGCTWindow::StereoMode sgct::SGCTWindow::getStereoMode()
 {
 	return mStereoMode;
 }
 
-void sgct_core::SGCTWindow::addViewport(float left, float right, float bottom, float top)
+/*!
+	\returns true if full resoultion is used for displays where point resolution is different from pixel resolution like Apple's retina displays
+*/
+bool sgct::SGCTWindow::getFullResolutionMode()
 {
-	Viewport tmpVP(left, right, bottom, top);
-	mViewports.push_back(tmpVP);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
+	return mFullRes;
 }
 
-void sgct_core::SGCTWindow::addViewport(sgct_core::Viewport &vp)
+void sgct::SGCTWindow::addViewport(float left, float right, float bottom, float top)
+{
+	sgct_core::Viewport tmpVP(left, right, bottom, top);
+	mViewports.push_back(tmpVP);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
+}
+
+void sgct::SGCTWindow::addViewport(sgct_core::Viewport &vp)
 {
 	mViewports.push_back(vp);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
 }
 
 /*!
 	Clears the vector containing all viewport data.
 */
-void sgct_core::SGCTWindow::deleteAllViewports()
+void sgct::SGCTWindow::deleteAllViewports()
 {
 	mCurrentViewportIndex = 0;
 	mViewports.clear();
@@ -1714,7 +1750,7 @@ void sgct_core::SGCTWindow::deleteAllViewports()
 /*!
 	Generates six viewports that renders the inside of a cube. The method used in SGCT is to only use four faces by rotating the cube 45 degrees.
 */
-void sgct_core::SGCTWindow::generateCubeMapViewports()
+void sgct::SGCTWindow::generateCubeMapViewports()
 {
 	//clear the viewports since they will be replaced
 	deleteAllViewports();
@@ -1749,7 +1785,7 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	//add viewports
 	for(unsigned int i=0; i<6; i++)
 	{
-		Viewport tmpVP;
+		sgct_core::Viewport tmpVP;
 		tmpVP.setName("Fisheye");
 
 		glm::mat4 rotMat(1.0f);
@@ -1785,9 +1821,9 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 
 		//Compensate for users pos
 		glm::vec4 userVec = glm::vec4(
-			ClusterManager::instance()->getUserPtr()->getXPos(),
-			ClusterManager::instance()->getUserPtr()->getYPos(),
-			ClusterManager::instance()->getUserPtr()->getZPos(),
+			sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
+			sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
+			sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
 			1.0f );
 
 		//add viewplane vertices
@@ -1811,14 +1847,14 @@ void sgct_core::SGCTWindow::generateCubeMapViewports()
 	if( getFisheyeOverlay() != NULL )
 	{
 		mViewports[0].setOverlayTexture( getFisheyeOverlay() );
-		//sgct::MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
+		//MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
 	}
 }
 
 /*!
 \returns a pointer to the viewport that is beeing rendered to at the moment
 */
-sgct_core::Viewport * sgct_core::SGCTWindow::getCurrentViewport()
+sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport()
 {
 	return &mViewports[mCurrentViewportIndex];
 }
@@ -1826,7 +1862,7 @@ sgct_core::Viewport * sgct_core::SGCTWindow::getCurrentViewport()
 /*!
 \returns a pointer to a specific viewport
 */
-sgct_core::Viewport * sgct_core::SGCTWindow::getViewport(std::size_t index)
+sgct_core::Viewport * sgct::SGCTWindow::getViewport(std::size_t index)
 {
 	return &mViewports[index];
 }
@@ -1834,7 +1870,7 @@ sgct_core::Viewport * sgct_core::SGCTWindow::getViewport(std::size_t index)
 /*!
 Get the current viewport data in pixels.
 */
-void sgct_core::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
+void sgct::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *
 		static_cast<double>(mFramebufferResolution[0]));
@@ -1849,7 +1885,7 @@ void sgct_core::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &x
 /*!
 \returns the viewport count for this window
 */
-std::size_t sgct_core::SGCTWindow::getNumberOfViewports()
+std::size_t sgct::SGCTWindow::getNumberOfViewports()
 {
 	return mViewports.size();
 }
@@ -1857,7 +1893,7 @@ std::size_t sgct_core::SGCTWindow::getNumberOfViewports()
 /*!
 	Set the number of samples used in multisampled anti-aliasing
 */
-void sgct_core::SGCTWindow::setNumberOfAASamples(int samples)
+void sgct::SGCTWindow::setNumberOfAASamples(int samples)
 {
 	mNumberOfAASamples = samples;
 }
@@ -1865,7 +1901,7 @@ void sgct_core::SGCTWindow::setNumberOfAASamples(int samples)
 /*!
 	\returns the number of samples used in multisampled anti-aliasing
 */
-int sgct_core::SGCTWindow::getNumberOfAASamples()
+int sgct::SGCTWindow::getNumberOfAASamples()
 {
 	return mNumberOfAASamples;
 }
@@ -1874,18 +1910,18 @@ int sgct_core::SGCTWindow::getNumberOfAASamples()
 	Set the stereo mode. Set this mode in your init callback or during runtime in the post-sync-pre-draw callback.
 	GLSL shaders will be recompliled if needed.
 */
-void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
+void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 {
 	if( sm == Active_Stereo && !mUseQuadBuffer )
 	{
 		mStereoMode = No_Stereo;
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTWindow: Window %d doesn't support Quadbuffer/Active stereo!\nReverting to monoscopic rendering.\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "SGCTWindow: Window %d doesn't support Quadbuffer/Active stereo!\nReverting to monoscopic rendering.\n",
 			mId);
 	}
 	else
 		mStereoMode = sm;
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
 		getStereoModeStr().c_str(), mId);
 
 	if( mWindowHandle )
@@ -1895,7 +1931,7 @@ void sgct_core::SGCTWindow::setStereoMode( StereoMode sm )
 /*!
 	Returns pointer to screen capture ptr
 */
-sgct_core::ScreenCapture * sgct_core::SGCTWindow::getScreenCapturePointer()
+sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer()
 {
 	return mScreenCapture;
 }
@@ -1903,7 +1939,7 @@ sgct_core::ScreenCapture * sgct_core::SGCTWindow::getScreenCapturePointer()
 /*!
 	Set the screenshot number (file index)
 */
-void sgct_core::SGCTWindow::setScreenShotNumber(int number)
+void sgct::SGCTWindow::setScreenShotNumber(int number)
 {
 	mShotCounter = number;
 }
@@ -1911,15 +1947,15 @@ void sgct_core::SGCTWindow::setScreenShotNumber(int number)
 /*!
 	\returns the current screenshot number (file index)
 */
-int sgct_core::SGCTWindow::getScreenShotNumber()
+int sgct::SGCTWindow::getScreenShotNumber()
 {
 	return mShotCounter;
 }
 
 /*!
-	Set the which viewport that is the current. This is done from the sgct::Engine and end users shouldn't change this
+	Set the which viewport that is the current. This is done from the Engine and end users shouldn't change this
 */
-void sgct_core::SGCTWindow::setCurrentViewport(std::size_t index)
+void sgct::SGCTWindow::setCurrentViewport(std::size_t index)
 {
 	mCurrentViewportIndex = index;
 }
@@ -1929,7 +1965,7 @@ Set the cubemap resolution used in the fisheye renderer
 
 @param res resolution of the cubemap sides (should be a power of two for best performance)
 */
-void sgct_core::SGCTWindow::setCubeMapResolution(int res)
+void sgct::SGCTWindow::setCubeMapResolution(int res)
 {
 	mCubeMapResolution = res;
 }
@@ -1939,7 +1975,7 @@ Set the dome diameter used in the fisheye renderer (used for the viewplane dista
 
 @param size size of the dome diameter (cube side) in meters
 */
-void sgct_core::SGCTWindow::setDomeDiameter(float size)
+void sgct::SGCTWindow::setDomeDiameter(float size)
 {
 	mCubeMapSize = size;
 }
@@ -1947,7 +1983,7 @@ void sgct_core::SGCTWindow::setDomeDiameter(float size)
 /*!
 Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
 */
-void sgct_core::SGCTWindow::setFisheyeAlpha(bool state)
+void sgct::SGCTWindow::setFisheyeAlpha(bool state)
 {
 	mFisheyeAlpha = state;
 }
@@ -1958,7 +1994,7 @@ The tilt angle is from the horizontal.
 
 @param angle the tilt angle in degrees
 */
-void sgct_core::SGCTWindow::setFisheyeTilt(float angle)
+void sgct::SGCTWindow::setFisheyeTilt(float angle)
 {
 	mFisheyeTilt = angle;
 }
@@ -1968,7 +2004,7 @@ Set the fisheye/dome field-of-view angle used in the fisheye renderer.
 
 @param angle the FOV angle in degrees
 */
-void sgct_core::SGCTWindow::setFisheyeFOV(float angle)
+void sgct::SGCTWindow::setFisheyeFOV(float angle)
 {
 	mFieldOfView = angle;
 }
@@ -1977,7 +2013,7 @@ void sgct_core::SGCTWindow::setFisheyeFOV(float angle)
 Set the fisheye crop values. Theese values are used when rendering content for a single projector dome.
 The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fisheye is cropped 25% (350 pixels) at the top.
 */
-void sgct_core::SGCTWindow::setFisheyeCropValues(float left, float right, float bottom, float top)
+void sgct::SGCTWindow::setFisheyeCropValues(float left, float right, float bottom, float top)
 {
 	mCropFactors[ CropLeft ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
 	mCropFactors[ CropRight ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
@@ -1990,7 +2026,7 @@ void sgct_core::SGCTWindow::setFisheyeCropValues(float left, float right, float 
 	Base of fisheye is the XY-plane. The base offset will be added to the offset specified by setFisheyeOffset.
 	These values are set from the XML config.
 */
-void sgct_core::SGCTWindow::setFisheyeBaseOffset(float x, float y, float z )
+void sgct::SGCTWindow::setFisheyeBaseOffset(float x, float y, float z )
 {
 	mFisheyeBaseOffset[0] = x;
 	mFisheyeBaseOffset[1] = y;
@@ -2010,7 +2046,7 @@ void sgct_core::SGCTWindow::setFisheyeBaseOffset(float x, float y, float z )
 	Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
 	Base of fisheye is the XY-plane. This function is normally used in fisheye stereo rendering.
 */
-void sgct_core::SGCTWindow::setFisheyeOffset(float x, float y, float z)
+void sgct::SGCTWindow::setFisheyeOffset(float x, float y, float z)
 {
 	mFisheyeOffset[0] = x;
 	mFisheyeOffset[1] = y;
@@ -2029,31 +2065,31 @@ void sgct_core::SGCTWindow::setFisheyeOffset(float x, float y, float z)
 /*!
 Set the fisheye overlay image.
 */
-void sgct_core::SGCTWindow::setFisheyeOverlay(std::string filename)
+void sgct::SGCTWindow::setFisheyeOverlay(std::string filename)
 {
 	mFisheyeOverlayFilename.assign(filename);
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer
-int sgct_core::SGCTWindow::getCubeMapResolution()
+int sgct::SGCTWindow::getCubeMapResolution()
 {
 	return mCubeMapResolution;
 }
 
 //! Get the dome diameter in meters used in the fisheye renderer
-float sgct_core::SGCTWindow::getDomeDiameter()
+float sgct::SGCTWindow::getDomeDiameter()
 {
 	return mCubeMapSize;
 }
 
 //! Get the fisheye/dome tilt angle in degrees
-float sgct_core::SGCTWindow::getFisheyeTilt()
+float sgct::SGCTWindow::getFisheyeTilt()
 {
 	return mFisheyeTilt;
 }
 
 //! Get the fisheye/dome field-of-view angle in degrees
-float sgct_core::SGCTWindow::getFisheyeFOV()
+float sgct::SGCTWindow::getFisheyeFOV()
 {
 	return mFieldOfView;
 }
@@ -2064,24 +2100,24 @@ float sgct_core::SGCTWindow::getFisheyeFOV()
 	- Bottom
 	- Top
 */
-float sgct_core::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side)
+float sgct::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side)
 {
 	return mCropFactors[side];
 }
 
 //! Get if fisheye is offaxis (not rendered from centre)
-bool sgct_core::SGCTWindow::isFisheyeOffaxis()
+bool sgct::SGCTWindow::isFisheyeOffaxis()
 {
 	return mFisheyeOffaxis;
 }
 
 //! Get the fisheye overlay image filename/path.
-const char * sgct_core::SGCTWindow::getFisheyeOverlay()
+const char * sgct::SGCTWindow::getFisheyeOverlay()
 {
 	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
 }
 
-std::string sgct_core::SGCTWindow::getStereoModeStr()
+std::string sgct::SGCTWindow::getStereoModeStr()
 {
 	std::string mode;
 

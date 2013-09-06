@@ -18,7 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define NUMBER_OF_VBOS 2
 #define NUMBER_OF_TEXTURES 10
 
-namespace sgct_core
+namespace sgct
 {
 
 /*!
@@ -61,6 +61,7 @@ public:
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(bool fullscreen);
 	void setWindowDecoration(bool state);
+	void setFullResolutionMode(bool state);
 	void setFullScreenMonitorIndex( int index );
 	void setBarrier(const bool state);
 	void setFixResolution(const bool state);
@@ -85,24 +86,25 @@ public:
 	inline bool			isSwapGroupMaster() { return mSwapGroupMaster; }
 		
 	// -------------- get functions ----------------- //
-	std::string			getName();
-	int					getId();
-	unsigned int		getFrameBufferTexture(unsigned int index);
-	ScreenCapture *		getScreenCapturePointer();
-	int					getNumberOfAASamples();
-	int					getScreenShotNumber();
-	StereoMode			getStereoMode();
-	void				getSwapGroupFrameNumber(unsigned int & frameNumber);
-	void				getDrawFBODimensions( int & width, int & height );
-	void				getFinalFBODimensions( int & width, int & height );
-	OffScreenBuffer *	getFBOPtr();
-	GLFWmonitor *		getMonitor();
-	GLFWwindow *		getWindowHandle();
-	Viewport *			getCurrentViewport();
-	Viewport *			getViewport(std::size_t index);
-	void				getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
-	std::size_t			getNumberOfViewports();
-	std::string			getStereoModeStr();
+	std::string						getName();
+	int								getId();
+	unsigned int					getFrameBufferTexture(unsigned int index);
+	sgct_core::ScreenCapture *		getScreenCapturePointer();
+	int								getNumberOfAASamples();
+	int								getScreenShotNumber();
+	StereoMode						getStereoMode();
+	bool							getFullResolutionMode();
+	void							getSwapGroupFrameNumber(unsigned int & frameNumber);
+	void							getDrawFBODimensions( int & width, int & height );
+	void							getFinalFBODimensions( int & width, int & height );
+	sgct_core::OffScreenBuffer *	getFBOPtr();
+	GLFWmonitor *					getMonitor();
+	GLFWwindow *					getWindowHandle();
+	sgct_core::Viewport *			getCurrentViewport();
+	sgct_core::Viewport *			getViewport(std::size_t index);
+	void							getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
+	std::size_t						getNumberOfViewports();
+	std::string						getStereoModeStr();
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -157,7 +159,7 @@ public:
 	//------------- Other ------------------------- //
 	void addPostFX( sgct::PostFX & fx );
 	void addViewport(float left, float right, float bottom, float top);
-	void addViewport(Viewport &vp);
+	void addViewport(sgct_core::Viewport &vp);
 	void generateCubeMapViewports();
 
 	/*! \returns true if FXAA should be used */
@@ -237,6 +239,7 @@ private:
 	bool mFullScreen;
 	bool mSetWindowPos;
 	bool mDecorated;
+	bool mFullRes; //for mac retina screens and similar
 	int mFramebufferResolution[2];
 	int mWindowInitialRes[2];
 	int mWindowRes[2];
@@ -289,8 +292,7 @@ private:
 	int mCubeMapResolution;
 
 	std::size_t mCurrentViewportIndex;
-	std::vector<Viewport> mViewports;
-
+	std::vector<sgct_core::Viewport> mViewports;
 	std::vector<sgct::PostFX> mPostFXPasses;
 };
 }

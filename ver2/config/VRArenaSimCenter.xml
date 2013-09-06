@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1" externalControlPort="20500" firmSync="true">
 	<Node ip="127.0.0.1" port="20400">
-		<Window fullscreen="false">
+		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Pos x="0" y="0" />
 			<Size x="910" y="263" />
@@ -20,7 +20,7 @@
 		</Window>
 	</Node>
 	<Node ip="127.0.0.2" port="20401">
-		<Window fullscreen="false">
+		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />
 			<Pos x="0" y="300" />
@@ -39,7 +39,7 @@
 		</Window>
 	</Node>
 	<Node ip="127.0.0.3" port="20402">
-		<Window fullscreen="false">
+		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />
 			<Pos x="400" y="300" />
@@ -58,7 +58,7 @@
 		</Window>
 	</Node>
 	<Node ip="127.0.0.4" port="20403">
-		<Window fullscreen="false">
+		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />
 			<Pos x="800" y="300" />

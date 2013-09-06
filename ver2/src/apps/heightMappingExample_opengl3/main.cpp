@@ -150,10 +150,10 @@ void myPostSyncPreDrawFun()
 	int tmpStereoMode = stereoMode.getVal();
 	/*for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
 		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
-			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct_core::SGCTWindow::StereoMode>(tmpStereoMode) );*/
+			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );*/
 
 	if( tmpStereoMode != gEngine->getWindowPtr(0)->getStereoMode() )
-		gEngine->getWindowPtr(0)->setStereoMode( static_cast<sgct_core::SGCTWindow::StereoMode>(tmpStereoMode) );
+		gEngine->getWindowPtr(0)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );
 
 	if( takeScreenshot.getVal() )
 	{
@@ -379,15 +379,15 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
             {
 				if( stereoMode.getVal() > 0 )
-					stereoMode.setVal( (stereoMode.getVal() - 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
+					stereoMode.setVal( (stereoMode.getVal() - 1) % sgct::SGCTWindow::Number_Of_Stereo_Items );
 				else
-					stereoMode.setVal( core_sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
+					stereoMode.setVal( sgct::SGCTWindow::Number_Of_Stereo_Items - 1 );
             }
 			break;
 
 		case SGCT_KEY_RIGHT:
 			if(action == SGCT_PRESS)
-				stereoMode.setVal( (stereoMode.getVal() + 1) % core_sgct::SGCTWindow::Number_Of_Stereo_Items );
+				stereoMode.setVal( (stereoMode.getVal() + 1) % sgct::SGCTWindow::Number_Of_Stereo_Items );
 			break;
 		}
 	}

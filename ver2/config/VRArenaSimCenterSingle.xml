@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1" externalControlPort="20500">
 	<Node ip="127.0.0.1" port="20400">
-		<Window fullscreen="false">
+		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Pos x="0" y="0" />
 			<Size x="910" y="563" />

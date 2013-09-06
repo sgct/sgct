@@ -250,13 +250,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 				val[1] = element[1]->Value();
 				if( strcmp("Window", val[1]) == 0 )
 				{
-					SGCTWindow tmpWin( static_cast<int>(tmpNode.getNumberOfWindows()) );
+					sgct::SGCTWindow tmpWin( static_cast<int>(tmpNode.getNumberOfWindows()) );
 
 					if( element[1]->Attribute("name") != NULL )
 						tmpWin.setName( element[1]->Attribute("name") );
 
+					//compability with older versions
 					if( element[1]->Attribute("fullscreen") != NULL )
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 );
+
+					if( element[1]->Attribute("fullScreen") != NULL )
+						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullScreen"), "true" ) == 0 );
 
 					int tmpSamples = 0;
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
@@ -267,6 +271,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("fxaa") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
 
+					if( element[1]->Attribute("FXAA") != NULL )
+						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("FXAA"), "true" ) == 0 ? true : false );
+
 					if( element[1]->Attribute("swapLock") != NULL )
 						tmpWin.setUseSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
@@ -275,6 +282,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 					if( element[1]->Attribute("border") != NULL )
 						tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("border"), "true" ) == 0 ? true : false);
+
+					if( element[1]->Attribute("fullRes") != NULL )
+						tmpWin.setFullResolutionMode( strcmp( element[1]->Attribute("fullRes"), "true" ) == 0 ? true : false);
+
+					if( element[1]->Attribute("retina") != NULL )
+						tmpWin.setFullResolutionMode( strcmp( element[1]->Attribute("retina"), "true" ) == 0 ? true : false);
 
 					int tmpMonitorIndex = 0;
 					if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == XML_NO_ERROR)
@@ -461,19 +474,19 @@ void sgct_core::ReadConfig::readAndParseXML()
 									float ftmp;
 
 									if( element[3]->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR )
-										tmpFArr[SGCTWindow::CropLeft] = ftmp;
+										tmpFArr[sgct::SGCTWindow::CropLeft] = ftmp;
 									if( element[3]->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR )
-										tmpFArr[SGCTWindow::CropRight] = ftmp;
+										tmpFArr[sgct::SGCTWindow::CropRight] = ftmp;
 									if( element[3]->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR )
-										tmpFArr[SGCTWindow::CropBottom] = ftmp;
+										tmpFArr[sgct::SGCTWindow::CropBottom] = ftmp;
 									if( element[3]->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR )
-										tmpFArr[SGCTWindow::CropTop] = ftmp;
+										tmpFArr[sgct::SGCTWindow::CropTop] = ftmp;
 
 									tmpWin.setFisheyeCropValues(
-										tmpFArr[SGCTWindow::CropLeft],
-										tmpFArr[SGCTWindow::CropRight],
-										tmpFArr[SGCTWindow::CropBottom],
-										tmpFArr[SGCTWindow::CropTop]);
+										tmpFArr[sgct::SGCTWindow::CropLeft],
+										tmpFArr[sgct::SGCTWindow::CropRight],
+										tmpFArr[sgct::SGCTWindow::CropBottom],
+										tmpFArr[sgct::SGCTWindow::CropTop]);
 								}
 								else if( strcmp("Offset", val[3]) == 0 )
 								{
@@ -799,39 +812,39 @@ void sgct_core::ReadConfig::readAndParseXML()
 	}
 }
 
-sgct_core::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( const std::string type )
+sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( const std::string type )
 {
 	if( strcmp( type.c_str(), "none" ) == 0 || strcmp( type.c_str(), "no_stereo" ) == 0  )
-		return SGCTWindow::No_Stereo;
+		return sgct::SGCTWindow::No_Stereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 || strcmp( type.c_str(), "quadbuffer" ) == 0 )
-		return SGCTWindow::Active_Stereo;
+		return sgct::SGCTWindow::Active_Stereo;
 	else if( strcmp( type.c_str(), "checkerboard" ) == 0 )
-		return SGCTWindow::Checkerboard_Stereo;
+		return sgct::SGCTWindow::Checkerboard_Stereo;
 	else if( strcmp( type.c_str(), "checkerboard_inverted" ) == 0 )
-		return SGCTWindow::Checkerboard_Inverted_Stereo;
+		return sgct::SGCTWindow::Checkerboard_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_red_cyan" ) == 0 )
-		return SGCTWindow::Anaglyph_Red_Cyan_Stereo;
+		return sgct::SGCTWindow::Anaglyph_Red_Cyan_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_amber_blue" ) == 0 )
-		return SGCTWindow::Anaglyph_Amber_Blue_Stereo;
+		return sgct::SGCTWindow::Anaglyph_Amber_Blue_Stereo;
 	else if( strcmp( type.c_str(), "anaglyph_wimmer" ) == 0 )
-		return SGCTWindow::Anaglyph_Red_Cyan_Wimmer_Stereo;
+		return sgct::SGCTWindow::Anaglyph_Red_Cyan_Wimmer_Stereo;
 	else if( strcmp( type.c_str(), "vertical_interlaced" ) == 0 )
-		return SGCTWindow::Vertical_Interlaced_Stereo;
+		return sgct::SGCTWindow::Vertical_Interlaced_Stereo;
 	else if( strcmp( type.c_str(), "vertical_interlaced_inverted" ) == 0 )
-		return SGCTWindow::Vertical_Interlaced_Inverted_Stereo;
+		return sgct::SGCTWindow::Vertical_Interlaced_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "test" ) == 0 || strcmp( type.c_str(), "dummy" ) == 0 )
-		return SGCTWindow::Dummy_Stereo;
+		return sgct::SGCTWindow::Dummy_Stereo;
 	else if( strcmp( type.c_str(), "side_by_side" ) == 0 )
-		return SGCTWindow::Side_By_Side_Stereo;
+		return sgct::SGCTWindow::Side_By_Side_Stereo;
 	else if( strcmp( type.c_str(), "side_by_side_inverted" ) == 0 )
-		return SGCTWindow::Side_By_Side_Inverted_Stereo;
+		return sgct::SGCTWindow::Side_By_Side_Inverted_Stereo;
 	else if( strcmp( type.c_str(), "top_bottom" ) == 0 )
-		return SGCTWindow::Top_Bottom_Stereo;
+		return sgct::SGCTWindow::Top_Bottom_Stereo;
 	else if( strcmp( type.c_str(), "top_bottom_inverted" ) == 0 )
-		return SGCTWindow::Top_Bottom_Inverted_Stereo;
+		return sgct::SGCTWindow::Top_Bottom_Inverted_Stereo;
 
 	//if match not found
-	return SGCTWindow::No_Stereo;
+	return sgct::SGCTWindow::No_Stereo;
 }
 
 int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )

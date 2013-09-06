@@ -14,8 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 
 /*! \namespace sgct_core
-\brief Simple Graphics Cluster Toolkit core namespace.
-This namespace is used internally within sgct.
+\brief SGCT core namespace is used internally within sgct.
 */
 namespace sgct_core
 {

@@ -19,8 +19,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define NUMBER_OF_SHADERS 8
 
 /*! \namespace sgct
-\brief Simple Graphics Cluster Toolkit.
-This namespace contains the most basic functionality of the toolkit.
+\brief SGCT namespace contains the most basic functionality of the toolkit
 */
 namespace sgct
 {

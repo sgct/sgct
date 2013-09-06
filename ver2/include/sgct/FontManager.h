@@ -17,8 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 
 /*! \namespace sgct_text
-\brief simple graphics cluster toolkit text namespace.
-This namespace is used for text rendering and font management.
+\brief SGCT text namespace is used for text rendering and font management
 */
 namespace sgct_text
 {

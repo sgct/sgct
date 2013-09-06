@@ -92,7 +92,73 @@ ZLib
 Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 Web: http://www.zlib.net/
 ---------------------------------------------------------
+
+TinyThread++
+=========================================================
+Copyright (c) 2010-2012 Marcus Geelnard
+Web: http://tinythreadpp.bitsnbites.eu/
+---------------------------------------------------------
+
 *************************************************************************/
+
+/*!
+
+\mainpage SGCT - Simple Graphics Cluster Toolkit
+
+\section intro_sec Introduction
+SGCT is a static cross-platform C++ library for developing OpenGL (both legacty compatible profile and modern core profile) applications that are synchronized across a cluster of image generating computers (IGs).
+SGCT is designed to be as simple as possible for the developer and is well suited for rapid prototyping of immersive virtual reality (VR) applications.
+SGCT can also be used to create planetarium/dome content and can generate fisheye projections. Its also possible to render to file to create hi-resolution movies.
+SGCT supports a variety of stereoscopic formats such as active quad buffered stereoscopy, side-by-side stereoscopy, top-bottom stereoscopy, checkerboard/DLP/pixel interlaced stereoscopy, line interlaced stereoscopy and anaglyphic stereoscopy.
+SGCT applications are scalable and use a XML configuration file where all cluster nodes (IGs) and their properties are specified. Therefore there is no need of recompiling an application for different VR setups.
+SGCT does also support running cluster applications on a single computer for testing purposes.
+
+\subsection licence Licence
+Copyright (c) 2012-2013 Miroslav Andel\n
+All rights reserved.\n
+\n
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson\n
+For any questions or information about the SGCT project please contact: miroslav.andel@liu.se\n
+\n
+Redistribution and use in source and binary forms, with or without modification,\n
+are permitted provided that the following conditions are met:
+    -# Redistributions of source code must retain the above copyright\n
+	notice, this list of conditions and the following disclaimer.
+
+    -# Redistributions in binary form must reproduce the above copyright\n
+	notice, this list of conditions and the following disclaimer in the\n
+	documentation and/or other materials provided with the distribution.
+	
+    -# Neither the name of the Linköping University nor the\n
+	names of its contributors may be used to endorse or promote products\n
+	derived from this software without specific prior written permission.
+
+\n
+THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''\n
+AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,\n
+THE IMPLIED WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE DISCLAIMED.\n
+IN NO EVENT SHALL THE COPYRIGHT HOLDERS AND CONTRIBUTORS BE LIABLE FOR ANY DIRECT,\n
+INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES\n
+(INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES; LOSS OF USE, DATA,\n
+OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY,\n
+WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE)\n
+ARISING IN ANY WAY OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.\n
+
+\subsection dependencies Dependencies
+SGCT is using the following libraries.
+- <a href="http://www.glfw.org">GLFW 3</a>
+- <a href="http://glew.sourceforge.net/">GLEW - The OpenGL Extension Wrangler Library</a>
+- <a href="http://glm.g-truc.net/">GLM - OpenGL Mathematics</a>
+- <a href="http://tinythreadpp.bitsnbites.eu/">TinyThread++</a>
+- <a href="http://www.grinninglizard.com/tinyxml2/index.html">TinyXML-2</a>
+- <a href="http://www.cs.unc.edu/Research/vrpn/">VRPN - Virtual Reality Peripheral Network</a>
+- <a href="http://www.freetype.org">Freetype</a>
+- <a href="http://www.zlib.net/">ZLib</a>
+- <a href="http://www.libpng.org/">libPNG</a>
+
+\n
+*/
+
 
 #ifdef __WIN32__
 #ifndef WIN32_LEAN_AND_MEAN

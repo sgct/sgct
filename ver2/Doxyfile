@@ -32,7 +32,7 @@ PROJECT_NAME           = "Simple Graphics Cluster Toolkit"
 # This could be handy for archiving the generated documentation or 
 # if some version control system is used.
 
-PROJECT_NUMBER         = "SGCT 2.0.3"
+PROJECT_NUMBER         = "SGCT 2.0.4"
 
 # Using the PROJECT_BRIEF tag one can provide an optional one line description 
 # for a project that appears at the top of each page and should give viewer 
@@ -683,7 +683,7 @@ INPUT                  = .
 # into libc) for the transcoding. See http://www.gnu.org/software/libiconv for 
 # the list of possible encodings.
 
-INPUT_ENCODING         = UTF-8
+INPUT_ENCODING         = Latin1
 
 # If the value of the INPUT tag contains directories, you can use the 
 # FILE_PATTERNS tag to specify one or more wildcard pattern (like *.cpp 

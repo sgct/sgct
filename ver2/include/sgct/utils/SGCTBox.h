@@ -10,6 +10,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../helpers/SGCTVertexData.h"
 
+/*! \namespace sgct_utils
+\brief SGCT utils namespace contains basic utilities for geometry rendering
+*/
 namespace sgct_utils
 {
 

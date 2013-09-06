@@ -12,8 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
-	/*!
+	/*
 		Contains GLSL 3.3+ shaders
+	*/
+
+	/*! \namespace shaders_modern
+	\brief shaders_modern namespace contains modern opengl shaders
 	*/
 	namespace shaders_modern
 	{

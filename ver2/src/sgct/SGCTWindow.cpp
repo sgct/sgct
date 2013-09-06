@@ -278,13 +278,6 @@ void sgct_core::SGCTWindow::init(int id)
 */
 void sgct_core::SGCTWindow::initOGL()
 {
-	/*
-		Mac for example scales the window size != frame buffer size
-	*/
-	glfwGetFramebufferSize(mWindowHandle, &mWindowRes[0], &mWindowRes[1]);
-	mWindowInitialRes[0] = mWindowRes[0];
-	mWindowInitialRes[1] = mWindowRes[1];
-	
 	createTextures();
 	createVBOs(); //must be created before FBO
 	createFBOs();
@@ -691,6 +684,21 @@ bool sgct_core::SGCTWindow::openWindow(GLFWwindow* share)
 			mSharedHandle = mWindowHandle;
 
 		glfwMakeContextCurrent( mWindowHandle );
+
+		/*
+            Mac for example scales the window size != frame buffer size
+        */
+        glfwGetFramebufferSize(mWindowHandle, &mWindowRes[0], &mWindowRes[1]);
+
+        mWindowInitialRes[0] = mWindowRes[0];
+        mWindowInitialRes[1] = mWindowRes[1];
+        if( !mUseFixResolution )
+        {
+            mFramebufferResolution[0] = mWindowRes[0];
+            mFramebufferResolution[1] = mWindowRes[1];
+        }
+
+
 		/*
 			Swap inerval:
 			-1 = adaptive sync

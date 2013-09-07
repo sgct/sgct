@@ -157,7 +157,7 @@ sgct::Engine::~Engine()
 Engine initiation that:
  1. Parse the configuration file
  2. Set up the network communication
- 3. Create a window
+ 3. Create window(s)
  4. Set up OpenGL
 	4.1 Create textures
 	4.2 Init FBOs
@@ -2934,6 +2934,7 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 	\param fnPtr is the function pointer to a keyboard callback function
 
 	This function sets the keyboard callback (GLFW wrapper) where the two parameters are: int key, int action. Key can be a character (e.g. 'A', 'B', '5' or ',') or a special character defined in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
+	All windows are connected to this callback.
 
 	Name          | Description
 	------------- | -------------
@@ -3071,12 +3072,14 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 	SGCT_KEY_LAST | Last key index
 
 */
-
 void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 {
 	gKeyboardCallbackFn = fnPtr;
 }
 
+/*!
+All windows are connected to this callback.
+*/
 void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 {
 	gCharCallbackFn = fnPtr;
@@ -3085,6 +3088,7 @@ void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 	\param fnPtr is the function pointer to a mouse button callback function
 
 	This function sets the mouse button callback (GLFW wrapper) where the two parameters are: int button, int action. Button id's are listed in the table below. Action can either be SGCT_PRESS or SGCT_RELEASE.
+	All windows are connected to this callback.
 
 	Name          | Description
 	------------- | -------------
@@ -3107,11 +3111,17 @@ void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 	gMouseButtonCallbackFn = fnPtr;
 }
 
+/*!
+All windows are connected to this callback.
+*/
 void sgct::Engine::setMousePosCallbackFunction( void(*fnPtr)(double, double) )
 {
 	gMousePosCallbackFn = fnPtr;
 }
 
+/*!
+All windows are connected to this callback.
+*/
 void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(double, double) )
 {
 	gMouseScrollCallbackFn = fnPtr;
@@ -3505,6 +3515,16 @@ int sgct::Engine::getActiveYResolution()
 	return getActiveWindowPtr()->getYFramebufferResolution();
 }
 
+/*!
+	\Returns the index of the window that is focued. If no window is focused 0 is returned.
+*/
+std::size_t sgct::Engine::getFocusedWindowIndex()
+{
+	for( std::size_t i=0; i<mThisNode->getNumberOfWindows(); i++ )
+		if( mThisNode->getWindowPtr(i)->isFocused() )
+			return i;
+	return 0; //no window is focued
+}
 
 /*!
 	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
@@ -3636,38 +3656,59 @@ const char * sgct::Engine::getAAInfo(std::size_t winIndex)
 }
 
 /*!
-	Checks the keyboard is if the specified key has been pressed.
+	Checks the keyboard if the specified key has been pressed.
+	\param winIndex specifies which window to poll
+	\param key specifies which key to check
 	\returns SGCT_PRESS or SGCT_RELEASE
 */
-int sgct::Engine::getKey( int key )
+int sgct::Engine::getKey( std::size_t winIndex, int key )
 {
-	return glfwGetKey( mInstance->getActiveWindowPtr()->getWindowHandle(), key);
+	return glfwGetKey( mInstance->getWindowPtr( winIndex )->getWindowHandle(), key);
 }
 
 /*!
 	Checks if specified mouse button has been pressed.
+	\param winIndex specifies which window to poll
+	\param button specifies which button to check
 	\returns SGCT_PRESS or SGCT_RELEASE
 */
-int sgct::Engine::getMouseButton( int button )
+int sgct::Engine::getMouseButton( std::size_t winIndex, int button )
 {
-	return glfwGetMouseButton(mInstance->getActiveWindowPtr()->getWindowHandle(), button);
+	return glfwGetMouseButton(mInstance->getWindowPtr(winIndex)->getWindowHandle(), button);
 }
 
-void sgct::Engine::getMousePos( double * xPos, double * yPos )
+/*!
+	Get the mouse position.
+	\param winIndex specifies which window to poll
+	\param xPos x screen coordinate
+	\param yPos y screen coordinate
+*/
+void sgct::Engine::getMousePos( std::size_t winIndex, double * xPos, double * yPos )
 {
-	glfwGetCursorPos(mInstance->getActiveWindowPtr()->getWindowHandle(), xPos, yPos);
+	glfwGetCursorPos(mInstance->getWindowPtr(winIndex)->getWindowHandle(), xPos, yPos);
 }
 
-void sgct::Engine::setMousePos( double xPos, double yPos )
+/*!
+	Set the mouse position.
+	\param winIndex specifies which window's input to set
+	\param xPos x screen coordinate
+	\param yPos y screen coordinate
+*/
+void sgct::Engine::setMousePos( std::size_t winIndex, double xPos, double yPos )
 {
-	glfwSetCursorPos(mInstance->getActiveWindowPtr()->getWindowHandle(), xPos, yPos);
+	glfwSetCursorPos(mInstance->getWindowPtr(winIndex)->getWindowHandle(), xPos, yPos);
 }
 
-void sgct::Engine::setMousePointerVisibility( bool state )
+/*!
+	Set the mouse pointer/cursor visibility
+	\param winIndex specifies which window's input to set
+	\param state set to true if mouse pointer should be visible
+*/
+void sgct::Engine::setMousePointerVisibility( std::size_t winIndex, bool state )
 {
 	state ?
-		glfwSetInputMode(mInstance->getActiveWindowPtr()->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) :
-		glfwSetInputMode(mInstance->getActiveWindowPtr()->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL );
+		glfwSetInputMode(mInstance->getWindowPtr(winIndex)->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) :
+		glfwSetInputMode(mInstance->getWindowPtr(winIndex)->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN );
 }
 
 /*!

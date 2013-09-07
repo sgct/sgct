@@ -47,6 +47,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mUseFXAA = false;
 	mUsePostFX = false;
 	mFullRes = true;
+	mFocused = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -167,6 +168,14 @@ int sgct::SGCTWindow::getId()
 	return mId;
 }
 
+/*!
+	\returns this window's focused flag
+*/
+bool sgct::SGCTWindow::isFocused()
+{
+	return mFocused;
+}
+
 void sgct::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
@@ -266,6 +275,7 @@ void sgct::SGCTWindow::init(int id)
 		if(mSetWindowPos)
 			glfwSetWindowPos( mWindowHandle, mWindowPos[0], mWindowPos[1] );
 		glfwSetFramebufferSizeCallback( mWindowHandle, windowResizeCallback );
+		glfwSetWindowFocusCallback( mWindowHandle, windowFocusCallback );
 	}
 
 	//swap the buffers and update the window
@@ -355,6 +365,15 @@ void sgct::SGCTWindow::setVisibility(bool state)
 		state ? glfwShowWindow( mWindowHandle ) : glfwHideWindow( mWindowHandle );
 		mVisible = state;
 	}
+}
+
+/*!
+	Set the focued flag for this window
+*/
+void sgct::SGCTWindow::setFocused(bool state)
+{
+	mFocused = state;
+	//MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow %d: Focused=%d.\n", mId, mFocused);
 }
 
 /*!
@@ -736,6 +755,10 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		*/
 		glfwSwapInterval( SGCTSettings::instance()->getSwapInterval() );
 
+		//if slave disable mouse pointer
+		if( !Engine::instance()->isMaster() )
+			glfwSetInputMode( mWindowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN );
+
 		glfwMakeContextCurrent( mSharedHandle );
 
 		mScreenCapture = new sgct_core::ScreenCapture();
@@ -826,10 +849,26 @@ void sgct::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int
 {
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 
-	//find the correct window to update
-	for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
-		if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
-			thisNode->getWindowPtr(i)->setWindowResolution(width > 0 ? width : 1, height > 0 ? height : 1);
+	if( thisNode != NULL )
+	{
+		//find the correct window to update
+		for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
+			if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
+				thisNode->getWindowPtr(i)->setWindowResolution(width > 0 ? width : 1, height > 0 ? height : 1);
+	}
+}
+
+void sgct::SGCTWindow::windowFocusCallback( GLFWwindow * window, int state )
+{
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+
+	if( thisNode != NULL )
+	{
+		//find the correct window to update
+		for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
+			if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
+				thisNode->getWindowPtr(i)->setFocused( state == GL_TRUE ? true : false );
+	}
 }
 
 void sgct::SGCTWindow::initScreenCapture()

@@ -26,7 +26,7 @@ namespace sgct
 /*!
 The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
 
-The figure below illustrates when different callbacks (gray boxes) are called in the renderloop. The blue boxes illustrates internal processess.
+The figure below illustrates when different callbacks (gray and blue boxes) are called in the renderloop. The blue boxes illustrates internal processess.
 
 \image html render_diagram.jpg
 \image latex render_diagram.eps "Render diagram" width=7cm
@@ -115,6 +115,7 @@ public:
 	unsigned int getActiveDepthTexture();
 	int getActiveXResolution();
 	int getActiveYResolution();
+	std::size_t getFocusedWindowIndex();
 
 	/*!
 		\param state of the wireframe rendering
@@ -169,11 +170,11 @@ public:
 
     //GLFW wrapped functions
 	static double getTime();
-	static int getKey( int key );
-	static int getMouseButton( int button );
-	static void getMousePos( double * xPos, double * yPos );
-	static void setMousePos( double xPos, double yPos );
-	static void setMousePointerVisibility( bool state );
+	static int getKey( std::size_t winIndex, int key );
+	static int getMouseButton( std::size_t winIndex, int button );
+	static void getMousePos( std::size_t winIndex, double * xPos, double * yPos );
+	static void setMousePos( std::size_t winIndex, double xPos, double yPos );
+	static void setMousePointerVisibility( std::size_t winIndex, bool state );
 	static const char * getJoystickName( int joystick );
 	static const float * getJoystickAxes( int joystick, int * numOfValues);
 	static const unsigned char * getJoystickButtons( int joystick, int * numOfValues);

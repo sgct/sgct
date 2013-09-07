@@ -353,7 +353,9 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 			{
 				mousePointer = !mousePointer; //toggle
-				sgct::Engine::setMousePointerVisibility(mousePointer);
+
+				for(size_t i=0; i<gEngine->getNumberOfWindows(); i++)
+					sgct::Engine::setMousePointerVisibility(i, mousePointer);
 			}
 			break;
 

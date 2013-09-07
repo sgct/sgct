@@ -55,6 +55,7 @@ public:
 	// ------------- set functions ----------------- //
 	void setName(const std::string & name);
 	void setVisibility(bool state);
+	void setFocused(bool state);
 	void setWindowTitle(const char * title);
 	void setWindowResolution(const int x, const int y);
 	void setFramebufferResolution(const int x, const int y);
@@ -76,6 +77,7 @@ public:
 
 	// -------------- is functions --------------- //
 	bool				isFullScreen();
+	bool				isFocused();
 	bool				isWindowResized();
 	bool				isVisible();
 	bool				isFixResolution();
@@ -212,6 +214,7 @@ public:
 
 private:
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
+	static void windowFocusCallback( GLFWwindow * window, int state );
 	void initScreenCapture();
 	void deleteAllViewports();
 	void createTextures();
@@ -231,6 +234,7 @@ private:
 	std::string mName;
 
 	bool mVisible;
+	bool mFocused;
 	bool mUseFixResolution;
 	bool mUseSwapGroups;
 	bool mBarrier;

@@ -148,9 +148,9 @@ void myPostSyncPreDrawFun()
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 
 	int tmpStereoMode = stereoMode.getVal();
-	/*for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
+	for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
 		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
-			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );*/
+			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );
 
 	if( tmpStereoMode != gEngine->getWindowPtr(0)->getStereoMode() )
 		gEngine->getWindowPtr(0)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );

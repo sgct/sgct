@@ -238,7 +238,7 @@ void myPreSyncFun()
 
 		if( mouseButtonStatus[ LEFT_MB ] )
 		{
-			sgct::Engine::getMousePos( &mouseXPos[0], &mouseYPos[0] );
+			sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[0], &mouseYPos[0] );
 			mouseDiff[ X ] = mouseXPos[0] - mouseXPos[1];
 			mouseDiff[ Y ] = mouseYPos[0] - mouseYPos[1];
 		}
@@ -637,7 +637,7 @@ void mouseButtonCallback(int button, int action)
 			mouseButtonStatus[ LEFT_MB ] = (action == SGCT_PRESS ? true : false);
 
 			//set refPos
-			sgct::Engine::getMousePos( &mouseXPos[1], &mouseYPos[1] );
+			sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[1], &mouseYPos[1] );
 			break;
 		}
 	}

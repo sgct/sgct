@@ -23,8 +23,30 @@ namespace sgct_text
 {
 
 /*!
-Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype
-@link http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/
+Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehes tutorials for freetype</a>
+\n
+\n
+How to load a font (somewhere in the openGL init callback or in callbacks with shared openGL context):
+\n
+\code{.cpp}
+//Add Verdana size 14 to the FontManager using the system font path
+if( !sgct_text::FontManager::instance()->addFont( "Verdana", "verdana.ttf" ) )
+	sgct_text::FontManager::instance()->getFont( "Verdana", 14 );
+ 
+//Add Special font from local path
+if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", "myfonts/" ) )
+	sgct_text::FontManager::instance()->getFont( "Special", 14 );
+\endcode
+\n
+Then in the draw or draw2d callback the font can be rendered:
+\code{.cpp}
+sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), 50, 50, "Hello World!");
+\endcode
+\n
+SGCT has an internal font that can be used as well:
+\code{.cpp}
+sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 14 ), 50, 50, "Hello World!");
+\endcode
 */
 class FontManager
 {

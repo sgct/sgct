@@ -705,7 +705,9 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	int count;
 	GLFWmonitor** monitors = glfwGetMonitors(&count);
 
-	/*for(int i=0; i<count; i++)
+	//get video modes and print them
+	/*
+	for(int i=0; i<count; i++)
 	{
 		int numberOfVideoModes;
 		const GLFWvidmode * videoModes = glfwGetVideoModes( monitors[i], &numberOfVideoModes);
@@ -714,7 +716,9 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 			i, glfwGetMonitorName( monitors[i] ) );
 
 		for(int j=0; j<numberOfVideoModes; j++)
-			MessageHandler::instance()->print("%d x %d @ %d\n", videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate );
+			MessageHandler::instance()->print("%d x %d @ %d | R%d G%d B%d\n",
+			videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate,
+			videoModes[j].redBits, videoModes[j].greenBits, videoModes[j].blueBits);
 
 		MessageHandler::instance()->print("\n");
 	}*/

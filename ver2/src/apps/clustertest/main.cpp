@@ -357,7 +357,7 @@ void keyCallback(int key, int action)
 				mousePointer = !mousePointer; //toggle
 
 				for(size_t i=0; i<gEngine->getNumberOfWindows(); i++)
-					sgct::Engine::setMousePointerVisibility(i, mousePointer);
+					sgct::Engine::setMouseCursorVisibility(i, mousePointer);
 			}
 			break;
 

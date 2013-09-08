@@ -175,7 +175,7 @@ public:
 	static int getMouseButton( std::size_t winIndex, int button );
 	static void getMousePos( std::size_t winIndex, double * xPos, double * yPos );
 	static void setMousePos( std::size_t winIndex, double xPos, double yPos );
-	static void setMousePointerVisibility( std::size_t winIndex, bool state );
+	static void setMouseCursorVisibility( std::size_t winIndex, bool state );
 	static const char * getJoystickName( int joystick );
 	static const float * getJoystickAxes( int joystick, int * numOfValues);
 	static const unsigned char * getJoystickButtons( int joystick, int * numOfValues);

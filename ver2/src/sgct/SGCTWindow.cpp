@@ -50,6 +50,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFocused = false;
 	mIconified = false;
 
+	mRefreshRate = 0;
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
 	mWindowResOld[0] = mWindowRes[0];
@@ -706,8 +707,8 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	GLFWmonitor** monitors = glfwGetMonitors(&count);
 
 	//get video modes and print them
-	/*
-	for(int i=0; i<count; i++)
+	
+	/*for(int i=0; i<count; i++)
 	{
 		int numberOfVideoModes;
 		const GLFWvidmode * videoModes = glfwGetVideoModes( monitors[i], &numberOfVideoModes);
@@ -727,6 +728,9 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 	if( mFullScreen )
 	{
+		if( mRefreshRate > 0 )
+			glfwWindowHint(GLFW_REFRESH_RATE, mRefreshRate);
+		
 		if( mMonitorIndex > 0 && mMonitorIndex < count )
 			mMonitor = monitors[ mMonitorIndex ];
 		else
@@ -807,7 +811,9 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
 
-		hDC = wglGetCurrentDC();
+		//hDC = wglGetCurrentDC();
+		HWND hwnd = glfwGetWin32Window( mWindowHandle );
+		hDC = GetDC(hwnd);	//get the device context for window
 
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
@@ -2030,6 +2036,17 @@ int sgct::SGCTWindow::getScreenShotNumber()
 void sgct::SGCTWindow::setCurrentViewport(std::size_t index)
 {
 	mCurrentViewportIndex = index;
+}
+
+/*!
+	Set the refreshrate hint of the window in fullscreen mode.
+	If it's not listed in your monitor's video-mode list than it will not be used.
+
+	\param freq the refresh frequency/rate
+*/
+void sgct::SGCTWindow::setRefreshRateHint(int freq)
+{
+	mRefreshRate = freq;
 }
 
 /*!

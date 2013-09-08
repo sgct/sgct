@@ -3699,11 +3699,11 @@ void sgct::Engine::setMousePos( std::size_t winIndex, double xPos, double yPos )
 }
 
 /*!
-	Set the mouse pointer/cursor visibility
+	Set the mouse cursor/pointer visibility
 	\param winIndex specifies which window's input to set
-	\param state set to true if mouse pointer should be visible
+	\param state set to true if mouse cursor should be visible
 */
-void sgct::Engine::setMousePointerVisibility( std::size_t winIndex, bool state )
+void sgct::Engine::setMouseCursorVisibility( std::size_t winIndex, bool state )
 {
 	state ?
 		glfwSetInputMode(mInstance->getWindowPtr(winIndex)->getWindowHandle(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) :

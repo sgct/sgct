@@ -30,7 +30,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 		#include <GL/glxew.h>
 	#endif
 
+	#ifdef __WIN32__
+		#define GLFW_EXPOSE_NATIVE_WIN32
+		#define GLFW_EXPOSE_NATIVE_WGL
+	#elif defined __LINUX__
+		#define GLFW_EXPOSE_NATIVE_X11
+		#define GLFW_EXPOSE_NATIVE_GLX
+	#elif defined __APPLE__
+		#define GLFW_EXPOSE_NATIVE_COCOA
+		#define GLFW_EXPOSE_NATIVE_NSGL
+	#endif
+
 	#include <GL/glfw3.h>
+	#include <GL/glfw3native.h>
 #endif
 
 #endif

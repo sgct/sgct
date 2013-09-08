@@ -552,7 +552,6 @@ void sgct::Engine::initOGL()
 			getActiveWindowPtr()->getViewport(j)->loadData();
 
 		//init swap barrier is swap groups are active
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Joining swap barrier if enabled and reseting counter...\n");
 		mThisNode->getWindowPtr(i)->setBarrier(true);
 		mThisNode->getWindowPtr(i)->resetSwapGroupFrameNumber();
 	}
@@ -568,6 +567,8 @@ Clean up all resources and release memory.
 */
 void sgct::Engine::clean()
 {
+	bool master = isMaster();
+	
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
 
 	if( mCleanUpFn != NULL )
@@ -2123,7 +2124,7 @@ void sgct::Engine::render2D()
 	//draw info & stats
 	//the cubemap viewports are all the same so it makes no sense to render everything several times
 	//therefore just loop one iteration in that case.
-	if( mShowGraph || mShowInfo )
+	if( mShowGraph || mShowInfo || mDraw2DFn != NULL )
 	{
 		std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 		for(std::size_t i=0; i < numberOfIterations; i++)
@@ -2145,11 +2146,11 @@ void sgct::Engine::render2D()
 					mActiveFrustumMode = getActiveWindowPtr()->getCurrentViewport()->getEye();
 				renderDisplayInfo();
 			}
+
+			if( mDraw2DFn != NULL )
+				mDraw2DFn();
 		}
 	}
-
-	if( mDraw2DFn != NULL )
-		mDraw2DFn();
 }
 
 /*!
@@ -2586,7 +2587,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			!mThisNode->shouldAllWindowsClose() &&
 			!mTerminate)
 		{
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
+			fprintf(stdout, ".");
 
 			// Swap front and back rendering buffers
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -2596,9 +2597,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			if(mNetworkConnections->areAllNodesConnected())
 				break;
 
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
-			NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::MainMutex )) );
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
+			sleep( 0.1 );
 		}
 
 		//wait for user to release exit key

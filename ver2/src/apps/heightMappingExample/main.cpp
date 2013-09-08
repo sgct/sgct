@@ -114,10 +114,10 @@ void myPostSyncPreDrawFun()
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
 
-	int tmpStereoMode = stereoMode.getVal();
+	/*int tmpStereoMode = stereoMode.getVal();
 	for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
 		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
-			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );
+			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );*/
 
 	if( takeScreenshot.getVal() )
 	{

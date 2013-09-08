@@ -606,7 +606,6 @@ void sgct::SGCTWindow::setBarrier(const bool state)
     #endif
 #endif
 	}
-
 //#endif
 }
 
@@ -660,7 +659,10 @@ void sgct::SGCTWindow::setUseQuadbuffer(const bool state)
 {
 	mUseQuadBuffer = state;
 	if( mUseQuadBuffer )
+	{
 		glfwWindowHint(GLFW_STEREO, GL_TRUE);
+		MessageHandler::instance()->print( MessageHandler::NOTIFY_INFO, "Window %d: Enabling quadbuffered rendering.\n", mId);
+	}
 }
 
 /*!
@@ -1985,14 +1987,7 @@ int sgct::SGCTWindow::getNumberOfAASamples()
 */
 void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 {
-	if( sm == Active_Stereo && !mUseQuadBuffer )
-	{
-		mStereoMode = No_Stereo;
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "SGCTWindow: Window %d doesn't support Quadbuffer/Active stereo!\nReverting to monoscopic rendering.\n",
-			mId);
-	}
-	else
-		mStereoMode = sm;
+	mStereoMode = sm;
 
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
 		getStereoModeStr().c_str(), mId);

@@ -36,6 +36,8 @@ void drawGrid(float size, int steps);
 
 int main( int argc, char* argv[] )
 {
+	sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
+	
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	gEngine->setInitOGLFunction( myInitOGLFun );

@@ -110,6 +110,7 @@ public:
 	void setClearColor(float red, float green, float blue, float alpha);
 	void setFisheyeClearColor(float red, float green, float blue);
 	void setExitKey(int key);
+	void setExitWaitTime(double time);
 	void addPostFX( PostFX & fx );
 	unsigned int getActiveDrawTexture();
 	unsigned int getActiveDepthTexture();

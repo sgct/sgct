@@ -77,7 +77,7 @@ int main( int argc, char* argv[] )
 void myDraw2DFun()
 {
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 50, glm::vec4(1.0, 0.0, 0.0, 1.0), "Draw2D hej ps dej du ar ytr NoR");
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getActiveWindowPtr()->isFocused() ? "true" : "false");
 }
 
 void myDrawFun()

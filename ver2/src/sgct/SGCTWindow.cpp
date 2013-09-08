@@ -48,6 +48,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mUsePostFX = false;
 	mFullRes = true;
 	mFocused = false;
+	mIconified = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -176,6 +177,14 @@ bool sgct::SGCTWindow::isFocused()
 	return mFocused;
 }
 
+/*!
+	\returns this window's inconify flag 
+*/
+bool sgct::SGCTWindow::isIconified()
+{
+	return mIconified;
+}
+
 void sgct::SGCTWindow::close()
 {
 	makeOpenGLContextCurrent( Shared_Context );
@@ -276,6 +285,7 @@ void sgct::SGCTWindow::init(int id)
 			glfwSetWindowPos( mWindowHandle, mWindowPos[0], mWindowPos[1] );
 		glfwSetFramebufferSizeCallback( mWindowHandle, windowResizeCallback );
 		glfwSetWindowFocusCallback( mWindowHandle, windowFocusCallback );
+		glfwSetWindowIconifyCallback( mWindowHandle, windowIconifyCallback );
 	}
 
 	//swap the buffers and update the window
@@ -368,12 +378,20 @@ void sgct::SGCTWindow::setVisibility(bool state)
 }
 
 /*!
-	Set the focued flag for this window
+	Set the focued flag for this window (should not be done by user)
 */
 void sgct::SGCTWindow::setFocused(bool state)
 {
 	mFocused = state;
 	//MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow %d: Focused=%d.\n", mId, mFocused);
+}
+
+/*!
+	Set the inonified flag for this window (should not be done by user)
+*/
+void sgct::SGCTWindow::setIconified(bool state)
+{
+	mIconified = state;
 }
 
 /*!
@@ -759,6 +777,9 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		if( !Engine::instance()->isMaster() )
 			glfwSetInputMode( mWindowHandle, GLFW_CURSOR, GLFW_CURSOR_HIDDEN );
 
+		mFocused = (glfwGetWindowAttrib(mWindowHandle, GLFW_FOCUSED) == GL_TRUE ? true : false);
+		mIconified = (glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GL_TRUE ? true : false);
+
 		glfwMakeContextCurrent( mSharedHandle );
 
 		mScreenCapture = new sgct_core::ScreenCapture();
@@ -868,6 +889,19 @@ void sgct::SGCTWindow::windowFocusCallback( GLFWwindow * window, int state )
 		for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
 			if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
 				thisNode->getWindowPtr(i)->setFocused( state == GL_TRUE ? true : false );
+	}
+}
+
+void sgct::SGCTWindow::windowIconifyCallback( GLFWwindow * window, int state )
+{
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+
+	if( thisNode != NULL )
+	{
+		//find the correct window to update
+		for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
+			if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
+				thisNode->getWindowPtr(i)->setIconified( state == GL_TRUE ? true : false );
 	}
 }
 

@@ -59,7 +59,7 @@ void myInitOGLFun()
 		leftHand	= tracker->getDevicePtr("Left Hand");
 		rightHand	= tracker->getDevicePtr("Right Hand");
 	}
- 
+
 	if(leftHand == NULL || rightHand == NULL)
 	{
 		error = true;

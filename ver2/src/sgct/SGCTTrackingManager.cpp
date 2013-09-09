@@ -66,7 +66,7 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...");
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-            fprintf(stderr, "Destructing, setting running to false...\n");
+	fprintf(stderr, "Destructing, setting running to false...\n");
 #endif
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mRunning = false;
@@ -339,6 +339,8 @@ sgct::SGCTTracker * sgct::SGCTTrackingManager::getTrackerPtr(const char * name)
 		if( strcmp(name, mTrackers[i]->getName().c_str()) == 0 )
 			return mTrackers[i];
 	}
+
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
 
 	//if not found
 	return NULL;

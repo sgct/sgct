@@ -60,7 +60,6 @@
 			<Add option="-O3" />
 			<Add option="-Wall" />
 			<Add directory="../../include" />
-			<Add directory="/opt/X11/include" />
 		</Compiler>
 		<Linker>
 			<Add directory="../../lib/mingw/deps" />

@@ -567,9 +567,7 @@ Clean up all resources and release memory.
 */
 void sgct::Engine::clean()
 {
-	bool master = isMaster();
-	
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
 
 	if( mCleanUpFn != NULL )
 	{

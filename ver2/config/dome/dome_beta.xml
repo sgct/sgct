@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="172.19.2.10" externalControlPort="20500">
 	<Settings>
-		<Display swapInterval="2" />
+		<Display swapInterval="2" refreshRate="60" />
 	</Settings>
 	<Node ip="172.19.2.10" port="20400">
 		<Window fullScreen="false" numberOfSamples="4" swapLock="true">

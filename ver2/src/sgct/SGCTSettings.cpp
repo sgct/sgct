@@ -23,6 +23,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUseFBO = true;
 
 	mSwapInterval = 1;
+	mRefreshRate = 0;
 	mOSDTextOffset[0] = 0.05f;
 	mOSDTextOffset[1] = 0.05f;
 
@@ -73,6 +74,26 @@ int sgct::SGCTSettings::getSwapInterval()
 {
 	return mSwapInterval;
 }
+
+/*!
+	Set the refreshrate hint of the window in fullscreen mode.
+	If it's not listed in your monitor's video-mode list than it will not be used.
+
+	\param freq the refresh frequency/rate
+*/
+void sgct::SGCTSettings::setRefreshRateHint(int freq)
+{
+	mRefreshRate = freq;
+}
+
+/*!
+	Get the refreshrate hint of the window in fullscreen mode.
+*/
+int sgct::SGCTSettings::getRefreshRateHint()
+{
+	return mRefreshRate;
+}
+
 
 /*!
 Set to true if depth buffer textures should be allocated and used.

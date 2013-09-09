@@ -48,7 +48,6 @@ elseif( WIN32 ) #MINGW or similar
 		ws2_32
 	)
 elseif( APPLE )
-	find_library(AGL_LIBRARY AGL REQUIRED)
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
 
@@ -56,7 +55,6 @@ elseif( APPLE )
 		${SGCT_LIBS}
 		${OPENSCENEGRAPH_LIBRARIES}
 		${OPENGL_LIBRARY}
-		${AGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
 	)

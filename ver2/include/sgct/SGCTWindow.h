@@ -75,7 +75,6 @@ public:
 	void setStereoMode( StereoMode sm );
 	void setScreenShotNumber(int number);
 	void setCurrentViewport(std::size_t index);
-	void setRefreshRateHint(int freq);
 
 	// -------------- is functions --------------- //
 	bool				isFullScreen();
@@ -255,7 +254,6 @@ private:
 	int mWindowPos[2];
 	int mWindowResOld[2];
 	int mMonitorIndex;
-	int mRefreshRate;
 	GLFWmonitor * mMonitor;
 	GLFWwindow * mWindowHandle;
 	GLFWwindow * mSharedHandle;

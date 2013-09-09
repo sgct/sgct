@@ -45,6 +45,7 @@ public:
 
 	// ----------- set functions ---------------- //
 	void setSwapInterval(int val);
+	void setRefreshRateHint(int freq);
 	void setUseDepthTexture(bool state);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
@@ -64,6 +65,7 @@ public:
 	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
 	int					getCaptureFormat();
 	int					getSwapInterval();
+	int					getRefreshRateHint();
 	const int &			getOSDTextFontSize();
 	const std::string &	getOSDTextFontName();
 	const std::string &	getOSDTextFontPath();
@@ -99,6 +101,7 @@ private:
 
 	int mCaptureFormat;
 	int mSwapInterval;
+	int mRefreshRate;
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
 	

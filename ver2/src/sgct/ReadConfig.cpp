@@ -320,15 +320,6 @@ void sgct_core::ReadConfig::readAndParseXML()
                             else
                                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse window resolution from XML!\n");
 						}
-						else if( strcmp("RefreshRate", val[2]) == 0 )
-						{
-							int rate = 0;
-							if( element[2]->QueryIntAttribute("value", &rate ) == XML_NO_ERROR )
-							{
-								tmpWin.setRefreshRateHint( rate );
-								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Window refresh rate hint is set to %d Hz.\n", rate);
-							}
-						}
 						else if( strcmp("Res", val[2]) == 0 )
 						{
 							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
@@ -597,9 +588,19 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if( strcmp("Display", val[1]) == 0 )
 				{
-				 int tmpInterval = 0;
+					int tmpInterval = 0;
 					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
+					{
 						sgct::SGCTSettings::instance()->setSwapInterval( tmpInterval );
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display swap interval is set to %d.\n", tmpInterval);
+					}
+
+					int rate = 0;
+					if( element[1]->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR )
+					{
+						sgct::SGCTSettings::instance()->setRefreshRateHint( rate );
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate);
+					}
 				}
 				else if( strcmp("OSDText", val[1]) == 0 )
 				{

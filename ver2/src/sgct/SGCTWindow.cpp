@@ -50,7 +50,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFocused = false;
 	mIconified = false;
 
-	mRefreshRate = 0;
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
 	mWindowResOld[0] = mWindowRes[0];
@@ -728,8 +727,8 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 	if( mFullScreen )
 	{
-		if( mRefreshRate > 0 )
-			glfwWindowHint(GLFW_REFRESH_RATE, mRefreshRate);
+		if( SGCTSettings::instance()->getRefreshRateHint() > 0 )
+			glfwWindowHint(GLFW_REFRESH_RATE, SGCTSettings::instance()->getRefreshRateHint());
 		
 		if( mMonitorIndex > 0 && mMonitorIndex < count )
 			mMonitor = monitors[ mMonitorIndex ];
@@ -2036,17 +2035,6 @@ int sgct::SGCTWindow::getScreenShotNumber()
 void sgct::SGCTWindow::setCurrentViewport(std::size_t index)
 {
 	mCurrentViewportIndex = index;
-}
-
-/*!
-	Set the refreshrate hint of the window in fullscreen mode.
-	If it's not listed in your monitor's video-mode list than it will not be used.
-
-	\param freq the refresh frequency/rate
-*/
-void sgct::SGCTWindow::setRefreshRateHint(int freq)
-{
-	mRefreshRate = freq;
 }
 
 /*!

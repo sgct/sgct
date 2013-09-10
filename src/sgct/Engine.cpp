@@ -3504,7 +3504,7 @@ void sgct::Engine::setMousePos( double xPos, double yPos )
 
 void sgct::Engine::setMousePointerVisibility( bool state )
 {
-	state ? glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) : glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL );
+	state ? glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_NORMAL ) : glfwSetInputMode( getWindowPtr()->getWindow(), GLFW_CURSOR, GLFW_CURSOR_HIDDEN  );
 }
 
 const char * sgct::Engine::getJoystickName( int joystick )

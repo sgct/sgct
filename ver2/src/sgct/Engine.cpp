@@ -86,6 +86,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mPreSyncFn = NULL;
 	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
+	mPreWindowFn = NULL;
 	mInitOGLFn = NULL;
 	mClearBufferFn = NULL;
 	mCleanUpFn = NULL;
@@ -394,6 +395,9 @@ bool sgct::Engine::initWindows()
 	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
 	*/
 
+	if( mPreWindowFn != NULL )
+		mPreWindowFn();
+
 	mStatistics = new Statistics();
 	GLFWwindow* share = NULL;
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -657,6 +661,7 @@ void sgct::Engine::clearAllCallbacks()
 	mPostSyncPreDrawFn = NULL;
 	mPostDrawFn = NULL;
 	mInitOGLFn = NULL;
+	mPreWindowFn = NULL;
 	mClearBufferFn = NULL;
 	mCleanUpFn = NULL;
 	mInternalDrawFn = NULL;
@@ -2879,6 +2884,17 @@ void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))
 void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 {
 	mInitOGLFn = fnPtr;
+}
+
+/*!
+	This callback is called before the window is created (before OpenGL context is created).
+	At this stage the config file has been read and network initialized. Therefore it's suitable for loading master or slave specific data.
+	
+	\param fnPtr is the function pointer to a pre window creation callback
+*/
+void sgct::Engine::setPreWindowFunction( void(*fnPtr)(void) )
+{
+	mPreWindowFn = fnPtr;
 }
 
 /*!

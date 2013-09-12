@@ -26,6 +26,7 @@ sgct_core::ClusterManager::ClusterManager(void)
 	mSceneRotation = glm::mat4(1.0f);
 
 	mMeshImpl = VBO; //default
+	//mMeshImpl = DISPLAY_LIST;
 }
 
 sgct_core::ClusterManager::~ClusterManager()

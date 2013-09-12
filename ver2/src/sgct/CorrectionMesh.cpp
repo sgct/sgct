@@ -7,7 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 //#define SGCT_SHOW_CORRECTION_MESH_WIREFRAME
 
-#define BUFFER_OFFSET(i) (reinterpret_cast<void*>(i))
 #define MAX_LINE_LENGTH 256
 
 #include <stdio.h>
@@ -16,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/CorrectionMesh.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/Engine.h"
 #include <cstring>
 
 sgct_core::CorrectionMesh::CorrectionMesh()
@@ -314,7 +314,7 @@ void sgct_core::CorrectionMesh::createMesh()
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", mMeshData[0], mMeshData[1]);
 
 		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
-		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), mVertices, GL_STATIC_DRAW);
+		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), &mVertices[0], GL_STATIC_DRAW);
 
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 		{
@@ -350,7 +350,7 @@ void sgct_core::CorrectionMesh::createMesh()
 		}
 
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), mFaces, GL_STATIC_DRAW);
+		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), &mFaces[0], GL_STATIC_DRAW);
 
 		//unbind
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
@@ -382,26 +382,23 @@ void sgct_core::CorrectionMesh::render()
 	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VBO )
 	{
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(0));
-
 		glClientActiveTexture(GL_TEXTURE0);
 		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(8));
-
 		glEnableClientState(GL_COLOR_ARRAY);
-		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), BUFFER_OFFSET(16));
 
-		glEnableClientState(GL_INDEX_ARRAY);
+		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		
+		glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(0));		
+		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(8));
+		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(16));
 
 		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
-
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		glPopClientAttrib();
 	}
 	else if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO )

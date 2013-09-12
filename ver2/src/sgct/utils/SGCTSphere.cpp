@@ -179,7 +179,6 @@ void sgct_utils::SGCTSphere::drawVBO()
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	glEnableClientState(GL_INDEX_ARRAY);
 	
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);

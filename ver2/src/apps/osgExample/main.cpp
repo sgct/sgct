@@ -155,7 +155,7 @@ void myPostSyncPreDrawFun()
 		mRootNode->getOrCreateStateSet()->setMode( GL_LIGHTING, osg::StateAttribute::OFF | osg::StateAttribute::OVERRIDE);
 
 	mSceneTrans->setMatrix(osg::Matrix::rotate( glm::radians(curr_time.getVal() * 8.0), 0.0, 1.0, 0.0));
-	mSceneTrans->postMult(osg::Matrix::translate(0.0, 0.0, dist.getVal()));
+	mSceneTrans->postMult(osg::Matrix::translate(0.0, -0.1, dist.getVal()));
 
 	//transform to scene transformation from configuration file
 	mSceneTrans->postMult( osg::Matrix( glm::value_ptr( gEngine->getModelMatrix() ) ));

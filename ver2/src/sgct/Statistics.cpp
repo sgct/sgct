@@ -46,6 +46,25 @@ void main()\n\
 	Color = Col;\n\
 };\n";
 
+const static std::string Stats_Vert_Shader_Legacy = "\
+#version 120\n\
+\n\
+void main()\n\
+{\n\
+	gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+};\n";
+
+const static std::string Stats_Frag_Shader_Legacy = "\
+#version 120\n\
+\n\
+uniform vec4 Col;\n\
+\n\
+void main()\n\
+{\n\
+	gl_FragColor = Col;\n\
+};\n";
+
 sgct_core::Statistics::Statistics()
 {
 	mAvgFPS = 0.0;
@@ -206,7 +225,20 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 
 	//unbind
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
-	if(!mFixedPipeline)
+	
+	if(mFixedPipeline)
+	{
+		mShader.setName("StatsShader");
+		mShader.addShaderSrc( Stats_Vert_Shader_Legacy, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.addShaderSrc( Stats_Frag_Shader_Legacy, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+		mShader.createAndLinkProgram();
+		mShader.bind();
+
+		mColLoc = mShader.getUniformLocation( "Col" );
+
+		mShader.unbind();
+	}
+	else
 	{
 		glBindVertexArray(0);
 
@@ -330,6 +362,8 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 
+	mShader.bind();
+
 	if(mFixedPipeline)
 	{
 		//enter ortho mode
@@ -348,35 +382,33 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glEnableClientState(GL_VERTEX_ARRAY);
-		glDisableClientState(GL_COLOR_ARRAY); //osg enables this which messes up the rendering
 
 		glTranslatef(0.0f, 32.0f, 0.0f);
-		//glPushMatrix();
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
 		glLineWidth( lineWidth );
 
 		//draw background (1024x1024 canvas)
-		glColor4fv( glm::value_ptr(mStaticColors[ BG ]) );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]) );
 		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ BG ]);
-		glVertexPointer(2, GL_FLOAT, 0, NULL);
+		glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 		glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 		//zero line, 60hz & 30hz
-		glColor4fv( glm::value_ptr(mStaticColors[ FREQ ]) );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
 		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ FREQ ]);
 		glVertexPointer(2, GL_FLOAT, 0, NULL);
 		glDrawArrays(GL_LINES, 0, 6);
 
 		//1 ms lines
-		glColor4fv( glm::value_ptr(mStaticColors[ GRID ]) );
+		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
 		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBOs[ GRID ]);
 		glVertexPointer(2, GL_FLOAT, 0, NULL);
 		glDrawArrays(GL_LINES, 0, static_cast<GLsizei>(mNumberOfLineVerts));
 
 		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
-			glColor4fv( glm::value_ptr(mDynamicColors[i]) );
+			glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[ i ]) );
 			glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
 			glVertexPointer(2, GL_DOUBLE, 0, NULL);
 			glDrawArrays(GL_LINE_STRIP, 0, STATS_HISTORY_LENGTH);
@@ -400,7 +432,6 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, 32.0f, 0.0f) );
 		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, static_cast<float>(VERT_SCALE), 1.0f) );
 		
-		mShader.bind();
 		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
 		
 		//draw background (1024x1024 canvas)
@@ -427,8 +458,9 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 		
 		//unbind
 		glBindVertexArray(0);
-		mShader.unbind();
 	}
+
+	mShader.unbind();
 }
 
 StatsVertex * sgct_core::Statistics::getVerts( unsigned int index )

@@ -52,18 +52,22 @@ void myInitOGLFun()
 {
 	glEnable(GL_DEPTH_TEST);
  
-	//get the tracking pointers
-	sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
-	if(tracker != NULL)
+	//connect only to VRPN on the master
+	if( gEngine->isMaster() )
 	{
-		leftHand	= tracker->getDevicePtr("Left Hand");
-		rightHand	= tracker->getDevicePtr("Right Hand");
-	}
+		//get the tracking pointers
+		sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
+		if(tracker != NULL)
+		{
+			leftHand	= tracker->getDevicePtr("Left Hand");
+			rightHand	= tracker->getDevicePtr("Right Hand");
+		}
 
-	if(leftHand == NULL || rightHand == NULL)
-	{
-		error = true;
-		sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
+		if(leftHand == NULL || rightHand == NULL)
+		{
+			error = true;
+			sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
+		}
 	}
 }
 

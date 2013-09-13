@@ -147,8 +147,14 @@ void sgct_core::ReadConfig::readAndParseXML()
 	{
 		throw "Cannot find master address in XML!";
 	}
-
 	ClusterManager::instance()->setMasterIp( masterAddress );
+
+	const char * debugMode = XMLroot->Attribute( "debug" );
+	if( debugMode == NULL )
+	{
+		sgct::MessageHandler::instance()->setNotifyLevel( strcmp( debugMode, "true" ) == 0 ?
+			sgct::MessageHandler::NOTIFY_DEBUG : sgct::MessageHandler::NOTIFY_WARNING );
+	}
 
 	if( XMLroot->Attribute( "externalControlPort" ) != NULL )
 	{

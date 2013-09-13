@@ -47,7 +47,7 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		if( MaxSamples < 2 )
 			samples = 0;
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Max samples supported: %d\n", MaxSamples);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Max samples supported: %d\n", MaxSamples);
 
 		//generate the multisample buffer
 		glGenFramebuffers(1, &mMultiSampledFrameBuffer);

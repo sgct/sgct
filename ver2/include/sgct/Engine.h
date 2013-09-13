@@ -349,6 +349,7 @@ private:
 	static void internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos);
 	static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 	static void internal_glfw_error_callback(int error, const char* description);
+	static void outputHelpMessage();
 
 private:
 	static Engine * mInstance;
@@ -394,6 +395,7 @@ private:
 	bool mIgnoreSync;
 	bool mRenderingOffScreen;
 	bool mFixedOGLPipeline;
+	bool mHelpMode;
 
 	//objects
 	ShaderProgram mShaders[NUMBER_OF_SHADERS];

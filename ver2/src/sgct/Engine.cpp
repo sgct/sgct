@@ -57,14 +57,16 @@ Note that parameter with one '\-' are followed by arguments but parameters with 
 Parameter     | Description
 ------------- | -------------
 -config <filename> | set xml confiuration file
+--help | display help message and exit
 -local <integer> | set which node in configuration that is the localhost (index starts at 0)
 --client | run the application as client (only available when running as local)
 --slave | run the application as client (only available when running as local)
+--debug | set the notify level of messagehandler to debug
 --Firm-Sync | enable firm frame sync
 --Loose-Sync | disable firm frame sync
 --Ignore-Sync | disable frame sync
--notify <integer> | the notify level used in the MessageHandler (0 = highest priority)
---No-FBO | don't use frame buffer objects (some stereo modes, Multi-Window rendering, FXAA and fisheye rendering will be disabled)
+-notify <integer> | set the notify level used in the MessageHandler (0 = highest priority)
+--No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering, FXAA and fisheye rendering will be disabled)
 --Capture-PNG | use png images for screen capture (default)
 --Capture-TGA | use tga images for screen capture
 -numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
@@ -101,6 +103,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mIgnoreSync = false;
 	mRenderingOffScreen = false;
 	mFixedOGLPipeline = true;
+	mHelpMode = false;
 
 	localRunningMode = NetworkManager::NotLocal;
 
@@ -132,17 +135,19 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mActiveFrustumMode = Frustum::Mono;
 	mFrameCounter = 0;
     mTimerID = 0;
+	mExitKey = GLFW_KEY_ESCAPE;
 
 	//parse needs to be before read config since the path to the XML is parsed here
 	parseArguments( argc, argv );
 
-	mExitKey = GLFW_KEY_ESCAPE;
-
-	// Initialize GLFW
-	glfwSetErrorCallback( internal_glfw_error_callback );
-	if( !glfwInit() )
+	if(!mHelpMode)
 	{
-		mTerminate = true;
+		// Initialize GLFW
+		glfwSetErrorCallback( internal_glfw_error_callback );
+		if( !glfwInit() )
+		{
+			mTerminate = true;
+		}
 	}
 }
 
@@ -173,6 +178,9 @@ bool sgct::Engine::init(RunMode rm)
 
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "%s\n", getSGCTVersion().c_str() );
 
+	if(mHelpMode)
+		return false;
+
 	if(mTerminate)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to init GLFW! Application will close in 5 seconds.\n");
@@ -183,6 +191,7 @@ bool sgct::Engine::init(RunMode rm)
 	mConfig = new ReadConfig( configFilename );
 	if( !mConfig->isValid() ) //fatal error
 	{
+		outputHelpMessage();
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Error in xml config file parsing. Application will close in 5 seconds.\n");
 		sleep( 5.0 );
 
@@ -2713,6 +2722,19 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
             argumentsToRemove.push_back(i);
 			i++;
 		}
+		else if( strcmp(argv[i],"--debug") == 0 )
+		{
+			MessageHandler::instance()->setNotifyLevel( MessageHandler::NOTIFY_DEBUG );
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if( strcmp(argv[i],"--help") == 0 )
+		{
+			mHelpMode = true;
+			outputHelpMessage();
+			argumentsToRemove.push_back(i);
+			i++;
+		}
 		else if( strcmp(argv[i],"-local") == 0 && argc > (i+1) )
 		{
 			localRunningMode = NetworkManager::LocalServer;
@@ -3847,4 +3869,24 @@ void sgct::Engine::getActiveViewportSize(int & x, int & y)
 {
 	x = currentViewportCoords[2];
 	y = currentViewportCoords[3];
+}
+
+void sgct::Engine::outputHelpMessage()
+{
+	fprintf( stderr, "\nRequired parameters:\n------------------------------------\n\
+\n-config <filename.xml>           \n\tSet xml confiuration file\n\
+\nOptional parameters:\n------------------------------------\n\
+\n--help                           \n\tDisplay help message and exit\n\
+\n--local <integer>                \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\
+\n--client                         \n\tRun the application as client\n\t(only available when running as local)\n\
+\n--slave                          \n\tRun the application as client\n\t(only available when running as local)\n\
+\n--debug                          \n\tSet the notify level of messagehandler to debug\n\
+\n--Firm-Sync                      \n\tEnable firm frame sync\n\
+\n--Loose-Sync                     \n\tDisable firm frame sync\n\
+\n--Ignore-Sync                    \n\tDisable frame sync\n\
+\n-notify <integer>                \n\tSet the notify level used in the MessageHandler\n\t(0 = highest priority)\n\
+\n--No-FBO                         \n\tDisable frame buffer objects\n\t(some stereo modes, Multi-Window rendering,\n\tFXAA and fisheye rendering will be disabled)\n\
+\n--Capture-PNG                    \n\tUse png images for screen capture (default)\n\
+\n--Capture-TGA                    \n\tUse tga images for screen capture\n\
+\n-numberOfCaptureThreads <integer>\n\tSet the maximum amount of threads\n\tthat should be used during framecapture (default 8)\n------------------------------------\n\n");
 }

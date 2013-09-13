@@ -18,8 +18,7 @@ namespace sgct_text
 
 /*!
 Will ahandle font textures and rendering. Implementation is based on
-Nehes font tutorial for freetype.
-@link http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/
+<a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehe's font tutorial for freetype</a>.
 */
 class Font
 {

@@ -5,7 +5,7 @@
 !include x64.nsh
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "2.0.4"
+!define SGCT_VERSION "2.0.5"
 !define SGCT_COMPILER "msvc10"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"

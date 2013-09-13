@@ -150,7 +150,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 	ClusterManager::instance()->setMasterIp( masterAddress );
 
 	const char * debugMode = XMLroot->Attribute( "debug" );
-	if( debugMode == NULL )
+	if( debugMode != NULL )
 	{
 		sgct::MessageHandler::instance()->setNotifyLevel( strcmp( debugMode, "true" ) == 0 ?
 			sgct::MessageHandler::NOTIFY_DEBUG : sgct::MessageHandler::NOTIFY_WARNING );

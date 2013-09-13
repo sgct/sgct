@@ -217,8 +217,15 @@ void connectionHandler(void *arg)
 			//wait for signal until next iteration in loop
             if( !nPtr->isTerminated() )
             {
-                tthread::lock_guard<tthread::mutex> lock( nPtr->mConnectionMutex ); 
+                #ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+				#endif
+				nPtr->mConnectionMutex.lock(); 
 				nPtr->mStartConnectionCond.wait( nPtr->mConnectionMutex );
+				nPtr->mConnectionMutex.unlock();
+				#ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+				#endif
             }
 		}
 	}
@@ -300,7 +307,10 @@ void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
             * SHUT_RDWR (Disables further send and receive operations)
 		*/
 
-		tthread::lock_guard<tthread::mutex> lock(mConnectionMutex); 
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+		#endif
+		mConnectionMutex.lock(); 
         
 #ifdef __WIN32__
         shutdown(lSocket, SD_BOTH);
@@ -311,6 +321,10 @@ void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
 #endif
 
 		lSocket = INVALID_SOCKET;
+		mConnectionMutex.unlock();
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+		#endif
 	}
 }
 
@@ -324,6 +338,13 @@ void sgct_core::SGCTNetwork::setBufferSize(unsigned int newSize)
 */
 int sgct_core::SGCTNetwork::iterateFrameCounter()
 {
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::iterateFrameCounter\n");
+#endif
+
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 	
 	mSendFrame[Previous] = mSendFrame[Current];
@@ -337,6 +358,9 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 
 	mTimeStamp[Send] = sgct::Engine::getTime();
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 
 	return mSendFrame[Current];
 }
@@ -412,9 +436,15 @@ int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getSendFrame\n");
 #endif
 	int tmpi;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpi = mSendFrame[ri];
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpi;
 }
 
@@ -424,9 +454,15 @@ int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex r
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getRecvFrame\n");
 #endif
 	int tmpi;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpi = mRecvFrame[ri];
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpi;
 }
 
@@ -439,9 +475,15 @@ double sgct_core::SGCTNetwork::getLoopTime()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getLoopTime\n");
 #endif
 	double tmpd;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpd = mTimeStamp[Total];
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpd;
 }
 
@@ -460,6 +502,9 @@ bool sgct_core::SGCTNetwork::isUpdated()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isUpdated\n");
 #endif
 	bool tmpb = false;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		if(mServer)
 		{
@@ -481,6 +526,10 @@ bool sgct_core::SGCTNetwork::isUpdated()
 	tmpb = (tmpb && mConnected);
 
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
+
 	return tmpb;
 }
 
@@ -504,9 +553,16 @@ void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setConnectedStatus = %s at syncframe %d\n", state ? "true" : "false", getSendFrame());
 #endif
+
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		mConnected = state;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 }
 
 bool sgct_core::SGCTNetwork::isConnected()
@@ -515,9 +571,15 @@ bool sgct_core::SGCTNetwork::isConnected()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isConnected\n");
 #endif
 	bool tmpb;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpb = mConnected;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
     return tmpb;
 }
 
@@ -527,9 +589,15 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnect
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getTypeOfServer\n");
 #endif
 	ConnectionTypes tmpct;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpct = mConnectionType;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpct;
 }
 
@@ -539,9 +607,15 @@ int sgct_core::SGCTNetwork::getId()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
 #endif
 	int tmpi;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpi = mId;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpi;
 }
 
@@ -551,9 +625,15 @@ bool sgct_core::SGCTNetwork::isServer()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isServer\n");
 #endif
 	bool tmpb;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpb = mServer;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpb;
 }
 
@@ -563,9 +643,15 @@ bool sgct_core::SGCTNetwork::isTerminated()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isTerminated\n");
 #endif
     bool tmpb;
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 		tmpb = mTerminate;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 	return tmpb;
 }
 
@@ -574,6 +660,9 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setRecvFrame\n");
 #endif
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 	mRecvFrame[Previous] = mRecvFrame[Current];
 	mRecvFrame[Current] = i;
@@ -581,6 +670,9 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
 	mUpdated = true;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 }
 
 ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
@@ -725,6 +817,9 @@ void communicationHandler(void *arg)
 		{
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
 
+			#ifdef __SGCT_MUTEX_DEBUG__
+				fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+			#endif
             nPtr->mConnectionMutex.lock();
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 
@@ -739,6 +834,9 @@ void communicationHandler(void *arg)
                     allocError = true;
 
 			nPtr->mConnectionMutex.unlock();
+			#ifdef __SGCT_MUTEX_DEBUG__
+				fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+			#endif
 
 			if(allocError)
 				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: Buffer failed to resize!\n");
@@ -748,7 +846,7 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 		}
 #ifdef __SGCT_NETWORK_DEBUG__
-        sgct::MessageHandler::instance()->printDebug("Receiving message header...\n");
+        sgct::MessageHandler::instance()->printDebug( sgct::MessageHandler::NOTIFY_ALL, "Receiving message header...\n");
 #endif
         /*
             Get & parse the message header if not external control
@@ -792,6 +890,9 @@ void communicationHandler(void *arg)
                 dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
 
                 //resize buffer if needed
+				#ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+				#endif
                 nPtr->mConnectionMutex.lock();
                 if( dataSize > nPtr->mBufferSize )
                 {
@@ -808,6 +909,9 @@ void communicationHandler(void *arg)
                 }
 
                 nPtr->mConnectionMutex.unlock();
+				#ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+				#endif
             }
         }
 
@@ -877,8 +981,15 @@ void communicationHandler(void *arg)
                 */
                 if( !nPtr->isServer() )
                 {
-					tthread::lock_guard<tthread::mutex> lock(nPtr->mConnectionMutex);
+					#ifdef __SGCT_MUTEX_DEBUG__
+						fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+					#endif
+					nPtr->mConnectionMutex.lock();
                     nPtr->mTerminate = true;
+					nPtr->mConnectionMutex.unlock();
+					#ifdef __SGCT_MUTEX_DEBUG__
+						fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+					#endif
                 }
 
 				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Client %d terminated connection.\n", nPtr->getId());
@@ -913,7 +1024,9 @@ void communicationHandler(void *arg)
 						nPtr->pushClientMessage();
 					}*/
 
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
 					sgct_core::NetworkManager::gCond.notify_all();
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
 #ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -930,7 +1043,9 @@ void communicationHandler(void *arg)
 					sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
 #endif
 					(nPtr->mConnectedCallbackFn)();
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
 					sgct_core::NetworkManager::gCond.notify_all();
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
 #ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -1055,6 +1170,9 @@ void communicationHandler(void *arg)
 
 
 	//cleanup
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+	#endif
 	nPtr->mConnectionMutex.lock();
 	if( recvBuf != NULL )
     {
@@ -1063,6 +1181,9 @@ void communicationHandler(void *arg)
         recvBuf = NULL;
     }
     nPtr->mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+	#endif
 
     //Close socket
     //contains mutex
@@ -1106,9 +1227,15 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 	NetworkManager::gCond.notify_all();
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
 
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
 	mStartConnectionCond.notify_all();
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 
 	if( mCommThread != NULL )
     {
@@ -1149,6 +1276,10 @@ void sgct_core::SGCTNetwork::initShutdown()
 	}
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d... \n", getId());
+
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+	#endif
 	mConnectionMutex.lock();
         mTerminate = true;
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
@@ -1158,13 +1289,22 @@ void sgct_core::SGCTNetwork::initShutdown()
 #endif
         mConnected = false;
 	mConnectionMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+	#endif
 
 	//wake up the connection handler thread (in order to finish)
 	if( isServer() )
 	{
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+		#endif
 		mConnectionMutex.lock();
 		mStartConnectionCond.notify_all();
 		mConnectionMutex.unlock();
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+		#endif
 	}
 
     closeSocket( mSocket );

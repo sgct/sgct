@@ -120,7 +120,7 @@ This fuction is called internally by SGCT and shouldn't be used by the user.
 void SharedData::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	MessageHandler::instance()->printDebug("SharedData::decode\n");
+	MessageHandler::instance()->printDebug( sgct::MessageHandler::NOTIFY_ALL, "SharedData::decode\n");
 #endif
     SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 
@@ -201,7 +201,7 @@ This fuction is called internally by SGCT and shouldn't be used by the user.
 void SharedData::encode()
 {
 #ifdef __SGCT_NETWORK_DEBUG__
-	MessageHandler::instance()->printDebug("SharedData::encode\n");
+	MessageHandler::instance()->printDebug( sgct::MessageHandler::NOTIFY_ALL, "SharedData::encode\n");
 #endif
     SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
 

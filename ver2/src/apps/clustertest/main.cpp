@@ -214,12 +214,11 @@ void myPreSyncFun()
 void myPostSyncPreDrawFun()
 {
 	gEngine->setDisplayInfoVisibility( showFPS.getVal() );
-	for(std::size_t i=0; i<gEngine->getNumberOfWindows(); i++)
-	{
-		gEngine->getWindowPtr(i)->setBarrier( barrier.getVal() );
-		if(resetCounter.getVal())
-			gEngine->getWindowPtr(i)->resetSwapGroupFrameNumber();
-	}
+
+	//barrier is set by swap group not window both windows has the same HDC
+	sgct::SGCTWindow::setBarrier( barrier.getVal() );
+	if(resetCounter.getVal())
+		sgct::SGCTWindow::resetSwapGroupFrameNumber();
 
 	gEngine->setStatsGraphVisibility( stats.getVal() );
 

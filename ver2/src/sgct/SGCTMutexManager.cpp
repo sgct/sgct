@@ -25,11 +25,11 @@ sgct::SGCTMutexManager::~SGCTMutexManager()
 void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
 {
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex %u...\n", mi);
+    fprintf(stderr, "Locking mutex %d...\n", mi);
 #endif
     mInternalMutexes[mi].lock();
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Done\n");
+    fprintf(stderr, "Done [%d]\n", mi);
 #endif
 }
 
@@ -40,7 +40,7 @@ void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi
 #endif
 	mInternalMutexes[mi].unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Done\n");
+    fprintf(stderr, "Done [%d]\n", mi);
 #endif
 }
 

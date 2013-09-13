@@ -52,7 +52,10 @@ sgct_core::ScreenCapture::~ScreenCapture()
 				mSCTIPtrs[i].mFrameCaptureThreadPtr = NULL;
 			}
 
-			tthread::lock_guard<tthread::mutex> lock(mMutex);
+			#ifdef __SGCT_MUTEX_DEBUG__
+				fprintf(stderr, "Locking mutex for screencapture...\n");
+			#endif
+			mMutex.lock();
 			if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
 			{
 				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tBuffer %d...\n", i);
@@ -61,6 +64,10 @@ sgct_core::ScreenCapture::~ScreenCapture()
 			}
 
 			mSCTIPtrs[i].mRunning = false;
+			mMutex.unlock();
+			#ifdef __SGCT_MUTEX_DEBUG__
+				fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+			#endif
 		}
 
 		delete [] mSCTIPtrs;
@@ -96,7 +103,10 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	mChannels = channels;
 	mDataSize = mX * mY * mChannels;
 
-	tthread::lock_guard<tthread::mutex> lock(mMutex);
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for screencapture...\n");
+	#endif
+	mMutex.lock();
 	for(unsigned int i=0; i<mNumberOfThreads; i++)
 	{
 		if( mSCTIPtrs[i].mframeBufferImagePtr != NULL )
@@ -130,6 +140,11 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 		//unbind
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
 	}
+
+	mMutex.unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+	#endif
 }
 
 /*!
@@ -397,9 +412,15 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
 			else
 			{
 				bool running;
+				#ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Locking mutex for screencapture...\n");
+				#endif
 				mMutex.lock();
 					running = mSCTIPtrs[i].mRunning;
 				mMutex.unlock();
+				#ifdef __SGCT_MUTEX_DEBUG__
+					fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+				#endif
 
 				if( !running )
 				{
@@ -428,6 +449,13 @@ void screenCaptureHandler(void *arg)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to save '%s'!\n", ptr->mframeBufferImagePtr->getFilename());
 	}
 
-	tthread::lock_guard<tthread::mutex> lock( *(ptr->mMutexPtr) );
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Locking mutex for screencapture...\n");
+	#endif
+	ptr->mMutexPtr->lock();
 	ptr->mRunning = false;
+	ptr->mMutexPtr->unlock();
+	#ifdef __SGCT_MUTEX_DEBUG__
+		fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+	#endif
 }

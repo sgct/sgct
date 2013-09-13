@@ -250,6 +250,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 			tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
 			tmpNode.port.assign( element[0]->Attribute( "port" ) );
 
+			if( element[0]->Attribute("swapLock") != NULL )
+				sgct::SGCTWindow::setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
@@ -279,9 +282,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 					if( element[1]->Attribute("FXAA") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("FXAA"), "true" ) == 0 ? true : false );
-
-					if( element[1]->Attribute("swapLock") != NULL )
-						tmpWin.setUseSwapGroups( strcmp( element[1]->Attribute("swapLock"), "true" ) == 0 ? true : false);
 
 					if( element[1]->Attribute("decorated") != NULL )
 						tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("decorated"), "true" ) == 0 ? true : false);

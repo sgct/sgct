@@ -33,7 +33,7 @@ uniform mat4 MVP;\n\
 void main()\n\
 {\n\
 	gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
-};\n";
+}\n";
 
 const static std::string Stats_Frag_Shader = "\
 #version 330 core\n\
@@ -44,7 +44,7 @@ out vec4 Color;\n\
 void main()\n\
 {\n\
 	Color = Col;\n\
-};\n";
+}\n";
 
 const static std::string Stats_Vert_Shader_Legacy = "\
 #version 120\n\
@@ -53,7 +53,7 @@ void main()\n\
 {\n\
 	gl_TexCoord[0] = gl_MultiTexCoord0;\n\
 	gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
-};\n";
+}\n";
 
 const static std::string Stats_Frag_Shader_Legacy = "\
 #version 120\n\
@@ -63,7 +63,7 @@ uniform vec4 Col;\n\
 void main()\n\
 {\n\
 	gl_FragColor = Col;\n\
-};\n";
+}\n";
 
 sgct_core::Statistics::Statistics()
 {

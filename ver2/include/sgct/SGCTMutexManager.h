@@ -22,6 +22,8 @@ namespace sgct
 class SGCTMutexManager
 {
 public:
+	//main mutex used for data sync
+	
 	enum MutexIndexes { MainMutex = 0, SyncMutex, SharedDataMutex, TrackingMutex };
 
 	/*! Get the SGCTSettings instance */

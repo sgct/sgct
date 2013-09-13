@@ -43,14 +43,14 @@ public:
 	void close();
 	void init(int id);
 	void initOGL();
-	void initNvidiaSwapGroups();
+	static void initNvidiaSwapGroups();
 	void initWindowResolution(const int x, const int y);
 	void swap();
 	void update();
 	void captureBuffer();
 	bool openWindow(GLFWwindow* share);
 	void makeOpenGLContextCurrent( OGL_Context context );
-	void resetSwapGroupFrameNumber();
+	static void resetSwapGroupFrameNumber();
 
 	// ------------- set functions ----------------- //
 	void setName(const std::string & name);
@@ -65,11 +65,11 @@ public:
 	void setWindowDecoration(bool state);
 	void setFullResolutionMode(bool state);
 	void setFullScreenMonitorIndex( int index );
-	void setBarrier(const bool state);
+	static void setBarrier(const bool state);
 	void setFixResolution(const bool state);
 	void setUsePostFX(bool state);
 	void setUseFXAA(bool state);
-	void setUseSwapGroups(const bool state);
+	static void setUseSwapGroups(const bool state);
 	void setUseQuadbuffer(const bool state);
 	void setNumberOfAASamples(int samples);
 	void setStereoMode( StereoMode sm );
@@ -85,9 +85,9 @@ public:
 	bool				isFixResolution();
 	bool				isStereo();
 	bool				isUsingFisheyeRendering();
-	inline bool			isBarrierActive() { return mBarrier; }
-	inline bool			isUsingSwapGroups() { return mUseSwapGroups; }
-	inline bool			isSwapGroupMaster() { return mSwapGroupMaster; }
+	static inline bool	isBarrierActive() { return mBarrier; }
+	static inline bool	isUsingSwapGroups() { return mUseSwapGroups; }
+	static inline bool	isSwapGroupMaster() { return mSwapGroupMaster; }
 		
 	// -------------- get functions ----------------- //
 	std::string						getName();
@@ -98,7 +98,7 @@ public:
 	int								getScreenShotNumber();
 	StereoMode						getStereoMode();
 	bool							getFullResolutionMode();
-	void							getSwapGroupFrameNumber(unsigned int & frameNumber);
+	static void						getSwapGroupFrameNumber(unsigned int & frameNumber);
 	void							getDrawFBODimensions( int & width, int & height );
 	void							getFinalFBODimensions( int & width, int & height );
 	sgct_core::OffScreenBuffer *	getFBOPtr();
@@ -240,9 +240,9 @@ private:
 	bool mFocused;
 	bool mIconified;
 	bool mUseFixResolution;
-	bool mUseSwapGroups;
-	bool mBarrier;
-	bool mSwapGroupMaster;
+	static bool mUseSwapGroups;
+	static bool mBarrier;
+	static bool mSwapGroupMaster;
 	bool mUseQuadBuffer;
 	bool mFullScreen;
 	bool mSetWindowPos;

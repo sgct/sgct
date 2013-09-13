@@ -442,11 +442,7 @@ bool sgct::Engine::initWindows()
 	waitForAllWindowsInSwapGroupToOpen();
 
 	//init swap group if enabled
-	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-	{
-		mThisNode->getWindowPtr(i)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
-		mThisNode->getWindowPtr(i)->initNvidiaSwapGroups();
-	}
+	SGCTWindow::initNvidiaSwapGroups();
 
 	return true;
 }
@@ -554,6 +550,10 @@ void sgct::Engine::initOGL()
             sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
     }
 
+	//init swap barrier is swap groups are active
+	SGCTWindow::setBarrier(true);
+	SGCTWindow::resetSwapGroupFrameNumber();
+
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
 		mThisNode->setCurrentWindowIndex(i);
@@ -562,10 +562,6 @@ void sgct::Engine::initOGL()
 		getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 		for(std::size_t j=0; j<getActiveWindowPtr()->getNumberOfViewports(); j++)
 			getActiveWindowPtr()->getViewport(j)->loadData();
-
-		//init swap barrier is swap groups are active
-		mThisNode->getWindowPtr(i)->setBarrier(true);
-		mThisNode->getWindowPtr(i)->resetSwapGroupFrameNumber();
 	}
 
 	//check for errors
@@ -995,6 +991,7 @@ void sgct::Engine::render()
 			mThisNode->setCurrentWindowIndex(i);
 			getActiveWindowPtr()->swap();
 		}
+		
 		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed

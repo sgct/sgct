@@ -30,14 +30,15 @@ GLXEWContext * glxewGetContext();
 #endif
 #endif
 
+bool sgct::SGCTWindow::mUseSwapGroups = false;
+bool sgct::SGCTWindow::mBarrier = false;;
+bool sgct::SGCTWindow::mSwapGroupMaster = false;
+
 sgct::SGCTWindow::SGCTWindow(int id)
 {
 	mId = id;
 	mUseFixResolution = false;
-	mUseSwapGroups = false;
-	mSwapGroupMaster = false;
 	mUseQuadBuffer = false;
-	mBarrier = false;
 	mFullScreen = false;
 	mSetWindowPos = false;
 	mDecorated = true;
@@ -596,7 +597,7 @@ void sgct::SGCTWindow::setBarrier(const bool state)
 
 	if( mUseSwapGroups && state != mBarrier)
 	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Enabling Nvidia swap barrier for window %d...\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Enabling Nvidia swap barrier...\n");
 
 #ifdef __WIN32__ //Windows uses wglew.h
 		mBarrier = wglBindSwapBarrierNV(1, state ? 1 : 0) ? 1 : 0;
@@ -808,16 +809,14 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
-		//hDC = wglGetCurrentDC();
-		HWND hwnd = glfwGetWin32Window( mWindowHandle );
-		hDC = GetDC(hwnd);	//get the device context for window
+		hDC = wglGetCurrentDC();
 
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		wglQueryMaxSwapGroupsNV( hDC, &maxGroup, &maxBarrier );
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "WGL_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "WGL_NV_swap_group extension is supported.\n\tMax number of groups: %d\n\tMax number of barriers: %d\n",
 			maxGroup, maxBarrier);
 
 		/*
@@ -831,10 +830,10 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 
 		*/
 		if( wglJoinSwapGroupNV(hDC, 1) )
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [ok].\n");
 		else
 		{
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
 			return;
 		}
@@ -846,7 +845,7 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 
     if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining Nvidia swap group.\n", mId);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
 		hDC = glXGetCurrentDrawable();
 		disp = glXGetCurrentDisplay();
@@ -854,14 +853,14 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 		unsigned int maxBarrier = 0;
 		unsigned int maxGroup = 0;
 		glXQueryMaxSwapGroupsNV( disp, hDC, &maxGroup, &maxBarrier );
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %u\n\tMax number of barriers: %u\n",
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %d\n\tMax number of barriers: %d\n",
 			maxGroup, maxBarrier);
 
 		if( glXJoinSwapGroupNV(disp, hDC, 1) )
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [ok].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [ok].\n");
 		else
 		{
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Joining swapgroup 1 [failed].\n", mId);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
 			return;
 		}

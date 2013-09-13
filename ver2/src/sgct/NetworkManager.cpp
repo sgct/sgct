@@ -361,15 +361,23 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	//if node disconnects to enable reconnection
 	if( isServer )
 	{
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Locking mutex for network conn. %d...\n", index);
+		#endif
+
 		mNetworkConnections[index]->mConnectionMutex.lock();
 		mNetworkConnections[index]->mStartConnectionCond.notify_all();
 		mNetworkConnections[index]->mConnectionMutex.unlock();
+
+		#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Mutex for network conn. %d is unlocked.\n", index);
+		#endif
 	}
 
 	//signal done to caller
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
 	gCond.notify_all();
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
 }
 
 void sgct_core::NetworkManager::setAllNodesConnected()
@@ -382,7 +390,9 @@ void sgct_core::NetworkManager::close()
 	mIsRunning = false;
 
 	//release condition variables
-	sgct_core::NetworkManager::gCond.notify_all();
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
+	gCond.notify_all();
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
 
     //signal to terminate
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)

@@ -385,7 +385,6 @@ bool sgct::Engine::initWindows()
 		break;*/
 
     default:
-
         break;
 	}
 
@@ -734,7 +733,8 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for master... send frame %d, recv frame %d\n",
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave%d: waiting for master... send frame %d, recv frame %d\n",
+								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
 						}
@@ -782,7 +782,7 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave at connection %d: send frame %d != recv frame %d\n", i,
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n", i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
 						}

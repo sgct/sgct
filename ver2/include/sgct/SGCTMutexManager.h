@@ -22,9 +22,7 @@ namespace sgct
 class SGCTMutexManager
 {
 public:
-	//main mutex used for data sync
-	
-	enum MutexIndexes { MainMutex = 0, SyncMutex, SharedDataMutex, TrackingMutex };
+	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTMutexManager * instance()

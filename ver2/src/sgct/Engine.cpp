@@ -43,12 +43,16 @@ void (*gMouseButtonCallbackFn)(int, int) = NULL;
 void (*gMousePosCallbackFn)(double, double) = NULL;
 void (*gMouseScrollCallbackFn)(double, double) = NULL;
 
+void updateFrameLockLoop(void * arg);
+static bool sRunUpdateFrameLockLoop = true;
+
 #ifdef GLEW_MX
 GLEWContext * glewGetContext();
 #endif
 
 #define USE_SLEEP_TO_WAIT_FOR_NODES 0
 #define MAX_SGCT_PATH_LENGTH 512
+#define FRAME_LOCK_TIMEOUT 100 //ms
 
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
@@ -98,6 +102,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkCallbackFn = NULL;
+	mThreadPtr = NULL;
 
 	mTerminate = false;
 	mIgnoreSync = false;
@@ -441,6 +446,9 @@ bool sgct::Engine::initWindows()
 
 	waitForAllWindowsInSwapGroupToOpen();
 
+	if(ClusterManager::instance()->getNumberOfNodes() > 1)
+		mThreadPtr = new tthread::thread( updateFrameLockLoop, 0 );
+
 	//init swap group if enabled
 	SGCTWindow::initNvidiaSwapGroups();
 
@@ -587,6 +595,21 @@ void sgct::Engine::clean()
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Clearing all callbacks...\n");
 	clearAllCallbacks();
 
+	//kill thread
+	if( mThreadPtr )
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Waiting for frameLock thread to finish...\n");
+
+		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+		sRunUpdateFrameLockLoop = false;
+		sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+
+		mThreadPtr->join();
+		delete mThreadPtr;
+		mThreadPtr = NULL;
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Done.\n");
+	}
+
 	//de-init window and unbind swapgroups...
 	if(ClusterManager::instance()->getNumberOfNodes() > 0)
 	{
@@ -717,13 +740,13 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
-					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
-					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SyncMutex );
+					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
 				}
 
 				//for debuging
-				if( glfwGetTime() - t0 > 1.0 )
+				if( glfwGetTime() - t0 > 1.0 ) //more than a second
 				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
@@ -766,13 +789,13 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
-					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SyncMutex );
-					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::SyncMutex )) );
-					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SyncMutex );
+					SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
 				}
 
 				//for debuging
-				if( glfwGetTime() - t0 > 1.0 )
+				if( glfwGetTime() - t0 > 1.0 ) //more than a second
 				{
 					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
 					{
@@ -2695,7 +2718,7 @@ void sgct::Engine::calculateFrustums()
 void sgct::Engine::parseArguments( int& argc, char**& argv )
 {
 	//parse arguments
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Parsing arguments...");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Parsing arguments...\n");
 	int i=0;
     std::deque<int> argumentsToRemove;
 	while( i<argc )
@@ -2836,7 +2859,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
         argc = newArgc;
     }
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, " Done\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Done\n");
 }
 
 /*!
@@ -3886,4 +3909,23 @@ void sgct::Engine::outputHelpMessage()
 \n--Capture-PNG                    \n\tUse png images for screen capture (default)\n\
 \n--Capture-TGA                    \n\tUse tga images for screen capture\n\
 \n-numberOfCaptureThreads <integer>\n\tSet the maximum amount of threads\n\tthat should be used during framecapture (default 8)\n------------------------------------\n\n");
+}
+
+/*
+	For feedback: breaks a frame lock wait condition every time interval (FRAME_LOCK_TIMEOUT)
+	in order to print waiting message.
+*/
+void updateFrameLockLoop(void * arg)
+{
+	bool run = true;
+	
+	while(run)
+	{
+		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+		run = sRunUpdateFrameLockLoop;
+		sgct_core::NetworkManager::gCond.notify_all();
+		sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+		
+		tthread::this_thread::sleep_for(tthread::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
+	}
 }

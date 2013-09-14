@@ -272,17 +272,17 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 unsigned int sgct_core::NetworkManager::getConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 		retVal = mNumberOfConnections;
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return retVal;
 }
 unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 		retVal = mNumberOfSyncConnections;
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return retVal;
 }
 
@@ -307,7 +307,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
 
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
         mNumberOfConnections = numberOfConnectionsCounter;
 		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
@@ -316,18 +316,18 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
         //if all clients disconnect it's not longer running
         if(mNumberOfConnections == 0 && !isServer)
             mIsRunning = false;
-    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 	if(isServer)
 	{
-		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
             //local copy (thread safe) -- don't count server, therefore -1
             std::size_t numberOfSlavesInConfig = ClusterManager::instance()->getNumberOfNodes()-1;
             //local copy (thread safe)
             bool allNodesConnectedCopy =
                 (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
             mAllNodesConnected = allNodesConnectedCopy;
-        sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+        sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
         //send cluster connected message to nodes/slaves
 		if(allNodesConnectedCopy)
@@ -375,9 +375,9 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 	}
 
 	//signal done to caller
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 	gCond.notify_all();
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 }
 
 void sgct_core::NetworkManager::setAllNodesConnected()
@@ -390,9 +390,9 @@ void sgct_core::NetworkManager::close()
 	mIsRunning = false;
 
 	//release condition variables
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 	gCond.notify_all();
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 
     //signal to terminate
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)

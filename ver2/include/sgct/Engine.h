@@ -409,6 +409,8 @@ private:
 	sgct_core::Statistics		* mStatistics;
 	sgct_core::SGCTNode			* mThisNode;
 
+	tthread::thread * mThreadPtr;
+
 	std::string configFilename;
 	int mRunning;
 	char basicInfo[256];

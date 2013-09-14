@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
+#include <time.h>
 
 #define MESSAGE_HANDLER_MAX_SIZE 8192
 
@@ -39,6 +40,7 @@ sgct::MessageHandler::MessageHandler(void)
 	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
 
     mLocal = true;
+	mShowTime = true;
 }
 
 sgct::MessageHandler::~MessageHandler(void)
@@ -57,12 +59,12 @@ sgct::MessageHandler::~MessageHandler(void)
 
 void sgct::MessageHandler::decode(const char * receivedData, int receivedlength, int clientIndex)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::DataSyncMutex );
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
 		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
 }
 
 
@@ -76,7 +78,10 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
     va_end(ap);		// Results Are Stored In Text
 
     //print local
-    std::cerr << mParseBuffer;
+	if( getShowTime() )
+		std::cerr << getTimeOfDayStr() << "| " <<  mParseBuffer;
+	else
+		std::cerr << mParseBuffer;
 
     //if client send to server
     sendMessageToServer(mParseBuffer);
@@ -105,7 +110,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 */
 void sgct::MessageHandler::print(NotifyLevel nl, const char *fmt, ...)
 {
-	if (nl > mLevel || fmt == NULL)		// If There's No Text
+	if (nl > getNotifyLevel() || fmt == NULL)		// If There's No Text
 	{
 		*mParseBuffer=0;	// Do Nothing
 		return;
@@ -118,14 +123,76 @@ void sgct::MessageHandler::print(NotifyLevel nl, const char *fmt, ...)
 
 void sgct::MessageHandler::clearBuffer()
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::DataSyncMutex );
 	mBuffer.clear();
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
 }
 
+/*!
+Set the notify level for displaying messages\n
+This function is mutex protected/thread safe
+*/
 void sgct::MessageHandler::setNotifyLevel( NotifyLevel nl )
 {
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
 	mLevel = nl;
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+}
+
+/*!
+Get the notify level for displaying messages\n
+This function is mutex protected/thread safe
+*/
+sgct::MessageHandler::NotifyLevel sgct::MessageHandler::getNotifyLevel()
+{
+	NotifyLevel tmpNL;
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	tmpNL = mLevel;
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	return tmpNL;
+}
+
+/*!
+Set if time of day should be displayed with each print message.\n
+This function is mutex protected/thread safe
+*/
+void sgct::MessageHandler::setShowTime( bool state )
+{
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mShowTime = state;
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+}
+
+/*!
+Get if time of day should be displayed with each print message.\n
+This function is mutex protected/thread safe
+*/
+bool sgct::MessageHandler::getShowTime()
+{
+	bool tmpBool;
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	tmpBool = mShowTime;
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	return tmpBool;
+}
+
+/*!
+Get the time of day string
+*/
+const char * sgct::MessageHandler::getTimeOfDayStr()
+{
+	time_t now = time(NULL);
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	struct tm timeInfo;
+	localtime_s(&timeInfo, &now);
+	strftime(mTimeBuffer, TIME_BUFFER_SIZE, "%X", &timeInfo);
+#else
+	struct tm * timeInfoPtr;
+	timeInfoPtr = localtime(&now);
+	strftime(mTimeBuffer, TIME_BUFFER_SIZE, "%X", timeInfoPtr);
+#endif
+
+	return mTimeBuffer;
 }
 
 char * sgct::MessageHandler::getMessage()
@@ -136,7 +203,7 @@ char * sgct::MessageHandler::getMessage()
 void sgct::MessageHandler::printDebug(NotifyLevel nl, const char *fmt, ...)
 {
 #ifdef __SGCT_DEBUG__
-    if (nl > mLevel || fmt == NULL)
+    if (nl > getNotifyLevel() || fmt == NULL)
     {
         *mParseBuffer = 0;
         return;
@@ -150,7 +217,7 @@ void sgct::MessageHandler::printDebug(NotifyLevel nl, const char *fmt, ...)
 
 void sgct::MessageHandler::printIndent(NotifyLevel nl, unsigned int indentation, const char* fmt, ...)
 {
-    if (nl > mLevel || fmt == NULL)
+    if (nl > getNotifyLevel() || fmt == NULL)
     {
         *mParseBuffer = 0;
         return;
@@ -181,10 +248,10 @@ void sgct::MessageHandler::sendMessageToServer(const char * str)
 	//if client send to server
     if(!mLocal)
     {
-        SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::MainMutex );
+        SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::DataSyncMutex );
         if(mBuffer.empty())
             mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));
-        SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::MainMutex );
+        SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
     }
 }

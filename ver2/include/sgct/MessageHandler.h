@@ -12,6 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdarg.h>
 #include <vector>
 
+#define TIME_BUFFER_SIZE 9
+
 namespace sgct //simple graphics cluster toolkit
 {
 
@@ -53,6 +55,10 @@ public:
     void setSendFeedbackToServer( bool state ) { mLocal = !state; }
     void clearBuffer();
 	void setNotifyLevel( NotifyLevel nl );
+	NotifyLevel getNotifyLevel();
+	void setShowTime( bool state );
+	bool getShowTime();
+	const char * getTimeOfDayStr();
 	inline std::size_t getDataSize() { return mBuffer.size(); }
 
 	char * getMessage();
@@ -76,6 +82,8 @@ private:
 	std::vector<char> mRecBuffer;
 	unsigned char  * headerSpace;
 	bool mLocal;
+	bool mShowTime;
+	char mTimeBuffer[TIME_BUFFER_SIZE];
 };
 
 }

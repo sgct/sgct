@@ -380,7 +380,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
     if(sgct::MessageHandler::instance()->getDataSize() > mHeaderSize)
     {
-        sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::MainMutex);
+        sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 		
 		//Don't remove this pointer, somehow the send function doesn't
 		//work during the first call without setting the pointer first!!!
@@ -406,7 +406,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		//crop if needed
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 		
-		sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::MainMutex);
+		sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 
 		sgct::MessageHandler::instance()->clearBuffer(); //clear the buffer
     }
@@ -1024,9 +1024,9 @@ void communicationHandler(void *arg)
 						nPtr->pushClientMessage();
 					}*/
 
-					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 					sgct_core::NetworkManager::gCond.notify_all();
-					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 #ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -1043,9 +1043,9 @@ void communicationHandler(void *arg)
 					sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
 #endif
 					(nPtr->mConnectedCallbackFn)();
-					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::SyncMutex );
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 					sgct_core::NetworkManager::gCond.notify_all();
-					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::SyncMutex );
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 #ifdef __SGCT_NETWORK_DEBUG__
                     sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -1112,7 +1112,7 @@ void communicationHandler(void *arg)
 					//extracted message
 					//fprintf(stderr, "Extracted: '%s'\n", extMessage.c_str());
 
-					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 						extBuffer = extBuffer.substr(found+2);//jump over \r\n
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 						if( nPtr->mDecoderCallbackFn != nullptr )
@@ -1122,7 +1122,7 @@ void communicationHandler(void *arg)
 						{
 							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
 						}
-					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 					//reply
 					nPtr->sendStr("OK\r\n");
@@ -1223,9 +1223,9 @@ void sgct_core::SGCTNetwork::sendStr(std::string msg)
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 {
     //release conditions
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	NetworkManager::gCond.notify_all();
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::MainMutex );
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Locking mutex for connection %d...\n", mId);

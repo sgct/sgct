@@ -54,6 +54,7 @@ GLEWContext * glewGetContext();
 #define USE_SLEEP_TO_WAIT_FOR_NODES 0
 #define MAX_SGCT_PATH_LENGTH 512
 #define FRAME_LOCK_TIMEOUT 100 //ms
+#define RUN_FRAME_LOCK_CHECK_THREAD 1
 
 /*!
 This is the only valid constructor that also initiates [GLFW](http://www.glfw.org/). Command line parameters are used to load a configuration file and settings.
@@ -448,11 +449,15 @@ bool sgct::Engine::initWindows()
 
 	waitForAllWindowsInSwapGroupToOpen();
 
-	if(ClusterManager::instance()->getNumberOfNodes() > 1)
-		mThreadPtr = new tthread::thread( updateFrameLockLoop, 0 );
+	if( RUN_FRAME_LOCK_CHECK_THREAD == 1 )
+	{
+		if(ClusterManager::instance()->getNumberOfNodes() > 1)
+			mThreadPtr = new tthread::thread( updateFrameLockLoop, 0 );
+	}
 
 	//init swap group if enabled
-	SGCTWindow::initNvidiaSwapGroups();
+	if( mThisNode->isUsingSwapGroups() )
+		SGCTWindow::initNvidiaSwapGroups();
 
 	return true;
 }

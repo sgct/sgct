@@ -42,8 +42,10 @@ public:
 
 	void addWindow(sgct::SGCTWindow &window);
 	void setCurrentWindowIndex(std::size_t index);
+	void setUseSwapGroups(bool state);
 
 	bool shouldAllWindowsClose();
+	bool isUsingSwapGroups();
 	void showAllWindows();
 	void hideAllWindows();
 
@@ -53,6 +55,7 @@ public:
 private:
 	std::size_t mCurrentWindowIndex;
 	std::vector<sgct::SGCTWindow> mWindows;
+	bool mUseSwapGroups;
 };
 }
 

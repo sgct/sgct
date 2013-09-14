@@ -31,7 +31,7 @@ GLXEWContext * glxewGetContext();
 #endif
 
 bool sgct::SGCTWindow::mUseSwapGroups = false;
-bool sgct::SGCTWindow::mBarrier = false;;
+bool sgct::SGCTWindow::mBarrier = false;
 bool sgct::SGCTWindow::mSwapGroupMaster = false;
 
 sgct::SGCTWindow::SGCTWindow(int id)
@@ -805,6 +805,7 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 void sgct::SGCTWindow::initNvidiaSwapGroups()
 {
 //#ifdef __WITHSWAPBARRIERS__
+	setUseSwapGroups(true);
 
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)

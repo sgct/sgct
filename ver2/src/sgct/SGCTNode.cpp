@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 sgct_core::SGCTNode::SGCTNode()
 {
 	mCurrentWindowIndex = 0;
+	mUseSwapGroups = false;
 }
 
 /*!
@@ -26,6 +27,14 @@ void sgct_core::SGCTNode::addWindow(sgct::SGCTWindow &window)
 void sgct_core::SGCTNode::setCurrentWindowIndex(std::size_t index)
 {
 	mCurrentWindowIndex = index;
+}
+
+/*!
+	Set to true if this node's windows should belong to a nvida swap group. Only valid before window opens.
+*/
+void sgct_core::SGCTNode::setUseSwapGroups(bool state)
+{
+	mUseSwapGroups = state;
 }
 
 /*!
@@ -68,6 +77,14 @@ void sgct_core::SGCTNode::showAllWindows()
 {
 	for(std::size_t i=0; i<mWindows.size(); i++)
 		mWindows[i].setVisibility( true );
+}
+
+/*!
+	Is this node using nvidia swap groups for it's windows?
+*/
+bool sgct_core::SGCTNode::isUsingSwapGroups()
+{
+	return mUseSwapGroups;
 }
 
 /*!

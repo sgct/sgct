@@ -251,7 +251,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 			tmpNode.port.assign( element[0]->Attribute( "port" ) );
 
 			if( element[0]->Attribute("swapLock") != NULL )
-				sgct::SGCTWindow::setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false);
+				tmpNode.setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false );
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )

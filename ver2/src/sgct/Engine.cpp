@@ -26,6 +26,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/external/tinythread.h"
 #include <glm/gtc/constants.hpp>
 #include <math.h>
+#include <algorithm>
 #include <iostream>
 #include <sstream>
 #include <deque>
@@ -61,6 +62,7 @@ Note that parameter with one '\-' are followed by arguments but parameters with 
 Parameter     | Description
 ------------- | -------------
 -config <filename> | set xml confiuration file
+-logPath <filepath> | set log file path
 --help | display help message and exit
 -local <integer> | set which node in configuration that is the localhost (index starts at 0)
 --client | run the application as client (only available when running as local)
@@ -668,7 +670,7 @@ void sgct::Engine::clean()
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying message handler...\n");
 	MessageHandler::destroy();
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying mutexes...\n");
+	std::cout << "Destroying mutexes...\n" << std::endl;
 	SGCTMutexManager::destroy();
 
 	// Close window and terminate GLFW
@@ -2766,6 +2768,26 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
             argumentsToRemove.push_back(i+1);
 			i+=2;
 		}
+		else if( strcmp(argv[i],"-logPath") == 0 )
+		{
+			//Remove unwanted chars
+			std::string tmpStr( argv[i+1] );
+			tmpStr.erase( remove( tmpStr.begin(), tmpStr.end(), '\"' ), tmpStr.end() );
+			std::size_t lastPos = tmpStr.length() - 1;
+			if( lastPos >= 0 )
+			{
+				const char last = tmpStr.at( lastPos );
+				if( last == '\\' || last == '/' )
+					tmpStr.erase( lastPos );
+			}
+
+			MessageHandler::instance()->setLogPath( tmpStr.c_str() );
+			MessageHandler::instance()->setLogToFile(true);
+			
+			argumentsToRemove.push_back(i);
+            argumentsToRemove.push_back(i+1);
+			i+=2;
+		}
 		else if( strcmp(argv[i],"-notify") == 0 && argc > (i+1) )
 		{
 			localRunningMode = NetworkManager::LocalServer;
@@ -3896,6 +3918,7 @@ void sgct::Engine::outputHelpMessage()
 	fprintf( stderr, "\nRequired parameters:\n------------------------------------\n\
 \n-config <filename.xml>           \n\tSet xml confiuration file\n\
 \nOptional parameters:\n------------------------------------\n\
+\n-logPath <filepath>              \n\tSet log file path\n\
 \n--help                           \n\tDisplay help message and exit\n\
 \n--local <integer>                \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\
 \n--client                         \n\tRun the application as client\n\t(only available when running as local)\n\

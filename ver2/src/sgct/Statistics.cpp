@@ -138,22 +138,22 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 		glGenVertexArrays(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVAOs[0]);
 		glGenVertexArrays(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVAOs[0]);
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs: ");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs:\n");
 		for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVAOs[i]);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mDynamicVAOs[i]);
 		for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVAOs[i]);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mStaticVAOs[i]);
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 	}
 
 	glGenBuffers(STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVBOs[0]);
 	glGenBuffers(STATS_NUMBER_OF_STATIC_OBJS, &mStaticVBOs[0]);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs: ");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs:\n");
 	for( unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++ )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mDynamicVBOs[i]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mDynamicVBOs[i]);
 	for( unsigned int i=0; i<STATS_NUMBER_OF_STATIC_OBJS; i++ )
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "%d ", mStaticVBOs[i]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mStaticVBOs[i]);
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\n");
 		
 	for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)

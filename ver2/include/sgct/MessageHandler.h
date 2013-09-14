@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define TIME_BUFFER_SIZE 9
+#define LOG_FILENAME_BUFFER_SIZE 1024 //include path
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -58,6 +59,8 @@ public:
 	NotifyLevel getNotifyLevel();
 	void setShowTime( bool state );
 	bool getShowTime();
+	void setLogToFile( bool state );
+	void setLogPath(const char * path);
 	const char * getTimeOfDayStr();
 	inline std::size_t getDataSize() { return mBuffer.size(); }
 
@@ -71,11 +74,13 @@ private:
 	MessageHandler( const MessageHandler & tm );
 	const MessageHandler & operator=(const MessageHandler & rhs );
 	void printv(const char *fmt, va_list ap);
+	void logToFile(const char * buffer);
 
 private:
 	static MessageHandler * mInstance;
 
 	char * mParseBuffer;
+	char * mCombinedBuffer;
 	
 	NotifyLevel mLevel;
 	std::vector<char> mBuffer;
@@ -83,7 +88,9 @@ private:
 	unsigned char  * headerSpace;
 	bool mLocal;
 	bool mShowTime;
+	bool mLogToFile;
 	char mTimeBuffer[TIME_BUFFER_SIZE];
+	char mFileName[LOG_FILENAME_BUFFER_SIZE];
 };
 
 }

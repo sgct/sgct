@@ -1250,17 +1250,17 @@ void sgct::SGCTWindow::createVBOs()
 	{
 		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
 
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs: ");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs:\n");
 		for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%d ", mVAO[i]);
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\t%d\n", mVAO[i]);
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
 	}
 
 	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs: ");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs:\n");
 	for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%d ", mVBO[i]);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\t%d\n", mVBO[i]);
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
 
 	if( !Engine::instance()->isOGLPipelineFixed() )

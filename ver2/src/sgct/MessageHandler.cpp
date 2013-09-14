@@ -15,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <time.h>
 
 #define MESSAGE_HANDLER_MAX_SIZE 8192
+#define COMBINED_MESSAGE_MAX_SIZE 8224 //MESSAGE_HANDLER_MAX_SIZE + 32
 
 sgct::MessageHandler * sgct::MessageHandler::mInstance = NULL;
 
@@ -22,6 +23,9 @@ sgct::MessageHandler::MessageHandler(void)
 {
     mParseBuffer	= NULL;
 	mParseBuffer	= new (std::nothrow) char[MESSAGE_HANDLER_MAX_SIZE];
+
+	mCombinedBuffer = NULL;
+	mCombinedBuffer = new (std::nothrow) char[COMBINED_MESSAGE_MAX_SIZE];
 
 	headerSpace		= NULL;
 	headerSpace		= new (std::nothrow) unsigned char[ sgct_core::SGCTNetwork::mHeaderSize ];
@@ -41,6 +45,9 @@ sgct::MessageHandler::MessageHandler(void)
 
     mLocal = true;
 	mShowTime = true;
+	mLogToFile = false;
+
+	setLogPath(NULL);
 }
 
 sgct::MessageHandler::~MessageHandler(void)
@@ -48,6 +55,10 @@ sgct::MessageHandler::~MessageHandler(void)
     if(mParseBuffer)
 		delete [] mParseBuffer;
     mParseBuffer = NULL;
+
+	if(mCombinedBuffer)
+		delete [] mCombinedBuffer;
+	mCombinedBuffer = NULL;
 
 	if(headerSpace)
 		delete [] headerSpace;
@@ -63,7 +74,7 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedlength,
 		mRecBuffer.clear();
 		mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
 		mRecBuffer.push_back('\0');
-		fprintf(stderr, "\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
+		print("\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
     SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
 }
 
@@ -79,12 +90,83 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 
     //print local
 	if( getShowTime() )
-		std::cerr << getTimeOfDayStr() << "| " <<  mParseBuffer;
+	{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		sprintf_s( mCombinedBuffer, COMBINED_MESSAGE_MAX_SIZE, "%s| %s", getTimeOfDayStr(), mParseBuffer );
+#else
+		sprintf( mCombinedBuffer, "%s| %s", getTimeOfDayStr(), mParseBuffer );
+#endif
+		std::cerr << mCombinedBuffer;
+
+		if(mLogToFile)
+			logToFile( mCombinedBuffer );
+	}
 	else
+	{
 		std::cerr << mParseBuffer;
+		if(mLogToFile)
+			logToFile( mParseBuffer );
+	}
 
     //if client send to server
     sendMessageToServer(mParseBuffer);
+}
+
+void sgct::MessageHandler::logToFile(const char * buffer)
+{
+	FILE* pFile = NULL;
+	bool error = false;
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	errno_t err = fopen_s(&pFile, mFileName, "a");
+	if( err != 0 ) //error
+		error = true;
+#else
+	pFile = fopen(mFileName, "a");
+	if( pFile == NULL )
+		error = true;
+#endif
+
+	if( error )
+	{
+		std::cerr << "Failed to open '" << mFileName << "'!" << std::endl;
+		return;
+	}
+
+	fprintf(pFile, "%s", buffer);
+	fclose(pFile);
+}
+
+void sgct::MessageHandler::setLogPath(const char * path)
+{
+	time_t now = time(NULL);
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	struct tm timeInfo;
+	errno_t err = localtime_s(&timeInfo, &now);
+	if( err == 0 )
+	{
+		if( path == NULL )
+			strftime(mFileName, LOG_FILENAME_BUFFER_SIZE, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", &timeInfo);
+		else
+		{
+			char tmpBuff[64];
+			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", &timeInfo);
+			sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s", path, tmpBuff);
+		}
+	}
+#else
+	struct tm * timeInfoPtr;
+	timeInfoPtr = localtime(&now);
+	if( path == NULL )
+		strftime(mFileName, LOG_FILENAME_BUFFER_SIZE, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", timeInfoPtr);
+	else
+	{
+		char tmpBuff[64];
+		strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", timeInfoPtr);
+		sprintf(mFileName, "%s/%s", path, tmpBuff);
+	}
+#endif
 }
 
 /*!
@@ -177,6 +259,14 @@ bool sgct::MessageHandler::getShowTime()
 }
 
 /*!
+Set if log to file should be enabled
+*/
+void sgct::MessageHandler::setLogToFile( bool state )
+{
+	mLogToFile = state;
+}
+
+/*!
 Get the time of day string
 */
 const char * sgct::MessageHandler::getTimeOfDayStr()
@@ -184,8 +274,9 @@ const char * sgct::MessageHandler::getTimeOfDayStr()
 	time_t now = time(NULL);
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	struct tm timeInfo;
-	localtime_s(&timeInfo, &now);
-	strftime(mTimeBuffer, TIME_BUFFER_SIZE, "%X", &timeInfo);
+	errno_t err = localtime_s(&timeInfo, &now);
+	if( err == 0 ) 
+		strftime(mTimeBuffer, TIME_BUFFER_SIZE, "%X", &timeInfo);
 #else
 	struct tm * timeInfoPtr;
 	timeInfoPtr = localtime(&now);

@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define TEXT_RENDER_BUFFER_SIZE 512
+#define TEXT_RENDER_BUFFER_SIZE 2048
 
 namespace sgct_text
 {

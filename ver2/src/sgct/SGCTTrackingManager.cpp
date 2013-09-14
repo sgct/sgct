@@ -63,7 +63,7 @@ bool sgct::SGCTTrackingManager::isRunning()
 
 sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...\n");
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
 	fprintf(stderr, "Destructing, setting running to false...\n");
@@ -119,7 +119,7 @@ sgct::SGCTTrackingManager::~SGCTTrackingManager()
 	mTrackers.clear();
 	gTrackers.clear();
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, " done.\n");
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Done.\n");
 }
 
 void sgct::SGCTTrackingManager::startSampling()

@@ -71,9 +71,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
 		"CorrectionMesh: Reading mesh data from '%s'.\n", meshPath);
 
-	FILE * meshFile;
+	FILE * meshFile = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if( fopen_s(&meshFile, meshPath, "r") != 0 )
+	if( fopen_s(&meshFile, meshPath, "r") != 0 || !meshFile )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
 		return false;
@@ -135,6 +135,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 			else
 			{
 				char tmpString[16];
+				tmpString[0] = '\0';
 				double tmpD = 0.0;
 				unsigned int tmpUI = 0;
 

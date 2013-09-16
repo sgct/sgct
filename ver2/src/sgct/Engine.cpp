@@ -113,7 +113,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mFixedOGLPipeline = true;
 	mHelpMode = false;
 
-	localRunningMode = NetworkManager::NotLocal;
+	localRunningMode = NetworkManager::Remote;
 
 	currentViewportCoords[0] = 0;
 	currentViewportCoords[1] = 0;
@@ -272,17 +272,10 @@ bool sgct::Engine::initNetwork()
 	}
 
 	//check in cluster configuration which it is
-	if( localRunningMode == NetworkManager::NotLocal )
+	if( localRunningMode == NetworkManager::Remote )
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Matching ip address to find node in configuration...\n");
-
-		for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
-			if( mNetworkConnections->matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) )
-			{
-				ClusterManager::instance()->setThisNodeId(i);
-				MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Running in cluster mode as node %d\n", ClusterManager::instance()->getThisNodeId());
-				break;
-			}
+		mNetworkConnections->retrieveNodeId();
 	}
 	else
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Running locally as node %d\n", ClusterManager::instance()->getThisNodeId());
@@ -787,7 +780,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 	{
 		if( !mIgnoreSync && mNetworkConnections->isComputerServer() )//&&
 			//mConfig->isMasterSyncLocked() &&
-			/*localRunningMode == NetworkManager::NotLocal &&*/
+			/*localRunningMode == NetworkManager::Remote &&*/
 			//!getActiveWindowPtr()->isBarrierActive() )//post stage
 		{
 			double t0 = glfwGetTime();
@@ -2624,7 +2617,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 		else
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are not supported by hardware.\n");
 
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.\n");
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			if( !mThisNode->getWindowPtr(i)->isUsingSwapGroups() )
@@ -2651,6 +2644,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 
 			sleep( 0.1 );
 		}
+		fprintf(stdout, "\n");
 
 		//wait for user to release exit key
 		while( mThisNode->getKeyPressed( mExitKey ) )
@@ -3675,8 +3669,8 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%u) | fps: %.2f | AA: %s",
-		localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
+	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%Iu) | fps: %.2f | AA: %s",
+		localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,
 		static_cast<float>(mStatistics->getAvgFPS()),
@@ -3684,14 +3678,14 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
     #else
         #ifdef __WIN32__
         sprintf( basicInfo, "Node: %s (%s:%u) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
+            localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
             mNetworkConnections->isComputerServer() ? "master" : "slave",
             winIndex,
             static_cast<float>(mStatistics->getAvgFPS()),
             getAAInfo(winIndex));
         #else
         sprintf( basicInfo, "Node: %s (%s:%zu) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::NotLocal ? mThisNode->ip.c_str() : "127.0.0.1",
+            localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
             mNetworkConnections->isComputerServer() ? "master" : "slave",
             winIndex,
             static_cast<float>(mStatistics->getAvgFPS()),

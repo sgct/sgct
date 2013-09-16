@@ -21,6 +21,7 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 //variables to share across cluster
 sgct::SharedDouble dt(0.0);
 sgct::SharedDouble curr_time(0.0);
+sgct::SharedString sTimeOfDay;
 sgct::SharedBool showFPS(false);
 sgct::SharedBool extraPackages(false);
 sgct::SharedBool barrier(false);
@@ -80,6 +81,7 @@ void myDraw2DFun()
 {
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getActiveWindowPtr()->isFocused() ? "true" : "false");
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
 }
 
 void myDrawFun()
@@ -208,6 +210,7 @@ void myPreSyncFun()
 	{
 		dt.setVal( gEngine->getDt() );
 		curr_time.setVal( gEngine->getTime() );
+		sTimeOfDay.setVal( sgct::MessageHandler::instance()->getTimeOfDayStr() );
 	}
 }
 
@@ -278,6 +281,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeDouble( &curr_time);
 	sgct::SharedData::instance()->writeFloat( &speed );
 	sgct::SharedData::instance()->writeUChar( &sf );
+	sgct::SharedData::instance()->writeString( &sTimeOfDay );
 
 	if(extraPackages.getVal())
 		for(int i=0;i<EXTENDED_SIZE;i++)
@@ -291,6 +295,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readDouble( &curr_time );
 	sgct::SharedData::instance()->readFloat( &speed );
 	sgct::SharedData::instance()->readUChar( &sf );
+	sgct::SharedData::instance()->readString( &sTimeOfDay );
 
 	unsigned char flags = sf.getVal();
 	showFPS.setVal(flags & 0x0001);

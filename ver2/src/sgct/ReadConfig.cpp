@@ -143,11 +143,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 	}
 
 	const char * masterAddress = XMLroot->Attribute( "masterAddress" );
-	if( masterAddress == NULL )
+	const char * masterName = XMLroot->Attribute( "masterName" );
+	if( masterAddress == NULL && masterName == NULL )
 	{
-		throw "Cannot find master address in XML!";
+		throw "Cannot find master address or DNS name in XML!";
 	}
-	ClusterManager::instance()->setMasterIp( masterAddress );
+
+	if( masterAddress )
+		ClusterManager::instance()->setMasterIp( masterAddress );
+
+	if( masterName )
+		ClusterManager::instance()->setMasterName( masterName );
 
 	const char * debugMode = XMLroot->Attribute( "debug" );
 	if( debugMode != NULL )
@@ -247,8 +253,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 		else if( strcmp("Node", val[0]) == 0 )
 		{
 			SGCTNode tmpNode;
-			tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
-			tmpNode.port.assign( element[0]->Attribute( "port" ) );
+
+			if( element[0]->Attribute( "ip" ) )
+				tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
+			if( element[0]->Attribute( "port" ) )
+				tmpNode.port.assign( element[0]->Attribute( "port" ) );
+			if( element[0]->Attribute( "name" ) )
+				tmpNode.name.assign( element[0]->Attribute( "name" ) );
 
 			if( element[0]->Attribute("swapLock") != NULL )
 				tmpNode.setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false );

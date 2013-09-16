@@ -36,7 +36,9 @@ public:
 	void close();
 
 	bool matchHostName(const std::string name);
+	bool matchDNSName(const std::string dnsName);
 	bool matchAddress(const std::string ip);
+	void retrieveNodeId();
 	bool isComputerServer() { return mIsServer; }
 	bool isRunning() { return mIsRunning; }
 	bool areAllNodesConnected() { return mAllNodesConnected; }
@@ -54,13 +56,14 @@ private:
 	void setAllNodesConnected();
 
 public:
-	enum ManagerMode { NotLocal = 0, LocalServer, LocalClient };
+	enum ManagerMode { Remote = 0, LocalServer, LocalClient };
 	static tthread::condition_variable gCond;
 
 private:
 	std::vector<SGCTNetwork*> mNetworkConnections;
 
-	std::string hostName; //stores this computers hostname
+	std::string mHostName; //stores this computers hostname
+	std::string mDNSName;
 	std::vector<std::string> localAddresses; //stors this computers ip addresses
 
 	bool mIsServer;

@@ -51,6 +51,7 @@ public:
 
 	std::string ip;
 	std::string port;
+	std::string name;
 
 private:
 	std::size_t mCurrentWindowIndex;

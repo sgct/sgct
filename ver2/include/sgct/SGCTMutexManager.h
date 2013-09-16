@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_MUTEX_MANAGER
 #define _SGCT_MUTEX_MANAGER
 
-#define SGCT_NUMBER_OF_MUTEXES 4
+#define SGCT_NUMBER_OF_MUTEXES 5
 
 #include <stddef.h>
 #include "external/tinythread.h"
@@ -22,7 +22,7 @@ namespace sgct
 class SGCTMutexManager
 {
 public:
-	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex };
+	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex, ConsoleMutex };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTMutexManager * instance()

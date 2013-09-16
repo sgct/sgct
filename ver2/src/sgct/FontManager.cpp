@@ -122,9 +122,11 @@ sgct_text::FontManager::FontManager(void)
 
 	char fontDir[128];
 #if __WIN32__
-	GetWindowsDirectory(fontDir,128);
-    mDefaultFontPath.assign( fontDir );
-	mDefaultFontPath += "\\Fonts\\";
+	if( GetWindowsDirectory(fontDir,128) > 0)
+	{
+		mDefaultFontPath.assign( fontDir );
+		mDefaultFontPath += "\\Fonts\\";
+	}
 #elif __APPLE__
 	//System Fonts
     sprintf(fontDir, "/Library/Fonts/");

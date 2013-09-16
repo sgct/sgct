@@ -21,20 +21,22 @@ sgct::MessageHandler * sgct::MessageHandler::mInstance = NULL;
 
 sgct::MessageHandler::MessageHandler(void)
 {
-    mParseBuffer	= NULL;
+    //nothrow makes sure that a null pointer is returned upon failiure
 	mParseBuffer	= new (std::nothrow) char[MESSAGE_HANDLER_MAX_SIZE];
-
-	mCombinedBuffer = NULL;
 	mCombinedBuffer = new (std::nothrow) char[COMBINED_MESSAGE_MAX_SIZE];
-
-	headerSpace		= NULL;
 	headerSpace		= new (std::nothrow) unsigned char[ sgct_core::SGCTNetwork::mHeaderSize ];
 
-#ifdef __SGCT_DEBUG__
-	mLevel = NOTIFY_DEBUG;
-#else
+	if( !headerSpace || !mCombinedBuffer || !headerSpace)
+	{
+		fprintf(stderr, "Fatal error while allocating memory for MessageHandler!\n");
+		return;
+	}
+
+//#ifdef __SGCT_DEBUG__
+//	mLevel = NOTIFY_DEBUG;
+//#else
 	mLevel = NOTIFY_WARNING;
-#endif
+//#endif
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
@@ -78,9 +80,11 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedlength,
     SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
 }
 
-
 void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 {
+	//prevent writing to console simultaneously
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::ConsoleMutex );
+	mParseBuffer[0] = '\0';
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     vsprintf_s(mParseBuffer, MESSAGE_HANDLER_MAX_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
@@ -109,6 +113,8 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 			logToFile( mParseBuffer );
 	}
 
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::ConsoleMutex );
+
     //if client send to server
     sendMessageToServer(mParseBuffer);
 }
@@ -120,7 +126,7 @@ void sgct::MessageHandler::logToFile(const char * buffer)
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	errno_t err = fopen_s(&pFile, mFileName, "a");
-	if( err != 0 ) //error
+	if( err != 0 || !pFile ) //error
 		error = true;
 #else
 	pFile = fopen(mFileName, "a");

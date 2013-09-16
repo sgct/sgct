@@ -89,7 +89,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "rb") != 0 && !fp )
+    if( fopen_s( &fp, mFilename, "rb") != 0 || !fp )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename);
 		return false;
@@ -259,7 +259,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
+    if( fopen_s( &fp, mFilename, "wb") != 0 || !fp )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename);
 		return false;
@@ -351,7 +351,7 @@ bool sgct_core::Image::saveTGA()
 
 	FILE *fp = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "wb") != 0 && !fp )
+    if( fopen_s( &fp, mFilename, "wb") != 0 || !fp )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'\n", mFilename);
 		return false;

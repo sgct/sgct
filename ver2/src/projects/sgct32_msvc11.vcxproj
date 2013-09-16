@@ -33,6 +33,7 @@
     <ClInclude Include="..\..\include\sgct\NetworkManager.h" />
     <ClInclude Include="..\..\include\sgct\OffScreenBuffer.h" />
     <ClInclude Include="..\..\include\sgct\ogl_headers.h" />
+    <ClInclude Include="..\..\include\sgct\PostFX.h" />
     <ClInclude Include="..\..\include\sgct\ReadConfig.h" />
     <ClInclude Include="..\..\include\sgct\ScreenCapture.h" />
     <ClInclude Include="..\..\include\sgct\SGCTInternalShaders.h" />
@@ -48,6 +49,7 @@
     <ClInclude Include="..\..\include\sgct\SGCTVersion.h" />
     <ClInclude Include="..\..\include\sgct\SGCTWindow.h" />
     <ClInclude Include="..\..\include\sgct\Shader.h" />
+    <ClInclude Include="..\..\include\sgct\ShaderData.h" />
     <ClInclude Include="..\..\include\sgct\ShaderManager.h" />
     <ClInclude Include="..\..\include\sgct\ShaderProgram.h" />
     <ClInclude Include="..\..\include\sgct\SharedData.h" />
@@ -70,6 +72,7 @@
     <ClCompile Include="..\sgct\MessageHandler.cpp" />
     <ClCompile Include="..\sgct\NetworkManager.cpp" />
     <ClCompile Include="..\sgct\OffScreenBuffer.cpp" />
+    <ClCompile Include="..\sgct\PostFX.cpp" />
     <ClCompile Include="..\sgct\ReadConfig.cpp" />
     <ClCompile Include="..\sgct\ScreenCapture.cpp" />
     <ClCompile Include="..\sgct\SGCTMutexManager.cpp" />
@@ -145,10 +148,10 @@
     <OutDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(SGCT_ROOT_DIR)\lib\msvc11\</OutDir>
     <IntDir Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">$(Configuration)\</IntDir>
     <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">$(ProjectName)_d</TargetName>
-    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">sgct64_d</TargetName>
+    <TargetName Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">sgctd</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <TargetName>sgct64</TargetName>
+    <TargetName>sgct</TargetName>
     <OutDir>$(SGCT_ROOT_DIR)\lib\msvc11_x64\</OutDir>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -203,6 +206,7 @@
       <DebugInformationFormat>ProgramDatabase</DebugInformationFormat>
       <PreprocessorDefinitions>GLEW_STATIC;__WIN32__;__SGCT_DEBUG__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <ProgramDataBaseFileName>$(TargetDir)$(TargetName).pdb</ProgramDataBaseFileName>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
@@ -210,7 +214,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32sd.lib;glfw_d.lib;freetype_d.lib;ws2_32.lib;tinyxml2_d.lib;libpng15_staticd.lib;zlibstaticd.lib;vrpn_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glewd.lib;glfw3d.lib;freetype_d.lib;ws2_32.lib;tinyxml2_d.lib;tinythreadppd.lib;libpng15_staticd.lib;zlibstaticd.lib;vrpn_d.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc11_x64\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -291,7 +295,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw.lib;freetype.lib;ws2_32.lib;tinyxml2.lib;libpng15_static.lib;zlibstatic.lib;vrpn.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew.lib;glfw3.lib;freetype.lib;ws2_32.lib;tinyxml2.lib;tinythreadpp.lib;libpng15_static.lib;zlibstatic.lib;vrpn.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc11_x64\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

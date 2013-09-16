@@ -96,6 +96,16 @@ public:
 	void setMasterIp(std::string ip) { masterIp.assign(ip); }
 
 	/*!
+		\returns the name (DNS) of the master in the cluster
+	*/
+	std::string * getMasterName() { return &masterName; }
+
+	/*!
+		\param the dns or name of the master in the cluster
+	*/
+	void setMasterName(std::string name) { masterName.assign(name); }
+
+	/*!
 		\returns state of the firm frame lock lock sync
 	*/
 	bool getFirmFrameLockSyncStatus() { return mFirmFrameLockSync; }
@@ -153,6 +163,7 @@ private:
 	bool validCluster;
 	bool mFirmFrameLockSync;
 	std::string masterIp;
+	std::string masterName;
 	std::string mExternalControlPort;
 
 	SGCTUser * mUser;

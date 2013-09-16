@@ -60,7 +60,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 		throw err;
 	}
 
-	if(mMode == NotLocal)
+	if(mMode == Remote)
 		mIsServer = matchAddress( (*ClusterManager::instance()->getMasterIp()));
 	else if(mMode == LocalServer)
 		mIsServer = true;
@@ -81,11 +81,11 @@ sgct_core::NetworkManager::~NetworkManager()
 bool sgct_core::NetworkManager::init()
 {
 	//if faking an address (running local) then add it to the search list
-	if(mMode != NotLocal)
+	if( mMode != Remote )
 		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->ip);
 
 	std::string tmpIp;
-	if( mMode == NotLocal )
+	if( mMode == Remote )
 		tmpIp = *ClusterManager::instance()->getMasterIp();
 	else
 		tmpIp = "127.0.0.1";
@@ -295,14 +295,12 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 
     //count connections
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-	{
-		if( mNetworkConnections[i]->isConnected() )
+		if( mNetworkConnections[i] != NULL && mNetworkConnections[i]->isConnected() )
 		{
 			numberOfConnectionsCounter++;
 			if(mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 				numberOfConnectedSyncNodesCounter++;
 		}
-	}
 
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
@@ -394,12 +392,15 @@ void sgct_core::NetworkManager::close()
 	gCond.notify_all();
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 
-    //signal to terminate
+	//signal to terminate
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)
 		if(mNetworkConnections[i] != NULL)
 		{
 			mNetworkConnections[i]->initShutdown();
 		}
+
+	//wait for all nodes callbacks to run
+	tthread::this_thread::sleep_for(tthread::chrono::milliseconds( 250 ) );
 
     //wait for threads to die
 	for(unsigned int i=0; i < mNetworkConnections.size(); i++)
@@ -508,7 +509,7 @@ void sgct_core::NetworkManager::getHostInfo()
 #endif
 		throw "Failed to get host name!";
     }
-	hostName.assign(tmpStr);
+	mHostName.assign(tmpStr);
 
 	struct hostent *phe = gethostbyname(tmpStr);
     if (phe == 0)
@@ -520,7 +521,8 @@ void sgct_core::NetworkManager::getHostInfo()
 #endif
       	throw "Bad host lockup!";
     }
-
+	
+	mDNSName.assign( phe->h_name );
     for (int i = 0; phe->h_addr_list[i] != 0; ++i)
 	{
         struct in_addr addr;
@@ -534,7 +536,12 @@ void sgct_core::NetworkManager::getHostInfo()
 
 bool sgct_core::NetworkManager::matchHostName(const std::string name)
 {
-	return strcmp(name.c_str(), hostName.c_str() ) == 0;
+	return strcmp(name.c_str(), mHostName.c_str() ) == 0;
+}
+
+bool sgct_core::NetworkManager::matchDNSName(const std::string dnsName)
+{
+	return strcmp(dnsName.c_str(), mDNSName.c_str() ) == 0;
 }
 
 bool sgct_core::NetworkManager::matchAddress(const std::string ip)
@@ -544,4 +551,24 @@ bool sgct_core::NetworkManager::matchAddress(const std::string ip)
 			return true;
 	//No match
 	return false;
+}
+
+/*!
+	Retrieve the node id if this node is part of the cluster configuration
+*/
+void sgct_core::NetworkManager::retrieveNodeId()
+{
+	for(int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
+	{
+		//check ip
+		if( matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) || 
+			matchDNSName( ClusterManager::instance()->getNodePtr(i)->name) || 
+			matchHostName( ClusterManager::instance()->getNodePtr(i)->name) )
+		{
+			ClusterManager::instance()->setThisNodeId(i);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+				"NetworkManager: Running in cluster mode as node %d\n", ClusterManager::instance()->getThisNodeId());
+			break;
+		}
+	}
 }

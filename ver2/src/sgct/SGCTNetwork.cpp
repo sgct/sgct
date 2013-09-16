@@ -574,9 +574,11 @@ bool sgct_core::SGCTNetwork::isConnected()
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 	#endif
+
 	mConnectionMutex.lock();
 		tmpb = mConnected;
 	mConnectionMutex.unlock();
+	
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 	#endif
@@ -1226,7 +1228,18 @@ void sgct_core::SGCTNetwork::sendStr(std::string msg)
 
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 {
-    //release conditions
+    //clear callbacks	
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	mDecoderCallbackFn	= nullptr;
+	mUpdateCallbackFn	= nullptr;
+	mConnectedCallbackFn = nullptr;
+#else
+	mDecoderCallbackFn	= NULL;
+	mUpdateCallbackFn	= NULL;
+	mConnectedCallbackFn = NULL;
+#endif
+	
+	//release conditions
 	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	NetworkManager::gCond.notify_all();
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
@@ -1240,17 +1253,6 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 	#endif
-
-	//clear callbacks	
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	mDecoderCallbackFn	= nullptr;
-	mUpdateCallbackFn	= nullptr;
-	mConnectedCallbackFn = nullptr;
-#else
-	mDecoderCallbackFn	= NULL;
-	mUpdateCallbackFn	= NULL;
-	mConnectedCallbackFn = NULL;
-#endif
 
 	if( mCommThread != NULL )
     {

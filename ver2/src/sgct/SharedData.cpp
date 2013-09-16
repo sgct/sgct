@@ -25,7 +25,7 @@ SharedData::SharedData()
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
 
-	mCompressedBuffer = reinterpret_cast<unsigned char*>( malloc(DEFAULT_SIZE) );
+	mCompressedBuffer = new (std::nothrow) unsigned char[DEFAULT_SIZE];
 	mCompressedBufferSize = DEFAULT_SIZE;
 
 	dataBlock.reserve(DEFAULT_SIZE);
@@ -41,19 +41,24 @@ SharedData::SharedData()
 	else
 		currentStorage = &dataBlock;
 
-	headerSpace		= NULL;
-	headerSpace		= reinterpret_cast<unsigned char*>( malloc(sgct_core::SGCTNetwork::mHeaderSize) );
+	headerSpace		= new (std::nothrow) unsigned char[sgct_core::SGCTNetwork::mHeaderSize];
 
+	if( !mCompressedBuffer || !headerSpace )
+	{
+		fprintf(stderr, "Fatal error! Failed to allocate SharedData memory pool.\n");
+		return;
+	}
+	
 	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
 		headerSpace[i] = sgct_core::SGCTNetwork::SyncByte;
 }
 
 SharedData::~SharedData()
 {
-	free(headerSpace);
+	delete [] headerSpace;
     headerSpace = NULL;
 
-	free(mCompressedBuffer);
+	delete [] mCompressedBuffer;
 	mCompressedBuffer = NULL;
 
 	dataBlock.clear();
@@ -145,7 +150,8 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
         //re-allocatate if needed
         if(mCompressedBufferSize < cui.ui)
         {
-            mCompressedBuffer = reinterpret_cast<unsigned char*>( realloc(mCompressedBuffer, cui.ui) );
+            delete [] mCompressedBuffer;
+			mCompressedBuffer = new (std::nothrow) unsigned char[ cui.ui ];
             mCompressedBufferSize = cui.ui;
         }
 
@@ -224,7 +230,8 @@ void SharedData::encode()
 		//re-allocatate if needed
 		if(mCompressedBufferSize < dataBlockToCompress.size())
 		{
-			mCompressedBuffer = reinterpret_cast<unsigned char*>(realloc(mCompressedBuffer, dataBlockToCompress.size()));
+			delete [] mCompressedBuffer;
+			mCompressedBuffer = new (std::nothrow) unsigned char[ dataBlockToCompress.size() ];
 			mCompressedBufferSize = dataBlockToCompress.size();
 		}
 
@@ -516,16 +523,17 @@ void SharedData::readString(SharedString * ss)
     ci.c[3] = dataBlock[pos+3];
     pos += 4;
 
-    char* stringData = (char*)malloc(ci.i);
-    for (unsigned int i = 0; i < ci.i; ++i) {
-        stringData[i] = dataBlock[pos + i];
-    }
-    //memcpy(stringData, (void*)dataBlock[pos], ci.i);
+    char * stringData = new (std::nothrow) char[ ci.i ];
+    if( stringData )
+		memcpy(stringData, &dataBlock[pos], ci.i);
+
     pos += ci.i;
     SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
     
 	ss->setVal(stringData);
-    free(stringData);
+
+	delete [] stringData;
+	stringData = NULL;
 }
 
 unsigned char * SharedData::readUCharArray(size_t length)

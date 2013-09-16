@@ -37,10 +37,10 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	mNumberOfVertices = 1 + (vsegs-1)*(hsegs+1) + 1; // top + middle + bottom
 	mNumberOfFaces = hsegs + (vsegs-2)*hsegs*2 + hsegs; // top + middle + bottom
 	
-	mVerts = new sgct_helpers::SGCTVertexData[mNumberOfVertices];
+	mVerts = new (std::nothrow) sgct_helpers::SGCTVertexData[mNumberOfVertices];
 	memset(mVerts, 0, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData));
 
-	mIndices = new unsigned int[mNumberOfFaces * 3];
+	mIndices = new (std::nothrow) unsigned int[mNumberOfFaces * 3];
 	memset(mIndices, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
 
 	// First vertex: top pole (+y is "up" in object local coords)

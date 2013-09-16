@@ -5,7 +5,7 @@
 		<Offset x="0.0" y="-0.8" z="-29.0" />
 		<Scale value="10.0" />
 	</Scene>
-	<Node ip="127.0.0.1" port="20401">
+	<Node address="127.0.0.1" port="20401">
 		<Window fullScreen="false" fxaa="false" numberOfSamples="0">
 			<Stereo type="none" />
 			<!-- 16:9 aspect ratio -->

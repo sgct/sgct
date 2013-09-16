@@ -48,7 +48,7 @@ public:
 	enum ReceivedIndex { Current = 0, Previous };
 
 	SGCTNetwork();
-	void init(const std::string port, const std::string ip, bool _isServer, int id, ConnectionTypes serverType, bool firmSync);
+	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType, bool firmSync);
 	void closeNetwork(bool forced);
 	void initShutdown();
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);

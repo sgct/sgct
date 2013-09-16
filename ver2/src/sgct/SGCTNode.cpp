@@ -6,6 +6,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/SGCTNode.h"
+#include "../include/sgct/MessageHandler.h"
+#include <algorithm>
 
 sgct_core::SGCTNode::SGCTNode()
 {
@@ -95,3 +97,43 @@ void sgct_core::SGCTNode::hideAllWindows()
 	for(std::size_t i=0; i<mWindows.size(); i++)
 		mWindows[i].setVisibility( false );
 }
+
+/*!
+\param address is the hostname, DNS-name or ip
+*/
+void sgct_core::SGCTNode::setAddress(std::string address)
+{
+	std::transform(address.begin(), address.end(), address.begin(), ::tolower);
+	mAddress.assign( address );
+
+	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+		"SGCTNode: Setting address to %s\n", mAddress.c_str() );
+}
+
+/*!
+\param port is the number of the tcp port used for communication with this node
+*/
+void sgct_core::SGCTNode::setPort(std::string port)
+{
+	mPort.assign( port );
+	
+	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+		"SGCTNode: Setting port to %s\n", mPort.c_str() );
+}
+
+/*!
+\returns the address of this node
+*/
+std::string sgct_core::SGCTNode::getAddress()
+{
+	return mAddress;
+}
+
+/*!
+\returns the port of this node
+*/
+std::string sgct_core::SGCTNode::getPort()
+{
+	return mPort;
+}
+

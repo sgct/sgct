@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/ClusterManager.h"
 #include <glm/gtx/euler_angles.hpp>
+#include <algorithm>
 
 sgct_core::ClusterManager * sgct_core::ClusterManager::mInstance = NULL;
 
@@ -100,4 +101,21 @@ Updates the scene transform. Calculates the transform matrix using: SceneTransfo
 void sgct_core::ClusterManager::calculateSceneTransform()
 {
 	mSceneTransform = mSceneRotation * mSceneTranslate * mSceneScale;
+}
+
+/*!
+		\returns the dns, name or ip of the master in the cluster (depends on what's been set in the XML config)
+*/
+std::string * sgct_core::ClusterManager::getMasterAddress()
+{
+	return &mMasterAddress;
+}
+
+/*!
+	\param the dns, ip or name of the master in the cluster
+*/
+void sgct_core::ClusterManager::setMasterAddress(std::string address)
+{
+	std::transform(address.begin(), address.end(), address.begin(), ::tolower);
+	mMasterAddress.assign(address);
 }

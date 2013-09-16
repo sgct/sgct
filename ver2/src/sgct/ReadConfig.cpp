@@ -14,6 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/external/tinyxml2.h"
 #include "../include/sgct/SGCTSettings.h"
+#include <algorithm>
 
 using namespace tinyxml2;
 
@@ -45,13 +46,15 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 		return;
 	}
 	valid = true;
+
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str());
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Number of nodes in cluster: %d\n",
 		ClusterManager::instance()->getNumberOfNodes());
+
 	for(unsigned int i = 0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) ip: %s [%s]\n", i,
-		ClusterManager::instance()->getNodePtr(i)->ip.c_str(),
-		ClusterManager::instance()->getNodePtr(i)->port.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) address: %s [%s]\n", i,
+		ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
+		ClusterManager::instance()->getNodePtr(i)->getPort().c_str());
 }
 
 bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
@@ -143,17 +146,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 	}
 
 	const char * masterAddress = XMLroot->Attribute( "masterAddress" );
-	const char * masterName = XMLroot->Attribute( "masterName" );
-	if( masterAddress == NULL && masterName == NULL )
-	{
-		throw "Cannot find master address or DNS name in XML!";
-	}
-
 	if( masterAddress )
-		ClusterManager::instance()->setMasterIp( masterAddress );
-
-	if( masterName )
-		ClusterManager::instance()->setMasterName( masterName );
+		ClusterManager::instance()->setMasterAddress( masterAddress );
+	else
+		throw "Cannot find master address or DNS name in XML!";
 
 	const char * debugMode = XMLroot->Attribute( "debug" );
 	if( debugMode != NULL )
@@ -254,12 +250,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 		{
 			SGCTNode tmpNode;
 
-			if( element[0]->Attribute( "ip" ) )
-				tmpNode.ip.assign( element[0]->Attribute( "ip" ) );
+			if( element[0]->Attribute( "address" ) )
+				tmpNode.setAddress( element[0]->Attribute( "address" ) );
+			if( element[0]->Attribute( "ip" ) ) //backward compability with older versions of SGCT config files
+				tmpNode.setAddress( element[0]->Attribute( "ip" ) );
 			if( element[0]->Attribute( "port" ) )
-				tmpNode.port.assign( element[0]->Attribute( "port" ) );
-			if( element[0]->Attribute( "name" ) )
-				tmpNode.name.assign( element[0]->Attribute( "name" ) );
+				tmpNode.setPort( element[0]->Attribute( "port" ) );
 
 			if( element[0]->Attribute("swapLock") != NULL )
 				tmpNode.setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false );
@@ -839,8 +835,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 	}
 }
 
-sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( const std::string type )
+sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string type )
 {
+	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+	
 	if( strcmp( type.c_str(), "none" ) == 0 || strcmp( type.c_str(), "no_stereo" ) == 0  )
 		return sgct::SGCTWindow::No_Stereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 || strcmp( type.c_str(), "quadbuffer" ) == 0 )
@@ -874,8 +872,10 @@ sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( const std::st
 	return sgct::SGCTWindow::No_Stereo;
 }
 
-int sgct_core::ReadConfig::getFisheyeCubemapRes( const std::string quality )
+int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
 {
+	std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
+	
 	if( strcmp( quality.c_str(), "low" ) == 0 )
 		return 256;
 	else if( strcmp( quality.c_str(), "medium" ) == 0 )

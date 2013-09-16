@@ -1998,7 +1998,7 @@ void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 {
 	mStereoMode = sm;
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
 		getStereoModeStr().c_str(), mId);
 
 	if( mWindowHandle )

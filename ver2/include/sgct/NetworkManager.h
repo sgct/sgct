@@ -35,9 +35,7 @@ public:
 	bool isSyncComplete();
 	void close();
 
-	bool matchHostName(const std::string name);
-	bool matchDNSName(const std::string dnsName);
-	bool matchAddress(const std::string ip);
+	bool matchAddress(const std::string address);
 	void retrieveNodeId();
 	bool isComputerServer() { return mIsServer; }
 	bool isRunning() { return mIsRunning; }
@@ -49,7 +47,7 @@ public:
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
 
 private:
-	bool addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
+	bool addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
 	void initAPI();
 	void getHostInfo();
 	void updateConnectionStatus(int index);

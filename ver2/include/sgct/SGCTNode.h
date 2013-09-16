@@ -49,11 +49,15 @@ public:
 	void showAllWindows();
 	void hideAllWindows();
 
-	std::string ip;
-	std::string port;
-	std::string name;
+	void setAddress(std::string address);
+	void setPort(std::string port);
+	std::string getAddress();
+	std::string getPort();
 
 private:
+	std::string mAddress;
+	std::string mPort;
+
 	std::size_t mCurrentWindowIndex;
 	std::vector<sgct::SGCTWindow> mWindows;
 	bool mUseSwapGroups;

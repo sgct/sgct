@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1" externalControlPort="20500">
-	<Node ip="127.0.0.1" port="20400">
+	<Node address="127.0.0.1" port="20400">
 		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Pos x="0" y="0" />
@@ -19,7 +19,7 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node ip="127.0.0.2" port="20401">
+	<Node address="127.0.0.2" port="20401">
 		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />
@@ -38,7 +38,7 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node ip="127.0.0.3" port="20402">
+	<Node address="127.0.0.3" port="20402">
 		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />
@@ -57,7 +57,7 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node ip="127.0.0.4" port="20403">
+	<Node address="127.0.0.4" port="20403">
 		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Size x="400" y="300" />

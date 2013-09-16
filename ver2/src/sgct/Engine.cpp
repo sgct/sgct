@@ -1069,7 +1069,7 @@ void sgct::Engine::renderDisplayInfo()
 			lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Node ip: %s (%s)",
-			mThisNode->ip.c_str(),
+			mThisNode->getAddress().c_str(),
 			mNetworkConnections->isComputerServer() ? "master" : "slave");
 
 		sgct_text::print(font,
@@ -3670,7 +3670,7 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
 {
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
 	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%Iu) | fps: %.2f | AA: %s",
-		localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
+		localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
 		mNetworkConnections->isComputerServer() ? "master" : "slave",
 		winIndex,
 		static_cast<float>(mStatistics->getAvgFPS()),
@@ -3678,7 +3678,7 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
     #else
         #ifdef __WIN32__
         sprintf( basicInfo, "Node: %s (%s:%u) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
+            localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
             mNetworkConnections->isComputerServer() ? "master" : "slave",
             winIndex,
             static_cast<float>(mStatistics->getAvgFPS()),

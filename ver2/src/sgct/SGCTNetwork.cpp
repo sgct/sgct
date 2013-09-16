@@ -85,13 +85,13 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	Inits this network connection.
 
 	\param port is the network port (TCP)
-	\param ip is the ip4 address
+	\param address is the hostname, ip4 address or ip6 address
 	\param _isServer indicates if this connection is a server or client
 	\param id is a unique id of this connection
 	\param connectionType is the type of connection
 	\param firmSync if set to true then firm framesync will be used for the whole cluster
 */
-void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, bool _isServer, int id, sgct_core::SGCTNetwork::ConnectionTypes connectionType, bool firmSync)
+void sgct_core::SGCTNetwork::init(const std::string port, const std::string address, bool _isServer, int id, sgct_core::SGCTNetwork::ConnectionTypes connectionType, bool firmSync)
 {
 	mServer = _isServer;
 	mConnectionType = connectionType;
@@ -116,7 +116,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string ip, 
 	if( mServer )
 		iResult = getaddrinfo(NULL, port.c_str(), &hints, &result);
 	else
-		iResult = getaddrinfo(ip.c_str(), port.c_str(), &hints, &result);
+		iResult = getaddrinfo(address.c_str(), port.c_str(), &hints, &result);
 	if (iResult != 0)
 	{
 		//WSACleanup(); hanteras i manager

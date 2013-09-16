@@ -32,11 +32,11 @@ sgct::MessageHandler::MessageHandler(void)
 		return;
 	}
 
-//#ifdef __SGCT_DEBUG__
-//	mLevel = NOTIFY_DEBUG;
-//#else
+#ifdef __SGCT_DEBUG__
+	mLevel = NOTIFY_DEBUG;
+#else
 	mLevel = NOTIFY_WARNING;
-//#endif
+#endif
 
 	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
 	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);

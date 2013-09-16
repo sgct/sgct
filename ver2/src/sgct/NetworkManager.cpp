@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/Engine.h"
+#include <algorithm>
 
 #ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
@@ -61,7 +62,8 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 	}
 
 	if(mMode == Remote)
-		mIsServer = matchAddress( (*ClusterManager::instance()->getMasterIp()));
+		mIsServer = matchAddress( (*ClusterManager::instance()->getMasterAddress()) );
+
 	else if(mMode == LocalServer)
 		mIsServer = true;
 	else
@@ -80,20 +82,38 @@ sgct_core::NetworkManager::~NetworkManager()
 
 bool sgct_core::NetworkManager::init()
 {
+	std::string this_address;
+	if( !ClusterManager::instance()->getThisNodePtr()->getAddress().empty() )
+		this_address.assign( ClusterManager::instance()->getThisNodePtr()->getAddress() );
+	else //error
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for this node availible!");
+		return false;
+	}
+
+	std::string remote_address;
+	if( mMode == Remote )
+	{
+		if( !ClusterManager::instance()->getMasterAddress()->empty() )
+			remote_address.assign( *ClusterManager::instance()->getMasterAddress() );
+		else
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for master/host availible!");
+			return false;
+		}
+	}
+	else //local (not remote)
+		remote_address.assign("127.0.0.1");
+
+
 	//if faking an address (running local) then add it to the search list
 	if( mMode != Remote )
-		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->ip);
-
-	std::string tmpIp;
-	if( mMode == Remote )
-		tmpIp = *ClusterManager::instance()->getMasterIp();
-	else
-		tmpIp = "127.0.0.1";
+		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->getAddress());
 
 	//if client
 	if( !mIsServer )
 	{
-		if(addConnection(ClusterManager::instance()->getThisNodePtr()->port, tmpIp))
+		if(addConnection(ClusterManager::instance()->getThisNodePtr()->getPort(), remote_address))
 		{
 			//bind
 			sgct_cppxeleven::function< void(const char*, int, int) > callback;
@@ -105,7 +125,7 @@ bool sgct_core::NetworkManager::init()
 		}
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to add network connection to %s!\n", ClusterManager::instance()->getMasterIp()->c_str());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to add network connection to %s!\n", ClusterManager::instance()->getMasterAddress()->c_str());
 			return false;
 		}
 	}
@@ -114,11 +134,13 @@ bool sgct_core::NetworkManager::init()
 	for(unsigned int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 	{
 		//dont add itself if server
-		if( mIsServer && !matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ))
+		if( mIsServer && !matchAddress( ClusterManager::instance()->getNodePtr(i)->getAddress() ))
 		{
-			if(!addConnection(ClusterManager::instance()->getNodePtr(i)->port, tmpIp))
+			if(!addConnection(ClusterManager::instance()->getNodePtr(i)->getPort(), remote_address))
 			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to add network connection to %s!\n", ClusterManager::instance()->getNodePtr(i)->ip.c_str());
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+					"NetworkManager: Failed to add network connection to %s!\n",
+					ClusterManager::instance()->getNodePtr(i)->getAddress().c_str());
 				return false;
 			}
 			else //bind
@@ -289,7 +311,7 @@ unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 void sgct_core::NetworkManager::updateConnectionStatus(int index)
 {
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: updating connection status %d\n", index);
-	
+
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
 
@@ -420,12 +442,23 @@ void sgct_core::NetworkManager::close()
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Network API closed!\n");
 }
 
-bool sgct_core::NetworkManager::addConnection(const std::string port, const std::string ip, SGCTNetwork::ConnectionTypes connectionType)
+bool sgct_core::NetworkManager::addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType)
 {
 	SGCTNetwork * netPtr = NULL;
 
-	if(port.empty() || ip.empty())
+	if( port.empty() )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+			"NetworkManager: No port set for %s!\n", connectionType == SGCTNetwork::SyncConnection ? "IG" : "external control");
 		return false;
+	}
+
+	if( address.empty() )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+			"NetworkManager: Error: No address set for %s!\n", connectionType == SGCTNetwork::SyncConnection ? "IG" : "external control");
+		return false;
+	}
 
 	try
 	{
@@ -446,7 +479,8 @@ bool sgct_core::NetworkManager::addConnection(const std::string port, const std:
 	try
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
-		netPtr->init(port, ip, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
+
+		netPtr->init(port, address, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
 			ClusterManager::instance()->getFirmFrameLockSyncStatus());
 
 		//bind callback
@@ -521,7 +555,7 @@ void sgct_core::NetworkManager::getHostInfo()
 #endif
       	throw "Bad host lockup!";
     }
-	
+
 	mDNSName.assign( phe->h_name );
     for (int i = 0; phe->h_addr_list[i] != 0; ++i)
 	{
@@ -530,24 +564,22 @@ void sgct_core::NetworkManager::getHostInfo()
 		localAddresses.push_back( inet_ntoa(addr) );
     }
 
+	//add hostname and adress
+	std::transform(mHostName.begin(), mHostName.end(), mHostName.begin(), ::tolower);
+	std::transform(mDNSName.begin(), mDNSName.end(), mDNSName.begin(), ::tolower);
+
+	localAddresses.push_back(mHostName);
+	localAddresses.push_back(mDNSName);
+
 	//add the loop-back
 	localAddresses.push_back("127.0.0.1");
+	localAddresses.push_back("localhost");
 }
 
-bool sgct_core::NetworkManager::matchHostName(const std::string name)
-{
-	return strcmp(name.c_str(), mHostName.c_str() ) == 0;
-}
-
-bool sgct_core::NetworkManager::matchDNSName(const std::string dnsName)
-{
-	return strcmp(dnsName.c_str(), mDNSName.c_str() ) == 0;
-}
-
-bool sgct_core::NetworkManager::matchAddress(const std::string ip)
+bool sgct_core::NetworkManager::matchAddress(const std::string address)
 {
 	for( unsigned int i=0; i<localAddresses.size(); i++)
-		if( strcmp(ip.c_str(), localAddresses[i].c_str()) == 0 )
+		if( strcmp(address.c_str(), localAddresses[i].c_str()) == 0 )
 			return true;
 	//No match
 	return false;
@@ -558,14 +590,12 @@ bool sgct_core::NetworkManager::matchAddress(const std::string ip)
 */
 void sgct_core::NetworkManager::retrieveNodeId()
 {
-	for(int i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
+	for(std::size_t i=0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 	{
 		//check ip
-		if( matchAddress( ClusterManager::instance()->getNodePtr(i)->ip ) || 
-			matchDNSName( ClusterManager::instance()->getNodePtr(i)->name) || 
-			matchHostName( ClusterManager::instance()->getNodePtr(i)->name) )
+		if( matchAddress( ClusterManager::instance()->getNodePtr(i)->getAddress() ) )
 		{
-			ClusterManager::instance()->setThisNodeId(i);
+			ClusterManager::instance()->setThisNodeId( static_cast<int>(i) );
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
 				"NetworkManager: Running in cluster mode as node %d\n", ClusterManager::instance()->getThisNodeId());
 			break;

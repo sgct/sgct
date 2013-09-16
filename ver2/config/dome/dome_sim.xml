@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="127.0.0.1">
-	<Node ip="127.0.0.1" port="20401">
+	<Node address="127.0.0.1" port="20401">
 		<Window fullScreen="false">
 			<Size x="1260" y="525" />
 			<!-- channel 5 (front left) -->

@@ -85,25 +85,8 @@ public:
 	*/
 	int getThisNodeId() { return mThisNodeId; }
 
-	/*!
-		\returns the ip address to the master in the cluster
-	*/
-	std::string * getMasterIp() { return &masterIp; }
-
-	/*!
-		\param the ip address to the master
-	*/
-	void setMasterIp(std::string ip) { masterIp.assign(ip); }
-
-	/*!
-		\returns the name (DNS) of the master in the cluster
-	*/
-	std::string * getMasterName() { return &masterName; }
-
-	/*!
-		\param the dns or name of the master in the cluster
-	*/
-	void setMasterName(std::string name) { masterName.assign(name); }
+	std::string * getMasterAddress();
+	void setMasterAddress(std::string address);
 
 	/*!
 		\returns state of the firm frame lock lock sync
@@ -162,8 +145,7 @@ private:
 	int mThisNodeId;
 	bool validCluster;
 	bool mFirmFrameLockSync;
-	std::string masterIp;
-	std::string masterName;
+	std::string mMasterAddress;
 	std::string mExternalControlPort;
 
 	SGCTUser * mUser;

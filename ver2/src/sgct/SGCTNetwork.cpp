@@ -606,16 +606,20 @@ int sgct_core::SGCTNetwork::getId()
 #ifdef __SGCT_NETWORK_DEBUG__    
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
 #endif
-	int tmpi;
+
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 	#endif
+	
+	int tmpi = 0;
 	mConnectionMutex.lock();
 		tmpi = mId;
 	mConnectionMutex.unlock();
+	
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 	#endif
+	
 	return tmpi;
 }
 
@@ -1237,6 +1241,17 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 	#endif
 
+	//clear callbacks	
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	mDecoderCallbackFn	= nullptr;
+	mUpdateCallbackFn	= nullptr;
+	mConnectedCallbackFn = nullptr;
+#else
+	mDecoderCallbackFn	= NULL;
+	mUpdateCallbackFn	= NULL;
+	mConnectedCallbackFn = NULL;
+#endif
+
 	if( mCommThread != NULL )
     {
         if( !forced )
@@ -1275,7 +1290,7 @@ void sgct_core::SGCTNetwork::initShutdown()
         sendData(gameOver, mHeaderSize);
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d... \n", getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d...\n", getId());
 
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Locking mutex for connection %d...\n", mId);

@@ -310,7 +310,7 @@ private:
 	void clean();
 	void clearAllCallbacks();
 
-	void frameSyncAndLock(SyncStage stage);
+	void frameLock(SyncStage stage);
 	void calculateFPS(double timestamp);
 	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();

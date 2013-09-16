@@ -726,7 +726,7 @@ Locks the rendering thread for synchronization. The two stages are:
 
 Sync time from statistics is the time each computer waits for sync.
 */
-void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
+void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 {
 	if( stage == PreStage )
 	{
@@ -759,10 +759,16 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave%d: waiting for master... send frame %d, recv frame %d\n",
+							unsigned int lFrameNumber = 0;
+							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
+							
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave%d: waiting for master... send frame %d, recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
 								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
-								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
+								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
+								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
+								getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
+								lFrameNumber);
 						}
 					}
 				}
@@ -808,9 +814,16 @@ void sgct::Engine::frameSyncAndLock(sgct::Engine::SyncStage stage)
 					{
 						if( !mNetworkConnections->getConnection(i)->isUpdated() )
 						{
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n", i,
+							unsigned int lFrameNumber = 0;
+							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
+							
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
+								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
-								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current));
+								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
+								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
+								getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
+								lFrameNumber);
 						}
 					}
 				}
@@ -864,7 +877,7 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Sync/framelock\n");
 #endif
-		frameSyncAndLock(PreStage);
+		frameLock(PreStage);
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
@@ -1010,7 +1023,7 @@ void sgct::Engine::render()
     fprintf(stderr, "Render-Loop: lock\n");
 #endif
 		//master will wait for nodes render before swapping
-		frameSyncAndLock(PostStage);
+		frameLock(PostStage);
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Swap buffers\n");

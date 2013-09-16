@@ -81,6 +81,7 @@ void sgct::MessageHandler::decode(const char * receivedData, int receivedlength,
 
 void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 {
+
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     vsprintf_s(mParseBuffer, MESSAGE_HANDLER_MAX_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
 #else

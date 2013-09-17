@@ -15,6 +15,21 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef SGCT_OGL_HEADERS
 	#define SGCT_OGL_HEADERS
 	#include <GL/glew.h>
+
+    //should be defined by compiler
+	#if  defined (linux)  || defined (__linux)
+        #ifndef __LINUX__
+        #define __LINUX__
+        #endif
+    #endif
+    //should be defined by compiler
+    #ifdef _WIN32
+        #ifndef __WIN32__
+        #define __WIN32__
+        #endif
+    #endif
+    // __APPLE__ should be defined
+
 	#ifdef __WIN32__
 		#include <GL/wglew.h>
 	#elif defined __APPLE__

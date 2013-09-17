@@ -754,7 +754,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 						{
 							unsigned int lFrameNumber = 0;
 							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
-							
+
 							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave%d: waiting for master... send frame %d, recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
 								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
@@ -809,7 +809,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 						{
 							unsigned int lFrameNumber = 0;
 							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
-							
+
 							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
 								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
@@ -1027,7 +1027,7 @@ void sgct::Engine::render()
 			mThisNode->setCurrentWindowIndex(i);
 			getActiveWindowPtr()->swap();
 		}
-		
+
 		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed
@@ -2795,7 +2795,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 
 			MessageHandler::instance()->setLogPath( tmpStr.c_str() );
 			MessageHandler::instance()->setLogToFile(true);
-			
+
 			argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);
 			i+=2;
@@ -2965,7 +2965,7 @@ void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 /*!
 	This callback is called before the window is created (before OpenGL context is created).
 	At this stage the config file has been read and network initialized. Therefore it's suitable for loading master or slave specific data.
-	
+
 	\param fnPtr is the function pointer to a pre window creation callback
 */
 void sgct::Engine::setPreWindowFunction( void(*fnPtr)(void) )
@@ -3685,7 +3685,7 @@ const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
             getAAInfo(winIndex));
         #else
         sprintf( basicInfo, "Node: %s (%s:%zu) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::Remote ? mThisNode->ip.c_str() : "127.0.0.1",
+            localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
             mNetworkConnections->isComputerServer() ? "master" : "slave",
             winIndex,
             static_cast<float>(mStatistics->getAvgFPS()),
@@ -3953,14 +3953,14 @@ void sgct::Engine::outputHelpMessage()
 void updateFrameLockLoop(void * arg)
 {
 	bool run = true;
-	
+
 	while(run)
 	{
 		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 		run = sRunUpdateFrameLockLoop;
 		sgct_core::NetworkManager::gCond.notify_all();
 		sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
-		
+
 		tthread::this_thread::sleep_for(tthread::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
 	}
 }

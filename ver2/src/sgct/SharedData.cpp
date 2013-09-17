@@ -368,7 +368,7 @@ void SharedData::writeString(SharedString * ss)
     SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 }
 
-void SharedData::writeUCharArray(unsigned char * c, size_t length)
+void SharedData::writeUCharArray(unsigned char * c, std::size_t length)
 {
 #ifdef __SGCT_NETWORK_DEBUG__     
 	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::writeUCharArray\n");
@@ -376,6 +376,18 @@ void SharedData::writeUCharArray(unsigned char * c, size_t length)
     SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
     (*currentStorage).insert( (*currentStorage).end(), c, c+length);
     SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+}
+
+void SharedData::writeSize( std::size_t size )
+{
+#ifdef __SGCT_NETWORK_DEBUG__     
+	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::writeSize\n");
+#endif
+    
+	SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	unsigned char *p = (unsigned char *)&size;
+	(*currentStorage).insert( (*currentStorage).end(), p, p + sizeof( std::size_t ));
+	SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 }
 
 void SharedData::readFloat(SharedFloat * sf)
@@ -536,7 +548,7 @@ void SharedData::readString(SharedString * ss)
 	stringData = NULL;
 }
 
-unsigned char * SharedData::readUCharArray(size_t length)
+unsigned char * SharedData::readUCharArray(std::size_t length)
 {
 #ifdef __SGCT_NETWORK_DEBUG__ 
 	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::readUCharArray\n");
@@ -549,4 +561,31 @@ unsigned char * SharedData::readUCharArray(size_t length)
 	SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
     return p;
+}
+
+std::size_t SharedData::readSize()
+{
+#ifdef __SGCT_NETWORK_DEBUG__ 
+	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::readSize\n");
+#endif
+
+	std::size_t size;
+	
+	SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	union
+	{
+		std::size_t s;
+		unsigned char c[ sizeof(std::size_t) ];
+	} cs;
+
+	for(unsigned int i=0; i<sizeof(std::size_t); i++)
+		cs.c[i] = dataBlock[pos+i];
+
+	pos += sizeof(std::size_t);
+	
+	size = cs.s;
+
+	SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+
+	return size;
 }

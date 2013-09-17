@@ -31,13 +31,14 @@ sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool slowRendering(false);
 sgct::SharedBool frametest(false);
 sgct::SharedFloat speed( 5.0f );
-sgct::SharedFloat extraData[EXTENDED_SIZE];
+sgct::SharedVector<float> extraData;
+//sgct::SharedFloat extraData[EXTENDED_SIZE];
 
 void drawGrid(float size, int steps);
 
 int main( int argc, char* argv[] )
 {
-	sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
+	//sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
 	
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
@@ -56,7 +57,7 @@ int main( int argc, char* argv[] )
 	//allocate extra data
 	if( gEngine->isMaster() )
 		for(int i=0;i<EXTENDED_SIZE;i++)
-			extraData[i].setVal(static_cast<float>(rand()%500)/500.0f);
+			extraData.addVal(static_cast<float>(rand()%500)/500.0f);
 
 	sgct::SharedData::instance()->setCompression(true);
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
@@ -82,6 +83,8 @@ void myDraw2DFun()
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getActiveWindowPtr()->isFocused() ? "true" : "false");
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
+	if(extraPackages.getVal())
+		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 14 ), 100, 300, glm::vec4(0.0, 0.0, 1.0, 1.0), "Vector val: %f", extraData.getValAt(EXTENDED_SIZE/2) );
 }
 
 void myDrawFun()
@@ -284,8 +287,9 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeString( &sTimeOfDay );
 
 	if(extraPackages.getVal())
-		for(int i=0;i<EXTENDED_SIZE;i++)
-			sgct::SharedData::instance()->writeFloat( &extraData[i] );
+		sgct::SharedData::instance()->writeVector( &extraData );
+		//for(int i=0;i<EXTENDED_SIZE;i++)
+		//	sgct::SharedData::instance()->writeFloat( &extraData[i] );
 }
 
 void myDecodeFun()
@@ -308,8 +312,9 @@ void myDecodeFun()
 	frametest.setVal((flags>>7) & 0x0001);
 
 	if(extraPackages.getVal())
-		for(int i=0;i<EXTENDED_SIZE;i++)
-			sgct::SharedData::instance()->readFloat( &extraData[i] );
+		sgct::SharedData::instance()->readVector( &extraData );
+		/*for(int i=0;i<EXTENDED_SIZE;i++)
+			sgct::SharedData::instance()->readFloat( &extraData[i] );*/
 }
 
 void keyCallback(int key, int action)

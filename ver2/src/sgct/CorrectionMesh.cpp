@@ -39,13 +39,15 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
-{
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
-	
+{	
 	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
 		glDeleteLists(mMeshData[0], 1);
+	}
 	else if(mMeshData[0] != 0)
 	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != GL_FALSE)
 			glDeleteVertexArrays(1, &mMeshData[2]);
 		glDeleteBuffers(2, &mMeshData[0]);

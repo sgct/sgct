@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SHARED_DATA_TYPES
 
 #include <string>
+#include <vector>
 #include "SGCTMutexManager.h"
 
 namespace sgct //simple graphics cluster toolkit
@@ -163,6 +164,71 @@ namespace sgct //simple graphics cluster toolkit
 		SharedObject( const SharedObject & so );
 		const SharedObject & operator=(const SharedObject & so );
 		T mVal;
+	};
+
+	/*!
+	Mutex protected std::vector template for multi-thread data sharing
+	*/
+	template <class T>
+	class SharedVector
+	{
+	public:
+		SharedVector() {;}
+		SharedVector(std::size_t size) { mVector.reserve(size); }
+
+		T getValAt(std::size_t index)
+		{
+			T tmpT;
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			tmpT = mVector[ index ];
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			return tmpT;
+		}
+
+		std::vector<T> getVal()
+		{
+			std::vector<T> mCopy;
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mCopy = mVector;
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			return mCopy;
+		}
+
+		void setValAt(std::size_t index, T val)
+		{
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mVector[ index ] = val;
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+		}
+
+		void addVal(T val)
+		{
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mVector.push_back(val);
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+		}
+
+		void setVal( std::vector<T> mCopy )
+		{
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mVector.clear();
+			mVector = mCopy;
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+		}
+
+		std::size_t getSize()
+		{
+			std::size_t size = 0;
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			size = mVector.size();
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			return size;
+		}
+
+	private:
+		SharedVector( const SharedVector & sv );
+		const SharedVector & operator=(const SharedVector & sv );
+		std::vector<T> mVector;
 	};
 }
 

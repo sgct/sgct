@@ -68,6 +68,8 @@ public:
 	void writeBool(SharedBool * sb);
 	void writeShort(SharedShort * ss);
     void writeString(SharedString * ss);
+	template<class T>
+	void writeVector(SharedVector<T> * vector);
 
 	template<class T>
 	void readObj(SharedObject<T> * sobj);
@@ -78,6 +80,8 @@ public:
 	void readBool(SharedBool * sb);
 	void readShort(SharedShort * ss);
     void readString(SharedString * ss);
+	template<class T>
+	void readVector(SharedVector<T> * vector);
 
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );
@@ -111,8 +115,11 @@ private:
 	SharedData( const SharedData & tm );
 	const SharedData & operator=(const SharedData & rhs );
 
-	void writeUCharArray(unsigned char * c, size_t length);
-	unsigned char * readUCharArray(size_t length);
+	void writeUCharArray(unsigned char * c, std::size_t length);
+	unsigned char * readUCharArray(std::size_t length);
+
+	void writeSize( std::size_t size );
+	std::size_t readSize();
 
 private:
 	//function pointers
@@ -138,24 +145,54 @@ void SharedData::writeObj( SharedObject<T> * sobj )
 {
 	T val = sobj->getVal();
 	unsigned char *p = (unsigned char *)&val;
-    size_t size = sizeof(val);
+    std::size_t size = sizeof(val);
     writeUCharArray(p, size);
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T> * sobj)
 {
-	size_t size = sizeof(T);
+	std::size_t size = sizeof(T);
     unsigned char* data = new unsigned char[size];
 	unsigned char* c = readUCharArray(size);
 
-	for(size_t i = 0; i < size; i++)
+	for(std::size_t i = 0; i < size; i++)
 		data[i] = c[i];
 
     T val = *reinterpret_cast<T*>(data);
     delete[] data;
     
 	sobj->setVal( val );
+}
+
+template<class T>
+void SharedData::writeVector(SharedVector<T> * vector)
+{
+	std::vector<T> tmpVec = vector->getVal();
+
+	unsigned char *p = reinterpret_cast<unsigned char *>(&tmpVec[0]);
+    std::size_t element_size = sizeof(T);
+    
+	writeSize( tmpVec.size() );
+	writeUCharArray(p, element_size * tmpVec.size());
+}
+
+template<class T>
+void SharedData::readVector(SharedVector<T> * vector)
+{
+	std::size_t size = readSize();
+	std::size_t totalSize = size * sizeof(T);
+    unsigned char* data = new unsigned char[ totalSize ];
+	unsigned char* c = readUCharArray( totalSize );
+
+	for(std::size_t i = 0; i < totalSize; i++)
+		data[i] = c[i];
+
+	std::vector<T> tmpVec;
+	tmpVec.insert( tmpVec.begin(), reinterpret_cast<T*>(data), reinterpret_cast<T*>(data)+size);
+
+    vector->setVal( tmpVec );
+    delete[] data;
 }
 
 }

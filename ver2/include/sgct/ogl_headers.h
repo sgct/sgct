@@ -22,12 +22,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
         #define __LINUX__
         #endif
     #endif
+
     //should be defined by compiler
     #ifdef _WIN32
         #ifndef __WIN32__
         #define __WIN32__
         #endif
     #endif
+
     // __APPLE__ should be defined
 
 	#ifdef __WIN32__

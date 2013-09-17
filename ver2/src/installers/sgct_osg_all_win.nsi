@@ -334,9 +334,14 @@ Section "SGCT environment variable"
 SectionEnd
 
 Section "Start Menu Shortcuts"
-
+  #all users
+  SetShellVarContext all
+  #current user
+  #SetShellVarContext current
+  
   CreateDirectory "$SMPROGRAMS\SGCT"
-  CreateShortCut "$SMPROGRAMS\SGCT\Uninstall.lnk" "$INSTDIR\uninstall.exe" ""
+  #not that good in the lab to have an uninstall shortcut
+  #CreateShortCut "$SMPROGRAMS\SGCT\Uninstall.lnk" "$INSTDIR\uninstall.exe" ""
   
   #add examples
   SetOutPath $INSTDIR

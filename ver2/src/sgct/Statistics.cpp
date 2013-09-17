@@ -222,12 +222,11 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	glBufferData(GL_ARRAY_BUFFER, 8 * sizeof(float), &bgVerts[0], GL_STATIC_DRAW );
 	if(!mFixedPipeline)
 		glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) );
-
-	//unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	
 	if(mFixedPipeline)
 	{
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 		mShader.setName("StatsShader");
 		mShader.addShaderSrc( Stats_Vert_Shader_Legacy, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
 		mShader.addShaderSrc( Stats_Frag_Shader_Legacy, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );

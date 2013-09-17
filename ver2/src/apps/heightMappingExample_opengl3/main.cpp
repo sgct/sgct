@@ -233,7 +233,6 @@ void myInitOGLFun()
 		reinterpret_cast<void*>(0) // array buffer offset
 	);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
 
 	//cleanup

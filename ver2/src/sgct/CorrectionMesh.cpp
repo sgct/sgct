@@ -356,11 +356,13 @@ void sgct_core::CorrectionMesh::createMesh()
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), &mFaces[0], GL_STATIC_DRAW);
 
 		//unbind
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 			glBindVertexArray(0);
+		else
+		{
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		}
 	}
 }
 
@@ -407,12 +409,7 @@ void sgct_core::CorrectionMesh::render()
 	else if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO )
 	{
 		glBindVertexArray(mMeshData[Array]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
-
 		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
-
-		//unbind
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindVertexArray(0);
 	}
 	else

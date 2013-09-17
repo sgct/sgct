@@ -64,7 +64,11 @@ else() #linux
 		${XI_LIBRARY}
 	)
 endif()
-
+	
+if( MSVC )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+endif()
+	
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()

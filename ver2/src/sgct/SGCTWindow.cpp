@@ -1319,9 +1319,10 @@ void sgct::SGCTWindow::createVBOs()
 	}
 
 	//unbind
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray(0);
+	else
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void sgct::SGCTWindow::loadShaders()
@@ -1780,9 +1781,10 @@ void sgct::SGCTWindow::initFisheye()
 	memcpy(PositionBuffer, mFisheyeQuadVerts, 20 * sizeof(float));
 	glUnmapBuffer(GL_ARRAY_BUFFER);
 
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( 0 );
+	else
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 /*!

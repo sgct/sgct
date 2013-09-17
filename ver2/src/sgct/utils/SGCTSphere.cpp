@@ -195,12 +195,7 @@ void sgct_utils::SGCTSphere::drawVBO()
 void sgct_utils::SGCTSphere::drawVAO()
 {
 	glBindVertexArray( mVAO );
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
-
 	glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
-
-	//unbind
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindVertexArray(0);
 }
 
@@ -236,10 +231,13 @@ void sgct_utils::SGCTSphere::createVBO()
 	glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces * 3 * sizeof(unsigned int), mIndices, GL_STATIC_DRAW);
 
 	//unbind
-	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
 	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		glBindVertexArray( 0 );
+	}
+	else
+	{
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }

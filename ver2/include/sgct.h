@@ -117,7 +117,7 @@ SGCT does also support running cluster applications on a single computer for tes
 Copyright (c) 2012-2013 Miroslav Andel\n
 All rights reserved.\n
 \n
-Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson\n
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel J&ouml;nsson\n
 For any questions or information about the SGCT project please contact: miroslav.andel@liu.se\n
 \n
 Redistribution and use in source and binary forms, with or without modification,\n
@@ -129,7 +129,7 @@ are permitted provided that the following conditions are met:
 	notice, this list of conditions and the following disclaimer in the\n
 	documentation and/or other materials provided with the distribution.
 	
-    -# Neither the name of the Linköping University nor the\n
+    -# Neither the name of the Link&ouml;ping University nor the\n
 	names of its contributors may be used to endorse or promote products\n
 	derived from this software without specific prior written permission.
 

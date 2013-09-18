@@ -22,6 +22,7 @@
 		<Project filename="../apps/osgExampleRTT/osgExampleRTT_mingw.cbp" />
 		<Project filename="../apps/example1_opengl3/example1_opengl3_mingw.cbp" />
 		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" />
-		<Project filename="../apps/renderToTexture/renderToTexture_mingw.cbp" active="1" />
+		<Project filename="../apps/renderToTexture/renderToTexture_mingw.cbp" />
+		<Project filename="../apps/simpleShaderExample_opengl3/simpleShaderExample_opengl3_mingw.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

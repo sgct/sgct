@@ -25,6 +25,8 @@ GLuint VertexArrayID = GL_FALSE;
 GLsizei numberOfVertices = 0;
 
 std::size_t myTextureHandle;
+
+//global texture locations
 GLint MVP_Loc = -1;
 GLint NM_Loc = -1;
 
@@ -82,6 +84,7 @@ void myDrawFun()
 
 	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
+	//update uniforms
 	glUniformMatrix4fv(MVP_Loc, 1, GL_FALSE, &MVP[0][0]);
 	glUniformMatrix3fv(NM_Loc, 1, GL_FALSE, &MVP[0][0]);
 
@@ -155,11 +158,13 @@ void myInitOGLFun()
 void myEncodeFun()
 {
 	sgct::SharedData::instance()->writeDouble(&curr_time);
+	sgct::SharedData::instance()->writeBool(&reloadShader);
 }
 
 void myDecodeFun()
 {
 	sgct::SharedData::instance()->readDouble(&curr_time);
+	sgct::SharedData::instance()->readBool(&reloadShader);
 }
 
 /*!
@@ -213,7 +218,6 @@ void loadModel( std::string filename )
 		glBufferData(GL_ARRAY_BUFFER, positions.size() * sizeof(glm::vec3), &positions[0], GL_STATIC_DRAW);
 		// 1rst attribute buffer : vertices
 		glEnableVertexAttribArray(0);
-		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_POSITIONS ]);
 		glVertexAttribPointer(
 			0,                  // attribute
 			3,                  // size
@@ -229,7 +233,6 @@ void loadModel( std::string filename )
 			glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
 			// 2nd attribute buffer : UVs
 			glEnableVertexAttribArray(1);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_UV ]);
 			glVertexAttribPointer(
 				1,                                // attribute
 				2,                                // size
@@ -248,7 +251,6 @@ void loadModel( std::string filename )
 			glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
 			// 3nd attribute buffer : Normals
 			glEnableVertexAttribArray(2);
-			glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_NORMALS ]);
 			glVertexAttribPointer(
 				2,                                // attribute
 				3,                                // size

@@ -66,3 +66,10 @@ ZLib
 Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 Web: http://www.zlib.net/
 ---------------------------------------------------------
+
+
+TinyThread++
+=========================================================
+Copyright (c) 2010-2012 Marcus Geelnard
+Web: http://tinythreadpp.bitsnbites.eu/
+---------------------------------------------------------

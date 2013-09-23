@@ -1,6 +1,6 @@
 <?xml version="1.0" ?>
-<Cluster masterAddress="127.0.0.1" externalControlPort="20500">
-	<Node address="127.0.0.1" port="20400">
+<Cluster masterAddress="localhost" externalControlPort="20500">
+	<Node address="localhost" port="20400">
 		<Window fullScreen="false">
 			<Stereo type="none" />
 			<Pos x="0" y="0" />

@@ -94,7 +94,7 @@ void myDrawFun()
 		glTexCoord2d(0.0,1.0); glVertex3f(r,   -r, 0.0f);
 	glEnd();
 
-	glPushMatrix();
+	/*glPushMatrix();
 	glTranslatef(0.0f, 0.0, -1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
@@ -129,7 +129,7 @@ void myDrawFun()
 		myBox->draw();
 	glPopMatrix();
 	glPopMatrix();
-	glDisable(GL_TEXTURE_1D);
+	glDisable(GL_TEXTURE_1D);*/
 	/*
 	glColor3f(1.0f,1.0f,0.0f);
 	glLineWidth(5.0);

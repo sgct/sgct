@@ -2,7 +2,6 @@
 <Cluster masterAddress="127.0.0.1">
 	<Node address="127.0.0.1" port="20401">
 		<Window fullScreen="false">
-			<Stereo type="none" />
 			<Pos x="0" y="300" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="640" y="360" />
@@ -22,7 +21,6 @@
 	</Node>
 	<Node address="127.0.0.2" port="20402">
 		<Window fullScreen="false">
-			<Stereo type="none" />
 			<Pos x="640" y="300" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="640" y="360" />

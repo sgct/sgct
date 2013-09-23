@@ -28,7 +28,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mOSDTextOffset[1] = 0.05f;
 
 	//FXAA parameters
-	mFXAASubPixTrim = 1.0f/8.0f;
+	mFXAASubPixTrim = 1.0f/4.0f;
 	mFXAASubPixOffset = 1.0f/2.0f;
 
 	for(size_t i=0; i<3; i++)
@@ -123,10 +123,10 @@ void sgct::SGCTSettings::setNumberOfCaptureThreads(int count)
 Set the zlib compression level used for saving png files
 
 Compression levels 1-9.
-	-1 = Default compression
-	0 = No compression
-	1 = Best speed
-	9 = Best compression
+	-1 = Default compression\n
+	0 = No compression\n
+	1 = Best speed\n
+	9 = Best compression\n
 */
 void sgct::SGCTSettings::setPNGCompressionLevel(int level)
 {
@@ -200,12 +200,11 @@ int sgct::SGCTSettings::getCaptureFormat()
 
 /*!
 	Controls removal of sub-pixel aliasing.
-	- 1/2 – low removal
-	- 1/3 – medium removal
-	- 1/4 – default removal
-	- 1/8 – high removal
-	- 0 – complete removal
-	Default is 1.0f/8.0f.
+	- 1/2 - low removal
+	- 1/3 - medium removal
+	- 1/4 - default removal
+	- 1/8 - high removal
+	- 0 - complete removal
 */
 void sgct::SGCTSettings::setFXAASubPixTrim(float val)
 {

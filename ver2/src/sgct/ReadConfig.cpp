@@ -363,7 +363,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 							//get eye if set
 							if( element[2]->Attribute("eye") != NULL )
 							{
-								if( strcmp("both", element[2]->Attribute("eye")) == 0 )
+								if( strcmp("center", element[2]->Attribute("eye")) == 0 )
 								{
 									tmpVp.setEye(Frustum::Mono);
 								}

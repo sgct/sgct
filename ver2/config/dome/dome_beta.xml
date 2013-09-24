@@ -3,7 +3,7 @@
 	<Settings>
 		<Display swapInterval="2" refreshRate="60" />
 	</Settings>
-	<Node address="172.19.2.10" port="20400" swapLock="true">
+	<Node address="172.19.2.10" port="20400" swapLock="false">
 		<Window fullScreen="false" numberOfSamples="4">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->

@@ -3,7 +3,7 @@
 	<Settings>
 		<OSDText size="12" xOffset="0.3" />
 	</Settings>
-	<Node address="172.19.8.10" port="20400" swapLock="true">
+	<Node address="172.19.8.10" port="20400" swapLock="false">
 		<Window fullScreen="false" numberOfSamples="4">
 			<Stereo type="none" />
 			<!--<Size x="1388" y="400" />-->

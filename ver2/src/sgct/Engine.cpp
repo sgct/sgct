@@ -1217,14 +1217,19 @@ void sgct::Engine::drawOverlays()
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
 			*/
-			enterCurrentViewport();
 
 			//enter ortho mode
 			glm::mat4 orthoMat;
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
+			{
+				enterFisheyeViewport();
 				orthoMat = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+			}
 			else
+			{
+				enterCurrentViewport();
 				orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
+			}
 
 			glActiveTexture(GL_TEXTURE0);
 			glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
@@ -1234,7 +1239,10 @@ void sgct::Engine::drawOverlays()
 			glUniform1i( mShaderLocs[OverlayTex], 0);
 			glUniformMatrix4fv( mShaderLocs[OverlayMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
-			getActiveWindowPtr()->bindVAO();
+			getActiveWindowPtr()->isUsingFisheyeRendering() ?
+				getActiveWindowPtr()->bindVAO(SGCTWindow::FishEyeQuad):
+				getActiveWindowPtr()->bindVAO(SGCTWindow::RenderQuad);
+
 			glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
 			//unbind
@@ -1266,12 +1274,16 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
 			*/
-			enterCurrentViewport();
-
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
+			{
+				enterFisheyeViewport();
 				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+			}
 			else
+			{
+				enterCurrentViewport();
 				gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+			}
 
 			glMatrixMode(GL_MODELVIEW);
 
@@ -1292,7 +1304,10 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 
 			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-			getActiveWindowPtr()->bindVBO();
+			getActiveWindowPtr()->isUsingFisheyeRendering() ?
+				getActiveWindowPtr()->bindVBO(SGCTWindow::FishEyeQuad):
+				getActiveWindowPtr()->bindVBO(SGCTWindow::RenderQuad);
+
 			glClientActiveTexture(GL_TEXTURE0);
 
 			glEnableClientState(GL_TEXTURE_COORD_ARRAY);

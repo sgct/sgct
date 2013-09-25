@@ -36,8 +36,10 @@ Name "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH} installer"
 
 Function .onInit
 !if "${ARCH}" == "x64"
+	!define SGCT_LIB_PATH "${SGCT_COMPILER}_x64"
 	StrCpy $InstDir "$PROGRAMFILES64\SGCT"
-!else	
+!else
+	!define SGCT_LIB_PATH "${SGCT_COMPILER}"
 	StrCpy $InstDir "$PROGRAMFILES\SGCT"
 !endif
 FunctionEnd
@@ -128,10 +130,10 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File SGCT_tutorials.url
 	File C_transparent.ico
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\include"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\include"
 	File /r "..\..\include\"
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\lib\${SGCT_COMPILER}"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\lib\${SGCT_LIB_PATH}"
 	!if "${SGCT_COMPILER}" == "mingw"
 		File "..\..\lib\mingw\libsgct.a"
 		File "..\..\lib\mingw\libsgctd.a"
@@ -139,38 +141,38 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"
 	!else if "${ARCH}" == "x64"
-		File "..\..\lib\${SGCT_COMPILER}_${ARCH}\sgct.lib"
-		File "..\..\lib\${SGCT_COMPILER}_${ARCH}\sgctd.lib"
+		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
+		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"
 	!endif
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}"
 	File "..\..\license.txt"
 	File "..\..\Attribution.txt"
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\docs"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\docs"
 	File /r "..\..\docs\html"
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\config"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\config"
 	File /r "..\..\config\"
 	
 	#add examples
 	#============================================
 	
 	#template
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\sgct_template"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\sgct_template"
 	File "..\..\src\apps\sgct_template\main.cpp"
 	File "..\..\src\apps\sgct_template\sgct_template_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\sgct_template\CMakeLists.txt"
 	
 	#example1
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle"
 	File "..\..\bin\example1\${SGCT_COMPILER}\example1_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\example1\main.cpp"
 	File "..\..\src\apps\example1\example1_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\example1\CMakeLists.txt"
 	
 	#example1 opengl3
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3"
 	File "..\..\bin\example1_opengl3\${SGCT_COMPILER}\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\example1_opengl3\main.cpp"
 	File "..\..\src\apps\example1_opengl3\SimpleFragmentShader.fragmentshader"
@@ -179,7 +181,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\example1_opengl3\CMakeLists.txt"
 	
 	#texture_example
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\texture_example"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example"
 	File "..\..\bin\textureExample\${SGCT_COMPILER}\textureExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\textureExample\box.png"
 	File "..\..\src\apps\textureExample\main.cpp"
@@ -187,7 +189,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\textureExample\CMakeLists.txt"
 	
 	#texture_example opengl3
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\texture_example_opengl3"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example_opengl3"
 	File "..\..\bin\textureExample_opengl3\${SGCT_COMPILER}\textureExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\textureExample_opengl3\box.png"
 	File "..\..\src\apps\textureExample_opengl3\main.cpp"
@@ -197,7 +199,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\textureExample_opengl3\CMakeLists.txt"
 	
 	#simple shader
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_shader"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader"
 	File "..\..\bin\simpleShaderExample\${SGCT_COMPILER}\simpleShaderExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\simpleShaderExample\simple.frag"
 	File "..\..\src\apps\simpleShaderExample\simple.vert"
@@ -206,7 +208,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleShaderExample\CMakeLists.txt"
 	
 	#simple shader opengl3
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_shader_opengl3"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader_opengl3"
 	File "..\..\bin\simpleShaderExample_opengl3\${SGCT_COMPILER}\simpleShaderExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\simpleShaderExample_opengl3\simple.frag"
 	File "..\..\src\apps\simpleShaderExample_opengl3\simple.vert"
@@ -215,7 +217,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleShaderExample_opengl3\CMakeLists.txt"
 	
 	#height mapping example
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping"
 	File "..\..\bin\heightMappingExample\${SGCT_COMPILER}\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\heightMappingExample\heightmap.frag"
 	File "..\..\src\apps\heightMappingExample\heightmap.vert"
@@ -227,7 +229,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\heightMappingExample\CMakeLists.txt"
 	
 	#height mapping example opengl3
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping_opengl3"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3"
 	File "..\..\bin\heightMappingExample_opengl3\${SGCT_COMPILER}\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\heightMappingExample_opengl3\heightmap.frag"
 	File "..\..\src\apps\heightMappingExample_opengl3\heightmap.vert"
@@ -239,21 +241,21 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\heightMappingExample_opengl3\CMakeLists.txt"
 	
 	#simple navigation
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation"
 	File "..\..\bin\simpleNavigationExample\${SGCT_COMPILER}\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\simpleNavigationExample\main.cpp"
 	File "..\..\src\apps\simpleNavigationExample\simpleNavigationExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleNavigationExample\CMakeLists.txt"
 	
 	#gamepad
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
 	File "..\..\bin\gamepadExample\${SGCT_COMPILER}\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\gamepadExample\main.cpp"
 	File "..\..\src\apps\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\gamepadExample\CMakeLists.txt"
 	
 	#render to texture
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\render_to_texture"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture"
 	File "..\..\bin\renderToTexture\${SGCT_COMPILER}\renderToTexture_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\renderToTexture\simple.frag"
 	File "..\..\src\apps\renderToTexture\simple.vert"
@@ -263,7 +265,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\renderToTexture\CMakeLists.txt"
 	
 	#post FX
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example"
 	File "..\..\bin\postFXExample\${SGCT_COMPILER}\postFXExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\postFXExample\box.png"
 	File "..\..\src\apps\postFXExample\main.cpp"
@@ -277,7 +279,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\postFXExample\CMakeLists.txt"
 	
 	#post FX opengl3
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example_opengl3"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3"
 	File "..\..\bin\postFXExample_opengl3\${SGCT_COMPILER}\postFXExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\postFXExample_opengl3\box.png"
 	File "..\..\src\apps\postFXExample_opengl3\main.cpp"
@@ -294,14 +296,14 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	
 	#osg examples
 	!if ${INC_OSG} == 1
-		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example"
 		File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}_${ARCH}.exe"
 		File "..\..\src\apps\osgExample\airplane.ive"
 		File "..\..\src\apps\osgExample\main.cpp"
 		File "..\..\src\apps\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 		File "..\..\src\apps\osgExample\CMakeLists.txt"
 		
-		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT"
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT"
 		File "..\..\bin\osgExampleRTT\${SGCT_COMPILER}\osgExampleRTT_${SGCT_COMPILER}_${ARCH}.exe"
 		File "..\..\src\apps\osgExample\airplane.ive"
 		File "..\..\src\apps\osgExampleRTT\main.cpp"
@@ -312,7 +314,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	!endif
 	
 	#remote
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\remote_app"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app"
 	File "..\..\bin\remote_app\${SGCT_COMPILER}\remote_app_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\bin\remote_app\SGCTRemote.exe"
 	File "..\..\src\apps\SGCTRemote\main.cpp"
@@ -326,7 +328,7 @@ Section "SGCT environment variable"
 	;remove if set
 	DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
 	
-	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "P" "HKLM" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}"
+	${EnvVarUpdate} $0 "SGCT_ROOT_DIR" "P" "HKLM" "$INSTDIR\SGCT_${SGCT_VERSION}"
 	
 	;update env vars
 	SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
@@ -352,65 +354,65 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\C-Student_wiki.lnk" "$INSTDIR\C-Student_wiki.url" "" "$INSTDIR\C_transparent.ico"
   CreateShortCut "$SMPROGRAMS\SGCT\SGCT_tutorials.lnk" "$INSTDIR\SGCT_tutorials.url" "" "$INSTDIR\C_transparent.ico"
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\docs"
-  CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\docs\html\index.html" ""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\docs"
+  CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\docs\html\index.html" ""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle\example1_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle\example1_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\spinning_triangle_opengl3\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\ssingle_two_win.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\ssingle_two_win.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\texture_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\texture_example\textureExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example\textureExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\textureExample_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\textureExample_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\textureExample_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\textureExample_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_shader"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_shader\simpleShaderExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader\simpleShaderExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config fisheye.xml"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config fisheye.xml"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config fisheye.xml"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config fisheye.xml"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\gamepad\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\render_to_texture"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\render_to_texture.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\render_to_texture\renderToTexture_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\render_to_texture.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture\renderToTexture_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example\postFXExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example\postFXExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\post_fx_example_opengl3\postFXExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3\postFXExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   
   !if ${INC_OSG} == 1
-	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example"
-	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_example\osgExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example\osgExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
 	  
-	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT"
-	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_exampleRTT.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\osg_exampleRTT\osgExampleRTT_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_exampleRTT.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT\osgExampleRTT_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   !endif
   
   CreateDirectory "$SMPROGRAMS\SGCT\examples\remote"
-  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\remote_app"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\remote_app.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\remote_app\remote_app_${SGCT_COMPILER}_${ARCH}.exe" "-config single_remote.xml"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\SGCTRemote.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}_${ARCH}\examples\remote_app\SGCTRemote_${ARCH}.exe" ""
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\remote_app.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app\remote_app_${SGCT_COMPILER}_${ARCH}.exe" "-config single_remote.xml"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\remote\SGCTRemote.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app\SGCTRemote_${ARCH}.exe" ""
 SectionEnd
 
 !if ${INC_OSG} == 1

@@ -38,6 +38,7 @@ void myDrawFun()
 	glPushMatrix();
 	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
+	glLoadIdentity();
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);

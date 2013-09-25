@@ -130,6 +130,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "renderToTexture_msvc10", ".
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "sgct", "sgct_msvc10.vcxproj", "{0516E457-A21E-4D14-8DBC-63D918909A23}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stitcher_msvc10", "..\apps\stitcher\stitcher_msvc10.vcxproj", "{A1D10DCF-5182-4630-8EB2-ED40250EC034}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -464,6 +469,18 @@ Global
 		{0516E457-A21E-4D14-8DBC-63D918909A23}.Release|Win32.Build.0 = Release|Win32
 		{0516E457-A21E-4D14-8DBC-63D918909A23}.Release|x64.ActiveCfg = Release|x64
 		{0516E457-A21E-4D14-8DBC-63D918909A23}.Release|x64.Build.0 = Release|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|Mixed Platforms.ActiveCfg = Debug|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|Mixed Platforms.Build.0 = Debug|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|Win32.Build.0 = Debug|Win32
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|x64.ActiveCfg = Debug|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Debug|x64.Build.0 = Debug|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|Mixed Platforms.ActiveCfg = Release|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|Mixed Platforms.Build.0 = Release|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|Win32.ActiveCfg = Release|Win32
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|Win32.Build.0 = Release|Win32
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|x64.ActiveCfg = Release|x64
+		{A1D10DCF-5182-4630-8EB2-ED40250EC034}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

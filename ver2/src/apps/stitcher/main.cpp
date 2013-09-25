@@ -13,8 +13,16 @@ void myEncodeFun();
 void myDecodeFun();
 void keyCallback(int key, int action);
 
+enum rotation { ROT_0_DEG = 0, ROT_90_DEG, ROT_180_DEG, ROT_270_DEG };
+enum sides { RIGHT_SIDE_L = 0, BOTTOM_SIDE_L, TOP_SIDE_L, LEFT_SIDE_L,
+	RIGHT_SIDE_R, BOTTOM_SIDE_R, TOP_SIDE_R, LEFT_SIDE_R};
+
+sides getSideIndex(size_t index);
+void face(rotation rot);
+
 std::string texturePaths[8];
 size_t textureHandles[] = {0, 0, 0, 0, 0, 0, 0, 0};
+rotation sideRotations[] = { ROT_0_DEG, ROT_0_DEG, ROT_0_DEG, ROT_0_DEG };
 size_t activeTexture = 0;
 size_t numberOfTextures = 0;
 
@@ -43,7 +51,7 @@ int main( int argc, char* argv[] )
 		
 		if( strcmp(argv[i], "-tex") == 0 && argc > (i+1) )
 		{
-			texturePaths[numberOfTextures].assign( argv[i+1] );
+			texturePaths[ getSideIndex(numberOfTextures) ].assign( argv[i+1] );
 			numberOfTextures++;
 			sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i+1]);
 		}
@@ -55,6 +63,39 @@ int main( int argc, char* argv[] )
 			numberOfDigits	= atoi( argv[i+3] );
 			iterator = startIndex;
 			sgct::MessageHandler::instance()->print("Loading sequence from %d to %d\n", startIndex, stopIndex);
+		}
+		else if( strcmp(argv[i], "-rot") == 0 && argc > (i+4) )
+		{
+			int tmpRots[] = { 0, 0, 0, 0 };
+			tmpRots[0]		= atoi( argv[i+1] );
+			tmpRots[1]		= atoi( argv[i+2] );
+			tmpRots[2]		= atoi( argv[i+3] );
+			tmpRots[3]		= atoi( argv[i+4] );
+			sgct::MessageHandler::instance()->print("Setting image rotations to L: %d, R: %d, T: %d, B: %d\n",
+				tmpRots[0], tmpRots[1], tmpRots[2], tmpRots[3]);
+
+			for(size_t i=0; i<4; i++)
+			{
+				switch( tmpRots[i] )
+				{
+				case 0:
+				default:
+					sideRotations[i] = ROT_0_DEG;
+					break;
+
+				case 90:
+					sideRotations[i] = ROT_90_DEG;
+					break;
+
+				case 180:
+					sideRotations[i] = ROT_180_DEG;
+					break;
+
+				case 270:
+					sideRotations[i] = ROT_270_DEG;
+					break;
+				}
+			}
 		}
 		else if( strcmp(argv[i], "-start") == 0 && argc > (i+1) )
 		{
@@ -107,6 +148,7 @@ void myDrawFun()
 		glPushMatrix();
 		gluOrtho2D(0.0, 1.0, 0.0, 1.0);
 		glMatrixMode(GL_MODELVIEW);
+		glLoadIdentity();
 
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 		glDisable(GL_LIGHTING);
@@ -117,38 +159,14 @@ void myDrawFun()
 
 		glBindTexture( GL_TEXTURE_2D, texId );
 
-		if( index == 2 || index == 6 ) //top is wierd
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2d(1.0, 0.0);
-			glVertex2d(0.0, 0.0);
-
-			glTexCoord2d(0.0, 0.0);
-			glVertex2d(0.0, 1.0);
-
-			glTexCoord2d(0.0, 1.0);
-			glVertex2d(1.0, 1.0);
-
-			glTexCoord2d(1.0, 1.0);
-			glVertex2d(1.0, 0.0);
-			glEnd();
-		}
-		else
-		{
-			glBegin(GL_QUADS);
-			glTexCoord2d(0.0, 0.0);
-			glVertex2d(0.0, 0.0);
-
-			glTexCoord2d(0.0, 1.0);
-			glVertex2d(0.0, 1.0);
-
-			glTexCoord2d(1.0, 1.0);
-			glVertex2d(1.0, 1.0);
-
-			glTexCoord2d(1.0, 0.0);
-			glVertex2d(1.0, 0.0);
-			glEnd();
-		}
+		if( index == LEFT_SIDE_L || index == LEFT_SIDE_R )
+			face( sideRotations[0] );
+		else if( index == RIGHT_SIDE_L || index == RIGHT_SIDE_R )
+			face( sideRotations[1] );
+		else if( index == TOP_SIDE_L || index == TOP_SIDE_R )
+			face( sideRotations[2] );
+		else //bottom
+			face( sideRotations[3] );
 
 		glDisable(GL_TEXTURE_2D);
 
@@ -165,35 +183,11 @@ void myDrawFun()
 	}
 
 	counter++;
-	
-	/*glEnable( GL_TEXTURE_2D );
-	glPushMatrix();
-	glRotatef( 40.0f, 1.0f, 0.0f, 0.0f );
-	glTranslatef(0.0f, 0.0f, -5.0f);
-	glColor3f(1.0f,1.0f,1.0f);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( activeTexture ) );
-	
-	float xSize = 8.0f;
-	float ySize = xSize * (9.0f / 16.0f);
-
-	//draw the quad
-	glBegin(GL_QUADS);
-	glTexCoord2d( 0.0, 0.0 );	glVertex3f( -xSize/2.0f, -ySize/2.0f, 0.0f );
-	glTexCoord2d( 1.0, 0.0 );	glVertex3f(  xSize/2.0f, -ySize/2.0f, 0.0f );
-	glTexCoord2d( 1.0, 1.0 );	glVertex3f(  xSize/2.0f,  ySize/2.0f, 0.0f );
-	glTexCoord2d( 0.0, 1.0 );	glVertex3f( -xSize/2.0f,  ySize/2.0f, 0.0f );
-	glEnd();
-	glPopMatrix();*/
-
-	/*glLineWidth(3.0f);
-	glColor3f(0.3f,0.3f,0.3f);
-	glDisable( GL_TEXTURE_2D );
-	dome->draw();*/
 }
 
 void myPreSyncFun()
 {
-	if(sequence && iterator <= stopIndex)
+	if(sequence && iterator <= stopIndex && numberOfDigits > 0)
 	{
 		for( size_t i=0; i < numberOfTextures; i++)
 		{
@@ -203,6 +197,7 @@ void myPreSyncFun()
 			zeros[0] = '\0';
 
 			sprintf_s( digitStr, 16, "%d", iterator );
+			
 			size_t currentSize = strlen(digitStr);
 
 			for( size_t j=0; j < (numberOfDigits - currentSize); j++ )
@@ -227,6 +222,14 @@ void myPreSyncFun()
 		//for( size_t i=0; i < numberOfTextures; i++)
 		//	fprintf(stderr, "Handle: %u, index: %u\n", textureHandles[i], sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]));
 
+		takeScreenshot.setVal( true );
+		iterator++;
+	}
+	else if(sequence && iterator <= stopIndex && numberOfDigits == 0 )
+	{
+		for( size_t i=0; i<numberOfTextures; i++)
+			sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], texturePaths[i], true, 1);
+		
 		takeScreenshot.setVal( true );
 		iterator++;
 	}
@@ -291,5 +294,127 @@ void keyCallback(int key, int action)
 				takeScreenshot.setVal(true);
 			break;
 		}
+	}
+}
+
+sides getSideIndex(size_t index)
+{
+	sides tmpSide;
+
+	switch(index)
+	{
+	case 0:
+	default:
+		tmpSide = LEFT_SIDE_L;
+		break;
+
+	case 1:
+		tmpSide = RIGHT_SIDE_L;
+		break;
+
+	case 2:
+		tmpSide = TOP_SIDE_L;
+		break;
+
+	case 3:
+		tmpSide = BOTTOM_SIDE_L;
+		break;
+
+	case 4:
+		tmpSide = LEFT_SIDE_R;
+		break;
+
+	case 5:
+		tmpSide = RIGHT_SIDE_R;
+		break;
+
+	case 6:
+		tmpSide = TOP_SIDE_R;
+		break;
+
+	case 7:
+		tmpSide = BOTTOM_SIDE_R;
+		break;
+	}
+
+	return tmpSide;
+}
+
+void face(rotation rot)
+{
+	switch(rot)
+	{
+	case ROT_0_DEG:
+	default:
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2d(0.0, 0.0);
+			glVertex2d(0.0, 0.0);
+
+			glTexCoord2d(0.0, 1.0);
+			glVertex2d(0.0, 1.0);
+
+			glTexCoord2d(1.0, 1.0);
+			glVertex2d(1.0, 1.0);
+
+			glTexCoord2d(1.0, 0.0);
+			glVertex2d(1.0, 0.0);
+			glEnd();
+		}
+		break;
+
+	case ROT_90_DEG:
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2d(1.0, 0.0);
+			glVertex2d(0.0, 0.0);
+
+			glTexCoord2d(0.0, 0.0);
+			glVertex2d(0.0, 1.0);
+
+			glTexCoord2d(0.0, 1.0);
+			glVertex2d(1.0, 1.0);
+
+			glTexCoord2d(1.0, 1.0);
+			glVertex2d(1.0, 0.0);
+			glEnd();
+		}
+		break;
+
+	case ROT_180_DEG:
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2d(1.0, 1.0);
+			glVertex2d(0.0, 0.0);
+
+			glTexCoord2d(1.0, 0.0);
+			glVertex2d(0.0, 1.0);
+
+			glTexCoord2d(0.0, 0.0);
+			glVertex2d(1.0, 1.0);
+
+			glTexCoord2d(0.0, 1.0);
+			glVertex2d(1.0, 0.0);
+			glEnd();
+		}
+		break;
+
+	case ROT_270_DEG:
+		{
+			glBegin(GL_QUADS);
+			glTexCoord2d(0.0, 1.0);
+			glVertex2d(0.0, 0.0);
+
+			glTexCoord2d(1.0, 1.0);
+			glVertex2d(0.0, 1.0);
+
+			glTexCoord2d(1.0, 0.0);
+			glVertex2d(1.0, 1.0);
+
+			glTexCoord2d(0.0, 0.0);
+			glVertex2d(1.0, 0.0);
+			glEnd();
+		}
+		break;
 	}
 }

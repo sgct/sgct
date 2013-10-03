@@ -508,18 +508,21 @@ void sgct::Engine::initOGL()
 			mThisNode->getWindowPtr(i)->setNumberOfAASamples(1);
 	}
 
-	char nodeName[MAX_SGCT_PATH_LENGTH];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s( nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
+	if (ClusterManager::instance()->getNumberOfNodes() > 1)
+	{
+		char nodeName[MAX_SGCT_PATH_LENGTH];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		sprintf_s(nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
 			ClusterManager::instance()->getThisNodeId());
-	#else
+#else
 		sprintf( nodeName, "_node%d",
 			ClusterManager::instance()->getThisNodeId());
-    #endif
+#endif
 
-	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::Mono );
-	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::LeftStereo );
-	SGCTSettings::instance()->appendCapturePath( std::string(nodeName), SGCTSettings::RightStereo );
+		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::Mono);
+		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::LeftStereo);
+		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::RightStereo);
+	}
 
 	//init window opengl data
 	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
@@ -2568,7 +2571,7 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 	This functions checks for OpenGL errors and prints them using the MessageHandler (to commandline).
 	Avoid this function in the render loop for release code since it can reduce performance.
 
-	Returns true if no errors occured
+	\returns true if no errors occured
 */
 bool sgct::Engine::checkForOGLErrors()
 {

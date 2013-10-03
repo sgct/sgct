@@ -50,6 +50,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFullRes = true;
 	mFocused = false;
 	mIconified = false;
+	mAreCubeMapViewPortsGenerated = false;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -695,8 +696,8 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 			SGCTSettings::instance()->setUseFBO( true );
 		}
 
-		//create the cube mapped viewports
-		generateCubeMapViewports();
+		if (!mAreCubeMapViewPortsGenerated)
+			generateCubeMapViewports();
 	}
 
 	int antiAliasingSamples = getNumberOfAASamples();
@@ -1935,6 +1936,8 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 		mViewports[0].setOverlayTexture( getFisheyeOverlay() );
 		//MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
 	}
+
+	mAreCubeMapViewPortsGenerated = true;
 }
 
 /*!
@@ -2057,6 +2060,7 @@ Set the dome diameter used in the fisheye renderer (used for the viewplane dista
 void sgct::SGCTWindow::setDomeDiameter(float size)
 {
 	mCubeMapSize = size;
+	generateCubeMapViewports();
 }
 
 /*!

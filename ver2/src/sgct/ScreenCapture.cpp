@@ -351,48 +351,47 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 		suffix.assign("tga");
 
 	char tmpStr[FILENAME_APPEND_BUFFER_LENGTH];
+	char window_node_info_str[32];
+	window_node_info_str[0] = '\0';
+
+//get window information
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (sgct::Engine::instance()->getNumberOfWindows() > 1)
+		sprintf_s( window_node_info_str, 32, "_win%Iu", mWindowIndex );
+#else
+	#ifdef __WIN32__
+		sprintf( window_node_info_str, "_win%u", mWindowIndex );
+	#else //linux & mac
+		sprintf( window_node_info_str, "_win%zu", mWindowIndex );
+	#endif
+#endif
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( frameNumber < 10 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf_s( tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "_win%Iu%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 #else
-    #ifdef __WIN32__
-    if( frameNumber < 10 )
-		sprintf( tmpStr, "_win%u%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+   if( frameNumber < 10 )
+		sprintf( tmpStr, "%s%s_00000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf( tmpStr, "_win%u%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_0000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf( tmpStr, "_win%u%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf( tmpStr, "_win%u%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_00%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf( tmpStr, "_win%u%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_0%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf( tmpStr, "_win%u%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-    #else //linux & mac
-    if( frameNumber < 10 )
-		sprintf( tmpStr, "_win%zu%s_00000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 100 )
-		sprintf( tmpStr, "_win%zu%s_0000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 1000 )
-		sprintf( tmpStr, "_win%zu%s_000%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 10000 )
-		sprintf( tmpStr, "_win%zu%s_00%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 100000 )
-		sprintf( tmpStr, "_win%zu%s_0%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 1000000 )
-		sprintf( tmpStr, "_win%zu%s_%d.%s", mWindowIndex, eye.c_str(), frameNumber, suffix.c_str());
-    #endif
+		sprintf( tmpStr, "%s%s_%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 #endif
 
 	mScreenShotFilename.append( std::string(tmpStr) );

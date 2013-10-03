@@ -297,6 +297,7 @@ private:
 	float mFisheyeBaseOffset[3]; //set from the config
 	float mCropFactors[4];
 	float mCubeMapSize;
+	bool mAreCubeMapViewPortsGenerated;
 	int mCubeMapResolution;
 
 	std::size_t mCurrentViewportIndex;

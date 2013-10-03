@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <algorithm>
 #include "sgct.h"
 
 sgct::Engine * gEngine;
@@ -11,6 +12,7 @@ void myPostSyncPreDrawFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
+void myPreWinInitFun();
 void keyCallback(int key, int action);
 
 enum rotation { ROT_0_DEG = 0, ROT_90_DEG, ROT_180_DEG, ROT_270_DEG };
@@ -28,12 +30,17 @@ size_t numberOfTextures = 0;
 
 int startIndex;
 int stopIndex;
-int numberOfDigits;
+int numberOfDigits = 0;
 int iterator;
 bool sequence = false;
 
 int counter = 0;
 int startFrame = 0;
+bool alpha = false;
+int numberOfMSAASamples = 1;
+int resolution = 512;
+float eyeSeparation = 0.065f;
+float domeDiameter = 14.8f;
 
 //sgct_utils::SGCTDome * dome = NULL;
 
@@ -51,16 +58,37 @@ int main( int argc, char* argv[] )
 		
 		if( strcmp(argv[i], "-tex") == 0 && argc > (i+1) )
 		{
-			texturePaths[ getSideIndex(numberOfTextures) ].assign( argv[i+1] );
+			std::string tmpStr(argv[i + 1]);
+			//to lower case
+			//std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+			std::size_t found = tmpStr.find_last_of(".");
+			if (found != std::string::npos && found > 0)
+			{
+				numberOfDigits = 0;
+				for (std::size_t i = found - 1; i != 0; i--)
+				{
+					//if not numerical
+					if (tmpStr[i] < '0' || tmpStr[i] > '9')
+					{
+						tmpStr = tmpStr.substr(0, i + 1);
+						break;
+					}
+					else
+						numberOfDigits++;
+
+				}
+			}
+			
+			texturePaths[getSideIndex(numberOfTextures)].assign(tmpStr);
+			
 			numberOfTextures++;
 			sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i+1]);
 		}
-		else if( strcmp(argv[i], "-seq") == 0 && argc > (i+3) )
+		else if( strcmp(argv[i], "-seq") == 0 && argc > (i+2) )
 		{
 			sequence = true;
 			startIndex		= atoi( argv[i+1] );
 			stopIndex		= atoi( argv[i+2] );
-			numberOfDigits	= atoi( argv[i+3] );
 			iterator = startIndex;
 			sgct::MessageHandler::instance()->print("Loading sequence from %d to %d\n", startIndex, stopIndex);
 		}
@@ -102,6 +130,57 @@ int main( int argc, char* argv[] )
 			startFrame = atoi( argv[i+1] );
 			sgct::MessageHandler::instance()->print("Start frame set to %d\n", startFrame);
 		}
+		else if (strcmp(argv[i], "-alpha") == 0 && argc > (i + 1))
+		{
+			alpha = (strcmp(argv[i + 1], "1") == 0);
+			sgct::MessageHandler::instance()->print("Setting alpha to %s\n", alpha ? "true" : "false");
+		}
+		else if (strcmp(argv[i], "-eyeSep") == 0 && argc > (i + 1))
+		{
+			eyeSeparation = static_cast<float>( atof(argv[i + 1]) );
+			sgct::MessageHandler::instance()->print("Setting eye separation to %f\n", eyeSeparation);
+		}
+		else if (strcmp(argv[i], "-diameter") == 0 && argc > (i + 1))
+		{
+			domeDiameter = static_cast<float>(atof(argv[i + 1]));
+			sgct::MessageHandler::instance()->print("Setting dome diameter to %f\n", domeDiameter);
+		}
+		else if (strcmp(argv[i], "-msaa") == 0 && argc > (i + 1))
+		{
+			numberOfMSAASamples = atoi(argv[i + 1]);
+			sgct::MessageHandler::instance()->print("Number of MSAA samples set to %d\n", numberOfMSAASamples);
+		}
+		else if (strcmp(argv[i], "-res") == 0 && argc > (i + 1))
+		{
+			resolution = atoi(argv[i + 1]);
+			sgct::MessageHandler::instance()->print("Resolution set to %d\n", resolution);
+		}
+		else if (strcmp(argv[i], "-format") == 0 && argc > (i + 1))
+		{
+			sgct::SGCTSettings::instance()->setCaptureFormat(argv[i + 1]);
+			sgct::MessageHandler::instance()->print("Format set to %s\n", argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-leftPath") == 0 && argc > (i + 1))
+		{
+			sgct::SGCTSettings::instance()->setCapturePath( argv[i + 1], sgct::SGCTSettings::Mono );
+			sgct::SGCTSettings::instance()->setCapturePath(argv[i + 1], sgct::SGCTSettings::LeftStereo);
+			
+			sgct::MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-rightPath") == 0 && argc > (i + 1))
+		{
+			sgct::SGCTSettings::instance()->setCapturePath(argv[i + 1], sgct::SGCTSettings::RightStereo);
+
+			sgct::MessageHandler::instance()->print("Right path set to %s\n", argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-compression") == 0 && argc > (i + 1))
+		{
+			int tmpi = atoi(argv[i + 1]);
+			sgct::SGCTSettings::instance()->setPNGCompressionLevel(tmpi);
+
+			sgct::MessageHandler::instance()->print("Compression set to %d\n", tmpi);
+		}
+		
 	}
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -109,6 +188,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	gEngine->setPreWindowFunction( myPreWinInitFun );
 
 	if( !gEngine->init() )
 	{
@@ -187,29 +267,36 @@ void myDrawFun()
 
 void myPreSyncFun()
 {
-	if(sequence && iterator <= stopIndex && numberOfDigits > 0)
+	if(sequence && iterator <= stopIndex)
 	{
 		for( size_t i=0; i < numberOfTextures; i++)
 		{
 			char tmpStr[256];
-			char digitStr[16];
-			char zeros[16];
-			zeros[0] = '\0';
 
-			sprintf_s( digitStr, 16, "%d", iterator );
-			
-			size_t currentSize = strlen(digitStr);
-
-			for( size_t j=0; j < (numberOfDigits - currentSize); j++ )
+			if (numberOfDigits == 0)
 			{
-				zeros[j] = '0';
-				zeros[j+1] = '\0';
+				sprintf_s(tmpStr, 256, "%s.png",
+					texturePaths[i].c_str() );
 			}
+			else
+			{
+				char digitStr[16];
+				char zeros[16];
+				zeros[0] = '\0';
 
-			sprintf_s( tmpStr, 256, "%s%s%d.png", 
-				texturePaths[i].c_str(), zeros, iterator);
+				sprintf_s(digitStr, 16, "%d", iterator);
 
-			//fprintf(stderr, "Loading path: %s\n", tmpStr);
+				size_t currentSize = strlen(digitStr);
+
+				for (size_t j = 0; j < (numberOfDigits - currentSize); j++)
+				{
+					zeros[j] = '0';
+					zeros[j + 1] = '\0';
+				}
+				
+				sprintf_s(tmpStr, 256, "%s%s%d.png",
+					texturePaths[i].c_str(), zeros, iterator);
+			}
 			
 			//load the texture
 			if( !sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], std::string(tmpStr), true, 1) )
@@ -246,15 +333,26 @@ void myPostSyncPreDrawFun()
 	}
 }
 
+void myPreWinInitFun()
+{
+	gEngine->getUserPtr()->setEyeSeparation(eyeSeparation);
+	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
+	{
+		gEngine->getWindowPtr(i)->setScreenShotNumber(startFrame);
+		gEngine->getWindowPtr(i)->setFisheyeAlpha(alpha);
+		gEngine->getWindowPtr(i)->setDomeDiameter(domeDiameter);
+		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
+		gEngine->getWindowPtr(i)->setCubeMapResolution(resolution / 2);
+		gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
+	}
+}
+
 void myInitOGLFun()
 {
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
 	sgct::TextureManager::instance()->setOverWriteMode(true);
 	//sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-
-	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
-		gEngine->getWindowPtr(i)->setScreenShotNumber( startFrame );
 
 	//load all textures
 	if(!sequence)

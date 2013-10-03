@@ -217,11 +217,6 @@ public:
 	*/
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::instance()->getTrackingManagerPtr(); }
 
-	/*!
-		Check and print if any openGL error has occured
-
-		/returns false if any error occured
-	*/
 	static bool checkForOGLErrors();
 
 	/*!

@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{5BC33817-096A-4D0B-9A29-D581DF4BF3B5}</ProjectGuid>
+    <ProjectGuid>{A0F19194-C413-49D3-AEAF-46F085E839BA}</ProjectGuid>
     <RootNamespace>stitcher</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

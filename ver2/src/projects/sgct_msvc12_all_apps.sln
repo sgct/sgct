@@ -110,6 +110,11 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "trackingExample_msvc12", ".
 		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
 	EndProjectSection
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stitcher_msvc12", "..\apps\stitcher\stitcher_msvc12.vcxproj", "{A0F19194-C413-49D3-AEAF-46F085E839BA}"
+	ProjectSection(ProjectDependencies) = postProject
+		{0516E457-A21E-4D14-8DBC-63D918909A23} = {0516E457-A21E-4D14-8DBC-63D918909A23}
+	EndProjectSection
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -294,6 +299,14 @@ Global
 		{D9DC6E0D-9292-43CC-BDFF-3C73919CE060}.Release|Win32.Build.0 = Release|Win32
 		{D9DC6E0D-9292-43CC-BDFF-3C73919CE060}.Release|x64.ActiveCfg = Release|x64
 		{D9DC6E0D-9292-43CC-BDFF-3C73919CE060}.Release|x64.Build.0 = Release|x64
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Debug|Win32.ActiveCfg = Debug|Win32
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Debug|Win32.Build.0 = Debug|Win32
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Debug|x64.ActiveCfg = Debug|x64
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Debug|x64.Build.0 = Debug|x64
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Release|Win32.ActiveCfg = Release|Win32
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Release|Win32.Build.0 = Release|Win32
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Release|x64.ActiveCfg = Release|x64
+		{A0F19194-C413-49D3-AEAF-46F085E839BA}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -361,12 +361,10 @@ namespace Stitcher_GUI
         private void start_button_Click(object sender, EventArgs e)
         {
             string processName = "stitcher_msvc12_x64.exe";
-            string arguments = "-config";
+            string arguments = "-config fisheye.xml";
 
             if( stereo_checkBox.Checked )
             {
-                arguments += " single_fisheye_stereo.xml";
-
                 arguments += " -tex \"" + input_left_L_textbox.Text + "\"";
                 arguments += " -tex \"" + input_right_L_textbox.Text + "\"";
                 arguments += " -tex \"" + input_top_L_textbox.Text + "\"";
@@ -382,8 +380,6 @@ namespace Stitcher_GUI
             }
             else
             {
-                arguments += " single_fisheye.xml";
-
                 arguments += " -tex \"" + input_left_L_textbox.Text + "\"";
                 arguments += " -tex \"" + input_right_L_textbox.Text + "\"";
                 arguments += " -tex \"" + input_top_L_textbox.Text + "\"";
@@ -402,6 +398,16 @@ namespace Stitcher_GUI
                 arguments += " -alpha 1";
             else
                 arguments += " -alpha 0";
+
+            if (stereo_checkBox.Checked)
+                arguments += " -stereo 1";
+            else
+                arguments += " -stereo 0";
+
+            if (FXAACheckBox.Checked)
+                arguments += " -fxaa 1";
+            else
+                arguments += " -fxaa 0";
 
 
             arguments += " -eyeSep " + eyeSeparation.ToString("0.000000", System.Globalization.CultureInfo.InvariantCulture);

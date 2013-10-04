@@ -43,9 +43,6 @@
             this.input_left_L_textbox = new System.Windows.Forms.TextBox();
             this.label1 = new System.Windows.Forms.Label();
             this.setting_groupBox = new System.Windows.Forms.GroupBox();
-            this.samples = new System.Windows.Forms.Label();
-            this.MSAA_ComboBox = new System.Windows.Forms.ComboBox();
-            this.MSAALabel = new System.Windows.Forms.Label();
             this.dome_diameter_units_label = new System.Windows.Forms.Label();
             this.eye_separation_units_label = new System.Windows.Forms.Label();
             this.domeDiameterInput = new System.Windows.Forms.TextBox();
@@ -80,7 +77,10 @@
             this.input_left_R_textbox = new System.Windows.Forms.TextBox();
             this.label15 = new System.Windows.Forms.Label();
             this.output_groupBox = new System.Windows.Forms.GroupBox();
+            this.compressionTrackBar = new System.Windows.Forms.TrackBar();
+            this.CompressionLabel = new System.Windows.Forms.Label();
             this.start_index_textBox = new System.Windows.Forms.TextBox();
+            this.start_button = new System.Windows.Forms.Button();
             this.label17 = new System.Windows.Forms.Label();
             this.format_comboBox = new System.Windows.Forms.ComboBox();
             this.formatLabel = new System.Windows.Forms.Label();
@@ -95,21 +95,24 @@
             this.alpha_checkBox = new System.Windows.Forms.CheckBox();
             this.resolution_comboBox = new System.Windows.Forms.ComboBox();
             this.label16 = new System.Windows.Forms.Label();
-            this.start_button = new System.Windows.Forms.Button();
             this.Sequence_groupBox = new System.Windows.Forms.GroupBox();
             this.input_stopindex_textBox = new System.Windows.Forms.TextBox();
             this.label18 = new System.Windows.Forms.Label();
             this.input_startindex_textBox = new System.Windows.Forms.TextBox();
             this.input_startindex_label = new System.Windows.Forms.Label();
-            this.CompressionLabel = new System.Windows.Forms.Label();
-            this.compressionTrackBar = new System.Windows.Forms.TrackBar();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.FXAACheckBox = new System.Windows.Forms.CheckBox();
+            this.samples = new System.Windows.Forms.Label();
+            this.MSAA_ComboBox = new System.Windows.Forms.ComboBox();
+            this.MSAALabel = new System.Windows.Forms.Label();
             this.left_input_groupbox.SuspendLayout();
             this.setting_groupBox.SuspendLayout();
             this.transform_groupbox.SuspendLayout();
             this.right_input_groupbox.SuspendLayout();
             this.output_groupBox.SuspendLayout();
-            this.Sequence_groupBox.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.compressionTrackBar)).BeginInit();
+            this.Sequence_groupBox.SuspendLayout();
+            this.groupBox1.SuspendLayout();
             this.SuspendLayout();
             // 
             // left_input_groupbox
@@ -128,14 +131,14 @@
             this.left_input_groupbox.Controls.Add(this.label1);
             this.left_input_groupbox.Location = new System.Drawing.Point(13, 70);
             this.left_input_groupbox.Name = "left_input_groupbox";
-            this.left_input_groupbox.Size = new System.Drawing.Size(507, 157);
+            this.left_input_groupbox.Size = new System.Drawing.Size(507, 166);
             this.left_input_groupbox.TabIndex = 0;
             this.left_input_groupbox.TabStop = false;
             this.left_input_groupbox.Text = "Input";
             // 
             // browse_bottom_L_button
             // 
-            this.browse_bottom_L_button.Location = new System.Drawing.Point(459, 113);
+            this.browse_bottom_L_button.Location = new System.Drawing.Point(459, 115);
             this.browse_bottom_L_button.Name = "browse_bottom_L_button";
             this.browse_bottom_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_bottom_L_button.TabIndex = 11;
@@ -145,7 +148,7 @@
             // 
             // input_bottom_L_textbox
             // 
-            this.input_bottom_L_textbox.Location = new System.Drawing.Point(63, 114);
+            this.input_bottom_L_textbox.Location = new System.Drawing.Point(63, 116);
             this.input_bottom_L_textbox.Name = "input_bottom_L_textbox";
             this.input_bottom_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_bottom_L_textbox.TabIndex = 10;
@@ -154,7 +157,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(19, 117);
+            this.label4.Location = new System.Drawing.Point(19, 119);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(40, 13);
             this.label4.TabIndex = 9;
@@ -162,7 +165,7 @@
             // 
             // browse_top_L_button
             // 
-            this.browse_top_L_button.Location = new System.Drawing.Point(459, 86);
+            this.browse_top_L_button.Location = new System.Drawing.Point(459, 88);
             this.browse_top_L_button.Name = "browse_top_L_button";
             this.browse_top_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_top_L_button.TabIndex = 8;
@@ -172,7 +175,7 @@
             // 
             // input_top_L_textbox
             // 
-            this.input_top_L_textbox.Location = new System.Drawing.Point(63, 87);
+            this.input_top_L_textbox.Location = new System.Drawing.Point(63, 89);
             this.input_top_L_textbox.Name = "input_top_L_textbox";
             this.input_top_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_top_L_textbox.TabIndex = 7;
@@ -181,7 +184,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 90);
+            this.label3.Location = new System.Drawing.Point(19, 92);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(26, 13);
             this.label3.TabIndex = 6;
@@ -189,7 +192,7 @@
             // 
             // browse_right_L_button
             // 
-            this.browse_right_L_button.Location = new System.Drawing.Point(459, 57);
+            this.browse_right_L_button.Location = new System.Drawing.Point(459, 59);
             this.browse_right_L_button.Name = "browse_right_L_button";
             this.browse_right_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_right_L_button.TabIndex = 5;
@@ -199,7 +202,7 @@
             // 
             // input_right_L_textbox
             // 
-            this.input_right_L_textbox.Location = new System.Drawing.Point(63, 58);
+            this.input_right_L_textbox.Location = new System.Drawing.Point(63, 60);
             this.input_right_L_textbox.Name = "input_right_L_textbox";
             this.input_right_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_right_L_textbox.TabIndex = 4;
@@ -208,7 +211,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(19, 61);
+            this.label2.Location = new System.Drawing.Point(19, 63);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(32, 13);
             this.label2.TabIndex = 3;
@@ -216,7 +219,7 @@
             // 
             // browse_left_L_button
             // 
-            this.browse_left_L_button.Location = new System.Drawing.Point(459, 29);
+            this.browse_left_L_button.Location = new System.Drawing.Point(459, 31);
             this.browse_left_L_button.Name = "browse_left_L_button";
             this.browse_left_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_left_L_button.TabIndex = 2;
@@ -226,7 +229,7 @@
             // 
             // input_left_L_textbox
             // 
-            this.input_left_L_textbox.Location = new System.Drawing.Point(63, 30);
+            this.input_left_L_textbox.Location = new System.Drawing.Point(63, 32);
             this.input_left_L_textbox.Name = "input_left_L_textbox";
             this.input_left_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_left_L_textbox.TabIndex = 1;
@@ -235,7 +238,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(19, 33);
+            this.label1.Location = new System.Drawing.Point(19, 35);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(25, 13);
             this.label1.TabIndex = 0;
@@ -243,9 +246,6 @@
             // 
             // setting_groupBox
             // 
-            this.setting_groupBox.Controls.Add(this.samples);
-            this.setting_groupBox.Controls.Add(this.MSAA_ComboBox);
-            this.setting_groupBox.Controls.Add(this.MSAALabel);
             this.setting_groupBox.Controls.Add(this.dome_diameter_units_label);
             this.setting_groupBox.Controls.Add(this.eye_separation_units_label);
             this.setting_groupBox.Controls.Add(this.domeDiameterInput);
@@ -255,44 +255,10 @@
             this.setting_groupBox.Controls.Add(this.stereo_checkBox);
             this.setting_groupBox.Location = new System.Drawing.Point(525, 12);
             this.setting_groupBox.Name = "setting_groupBox";
-            this.setting_groupBox.Size = new System.Drawing.Size(239, 157);
+            this.setting_groupBox.Size = new System.Drawing.Size(239, 115);
             this.setting_groupBox.TabIndex = 1;
             this.setting_groupBox.TabStop = false;
             this.setting_groupBox.Text = "Settings";
-            // 
-            // samples
-            // 
-            this.samples.AutoSize = true;
-            this.samples.Location = new System.Drawing.Point(169, 123);
-            this.samples.Name = "samples";
-            this.samples.Size = new System.Drawing.Size(45, 13);
-            this.samples.TabIndex = 10;
-            this.samples.Text = "samples";
-            // 
-            // MSAA_ComboBox
-            // 
-            this.MSAA_ComboBox.DisplayMember = "(none)";
-            this.MSAA_ComboBox.FormattingEnabled = true;
-            this.MSAA_ComboBox.Items.AddRange(new object[] {
-            "1",
-            "2",
-            "4",
-            "8",
-            "16"});
-            this.MSAA_ComboBox.Location = new System.Drawing.Point(108, 120);
-            this.MSAA_ComboBox.Name = "MSAA_ComboBox";
-            this.MSAA_ComboBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
-            this.MSAA_ComboBox.Size = new System.Drawing.Size(57, 21);
-            this.MSAA_ComboBox.TabIndex = 9;
-            // 
-            // MSAALabel
-            // 
-            this.MSAALabel.AutoSize = true;
-            this.MSAALabel.Location = new System.Drawing.Point(15, 123);
-            this.MSAALabel.Name = "MSAALabel";
-            this.MSAALabel.Size = new System.Drawing.Size(37, 13);
-            this.MSAALabel.TabIndex = 8;
-            this.MSAALabel.Text = "MSAA";
             // 
             // dome_diameter_units_label
             // 
@@ -355,7 +321,7 @@
             // stereo_checkBox
             // 
             this.stereo_checkBox.AutoSize = true;
-            this.stereo_checkBox.Location = new System.Drawing.Point(17, 27);
+            this.stereo_checkBox.Location = new System.Drawing.Point(18, 27);
             this.stereo_checkBox.Name = "stereo_checkBox";
             this.stereo_checkBox.Size = new System.Drawing.Size(137, 17);
             this.stereo_checkBox.TabIndex = 1;
@@ -379,7 +345,7 @@
             this.transform_groupbox.Controls.Add(this.LeftTransformLabel);
             this.transform_groupbox.Location = new System.Drawing.Point(770, 12);
             this.transform_groupbox.Name = "transform_groupbox";
-            this.transform_groupbox.Size = new System.Drawing.Size(261, 157);
+            this.transform_groupbox.Size = new System.Drawing.Size(261, 194);
             this.transform_groupbox.TabIndex = 2;
             this.transform_groupbox.TabStop = false;
             this.transform_groupbox.Text = "Transform";
@@ -387,7 +353,7 @@
             // label10
             // 
             this.label10.AutoSize = true;
-            this.label10.Location = new System.Drawing.Point(198, 103);
+            this.label10.Location = new System.Drawing.Point(205, 123);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(45, 13);
             this.label10.TabIndex = 11;
@@ -401,7 +367,7 @@
             "90",
             "180",
             "270"});
-            this.bottom_transform_comboBox.Location = new System.Drawing.Point(134, 100);
+            this.bottom_transform_comboBox.Location = new System.Drawing.Point(141, 120);
             this.bottom_transform_comboBox.Name = "bottom_transform_comboBox";
             this.bottom_transform_comboBox.Size = new System.Drawing.Size(58, 21);
             this.bottom_transform_comboBox.TabIndex = 10;
@@ -409,7 +375,7 @@
             // label11
             // 
             this.label11.AutoSize = true;
-            this.label11.Location = new System.Drawing.Point(16, 103);
+            this.label11.Location = new System.Drawing.Point(23, 123);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(116, 13);
             this.label11.TabIndex = 9;
@@ -418,7 +384,7 @@
             // label8
             // 
             this.label8.AutoSize = true;
-            this.label8.Location = new System.Drawing.Point(198, 77);
+            this.label8.Location = new System.Drawing.Point(205, 97);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(45, 13);
             this.label8.TabIndex = 8;
@@ -432,7 +398,7 @@
             "90",
             "180",
             "270"});
-            this.top_transform_comboBox.Location = new System.Drawing.Point(134, 74);
+            this.top_transform_comboBox.Location = new System.Drawing.Point(141, 94);
             this.top_transform_comboBox.Name = "top_transform_comboBox";
             this.top_transform_comboBox.Size = new System.Drawing.Size(58, 21);
             this.top_transform_comboBox.TabIndex = 7;
@@ -440,7 +406,7 @@
             // label9
             // 
             this.label9.AutoSize = true;
-            this.label9.Location = new System.Drawing.Point(16, 77);
+            this.label9.Location = new System.Drawing.Point(23, 97);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(102, 13);
             this.label9.TabIndex = 6;
@@ -449,7 +415,7 @@
             // label6
             // 
             this.label6.AutoSize = true;
-            this.label6.Location = new System.Drawing.Point(198, 51);
+            this.label6.Location = new System.Drawing.Point(205, 71);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(45, 13);
             this.label6.TabIndex = 5;
@@ -463,7 +429,7 @@
             "90",
             "180",
             "270"});
-            this.right_transform_comboBox.Location = new System.Drawing.Point(134, 48);
+            this.right_transform_comboBox.Location = new System.Drawing.Point(141, 68);
             this.right_transform_comboBox.Name = "right_transform_comboBox";
             this.right_transform_comboBox.Size = new System.Drawing.Size(58, 21);
             this.right_transform_comboBox.TabIndex = 4;
@@ -471,7 +437,7 @@
             // label7
             // 
             this.label7.AutoSize = true;
-            this.label7.Location = new System.Drawing.Point(16, 51);
+            this.label7.Location = new System.Drawing.Point(23, 71);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(108, 13);
             this.label7.TabIndex = 3;
@@ -480,7 +446,7 @@
             // label5
             // 
             this.label5.AutoSize = true;
-            this.label5.Location = new System.Drawing.Point(198, 25);
+            this.label5.Location = new System.Drawing.Point(205, 45);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(45, 13);
             this.label5.TabIndex = 2;
@@ -494,7 +460,7 @@
             "90",
             "180",
             "270"});
-            this.left_transform_comboBox.Location = new System.Drawing.Point(134, 22);
+            this.left_transform_comboBox.Location = new System.Drawing.Point(141, 42);
             this.left_transform_comboBox.Name = "left_transform_comboBox";
             this.left_transform_comboBox.Size = new System.Drawing.Size(58, 21);
             this.left_transform_comboBox.TabIndex = 1;
@@ -502,7 +468,7 @@
             // LeftTransformLabel
             // 
             this.LeftTransformLabel.AutoSize = true;
-            this.LeftTransformLabel.Location = new System.Drawing.Point(16, 25);
+            this.LeftTransformLabel.Location = new System.Drawing.Point(23, 45);
             this.LeftTransformLabel.Name = "LeftTransformLabel";
             this.LeftTransformLabel.Size = new System.Drawing.Size(101, 13);
             this.LeftTransformLabel.TabIndex = 0;
@@ -522,16 +488,16 @@
             this.right_input_groupbox.Controls.Add(this.browse_left_R_button);
             this.right_input_groupbox.Controls.Add(this.input_left_R_textbox);
             this.right_input_groupbox.Controls.Add(this.label15);
-            this.right_input_groupbox.Location = new System.Drawing.Point(12, 233);
+            this.right_input_groupbox.Location = new System.Drawing.Point(12, 242);
             this.right_input_groupbox.Name = "right_input_groupbox";
-            this.right_input_groupbox.Size = new System.Drawing.Size(507, 157);
+            this.right_input_groupbox.Size = new System.Drawing.Size(507, 175);
             this.right_input_groupbox.TabIndex = 12;
             this.right_input_groupbox.TabStop = false;
             this.right_input_groupbox.Text = "Right eye input";
             // 
             // browse_bottom_R_button
             // 
-            this.browse_bottom_R_button.Location = new System.Drawing.Point(459, 113);
+            this.browse_bottom_R_button.Location = new System.Drawing.Point(459, 124);
             this.browse_bottom_R_button.Name = "browse_bottom_R_button";
             this.browse_bottom_R_button.Size = new System.Drawing.Size(32, 23);
             this.browse_bottom_R_button.TabIndex = 11;
@@ -541,7 +507,7 @@
             // 
             // input_bottom_R_textbox
             // 
-            this.input_bottom_R_textbox.Location = new System.Drawing.Point(63, 114);
+            this.input_bottom_R_textbox.Location = new System.Drawing.Point(63, 125);
             this.input_bottom_R_textbox.Name = "input_bottom_R_textbox";
             this.input_bottom_R_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_bottom_R_textbox.TabIndex = 10;
@@ -550,7 +516,7 @@
             // label12
             // 
             this.label12.AutoSize = true;
-            this.label12.Location = new System.Drawing.Point(19, 117);
+            this.label12.Location = new System.Drawing.Point(19, 128);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(40, 13);
             this.label12.TabIndex = 9;
@@ -558,7 +524,7 @@
             // 
             // browse_top_R_button
             // 
-            this.browse_top_R_button.Location = new System.Drawing.Point(459, 86);
+            this.browse_top_R_button.Location = new System.Drawing.Point(459, 97);
             this.browse_top_R_button.Name = "browse_top_R_button";
             this.browse_top_R_button.Size = new System.Drawing.Size(32, 23);
             this.browse_top_R_button.TabIndex = 8;
@@ -568,7 +534,7 @@
             // 
             // input_top_R_textbox
             // 
-            this.input_top_R_textbox.Location = new System.Drawing.Point(63, 87);
+            this.input_top_R_textbox.Location = new System.Drawing.Point(63, 98);
             this.input_top_R_textbox.Name = "input_top_R_textbox";
             this.input_top_R_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_top_R_textbox.TabIndex = 7;
@@ -577,7 +543,7 @@
             // label13
             // 
             this.label13.AutoSize = true;
-            this.label13.Location = new System.Drawing.Point(19, 90);
+            this.label13.Location = new System.Drawing.Point(19, 101);
             this.label13.Name = "label13";
             this.label13.Size = new System.Drawing.Size(26, 13);
             this.label13.TabIndex = 6;
@@ -585,7 +551,7 @@
             // 
             // browse_right_R_button
             // 
-            this.browse_right_R_button.Location = new System.Drawing.Point(459, 57);
+            this.browse_right_R_button.Location = new System.Drawing.Point(459, 68);
             this.browse_right_R_button.Name = "browse_right_R_button";
             this.browse_right_R_button.Size = new System.Drawing.Size(32, 23);
             this.browse_right_R_button.TabIndex = 5;
@@ -595,7 +561,7 @@
             // 
             // input_right_R_textbox
             // 
-            this.input_right_R_textbox.Location = new System.Drawing.Point(63, 58);
+            this.input_right_R_textbox.Location = new System.Drawing.Point(63, 69);
             this.input_right_R_textbox.Name = "input_right_R_textbox";
             this.input_right_R_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_right_R_textbox.TabIndex = 4;
@@ -604,7 +570,7 @@
             // label14
             // 
             this.label14.AutoSize = true;
-            this.label14.Location = new System.Drawing.Point(19, 61);
+            this.label14.Location = new System.Drawing.Point(19, 72);
             this.label14.Name = "label14";
             this.label14.Size = new System.Drawing.Size(32, 13);
             this.label14.TabIndex = 3;
@@ -612,7 +578,7 @@
             // 
             // browse_left_R_button
             // 
-            this.browse_left_R_button.Location = new System.Drawing.Point(459, 29);
+            this.browse_left_R_button.Location = new System.Drawing.Point(459, 40);
             this.browse_left_R_button.Name = "browse_left_R_button";
             this.browse_left_R_button.Size = new System.Drawing.Size(32, 23);
             this.browse_left_R_button.TabIndex = 2;
@@ -622,7 +588,7 @@
             // 
             // input_left_R_textbox
             // 
-            this.input_left_R_textbox.Location = new System.Drawing.Point(63, 30);
+            this.input_left_R_textbox.Location = new System.Drawing.Point(63, 41);
             this.input_left_R_textbox.Name = "input_left_R_textbox";
             this.input_left_R_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_left_R_textbox.TabIndex = 1;
@@ -631,7 +597,7 @@
             // label15
             // 
             this.label15.AutoSize = true;
-            this.label15.Location = new System.Drawing.Point(19, 33);
+            this.label15.Location = new System.Drawing.Point(19, 44);
             this.label15.Name = "label15";
             this.label15.Size = new System.Drawing.Size(25, 13);
             this.label15.TabIndex = 0;
@@ -657,16 +623,35 @@
             this.output_groupBox.Controls.Add(this.alpha_checkBox);
             this.output_groupBox.Controls.Add(this.resolution_comboBox);
             this.output_groupBox.Controls.Add(this.label16);
-            this.output_groupBox.Location = new System.Drawing.Point(525, 175);
+            this.output_groupBox.Location = new System.Drawing.Point(526, 212);
             this.output_groupBox.Name = "output_groupBox";
-            this.output_groupBox.Size = new System.Drawing.Size(507, 215);
+            this.output_groupBox.Size = new System.Drawing.Size(507, 205);
             this.output_groupBox.TabIndex = 13;
             this.output_groupBox.TabStop = false;
             this.output_groupBox.Text = "Output";
             // 
+            // compressionTrackBar
+            // 
+            this.compressionTrackBar.AutoSize = false;
+            this.compressionTrackBar.Location = new System.Drawing.Point(412, 62);
+            this.compressionTrackBar.Maximum = 9;
+            this.compressionTrackBar.Name = "compressionTrackBar";
+            this.compressionTrackBar.Size = new System.Drawing.Size(80, 20);
+            this.compressionTrackBar.TabIndex = 23;
+            this.compressionTrackBar.Value = 7;
+            // 
+            // CompressionLabel
+            // 
+            this.CompressionLabel.AutoSize = true;
+            this.CompressionLabel.Location = new System.Drawing.Point(341, 65);
+            this.CompressionLabel.Name = "CompressionLabel";
+            this.CompressionLabel.Size = new System.Drawing.Size(67, 13);
+            this.CompressionLabel.TabIndex = 22;
+            this.CompressionLabel.Text = "Compression";
+            // 
             // start_index_textBox
             // 
-            this.start_index_textBox.Location = new System.Drawing.Point(80, 55);
+            this.start_index_textBox.Location = new System.Drawing.Point(80, 62);
             this.start_index_textBox.MaxLength = 8;
             this.start_index_textBox.Name = "start_index_textBox";
             this.start_index_textBox.Size = new System.Drawing.Size(48, 20);
@@ -675,10 +660,22 @@
             this.start_index_textBox.TextAlign = System.Windows.Forms.HorizontalAlignment.Right;
             this.start_index_textBox.TextChanged += new System.EventHandler(this.start_index_textBox_TextChanged);
             // 
+            // start_button
+            // 
+            this.start_button.BackColor = System.Drawing.Color.LightGreen;
+            this.start_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
+            this.start_button.Location = new System.Drawing.Point(412, 166);
+            this.start_button.Name = "start_button";
+            this.start_button.Size = new System.Drawing.Size(89, 30);
+            this.start_button.TabIndex = 14;
+            this.start_button.Text = "Start!";
+            this.start_button.UseVisualStyleBackColor = false;
+            this.start_button.Click += new System.EventHandler(this.start_button_Click);
+            // 
             // label17
             // 
             this.label17.AutoSize = true;
-            this.label17.Location = new System.Drawing.Point(17, 58);
+            this.label17.Location = new System.Drawing.Point(17, 65);
             this.label17.Name = "label17";
             this.label17.Size = new System.Drawing.Size(57, 13);
             this.label17.TabIndex = 20;
@@ -690,7 +687,7 @@
             this.format_comboBox.Items.AddRange(new object[] {
             "png",
             "tga"});
-            this.format_comboBox.Location = new System.Drawing.Point(414, 23);
+            this.format_comboBox.Location = new System.Drawing.Point(414, 30);
             this.format_comboBox.Name = "format_comboBox";
             this.format_comboBox.Size = new System.Drawing.Size(75, 21);
             this.format_comboBox.TabIndex = 19;
@@ -699,7 +696,7 @@
             // formatLabel
             // 
             this.formatLabel.AutoSize = true;
-            this.formatLabel.Location = new System.Drawing.Point(369, 26);
+            this.formatLabel.Location = new System.Drawing.Point(369, 33);
             this.formatLabel.Name = "formatLabel";
             this.formatLabel.Size = new System.Drawing.Size(39, 13);
             this.formatLabel.TabIndex = 18;
@@ -707,16 +704,16 @@
             // 
             // FileNameTextBox
             // 
-            this.FileNameTextBox.Location = new System.Drawing.Point(80, 85);
+            this.FileNameTextBox.Location = new System.Drawing.Point(80, 92);
             this.FileNameTextBox.Name = "FileNameTextBox";
-            this.FileNameTextBox.Size = new System.Drawing.Size(252, 20);
+            this.FileNameTextBox.Size = new System.Drawing.Size(268, 20);
             this.FileNameTextBox.TabIndex = 17;
             this.FileNameTextBox.TextChanged += new System.EventHandler(this.FileNameTextBox_TextChanged);
             // 
             // filename
             // 
             this.filename.AutoSize = true;
-            this.filename.Location = new System.Drawing.Point(17, 88);
+            this.filename.Location = new System.Drawing.Point(17, 95);
             this.filename.Name = "filename";
             this.filename.Size = new System.Drawing.Size(49, 13);
             this.filename.TabIndex = 16;
@@ -724,7 +721,7 @@
             // 
             // browseRightOutputPathButton
             // 
-            this.browseRightOutputPathButton.Location = new System.Drawing.Point(459, 144);
+            this.browseRightOutputPathButton.Location = new System.Drawing.Point(355, 151);
             this.browseRightOutputPathButton.Name = "browseRightOutputPathButton";
             this.browseRightOutputPathButton.Size = new System.Drawing.Size(32, 23);
             this.browseRightOutputPathButton.TabIndex = 15;
@@ -734,16 +731,16 @@
             // 
             // right_output_path_textbox
             // 
-            this.right_output_path_textbox.Location = new System.Drawing.Point(80, 145);
+            this.right_output_path_textbox.Location = new System.Drawing.Point(80, 152);
             this.right_output_path_textbox.Name = "right_output_path_textbox";
-            this.right_output_path_textbox.Size = new System.Drawing.Size(371, 20);
+            this.right_output_path_textbox.Size = new System.Drawing.Size(268, 20);
             this.right_output_path_textbox.TabIndex = 14;
             this.right_output_path_textbox.TextChanged += new System.EventHandler(this.right_output_path_textbox_TextChanged);
             // 
             // RightOutputPathLabel
             // 
             this.RightOutputPathLabel.AutoSize = true;
-            this.RightOutputPathLabel.Location = new System.Drawing.Point(19, 149);
+            this.RightOutputPathLabel.Location = new System.Drawing.Point(19, 156);
             this.RightOutputPathLabel.Name = "RightOutputPathLabel";
             this.RightOutputPathLabel.Size = new System.Drawing.Size(56, 13);
             this.RightOutputPathLabel.TabIndex = 13;
@@ -751,7 +748,7 @@
             // 
             // browseLeftOutputPathButton
             // 
-            this.browseLeftOutputPathButton.Location = new System.Drawing.Point(459, 113);
+            this.browseLeftOutputPathButton.Location = new System.Drawing.Point(355, 120);
             this.browseLeftOutputPathButton.Name = "browseLeftOutputPathButton";
             this.browseLeftOutputPathButton.Size = new System.Drawing.Size(32, 23);
             this.browseLeftOutputPathButton.TabIndex = 12;
@@ -761,16 +758,16 @@
             // 
             // left_output_path_textbox
             // 
-            this.left_output_path_textbox.Location = new System.Drawing.Point(80, 114);
+            this.left_output_path_textbox.Location = new System.Drawing.Point(80, 121);
             this.left_output_path_textbox.Name = "left_output_path_textbox";
-            this.left_output_path_textbox.Size = new System.Drawing.Size(371, 20);
+            this.left_output_path_textbox.Size = new System.Drawing.Size(268, 20);
             this.left_output_path_textbox.TabIndex = 4;
             this.left_output_path_textbox.TextChanged += new System.EventHandler(this.left_output_path_textbox_TextChanged);
             // 
             // LeftOutputPathLabel
             // 
             this.LeftOutputPathLabel.AutoSize = true;
-            this.LeftOutputPathLabel.Location = new System.Drawing.Point(17, 118);
+            this.LeftOutputPathLabel.Location = new System.Drawing.Point(17, 125);
             this.LeftOutputPathLabel.Name = "LeftOutputPathLabel";
             this.LeftOutputPathLabel.Size = new System.Drawing.Size(29, 13);
             this.LeftOutputPathLabel.TabIndex = 3;
@@ -779,7 +776,7 @@
             // alpha_checkBox
             // 
             this.alpha_checkBox.AutoSize = true;
-            this.alpha_checkBox.Location = new System.Drawing.Point(217, 25);
+            this.alpha_checkBox.Location = new System.Drawing.Point(217, 32);
             this.alpha_checkBox.Name = "alpha_checkBox";
             this.alpha_checkBox.Size = new System.Drawing.Size(115, 17);
             this.alpha_checkBox.TabIndex = 2;
@@ -795,7 +792,7 @@
             "2048x2048",
             "4096x4096",
             "8192x8192"});
-            this.resolution_comboBox.Location = new System.Drawing.Point(80, 23);
+            this.resolution_comboBox.Location = new System.Drawing.Point(80, 30);
             this.resolution_comboBox.Name = "resolution_comboBox";
             this.resolution_comboBox.Size = new System.Drawing.Size(106, 21);
             this.resolution_comboBox.TabIndex = 1;
@@ -803,23 +800,11 @@
             // label16
             // 
             this.label16.AutoSize = true;
-            this.label16.Location = new System.Drawing.Point(17, 26);
+            this.label16.Location = new System.Drawing.Point(17, 33);
             this.label16.Name = "label16";
             this.label16.Size = new System.Drawing.Size(57, 13);
             this.label16.TabIndex = 0;
             this.label16.Text = "Resolution";
-            // 
-            // start_button
-            // 
-            this.start_button.BackColor = System.Drawing.Color.LightGreen;
-            this.start_button.Font = new System.Drawing.Font("Microsoft Sans Serif", 11.25F, System.Drawing.FontStyle.Bold, System.Drawing.GraphicsUnit.Point, ((byte)(0)));
-            this.start_button.Location = new System.Drawing.Point(408, 179);
-            this.start_button.Name = "start_button";
-            this.start_button.Size = new System.Drawing.Size(93, 30);
-            this.start_button.TabIndex = 14;
-            this.start_button.Text = "Start!";
-            this.start_button.UseVisualStyleBackColor = false;
-            this.start_button.Click += new System.EventHandler(this.start_button_Click);
             // 
             // Sequence_groupBox
             // 
@@ -874,36 +859,78 @@
             this.input_startindex_label.TabIndex = 0;
             this.input_startindex_label.Text = "Start index";
             // 
-            // CompressionLabel
+            // groupBox1
             // 
-            this.CompressionLabel.AutoSize = true;
-            this.CompressionLabel.Location = new System.Drawing.Point(341, 58);
-            this.CompressionLabel.Name = "CompressionLabel";
-            this.CompressionLabel.Size = new System.Drawing.Size(67, 13);
-            this.CompressionLabel.TabIndex = 22;
-            this.CompressionLabel.Text = "Compression";
+            this.groupBox1.Controls.Add(this.FXAACheckBox);
+            this.groupBox1.Controls.Add(this.samples);
+            this.groupBox1.Controls.Add(this.MSAA_ComboBox);
+            this.groupBox1.Controls.Add(this.MSAALabel);
+            this.groupBox1.Location = new System.Drawing.Point(527, 133);
+            this.groupBox1.Name = "groupBox1";
+            this.groupBox1.Size = new System.Drawing.Size(237, 73);
+            this.groupBox1.TabIndex = 16;
+            this.groupBox1.TabStop = false;
+            this.groupBox1.Text = "Anti-aliasing";
             // 
-            // compressionTrackBar
+            // FXAACheckBox
             // 
-            this.compressionTrackBar.AutoSize = false;
-            this.compressionTrackBar.Location = new System.Drawing.Point(412, 55);
-            this.compressionTrackBar.Maximum = 9;
-            this.compressionTrackBar.Name = "compressionTrackBar";
-            this.compressionTrackBar.Size = new System.Drawing.Size(80, 20);
-            this.compressionTrackBar.TabIndex = 23;
-            this.compressionTrackBar.Value = 7;
+            this.FXAACheckBox.AutoSize = true;
+            this.FXAACheckBox.Checked = true;
+            this.FXAACheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.FXAACheckBox.Location = new System.Drawing.Point(16, 48);
+            this.FXAACheckBox.Name = "FXAACheckBox";
+            this.FXAACheckBox.Size = new System.Drawing.Size(53, 17);
+            this.FXAACheckBox.TabIndex = 15;
+            this.FXAACheckBox.Text = "FXAA";
+            this.FXAACheckBox.UseVisualStyleBackColor = true;
+            // 
+            // samples
+            // 
+            this.samples.AutoSize = true;
+            this.samples.Location = new System.Drawing.Point(167, 24);
+            this.samples.Name = "samples";
+            this.samples.Size = new System.Drawing.Size(45, 13);
+            this.samples.TabIndex = 14;
+            this.samples.Text = "samples";
+            // 
+            // MSAA_ComboBox
+            // 
+            this.MSAA_ComboBox.DisplayMember = "(none)";
+            this.MSAA_ComboBox.FormattingEnabled = true;
+            this.MSAA_ComboBox.Items.AddRange(new object[] {
+            "1",
+            "2",
+            "4",
+            "8",
+            "16"});
+            this.MSAA_ComboBox.Location = new System.Drawing.Point(106, 21);
+            this.MSAA_ComboBox.Name = "MSAA_ComboBox";
+            this.MSAA_ComboBox.RightToLeft = System.Windows.Forms.RightToLeft.No;
+            this.MSAA_ComboBox.Size = new System.Drawing.Size(57, 21);
+            this.MSAA_ComboBox.TabIndex = 13;
+            // 
+            // MSAALabel
+            // 
+            this.MSAALabel.AutoSize = true;
+            this.MSAALabel.Location = new System.Drawing.Point(13, 24);
+            this.MSAALabel.Name = "MSAALabel";
+            this.MSAALabel.Size = new System.Drawing.Size(37, 13);
+            this.MSAALabel.TabIndex = 12;
+            this.MSAALabel.Text = "MSAA";
             // 
             // stitcher_form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1040, 397);
+            this.ClientSize = new System.Drawing.Size(1040, 421);
+            this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.Sequence_groupBox);
             this.Controls.Add(this.output_groupBox);
             this.Controls.Add(this.right_input_groupbox);
             this.Controls.Add(this.transform_groupbox);
             this.Controls.Add(this.setting_groupBox);
             this.Controls.Add(this.left_input_groupbox);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.Icon = ((System.Drawing.Icon)(resources.GetObject("$this.Icon")));
             this.MaximizeBox = false;
             this.Name = "stitcher_form";
@@ -919,9 +946,11 @@
             this.right_input_groupbox.PerformLayout();
             this.output_groupBox.ResumeLayout(false);
             this.output_groupBox.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.compressionTrackBar)).EndInit();
             this.Sequence_groupBox.ResumeLayout(false);
             this.Sequence_groupBox.PerformLayout();
-            ((System.ComponentModel.ISupportInitialize)(this.compressionTrackBar)).EndInit();
+            this.groupBox1.ResumeLayout(false);
+            this.groupBox1.PerformLayout();
             this.ResumeLayout(false);
 
         }
@@ -942,9 +971,6 @@
         private System.Windows.Forms.TextBox input_left_L_textbox;
         private System.Windows.Forms.Label label1;
         private System.Windows.Forms.GroupBox setting_groupBox;
-        private System.Windows.Forms.Label samples;
-        private System.Windows.Forms.ComboBox MSAA_ComboBox;
-        private System.Windows.Forms.Label MSAALabel;
         private System.Windows.Forms.Label dome_diameter_units_label;
         private System.Windows.Forms.Label eye_separation_units_label;
         private System.Windows.Forms.TextBox domeDiameterInput;
@@ -1002,6 +1028,11 @@
         private System.Windows.Forms.Label input_startindex_label;
         private System.Windows.Forms.TrackBar compressionTrackBar;
         private System.Windows.Forms.Label CompressionLabel;
+        private System.Windows.Forms.GroupBox groupBox1;
+        private System.Windows.Forms.CheckBox FXAACheckBox;
+        private System.Windows.Forms.Label samples;
+        private System.Windows.Forms.ComboBox MSAA_ComboBox;
+        private System.Windows.Forms.Label MSAALabel;
     }
 }
 

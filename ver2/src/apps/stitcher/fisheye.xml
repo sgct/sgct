@@ -1,9 +1,8 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="localhost">
-	<Capture path="D:\render\test" />
 	<Node address="localhost" port="20401">
 		<Window fullScreen="false" msaa="4">
-			<Stereo type="test" />
+			<Stereo type="none" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="512" y="512" />
 			<!-- Frame buffer resolution -->

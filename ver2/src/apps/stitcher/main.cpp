@@ -37,6 +37,8 @@ bool sequence = false;
 int counter = 0;
 int startFrame = 0;
 bool alpha = false;
+bool stereo = false;
+bool fxaa = false;
 int numberOfMSAASamples = 1;
 int resolution = 512;
 float eyeSeparation = 0.065f;
@@ -134,6 +136,16 @@ int main( int argc, char* argv[] )
 		{
 			alpha = (strcmp(argv[i + 1], "1") == 0);
 			sgct::MessageHandler::instance()->print("Setting alpha to %s\n", alpha ? "true" : "false");
+		}
+		else if (strcmp(argv[i], "-stereo") == 0 && argc > (i + 1))
+		{
+			stereo = (strcmp(argv[i + 1], "1") == 0);
+			sgct::MessageHandler::instance()->print("Setting stereo to %s\n", alpha ? "true" : "false");
+		}
+		else if (strcmp(argv[i], "-fxaa") == 0 && argc > (i + 1))
+		{
+			fxaa = (strcmp(argv[i + 1], "1") == 0);
+			sgct::MessageHandler::instance()->print("Setting fxaa to %s\n", alpha ? "true" : "false");
 		}
 		else if (strcmp(argv[i], "-eyeSep") == 0 && argc > (i + 1))
 		{
@@ -344,6 +356,11 @@ void myPreWinInitFun()
 		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
 		gEngine->getWindowPtr(i)->setCubeMapResolution(resolution / 2);
 		gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
+		gEngine->getWindowPtr(i)->setUseFXAA(fxaa);
+		if (stereo)
+			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::Dummy_Stereo);
+		else
+			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::No_Stereo);
 	}
 }
 

@@ -97,23 +97,35 @@ inline glm::dmat4 setupOrthoMat()
 	glm::dmat4 orthoMat;
 	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
-	if( cWin->isFixResolution() )
+	if( FontManager::instance()->getDrawInScreenSpace() )
 	{
-		orthoMat = glm::ortho(0.0,
-			cWin->getCurrentViewport()->getXSize() *
-			static_cast<double>(cWin->getXInitialResolution()),
-			0.0,
-			cWin->getCurrentViewport()->getYSize() *
-			static_cast<double>(cWin->getYInitialResolution()));
+		if( cWin->isFixResolution() )
+		{
+			orthoMat = glm::ortho(0.0,
+				cWin->getCurrentViewport()->getXSize() *
+				static_cast<double>(cWin->getXInitialResolution()),
+				0.0,
+				cWin->getCurrentViewport()->getYSize() *
+				static_cast<double>(cWin->getYInitialResolution()));
+		}
+		else
+		{
+			orthoMat = glm::ortho(0.0,
+				cWin->getCurrentViewport()->getXSize() *
+				static_cast<double>(cWin->getXResolution()),
+				0.0,
+				cWin->getCurrentViewport()->getYSize() *
+				static_cast<double>(cWin->getYResolution()));
+		}
 	}
 	else
 	{
 		orthoMat = glm::ortho(0.0,
 			cWin->getCurrentViewport()->getXSize() *
-			static_cast<double>(cWin->getXResolution()),
+			static_cast<double>(cWin->getXFramebufferResolution()),
 			0.0,
 			cWin->getCurrentViewport()->getYSize() *
-			static_cast<double>(cWin->getYResolution()));
+			static_cast<double>(cWin->getYFramebufferResolution()));
 	}
 
 	return orthoMat;

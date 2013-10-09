@@ -110,6 +110,8 @@ sgct_text::FontManager::FontManager(void)
 	mStrokeColor.b = 0.0f;
 	mStrokeColor.a = 0.9f;
 
+	mDrawInScreenSpace = true;
+
 	if ( error != 0 )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not initiate Freetype library.\n" );
@@ -188,6 +190,14 @@ Set the stroke (border) color
 void sgct_text::FontManager::setStrokeColor( glm::vec4 color )
 {
 	mStrokeColor = color;
+}
+
+/*!
+Set if screen space coordinates should be used or buffer coordinates
+*/
+void sgct_text::FontManager::setDrawInScreenSpace( bool state )
+{
+	mDrawInScreenSpace = state;
 }
 
 /*!

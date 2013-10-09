@@ -63,8 +63,11 @@ public:
 	void setDefaultFontPath( const std::string & path );
 	void setStrokeSize( signed long size );
 	void setStrokeColor( glm::vec4 color );
+	void setDrawInScreenSpace( bool state );
+
 	inline glm::vec4 getStrokeColor() { return mStrokeColor; }
 	inline signed long getStrokeSize() { return mStrokeSize; }
+	inline bool getDrawInScreenSpace() { return mDrawInScreenSpace; }
 
 	sgct::ShaderProgram getShader() { return mShader; }
 	inline unsigned int getMVPLoc() { return mMVPLoc; }
@@ -114,6 +117,8 @@ private:
 	FT_Library  mFTLibrary;					// Freetype library
 	FT_Fixed mStrokeSize;
 	glm::vec4 mStrokeColor;
+
+	bool mDrawInScreenSpace;
 
 	std::map<std::string, std::string> mFontPaths;	// Holds all predefined font paths for generating font glyphs
 	std::set<Font> mFonts;				// All generated fonts

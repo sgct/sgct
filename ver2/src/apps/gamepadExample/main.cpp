@@ -2,8 +2,7 @@
 
 sgct::Engine * gEngine;
 
-void myDrawFun();
-void myPreSyncFun();
+void myDraw2DFun();
 
 const char * joyStick1Name = NULL;
 int numberOfAxes = 0;
@@ -34,7 +33,7 @@ int main( int argc, char* argv[] )
 			numberOfButtons);
 	}
 
-	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setDraw2DFunction( myDraw2DFun );
 
 	// Main loop
 	gEngine->render();
@@ -46,18 +45,38 @@ int main( int argc, char* argv[] )
 	exit( EXIT_SUCCESS );
 }
 
-void myPreSyncFun()
+void myDraw2DFun()
 {
 	if( joyStick1Name != NULL )
 	{
+		char buffer[32];
+		std::string joystickInfoStr;
+
 		axesPos = sgct::Engine::getJoystickAxes( SGCT_JOYSTICK_1, &numberOfAxes );
+		joystickInfoStr.append( "Axes: " );
 		for(int i=0; i<numberOfAxes; i++)
-			sgct::MessageHandler::instance()->print("%.3f ", axesPos[i]);
+		{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			sprintf_s(buffer, 32, "%.3f ", axesPos[i]);
+#else
+			sprintf(buffer, "%.3f ", axesPos[i]);
+#endif
+			joystickInfoStr.append( buffer );
+		}
 
 		buttons = sgct::Engine::getJoystickButtons( SGCT_JOYSTICK_1, &numberOfButtons );
+		joystickInfoStr.append( "\nButtons: " );
 		for(int i=0; i<numberOfButtons; i++)
-			sgct::MessageHandler::instance()->print("%d ", buttons[i]);
+		{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			sprintf_s(buffer, 32, "%d ", buttons[i]);
+#else
+			sprintf(buffer, "%d ", buttons[i]);
+#endif
+			joystickInfoStr.append( buffer );
+		}
 
-		sgct::MessageHandler::instance()->print("\r");
+		const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", 10 );
+		sgct_text::print(font, 18, 32, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", joystickInfoStr.c_str());
 	}
 }

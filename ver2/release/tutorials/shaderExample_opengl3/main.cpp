@@ -5,18 +5,21 @@ sgct::Engine * gEngine;
 void myInitFun();
 void myDrawFun();
 void myPreSyncFun();
+void myPostSyncPreDrawFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
+void keyCallback(int key, int action);
 
 sgct::SharedDouble curr_time(0.0);
+sgct::SharedBool reloadShader(false);
 
 //global vars
 GLuint vertexArray = GL_FALSE;
 GLuint vertexPositionBuffer = GL_FALSE;
 
-GLint Matrix_Loc = -1;
-GLint Time_Loc = -1;
+GLint matrix_loc = -1;
+GLint time_loc = -1;
 
 int main( int argc, char* argv[] )
 {
@@ -28,8 +31,10 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
+	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+	gEngine->setKeyboardCallbackFunction( keyCallback );
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
 	// Init the engine
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
@@ -76,16 +81,16 @@ void myInitFun()
 	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
 	glBindVertexArray(0); //unbind
 
-	sgct::ShaderManager::Instance()->addShader( "xform",
+	sgct::ShaderManager::instance()->addShaderProgram( "xform",
 			"simple.vert",
 			"simple.frag" );
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
  
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
-	Time_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "curr_time" );
+	matrix_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+	time_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "curr_time" );
  
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
@@ -95,10 +100,10 @@ void myDrawFun()
 	glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 		
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-	glUniform1f( Time_Loc, static_cast<float>( curr_time.getVal() ) );
+	glUniformMatrix4fv(matrix_loc, 1, GL_FALSE, &MVP[0][0]);
+	glUniform1f( time_loc, static_cast<float>( curr_time.getVal() ) );
 
 	glBindVertexArray(vertexArray);
 	
@@ -107,27 +112,58 @@ void myDrawFun()
 
 	//unbind
 	glBindVertexArray(0);
-	sgct::ShaderManager::Instance()->unBindShader();
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()
 {
-	//set the time only on the master
 	if( gEngine->isMaster() )
 	{
-		//get the time in seconds
-		curr_time.setVal(sgct::Engine::getTime());
+		curr_time.setVal( sgct::Engine::getTime() );
+	}
+}
+
+void myPostSyncPreDrawFun()
+{
+	if( reloadShader.getVal() )
+	{
+		reloadShader.setVal(false); //reset
+
+		sgct::ShaderProgram sp = sgct::ShaderManager::instance()->getShaderProgram( "xform" );
+		sp.reload();
+
+		//reset location variables
+		sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+		time_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "curr_time" );
+		matrix_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+		sgct::ShaderManager::instance()->unBindShaderProgram();
+	}
+}
+
+void keyCallback(int key, int action)
+{
+	if( gEngine->isMaster() )
+	{
+		switch( key )
+		{
+		case SGCT_KEY_R:
+			if(action == SGCT_PRESS)
+				reloadShader.setVal(true);
+			break;
+		}
 	}
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readBool( &reloadShader );
 }
 
 void myCleanUpFun()

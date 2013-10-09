@@ -1,80 +1,118 @@
-#include <stdlib.h>
-#include <stdio.h>
 #include "sgct.h"
 
 sgct::Engine * gEngine;
 
+void myInitFun();
 void myDrawFun();
 void myPreSyncFun();
-void myInitOGLFun();
+void myPostSyncPreDrawFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
+void keyCallback(int key, int action);
 
-size_t myTextureHandle;
-sgct_utils::SGCTBox * myBox = NULL;
-GLint Matrix_Loc = -1;
-
-//variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
+sgct::SharedBool reloadShader(false);
+
+//global vars
+GLuint vertexArray = GL_FALSE;
+GLuint vertexPositionBuffer = GL_FALSE;
+
+GLint matrix_loc = -1;
+GLint time_loc = -1;
 
 int main( int argc, char* argv[] )
 {
+	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
 
-	gEngine->setInitOGLFunction( myInitOGLFun );
+	// Bind your functions
+	gEngine->setInitOGLFunction( myInitFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
+	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
+	gEngine->setKeyboardCallbackFunction( keyCallback );
+	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
+	// Init the engine
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
 
-	sgct::SharedData::Instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::Instance()->setDecodeFunction(myDecodeFun);
-
 	// Main loop
 	gEngine->render();
 
-	// Clean up
+	// Clean up (de-allocate)
 	delete gEngine;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
 }
 
+void myInitFun()
+{
+	const GLfloat vertex_position_data[] = { 
+		-0.5f, -0.5f, 0.0f,
+		 0.0f, 0.5f, 0.0f,
+		 0.5f, -0.5f, 0.0f
+	};
+
+	glGenVertexArrays(1, &vertexArray);
+	glBindVertexArray(vertexArray);
+
+	//vertex positions
+	glGenBuffers(1, &vertexPositionBuffer);
+	glBindBuffer(GL_ARRAY_BUFFER, vertexPositionBuffer);
+	glBufferData(GL_ARRAY_BUFFER, sizeof(vertex_position_data), vertex_position_data, GL_STATIC_DRAW);
+	glEnableVertexAttribArray(0);
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		3,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		0,                  // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
+
+	glBindBuffer(GL_ARRAY_BUFFER, 0); //unbind
+	glBindVertexArray(0); //unbind
+
+	sgct::ShaderManager::instance()->addShaderProgram( "xform",
+			"simple.vert",
+			"simple.frag" );
+
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+ 
+	matrix_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+	time_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "curr_time" );
+ 
+	sgct::ShaderManager::instance()->unBindShaderProgram();
+}
+
 void myDrawFun()
 {
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
+	float speed = 50.0f;
 
-	double speed = 25.0;
-
-	//create scene transform (animation)
-	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
-
+	glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
-	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::Instance()->getTextureByHandle(myTextureHandle) );
+	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+		
+	glUniformMatrix4fv(matrix_loc, 1, GL_FALSE, &MVP[0][0]);
+	glUniform1f( time_loc, static_cast<float>( curr_time.getVal() ) );
 
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
+	glBindVertexArray(vertexArray);
+	
+	// Draw the triangle !
+	glDrawArrays(GL_TRIANGLES, 0, 3);
 
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-
-	//draw the box
-	myBox->draw();
-
-	sgct::ShaderManager::Instance()->unBindShader();
-
-	glDisable( GL_CULL_FACE );
-	glDisable( GL_DEPTH_TEST );
+	//unbind
+	glBindVertexArray(0);
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myPreSyncFun()
@@ -85,48 +123,53 @@ void myPreSyncFun()
 	}
 }
 
-void myInitOGLFun()
+void myPostSyncPreDrawFun()
 {
-	sgct::TextureManager::Instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::Instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::Instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	if( reloadShader.getVal() )
+	{
+		reloadShader.setVal(false); //reset
 
-	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+		sgct::ShaderProgram sp = sgct::ShaderManager::instance()->getShaderProgram( "xform" );
+		sp.reload();
 
-	//Set up backface culling
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+		//reset location variables
+		sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+		time_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "curr_time" );
+		matrix_loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+		sgct::ShaderManager::instance()->unBindShaderProgram();
+	}
+}
 
-	sgct::ShaderManager::Instance()->addShader( "xform",
-			"SimpleVertexShader.vertexshader",
-			"SimpleFragmentShader.fragmentshader" );
-
-	sgct::ShaderManager::Instance()->bindShader( "xform" );
-
-	Matrix_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "MVP" );
-	GLint Tex_Loc = sgct::ShaderManager::Instance()->getShader( "xform").getUniformLocation( "Tex" );
-	glUniform1i( Tex_Loc, 0 );
-
-	sgct::ShaderManager::Instance()->unBindShader();
-
-	//sgct::Engine::Instance()->setStatsGraphVisibility(true);
-	//sgct::Engine::Instance()->setDisplayInfoVisibility(true);
+void keyCallback(int key, int action)
+{
+	if( gEngine->isMaster() )
+	{
+		switch( key )
+		{
+		case SGCT_KEY_R:
+			if(action == SGCT_PRESS)
+				reloadShader.setVal(true);
+			break;
+		}
+	}
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::Instance()->writeDouble(&curr_time);
+	sgct::SharedData::instance()->writeDouble( &curr_time );
+	sgct::SharedData::instance()->writeBool( &reloadShader );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::Instance()->readDouble(&curr_time);
+	sgct::SharedData::instance()->readDouble( &curr_time );
+	sgct::SharedData::instance()->readBool( &reloadShader );
 }
 
 void myCleanUpFun()
 {
-	if(myBox != NULL)
-		delete myBox;
+	if(vertexPositionBuffer)
+		glDeleteBuffers(1, &vertexPositionBuffer);
+	if(vertexArray)
+		glDeleteVertexArrays(1, &vertexArray);
 }

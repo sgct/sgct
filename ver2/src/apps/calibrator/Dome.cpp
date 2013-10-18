@@ -52,7 +52,7 @@ void Dome::drawTexturedSphere()
 		glPopMatrix();*/
 }
 
-void Dome::drawColCorrPattern(float * color, int mode)
+void Dome::drawColCorrPattern(glm::vec3 * color, int mode)
 {
 	float x0, y0, z0;
 	float x1, y1, z1;
@@ -116,9 +116,9 @@ void Dome::drawColCorrPattern(float * color, int mode)
 			x1 = mRadius * cosf( elevation1 ) * sinf( azimuth );
 			z1 = -mRadius * cosf( elevation1 ) * cosf( azimuth );
 
-			glColor3f( color[0]*intensity0, color[1]*intensity0, color[2]*intensity0);
+			glColor3f( color->r * intensity0,  color->g * intensity0,  color->b * intensity0);
 			glVertex3f( x0, y0, z0 );
-			glColor3f( color[0]*intensity1, color[1]*intensity1, color[2]*intensity1);
+			glColor3f(  color->r * intensity1,  color->g * intensity1,  color->b * intensity1);
 			glVertex3f( x1, y1, z1 );
 		}
 
@@ -135,7 +135,7 @@ void Dome::drawColCorrPattern(float * color, int mode)
 	y0 = mRadius * sinf( elevation0 );
 	y1 = mRadius * sinf( elevation1 );
 
-	glColor3f( color[0]*intensity1, color[1]*intensity1, color[2]*intensity1);
+	glColor3f( color->r * intensity1, color->g * intensity1, color->b * intensity1);
 	glVertex3f( 0.0f, y1, 0.0f );
 		
 	for(int a=0; a<=azimuthSteps; a++)
@@ -145,7 +145,7 @@ void Dome::drawColCorrPattern(float * color, int mode)
 		x0 = mRadius * cosf( elevation0 ) * sinf( azimuth );
 		z0 = -mRadius * cosf( elevation0 ) * cosf( azimuth );
 
-		glColor3f( color[0]*intensity0, color[1]*intensity0, color[2]*intensity0);
+		glColor3f( color->r * intensity0,  color->g * intensity0,  color->b * intensity0);
 		glVertex3f( x0, y0, z0 );
 	}
 
@@ -468,10 +468,10 @@ void Dome::generateDisplayList()
 		64);
 	drawVerticalFrustumLine(gmtl::Vec3f(-5.18765f, 5.939094f, -2.23591f),
 		gmtl::Vec3f(5.18765f, 5.939094f, -2.23591f),
-		64);*/
+		64);
 
 	glPopMatrix();
-	glEndList();
+	glEndList();*/
 
 	glNewList( mTexDisplayList, GL_COMPILE );
 	glColor3f( 1.0f, 1.0f, 1.0f );

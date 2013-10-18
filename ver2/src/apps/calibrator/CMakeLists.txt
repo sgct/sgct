@@ -12,7 +12,9 @@ set(AppPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 
 add_executable(${APP_NAME}
-	main.cpp)	
+	main.cpp
+	Dome.h
+	Dome.cpp)	
 	
 find_library(SGCT_RELEASE_LIBRARY REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY REQUIRED)

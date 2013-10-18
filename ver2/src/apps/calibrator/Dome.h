@@ -14,7 +14,7 @@ public:
 	void drawChannelZones();
 	void drawBlendZones();
 	void drawTexturedSphere();
-	void drawColCorrPattern(float * color, int mode);
+	void drawColCorrPattern(glm::vec3 * color, int mode);
 	void generateDisplayList();
 	inline float getRadius(){ return mRadius; }
 	inline void setTiltOffset(float diff) { mTiltOffset = diff; } 

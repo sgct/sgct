@@ -2052,6 +2052,8 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			float x = static_cast<float>( size - size/4 );
 			float y = static_cast<float>( fontSize );
 
+			//draw in pixel space / FBO space
+			sgct_text::FontManager::instance()->setDrawInScreenSpace(false);
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
 
 			if( mActiveFrustumMode == Frustum::Mono )
@@ -2060,6 +2062,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Left");
 			else
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Right");
+
+			//restore: draw in point space / screen space
+			sgct_text::FontManager::instance()->setDrawInScreenSpace(true);
 		}
 	}
 

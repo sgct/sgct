@@ -18,12 +18,15 @@ void drawTexturedObject();
 Dome * mDome;
 
 sgct::SharedShort displayState(0);
+sgct::SharedShort colorState(0);
 sgct::SharedBool showGeoCorrectionPattern(true);
 sgct::SharedBool showBlendZones(false);
 sgct::SharedBool showChannelZones(false);
+sgct::SharedBool takeScreenShot(false);
 
 const short lastState = 7;
 bool useShader = true;
+std::vector<glm::vec3> colors;
 
 int main( int argc, char* argv[] )
 {
@@ -97,6 +100,24 @@ void draw()
 
 void initGL()
 {
+	colors.push_back( glm::vec3(1.00f, 1.00f, 1.00f) ); //white
+	colors.push_back( glm::vec3(0.25f, 0.25f, 0.25f) ); //25% gray
+	colors.push_back( glm::vec3(0.50f, 0.50f, 0.50f) ); //50% gray
+	colors.push_back( glm::vec3(0.75f, 0.75f, 0.75f) ); //75% gray
+	colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
+	colors.push_back( glm::vec3(1.00f, 0.50f, 0.00f) ); //orange
+	colors.push_back( glm::vec3(1.00f, 1.00f, 0.00f) ); //yellow
+	colors.push_back( glm::vec3(0.50f, 1.00f, 0.00f) ); //yellow-green
+	colors.push_back( glm::vec3(0.00f, 1.00f, 0.00f) ); //green
+	colors.push_back( glm::vec3(0.00f, 1.00f, 0.50f) ); //green-cyan
+	colors.push_back( glm::vec3(0.00f, 1.00f, 1.00f) ); //cyan
+	colors.push_back( glm::vec3(0.00f, 0.50f, 1.00f) ); //cyan-blue
+	colors.push_back( glm::vec3(0.00f, 0.00f, 1.00f) ); //blue
+	colors.push_back( glm::vec3(0.50f, 0.00f, 1.00f) ); //blue-magenta
+	colors.push_back( glm::vec3(1.00f, 0.00f, 1.00f) ); //magenta
+	colors.push_back( glm::vec3(1.00f, 0.00f, 0.50f) ); //magenta-red
+	colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
+	
 	mDome = new Dome(7.4f, 26.7f, FISHEYE);
 	mDome->generateDisplayList();
 	
@@ -111,24 +132,32 @@ void preSync()
 	//set the time only on the master
 	if( gEngine->isMaster() )
 	{
-		;
+		if( takeScreenShot.getVal() )
+		{
+			takeScreenShot.setVal(false);
+			gEngine->takeScreenshot();
+		}
 	}
 }
 
 void encode()
 {
 	sgct::SharedData::instance()->writeShort( &displayState );
+	sgct::SharedData::instance()->writeShort( &colorState );
 	sgct::SharedData::instance()->writeBool( &showGeoCorrectionPattern );
 	sgct::SharedData::instance()->writeBool( &showBlendZones );
 	sgct::SharedData::instance()->writeBool( &showChannelZones );
+	sgct::SharedData::instance()->writeBool( &takeScreenShot );
 }
 
 void decode()
 {
 	sgct::SharedData::instance()->readShort( &displayState );
+	sgct::SharedData::instance()->readShort( &colorState );
 	sgct::SharedData::instance()->readBool( &showGeoCorrectionPattern );
 	sgct::SharedData::instance()->readBool( &showBlendZones );
 	sgct::SharedData::instance()->readBool( &showChannelZones );
+	sgct::SharedData::instance()->readBool( &takeScreenShot );
 }
 
 void keyCallback(int key, int action)
@@ -157,6 +186,26 @@ void keyCallback(int key, int action)
 			}
 			break;
 
+		case SGCT_KEY_DOWN:
+			if(action == SGCT_PRESS)
+            {
+				if( colorState.getVal() > 0 )
+					colorState.setVal( colorState.getVal() - 1 );
+				else
+					colorState.setVal( static_cast<short>(colors.size()-1) );
+            }
+			break;
+
+		case SGCT_KEY_UP:
+			if(action == SGCT_PRESS)
+			{
+				if( colorState.getVal() < static_cast<short>(colors.size()-1) )
+					colorState.setVal( colorState.getVal() + 1 );
+				else
+					colorState.setVal(0);
+			}
+			break;
+
 		case SGCT_KEY_B:
 			if(action == SGCT_PRESS)
 				showBlendZones.toggle();
@@ -170,6 +219,11 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_G:
 			if(action == SGCT_PRESS)
 				showGeoCorrectionPattern.toggle();
+			break;
+
+		case SGCT_KEY_P:
+			if(action == SGCT_PRESS)
+				takeScreenShot.setVal(true);
 			break;
 		}
 	}
@@ -193,11 +247,12 @@ void drawGeoCorrPatt()
 
 void drawColCorrPatt()
 {
-	/*glDepthMask(GL_FALSE);
-	mDome->drawColCorrPattern(colors[mSharedData->colorState].col,
-		   static_cast<int>((displayState.getVal()-(DOME+1)))%5);
+	glDepthMask(GL_FALSE);
+	
+	mDome->drawColCorrPattern( &colors[ colorState.getVal() ],
+		   static_cast<int>((displayState.getVal()-1)) %5);
 
-	glDepthMask(GL_TRUE);*/
+	glDepthMask(GL_TRUE);
 }
 
 void drawCube()

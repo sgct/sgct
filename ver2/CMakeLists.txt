@@ -4,154 +4,181 @@
 #
 # General project settings
 #
-cmake_minimum_required(VERSION 2.6.2)
+cmake_minimum_required(VERSION 2.8)
 
-project(SGCT C CXX)
+SET(BUILD_SHARED_LIBS OFF)
+SET(LIB_NAME sgct_light)
 
-#
-# Path for custom cmake modules, like FindXPackage.cmake
-#
-set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_SOURCE_DIR}/cmake/modules/")
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
-#------------------------------------
-#  Build Type
-#  Release/Debug/RelWithDebInfo/MinSizeRel...
-set(CMAKE_BUILD_TYPE RelWithDebInfo)
-
-#--------------------------------------------------------------------
-# Output paths for the executables and libraries
-#
-if(NOT EXECUTABLE_OUTPUT_PATH)
-  set(EXECUTABLE_OUTPUT_PATH ${CMAKE_BINARY_DIR}/bin CACHE PATH 
-    "Single output directory for building all executables.")
-endif(NOT EXECUTABLE_OUTPUT_PATH)
-
-if(NOT LIBRARY_OUTPUT_PATH)
-  set(LIBRARY_OUTPUT_PATH ${CMAKE_BINARY_DIR}/lib CACHE PATH
-    "DEFAULT LIBRARY PATH.")
-endif(NOT LIBRARY_OUTPUT_PATH)
+PROJECT(${LIB_NAME})
+set(LibPath ${CMAKE_BINARY_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
 
-#
-# Build Dependencies
-# 
+add_library(${LIB_NAME} STATIC
+	src/sgct/utils/SGCTBox.cpp
+	src/sgct/utils/SGCTDome.cpp
+	src/sgct/utils/SGCTSphere.cpp
+	src/sgct/ClusterManager.cpp
+	src/sgct/CorrectionMesh.cpp
+	src/sgct/Engine.cpp
+	src/sgct/Font.cpp
+	src/sgct/FontManager.cpp
+	src/sgct/freetype.cpp
+	src/sgct/Image.cpp
+	src/sgct/MessageHandler.cpp
+	src/sgct/NetworkManager.cpp
+	src/sgct/OffScreenBuffer.cpp
+	src/sgct/PostFX.cpp
+	src/sgct/ReadConfig.cpp
+	src/sgct/ScreenCapture.cpp
+	src/sgct/SGCTMutexManager.cpp
+	src/sgct/SGCTNetwork.cpp
+	src/sgct/SGCTNode.cpp
+	src/sgct/SGCTSettings.cpp
+	src/sgct/SGCTTracker.cpp
+	src/sgct/SGCTTrackingDevice.cpp
+	src/sgct/SGCTTrackingManager.cpp
+	src/sgct/SGCTUser.cpp
+	src/sgct/SGCTVersion.cpp
+	src/sgct/SGCTWindow.cpp
+	src/sgct/Shader.cpp
+	src/sgct/ShaderManager.cpp
+	src/sgct/ShaderProgram.cpp
+	src/sgct/SharedData.cpp
+	src/sgct/SharedDataTypes.cpp
+	src/sgct/Statistics.cpp
+	src/sgct/TextureManager.cpp
+	src/sgct/Viewport.cpp
+	)
+ 
 INCLUDE_DIRECTORIES(
-  src/
-  src/deps/freetype/include
-  src/deps/glew/include
-  src/deps/glfw/include
-  src/deps/lpng/include
-  src/deps/tinyxml/include
-  src/deps/zlib/include
+  include
 )
 
-
-#
-# Find modules, ex third party libs, include files
-#
-##TODO BUILD FROM SOURCE
-#find_package(GLEW REQUIRED)
-#INCLUDE_DIRECTORIES(${GLEW_INCLUDE_DIR})
-#havent been able to make a cmake file for GLFW 2.7 yet
-find_package(GLFW REQUIRED)
-INCLUDE_DIRECTORIES(${GLFW_INCLUDE_DIR})
-
-
-# OpenGL
 find_package(OpenGL REQUIRED)
-INCLUDE_DIRECTORIES(${OPENGL_INCLUDE_DIR})
-SET(GL_LIBS ${OPENGL_gl_LIBRARY})
 
-#USE x11
-IF(UNIX AND NOT APPLE)
-	INCLUDE_DIRECTORIES(${X11_X11_INCLUDE_PATH})
-    list(APPEND GL_LIBS ${X11_X11_LIB} ${OPENGL_gl_LIBRARY})
-ENDIF(UNIX AND NOT APPLE)
+find_library(GLEW_DEBUG_LIBRARY REQUIRED)
+find_library(GLEW_RELEASE_LIBRARY REQUIRED)
+find_library(GLFW3_DEBUG_LIBRARY REQUIRED)
+find_library(GLFW3_RELEASE_LIBRARY REQUIRED)
+find_library(GLFW3_DEBUG_LIBRARY REQUIRED)
+find_library(GLFW3_RELEASE_LIBRARY REQUIRED)
+find_library(FREETYPE2_DEBUG_LIBRARY REQUIRED)
+find_library(FREETYPE2_RELEASE_LIBRARY REQUIRED)
+find_library(VRPN_DEBUG_LIBRARY REQUIRED)
+find_library(VRPN_RELEASE_LIBRARY REQUIRED)
+find_library(PNG_DEBUG_LIBRARY REQUIRED)
+find_library(PNG_RELEASE_LIBRARY REQUIRED)
+find_library(Z_DEBUG_LIBRARY REQUIRED)
+find_library(Z_RELEASE_LIBRARY REQUIRED)
+find_library(TINYXML2_DEBUG_LIBRARY REQUIRED)
+find_library(TINYXML2_RELEASE_LIBRARY REQUIRED)
+find_library(TINYTHREAD_DEBUG_LIBRARY REQUIRED)
+find_library(TINYTHREAD_RELEASE_LIBRARY REQUIRED)
 
-#USE COCOA
-IF(UNIX AND APPLE)
-   FIND_LIBRARY(COCOA_LIBRARY Cocoa)
-   list(APPEND GL_LIBS ${COCOA_LIBRARY})
-ENDIF(UNIX AND APPLE)
+set(COMMON_DEBUG_LIBS
+	${GLEW_DEBUG_LIBRARY}
+	${GLFW3_DEBUG_LIBRARY}
+	${OPENGL_LIBRARY}
+	${FREETYPE2_DEBUG_LIBRARY}
+	${VRPN_DEBUG_LIBRARY}
+	${PNG_DEBUG_LIBRARY}
+	${Z_DEBUG_LIBRARY}
+	${TINYXML2_DEBUG_LIBRARY}
+	${TINYTHREAD_DEBUG_LIBRARY}
+)
 
-set(SGCT_DEPENDENCIES ${GL_LIBS} ${GLFW_LIBRARY} glew tinyxml zlib png15 freetype)
+set(COMMON_RELEASE_LIBS
+	${GLEW_RELEASE_LIBRARY}
+	${GLFW3_RELEASE_LIBRARY}
+	${OPENGL_LIBRARY}
+	${FREETYPE2_RELEASE_LIBRARY}
+	${VRPN_RELEASE_LIBRARY}
+	${PNG_RELEASE_LIBRARY}
+	${Z_RELEASE_LIBRARY}
+	${TINYXML2_RELEASE_LIBRARY}
+	${TINYTHREAD_RELEASE_LIBRARY}
+)
 
-#--------------------------------------------------------------------
-# Project Paths
-#
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/sgct/include)
-INCLUDE_DIRECTORIES(${CMAKE_SOURCE_DIR}/include)
-LINK_DIRECTORIES(${CMAKE_BINARY_DIR}/lib)
+if( MSVC )
+	set(DEBUG_LIBS
+		${COMMON_DEBUG_LIBS}
+		ws2_32
+	)
+	
+	set(RELEASE_LIBS
+		${COMMON_RELEASE_LIBS}
+		ws2_32
+	)
+elseif( WIN32 ) #MINGW or similar
+	set(DEBUG_LIBS
+		${COMMON_DEBUG_LIBS}
+		ws2_32
+	)
+	
+	set(RELEASE_LIBS
+		${COMMON_RELEASE_LIBS}
+		ws2_32
+	)
+elseif( APPLE )
+	find_library(COCOA_LIBRARY Cocoa REQUIRED)
+	find_library(IOKIT_LIBRARY IOKit REQUIRED)
 
-set(SGCT_SOURCE_DIR ${CMAKE_SOURCE_DIR}/sgct/src)
-set(SGCT_BINARY_DIR ${CMAKE_BINARY_DIR})
-set(SGCT_LIBRARY_DIR ${LIBRARY_OUTPUT_PATH})
-set(SGCT_EXECUTABLE_DIR ${EXECUTABLE_OUTPUT_PATH})
+	set(DEBUG_LIBS
+		${COMMON_DEBUG_LIBS}
+		${COCOA_LIBRARY}
+		${IOKIT_LIBRARY}
+	)
+	
+	set(RELEASE_LIBS
+		${COMMON_RELEASE_LIBS}
+		${COCOA_LIBRARY}
+		${IOKIT_LIBRARY}
+	)
+else() #linux
+	find_library(X11_LIBRARY X11 REQUIRED)
+    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
+	find_library(XI_LIBRARY Xi REQUIRED)
 
-#--------------------------------------------------------------------
-# Boolean values to build the different projects
-option(WITH_EXAMPLES  "Compile example projects"   ON)
+	set(DEBUG_LIBS
+		${COMMON_DEBUG_LIBS}
+		${X11_LIBRARY}
+		${XRANDR_LIBRARY}
+		${XI_LIBRARY}
+	)
+	
+	set(RELEASE_LIBS
+		${COMMON_RELEASE_LIBS}
+		${X11_LIBRARY}
+		${XRANDR_LIBRARY}
+		${XI_LIBRARY}
+	)
+endif()
 
-#--------------------------------------------------------------------
-# Build shared libs or static libs
-option(BUILD_SHARED_LIBS "Build shared libs or static libs" OFF)
-mark_as_advanced(BUILD_SHARED_LIBS)
+if( MSVC )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+endif()
 
-#--------------------------------------------------------------------
-# If the generator is VS8, set the compiler to VS8
-#
-if(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
-  if(NOT ${CMAKE_CXX_COMPILER} MATCHES "8")
-    string(REPLACE "9.0" "8" CMAKE_CXX_COMPILER ${CMAKE_CXX_COMPILER})
-    string(REPLACE "9.0" "8" CMAKE_C_COMPILER   ${CMAKE_C_COMPILER})
-  endif(NOT ${CMAKE_CXX_COMPILER} MATCHES "8")
-endif(${CMAKE_GENERATOR} MATCHES "Visual Studio 8 2005")
+if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
+	add_definitions( "/MP" )
+endif()
 
-#--------------------------------------------------------------------
-# Disable deprecation warnings for standard C functions.
-#
-if(CMAKE_COMPILER_2005)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
-endif(CMAKE_COMPILER_2005)
+if( WIN32 )
+	add_definitions(-D__WIN32__)
+elseif( APPLE  )
+	add_definitions(-D__APPLE__)
+else()
+	add_definitions(-D__LINUX__)
+endif()
+	
+if( CMAKE_COMPILER_IS_GNUCXX )
+	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+endif()
 
-if(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-  add_definitions(-DDARWIN)
-endif(${CMAKE_SYSTEM_NAME} MATCHES "Darwin")
-
-#--------------------------------------------------------------------
-# Set preprocessor definition for static or shared build
-# This variable should be used by all libraries in the subdirectories.
-# Set the LIB_TYPE variable to STATIC
-#--------------------------------------------------------------------
-SET(BUILD_SHARED_LIBS OFF)
-IF (BUILD_SHARED_LIBS)
-  add_definitions(-DSGCT_ALL_DYN_LINK)
-  SET(BUILD_SHARED_LIBS ON)
-ENDIF (BUILD_SHARED_LIBS)
-
-#--------------------------------------------------------------------
-# Disable deprecation warnings for standard C functions
-#
-if(CMAKE_COMPILER_2005)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE -D_CRT_NONSTDC_NO_DEPRECATE)
-endif(CMAKE_COMPILER_2005)
-
-#--------------------------------------------------------------------
-# Set preprocessor definition to indicate whether 
-# to use the debug postfix
-#
-if(DEBUG_POSTFIX)
-	add_definitions(-D_DEBUG_POSTFIX)
-endif(DEBUG_POSTFIX)
-
-#--------------------------------------------------------------------
-# Build
-#--------------------------------------------------------------------
-ADD_SUBDIRECTORY(src/deps)
-ADD_SUBDIRECTORY(src/sgct)
-
-IF(WITH_EXAMPLES)
-  add_subdirectory(src/apps)
-ENDIF(WITH_EXAMPLES)
+target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})
+target_link_libraries( ${LIB_NAME} optimized ${RELEASE_LIBS}) 
 

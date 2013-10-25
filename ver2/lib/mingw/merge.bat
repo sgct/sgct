@@ -7,7 +7,7 @@ ar x deps/freetype.a
 ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
-ar x libsgct32_light.a
+ar x libsgct_light.a
 ar r libsgct.a *.o *.obj
 DEL *.o *.obj
 pause

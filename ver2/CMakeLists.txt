@@ -174,9 +174,12 @@ elseif( APPLE  )
 else()
 	add_definitions(-D__LINUX__)
 endif()
+
+add_definitions(-DGLEW_STATIC)
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+	add_definitions("-std=c++0x")
 endif()
 
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})

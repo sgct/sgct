@@ -20,8 +20,7 @@ sgct_text::Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
 	mTextures( NULL ),
-	mListBase( GL_FALSE ),
-	mFixedPipeline( true )
+	mListBase( GL_FALSE )
 {
 	mVAO = GL_FALSE;
 	mVBO = GL_FALSE;

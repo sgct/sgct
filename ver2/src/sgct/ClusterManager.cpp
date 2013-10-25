@@ -57,7 +57,7 @@ void sgct_core::ClusterManager::addNode(sgct_core::SGCTNode node)
 */
 sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(std::size_t index)
 {
-	return (index >= 0 && index < nodes.size()) ? &nodes[index] : NULL;
+	return (index < nodes.size()) ? &nodes[index] : NULL;
 }
 
 /*!

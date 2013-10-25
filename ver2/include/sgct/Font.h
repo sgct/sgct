@@ -70,7 +70,6 @@ private:
 	unsigned int mListBase;			// Holds the first display list id
 	unsigned int mVBO;
 	unsigned int mVAO;
-	bool mFixedPipeline;
 	std::vector<FT_Glyph> mGlyphs;	// All glyphs needed by the font
 	float * mCharWidths;
 };

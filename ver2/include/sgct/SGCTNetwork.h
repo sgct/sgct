@@ -10,13 +10,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-#if (_MSC_VER >= 1400 || _XCODE) //visual studio 2005 or later
+#if (_MSC_VER >= 1400 || __llvm__) //visual studio 2005 or later
 #include <functional>
 #else
 #include <tr1/functional>
 #endif
 
-#if (_MSC_VER >= 1700 || _XCODE) //visual studio 2012 or later
+#if (_MSC_VER >= 1700 || __llvm__) //visual studio 2012 or later
 namespace sgct_cppxeleven = std;
 #else
 namespace sgct_cppxeleven = std::tr1;

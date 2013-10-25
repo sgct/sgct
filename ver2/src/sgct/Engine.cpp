@@ -325,6 +325,9 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
@@ -334,6 +337,9 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
@@ -343,6 +349,9 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
@@ -352,6 +361,9 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
@@ -361,6 +373,9 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
@@ -370,39 +385,17 @@ bool sgct::Engine::initWindows()
 		{
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
 			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+#if __APPLE__
+            glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
 		}
 		break;
 
-    /*case OpenGL_3_2_Core_Profile:
-		{
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-			glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-			glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-            glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-			glewExperimental = true; // Needed for core profile
-		}
-		break;*/
-
     default:
         break;
 	}
-
-	/*
-	//OSX ogl 3.2 code
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-    glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
-    glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
-    glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
-	*/
-
-	/*
-	//win & linux code
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3); // We want OpenGL 3.3
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
-	glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_COMPAT_PROFILE); //We don't want the old OpenGL
-	*/
 
 	if( mPreWindowFn != NULL )
 		mPreWindowFn();
@@ -2814,12 +2807,10 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			std::string tmpStr( argv[i+1] );
 			tmpStr.erase( remove( tmpStr.begin(), tmpStr.end(), '\"' ), tmpStr.end() );
 			std::size_t lastPos = tmpStr.length() - 1;
-			if( lastPos >= 0 )
-			{
-				const char last = tmpStr.at( lastPos );
-				if( last == '\\' || last == '/' )
-					tmpStr.erase( lastPos );
-			}
+			
+            const char last = tmpStr.at( lastPos );
+			if( last == '\\' || last == '/' )
+				tmpStr.erase( lastPos );
 
 			MessageHandler::instance()->setLogPath( tmpStr.c_str() );
 			MessageHandler::instance()->setLogToFile(true);

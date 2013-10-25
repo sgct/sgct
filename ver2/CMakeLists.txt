@@ -12,6 +12,8 @@ SET(LIB_NAME sgct_light)
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
+option(CPP11 "Use c++11" OFF)
+
 PROJECT(${LIB_NAME})
 set(LibPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
@@ -179,9 +181,12 @@ add_definitions(-DGLEW_STATIC)
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
-	add_definitions("-std=c++0x")
+#	add_definitions("-std=c++0x")
+endif()
+
+if( CPP11 )
+	add_definitions("-std=c++11")
 endif()
 
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})
 target_link_libraries( ${LIB_NAME} optimized ${RELEASE_LIBS}) 
-

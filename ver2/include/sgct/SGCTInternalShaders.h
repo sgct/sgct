@@ -400,16 +400,16 @@ namespace sgct_core
 			/* \n\
 			FXAA_EDGE_THRESHOLD \n\
 			The minimum amount of local contrast required to apply algorithm. \n\
-			1/3 – too little \n\
-			1/4 – low quality \n\
-			1/8 – high quality \n\
-			1/16 – overkill \n\
+			1/3 - too little \n\
+			1/4 - low quality \n\
+			1/8 - high quality \n\
+			1/16 - overkill \n\
 			\n\
 			FXAA_EDGE_THRESHOLD_MIN \n\
 			Trims the algorithm from processing darks. \n\
-			1/32 – visible limit \n\
-			1/16 – high quality \n\
-			1/12 – upper limit (start of visible unfiltered edges) \n\
+			1/32 - visible limit \n\
+			1/16 - high quality \n\
+			1/12 - upper limit (start of visible unfiltered edges) \n\
 			*/ \n\
 			#define FXAA_EDGE_THRESHOLD_MIN 1.0/16.0 \n\
 			#define FXAA_EDGE_THRESHOLD 1.0/8.0 \n\
@@ -420,11 +420,11 @@ namespace sgct_core
 			/* \n\
 				FXAA_SUBPIX_TRIM \n\
 				Controls removal of sub-pixel aliasing. \n\
-				1/2 – low removal \n\
-				1/3 – medium removal \n\
-				1/4 – default removal \n\
-				1/8 – high removal \n\
-				0 – complete removal \n\
+				1/2 - low removal \n\
+				1/3 - medium removal \n\
+				1/4 - default removal \n\
+				1/8 - high removal \n\
+				0 - complete removal \n\
 			*/ \n\
 			uniform float FXAA_SUBPIX_TRIM; //1.0/8.0;\n\
 			\n\

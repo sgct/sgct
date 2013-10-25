@@ -23,7 +23,7 @@ ar x deps/libfreetype.a
 ar x deps/libtinyxml2_d.a
 ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
-ar x libsgct_light_d.a
+ar x libsgct_lightd.a
 ar r libsgctd.a *.o
 rm *.o
 echo "Done."

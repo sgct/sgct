@@ -360,8 +360,10 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_c
 		sprintf_s( window_node_info_str, 32, "_win%Iu", mWindowIndex );
 #else
 	#ifdef __WIN32__
+    if (sgct::Engine::instance()->getNumberOfWindows() > 1)
 		sprintf( window_node_info_str, "_win%u", mWindowIndex );
 	#else //linux & mac
+    if (sgct::Engine::instance()->getNumberOfWindows() > 1)
 		sprintf( window_node_info_str, "_win%zu", mWindowIndex );
 	#endif
 #endif

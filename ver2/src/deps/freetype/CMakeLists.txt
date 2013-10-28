@@ -1,6 +1,9 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+
 project(FreeType2)
 
 # First, compiler definitions for building the library

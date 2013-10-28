@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 2.8.3)
 project(VRPN)
 
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+
 # Changes made by:
 # 2009-2010 Ryan Pavlik <rpavlik@iastate.edu>
 # http://academic.cleardefinition.com

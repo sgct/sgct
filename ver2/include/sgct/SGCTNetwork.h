@@ -10,9 +10,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-#if ( defined(__SGCT_CPP11__) && __cplusplus > 199711L) || _MSC_VER >= 1700 //xcode or visual studio >= 2012
+/*
+The macros below set the propper c++11 includes and namespaces
+*/
+#if ( defined(__SGCT_CPP11__) && __cplusplus > 199711L) || _MSC_VER >= 1600 //xcode or visual studio >= 2005
     #include <functional>
     namespace sgct_cppxeleven = std;
+#elif _MSC_VER >= 1400
+	#include <functional>
+    namespace sgct_cppxeleven = std::tr1;
 #else
     #include <tr1/functional>
     namespace sgct_cppxeleven = std::tr1;

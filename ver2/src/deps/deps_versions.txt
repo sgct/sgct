@@ -3,7 +3,7 @@ zlib 1.2.7
 lpng 1.5.14
 glew 1.10.0
 freetype 2.4.8
-glfw 3.0.1
+glfw 3.0.3
 glm 0.9.4.5
 vrpn 07.30
 TinyThread++ 1.1

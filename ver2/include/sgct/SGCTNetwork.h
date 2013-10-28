@@ -10,16 +10,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 
-#if (_MSC_VER >= 1400 || __llvm__) //visual studio 2005 or later
-#include <functional>
+#if ( defined(__SGCT_CPP11__) && __cplusplus > 199711L) || _MSC_VER >= 1700 //xcode or visual studio >= 2012
+    #include <functional>
+    namespace sgct_cppxeleven = std;
 #else
-#include <tr1/functional>
-#endif
-
-#if (_MSC_VER >= 1700 || __llvm__) //visual studio 2012 or later
-namespace sgct_cppxeleven = std;
-#else
-namespace sgct_cppxeleven = std::tr1;
+    #include <tr1/functional>
+    namespace sgct_cppxeleven = std::tr1;
 #endif
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000

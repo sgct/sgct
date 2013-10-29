@@ -8,53 +8,37 @@ cmake_minimum_required(VERSION 2.8)
 
 SET(BUILD_SHARED_LIBS OFF)
 SET(LIB_NAME sgct_light)
+PROJECT(${LIB_NAME})
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
-option(CPP11 "Use c++11" OFF)
+if( APPLE  )
+	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.7")
+endif()
 
-PROJECT(${LIB_NAME})
 set(LibPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 
 mark_as_advanced(EXECUTABLE_OUTPUT_PATH LIBRARY_OUTPUT_PATH)
 
+file (GLOB_RECURSE sgctSRC "${CMAKE_CURRENT_SOURCE_DIR}/src/sgct/*.cpp")
+file (GLOB_RECURSE sgctInc "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/*.h")
+
+Set(ALL_SRC ${sgctSRC} ${sgctInc} "${CMAKE_CURRENT_SOURCE_DIR}/include/sgct.h")
+
+#print all
+FOREACH(ALL_SRCName ${ALL_SRC})
+	MESSAGE(STATUS "Adding file: ${ALL_SRCName}")
+ENDFOREACH(ALL_SRCName)
+
+#file (GLOB SGCT_INC RELATIVE ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct
+#	[^.]*.h
+#	)
+
 add_library(${LIB_NAME} STATIC
-	src/sgct/utils/SGCTBox.cpp
-	src/sgct/utils/SGCTDome.cpp
-	src/sgct/utils/SGCTSphere.cpp
-	src/sgct/ClusterManager.cpp
-	src/sgct/CorrectionMesh.cpp
-	src/sgct/Engine.cpp
-	src/sgct/Font.cpp
-	src/sgct/FontManager.cpp
-	src/sgct/freetype.cpp
-	src/sgct/Image.cpp
-	src/sgct/MessageHandler.cpp
-	src/sgct/NetworkManager.cpp
-	src/sgct/OffScreenBuffer.cpp
-	src/sgct/PostFX.cpp
-	src/sgct/ReadConfig.cpp
-	src/sgct/ScreenCapture.cpp
-	src/sgct/SGCTMutexManager.cpp
-	src/sgct/SGCTNetwork.cpp
-	src/sgct/SGCTNode.cpp
-	src/sgct/SGCTSettings.cpp
-	src/sgct/SGCTTracker.cpp
-	src/sgct/SGCTTrackingDevice.cpp
-	src/sgct/SGCTTrackingManager.cpp
-	src/sgct/SGCTUser.cpp
-	src/sgct/SGCTVersion.cpp
-	src/sgct/SGCTWindow.cpp
-	src/sgct/Shader.cpp
-	src/sgct/ShaderManager.cpp
-	src/sgct/ShaderProgram.cpp
-	src/sgct/SharedData.cpp
-	src/sgct/SharedDataTypes.cpp
-	src/sgct/Statistics.cpp
-	src/sgct/TextureManager.cpp
-	src/sgct/Viewport.cpp
+	${ALL_SRC}
 	)
  
 INCLUDE_DIRECTORIES(
@@ -173,6 +157,7 @@ if( WIN32 )
 	add_definitions(-D__WIN32__)
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
+    set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 else()
 	add_definitions(-D__LINUX__)
 endif()
@@ -181,11 +166,6 @@ add_definitions(-DGLEW_STATIC)
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
-#	add_definitions("-std=c++0x")
-endif()
-
-if( CPP11 )
-	add_definitions("-std=c++11")
 endif()
 
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})

@@ -53,7 +53,7 @@ elseif( APPLE )
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
+    	find_library(XRANDR_LIBRARY Xrandr REQUIRED)
 	find_library(XI_LIBRARY Xi REQUIRED)
 
 	set(LIBS
@@ -77,6 +77,7 @@ if( WIN32 )
 	add_definitions(-D__WIN32__)
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 else()
 	add_definitions(-D__LINUX__)
 endif()

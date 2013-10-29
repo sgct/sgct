@@ -201,6 +201,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\sgct\PostFX.cpp"
+				>
+			</File>
+			<File
 				RelativePath="..\sgct\ReadConfig.cpp"
 				>
 			</File>
@@ -351,6 +355,10 @@
 				>
 			</File>
 			<File
+				RelativePath="..\..\include\sgct\PostFX.h"
+				>
+			</File>
+			<File
 				RelativePath="..\..\include\sgct\ReadConfig.h"
 				>
 			</File>
@@ -412,6 +420,10 @@
 			</File>
 			<File
 				RelativePath="..\..\include\sgct\Shader.h"
+				>
+			</File>
+			<File
+				RelativePath="..\..\include\sgct\ShaderData.h"
 				>
 			</File>
 			<File

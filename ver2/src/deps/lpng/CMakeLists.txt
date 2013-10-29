@@ -63,29 +63,8 @@ else()
   set(M_LIBRARY "")
 endif()
 
-# COMMAND LINE OPTIONS
-if(DEFINED PNG_SHARED)
-  option(PNG_SHARED "Build shared lib" ${PNG_SHARED})
-else()
-  option(PNG_SHARED "Build shared lib" OFF)
-endif()
-if(DEFINED PNG_STATIC)
-  option(PNG_STATIC "Build static lib" ${PNG_STATIC})
-else()
-  option(PNG_STATIC "Build static lib" ON)
-endif()
-
-option(PNG_TESTS  "Build libpng tests" YES)
-
-# Many more configuration options could be added here
-option(PNG_DEBUG         "Build with debug output" NO)
-option(PNGARG            "Disable ANSI-C prototypes" NO)
-
 # SET LIBNAME
 set(PNG_LIB_NAME png${PNGLIB_MAJOR}${PNGLIB_MINOR})
-
-# to distinguish between debug and release lib
-set(CMAKE_DEBUG_POSTFIX "d")
 
 # Use the prebuilt pnglibconf.h file from the scripts folder
 # TODO: fix this by building with awk; without this no cmake build can be
@@ -123,12 +102,6 @@ set(libpng_sources
   pngwtran.c
   pngwutil.c
 )
-set(pngtest_sources
-  pngtest.c
-)
-set(pngvalid_sources
-  contrib/libtests/pngvalid.c
-)
 # SOME NEEDED DEFINITIONS
 
 add_definitions(-DPNG_CONFIGURE_LIBPNG)
@@ -140,48 +113,17 @@ if(MSVC)
   endif()
 endif(MSVC)
 
-if(PNG_DEBUG)
-  add_definitions(-DPNG_DEBUG)
-endif()
-
 # NOW BUILD OUR TARGET
 include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_SRCS})
 
-if(PNG_SHARED)
-  add_library(${PNG_LIB_NAME} SHARED ${libpng_sources})
-  if(MSVC)
-    # msvc does not append 'lib' - do it here to have consistent name
-    set_target_properties(${PNG_LIB_NAME} PROPERTIES PREFIX "lib")
-    set_target_properties(${PNG_LIB_NAME} PROPERTIES IMPORT_PREFIX "lib")
-  endif()
-  target_link_libraries(${PNG_LIB_NAME} ${zlib} ${M_LIBRARY})
-endif()
-
-if(PNG_STATIC)
 # does not work without changing name
-  set(PNG_LIB_NAME_STATIC ${PNG_LIB_NAME}_static)
-  add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
-  if(MSVC)
-    # msvc does not append 'lib' - do it here to have consistent name
-    set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib")
-  endif()
-  target_link_libraries(${PNG_LIB_NAME_STATIC} ${zlibstatic} ${M_LIBRARY})
+set(PNG_LIB_NAME_STATIC ${PNG_LIB_NAME}_static)
+add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
+if(MSVC)
+	# msvc does not append 'lib' - do it here to have consistent name
+	set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib")
 endif()
-
-if(PNG_SHARED AND WIN32)
-  set_target_properties(${PNG_LIB_NAME} PROPERTIES DEFINE_SYMBOL PNG_BUILD_DLL)
-endif()
-
-if(PNG_TESTS AND PNG_SHARED)
-  # does not work with msvc due to png_lib_ver issue
-  add_executable(pngtest ${pngtest_sources})
-  target_link_libraries(pngtest ${PNG_LIB_NAME})
-  add_test(pngtest ./pngtest ${CMAKE_CURRENT_SOURCE_DIR}/pngtest.png)
-  #
-  add_executable(pngvalid ${pngvalid_sources})
-  target_link_libraries(pngvalid ${PNG_LIB_NAME})
-  add_test(pngvalid ./pngvalid)
-endif()
+target_link_libraries(${PNG_LIB_NAME_STATIC} ${zlibstatic} ${M_LIBRARY})
 
 # Ensure the CMAKE_LIBRARY_OUTPUT_DIRECTORY is set
 IF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
@@ -193,7 +135,7 @@ ENDIF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
 # copies if different.
 macro(CREATE_SYMLINK SRC_FILE DEST_FILE)
   FILE(REMOVE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE})
-  if(WIN32 AND NOT CYGWIN AND NOT MSYS)
+  if(WIN32 AND NOT CYGWIN AND NOT MSYS AND NOT MINGW)
     ADD_CUSTOM_COMMAND(
         OUTPUT ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE}   ${CMAKE_CURRENT_BINARY_DIR}/${DEST_FILE}
         COMMAND ${CMAKE_COMMAND} -E copy        ${CMAKE_CURRENT_BINARY_DIR}/${SRC_FILE} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE}
@@ -201,10 +143,10 @@ macro(CREATE_SYMLINK SRC_FILE DEST_FILE)
         DEPENDS ${PNG_LIB_NAME} ${PNG_LIB_NAME_STATIC}
         )
     ADD_CUSTOM_TARGET(${DEST_FILE}_COPY ALL DEPENDS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE})
-  else(WIN32 AND NOT CYGWIN AND NOT MSYS)
+  else()
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${SRC_FILE} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
     execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${SRC_FILE} ${DEST_FILE} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  endif(WIN32 AND NOT CYGWIN AND NOT MSYS)
+  endif()
 endmacro()
 
 # libpng is a library so default to 'lib'
@@ -231,23 +173,13 @@ if(NOT WIN32 OR CYGWIN OR MINGW)
   CREATE_SYMLINK(${PNGLIB_NAME}-config libpng-config)
 endif(NOT WIN32 OR CYGWIN OR MINGW)
 
-# SET UP LINKS
-if(PNG_SHARED)
-  set_target_properties(${PNG_LIB_NAME} PROPERTIES
-#   VERSION 15.${PNGLIB_RELEASE}.1.5.14
-    VERSION 15.${PNGLIB_RELEASE}.0
-    SOVERSION 15
-    CLEAN_DIRECT_OUTPUT 1)
-endif()
-if(PNG_STATIC)
-  # MSVC doesn't use a different file extension for shared vs. static
-  # libs.  We are able to change OUTPUT_NAME to remove the _static
-  # for all other platforms.
-  if(NOT MSVC)
-    set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES
-      OUTPUT_NAME ${PNG_LIB_NAME}
-      CLEAN_DIRECT_OUTPUT 1)
-  endif()
+# MSVC doesn't use a different file extension for shared vs. static
+# libs.  We are able to change OUTPUT_NAME to remove the _static
+# for all other platforms.
+if(NOT MSVC)
+set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES
+  OUTPUT_NAME ${PNG_LIB_NAME}
+  CLEAN_DIRECT_OUTPUT 1)
 endif()
 
 # If CMake > 2.4.x, we set a variable used below to export
@@ -261,44 +193,17 @@ endif()
 
 # INSTALL
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
-  if(PNG_SHARED)
-    install(TARGETS ${PNG_LIB_NAME}
-        ${PNG_EXPORT_RULE}
-        RUNTIME DESTINATION bin
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-
-    # Create a symlink for libpng.dll.a => libpng15.dll.a on Cygwin
-    if(CYGWIN OR MINGW)
-       get_target_property(BUILD_TARGET_LOCATION ${PNG_LIB_NAME} LOCATION_${CMAKE_BUILD_TYPE})
-       get_filename_component(BUILD_TARGET_FILE ${BUILD_TARGET_LOCATION} NAME)
-       CREATE_SYMLINK(${BUILD_TARGET_FILE} libpng${CMAKE_IMPORT_LIBRARY_SUFFIX})
-       install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libpng${CMAKE_IMPORT_LIBRARY_SUFFIX}
-         DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endif(CYGWIN OR MINGW)
-
-    if(NOT WIN32)
-      get_target_property(BUILD_TARGET_LOCATION ${PNG_LIB_NAME} LOCATION_${CMAKE_BUILD_TYPE})
-      get_filename_component(BUILD_TARGET_FILE ${BUILD_TARGET_LOCATION} NAME)
-      CREATE_SYMLINK(${BUILD_TARGET_FILE} libpng${CMAKE_SHARED_LIBRARY_SUFFIX})
-      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libpng${CMAKE_SHARED_LIBRARY_SUFFIX}
-         DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endif(NOT WIN32)
-  endif(PNG_SHARED)
-
-  if(PNG_STATIC)
-    install(TARGETS ${PNG_LIB_NAME_STATIC}
-        ${PNG_EXPORT_RULE}
-        LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-        ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    if(NOT WIN32 OR CYGWIN OR MINGW)
-      get_target_property(BUILD_TARGET_LOCATION ${PNG_LIB_NAME_STATIC} LOCATION_${CMAKE_BUILD_TYPE})
-      get_filename_component(BUILD_TARGET_FILE ${BUILD_TARGET_LOCATION} NAME)
-      CREATE_SYMLINK(${BUILD_TARGET_FILE} libpng${CMAKE_STATIC_LIBRARY_SUFFIX})
-      install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}
-         DESTINATION ${CMAKE_INSTALL_LIBDIR})
-    endif(NOT WIN32 OR CYGWIN OR MINGW)
- endif()
+install(TARGETS ${PNG_LIB_NAME_STATIC}
+	${PNG_EXPORT_RULE}
+	LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+	ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR})
+if(NOT WIN32 OR CYGWIN OR MINGW)
+  get_target_property(BUILD_TARGET_LOCATION ${PNG_LIB_NAME_STATIC} LOCATION_${CMAKE_BUILD_TYPE})
+  get_filename_component(BUILD_TARGET_FILE ${BUILD_TARGET_LOCATION} NAME)
+  CREATE_SYMLINK(${BUILD_TARGET_FILE} libpng${CMAKE_STATIC_LIBRARY_SUFFIX})
+  install(FILES ${CMAKE_CURRENT_BINARY_DIR}/libpng${CMAKE_STATIC_LIBRARY_SUFFIX}
+	 DESTINATION ${CMAKE_INSTALL_LIBDIR})
+endif(NOT WIN32 OR CYGWIN OR MINGW)
 endif()
 
 if(NOT SKIP_INSTALL_HEADERS AND NOT SKIP_INSTALL_ALL )
@@ -331,12 +236,6 @@ if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
     install(PROGRAMS ${CMAKE_CURRENT_BINARY_DIR}/${PNGLIB_NAME}-config
             DESTINATION bin)
   endif(NOT WIN32 OR CYGWIN OR MINGW)
-endif()
-
-# On versions of CMake that support it, create an export file CMake
-# users can include() to import our targets
-if(PNG_EXPORT_RULE AND NOT SKIP_INSTALL_EXPORT AND NOT SKIP_INSTALL_ALL )
-  install(EXPORT libpng DESTINATION lib/libpng FILE lib${PNG_LIB_NAME}.cmake)
 endif()
 
 # what's with libpng-$VER%.txt and all the extra files?

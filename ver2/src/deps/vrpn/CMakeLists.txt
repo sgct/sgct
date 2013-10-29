@@ -105,7 +105,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Options that control what gets built and how.
 
-if(NOT SUBPROJECT)
+#if(NOT SUBPROJECT)
 	# We can build two configurations (passing defs to the compile lines) - which ones do we want?
 	# Note that we can build both now, if desired!
 	option(VRPN_BUILD_CLIENT_LIBRARY
@@ -119,7 +119,7 @@ if(NOT SUBPROJECT)
 	option(VRPN_BUILD_CLIENTS "Build VRPN client apps and tests" ON)
 	option(VRPN_BUILD_SERVERS "Build VRPN servers" ON)
 	option(VRPN_BUILD_TEST_RPC_GENERATION "Build VRPN RPC generation" OFF)
-endif()
+#endif()
 
 # Development tools
 if(MSVC)

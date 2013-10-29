@@ -1,9 +1,9 @@
-cmake_minimum_required(VERSION 2.6)
+For cmake add debug suffix to all libs like:
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-project(GLEW)
-include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
+
+For visual studio projects use:
+
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
-add_library(GLEW STATIC src/glew.c include/GL/glew.h)

@@ -213,7 +213,7 @@
       <AdditionalLibraryDirectories>%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32sd.lib;glfw3d.lib;freetype_d.lib;ws2_32.lib;tinyxml2_d.lib;libpng15_staticd.lib;zlibstaticd.lib;vrpn_d.lib;tinythreadppd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glewd.lib;glfw3d.lib;freetyped.lib;ws2_32.lib;tinyxml2d.lib;libpng15_staticd.lib;zlibstaticd.lib;vrpnd.lib;tinythreadppd.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc10_x64\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
@@ -299,7 +299,7 @@
       <AdditionalLibraryDirectories>C:\Work\LIU\2012\C-Tech\vs2010_deps\lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
     <Lib>
-      <AdditionalDependencies>glew32s.lib;glfw3.lib;freetype.lib;ws2_32.lib;tinyxml2.lib;zlibstatic.lib;libpng15_static.lib;vrpn.lib;tinythreadpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>glew.lib;glfw3.lib;freetype.lib;ws2_32.lib;tinyxml2.lib;zlibstatic.lib;libpng15_static.lib;vrpn.lib;tinythreadpp.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Lib>
     <Lib>
       <AdditionalLibraryDirectories>..\..\lib\msvc10_x64\deps;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>

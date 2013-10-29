@@ -131,6 +131,9 @@ add_definitions(-DPNG_CONFIGURE_LIBPNG)
 
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+  if(NOT "${MSVC_VERSION}" LESS 1400)
+	add_definitions( "/MP" )
+  endif()
 endif(MSVC)
 
 if(PNG_DEBUG)

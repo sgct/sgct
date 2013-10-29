@@ -173,6 +173,10 @@ if (_GLFW_WIN32)
     # NOTE: MinGW-w64 and Visual C++ do /not/ need this hack.
     add_definitions(-DUNICODE)
     add_definitions(-DWINVER=0x0501)
+	
+	if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
+		add_definitions( "/MP" )
+	endif()
 endif()
 
 #--------------------------------------------------------------------

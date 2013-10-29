@@ -126,6 +126,9 @@ if(MSVC)
 	option(VRPN_BUILD_WITH_PROJECT_FOLDERS
 		"Use project folders in build system - not compatible with Visual C++ Express editions!"
 		OFF)
+	if(NOT "${MSVC_VERSION}" LESS 1400)
+		add_definitions( "/MP" )
+	endif()
 else()
 	set(VRPN_BUILD_WITH_PROJECT_FOLDERS ON)
 endif()

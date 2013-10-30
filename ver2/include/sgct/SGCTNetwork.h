@@ -13,7 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 /*
 The macros below set the propper c++11 includes and namespaces
 */
-#if ( defined(__APPLE__) && __cplusplus > 199711L) || _MSC_VER >= 1600 //xcode or visual studio >= 2005
+#if ( defined(__SGCT_CPP11__) && __cplusplus > 199711L) || _MSC_VER >= 1600 //xcode or visual studio >= 2005
     #include <functional>
     namespace sgct_cppxeleven = std;
 #elif _MSC_VER >= 1400
@@ -98,8 +98,8 @@ public:
 
 private:
 	enum timeStampIndex { Send = 0, Total };
-	
-	bool mFirmSync, mUpdated; 
+
+	bool mFirmSync, mUpdated;
 	ConnectionTypes mConnectionType;
 	bool mServer;
 	bool mConnected;

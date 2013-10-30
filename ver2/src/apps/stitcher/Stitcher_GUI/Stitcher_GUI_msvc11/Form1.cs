@@ -360,7 +360,7 @@ namespace Stitcher_GUI
 
         private void start_button_Click(object sender, EventArgs e)
         {
-            string processName = "stitcher_msvc11_x64.exe";
+			string processName = "stitcher";
             string arguments = "-config fisheye.xml";
 
             if( stereo_checkBox.Checked )
@@ -375,8 +375,8 @@ namespace Stitcher_GUI
                 arguments += " -tex \"" + input_top_R_textbox.Text + "\"";
                 arguments += " -tex \"" + input_bottom_R_textbox.Text + "\"";
 
-                arguments += " -leftPath \"" + left_output_path_textbox.Text + "\\" + FileNameTextBox.Text + "\"";
-                arguments += " -rightPath \"" + right_output_path_textbox.Text + "\\" + FileNameTextBox.Text + "\"";
+				arguments += " -leftPath \"" + left_output_path_textbox.Text + "/" + FileNameTextBox.Text + "\"";
+				arguments += " -rightPath \"" + right_output_path_textbox.Text + "/" + FileNameTextBox.Text + "\"";
             }
             else
             {

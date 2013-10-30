@@ -57,7 +57,7 @@ int main( int argc, char* argv[] )
 	for( int i = 0; i < argc; i++ )
 	{
 		//fprintf(stderr, "Argument %d: %s (total %d)\n", i, argv[i], argc);
-		
+
 		if( strcmp(argv[i], "-tex") == 0 && argc > (i+1) )
 		{
 			std::string tmpStr(argv[i + 1]);
@@ -80,9 +80,9 @@ int main( int argc, char* argv[] )
 
 				}
 			}
-			
+
 			texturePaths[getSideIndex(numberOfTextures)].assign(tmpStr);
-			
+
 			numberOfTextures++;
 			sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i+1]);
 		}
@@ -176,7 +176,7 @@ int main( int argc, char* argv[] )
 		{
 			sgct::SGCTSettings::instance()->setCapturePath( argv[i + 1], sgct::SGCTSettings::Mono );
 			sgct::SGCTSettings::instance()->setCapturePath(argv[i + 1], sgct::SGCTSettings::LeftStereo);
-			
+
 			sgct::MessageHandler::instance()->print("Left path set to %s\n", argv[i + 1]);
 		}
 		else if (strcmp(argv[i], "-rightPath") == 0 && argc > (i + 1))
@@ -192,7 +192,7 @@ int main( int argc, char* argv[] )
 
 			sgct::MessageHandler::instance()->print("Compression set to %d\n", tmpi);
 		}
-		
+
 	}
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -231,7 +231,7 @@ void myDrawFun()
 	size_t index = counter % numberOfTextures;
 
 	unsigned int texId = sgct::TextureManager::instance()->getTextureByHandle(textureHandles[index]);
-	
+
 	if( texId ) //if valid
 	{
 		//enter ortho mode
@@ -245,7 +245,7 @@ void myDrawFun()
 		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 		glDisable(GL_LIGHTING);
 		glDisable(GL_DEPTH_TEST);
-	
+
 		glColor3f(1.0f,1.0f,1.0f);
 		glEnable(GL_TEXTURE_2D);
 
@@ -270,7 +270,7 @@ void myDrawFun()
 	}
 	else //bad texture
 	{
-		//std::cout << "NoTex: Texture handle:" << textureHandles[index] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[index]) << 
+		//std::cout << "NoTex: Texture handle:" << textureHandles[index] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[index]) <<
 		//			" index: " << index << " counter: " << counter << std::endl;
 	}
 
@@ -287,8 +287,13 @@ void myPreSyncFun()
 
 			if (numberOfDigits == 0)
 			{
+				#if (_MSC_VER >= 1400)
 				sprintf_s(tmpStr, 256, "%s.png",
 					texturePaths[i].c_str() );
+                #else
+                sprintf(tmpStr, "%s.png",
+					texturePaths[i].c_str() );
+                #endif
 			}
 			else
 			{
@@ -296,7 +301,12 @@ void myPreSyncFun()
 				char zeros[16];
 				zeros[0] = '\0';
 
+                #if (_MSC_VER >= 1400)
 				sprintf_s(digitStr, 16, "%d", iterator);
+                #else
+                sprintf(digitStr, "%d", iterator);
+                #endif
+
 
 				size_t currentSize = strlen(digitStr);
 
@@ -305,15 +315,20 @@ void myPreSyncFun()
 					zeros[j] = '0';
 					zeros[j + 1] = '\0';
 				}
-				
+
+				#if (_MSC_VER >= 1400)
 				sprintf_s(tmpStr, 256, "%s%s%d.png",
 					texturePaths[i].c_str(), zeros, iterator);
+                #else
+                sprintf(tmpStr, "%s%s%d.png",
+					texturePaths[i].c_str(), zeros, iterator);
+                #endif
 			}
-			
+
 			//load the texture
 			if( !sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], std::string(tmpStr), true, 1) )
 			{
-				std::cout << "Error: Texture handle:" << textureHandles[i] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]) << 
+				std::cout << "Error: Texture handle:" << textureHandles[i] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]) <<
 					" file: " << std::string(tmpStr) << " count: " << numberOfTextures << std::endl;
 			}
 		}
@@ -328,7 +343,7 @@ void myPreSyncFun()
 	{
 		for( size_t i=0; i<numberOfTextures; i++)
 			sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], texturePaths[i], true, 1);
-		
+
 		takeScreenshot.setVal( true );
 		iterator++;
 	}
@@ -379,7 +394,7 @@ void myInitOGLFun()
 	}
 
 	//dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 360, 90);
-	
+
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );
 	glDisable( GL_LIGHTING );

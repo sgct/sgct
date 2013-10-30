@@ -24,7 +24,8 @@ set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
 
 if( APPLE  )
-	option(SGCT_CPP11 "Use c++11" ON)
+	#OSG is not compatible with c++11, it also makes it harder for the users defining all flags
+	option(SGCT_CPP11 "Use c++11" OFF)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 	if(CMAKE_GENERATOR STREQUAL Xcode)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")

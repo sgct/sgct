@@ -105,7 +105,7 @@ endif()
 #-----------------------------------------------------------------------------
 # Options that control what gets built and how.
 
-#if(NOT SUBPROJECT)
+if(NOT SUBPROJECT)
 	# We can build two configurations (passing defs to the compile lines) - which ones do we want?
 	# Note that we can build both now, if desired!
 	option(VRPN_BUILD_CLIENT_LIBRARY
@@ -113,22 +113,19 @@ endif()
 		ON)
 	option(VRPN_BUILD_SERVER_LIBRARY
 		"Build the vrpnserver library including client and server code"
-		OFF)
+		ON)
 
 	# Build various applications if we want them.
-	option(VRPN_BUILD_CLIENTS "Build VRPN client apps and tests" OFF)
-	option(VRPN_BUILD_SERVERS "Build VRPN servers" OFF)
+	option(VRPN_BUILD_CLIENTS "Build VRPN client apps and tests" ON)
+	option(VRPN_BUILD_SERVERS "Build VRPN servers" ON)
 	option(VRPN_BUILD_TEST_RPC_GENERATION "Build VRPN RPC generation" OFF)
-#endif()
+endif()
 
 # Development tools
 if(MSVC)
 	option(VRPN_BUILD_WITH_PROJECT_FOLDERS
 		"Use project folders in build system - not compatible with Visual C++ Express editions!"
 		OFF)
-	if(NOT "${MSVC_VERSION}" LESS 1400)
-		add_definitions( "/MP" )
-	endif()
 else()
 	set(VRPN_BUILD_WITH_PROJECT_FOLDERS ON)
 endif()

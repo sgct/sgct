@@ -2,7 +2,7 @@
 # SGCT Project Authors see Authors.txt
 
 cmake_minimum_required(VERSION 2.8)
-SET(APP_NAME simpleShaderExample_opengl3)
+SET(APP_NAME textureExample_opengl3)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
@@ -34,6 +34,7 @@ if( MSVC )
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_LIBRARY}
+		ws2_32
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(LIBS
@@ -67,6 +68,16 @@ endif()
 
 if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	
+	STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
+		${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
+	
+	STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
+		${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+	SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
+	
+	#MESSAGE(STATUS "flags: ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
 endif()
 	
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
@@ -77,6 +88,7 @@ if( WIN32 )
 	add_definitions(-D__WIN32__)
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
+	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 else()
 	add_definitions(-D__LINUX__)
 endif()

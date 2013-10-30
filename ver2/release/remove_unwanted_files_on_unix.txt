@@ -1,0 +1,5 @@
+find . -name '*.cbp' -type f -delete
+find . -name '*.sln' -type f -delete
+find . -name '*.vcxproj' -type f -delete
+find . -name '*.vcproj' -type f -delete
+find . -name '*.bat' -type f -delete

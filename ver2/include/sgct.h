@@ -159,6 +159,17 @@ SGCT is using the following libraries.
 \n
 */
 
+//If windows OS detected
+#if defined(_WIN64) || defined(_WIN32)
+    #ifndef __WIN32__
+    #define __WIN32__
+    #endif
+//if linux
+#elif defined(__linux)
+    #ifndef __LINUX__
+    #define __LINUX__
+    #endif
+#endif
 
 #ifdef __WIN32__
 #ifndef WIN32_LEAN_AND_MEAN

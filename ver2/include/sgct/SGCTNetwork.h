@@ -13,15 +13,30 @@ For conditions of distribution and use, see copyright notice in sgct.h
 /*
 The macros below set the propper c++11 includes and namespaces
 */
-#if ( defined(__SGCT_CPP11__) && __cplusplus > 199711L) || _MSC_VER >= 1600 //xcode or visual studio >= 2005
+#if defined(__cplusplus) && __cplusplus > 199711L //c++11 or c++0x compiler
+    #define __USE_CPP11__ 1
+#else //older compiler
+    #define __USE_CPP11__ 0
+#endif
+
+#if __USE_CPP11__ || _MSC_VER >= 1600 //c++11 or visual studio >= 2010
     #include <functional>
-    namespace sgct_cppxeleven = std;
-#elif _MSC_VER >= 1400
+    #if defined(__APPLE__) && defined(_GLIBCXX_FUNCTIONAL) //incorrect header loaded
+        #include <tr1/functional>
+        namespace sgct_cppxeleven = std::tr1;
+        //#pragma message "SGCTNetwork will use std:tr1::functional"
+    #else
+        namespace sgct_cppxeleven = std;
+        //#pragma message "SGCTNetwork will use std::functional"
+    #endif
+#elif _MSC_VER >= 1400 //visual studio 2005 or later
 	#include <functional>
     namespace sgct_cppxeleven = std::tr1;
-#else
+    //#pragma message "SGCTNetwork will use std::tr1::functional"
+#elif __USE_CPP11__
     #include <tr1/functional>
     namespace sgct_cppxeleven = std::tr1;
+    //#pragma message "SGCTNetwork will use std:tr1::functional"
 #endif
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
@@ -53,9 +68,11 @@ public:
 	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType, bool firmSync);
 	void closeNetwork(bool forced);
 	void initShutdown();
+#if __USE_CPP11__
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
 	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
+#endif
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
 	void setOptions(SGCT_SOCKET * socketPtr);
@@ -81,9 +98,11 @@ public:
 
 	SGCT_SOCKET mSocket;
 	SGCT_SOCKET mListenSocket;
+#if __USE_CPP11__
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
+#endif
 
     bool mTerminate; //set to true upon exit
 

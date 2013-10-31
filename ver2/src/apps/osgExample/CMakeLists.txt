@@ -16,23 +16,31 @@ add_executable(${APP_NAME}
 	
 if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
+	mark_as_advanced(SGCT_CPP11)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 	if(CMAKE_GENERATOR STREQUAL Xcode)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")	
 	endif()
 endif()
 	
-find_library(SGCT_RELEASE_LIBRARY REQUIRED)
-find_library(SGCT_DEBUG_LIBRARY REQUIRED)
+find_library(SGCT_RELEASE_LIBRARY
+	NAMES sgct libsgct
+	REQUIRED)
+	
+find_library(SGCT_DEBUG_LIBRARY 
+	NAMES sgctd libsgctd
+	REQUIRED)
+
 find_path(SGCT_INCLUDE_DIRECTORY 
 	NAMES sgct
-	PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
+	PATH_SUFFIXES sgct
+	PATHS $ENV{SGCT_ROOT_DIR}/include
 	REQUIRED)
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
 	optimized ${SGCT_RELEASE_LIBRARY}
-)	
+)
 
 find_package(OpenGL REQUIRED)
 find_package(OpenSceneGraph REQUIRED osgUtil osgDB osgGA osgViewer)
@@ -106,7 +114,7 @@ elseif( APPLE  )
     	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
 		add_definitions(-D__SGCT_CPP11__)
 	else()
-		set(CMAKE_CXX_FLAGS "-std=c++0x")
+		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
 	endif()
 else()
 	add_definitions(-D__LINUX__)

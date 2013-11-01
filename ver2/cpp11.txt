@@ -1,0 +1,38 @@
+TR1
+
+OS X path: /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX10.9.sdk/usr/include/c++/4.2.1/tr1
+
+Functional define:
+
+#ifndef _TR1_FUNCTIONAL
+#define _TR1_FUNCTIONAL 1
+
+C++11
+OS X path: /Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/lib/c++/v1
+
+
+#define _LIBCPP_FUNCTIONAL
+	
+If c110x is defined, functional (dummy?) defines:
+
+#ifndef _GLIBCXX_FUNCTIONAL
+#define _GLIBCXX_FUNCTIONAL 1
+	
+Which includes bits/stl_function.h that defines:
+	
+#ifndef _FUNCTION_H
+#define _FUNCTION_H 1
+	
+tr1/functional defines:
+	
+#ifndef _TR1_FUNCTIONAL
+#define _TR1_FUNCTIONAL 1
+	
+Visual studio 2008 functional defines: #define _FUNCTIONAL_
+Visual studio 2010 functional defines: #define _FUNCTIONAL_
+Visual studio 2012 functional defines: #define _FUNCTIONAL_
+MinGW 4.7 defines: #define _GLIBCXX_FUNCTIONAL 1
+MinGW 4.7 TR1 defines: #define _GLIBCXX_TR1_FUNCTIONAL 1
+
+
+

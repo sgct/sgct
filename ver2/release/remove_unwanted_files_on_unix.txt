@@ -3,3 +3,4 @@ find . -name '*.sln' -type f -delete
 find . -name '*.vcxproj' -type f -delete
 find . -name '*.vcproj' -type f -delete
 find . -name '*.bat' -type f -delete
+find ./ -name ".svn" | xargs rm -Rf

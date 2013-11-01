@@ -19,9 +19,9 @@ if( APPLE  )
 	#OSG is not compatible with c++11, it also makes it harder for the users defining all flags
 	option(SGCT_CPP11 "Use c++11" OFF)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
-	if(CMAKE_GENERATOR STREQUAL Xcode)
-		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-	endif()
+	#if(CMAKE_GENERATOR STREQUAL Xcode)
+	#	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+	#endif()
 endif()
 
 if( APPLE )

@@ -14,23 +14,28 @@ set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 add_executable(${APP_NAME}
 	main.cpp
 	RenderToTexture.cpp
-	RenderToTexture.h)	
+	RenderToTexture.h)
+	
+set_target_properties(${APP_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}
+)
 	
 if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
 	mark_as_advanced(SGCT_CPP11)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
-		#if(CMAKE_GENERATOR STREQUAL Xcode)
-	#	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-	#endif()
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+	endif()
 endif()
 	
 find_library(SGCT_RELEASE_LIBRARY
-	NAMES sgct libsgct
+	NAMES sgct libsgct libsgct_cpp11
 	REQUIRED)
 	
 find_library(SGCT_DEBUG_LIBRARY 
-	NAMES sgctd libsgctd
+	NAMES sgctd libsgctd libsgct_cpp11d
 	REQUIRED)
 
 if( WIN32 )

@@ -1,10 +1,27 @@
 # Copyright Linkoping University 2011
 # SGCT Project Authors see Authors.txt
 
+cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
+project(SGCT_Examples)
+
 ADD_SUBDIRECTORY(clustertest)
 ADD_SUBDIRECTORY(example1)
+ADD_SUBDIRECTORY(example1_opengl3)
 ADD_SUBDIRECTORY(gamepadExample)
 ADD_SUBDIRECTORY(heightMappingExample)
+ADD_SUBDIRECTORY(heightMappingExample_opengl3)
+ADD_SUBDIRECTORY(kinectExample)
+ADD_SUBDIRECTORY(osgExample)
+ADD_SUBDIRECTORY(osgExampleRTT)
+ADD_SUBDIRECTORY(postFXExample)
+ADD_SUBDIRECTORY(postFXExample_opengl3)
+ADD_SUBDIRECTORY(renderToTexture)
 ADD_SUBDIRECTORY(sgct_template)
+ADD_SUBDIRECTORY(SGCTRemote)
+ADD_SUBDIRECTORY(simpleNavigationExample)
 ADD_SUBDIRECTORY(simpleShaderExample)
+ADD_SUBDIRECTORY(simpleShaderExample_opengl3)
+ADD_SUBDIRECTORY(soundExample)
 ADD_SUBDIRECTORY(textureExample)
+ADD_SUBDIRECTORY(textureExample_opengl3)
+ADD_SUBDIRECTORY(trackingExample)

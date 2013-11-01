@@ -83,11 +83,6 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "fisheyeTest_msvc9", "..\app
 		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
 	EndProjectSection
 EndProject
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "postProcessing_msvc9", "..\apps\postProcessing\postProcessing_msvc9.vcproj", "{2542A416-9EBE-43C6-88E1-253219402FB3}"
-	ProjectSection(ProjectDependencies) = postProject
-		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
-	EndProjectSection
-EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "osgExampleRTT_msvc9", "..\apps\osgExampleRTT\osgExampleRTT_msvc9.vcproj", "{9A65DAB6-FCE4-4BC6-816D-762C052A325B}"
 	ProjectSection(ProjectDependencies) = postProject
 		{DFB0D737-2A10-43CC-B804-368C88873C4F} = {DFB0D737-2A10-43CC-B804-368C88873C4F}
@@ -177,10 +172,6 @@ Global
 		{BEE7E3E0-CC55-4E5E-A38E-7C59C85A06AB}.Debug|Win32.Build.0 = Debug|Win32
 		{BEE7E3E0-CC55-4E5E-A38E-7C59C85A06AB}.Release|Win32.ActiveCfg = Release|Win32
 		{BEE7E3E0-CC55-4E5E-A38E-7C59C85A06AB}.Release|Win32.Build.0 = Release|Win32
-		{2542A416-9EBE-43C6-88E1-253219402FB3}.Debug|Win32.ActiveCfg = Debug|Win32
-		{2542A416-9EBE-43C6-88E1-253219402FB3}.Debug|Win32.Build.0 = Debug|Win32
-		{2542A416-9EBE-43C6-88E1-253219402FB3}.Release|Win32.ActiveCfg = Release|Win32
-		{2542A416-9EBE-43C6-88E1-253219402FB3}.Release|Win32.Build.0 = Release|Win32
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Debug|Win32.ActiveCfg = Debug|Win32
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Debug|Win32.Build.0 = Debug|Win32
 		{9A65DAB6-FCE4-4BC6-816D-762C052A325B}.Release|Win32.ActiveCfg = Release|Win32

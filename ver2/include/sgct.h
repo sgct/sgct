@@ -11,11 +11,11 @@ are permitted provided that the following conditions are met:
 
 1.	Redistributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
-	
+
 2.	Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in the
     documentation and/or other materials provided with the distribution.
-	
+
 3.	Neither the name of the Linköping University nor the
     names of its contributors may be used to endorse or promote products
 	derived from this software without specific prior written permission.
@@ -128,7 +128,7 @@ are permitted provided that the following conditions are met:
     -# Redistributions in binary form must reproduce the above copyright\n
 	notice, this list of conditions and the following disclaimer in the\n
 	documentation and/or other materials provided with the distribution.
-	
+
     -# Neither the name of the Link&ouml;ping University nor the\n
 	names of its contributors may be used to endorse or promote products\n
 	derived from this software without specific prior written permission.
@@ -188,7 +188,7 @@ SGCT is using the following libraries.
 		#define SGCT_WINDOWS_INCLUDE
 		#include <windows.h> //must be declared before glfw
 		#include <winsock2.h>
-	#endif	
+	#endif
 #endif
 
 #include "sgct/Engine.h"
@@ -229,7 +229,7 @@ namespace Freetype = sgct_text;
 #define SGCT_KEY_SPACE			GLFW_KEY_SPACE
 #define SGCT_KEY_APOSTROPHE		GLFW_KEY_APOSTROPHE
 #define SGCT_KEY_COMMA			GLFW_KEY_COMMA
-#define SGCT_KEY_MINUS			GLFW_KEY_MINUS 
+#define SGCT_KEY_MINUS			GLFW_KEY_MINUS
 #define SGCT_KEY_PERIOD			GLFW_KEY_PERIOD
 #define SGCT_KEY_SLASH			GLFW_KEY_SLASH
 #define SGCT_KEY_0				GLFW_KEY_0
@@ -242,7 +242,7 @@ namespace Freetype = sgct_text;
 #define SGCT_KEY_7				GLFW_KEY_7
 #define SGCT_KEY_8				GLFW_KEY_8
 #define SGCT_KEY_9				GLFW_KEY_9
-#define SGCT_KEY_SEMICOLON		GLFW_KEY_SEMICOLON		
+#define SGCT_KEY_SEMICOLON		GLFW_KEY_SEMICOLON
 #define SGCT_KEY_EQUAL			GLFW_KEY_EQUAL
 #define SGCT_KEY_A				GLFW_KEY_A
 #define SGCT_KEY_B				GLFW_KEY_B

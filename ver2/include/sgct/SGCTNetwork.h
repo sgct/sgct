@@ -33,7 +33,7 @@ The macros below set the propper c++11 includes and namespaces
 	#include <functional>
     namespace sgct_cppxeleven = std::tr1;
     //#pragma message "SGCTNetwork will use std::tr1::functional"
-#elif __USE_CPP11__
+#elif __USE_CPP11__ || defined(__LINUX__)
     #include <tr1/functional>
     namespace sgct_cppxeleven = std::tr1;
     //#pragma message "SGCTNetwork will use std:tr1::functional"
@@ -68,7 +68,7 @@ public:
 	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType, bool firmSync);
 	void closeNetwork(bool forced);
 	void initShutdown();
-#if __USE_CPP11__
+#if __USE_CPP11__ || defined(__LINUX__)
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
 	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
@@ -98,7 +98,7 @@ public:
 
 	SGCT_SOCKET mSocket;
 	SGCT_SOCKET mListenSocket;
-#if __USE_CPP11__
+#if __USE_CPP11__ || defined(__LINUX__)
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;

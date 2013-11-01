@@ -230,6 +230,7 @@ elseif( APPLE  )
 	endif()
 else()
 	add_definitions(-D__LINUX__)
+	set(CMAKE_CXX_FLAGS "-std=c++0x")
 endif()
 
 add_definitions(-DGLEW_STATIC)

@@ -1,5 +1,5 @@
 DEL libsgct.a
-ar x deps/libGLEW.a
+ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
 ar x deps/libpng15.a

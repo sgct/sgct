@@ -12,14 +12,42 @@ set(AppPath ${CMAKE_BINARY_DIR})
 set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 
 add_executable(${APP_NAME}
-	main.cpp)	
+	main.cpp)
 	
-find_library(SGCT_RELEASE_LIBRARY REQUIRED)
-find_library(SGCT_DEBUG_LIBRARY REQUIRED)
-find_path(SGCT_INCLUDE_DIRECTORY 
-	NAMES sgct
-	PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
+set_target_properties(${APP_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}
+)
+	
+if( APPLE  )
+	option(SGCT_CPP11 "Use c++11" OFF)
+	mark_as_advanced(SGCT_CPP11)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+endif()
+endif()
+	
+find_library(SGCT_RELEASE_LIBRARY
+	NAMES sgct libsgct libsgct_cpp11
 	REQUIRED)
+	
+find_library(SGCT_DEBUG_LIBRARY 
+	NAMES sgctd libsgctd libsgct_cpp11d
+	REQUIRED)
+
+if( WIN32 )
+	find_path(SGCT_INCLUDE_DIRECTORY 
+		NAMES sgct
+		PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
+		REQUIRED)
+else()
+	find_path(SGCT_INCLUDE_DIRECTORY 
+		NAMES sgct
+		PATH_SUFFIXES sgct
+		PATHS $ENV{SGCT_ROOT_DIR}/include
+		REQUIRED)
+endif()
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
@@ -67,15 +95,25 @@ else() #linux
 endif()
 	
 if( MSVC )
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	
-	STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
-		${CMAKE_EXE_LINKER_FLAGS_DEBUG})
-	SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
-	
-	STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
-		${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
-	SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
+		if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
+			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
+		
+		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
+			${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
+	else()
+		STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
+			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
+		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )
+		
+		STRING(REPLACE "INCREMENTAL" "INCREMENTAL:NO" replacementFlags
+			${CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO})
+		SET(CMAKE_EXE_LINKER_FLAGS_RELWITHDEBINFO "${replacementFlags}" )
+	endif()
 	
 	#MESSAGE(STATUS "flags: ${CMAKE_EXE_LINKER_FLAGS_DEBUG}")
 endif()
@@ -88,7 +126,12 @@ if( WIN32 )
 	add_definitions(-D__WIN32__)
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+	if( SGCT_CPP11 )
+    	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+		add_definitions(-D__SGCT_CPP11__)
+	else()
+		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+	endif()
 else()
 	add_definitions(-D__LINUX__)
 endif()
@@ -98,3 +141,6 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 endif()
 
 target_link_libraries(${APP_NAME} ${LIBS})
+
+configure_file(SimpleFragmentShader.fragmentshader ${CMAKE_CURRENT_BINARY_DIR}/SimpleFragmentShader.fragmentshader COPYONLY)
+configure_file(SimpleVertexShader.vertexshader ${CMAKE_CURRENT_BINARY_DIR}/SimpleVertexShader.vertexshader COPYONLY)

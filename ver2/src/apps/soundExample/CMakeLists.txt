@@ -48,14 +48,23 @@ else()
 		PATHS $ENV{SGCT_ROOT_DIR}/include
 		REQUIRED)
 endif()
-	
-find_library(ALUT_LIBRARY ALUT REQUIRED)
-find_path(SGCT_INCLUDE_DIRECTORY REQUIRED)
-find_path(ALUT_INCLUDE_DIRECTORY REQUIRED)
+
+find_library(ALUT_DEBUG_LIBRARY
+	NAMES alutd libalutd libalut_cpp11d
+	REQUIRED)
+find_library(ALUT_RELEASE_LIBRARY
+	NAMES alut libalut libalut_cpp11
+	REQUIRED)
+find_path(ALUT_INCLUDE_DIRECTORY NAMES AL/alut.h REQUIRED)
 
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
 	optimized ${SGCT_RELEASE_LIBRARY}
+)
+
+set(ALUT_LIBRARY
+	debug ${ALUT_DEBUG_LIBRARY}
+	optimized ${ALUT_RELEASE_LIBRARY}
 )
 	
 find_package(OpenGL REQUIRED)
@@ -86,7 +95,7 @@ elseif( APPLE )
 
 	set(LIBS
 		${SGCT_LIBS}
-	    ${OPENGL_LIBRARY}
+	    	${OPENGL_LIBRARY}
 		${OPENAL_LIBRARY}
 		${ALUT_LIBRARY}
 		${COCOA_LIBRARY}
@@ -94,7 +103,7 @@ elseif( APPLE )
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
+        find_library(XRANDR_LIBRARY Xrandr REQUIRED)
 	find_library(XI_LIBRARY Xi REQUIRED)
 
 	set(LIBS

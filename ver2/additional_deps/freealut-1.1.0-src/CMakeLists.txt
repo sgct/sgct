@@ -1,7 +1,9 @@
 # cmake project file by Prakash Punnoor
-CMAKE_MINIMUM_REQUIRED(VERSION 2.0)
+CMAKE_MINIMUM_REQUIRED(VERSION 2.8)
 
-SET(CMAKE_MODULE_PATH "${CMAKE_SOURCE_DIR}/admin/CMakeModules")
+SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
+SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+
 PROJECT(Alut C)
 SET(PACKAGE "freealut")
 SET(PACKAGE_TARNAME "freealut")
@@ -18,9 +20,62 @@ SET(PACKAGE_STRING "${PACKAGE_NAME} ${PACKAGE_VERSION}")
 SET(PACKAGE_BUGREPORT "openal-devel@opensource.creative.com")
 SET(OPERATING_SYSTEM "${CMAKE_SYSTEM_NAME}")
 
+SET(CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/admin/CMakeModules")
+MESSAGE(STATUS "Alut CMake module path: ${CMAKE_MODULE_PATH}")
+
+if( APPLE  )
+	option(ALUT_CPP11 "Use c++11" OFF)
+	set(CMAKE_OSX_ARCHITECTURES "x86_64")
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+	endif()
+endif()
+		
+if( APPLE )
+	set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/mac" CACHE PATH "SGCT lib path")
+elseif( WIN32 AND CMAKE_COMPILER_IS_GNUCXX )
+	set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/mingw" CACHE PATH "SGCT lib path")
+elseif( MSVC )
+	if( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc9" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008 Win64" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc9_x64" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 10" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc10" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 10 Win64" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc10_x64" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 11" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc11" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 11 Win64" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc11_x64" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 12" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc12" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 12 Win64" )
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/msvc12_x64" CACHE PATH "SGCT lib path")
+	else()
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/${CMAKE_GENERATOR}" CACHE PATH "SGCT lib path")
+	endif()
+elseif( UNIX AND NOT APPLE )
+	if( CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/linux_x64" CACHE PATH "SGCT lib path")
+	elseif( CMAKE_SYSTEM_NAME STREQUAL "Linux")
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/linux" CACHE PATH "SGCT lib path")
+	else()
+		set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/unix" CACHE PATH "SGCT lib path")
+	endif()
+else()
+	set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/${CMAKE_SYSTEM_NAME}/${CMAKE_GENERATOR}" CACHE PATH "SGCT lib path")
+endif()
+
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${ALUT_OUTPUT_PATH}" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${ALUT_OUTPUT_PATH}" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${ALUT_OUTPUT_PATH}" )
+
 INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFiles.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
+
+FIND_PACKAGE(ConfigHelper)
 
 FIND_PACKAGE(ConfigHelper)
 
@@ -43,19 +98,6 @@ SET(ADD_CFLAGS "")
 SET(ADD_LDFLAGS "")
 SET(ADD_LIBS "")
 
-OPTION(BUILD_STATIC    "build static library too"   ON)
-OPTION(PROFILE         "enable profile"            OFF)
-OPTION(OPTIMIZATION    "enable optimization"        ON)
-OPTION(WARNINGS        "enable warnings"            ON)
-IF(WARNINGS)
-  OPTION(MORE_WARNINGS "enable more warnings"       OFF)
-  OPTION(USE_WERROR    "enable fail on all warning" OFF)
-ENDIF(WARNINGS)
-
-#want test-suit?
-OPTION(BUILD_TESTS "build the test-suite" OFF)
-
-
 ADD_DEFINE(ALUT_BUILD_LIBRARY)
 # We could possibly need struct timespec and random(), which are not ANSI.
 # Define to 500 if Single Unix conformance is wanted, 600 for sixth revision.
@@ -71,22 +113,14 @@ ADD_DEFINE("__NO_CTYPE 1")
 
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 ADD_DEFINITIONS(-DNDEBUG)
-
-FIND_LIBRARY(OPENAL_LIB NAMES openal openal32 PATHS /usr/lib /usr/local/lib ${OPENAL_LIB_DIR})
-IF(OPENAL_LIB MATCHES "NOTFOUND")
-  MESSAGE(FATAL_ERROR "OpenAL not installed, cannot build alut - aborting.")
-ENDIF(OPENAL_LIB MATCHES "NOTFOUND")
+	
+find_package(OpenAL REQUIRED)
 
 IF(UNIX)
  SET(ADD_LIBS ${ADD_LIBS} m)
 ENDIF(UNIX)
-
-SET(CMAKE_REQUIRED_INCLUDES ${OPENAL_INCLUDE_DIR})
-find_path(AL_INCLUDE_DIR REQUIRED)
-
-IF(DEFINED OPENAL_INCLUDE_DIR)
-  INCLUDE_DIRECTORIES(${OPENAL_INCLUDE_DIR} ${AL_INCLUDE_DIR})
-ENDIF(DEFINED OPENAL_INCLUDE_DIR)
+	
+include_directories(${SGCT_INCLUDE_DIRECTORY})
 
 FIND_PACKAGE(SleepFunction)
 
@@ -117,89 +151,54 @@ IF(NOT HAVE_STAT)
 ENDIF(NOT HAVE_STAT)
 
 # compiler specific settings
-FIND_PACKAGE(CompilerAttribute)
-FIND_PACKAGE(CompilerVisibility)
-FIND_PACKAGE(CompilerFlagsSet)
+#FIND_PACKAGE(CompilerAttribute)
+#FIND_PACKAGE(CompilerVisibility)
+#FIND_PACKAGE(CompilerFlagsSet)
 
 GENERATE_CONFIG_H()
+
+if( MSVC )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+endif()
+
+if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
+	add_definitions( "/MP" )
+endif()
+	
+if( APPLE )
+	if( ALUT_CPP11 )
+   		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+		MESSAGE(STATUS "ALUT will be using c++11")
+	elseif(DEFINED SGCT_CPP11 AND SGCT_CPP11)
+		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+		MESSAGE(STATUS "ALUT will be using c++11")
+	else()
+		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+		MESSAGE(STATUS "ALUT will be using c++0x")
+	endif()
+else()
+	set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+endif()
+
+if( CMAKE_COMPILER_IS_GNUCXX )
+	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+endif()
 
 SET(CMAKE_C_FLAGS "${ADD_WFLAGS} ${ADD_CFLAGS} ${CMAKE_C_FLAGS}")
 SET(CMAKE_CXX_FLAGS "${ADD_CFLAGS} ${CMAKE_CXX_FLAGS}")
 SET(CMAKE_SHARED_LINKER_FLAGS "${ADD_LDFLAGS} ${CMAKE_SHARED_LINKER_FLAGS}")
 SET(CMAKE_MODULE_LINKER_FLAGS "${ADD_LDFLAGS} ${CMAKE_MODULE_LINKER_FLAGS}")
 
-IF(BUILD_STATIC)
-  # we can't create a static library with the same name
-  # as the shared one, so we copy it over after creation
-  ADD_LIBRARY(alut_static STATIC ${ALUT_SOURCES})
-  TARGET_LINK_LIBRARIES(alut_static ${OPENAL_LIB} ${ADD_LIBS})
-  IF(NOT WIN32)
-    ADD_CUSTOM_COMMAND(
-      TARGET alut_static
-      POST_BUILD
-      COMMAND ${CMAKE_COMMAND}
-      ARGS -E copy
-        ${CMAKE_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}alut_static${CMAKE_STATIC_LIBRARY_SUFFIX}
-        ${CMAKE_BINARY_DIR}/${CMAKE_STATIC_LIBRARY_PREFIX}alut${CMAKE_STATIC_LIBRARY_SUFFIX})
-    INSTALL_FILES(/lib FILES ${CMAKE_STATIC_LIBRARY_PREFIX}alut${CMAKE_STATIC_LIBRARY_SUFFIX})
-  ENDIF(NOT WIN32)
-ENDIF(BUILD_STATIC)
+set(ALUT_LIB_NAME "alut")
+if(APPLE AND ALUT_CPP11)
+	set(ALUT_LIB_NAME "${ALUT_LIB_NAME}_cpp11")
+elseif(DEFINED SGCT_CPP11 AND SGCT_CPP11)
+	set(ALUT_LIB_NAME "${ALUT_LIB_NAME}_cpp11")
+endif()
+	
+	
+ADD_LIBRARY(${ALUT_LIB_NAME} STATIC ${ALUT_SOURCES})
+TARGET_LINK_LIBRARIES(${ALUT_LIB_NAME} ${OPENAL_LIBRARY} ${ADD_LIBS})
 
-
-ADD_LIBRARY(alut SHARED ${ALUT_SOURCES})
-SET_TARGET_PROPERTIES(alut PROPERTIES VERSION ${VERSION} SOVERSION ${MAJOR_VERSION})
-TARGET_LINK_LIBRARIES(alut ${OPENAL_LIB} ${ADD_LIBS})
-
-INSTALL_TARGETS(/lib alut)
+INSTALL_TARGETS(/lib ${ALUT_LIB_NAME})
 INSTALL_FILES(/include/AL FILES include/AL/alut.h)
-
-# needed for openal.pc.in and openal-config.in
-SET(prefix ${CMAKE_INSTALL_PREFIX})
-SET(exec_prefix "\${prefix}")
-SET(libdir "\${exec_prefix}/lib")
-SET(bindir "\${exec_prefix}/bin")
-SET(includedir "\${prefix}/include")
-SET(requirements "")
-# static linking dependecies are broken, so pthread isn't needed currently
-SET(PTHREAD_LIBS ${CMAKE_THREAD_LIBS_INIT})
-
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/admin/pkgconfig/freealut.pc.in
-               ${CMAKE_BINARY_DIR}/admin/pkgconfig/freealut.pc @ONLY)
-CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/admin/pkgconfig/freealut-config.in
-               ${CMAKE_BINARY_DIR}/admin/pkgconfig/freealut-config @ONLY)
-INSTALL_PROGRAMS(/bin FILES admin/pkgconfig/freealut-config)
-INSTALL_FILES(/lib/pkgconfig FILES admin/pkgconfig/freealut.pc)
-
-
-# test-suite
-IF(BUILD_TESTS)
-    # examples
-    ADD_EXECUTABLE(hello_world examples/hello_world.c)
-    TARGET_LINK_LIBRARIES(hello_world ${OPENAL_LIB} ${ADD_LIBS} alut)
-
-    ADD_EXECUTABLE(playfile examples/playfile.c)
-    TARGET_LINK_LIBRARIES(playfile ${OPENAL_LIB} ${ADD_LIBS} alut)
-
-
-    SET(TESTS errorstuff
-              fileloader
-              memoryloader
-              version
-              waveforms)
-
-    FOREACH(TEST ${TESTS})
-      SET(TEST_SRC test_suite/test_${TEST}.c)
-      SET_SOURCE_FILES_PROPERTIES(${TEST_SRC} PROPERTIES COMPILE_FLAGS "-Wno-deprecated-declarations")
-      ADD_EXECUTABLE(test_${TEST} ${TEST_SRC})
-      TARGET_LINK_LIBRARIES(test_${TEST} ${OPENAL_LIB} ${ADD_LIBS} alut)
-    ENDFOREACH(TEST)
-
-    #copy over testdata, so test-suite can be used in binary dir
-    SET(TESTDATA file1.wav
-                 file2.au
-                 file3.raw)
-
-    FOREACH(TESTDATUM ${TESTDATA})
-      CONFIGURE_FILE(${CMAKE_SOURCE_DIR}/test_suite/${TESTDATUM} ${CMAKE_BINARY_DIR}/${TESTDATUM} COPYONLY)
-    ENDFOREACH(TESTDATUM)
-ENDIF(BUILD_TESTS)

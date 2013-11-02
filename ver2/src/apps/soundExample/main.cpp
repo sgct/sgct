@@ -3,11 +3,11 @@
 //include open AL
 #ifdef __APPLE__
     #include <OpenAL/al.h>
-    #include <ALUT/alut.h>
+    //#include <ALUT/alut.h> //if using ALUT framework
 #else
     #include <AL/al.h>
-    #include <AL/alut.h>
 #endif
+#include <AL/alut.h>
 
 sgct::Engine * gEngine;
 

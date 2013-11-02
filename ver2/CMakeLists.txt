@@ -14,6 +14,7 @@ SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 option(SGCT_BUILD_DEPS "Build dependencies" ON)
+option(SGCT_BUILD_ALUT "Build ALUT" OFF)
 
 if( APPLE  )
 	#OSG is not compatible with c++11, it also makes it harder for the users defining all flags
@@ -103,6 +104,10 @@ if(SGCT_BUILD_DEPS)
 	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
 
 	ADD_SUBDIRECTORY(src/deps)
+	
+	if(SGCT_BUILD_ALUT)
+		ADD_SUBDIRECTORY(additional_deps/freealut-1.1.0-src)
+	endif()
 	
 	set(COMMON_DEBUG_LIBS
 		${OPENGL_LIBRARY}

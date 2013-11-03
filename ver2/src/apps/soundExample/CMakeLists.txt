@@ -95,7 +95,7 @@ elseif( APPLE )
 
 	set(LIBS
 		${SGCT_LIBS}
-	    	${OPENGL_LIBRARY}
+	    ${OPENGL_LIBRARY}
 		${OPENAL_LIBRARY}
 		${ALUT_LIBRARY}
 		${COCOA_LIBRARY}
@@ -114,12 +114,12 @@ else() #linux
 		${XRANDR_LIBRARY}
 		${XI_LIBRARY}
 	)
-endif()	
+endif()
 
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	
-		if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+	if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )

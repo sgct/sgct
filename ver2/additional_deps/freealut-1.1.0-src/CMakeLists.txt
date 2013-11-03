@@ -33,7 +33,7 @@ endif()
 		
 if( APPLE )
 	set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/mac" CACHE PATH "SGCT lib path")
-elseif( WIN32 AND CMAKE_COMPILER_IS_GNUCXX )
+elseif( MINGW )
 	set(ALUT_OUTPUT_PATH "${PROJECT_SOURCE_DIR}/../../additional_libs/ALUT/mingw" CACHE PATH "SGCT lib path")
 elseif( MSVC )
 	if( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" )
@@ -75,9 +75,8 @@ INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFile.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckIncludeFiles.cmake)
 INCLUDE(${CMAKE_ROOT}/Modules/CheckCSourceCompiles.cmake)
 
-FIND_PACKAGE(ConfigHelper)
-
-FIND_PACKAGE(ConfigHelper)
+find_package(ConfigHelper)
+find_package(OpenAL REQUIRED)
 
 SET(ALUT_SOURCES src/alutBufferData.c
                  src/alutCodec.c
@@ -91,7 +90,9 @@ SET(ALUT_SOURCES src/alutBufferData.c
                  src/alutVersion.c
                  src/alutWaveform.c)
 
-INCLUDE_DIRECTORIES(${Alut_SOURCE_DIR}/include)
+set(ALUT_INC ${OPENAL_INCLUDE_DIR} ${Alut_SOURCE_DIR}/include)
+include_directories(${ALUT_INC})
+#MESSAGE(STATUS "Include dirs: ${ALUT_INC}")
 
 SET(ADD_WFLAGS "")
 SET(ADD_CFLAGS "")
@@ -113,14 +114,10 @@ ADD_DEFINE("__NO_CTYPE 1")
 
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 ADD_DEFINITIONS(-DNDEBUG)
-	
-find_package(OpenAL REQUIRED)
 
 IF(UNIX)
  SET(ADD_LIBS ${ADD_LIBS} m)
 ENDIF(UNIX)
-	
-include_directories(${SGCT_INCLUDE_DIRECTORY})
 
 FIND_PACKAGE(SleepFunction)
 
@@ -167,17 +164,17 @@ endif()
 	
 if( APPLE )
 	if( ALUT_CPP11 )
-   		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+   		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
 		MESSAGE(STATUS "ALUT will be using c++11")
 	elseif(DEFINED SGCT_CPP11 AND SGCT_CPP11)
-		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++11 -stdlib=libc++")
 		MESSAGE(STATUS "ALUT will be using c++11")
 	else()
-		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+		set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x -stdlib=libstdc++")
 		MESSAGE(STATUS "ALUT will be using c++0x")
 	endif()
 else()
-	set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+	set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=c++0x")
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )

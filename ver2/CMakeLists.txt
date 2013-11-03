@@ -226,6 +226,9 @@ endif()
 
 if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 endif()
 
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
@@ -237,19 +240,19 @@ if( WIN32 )
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
 	if( SGCT_CPP11 )
-    	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+    	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
 	else()
-		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
 	endif()
 else()
 	add_definitions(-D__LINUX__)
-	set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+	set(CMAKE_CXX_FLAGS "-std=c++0x ${CMAKE_CXX_FLAGS}")
 endif()
 
 add_definitions(-DGLEW_STATIC)
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})

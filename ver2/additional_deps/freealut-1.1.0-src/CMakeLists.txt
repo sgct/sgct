@@ -99,7 +99,7 @@ SET(ADD_CFLAGS "")
 SET(ADD_LDFLAGS "")
 SET(ADD_LIBS "")
 
-ADD_DEFINE(ALUT_BUILD_LIBRARY)
+#ADD_DEFINE(ALUT_BUILD_LIBRARY)
 # We could possibly need struct timespec and random(), which are not ANSI.
 # Define to 500 if Single Unix conformance is wanted, 600 for sixth revision.
 ADD_DEFINE("_XOPEN_SOURCE 500")
@@ -112,6 +112,7 @@ ADD_DEFINE("_POSIX_C_SOURCE 199309")
 # which triggers warnings with -Wunreachable-code.
 ADD_DEFINE("__NO_CTYPE 1")
 
+ADD_DEFINITIONS(-DALUT_STATIC)
 ADD_DEFINITIONS(-DHAVE_CONFIG_H)
 ADD_DEFINITIONS(-DNDEBUG)
 
@@ -156,6 +157,9 @@ GENERATE_CONFIG_H()
 
 if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 endif()
 
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
@@ -178,7 +182,7 @@ else()
 endif()
 
 if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
 SET(CMAKE_C_FLAGS "${ADD_WFLAGS} ${ADD_CFLAGS} ${CMAKE_C_FLAGS}")

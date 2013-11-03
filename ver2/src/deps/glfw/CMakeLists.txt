@@ -96,6 +96,10 @@ endif()
 
 if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
+	
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 
     if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
         foreach (flag CMAKE_C_FLAGS

@@ -62,6 +62,11 @@ if(MSVC)
     add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
     add_definitions(-D_CRT_NONSTDC_NO_DEPRECATE)
     include_directories(${CMAKE_CURRENT_SOURCE_DIR})
+	
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+
 	if(NOT "${MSVC_VERSION}" LESS 1400)
 		add_definitions( "/MP" )
 	endif()

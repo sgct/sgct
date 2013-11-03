@@ -108,6 +108,11 @@ add_definitions(-DPNG_CONFIGURE_LIBPNG)
 
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+  
+  #disable pdb-file debugging
+  #STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+  #set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+  
   if(NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
   endif()

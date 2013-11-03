@@ -16,18 +16,22 @@
 extern "C" {
 #endif
 
-#if defined(_WIN32) && !defined(_XBOX)
- #if defined (ALUT_BUILD_LIBRARY)
-  #define ALUT_API __declspec(dllexport)
- #else
-  #define ALUT_API __declspec(dllimport)
- #endif
+#ifdef ALUT_STATIC
+	 #define ALUT_API extern
 #else
- #if defined(ALUT_BUILD_LIBRARY) && defined(HAVE_GCC_VISIBILITY)
-  #define ALUT_API __attribute__((visibility("default")))
- #else
-  #define ALUT_API extern
- #endif
+	#if defined(_WIN32) && !defined(_XBOX)
+	 #if defined (ALUT_BUILD_LIBRARY)
+	  #define ALUT_API __declspec(dllexport)
+	 #else
+	  #define ALUT_API __declspec(dllimport)
+	 #endif
+	#else
+	 #if defined(ALUT_BUILD_LIBRARY) && defined(HAVE_GCC_VISIBILITY)
+	  #define ALUT_API __attribute__((visibility("default")))
+	 #else
+	  #define ALUT_API extern
+	 #endif
+	#endif
 #endif
 
 #if defined(_WIN32)

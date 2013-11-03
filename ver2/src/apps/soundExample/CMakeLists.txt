@@ -18,7 +18,9 @@ set_target_properties(${APP_NAME} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${PROJECT_SOURCE_DIR}
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${PROJECT_SOURCE_DIR}
 )	
-	
+
+option(ALUT_STATIC "Use static linking for ALUT" ON)
+
 if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
 	mark_as_advanced(SGCT_CPP11)
@@ -144,22 +146,26 @@ if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
 
+if(ALUT_STATIC)
+	add_definitions(-DALUT_STATIC)
+endif()
+
 if( WIN32 )
 	add_definitions(-D__WIN32__)
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
 	if( SGCT_CPP11 )
-    	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++")
+    	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
 		add_definitions(-D__SGCT_CPP11__)
 	else()
-		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++")
+		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
 	endif()
 else()
 	add_definitions(-D__LINUX__)
 endif()
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "-static-libgcc -static-libstdc++ -s")
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
 target_link_libraries(${APP_NAME} ${LIBS})

@@ -47,6 +47,10 @@ if(MSVC)
 	if(NOT "${MSVC_VERSION}" LESS 1400)
 		add_definitions( "/MP" )
 	endif()
+	
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 endif(MSVC)
 
 ################################

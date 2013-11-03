@@ -87,6 +87,12 @@ if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
 
+if( MSVC )
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+endif()
+
 include_directories("src/truetype")
 include_directories("src/sfnt")
 include_directories("src/autofit")

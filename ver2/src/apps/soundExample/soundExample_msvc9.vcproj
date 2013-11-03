@@ -59,7 +59,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sgctd.lib OpenAL32.lib alut.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="sgctd.lib ws2_32.lib OpenAL32.lib alut.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_x86.exe"
 				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9;$(SGCT_ROOT_DIR)\additional_libs"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"
@@ -133,7 +133,7 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="sgct.lib OpenAL32.lib alut.lib opengl32.lib glu32.lib"
+				AdditionalDependencies="sgct.lib ws2_32.lib OpenAL32.lib alut.lib opengl32.lib glu32.lib"
 				OutputFile="$(OutDir)\$(ProjectName)_x86.exe"
 				AdditionalLibraryDirectories="$(SGCT_ROOT_DIR)\lib\msvc9;$(SGCT_ROOT_DIR)\additional_libs"
 				IgnoreDefaultLibraryNames="LIBCMT.lib"

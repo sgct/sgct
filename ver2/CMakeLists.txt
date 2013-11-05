@@ -255,5 +255,19 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
-target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS})
-target_link_libraries( ${LIB_NAME} optimized ${RELEASE_LIBS}) 
+target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
+
+#to make sure that everything is build when post_build events runs
+add_dependencies(${LIB_NAME} freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
+
+if(WIN32)
+	add_custom_command(TARGET ${LIB_NAME}
+                       POST_BUILD
+                       COMMAND "merge_libs.bat"
+					   WORKING_DIRECTORY ${SGCT_LIB_PATH})
+else()
+	add_custom_command(TARGET ${LIB_NAME}
+                       POST_BUILD
+                       COMMAND "merge_libs.sh"
+					   WORKING_DIRECTORY ${SGCT_LIB_PATH})
+endif()

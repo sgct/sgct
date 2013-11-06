@@ -262,12 +262,12 @@ add_dependencies(${LIB_NAME} freetype glew glfw png15_static tinythreadpp tinyxm
 
 if(WIN32)
 	add_custom_command(TARGET ${LIB_NAME}
-                       POST_BUILD
-                       COMMAND "merge_libs.bat"
-					   WORKING_DIRECTORY ${SGCT_LIB_PATH})
+		POST_BUILD
+		COMMAND "merge_libs.bat"
+		WORKING_DIRECTORY ${SGCT_LIB_PATH})
 else()
 	add_custom_command(TARGET ${LIB_NAME}
-                       POST_BUILD
-                       COMMAND "merge_libs.sh"
-					   WORKING_DIRECTORY ${SGCT_LIB_PATH})
+		POST_BUILD
+		COMMAND "./merge_libs.sh"
+		WORKING_DIRECTORY ${SGCT_LIB_PATH})
 endif()

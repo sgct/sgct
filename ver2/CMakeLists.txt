@@ -18,7 +18,7 @@ option(SGCT_BUILD_DEPS "Build dependencies" ON)
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
 
-#png options
+#png & zlib options
 set(SKIP_INSTALL_ALL ON)
 
 if( APPLE  )
@@ -324,29 +324,18 @@ else()
 endif()
 
 if(SGCT_INSTALL)
-	if( EXISTS "${SGCT_LIB_PATH}/sgct.lib" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/sgct.lib DESTINATION lib)
-	endif()
-
-	if( EXISTS "${SGCT_LIB_PATH}/sgctd.lib" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/sgctd.lib DESTINATION lib)
-	endif()
-
-	if( EXISTS "${SGCT_LIB_PATH}/libsgct.a" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct.a DESTINATION lib)
-	endif()
-
-	if( EXISTS "${SGCT_LIB_PATH}/libsgctd.a" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/libsgctd.a DESTINATION lib)
-	endif()
-
-	if( EXISTS "${SGCT_LIB_PATH}/libsgct_cpp11.a" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11.a DESTINATION lib)
-	endif()
-
-	if( EXISTS "${SGCT_LIB_PATH}/libsgct_cpp11d.a" )
-		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11d.a DESTINATION lib)
-	endif()
-
+	if( MSVC )
+		INSTALL(FILES ${SGCT_LIB_PATH}/sgct.lib DESTINATION lib CONFIGURATIONS Release)
+		INSTALL(FILES ${SGCT_LIB_PATH}/sgctd.lib DESTINATION lib CONFIGURATIONS Debug)
+	else( MSVC )
+		if( APPLE AND SGCT_CPP11 )
+			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11.a DESTINATION lib CONFIGURATIONS Release)
+			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11d.a DESTINATION lib CONFIGURATIONS Debug)
+		else()
+			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct.a DESTINATION lib CONFIGURATIONS Release)
+			INSTALL(FILES ${SGCT_LIB_PATH}/libsgctd.a DESTINATION lib CONFIGURATIONS Debug)
+		endif()
+	endif( MSVC )
+	#include files
 	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION .)
 endif(SGCT_INSTALL)

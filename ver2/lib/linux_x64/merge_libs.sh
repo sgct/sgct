@@ -3,7 +3,10 @@
 if [ -f libsgct_light.a ] && [ -f libsgct_lightd.a ];
 then
 	echo "Merging release libs... "
-	rm libsgct.a
+	if [ -f libsgct.a ];
+	then
+		rm libsgct.a
+	fi
 	ar x deps/libglew.a
 	ar x deps/libglfw3.a
 	ar x deps/libz.a
@@ -16,7 +19,10 @@ then
 	ar r libsgct.a *.o
 	rm *.o
 	echo "Merging debug libs... "
-	rm libsgctd.a
+	if [ -f libsgctd.a ];
+	then
+		rm libsgctd.a
+	fi
 	ar x deps/libglewd.a
 	ar x deps/libglfw3d.a
 	ar x deps/libzd.a
@@ -32,7 +38,10 @@ then
 elif [ -f libsgct_light.a ];
 then
 	echo "Merging release libs... "
-	rm libsgct.a
+	if [ -f libsgct.a ];
+	then
+		rm libsgct.a
+	fi
 	ar x deps/libglew.a
 	ar x deps/libglfw3.a
 	ar x deps/libz.a
@@ -48,7 +57,10 @@ then
 elif [ -f libsgct_lightd.a ];
 then
 	echo "Merging debug libs... "
-	rm libsgctd.a
+	if [ -f libsgctd.a ];
+	then
+		rm libsgctd.a
+	fi
 	ar x deps/libglewd.a
 	ar x deps/libglfw3d.a
 	ar x deps/libzd.a

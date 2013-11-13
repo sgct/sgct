@@ -1,3 +1,11 @@
+INSTALL USING XCODE
+====================================
+sudo xcodebuild -target install -configuration Debug
+sudo xcodebuild -target install -configuration Release
+
+
+CMAKE FLAGS
+========================================================================
 For cmake add debug suffix to all libs like:
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")

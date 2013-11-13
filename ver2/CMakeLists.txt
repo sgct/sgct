@@ -7,15 +7,19 @@
 cmake_minimum_required(VERSION 2.8)
 
 SET(BUILD_SHARED_LIBS OFF)
-SET(LIB_NAME sgct_light)
+SET(LIB_NAME sgct)
 PROJECT(${LIB_NAME})
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
+option(SGCT_INSTALL "Install SGCT" ON)
 option(SGCT_BUILD_DEPS "Build dependencies" ON)
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
-option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" ON)
+option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
+
+#png options
+set(SKIP_INSTALL_ALL ON)
 
 if( APPLE  )
 	#OSG is not compatible with c++11, it also makes it harder for the users defining all flags
@@ -35,9 +39,9 @@ endif()
 if( APPLE )
 	set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/mac" CACHE PATH "SGCT lib path")
 	set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mac" CACHE PATH "SGCT src lib path")
-elseif( WIN32 AND CMAKE_COMPILER_IS_GNUCXX )
+elseif( MINGW )
 	set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/mingw" CACHE PATH "SGCT lib path")
-	set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mac" CACHE PATH "SGCT src lib path")
+	set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mingw" CACHE PATH "SGCT src lib path")
 elseif( MSVC )
 	if( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" OR CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" )
 		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc9" CACHE PATH "SGCT lib path")
@@ -65,7 +69,8 @@ elseif( MSVC )
 		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc12_x64" CACHE PATH "SGCT src lib path")
 	else()
 		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${CMAKE_GENERATOR}" CACHE PATH "SGCT lib path")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${CMAKE_GENERATOR}" CACHE PATH "SGCT src lib path")
+		#use mingw as template
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mingw" CACHE PATH "SGCT src lib path")
 	endif()
 elseif( UNIX AND NOT APPLE )
 	if( CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -76,16 +81,17 @@ elseif( UNIX AND NOT APPLE )
 		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/linux" CACHE PATH "SGCT src lib path")
 	else()
 		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/unix" CACHE PATH "SGCT lib path")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/unix" CACHE PATH "SGCT src lib path")
+		#use linux as template
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/linux" CACHE PATH "SGCT src lib path")
 	endif()
 else()
 	set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${CMAKE_SYSTEM_NAME}/${CMAKE_GENERATOR}" CACHE PATH "SGCT lib path")
-	set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${CMAKE_SYSTEM_NAME}/${CMAKE_GENERATOR}" CACHE PATH "SGCT src lib path")
+	#use linux as template
+	set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/linux" CACHE PATH "SGCT src lib path")
 endif()
 
 if(APPLE AND SGCT_CPP11)
 	set(SGCT_LIB_PATH "${SGCT_LIB_PATH}_cpp11")
-	set(SGCT_LIB_SRC_PATH "${SGCT_LIB_SRC_PATH}_cpp11")
 endif()
 
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
@@ -105,7 +111,7 @@ FOREACH(ALL_SRCName ${ALL_SRC})
 	MESSAGE(STATUS "Adding file: ${ALL_SRCName}")
 ENDFOREACH(ALL_SRCName)
 
-add_library(${LIB_NAME} STATIC
+add_library(${LIB_NAME}_light STATIC
 	${ALL_SRC}
 	)
  
@@ -278,27 +284,69 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
-target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
+target_link_libraries( ${LIB_NAME}_light debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
-add_dependencies(${LIB_NAME} freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
+add_dependencies(${LIB_NAME}_light freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
 
 if(WIN32)
-	add_custom_command(TARGET ${LIB_NAME}
+	add_custom_command(TARGET ${LIB_NAME}_light
 		POST_BUILD
 		COMMAND "merge_libs.bat"
 		WORKING_DIRECTORY ${SGCT_LIB_PATH})
 	
-	#copy stuff
+	#copy script
 	if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-		add_custom_command(TARGET ${LIB_NAME}
+		add_custom_command(TARGET ${LIB_NAME}_light
 			PRE_BUILD
-			COMMAND "merge_libs.bat"
-			WORKING_DIRECTORY ${SGCT_LIB_PATH})
+			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
 	endif()
 else()
-	add_custom_command(TARGET ${LIB_NAME}
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+		set(SGCT_SHELL_NAME merge_libs_xcode.sh)
+	else()
+		set(SGCT_SHELL_NAME merge_libs.sh)
+	endif()
+
+	add_custom_command(TARGET ${LIB_NAME}_light
 		POST_BUILD
-		COMMAND "./merge_libs.sh"
+		COMMAND "./${SGCT_SHELL_NAME}"
 		WORKING_DIRECTORY ${SGCT_LIB_PATH})
+		
+	#copy script
+	if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+		add_custom_command(TARGET ${LIB_NAME}_light
+			PRE_BUILD
+			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
+	endif()
 endif()
+
+if(SGCT_INSTALL)
+	if( EXISTS "${SGCT_LIB_PATH}/sgct.lib" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/sgct.lib DESTINATION lib)
+	endif()
+
+	if( EXISTS "${SGCT_LIB_PATH}/sgctd.lib" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/sgctd.lib DESTINATION lib)
+	endif()
+
+	if( EXISTS "${SGCT_LIB_PATH}/libsgct.a" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct.a DESTINATION lib)
+	endif()
+
+	if( EXISTS "${SGCT_LIB_PATH}/libsgctd.a" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/libsgctd.a DESTINATION lib)
+	endif()
+
+	if( EXISTS "${SGCT_LIB_PATH}/libsgct_cpp11.a" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11.a DESTINATION lib)
+	endif()
+
+	if( EXISTS "${SGCT_LIB_PATH}/libsgct_cpp11d.a" )
+		INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11d.a DESTINATION lib)
+	endif()
+
+	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include DESTINATION .)
+endif(SGCT_INSTALL)

@@ -779,17 +779,17 @@ if(VRPN_BUILD_SERVER_LIBRARY)
 	add_subdirectory(gpsnmealib)
 	target_link_libraries(vrpnserver gpsnmea)
 
-	install(TARGETS
-		vrpnserver
-		ARCHIVE
-		DESTINATION
-		lib
-		COMPONENT serversdk
-
-		PUBLIC_HEADER
-		DESTINATION
-		include
-		COMPONENT serversdk)
+#	install(TARGETS
+#		vrpnserver
+#		ARCHIVE
+#		DESTINATION
+#		lib
+#		COMPONENT serversdk
+#
+#		PUBLIC_HEADER
+#		DESTINATION
+#		include
+#		COMPONENT serversdk)
 
 	add_cppcheck(vrpnserver STYLE UNUSED_FUNCTIONS)
 endif()
@@ -821,17 +821,17 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 		FOLDER
 		"Library")
 
-	install(TARGETS
-		vrpn
-		ARCHIVE
-		DESTINATION
-		lib
-		COMPONENT clientsdk
-
-		PUBLIC_HEADER
-		DESTINATION
-		include
-		COMPONENT clientsdk)
+	#install(TARGETS
+	#	vrpn
+	#	ARCHIVE
+	#	DESTINATION
+	#	lib
+	#	COMPONENT clientsdk
+#
+#		PUBLIC_HEADER
+#		DESTINATION
+#		include
+#		COMPONENT clientsdk)
 
 	add_cppcheck(vrpn STYLE UNUSED_FUNCTIONS)
 endif()
@@ -881,7 +881,7 @@ if(VRPN_BUILD_SERVERS AND VRPN_BUILD_SERVER_LIBRARY AND BUILD_TESTING)
 		add_executable(${APP} ${SOURCE})
 		target_link_libraries(${APP} vrpnserver)
 		set_target_properties(${APP} PROPERTIES FOLDER Tests)
-		install(TARGETS ${APP} RUNTIME DESTINATION bin COMPONENT tests)
+		#install(TARGETS ${APP} RUNTIME DESTINATION bin COMPONENT tests)
 	endforeach()
 endif()
 

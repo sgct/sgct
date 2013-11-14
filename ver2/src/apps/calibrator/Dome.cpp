@@ -172,6 +172,7 @@ void Dome::generateDisplayList()
 
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+	//glBlendFunc(GL_ONE, GL_ONE);
 	
 	//view plane Quad
 	/*glColor4f(0.5f, 0.5f, 0.5f, 0.3f);

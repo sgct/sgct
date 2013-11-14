@@ -49,6 +49,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "stitcher_msvc12", "..\apps\
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "soundExample_msvc12", "..\apps\soundExample\soundExample_msvc12.vcxproj", "{C25E2CDC-64CC-4D87-9E98-6C2061B49469}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calibrator_msvc12", "..\apps\calibrator\calibrator_msvc12.vcxproj", "{4574F36B-3CD0-4F1F-A054-8ABBC383B688}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Win32 = Debug|Win32
@@ -241,6 +243,14 @@ Global
 		{C25E2CDC-64CC-4D87-9E98-6C2061B49469}.Release|Win32.Build.0 = Release|Win32
 		{C25E2CDC-64CC-4D87-9E98-6C2061B49469}.Release|x64.ActiveCfg = Release|x64
 		{C25E2CDC-64CC-4D87-9E98-6C2061B49469}.Release|x64.Build.0 = Release|x64
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Debug|Win32.ActiveCfg = Debug|Win32
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Debug|Win32.Build.0 = Debug|Win32
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Debug|x64.ActiveCfg = Debug|x64
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Debug|x64.Build.0 = Debug|x64
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Release|Win32.ActiveCfg = Release|Win32
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Release|Win32.Build.0 = Release|Win32
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Release|x64.ActiveCfg = Release|x64
+		{4574F36B-3CD0-4F1F-A054-8ABBC383B688}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -28,4 +28,3 @@ lib /LTCG /OUT:sgct.lib sgct_light.lib deps\freetype.lib deps\glew.lib deps\glfw
 goto END
 
 :END
-pause

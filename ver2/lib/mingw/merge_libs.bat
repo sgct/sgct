@@ -64,4 +64,3 @@ DEL *.o *.obj
 goto END
 
 :END
-pause

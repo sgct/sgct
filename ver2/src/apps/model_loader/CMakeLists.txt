@@ -8,8 +8,6 @@ SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 PROJECT(${APP_NAME})
-set(AppPath ${CMAKE_BINARY_DIR})
-set(EXECUTABLE_OUTPUT_PATH ${AppPath})
 
 add_executable(${APP_NAME}
 	main.cpp

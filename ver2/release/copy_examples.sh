@@ -27,6 +27,10 @@ cp -r ../../src/apps/textureExample examples/textureExample
 cp -r ../../src/apps/textureExample_opengl3 examples/textureExample_opengl3
 cp -r ../../src/apps/trackingExample examples/trackingExample
 
+echo "Copying files... "
+cp ../../src/apps/osgExample/airplane.ive examples/osgExampleRTT/airplane.ive
+cp ../../src/apps/textureExample/box.png examples/renderToTexture/box.png
+
 echo "Removing unwanted files..."
 find . -name '*.layout' -type f -delete
 find . -name '*.depend' -type f -delete

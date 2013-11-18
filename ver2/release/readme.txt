@@ -1,3 +1,5 @@
+OS X - Macintosh
+#############################################################
 Install the libs to: /usr/local/lib/ and the include directory to: /usr/local/include/
 Note that on later or new systems these directories doesn't exists and mkdir must be used.
 
@@ -15,4 +17,6 @@ libsgct_cpp11d.a - Debug build compiled with -std=c++11 -stdlib=libc++
 
 There are also corresponding ALUT (Audio Library Utility Toolkit) libraries in this release.
 
-
+Linux/Unix
+#############################################################
+Install the libs to: /usr/local/lib/ and the include directory to: /usr/local/include/

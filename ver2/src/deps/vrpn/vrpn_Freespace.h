@@ -18,20 +18,20 @@
 #ifndef VRPN_FREESPACE_H
 #define VRPN_FREESPACE_H
 
-#include "vrpn_Configure.h"
+#include "vrpn_Configure.h"   // IWYU pragma: keep
 
 #ifdef VRPN_USE_FREESPACE
 
-#include "vrpn_Tracker.h"
+#include <freespace/freespace.h>
+
 #include "vrpn_Button.h"
 #include "vrpn_Dial.h"
-
-#include <freespace/freespace.h>
+#include "vrpn_Tracker.h"
 
 
 class VRPN_API vrpn_Freespace :
 	public vrpn_Tracker_Server,   // for the positional data
-	public vrpn_Button,           // for the actual buttons
+	public vrpn_Button_Filter,    // for the actual buttons
 	public vrpn_Dial              // for the scroll wheel
 {
 public:

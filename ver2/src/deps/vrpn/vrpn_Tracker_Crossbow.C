@@ -1,11 +1,15 @@
 // vrpn_Tracker_Crossbow.h
 //	This file contains the implementation for a Crossbow RGA300CA Tracker.
 
-#include <string.h>
-#include "vrpn_Tracker_Crossbow.h"
+#include <math.h>                       // for cos, sin
+#include <stdio.h>                      // for fprintf, stderr, NULL
+#include <stdlib.h>                     // for realloc, free
+#include <string.h>                     // for memset
+
+#include "quat.h"                       // for q_from_euler, Q_W, Q_X, Q_Y, etc
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
 #include "vrpn_Serial.h"
-#include "quat.h"
-#include "vrpn_BufferUtils.h"
+#include "vrpn_Tracker_Crossbow.h"
 
 // Conversion multiplier from degrees to radians (Pi radians per 180 degrees)
 #define DEGREES_TO_RADIANS (3.1415926535897 / 180)
@@ -27,7 +31,6 @@ vrpn_Tracker_Crossbow::~vrpn_Tracker_Crossbow() {
 
 // Retrieves a raw_packet from an incoming byte array, and even flips endianness as necessary.
 void vrpn_Tracker_Crossbow::unbuffer_packet(raw_packet &dest, unsigned char *buffer) {
-	using namespace templated_unbuffer;
 	vrpn_unbuffer(&buffer, &dest.header);
 	vrpn_unbuffer(&buffer, &dest.roll_angle);
 	vrpn_unbuffer(&buffer, &dest.pitch_angle);

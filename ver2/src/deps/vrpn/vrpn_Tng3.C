@@ -5,11 +5,13 @@
 //
 // This code is based on the Tng3 code from pulsar.org
 
-#include <string.h>
-#include <math.h>
-#include "vrpn_Tng3.h"
-#include "vrpn_Shared.h"
+#include <math.h>                       // for floor
+#include <stdio.h>                      // for fprintf, stderr, printf
+
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_WARNING, etc
 #include "vrpn_Serial.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
+#include "vrpn_Tng3.h"
 
 #undef VERBOSE
 
@@ -67,7 +69,7 @@ vrpn_Tng3::vrpn_Tng3 (const char * name,
 		      const int numbuttons, 
 		      const int numchannels):
     vrpn_Serial_Analog(name, c, port, baud),
-    vrpn_Button(name, c),
+    vrpn_Button_Filter(name, c),
     _numbuttons(numbuttons),
     _numchannels(numchannels)
 {

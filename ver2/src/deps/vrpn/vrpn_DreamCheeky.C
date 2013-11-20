@@ -1,6 +1,10 @@
 // vrpn_dreamcheeky.C: VRPN driver for Dream Cheeky USB roll-up drum kit
 
+#include <string.h>                     // for memset
+
 #include "vrpn_DreamCheeky.h"
+
+class VRPN_API vrpn_Connection;
 
 #if defined(VRPN_USE_HID)
 
@@ -20,11 +24,6 @@ vrpn_DreamCheeky::~vrpn_DreamCheeky()
 	delete _filter;
 }
 
-void vrpn_DreamCheeky::reconnect()
-{
-	vrpn_HidInterface::reconnect();
-}
-
 void vrpn_DreamCheeky::on_data_received(size_t bytes, vrpn_uint8 *buffer)
 {
   decodePacket(bytes, buffer);
@@ -33,7 +32,7 @@ void vrpn_DreamCheeky::on_data_received(size_t bytes, vrpn_uint8 *buffer)
 vrpn_DreamCheeky_Drum_Kit::vrpn_DreamCheeky_Drum_Kit(const char *name, vrpn_Connection *c,
                                                      bool debounce)
   : vrpn_DreamCheeky(_filter = new vrpn_HidProductAcceptor(DREAMCHEEKY_VENDOR, USB_ROLL_UP_DRUM_KIT), name, c)
-  , vrpn_Button(name, c)
+  , vrpn_Button_Filter(name, c)
   , d_debounce(debounce)
 {
 	vrpn_Button::num_buttons = 6;

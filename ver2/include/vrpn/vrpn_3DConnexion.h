@@ -1,12 +1,18 @@
 #ifndef VRPN_3DCONNEXION_H
 #define VRPN_3DCONNEXION_H
 
-#include "vrpn_HumanInterface.h"
-#include "vrpn_Button.h"
-#include "vrpn_Analog.h"
+#include <stddef.h>                     // for size_t
+
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Configure.h"             // for VRPN_API, VRPN_USE_HID
+#include "vrpn_Connection.h"            // for vrpn_Connection (ptr only), etc
+#include "vrpn_HumanInterface.h"        // for vrpn_HidAcceptor (ptr only), etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_uint32, vrpn_uint8
 
 // Device drivers for the 3DConnexion SpaceNavigator and SpaceTraveler
-// SpaceExplorer, SpaceMouse, Spaceball5000
+// SpaceExplorer, SpaceMouse, SpaceMousePro, Spaceball5000, SpacePilot
 // devices, connecting to them as HID devices (USB).
 
 // Exposes two VRPN device classes: Button and Analog.
@@ -19,15 +25,13 @@
 // product ID; the baseclass does all the work.
 
 #if defined(VRPN_USE_HID)
-class VRPN_API vrpn_3DConnexion: public vrpn_Button, public vrpn_Analog, protected vrpn_HidInterface {
+class VRPN_API vrpn_3DConnexion: public vrpn_Button_Filter, public vrpn_Analog, protected vrpn_HidInterface {
 public:
   vrpn_3DConnexion(vrpn_HidAcceptor *filter, unsigned num_buttons,
                    const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_3DConnexion();
 
   virtual void mainloop();
-
-  virtual void reconnect();
 
 protected:
   // Set up message handlers, etc.
@@ -44,8 +48,8 @@ protected:
   // NOTE:  class_of_service is only applied to vrpn_Analog
   //  values, not vrpn_Button or vrpn_Dial
 };
-#else   // not _WIN32
-class VRPN_API vrpn_3DConnexion: public vrpn_Button, public vrpn_Analog {
+#else   // not VRPN_USE_HID
+class VRPN_API vrpn_3DConnexion: public vrpn_Button_Filter, public vrpn_Analog {
 public:
   vrpn_3DConnexion(vrpn_HidAcceptor *filter, unsigned num_buttons,
                    const char *name, vrpn_Connection *c = 0);
@@ -71,12 +75,22 @@ protected:
   int set_led(int led_state);
 #endif
 };
-#endif  // not _WIN32
+#endif  // not VRPN_USE_HID
 
 class VRPN_API vrpn_3DConnexion_Navigator: public vrpn_3DConnexion {
 public:
   vrpn_3DConnexion_Navigator(const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_3DConnexion_Navigator() {};
+
+
+protected:
+};
+
+class VRPN_API vrpn_3DConnexion_Navigator_for_Notebooks: public vrpn_3DConnexion {
+public:
+  vrpn_3DConnexion_Navigator_for_Notebooks(const char *name, vrpn_Connection *c = 0);
+  virtual ~vrpn_3DConnexion_Navigator_for_Notebooks() {};
+
 
 protected:
 };
@@ -97,6 +111,33 @@ public:
 protected:
 };
 
+/*
+The button numbers are labeled as follows (the ones similar to <x> have a graphic on the button and are referred to the text enclosed text in the help):
+0=Menu
+1=Fit
+2=<T>
+4=<R>
+5=<F>
+8=<Roll+>
+12=1
+13=2
+14=3
+15=4
+22=Esc
+23=Alt
+24=Shift
+25=Ctrl
+26=<Rot>
+*/
+
+class VRPN_API vrpn_3DConnexion_SpaceMousePro: public vrpn_3DConnexion {
+public:
+	vrpn_3DConnexion_SpaceMousePro(const char *name, vrpn_Connection *c = 0);
+	virtual ~vrpn_3DConnexion_SpaceMousePro() {};
+
+protected:
+};
+
 class VRPN_API vrpn_3DConnexion_SpaceExplorer: public vrpn_3DConnexion {
 public:
   vrpn_3DConnexion_SpaceExplorer(const char *name, vrpn_Connection *c = 0);
@@ -113,6 +154,13 @@ public:
 protected:
 };
 
+class VRPN_API vrpn_3DConnexion_SpacePilot: public vrpn_3DConnexion {
+public:
+  vrpn_3DConnexion_SpacePilot(const char *name, vrpn_Connection *c = 0);
+  virtual ~vrpn_3DConnexion_SpacePilot() {};
+
+protected:
+};
 
 // end of VRPN_3DCONNEXION_H
 #endif

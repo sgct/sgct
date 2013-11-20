@@ -1,15 +1,21 @@
-#include "vrpn_HumanInterface.h"
-#include <stdio.h>
+#include <stddef.h>                     // for size_t
+#include <stdio.h>                      // for printf, fprintf, puts, NULL, etc
+
+#include "vrpn_Configure.h"             // for VRPN_USE_HID
+#include "vrpn_HumanInterface.h"        // for vrpn_HidAcceptor (ptr only), etc
+#include "vrpn_Types.h"                 // for vrpn_uint8, vrpn_uint16
 #ifdef _WIN32
 #include <conio.h>
 #endif
-#include <sstream>
+#include <sstream>                      // for istringstream, basic_ios, etc
+#include <string>                       // for operator==, string, etc
 
 #if defined(VRPN_USE_HID)
 class HidDebug: public vrpn_HidInterface {
 	public:
 		HidDebug(vrpn_HidAcceptor *a);
 		~HidDebug() { }
+
 	protected:
 		void on_data_received(size_t bytes, vrpn_uint8 *buffer);
 };
@@ -17,10 +23,20 @@ class HidDebug: public vrpn_HidInterface {
 HidDebug::HidDebug(vrpn_HidAcceptor *a): vrpn_HidInterface(a) { }
 
 void HidDebug::on_data_received(size_t bytes, vrpn_uint8 *buffer) {
+#ifdef TEST
+	for (size_t i = 0; i < (bytes / 2); i++) {
+		if ((i != 0) && ((i % 20) == 0))
+		{
+			printf("\n");
+		}
+		printf("%02X ", buffer[i]);
+	}
+#else
 	printf("%d bytes: ", static_cast<int>(bytes));
 	for (size_t i = 0; i < bytes; i++) {
 		printf("%02X ", buffer[i]);
 	}
+#endif // TEST
 	puts("");
 }
 #endif

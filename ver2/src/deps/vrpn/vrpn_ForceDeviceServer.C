@@ -2,6 +2,9 @@
 //
 //////////////////////////////////////////////////////////////////////
 
+#include <stdio.h>                      // for fprintf, stderr, NULL
+
+#include "vrpn_Connection.h"            // for vrpn_HANDLERPARAM, etc
 #include "vrpn_ForceDeviceServer.h"
 
 //////////////////////////////////////////////////////////////////////
@@ -120,7 +123,7 @@ int vrpn_ForceDeviceServer::handle_addObject_message(void *userdata, vrpn_HANDLE
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -143,7 +146,7 @@ int vrpn_ForceDeviceServer::handle_addObjectExScene_message(void *userdata, vrpn
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -170,7 +173,7 @@ int vrpn_ForceDeviceServer::handle_setVertex_message(void *userdata,
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -198,7 +201,7 @@ int vrpn_ForceDeviceServer::handle_setNormal_message(void *userdata,
     
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -221,7 +224,7 @@ int vrpn_ForceDeviceServer::handle_setTriangle_message(void *userdata,
 	  &triNum, &v0, &v1, &v2, &n0, &n1, &n2);
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -247,7 +250,7 @@ int vrpn_ForceDeviceServer::handle_removeTriangle_message(void *userdata,
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -274,7 +277,7 @@ int vrpn_ForceDeviceServer::handle_updateTrimeshChanges_message(void *userdata,
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -295,7 +298,7 @@ int vrpn_ForceDeviceServer::handle_setTrimeshType_message(void *userdata,
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -314,7 +317,7 @@ int vrpn_ForceDeviceServer::handle_clearTrimesh_message(void *userdata,
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -336,7 +339,7 @@ int vrpn_ForceDeviceServer::handle_transformTrimesh_message(void *userdata,
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -358,7 +361,7 @@ int vrpn_ForceDeviceServer::handle_setObjectPosition_message(void *userdata, vrp
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -381,7 +384,7 @@ int vrpn_ForceDeviceServer::handle_setObjectOrientation_message(void *userdata, 
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -402,7 +405,7 @@ int vrpn_ForceDeviceServer::handle_setObjectScale_message(void *userdata, vrpn_H
 
  #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -422,7 +425,7 @@ int vrpn_ForceDeviceServer::handle_removeObject_message(void *userdata, vrpn_HAN
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -443,7 +446,7 @@ int vrpn_ForceDeviceServer::handle_moveToParent_message(void *userdata, vrpn_HAN
  
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -465,7 +468,7 @@ int vrpn_ForceDeviceServer::handle_setHapticOrigin_message(void *userdata, vrpn_
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -484,7 +487,7 @@ int vrpn_ForceDeviceServer::handle_setHapticScale_message(void *userdata, vrpn_H
 
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -505,7 +508,7 @@ int vrpn_ForceDeviceServer::handle_setSceneOrigin_message(void *userdata, vrpn_H
   
 #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else
@@ -525,7 +528,7 @@ int vrpn_ForceDeviceServer::handle_setObjectIsTouchable_message(void *userdata, 
 
  #ifdef	VRPN_USE_HDAPI
   struct timeval now;
-  gettimeofday(&now, NULL);
+  vrpn_gettimeofday(&now, NULL);
   me->send_text_message("Trimesh not supported under HDAPI",now, vrpn_TEXT_ERROR);
   return 0;
 #else

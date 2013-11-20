@@ -1,14 +1,10 @@
 #ifndef VRPN_TIMECODE_GENERATOR_H
 #define VRPN_TIMECODE_GENERATOR_H
 
-#include "vrpn_Analog.h"
+#include "vrpn_Configure.h" // IWYU pragma: keep
 #ifdef	VRPN_INCLUDE_TIMECODE_SERVER
 
-/* This library is C code. When programming in C++, there may be a problem with
-   decorated names of the library, C++ can't recognize the C names in a library. */
-extern "C"{
-	#include "aecinttc.h"    // PROTOTYPES OF THE AECPC-TC.DLL FUNCTIONS
-}
+#include "vrpn_Analog.h"
 
 class vrpn_Timecode_Generator : public vrpn_Analog_Server {
 public:

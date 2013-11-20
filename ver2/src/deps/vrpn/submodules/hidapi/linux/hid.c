@@ -203,17 +203,6 @@ end:
 	return ret;
 }
 
-int HID_API_EXPORT hid_init(void)
-{
-	/* Nothing to do for this in the Linux/hidraw implementation. */
-	return 0;
-}
-
-int HID_API_EXPORT hid_exit(void)
-{
-	/* Nothing to do for this in the Linux/hidraw implementation. */
-	return 0;
-}
 
 struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, unsigned short product_id)
 {
@@ -244,9 +233,8 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 		const char *sysfs_path;
 		const char *dev_path;
 		const char *str;
-		struct udev_device *hid_dev; // The device's HID udev node.
+		struct udev_device *hid_dev; // The device's HID interface.
 		struct udev_device *dev; // The actual hardware device.
-		struct udev_device *intf_dev; // The device's interface (in the USB sense).
 		unsigned short dev_vid;
 		unsigned short dev_pid;
 		
@@ -323,26 +311,17 @@ struct hid_device_info  HID_API_EXPORT *hid_enumerate(unsigned short vendor_id, 
 			str = udev_device_get_sysattr_value(dev, "bcdDevice");
 			cur_dev->release_number = (str)? strtol(str, NULL, 16): 0x0;
 			
-			/* Interface Number */
+			/* Interface Number (Unsupported on Linux/hidraw) */
 			cur_dev->interface_number = -1;
-			/* Get a handle to the interface's udev node. */
-			intf_dev = udev_device_get_parent_with_subsystem_devtype(
-				   hid_dev,
-				   "usb",
-				   "usb_interface");
-			if (intf_dev) {
-				str = udev_device_get_sysattr_value(intf_dev, "bInterfaceNumber");
-				cur_dev->interface_number = (str)? strtol(str, NULL, 16): -1;
-			}
+
 		}
 		else
 			goto next;
 
 	next:
 		udev_device_unref(hid_dev);
-		/* dev and intf_dev don't need to be (and can't be)
-		   unref()d.  It will cause a double-free() error.  I'm not
-		   sure why.  */
+		/* dev doesn't need to be (and can't be) unref()d. It will
+		   cause a double-free() error. I'm not sure why. */
 	}
 	/* Free the enumerator and udev objects. */
 	udev_enumerate_unref(enumerate);

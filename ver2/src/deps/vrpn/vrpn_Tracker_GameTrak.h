@@ -8,11 +8,13 @@
 #ifndef VRPN_TRACKER_GAMETRAK_H_
 #define VRPN_TRACKER_GAMETRAK_H_
 
-#include <string>
+#include "vrpn_Analog.h"                // for vrpn_ANALOGCB, etc
+#include "vrpn_Configure.h"             // for VRPN_API, VRPN_CALLBACK
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Tracker.h"               // for vrpn_Tracker
+#include "vrpn_Types.h"                 // for vrpn_float64
 
-#include "vrpn_Configure.h"
-#include "vrpn_Tracker.h"
-#include "vrpn_Analog.h"
+class VRPN_API vrpn_Connection;
 
 class VRPN_API vrpn_Tracker_GameTrak: public vrpn_Tracker
 {
@@ -25,9 +27,6 @@ class VRPN_API vrpn_Tracker_GameTrak: public vrpn_Tracker
 
     protected:
         int _mapping[6];
-        std::string _name;
-        vrpn_Connection *_con;
-        std::string _joydev;
 
         bool _should_report;
         vrpn_float64 _sensor0[3], _sensor1[3];

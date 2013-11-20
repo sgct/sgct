@@ -1,17 +1,19 @@
 // test_logging.C
 //    This is a VRPN test program that has both clients and servers
 // running within the same thread. It is intended to test the logging of
-// messages and the replay of those messages from the saved log filess
+// messages and the replay of those messages from the saved log files
 //    The program uses VRPN text send/receive to make the logged messages
 // flow from both the client to the server and the server to the client.
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <string.h>
-#include "vrpn_Text.h"
+#include <stdio.h>                      // for NULL, fprintf, printf, etc
+#include <string.h>                     // for strlen
+
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, etc
+#include "vrpn_Connection.h"            // for vrpn_Connection, etc
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
+#include "vrpn_Text.h"                  // for vrpn_Text_Receiver, etc
 #ifndef _WIN32
-#include <unistd.h>
+#include <unistd.h>                     // for unlink
 #endif
 
 const char  *CLIENT_TEXT_NAME = "Text0";
@@ -158,7 +160,7 @@ int check_for_messages_in(const char *device_name, const char *file_name)
   while ( now.tv_sec - start.tv_sec < 3 ) {
     r->mainloop();
     vrpn_gettimeofday(&now, NULL);
-  }  
+  }
 
   //---------------------------------------------------------------------
   // Delete the receiver, which should also get rid of the connection.
@@ -305,7 +307,15 @@ int main (int argc, char * argv [])
   }
 
   //---------------------------------------------------------------------
-  // Mainloop the sever connection to make sure we close all open links
+  // Try re-writing the same log file a couple of times.  This turned up a
+  // crash case before.  We do it twice because it may save an emergency
+  // log file in temp the first time.
+  printf("Testing for crash when attempt to rewrite file with client-out\n");
+  open_client_connection_and_loop(NULL, CLIENT_CLIENT_OUTGOING_LOG, NULL, NULL);
+  open_client_connection_and_loop(NULL, CLIENT_CLIENT_OUTGOING_LOG, NULL, NULL);
+
+  //---------------------------------------------------------------------
+  // Mainloop the server connection to make sure we close all open links
   printf("Waiting for connections to close\n");
   vrpn_gettimeofday(&now, NULL);
   start = now;
@@ -349,30 +359,37 @@ int main (int argc, char * argv [])
     ret = -5;
   }
 
-  //---------------------------------------------------------------------
-  // Try re-writing the same log file a couple of times.  This turned up a
-  // crash case before.  We do it twice because it may save an emergency
-  // log file in temp the first time.
-  printf("Testing for crash when attempt to rewrite file with client-out\n");
-  open_client_connection_and_loop(NULL, CLIENT_CLIENT_OUTGOING_LOG, NULL, NULL);
-  if (0 == open_client_connection_and_loop(NULL, CLIENT_CLIENT_OUTGOING_LOG, NULL, NULL)) {
-    fprintf(stderr,"Unexpected success when writing to existing server-side outgoing log file\n");
-    ret = -6;
-  }
-
   // Clean up after ourselves by deleting the log files.
   printf("Deleting log files\n");
   // Don't complain about using "unlink"
+#ifdef _MSC_VER
 #pragma warning ( disable : 4996 )
-  unlink(make_server_incoming_name(SERVER_BASE_INCOMING_LOG,1));
-  unlink(make_server_incoming_name(SERVER_BASE_INCOMING_LOG,2));
-  unlink(make_server_incoming_name(SERVER_BASE_INCOMING_LOG,3));
-  unlink(make_server_incoming_name(SERVER_BASE_INCOMING_LOG,4));
+#endif
+
+  char * name;
+  name = make_server_incoming_name(SERVER_BASE_INCOMING_LOG,1);
+  unlink(name);
+  delete[] name;
+
+  name = make_server_incoming_name(SERVER_BASE_INCOMING_LOG,2);
+  unlink(name);
+  delete[] name;
+
+  name = make_server_incoming_name(SERVER_BASE_INCOMING_LOG,3);
+  unlink(name);
+  delete[] name;
+
+  name = make_server_incoming_name(SERVER_BASE_INCOMING_LOG,4);
+  unlink(name);
+  delete[] name;
+
   unlink(SERVER_BASE_OUTGOING_LOG);
   unlink(CLIENT_CLIENT_INCOMING_LOG);
   unlink(CLIENT_CLIENT_OUTGOING_LOG);
   unlink(CLIENT_SERVER_INCOMING_LOG);
   unlink(CLIENT_SERVER_OUTGOING_LOG);
+
+  unlink("/tmp/vrpn_emergency_log");
 
   if (ret == 0) {
     printf("Success!\n");

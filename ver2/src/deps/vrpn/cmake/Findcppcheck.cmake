@@ -64,6 +64,10 @@ set(CMAKE_FIND_APPBUNDLE ${_oldappbundlesetting})
 # Find out where our test file is
 get_filename_component(_cppcheckmoddir ${CMAKE_CURRENT_LIST_FILE} PATH)
 set(_cppcheckdummyfile "${_cppcheckmoddir}/Findcppcheck.cpp")
+if(NOT EXISTS "${_cppcheckdummyfile}")
+	message(FATAL_ERROR
+		"Missing file ${_cppcheckdummyfile} - should be alongside Findcppcheck.cmake, can be found at https://github.com/rpavlik/cmake-modules")
+endif()
 
 function(_cppcheck_test_arg _resultvar _arg)
 	if(NOT CPPCHECK_EXECUTABLE)
@@ -102,11 +106,14 @@ if(CPPCHECK_EXECUTABLE)
 	_cppcheck_set_arg_var(CPPCHECK_STYLE_ARG "--style")
 	if("${CPPCHECK_STYLE_ARG}" STREQUAL "--enable=style")
 
-		_cppcheck_set_arg_var(CPPCHECK_UNUSEDFUNC_ARG "--enable=unusedFunctions")
+		_cppcheck_set_arg_var(CPPCHECK_UNUSEDFUNC_ARG
+			"--enable=unusedFunctions")
 		_cppcheck_set_arg_var(CPPCHECK_INFORMATION_ARG "--enable=information")
-		_cppcheck_set_arg_var(CPPCHECK_MISSINGINCLUDE_ARG "--enable=missingInclude")
+		_cppcheck_set_arg_var(CPPCHECK_MISSINGINCLUDE_ARG
+			"--enable=missingInclude")
 		_cppcheck_set_arg_var(CPPCHECK_POSIX_ARG "--enable=posix")
-		_cppcheck_set_arg_var(CPPCHECK_POSSIBLEERROR_ARG "--enable=possibleError")
+		_cppcheck_set_arg_var(CPPCHECK_POSSIBLEERROR_ARG
+			"--enable=possibleError")
 		_cppcheck_set_arg_var(CPPCHECK_POSSIBLEERROR_ARG "--enable=all")
 
 		if(MSVC)

@@ -28,10 +28,13 @@
 // alternate reset string that works on his.  This is sent if the
 // 'altreset' parameter is true in the constructor.
 
-#include <string.h>
+#include <stdio.h>                      // for fprintf, stderr
+#include <string.h>                     // for strlen, NULL, strcmp
+
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
 #include "vrpn_Magellan.h"
-#include "vrpn_Shared.h"
 #include "vrpn_Serial.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_SleepMsecs, etc
 
 #undef VERBOSE
 
@@ -45,8 +48,8 @@
 // This routine writes out the characters slowly, so as not to
 // overburden the poor Magellan, which seems to choke when a
 // bunch of characters are all sent at once.
-static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWait)
-{	int	i;
+static	int	vrpn_write_slowly(int fd, unsigned char *buffer, size_t len, int MsecWait)
+{	size_t	i;
 
 	for (i = 0; i < len; i++) {
 		vrpn_SleepMsecs(MsecWait);
@@ -54,7 +57,7 @@ static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWai
 			return -1;
 		}
 	}
-	return len;
+	return static_cast<int>(len);
 }
 
 
@@ -65,7 +68,7 @@ static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWai
 vrpn_Magellan::vrpn_Magellan (const char * name, vrpn_Connection * c,
 			const char * port, int baud, bool altreset):
 		vrpn_Serial_Analog(name, c, port, baud),
-		vrpn_Button(name, c),
+		vrpn_Button_Filter(name, c),
 		_numbuttons(9),
 		_numchannels(6),
 		_null_radius(8),

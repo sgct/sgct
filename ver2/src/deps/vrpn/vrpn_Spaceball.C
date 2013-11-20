@@ -67,16 +67,19 @@
 //   johns@ks.uiuc.edu
 //
 
-#include <string.h>
+#include <stdio.h>                      // for fprintf, stderr
+#include <string.h>                     // for NULL, strlen
+
+#include "vrpn_Serial.h"                // for vrpn_flush_input_buffer, etc
+#include "vrpn_Shared.h"                // for timeval, vrpn_SleepMsecs, etc
 #include "vrpn_Spaceball.h"
-#include "vrpn_Shared.h"
-#include "vrpn_Serial.h"
 
 // turn on for debugging code, leave off otherwise
 #undef VERBOSE
 
 #if defined(VERBOSE) 
 #include <ctype.h> // for isprint()
+
 #define DEBUG 1
 #endif
 
@@ -88,8 +91,8 @@
 
 // This routine writes out the characters slowly, so as not to
 // overburden the Spaceball (came from VRPN Magellan driver code)
-static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWait)
-{	int	i;
+static	int	vrpn_write_slowly(int fd, unsigned char *buffer, size_t len, int MsecWait)
+{	size_t	i;
 
 	for (i = 0; i < len; i++) {
 		vrpn_SleepMsecs(MsecWait);
@@ -97,7 +100,7 @@ static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWai
 			return -1;
 		}
 	}
-	return len;
+	return static_cast<int>(len);
 }
 
 
@@ -106,7 +109,7 @@ static	int	vrpn_write_slowly(int fd, unsigned char *buffer, int len, int MsecWai
 vrpn_Spaceball::vrpn_Spaceball (const char * name, vrpn_Connection * c,
 			const char * port, int baud):
 		vrpn_Serial_Analog(name, c, port, baud),
-		vrpn_Button(name, c),
+		vrpn_Button_Filter(name, c),
 		_numbuttons(12),
 		_numchannels(6),
 		null_radius(8)
@@ -201,7 +204,7 @@ int vrpn_Spaceball::get_report(void)
   // pending packets we're trying to process.
   if (num > 0) {
     for (i=0; i<num; i++) {
-      /* process potentially occuring escaped character sequences */
+      /* process potentially occurring escaped character sequences */
       if (rawbuf[i] == '^') {
         if (!escapedchar) {
           escapedchar = 1;

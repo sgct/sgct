@@ -1,10 +1,9 @@
-#include <vrpn_Connection.h>
+#include <stdio.h>                      // for fprintf, fclose, fopen, etc
+#include <stdlib.h>                     // for exit
+#include <vrpn_Connection.h>            // for vrpn_cookie_size, etc
 
-#include <stdlib.h>  // exit()
-//#include <stdio.h>  // fopen(), fclose()
-
-// Reads a vrpn log;  writes out the same log with a (current-version)
-// magic cookie in front.
+static const char DESC[] = "Reads a vrpn log;  writes out the same log with a (current-version) "
+	"magic cookie in front.";
 
 // TODO:
 //   Smart checking of command-line arguments
@@ -13,6 +12,7 @@
 //   ?  Allow the user to specify cookie version inserted (non-current)
 
 void Usage (char * name) {
+  fprintf(stderr, "%s\n", DESC);
   fprintf(stderr, "Usage:  %s <input filename> <output filename>\n",
           name);
 }
@@ -67,7 +67,7 @@ int main (int argc, char ** argv) {
     goto CLEANUP;
   }
 
-  retval = fwrite(magicbuf, 1, vrpn_cookie_size(), f_out);
+  retval = static_cast<int>(fwrite(magicbuf, 1, vrpn_cookie_size(), f_out));
   if (retval != vrpn_cookie_size()) {
     fprintf(stderr, "vrpn_Connection::close_log:  "
                     "Couldn't write magic cookie to log file "

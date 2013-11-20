@@ -6,21 +6,16 @@
 #ifndef VRPN_TRACKER_GPS_H
 #define VRPN_TRACKER_GPS_H
 
-#include <time.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#ifndef _WIN32
-#include <sys/time.h>
-#endif
+#include "vrpn_Configure.h"             // for VRPN_API
 
-#include "vrpn_Tracker.h"
-#include "vrpn_Button.h"
-#include "vrpn_Analog.h"
+#include <stdio.h>                      // for FILE
 
-#include "gpsnmealib/nmeaParser.h"
-#include "gpsnmealib/utmCoord.h"
-#include "gpsnmealib/latLonCoord.h" //-eb
+#include "gpsnmealib/nmeaParser.h"      // for NMEAData, NMEAParser
+#include "gpsnmealib/utmCoord.h"        // for UTMCoord
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Tracker.h"               // for VRPN_TRACKER_BUF_SIZE, etc
+
+class VRPN_API vrpn_Connection;
 
 class vrpn_Tracker_GPS: public vrpn_Tracker_Serial {
   

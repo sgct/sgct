@@ -3,11 +3,12 @@
 // Written by Jason Bevins in 1998.  File is in the public domain.
 //
 
+#include "gpsnmealib/nmeaParser.h"      // for GPS_FIX_QUALITY
 #include "typedCoord.h"
 #ifdef sgi
 #include <math.h>
 #else
-#include <cmath>
+#include <cmath>                        // for sqrt, atan2, cos, sin, fabs
 #endif
 
 // Mmmmm, pi...
@@ -31,7 +32,7 @@ static double mod (double num, double divisor)
 /////////////////////////////////////////////////////////////////////////////
 // TypedCoord operators
 
-const TypedCoord& TypedCoord::operator= (const TypedCoord& other)
+TypedCoord& TypedCoord::operator= (const TypedCoord& other)
 {
   double lat, lon;
   other.getLatLonCoord (lat, lon);

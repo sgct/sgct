@@ -69,7 +69,7 @@ extern "C" {
 			    (Windows/Mac only).*/
 			unsigned short usage;
 			/** The USB interface which this logical device
-			    represents. Valid on both Linux implementations
+			    represents. Valid on the Linux/libusb implementation
 			    in all cases, and valid on the Windows implementation
 			    only if the device contains more than one interface. */
 			int interface_number;
@@ -78,35 +78,6 @@ extern "C" {
 			struct hid_device_info *next;
 		};
 
-
-		/** @brief Initialize the HIDAPI library.
-
-			This function initializes the HIDAPI library. Calling it is not
-			strictly necessary, as it will be called automatically by
-			hid_enumerate() and any of the hid_open_*() functions if it is
-			needed.  This function should be called at the beginning of
-			execution however, if there is a chance of HIDAPI handles
-			being opened by different threads simultaneously.
-			
-			@ingroup API
-
-			@returns
-				This function returns 0 on success and -1 on error.
-		*/
-		int HID_API_EXPORT HID_API_CALL hid_init(void);
-
-		/** @brief Finalize the HIDAPI library.
-
-			This function frees all of the static data associated with
-			HIDAPI. It should be called at the end of execution to avoid
-			memory leaks.
-
-			@ingroup API
-
-		    @returns
-				This function returns 0 on success and -1 on error.
-		*/
-		int HID_API_EXPORT HID_API_CALL hid_exit(void);
 
 		/** @brief Enumerate the HID Devices.
 

@@ -1,22 +1,18 @@
 // vrpn_3DConnexion.C: VRPN driver for 3DConnexion
 //  Space Navigator, Space Traveler, Space Explorer, Space Mouse, Spaceball 5000
+#include <string.h>                     // for memset
+
+#include "vrpn_3DConnexion.h"
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_WARNING
 
 // There is a non-HID Linux-based driver for this device that has a capability
 // not implemented in the HID interface.  It uses the input.h interface.
 #if defined(linux) && !defined(VRPN_USE_HID)
+#define VRPN_USING_3DCONNEXION_EVENT_IFACE
 #include <linux/input.h>
+#include <stdlib.h> // for malloc, free, etc
+#include <unistd.h> // for write, etc
 #endif
-
-#include "vrpn_BufferUtils.h"
-#include "vrpn_3DConnexion.h"
-#include <fcntl.h>
-#include <stdio.h>
-#include <stdlib.h>
-#if !defined(_WIN32)
-#include <sys/ioctl.h>
-#include <unistd.h>
-#endif
-#include <string.h>
 
 typedef struct input_devinfo {
         vrpn_uint16 bustype;
@@ -26,16 +22,19 @@ typedef struct input_devinfo {
 } XXX_should_have_been_in_system_includes;
 
 // USB vendor and product IDs for the models we support
-static const vrpn_uint16 vrpn_3DCONNEXION_VENDOR = 1133;
+static const vrpn_uint16 vrpn_3DCONNEXION_VENDOR = 0x046d; //1133;	// 3Dconnexion is made by Logitech
 static const vrpn_uint16 vrpn_3DCONNEXION_TRAVELER = 50723;
 static const vrpn_uint16 vrpn_3DCONNEXION_NAVIGATOR = 50726;
+static const vrpn_uint16 vrpn_3DCONNEXION_NAVIGATOR_FOR_NOTEBOOKS = 0xc628;	// 50728;
 static const vrpn_uint16 vrpn_3DCONNEXION_SPACEEXPLORER = 0xc627;   // 50727
 static const vrpn_uint16 vrpn_3DCONNEXION_SPACEMOUSE = 50691;
+static const vrpn_uint16 vrpn_3DCONNEXION_SPACEMOUSEPRO = 50731;
 static const vrpn_uint16 vrpn_3DCONNEXION_SPACEBALL5000 = 0xc621;   // 50721;
+static const vrpn_uint16 vrpn_3DCONNEXION_SPACEPILOT =  0xc625;
 
 vrpn_3DConnexion::vrpn_3DConnexion(vrpn_HidAcceptor *filter, unsigned num_buttons,
                                    const char *name, vrpn_Connection *c)
-  : vrpn_Button(name, c)
+  : vrpn_Button_Filter(name, c)
   , vrpn_Analog(name, c)
 #if defined(VRPN_USE_HID)
   , vrpn_HidInterface(_filter)
@@ -54,7 +53,7 @@ vrpn_3DConnexion::vrpn_3DConnexion(vrpn_HidAcceptor *filter, unsigned num_button
 // There is a non-HID Linux-based driver for this device that has a capability
 // not implemented in the HID interface.  It is implemented using the Event
 // interface.
-#if defined(linux) && !defined(VRPN_USE_HID)
+#if defined(VRPN_USING_3DCONNEXION_EVENT_IFACE)
   // Use the Event interface to open devices looking for the one
   // we want.  Call the acceptor with all the devices we find
   // until we get one that we want.
@@ -99,18 +98,13 @@ vrpn_3DConnexion::vrpn_3DConnexion(vrpn_HidAcceptor *filter, unsigned num_button
 
 vrpn_3DConnexion::~vrpn_3DConnexion()
 {
-#if defined(linux) && !defined(VRPN_USE_HID)
+#if defined(VRPN_USING_3DCONNEXION_EVENT_IFACE)
 	set_led(0);
 #endif
         delete _filter;
 }
 
 #if defined(VRPN_USE_HID)
-void vrpn_3DConnexion::reconnect()
-{
-	vrpn_HidInterface::reconnect();
-}
-
 void vrpn_3DConnexion::on_data_received(size_t bytes, vrpn_uint8 *buffer)
 {
   decodePacket(bytes, buffer);
@@ -124,7 +118,7 @@ void vrpn_3DConnexion::mainloop()
 	// XXX If we get a 2-byte report mixed in, then something is going to get
 	// truncated.
 	update();
-#elif defined(linux) && !defined(VRPN_USE_HID)
+#elif defined(VRPN_USING_3DCONNEXION_EVENT_IFACE)
     struct timeval zerotime;
     fd_set fdset;
     struct input_event ev;
@@ -212,11 +206,12 @@ int vrpn_3DConnexion::set_led(int led_state)
 #if defined(VRPN_USE_HID)
 void vrpn_3DConnexion::decodePacket(size_t bytes, vrpn_uint8 *buffer)
 {
-#if defined(__APPLE__)
-  // force 2 byte button events on APPLE into 7 bytes like we get for axis
-  // XXX Why is this done?
-  if (bytes == 2) bytes = 7;
-#endif
+  // Force 'small' buffers (ie button under linux - 3 bytes - and apple - 2 bytes - into 7 bytes
+  // so we get through the report loop once.  XXX Problem: this is skipping 7 bytes per report
+  // regardless of how many bytes were in the report.  This is going to get us into trouble for
+  // multi-report packets.  Instead, we should go until we've parsed all characters and add the
+  // number characters parsed each time rather than a constant 7 reports.
+  if(bytes<7) bytes=7; 
   // Decode all full reports.
   // Full reports for all of the pro devices are 7 bytes long (the first
   // byte is the report type, because this device has multiple ones the
@@ -312,6 +307,11 @@ vrpn_3DConnexion_Navigator::vrpn_3DConnexion_Navigator(const char *name, vrpn_Co
 {
 }
 
+vrpn_3DConnexion_Navigator_for_Notebooks::vrpn_3DConnexion_Navigator_for_Notebooks(const char *name, vrpn_Connection *c)
+  : vrpn_3DConnexion(_filter = new vrpn_HidProductAcceptor(vrpn_3DCONNEXION_VENDOR, vrpn_3DCONNEXION_NAVIGATOR_FOR_NOTEBOOKS), 2, name, c)
+{
+}
+
 vrpn_3DConnexion_Traveler::vrpn_3DConnexion_Traveler(const char *name, vrpn_Connection *c)
   : vrpn_3DConnexion(_filter = new vrpn_HidProductAcceptor(vrpn_3DCONNEXION_VENDOR, vrpn_3DCONNEXION_TRAVELER), 8, name, c)
 {
@@ -320,6 +320,11 @@ vrpn_3DConnexion_Traveler::vrpn_3DConnexion_Traveler(const char *name, vrpn_Conn
 vrpn_3DConnexion_SpaceMouse::vrpn_3DConnexion_SpaceMouse(const char *name, vrpn_Connection *c)
   : vrpn_3DConnexion(_filter = new vrpn_HidProductAcceptor(vrpn_3DCONNEXION_VENDOR, vrpn_3DCONNEXION_SPACEMOUSE), 11, name, c)
 {
+}
+
+vrpn_3DConnexion_SpaceMousePro::vrpn_3DConnexion_SpaceMousePro(const char *name, vrpn_Connection *c)
+: vrpn_3DConnexion(_filter = new vrpn_HidProductAcceptor(vrpn_3DCONNEXION_VENDOR, vrpn_3DCONNEXION_SPACEMOUSEPRO), 27, name, c)
+{	// 15 physical buttons are numbered: 0-2, 4-5, 8, 12-15, 22-26
 }
 
 vrpn_3DConnexion_SpaceExplorer::vrpn_3DConnexion_SpaceExplorer(const char *name, vrpn_Connection *c)
@@ -332,3 +337,7 @@ vrpn_3DConnexion_SpaceBall5000::vrpn_3DConnexion_SpaceBall5000(const char *name,
 {
 }
 
+vrpn_3DConnexion_SpacePilot::vrpn_3DConnexion_SpacePilot(const char *name, vrpn_Connection *c)
+  : vrpn_3DConnexion(_filter = new vrpn_HidProductAcceptor(vrpn_3DCONNEXION_VENDOR, vrpn_3DCONNEXION_SPACEPILOT), 21, name, c)
+{
+}

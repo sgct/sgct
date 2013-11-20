@@ -11,23 +11,17 @@
  *  written by Sascha Scholz <sascha.scholz@imk.fraunhofer.de>
  */
 
+#include <stdio.h>                      // for fprintf, stderr
+
 #include "vrpn_ADBox.h"
+#include "vrpn_Serial.h"                // for vrpn_write_characters, etc
+#include "vrpn_Types.h"                 // for vrpn_float64, vrpn_int32
 
-#include <stdio.h>
-
-#if !defined(_WIN32)
-#include <unistd.h>
-#endif
-
-
-#include <string.h>
-#if defined(linux) || defined(sgi)
-#include <unistd.h>
-#endif
+class VRPN_API vrpn_Connection;
 
 vrpn_ADBox::vrpn_ADBox(char* name, vrpn_Connection *c,
                        const char *port, long baud)
-  : vrpn_Analog(name, c), vrpn_Button(name, c),
+  : vrpn_Analog(name, c), vrpn_Button_Filter(name, c),
     ready(1), serial_fd(0), iNumBytes(0), iNumDigBytes(0), iFilterPos(0)
 {
   // Open the serial port

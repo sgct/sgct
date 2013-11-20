@@ -39,15 +39,19 @@
 // in pixels, but this has been changed to match on both platforms.
 // 
 // vrpn_Mouse must be run on a Linux console, not an xterm.  Rationale:
-// 1) Since the console environment doesn't presume the existance of a mouse,
+// 1) Since the console environment doesn't presume the existence of a mouse,
 //    it avoids issues about mapping mouse events to window focus, etc.
 // 2) With the mouse movement controlled by a different user, it's really
 //    not possible to also use a mouse-based user interface anyway.
 // 3) My VRPN server machine is headless, and doesn't even have an X server.
 ///////////////////////////////////////////////////////////////////////////
 
-#include "vrpn_Analog.h"
-#include "vrpn_Button.h"
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_uint32
 
 class VRPN_API vrpn_Mouse :
 	public vrpn_Analog,
@@ -59,7 +63,7 @@ public:
 
     virtual void mainloop();
 
-    class GpmOpenFailure {};    // thrown when cant open GPM server
+    class GpmOpenFailure {};    // thrown when can't open GPM server
 
 protected:  // methods
     /// Try to read reports from the device.

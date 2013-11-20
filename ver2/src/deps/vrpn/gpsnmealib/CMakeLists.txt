@@ -1,3 +1,7 @@
+if(WIN32)
+    ADD_DEFINITIONS( -D_CRT_SECURE_NO_WARNINGS )
+endif()
+
 set(GPSNMEALIB_PUBLIC_HEADERS
 	nmeaParser.h
 	utmCoord.h
@@ -16,20 +20,17 @@ set_property(TARGET
 	PROPERTY
 	PUBLIC_HEADER
 	${GPSNMEALIB_PUBLIC_HEADERS})
-set_property(TARGET
-	gpsnmea
-	PROPERTY
-	FOLDER
-	"Library")
+set_property(TARGET gpsnmea PROPERTY FOLDER "Library")
 
 install(TARGETS
 	gpsnmea
 	ARCHIVE
 	DESTINATION
 	lib
-	COMPONENT serversdk
-
+	COMPONENT
+	serversdk
 	PUBLIC_HEADER
 	DESTINATION
 	include
-	COMPONENT serversdk)
+	COMPONENT
+	serversdk)

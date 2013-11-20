@@ -1,12 +1,14 @@
-#include "vrpn_ForwarderController.h"
+#include <stdio.h>                      // for fprintf, stderr
+#include <string.h>                     // for memcpy, strlen, NULL, etc
 
-#include <string.h>
-#include <sys/types.h>
+#include "vrpn_Connection.h"            // for vrpn_Connection, etc
+#include "vrpn_ForwarderController.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
 #if !( defined(_WIN32) && defined(VRPN_USE_WINSOCK_SOCKETS) )
-#include <netinet/in.h>  // for ntohl()/htonl()
+#include <netinet/in.h>                 // for htonl, ntohl
 #endif
 
-#include "vrpn_Forwarder.h"
+#include "vrpn_Forwarder.h"             // for vrpn_ConnectionForwarder
 
 vrpn_Forwarder_Brain::vrpn_Forwarder_Brain (vrpn_Connection * c) :
     d_connection (c),
@@ -74,7 +76,7 @@ char * vrpn_Forwarder_Brain::encode_forward_message_type
   vrpn_int32 nSLen;
   vrpn_int32 nTLen;
 
-  *length = 3 * sizeof(vrpn_int32) + strlen(service_name) + strlen(message_type);
+  *length = static_cast<int>(3 * sizeof(vrpn_int32) + strlen(service_name) + strlen(message_type));
   outbuf = new char [*length];
   if (!outbuf) {
     *length = 0;
@@ -88,8 +90,8 @@ char * vrpn_Forwarder_Brain::encode_forward_message_type
   // worry about padding and alignment.
 
   nPort = htonl(remote_port);
-  nSLen = htonl(strlen(service_name));
-  nTLen = htonl(strlen(message_type));
+  nSLen = htonl(static_cast<vrpn_int32>(strlen(service_name)));
+  nTLen = htonl(static_cast<vrpn_int32>(strlen(message_type)));
   memcpy(outbuf, &nPort, sizeof(vrpn_int32));
   memcpy(outbuf + sizeof(vrpn_int32), &nSLen, sizeof(vrpn_int32));
   memcpy(outbuf + 2 * sizeof(vrpn_int32), &nTLen, sizeof(vrpn_int32));

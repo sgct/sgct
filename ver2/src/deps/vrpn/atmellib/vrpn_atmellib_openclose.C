@@ -14,17 +14,15 @@
 
 /* include system headers */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <errno.h>
+#include <errno.h>                      // for ENXIO, error_t
+#include <fcntl.h>                      // for open, O_NOCTTY, O_RDWR
+#include <termios.h>                    // for termios, cfsetispeed, etc
+#include <unistd.h>                     // for close, isatty
 
 /* include i/f header */
 
-#include "vrpn_atmellib.h"
-#include "vrpn_atmellib_helper.h"
+#include "vrpn_atmellib.h"              // for handle_t, handle_invalid
+#include "vrpn_atmellib_errno.h"        // for ATMELLIB_NOERROR
 
 
 /***************************************************************************************************/
@@ -106,7 +104,7 @@ openPort (const char* tty , const int baud, struct termios * init_param)
 }
 
 /***************************************************************************************************/
-/* close the specified port and reset the parameter to the inital values */
+/* close the specified port and reset the parameter to the initial values */
 /***************************************************************************************************/
 /* extern */ error_t
 closePort (handle_t fd , struct termios * init_param)

@@ -13,8 +13,9 @@
 #include "vrpn_Button.h"
 
 #include <basetsd.h>
+#include <mmsystem.h>
 
-class VRPN_API vrpn_Joywin32: public vrpn_Analog, public vrpn_Button
+class VRPN_API vrpn_Joywin32: public vrpn_Analog, public vrpn_Button_Filter
 {
 public:
     vrpn_Joywin32 (const char * name, vrpn_Connection * c, vrpn_uint8 joyNumber = 1, vrpn_float64 readRate = 60, vrpn_uint8 mode = 0, vrpn_int32 deadzone = 0);
@@ -35,6 +36,7 @@ protected:
 
     virtual vrpn_int32 get_report(void);	// Try to read a report from the device
     void	clear_values(void);	// Clear the Analog and Button values
+    void    init_joystick(void); // try to (re-)initialize the joystick
 
    // send report iff changed
     virtual void report_changes (vrpn_uint32 class_of_service

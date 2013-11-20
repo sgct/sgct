@@ -35,9 +35,9 @@ static void * g_fooData;
 static vrpn_int32 g_foo_type;
 static vrpn_int32 g_bar_type;
 
-int handle_real_foo (void * userdata, vrpn_HANDLERPARAM p);
+int VRPN_CALLBACK handle_real_foo (void * userdata, vrpn_HANDLERPARAM p);
 
-int handle_anything_but_foo (void * userdata, vrpn_HANDLERPARAM p) {
+int VRPN_CALLBACK handle_anything_but_foo (void * userdata, vrpn_HANDLERPARAM p) {
   int retval = 0;
 
   if (p.type == g_foo_type) {
@@ -52,15 +52,15 @@ int handle_anything_but_foo (void * userdata, vrpn_HANDLERPARAM p) {
   return retval;
 }
 
-int handle_bar (void * userdata, vrpn_HANDLERPARAM p) {
+int VRPN_CALLBACK handle_bar (void * userdata, vrpn_HANDLERPARAM p) {
 
-  printf("BAR!  At time %ld.%ld.\n", p.msg_time.tv_sec,
-         p.msg_time.tv_usec);
+  printf("BAR!  At time %ld.%ld.\n", static_cast<long>(p.msg_time.tv_sec),
+         static_cast<long>(p.msg_time.tv_usec));
 
   return 0;
 }
 
-int handle_potential_foo (void * userdata, vrpn_HANDLERPARAM p) {
+int VRPN_CALLBACK handle_potential_foo (void * userdata, vrpn_HANDLERPARAM p) {
 
   // HACK - we don't need to delete and new this every time
   // if we keep track of its real length.
@@ -83,10 +83,10 @@ int handle_potential_foo (void * userdata, vrpn_HANDLERPARAM p) {
   return 0;
 }
 
-int handle_real_foo (void * userdata, vrpn_HANDLERPARAM p) {
+int VRPN_CALLBACK handle_real_foo (void * userdata, vrpn_HANDLERPARAM p) {
 
-  printf("FOO!  At time %ld.%ld.\n", p.msg_time.tv_sec,
-         p.msg_time.tv_usec);
+  printf("FOO!  At time %ld.%ld.\n", static_cast<long>(p.msg_time.tv_sec),
+         static_cast<long>(p.msg_time.tv_usec));
 
   return 0;
 }
@@ -96,7 +96,7 @@ int main (int argc, char ** argv) {
   vrpn_Connection * c;
   vrpn_int32 myId;
 
-  c = new vrpn_Synchronized_Connection;
+  c = vrpn_create_server_connection();
 
   myId = c->register_sender ("Me!");
   g_foo_type = c->register_message_type ("Foo?");

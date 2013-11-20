@@ -17,10 +17,13 @@
 // which the device echoes.
 
 
-#include <string.h>
+#include <stdio.h>                      // for sprintf
+#include <string.h>                     // for NULL, memcpy
+
 #include "vrpn_Analog_Radamec_SPI.h"
-#include "vrpn_Shared.h"
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR, etc
 #include "vrpn_Serial.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_unbuffer, etc
 
 #undef VERBOSE
 
@@ -34,12 +37,6 @@
 #define	SPI_ERROR(msg)	    { send_text_message(msg, timestamp, vrpn_TEXT_ERROR) ; if (d_connection) d_connection->send_pending_reports(); }
 
 #define MAX_TIME_INTERVAL       (2000000) // max time between reports (usec)
-
-static	unsigned long	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) +
-	       1000000L * (t1.tv_sec - t2.tv_sec);
-}
 
 // This creates a vrpn_Radamec_SPI and sets it to reset mode. It opens
 // the serial device using the code in the vrpn_Serial_Analog constructor.
@@ -548,7 +545,7 @@ void	vrpn_Radamec_SPI::mainloop()
 
 	    struct timeval current_time;
 	    vrpn_gettimeofday(&current_time, NULL);
-	    if ( duration(current_time,timestamp) > MAX_TIME_INTERVAL) {
+	    if ( vrpn_TimevalDuration(current_time,timestamp) > MAX_TIME_INTERVAL) {
 		    sprintf(errmsg,"Timeout... current_time=%ld:%ld, timestamp=%ld:%ld",
 					current_time.tv_sec, static_cast<long>(current_time.tv_usec),
 					timestamp.tv_sec, static_cast<long>(timestamp.tv_usec));

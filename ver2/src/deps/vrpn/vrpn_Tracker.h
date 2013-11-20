@@ -1,17 +1,6 @@
 #ifndef	vrpn_TRACKER_H
 #define vrpn_TRACKER_H
-
-#ifndef _WIN32_WCE
-#include <time.h>
-#endif
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#ifndef _WIN32
-#ifndef _WIN32_WCE
-#include <sys/time.h>
-#endif
-#endif
+#include <stdio.h>                      // for NULL, FILE
 
 // NOTE: a vrpn tracker must call user callbacks with tracker data (pos and
 //       ori info) which represent the transformation xfSourceFromSensor.
@@ -34,8 +23,11 @@
 // to use time synched tracking, just pass in a sync connection to the 
 // client and the server
 
-#include "vrpn_BaseClass.h"
+#include "vrpn_BaseClass.h"             // for vrpn_Callback_List, etc
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, VRPN_API, etc
 #include "vrpn_Connection.h"
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_float64, vrpn_int32, etc
 
 class VRPN_API vrpn_RedundantTransmission;
 
@@ -60,8 +52,8 @@ class VRPN_API vrpn_Tracker : public vrpn_BaseClass {
   // . You can specify a different config file in the constructor. When
   // you do this, you must also specify a vrpn_Connection. Pass in NULL
   // if you don't have one. This awkwardness is because C++ requires that
-  //only the rightmost arguements can use the default values, and that the
-  //order of arguements must match the base class :(
+  //only the rightmost arguments can use the default values, and that the
+  //order of arguments must match the base class :(
    vrpn_Tracker (const char * name, vrpn_Connection * c = NULL,
 		 const char * tracker_cfg_file_name = NULL);
 
@@ -101,6 +93,8 @@ class VRPN_API vrpn_Tracker : public vrpn_BaseClass {
    vrpn_float64 acc[3], acc_quat[4];	// Cur accel and d2Quat/acc_quat_dt2
    vrpn_float64 acc_quat_dt;		// delta time (in secs) for acc_quat
    struct timeval timestamp;		// Current timestamp
+   vrpn_int32 frame_count;		// Current framecount
+
 
    // The timestamp that the last report was received (Used by the Liberty Driver)
    // Other trackers use timestamp as the watchdog, however due to variable USB
@@ -165,9 +159,52 @@ class VRPN_API vrpn_Tracker_Serial : public vrpn_Tracker {
    /// Reset the tracker.
    virtual void reset(void) = 0;
 
+  public:
    /// Uses the get_report, send_report, and reset routines to implement a server
    virtual void mainloop();
 };
+
+// This driver uses the VRPN-preferred LibUSB-1.0 to control the device.
+#if defined(VRPN_USE_LIBUSB_1_0)
+struct libusb_device_handle; // IWYU pragma: keep
+struct libusb_context; // IWYU pragma: keep
+#define VRPN_TRACKER_USB_BUF_SIZE   1000
+
+class VRPN_API vrpn_Tracker_USB : public vrpn_Tracker {
+  public:
+   vrpn_Tracker_USB
+         (const char * name, vrpn_Connection * c,
+          vrpn_uint16 vendor, vrpn_uint16 product,
+          long baud = 115200);
+   virtual ~vrpn_Tracker_USB();
+
+  protected:
+   struct libusb_device_handle *_device_handle;    // Handle for the USB device
+   struct libusb_context       *_context;          // LibUSB context used for this device
+   vrpn_uint16 _vendor;     // Vendor ID for usb device
+   vrpn_uint16 _product;    // Product ID for usb device
+   long _baudrate;
+
+   vrpn_uint8 buffer[VRPN_TRACKER_USB_BUF_SIZE];  // Characters read in from the tracker
+   vrpn_uint32 bufcount;      // How many characters in the buffer?
+
+   /// Gets reports if some are available, returns 0 if not, 1 if complete report(s).
+   virtual int get_report(void) = 0;
+
+   // Sends the report that was just read.
+   virtual void send_report(void);
+
+   /// Reset the tracker.
+   virtual void reset(void) = 0;
+
+  public:
+   /// Uses the get_report, send_report, and reset routines to implement a server
+   virtual void mainloop();
+};
+
+// End of VRPN_USE_LIBUSB_1_0
+#endif
+
 #endif  // VRPN_CLIENT_ONLY
 
 
@@ -229,7 +266,6 @@ class VRPN_API vrpn_Tracker_Server: public vrpn_Tracker {
 			   const vrpn_uint32 class_of_service = vrpn_CONNECTION_LOW_LATENCY);
 
 };
-
 
 
 //----------------------------------------------------------
@@ -431,4 +467,6 @@ class VRPN_API vrpn_Tracker_Remote: public vrpn_Tracker {
 		    vrpn_HANDLERPARAM p);
 };
 
+// End of vrpn_TRACKER_H
 #endif
+

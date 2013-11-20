@@ -12,16 +12,11 @@
 #ifndef _VRPN_FLOCK_PARALLEL_H_
 #define _VRPN_FLOCK_PARALLEL_H_
 
-#include <time.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#ifndef _WIN32
-#include <sys/time.h>
-#endif
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Flock.h"                 // for vrpn_Tracker_Flock, etc
+#include "vrpn_Types.h"                 // for vrpn_int32
 
-#include "vrpn_Tracker.h"
-#include "vrpn_Flock.h"
+class VRPN_API vrpn_Connection;
 
 // This is a class which provides a server for an ascension 
 // Flock of Birds tracker.  The server will send out messages
@@ -69,7 +64,7 @@ class VRPN_API vrpn_Tracker_Flock_Parallel: public vrpn_Tracker_Flock {
   virtual void reset();
 
   // slave ptrs
-  vrpn_Tracker_Flock_Parallel_Slave *rgSlaves[MAX_SENSORS];
+  vrpn_Tracker_Flock_Parallel_Slave *rgSlaves[VRPN_FLOCK_MAX_SENSORS];
 };
 
 // the special args are the master's vrpn id and tracker pos msg id

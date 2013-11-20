@@ -7,23 +7,19 @@
         and the server machine.
 */
 
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
+#include <math.h>                       // for floor
+#include <stdio.h>                      // for NULL, printf, fprintf, etc
+#include <stdlib.h>                     // for exit
+#include <vrpn_Shared.h>                // for vrpn_gettimeofday, timeval, vrpn_TimevalSum, etc
 #ifndef	_WIN32_WCE
-#include <signal.h>
+#include <signal.h>                     // for signal, SIGINT
 #endif
-#include <string.h>
+#include <string.h>                     // for strcmp
+#include <vrpn_BaseClass.h>             // for vrpn_BaseClass
+#include <vrpn_Connection.h>            // for vrpn_Connection, etc
+#include <vrpn_Tracker.h>               // for vrpn_Tracker_NULL
 
-#ifndef _WIN32
-#ifndef	_WIN32_WCE
-#include <strings.h>
-#endif
-#endif
-
-#include <vrpn_Connection.h>
-#include <vrpn_BaseClass.h>
-#include <vrpn_Tracker.h>
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK
 
 int done = 0;	    // Signals that the program should exit
 
@@ -55,7 +51,7 @@ public:
       // Initialize the member variables used in estimating the time.
       // We want the estimation interval to start two seconds into the
       // future to give things time to settle in and get connected.
-      gettimeofday(&d_next_interval_time, NULL);
+      vrpn_gettimeofday(&d_next_interval_time, NULL);
       d_next_interval_time.tv_sec += 2;
       d_next_ping_time = d_next_interval_time;
 
@@ -86,7 +82,7 @@ public:
 
       // See if it is time for the next interval to start.  Start it if so.
       struct timeval now;
-      gettimeofday(&now, NULL);
+      vrpn_gettimeofday(&now, NULL);
       if (vrpn_TimevalGreater(now, d_next_interval_time) || vrpn_TimevalEqual(now, d_next_interval_time)) {
 
         // If we were doing an estimate, print the results.
@@ -170,13 +166,13 @@ protected:
   static int VRPN_CALLBACK handle_pong(void *userdata, vrpn_HANDLERPARAM p)
   {
     //printf("XXX PONG\n");
-    vrpn_Clock_Drift_Estimator  *me = (vrpn_Clock_Drift_Estimator *)(userdata);
+    vrpn_Clock_Drift_Estimator  *me = static_cast<vrpn_Clock_Drift_Estimator *>(userdata);
 
     // If we're currently estimating, then update the statistics based on
     // the time of the response and the time we asked for a response.
     if (me->d_doing_ping) {
       struct timeval now;
-      gettimeofday(&now, NULL);
+      vrpn_gettimeofday(&now, NULL);
 
       // Find the round trip was by subtracting the time the last
       // ping was sent from the current time.

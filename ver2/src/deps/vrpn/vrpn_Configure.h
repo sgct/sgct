@@ -63,7 +63,12 @@
 //-----------------------
 // Instructs VRPN to use phantom library to construct a unified
 // server, using phantom as a common device, and phantom
-// configuration in .cfg file.
+// configuration in .cfg file.  This will not build (at least
+// on Visual Studio 2008) with the 3.1 version of OpenHaptics.
+// There will be problems with  #include and library directories,
+// and then a failure to link due to undefined symbol.  Use CMAKE
+// if you want to compile with a Phantom -- that version works
+// on VS2008 and 3.1 at least.
 //#define	VRPN_USE_PHANTOM_SERVER
 
 //------------------------
@@ -125,6 +130,10 @@
 //#define	VRPN_USE_DIRECTINPUT
 //#define   VRPN_USE_WINDOWS_XINPUT
 
+// The DirectInput-based zSight tracker requires ATL for smart pointers,
+// which sadly isn't everywhere (VC Express, MXE cross compiling, ...).
+//#define VRPN_HAVE_ATLBASE
+
 //-----------------------
 // Instructs VRPN library and server to include code that uses
 // the DirectShow SDK.  If you set this, you may to edit the
@@ -157,7 +166,7 @@
 
 //-----------------------
 // Instructs VRPN library and server to include code that uses
-// the National Instruments Nidaq libary to control analog outputa.
+// the National Instruments Nidaq library to control analog outputs.
 // Later in this file, we also instruct the compiler to link with
 // the National Instruments libraries if this is defined.  Either or
 // both of these can be defined, depending on which library you
@@ -167,7 +176,7 @@
 
 //-----------------------
 // Instructs VRPN library and server to include code that uses
-// the US Digital SEI/A2 libary to control analog inputs from the
+// the US Digital SEI/A2 library to control analog inputs from the
 // A2 absolute encoder.
 // Later in this file, we also instruct the compiler to link with
 // the US Digital library if this is defined.  You also need to
@@ -189,7 +198,7 @@
 //#define VRPN_USE_MICROSCRIBE
 
 //------------------------
-// Compiles the VRPN libary with the PhaseSpace Tracker using the
+// Compiles the VRPN library with the PhaseSpace Tracker using the
 // PhaseSpace OWL API on Linux and Windows.
 //
 // In Linux:
@@ -361,6 +370,27 @@
 // software must use the same copy of the VPX_InterApp.dll
 //#define VRPN_USE_VIEWPOINT
 
+//------------------------
+// Use DevInput devices.
+#if defined(linux) && !defined(__APPLE__)
+#define VRPN_USE_DEV_INPUT
+#endif
+
+//-------------------------
+// Use Linux kernel joystick support:
+// note that using this kernel header
+// makes the GPL apply to the server!
+#if defined(linux)
+#define VRPN_USE_JOYLIN
+#endif
+
+//------------------------
+// Instructs VRPN to compile code to use the Polhemus Developer
+// (PDI) library to enable opening several of their trackers using
+// this interface (the G4 was the original one this was written
+// for, but new versions are available for the Fastrak and Liberty).
+//#define VRPN_USE_PDI
+
 //------------------------------------------------------------------//
 // SYSTEM CONFIGURATION SECTION                                     //
 // EDIT THESE DEFINITIONS TO POINT TO OPTIONAL LIBRARIES.  THEY ARE //
@@ -440,11 +470,6 @@
   #else
     #pragma comment(lib, VRPN_FREESPACE_LIB_PATH "/Release/libfreespace.lib")
   #endif
-#endif
-
-// Load libowlsock.lib if we're using Phasespace.
-#ifdef	VRPN_INCLUDE_PHASESPACE
-#pragma comment (lib, VRPN_PHASESPACE_LIB_PATH "libowlsock.lib")
 #endif
 
 // Load VRPN Phantom library if we are using phantom server as unified server
@@ -577,6 +602,11 @@
 // build directory instead.
 
 //#pragma message "NOTE: File included \"vrpn_Configure.h\" from the source dir even though this is a CMake build!"
-
-#include <vrpn_Configure.h>
+# ifndef VRPN_CONFIGURE_FORWARDING
+#  define VRPN_CONFIGURE_FORWARDING
+#  include VRPN_USING_CMAKE
+#  undef VRPN_CONFIGURE_FORWARDING
+# else
+#  error "Build system error: non-CMake vrpn_Configure.h being repeatedly/recursively included"
+# endif
 #endif

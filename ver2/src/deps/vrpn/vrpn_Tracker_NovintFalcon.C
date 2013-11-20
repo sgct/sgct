@@ -12,18 +12,15 @@
 // depends:     libnifalcon-1.0.1+, libusb-1.0, boost 1.39, VRPN 07_27
 // tested on:   Linux x86_64 w/ gcc 4.4.1
 
-#include <ctype.h>
-#include <string.h>
-
 #include "vrpn_Tracker_NovintFalcon.h"
 
 #if defined(VRPN_USE_LIBNIFALCON)
-#include "boost/shared_ptr.hpp"
 #include "boost/array.hpp"
 #include "boost/ptr_container/ptr_vector.hpp"
+#include "boost/shared_ptr.hpp"
 #include "falcon/core/FalconDevice.h"
-#include "falcon/grip/FalconGripFourButton.h"
 #include "falcon/firmware/FalconFirmwareNovintSDK.h"
+#include "falcon/grip/FalconGripFourButton.h"
 #include "falcon/kinematic/FalconKinematicStamper.h"
 #include "falcon/util/FalconFirmwareBinaryNvent.h"
 
@@ -453,7 +450,7 @@ protected:
     double m_cutoff;            /// force cutoff radius
     d_vector m_origin;          /// origin of effect
     d_vector m_addforce;        /// additional constant force
-    double m_jacobian[3][3];    /// describes increase in force away from origin in differnt directions.
+    double m_jacobian[3][3];    /// describes increase in force away from origin in different directions.
     double m_newcut;            /// new force cutoff radius
     d_vector m_neworig;         /// new effect origin handed over at update
     d_vector m_newadd;          /// new additional constant force
@@ -514,7 +511,7 @@ vrpn_Tracker_NovintFalcon::vrpn_Tracker_NovintFalcon(const char *name,
                                                      const char *grip,
                                                      const char *kine,
                                                      const char *damp)
-        : vrpn_Tracker(name, c), vrpn_Button(name, c),
+        : vrpn_Tracker(name, c), vrpn_Button_Filter(name, c),
           vrpn_ForceDevice(name, c), m_dev(NULL), m_obj(NULL), m_update_rate(1000.0), m_damp(0.9)
 {
     m_devflags=vrpn_NovintFalcon_Device::MASK_DEVICEIDX & devidx;

@@ -23,6 +23,8 @@
 #HW_OS := powerpc_aix
 #HW_OS := powerpc_macosx
 #HW_OS := universal_macosx
+#HW_OS := macosx_32_64
+#HW_OS := macosx_64
 ##########################
 
 INSTALL_DIR := /usr/local
@@ -158,8 +160,7 @@ $(OBJ_DIR)/%.o: %.cpp
 	$(CC) $(CXXFLAGS) -o $@ -c $<
 
 INSTALL_APPS := vrpn_print_devices forcedevice_test_client vrpn_ping \
-	add_vrpn_cookie vrpn_print_performance
-# vrpn_print_messages
+	add_vrpn_cookie vrpn_print_performance vrpn_print_messages
 
 APPS := $(INSTALL_APPS) printvals printcereal checklogfile logfilesenders \
 	logfiletypes text forwarderClient bdbox_client ff_client phan_client \
@@ -167,10 +168,11 @@ APPS := $(INSTALL_APPS) printvals printcereal checklogfile logfilesenders \
 
 all:	$(APPS)
 
-# $(OBJ_DIR)/ohm_client
-
 .PHONY:	vrpn_print_devices
 vrpn_print_devices:	$(OBJ_DIR)/vrpn_print_devices
+
+.PHONY:	vrpn_print_messages
+vrpn_print_messages:	$(OBJ_DIR)/vrpn_print_messages
 
 .PHONY:	vrpn_print_performance
 vrpn_print_performance:	$(OBJ_DIR)/vrpn_print_performance
@@ -242,6 +244,10 @@ $(OBJ_DIR)/vrpn_print_devices: $(OBJ_DIR)/vrpn_print_devices.o $(LIB_DIR)/libvrp
 	$(CC) $(LFLAGS) -o $(OBJ_DIR)/vrpn_print_devices \
 		$(OBJ_DIR)/vrpn_print_devices.o -lvrpn $(ARCH_LIBS)
 
+$(OBJ_DIR)/vrpn_print_messages: $(OBJ_DIR)/vrpn_print_messages.o $(LIB_DIR)/libvrpn.a
+	$(CC) $(LFLAGS) -o $(OBJ_DIR)/vrpn_print_messages \
+		$(OBJ_DIR)/vrpn_print_messages.o -lvrpn $(ARCH_LIBS)
+
 $(OBJ_DIR)/vrpn_print_performance: $(OBJ_DIR)/vrpn_print_performance.o $(LIB_DIR)/libvrpn.a
 	$(CC) $(LFLAGS) -o $(OBJ_DIR)/vrpn_print_performance \
 		$(OBJ_DIR)/vrpn_print_performance.o -lvrpn $(ARCH_LIBS)
@@ -257,10 +263,6 @@ $(OBJ_DIR)/bdbox_client: $(OBJ_DIR)/bdbox_client.o $(LIB_DIR)/libvrpn.a
 $(OBJ_DIR)/ff_client: $(OBJ_DIR)/ff_client.o $(LIB_DIR)/libvrpn.a
 	$(CC) $(LFLAGS) -o $(OBJ_DIR)/ff_client \
 		$(OBJ_DIR)/ff_client.o -lvrpn $(ARCH_LIBS)
-
-$(OBJ_DIR)/ohm_client: $(OBJ_DIR)/ohm_client.o $(LIB_DIR)/libvrpn.a
-	$(CC) $(LFLAGS) -o $(OBJ_DIR)/ohm_client \
-		$(OBJ_DIR)/ohm_client.o -lvrpn $(ARCH_LIBS)
 
 $(OBJ_DIR)/forcedevice_test_client: $(OBJ_DIR)/forcedevice_test_client.o $(LIB_DIR)/libvrpn.a
 	$(CC) $(LFLAGS) -o $(OBJ_DIR)/forcedevice_test_client \

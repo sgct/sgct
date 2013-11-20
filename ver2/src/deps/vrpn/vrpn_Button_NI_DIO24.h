@@ -4,7 +4,7 @@
 // DIO-24, a PCMCIA card, which provides 24-bit digital I/O.  
 // The I/O is accessed in 3 "ports" with 8 bits per port,
 // though the user is protected from that detail.  The
-// user of this class need only request inputs 1 thru 24.
+// user of this class need only request inputs 1 through 24.
 //
 // Unlike the other National Instrument devices currently
 // in vrpn, this uses their new "mx" library.  To access
@@ -38,7 +38,11 @@
 #ifndef VRPN_BUTTON_NI_DIO24_H
 #define VRPN_BUTTON_NI_DIO24_H
 
-#include "vrpn_Button.h"
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Types.h"                 // for vrpn_int32
+
+class VRPN_API vrpn_Connection;
 #ifdef VRPN_USE_NATIONAL_INSTRUMENTS_MX
 #include <NIDAQmx.h>
 #endif

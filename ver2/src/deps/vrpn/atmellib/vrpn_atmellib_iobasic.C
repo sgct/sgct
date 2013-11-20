@@ -17,19 +17,19 @@
 
 /* include system headers */
 
-#include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
-#include <fcntl.h>
-#include <termios.h>
-#include <errno.h>
-#include <sys/time.h>
-#include <string.h>
+#include <errno.h>                      // for errno, ENXIO, error_t
+#include <stddef.h>                     // for size_t
+#include <stdio.h>                      // for fprintf, stderr, NULL, etc
+#include <string.h>                     // for strerror
+#include <sys/select.h>                 // for select, FD_SET, FD_ZERO, etc
+#include <termios.h>                    // for tcflush, TCIOFLUSH
+#include <unistd.h>                     // for read, write
 
 /* include i/f header */
 
-#include "vrpn_atmellib.h"
-#include "vrpn_atmellib_helper.h"
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_atmellib.h"              // for command_t, handle_t, etc
+#include "vrpn_atmellib_errno.h"        // for ATMELLIB_ERROR_NORESPVAL, etc
 
 /***************************************************************************************************/
 /* read data from the tty */
@@ -146,7 +146,7 @@ getCmd (handle_t fd, struct command_t* Cmd)
   struct timeval start;
   struct timeval end;
   int sec, usec; 
-  gettimeofday( &start , 0);
+  vrpn_gettimeofday( &start , 0);
 #endif
 
   unsigned char PossibilityOne;
@@ -245,7 +245,7 @@ getCmd (handle_t fd, struct command_t* Cmd)
       
 #ifdef VRPN_ATMELLIB_TIME_MEASURE 
        // display time for
-       gettimeofday( &end , 0);
+       vrpn_gettimeofday( &end , 0);
        sec=end.tv_sec-start.tv_sec; 
        usec=end.tv_usec-start.tv_usec; 
        printf("Time for reading out: sec=%i , usec=%i\n", sec, usec);
@@ -279,7 +279,7 @@ setCmd (handle_t fd , struct command_t * Cmd)
   struct timeval start;
   struct timeval end;
   int sec, usec; 
-  gettimeofday( &start , 0);
+  vrpn_gettimeofday( &start , 0);
 #endif
   
   /* check if the given parameters are valid */
@@ -358,7 +358,7 @@ setCmd (handle_t fd , struct command_t * Cmd)
   
 #ifdef ATMELLIB_TIME_MEASURE 
        // display time for
-       gettimeofday( &end , 0);
+       vrpn_gettimeofday( &end , 0);
        sec=end.tv_sec-start.tv_sec; 
        usec=end.tv_usec-start.tv_usec; 
        printf("Time for writing down: sec=%i , usec=%i\n", sec, usec);

@@ -1,18 +1,14 @@
 #ifndef FLOCK_H
 #define FLOCK_H
 
-#include <time.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#ifndef _WIN32
-#include <sys/time.h>
-#endif
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Tracker.h"               // for vrpn_Tracker_Serial
 
-#include "vrpn_Tracker.h"
+class VRPN_API vrpn_Connection;
 
 // only 13 receivers allowed in normal addressing mode
-#define MAX_SENSORS 13
+#define VRPN_FLOCK_MAX_SENSORS 13
 
 // This is a class which provides a server for an Ascension 
 // Flock of Birds tracker.  The server will send out messages

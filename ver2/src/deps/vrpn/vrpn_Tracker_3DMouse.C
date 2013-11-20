@@ -1,12 +1,18 @@
-#include <ctype.h>
+#include <ctype.h>                      // for isprint
+#include <math.h>                       // for cos, sin, M_PI
+#include <stdio.h>                      // for fprintf, stderr, perror
 
 #ifndef _WIN32
-#include <unistd.h>
 #else
 #define M_PI 3.14159265358979323846
 #endif
 
+#include "vrpn_Serial.h"                // for vrpn_write_characters, etc
+#include "vrpn_Shared.h"                // for vrpn_SleepMsecs, timeval
 #include "vrpn_Tracker_3DMouse.h"
+#include "vrpn_Types.h"                 // for vrpn_float64
+
+class VRPN_API vrpn_Connection;
 
 // max time between reports (usec)
 #define MAX_TIME_INTERVAL       (2000000) 
@@ -15,7 +21,7 @@
 vrpn_Tracker_3DMouse::vrpn_Tracker_3DMouse(const char *name, vrpn_Connection *c, 
 		      const char *port, long baud, int filtering_count):
     vrpn_Tracker_Serial(name, c, port, baud),
-    vrpn_Button(name, c),
+    vrpn_Button_Filter(name, c),
     _filtering_count(filtering_count),
     _numbuttons(5)
 {

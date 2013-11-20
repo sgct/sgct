@@ -1,5 +1,4 @@
-#ifndef VRPN_SHARED_H
-#define VRPN_SHARED_H
+#pragma once
 
 // Horrible hack for old HPUX compiler
 #ifdef	hpux
@@ -10,7 +9,16 @@
 #endif
 #endif
 
-#include "vrpn_Types.h"
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Types.h"                 // for vrpn_int32, vrpn_float64, etc
+#include <string.h>                     // for memcpy()
+#include <stdio.h>                      // for fprintf()
+
+#if defined (__ANDROID__)
+#include <bitset>
+#endif
+
+// IWYU pragma: no_include <bits/time.h>
 
 // Oct 2000: Sang-Uok changed because vrpn code was compiling but giving
 // runtime errors with cygwin 1.1. I changed the code so it only uses unix
@@ -28,17 +36,22 @@
 //#define VRPN_CYGWIN_USES_WINSOCK_SOCKETS
 
 #if defined(_WIN32) && (!defined(__CYGWIN__) || defined(VRPN_CYGWIN_USES_WINSOCK_SOCKETS))
-#define VRPN_USE_WINSOCK_SOCKETS
+#  define VRPN_USE_WINSOCK_SOCKETS
 #endif
 
 #ifndef	VRPN_USE_WINSOCK_SOCKETS
 // On Win32, this constant is defined as ~0 (sockets are unsigned ints)
-#define	INVALID_SOCKET	-1
-#define	SOCKET		int
+#  define	INVALID_SOCKET	-1
+#  define	SOCKET		int
+#endif
+
+#if !( defined(_WIN32) && defined(VRPN_USE_WINSOCK_SOCKETS) )
+#include <sys/select.h>                 // for select
+#include <netinet/in.h>                 // for htonl, htons
 #endif
 
 #ifdef	_WIN32_WCE
-#define perror(x) fprintf(stderr,"%s\n",x);
+#  define perror(x) fprintf(stderr,"%s\n",x);
 #endif
 
 // comment from vrpn_Connection.h reads :
@@ -49,7 +62,7 @@
 //   It probably wouldn't hurt to enable it for non-NT systems
 //   as well.
 #ifdef _WIN32
-#define VRPN_USE_WINDOWS_GETHOSTBYNAME_HACK
+#  define VRPN_USE_WINDOWS_GETHOSTBYNAME_HACK
 #endif
 
 //--------------------------------------------------------------
@@ -63,7 +76,7 @@
 // we alias vrpn_gettimeofday() right back to gettimeofday(), so
 // that we are calling the system routine.  On Windows, we will
 // be using vrpn_gettimofday().  So far so good, but now user code
-// would like to no have to know the difference under windows, so
+// would like to not have to know the difference under windows, so
 // we have an optional VRPN configuration setting in vrpn_Configure.h
 // that exports vrpn_gettimeofday() as gettimeofday() and also
 // exports a "struct timezone" definition.  Yucky, but it works and
@@ -71,15 +84,28 @@
 // on Windows.
 
 #if (!defined(VRPN_USE_WINSOCK_SOCKETS))
-#include <sys/time.h>    // for timeval, timezone, gettimeofday
-#define vrpn_gettimeofday gettimeofday
+#  include <sys/time.h>    // for timeval, timezone, gettimeofday
+#  define vrpn_gettimeofday gettimeofday
 #else  // winsock sockets
 
-  #include <windows.h>
-#ifndef _WIN32_WCE
-  #include <sys/timeb.h>
-#endif
-  #include <winsock.h>    // struct timeval is defined here
+// These are a pair of horrible hacks that instruct Windows include
+// files to (1) not define min() and max() in a way that messes up
+// standard-library calls to them, and (2) avoids pulling in a large
+// number of Windows header files.  They are not used directly within
+// the VRPN library, but rather within the Windows include files to
+// change the way they behave.
+
+#  ifndef NOMINMAX
+#    define NOMINMAX
+#  endif
+#  ifndef WIN32_LEAN_AND_MEAN
+#    define WIN32_LEAN_AND_MEAN
+#  endif
+#  include <windows.h>
+#  ifndef _WIN32_WCE
+#    include <sys/timeb.h>
+#  endif
+#  include <winsock.h>    // struct timeval is defined here
 
   // Whether or not we export gettimeofday, we declare the
   // vrpn_gettimeofday() function.
@@ -91,19 +117,21 @@
   // so that application code can get at it.  All VRPN routines should be
   // calling vrpn_gettimeofday() directly.
 
-  #ifdef VRPN_EXPORT_GETTIMEOFDAY
-    #ifndef _STRUCT_TIMEZONE
-      #define _STRUCT_TIMEZONE
+#  if defined(VRPN_EXPORT_GETTIMEOFDAY) && !defined(_STRUCT_TIMEZONE) && !defined(_TIMEZONE_DEFINED)
+#    define _TIMEZONE_DEFINED
       /* from HP-UX */
       struct timezone {
 	  int     tz_minuteswest; /* minutes west of Greenwich */
 	  int     tz_dsttime;     /* type of dst correction */
       };
+#  endif
+#  if defined(VRPN_EXPORT_GETTIMEOFDAY) && !defined(_STRUCT_TIMEZONE)
+      #define _STRUCT_TIMEZONE
 
       // manually define this too.  _WIN32 sans cygwin doesn't have gettimeofday
-      #define gettimeofday  vrpn_gettimeofday
-    #endif
-  #endif
+#    define gettimeofday  vrpn_gettimeofday
+
+#  endif
 #endif
 
 //--------------------------------------------------------------
@@ -125,6 +153,9 @@ extern VRPN_API	struct timeval vrpn_TimevalSum( const struct timeval& tv1, const
 extern VRPN_API	struct timeval vrpn_TimevalDiff( const struct timeval& tv1, const struct timeval& tv2 );
 extern VRPN_API	struct timeval vrpn_TimevalScale (const struct timeval & tv, double scale);
 
+/// @brief Return number of microseconds between startT and endT
+extern VRPN_API	unsigned long vrpn_TimevalDuration(struct timeval endT, struct timeval startT);
+
 extern VRPN_API	bool vrpn_TimevalGreater (const struct timeval & tv1, const struct timeval & tv2);
 extern VRPN_API	bool vrpn_TimevalEqual( const struct timeval& tv1, const struct timeval& tv2 );
 
@@ -141,26 +172,6 @@ extern VRPN_API	void vrpn_SleepMsecs( double dMsecs );
 extern VRPN_API	vrpn_float64 htond( vrpn_float64 d );
 extern VRPN_API	vrpn_float64 ntohd( vrpn_float64 d );
 
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_int8 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_int16 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_uint16 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_int32 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_uint32 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_float32 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const vrpn_float64 value);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const timeval t);
-extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const char * string, vrpn_int32 length);
-
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_int8 * cval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_int16 * lval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_uint16 * lval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_int32 * lval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_uint32 * lval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_float32 * fval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, vrpn_float64 * dval);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, timeval * t);
-extern VRPN_API	int vrpn_unbuffer (const char ** buffer, char * string, vrpn_int32 length);
-
 // From this we get the variable "vrpn_big_endian" set to true if the machine we are
 // on is big endian and to false if it is little endian.  This can be used by
 // custom packing and unpacking code to bypass the buffer and unbuffer routines
@@ -171,6 +182,252 @@ static	const   int     vrpn_int_data_for_endian_test = 1;
 static	const   char    *vrpn_char_data_for_endian_test = (char *)(void *)(&vrpn_int_data_for_endian_test);
 static	const   bool    vrpn_big_endian = (vrpn_char_data_for_endian_test[0] != 1);
 
+// Read and write strings (not single items).
+extern VRPN_API	int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const char * string, vrpn_int32 length);
+extern VRPN_API	int vrpn_unbuffer (const char ** buffer, char * string, vrpn_int32 length);
+
+// Read and write timeval.
+extern VRPN_API int vrpn_unbuffer (const char ** buffer, timeval * t);
+extern VRPN_API int vrpn_buffer (char ** insertPt, vrpn_int32 * buflen, const timeval t);
+
+// To read and write the atomic types defined in vrpn_Types, you use the templated
+// buffer and unbuffer routines below.  These have the same form as the ones for
+// timeval, but they use types vrpn_int, vrpn_uint, vrpn_int16, vrpn_uint16,
+// vrpn_int32, vrpn_uint32, vrpn_float32, and vrpn_float64.
+
+/**
+	@brief Internal header providing unbuffering facilities for a number of types.
+
+	@date 2011
+
+	@author
+	Ryan Pavlik
+	<rpavlik@iastate.edu> and <abiryan@ryand.net>
+	http://academic.cleardefinition.com/
+	Iowa State University Virtual Reality Applications Center
+	Human-Computer Interaction Graduate Program
+*/
+
+//          Copyright Iowa State University 2011.
+// Distributed under the Boost Software License, Version 1.0.
+//    (See accompanying file LICENSE_1_0.txt or copy at
+//          http://www.boost.org/LICENSE_1_0.txt)
+
+// Tested in the context of vrpn_server and vrpn_print_devices running between
+// an SGI running Irix 6.5 MIPS 32-bit (big endian) and Mac OSX intel 64-bit
+// (little endian) machine with a NULL tracker and it worked using the SGI
+// repaired commits from 3/17/2012.
+
+/// @brief Contains overloaded hton() and ntoh() functions that forward
+/// to their correctly-typed implementations.
+namespace vrpn_byte_order {
+	namespace vrpn_detail {
+		/// Traits class to get the uint type of a given size
+		template<int TypeSize>
+		struct uint_traits;
+
+		template<> struct uint_traits<1> {
+			typedef vrpn_uint8 type;
+		};
+		template<> struct uint_traits<2> {
+			typedef vrpn_uint16 type;
+		};
+		template<> struct uint_traits<4> {
+			typedef vrpn_uint32 type;
+		};
+	} // end of namespace vrpn_detail
+
+	/// host to network byte order for 8-bit uints is a no-op
+	inline vrpn_uint8 hton(vrpn_uint8 hostval) {
+		return hostval;
+	}
+
+	/// network to host byte order for 8-bit uints is a no-op
+	inline vrpn_uint8 ntoh(vrpn_uint8 netval) {
+		return netval;
+	}
+
+	/// host to network byte order for 16-bit uints
+	inline vrpn_uint16 hton(vrpn_uint16 hostval) {
+		return htons(hostval);
+	}
+
+	/// network to host byte order for 16-bit uints
+	inline vrpn_uint16 ntoh(vrpn_uint16 netval) {
+		return ntohs(netval);
+	}
+
+	/// host to network byte order for 32-bit uints
+	inline vrpn_uint32 hton(vrpn_uint32 hostval) {
+		return htonl(hostval);
+	}
+
+	/// network to host byte order for 32-bit uints
+	inline vrpn_uint32 ntoh(vrpn_uint32 netval) {
+		return ntohl(netval);
+	}
+
+	/// host to network byte order for 64-bit floats, using vrpn htond
+	inline vrpn_float64 hton(vrpn_float64 hostval) {
+		return htond(hostval);
+	}
+
+	/// network to host byte order for 64-bit floats, using vrpn ntohd
+	inline vrpn_float64 ntoh(vrpn_float64 netval) {
+		return ntohd(netval);
+	}
+
+	/// Templated hton that type-puns to the same-sized uint type
+	/// as a fallback for those types not explicitly defined above.
+	template<typename T>
+	inline T hton(T input) {
+		union {
+			T asInput;
+			typename vrpn_detail::uint_traits<sizeof(T)>::type asInt;
+		} inVal, outVal;
+		inVal.asInput = input;
+		outVal.asInt = hton(inVal.asInt);
+		return outVal.asInput;
+	}
+
+	/// Templated ntoh that type-puns to the same-sized uint type
+	/// as a fallback for those types not explicitly defined above.
+	template<typename T>
+	inline T ntoh(T input) {
+		union {
+			T asInput;
+			typename vrpn_detail::uint_traits<sizeof(T)>::type asInt;
+		} inVal, outVal;
+		inVal.asInput = input;
+		outVal.asInt = ntoh(inVal.asInt);
+		return outVal.asInput;
+	}
+} // end of namespace vrpn_byte_order
+
+namespace vrpn_detail {
+	template<typename T>
+	struct remove_const {
+		typedef T type;
+	};
+
+	template<typename T>
+	struct remove_const<const T> {
+		typedef T type;
+	};
+} // end of namespace vrpn_detail
+
+/// Function template to unbuffer values from a buffer stored in little-
+/// endian byte order. Specify the type to extract T as a template parameter.
+/// The templated buffer type ByteT will be deduced automatically.
+/// The input pointer will be advanced past the unbuffered value.
+template<typename T, typename ByteT>
+static inline T vrpn_unbuffer_from_little_endian(ByteT * & input) {
+	using namespace vrpn_byte_order;
+
+	/// @todo make this a static assertion
+	if (sizeof(ByteT) != 1) {
+		fprintf(stderr,"vrpn_unbuffer_from_little_endian:ByteT size != 1\n");
+		return 0;
+	}
+
+	/// Union to allow type-punning
+	union {
+		typename ::vrpn_detail::remove_const<ByteT>::type bytes[sizeof(T)];
+		T typed;
+	} value;
+
+	/// Swap known little-endian into big-endian (aka network byte order)
+	for (unsigned int i = 0, j = sizeof(T) - 1; i < sizeof(T); ++i, --j) {
+		value.bytes[i] = input[j];
+	}
+
+	/// Advance input pointer
+	input += sizeof(T);
+
+	/// return value in host byte order
+	return ntoh(value.typed);
+}
+
+/// Function template to unbuffer values from a buffer stored in network
+/// byte order. Specify the type to extract T as a template parameter.
+/// The templated buffer type ByteT will be deduced automatically.
+/// The input pointer will be advanced past the unbuffered value.
+template<typename T, typename ByteT>
+inline T vrpn_unbuffer(ByteT * & input) {
+	using namespace vrpn_byte_order;
+
+	/// @todo make this a static assertion
+	if (sizeof(ByteT) != 1) {
+		fprintf(stderr,"vrpn_unbuffer:ByteT size != 1\n");
+		return 0;
+	}
+
+	/// Union to allow type-punning and ensure alignment
+	union {
+		typename ::vrpn_detail::remove_const<ByteT>::type bytes[sizeof(T)];
+		T typed;
+	} value;
+
+	/// Copy bytes into union
+	memcpy(value.bytes, input, sizeof(T));
+
+	/// Advance input pointer
+	input += sizeof(T);
+
+	/// return value in host byte order
+	return ntoh(value.typed);
+}
+
+/// Function template to buffer values to a buffer stored in network
+/// byte order. Specify the type to buffer T as a template parameter.
+/// The templated buffer type ByteT will be deduced automatically.
+/// The input pointer will be advanced past the unbuffered value.
+template<typename T, typename ByteT>
+inline int vrpn_buffer(ByteT ** insertPt, vrpn_int32 * buflen, const T inVal) {
+	using namespace vrpn_byte_order;
+
+	/// @todo make this a static assertion
+	if (sizeof(ByteT) != 1) {
+		fprintf(stderr,"vrpn_buffer: ByteT size != 1\n");
+		return -1;
+	}
+
+	if ( (insertPt == NULL) || (buflen == NULL) ) {
+		fprintf(stderr, "vrpn_buffer: NULL pointer\n");
+		return -1;
+	}
+
+	if (sizeof(T) > static_cast<size_t>(*buflen)) {
+		fprintf(stderr, "vrpn_buffer: buffer not large enough\n");
+		return -1;
+	}
+
+	/// Union to allow type-punning and ensure alignment
+	union {
+		typename ::vrpn_detail::remove_const<ByteT>::type bytes[sizeof(T)];
+		T typed;
+	} value;
+
+	/// Populate union in network byte order
+	value.typed = hton(inVal);
+
+	/// Copy bytes into buffer
+	memcpy(*insertPt, value.bytes, sizeof(T));
+
+	/// Advance insert pointer
+	*insertPt += sizeof(T);
+	/// Decrement buffer length
+	*buflen -= sizeof(T);
+
+	return 0;
+}
+
+template<typename T, typename ByteT>
+inline int vrpn_unbuffer(ByteT ** input, T * lvalue) {
+	*lvalue = ::vrpn_unbuffer<T, ByteT>(*input);
+	return 0;
+}
+
 // Semaphore and Thread classes derived from Hans Weber's classes from UNC.
 // Don't let the existence of a Thread class fool you into thinking
 // that VRPN is thread-safe.  This and the Semaphore are included as
@@ -178,30 +435,30 @@ static	const   bool    vrpn_big_endian = (vrpn_char_data_for_endian_test[0] != 1
 // here to enable the vrpn_Imager_Logger class to do its thing.
 
 #if defined(sgi) || (defined(_WIN32) && !defined(__CYGWIN__)) || defined(linux)
-#define vrpn_THREADS_AVAILABLE
+#  define vrpn_THREADS_AVAILABLE
 #else
-#undef vrpn_THREADS_AVAILABLE
+#  undef vrpn_THREADS_AVAILABLE
 #endif
 
 // multi process stuff
 #ifdef sgi
-#include <task.h>
-#include <ulocks.h>
+#  include <task.h>
+#  include <ulocks.h>
 #elif defined(_WIN32)
-#include <process.h>
+#  include <process.h>
 #else
-#include <pthread.h>
-#include <semaphore.h>
+#  include <pthread.h>                    // for pthread_t
+#  include <semaphore.h>                  // for sem_t
 #endif
 
 // make the SGI compile without tons of warnings
 #ifdef sgi
-#pragma set woff 1110,1424,3201
+#  pragma set woff 1110,1424,3201
 #endif
 
 // and reset the warnings
 #ifdef sgi
-#pragma reset woff 1110,1424,3201
+#  pragma reset woff 1110,1424,3201
 #endif
 
 class VRPN_API vrpn_Semaphore {
@@ -283,17 +540,21 @@ public:
   vrpn_Thread( vrpn_THREAD_FUNC pfThread, vrpn_ThreadData td );
   ~vrpn_Thread();
 
+#if defined(sgi)
+  typedef unsigned long thread_t;
+#elif defined(_WIN32)
+  typedef uintptr_t thread_t;
+#else
+  typedef pthread_t thread_t;
+#endif
+
   // start/kill the thread (true on success, false on failure)
   bool go();
   bool kill();
 
   // thread info: check if running, get proc id
   bool running();
-#if defined(sgi) || defined(_WIN32)
-  unsigned long pid();
-#else
-  pthread_t pid();
-#endif
+  thread_t pid();
 
   // run-time user function to test if threads are available
   // (same value as #ifdef THREADS_AVAILABLE)
@@ -322,14 +583,8 @@ protected:
   static void *threadFuncShellPosix(void *pvThread);
 
   // the process id
-#if defined(sgi) || defined(_WIN32)
-  unsigned long threadID;
-#else
-  pthread_t threadID;
-#endif
+  thread_t threadID;
 };
 
 // Returns true if they work and false if they do not.
 extern bool vrpn_test_threads_and_semaphores(void);
-
-#endif  // VRPN_SHARED_H

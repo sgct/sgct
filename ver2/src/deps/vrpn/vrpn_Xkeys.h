@@ -1,10 +1,16 @@
-#ifndef VRPN_XKEYS_H
-#define VRPN_XKEYS_H
+#pragma once
 
-#include "vrpn_HumanInterface.h"
-#include "vrpn_Button.h"
-#include "vrpn_Dial.h"
-#include "vrpn_Analog.h"
+#include <stddef.h>                     // for size_t
+
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_BaseClass.h"             // for vrpn_BaseClass
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, VRPN_USE_HID
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
+#include "vrpn_Dial.h"                  // for vrpn_Dial
+#include "vrpn_HumanInterface.h"        // for vrpn_HidAcceptor (ptr only), etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_uint8, vrpn_uint32
 
 #if defined(VRPN_USE_HID)
 
@@ -28,12 +34,10 @@
 
 class vrpn_Xkeys: public vrpn_BaseClass, protected vrpn_HidInterface {
 public:
-  vrpn_Xkeys(vrpn_HidAcceptor *filter, const char *name, vrpn_Connection *c = 0);
+  vrpn_Xkeys(vrpn_HidAcceptor *filter, const char *name, vrpn_Connection *c = 0, bool toggle_light = true);
   virtual ~vrpn_Xkeys();
 
   virtual void mainloop() = 0;
-
-  virtual void reconnect();
 
 protected:
   // Set up message handlers, etc.
@@ -46,12 +50,13 @@ protected:
   virtual void decodePacket(size_t bytes, vrpn_uint8 *buffer) = 0;	
   struct timeval _timestamp;
   vrpn_HidAcceptor *_filter;
+  bool		_toggle_light;
 
   // No actual types to register, derived classes will be buttons, analogs, and/or dials
   int register_types(void) { return 0; }
 };
 
-class vrpn_Xkeys_Desktop: protected vrpn_Xkeys, public vrpn_Button {
+class vrpn_Xkeys_Desktop: protected vrpn_Xkeys, public vrpn_Button_Filter {
 public:
   vrpn_Xkeys_Desktop(const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_Xkeys_Desktop() {};
@@ -67,7 +72,7 @@ protected:
   void decodePacket(size_t bytes, vrpn_uint8 *buffer);
 };
 
-class vrpn_Xkeys_Pro: protected vrpn_Xkeys, public vrpn_Button {
+class vrpn_Xkeys_Pro: protected vrpn_Xkeys, public vrpn_Button_Filter {
 public:
   vrpn_Xkeys_Pro(const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_Xkeys_Pro() {};
@@ -83,7 +88,7 @@ protected:
   void decodePacket(size_t bytes, vrpn_uint8 *buffer);
 };
 
-class vrpn_Xkeys_Joystick: protected vrpn_Xkeys, public vrpn_Analog, public vrpn_Button {
+class vrpn_Xkeys_Joystick: protected vrpn_Xkeys, public vrpn_Analog, public vrpn_Button_Filter {
 public:
   vrpn_Xkeys_Joystick(const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_Xkeys_Joystick() {};
@@ -101,7 +106,7 @@ protected:
   void decodePacket(size_t bytes, vrpn_uint8 *buffer);
 };
 
-class vrpn_Xkeys_Jog_And_Shuttle: protected vrpn_Xkeys, public vrpn_Analog, public vrpn_Button, public vrpn_Dial {
+class vrpn_Xkeys_Jog_And_Shuttle: protected vrpn_Xkeys, public vrpn_Analog, public vrpn_Button_Filter, public vrpn_Dial {
 public:
   vrpn_Xkeys_Jog_And_Shuttle(const char *name, vrpn_Connection *c = 0);
   virtual ~vrpn_Xkeys_Jog_And_Shuttle() {};
@@ -122,9 +127,29 @@ protected:
   vrpn_uint8 _lastDial;
 };
 
-// end of _WIN32
-#endif
+class vrpn_Xkeys_XK3: protected vrpn_Xkeys, public vrpn_Button_Filter {
+public:
+  vrpn_Xkeys_XK3(const char *name, vrpn_Connection *c = 0);
+  virtual ~vrpn_Xkeys_XK3() {};
 
-// end of VRPN_XKEYS_H
+  virtual void mainloop();
+
+protected:
+  // Send report iff changed
+  void report_changes (void);
+  // Send report whether or not changed
+  void report (void);
+
+  void decodePacket(size_t bytes, vrpn_uint8 *buffer);
+};
+
+// end of VRPN_USE_HID
+#else
+class VRPN_API vrpn_Xkeys;
+class VRPN_API vrpn_Xkeys_Desktop;
+class VRPN_API vrpn_Xkeys_Pro;
+class VRPN_API vrpn_Xkeys_Joystick;
+class VRPN_API vrpn_Xkeys_Jog_And_Shuttle;
+class VRPN_API vrpn_Xkeys_XK3;
 #endif
 

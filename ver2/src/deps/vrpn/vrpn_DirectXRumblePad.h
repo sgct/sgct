@@ -1,16 +1,18 @@
 #ifndef VRPN_RUMBLEPAD_H
 
-#include "vrpn_Configure.h"
+#include "vrpn_Configure.h"   // IWYU pragma: keep
+
 #if defined(_WIN32) && defined(VRPN_USE_DIRECTINPUT)
 
-#include "vrpn_Connection.h"
 #include "vrpn_Analog.h"
-#include "vrpn_Button.h"
 #include "vrpn_Analog_Output.h"
+#include "vrpn_Button.h"
+#include "vrpn_Connection.h"
 
 #ifndef DIRECTINPUT_VERSION
 #define	DIRECTINPUT_VERSION 0x0800
 #endif
+#include "vrpn_Shared.h"
 #include <dinput.h>
 #include <windows.h>
 
@@ -18,7 +20,7 @@
 // but also enables the user to set a rumble magnitude using an Analog_Output
 // (channel zero controls the rumble magnitude).
 
-class VRPN_API vrpn_DirectXRumblePad: public vrpn_Analog, public vrpn_Button, public vrpn_Analog_Output {
+class VRPN_API vrpn_DirectXRumblePad: public vrpn_Analog, public vrpn_Button_Filter, public vrpn_Analog_Output {
 public:
 	vrpn_DirectXRumblePad(const char *name, vrpn_Connection *c = NULL,
 		GUID device_guid = GUID_NULL);

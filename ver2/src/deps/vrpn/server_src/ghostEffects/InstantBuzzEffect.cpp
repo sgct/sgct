@@ -6,16 +6,14 @@
 
 #include "InstantBuzzEffect.h"
 #ifdef	VRPN_USE_PHANTOM_SERVER
+
 #ifdef	VRPN_USE_HDAPI
 #include <HD/hd.h>
 #else
 #include <gstPHANToM.h>
 #endif
-#ifdef _WIN32
-#include <windows.h>
-#endif
+
 #include <math.h>
-#include "InstantBuzzEffect.h"
 
 #ifdef	VRPN_USE_HDAPI
 vrpn_HapticVector  InstantBuzzEffect::calcEffectForce(void) {

@@ -1,11 +1,14 @@
 #ifndef INCLUDED_DYNA
 #define INCLUDED_DYNA
 
-#include "vrpn_Tracker.h"
+#include "vrpn_Configure.h"             // for VRPN_API
 #include "vrpn_Serial.h"
+#include "vrpn_Tracker.h"               // for vrpn_Tracker_Serial
+
+class VRPN_API vrpn_Connection;
 
 // only 13 receivers allowed in normal addressing mode
-#define MAX_SENSORS 13
+#define VRPN_DYNA_MAX_SENSORS 13
 
 // This is a class which provides a server for an ascension 
 // DynaSight.  The server will send out messages

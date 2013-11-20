@@ -2,11 +2,12 @@
 #define VRPN_TRACKER_JSONNET
 
 #include "vrpn_Configure.h"
+
 #if defined(VRPN_USE_JSONNET)
 
-#include "vrpn_Tracker.h"
-#include "vrpn_Button.h"
 #include "vrpn_Analog.h"
+#include "vrpn_Button.h"
+#include "vrpn_Tracker.h"
 
 namespace Json {
 	class Reader;
@@ -23,7 +24,7 @@ namespace Json {
  * @Author Philippe Crassous / ENSAM ParisTech-Institut Image
  */
 class vrpn_Tracker_JsonNet :
-	public vrpn_Tracker, public vrpn_Button, public vrpn_Analog
+	public vrpn_Tracker, public vrpn_Button_Filter, public vrpn_Analog
 {
 public:
 	vrpn_Tracker_JsonNet(
@@ -66,6 +67,7 @@ private:
 	bool _parse_tracker_data(const Json::Value& root);
 	bool _parse_analog(const Json::Value& root);
 	bool _parse_button(const Json::Value& root);
+	bool _do_tracker_report;
 	Json::Reader* _pJsonReader;
 };
 

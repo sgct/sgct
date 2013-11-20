@@ -10,7 +10,14 @@
 #ifndef VRPN_ANALOG_OUTPUT_H
 #define VRPN_ANALOG_OUTPUT_H
 
-#include "vrpn_Analog.h"    // just for some #define's and constants
+#include <stddef.h>                     // for NULL
+
+#include "vrpn_Analog.h"                // for vrpn_CHANNEL_MAX
+#include "vrpn_BaseClass.h"             // for vrpn_Callback_List, etc
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, VRPN_API
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_RELIABLE, etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_int32, vrpn_float64, etc
 
 // Similar to vrpn_Analog, but messages are different
 // Members beginning with o_ are also found in vrpn_Analog, the o_ is 
@@ -108,7 +115,7 @@ public:
     virtual ~vrpn_Analog_Output_Callback_Server(void);
 
     // (un)Register a callback handler to handle analog value change.
-    // These will be called whenver EITHER type of change message is
+    // These will be called whenever EITHER type of change message is
     // received, either a single channel or multiple channels.  This is
     // useful for applications that "have a" server, rather than derive
     // from the server.

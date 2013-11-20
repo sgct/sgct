@@ -11,15 +11,15 @@
 	Human-Computer Interaction Graduate Program
 */
 
-#include "vrpn_Analog_5dtUSB.h"
-#include "vrpn_BufferUtils.h"
-
-#include <iostream>
+#include <string.h>                     // for memset
+#include <iostream>                     // for operator<<, ostringstream, etc
 #include <sstream>
-#include <stdexcept>
+#include <stdexcept>                    // for logic_error
+
+#include "vrpn_Analog_5dtUSB.h"
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_NORMAL, etc
 
 #if defined(VRPN_USE_HID)
-
 
 // USB vendor and product IDs for the models we support
 static const vrpn_uint16 vrpn_5DT_VENDOR = 0x5d70;

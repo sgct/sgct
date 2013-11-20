@@ -5,5 +5,5 @@ glew 1.10.0
 freetype 2.4.8
 glfw 3.0.3
 glm 0.9.4.6
-vrpn 07.30
+vrpn 07.31
 TinyThread++ 1.1

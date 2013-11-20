@@ -8,22 +8,25 @@
  *              http://linux.schottelius.org/gpm/
 */
 
-#include <stdio.h>
-#include <string.h>
-#ifndef _WIN32
-#include <unistd.h>
-#include <sys/types.h>
-#include <sys/time.h>
-#endif
+#include <stdio.h>                      // for NULL, fprintf, printf, etc
+#include <string.h>                     // for strncpy
 
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
 #include "vrpn_Mouse.h"
+#include "vrpn_Serial.h"                // for vrpn_open_commport, etc
 
 #if defined(linux) && defined(VRPN_USE_GPM_MOUSE)
-#include <gpm.h>
+#include <gpm.h>                        // for Gpm_Event, Gpm_Connect, etc
+#endif
+
+
+#if !( defined(_WIN32) && defined(VRPN_USE_WINSOCK_SOCKETS) )
+#  include <sys/select.h>                 // for select, FD_ISSET, FD_SET, etc
 #endif
 
 #ifdef	_WIN32
 #include <windows.h>
+
 #pragma comment (lib, "user32.lib")
 
 // Fix sent in by Andrei State to make this compile under Visual Studio 6.0.
@@ -162,7 +165,7 @@ int vrpn_Mouse::get_report()
     vrpn_Analog::channel[0] = (vrpn_float64)(curPos.x - GetSystemMetrics(SM_XVIRTUALSCREEN)) / GetSystemMetrics(SM_CXVIRTUALSCREEN);
     vrpn_Analog::channel[1] = (vrpn_float64)(curPos.y - GetSystemMetrics(SM_YVIRTUALSCREEN)) / GetSystemMetrics(SM_CYVIRTUALSCREEN);
 
-    gettimeofday( &timestamp, NULL );
+    vrpn_gettimeofday( &timestamp, NULL );
     report_changes();
     return 1;
 #else

@@ -17,15 +17,12 @@
 //          http://www.boost.org/LICENSE_1_0.txt)
 
 #pragma once
-#ifndef INCLUDED_vrpn_Tracker_RazerHydra_h_GUID_8c30e762_d7e7_40c5_9308_b9bc118959fd
-#define INCLUDED_vrpn_Tracker_RazerHydra_h_GUID_8c30e762_d7e7_40c5_9308_b9bc118959fd
 
 // Internal Includes
-#include "vrpn_Configure.h"
-#include "vrpn_HumanInterface.h"
-#include "vrpn_Analog.h"
-#include "vrpn_Button.h"
-#include "vrpn_Tracker.h"
+#include "quat.h"                       // for q_vec_type
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Tracker.h"               // for vrpn_Tracker
 
 // Library/third-party includes
 // - none
@@ -38,9 +35,30 @@
 /** @brief Device supporting the Razer Hydra game controller as a tracker,
 	analog device, and button device, using the USB HID protocol directly
 
-	The left wand (the one with LB and LT on its "end" buttons) is sensor 0.
-	Be sure to have the wands resting in their positions on the base when
-	starting - haven't figured out how to do the calibration yet.
+	The left wand (the one with LB and LT on its "end" buttons - look from above)
+	is sensor 0, and the right wand (with RB and RT on it) is sensor 1.
+	The "front" of the base is the side opposite the cables: there's a small
+	logo on it. You can have the base in any orientation you want, but the info
+	that follows assumes you have the base sitting on a desk, with the front toward you.
+	If you have the base in a different coordinate frame in the world, please make
+	the appropriate mental transformations yourself. :)
+
+	When starting the VRPN server, make sure that the left wand is somewhere to
+	the left of the base, and the right wand somewhere right of the base -
+	they do not need to be placed on the base or any more complicated homing/calibration
+	procedure. This is for the hemisphere tracking: it needs to have an "initial state"
+	that is roughly known, so it uses the sign of the X coordinate position.
+
+	(If you can't do this for whatever reason, modification of the driver code for an
+	alternate calibration procedure is possible.)
+
+	If using the Hydra on Windows, the server will work with or without the official
+	Razer Hydra drivers installed. If you are only using the device with VRPN, don't
+	install the official drivers. However, if you do have them installed, make sure that
+	the "Hydra Configurator" and the Hydra system tray icon are closed to avoid unexpected
+	failure (their software can switch the device out of the mode that VRPN uses).
+
+	Works great on Linux (regardless of endianness) - no drivers needed, thanks to USB HID.
 
 	The base coordinate system is right-handed with the axes:
 	* X - out the right of the base
@@ -67,23 +85,29 @@
 	* 1 - joystick up/down: centered at 0, up is positive, in [-1, 1]
 	* 2 - analog trigger, in range 0 (not pressed) to 1 (fully pressed).
 */
-class VRPN_API vrpn_Tracker_RazerHydra: public vrpn_Analog, public vrpn_Button_Filter, public vrpn_Tracker, vrpn_HidInterface {
+
+class VRPN_API vrpn_Tracker_RazerHydra: public vrpn_Analog, public vrpn_Button_Filter, public vrpn_Tracker {
 	public:
-		vrpn_Tracker_RazerHydra(const char * name, vrpn_Connection * trackercon);
+		vrpn_Tracker_RazerHydra(const char * name, vrpn_Connection * trackercon, int calibration_button = -1);
 		~vrpn_Tracker_RazerHydra();
 
 		virtual void mainloop();
-		virtual void reconnect();
 
-		virtual void on_data_received(size_t bytes, vrpn_uint8 *buffer);
+		virtual bool reconnect();
 
-	protected:
+	private:
 		enum HydraStatus {
 			HYDRA_WAITING_FOR_CONNECT,
 			HYDRA_LISTENING_AFTER_CONNECT,
 			HYDRA_LISTENING_AFTER_SET_FEATURE,
 			HYDRA_REPORTING
 		};
+		enum {
+			ANALOG_CHANNELS = 6,
+			BUTTON_CHANNELS = 16,
+			POSE_CHANNELS = 2
+		};
+
 
 		void _waiting_for_connect();
 		void _listening_after_connect();
@@ -91,7 +115,7 @@ class VRPN_API vrpn_Tracker_RazerHydra: public vrpn_Analog, public vrpn_Button_F
 
 		void _enter_motion_controller_mode();
 
-		void _report_for_sensor(int sensorNum, vrpn_uint8 * data);
+		void _report_for_sensor(int sensorNum, vrpn_uint8 * data, double dt);
 
 		HydraStatus status;
 		bool _wasInGamepadMode;
@@ -99,8 +123,24 @@ class VRPN_API vrpn_Tracker_RazerHydra: public vrpn_Analog, public vrpn_Button_F
 		struct timeval _timestamp;
 		struct timeval _connected;
 		struct timeval _set_feature;
+
+		bool           _calibration_done[POSE_CHANNELS];
+		int            _mirror[POSE_CHANNELS];
+		q_vec_type     _old_position[POSE_CHANNELS];
+		int            _calibration_btn;
+		bool           _calibration_btn_state;
+		q_type         _calibration_pose_conj[POSE_CHANNELS];
+
+		// This device has both a control and a data interface.
+		// On the mac, we may need to swap these because we can't tell which
+		// is which when we open them.
+		class MyInterface;
+
+		MyInterface * _ctrl;
+		MyInterface * _data;
 };
 
+#else
+class VRPN_API vrpn_Tracker_RazerHydra;
 #endif
 
-#endif // INCLUDED_vrpn_Tracker_RazerHydra_h_GUID_8c30e762_d7e7_40c5_9308_b9bc118959fd

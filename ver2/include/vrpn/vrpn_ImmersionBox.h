@@ -1,14 +1,18 @@
 #ifndef VRPN_IMMERSIONBOX_H
 #define VRPN_IMMERSIONBOX_H
-#include "vrpn_Analog.h"
-#include "vrpn_Button.h"
-#include "vrpn_Dial.h"
+#include "vrpn_Analog.h"                // for vrpn_Serial_Analog
+#include "vrpn_Button.h"                // for vrpn_Button_Filter
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
+#include "vrpn_Dial.h"                  // for vrpn_Dial
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_uint32
 
 // Written by Rob King at Navy Research Labs.  The button code works;
 // the others are not fully implemented.
 
 class VRPN_API vrpn_ImmersionBox: public vrpn_Serial_Analog,
-			 public vrpn_Button,
+			 public vrpn_Button_Filter,
 			 public vrpn_Dial
 {
  public:

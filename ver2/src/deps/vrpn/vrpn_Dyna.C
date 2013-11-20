@@ -4,12 +4,16 @@
 #ifdef	_WIN32
 #include <io.h>
 #else
-#include <unistd.h>
 #endif
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h>                      // for fprintf, stderr, NULL
+#include <string.h>                     // for strlen
+
 #include "vrpn_Dyna.h"
-#include "vrpn_Serial.h"
+#include "vrpn_Serial.h"                // for vrpn_write_characters, etc
+#include "vrpn_Shared.h"                // for vrpn_SleepMsecs, timeval, etc
+#include "vrpn_Types.h"                 // for vrpn_float64
+
+class VRPN_API vrpn_Connection;
 
 #define T_ERROR (-1)
 #define T_OK 	(0)
@@ -28,9 +32,9 @@ vrpn_Tracker_Dyna::vrpn_Tracker_Dyna(
 		      const char *port, long baud ) :
 vrpn_Tracker_Serial(name,c,port,baud), cSensors(cSensors), cResets(0)
 {
-    if (cSensors>MAX_SENSORS) {
-      fprintf(stderr, "\nvrpn_Tracker_Dyna: too many sensors requested ... only %d allowed (%d specified)", MAX_SENSORS, cSensors );
-      cSensors = MAX_SENSORS;
+    if (cSensors>VRPN_DYNA_MAX_SENSORS) {
+      fprintf(stderr, "\nvrpn_Tracker_Dyna: too many sensors requested ... only %d allowed (%d specified)", VRPN_DYNA_MAX_SENSORS, cSensors );
+      cSensors = VRPN_DYNA_MAX_SENSORS;
     }
     fprintf(stderr, "\nvrpn_Tracker_Dyna: starting up ...");
     d_sensor = 0 ; // sensor id is always 0 (first sensor is 0);

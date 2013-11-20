@@ -3,7 +3,12 @@
 // of characters to send (and time) and avoid the problem of the
 // device being reset at an out-of-range place.
 
-#include <string.h>
+#include <stdio.h>                      // for fprintf, stderr, sprintf, etc
+#include <stdlib.h>                     // for atoi
+#include <string.h>                     // for strlen, NULL, strncmp, etc
+
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR, etc
+#include "vrpn_Serial.h"
 #include "vrpn_nikon_controls.h"
 
 //#define	VERBOSE
@@ -93,7 +98,7 @@ static	int parse_focus_position_response(const char *inbuf, double &response_pos
 {
   // Make sure that the command ends with [CR][LF].  All valid reports should end
   // with this.
-  unsigned  len = strlen((const char *)inbuf);
+  size_t  len = strlen((const char *)inbuf);
   if (len < 2) {
     fprintf(stderr,"parse_focus_position_response(): String too short\n");
     response_pos = 0; return 0;

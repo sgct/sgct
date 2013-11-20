@@ -44,7 +44,7 @@
 				Name="VCCLCompilerTool"
 				Optimization="2"
 				InlineFunctionExpansion="1"
-				AdditionalIncludeDirectories="&quot;$(SYSTEMDRIVE)\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;;../dtrack;quat;../isense;../Dtrack;../libfreespace/include;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include&quot;;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\Include&quot;;&quot;$(SYSTEMDRIVE)\sdk\cpp&quot;;&quot;$(SYSTEMDRIVE)\Program Files\boost\boost_1_34_1&quot;;./submodules/hidapi/hidapi;&quot;$(SYSTEMDRIVE)\Program Files\libusb-1.0\libusb&quot;"
+				AdditionalIncludeDirectories="&quot;$(SYSTEMDRIVE)\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;;../dtrack;quat;../isense;../Dtrack;../libfreespace/include;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include&quot;;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\Include&quot;;&quot;$(SYSTEMDRIVE)\sdk\cpp&quot;;&quot;$(SYSTEMDRIVE)\Program Files\boost\boost_1_34_1&quot;;./submodules/hidapi/hidapi;&quot;$(SYSTEMDRIVE)\Program Files\libusb-1.0\libusb&quot;;&quot;C:\Program Files (x86)\Polhemus\PDI\PDI_90\Inc&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE,VRPNDLL_NOEXPORTS"
 				StringPooling="true"
 				RuntimeLibrary="2"
@@ -118,7 +118,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;$(SYSTEMDRIVE)\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;;../dtrack;quat;../isense;../Dtrack;../libfreespace/include;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include&quot;;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\Include&quot;;&quot;$(SYSTEMDRIVE)\sdk\cpp&quot;;&quot;$(SYSTEMDRIVE)\Program Files\boost\boost_1_34_1&quot;;./submodules/hidapi/hidapi;&quot;$(SYSTEMDRIVE)\Program Files\libusb-1.0\libusb&quot;"
+				AdditionalIncludeDirectories="&quot;$(SYSTEMDRIVE)\Program Files\Microsoft Platform SDK for Windows Server 2003 R2\Include&quot;;../dtrack;quat;../isense;../Dtrack;../libfreespace/include;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\DAQmx ANSI C Dev\include&quot;;&quot;$(SYSTEMDRIVE)\Program Files\National Instruments\NI-DAQ\Include&quot;;&quot;$(SYSTEMDRIVE)\sdk\cpp&quot;;&quot;$(SYSTEMDRIVE)\Program Files\boost\boost_1_34_1&quot;;./submodules/hidapi/hidapi;&quot;$(SYSTEMDRIVE)\Program Files\libusb-1.0\libusb&quot;;&quot;C:\Program Files (x86)\Polhemus\PDI\PDI_90\Inc&quot;"
 				PreprocessorDefinitions="_CRT_SECURE_NO_DEPRECATE,VRPNDLL_NOEXPORTS"
 				RuntimeLibrary="3"
 				PrecompiledHeaderFile=".\pc_win32/Debug/vrpn.pch"
@@ -143,6 +143,7 @@
 			<Tool
 				Name="VCLibrarianTool"
 				OutputFile=".\pc_win32/Debug\vrpn.lib"
+				AdditionalLibraryDirectories="&quot;C:\Program Files (x86)\Polhemus\PDI\PDI_90\Lib\Win32&quot;"
 				SuppressStartupBanner="true"
 			/>
 			<Tool
@@ -432,6 +433,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="vrpn_BiosciencesTools.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_Button.C"
 				>
 				<FileConfiguration
@@ -513,6 +534,26 @@
 			</File>
 			<File
 				RelativePath="vrpn_Connection.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\vrpn_Contour.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -892,6 +933,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\vrpn_Futaba.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_GlobalHapticsOrb.C"
 				>
 				<FileConfiguration
@@ -912,7 +973,47 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\vrpn_Griffin.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_HumanInterface.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="vrpn_IDEA.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1132,6 +1233,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath=".\vrpn_Logitech_Controller_Raw.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_LUDL.C"
 				>
 				<FileConfiguration
@@ -1153,6 +1274,26 @@
 			</File>
 			<File
 				RelativePath="vrpn_Magellan.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\vrpn_Microsoft_Controller_Raw.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1353,6 +1494,26 @@
 			</File>
 			<File
 				RelativePath="vrpn_RedundantTransmission.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath=".\vrpn_Saitek_Controller_Raw.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1672,6 +1833,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="vrpn_Tracker_Filter.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_Tracker_GameTrak.C"
 				>
 				<FileConfiguration
@@ -1792,6 +1973,26 @@
 				</FileConfiguration>
 			</File>
 			<File
+				RelativePath="vrpn_Tracker_LibertyHS.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
 				RelativePath="vrpn_Tracker_MotionNode.C"
 				>
 				<FileConfiguration
@@ -1833,6 +2034,26 @@
 			</File>
 			<File
 				RelativePath="vrpn_Tracker_NovintFalcon.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="vrpn_Tracker_PDI.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -1953,6 +2174,26 @@
 			</File>
 			<File
 				RelativePath="vrpn_Tracker_WiimoteHead.C"
+				>
+				<FileConfiguration
+					Name="Release|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+				<FileConfiguration
+					Name="Debug|Win32"
+					>
+					<Tool
+						Name="VCCLCompilerTool"
+						CompileAs="2"
+					/>
+				</FileConfiguration>
+			</File>
+			<File
+				RelativePath="vrpn_Tracker_Wintracker.C"
 				>
 				<FileConfiguration
 					Name="Release|Win32"
@@ -2189,7 +2430,7 @@
 				>
 			</File>
 			<File
-				RelativePath="vrpn_BufferUtils.h"
+				RelativePath="vrpn_BiosciencesTools.h"
 				>
 			</File>
 			<File
@@ -2214,6 +2455,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_Connection.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vrpn_Contour.h"
 				>
 			</File>
 			<File
@@ -2289,7 +2534,15 @@
 				>
 			</File>
 			<File
+				RelativePath=".\vrpn_Futaba.h"
+				>
+			</File>
+			<File
 				RelativePath="vrpn_GlobalHapticsOrb.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vrpn_Griffin.h"
 				>
 			</File>
 			<File
@@ -2298,6 +2551,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_HumanInterface.h"
+				>
+			</File>
+			<File
+				RelativePath="vrpn_IDEA.h"
 				>
 			</File>
 			<File
@@ -2341,6 +2598,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\vrpn_Logitech_Controller_Raw.h"
+				>
+			</File>
+			<File
 				RelativePath="vrpn_LUDL.h"
 				>
 			</File>
@@ -2354,6 +2615,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_MainloopObject.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vrpn_Microsoft_Controller_Raw.h"
 				>
 			</File>
 			<File
@@ -2394,6 +2659,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_RedundantTransmission.h"
+				>
+			</File>
+			<File
+				RelativePath=".\vrpn_Saitek_Controller_Raw.h"
 				>
 			</File>
 			<File
@@ -2457,6 +2726,10 @@
 				>
 			</File>
 			<File
+				RelativePath="vrpn_Tracker_Filter.h"
+				>
+			</File>
+			<File
 				RelativePath="vrpn_Tracker_GameTrak.h"
 				>
 			</File>
@@ -2481,6 +2754,10 @@
 				>
 			</File>
 			<File
+				RelativePath="vrpn_Tracker_LibertyHS.h"
+				>
+			</File>
+			<File
 				RelativePath="vrpn_Tracker_MotionNode.h"
 				>
 			</File>
@@ -2490,6 +2767,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_Tracker_NovintFalcon.h"
+				>
+			</File>
+			<File
+				RelativePath="vrpn_Tracker_PDI.h"
 				>
 			</File>
 			<File
@@ -2514,6 +2795,10 @@
 			</File>
 			<File
 				RelativePath="vrpn_Tracker_WiimoteHead.h"
+				>
+			</File>
+			<File
+				RelativePath="vrpn_Tracker_Wintracker.h"
 				>
 			</File>
 			<File

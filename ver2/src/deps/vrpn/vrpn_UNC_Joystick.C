@@ -1,11 +1,11 @@
-#include "vrpn_UNC_Joystick.h"
+#include <stdio.h>                      // for fprintf, stderr, perror, etc
+#include <string.h>                     // for strlen
+
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
 #include "vrpn_Serial.h"
-#include <stdio.h>
-#include <stdlib.h>
-#ifndef _WIN32
-#include <unistd.h>
-#endif
-#include <string.h>
+#include "vrpn_Shared.h"                // for timeval, vrpn_SleepMsecs, etc
+#include "vrpn_Types.h"                 // for vrpn_float64, vrpn_int32
+#include "vrpn_UNC_Joystick.h"
 
 // This class runs the UNC custom serial joystick.  It includes two
 // buttons, a slider, and two 3-axis joysticks.  It is based on a
@@ -25,7 +25,7 @@ vrpn_Joystick::vrpn_Joystick(char * name,
 		    vrpn_Connection * c, char * portname,int baud, 
 			     vrpn_float64 update_rate):
       vrpn_Serial_Analog(name, c, portname, baud),
-	  vrpn_Button(name, c)
+	  vrpn_Button_Filter(name, c)
 { 
   num_buttons = 2;  // Has 2 buttons
   num_channel = 7;	// Has a slider and two 3-axis joysticks
@@ -198,12 +198,12 @@ int vrpn_Joystick::get_report() {
 
 /****************************************************************************/
 /* Decodes bytes as follows:
-     First byte of set recieved (from high order bit down):
+     First byte of set received (from high order bit down):
         -bit == 0 to signify first byte
         -empty bit
         -3 bit channel label
         -3 bits (out of 10) of channel reading (high-order bits)
-     Second byte of set recieved (from high order bit down):
+     Second byte of set received (from high order bit down):
         -bit == 1 to signify second byte
         -7 bits (out of 10) of channel reading (low-order bits)
 */

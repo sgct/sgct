@@ -1,10 +1,10 @@
-#include <math.h>
+
 #include "vrpn_Joywin32.h"
 
 #if defined(_WIN32)
 
 #pragma comment(lib,"winmm.lib")
-
+#include "vrpn_Shared.h"
 #include <windows.h>
 #include <stdio.h>
 #include <cmath>
@@ -24,15 +24,9 @@ const int CENTERED_VALUE  = -1;	  // returned value for centered POV
 
 #define MAX_TIME_INTERVAL       (2000000) // max time to try and reacquire
 
-static	unsigned long	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) +
-	       1000000L * (t1.tv_sec - t2.tv_sec);
-}
-
 vrpn_Joywin32::vrpn_Joywin32 (const char * name, vrpn_Connection * c, vrpn_uint8 joyNumber, vrpn_float64 readRate, vrpn_uint8 mode, vrpn_int32 deadzone) :
 		vrpn_Analog(name, c),
-		vrpn_Button(name, c),
+		vrpn_Button_Filter(name, c),
 		_read_rate(readRate),
 		_joyNumber(joyNumber),
 		_numchannels((std::min)(12,vrpn_CHANNEL_MAX)),		   // Maximum available
@@ -65,7 +59,13 @@ vrpn_Joywin32::vrpn_Joywin32 (const char * name, vrpn_Connection * c, vrpn_uint8
 
 	_deadzone = deadzone / 100.0;
 
-	DWORD dwResult = 0;
+	// initialize the joystick
+    init_joystick();
+}
+
+void vrpn_Joywin32::init_joystick(void)
+{
+    DWORD dwResult = 0;
 
 	// This function below return the number of joysticks the driver supports.
 	// If it returns 0 then there is no joystick driver installed.
@@ -140,7 +140,6 @@ vrpn_Joywin32::vrpn_Joywin32 (const char * name, vrpn_Connection * c, vrpn_uint8
 	// Set the mode to reading.  Set time to zero, so we'll try to read
 	_status = STATUS_READING;
 	vrpn_gettimeofday(&_timestamp, NULL);
-
 }
 
 void	vrpn_Joywin32::clear_values(void)
@@ -165,7 +164,7 @@ int vrpn_Joywin32::get_report(void)
 	// If it is not time for the next read, just return
 	struct timeval reporttime;
 	vrpn_gettimeofday(&reporttime, NULL);
-	if (duration(reporttime, _timestamp) < 1000000.0 / _read_rate) {
+	if (vrpn_TimevalDuration(reporttime, _timestamp) < 1000000.0 / _read_rate) {
 		return 0;
 	}
 #ifdef	VERBOSE
@@ -366,9 +365,11 @@ void	vrpn_Joywin32::mainloop()
 	  static  struct  timeval last_report = {0,0};
 	  struct  timeval now;
 	  vrpn_gettimeofday(&now, NULL);
-	  if (duration(now, last_report) > MAX_TIME_INTERVAL) {
-	    send_text_message("Cannot talk to joystick", now, vrpn_TEXT_ERROR);
+	  if (vrpn_TimevalDuration(now, last_report) > MAX_TIME_INTERVAL) {
+	    send_text_message("Cannot talk to joystick, trying resetting it", now, vrpn_TEXT_ERROR);
 	    last_report = now;
+
+        init_joystick();
 	  }
 	}
 	break;

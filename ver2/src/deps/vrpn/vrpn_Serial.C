@@ -1,29 +1,24 @@
-#include <time.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <ctype.h>
+#include <fcntl.h>                      // for open, O_NDELAY, O_NOCTTY, etc
+#include <stdio.h>                      // for perror, fprintf, NULL, etc
+#include <string.h>                     // for memcpy
 
 #ifndef _WIN32
-#include <termios.h>
-#include <errno.h>
-#include <sys/ioctl.h>
+#include <errno.h>                      // for EINTR, errno
+#include <sys/ioctl.h>                  // for ioctl, TIOCMGET, TIOCMSET, etc
+#include <termios.h>                    // for termios, tcflush, CSIZE, etc
 #endif
 
 #if !defined(_WIN32) || defined(__GNUC__) && !defined(__MINGW32__)
-#include <unistd.h>
-#include <netinet/in.h>
+#include <unistd.h>                     // for close, read, write
 #endif
 
 #ifdef	_AIX
 #include <sys/termios.h>
 #endif
 
-#if defined(_WIN32)
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday, and making it safe to include windows headers
+
+#if defined(_WIN32) && !defined(_WIN32_WCE)
 #include <io.h>
 #if defined(__GNUC__) && !defined(__MINGW32__)
 #include <netinet/in.h>
@@ -33,7 +28,6 @@
 #endif
 #endif
 
-#include "vrpn_Shared.h"
 #include "vrpn_Serial.h"
 
 //#define VERBOSE
@@ -54,7 +48,8 @@ static HANDLE	commConnections[maxCom];
 static int curCom = -1;
 #endif
 
-int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_PARITY parity)
+int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_PARITY parity,
+                       bool rts_flow)
 {
 #ifdef VERBOSE
 	printf("vrpn_open_commport(): Entering\n");
@@ -90,15 +85,13 @@ int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_P
       return -1;
   }
   
-  if (hCom == INVALID_HANDLE_VALUE) 
-  {    
+  if (hCom == INVALID_HANDLE_VALUE) {    
     perror("vrpn_open_commport: cannot open serial port");
     fprintf(stderr, "  (Make sure port name is valid and it has not been opened by another program)\n");
     return -1;
   }
  
-  if ((fSuccess = GetCommState(hCom, &dcb)) == 0)
-  {
+  if ((fSuccess = GetCommState(hCom, &dcb)) == 0) {
 	perror("vrpn_open_commport: cannot get serial port configuration settings");
 	CloseHandle(hCom);
     return -1;
@@ -162,8 +155,12 @@ int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_P
      return -1;
   }
 
-  if ((fSuccess = SetCommState(hCom, &dcb)) == 0)
-  {
+  // Turn on RTS hardware flow control if we've been asked to.
+  if (rts_flow) {
+    dcb.fRtsControl = RTS_CONTROL_HANDSHAKE;
+  }
+
+  if ((fSuccess = SetCommState(hCom, &dcb)) == 0) {
 	perror("vrpn_open_commport: cannot set serial port configuration settings");
 	CloseHandle(hCom);
     return -1;
@@ -175,8 +172,7 @@ int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_P
   cto.WriteTotalTimeoutConstant = 0;
   cto.WriteTotalTimeoutMultiplier = 0;
 
-  if ((fSuccess = SetCommTimeouts(hCom, &cto)) == 0)
-  {
+  if ((fSuccess = SetCommTimeouts(hCom, &cto)) == 0) {
 	perror("vrpn_open_commport: cannot set serial port timeouts");
 	CloseHandle(hCom);
     return -1;
@@ -271,6 +267,11 @@ int vrpn_open_commport(const char *portname, long baud, int charsize, vrpn_SER_P
 
   sttyArgs.c_cc[VMIN] = 0;	/* Return read even if no chars */
   sttyArgs.c_cc[VTIME] = 0;	/* Return without waiting */
+
+  // Enable RTS hardware flow control if we've been asked for it.
+  if (rts_flow) {
+    sttyArgs.c_cflag |= CRTSCTS;
+  }
   
 #ifdef VERBOSE
 	printf("vrpn_open_commport(): Setting settings\n");
@@ -459,7 +460,7 @@ int vrpn_drain_output_buffer(int comm)
 // the number of characters read or -1 on failure.  Note that it only
 // reads characters that are available at the time of the read, so less
 // than the requested number may be returned.
-int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes)
+int vrpn_read_available_characters(int comm, unsigned char *buffer, size_t bytes)
 {
 #ifdef VERBOSE
 	printf("vrpn_read_available_characters(): Entering\n");
@@ -483,7 +484,7 @@ int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes)
 
    if (cstat.cbInQue > 0)
    {
-	   if((fSuccess = ReadFile(commConnections[comm], buffer, bytes, &numRead, &Overlapped)) == 0)
+	   if((fSuccess = ReadFile(commConnections[comm], buffer, static_cast<DWORD>(bytes), &numRead, &Overlapped)) == 0)
 	   {
 		   perror("vrpn_read_available_characters: can't read from serial port");
 		   return(-1);
@@ -514,7 +515,7 @@ int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes)
 	 cReadThisTime = 0;
        } else {
 	 perror("vrpn_read_available_characters: cannot read from serial port");
-	 fprintf(stderr, "buffer = %p, %d\n", pch, bytes);  
+	 fprintf(stderr, "buffer = %p, %d\n", pch, static_cast<int>(bytes));  
 	 return -1;
        }
      }
@@ -534,7 +535,7 @@ int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes)
 // If there is a NULL timeout pointer, block indefinitely. Return the number
 // of characters read.
 
-int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes,
+int vrpn_read_available_characters(int comm, unsigned char *buffer, size_t bytes,
 		struct timeval *timeout) 
 {
 #ifdef VERBOSE
@@ -580,7 +581,7 @@ int vrpn_read_available_characters(int comm, unsigned char *buffer, int bytes,
 
 /// Write the buffer to the serial port
 
-int vrpn_write_characters(int comm, const unsigned char *buffer, int bytes)
+int vrpn_write_characters(int comm, const unsigned char *buffer, size_t bytes)
 {
 #ifdef VERBOSE
 	printf("vrpn_write_characters(): Entering\n");
@@ -594,7 +595,7 @@ int vrpn_write_characters(int comm, const unsigned char *buffer, int bytes)
    Overlapped.OffsetHigh = 0;
    Overlapped.hEvent = NULL;
 
-    if((fSuccess = WriteFile(commConnections[comm], buffer, bytes, &numWritten, &Overlapped)) == 0)
+    if((fSuccess = WriteFile(commConnections[comm], buffer, static_cast<DWORD>(bytes), &numWritten, &Overlapped)) == 0)
     {
 	   perror("vrpn_write_characters: can't write to serial port");
 	   return(-1);

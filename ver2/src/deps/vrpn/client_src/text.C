@@ -1,11 +1,10 @@
-#include <stdlib.h>
-#include <stdio.h>
-#ifndef _WIN32
-  #include <sys/time.h>
-#endif
-#include <signal.h>
-#include <vrpn_Connection.h>
-#include <vrpn_Text.h>
+#include <signal.h>                     // for signal, SIGINT
+#include <stdio.h>                      // for printf, NULL
+#include <stdlib.h>                     // for exit
+#include <vrpn_Connection.h>            // for vrpn_Connection
+#include <vrpn_Text.h>                  // for vrpn_Text_Receiver, etc
+
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK
 
 vrpn_Connection * c;
 
@@ -15,13 +14,13 @@ void handle_cntl_c (int) {
   long i;
 
   if (c)
-    for (i = 0L; n = c->sender_name(i); i++)
+    for (i = 0L; (n = c->sender_name(i)); i++)
       printf("Knew sender \"%s\".\n", n);
 
   // print out type names
 
   if (c)
-    for (i = 0L; n = c->message_type_name(i); i++)
+    for (i = 0L; (n = c->message_type_name(i)); i++)
       printf("Knew type \"%s\".\n", n);
 
   exit(0);

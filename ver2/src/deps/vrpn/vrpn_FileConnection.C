@@ -5,25 +5,18 @@
 #include "vrpn_FileConnection.h"
 
 #ifndef _WIN32_WCE
-#include <fcntl.h>
+#include <fcntl.h>                      // for SEEK_SET
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>	// For memcpy()
-#ifndef _WIN32_WCE
-#include <sys/types.h>
-#include <sys/stat.h>
-#endif
-#include <limits.h>
+#include <limits.h>                     // for LONG_MAX, LONG_MIN
+#include <stdio.h>                      // for NULL, fprintf, stderr, etc
+#include <string.h>                     // for memcpy
 
 // Include vrpn_Shared.h _first_ to avoid conflicts with sys/time.h 
 // and netinet/in.h and ...
-#include "vrpn_Shared.h"
+#include "vrpn_Shared.h"                // for timeval, etc
 #if !( defined(_WIN32) && defined(VRPN_USE_WINSOCK_SOCKETS) )
-#include <netinet/in.h>
+#include <netinet/in.h>                 // for ntohl
 #endif
-
-#include "vrpn_BufferUtils.h"
 
 // Global variable used to indicate whether File Connections should
 // pre-load all of their records into memory when opened.  This is the
@@ -58,7 +51,9 @@ bool vrpn_FILE_CONNECTIONS_SHOULD_SKIP_TO_USER_MESSAGES = true;
 
 #define CHECK(x) if (x == -1) return -1
 
-#include "vrpn_Log.h"
+#include "vrpn_Log.h"                   // for vrpn_Log
+
+struct timeval;
 
 // }}}
 // {{{ constructor
@@ -156,7 +151,7 @@ vrpn_File_Connection::vrpn_File_Connection (const char * station_name,
     // This is useful to play the initial system messages
     // (the sender/type ones) automatically.  These might not be
     // time synched so if we don't play them automatically they
-    // can mess up playback if their timestamps are later then
+    // can mess up playback if their timestamps are later than
     // the first user message.
     if (vrpn_FILE_CONNECTIONS_SHOULD_SKIP_TO_USER_MESSAGES) {
 	play_to_user_message();
@@ -333,7 +328,7 @@ void vrpn_File_Connection::FileTime_Accumulator::reset_at_time(
 // {{{ -- comment
 
 // [juliano 10/11/99] the problem described below is now fixed
-// [juliano 8/26/99]  I beleive there to be a bug in mainloop.
+// [juliano 8/26/99]  I believe there to be a bug in mainloop.
 //     
 //     Essentially, the computation of end_time is sample-and-hold
 //     integration, using the value of d_rate at the end of the integration
@@ -707,16 +702,22 @@ int vrpn_File_Connection::playone_to_filetime( timeval end_filetime )
 // not preloaded, then try to read one in.
 int vrpn_File_Connection::advance_currentLogEntry(void)
 {
-    d_currentLogEntry = d_currentLogEntry->next;
-    if (!d_currentLogEntry && !d_preload) {
-        int retval = read_entry();
-        if (retval != 0) {
-            return -1;  // error reading from file or EOF
-	}
-        d_currentLogEntry = d_logTail;  // If read_entry() returns zero, this will be non-NULL
-    }
+  // If we don't have a currentLogEntry, then we've gone past the end of the
+  // file.
+  if (!d_currentLogEntry) {
+    return 1;
+  }
 
-    return 0;
+  d_currentLogEntry = d_currentLogEntry->next;
+  if (!d_currentLogEntry && !d_preload) {
+      int retval = read_entry();
+      if (retval != 0) {
+          return -1;  // error reading from file or EOF
+      }
+      d_currentLogEntry = d_logTail;  // If read_entry() returns zero, this will be non-NULL
+  }
+
+  return 0;
 }
 
 
@@ -1008,17 +1009,15 @@ vrpn_File_Connection * vrpn_File_Connection::get_File_Connection (void) {
 int vrpn_File_Connection::read_cookie (void)
 {
     char readbuf [2048];  // HACK!
-    int retval;
-
-    retval = fread(readbuf, vrpn_cookie_size(), 1, d_file);
-    if (retval <= 0) {
+    size_t bytes = fread(readbuf, vrpn_cookie_size(), 1, d_file);
+    if (bytes == 0) {
         fprintf(stderr, "vrpn_File_Connection::read_cookie:  "
                 "No cookie.  If you're sure this is a logfile, "
                 "run add_vrpn_cookie on it and try again.\n");
         return -1;
     }
 
-    retval = check_vrpn_file_cookie(readbuf);
+    int retval = check_vrpn_file_cookie(readbuf);
     if (retval < 0) {
         return -1;
     }
@@ -1038,7 +1037,7 @@ int vrpn_File_Connection::read_cookie (void)
 int vrpn_File_Connection::read_entry (void)
 {
     vrpn_LOGLIST * newEntry;
-    int retval;
+    size_t retval;
 
     newEntry = new vrpn_LOGLIST;
     if (!newEntry) {

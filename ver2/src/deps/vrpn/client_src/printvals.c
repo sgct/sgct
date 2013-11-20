@@ -1,15 +1,15 @@
-#include <stdlib.h>
-#include <stdio.h>
-#include <signal.h>
-#include <string.h>
+#include <signal.h>                     // for signal, SIGINT
+#include <stdio.h>                      // for fprintf, stderr, NULL, etc
+#include <stdlib.h>                     // for atof, exit, atoi
+#include <string.h>                     // for strcmp, strncmp
+#include <vrpn_Configure.h>             // for VRPN_CALLBACK
+#include <vrpn_Button.h>                // for vrpn_BUTTONCB
+#include <vrpn_Shared.h>                // for vrpn_SleepMsecs
+#include <vrpn_Tracker.h>               // for vrpn_TRACKERCB, etc
 
-#ifndef _WIN32
-#include <strings.h>
-#endif
-
-#include <vrpn_Shared.h>
-#include <vrpn_Button.h>
-#include <vrpn_Tracker.h>
+#include <vrpn_Connection.h>            // for vrpn_HANDLERPARAM
+#include <vrpn_Types.h>                 // for vrpn_float64, vrpn_int32
+#include <vrpn_BaseClass.h>             // for vrpn_System_TextPrinter, etc
 #include <vrpn_FileConnection.h>
 #include <vrpn_FileController.h>
 #include <vrpn_RedundantTransmission.h>
@@ -214,13 +214,13 @@ void shutdown () {
   // print out sender names
 
   if (c)
-    for (i = 0L; n = c->sender_name(i); i++)
+    for (i = 0L; (n = c->sender_name(i)); i++)
       printf("Knew local sender \"%s\".\n", n);
 
   // print out type names
 
   if (c)
-    for (i = 0L; n = c->message_type_name(i); i++)
+    for (i = 0L; (n = c->message_type_name(i)); i++)
       printf("Knew local type \"%s\".\n", n);
 
   if (btn)

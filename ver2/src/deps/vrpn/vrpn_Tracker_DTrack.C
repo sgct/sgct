@@ -2,7 +2,7 @@
 //
 // Advanced Realtime Tracking GmbH's (http://www.ar-tracking.de) DTrack/DTrack2 client
 
-// developped by David Nahon for Virtools VR Pack (http://www.virtools.com)
+// developed by David Nahon for Virtools VR Pack (http://www.virtools.com)
 // (07/20/2004) improved by Advanced Realtime Tracking GmbH (http://www.ar-tracking.de)
 // (07/02/2007, 06/29/2009) upgraded by Advanced Realtime Tracking GmbH to support new devices
 // (08/25/2010) a correction added by Advanced Realtime Tracking GmbH
@@ -67,23 +67,25 @@
 	#define OS_WIN   // for MS Windows (2000, XP, ...)
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
+#include <stdio.h>                      // for NULL, printf, fprintf, etc
+#include <stdlib.h>                     // for strtod, exit, free, malloc, etc
+#include <string.h>                     // for strncmp, memset, strcat, etc
 
 #ifdef OS_WIN
 	#include <winsock.h>
 #endif
 #ifdef OS_UNIX
-	#include <sys/socket.h>
-	#include <sys/time.h>
-	#include <netinet/in.h>
-	#include <unistd.h>
+	#include <netinet/in.h>                 // for sockaddr_in, INADDR_ANY, etc
+	#include <sys/socket.h>                 // for bind, recv, socket, AF_INET, etc
+	#include <unistd.h>                     // for close
+	#include <sys/select.h>                 // for select, FD_SET, FD_SETSIZE, etc
 #endif
 
+#include "quat.h"                       // for Q_RAD_TO_DEG, etc
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
+#include "vrpn_Shared.h"                // for timeval, INVALID_SOCKET, etc
 #include "vrpn_Tracker_DTrack.h"
-#include "vrpn_Shared.h"
-#include "quat.h" 
+#include "vrpn_Types.h"                 // for vrpn_float64
 
 // There is a problem with linking on SGIs related to standard libraries.
 #ifndef sgi
@@ -140,7 +142,7 @@ vrpn_Tracker_DTrack::vrpn_Tracker_DTrack(const char *name, vrpn_Connection *c,
 	                                      int fixNbody, int fixNflystick, int* fixId,
 	                                      bool act3DOFout, bool actTracing) :
 	vrpn_Tracker(name, c),	  
-	vrpn_Button(name, c),
+	vrpn_Button_Filter(name, c),
 	vrpn_Analog(name, c)
 {
 
@@ -328,7 +330,7 @@ void vrpn_Tracker_DTrack::mainloop()
 	}
 
 	if(num_channel >= (int )joy_last.size()){  // adjust length of vector for current joystick value
-		int j0 = joy_last.size();
+		size_t j0 = joy_last.size();
 		
 		joy_simulate.resize(num_channel);
 		joy_last.resize(num_channel);
@@ -339,7 +341,7 @@ void vrpn_Tracker_DTrack::mainloop()
 		}
 	}
 
-	for(i=0; i<act_num_flystick; i++){   // DTrack Flysticks
+	for(i=0; i<(int)act_num_flystick; i++){   // DTrack Flysticks
 		if(act_flystick[i].id < nflystick){   // there might be more DTrack Flysticks than wanted
 			if(act_flystick[i].quality >= 0){     // report position only if Flystick is tracked
 				if(use_fix_numbering){
@@ -663,7 +665,7 @@ int vrpn_Tracker_DTrack::dtrack2vrpn_flystickanalogs(int id, int id_dtrack,
 //
 // udpport (i): UDP port number to receive data from DTrack
 //
-// return value (o): initialization was successfull (boolean)
+// return value (o): initialization was successful (boolean)
 
 bool vrpn_Tracker_DTrack::dtrack_init(int udpport)
 {
@@ -715,7 +717,7 @@ bool vrpn_Tracker_DTrack::dtrack_init(int udpport)
 
 // Deinitializing communication with DTrack:
 //
-// return value (o): deinitialization was successfull (boolean)
+// return value (o): deinitialization was successful (boolean)
 
 bool vrpn_Tracker_DTrack::dtrack_exit(void)
 {
@@ -739,7 +741,7 @@ bool vrpn_Tracker_DTrack::dtrack_exit(void)
 // ---------------------------------------------------------------------------------------------------
 // Receive and process one DTrack data packet (UDP; ASCII protocol):
 //
-// return value (o): receiving was successfull (boolean)
+// return value (o): receiving was successful (boolean)
 
 bool vrpn_Tracker_DTrack::dtrack_receive(void)
 {
@@ -1328,7 +1330,7 @@ static int udp_exit(vrpn_Tracker_DTrack::socket_type sock)
 // buffer (o): buffer for UDP data
 // maxlen (i): length of buffer
 // tout_us (i): timeout in us (micro sec)
-// return value (o): number of received bytes, <0 if error/timeout occured
+// return value (o): number of received bytes, <0 if error/timeout occurred
 
 // Don't tell us about the FD_SET causing a conditional expression to be constant
 #ifdef	_WIN32

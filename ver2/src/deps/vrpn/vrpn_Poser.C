@@ -1,17 +1,6 @@
-#ifndef _WIN32_WCE
-#include <time.h>
-#endif
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#ifndef	_WIN32_WCE
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#endif
-#include <ctype.h>
-#include <quat.h>
+#include <quat.h>                       // for q_mult
+#include <stdio.h>                      // for fprintf, stderr, NULL
+#include <string.h>                     // for memcpy
 
 // NOTE: a vrpn poser must accept poser data (pos and
 //       ori info) which represent the transformation such 
@@ -23,17 +12,10 @@
 
 //      borrows heavily from the vrpn_Tracker code, as the poser is basically
 //      the inverse of a tracker
-
-#ifdef linux
-#include <termios.h>
-#endif
-
+#include "vrpn_Connection.h"            // for vrpn_HANDLERPARAM, etc
 // Include vrpn_Shared.h _first_ to avoid conflicts with sys/time.h 
 // and unistd.h
-#include "vrpn_Shared.h"
-#ifndef _WIN32
-#include <netinet/in.h>
-#endif
+#include "vrpn_Shared.h"                // for timeval, vrpn_buffer, etc
 
 #ifdef	_WIN32
 #ifndef _WIN32_WCE
@@ -525,7 +507,7 @@ int vrpn_Poser_Remote::request_pose_relative( const struct timeval t,
 											  const vrpn_float64 quaternion[4]) 
 {
     // Set the requested pose 
-    set_pose(t, position_delta, quaternion);
+    set_pose_relative(t, position_delta, quaternion);
 
     // Send position request
     if (client_send_pose_relative() != 0) {

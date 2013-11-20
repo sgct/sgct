@@ -4,14 +4,12 @@
 //
 
 #ifdef sgi
-#include <string.h>
 #include <stdlib.h>
+#include <string.h>
 #else
-#include <cstring>
-#include <cstdlib>
+#include <cstdlib>                      // for atof, atoi, atol
 #endif
 #include "nmeaParser.h"
-#include <iostream>
 
 // This constant define the length of the date string in a sentence.
 const int DATE_LEN = 6;
@@ -22,7 +20,7 @@ const int DATE_LEN = 6;
 NMEAData::NMEAData ()
 {
   // The constructor for the NMEAData object clears all data and resets the
-  // times of last aquisition to 0.
+  // times of last acquisition to 0.
   reset ();
 
   // No coordinate has ever been valid since this object was created.
@@ -881,7 +879,7 @@ bool NMEAParser::parseDegrees (double& degrees, const char* degString) const
   double tempMinutes  = (tempPosition - (tempDegrees * 100.0));
   tempPosition = tempDegrees + (tempMinutes / 60.0);
   
-  if (tempPosition >= 0.0 || tempPosition <= 180.0)
+  if (tempPosition >= 0.0 && tempPosition <= 180.0)
     {
       degrees = tempPosition;
       return true;
@@ -1389,7 +1387,7 @@ bool NMEAParser::isKnownSentenceType (const char* sentence) const
 
 int NMEAParser::countChars (const char* string, char charToCount, uint_ charCount) const
   // Purpose:
-  //  This function counts the number of specified occurrances(sp?) of the
+  //  This function counts the number of specified occurrences of the
   //  specified characters and compares to the number of characters that is
   //  expected.
   // Parameters:
@@ -1407,10 +1405,10 @@ int NMEAParser::countChars (const char* string, char charToCount, uint_ charCoun
   //  -1 if the number of specified characters in the sentence is greater than
   //  charCount.
 {
-  uint_ stringSize = strlen (string);
-  uint_ currentCharCount = 0;
+  size_t stringSize = strlen (string);
+  size_t currentCharCount = 0;
   const char* currentChar = string;
-  for (uint_ i = 0; i < stringSize; i++) {
+  for (size_t i = 0; i < stringSize; i++) {
     if (*currentChar++ == charToCount) ++currentCharCount;
   }
   if (currentCharCount > charCount) {

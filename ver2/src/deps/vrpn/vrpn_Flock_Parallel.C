@@ -28,30 +28,15 @@
 // If you want to try polling instead of stream mode, just set define POLL
 // #define POLL
 
-#include <time.h>
-#include <math.h>
-#include <stdlib.h>
-#include <stdio.h>
-#include <string.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <fcntl.h>
-#include <ctype.h>
+#include <stdio.h>                      // for fprintf, stderr, NULL, etc
 
-#ifdef linux
-#include <termios.h>
-#endif
-
-#ifndef _WIN32
-#include <sys/ioctl.h>
-#include <sys/time.h>
-#include <unistd.h>
-#include <netinet/in.h>
-#endif
-
-#include "vrpn_Tracker.h"
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
 #include "vrpn_Flock_Parallel.h"
-#include "vrpn_Serial.h"
+#include "vrpn_Serial.h"                // for vrpn_drain_output_buffer, etc
+#include "vrpn_Shared.h"                // for timeval, vrpn_SleepMsecs, etc
+#include "vrpn_Tracker.h"               // for vrpn_TRACKER_FAIL, etc
+
+class VRPN_API vrpn_Connection;
 
 // output a status msg every status_msg_secs
 #define STATUS_MSG
@@ -332,7 +317,7 @@ void vrpn_Tracker_Flock_Parallel_Slave::reset()
 // wait for first report)
 
 // Allow enough time for startup of many sensors -- 1 second per sensor
-#define MAX_TIME_INTERVAL       (MAX_SENSORS*1000000)
+#define MAX_TIME_INTERVAL       (VRPN_FLOCK_MAX_SENSORS*1000000)
 
 static	unsigned long	duration(struct timeval t1, struct timeval t2)
 {

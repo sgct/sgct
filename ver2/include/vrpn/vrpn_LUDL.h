@@ -6,18 +6,34 @@
 #ifndef VRPN_LUDL_H
 #define VRPN_LUDL_H
 
-#include "vrpn_Analog.h"
-#include "vrpn_Analog_Output.h"
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_Analog_Output.h"         // for vrpn_Analog_Output
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, etc
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_RELIABLE, etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_uint32, vrpn_uint8, etc
 
 #if defined(VRPN_USE_LIBUSB_1_0)
-#include <libusb.h>
 
 // This driver uses the VRPN-preferred LibUSB-1.0 to control the device.
 // It exposes the vrpn_Analog and the
 // vrpn_Analog_Output interfaces, to report and set the stage position.
+//    The first two entries below enable the client to set the desired
+//    position (in ticks) and to read back when the device has finished
+//    the move to the requested position.  They do not actually look at
+//    the position sensors on the device.
 //
 // Analog/Analog_Output channel 0 is X (0 to maximum #ticks, in ticks).
 // Analog/Analog_Output channel 1 is Y (0 to maximum #ticks, in ticks).
+//
+//    The next two report the actual sensor positions in X and Y.  These
+//    may differ by quite a lot (a micron or more) from the requested
+//    position, so code that is watching to see if a requested move has
+//    completed should use the ones above, but those that want to know
+//    the actual postion, even as it shifts, should use the ones below.
+//
+// Analog channel 2 is X (0 to maximum #ticks, in ticks).
+// Analog channel 3 is Y (0 to maximum #ticks, in ticks).
 
 class vrpn_LUDL_USBMAC6000 :
   public vrpn_Analog, 
@@ -42,11 +58,11 @@ protected:
   vrpn_uint8 _inbuffer[_INBUFFER_SIZE]; // MUST CHANGE the sizeof() code if this becomes not an array.
   unsigned _incount;
   bool check_for_data();  // False if error.  True even if no data.
-  bool interpret_usbmac_ascii_response(const vrpn_uint8 *buffer, int *value_return);
-
-  // XXX I think we're using ASCII send and response because Ryan had some kind of trouble
-  // with the binary send/response.  Not sure about this, though.  It sure would be
-  // faster to read and easier to parse the binary ones, which all have the same length.
+  bool interpret_usbmac_ascii_response(const vrpn_uint8 *buffer,
+    int *device_return,
+    int *command_return,
+    int *index_return,
+    int *value_return);
 
   // vrpn_Analog overridden methods.
   // Send report iff changed
@@ -75,6 +91,8 @@ private:
   bool  recenter(void);
   bool  ludl_axis_moving(unsigned axis);  // Returns true if the axis is still moving
   bool  move_axis_to_position(int axis, int position);
+  // Returns true on success, fills in the position of the axis.
+  bool  ludl_axis_position(unsigned axis, vrpn_int32 *position_return);
 
   // Stores whether we think each axis is moving and where we think each axis is
   // going if it is moving.  These are set in the move_axis_to_position() routine
@@ -89,4 +107,3 @@ private:
 
 // end of VRPN_LUDL_H
 #endif
-

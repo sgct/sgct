@@ -14,10 +14,14 @@
 #ifndef VRPN_ADBOX_H
 #define VRPN_ADBOX_H
 
-#include "vrpn_Analog.h"
-#include "vrpn_Button.h"
+#include "vrpn_Analog.h"                // for vrpn_Analog
+#include "vrpn_Button.h"                // for VRPN_BUTTON_BUF_SIZE, etc
+#include "vrpn_Configure.h"             // for VRPN_API
+#include "vrpn_Shared.h"                // for timeval
 
-class VRPN_API vrpn_ADBox : public vrpn_Analog, public vrpn_Button {
+class VRPN_API vrpn_Connection;
+
+class VRPN_API vrpn_ADBox : public vrpn_Analog, public vrpn_Button_Filter {
 
  public:
   vrpn_ADBox(char* name, vrpn_Connection *c,

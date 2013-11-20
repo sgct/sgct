@@ -22,7 +22,14 @@
 // playback.
 // }}}
 
-#include "vrpn_Connection.h"
+#include <stdio.h>                      // for NULL, FILE
+
+#include "vrpn_Configure.h"             // for VRPN_API, VRPN_CALLBACK
+#include "vrpn_Connection.h"            // for vrpn_LOGLIST (ptr only), etc
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Types.h"                 // for vrpn_float32, vrpn_int32, etc
+
+struct timeval;
 
 // Global variable used to indicate whether File Connections should
 // pre-load all of their records into memory when opened.  This is the
@@ -299,6 +306,9 @@ protected:
     //     all of them or else the read routine will attempt to load the
     //     next message each time one is played.  The constructor fills it
     //     in with the first message, which makes it non-NULL initially.
+    //     HOWEVER, if there are no user messages and we're asked to skip
+    //     to the first user message then it can be NULL right after the
+    //     constructor is called.
 protected:
     vrpn_LOGLIST * d_logHead;  // the first read-in record
     vrpn_LOGLIST * d_logTail;  // the last read-in record

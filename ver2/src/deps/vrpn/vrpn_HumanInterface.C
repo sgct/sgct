@@ -1,6 +1,14 @@
+#include <stdio.h>                      // for fprintf, stderr
+
 #include "vrpn_HumanInterface.h"
 
 #if defined(VRPN_USE_HID)
+
+#ifdef  VRPN_USE_LOCAL_HIDAPI
+#include "./submodules/hidapi/hidapi/hidapi.h"  // for hid_device
+#else
+#include "hidapi.h"
+#endif
 
 // Accessor for USB vendor ID of connected device
 vrpn_uint16 vrpn_HidInterface::vendor() const {
@@ -52,14 +60,15 @@ vrpn_HidInterface::~vrpn_HidInterface()
 // Reconnects the device I/O for the first acceptable device
 // Called automatically by constructor, but userland code can
 // use it to reacquire a hotplugged device.
-void vrpn_HidInterface::reconnect() {
-
-        // Enumerate all devices and pass each one to the acceptor to see if it is the
-        // one that we want.
+bool vrpn_HidInterface::reconnect()
+{
+        // Enumerate all devices and pass each one to the acceptor to see if it
+        // is the one that we want.
         struct hid_device_info  *devs = hid_enumerate(0, 0);
         struct hid_device_info  *loop = devs;
         bool found = false;
         const wchar_t *serial;
+        const char * path;
         while ((loop != NULL) && !found) {
           vrpn_HIDDEVINFO device_info;
           device_info.vendor = loop->vendor_id;
@@ -68,30 +77,35 @@ void vrpn_HidInterface::reconnect() {
           device_info.manufacturer_string = loop->manufacturer_string;
           device_info.product_string = loop->product_string;
           device_info.interface_number = loop->interface_number;
-          //printf("XXX Found vendor %x, product %x\n", (unsigned)(loop->vendor_id), (unsigned)(loop->product_id));
+          //printf("XXX Found vendor 0x%x, product 0x%x, interface %d\n", (unsigned)(loop->vendor_id), (unsigned)(loop->product_id), (int)(loop->interface_number) );
 
           if (_acceptor->accept(device_info)) {
             _vendor = loop->vendor_id;
             _product = loop->product_id;
             _interface = loop->interface_number;
             serial = loop->serial_number;
+            path = loop->path;
             found = true;
+#ifdef VRPN_HID_DEBUGGING
+            fprintf(stderr,"vrpn_HidInterface::reconnect(): Found %ls %ls (%04hx:%04hx) at path %s - will attempt to open.\n",
+				loop->manufacturer_string, loop->product_string, _vendor, _product, loop->path);
+#endif
           }
           loop = loop->next;
         }
         if (!found) {
 		fprintf(stderr,"vrpn_HidInterface::reconnect(): Device not found\n");
-		return;
+		return false;
         }
 
 	// Initialize the HID interface and open the device.
-        _device = hid_open(_vendor, _product, const_cast<wchar_t *>(serial));
+        _device = hid_open_path(path);
         if (_device == NULL) {
-		fprintf(stderr,"vrpn_HidInterface::reconnect(): Could not open device\n");
+		fprintf(stderr,"vrpn_HidInterface::reconnect(): Could not open device %s\n", path);
 #ifdef linux
 		fprintf(stderr,"   (Did you remember to run as root?)\n");
 #endif
-                return;
+                return false;
         }
 
 	// We cannot do this before the call to open because the serial number
@@ -105,20 +119,17 @@ void vrpn_HidInterface::reconnect() {
         // Set the device to non-blocking mode.
         if (hid_set_nonblocking(_device, 1) != 0) {
 		fprintf(stderr,"vrpn_HidInterface::reconnect(): Could not set device to nonblocking\n");
-                return;
+                return false;
         }
 
+#ifdef VRPN_HID_DEBUGGING
+	fprintf(stderr,"vrpn_HidInterface::reconnect(): Device successfully opened.\n");
+#endif
 	_working = true;
+	return _working;
 }
 
 // Check for incoming characters.  If we get some, pass them on to the handler code.
-// This is based on the source code for the hid_interrupt_read() function; it goes
-// down to the libusb interface directly to get any available characters.  Because
-// we're trying to support a generic device, we can't say in advance how large any
-// particular transfer should be.  So we try to one character at a time until we
-// don't have any more to read.  This update() routine must be called
-// frequently to make sure we don't get partial results, which would mean sending
-// truncated reports to the devices derived from us.
 
 void vrpn_HidInterface::update()
 {
@@ -137,6 +148,7 @@ void vrpn_HidInterface::update()
         int ret = hid_read(_device, inbuf, sizeof(inbuf));
         if (ret < 0) {
 		fprintf(stderr,"vrpn_HidInterface::update(): Read error\n");
+		fprintf(stderr,"  (On one version of Red Hat Linux, this was from not having libusb-devel installed when configuring in CMake.)\n");
 		return;
         }
 
@@ -173,6 +185,10 @@ void vrpn_HidInterface::send_feature_report(size_t bytes, const vrpn_uint8 *buff
 	int ret = hid_send_feature_report(_device, buffer, bytes);
 	if (ret == -1) {
 		fprintf(stderr, "vrpn_HidInterface::send_feature_report(): failed to send feature report\n");
+		const wchar_t * errmsg = hid_error(_device);
+		if (errmsg) {
+			fprintf(stderr, "vrpn_HidInterface::send_feature_report(): error message: %ls\n", errmsg);
+		}
 	} else {
 		//fprintf(stderr, "vrpn_HidInterface::send_feature_report(): sent feature report, %d bytes\n", static_cast<int>(bytes));
 	}
@@ -187,6 +203,10 @@ int vrpn_HidInterface::get_feature_report(size_t bytes, vrpn_uint8 *buffer) {
 	int ret = hid_get_feature_report(_device, buffer, bytes);
 	if (ret == -1) {
 		fprintf(stderr, "vrpn_HidInterface::get_feature_report(): failed to get feature report\n");
+		const wchar_t * errmsg = hid_error(_device);
+		if (errmsg) {
+			fprintf(stderr, "vrpn_HidInterface::get_feature_report(): error message: %ls\n", errmsg);
+		}
 	} else {
 		//fprintf(stderr, "vrpn_HidInterface::get_feature_report(): got feature report, %d bytes\n", static_cast<int>(bytes));
 	}

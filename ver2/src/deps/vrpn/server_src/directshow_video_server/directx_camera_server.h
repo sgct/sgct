@@ -1,8 +1,12 @@
-#ifdef	VRPN_USE_DIRECTSHOW
 #ifndef	DIRECTX_CAMERA_SERVER_H
 #define	DIRECTX_CAMERA_SERVER_H
 
-#include <windows.h>
+#include "vrpn_Configure.h"
+
+#ifdef	VRPN_USE_DIRECTSHOW
+
+
+#include "vrpn_Shared.h"
 #include <stdio.h>
 #include <math.h>
 

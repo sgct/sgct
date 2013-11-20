@@ -30,10 +30,11 @@
 #ifndef VRPN_HUMANINTERFACE_H
 #define VRPN_HUMANINTERFACE_H
 
-#include "vrpn_Configure.h"
-#include "vrpn_BaseClass.h"
-#include <string.h>
-#include <wchar.h>
+#include <stddef.h>                     // for size_t
+#include <wchar.h>                      // for wcscmp
+
+#include "vrpn_Configure.h"             // for VRPN_API, VRPN_USE_HID, etc
+#include "vrpn_Types.h"                 // for vrpn_uint16, vrpn_uint8
 
 struct vrpn_HIDDEVINFO {
 	vrpn_uint16 vendor;		// USB Vendor ID
@@ -57,14 +58,11 @@ public:
 	virtual void reset() { }
 };
 
-
 #if defined(VRPN_USE_HID)
 
-#ifdef  VRPN_USE_LOCAL_HIDAPI
-#include "./submodules/hidapi/hidapi/hidapi.h"
-#else
-#include "hidapi.h"
-#endif
+// Forward declarations for hid_device
+struct hid_device_;
+typedef struct hid_device_ hid_device;
 
 // Main VRPN API for HID devices
 class VRPN_API vrpn_HidInterface {
@@ -81,7 +79,7 @@ public:
 
 	/// Tries to reconnect to an acceptable device.
 	/// Call this if you suspect a hotplug event has occurred.
-	virtual void reconnect();
+	virtual bool reconnect();
 
 	/// Returns USB vendor ID of connected device
 	vrpn_uint16 vendor() const;

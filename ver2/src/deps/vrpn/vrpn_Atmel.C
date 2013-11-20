@@ -15,20 +15,21 @@
 
 #ifndef _WIN32
 
+#include <errno.h>                      // for errno
+#include <stdio.h>                      // for fprintf, stderr, printf, etc
+#include <stdlib.h>                     // for exit
+#include <sys/select.h>                 // for select, FD_SET, FD_ZERO, etc
+#include <vrpn_Shared.h>                // for vrpn_gettimeofday
+
 #include "vrpn_Atmel.h"
-#include "vrpn_atmellib.h"
-#include "vrpn_atmellib_helper.h"
+#include "vrpn_Connection.h"            // for vrpn_Connection
+#include "vrpn_Types.h"                 // for vrpn_float64
+#include "vrpn_atmellib.h"              // for getRegister, closePort, etc
+#include "vrpn_atmellib_errno.h"        // for ATMELLIB_NOERROR
 
-#include <errno.h>
-#include <stdio.h>
+#include <termios.h>                    // for tcflush, TCIOFLUSH, termios
 
-#if !defined(_WIN32)
-#include <unistd.h>
-#include <termios.h>
-#endif
-
-#include <string>
-#include <string.h>
+#include <string.h>                     // for strerror
 
 /***************************************************************************************************/
 /***************************************************************************************************/
@@ -146,8 +147,8 @@ vrpn_Atmel::vrpn_Atmel(char* name, vrpn_Connection *c, int fd)
     serial_fd(fd)
 {	
   // find out what time it is - needed?
-  gettimeofday(&timestamp, 0);
-  gettimeofday(&_time_alive, 0);
+  vrpn_gettimeofday(&timestamp, 0);
+  vrpn_gettimeofday(&_time_alive, 0);
   vrpn_Analog::timestamp = timestamp;
 }
 
@@ -241,7 +242,7 @@ vrpn_Atmel::Check_Serial_Alive()
   if ((timestamp.tv_sec - _time_alive.tv_sec) > VRPN_ATMEL_ALIVE_INTERVAL_SEC) {
 
     // reset time alive
-    gettimeofday(&_time_alive,0);
+    vrpn_gettimeofday(&_time_alive,0);
 
     tcflush(serial_fd, TCIOFLUSH);
 
@@ -281,7 +282,7 @@ vrpn_Atmel::Check_Serial_Alive()
 bool
 vrpn_Atmel::mainloop_serial_io() 
 {
-  gettimeofday(&timestamp, 0);
+  vrpn_gettimeofday(&timestamp, 0);
   vrpn_Analog::timestamp = timestamp;
 
   // check if there is still a valid connection to the Chip
@@ -341,7 +342,7 @@ vrpn_Atmel::mainloop_serial_io()
       else {
 
         fprintf(stderr,"vrpn_Atmel: mainloop_serial_io()\n");
-        fprintf(stderr,"  writen down value, channel: %d\n",i);
+        fprintf(stderr,"  written down value, channel: %d\n",i);
       }
       
       // no error

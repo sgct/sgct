@@ -16,7 +16,9 @@
 
 #include "vrpn_Tracker_zSight.h"
 
-#if defined(_WIN32) && defined(VRPN_USE_DIRECTINPUT)
+#if defined(_WIN32) && defined(VRPN_USE_DIRECTINPUT) && defined(VRPN_HAVE_ATLBASE)
+
+#include <math.h>
 
 // Convert from 2's complement, as per the Sensics zSight documentation
 short FromTwos(unsigned short x) {
@@ -40,7 +42,7 @@ vrpn_Tracker_zSight::vrpn_Tracker_zSight(const char* name, vrpn_Connection* c) :
 	// Create a window handle
 	hWnd = CreateWindow("STATIC", "zSightWindow", WS_ICONIC, 0, 0, 10, 10, NULL, NULL, NULL, NULL);
 
-    // Initialze DirectInput and acquire the device
+    // Initialize DirectInput and acquire the device
     if (FAILED(InitDevice())) {
         fprintf(stderr,"vrpn_Tracker_zSight::vrpn_Tracker_zSight(): Failed to open device\n");
         hWnd = NULL;
@@ -56,14 +58,6 @@ vrpn_Tracker_zSight::~vrpn_Tracker_zSight()
 	// Release the Sensics device if necessary
 	if (sensics) {
 		sensics->Unacquire();
-		sensics->Release();
-		sensics = NULL;
-	}
-
-	// Release any remaining DirectInput resources
-	if (directInput) {
-		directInput->Release();
-		directInput = NULL;
 	}
 }
 
@@ -78,29 +72,32 @@ void vrpn_Tracker_zSight::mainloop()
 
 void vrpn_Tracker_zSight::get_report()
 {
+    // Get the current time
     vrpn_gettimeofday(&timestamp, NULL);
 
-	HRESULT hr;
-	DIJOYSTATE2 js;
-	if (FAILED(hr = sensics->GetDeviceState(sizeof(DIJOYSTATE2), &js))) {
-		fprintf(stderr, "vrpn_Tracker_zSight::get_report(): Can't read tracker\n");
-		return;
-	}
+    if (hWnd) {
+	    HRESULT hr;
+	    DIJOYSTATE2 js;
+	    if (FAILED(hr = sensics->GetDeviceState(sizeof(DIJOYSTATE2), &js))) {
+		    fprintf(stderr, "vrpn_Tracker_zSight::get_report(): Can't read tracker\n");
+		    return;
+	    }
 
-    // No need to fill in position, as we don´t get position information
+        // No need to fill in position, as we don´t get position information
 
-	// Get the orientation, as per the Sensics zSight documentation
-	float w = FromTwos((unsigned short) js.lRx) / 32768.0f;
-	float x = FromTwos((unsigned short) js.lRy) / 32768.0f;
-	float y = FromTwos((unsigned short) js.lX)  / 32768.0f;
-	float z = FromTwos((unsigned short) js.lY)  / 32768.0f;
-	float mag = sqrt(w*w + x*x + y*y + z*z);
+	    // Get the orientation, as per the Sensics zSight documentation
+	    float w = FromTwos((unsigned short) js.lRx) / 32768.0f;
+	    float x = FromTwos((unsigned short) js.lRy) / 32768.0f;
+	    float y = FromTwos((unsigned short) js.lX)  / 32768.0f;
+	    float z = FromTwos((unsigned short) js.lY)  / 32768.0f;
+	    float mag = sqrt(w*w + x*x + y*y + z*z);
 
-	// Set for internal quat, as per the Sensics zSight documentation
-	d_quat[3] = w / mag;
-	d_quat[0] = x / mag;
-	d_quat[1] = y / mag;
-	d_quat[2] = -z / mag;
+	    // Set for internal quat, as per the Sensics zSight documentation
+	    d_quat[3] = w / mag;
+	    d_quat[0] = x / mag;
+	    d_quat[1] = y / mag;
+	    d_quat[2] = -z / mag;
+    }
 
 	// Send the data
 	send_report();
@@ -147,21 +144,21 @@ HRESULT vrpn_Tracker_zSight::InitDevice()
 	if (FAILED(hr = sensics->SetDataFormat(&c_dfDIJoystick2)))
 	{
         fprintf(stderr, "vrpn_Tracker_zSight::InitDevice(): Cannot set data format\n");
-		sensics->Release();
+		sensics->Unacquire();
         return hr;
 	}
 	
     // Set the cooperative level
 	if (FAILED(hr = sensics->SetCooperativeLevel(hWnd, DISCL_EXCLUSIVE | DISCL_BACKGROUND))) {
 		fprintf(stderr, "vrpn_Tracker_zSight::InitDevice(): Cannot set cooperative level\n");
-		sensics->Release();
+		sensics->Unacquire();
         return hr;
 	}
 
     // Get the joystick axis object
 	if (FAILED(hr = sensics->EnumObjects(EnumObjectsCallback, this, DIDFT_AXIS))) {
 		fprintf(stderr, "vrpn_Tracker_zSight::InitDevice(): Cannot enumerate objects\n");
-		sensics->Release();
+		sensics->Unacquire();
         return hr;
 	}
 
@@ -188,7 +185,7 @@ HRESULT vrpn_Tracker_zSight::InitDevice()
       }
 
       fprintf(stderr, "vrpn_Tracker_zSight::InitDevice(): Cannot acquire device because %s\n", reason);
-	  sensics->Release();
+	  sensics->Unacquire();
       return hr;
     }
 
@@ -206,7 +203,7 @@ BOOL CALLBACK vrpn_Tracker_zSight::EnumSensicsCallback(const DIDEVICEINSTANCE* p
 	// Make sure it is a Sensics zSight device
 	if (SUCCEEDED(hr) == TRUE) {
 		if (strcmp(pdidInstance->tszProductName, "Sensics zSight HMD") != 0) {
-			me->sensics->Release();
+			me->sensics->Unacquire();
 		}
 		else {
 			return DIENUM_STOP;

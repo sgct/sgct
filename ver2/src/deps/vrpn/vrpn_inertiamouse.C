@@ -2,11 +2,13 @@
  *   vrpn_inertiamouse.C
  */
 
-#include "vrpn_inertiamouse.h"
-#include "vrpn_Shared.h"
-#include "vrpn_Serial.h"
+#include <math.h>                       // for fabs
+#include <stdio.h>                      // for fprintf, stderr, NULL
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
 
-#include <math.h>
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
+#include "vrpn_Serial.h"
+#include "vrpn_inertiamouse.h"
 
 #undef VERBOSE
 
@@ -26,7 +28,7 @@ vrpn_inertiamouse::vrpn_inertiamouse (const char* name,
                                       const char* port, 
                                       int baud_rate)
     : vrpn_Serial_Analog (name, c, port, baud_rate)
-    , vrpn_Button (name, c)
+    , vrpn_Button_Filter (name, c)
     , numbuttons_ (Buttons)
     , numchannels_ (Channels)
     , null_radius_ (0)
@@ -78,7 +80,7 @@ int vrpn_inertiamouse::reset(void)
     
     status_ = STATUS_SYNCING;
     
-    gettimeofday(&timestamp, NULL);	// Set watchdog now
+    vrpn_gettimeofday(&timestamp, NULL);	// Set watchdog now
     return 0;
 }
 
@@ -114,7 +116,7 @@ int vrpn_inertiamouse::get_report(void)
         }
 
         bufcount_ = 1;
-        gettimeofday (&timestamp, NULL);
+        vrpn_gettimeofday (&timestamp, NULL);
 
         status_ = STATUS_READING;
     }

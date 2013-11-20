@@ -22,8 +22,10 @@
 /* includes, system */
 /* #include <> */
 
+#include <errno.h>                      // for error_t
+
 /* includes, project */
-#include "vrpn_atmellib.h"
+#include "vrpn_atmellib.h"              // for handle_t
 
 
 #if defined(__cplusplus)
@@ -46,7 +48,7 @@ extern "C" {
   /* gives you the 2^Exponent */
   unsigned int  PowToTwo( unsigned int Exponent);
 
-  /* valid adress byte for the specified Register 
+  /* valid address byte for the specified Register 
      the MSB data bit is set to zero */
   unsigned char getAddress( unsigned char Register );
 

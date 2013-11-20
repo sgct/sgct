@@ -1,21 +1,21 @@
 #ifndef VRPN_XINPUTGAMEPAD_H
 #define VRPN_XINPUTGAMEPAD_H
 
-#include "vrpn_Configure.h"
+#include "vrpn_Configure.h"   // IWYU pragma: keep
 
 #if defined(_WIN32) && defined(VRPN_USE_DIRECTINPUT) && defined(VRPN_USE_WINDOWS_XINPUT)
 
-#include "vrpn_Connection.h"
 #include "vrpn_Analog.h"
-#include "vrpn_Button.h"
 #include "vrpn_Analog_Output.h"
+#include "vrpn_Button.h"
+#include "vrpn_Connection.h"
 
 // This implements an XInput gamepad (read: Xbox 360 controller), which has
 // analog outputs and button outputs but also enables the user to set a
 // rumble magnitude using an Analog_Output (channel 0 controls the left motor,
 // channel 1 controls the right motor).
 
-class VRPN_API vrpn_XInputGamepad: public vrpn_Analog, public vrpn_Button, public vrpn_Analog_Output {
+class VRPN_API vrpn_XInputGamepad: public vrpn_Analog, public vrpn_Button_Filter, public vrpn_Analog_Output {
 public:
 	vrpn_XInputGamepad(const char *name, vrpn_Connection *c = NULL, unsigned int controllerIndex = 0);
 	~vrpn_XInputGamepad();

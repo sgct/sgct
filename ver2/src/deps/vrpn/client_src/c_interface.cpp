@@ -7,10 +7,12 @@
  * a C interface.
  */
 
-#include <vrpn_Tracker.h>
-#include <vrpn_Button.h>
+#include <stddef.h>                     // for NULL
+#include <vrpn_Button.h>                // for vrpn_Button_Remote, etc
+#include <vrpn_Tracker.h>               // for vrpn_TRACKERCB, etc
 
 #include "c_interface.h"
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK
 
 /* Helper function that receives the callback handler from the C++ Tracker
  * remote, repackages the values, and calls the user callback function. */
@@ -36,7 +38,7 @@ extern "C" void *vrpn_c_open_tracker(const char *device_name, vrpn_c_tracker_cal
 /* Poll the tracker whose device pointer is passed in.  This will cause the
  * callback handler to be called whenever a new value comes in for
  * a sensor.  Returns false if the device is not working. */
-extern "C" bool vrpn_c_poll_tracker(void *device)
+extern "C" vrpn_c_bool vrpn_c_poll_tracker(void *device)
 {
 	if (device == NULL) { return false; }
 	vrpn_Tracker_Remote *tkr = (vrpn_Tracker_Remote *)device;
@@ -48,7 +50,7 @@ extern "C" bool vrpn_c_poll_tracker(void *device)
 
 /* Close the tracker whose device pointer is passed in.  Returns true on success,
  * false on failure. */
-extern "C" bool vrpn_c_close_tracker(void *device)
+extern "C" vrpn_c_bool vrpn_c_close_tracker(void *device)
 {
 	if (device == NULL) { return false; }
 	vrpn_Tracker_Remote *tkr = (vrpn_Tracker_Remote *)device;
@@ -82,7 +84,7 @@ extern "C" void *vrpn_c_open_button(const char *device_name, vrpn_c_button_callb
 /* Poll the button whose device pointer is passed in.  This will cause the
  * callback handler to be called whenever a new value comes in for
  * a button.  Returns false if the device is not working. */
-extern "C" bool vrpn_c_poll_button(void *device)
+extern "C" vrpn_c_bool vrpn_c_poll_button(void *device)
 {
 	if (device == NULL) { return false; }
 	vrpn_Button_Remote *btn = (vrpn_Button_Remote *)device;
@@ -93,7 +95,7 @@ extern "C" bool vrpn_c_poll_button(void *device)
 
 /* Close the button whose device pointer is passed in.  Returns true on success,
  * false on failure. */
-extern "C" bool vrpn_c_close_button(void *device)
+extern "C" vrpn_c_bool vrpn_c_close_button(void *device)
 {
 	if (device == NULL) { return false; }
 	vrpn_Button_Remote *btn = (vrpn_Button_Remote *)device;

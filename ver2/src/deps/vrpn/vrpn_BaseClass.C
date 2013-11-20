@@ -1,9 +1,11 @@
 // vrpn_BaseClass.C
 
+#include <stddef.h>                     // for size_t
+#include <stdio.h>                      // for fprintf, NULL, stderr, etc
+#include <string.h>                     // for strcmp, strlen
+
 #include "vrpn_BaseClass.h"
-#include <stdio.h>
-#include <string.h>
-#include "vrpn_Shared.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_buffer, etc
 
 //#define	VERBOSE
 
@@ -23,11 +25,12 @@ d_level_to_print(0)
 /** Deletes any callbacks that are still registered. */
 vrpn_TextPrinter::~vrpn_TextPrinter()
 {
-    /* XXX This code causes seg faults on exit,when it is trying to unregister
-       handlers, apparently from nonexistent connections.  For now, this has
-       been removed; this will cause user code to segfault if they dynamically
-       create a vrpn_TextPrinter and then delete it.  This is the more rare
-       case.
+  /* XXX No longer removes these.  We get into trouble with the
+     system-defined vrpn_System_TextPrinter destructor because it
+     may run after the vrpn_ConnectionManager destructor has run,
+     which (if we have some undeleted objects) will leave objects
+     that don't have a NULL connection pointer, but whose pointers
+     point to already-deleted connections.  This causes a crash.
 
     vrpn_TextPrinter_Watch_Entry    *victim, *next;
     vrpn_BaseClass  *obj;
@@ -36,7 +39,13 @@ vrpn_TextPrinter::~vrpn_TextPrinter()
     while (victim != NULL) {
 	next = victim->next;
 	obj = victim->obj;
-	obj->connectionPtr()->unregister_handler(obj->d_text_message_id, text_message_handler, victim, obj->d_sender_id);
+
+        // Guard against the case where the object has set its connection pointer
+        // to NULL, which is how some objects notify themselves that they are
+        // broken.
+        if (obj->connectionPtr()) {
+          obj->connectionPtr()->unregister_handler(obj->d_text_message_id, text_message_handler, victim, obj->d_sender_id);
+        }
 	delete victim;
 	victim = next;
     }
@@ -128,10 +137,14 @@ void	vrpn_TextPrinter::remove_object(vrpn_BaseClass *o)
             
     // If the object is on the list, unregister its callback and delete it.
     if (victim != NULL) {
-	// Unregister the callback for the object
-    	if (o->d_connection->unregister_handler(o->d_text_message_id, text_message_handler, victim, o->d_sender_id) != 0) {
-	    fprintf(stderr,"vrpn_TextPrinter::remove_object(): Can't unregister callback\n");
-	}
+	// Unregister the callback for the object, unless its d_connetion pointer
+        // is NULL (which is a convention used by devices to indicate that they
+        // are broken, so we need to guard against it here).
+        if (o->d_connection) {
+    	  if (o->d_connection->unregister_handler(o->d_text_message_id, text_message_handler, victim, o->d_sender_id) != 0) {
+	      fprintf(stderr,"vrpn_TextPrinter::remove_object(): Can't unregister callback\n");
+	  }
+        }
 
 	// Remove the entry from the list
 	*snitch = victim->next;
@@ -269,7 +282,7 @@ vrpn_BaseClass::~vrpn_BaseClass()
 
 int vrpn_BaseClass::init(void)
 {
-    // In the case of multiple inheritence from this base class, the rest of
+    // In the case of multiple inheritance from this base class, the rest of
     //  the code in this function will be executed each time init is called.
 
     // If we have established a connection, then register the sender and types
@@ -352,7 +365,7 @@ d_flatline(0)
     // Initialize variables
     d_time_first_ping.tv_sec = d_time_first_ping.tv_usec = 0;
 
-    shutup = false;	// don't surpress the "No response from server" messages
+    shutup = false;	// don't suppress the "No response from server" messages
 }
 
 /** Unregister all of the message handlers that were to be autodeleted.
@@ -456,7 +469,10 @@ int vrpn_BaseClassUnique::decode_text_message_from_buffer (char *msg, vrpn_TEXT_
 	vrpn_unbuffer( &bufptr, &severity_as_uint );
 	*severity = (vrpn_TEXT_SEVERITY)(severity_as_uint);
 	vrpn_unbuffer( &bufptr, level );
-	vrpn_unbuffer( &bufptr, msg, -1 );  // -1 means "unpack until NULL"
+	// Negative length means "unpack until NULL"
+	if (vrpn_unbuffer( &bufptr, msg, -(int)(vrpn_MAX_TEXT_LEN)) != 0) {
+		return -1;
+	}
 
 	return 0;	
 }
@@ -588,7 +604,7 @@ void vrpn_BaseClassUnique::initiate_ping_cycle(void)
     d_time_last_warned.tv_sec = d_time_last_warned.tv_usec = 0;
 }
 
-/** Store the time at which the last pong occured.  Used by client_mainloop() to keep
+/** Store the time at which the last pong occurred.  Used by client_mainloop() to keep
     track of how long it has been since we got one.  The callback for this handler is registered
     in client_mainloop() the first time through.
 */

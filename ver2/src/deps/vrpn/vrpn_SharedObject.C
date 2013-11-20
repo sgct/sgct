@@ -1,8 +1,11 @@
+#include <stdio.h>                      // for fprintf, stderr, sprintf
+#include <string.h>                     // for NULL, strcpy, strlen, etc
+
+#include "vrpn_Connection.h"            // for vrpn_Connection, etc
+#include "vrpn_LamportClock.h"          // for vrpn_LamportTimestamp, etc
 #include "vrpn_SharedObject.h"
 
-#include "vrpn_LamportClock.h"
-
-#include <string.h>
+struct timeval;
 
 // We can't put d_lastUpdate in the message header timestamps;  it must
 // go in the body.
@@ -674,7 +677,7 @@ void vrpn_Shared_int32::decodeLamport (const char ** buffer, vrpn_int32 *,
     vrpn_unbuffer(buffer, &array[i]);
   }
   *t = new vrpn_LamportTimestamp(size, array);
-  delete array;
+  delete [] array;
 }
 
 void vrpn_Shared_int32::sendUpdate (void) {
@@ -1412,7 +1415,7 @@ void vrpn_Shared_String::encode (char ** buffer, vrpn_int32 * len,
   // We reverse ordering from the other vrpn_SharedObject classes
   // so that the time value is guaranteed to be aligned.
   vrpn_buffer(buffer, len, when);
-  vrpn_buffer(buffer, len, newValue, strlen(newValue));
+  vrpn_buffer(buffer, len, newValue, static_cast<vrpn_int32>(strlen(newValue)));
 }
 void vrpn_Shared_String::decode (const char ** buffer, vrpn_int32 * len,
                                  char * newValue, timeval * when) const {

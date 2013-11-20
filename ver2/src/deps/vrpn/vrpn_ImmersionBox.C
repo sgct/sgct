@@ -7,11 +7,14 @@
 // This code is based on the ImmersionBox code previously written as part
 // of the vrpn library
 
-#include <string.h>
+#include <math.h>                       // for floor
+#include <stdio.h>                      // for fprintf, stderr, printf
+#include <string.h>                     // for NULL, strcpy
+
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
 #include "vrpn_ImmersionBox.h"
-#include "vrpn_Shared.h"
 #include "vrpn_Serial.h"
-#include <math.h>
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
 
 #undef VERBOSE
 
@@ -90,7 +93,7 @@ vrpn_ImmersionBox::vrpn_ImmersionBox (const char * name,
 				      const int numchannels, 
 				      const int numencoders):
     vrpn_Serial_Analog(name, c, port, baud),
-    vrpn_Button(name, c),
+    vrpn_Button_Filter(name, c),
     vrpn_Dial(name, c),
     _numbuttons(numbuttons),
     _numchannels(numchannels),

@@ -1042,7 +1042,7 @@ void vrpn_Sound_Server_DX9::mainloop() {
 	vrpn_Sound::d_connection->mainloop();
 	
 	vrpn_SoundDef temp;
-	temp.volume = 0.0f; // supress VC6 initialization warning with this
+	temp.volume = 0.0f; // suppress VC6 initialization warning with this
 	// check if we need to repeat any sounds
 	for(int i=0; i<g_numSounds; i++) {
 		if(g_Sound[i].repeat != 0) {
@@ -1140,7 +1140,7 @@ HRESULT vrpn_Sound_Server_DX9::CreateSecondaryBuffer( DX9Sound** ppSound,
     dsbd.guid3DAlgorithm = guid3DAlgorithm;
     dsbd.lpwfxFormat     = pWaveFile->m_pwfx;
     
-    // DirectSound is only guarenteed to play PCM data.  Other
+    // DirectSound is only guaranteed to play PCM data.  Other
     // formats may or may not work depending the sound card driver.
     hr = m_pDS->CreateSoundBuffer( &dsbd, &apDSBuffer[0], NULL );
 
@@ -1670,7 +1670,7 @@ void main(int argc, char **argv) {
 			}
 
 			// copy for strtok work
-			strncpy(scrap, line, 512);
+			strncpy(scrap, line, sizeof(line) - 1);
 			// Figure out the device from the name and handle appropriately
 
 			// WARNING: SUBSTRINGS WILL MATCH THE EARLIER STRING, SO 

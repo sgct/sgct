@@ -16,7 +16,7 @@
 //    (See accompanying file LICENSE_1_0.txt or copy at
 //          http://www.boost.org/LICENSE_1_0.txt)
 
-#pragma once
+
 #ifndef INCLUDED_vrpn_MainloopObject_h_GUID_38f638e4_40e0_4c6d_bebc_21c463794b88
 #define INCLUDED_vrpn_MainloopObject_h_GUID_38f638e4_40e0_4c6d_bebc_21c463794b88
 
@@ -36,7 +36,7 @@
 #	define VRPN_MAINLOOPOBJECT_MSG(_x)
 #endif
 
-class vrpn_Connection;
+class VRPN_API vrpn_Connection;
 
 /// An interface for all VRPN objects that have a "mainloop" method.
 /// Not instantiated directly: use vrpn_MainloopObject::wrap() to create one
@@ -52,6 +52,10 @@ class vrpn_MainloopObject {
 
 		/// The mainloop function: the primary thing we look for in a VRPN object
 		virtual void mainloop() = 0;
+
+		/// Checks the connectionPtr() for the VRPN object to make sure it is not
+		/// NULL.
+		virtual bool broken() = 0;
 
 		/// Templated wrapping function
 		template<class T>
@@ -114,6 +118,10 @@ namespace detail {
 				_instance->mainloop();
 			}
 
+			virtual bool broken() {
+				return (_instance->connectionPtr() == NULL);
+			}
+
 		protected:
 			virtual void * _returnContained() const {
 				return _instance;
@@ -140,6 +148,10 @@ namespace detail {
 
 			virtual void mainloop() {
 				_instance->mainloop();
+			}
+
+			virtual bool broken() {
+				return (!_instance->doing_okay());
 			}
 
 		protected:

@@ -7,27 +7,25 @@
 	and perhaps for simple debugging.
 */
 
-#include <stdlib.h>
-#include <stdio.h>
+#include <stdio.h>                      // for printf, fprintf, NULL, etc
+#include <stdlib.h>                     // for exit, atoi
 #ifndef	_WIN32_WCE
-#include <signal.h>
+#include <signal.h>                     // for signal, SIGINT
 #endif
-#include <string.h>
-
-#ifndef _WIN32
-#ifndef	_WIN32_WCE
-#include <strings.h>
-#endif
-#endif
-
-#include <vrpn_Shared.h>
-#include <vrpn_Tracker.h>
-#include <vrpn_Button.h>
-#include <vrpn_Analog.h>
-#include <vrpn_Dial.h>
-#include <vrpn_Text.h>
+#include <string.h>                     // for strcmp, strncpy
+#include <vrpn_Analog.h>                // for vrpn_ANALOGCB, etc
+#include <vrpn_Button.h>                // for vrpn_Button_Remote, etc
+#include <vrpn_Dial.h>                  // for vrpn_Dial_Remote, etc
 #include <vrpn_FileConnection.h>  // For preload and accumulate settings
-#include <vector>
+#include <vrpn_Shared.h>                // for vrpn_SleepMsecs
+#include <vrpn_Text.h>                  // for vrpn_Text_Receiver, etc
+#include <vrpn_Tracker.h>               // for vrpn_TRACKERACCCB, etc
+#include <vector>                       // for vector
+
+#include "vrpn_BaseClass.h"             // for vrpn_System_TextPrinter, etc
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK
+#include "vrpn_Types.h"                 // for vrpn_float64, vrpn_int32
+
 using namespace std;
 
 int done = 0;	        // Signals that the program should exit
@@ -78,7 +76,7 @@ class t_user_callback {
 
 void	VRPN_CALLBACK handle_tracker_pos_quat (void *userdata, const vrpn_TRACKERCB t)
 {
-	t_user_callback	*t_data = (t_user_callback *)userdata;
+	t_user_callback	*t_data = static_cast<t_user_callback *>(userdata);
 
         // Make sure we have a count value for this sensor
         while (t_data->t_counts.size() <= static_cast<unsigned>(t.sensor)) {
@@ -99,7 +97,7 @@ void	VRPN_CALLBACK handle_tracker_pos_quat (void *userdata, const vrpn_TRACKERCB
 
 void	VRPN_CALLBACK handle_tracker_vel (void *userdata, const vrpn_TRACKERVELCB t)
 {
-	t_user_callback	*t_data = (t_user_callback *)userdata;
+	t_user_callback	*t_data = static_cast<t_user_callback *>(userdata);
 
         // Make sure we have a count value for this sensor
         while (t_data->t_counts.size() <= static_cast<unsigned>(t.sensor)) {
@@ -120,7 +118,7 @@ void	VRPN_CALLBACK handle_tracker_vel (void *userdata, const vrpn_TRACKERVELCB t
 
 void	VRPN_CALLBACK handle_tracker_acc (void *userdata, const vrpn_TRACKERACCCB t)
 {
-	t_user_callback	*t_data = (t_user_callback *)userdata;
+	t_user_callback	*t_data = static_cast<t_user_callback *>(userdata);
 
         // Make sure we have a count value for this sensor
         while (t_data->t_counts.size() <= static_cast<unsigned>(t.sensor)) {
@@ -143,8 +141,23 @@ void	VRPN_CALLBACK handle_button (void *userdata, const vrpn_BUTTONCB b)
 {
     const char *name = (const char *)userdata;
 
-    printf("Button %s, number %d was just %s\n",
+	printf("##########################################\r\n"
+		   "Button %s, number %d was just %s\n"
+		   "##########################################\r\n",
 	name, b.button, b.state?"pressed":"released");
+}
+
+void	VRPN_CALLBACK handle_button_states (void *userdata, const vrpn_BUTTONSTATESCB b)
+{
+    const char *name = (const char *)userdata;
+
+    printf("Button %s has %d buttons with states:",
+	name, b.num_buttons);
+    int i;
+    for (i = 0; i < b.num_buttons; i++) {
+      printf(" %d", b.states[i]);
+    }
+    printf("\n");
 }
 
 void	VRPN_CALLBACK handle_analog (void *userdata, const vrpn_ANALOGCB a)
@@ -242,11 +255,11 @@ int main (int argc, char * argv [])
       print_for_text = 0;
     } else if (!strcmp(argv[i], "-trackerstride")) {
       if (++i >= argc) { Usage(argv[0]); }
-      tracker_stride = atoi(argv[i]);
-      if (tracker_stride <= 0) {
+      if (atoi(argv[i]) <= 0) {
 	  fprintf(stderr, "-trackerstride argument must be 1 or greater\n");
 	  return -1;
       }
+      tracker_stride = atoi(argv[i]);
     } else {	// Create a device and connect to it.
 	device_info *dev;
 
@@ -301,6 +314,7 @@ int main (int argc, char * argv [])
 	if (print_for_button) {
 	    printf(" Button");
 	    dev->btn->register_change_handler(dev->name, handle_button);
+	    dev->btn->register_states_handler(dev->name, handle_button_states);
 	}
 
 	if (print_for_analog) {
@@ -357,7 +371,16 @@ int main (int argc, char * argv [])
       vrpn_SleepMsecs(1);
   }
 
- return 0;
+  // Delete all devices.
+  { unsigned i;
+    for (i = 0; i < num_devices; i++) {
+      delete device_list[i].tkr;
+      delete device_list[i].btn;
+      delete device_list[i].ana;
+      delete device_list[i].dial;
+      delete device_list[i].text;
+    }
+  }
+
+  return 0;
 }   /* main */
-
-

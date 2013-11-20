@@ -4,8 +4,14 @@
 
 #ifndef	VRPN_SOUND_H
 
-#include "vrpn_Tracker.h"
-#include "vrpn_Text.h"
+#include "vrpn_BaseClass.h"             // for vrpn_BaseClass
+#include "vrpn_Configure.h"             // for VRPN_CALLBACK, VRPN_API
+#include "vrpn_Shared.h"                // for timeval
+#include "vrpn_Text.h"                  // for vrpn_TEXTCB, etc
+#include "vrpn_Types.h"                 // for vrpn_int32, vrpn_float64, etc
+
+class VRPN_API vrpn_Connection;
+struct vrpn_HANDLERPARAM;
 
 
 #define MAX_MATERIAL_NAME_LENGTH 128
@@ -22,6 +28,10 @@
 	{
 	  vrpn_float64 position[3];
 	  vrpn_float64 orientation[4];
+	  _vrpn_PoseDef() { position[0] = position[1] = position[2] = 0.0;
+						orientation[0] = orientation[1] = orientation[2] = 0.0;
+						orientation[3] = 1.0;
+	  };
 	} vrpn_PoseDef;
 
 	typedef struct _vrpn_SoundDef
@@ -39,6 +49,11 @@
 	  vrpn_float64 equalization_val;
 	  vrpn_float64 pitch;
 	  vrpn_float32 volume;		// Jason Clark calls this volume, but really its gain!
+	  _vrpn_SoundDef() : max_front_dist(0), min_front_dist(0), max_back_dist(0),
+						 min_back_dist(0), cone_inner_angle(0), cone_outer_angle(0),
+						 cone_gain(0), dopler_scale(0), equalization_val(0),
+						 pitch(0), volume(0) {};
+
 	} vrpn_SoundDef;
 
 	typedef struct _vrpn_ListenerDef

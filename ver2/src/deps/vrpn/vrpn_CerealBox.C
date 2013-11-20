@@ -12,10 +12,13 @@
 // the same time as a tracking device without slowing the tracker
 // down.
 
-#include <string.h>
+#include <stdio.h>                      // for fprintf, stderr, perror, etc
+#include <string.h>                     // for NULL, strlen, strncmp
+
+#include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_ERROR
 #include "vrpn_CerealBox.h"
-#include "vrpn_Shared.h"
 #include "vrpn_Serial.h"
+#include "vrpn_Shared.h"                // for timeval, vrpn_gettimeofday
 
 #undef VERBOSE
 
@@ -44,7 +47,7 @@ vrpn_CerealBox::vrpn_CerealBox (const char * name, vrpn_Connection * c,
 			const char * port, int baud,
 			const int numbuttons, const int numchannels, const int numencoders):
 		vrpn_Serial_Analog(name, c, port, baud),
-		vrpn_Button(name, c),
+		vrpn_Button_Filter(name, c),
 		vrpn_Dial(name, c),
 		_numbuttons(numbuttons),
 		_numchannels(numchannels),

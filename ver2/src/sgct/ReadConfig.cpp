@@ -790,6 +790,45 @@ void sgct_core::ReadConfig::readAndParseXML()
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 						}
+						else if (strcmp("Quaternion", val[2]) == 0)
+						{
+							double tmpd[4];
+							if (element[2]->QueryDoubleAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("z", &tmpd[3]) == XML_NO_ERROR)
+								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
+								setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+							else
+								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
+						}
+						else if (strcmp("Matrix", val[2]) == 0)
+						{
+							double tmpd[16];
+							if (element[2]->QueryDoubleAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
+								element[2]->QueryDoubleAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
+									glm::dmat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
+										tmpd[4], tmpd[5], tmpd[6], tmpd[7],
+										tmpd[8], tmpd[9], tmpd[10], tmpd[11],
+										tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+							else
+								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
+						}
 
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
@@ -814,7 +853,18 @@ void sgct_core::ReadConfig::readAndParseXML()
                         element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
                     else
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation in XML!\n");
+                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation angles in XML!\n");
+				}
+				else if (strcmp("Quaternion", val[1]) == 0)
+				{
+					double tmpd[4];
+					if (element[1]->QueryDoubleAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("z", &tmpd[3]) == XML_NO_ERROR)
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+					else
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation quaternion in XML!\n");
 				}
 				else if( strcmp("Scale", val[1]) == 0 )
 				{
@@ -823,6 +873,33 @@ void sgct_core::ReadConfig::readAndParseXML()
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setScale( scaleVal );
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker scale in XML!\n");
+				}
+				else if (strcmp("Matrix", val[1]) == 0)
+				{
+					double tmpd[16];
+					if (element[1]->QueryDoubleAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
+						element[1]->QueryDoubleAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
+							glm::dmat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
+								tmpd[4], tmpd[5], tmpd[6], tmpd[7],
+								tmpd[8], tmpd[9], tmpd[10], tmpd[11],
+								tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+					else
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker matrix in XML!\n");
 				}
 
 				//iterate

@@ -17,7 +17,6 @@ sgct::SGCTTracker::SGCTTracker(std::string name)
 
 	mXform = glm::dmat4(1.0);
 	mOffset = glm::dvec3(0.0);
-	mQuatTransform = glm::dvec4(1.0);
 
 	mScale = 1.0;
 }
@@ -53,30 +52,6 @@ void sgct::SGCTTracker::addDevice(std::string name, size_t index)
 	MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "%s: Adding device '%s'...\n", mName.c_str(), name.c_str());
 }
 
-void sgct::SGCTTracker::addSensorToDevice(const char * address, int id)
-{
-	if(mTrackingDevices.empty())
-		return;
-	MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Device: %d\n", id);
-	mTrackingDevices.back()->setSensorId( id );
-}
-
-void sgct::SGCTTracker::addButtonsToDevice(const char * address, size_t numOfButtons)
-{
-	if(mTrackingDevices.empty())
-		return;
-
-	mTrackingDevices.back()->setNumberOfButtons( numOfButtons );
-}
-
-void sgct::SGCTTracker::addAnalogsToDevice(const char * address, size_t numOfAxes)
-{
-	if(mTrackingDevices.empty())
-		return;
-
-	mTrackingDevices.back()->setNumberOfAxes( numOfAxes );
-}
-
 sgct::SGCTTrackingDevice * sgct::SGCTTracker::getLastDevicePtr()
 {
 	return mTrackingDevices.size() > 0 ? mTrackingDevices.back() : NULL;
@@ -110,20 +85,39 @@ sgct::SGCTTrackingDevice * sgct::SGCTTracker::getDevicePtrBySensorId(int id)
 	return NULL;
 }
 
+/*!
+Set the orientation as euler angles (degrees)
+*/
 void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
 {
+	//create rotation quaternion based on x, y, z rotations
+	glm::dquat rotQuat;
+	rotQuat = glm::rotate(rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0));
+	rotQuat = glm::rotate(rotQuat, yRot, glm::dvec3(0.0, 1.0, 0.0));
+	rotQuat = glm::rotate(rotQuat, zRot, glm::dvec3(0.0, 0.0, 1.0));
+	
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
-		//create rotation quaternion based on x, y, z rotations
-		glm::dquat rotQuat;
-		rotQuat = glm::rotate( rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0) );
-		rotQuat = glm::rotate( rotQuat, yRot, glm::dvec3(0.0, 1.0, 0.0) );
-		rotQuat = glm::rotate( rotQuat, zRot, glm::dvec3(0.0, 0.0, 1.0) );
 
 		//create inverse rotation matrix
 		mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
 
 		calculateTransform();
 	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+}
+
+/*!
+Set the orientation as a quaternion
+*/
+void sgct::SGCTTracker::setOrientation(double w, double x, double y, double z)
+{
+	glm::dquat rotQuat(w, x, y, z);
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	
+	//create inverse rotation matrix
+	mOrientation = glm::inverse(glm::mat4_cast(rotQuat));
+
+	calculateTransform();
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
 void sgct::SGCTTracker::setOffset(double x, double y, double z)
@@ -145,10 +139,40 @@ void sgct::SGCTTracker::setScale(double scaleVal)
 	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
+/*
+Set the tracker system transform matrix\n
+worldTransform = (trackerTransform * sensorMat) * deviceTransformMat
+*/
+void sgct::SGCTTracker::setTransform(glm::dmat4 mat)
+{
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	mXform = mat;
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+}
+
 void sgct::SGCTTracker::calculateTransform()
 {
 	//create offset translation matrix
-	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), mOffset );
+	glm::dmat4 transMat = glm::translate(glm::dmat4(1.0), mOffset);
+	
 	//calculate transform
 	mXform = transMat * mOrientation;
+}
+
+glm::dmat4 sgct::SGCTTracker::getTransform()
+{ 
+	glm::dmat4 tmpMat;
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	tmpMat = mXform;
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+	return tmpMat;
+}
+
+double sgct::SGCTTracker::getScale()
+{
+	double tmpD;
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	tmpD = mScale;
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+	return tmpD;
 }

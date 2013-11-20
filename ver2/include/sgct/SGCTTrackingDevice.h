@@ -34,7 +34,9 @@ public:
 	void setButtonVal(const bool val, size_t index);
 	void setAnalogVal(const double * array, size_t size);
 	void setOrientation(double xRot, double yRot, double zRot);
+	void setOrientation(double w, double x, double y, double z);
 	void setOffset(double x, double y, double z);
+	void setTransform(glm::dmat4 mat);
 
 	inline const std::string & getName() { return mName; }
 	inline size_t getNumberOfButtons() { return mNumberOfButtons; }
@@ -49,7 +51,7 @@ public:
 
 	glm::dvec3 getPosition(DataLoc i = CURRENT);
 	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
-	glm::dmat4 getTransformMat(DataLoc i = CURRENT);
+	glm::dmat4 getTransform(DataLoc i = CURRENT);
 
 	double getTrackerTimeStamp(DataLoc i = CURRENT);
 	double getAnalogTimeStamp(DataLoc i = CURRENT);

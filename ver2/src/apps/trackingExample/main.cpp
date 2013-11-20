@@ -74,7 +74,7 @@ void myPreSyncFun()
 		{
 			devicePtr = trackerPtr->getDevicePtr(j);
 			if( devicePtr->hasSensor() )
-				trackedTransforms[ index ] = devicePtr->getTransformMat();
+				trackedTransforms[ index ] = devicePtr->getTransform();
 
 			index++;
 		}

@@ -21,9 +21,6 @@ public:
 	~SGCTTracker();
 	void setEnabled(bool state);
 	void addDevice(std::string name, size_t index);
-	void addSensorToDevice(const char * address, int id);
-	void addButtonsToDevice(const char * address, size_t numOfButtons);
-	void addAnalogsToDevice(const char * address, size_t numOfAxes);
 
 	SGCTTrackingDevice * getLastDevicePtr();
 	SGCTTrackingDevice * getDevicePtr(size_t index);
@@ -31,12 +28,13 @@ public:
 	SGCTTrackingDevice * getDevicePtrBySensorId(int id);
 
 	void setOrientation(double xRot, double yRot, double zRot);
+	void setOrientation(double w, double x, double y, double z);
 	void setOffset(double x, double y, double z);
 	void setScale(double scaleVal);
+	void setTransform(glm::dmat4 mat);
 
-	inline glm::dmat4 getTransform() { return mXform; }
-	inline double getScale() { return mScale; }
-	inline const glm::dvec4 & getQuatTransform() { return mQuatTransform; }
+	glm::dmat4 getTransform();
+	double getScale();
 
 	inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
 	inline const std::string & getName() { return mName; }
@@ -52,7 +50,6 @@ private:
 	glm::dmat4 mXform;
 	glm::dmat4 mOrientation;
 	glm::dvec3 mOffset;
-	glm::dvec4 mQuatTransform;
 };
 
 }

@@ -148,7 +148,7 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::instance();
 
 				//set head rot & pos
-				cm->getUserPtr()->setTransform( tdPtr->getTransformMat() );
+				cm->getUserPtr()->setTransform( tdPtr->getTransform() );
 			}
 		}
 }

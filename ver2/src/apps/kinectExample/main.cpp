@@ -105,9 +105,6 @@ void myPreSyncFun()
 			glm::dvec3 rightPos = rightHand->getPosition();
 			float dist = static_cast<float>(glm::length(leftPos - rightPos));
 			size_factor.setVal( (dist < 2.0f && dist > 0.2f) ? dist : 0.5f );
-
-			//fprintf(stderr, "Dist: %f (%f %f %f) (%f %f %f)\n", dist, leftPos.x, leftPos.y, leftPos.z, rightPos.x, rightPos.y, rightPos.z);
-			//fprintf(stderr, "Dist: %f %f %f\n", dist, 1.0f / leftHand->getTrackerDeltaTime(), 1.0f / rightHand->getTrackerDeltaTime());
 		}
 	}
 }

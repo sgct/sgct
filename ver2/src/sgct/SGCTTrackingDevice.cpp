@@ -135,8 +135,15 @@ void sgct::SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes)
 
 void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 {
-	const glm::dmat4 & preTransform =
-        sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex)->getTransform();
+	sgct::SGCTTracker * parent = sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->getTrackerPtr(mParentIndex);
+
+	if (parent == NULL)
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingDevice: Error, can't get handle to tracker for device '%s'!\n", mName.c_str());
+		return;
+	}
+	
+	const glm::dmat4 & preTransform = parent->getTransform();
 
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
     //swap
@@ -338,27 +345,27 @@ bool sgct::SGCTTrackingDevice::isEnabled()
 void sgct::SGCTTrackingDevice::setTrackerTimeStamp()
 {
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
-	mTrackerTime[0] = sgct::Engine::getTime();
 	//swap
 	mTrackerTime[1] = mTrackerTime[0];
+	mTrackerTime[0] = sgct::Engine::getTime();
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
 void sgct::SGCTTrackingDevice::setAnalogTimeStamp()
 {
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
-	mAnalogTime[0] = sgct::Engine::getTime();
 	//swap
 	mAnalogTime[1] = mAnalogTime[0];
+	mAnalogTime[0] = sgct::Engine::getTime();
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
 void sgct::SGCTTrackingDevice::setButtonTimeStamp(size_t index)
 {
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
-	mButtonTime[index] = sgct::Engine::getTime();
 	//swap
 	mButtonTime[index + mNumberOfButtons] = mButtonTime[index];
+	mButtonTime[index] = sgct::Engine::getTime();
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 

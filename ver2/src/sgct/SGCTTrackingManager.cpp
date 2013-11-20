@@ -155,10 +155,17 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 
 void sgct::SGCTTrackingManager::addTracker(std::string name)
 {
-	mTrackers.push_back( new SGCTTracker(name) );
+	if (!getTrackerPtr(name.c_str()))
+	{
+		mTrackers.push_back(new SGCTTracker(name));
 
-	VRPNTracker tmpVRPNTracker;
-	gTrackers.push_back( tmpVRPNTracker );
+		VRPNTracker tmpVRPNTracker;
+		gTrackers.push_back(tmpVRPNTracker);
+
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Tracker '%s' added succesfully.\n", name.c_str());
+	}
+	else
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Tracking: Tracker '%s' already exists!\n", name.c_str());
 }
 
 void sgct::SGCTTrackingManager::addDeviceToCurrentTracker(std::string name)
@@ -273,6 +280,7 @@ void sgct::SGCTTrackingManager::setHeadTracker(const char * trackerName, const c
 
 	if( trackerPtr != NULL )
 		mHead = trackerPtr->getDevicePtr( deviceName );
+	//else no head tracker found
 
 	if( mHead == NULL && strlen(trackerName) > 0 && strlen(deviceName) > 0 )
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to set head tracker to %s@%s!\n",
@@ -340,7 +348,7 @@ sgct::SGCTTracker * sgct::SGCTTrackingManager::getTrackerPtr(const char * name)
 			return mTrackers[i];
 	}
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
+	//MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
 
 	//if not found
 	return NULL;
@@ -389,29 +397,19 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 	if(devicePtr == NULL)
 		return;
 
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Updating tracker...\n");
-#endif
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
-
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	posVec *= trackerPtr->getScale();
+
+	//fprintf(stderr, "Id: %d pos: %.2f %.2f %.2f\n", info.sensor, info.pos[0], info.pos[1], info.pos[2] );
 
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), posVec );
 	glm::dmat4 rotMat = glm::mat4_cast( glm::dquat( info.quat[3], info.quat[0], info.quat[1], info.quat[2] ) );
 
     devicePtr->setSensorTransform( transMat * rotMat );
-
-    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 {
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Update button value...\n");
-#endif
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
-
 	sgct::SGCTTrackingDevice * devicePtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
 
@@ -420,21 +418,12 @@ void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 	b.state == 0 ?
 		devicePtr->setButtonVal( false, b.button) :
 		devicePtr->setButtonVal( true, b.button);
-
-    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
-#ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Update analog values...\n");
-#endif
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TrackingMutex );
-
 	sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
 
 	tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
-
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TrackingMutex );
 }

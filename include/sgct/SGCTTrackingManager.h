@@ -16,6 +16,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct
 {
 
+/*!
+Class that manages tracking systems
+*/
 class SGCTTrackingManager
 {
 public:

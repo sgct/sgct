@@ -317,6 +317,15 @@ glm::dvec3 sgct::SGCTTrackingDevice::getEulerAngles(DataLoc i)
 	return tmpVal;
 }
 
+glm::dquat sgct::SGCTTrackingDevice::getRotation(DataLoc i)
+{
+	glm::dquat tmpQuat;
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	tmpQuat = glm::quat_cast(mWorldTransform[i]);
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+	return tmpQuat;
+}
+
 glm::dmat4 sgct::SGCTTrackingDevice::getTransform(DataLoc i)
 {
 	glm::dmat4 tmpMat;

@@ -403,9 +403,10 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 	//fprintf(stderr, "Id: %d pos: %.2f %.2f %.2f\n", info.sensor, info.pos[0], info.pos[1], info.pos[2] );
 
 	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), posVec );
-	glm::dmat4 rotMat = glm::mat4_cast( glm::dquat( info.quat[3], info.quat[0], info.quat[1], info.quat[2] ) );
+	glm::dquat rotation(info.quat[3], info.quat[0], info.quat[1], info.quat[2]);
+	glm::dmat4 rotMat = glm::mat4_cast(rotation);
 
-    devicePtr->setSensorTransform( transMat * rotMat );
+	devicePtr->setSensorTransform( transMat * rotMat );
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )

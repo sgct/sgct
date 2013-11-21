@@ -18,6 +18,9 @@ typedef void * GLFWmutex;
 namespace sgct
 {
 
+/*!
+Helper class that holds tracking device/sensor data
+*/
 class SGCTTrackingDevice
 {
 public:
@@ -51,6 +54,7 @@ public:
 
 	glm::dvec3 getPosition(DataLoc i = CURRENT);
 	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
+	glm::dquat getRotation(DataLoc i = CURRENT);
 	glm::dmat4 getTransform(DataLoc i = CURRENT);
 
 	double getTrackerTimeStamp(DataLoc i = CURRENT);

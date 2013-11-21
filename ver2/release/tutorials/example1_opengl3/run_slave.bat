@@ -1,1 +1,0 @@
-example1_opengl3.exe -config two_nodes.xml -local 1 --slave

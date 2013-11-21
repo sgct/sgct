@@ -1,1 +1,0 @@
-Merge will merge deps libs with libsgct32_light.a into libsgct32.a.

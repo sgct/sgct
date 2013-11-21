@@ -1,0 +1,1 @@
+Place sgct lib under each platform folder. Dependencies should be placed in platform/deps.

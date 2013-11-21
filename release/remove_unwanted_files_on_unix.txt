@@ -1,0 +1,8 @@
+find . -name '*.cbp' -type f -delete
+find . -name '*.sln' -type f -delete
+find . -name '*.vcxproj' -type f -delete
+find . -name '*.vcproj' -type f -delete
+find . -name ''*.suo'' -type f -delete
+find . -name '*.bat' -type f -delete
+find . -name '*.DS_Store' -type f -delete
+find ./ -name ".svn" | xargs rm -Rf

@@ -1,0 +1,2 @@
+g++ -O3 -s -static main.cpp -o example.exe -DOSG_LIBRARY_STATIC -DDYNAMIC_OPENTHREADS=OFF -DDYNAMIC_OPENSCENEGRAPH=OFF -I"%SGCT_ROOT_DIR%\include" -I"%OSGHOME%\include" -L"%SGCT_ROOT_DIR%\lib\mingw" -L"%OSGHOME%\lib" -lsgct -lopengl32 -lglu32 -lws2_32 -lOpenThreads -losg -losgutil -losgdb -losgga -losgviewer -static-libgcc -static-libstdc++
+pause

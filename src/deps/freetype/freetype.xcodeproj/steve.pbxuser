@@ -1,0 +1,149 @@
+// !$*UTF8*$!
+{
+	00A688760B044721003F7FE5 /* freetypelib */ = {
+		activeExec = 0;
+	};
+	00F343920A8E1E75000759EA /* ftbase.c */ = {
+		uiCtxt = {
+			sepNavIntBoundsRect = "{{0, 0}, {827, 559}}";
+			sepNavSelRange = "{1524, 86}";
+			sepNavVisRange = "{0, 1685}";
+			sepNavVisRect = "{{0, 0}, {847, 561}}";
+		};
+	};
+	0867D690FE84028FC02AAC07 /* Project object */ = {
+		activeArchitecturePreference = i386;
+		activeBuildConfigurationName = Debug;
+		activeTarget = 00A688760B044721003F7FE5 /* freetypelib */;
+		codeSenseManager = AA08D4870D253FF70091E09C /* Code sense */;
+		perUserDictionary = {
+			PBXConfiguration.PBXFileTableDataSource3.PBXErrorsWarningsDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXErrorsWarningsDataSource_LocationID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					300,
+					200,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXErrorsWarningsDataSource_TypeID,
+					PBXErrorsWarningsDataSource_MessageID,
+					PBXErrorsWarningsDataSource_LocationID,
+				);
+			};
+			PBXConfiguration.PBXFileTableDataSource3.PBXFileTableDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					649,
+					20,
+					48,
+					43,
+					43,
+					20,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+					PBXFileDataSource_Target_ColumnID,
+				);
+			};
+			PBXConfiguration.PBXTargetDataSource.PBXTargetDataSource = {
+				PBXFileTableDataSourceColumnSortingDirectionKey = "-1";
+				PBXFileTableDataSourceColumnSortingKey = PBXFileDataSource_Filename_ColumnID;
+				PBXFileTableDataSourceColumnWidthsKey = (
+					20,
+					609,
+					60,
+					20,
+					48,
+					43,
+					43,
+				);
+				PBXFileTableDataSourceColumnsKey = (
+					PBXFileDataSource_FiletypeID,
+					PBXFileDataSource_Filename_ColumnID,
+					PBXTargetDataSource_PrimaryAttribute,
+					PBXFileDataSource_Built_ColumnID,
+					PBXFileDataSource_ObjectSize_ColumnID,
+					PBXFileDataSource_Errors_ColumnID,
+					PBXFileDataSource_Warnings_ColumnID,
+				);
+			};
+			PBXPerProjectTemplateStateSaveDate = 283878884;
+			PBXWorkspaceStateSaveDate = 283878884;
+		};
+		perUserProjectItems = {
+			AA08D4970D2542700091E09C /* PBXTextBookmark */ = AA08D4970D2542700091E09C /* PBXTextBookmark */;
+			AA08D4980D2542700091E09C /* PBXTextBookmark */ = AA08D4980D2542700091E09C /* PBXTextBookmark */;
+			AA44C86C10EBA6D60097C762 /* PBXTextBookmark */ = AA44C86C10EBA6D60097C762 /* PBXTextBookmark */;
+			AA44C86D10EBA6D60097C762 /* PBXTextBookmark */ = AA44C86D10EBA6D60097C762 /* PBXTextBookmark */;
+		};
+		sourceControlManager = AA08D4860D253FF70091E09C /* Source Control */;
+		userBuildSettings = {
+		};
+	};
+	8D07F2BC0486CC7A007CD1D0 /* freetype */ = {
+		activeExec = 0;
+	};
+	AA08D4860D253FF70091E09C /* Source Control */ = {
+		isa = PBXSourceControlManager;
+		fallbackIsa = XCSourceControlManager;
+		isSCMEnabled = 0;
+		scmConfiguration = {
+			repositoryNamesForRoots = {
+				"" = "";
+			};
+		};
+		scmType = "";
+	};
+	AA08D4870D253FF70091E09C /* Code sense */ = {
+		isa = PBXCodeSenseManager;
+		indexTemplatePath = "";
+	};
+	AA08D4970D2542700091E09C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 00F343920A8E1E75000759EA /* ftbase.c */;
+		name = "ftbase.c: 34";
+		rLen = 86;
+		rLoc = 1524;
+		rType = 0;
+		vrLen = 1621;
+		vrLoc = 0;
+	};
+	AA08D4980D2542700091E09C /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 00F343920A8E1E75000759EA /* ftbase.c */;
+		name = "ftbase.c: 35";
+		rLen = 0;
+		rLoc = 1584;
+		rType = 0;
+		vrLen = 267;
+		vrLoc = 1354;
+	};
+	AA44C86C10EBA6D60097C762 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 00F343920A8E1E75000759EA /* ftbase.c */;
+		name = "ftbase.c: 33";
+		rLen = 86;
+		rLoc = 1524;
+		rType = 0;
+		vrLen = 1685;
+		vrLoc = 0;
+	};
+	AA44C86D10EBA6D60097C762 /* PBXTextBookmark */ = {
+		isa = PBXTextBookmark;
+		fRef = 00F343920A8E1E75000759EA /* ftbase.c */;
+		name = "ftbase.c: 35";
+		rLen = 0;
+		rLoc = 1584;
+		rType = 0;
+		vrLen = 0;
+		vrLoc = 0;
+	};
+}

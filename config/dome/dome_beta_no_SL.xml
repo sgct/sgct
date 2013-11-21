@@ -1,0 +1,124 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="172.19.2.10" externalControlPort="20500">
+	<Settings>
+		<Display swapInterval="1" refreshRate="60" />
+	</Settings>
+	<Node address="172.19.2.10" port="20400">
+		<Window fullScreen="false" numberOfSamples="4">
+			<Stereo type="none" />
+			<!--<Size x="1388" y="400" />-->
+			<Size x="1280" y="800" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-5.187650" y="-1.880789" z="-5.637431" />
+					<!-- Upper left -->
+					<Pos x="-5.187650" y="4.301180" z="-4.666044" />
+					<!-- Upper right -->
+					<Pos x="5.187650" y="4.301180" z="-4.666044" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.11" port="20401">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-5.187650" y="-1.880789" z="-5.637431" />
+					<!-- Upper left -->
+					<Pos x="-5.187650" y="4.301180" z="-4.666044" />
+					<!-- Upper right -->
+					<Pos x="5.187650" y="4.301180" z="-4.666044" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.12" port="20402">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="3.99047" y="-2.27161" z="-6.41449" />
+					<!-- Upper left -->
+					<Pos x="0.52340" y="2.77854" z="-7.69348" />
+					<!-- Upper right -->
+					<Pos x="3.72955" y="7.21219" z="1.12186" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.13" port="20403">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="7.65389" y="1.52968" z="1.14354" />
+					<!-- Upper left -->
+					<Pos x="5.51113" y="4.74851" z="-3.77663" />
+					<!-- Upper right -->
+					<Pos x="-2.88266" y="7.48866" z="1.67155" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.14" port="20404">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="0.73990" y="4.26983" z="6.59172" />
+					<!-- Upper left -->
+					<Pos x="2.88266" y="7.48866" z="1.67155" />
+					<!-- Upper right -->
+					<Pos x="-5.51113" y="4.74851" z="-3.77663" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.15" port="20405">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-7.19661" y="2.16204" z="2.40085" />
+					<!-- Upper left -->
+					<Pos x="-3.72955" y="7.21219" z="1.12186" />
+					<!-- Upper right -->
+					<Pos x="-0.52340" y="2.77854" z="-7.69348" />
+				</Viewplane>
+		</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.2.16" port="20406">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1920" y="1200" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-4.04754" y="3.98483" z="-6.11950" />
+					<!-- Upper left -->
+					<Pos x="-3.67653" y="7.45540" z="0.78096" />
+					<!-- Upper right -->
+					<Pos x="4.04754" y="7.28869" z="0.44951" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.065">
+		<Pos x="0.0" y="0.0" z="0.0" />
+	</User>
+</Cluster>

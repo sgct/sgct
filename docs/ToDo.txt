@@ -1,0 +1,28 @@
+Tracking
+=========================
+ * Share tracking data across cluster
+
+
+Rendering & Sync
+=========================
+ * Test performance not pausing thread vs. while loop on clusters without g-sync
+ * Use FBO from 3rd party like voreeen
+ * Use several rendering passes for special effects
+
+#################################
+Done version 0.9.5
+#################################
+
+SGCTUser
+=========================
+ * Posibility to set user orientation from xml
+
+SGCTTracker
+=========================
+ * Set scale factor for tracker if different units then meters
+
+SGCTNetwork
+==========================
+Measure roundtrip for messages
+Set barrier ska ske efter OGL init
+

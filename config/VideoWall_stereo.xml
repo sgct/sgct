@@ -1,0 +1,105 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="172.19.8.10" externalControlPort="20500">
+	<Node address="172.19.8.10" port="20400">
+		<Window fullScreen="false" numberOfSamples="4">
+			<Stereo type="none" />
+			<!--<Size x="1388" y="400" />-->
+			<Size x="1456" y="420" />
+			<Pos x="100" y="100" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-3.34533" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-3.34533" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="3.34533" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node address="172.19.8.21" port="20401">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<Pos x="0" y="0" />
+			<Size x="4200" y="2100" />
+			<Viewport eye="left">
+				<Pos x="0.0" y="0.0" />
+				<Size x="0.33333" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-3.34533" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-3.34533" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="-0.772" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+			<Viewport eye="right">
+				<Pos x="0.0" y="0.5" />
+				<Size x="0.33333" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-3.34533" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-3.34533" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="-0.772" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+			<Viewport eye="left">
+				<Pos x="0.33333" y="0.0" />
+				<Size x="0.33333" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-1.286667" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-1.286667" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.286667" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+			<Viewport eye="right">
+				<Pos x="0.33333" y="0.5" />
+				<Size x="0.33333" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="-1.286667" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-1.286667" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.286667" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+			<Viewport eye="left">
+				<Pos x="0.66666" y="0.0" />
+				<Size x="0.33334" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="0.772" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="0.772" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="3.34533" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+			<Viewport eye="right">
+				<Pos x="0.66666" y="0.5" />
+				<Size x="0.33334" y="0.5" />
+				<Viewplane>
+					<!-- Lower left -->
+					<Pos x="0.772" y="-0.965" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="0.772" y="0.965" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="3.34533" y="0.965" z="0.0" />
+				</Viewplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.065">
+		<Pos x="0.0" y="0.0" z="4.0" />
+	</User>
+</Cluster>

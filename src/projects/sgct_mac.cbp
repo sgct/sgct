@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
+<CodeBlocks_project_file>
+	<FileVersion major="1" minor="6" />
+	<Project>
+		<Option title="sgct" />
+		<Option platforms="Mac;" />
+		<Option pch_mode="2" />
+		<Option compiler="gcc" />
+		<Build>
+			<Target title="Debug">
+				<Option platforms="Mac;" />
+				<Option output="../../lib/mac/sgct_light_d" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Debug/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-Wall" />
+					<Add option="-g" />
+					<Add option="-D__APPLE__" />
+					<Add option="-D__SGCT_DEBUG__" />
+				</Compiler>
+				<Linker>
+					<Add library="GLEW" />
+					<Add library="glfw3" />
+					<Add library="freetype" />
+					<Add library="png15" />
+					<Add library="z" />
+					<Add library="tinyxml2_d" />
+					<Add library="tinythreadpp" />
+					<Add library="socket" />
+				</Linker>
+			</Target>
+			<Target title="Release">
+				<Option platforms="Mac;" />
+				<Option output="../../lib/mac/sgct_light" prefix_auto="1" extension_auto="1" />
+				<Option working_dir="" />
+				<Option object_output="obj/Release/" />
+				<Option type="2" />
+				<Option compiler="gcc" />
+				<Option createDefFile="1" />
+				<Compiler>
+					<Add option="-O3" />
+					<Add option="-D__APPLE__" />
+				</Compiler>
+				<Linker>
+					<Add library="GLEW" />
+					<Add library="glfw3" />
+					<Add library="freetype" />
+					<Add library="png15" />
+					<Add library="z" />
+					<Add library="tinyxml2" />
+					<Add library="tinythreadpp" />
+					<Add library="socket" />
+				</Linker>
+			</Target>
+		</Build>
+		<Compiler>
+			<Add option="-O3" />
+			<Add option="-Wall" />
+			<Add directory="../../include" />
+		</Compiler>
+		<Linker>
+			<Add directory="../../lib/mingw/deps" />
+		</Linker>
+		<Unit filename="../../include/sgct.h" />
+		<Unit filename="../../include/sgct/ClusterManager.h" />
+		<Unit filename="../../include/sgct/CorrectionMesh.h" />
+		<Unit filename="../../include/sgct/Engine.h" />
+		<Unit filename="../../include/sgct/Font.h" />
+		<Unit filename="../../include/sgct/FontManager.h" />
+		<Unit filename="../../include/sgct/Frustum.h" />
+		<Unit filename="../../include/sgct/Image.h" />
+		<Unit filename="../../include/sgct/MessageHandler.h" />
+		<Unit filename="../../include/sgct/NetworkManager.h" />
+		<Unit filename="../../include/sgct/OffScreenBuffer.h" />
+		<Unit filename="../../include/sgct/PostFX.h" />
+		<Unit filename="../../include/sgct/ReadConfig.h" />
+		<Unit filename="../../include/sgct/SGCTInternalShaders.h" />
+		<Unit filename="../../include/sgct/SGCTInternalShaders_modern.h" />
+		<Unit filename="../../include/sgct/SGCTMutexManager.h" />
+		<Unit filename="../../include/sgct/SGCTNetwork.h" />
+		<Unit filename="../../include/sgct/SGCTNode.h" />
+		<Unit filename="../../include/sgct/SGCTSettings.h" />
+		<Unit filename="../../include/sgct/SGCTTracker.h" />
+		<Unit filename="../../include/sgct/SGCTTrackingDevice.h" />
+		<Unit filename="../../include/sgct/SGCTTrackingManager.h" />
+		<Unit filename="../../include/sgct/SGCTUser.h" />
+		<Unit filename="../../include/sgct/SGCTVersion.h" />
+		<Unit filename="../../include/sgct/SGCTWindow.h" />
+		<Unit filename="../../include/sgct/ScreenCapture.h" />
+		<Unit filename="../../include/sgct/Shader.h" />
+		<Unit filename="../../include/sgct/ShaderData.h" />
+		<Unit filename="../../include/sgct/ShaderManager.h" />
+		<Unit filename="../../include/sgct/ShaderProgram.h" />
+		<Unit filename="../../include/sgct/SharedData.h" />
+		<Unit filename="../../include/sgct/SharedDataTypes.h" />
+		<Unit filename="../../include/sgct/Statistics.h" />
+		<Unit filename="../../include/sgct/TextureManager.h" />
+		<Unit filename="../../include/sgct/Viewport.h" />
+		<Unit filename="../../include/sgct/freetype.h" />
+		<Unit filename="../../include/sgct/helpers/SGCTVertexData.h" />
+		<Unit filename="../../include/sgct/ogl_headers.h" />
+		<Unit filename="../../include/sgct/utils/SGCTBox.h" />
+		<Unit filename="../../include/sgct/utils/SGCTDome.h" />
+		<Unit filename="../../include/sgct/utils/SGCTSphere.h" />
+		<Unit filename="../sgct/ClusterManager.cpp" />
+		<Unit filename="../sgct/CorrectionMesh.cpp" />
+		<Unit filename="../sgct/Engine.cpp" />
+		<Unit filename="../sgct/Font.cpp" />
+		<Unit filename="../sgct/FontManager.cpp" />
+		<Unit filename="../sgct/Image.cpp" />
+		<Unit filename="../sgct/MessageHandler.cpp" />
+		<Unit filename="../sgct/NetworkManager.cpp" />
+		<Unit filename="../sgct/OffScreenBuffer.cpp" />
+		<Unit filename="../sgct/PostFX.cpp" />
+		<Unit filename="../sgct/ReadConfig.cpp" />
+		<Unit filename="../sgct/SGCTMutexManager.cpp" />
+		<Unit filename="../sgct/SGCTNetwork.cpp" />
+		<Unit filename="../sgct/SGCTNode.cpp" />
+		<Unit filename="../sgct/SGCTSettings.cpp" />
+		<Unit filename="../sgct/SGCTTracker.cpp" />
+		<Unit filename="../sgct/SGCTTrackingDevice.cpp" />
+		<Unit filename="../sgct/SGCTTrackingManager.cpp" />
+		<Unit filename="../sgct/SGCTUser.cpp" />
+		<Unit filename="../sgct/SGCTVersion.cpp" />
+		<Unit filename="../sgct/SGCTWindow.cpp" />
+		<Unit filename="../sgct/ScreenCapture.cpp" />
+		<Unit filename="../sgct/Shader.cpp" />
+		<Unit filename="../sgct/ShaderManager.cpp" />
+		<Unit filename="../sgct/ShaderProgram.cpp" />
+		<Unit filename="../sgct/SharedData.cpp" />
+		<Unit filename="../sgct/SharedDataTypes.cpp" />
+		<Unit filename="../sgct/Statistics.cpp" />
+		<Unit filename="../sgct/TextureManager.cpp" />
+		<Unit filename="../sgct/Viewport.cpp" />
+		<Unit filename="../sgct/freetype.cpp" />
+		<Unit filename="../sgct/utils/SGCTBox.cpp" />
+		<Unit filename="../sgct/utils/SGCTDome.cpp" />
+		<Unit filename="../sgct/utils/SGCTSphere.cpp" />
+		<Extensions>
+			<code_completion />
+			<envvars />
+			<debugger />
+			<lib_finder disable_auto="1" />
+		</Extensions>
+	</Project>
+</CodeBlocks_project_file>

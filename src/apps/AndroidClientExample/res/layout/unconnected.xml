@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<ScrollView
+        xmlns:android="http://schemas.android.com/apk/res/android"
+        android:layout_width="fill_parent"
+        android:layout_height="fill_parent"
+        >
+
+    <LinearLayout
+            android:orientation="vertical"
+            android:layout_width="fill_parent"
+            android:layout_height="fill_parent"
+            >
+
+        <TextView
+                style="@style/Header"
+                android:id="@+id/headerTV"
+                android:gravity="center"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:text="@string/app_name"
+                />
+
+        <TextView
+                android:id="@+id/connectInfoTV"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:text="@string/unconnected"
+                android:layout_marginBottom="50dp"
+                />
+
+        <Button
+                android:text="@string/connect"
+                android:id="@+id/connectBTN"
+                android:layout_width="fill_parent"
+                android:layout_height="wrap_content"
+                />
+
+    </LinearLayout>
+
+</ScrollView>

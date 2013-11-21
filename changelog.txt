@@ -1,0 +1,87 @@
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+2013-09-24 SGCT ver 2.0.6
+---------------------------
+* Corrected overlay rendering to use correct viewport coordinates in fisheye mode
+
+
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXX version 1 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
+
+2012-12-18 SGCT ver 1.0.1
+---------------------------
+* Added GetDefaultFont into the FontManager that returns the SGCT default font.
+* Modified/Simplified osgExample & osgExampleRTT
+* Added a static Instance() funtion to engine to be concise
+* Added set & get eye separation in the Engine class
+
+2012-12-21 SGCT ver 1.0.1
+---------------------------
+* Modified when swap groups are joined to debug latest nvidia drivers (307.45)
+* Modified image class to be able to manage memory more efficient in screen capturing
+* Modified screen capturing to not delete buffer and re allocate every time
+* Added osgExampleRTT in installer
+
+2013-01-17 SGCT ver 1.1.0
+---------------------------
+* Modified FBO handling, using a single FBO in stereo but two in fisheye mode
+* Added video memory info in on-screen-info
+* Not allocating right texture if stereo is not used
+* Started testing stereoscopic fisheye (Not working yet)
+* Resolved issue with scaling a window that stretched the fisheye
+* Added option to generate depth buffer textures from FBO
+
+2013-01-18 SGCT ver 1.1.0
+---------------------------
+* Implemented off-axis fisheye stereo
+* Moved apect ratio handling to window class
+* Resolved wireframe rendering problem for right eye in stereo fisheye
+
+2013-02-09 SGCT ver 1.1.1 - 1.1.2
+---------------------------
+* Modified screenshot handling, now multithreaded using PBOs
+* Updated zlib (zlib 1.2.7) and libpng (lpng 1.5.14) to resolve memory leaking problems
+* Removed to include opengl32.lib and glu32.lib for visual studio libs
+* Improved image class. Better memory handling.
+* Removed some visual studio warning by moving order of includes
+
+2013-02-14 SGCT ver 1.1.3
+---------------------------
+* Added support for vertical interlaced stereo for polirized LCD screens
+* Added more accurate frame sync
+* Added cluster barrier - All nodes wait until all are connected
+
+2013-02-14 SGCT ver 1.2.0
+---------------------------
+* Forcing full frame sync
+* Changing frame number to unsigned int from long long for better compability with other software (OSG)
+* Timing is now more accurate for draw and sync
+* Added setExitKey function to engine
+* Changed socket buffer size for cluster nodes to 4096 instead of default 8192 for faster communications
+* TextureManager: getTextureByIndex renamed to getTextureByHandle for not confusing with openGL texture indexes
+* Added protection against culling so that the FBO renderquad don't disapear if culling is active
+* Added TGA capture support for compability with 7th sense Delta (Delta can playback TGA files as movies)
+* Improved FXAA quality
+
+2013-02-25 SGCT ver 1.3.0
+---------------------------
+* Removed possibility to render depth buffers from sgct, the user can do that in code
+* Added extra render pass if FXAA is used to be able to save effects/AA to file
+
+2013-05-01 SGCT ver 1.4.0
+---------------------------
+* Added Mutex manager
+* Redesigned SharedData to use mutex protected SharedDataTypes to prevent data from being simultaneously accessed by multiple threads
+* Changed get matrix function names for viewport and Engine to more correct terms for better compability with openGL 3 & 4. Previously the projection matrix did return projection * view matrix which was incorrect.
+
+2013-05-09 SGCT ver 1.4.1
+---------------------------
+* Resolved FBO bugs while using MSAA in fisheyemode
+* Added support to use MSAA + FXAA in fisheye rendering
+
+2013-05-27 SGCT ver 1.4.2
+---------------------------
+* Optimized shader performance for fisheye by using constants for constant trigonometric expressions

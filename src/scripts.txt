@@ -1,0 +1,19 @@
+Copy folders without svn
+================================
+
+Unix: rsync -r --exclude=.svn /home/user/progname/ /home/user/progname.copy
+Windows: robocopy sgct_ver_0_8 sgct_ver_0_8_no_svn /s /xd ".svn"
+
+
+
+
+
+
+
+
+
+
+
+
+
+

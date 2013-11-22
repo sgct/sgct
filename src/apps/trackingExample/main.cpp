@@ -55,6 +55,13 @@ void myInitOGLFun()
 
 	//allocate the array
 	trackedTransforms = new glm::dmat4[ numberOfTrackedDevices ];
+
+	//test code
+	glm::dmat4 r1 = glm::rotate(glm::dmat4(1.0), 90.0, glm::dvec3(1.0, 0.0, 0.0));
+	glm::dmat4 r2 = glm::rotate(r1, 90.0, glm::dvec3(0.0, 1.0, 0.0));
+	glm::dquat q = glm::quat_cast(r1);
+
+	fprintf(stderr, "Test: %f %f %f %f\n\n", q.w, q.x, q.y, q.z);
 }
 
 /*

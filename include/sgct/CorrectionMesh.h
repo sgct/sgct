@@ -36,6 +36,8 @@ public:
 	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
+	bool readAndGenerateScalableMesh(const char * meshPath);
+	bool readAndGenerateScissMesh(const char * meshPath);
 	void setupSimpleMesh();
 	void createMesh();
 	void cleanUp();

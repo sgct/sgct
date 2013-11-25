@@ -18,6 +18,32 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/Engine.h"
 #include <cstring>
 
+struct SCISSTexturedVertex
+{
+	float x, y, z;
+	float tx, ty, tz;
+	SCISSTexturedVertex()
+	{
+		x = y = z = tx = ty = tz = 0.0f;
+	};
+};
+
+struct SCISSViewData
+{
+	float qx, qy, qz, qw; // Rotation quaternion
+	float x, y, z;		  // Position of view (currently unused in Uniview)
+	float fovUp, fovDown, fovLeft, fovRight;
+
+	SCISSViewData()
+	{
+		qx = qy = qz = x = y = z = 0.0f;
+		qw = 1.0f;
+		fovUp = fovDown = fovLeft = fovRight = 20.0f;
+	};
+};
+
+enum SCISSDistortionType { MESHTYPE_PLANAR, MESHTYPE_CUBE };
+
 sgct_core::CorrectionMesh::CorrectionMesh()
 {
 	mVertices = NULL;
@@ -64,14 +90,47 @@ void sgct_core::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, 
 
 bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 {
-	if( meshPath == NULL )
+	if (meshPath == NULL)
 	{
-	    setupSimpleMesh();
+		setupSimpleMesh();
 		return false;
 	}
 
+	int length = 0;
+
+	while (meshPath[length] != '\0')
+		length++;
+
+	if (length > 4 && (strcmp(".sgc", &meshPath[length - 4]) == 0 || strcmp(".SGC", &meshPath[length - 4]) == 0))
+	{
+		if (!readAndGenerateScissMesh(meshPath))
+		{
+			setupSimpleMesh();
+			return false;
+		}
+	}
+	else if (length > 3 && (strcmp(".ol", &meshPath[length - 3]) == 0 || strcmp(".OL", &meshPath[length - 3]) == 0))
+	{
+		if( !readAndGenerateScalableMesh(meshPath))
+		{
+			setupSimpleMesh();
+			return false;
+		}
+	}
+	else
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Loading failed (bad filename: %s)\n", meshPath);
+		setupSimpleMesh();
+		return false;
+	}
+
+	return true;
+}
+
+bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPath)
+{
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
-		"CorrectionMesh: Reading mesh data from '%s'.\n", meshPath);
+		"CorrectionMesh: Reading scalable mesh data from '%s'.\n", meshPath);
 
 	FILE * meshFile = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -211,6 +270,119 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
 
+	return true;
+}
+
+bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+		"CorrectionMesh: Reading sciss mesh data from '%s'.\n", meshPath);
+
+	FILE * meshFile = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&meshFile, meshPath, "rb") != 0 || !meshFile)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#else
+	meshFile = fopen(meshPath, "rb");
+	if (meshFile == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#endif
+
+	size_t retval;
+
+	char fileID[3];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(fileID, sizeof(char)*3, sizeof(char), 3, meshFile);
+#else
+	retval = fread(fileID, sizeof(char), 3, meshFile);
+#endif
+
+	//check fileID
+	if (fileID[0] != 'S' || fileID[1] != 'G' || fileID[2] != 'C' || retval != 3)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Incorrect file id!\n");
+		fclose(meshFile);
+		return false;
+	}
+
+	//read file version
+	unsigned char fileVersion;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(&fileVersion, sizeof(unsigned char), sizeof(unsigned char), 1, meshFile);
+#else
+	retval = fread(&fileVersion, sizeof(unsigned char), 1, meshFile);
+#endif
+	if (retval != 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: file version %u\n", fileVersion);
+
+	//read mapping type
+	unsigned int mappingType;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(&mappingType, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
+#else
+	retval = fread(&mappingType, sizeof(unsigned int), 1, meshFile);
+#endif
+	if (retval != 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Mapping type = %s (%u)\n", mappingType == 0 ? "planar" : "cube", mappingType);
+
+	//read viewdata
+	SCISSViewData viewData;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(&viewData, sizeof(SCISSViewData), sizeof(SCISSViewData), 1, meshFile);
+#else
+	retval = fread(&viewData, sizeof(SCISSViewData), 1, meshFile);
+#endif
+	if (retval != 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+	else
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Rotation quat = [%f %f %f %f]\n",
+			viewData.qx, viewData.qy, viewData.qz, viewData.qw);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Position = [%f %f %f]\n",
+			viewData.x, viewData.y, viewData.z);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: FOV up = %f\n",
+			viewData.fovUp);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: FOV down = %f\n",
+			viewData.fovDown);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: FOV left = %f\n",
+			viewData.fovLeft);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: FOV right = %f\n",
+			viewData.fovRight);
+	}
+	
+
+	fclose(meshFile);
+
+	//tmp
+	setupSimpleMesh();
+	
 	return true;
 }
 

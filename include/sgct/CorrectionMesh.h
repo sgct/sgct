@@ -55,6 +55,8 @@ private:
 	unsigned int mNumberOfFaces;
 	unsigned int mMeshData[3];
 
+	bool mUseTriangleStrip;
+
 	float mXSize;
 	float mYSize;
 	float mXOffset;

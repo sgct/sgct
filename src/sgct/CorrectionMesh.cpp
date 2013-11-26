@@ -49,6 +49,8 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 	mVertices = NULL;
 	mFaces = NULL;
 
+	mUseTriangleStrip = false;
+
 	mXSize = 1.0f;
 	mYSize = 1.0f;
 	mXOffset = 0.0f;
@@ -264,6 +266,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 
 	fclose( meshFile );
 
+	mUseTriangleStrip = false;
+
 	createMesh();
 
 	cleanUp();
@@ -376,12 +380,103 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: FOV right = %f\n",
 			viewData.fovRight);
 	}
-	
+
+	//read number of vertices
+	unsigned int size[2];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(size, sizeof(unsigned int)*2, sizeof(unsigned int), 2, meshFile);
+#else
+	retval = fread(size, sizeof(unsigned int), 2, meshFile);
+#endif
+	if (retval != 2)
+	{ 
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+	else
+	{
+		mNumberOfVertices = size[0]*size[1];
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Number of vertices = %u (%ux%u)\n", mNumberOfVertices, size[0], size[1]);
+	}
+	//read vertices
+	SCISSTexturedVertex * texturedVertexList = new SCISSTexturedVertex[mNumberOfVertices];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(texturedVertexList, sizeof(SCISSTexturedVertex)* mNumberOfVertices, sizeof(SCISSTexturedVertex), mNumberOfVertices, meshFile);
+#else
+	retval = fread(texturedVertexList, sizeof(SCISSTexturedVertex), mNumberOfVertices, meshFile);
+#endif
+	if (retval != mNumberOfVertices)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+
+	//read number of indices
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	retval = fread_s(&mNumberOfFaces, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
+#else
+	retval = fread(&mNumberOfFaces, sizeof(unsigned int), 1, meshFile);
+#endif
+
+	if (retval != 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+		fclose(meshFile);
+		return false;
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Number of faces = %u\n", mNumberOfFaces);
+
+	//read faces
+	if (mNumberOfFaces > 0)
+	{
+		mFaces = new unsigned int[mNumberOfFaces];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		retval = fread_s(mFaces, sizeof(unsigned int)* mNumberOfFaces, sizeof(unsigned int), mNumberOfFaces, meshFile);
+#else
+		retval = fread(texturedVertexList, sizeof(unsigned int), mNumberOfFaces, meshFile);
+#endif
+		if (retval != mNumberOfFaces)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Corrupt file!\n");
+			fclose(meshFile);
+			return false;
+		}
+	}
 
 	fclose(meshFile);
 
-	//tmp
-	setupSimpleMesh();
+	//store all verts in sgct format
+	mVertices = new CorrectionMeshVertex[mNumberOfVertices];
+	for (unsigned int i = 0; i < mNumberOfVertices; i++)
+	{
+		mVertices[i].r = 255;
+		mVertices[i].g = 255;
+		mVertices[i].b = 255;
+
+		mVertices[i].x = texturedVertexList[i].x * mXSize + mXOffset;
+		mVertices[i].y = texturedVertexList[i].y * mYSize + mYOffset;
+
+		mVertices[i].s = texturedVertexList[i].tx * mXSize + mXOffset;
+		mVertices[i].t = 1.0f - texturedVertexList[i].ty * mYSize + mYOffset;
+
+		/*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
+			texturedVertexList[i].x, texturedVertexList[i].y, texturedVertexList[i].z,
+			texturedVertexList[i].tx, texturedVertexList[i].ty, texturedVertexList[i].tz);*/
+	}
+
+	//clean up
+	delete [] texturedVertexList;
+	texturedVertexList = NULL;
+
+	mUseTriangleStrip = true;
+
+	createMesh();
+	cleanUp();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u.\n", mNumberOfVertices, mNumberOfFaces);
 	
 	return true;
 }
@@ -409,16 +504,16 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 	mVertices[0].b = 255;
 	mVertices[0].s = 0.0f * mXSize + mXOffset;
 	mVertices[0].t = 0.0f * mYSize + mYOffset;
-	mVertices[0].x = 0.0f*mXSize + mXOffset;
-	mVertices[0].y = 0.0f*mYSize + mYOffset;
+	mVertices[0].x = 0.0f * mXSize + mXOffset;
+	mVertices[0].y = 0.0f * mYSize + mYOffset;
 
 	mVertices[1].r = 255;
 	mVertices[1].g = 255;
 	mVertices[1].b = 255;
 	mVertices[1].s = 1.0f * mXSize + mXOffset;
 	mVertices[1].t = 0.0f * mYSize + mYOffset;
-	mVertices[1].x = 1.0f*mXSize + mXOffset;
-	mVertices[1].y = 0.0f*mYSize + mYOffset;
+	mVertices[1].x = 1.0f * mXSize + mXOffset;
+	mVertices[1].y = 0.0f * mYSize + mYOffset;
 
 	mVertices[2].r = 255;
 	mVertices[2].g = 255;
@@ -443,35 +538,64 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 
 void sgct_core::CorrectionMesh::createMesh()
 {
-	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data...\n");
+	/*sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data (type=%d)...\n",
+		ClusterManager::instance()->getMeshImplementation());*/
 
-	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST )
+	if (ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
 	{
 		mMeshData[Vertex] = glGenLists(1);
 		glNewList(mMeshData[Vertex], GL_COMPILE);
 
 #ifdef SGCT_SHOW_CORRECTION_MESH_WIREFRAME
-		for(unsigned int i=0; i<mNumberOfFaces; i++)
+		if(mUseTriangleStrip)
 		{
-			glBegin(GL_LINE_LOOP);
-			for(unsigned int j=0; j<3; j++)
+			glBegin(GL_LINE_STRIP);
+			for(unsigned int i=0; i<mNumberOfFaces; i++)
 			{
-				glColor3ub( mVertices[mFaces[i*3 + j]].r, 0, 255 - mVertices[mFaces[i*3 + j]].r );
-				glTexCoord2f( mVertices[mFaces[i*3 + j]].s, mVertices[mFaces[i*3 + j]].t );
-				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
+				glColor3ub( mVertices[mFaces[i]].r, 0, 255 - mVertices[mFaces[i]].r );
+				glTexCoord2f( mVertices[mFaces[i]].s, mVertices[mFaces[i]].t );
+				glVertex2f( mVertices[mFaces[i]].x, mVertices[mFaces[i]].y );
 			}
 			glEnd();
 		}
-#else
-		glBegin(GL_TRIANGLES);
-		for(unsigned int i=0; i<mNumberOfFaces; i++)
-			for(unsigned int j=0; j<3; j++)
+		else
+		{
+			for(unsigned int i=0; i<mNumberOfFaces; i++)
 			{
-				glColor3ub( mVertices[mFaces[i*3 + j]].r, mVertices[mFaces[i*3 + j]].g, mVertices[mFaces[i*3 + j]].b );
-				glTexCoord2f( mVertices[mFaces[i*3 + j]].s, mVertices[mFaces[i*3 + j]].t );
-				glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
+				glBegin(GL_LINE_LOOP);
+				for(unsigned int j=0; j<3; j++)
+				{
+					glColor3ub( mVertices[mFaces[i*3 + j]].r, 0, 255 - mVertices[mFaces[i*3 + j]].r );
+					glTexCoord2f( mVertices[mFaces[i*3 + j]].s, mVertices[mFaces[i*3 + j]].t );
+					glVertex2f( mVertices[mFaces[i*3 + j]].x, mVertices[mFaces[i*3 + j]].y );
+				}
+				glEnd();
 			}
-		glEnd();
+		}
+#else
+		if (mUseTriangleStrip)
+		{
+			glBegin(GL_TRIANGLE_STRIP);
+			for (unsigned int i = 0; i < mNumberOfFaces; i++)
+			{
+				glColor3ub(mVertices[mFaces[i]].r, mVertices[mFaces[i]].g, mVertices[mFaces[i]].b);
+				glTexCoord2f(mVertices[mFaces[i]].s, mVertices[mFaces[i]].t);
+				glVertex2f(mVertices[mFaces[i]].x, mVertices[mFaces[i]].y);
+			}
+			glEnd();
+		}
+		else
+		{
+			glBegin(GL_TRIANGLES);
+			for (unsigned int i = 0; i < mNumberOfFaces; i++)
+			for (unsigned int j = 0; j < 3; j++)
+			{
+				glColor3ub(mVertices[mFaces[i * 3 + j]].r, mVertices[mFaces[i * 3 + j]].g, mVertices[mFaces[i * 3 + j]].b);
+				glTexCoord2f(mVertices[mFaces[i * 3 + j]].s, mVertices[mFaces[i * 3 + j]].t);
+				glVertex2f(mVertices[mFaces[i * 3 + j]].x, mVertices[mFaces[i * 3 + j]].y);
+			}
+			glEnd();
+		}
 #endif
 		glEndList();
 	}
@@ -572,7 +696,9 @@ void sgct_core::CorrectionMesh::render()
 		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(8));
 		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(16));
 
-		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
+		mUseTriangleStrip ?
+			glDrawElements(GL_TRIANGLE_STRIP, mNumberOfFaces, GL_UNSIGNED_INT, NULL) :
+			glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, NULL);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -581,7 +707,9 @@ void sgct_core::CorrectionMesh::render()
 	else if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO )
 	{
 		glBindVertexArray(mMeshData[Array]);
-		glDrawElements(GL_TRIANGLES, mNumberOfFaces*3, GL_UNSIGNED_INT, NULL);
+		mUseTriangleStrip ? 
+			glDrawElements(GL_TRIANGLE_STRIP, mNumberOfFaces, GL_UNSIGNED_INT, NULL) :
+			glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, NULL);
 		glBindVertexArray(0);
 	}
 	else

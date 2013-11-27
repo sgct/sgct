@@ -537,7 +537,7 @@ void sgct::Engine::initOGL()
 		getActiveWindowPtr()->initOGL(); //sets context to shared
 	}
 
-	calculateFrustums();
+	updateFrustums();
 
 	//
 	// Add fonts
@@ -1228,7 +1228,7 @@ void sgct::Engine::drawOverlays()
 			}
 
 			glActiveTexture(GL_TEXTURE0);
-			glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
+			glBindTexture(GL_TEXTURE_2D, tmpVP->getOverlayTextureIndex() );
 
 			mShaders[OverlayShader].bind();
 
@@ -1296,7 +1296,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 
 			//glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 			glEnable(GL_TEXTURE_2D);
-			glBindTexture(GL_TEXTURE_2D, TextureManager::instance()->getTextureByHandle( tmpVP->getOverlayTextureIndex() ) );
+			glBindTexture(GL_TEXTURE_2D, tmpVP->getOverlayTextureIndex() );
 
 			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -2686,7 +2686,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 /*!
 	This functions updates the frustum of all viewports on demand. However if the viewport is tracked this is done on the fly.
 */
-void sgct::Engine::calculateFrustums()
+void sgct::Engine::updateFrustums()
 {
 	for(size_t w=0; w < mThisNode->getNumberOfWindows(); w++)
 	{
@@ -3520,7 +3520,7 @@ void sgct::Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float fa
 {
 	mNearClippingPlaneDist = nearClippingPlane;
 	mFarClippingPlaneDist = farClippingPlane;
-	calculateFrustums();
+	updateFrustums();
 }
 
 /*!
@@ -3531,7 +3531,7 @@ void sgct::Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float fa
 void sgct::Engine::setEyeSeparation(float eyeSeparation)
 {
 	getUserPtr()->setEyeSeparation( eyeSeparation );
-	calculateFrustums();
+	updateFrustums();
 }
 
 /*!

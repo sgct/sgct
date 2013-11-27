@@ -323,6 +323,148 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	return true;
 }
 
+/*!
+Load a unmanged texture. Note that this type of textures doesn't auto destruct.
+\param texID the openGL texture id
+\param filename the filename or path to the texture
+\param interpolate set to true for using interpolation (bi-linear filtering)
+\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+\return true if texture loaded successfully
+*/
+bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels)
+{
+	//load image
+	sgct_core::Image img;
+	if (!img.load(filename.c_str()))
+	{
+		return false;
+	}
+
+	if (img.getData() != NULL)
+	{
+		glGenTextures(1, &texID);
+		glBindTexture(GL_TEXTURE_2D, texID);
+
+		int textureType = GL_RGB;
+
+		//if OpenGL 1-2
+		if (Engine::instance()->isOGLPipelineFixed())
+		{
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
+			else if (img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
+			else if (img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
+		}
+		else //OpenGL 3+
+		{
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
+			else if (img.getChannels() == 1)	textureType = GL_RED;
+			else if (img.getChannels() == 2)	textureType = GL_RG;
+		}
+
+		GLint internalFormat;
+
+		switch (img.getChannels())
+		{
+		case 4:
+		{
+				  if (mCompression == No_Compression)
+					  internalFormat = GL_RGBA8;
+				  else if (mCompression == Generic)
+					  internalFormat = GL_COMPRESSED_RGBA;
+				  else
+					  internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+		}
+			break;
+		case 3:
+		{
+				  if (mCompression == No_Compression)
+					  internalFormat = GL_RGB8;
+				  else if (mCompression == Generic)
+					  internalFormat = GL_COMPRESSED_RGB;
+				  else
+					  internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+		}
+			break;
+		case 2:
+			if (Engine::instance()->isOGLPipelineFixed())
+			{
+				if (mCompression == No_Compression)
+					internalFormat = GL_LUMINANCE8_ALPHA8;
+				else
+					internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
+			}
+			else
+			{
+				if (mCompression == No_Compression)
+					internalFormat = GL_RG8;
+				else if (mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RG;
+				else
+					internalFormat = GL_COMPRESSED_RG_RGTC2;
+			}
+			break;
+		case 1:
+			if (Engine::instance()->isOGLPipelineFixed())
+				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			else
+			{
+				if (mCompression == No_Compression)
+					internalFormat = GL_RED;
+				else if (mCompression == Generic)
+					internalFormat = GL_COMPRESSED_RED;
+				else
+					internalFormat = GL_COMPRESSED_RED_RGTC1;
+			}
+			break;
+
+		default:
+			internalFormat = GL_RGBA8;
+			break;
+		}
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
+			img.getSizeX(),
+			img.getSizeY(),
+			img.getChannels(),
+			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
+
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+
+		if (mipmapLevels > 1)
+		{
+			GLfloat maxAni;
+			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
+			//sgct::MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
+
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
+			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, mAnisotropicFilterSize > maxAni ? maxAni : mAnisotropicFilterSize);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels - 1);
+			glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+		}
+		else
+		{
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
+			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
+		}
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0]);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), texID);
+		img.cleanup();
+	}
+	else //image data not valid
+	{
+		return false;
+	}
+
+	return true;
+}
+
 void sgct::TextureManager::freeTextureData()
 {
 	//the textures might not be stored in a sequence so

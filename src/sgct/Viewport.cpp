@@ -5,6 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
+#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Viewport.h"
 #include "../include/sgct/TextureManager.h"
 #include <glm/gtc/matrix_transform.hpp>
@@ -38,6 +39,15 @@ sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
 }
 
 /*!
+Destructor that deletes any overlay or mask textures
+*/
+sgct_core::Viewport::~Viewport()
+{
+	if (mOverlayTextureIndex)
+		glDeleteTextures(1, &mOverlayTextureIndex);
+}
+
+/*!
 	Name this viewport
 */
 void sgct_core::Viewport::setName(const std::string & name)
@@ -56,7 +66,7 @@ void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
 	mCorrectionMesh = false;
 	mOverlayFilename = NULL;
 	mMeshFilename = NULL;
-	mTextureIndex = 0;
+	mOverlayTextureIndex = GL_FALSE;
 	mTracked = false;
 	mEnabled = true;
 
@@ -134,12 +144,12 @@ void sgct_core::Viewport::setEnabled(bool state)
 void sgct_core::Viewport::loadData()
 {
 	if( mOverlayFilename != NULL )
-		mOverlayTexture = sgct::TextureManager::instance()->loadTexure(mTextureIndex, "ViewportOverlayTexture", mOverlayFilename, true, 1);
+		mOverlayTexture = sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
 
-	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename);
+	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this);
 }
 
-void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far)
+void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane)
 {
 	//calculate viewplane's internal coordinate system bases
 	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
@@ -179,7 +189,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
 
 	//nearFactor = near clipping plane / focus plane dist
-	float nearFactor = near / (transformedViewPlaneCoords[ LowerLeft ].z - transformedEyePos.z);
+	float nearFactor = near_clipping_plane / (transformedViewPlaneCoords[LowerLeft].z - transformedEyePos.z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
 
@@ -188,8 +198,8 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 		(transformedViewPlaneCoords[ UpperRight ].x - transformedEyePos.x)*nearFactor,
 		(transformedViewPlaneCoords[ LowerLeft ].y - transformedEyePos.y)*nearFactor,
 		(transformedViewPlaneCoords[ UpperRight ].y - transformedEyePos.y)*nearFactor,
-		near,
-		far);
+		near_clipping_plane,
+		far_clipping_plane);
 
 	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*eyePos));
 
@@ -205,7 +215,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	mViewProjectionMatrix[frustumMode] = mProjectionMatrix[frustumMode] * mViewMatrix[frustumMode];
 }
 
-void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near, float far)
+void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near_clipping_plane, float far_clipping_plane)
 {
 	//calculate viewplane's internal coordinate system bases
 	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
@@ -245,7 +255,7 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
 	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
 
 	//nearFactor = near clipping plane / focus plane dist
-	float nearFactor = near / (transformedViewPlaneCoords[ LowerLeft ].z - transformedEyePos.z);
+	float nearFactor = near_clipping_plane / (transformedViewPlaneCoords[LowerLeft].z - transformedEyePos.z);
 	if( nearFactor < 0 )
 		nearFactor = -nearFactor;
 
@@ -254,8 +264,8 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
 		(transformedViewPlaneCoords[ UpperRight ].x - transformedEyePos.x)*nearFactor,
 		(transformedViewPlaneCoords[ LowerLeft ].y - transformedEyePos.y)*nearFactor,
 		(transformedViewPlaneCoords[ UpperRight ].y - transformedEyePos.y)*nearFactor,
-		near,
-		far);
+		near_clipping_plane,
+		far_clipping_plane);
 
 	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*offset));
 
@@ -279,6 +289,26 @@ void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm
 void sgct_core::Viewport::setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos)
 {
 	mViewPlaneCoords[cornerIndex] = glm::vec3(cornerPos);
+}
+
+void sgct_core::Viewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist)
+{
+	glm::vec3 unTransformedViewPlaneCoords[3];
+	
+	unTransformedViewPlaneCoords[LowerLeft].x = dist * tanf(glm::radians<float>(left));
+	unTransformedViewPlaneCoords[LowerLeft].y = dist * tanf(glm::radians<float>(down));
+	unTransformedViewPlaneCoords[LowerLeft].z = -dist;
+
+	unTransformedViewPlaneCoords[UpperLeft].x = dist * tanf(glm::radians<float>(left));
+	unTransformedViewPlaneCoords[UpperLeft].y = dist * tanf(glm::radians<float>(up));
+	unTransformedViewPlaneCoords[UpperLeft].z = -dist;
+
+	unTransformedViewPlaneCoords[UpperRight].x = dist * tanf(glm::radians<float>(right));
+	unTransformedViewPlaneCoords[UpperRight].y = dist * tanf(glm::radians<float>(up));
+	unTransformedViewPlaneCoords[UpperRight].z = -dist;
+
+	for (unsigned int i = 0; i < 3; i++)
+		mViewPlaneCoords[i] = rot * unTransformedViewPlaneCoords[i];
 }
 
 void sgct_core::Viewport::renderMesh()

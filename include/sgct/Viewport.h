@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _VIEWPORT_H
 
 #include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <string>
 #include "Frustum.h"
 #include "CorrectionMesh.h"
@@ -27,6 +28,7 @@ public:
 
 	Viewport();
 	Viewport(double x, double y, double xSize, double ySize);
+	~Viewport();
 
 	void setName(const std::string & name);
 	void set(double x, double y, double xSize, double ySize);
@@ -38,10 +40,11 @@ public:
 	void setTracked(bool state);
 	void setEnabled(bool state);
 	void loadData();
-	void calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near, float far);
-	void calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near, float far);
+	void calculateFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane);
+	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near_clipping_plane, float far_clipping_plane);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
+	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist=10.0f);
 	void renderMesh();
 
 	/*!
@@ -59,17 +62,17 @@ public:
 	inline double getXSize() { return mXSize; }
 	inline double getYSize() { return mYSize; }
 	inline Frustum::FrustumMode getEye() { return mEye; }
-	inline Frustum * getFrustum(sgct_core::Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
+	inline Frustum * getFrustum(Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
-	inline const glm::mat4 & getViewProjectionMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mViewProjectionMatrix[frustumMode]; }
-	inline const glm::mat4 & getViewMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mViewMatrix[frustumMode]; }
-	inline const glm::mat4 & getProjectionMatrix( sgct_core::Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
+	inline const glm::mat4 & getViewProjectionMatrix( Frustum::FrustumMode frustumMode ) { return mViewProjectionMatrix[frustumMode]; }
+	inline const glm::mat4 & getViewMatrix( Frustum::FrustumMode frustumMode ) { return mViewMatrix[frustumMode]; }
+	inline const glm::mat4 & getProjectionMatrix( Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
 	inline const glm::vec3 getViewPlaneCoords( ViewPlaneCorner vpc ) { return mViewPlaneCoords[ vpc ]; }
 	inline bool hasOverlayTexture() { return mOverlayTexture; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline bool isEnabled() { return mEnabled; }
-	inline std::size_t getOverlayTextureIndex() { return mTextureIndex; }
+	inline unsigned int getOverlayTextureIndex() { return mOverlayTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
 private:
@@ -92,7 +95,7 @@ private:
 	bool mCorrectionMesh;
 	bool mTracked;
 	bool mEnabled;
-	std::size_t mTextureIndex;
+	unsigned int mOverlayTextureIndex;
 };
 
 }

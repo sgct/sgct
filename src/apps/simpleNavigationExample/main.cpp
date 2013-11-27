@@ -50,6 +50,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
+	gEngine->setClearColor(0.1f, 0.1f, 0.1f, 1.0f);
 
 	for(int i=0; i<4; i++)
 		arrowButtons[i] = false;

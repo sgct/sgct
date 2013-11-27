@@ -21,6 +21,8 @@ struct CorrectionMeshVertex
 namespace sgct_core
 {
 
+class Viewport;
+
 /*!
 Helper class for reading and rendering a correction mesh.
 A correction mesh is used for warping and edge-blending.
@@ -31,15 +33,15 @@ public:
 	CorrectionMesh();
 	~CorrectionMesh();
 	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
-	bool readAndGenerateMesh(const char * meshPath);
+	bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
 	void render();
 	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
-	bool readAndGenerateScalableMesh(const char * meshPath);
-	bool readAndGenerateScissMesh(const char * meshPath);
+	bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
+	bool readAndGenerateScissMesh(const char * meshPath, Viewport * parent);
 	void setupSimpleMesh();
-	void createMesh();
+	void createMesh(unsigned int * dataPtr);
 	void cleanUp();
 	void renderMesh();
 
@@ -54,6 +56,7 @@ private:
 	unsigned int mNumberOfVertices;
 	unsigned int mNumberOfFaces;
 	unsigned int mMeshData[3];
+	unsigned int mUnWarpedMeshData[3];
 
 	bool mUseTriangleStrip;
 

@@ -111,6 +111,7 @@ public:
 	void setFisheyeClearColor(float red, float green, float blue);
 	void setExitKey(int key);
 	void setExitWaitTime(double time);
+	void updateFrustums();
 	void addPostFX( PostFX & fx );
 	unsigned int getActiveDrawTexture();
 	unsigned int getActiveDepthTexture();
@@ -309,7 +310,6 @@ private:
 	void calculateFPS(double timestamp);
 	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();
-	void calculateFrustums();
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport();
 	void enterFisheyeViewport();

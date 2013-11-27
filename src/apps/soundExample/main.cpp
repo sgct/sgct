@@ -77,14 +77,6 @@ void myInitOGLFun()
 
 	alutInit(NULL, 0);
 
-	fprintf(stderr, "All devices: \n");
-	char * devices = (char*)alcGetString(NULL, ALC_DEVICE_SPECIFIER);
-	while (devices && devices[0] != '\0')
-	{
-		fprintf(stderr, "%s\n", devices);
-		devices += strlen(devices) + 1;
-	}
-
 	//Check for errors if any
 	sgct::MessageHandler::instance()->print("ALUT init: %s\n", alutGetErrorString( alutGetError() ));
 

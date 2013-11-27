@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/CorrectionMesh.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/Engine.h"
+#include "../include/sgct/Viewport.h"
 #include <cstring>
 
 struct SCISSTexturedVertex
@@ -64,21 +65,39 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 	mMeshData[0] = GL_FALSE;
 	mMeshData[1] = GL_FALSE;
 	mMeshData[2] = GL_FALSE;
+	mUnWarpedMeshData[0] = GL_FALSE;
+	mUnWarpedMeshData[1] = GL_FALSE;
+	mUnWarpedMeshData[2] = GL_FALSE;
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
 {	
-	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST && mMeshData[0] != GL_FALSE)
+	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
-		glDeleteLists(mMeshData[0], 1);
+		
+		if (mMeshData[0] != GL_FALSE)
+			glDeleteLists(mMeshData[0], 1);
+
+		if (mUnWarpedMeshData[0] != GL_FALSE)
+			glDeleteLists(mUnWarpedMeshData[0], 1);
 	}
-	else if(mMeshData[0] != 0)
+	else
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Releasing correction mesh OpenGL data...\n");
-		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO && mMeshData[2] != GL_FALSE)
+		
+		if (mMeshData[2] != GL_FALSE)
 			glDeleteVertexArrays(1, &mMeshData[2]);
-		glDeleteBuffers(2, &mMeshData[0]);
+
+		if (mUnWarpedMeshData[2] != GL_FALSE)
+			glDeleteVertexArrays(1, &mUnWarpedMeshData[2]);
+		
+		//delete VBO and IBO
+		if (mMeshData[0] != GL_FALSE)
+			glDeleteBuffers(2, &mMeshData[0]);
+
+		if (mUnWarpedMeshData[0] != GL_FALSE)
+			glDeleteBuffers(2, &mUnWarpedMeshData[0]);
 	}
 }
 
@@ -90,11 +109,18 @@ void sgct_core::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, 
 	mYOffset = vpYPos;
 }
 
-bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
+bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_core::Viewport * parent)
 {
+	//generate unwarped mesh
+	setupSimpleMesh();
+	createMesh(mUnWarpedMeshData);
+	cleanUp();
+	
 	if (meshPath == NULL)
 	{
 		setupSimpleMesh();
+		createMesh(mMeshData);
+		cleanUp();
 		return false;
 	}
 
@@ -105,17 +131,21 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 
 	if (length > 4 && (strcmp(".sgc", &meshPath[length - 4]) == 0 || strcmp(".SGC", &meshPath[length - 4]) == 0))
 	{
-		if (!readAndGenerateScissMesh(meshPath))
+		if (!readAndGenerateScissMesh(meshPath, parent))
 		{
 			setupSimpleMesh();
+			createMesh(mMeshData);
+			cleanUp();
 			return false;
 		}
 	}
 	else if (length > 3 && (strcmp(".ol", &meshPath[length - 3]) == 0 || strcmp(".OL", &meshPath[length - 3]) == 0))
 	{
-		if( !readAndGenerateScalableMesh(meshPath))
+		if( !readAndGenerateScalableMesh(meshPath, parent))
 		{
 			setupSimpleMesh();
+			createMesh(mMeshData);
+			cleanUp();
 			return false;
 		}
 	}
@@ -123,13 +153,15 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Loading failed (bad filename: %s)\n", meshPath);
 		setupSimpleMesh();
+		createMesh(mMeshData);
+		cleanUp();
 		return false;
 	}
 
 	return true;
 }
 
-bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPath)
+bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPath, sgct_core::Viewport * parent)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
 		"CorrectionMesh: Reading scalable mesh data from '%s'.\n", meshPath);
@@ -268,7 +300,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 
 	mUseTriangleStrip = false;
 
-	createMesh();
+	createMesh(mMeshData);
 
 	cleanUp();
 
@@ -277,7 +309,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 	return true;
 }
 
-bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
+bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, sgct_core::Viewport * parent)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
 		"CorrectionMesh: Reading sciss mesh data from '%s'.\n", meshPath);
@@ -448,6 +480,16 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
 
 	fclose(meshFile);
 
+	parent->setViewPlaneCoordsUsingFOVs(
+		viewData.fovUp,
+		viewData.fovDown,
+		viewData.fovLeft,
+		viewData.fovRight,
+		glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
+		);
+
+	sgct::Engine::instance()->updateFrustums();
+
 	//store all verts in sgct format
 	mVertices = new CorrectionMeshVertex[mNumberOfVertices];
 	for (unsigned int i = 0; i < mNumberOfVertices; i++)
@@ -457,10 +499,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
 		mVertices[i].b = 255;
 
 		mVertices[i].x = texturedVertexList[i].x * mXSize + mXOffset;
-		mVertices[i].y = texturedVertexList[i].y * mYSize + mYOffset;
+		mVertices[i].y = (1.0f - texturedVertexList[i].y) * mYSize + mYOffset;
 
 		mVertices[i].s = texturedVertexList[i].tx * mXSize + mXOffset;
-		mVertices[i].t = 1.0f - texturedVertexList[i].ty * mYSize + mYOffset;
+		mVertices[i].t = texturedVertexList[i].ty * mYSize + mYOffset;
 
 		/*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
 			texturedVertexList[i].x, texturedVertexList[i].y, texturedVertexList[i].z,
@@ -473,7 +515,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath)
 
 	mUseTriangleStrip = true;
 
-	createMesh();
+	createMesh(mMeshData);
 	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u.\n", mNumberOfVertices, mNumberOfFaces);
@@ -530,21 +572,17 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 	mVertices[3].t = 1.0f * mYSize + mYOffset;
 	mVertices[3].x = 0.0f*mXSize + mXOffset;
 	mVertices[3].y = 1.0f*mYSize + mYOffset;
-
-	createMesh();
-
-	cleanUp();
 }
 
-void sgct_core::CorrectionMesh::createMesh()
+void sgct_core::CorrectionMesh::createMesh(unsigned int * dataPtr)
 {
 	/*sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data (type=%d)...\n",
 		ClusterManager::instance()->getMeshImplementation());*/
 
 	if (ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
 	{
-		mMeshData[Vertex] = glGenLists(1);
-		glNewList(mMeshData[Vertex], GL_COMPILE);
+		dataPtr[Vertex] = glGenLists(1);
+		glNewList(dataPtr[Vertex], GL_COMPILE);
 
 #ifdef SGCT_SHOW_CORRECTION_MESH_WIREFRAME
 		if(mUseTriangleStrip)
@@ -603,16 +641,16 @@ void sgct_core::CorrectionMesh::createMesh()
 	{
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 		{
-			glGenVertexArrays(1, &mMeshData[Array]);
-			glBindVertexArray(mMeshData[Array]);
+			glGenVertexArrays(1, &dataPtr[Array]);
+			glBindVertexArray(dataPtr[Array]);
 
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VAO: %d\n", mMeshData[Array]);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VAO: %d\n", dataPtr[Array]);
 		}
 
-		glGenBuffers(2, &mMeshData[0]);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", mMeshData[0], mMeshData[1]);
+		glGenBuffers(2, &dataPtr[0]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating VBOs: %d %d\n", dataPtr[0], dataPtr[1]);
 
-		glBindBuffer(GL_ARRAY_BUFFER, mMeshData[Vertex]);
+		glBindBuffer(GL_ARRAY_BUFFER, dataPtr[Vertex]);
 		glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(CorrectionMeshVertex), &mVertices[0], GL_STATIC_DRAW);
 
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
@@ -648,7 +686,7 @@ void sgct_core::CorrectionMesh::createMesh()
 			);
 		}
 
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mMeshData[Index]);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, dataPtr[Index]);
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, mNumberOfFaces*3*sizeof(unsigned int), &mFaces[0], GL_STATIC_DRAW);
 
 		//unbind

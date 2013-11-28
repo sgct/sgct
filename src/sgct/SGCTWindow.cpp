@@ -50,6 +50,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFullRes = true;
 	mFocused = false;
 	mIconified = false;
+	mHasAnyMasks = false;
 	mAreCubeMapViewPortsGenerated = false;
 
 	mWindowRes[0] = 640;
@@ -306,6 +307,25 @@ void sgct::SGCTWindow::initOGL()
 	createFBOs();
 	initScreenCapture();
 	loadShaders();
+}
+
+/*!
+	Init context specific data such as viewport corrections/warping meshes
+*/
+void sgct::SGCTWindow::initContextSpecificOGL()
+{
+	makeOpenGLContextCurrent(Window_Context);
+	unsigned int numberOfMasks = 0;
+	for (std::size_t j = 0; j < getNumberOfViewports(); j++)
+	{
+		sgct_core::Viewport * vpPtr = getViewport(j);
+		vpPtr->loadData();
+		if (vpPtr->hasMaskTexture())
+			numberOfMasks++;
+	}
+
+	if (numberOfMasks > 0)
+		mHasAnyMasks = true;
 }
 
 /*!
@@ -1096,7 +1116,6 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bo
 	if( anisotropicFiltering )
 		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy_filter_size);
 	
-	//GeoCorr/Warping meshes sometimes goes outside the scope [0, 1] (clamp to edge looks funky)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);

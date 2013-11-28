@@ -333,6 +333,8 @@ Load a unmanged texture. Note that this type of textures doesn't auto destruct.
 */
 bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels)
 {
+	unsigned int tmpTexID = GL_FALSE;
+	
 	//load image
 	sgct_core::Image img;
 	if (!img.load(filename.c_str()))
@@ -342,8 +344,8 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 
 	if (img.getData() != NULL)
 	{
-		glGenTextures(1, &texID);
-		glBindTexture(GL_TEXTURE_2D, texID);
+		glGenTextures(1, &tmpTexID);
+		glBindTexture(GL_TEXTURE_2D, tmpTexID);
 
 		int textureType = GL_RGB;
 
@@ -454,7 +456,7 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0]);
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), texID);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), tmpTexID);
 		img.cleanup();
 	}
 	else //image data not valid
@@ -462,6 +464,7 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		return false;
 	}
 
+	texID = tmpTexID;
 	return true;
 }
 

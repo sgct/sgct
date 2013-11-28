@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Viewport.h"
 #include "../include/sgct/TextureManager.h"
+#include "../include/sgct/ClusterManager.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
@@ -45,6 +46,9 @@ sgct_core::Viewport::~Viewport()
 {
 	if (mOverlayTextureIndex)
 		glDeleteTextures(1, &mOverlayTextureIndex);
+
+	if (mMaskTextureIndex)
+		glDeleteTextures(1, &mMaskTextureIndex);
 }
 
 /*!
@@ -62,11 +66,9 @@ void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
 	mXSize = xSize;
 	mYSize = ySize;
 	mEye = Frustum::Mono;
-	mOverlayTexture = false;
 	mCorrectionMesh = false;
-	mOverlayFilename = NULL;
-	mMeshFilename = NULL;
 	mOverlayTextureIndex = GL_FALSE;
+	mMaskTextureIndex = GL_FALSE;
 	mTracked = false;
 	mEnabled = true;
 
@@ -103,32 +105,17 @@ void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)
 
 void sgct_core::Viewport::setOverlayTexture(const char * texturePath)
 {
-	//copy filename
-	if( strlen(texturePath) > 4 )
-	{
-		mOverlayFilename = new char[strlen(texturePath)+1];
-		#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		if( strcpy_s(mOverlayFilename, strlen(texturePath)+1, texturePath ) != 0)
-			return;
-		#else
-		strcpy(mOverlayFilename, texturePath );
-		#endif
-	}
+	mOverlayFilename.assign(texturePath);
+}
+
+void sgct_core::Viewport::setMaskTexture(const char * texturePath)
+{
+	mMaskFilename.assign(texturePath);
 }
 
 void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 {
-	//copy filename
-	if( strlen(meshPath) > 3 )
-	{
-		mMeshFilename = new char[strlen(meshPath)+1];
-		#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		if( strcpy_s(mMeshFilename, strlen(meshPath)+1, meshPath ) != 0)
-			return;
-		#else
-		strcpy(mMeshFilename, meshPath );
-		#endif
-	}
+	mMeshFilename.assign(meshPath);
 }
 
 void sgct_core::Viewport::setTracked(bool state)
@@ -143,10 +130,14 @@ void sgct_core::Viewport::setEnabled(bool state)
 
 void sgct_core::Viewport::loadData()
 {
-	if( mOverlayFilename != NULL )
-		mOverlayTexture = sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
+	if( mOverlayFilename.size() > 0 )
+		sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
 
-	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this);
+	if ( mMaskFilename.size() > 0 )
+		sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
+
+	//load default if mMeshFilename is NULL
+	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename.c_str(), this);
 }
 
 void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane)
@@ -308,10 +299,14 @@ void sgct_core::Viewport::setViewPlaneCoordsUsingFOVs(float up, float down, floa
 	unTransformedViewPlaneCoords[UpperRight].z = -dist;
 
 	for (unsigned int i = 0; i < 3; i++)
-		mViewPlaneCoords[i] = rot * unTransformedViewPlaneCoords[i];
+		mViewPlaneCoords[i] = (rot * unTransformedViewPlaneCoords[i]) - ClusterManager::instance()->getUserPtr()->getPos();
 }
 
-void sgct_core::Viewport::renderMesh()
+/*!
+Render the viewport mesh which the framebuffer texture is attached to
+\param warped set to true to enable warping
+*/
+void sgct_core::Viewport::renderMesh(bool warped)
 {
-	mCM.render();
+	mCM.render(warped);
 }

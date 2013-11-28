@@ -36,6 +36,7 @@ public:
 	void setSize(double x, double y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
+	void setMaskTexture(const char * texturePath);
 	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
 	void setEnabled(bool state);
@@ -45,7 +46,7 @@ public:
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist=10.0f);
-	void renderMesh();
+	void renderMesh(bool warped);
 
 	/*!
 		\returns the name of this viewport
@@ -68,11 +69,13 @@ public:
 	inline const glm::mat4 & getViewMatrix( Frustum::FrustumMode frustumMode ) { return mViewMatrix[frustumMode]; }
 	inline const glm::mat4 & getProjectionMatrix( Frustum::FrustumMode frustumMode ) { return mProjectionMatrix[frustumMode]; }
 	inline const glm::vec3 getViewPlaneCoords( ViewPlaneCorner vpc ) { return mViewPlaneCoords[ vpc ]; }
-	inline bool hasOverlayTexture() { return mOverlayTexture; }
+	inline bool hasOverlayTexture() { return mOverlayTextureIndex != GL_FALSE; }
+	inline bool hasMaskTexture() { return mMaskTextureIndex != GL_FALSE; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
 	inline bool isEnabled() { return mEnabled; }
 	inline unsigned int getOverlayTextureIndex() { return mOverlayTextureIndex; }
+	inline unsigned int getMaskTextureIndex() { return mMaskTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
 private:
@@ -89,13 +92,14 @@ private:
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
 	CorrectionMesh mCM;
-	char * mOverlayFilename;
-	char * mMeshFilename;
-	bool mOverlayTexture;
+	std::string mOverlayFilename;
+	std::string mMaskFilename;
+	std::string mMeshFilename;
 	bool mCorrectionMesh;
 	bool mTracked;
 	bool mEnabled;
 	unsigned int mOverlayTextureIndex;
+	unsigned int mMaskTextureIndex;
 };
 
 }

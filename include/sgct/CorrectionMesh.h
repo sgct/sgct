@@ -8,6 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _CORRECTION_MESH_H_
 #define _CORRECTION_MESH_H_
 
+namespace sgct_core
+{
+
 struct CorrectionMeshVertex
 {
 	float x, y;	//Vertex 8
@@ -18,8 +21,17 @@ struct CorrectionMeshVertex
 	unsigned char padding[13]; //32 - 8 - 8 - 3 = 13
 };
 
-namespace sgct_core
+class CorrectionMeshGeometry
 {
+public:
+	CorrectionMeshGeometry();
+	~CorrectionMeshGeometry();
+
+	GLenum mGeometryType;
+	unsigned int mNumberOfVertices;
+	unsigned int mNumberOfIndices;
+	unsigned int mMeshData[3];
+};
 
 class Viewport;
 
@@ -34,31 +46,26 @@ public:
 	~CorrectionMesh();
 	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
 	bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
-	void render();
+	void render(bool warped);
 	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
 	bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
 	bool readAndGenerateScissMesh(const char * meshPath, Viewport * parent);
 	void setupSimpleMesh();
-	void createMesh(unsigned int * dataPtr);
+	void setupMaskMesh();
+	void createMesh(CorrectionMeshGeometry * geomPtr);
 	void cleanUp();
-	void renderMesh();
 
 	enum buffer { Vertex = 0, Index, Array };
+	enum warpingMode { Warped = 0, UnWarped};
 
-	CorrectionMeshVertex * mVertices;
-	//CorrectionMeshVertex * mVertexList;
-	unsigned int * mFaces;
+	CorrectionMeshVertex * mTempVertices;
+	unsigned int * mTempIndices;
+
+	CorrectionMeshGeometry mGeometries[2];
     double mOrthoCoords[5];
 	unsigned int mResolution[2];
-
-	unsigned int mNumberOfVertices;
-	unsigned int mNumberOfFaces;
-	unsigned int mMeshData[3];
-	unsigned int mUnWarpedMeshData[3];
-
-	bool mUseTriangleStrip;
 
 	float mXSize;
 	float mYSize;

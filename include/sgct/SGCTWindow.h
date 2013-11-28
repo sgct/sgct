@@ -43,6 +43,7 @@ public:
 	void close();
 	void init(int id);
 	void initOGL();
+	void initContextSpecificOGL();
 	static void initNvidiaSwapGroups();
 	void initWindowResolution(const int x, const int y);
 	void swap();
@@ -166,6 +167,8 @@ public:
 	void addViewport(sgct_core::Viewport &vp);
 	void generateCubeMapViewports();
 
+	/*! \return true if any masks are used */
+	inline bool hasAnyMasks() { return mHasAnyMasks; }
 	/*! \returns true if FXAA should be used */
 	inline bool useFXAA() { return mUseFXAA; }
 	/*! \returns true if PostFX pass should be used */
@@ -298,6 +301,7 @@ private:
 	float mCropFactors[4];
 	float mCubeMapSize;
 	bool mAreCubeMapViewPortsGenerated;
+	bool mHasAnyMasks;
 	int mCubeMapResolution;
 
 	std::size_t mCurrentViewportIndex;

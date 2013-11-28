@@ -354,6 +354,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpVp.setOverlayTexture( element[2]->Attribute("overlay") );
 
+							if (element[2]->Attribute("mask") != NULL)
+								tmpVp.setMaskTexture(element[2]->Attribute("mask"));
+
 							if( element[2]->Attribute("mesh") != NULL )
 								tmpVp.setCorrectionMesh( element[2]->Attribute("mesh") );
 

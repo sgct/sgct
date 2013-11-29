@@ -121,6 +121,19 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 }
 
 /*!
+Set the user's head orientation using a quaternion
+*/
+void sgct_core::SGCTUser::setOrientation(float w, float x, float y, float z)
+{
+	//create offset translation matrix
+	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::Mono]);
+
+	mTransform = transMat * glm::mat4_cast( glm::quat(w, x, y, z) );
+
+	updateEyeTransform();
+}
+
+/*!
 	Changes the interocular distance and recalculates the user's eye positions.
 */
 void sgct_core::SGCTUser::setEyeSeparation(float eyeSeparation)

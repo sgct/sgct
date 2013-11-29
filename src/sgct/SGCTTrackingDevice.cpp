@@ -148,7 +148,7 @@ void sgct::SGCTTrackingDevice::setSensorTransform( glm::dmat4 mat )
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
     //swap
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
-    mWorldTransform[CURRENT] = (preTransform * mat) * mPostTransform;
+    mWorldTransform[CURRENT] = preTransform * (mat * mPostTransform);
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 
     setTrackerTimeStamp();
@@ -162,9 +162,9 @@ void sgct::SGCTTrackingDevice::setButtonVal(const bool val, size_t index)
 		//swap
         mButtons[index + mNumberOfButtons] = mButtons[index];
         mButtons[index] = val;
-
-		setButtonTimeStamp( index );
 		SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+
+		setButtonTimeStamp(index);
     }
 }
 
@@ -237,7 +237,7 @@ void sgct::SGCTTrackingDevice::setOffset(double x, double y, double z)
 
 /*!
 Set the device transform matrix\n
-worldTransform = (trackerTransform * sensorMat) * deviceTransformMat
+worldTransform = trackerTransform * (sensorMat * deviceTransformMat)
 */
 void sgct::SGCTTrackingDevice::setTransform(glm::dmat4 mat)
 {

@@ -574,6 +574,44 @@ void sgct_core::ReadConfig::readAndParseXML()
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user Orientation from XML!\n");
 				}
+				else if (strcmp("Quaternion", val[1]) == 0)
+				{
+					float tmpd[4];
+					if (element[1]->QueryFloatAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpd[3]) == XML_NO_ERROR)
+						ClusterManager::instance()->getUserPtr()->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+					else
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
+				}
+				else if (strcmp("Matrix", val[1]) == 0)
+				{
+					float tmpd[16];
+					if (element[1]->QueryFloatAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+						ClusterManager::instance()->getUserPtr()->setTransform(
+						glm::mat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
+						tmpd[4], tmpd[5], tmpd[6], tmpd[7],
+						tmpd[8], tmpd[9], tmpd[10], tmpd[11],
+						tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+					else
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
+				}
 				else if( strcmp("Tracking", val[1]) == 0 )
 				{
 					if(	element[1]->Attribute("tracker") != NULL &&

@@ -23,16 +23,41 @@ sgct::SharedBool showGeoCorrectionPattern(true);
 sgct::SharedBool showBlendZones(false);
 sgct::SharedBool showChannelZones(false);
 sgct::SharedBool takeScreenShot(false);
+sgct::SharedBool wireframe(true);
 
 const short lastState = 7;
 bool useShader = true;
+bool isTiltSet = false;
+double tilt = 0.0;
 std::vector<glm::vec3> colors;
+std::vector<std::pair<std::string, unsigned int>> textures;
 
 int main( int argc, char* argv[] )
 {
 
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
+
+	//parse arguments
+	for (int i = 0; i < argc; i++)
+	{
+		if (strcmp(argv[i], "-tex") == 0 && argc >(i + 1))
+		{
+			std::pair<std::string, unsigned int> tmpPair;
+			tmpPair.first.assign(argv[i + 1]);
+			tmpPair.second = GL_FALSE;
+			textures.push_back(tmpPair);
+			
+			sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
+		}
+		else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1))
+		{
+			tilt = atof(argv[i + 1]);
+			isTiltSet = true;
+
+			sgct::MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
+		}
+	}
 
 	// Bind your functions
 	gEngine->setDrawFunction( draw );
@@ -118,8 +143,15 @@ void initGL()
 	colors.push_back( glm::vec3(1.00f, 0.00f, 0.50f) ); //magenta-red
 	colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
 	
-	mDome = new Dome(7.4f, 26.7f, FISHEYE);
+	if (isTiltSet)
+		mDome = new Dome(7.4f, static_cast<float>(tilt), FISHEYE);
+	else
+		mDome = new Dome(7.4f, 26.7f, FISHEYE);
 	mDome->generateDisplayList();
+
+	for (std::size_t i = 0; i < textures.size(); i++)
+		sgct::TextureManager::instance()->loadUnManagedTexture(
+		textures[i].second, textures[i].first, false, 1);
 	
 	glDisable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
@@ -138,6 +170,8 @@ void preSync()
 			gEngine->takeScreenshot();
 		}
 	}
+
+	gEngine->setWireframe(wireframe.getVal());
 }
 
 void encode()
@@ -148,6 +182,7 @@ void encode()
 	sgct::SharedData::instance()->writeBool( &showBlendZones );
 	sgct::SharedData::instance()->writeBool( &showChannelZones );
 	sgct::SharedData::instance()->writeBool( &takeScreenShot );
+	sgct::SharedData::instance()->writeBool( &wireframe );
 }
 
 void decode()
@@ -158,6 +193,7 @@ void decode()
 	sgct::SharedData::instance()->readBool( &showBlendZones );
 	sgct::SharedData::instance()->readBool( &showChannelZones );
 	sgct::SharedData::instance()->readBool( &takeScreenShot );
+	sgct::SharedData::instance()->readBool( &wireframe );
 }
 
 void keyCallback(int key, int action)
@@ -224,6 +260,11 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_P:
 			if(action == SGCT_PRESS)
 				takeScreenShot.setVal(true);
+			break;
+
+		case SGCT_KEY_W:
+			if (action == SGCT_PRESS)
+				wireframe.toggle();
 			break;
 		}
 	}
@@ -387,6 +428,24 @@ void loadData()
 
 void drawTexturedObject()
 {
+	if (textures.size() > 0)
+	{
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, textures[0].second);
+		glEnable(GL_TEXTURE_2D);
+
+		glActiveTexture(GL_TEXTURE1);
+		glBindTexture(GL_TEXTURE_2D, textures[0].second);
+		glEnable(GL_TEXTURE_2D);
+
+		mDome->drawTexturedSphere();
+		
+		glDisable(GL_TEXTURE_2D);
+		glActiveTexture(GL_TEXTURE0);
+		glDisable(GL_TEXTURE_2D);
+	}
+	
+	
 	/*if(tex.getStoredTextureCount() == 0)
 		return;
 	

@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/SGCTWindow.h"
 #include "../include/sgct/Engine.h"
+#include "../include/sgct/TextureManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SGCTSettings.h"
@@ -316,6 +317,9 @@ void sgct::SGCTWindow::initContextSpecificOGL()
 {
 	makeOpenGLContextCurrent(Window_Context);
 	unsigned int numberOfMasks = 0;
+	TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
+	TextureManager::instance()->setCompression(TextureManager::S3TC_DXT);
+
 	for (std::size_t j = 0; j < getNumberOfViewports(); j++)
 	{
 		sgct_core::Viewport * vpPtr = getViewport(j);
@@ -323,6 +327,9 @@ void sgct::SGCTWindow::initContextSpecificOGL()
 		if (vpPtr->hasMaskTexture())
 			numberOfMasks++;
 	}
+
+	//restore
+	TextureManager::instance()->setCompression(cm);
 
 	if (numberOfMasks > 0)
 		mHasAnyMasks = true;

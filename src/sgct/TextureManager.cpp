@@ -130,6 +130,14 @@ void sgct::TextureManager::setWarpingMode(int warp_s, int warp_t)
 }
 
 /*!
+\returns the current compression mode
+*/
+sgct::TextureManager::CompressionMode sgct::TextureManager::getCompression()
+{
+	return mCompression;
+}
+
+/*!
 	Load a texture to the TextureManager.
 	\param name the name of the texture
 	\param filename the filename or path to the texture

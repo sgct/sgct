@@ -528,6 +528,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 		if (texturedVertexList[i].ty < 0.0f)
 			texturedVertexList[i].ty = 0.0f;
 
+		/*if (texturedVertexList[i].x > 1.0f || texturedVertexList[i].x < 0.0f ||
+			texturedVertexList[i].y > 1.0f || texturedVertexList[i].y < 0.0f)
+		{
+			fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
+				texturedVertexList[i].x, texturedVertexList[i].y, texturedVertexList[i].z,
+				texturedVertexList[i].tx, texturedVertexList[i].ty, texturedVertexList[i].tz);
+		}*/
+
 
 		mTempVertices[i].x = texturedVertexList[i].x * mXSize + mXOffset;
 		mTempVertices[i].y = (1.0f - texturedVertexList[i].y) * mYSize + mYOffset;

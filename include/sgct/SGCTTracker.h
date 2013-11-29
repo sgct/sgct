@@ -30,13 +30,13 @@ public:
 	SGCTTrackingDevice * getDevicePtr(const char * name);
 	SGCTTrackingDevice * getDevicePtrBySensorId(int id);
 
-	void setOrientation(double xRot, double yRot, double zRot);
-	void setOrientation(double w, double x, double y, double z);
-	void setOffset(double x, double y, double z);
+	void setOrientation(float xRot, float yRot, float zRot);
+	void setOrientation(float w, float x, float y, float z);
+	void setOffset(float x, float y, float z);
 	void setScale(double scaleVal);
-	void setTransform(glm::dmat4 mat);
+	void setTransform(glm::mat4 mat);
 
-	glm::dmat4 getTransform();
+	glm::mat4 getTransform();
 	double getScale();
 
 	inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
@@ -50,9 +50,9 @@ private:
 	std::string mName;
 
 	double mScale;
-	glm::dmat4 mXform;
-	glm::dmat4 mOrientation;
-	glm::dvec3 mOffset;
+	glm::mat4 mXform;
+	glm::mat4 mOrientation;
+	glm::vec3 mOffset;
 };
 
 }

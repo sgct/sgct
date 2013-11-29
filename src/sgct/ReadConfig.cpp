@@ -588,22 +588,22 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
 					float tmpd[16];
-					if (element[1]->QueryFloatAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x0", &tmpd[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y0", &tmpd[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z0", &tmpd[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w0", &tmpd[3]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x1", &tmpd[4]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpd[5]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpd[6]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpd[7]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpd[8]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpd[9]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpd[10]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpd[11]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpd[12]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpd[13]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpd[14]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpd[15]) == XML_NO_ERROR)
 						ClusterManager::instance()->getUserPtr()->setTransform(
 						glm::mat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
 						tmpd[4], tmpd[5], tmpd[6], tmpd[7],
@@ -811,62 +811,62 @@ void sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if( strcmp("Offset", val[2]) == 0 )
 						{
-							double tmpd[3];
-							if( element[2]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
+							float tmpf[3];
+							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-									setOffset( tmpd[0], tmpd[1], tmpd[2] );
+									setOffset( tmpf[0], tmpf[1], tmpf[2] );
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device offset in XML!\n");
 						}
 						else if( strcmp("Orientation", val[2]) == 0 )
 						{
-							double tmpd[3];
-							if( element[2]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
+							float tmpf[3];
+							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-									setOrientation( tmpd[0], tmpd[1], tmpd[2] );
+									setOrientation( tmpf[0], tmpf[1], tmpf[2] );
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 						}
 						else if (strcmp("Quaternion", val[2]) == 0)
 						{
-							double tmpd[4];
-							if (element[2]->QueryDoubleAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z", &tmpd[3]) == XML_NO_ERROR)
+							float tmpf[4];
+							if (element[2]->QueryFloatAttribute("w", &tmpf[0]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x", &tmpf[1]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[2]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[3]) == XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-								setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+									setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 						}
 						else if (strcmp("Matrix", val[2]) == 0)
 						{
-							double tmpd[16];
-							if (element[2]->QueryDoubleAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
-								element[2]->QueryDoubleAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+							float tmpf[16];
+							if (element[2]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
-									glm::dmat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
-										tmpd[4], tmpd[5], tmpd[6], tmpd[7],
-										tmpd[8], tmpd[9], tmpd[10], tmpd[11],
-										tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+									glm::mat4(tmpf[0], tmpf[1], tmpf[2], tmpf[3],
+										tmpf[4], tmpf[5], tmpf[6], tmpf[7],
+										tmpf[8], tmpf[9], tmpf[10], tmpf[11],
+										tmpf[12], tmpf[13], tmpf[14], tmpf[15]));
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
 						}
@@ -878,32 +878,32 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if( strcmp("Offset", val[1]) == 0 )
 				{
-					double tmpd[3];
-					if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOffset( tmpd[0], tmpd[1], tmpd[2] );
+					float tmpf[3];
+					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOffset(tmpf[0], tmpf[1], tmpf[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker offset in XML!\n");
 				}
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
-					double tmpd[3];
-					if( element[1]->QueryDoubleAttribute("x", &tmpd[0]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("y", &tmpd[1]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("z", &tmpd[2]) == XML_NO_ERROR )
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation( tmpd[0], tmpd[1], tmpd[2] );
+					float tmpf[3];
+					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpf[0], tmpf[1], tmpf[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation angles in XML!\n");
 				}
 				else if (strcmp("Quaternion", val[1]) == 0)
 				{
-					double tmpd[4];
-					if (element[1]->QueryDoubleAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("z", &tmpd[3]) == XML_NO_ERROR)
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+					float tmpf[4];
+					if (element[1]->QueryFloatAttribute("w", &tmpf[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x", &tmpf[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[3]) == XML_NO_ERROR)
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation quaternion in XML!\n");
 				}
@@ -917,28 +917,28 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
-					double tmpd[16];
-					if (element[1]->QueryDoubleAttribute("x1", &tmpd[0]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("y1", &tmpd[1]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("z1", &tmpd[2]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("w1", &tmpd[3]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("x2", &tmpd[4]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("y2", &tmpd[5]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("z2", &tmpd[6]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("w2", &tmpd[7]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("x3", &tmpd[8]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("y3", &tmpd[9]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("z3", &tmpd[10]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("w3", &tmpd[11]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("x4", &tmpd[12]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("y4", &tmpd[13]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("z4", &tmpd[14]) == XML_NO_ERROR &&
-						element[1]->QueryDoubleAttribute("w4", &tmpd[15]) == XML_NO_ERROR)
+					float tmpf[16];
+					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
-							glm::dmat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
-								tmpd[4], tmpd[5], tmpd[6], tmpd[7],
-								tmpd[8], tmpd[9], tmpd[10], tmpd[11],
-								tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+							glm::mat4(tmpf[0], tmpf[1], tmpf[2], tmpf[3],
+								tmpf[4], tmpf[5], tmpf[6], tmpf[7],
+								tmpf[8], tmpf[9], tmpf[10], tmpf[11],
+								tmpf[12], tmpf[13], tmpf[14], tmpf[15]));
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker matrix in XML!\n");
 				}

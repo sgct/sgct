@@ -10,7 +10,7 @@ void drawAxes(float size);
 void drawWireCube(float size);
 
 //store each device's transform 4x4 matrix
-glm::dmat4 * trackedTransforms = NULL;
+glm::mat4 * trackedTransforms = NULL;
 
 //pointer to a device
 sgct::SGCTTrackingDevice * devicePtr = NULL;
@@ -126,7 +126,7 @@ void myDrawFun()
 					glPushMatrix();
 
 					//get transform from tracker
-					glLoadMatrixd( glm::value_ptr(trackedTransforms[ index ]) );
+					glLoadMatrixf( glm::value_ptr(trackedTransforms[ index ]) );
 					glColor3f(0.5f,0.5f,0.5f);
 					drawWireCube(0.1f);
 

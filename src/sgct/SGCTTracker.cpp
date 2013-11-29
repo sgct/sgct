@@ -15,8 +15,8 @@ sgct::SGCTTracker::SGCTTracker(std::string name)
 {
 	mName.assign(name);
 
-	mXform = glm::dmat4(1.0);
-	mOffset = glm::dvec3(0.0);
+	mXform = glm::mat4(1.0f);
+	mOffset = glm::vec3(0.0f);
 
 	mScale = 1.0;
 }
@@ -88,29 +88,29 @@ sgct::SGCTTrackingDevice * sgct::SGCTTracker::getDevicePtrBySensorId(int id)
 /*!
 Set the orientation as euler angles (degrees)
 */
-void sgct::SGCTTracker::setOrientation(double xRot, double yRot, double zRot)
+void sgct::SGCTTracker::setOrientation(float xRot, float yRot, float zRot)
 {
 	//create rotation quaternion based on x, y, z rotations
-	glm::dquat rotQuat;
-	rotQuat = glm::rotate(rotQuat, xRot, glm::dvec3(1.0, 0.0, 0.0));
-	rotQuat = glm::rotate(rotQuat, yRot, glm::dvec3(0.0, 1.0, 0.0));
-	rotQuat = glm::rotate(rotQuat, zRot, glm::dvec3(0.0, 0.0, 1.0));
+	glm::quat rotQuat;
+	rotQuat = glm::rotate(rotQuat, xRot, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, yRot, glm::vec3(0.0f, 1.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, zRot, glm::vec3(0.0f, 0.0f, 1.0f));
 	
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 
-		//create inverse rotation matrix
-		mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
+	//create inverse rotation matrix
+	mOrientation = glm::inverse( glm::mat4_cast(rotQuat) );
 
-		calculateTransform();
+	calculateTransform();
 	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 /*!
 Set the orientation as a quaternion
 */
-void sgct::SGCTTracker::setOrientation(double w, double x, double y, double z)
+void sgct::SGCTTracker::setOrientation(float w, float x, float y, float z)
 {
-	glm::dquat rotQuat(w, x, y, z);
+	glm::quat rotQuat(w, x, y, z);
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
 	
 	//create inverse rotation matrix
@@ -120,7 +120,7 @@ void sgct::SGCTTracker::setOrientation(double w, double x, double y, double z)
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
-void sgct::SGCTTracker::setOffset(double x, double y, double z)
+void sgct::SGCTTracker::setOffset(float x, float y, float z)
 {
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
 		mOffset[0] = x;
@@ -143,7 +143,7 @@ void sgct::SGCTTracker::setScale(double scaleVal)
 Set the tracker system transform matrix\n
 worldTransform = (trackerTransform * sensorMat) * deviceTransformMat
 */
-void sgct::SGCTTracker::setTransform(glm::dmat4 mat)
+void sgct::SGCTTracker::setTransform(glm::mat4 mat)
 {
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
 	mXform = mat;
@@ -153,15 +153,15 @@ void sgct::SGCTTracker::setTransform(glm::dmat4 mat)
 void sgct::SGCTTracker::calculateTransform()
 {
 	//create offset translation matrix
-	glm::dmat4 transMat = glm::translate(glm::dmat4(1.0), mOffset);
+	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mOffset);
 	
 	//calculate transform
 	mXform = transMat * mOrientation;
 }
 
-glm::dmat4 sgct::SGCTTracker::getTransform()
+glm::mat4 sgct::SGCTTracker::getTransform()
 { 
-	glm::dmat4 tmpMat;
+	glm::mat4 tmpMat;
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
 	tmpMat = mXform;
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);

@@ -33,13 +33,13 @@ public:
 	void setSensorId(int id);
 	void setNumberOfButtons(size_t numOfButtons);
 	void setNumberOfAxes(size_t numOfAxes);
-	void setSensorTransform( glm::dmat4 mat );
+	void setSensorTransform( glm::dvec3 vec, glm::dquat rot );
 	void setButtonVal(const bool val, size_t index);
 	void setAnalogVal(const double * array, size_t size);
-	void setOrientation(double xRot, double yRot, double zRot);
-	void setOrientation(double w, double x, double y, double z);
-	void setOffset(double x, double y, double z);
-	void setTransform(glm::dmat4 mat);
+	void setOrientation(float xRot, float yRot, float zRot);
+	void setOrientation(float w, float x, float y, float z);
+	void setOffset(float x, float y, float z);
+	void setTransform(glm::mat4 mat);
 
 	inline const std::string & getName() { return mName; }
 	inline size_t getNumberOfButtons() { return mNumberOfButtons; }
@@ -52,10 +52,12 @@ public:
 	inline bool hasAnalogs() { return mNumberOfAxes > 0; }
 	int getSensorId();
 
-	glm::dvec3 getPosition(DataLoc i = CURRENT);
-	glm::dvec3 getEulerAngles(DataLoc i = CURRENT);
-	glm::dquat getRotation(DataLoc i = CURRENT);
-	glm::dmat4 getTransform(DataLoc i = CURRENT);
+	glm::vec3 getPosition(DataLoc i = CURRENT);
+	glm::vec3 getEulerAngles(DataLoc i = CURRENT);
+	glm::quat getRotation(DataLoc i = CURRENT);
+	glm::mat4 getTransform(DataLoc i = CURRENT);
+	glm::dquat getSensorRotation(DataLoc i = CURRENT);
+	glm::dvec3 getSensorPosition(DataLoc i = CURRENT);
 
 	double getTrackerTimeStamp(DataLoc i = CURRENT);
 	double getAnalogTimeStamp(DataLoc i = CURRENT);
@@ -79,10 +81,12 @@ private:
 	size_t mNumberOfAxes;
 	int mSensorId;
 
-	glm::dmat4 mPostTransform;
-	glm::dmat4 mWorldTransform[2];
-	glm::dmat4 mOrientation;
-	glm::dvec3 mOffset;
+	glm::mat4 mDeviceTransformMatrix;
+	glm::mat4 mWorldTransform[2];
+	glm::dquat mSensorRotation[2];
+	glm::dvec3 mSensorPos[2];
+	glm::quat mOrientation;
+	glm::vec3 mOffset;
 
 	double mTrackerTime[2];
 	double mAnalogTime[2];

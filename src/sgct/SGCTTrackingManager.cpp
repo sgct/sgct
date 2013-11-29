@@ -400,13 +400,9 @@ void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
 	posVec *= trackerPtr->getScale();
 
-	//fprintf(stderr, "Id: %d pos: %.2f %.2f %.2f\n", info.sensor, info.pos[0], info.pos[1], info.pos[2] );
-
-	glm::dmat4 transMat = glm::translate( glm::dmat4(1.0), posVec );
 	glm::dquat rotation(info.quat[3], info.quat[0], info.quat[1], info.quat[2]);
-	glm::dmat4 rotMat = glm::mat4_cast(rotation);
 
-	devicePtr->setSensorTransform( transMat * rotMat );
+	devicePtr->setSensorTransform(posVec, rotation);
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
@@ -425,6 +421,5 @@ void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
 	sgct::SGCTTrackingDevice * tdPtr =
 		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
-
-	tdPtr->setAnalogVal(a.channel, static_cast<size_t>(a.num_channel));
+	tdPtr->setAnalogVal( a.channel, static_cast<size_t>(a.num_channel));
 }

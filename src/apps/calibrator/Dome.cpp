@@ -489,7 +489,6 @@ void Dome::generateDisplayList()
 
 		const int elevationSteps = 32;
 		const int azimuthSteps = 128;
-		
 		for(e=0; e<(elevationSteps-1); e++)
 		{
 			elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
@@ -497,32 +496,44 @@ void Dome::generateDisplayList()
 			
 			glBegin( GL_TRIANGLE_STRIP );
 
-			y0 = mRadius * sinf( elevation0 );
-			y1 = mRadius * sinf( elevation1 );
-				
+			y0 = sinf( elevation0 );
+			y1 = sinf( elevation1 );
 			for(int a=0; a<=azimuthSteps; a++)
 			{
 				azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
 				
-				x0 = mRadius * cosf( elevation0 ) * sinf( azimuth );
-				z0 = -mRadius * cosf( elevation0 ) * cosf( azimuth );
+				x0 = cosf( elevation0 ) * sinf( azimuth );
+				z0 = -cosf( elevation0 ) * cosf( azimuth );
 
-				x1 = mRadius * cosf( elevation1 ) * sinf( azimuth );
-				z1 = -mRadius * cosf( elevation1 ) * cosf( azimuth );
+				x1 = cosf( elevation1 ) * sinf( azimuth );
+				z1 = -cosf( elevation1 ) * cosf( azimuth );
 
-				s0 = fill*((x0/mRadius)/2.0f) + 0.5f;
-				s1 = fill*((x1/mRadius)/2.0f) + 0.5f;
-				t0 = fill*((z0/mRadius)/2.0f) + 0.5f;
-				t1 = fill*((z1/mRadius)/2.0f) + 0.5f;
+				s0 = (static_cast<float>(elevationSteps -e ) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+				s1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+				t0 = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+				t1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+
+				s0 = (s0 * 0.5f) + 0.5f;
+				s1 = (s1 * 0.5f) + 0.5f;
+				t0 = (t0 * 0.5f) + 0.5f;
+				t1 = (t1 * 0.5f) + 0.5f;
+
+				/*s0 = fill*(x0/2.0f) + 0.5f;
+				s1 = fill*(x1/2.0f) + 0.5f;
+				t0 = fill*(z0/2.0f) + 0.5f;
+				t1 = fill*(z1/2.0f) + 0.5f;*/
+
+				//if (a == 0)
+				//	fprintf(stderr, "Tex %f %f\n", s0, t0);
 
 
 				glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
 				glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
-				glVertex3f( x0, y0, z0 );
+				glVertex3f(x0*mRadius, y0*mRadius, z0*mRadius);
 
 				glMultiTexCoord2f( GL_TEXTURE0, s1, t1 );
 				glMultiTexCoord2f( GL_TEXTURE1, s1, t1 );
-				glVertex3f( x1, y1, z1 );
+				glVertex3f(x1*mRadius, y1*mRadius, z1*mRadius);
 			}
 
 			glEnd();

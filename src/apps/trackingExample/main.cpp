@@ -54,7 +54,7 @@ void myInitOGLFun()
 		sgct::Engine::getTrackingManager()->getNumberOfDevices();
 
 	//allocate the array
-	trackedTransforms = new glm::dmat4[ numberOfTrackedDevices ];
+	trackedTransforms = new glm::mat4[ numberOfTrackedDevices ];
 }
 
 /*

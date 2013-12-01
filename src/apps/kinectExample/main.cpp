@@ -101,8 +101,8 @@ void myPreSyncFun()
 
 		if(!error)
 		{
-			glm::dvec3 leftPos = leftHand->getPosition();
-			glm::dvec3 rightPos = rightHand->getPosition();
+			glm::vec3 leftPos = leftHand->getPosition();
+			glm::vec3 rightPos = rightHand->getPosition();
 			float dist = static_cast<float>(glm::length(leftPos - rightPos));
 			size_factor.setVal( (dist < 2.0f && dist > 0.2f) ? dist : 0.5f );
 		}

@@ -23,7 +23,7 @@ sgct::SharedBool showGeoCorrectionPattern(true);
 sgct::SharedBool showBlendZones(false);
 sgct::SharedBool showChannelZones(false);
 sgct::SharedBool takeScreenShot(false);
-sgct::SharedBool wireframe(true);
+sgct::SharedBool wireframe(false);
 
 const short lastState = 7;
 bool useShader = true;
@@ -149,9 +149,11 @@ void initGL()
 		mDome = new Dome(7.4f, 26.7f, FISHEYE);
 	mDome->generateDisplayList();
 
+	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
+	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::Generic);
 	for (std::size_t i = 0; i < textures.size(); i++)
 		sgct::TextureManager::instance()->loadUnManagedTexture(
-		textures[i].second, textures[i].first, false, 1);
+		textures[i].second, textures[i].first, true, 4);
 	
 	glDisable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);

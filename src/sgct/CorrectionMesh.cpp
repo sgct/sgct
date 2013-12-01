@@ -550,7 +550,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 
 	mGeometries[Warped].mNumberOfVertices = numberOfVertices;
 	mGeometries[Warped].mNumberOfIndices = numberOfIndices;
-	mGeometries[Warped].mGeometryType = GL_QUAD_STRIP;
+	
+	//GL_QUAD_STRIP removed in OpenGL 3.3+
+	//mGeometries[Warped].mGeometryType = GL_QUAD_STRIP;
+	mGeometries[Warped].mGeometryType = GL_TRIANGLE_STRIP;
 
 	//clean up
 	delete [] texturedVertexList;

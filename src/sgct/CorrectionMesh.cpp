@@ -440,9 +440,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 	//read vertices
 	SCISSTexturedVertex * texturedVertexList = new SCISSTexturedVertex[numberOfVertices];
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	retval = fread_s(texturedVertexList, sizeof(SCISSTexturedVertex)* numberOfVertices, sizeof(SCISSTexturedVertex), numberOfVertices, meshFile);
+	retval = fread_s(texturedVertexList, sizeof(SCISSTexturedVertex) * numberOfVertices, sizeof(SCISSTexturedVertex), numberOfVertices, meshFile);
 #else
-	retval = fread(texturedVertexList, sizeof(SCISSTexturedVertex), mNumberOfVertices, meshFile);
+	retval = fread(texturedVertexList, sizeof(SCISSTexturedVertex), numberOfVertices, meshFile);
 #endif
 	if (retval != numberOfVertices)
 	{
@@ -455,7 +455,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	retval = fread_s(&numberOfIndices, sizeof(unsigned int), sizeof(unsigned int), 1, meshFile);
 #else
-	retval = fread(&mNumberOfFaces, sizeof(unsigned int), 1, meshFile);
+	retval = fread(&numberOfIndices, sizeof(unsigned int), 1, meshFile);
 #endif
 
 	if (retval != 1)
@@ -474,7 +474,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 		retval = fread_s(mTempIndices, sizeof(unsigned int)* numberOfIndices, sizeof(unsigned int), numberOfIndices, meshFile);
 #else
-		retval = fread(texturedVertexList, sizeof(unsigned int), mNumberOfIndices, meshFile);
+		retval = fread(texturedVertexList, sizeof(unsigned int), numberOfIndices, meshFile);
 #endif
 		if (retval != numberOfIndices)
 		{

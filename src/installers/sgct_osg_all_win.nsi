@@ -6,10 +6,10 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.0.7"
-!define SGCT_COMPILER "msvc11"
-!define ARCH "x64"
+!define SGCT_COMPILER "msvc10"
+!define ARCH "x86"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 0
+!define INC_OSG 1
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -326,8 +326,15 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\SGCTRemote\main.cpp"
 	File "..\..\src\apps\SGCTRemote\single_remote.xml"
 	File "..\..\src\apps\SGCTRemote\remote_app_${SGCT_COMPILER}.${PRJ_SUFFIX}"
-	File /r "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\"
 	File "..\..\src\apps\SGCTRemote\CMakeLists.txt"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app\SGCTRemote_GUI"
+	File /r "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Properties"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Form1.cs"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Form1.Designer.cs"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Form1.resx"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\NetworkManager.cs"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Program.cs"
+	File "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\SGCTRemote.csproj"
 SectionEnd
 
 Section "SGCT environment variable"

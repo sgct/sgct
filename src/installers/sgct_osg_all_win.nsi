@@ -6,7 +6,7 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.0.7"
-!define SGCT_COMPILER "msvc10"
+!define SGCT_COMPILER "mingw"
 !define ARCH "x86"
 !define OSG_VERSION "3.0.1"
 !define INC_OSG 1
@@ -137,8 +137,8 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	!if "${SGCT_COMPILER}" == "mingw"
 		File "..\..\lib\mingw\libsgct.a"
 		File "..\..\lib\mingw\libsgctd.a"
-		File "..\..\additional_libs\ALUT\mingw\alut.a"
-		File "..\..\additional_libs\ALUT\mingw\alutd.a"
+		File "..\..\additional_libs\ALUT\mingw\libalut.a"
+		File "..\..\additional_libs\ALUT\mingw\libalutd.a"
 	!else if "${ARCH}" == "x86"
 		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"

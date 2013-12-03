@@ -55,7 +55,7 @@ public:
 	glm::vec3 getPosition(DataLoc i = CURRENT);
 	glm::vec3 getEulerAngles(DataLoc i = CURRENT);
 	glm::quat getRotation(DataLoc i = CURRENT);
-	glm::mat4 getTransform(DataLoc i = CURRENT);
+	glm::mat4 getWorldTransform(DataLoc i = CURRENT);
 	glm::dquat getSensorRotation(DataLoc i = CURRENT);
 	glm::dvec3 getSensorPosition(DataLoc i = CURRENT);
 

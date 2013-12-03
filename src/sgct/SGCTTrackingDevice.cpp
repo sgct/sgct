@@ -170,41 +170,19 @@ void sgct::SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot
 	mSensorPos[CURRENT] = vec;
 
     mWorldTransform[PREVIOUS] = mWorldTransform[CURRENT];
-    //mWorldTransform[CURRENT] = preTransform * (mat * mDeviceTransformMatrix);
-	
-	//mWorldTransform[CURRENT] = preTransform * transMat * rotMat * mDeviceTransformMatrix;
+	mWorldTransform[CURRENT] = systemTransformMatrix * sensorTransMat * sensorRotMat * mDeviceTransformMatrix;
 
-	mWorldTransform[CURRENT] =
-		glm::transpose(systemTransformMatrix) * sensorTransMat * sensorRotMat * glm::transpose(mDeviceTransformMatrix);
-	//mWorldTransform[CURRENT] = glm::dmat4(preTranspose) * transMat * rotMat * mDeviceTransformMatrix;
-	glm::mat4 temp = mWorldTransform[CURRENT];
+	/*glm::mat4 post_rot = glm::rotate(glm::mat4(1.0f),
+		glm::degrees<float>(1.66745f),
+		glm::vec3(0.928146f, 0.241998f, -0.282811f));
 
-	/*fprintf(stderr, "----------------\npostTranspose:\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-		postTranspose[0][0], postTranspose[0][1], postTranspose[0][2], postTranspose[0][3],
-		postTranspose[1][0], postTranspose[1][1], postTranspose[1][2], postTranspose[1][3],
-		postTranspose[2][0], postTranspose[2][1], postTranspose[2][2], postTranspose[2][3],
-		postTranspose[3][0], postTranspose[3][1], postTranspose[3][2], postTranspose[3][3]);*/
-	
-	/*fprintf(stderr, "----------------\nMat:\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-		preTransform[0][0], preTransform[0][1], preTransform[0][2], preTransform[0][3],
-		preTransform[1][0], preTransform[1][1], preTransform[1][2], preTransform[1][3],
-		preTransform[2][0], preTransform[2][1], preTransform[2][2], preTransform[2][3],
-		preTransform[3][0], preTransform[3][1], preTransform[3][2], preTransform[3][3]);
+	glm::mat4 pre_rot = glm::rotate(glm::mat4(1.0f),
+		glm::degrees<float>(2.09439f),
+		glm::vec3(-0.57735f, -0.57735f, 0.57735f));
 
-	fprintf(stderr, "----------------\ntransMat:\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-		transMat[0][0], transMat[0][1], transMat[0][2], transMat[0][3],
-		transMat[1][0], transMat[1][1], transMat[1][2], transMat[1][3],
-		transMat[2][0], transMat[2][1], transMat[2][2], transMat[2][3],
-		transMat[3][0], transMat[3][1], transMat[3][2], transMat[3][3]);
-
-	fprintf(stderr, "----------------\nWorld:\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
-		temp[0][0], temp[0][1], temp[0][2], temp[0][3],
-		temp[1][0], temp[1][1], temp[1][2], temp[1][3],
-		temp[2][0], temp[2][1], temp[2][2], temp[2][3],
-		temp[3][0], temp[3][1], temp[3][2], temp[3][3]);
-
-	fprintf(stderr, "----------------\nVec:\n%f %f %f\n",
-		vec.x, vec.y, vec.z);*/
+	glm::mat4 worldSensorRot = post_rot * glm::mat4_cast(sensorRot) * pre_rot;
+	glm::vec4 worldSensorPos = glm::transpose(systemTransformMatrix) * glm::vec4( sensorPos, 1.0f);
+	mWorldTransform[CURRENT] = glm::translate(glm::mat4(1.0f), glm::vec3(worldSensorPos)) * worldSensorRot;*/
 
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 
@@ -294,6 +272,13 @@ Set the device transform matrix\n
 */
 void sgct::SGCTTrackingDevice::setTransform(glm::mat4 mat)
 {
+	/*fprintf(stderr, "----------------\nTransform %s:\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n%f %f %f %f\n",
+		mName.c_str(),
+		mat[0][0], mat[1][0], mat[2][0], mat[3][0],
+		mat[0][1], mat[1][1], mat[2][1], mat[3][1],
+		mat[0][2], mat[1][2], mat[2][2], mat[3][2],
+		mat[0][3], mat[1][3], mat[2][3], mat[3][3]);*/
+
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
 	mDeviceTransformMatrix = mat;
 	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
@@ -400,7 +385,7 @@ glm::quat sgct::SGCTTrackingDevice::getRotation(DataLoc i)
 /*!
 \returns the sensor's transform matrix in world coordinates
 */
-glm::mat4 sgct::SGCTTrackingDevice::getTransform(DataLoc i)
+glm::mat4 sgct::SGCTTrackingDevice::getWorldTransform(DataLoc i)
 {
 	glm::mat4 tmpMat;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__

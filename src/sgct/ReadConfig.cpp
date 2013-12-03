@@ -587,28 +587,29 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
-					float tmpd[16];
-					if (element[1]->QueryFloatAttribute("x0", &tmpd[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y0", &tmpd[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z0", &tmpd[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w0", &tmpd[3]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x1", &tmpd[4]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y1", &tmpd[5]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z1", &tmpd[6]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w1", &tmpd[7]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x2", &tmpd[8]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y2", &tmpd[9]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z2", &tmpd[10]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w2", &tmpd[11]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x3", &tmpd[12]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y3", &tmpd[13]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z3", &tmpd[14]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w3", &tmpd[15]) == XML_NO_ERROR)
-						ClusterManager::instance()->getUserPtr()->setTransform(
-						glm::mat4(tmpd[0], tmpd[1], tmpd[2], tmpd[3],
-						tmpd[4], tmpd[5], tmpd[6], tmpd[7],
-						tmpd[8], tmpd[9], tmpd[10], tmpd[11],
-						tmpd[12], tmpd[13], tmpd[14], tmpd[15]));
+					float tmpf[16];
+					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
+					{
+						//glm & opengl uses column major order (normally row major order is used in linear algebra)
+						glm::mat4 mat = glm::make_mat4( tmpf );
+						ClusterManager::instance()->getUserPtr()->setTransform(  
+							glm::transpose( mat ));
+					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
 				}
@@ -862,11 +863,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 								element[2]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
-								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
-									glm::mat4(tmpf[0], tmpf[1], tmpf[2], tmpf[3],
-										tmpf[4], tmpf[5], tmpf[6], tmpf[7],
-										tmpf[8], tmpf[9], tmpf[10], tmpf[11],
-										tmpf[12], tmpf[13], tmpf[14], tmpf[15]));
+							{
+								//glm & opengl uses column major order (normally row major order is used in linear algebra)
+								glm::mat4 mat = glm::make_mat4( tmpf );
+								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform( 
+									glm::transpose( mat ));
+							}
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
 						}
@@ -934,11 +936,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
-							glm::mat4(tmpf[0], tmpf[1], tmpf[2], tmpf[3],
-								tmpf[4], tmpf[5], tmpf[6], tmpf[7],
-								tmpf[8], tmpf[9], tmpf[10], tmpf[11],
-								tmpf[12], tmpf[13], tmpf[14], tmpf[15]));
+					{
+						//glm & opengl uses column major order (normally row major order is used in linear algebra)
+						glm::mat4 mat = glm::make_mat4( tmpf );
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform( 
+							glm::transpose( mat ));
+					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker matrix in XML!\n");
 				}

@@ -202,10 +202,10 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
 	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
-		pushScreenCoordinateMatrix();
 		GLuint font = ft_font->getListBase();
 
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		pushScreenCoordinateMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glDisable(GL_LIGHTING);
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
@@ -243,9 +243,8 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 
 		sgct::ShaderProgram::unbind();
 
-		glPopAttrib();
-
 		pop_projection_matrix();
+		glPopAttrib();
 	}
 	else
 	{
@@ -345,10 +344,10 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 
 	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
-		pushScreenCoordinateMatrix();
 		GLuint font = ft_font->getListBase();
 
 		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		pushScreenCoordinateMatrix();
 		glMatrixMode(GL_MODELVIEW);
 		glDisable(GL_LIGHTING);
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
@@ -386,9 +385,8 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 
 		sgct::ShaderProgram::unbind();
 
-		glPopAttrib();
-
 		pop_projection_matrix();
+		glPopAttrib();
 	}
 	else
 	{

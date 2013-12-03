@@ -5,7 +5,7 @@
 !include x64.nsh
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "2.0.5"
+!define SGCT_VERSION "2.0.7"
 !define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
@@ -137,12 +137,18 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	!if "${SGCT_COMPILER}" == "mingw"
 		File "..\..\lib\mingw\libsgct.a"
 		File "..\..\lib\mingw\libsgctd.a"
+		File "..\..\additional_libs\ALUT\mingw\alut.a"
+		File "..\..\additional_libs\ALUT\mingw\alutd.a"
 	!else if "${ARCH}" == "x86"
 		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alut.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alutd.lib"
 	!else if "${ARCH}" == "x64"
-		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
-		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"
+		File "..\..\lib\${SGCT_COMPILER}_x64\sgct.lib"
+		File "..\..\lib\${SGCT_COMPILER}_x64\sgctd.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alut.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alutd.lib"
 	!endif
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}"
@@ -320,7 +326,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\SGCTRemote\main.cpp"
 	File "..\..\src\apps\SGCTRemote\single_remote.xml"
 	File "..\..\src\apps\SGCTRemote\remote_app_${SGCT_COMPILER}.${PRJ_SUFFIX}"
-	File /r "..\..\src\apps\SGCTRemote\SGCTRemote\"
+	File /r "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\"
 	File "..\..\src\apps\SGCTRemote\CMakeLists.txt"
 SectionEnd
 

@@ -6,7 +6,7 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.0.7"
-!define SGCT_COMPILER "msvc12"
+!define SGCT_COMPILER "msvc11"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
 !define INC_OSG 0

@@ -86,12 +86,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";"$(SGCT_ROOT_DIR)\additional_includes";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__WIN32__;ALUT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sgctd.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"$(SGCT_ROOT_DIR)\lib\msvc11";"$(SGCT_ROOT_DIR)\additional_libs";%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sgctd.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alutd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SGCT_ROOT_DIR)\lib\msvc11;$(SGCT_ROOT_DIR)\additional_libs\OpenAL\32_bit;$(SGCT_ROOT_DIR)\additional_libs\ALUT\msvc11;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -100,12 +100,12 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";"$(SGCT_ROOT_DIR)\additional_includes";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__WIN32__;ALUT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>sgctd.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"$(SGCT_ROOT_DIR)\lib\msvc11_x64";"$(SGCT_ROOT_DIR)\additional_libs\alut_msvc11_x64";"$(SGCT_ROOT_DIR)\additional_libs\OpenAL\64_bit";%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalDependencies>sgctd.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alutd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalLibraryDirectories>$(SGCT_ROOT_DIR)\lib\msvc11_x64;$(SGCT_ROOT_DIR)\additional_libs\ALUT\msvc11_x64;$(SGCT_ROOT_DIR)\additional_libs\OpenAL\64_bit;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -117,14 +117,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";"$(SGCT_ROOT_DIR)\additional_includes";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
-      <PreprocessorDefinitions>__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__WIN32__;ALUT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>sgct.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"$(SGCT_ROOT_DIR)\lib\msvc11";"$(SGCT_ROOT_DIR)\additional_libs";%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SGCT_ROOT_DIR)\lib\msvc11;$(SGCT_ROOT_DIR)\additional_libs\OpenAL\32_bit;$(SGCT_ROOT_DIR)\additional_libs\ALUT\msvc11;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>
@@ -136,14 +136,14 @@
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <AdditionalIncludeDirectories>"$(SGCT_ROOT_DIR)\include";"$(SGCT_ROOT_DIR)\additional_includes";%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <CompileAs>CompileAsCpp</CompileAs>
-      <PreprocessorDefinitions>__WIN32__;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>__WIN32__;ALUT_STATIC;%(PreprocessorDefinitions)</PreprocessorDefinitions>
     </ClCompile>
     <Link>
       <GenerateDebugInformation>false</GenerateDebugInformation>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>sgct.lib;ws2_32.lib;glu32.lib;opengl32.lib;OpenAL32.lib;alut.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>"$(SGCT_ROOT_DIR)\lib\msvc11_x64";"$(SGCT_ROOT_DIR)\additional_libs\alut_msvc11_x64";"$(SGCT_ROOT_DIR)\additional_libs\OpenAL\64_bit";%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(SGCT_ROOT_DIR)\lib\msvc11_x64;$(SGCT_ROOT_DIR)\additional_libs\ALUT\msvc11_x64;$(SGCT_ROOT_DIR)\additional_libs\OpenAL\64_bit;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
       <IgnoreSpecificDefaultLibraries>LIBCMT.lib</IgnoreSpecificDefaultLibraries>
     </Link>
   </ItemDefinitionGroup>

@@ -165,7 +165,6 @@ void myPreSyncFun()
 
 				if( devicePtr->hasAnalogs() )
 				{
-					double analogTime = devicePtr->getAnalogDeltaTime();
 					ss << "\n     Analog axes\n";
 					
 					for(size_t k=0; k < devicePtr->getNumberOfAxes(); k++)

@@ -111,7 +111,7 @@ elseif( APPLE )
 
 	set(LIBS
 		${SGCT_LIBS}
-	    ${OPENGL_LIBRARY}
+	    	${OPENGL_LIBRARY}
 		${OPENAL_LIBRARY}
 		${ALUT_LIBRARY}
 		${COCOA_LIBRARY}
@@ -125,6 +125,7 @@ else() #linux
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_LIBRARY}
+		${OPENAL_LIBRARY}
 		${ALUT_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}

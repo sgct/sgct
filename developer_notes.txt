@@ -7,6 +7,10 @@ sudo apt-get install libalut-dev
 INSTALL USING XCODE
 ====================================
 Make all shell files executable: chmod 755 script_name
+for all files: 
+
+find ./ -name "*.sh" -exec chmod 755 {}  \;
+find ./ -name "*.command" -exec chmod 755 {}  \;
 	
 sudo xcodebuild -target install -configuration Debug
 sudo xcodebuild -target install -configuration Release

@@ -1,10 +1,7 @@
 #if !defined(AL_ALUT_H)
 #define AL_ALUT_H
 
-#if defined(_MSC_VER)
-#include <alc.h>
-#include <al.h>
-#elif defined(__APPLE__)
+#if defined(__APPLE__)
 #include <OpenAL/alc.h>
 #include <OpenAL/al.h>
 #else

@@ -6,10 +6,10 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.0.7"
-!define SGCT_COMPILER "mingw"
-!define ARCH "x86"
+!define SGCT_COMPILER "msvc11"
+!define ARCH "x64"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 1
+!define INC_OSG 0
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -137,18 +137,12 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	!if "${SGCT_COMPILER}" == "mingw"
 		File "..\..\lib\mingw\libsgct.a"
 		File "..\..\lib\mingw\libsgctd.a"
-		File "..\..\additional_libs\ALUT\mingw\libalut.a"
-		File "..\..\additional_libs\ALUT\mingw\libalutd.a"
 	!else if "${ARCH}" == "x86"
 		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"
-		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alut.lib"
-		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alutd.lib"
 	!else if "${ARCH}" == "x64"
 		File "..\..\lib\${SGCT_COMPILER}_x64\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}_x64\sgctd.lib"
-		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alut.lib"
-		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alutd.lib"
 	!endif
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}"
@@ -462,6 +456,23 @@ Section "OSG environment variables"
 	SetRebootFlag true
 SectionEnd
 !endif
+
+Section "ALUT"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\include\AL"
+	File "..\..\additional_includes\AL\alut.h"
+	
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\lib\${SGCT_LIB_PATH}"
+	!if "${SGCT_COMPILER}" == "mingw"
+		File "..\..\additional_libs\ALUT\mingw\libalut.a"
+		File "..\..\additional_libs\ALUT\mingw\libalutd.a"
+	!else if "${ARCH}" == "x86"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alut.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}\alutd.lib"
+	!else if "${ARCH}" == "x64"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alut.lib"
+		File "..\..\additional_libs\ALUT\${SGCT_COMPILER}_x64\alutd.lib"
+	!endif
+SectionEnd
 ;--------------------------------
 
 ; Uninstaller

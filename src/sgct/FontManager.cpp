@@ -691,6 +691,7 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 
 	//unbind
 	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	return true;
 }

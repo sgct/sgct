@@ -235,9 +235,7 @@ void sgct_utils::SGCTSphere::createVBO()
 	{
 		glBindVertexArray( 0 );
 	}
-	else
-	{
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-	}
+	
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

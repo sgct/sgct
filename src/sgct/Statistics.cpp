@@ -240,6 +240,7 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 	else
 	{
 		glBindVertexArray(0);
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 		mShader.setName("StatsShader");
 		mShader.addShaderSrc( Stats_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );

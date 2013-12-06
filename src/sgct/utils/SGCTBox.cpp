@@ -282,6 +282,5 @@ void sgct_utils::SGCTBox::createVBO()
 	//unbind
 	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray( 0 );
-	else
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

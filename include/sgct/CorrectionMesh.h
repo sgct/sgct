@@ -18,7 +18,7 @@ struct CorrectionMeshVertex
 	unsigned char r, g, b; //color 3
 
 	//ATI performs better using sizes of power of two
-	unsigned char padding[13]; //32 - 8 - 8 - 3 = 13
+	//unsigned char padding[13]; //32 - 8 - 8 - 3 = 13
 };
 
 class CorrectionMeshGeometry

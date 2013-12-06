@@ -28,6 +28,7 @@ sgct::SharedBool wireframe(false);
 const short lastState = 7;
 bool useShader = true;
 bool isTiltSet = false;
+bool useDisplayLists = false;
 double tilt = 0.0;
 std::vector<glm::vec3> colors;
 std::vector<std::pair<std::string, unsigned int>> textures;
@@ -57,7 +58,17 @@ int main( int argc, char* argv[] )
 
 			sgct::MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
 		}
+		else if (strcmp(argv[i], "--use-display-lists") == 0)
+		{
+			useDisplayLists = true;
+			sgct::MessageHandler::instance()->print("Display lists will be used in legacy pipeline.\n");
+		}
 	}
+
+	if( useDisplayLists )
+		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
+	else
+		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::VBO );
 
 	// Bind your functions
 	gEngine->setDrawFunction( draw );
@@ -150,7 +161,7 @@ void initGL()
 	mDome->generateDisplayList();
 
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::Generic);
+	//sgct::TextureManager::instance()->setCompression(sgct::TextureManager::Generic);
 	for (std::size_t i = 0; i < textures.size(); i++)
 		sgct::TextureManager::instance()->loadUnManagedTexture(
 		textures[i].second, textures[i].first, true, 4);

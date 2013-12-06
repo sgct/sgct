@@ -1353,8 +1353,7 @@ void sgct::SGCTWindow::createVBOs()
 	//unbind
 	if( !Engine::instance()->isOGLPipelineFixed() )
 		glBindVertexArray(0);
-	else
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void sgct::SGCTWindow::loadShaders()

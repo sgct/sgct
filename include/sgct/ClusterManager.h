@@ -113,7 +113,7 @@ public:
 	void setSceneScale(float scale);
 
 	/*!
-		Sets the warping and blending mesh implemtation
+		Sets the warping and blending mesh implemtation (must be done before opengl init)
 	*/
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
 

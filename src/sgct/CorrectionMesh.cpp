@@ -749,11 +749,9 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 		//unbind
 		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
 			glBindVertexArray(0);
-		else
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, 0);
-			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		}
+		
+		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	}
 }
 
@@ -798,6 +796,7 @@ void sgct_core::CorrectionMesh::render(bool warped)
 		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(16));
 
 		glDrawElements(geomPtr->mGeometryType, geomPtr->mNumberOfIndices, GL_UNSIGNED_INT, NULL);
+		
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 

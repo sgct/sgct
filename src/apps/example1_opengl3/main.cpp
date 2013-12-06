@@ -96,7 +96,9 @@ void myInitFun()
 		reinterpret_cast<void*>(0) // array buffer offset
 	);
 
-	glBindVertexArray(0); //unbind
+	//unbind
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	sgct::ShaderManager::instance()->addShaderProgram( "xform",
 			"SimpleVertexShader.vertexshader",

@@ -234,6 +234,7 @@ void myInitOGLFun()
 	);
 
 	glBindVertexArray(0); //unbind
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
 	//cleanup
 	mVertPos.clear();

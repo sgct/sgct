@@ -108,6 +108,7 @@ elseif( WIN32 ) #MINGW or similar
 elseif( APPLE )
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
+	find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
 	set(LIBS
 		${SGCT_LIBS}
@@ -116,6 +117,7 @@ elseif( APPLE )
 		${ALUT_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
+		${COREVIDEO_LIBRARY}
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)

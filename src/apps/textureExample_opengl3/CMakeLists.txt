@@ -37,9 +37,9 @@ if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
 	mark_as_advanced(SGCT_CPP11)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
-		if(CMAKE_GENERATOR STREQUAL Xcode)
-	set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
-endif()
+	if(CMAKE_GENERATOR STREQUAL Xcode)
+		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.8")
+	endif()
 endif()
 	
 find_library(SGCT_RELEASE_LIBRARY
@@ -87,12 +87,14 @@ elseif( WIN32 ) #MINGW or similar
 elseif( APPLE )
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)
 	find_library(IOKIT_LIBRARY IOKit REQUIRED)
+	find_library(COREVIDEO_LIBRARY CoreVideo REQUIRED)
 
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
+		${COREVIDEO_LIBRARY}
 	)
 else() #linux
 	find_library(X11_LIBRARY X11 REQUIRED)

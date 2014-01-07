@@ -47,6 +47,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 		#include <GL/glxew.h>
 	#endif
 
+    #define GLFW_INCLUDE_GLU
+
 	#ifdef __WIN32__
 		#define GLFW_EXPOSE_NATIVE_WIN32
 		#define GLFW_EXPOSE_NATIVE_WGL

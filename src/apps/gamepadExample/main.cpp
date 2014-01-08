@@ -74,9 +74,12 @@ void myDraw2DFun()
 			sprintf(buffer, "%d ", buttons[i]);
 #endif
 			joystickInfoStr.append( buffer );
+            
+            //if(buttons[i])
+            //    sgct::MessageHandler::instance()->print("Button %d pressed!\n", i);
 		}
 
-		const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", 10 );
+		const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", 12 );
 		sgct_text::print(font, 18, 32, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", joystickInfoStr.c_str());
 	}
 }

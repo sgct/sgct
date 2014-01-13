@@ -1009,6 +1009,8 @@ int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
 		return 4096;
 	else if( strcmp( quality.c_str(), "8k" ) == 0 )
 		return 8192;
+	else if (strcmp(quality.c_str(), "16k") == 0 )
+		return 16384;
 
 	//if match not found
 	return -1;

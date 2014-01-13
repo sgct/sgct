@@ -1271,12 +1271,12 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
 				enterFisheyeViewport();
-				gluOrtho2D(-1.0, 1.0, -1.0, 1.0);
+				glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 			}
 			else
 			{
 				enterCurrentViewport();
-				gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+				glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 			}
 
 			glMatrixMode(GL_MODELVIEW);
@@ -1494,7 +1494,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+	glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 	glMatrixMode(GL_MODELVIEW);
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );

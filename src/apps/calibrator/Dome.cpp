@@ -183,7 +183,7 @@ void Dome::generateDisplayList()
 		glVertex3f(-5.18765f, 5.939094f, -2.23591f);
 	glEnd();*/
 
-	glLineWidth(1);
+	glLineWidth(3.0f);
 
 	for(float e=0.0f; e<=90.0f; e+=2.25f)
 	//for(int e=0; e<=90; e+=5)
@@ -487,8 +487,8 @@ void Dome::generateDisplayList()
 		int e;
 		float fill = 1.0f;
 
-		const int elevationSteps = 32;
-		const int azimuthSteps = 128;
+		const int elevationSteps = 64;
+		const int azimuthSteps = 256;
 		for(e=0; e<(elevationSteps-1); e++)
 		{
 			elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );

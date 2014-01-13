@@ -370,8 +370,8 @@ void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glPushMatrix();
-		gluOrtho2D(0.0,STATS_HISTORY_LENGTH*2.0,
-			0.0,STATS_HISTORY_LENGTH);
+		glOrtho(0.0, STATS_HISTORY_LENGTH*2.0,
+			0.0, STATS_HISTORY_LENGTH, -1.0, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);
 

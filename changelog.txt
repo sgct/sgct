@@ -2,6 +2,13 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-01-13 SGCT ver 2.0.9
+---------------------------
+* Updated GLFW to 3.0.4
+* Improved cubemap filtering
+* Corrected swap cube map texture indexes
+* Replace gluOrtho with glOrtho 
+
 2013-09-24 SGCT ver 2.0.6
 ---------------------------
 * Corrected overlay rendering to use correct viewport coordinates in fisheye mode

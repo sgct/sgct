@@ -1086,7 +1086,7 @@ void sgct::SGCTWindow::createTextures()
 			//Color
 			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, false, false);
 			//Depth
-			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, true, false);
+			generateTexture(Engine::FisheyeDepthSwap, mCubeMapResolution, mCubeMapResolution, false, true, false);
 		}
 	}
 
@@ -1172,7 +1172,7 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, bool depth)
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	if( depth )
 	{

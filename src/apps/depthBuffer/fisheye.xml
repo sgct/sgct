@@ -1,0 +1,27 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="127.0.0.1">
+	<Scene>
+		<Orientation yaw="0.0" pitch="25.0" roll="0.0" />
+		<Offset x="0.0" y="-0.8	" z="-11.0" />
+		<Scale value="4.0" />
+	</Scene>
+	<Node ip="127.0.0.1" port="20401">
+		<Window fullscreen="false" fxaa="false">
+			<Stereo type="none" />
+			<!-- 16:9 aspect ratio -->
+			<Size x="512" y="512" />
+			<Fisheye fov="165.0" quality="medium" alpha="true" tilt="90.0" />
+		</Window>
+		<!-- <Window fullscreen="false" fxaa="false">
+			<Stereo type="none" />
+			<Size x="512" y="512" />
+			<Fisheye fov="180.0" quality="medium" tilt="90.0" />
+		</Window>-->
+	</Node>
+	<Settings>
+		<DepthBufferTexture value="true" />
+	</Settings>
+	<User eyeSeparation="0.069">
+		<Pos x="0.0" y="0.0" z="0.0" />
+	</User>
+</Cluster>

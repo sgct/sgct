@@ -53,6 +53,8 @@ Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "calibrator_msvc12", "..\app
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "SGCTRemote", "..\apps\SGCTRemote\SGCTRemote_GUI\SGCTRemote.csproj", "{04133D23-23FE-4A38-892A-B579BAD8303B}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "depthBufferExample_msvc12", "..\apps\depthBuffer\depthBufferExample_msvc12.vcxproj", "{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Mixed Platforms = Debug|Mixed Platforms
@@ -465,6 +467,22 @@ Global
 		{04133D23-23FE-4A38-892A-B579BAD8303B}.Release|x64.Build.0 = Release|x64
 		{04133D23-23FE-4A38-892A-B579BAD8303B}.Release|x86.ActiveCfg = Release|x86
 		{04133D23-23FE-4A38-892A-B579BAD8303B}.Release|x86.Build.0 = Release|x86
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|Mixed Platforms.ActiveCfg = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|Mixed Platforms.Build.0 = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|Win32.ActiveCfg = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|Win32.Build.0 = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|x64.ActiveCfg = Debug|x64
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|x64.Build.0 = Debug|x64
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|x86.ActiveCfg = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Debug|x86.Build.0 = Debug|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|Mixed Platforms.ActiveCfg = Release|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|Mixed Platforms.Build.0 = Release|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|Win32.ActiveCfg = Release|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|Win32.Build.0 = Release|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|x64.ActiveCfg = Release|x64
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|x64.Build.0 = Release|x64
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|x86.ActiveCfg = Release|Win32
+		{8C0E3221-DF35-4CEF-8A8C-C491F756C5AE}.Release|x86.Build.0 = Release|Win32
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

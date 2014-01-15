@@ -16,7 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 
 #define NUMBER_OF_VBOS 2
-#define NUMBER_OF_TEXTURES 10
+#define NUMBER_OF_TEXTURES 14
 
 namespace sgct
 {
@@ -37,6 +37,7 @@ public:
 	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum OGL_Context { Shared_Context = 0, Window_Context };
+	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture};
 
 public:
 	SGCTWindow(int id);
@@ -224,8 +225,8 @@ private:
 	void initScreenCapture();
 	void deleteAllViewports();
 	void createTextures();
-	void generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, bool depth, bool interpolate);
-	void generateCubeMap(unsigned int id, bool depth);
+	void generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, TextureType type, bool interpolate);
+	void generateCubeMap(unsigned int id, TextureType type);
 	void createFBOs();
 	void resizeFBOs();
 	void createVBOs();

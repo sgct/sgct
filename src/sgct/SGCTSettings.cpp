@@ -20,6 +20,8 @@ sgct::SGCTSettings::SGCTSettings()
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseDepthTexture = false;
+	mUseNormalTexture = false;
+	mUsePositionTexture = false;
 	mUseFBO = true;
 
 	mSwapInterval = 1;
@@ -101,6 +103,22 @@ Set to true if depth buffer textures should be allocated and used.
 void sgct::SGCTSettings::setUseDepthTexture(bool state)
 {
 	mUseDepthTexture = state;
+}
+
+/*!
+Set to true if normal textures should be allocated and used.
+*/
+void sgct::SGCTSettings::setUseNormalTexture(bool state)
+{
+	mUseNormalTexture = state;
+}
+
+/*!
+Set to true if position buffer textures should be allocated and used.
+*/
+void sgct::SGCTSettings::setUsePositionTexture(bool state)
+{
+	mUsePositionTexture = state;
 }
 
 /*!

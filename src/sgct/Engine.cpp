@@ -1348,6 +1348,12 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 
 			if( SGCTSettings::instance()->useDepthTexture() )
 				fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
+
+			if (SGCTSettings::instance()->useNormalTexture())
+				fbo->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Normals), GL_COLOR_ATTACHMENT1);
+
+			if (SGCTSettings::instance()->usePositionTexture())
+				fbo->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 		}
 
 		//dont clear buffer if side-by-side or top-bottom stereo
@@ -2495,6 +2501,12 @@ void sgct::Engine::updateRenderingTargets(TextureIndexes ti)
 
 		if( SGCTSettings::instance()->useDepthTexture() )
 			fbo->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture( Depth ) );
+
+		if (SGCTSettings::instance()->useNormalTexture())
+			fbo->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Normals), GL_COLOR_ATTACHMENT1);
+
+		if (SGCTSettings::instance()->usePositionTexture())
+			fbo->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 
 		fbo->blit();
 	}
@@ -3671,6 +3683,22 @@ unsigned int sgct::Engine::getActiveDrawTexture()
 unsigned int sgct::Engine::getActiveDepthTexture()
 {
 	return getActiveWindowPtr()->getFrameBufferTexture( Depth );
+}
+
+/*!
+\Returns the active normal texture if normal texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+*/
+unsigned int sgct::Engine::getActiveNormalTexture()
+{
+	return getActiveWindowPtr()->getFrameBufferTexture( Normals );
+}
+
+/*!
+\Returns the active position texture if position texture rendering is enabled through SGCTSettings and if frame buffer objects are used otherwise GL_FALSE
+*/
+unsigned int sgct::Engine::getActivePositionTexture()
+{
+	return getActiveWindowPtr()->getFrameBufferTexture( Positions );
 }
 
 /*!

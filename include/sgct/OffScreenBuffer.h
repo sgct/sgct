@@ -8,6 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _OFF_SCREEN_BUFFER
 #define _OFF_SCREEN_BUFFER
 
+#include "../include/sgct/ogl_headers.h"
+
 namespace sgct_core
 {
 
@@ -20,9 +22,9 @@ public:
 	OffScreenBuffer();
 	void createFBO(int width, int height, int samples = 1);
 	void resizeFBO(int width, int height, int samples = 1);
-	void attachColorTexture(unsigned int texId);
+	void attachColorTexture(unsigned int texId, GLenum attachment = GL_COLOR_ATTACHMENT0);
 	void attachDepthTexture(unsigned int texId);
-	void attachCubeMapTexture(unsigned int texId, unsigned int face);
+	void attachCubeMapTexture(unsigned int texId, unsigned int face, GLenum attachment = GL_COLOR_ATTACHMENT0);
 	void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 	void bind();
 	void bind( bool multisampled );

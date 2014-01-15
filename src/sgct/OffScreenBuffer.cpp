@@ -6,7 +6,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/OffScreenBuffer.h"
-#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/SGCTSettings.h"
 
@@ -182,9 +181,13 @@ void sgct_core::OffScreenBuffer::destroy()
 	}
 }
 
-void sgct_core::OffScreenBuffer::attachColorTexture(unsigned int texId)
+/*!
+@param texId GL id of the texture to attach
+@param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
+*/
+void sgct_core::OffScreenBuffer::attachColorTexture(unsigned int texId, GLenum attachment)
 {
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, texId, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_2D, texId, 0);
 }
 
 void sgct_core::OffScreenBuffer::attachDepthTexture(unsigned int texId)
@@ -192,9 +195,14 @@ void sgct_core::OffScreenBuffer::attachDepthTexture(unsigned int texId)
 	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_DEPTH_ATTACHMENT, GL_TEXTURE_2D, texId, 0);
 }
 
-void sgct_core::OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face)
+/*!
+@param texId GL id of the texture to attach
+@param face the target cubemap face
+@param attachment the gl attachment enum in the form of GL_COLOR_ATTACHMENTi
+*/
+void sgct_core::OffScreenBuffer::attachCubeMapTexture(unsigned int texId, unsigned int face, GLenum attachment)
 {
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
+	glFramebufferTexture2D(GL_FRAMEBUFFER, attachment, GL_TEXTURE_CUBE_MAP_POSITIVE_X + face, texId, 0);
 }
 
 void sgct_core::OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, unsigned int face)

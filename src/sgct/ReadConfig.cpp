@@ -638,8 +638,18 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 				if( strcmp("DepthBufferTexture", val[1]) == 0 )
 				{
-					if( element[1]->Attribute("value") != NULL )
-						sgct::SGCTSettings::instance()->setUseDepthTexture( strcmp( element[1]->Attribute("value"), "true" ) == 0 ? true : false );
+					if (element[1]->Attribute("value") != NULL)
+						sgct::SGCTSettings::instance()->setUseDepthTexture(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
+				}
+				else if (strcmp("NormalTexture", val[1]) == 0)
+				{
+					if (element[1]->Attribute("value") != NULL)
+						sgct::SGCTSettings::instance()->setUseNormalTexture(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
+				}
+				else if (strcmp("PositionTexture", val[1]) == 0)
+				{
+					if (element[1]->Attribute("value") != NULL)
+						sgct::SGCTSettings::instance()->setUsePositionTexture(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
 				}
 				else if( strcmp("Display", val[1]) == 0 )
 				{

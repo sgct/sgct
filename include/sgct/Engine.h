@@ -59,7 +59,7 @@ public:
 		OpenGL_4_4_Core_Profile
 	};
 	//! The different texture indexes in window buffers
-	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, CubeMap, CubeMapDepth, FisheyeColorSwap, FisheyeDepthSwap };
+	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions, CubeMap, CubeMapDepth, CubeMapNormals, CubeMapPositions, FisheyeColorSwap, FisheyeDepthSwap };
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -115,6 +115,8 @@ public:
 	void addPostFX( PostFX & fx );
 	unsigned int getActiveDrawTexture();
 	unsigned int getActiveDepthTexture();
+	unsigned int getActiveNormalTexture();
+	unsigned int getActivePositionTexture();
 	int getActiveXResolution();
 	int getActiveYResolution();
 	std::size_t getFocusedWindowIndex();

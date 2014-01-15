@@ -2,6 +2,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-01-15 SGCT ver 2.1.0
+---------------------------
+* Added support for rendering 32-bit float normal and position textures (in SGCT Window), end user must use a MRT shader draw callback to store the normals, positions or both
+* Added NormalTexture to XML parser under Settings
+* Added PositionTexture to XML parser under Settings
+
 2014-01-13 SGCT ver 2.0.9
 ---------------------------
 * Updated GLFW to 3.0.4

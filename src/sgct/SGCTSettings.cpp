@@ -37,6 +37,8 @@ sgct::SGCTSettings::SGCTSettings()
 		mCapturePath[i].assign("SGCT");
 	mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
 
+	mCurrentDrawBuffer = Diffuse;
+
 	//font stuff
 	mFontSize = 10;
 	#if __WIN32__
@@ -111,6 +113,7 @@ Set to true if normal textures should be allocated and used.
 void sgct::SGCTSettings::setUseNormalTexture(bool state)
 {
 	mUseNormalTexture = state;
+	updateDrawBufferFlag();
 }
 
 /*!
@@ -119,6 +122,22 @@ Set to true if position buffer textures should be allocated and used.
 void sgct::SGCTSettings::setUsePositionTexture(bool state)
 {
 	mUsePositionTexture = state;
+	updateDrawBufferFlag();
+}
+
+/*!
+Update the draw buffer flags
+*/
+void sgct::SGCTSettings::updateDrawBufferFlag()
+{
+	if (mUseNormalTexture && mUsePositionTexture)
+		mCurrentDrawBuffer = Diffuse_Normal_Position;
+	else if (!mUseNormalTexture && !mUsePositionTexture)
+		mCurrentDrawBuffer = Diffuse;
+	else if (mUseNormalTexture && !mUsePositionTexture)
+		mCurrentDrawBuffer = Diffuse_Normal;
+	else
+		mCurrentDrawBuffer = Diffuse_Position;
 }
 
 /*!

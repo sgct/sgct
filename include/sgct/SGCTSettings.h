@@ -21,6 +21,7 @@ class SGCTSettings
 {
 public:
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
+	enum DrawBufferType { Diffuse = 0, Diffuse_Normal, Diffuse_Position, Diffuse_Normal_Position };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * instance()
@@ -93,10 +94,14 @@ public:
 	inline float	getFXAASubPixTrim() { return mFXAASubPixTrim; }
 	/*! \returns the FXAA sub-pixel offset */
 	inline float	getFXAASubPixOffset() { return mFXAASubPixOffset; }
+	/*! \returns the current drawBufferType */
+	inline DrawBufferType getCurrentDrawBufferType() { return mCurrentDrawBuffer; }
 
 private:
 	SGCTSettings();
 	~SGCTSettings();
+
+	void updateDrawBufferFlag();
 
 	// Don't implement these, should give compile warning if used
 	SGCTSettings( const SGCTSettings & settings );
@@ -126,6 +131,8 @@ private:
 	std::string mFontName;
 	std::string mFontPath;
 	int mFontSize;
+
+	DrawBufferType mCurrentDrawBuffer;
 };
 }
 

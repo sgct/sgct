@@ -3,6 +3,8 @@
 
 #include "sgct.h"
 
+//#define Test
+
 sgct::Engine * gEngine;
 
 void myDrawFun();
@@ -11,6 +13,7 @@ void myPostSyncPreDrawFun();
 void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
+void myCleanUpFun();
 
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
@@ -41,6 +44,10 @@ int fxCTexLoc = -1;
 int fxDTexLoc = -1;
 int fxNearLoc = -1;
 int fxFarLoc = -1;
+
+#ifdef Test
+sgct_utils::SGCTSphere * mySphere = NULL;
+#endif
 
 void updatePass(float * mat)
 {
@@ -79,6 +86,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
+	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
@@ -104,6 +112,7 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {	
+#ifndef Test
 	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
 	
 	glTranslatef( 0.0f, -0.15f, 2.5f );
@@ -122,6 +131,7 @@ void myDrawFun()
 	//set current shader program
 	sgct::ShaderManager::instance()->bindShaderProgram("Heightmap");
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
+	//glUniform1f(curr_timeLoc, 0.0f);
 
 	glLineWidth(2.0); //for wireframe
 	glCallList(myTerrainDisplayList);
@@ -134,6 +144,9 @@ void myDrawFun()
 
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_2D);
+#else
+	mySphere->draw();
+#endif
 }
 
 void myPreSyncFun()
@@ -165,7 +178,7 @@ void myPostSyncPreDrawFun()
 }
 
 void myInitOGLFun()
-{
+{	
 	glEnable( GL_DEPTH_TEST );
 	//glDepthMask( GL_TRUE );
 	//glDisable( GL_CULL_FACE );
@@ -206,7 +219,13 @@ void myInitOGLFun()
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	setupPostFXs();
-	gEngine->setNearAndFarClippingPlanes(0.1f, 10.0f);
+
+#ifdef Test
+	mySphere = new sgct_utils::SGCTSphere(2.0f, 512);
+	gEngine->setNearAndFarClippingPlanes(1.0f, 3.0f);
+#else
+	gEngine->setNearAndFarClippingPlanes(0.1f, 5.0f);
+#endif
 }
 
 void myEncodeFun()
@@ -229,6 +248,14 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool(&takeScreenshot);
 	sgct::SharedData::instance()->readBool(&useTracking);
 	sgct::SharedData::instance()->readBool(&reloadShaders);
+}
+
+void myCleanUpFun()
+{
+#ifdef Test
+	if (mySphere != NULL)
+		delete mySphere;
+#endif
 }
 
 /*!

@@ -1888,6 +1888,12 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				}
 				else
 					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+
+				if (SGCTSettings::instance()->useNormalTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
+
+				if (SGCTSettings::instance()->usePositionTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1909,6 +1915,12 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				else
 					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 
+				if (SGCTSettings::instance()->useNormalTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
+
+				if (SGCTSettings::instance()->usePositionTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
+
 				CubeMapFBO->blit();
 			}
 
@@ -1918,7 +1930,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 			//re-calculate depth values from a cube to spherical model
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				CubeMapFBO->bind( false ); //bind no multi-sampled
+				GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+				CubeMapFBO->bind(false, 1, buffers); //bind no multi-sampled
+
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
@@ -2004,6 +2018,12 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	if( SGCTSettings::instance()->useDepthTexture() )
 		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
 
+	if (SGCTSettings::instance()->useNormalTexture())
+		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Normals), GL_COLOR_ATTACHMENT1);
+
+	if (SGCTSettings::instance()->usePositionTexture())
+		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
+
 	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
 	{
@@ -2064,6 +2084,22 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
 	}
 
+	if (SGCTSettings::instance()->useNormalTexture())
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glEnable(GL_TEXTURE_CUBE_MAP);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals));
+		glUniform1i(getActiveWindowPtr()->getFisheyeShaderCubemapNormalsLoc(), 2);
+	}
+
+	if (SGCTSettings::instance()->usePositionTexture())
+	{
+		glActiveTexture(GL_TEXTURE3);
+		glEnable(GL_TEXTURE_CUBE_MAP);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions));
+		glUniform1i(getActiveWindowPtr()->getFisheyeShaderCubemapPositionsLoc(), 3);
+	}
+
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
 	glUniform4f( getActiveWindowPtr()->getFisheyeBGColorLoc(), mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3] );
 
@@ -2094,10 +2130,15 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glPopClientAttrib();
 	glPopMatrix();
 
+	glActiveTexture(GL_TEXTURE3);
+	glDisable(GL_TEXTURE_CUBE_MAP);
+	glActiveTexture(GL_TEXTURE2);
+	glDisable(GL_TEXTURE_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE1);
 	glDisable(GL_TEXTURE_CUBE_MAP);
 	glActiveTexture(GL_TEXTURE0);
 	glDisable(GL_TEXTURE_CUBE_MAP);
+
 	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	if(mTakeScreenshot)

@@ -72,6 +72,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	Cubemap			= -1;
 	DepthCubemap	= -1;
 	NormalCubemap	= -1;
+	PositionCubemap = -1;
 	FishEyeHalfFov	= -1;
 	FishEyeBGColor	= -1;
 	FisheyeOffset	= -1;
@@ -1440,19 +1441,100 @@ void sgct::SGCTWindow::loadShaders()
 
 			if(mFisheyeOffaxis)
 			{
-				if( SGCTSettings::instance()->useDepthTexture() )
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-				else
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				if (SGCTSettings::instance()->useDepthTexture())
+				{
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
+				}
+				else //no depth
+				{
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
+				}	
 			}
-			else
-			{
-				if( SGCTSettings::instance()->useDepthTexture() )
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-				else
-					mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+			else //not off-axis
+			{	
+				if (SGCTSettings::instance()->useDepthTexture())
+				{
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
+				}
+				else //no depth
+				{
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
+				}
 			}
 
+			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
 				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
@@ -1486,6 +1568,7 @@ void sgct::SGCTWindow::loadShaders()
 				}
 			}
 
+			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
 				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
@@ -1509,6 +1592,18 @@ void sgct::SGCTWindow::loadShaders()
 		{
 			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
 			glUniform1i( DepthCubemap, 1 );
+		}
+
+		if (SGCTSettings::instance()->useNormalTexture())
+		{
+			NormalCubemap = mFisheyeShader.getUniformLocation("normalmap");
+			glUniform1i(NormalCubemap, 2);
+		}
+
+		if (SGCTSettings::instance()->usePositionTexture())
+		{
+			PositionCubemap = mFisheyeShader.getUniformLocation("positionmap");
+			glUniform1i(PositionCubemap, 3);
 		}
 
 		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );

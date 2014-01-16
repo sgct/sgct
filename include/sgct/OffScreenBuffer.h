@@ -27,7 +27,9 @@ public:
 	void attachCubeMapTexture(unsigned int texId, unsigned int face, GLenum attachment = GL_COLOR_ATTACHMENT0);
 	void attachCubeMapDepthTexture(unsigned int texId, unsigned int face);
 	void bind();
+	void bind( GLsizei n, const GLenum *bufs );
 	void bind( bool multisampled );
+	void bind( bool multisampled, GLsizei n, const GLenum *bufs );
 	void bindBlit();
 	void blit();
 	static void unBind();
@@ -39,9 +41,13 @@ public:
     bool checkForErrors();
 
 private:
+	void setDrawBuffers();
+
 	unsigned int mFrameBuffer;
 	unsigned int mMultiSampledFrameBuffer;
 	unsigned int mColorBuffer;
+	unsigned int mNormalBuffer;
+	unsigned int mPositionBuffer;
 	unsigned int mDepthBuffer;
 
 	int mWidth;

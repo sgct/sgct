@@ -2,6 +2,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-01-17 SGCT ver 2.1.0
+---------------------------
+* Added support for choosing 16 or 32 bit floats for normal and positional textures
+* Added Fisheye shaders for normal and position cubemaps and examples for all supported opengl pipelines
+
 2014-01-15 SGCT ver 2.1.0
 ---------------------------
 * Added support for rendering 32-bit float normal and position textures (in SGCT Window), end user must use a MRT shader draw callback to store the normals, positions or both

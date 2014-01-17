@@ -651,6 +651,21 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if (element[1]->Attribute("value") != NULL)
 						sgct::SGCTSettings::instance()->setUsePositionTexture(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
 				}
+				else if (strcmp("Precision", val[1]) == 0)
+				{
+					int fprec = 0;
+					if (element[1]->QueryIntAttribute("float", &fprec) == XML_NO_ERROR)
+					{
+						if (fprec == 16)
+							sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_16Bit);
+						else if (fprec == 32)
+							sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit);
+						else
+							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value (%d)! Must be 16 or 32.\n", fprec);
+					}
+					else
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value! Must be 16 or 32.\n");
+				}
 				else if( strcmp("Display", val[1]) == 0 )
 				{
 					int tmpInterval = 0;

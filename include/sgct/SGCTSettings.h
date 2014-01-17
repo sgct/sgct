@@ -22,6 +22,7 @@ class SGCTSettings
 public:
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 	enum DrawBufferType { Diffuse = 0, Diffuse_Normal, Diffuse_Position, Diffuse_Normal_Position };
+	enum BufferFloatPrecision { Float_16Bit = 0, Float_32Bit };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * instance()
@@ -50,6 +51,7 @@ public:
 	void setUseDepthTexture(bool state);
 	void setUseNormalTexture(bool state);
 	void setUsePositionTexture(bool state);
+	void setBufferFloatPrecision(BufferFloatPrecision bfp);
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
@@ -72,6 +74,7 @@ public:
 	const int &			getOSDTextFontSize();
 	const std::string &	getOSDTextFontName();
 	const std::string &	getOSDTextFontPath();
+	int					getBufferFloatPrecisionAsGLint();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -133,6 +136,7 @@ private:
 	int mFontSize;
 
 	DrawBufferType mCurrentDrawBuffer;
+	BufferFloatPrecision mCurrentBufferFloatPrecision;
 };
 }
 

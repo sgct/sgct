@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "sgct.h"
+#include <glm/gtc/matrix_inverse.hpp>
 
 sgct::Engine * gEngine;
 
@@ -23,7 +24,9 @@ sgct::SharedBool takeScreenshot(false);
 
 //shader locs
 int m_textureID = -1;
+int m_MVPMatrixID = -1;
 int m_worldMatrixTransposeID = -1;
+int m_normalMatrix = -1;
 
 int main( int argc, char* argv[] )
 {
@@ -42,7 +45,7 @@ int main( int argc, char* argv[] )
 	sgct::SGCTSettings::instance()->setUseNormalTexture(true);
 	sgct::SGCTSettings::instance()->setUsePositionTexture(true);
 
-	if( !gEngine->init() )
+	if (!gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ))
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
@@ -63,31 +66,38 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	double speed = 25.0;
-	
-	glTranslatef(0.0f, 0.0f, -3.0f);
-	glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
-	glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
-	glColor3f(1.0f,1.0f,1.0f);
+	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_CULL_FACE);
 
-	float worldMatrix[16];
-	glGetFloatv(GL_MODELVIEW_MATRIX, worldMatrix);
-	
+	double speed = 25.0;
+
+	//create scene transform (animation)
+	glm::mat4 scene_mat = glm::translate(glm::mat4(1.0f), glm::vec3(0.0f, 0.0f, -3.0f));
+	scene_mat = glm::rotate(scene_mat, static_cast<float>(curr_time.getVal() * speed), glm::vec3(0.0f, -1.0f, 0.0f));
+	scene_mat = glm::rotate(scene_mat, static_cast<float>(curr_time.getVal() * (speed / 2.0)), glm::vec3(1.0f, 0.0f, 0.0f));
+
+	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+	glm::mat4 MV = gEngine->getActiveModelViewMatrix() * scene_mat;
+	glm::mat3 NormalMatrix = glm::inverseTranspose(glm::mat3(MV));
+
 	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
-	
-	//set MRT shader program
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle));
+
 	sgct::ShaderManager::instance()->bindShaderProgram("MRT");
 
+	glUniformMatrix4fv(m_MVPMatrixID, 1, GL_FALSE, &MVP[0][0]);
+	glUniformMatrix4fv(m_worldMatrixTransposeID, 1, GL_TRUE, &MV[0][0]); //transpose in transfere
+	glUniformMatrix3fv(m_normalMatrix, 1, GL_FALSE, &NormalMatrix[0][0]);
 	glUniform1i(m_textureID, 0);
-	glUniformMatrix4fv(m_worldMatrixTransposeID, 1, GL_TRUE, worldMatrix);  //transpose in transfere
 
 	//draw the box
 	myBox->draw();
 
-	//unset current shader program
 	sgct::ShaderManager::instance()->unBindShaderProgram();
+
+	glDisable(GL_CULL_FACE);
+	glDisable(GL_DEPTH_TEST);
 }
 
 void myPreSyncFun()
@@ -114,6 +124,13 @@ void myInitOGLFun()
 
 	m_textureID = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("tDiffuse");
 	m_worldMatrixTransposeID = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("WorldMatrixTranspose");
+	m_MVPMatrixID = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("MVPMatrix");
+	m_normalMatrix = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("NormalMatrix");
+
+	//bind the multiple rendering target (MRT) variables to the shader 
+	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(0, "diffuse");
+	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(1, "normal");
+	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(2, "position");
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 	
@@ -124,12 +141,6 @@ void myInitOGLFun()
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-	
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_COLOR_MATERIAL );
-	glDisable( GL_LIGHTING );
-	glEnable( GL_CULL_FACE );
-	glEnable( GL_TEXTURE_2D );
 
 	//Set up backface culling
 	glCullFace(GL_BACK);

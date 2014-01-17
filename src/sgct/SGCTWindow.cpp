@@ -1176,13 +1176,13 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bo
 	}
 	else if (type == NormalTexture)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 	else if (type == PositionTexture)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB32F, xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+		glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
@@ -1231,14 +1231,14 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 	else if (type == NormalTexture)
 	{
 		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_RGB32F, mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
 	}
 	else if (type == PositionTexture)
 	{
 		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_RGB32F, mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
 	}
@@ -1549,22 +1549,94 @@ void sgct::SGCTWindow::loadShaders()
 			{
 				if( SGCTSettings::instance()->useDepthTexture() )
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
 				}
-				else
+				else //no depth
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
 				}
 			}
 			else//not off axis
 			{
 				if( SGCTSettings::instance()->useDepthTexture() )
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
 				}
 				else //no depth
 				{
-					mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+					{
+					case sgct::SGCTSettings::Diffuse:
+					default:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+
+					case sgct::SGCTSettings::Diffuse_Normal_Position:
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						break;
+					}
 				}
 			}
 
@@ -1621,6 +1693,31 @@ void sgct::SGCTWindow::loadShaders()
 				mFisheyeBaseOffset[1] + mFisheyeOffset[1],
 				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
 		}
+
+		switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+		{
+		case sgct::SGCTSettings::Diffuse:
+		default:
+			mFisheyeShader.bindFragDataLocation(0, "diffuse");
+			break;
+
+		case sgct::SGCTSettings::Diffuse_Normal:
+			mFisheyeShader.bindFragDataLocation(0, "diffuse");
+			mFisheyeShader.bindFragDataLocation(1, "normal");
+			break;
+
+		case sgct::SGCTSettings::Diffuse_Position:
+			mFisheyeShader.bindFragDataLocation(0, "diffuse");
+			mFisheyeShader.bindFragDataLocation(1, "position");
+			break;
+
+		case sgct::SGCTSettings::Diffuse_Normal_Position:
+			mFisheyeShader.bindFragDataLocation(0, "diffuse");
+			mFisheyeShader.bindFragDataLocation(1, "normal");
+			mFisheyeShader.bindFragDataLocation(2, "position");
+			break;
+		}
+
 		ShaderProgram::unbind();
 
 		if( SGCTSettings::instance()->useDepthTexture() )

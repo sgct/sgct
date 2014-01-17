@@ -1624,13 +1624,19 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			CubeMapFBO->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
 			if( !CubeMapFBO->isMultiSampled() )
 			{
-				if( SGCTSettings::instance()->useDepthTexture() )
+				if (SGCTSettings::instance()->useDepthTexture())
 				{
-					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
-					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
+					CubeMapFBO->attachDepthTexture(getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap));
+					CubeMapFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap));
 				}
 				else
-					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i));
+
+				if (SGCTSettings::instance()->useNormalTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
+
+				if (SGCTSettings::instance()->usePositionTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 			}
 
 			setAndClearBuffer(RenderToTexture);
@@ -1647,13 +1653,19 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 				//update attachments
-				if( SGCTSettings::instance()->useDepthTexture() )
+				if (SGCTSettings::instance()->useDepthTexture())
 				{
-					CubeMapFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap) );
-					CubeMapFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap) );
+					CubeMapFBO->attachDepthTexture(getActiveWindowPtr()->getFrameBufferTexture(FisheyeDepthSwap));
+					CubeMapFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap));
 				}
 				else
-					CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i));
+
+				if (SGCTSettings::instance()->useNormalTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
+
+				if (SGCTSettings::instance()->usePositionTexture())
+					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 
 				CubeMapFBO->blit();
 			}
@@ -1664,7 +1676,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 			//re-calculate depth values from a cube to spherical model
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				CubeMapFBO->bind( false ); //bind no multi-sampled
+				GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
+				CubeMapFBO->bind(false, 1, buffers); //bind no multi-sampled
+				
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
@@ -1716,8 +1730,14 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(Intermediate) ) :
 		finalFBO->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture(ti) );
 
-	if( SGCTSettings::instance()->useDepthTexture() )
-		finalFBO->attachDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(Depth) );
+	if (SGCTSettings::instance()->useDepthTexture())
+		finalFBO->attachDepthTexture(getActiveWindowPtr()->getFrameBufferTexture(Depth));
+
+	if (SGCTSettings::instance()->useNormalTexture())
+		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Normals), GL_COLOR_ATTACHMENT1);
+
+	if (SGCTSettings::instance()->usePositionTexture())
+		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 
 	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
@@ -1733,15 +1753,33 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 	enterFisheyeViewport();
 
+	getActiveWindowPtr()->bindFisheyeShaderProgram();
+
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
+	
 	if( SGCTSettings::instance()->useDepthTexture() )
 	{
 		glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth));
+		glUniform1i(getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
+	}
+
+	if (SGCTSettings::instance()->useNormalTexture())
+	{
+		glActiveTexture(GL_TEXTURE2);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapNormals));
+		glUniform1i(getActiveWindowPtr()->getFisheyeShaderCubemapNormalsLoc(), 2);
+	}
+
+	if (SGCTSettings::instance()->usePositionTexture())
+	{
+		glActiveTexture(GL_TEXTURE3);
+		glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions));
+		glUniform1i(getActiveWindowPtr()->getFisheyeShaderCubemapPositionsLoc(), 3);
 	}
 
 	if( !statesSet )
@@ -1758,12 +1796,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glDepthFunc( GL_ALWAYS );
 	}
 
-	getActiveWindowPtr()->bindFisheyeShaderProgram();
-
 	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
-	if( SGCTSettings::instance()->useDepthTexture() )
-		glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapDepthLoc(), 1);
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
 	glUniform4fv( getActiveWindowPtr()->getFisheyeBGColorLoc(), 1, mFisheyeClearColor );

@@ -38,6 +38,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
 
 	mCurrentDrawBuffer = Diffuse;
+	mCurrentBufferFloatPrecision = Float_16Bit;
 
 	//font stuff
 	mFontSize = 10;
@@ -123,6 +124,15 @@ void sgct::SGCTSettings::setUsePositionTexture(bool state)
 {
 	mUsePositionTexture = state;
 	updateDrawBufferFlag();
+}
+
+/*!
+Set the float precision of the float buffers (normal and position buffer)
+@param bfp is the float precition that will be used in next buffer resize or creation
+*/
+void sgct::SGCTSettings::setBufferFloatPrecision(BufferFloatPrecision bfp)
+{
+	mCurrentBufferFloatPrecision = bfp;
 }
 
 /*!
@@ -319,4 +329,12 @@ const std::string & sgct::SGCTSettings::getOSDTextFontName()
 const std::string & sgct::SGCTSettings::getOSDTextFontPath()
 {
 	return mFontPath;
+}
+
+/*!
+	Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
+*/
+int	sgct::SGCTSettings::getBufferFloatPrecisionAsGLint()
+{
+	return mCurrentBufferFloatPrecision == Float_16Bit ? GL_RGB16F : GL_RGB32F;
 }

@@ -77,13 +77,13 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		if (sgct::SGCTSettings::instance()->useNormalTexture())
 		{
 			glBindRenderbuffer(GL_RENDERBUFFER, mNormalBuffer);
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGB32F, width, height);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), width, height);
 		}
 
 		if (sgct::SGCTSettings::instance()->usePositionTexture())
 		{
 			glBindRenderbuffer(GL_RENDERBUFFER, mPositionBuffer);
-			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGB32F, width, height);
+			glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), width, height);
 		}
 	}
 	else

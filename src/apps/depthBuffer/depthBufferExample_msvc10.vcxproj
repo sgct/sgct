@@ -26,7 +26,7 @@
     <None Include="heightmap.vert" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{DE236993-0678-4638-8180-39DE3D8B74C7}</ProjectGuid>
+    <ProjectGuid>{083D62E5-0990-414B-9203-0B04DD373FF7}</ProjectGuid>
     <RootNamespace>shaderExample</RootNamespace>
     <ProjectName>depthBufferExample_msvc10</ProjectName>
   </PropertyGroup>

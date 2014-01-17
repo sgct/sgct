@@ -22,7 +22,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{74BC8ED9-61EE-468E-8A44-B421A04286D4}</ProjectGuid>
+    <ProjectGuid>{90F3B7ED-88E3-4651-9E87-D8A2951F6B92}</ProjectGuid>
     <RootNamespace>MRTExample</RootNamespace>
     <ProjectName>MRTExample_msvc10</ProjectName>
   </PropertyGroup>

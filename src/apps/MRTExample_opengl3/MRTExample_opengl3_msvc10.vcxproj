@@ -22,7 +22,7 @@
     <ClCompile Include="main.cpp" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{74BC8ED9-61EE-468E-8A44-B421A04286D4}</ProjectGuid>
+    <ProjectGuid>{EE1E6C16-C90C-4A3F-BD1C-7D66A8AD3318}</ProjectGuid>
     <RootNamespace>MRTExample_opengl3</RootNamespace>
     <ProjectName>MRTExample_opengl3_msvc10</ProjectName>
   </PropertyGroup>

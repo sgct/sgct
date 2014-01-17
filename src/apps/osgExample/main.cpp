@@ -41,7 +41,7 @@ sgct::SharedBool light(true);
 //other var
 bool arrowButtons[4];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
-const double navigation_speed = 5.0;
+const double navigation_speed = 1.0;
 
 int main( int argc, char* argv[] )
 {
@@ -179,6 +179,8 @@ void myPostSyncPreDrawFun()
 
 void myDrawFun()
 {
+	glLineWidth(2.0f);
+	
 	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
 	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));

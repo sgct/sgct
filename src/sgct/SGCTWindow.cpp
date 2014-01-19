@@ -1274,12 +1274,25 @@ void sgct::SGCTWindow::createFBOs()
                 mFramebufferResolution[0],
                 mFramebufferResolution[1],
                 1);
+            
+            if( mFinalFBO_Ptr->checkForErrors() )
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+            else
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
 
 			mCubeMapFBO_Ptr->createFBO( mCubeMapResolution,
 				mCubeMapResolution,
 				mNumberOfAASamples);
+            
+            if( mCubeMapFBO_Ptr->checkForErrors() )
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
+            else
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
 
-			mCubeMapFBO_Ptr->bind();
+            //-------------------------
+            // Init attachments
+            //-------------------------
+			/*mCubeMapFBO_Ptr->bind();
 			for(int i=0; i<6; i++)
 			{
 				if(!mCubeMapFBO_Ptr->isMultiSampled())
@@ -1296,17 +1309,19 @@ void sgct::SGCTWindow::createFBOs()
 					mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
 
 					//update attachments
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], i );
+					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], static_cast<unsigned int>(i) );
+                    
+                    if (SGCTSettings::instance()->useNormalTexture())
+                        mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMapNormals], static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
+                    
+                    if (SGCTSettings::instance()->usePositionTexture())
+                        mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMapPositions], static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 
 					mCubeMapFBO_Ptr->blit();
 				}
 			}
-
-			if( mCubeMapFBO_Ptr->checkForErrors() )
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
-            else
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
-
+             */
+            
 			sgct_core::OffScreenBuffer::unBind();
 
 			//set ut the fisheye geometry etc.
@@ -1318,20 +1333,29 @@ void sgct::SGCTWindow::createFBOs()
 				mFramebufferResolution[0],
 				mFramebufferResolution[1],
 				mNumberOfAASamples);
+            
+            if( mFinalFBO_Ptr->checkForErrors() )
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+            else
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
 		}
 
-        if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
+        //-------------------------
+        // Init attachment
+        //-------------------------
+        /*if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
         {
-            mFinalFBO_Ptr->bind();
+            mFinalFBO_Ptr->bind(); //bind no multi-sampled);
+            
             mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::LeftEye] );
+            if (SGCTSettings::instance()->useNormalTexture())
+                mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::Normals], GL_COLOR_ATTACHMENT1);
+            if (SGCTSettings::instance()->usePositionTexture())
+                mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::Positions], GL_COLOR_ATTACHMENT2);
+            
             mFinalFBO_Ptr->unBind();
         }
-
-        if( mFinalFBO_Ptr->checkForErrors() )
-            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-        else
-            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-
+         */
 	}
 }
 
@@ -1694,29 +1718,33 @@ void sgct::SGCTWindow::loadShaders()
 				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
 		}
 
-		switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+        //Run only on modern pipeline otherwise it results in segfaults in OS X
+        /*if( !Engine::instance()->isOGLPipelineFixed() )
 		{
-		case sgct::SGCTSettings::Diffuse:
-		default:
-			mFisheyeShader.bindFragDataLocation(0, "diffuse");
-			break;
+            switch (SGCTSettings::instance()->getCurrentDrawBufferType())
+            {
+            case sgct::SGCTSettings::Diffuse:
+            default:
+                mFisheyeShader.bindFragDataLocation(0, "diffuse");
+                break;
 
-		case sgct::SGCTSettings::Diffuse_Normal:
-			mFisheyeShader.bindFragDataLocation(0, "diffuse");
-			mFisheyeShader.bindFragDataLocation(1, "normal");
-			break;
+            case sgct::SGCTSettings::Diffuse_Normal:
+                mFisheyeShader.bindFragDataLocation(0, "diffuse");
+                mFisheyeShader.bindFragDataLocation(1, "normal");
+                break;
 
-		case sgct::SGCTSettings::Diffuse_Position:
-			mFisheyeShader.bindFragDataLocation(0, "diffuse");
-			mFisheyeShader.bindFragDataLocation(1, "position");
-			break;
+            case sgct::SGCTSettings::Diffuse_Position:
+                mFisheyeShader.bindFragDataLocation(0, "diffuse");
+                mFisheyeShader.bindFragDataLocation(1, "position");
+                break;
 
-		case sgct::SGCTSettings::Diffuse_Normal_Position:
-			mFisheyeShader.bindFragDataLocation(0, "diffuse");
-			mFisheyeShader.bindFragDataLocation(1, "normal");
-			mFisheyeShader.bindFragDataLocation(2, "position");
-			break;
-		}
+            case sgct::SGCTSettings::Diffuse_Normal_Position:
+                mFisheyeShader.bindFragDataLocation(0, "diffuse");
+                mFisheyeShader.bindFragDataLocation(1, "normal");
+                mFisheyeShader.bindFragDataLocation(2, "position");
+                break;
+            }
+        }*/
 
 		ShaderProgram::unbind();
 

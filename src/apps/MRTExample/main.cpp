@@ -37,7 +37,7 @@ int main( int argc, char* argv[] )
 	gEngine->setKeyboardCallbackFunction(keyCallback);
 
 	//force normal & position textures to be created & used in rendering loop
-	sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit); //default is 16-bit
+	//sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit); //default is 16-bit
 	//sgct::SGCTSettings::instance()->setUseDepthTexture(true);
 	sgct::SGCTSettings::instance()->setUseNormalTexture(true);
 	sgct::SGCTSettings::instance()->setUsePositionTexture(true);

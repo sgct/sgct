@@ -40,7 +40,7 @@ int main( int argc, char* argv[] )
 	gEngine->setKeyboardCallbackFunction(keyCallback);
 
 	//force normal & position textures to be created & used in rendering loop
-	sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit); //default is 16-bit
+	//sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit); //default is 16-bit
 	//sgct::SGCTSettings::instance()->setUseDepthTexture(true);
 	sgct::SGCTSettings::instance()->setUseNormalTexture(true);
 	sgct::SGCTSettings::instance()->setUsePositionTexture(true);
@@ -128,9 +128,9 @@ void myInitOGLFun()
 	m_normalMatrix = sgct::ShaderManager::instance()->getShaderProgram("MRT").getUniformLocation("NormalMatrix");
 
 	//bind the multiple rendering target (MRT) variables to the shader 
-	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(0, "diffuse");
+	/*sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(0, "diffuse");
 	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(1, "normal");
-	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(2, "position");
+	sgct::ShaderManager::instance()->getShaderProgram("MRT").bindFragDataLocation(2, "position");*/
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 	

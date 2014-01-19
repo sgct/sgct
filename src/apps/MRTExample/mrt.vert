@@ -1,3 +1,5 @@
+#version 120
+
 varying vec3 normals;
 varying vec4 position;
 uniform mat4 WorldMatrixTranspose;

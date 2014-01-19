@@ -130,8 +130,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -166,8 +166,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -202,9 +202,9 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
+            layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -277,8 +277,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -316,8 +316,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -355,9 +355,9 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
+            layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -429,8 +429,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -466,8 +466,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -503,9 +503,9 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
+            layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -580,8 +580,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -620,8 +620,8 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -660,9 +660,9 @@ namespace sgct_core
 			#version 330 core\n\
 			\n\
 			in vec2 UV;\n\
-			out vec4 diffuse;\n\
-			out vec3 normal;\n\
-			out vec3 position;\n\
+            layout(location = 0) out vec4 diffuse;\n\
+            layout(location = 1) out vec3 normal;\n\
+            layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\

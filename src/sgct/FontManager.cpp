@@ -455,11 +455,7 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	//Now we just setup some texture paramaters.
 	GLuint textureId = font.getTextures()[ static_cast<unsigned int>(ch) ];
 	glBindTexture( GL_TEXTURE_2D, textureId );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
-
+    
 	//Here we actually create the texture itself, notice
 	//that we are using GL_LUMINANCE_ALPHA to indicate that
 	//we are using 2 channel data.
@@ -468,8 +464,16 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	*/
 	glPixelStorei(GL_PACK_ALIGNMENT, 1);
 	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    
     glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_LUMINANCE_ALPHA, width, height,
-		  0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data );
+                 0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, expanded_data );
+    
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 	//With the texture created, we don't need to expanded data anymore
     delete[] expanded_data;
@@ -619,16 +623,21 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 		//Now we just setup some texture paramaters.
 		GLuint textureId = font.getTextures()[ch];
 		glBindTexture( GL_TEXTURE_2D, textureId );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
-
-		/*
+        
+        /*
 			SGCT2 change: Use non-power-of-two textures for better quality
 		*/
 		glPixelStorei(GL_PACK_ALIGNMENT, 1);
 		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
+		
+        glTexImage2D( GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
 			  0, GL_RG, GL_UNSIGNED_BYTE, expanded_data );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER );
+		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER );
 
 		//With the texture created, we don't need to expanded data anymore
 		delete[] expanded_data;

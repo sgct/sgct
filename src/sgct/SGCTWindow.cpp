@@ -352,25 +352,25 @@ unsigned int sgct::SGCTWindow::getFrameBufferTexture(unsigned int index)
 			{
 			case Engine::LeftEye:
 			case Engine::RightEye:
-				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, ColorTexture, true);
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 				break;
 
 			case Engine::Intermediate:
 			case Engine::FX1:
 			case Engine::FX2:
-				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], true, ColorTexture, true);
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 				break;
 
 			case Engine::Depth:
-				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, DepthTexture, true);
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], DepthTexture, true);
 				break;
 
 			case Engine::Normals:
-				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, NormalTexture, true);
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], NormalTexture, true);
 				break;
 
 			case Engine::Positions:
-				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], false, PositionTexture, true);
+				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], PositionTexture, true);
 				break;
 
 			case Engine::CubeMap:
@@ -390,11 +390,11 @@ unsigned int sgct::SGCTWindow::getFrameBufferTexture(unsigned int index)
 				break;
 
 			case Engine::FisheyeColorSwap:
-				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, ColorTexture, false);
+				generateTexture(index, mCubeMapResolution, mCubeMapResolution, ColorTexture, false);
 				break;
 
 			case Engine::FisheyeDepthSwap:
-				generateTexture(index, mCubeMapResolution, mCubeMapResolution, false, DepthTexture, false);
+				generateTexture(index, mCubeMapResolution, mCubeMapResolution, DepthTexture, false);
 				break;
 
 			
@@ -1062,40 +1062,40 @@ void sgct::SGCTWindow::createTextures()
 		{
 		case Engine::RightEye:
 			if( mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo )
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, ColorTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 
 		case Engine::Depth:
 			if( SGCTSettings::instance()->useDepthTexture() )
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, DepthTexture, true );
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], DepthTexture, true );
 			break;
 
 		case Engine::FX1:
 			if( !mPostFXPasses.empty() )
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, ColorTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 
 		case Engine::FX2:
 			if( mPostFXPasses.size() > 1 )
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, ColorTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 
 		case Engine::Intermediate:
 			if( mUsePostFX )
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], true, ColorTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 
 		case Engine::Normals:
 			if (SGCTSettings::instance()->useNormalTexture())
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, NormalTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], NormalTexture, true);
 			break;
 
 		case Engine::Positions:
 			if (SGCTSettings::instance()->usePositionTexture())
-				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, PositionTexture, true);
+				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], PositionTexture, true);
 			break;
 
 		default:
-			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], false, ColorTexture, true);
+			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 		}
 	}
@@ -1113,9 +1113,9 @@ void sgct::SGCTWindow::createTextures()
 
 			//create swap textures
 			//Color
-			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, false, ColorTexture, false);
+			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, ColorTexture, false);
 			//Depth
-			generateTexture(Engine::FisheyeDepthSwap, mCubeMapResolution, mCubeMapResolution, false, DepthTexture, false);
+			generateTexture(Engine::FisheyeDepthSwap, mCubeMapResolution, mCubeMapResolution, DepthTexture, false);
 		}
 
 		if (SGCTSettings::instance()->useNormalTexture())
@@ -1134,7 +1134,7 @@ void sgct::SGCTWindow::createTextures()
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Texture targets failed to initialize for window %d!\n", mId);
 }
 
-void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, sgct::SGCTWindow::TextureType type, bool interpolate)
+void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sgct::SGCTWindow::TextureType type, bool interpolate)
 {
 	//clean up if needed
 	if( mFrameBufferTextures[id] != GL_FALSE )
@@ -1143,55 +1143,82 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, bo
 		mFrameBufferTextures[id] = GL_FALSE;
 	}
 
-	/*
-		Anisotropic box filtering needed by FXAA
-	*/
-	GLfloat maxAni;
-	glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-	float anisotropy_filter_size = (maxAni < 4.0f) ? maxAni : 4.0f;
-
 	glGenTextures(1, &mFrameBufferTextures[id]);
 	glBindTexture(GL_TEXTURE_2D, mFrameBufferTextures[id]);
-
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-
-	if( anisotropicFiltering )
-		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, anisotropy_filter_size);
-	
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    
+    //---------------------
+    // Disable mipmaps
+    //---------------------
+    if( Engine::instance()->isOGLPipelineFixed() )
+    {
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    }
 
 	if (type == DepthTexture)
 	{
-		//glTexParameteri(GL_TEXTURE_2D, GL_DEPTH_TEXTURE_MODE, GL_INTENSITY);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_MODE, GL_COMPARE_R_TO_TEXTURE);
-		//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_COMPARE_FUNC, GL_LEQUAL);
-
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+		if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_2D, 1, GL_DEPTH_COMPONENT32, xSize, ySize);
+        }
+        
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 	else if (type == NormalTexture)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal texture (id: %d, type %d) generated for window %d!\n",
+		if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_2D, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize);
+        }
+        
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 	else if (type == PositionTexture)
 	{
-		glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position texture (id: %d, type %d) generated for window %d!\n",
+		if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_2D, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize);
+        }
+        
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
 	else
 	{
-		glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
+		if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, xSize, ySize);
+        }
+        
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
+    
+    glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
+	glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
+	
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
 void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::TextureType type)
@@ -1215,40 +1242,80 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 	//set up texture target
 	glGenTextures(1, &mFrameBufferTextures[ id ]);
 	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ id ]);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    
+    //---------------------
+    // Disable mipmaps
+    //---------------------
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    
 
 	if( type == DepthTexture )
 	{
-		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            for (int side = 0; side < 6; ++side)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution);
+        }
+        
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
 	}
 	else if (type == NormalTexture)
 	{
-		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+        if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            for (int side = 0; side < 6; ++side)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),mCubeMapResolution, mCubeMapResolution);
+        }
+        
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
 	}
 	else if (type == PositionTexture)
 	{
-		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+		if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            for (int side = 0; side < 6; ++side)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),mCubeMapResolution, mCubeMapResolution);
+        }
+        
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
 	}
 	else
 	{
-		for (int i = 0; i < 6; ++i)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + i, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        if( Engine::instance()->isOGLPipelineFixed() )
+        {
+            for (int side = 0; side < 6; ++side)
+                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+        }
+        else
+        {
+            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_RGBA8, mCubeMapResolution, mCubeMapResolution);
+        }
+			
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
 			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
 	}
+    
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }

@@ -226,7 +226,7 @@ private:
 	void initScreenCapture();
 	void deleteAllViewports();
 	void createTextures();
-	void generateTexture(unsigned int id, int xSize, int ySize, bool anisotropicFiltering, TextureType type, bool interpolate);
+	void generateTexture(unsigned int id, int xSize, int ySize, TextureType type, bool interpolate);
 	void generateCubeMap(unsigned int id, TextureType type);
 	void createFBOs();
 	void resizeFBOs();

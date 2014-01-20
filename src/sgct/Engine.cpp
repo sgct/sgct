@@ -76,6 +76,9 @@ Parameter     | Description
 --No-FBO | disable frame buffer objects (some stereo modes, Multi-Window rendering, FXAA and fisheye rendering will be disabled)
 --Capture-PNG | use png images for screen capture (default)
 --Capture-TGA | use tga images for screen capture
+-MSAA <integer> | Enable MSAA as default (argument must be a power of two)
+--FXAA | Enable FXAA as default
+--gDebugger | Force textures to be genareted using glTexImage2D instead of glTexStorage2D
 -numberOfCaptureThreads <integer> | set the maximum amount of threads that should be used during framecapture (default 8)
 
 */
@@ -3008,6 +3011,28 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			argumentsToRemove.push_back(i);
 			i++;
 		}
+		else if (strcmp(argv[i], "--gDebugger") == 0)
+		{
+			SGCTSettings::instance()->setForceGlTexImage2D(true);
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if (strcmp(argv[i], "--FXAA") == 0)
+		{
+			SGCTSettings::instance()->setDefaultFXAAState(true);
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if (strcmp(argv[i], "-MSAA") == 0 && argc > (i + 1))
+		{
+			int tmpi = -1;
+			std::stringstream ss(argv[i + 1]);
+			ss >> tmpi;
+			SGCTSettings::instance()->setDefaultNumberOfAASamples(tmpi);
+			argumentsToRemove.push_back(i);
+			argumentsToRemove.push_back(i + 1);
+			i += 2;
+		}
 		else if( strcmp(argv[i],"--No-FBO") == 0 )
 		{
 			SGCTSettings::instance()->setUseFBO(false);
@@ -4120,14 +4145,17 @@ void sgct::Engine::outputHelpMessage()
 \nOptional parameters:\n------------------------------------\n\
 \n-logPath <filepath>              \n\tSet log file path\n\
 \n--help                           \n\tDisplay help message and exit\n\
-\n--local <integer>                \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\
+\n-local <integer>                 \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\
 \n--client                         \n\tRun the application as client\n\t(only available when running as local)\n\
 \n--slave                          \n\tRun the application as client\n\t(only available when running as local)\n\
 \n--debug                          \n\tSet the notify level of messagehandler to debug\n\
 \n--Firm-Sync                      \n\tEnable firm frame sync\n\
 \n--Loose-Sync                     \n\tDisable firm frame sync\n\
 \n--Ignore-Sync                    \n\tDisable frame sync\n\
+\n-MSAA	<integer>                  \n\tEnable MSAA as default (argument must be a power of two)\n\
+\n--FXAA	                       \n\tEnable FXAA as default\n\
 \n-notify <integer>                \n\tSet the notify level used in the MessageHandler\n\t(0 = highest priority)\n\
+\n--gDebugger                      \n\tForce textures to be genareted using glTexImage2D instead of glTexStorage2D\n\
 \n--No-FBO                         \n\tDisable frame buffer objects\n\t(some stereo modes, Multi-Window rendering,\n\tFXAA and fisheye rendering will be disabled)\n\
 \n--Capture-PNG                    \n\tUse png images for screen capture (default)\n\
 \n--Capture-TGA                    \n\tUse tga images for screen capture\n\

@@ -65,6 +65,9 @@ public:
 	void setOSDTextFontSize( int size );
 	void setOSDTextFontName( std::string name );
 	void setOSDTextFontPath( std::string path );
+	void setDefaultNumberOfAASamples(int samples);
+	void setDefaultFXAAState(bool state);
+	void setForceGlTexImage2D(bool state);
 	
 	// ----------- get functions ---------------- //
 	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
@@ -75,6 +78,9 @@ public:
 	const std::string &	getOSDTextFontName();
 	const std::string &	getOSDTextFontPath();
 	int					getBufferFloatPrecisionAsGLint();
+	int					getDefaultNumberOfAASamples();
+	bool				getDefaultFXAAState();
+	bool				getForceGlTexImage2D();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -118,11 +124,14 @@ private:
 	int mRefreshRate;
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
+	int mDefaultNumberOfAASamples;
 	
 	bool mUseDepthTexture;
 	bool mUseNormalTexture;
 	bool mUsePositionTexture;
 	bool mUseFBO;
+	bool mDefaultFXAA;
+	bool mForceGlTexImage2D;
 
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;

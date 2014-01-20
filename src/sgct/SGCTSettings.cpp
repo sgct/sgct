@@ -23,6 +23,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUseNormalTexture = false;
 	mUsePositionTexture = false;
 	mUseFBO = true;
+	mForceGlTexImage2D = false;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -32,6 +33,9 @@ sgct::SGCTSettings::SGCTSettings()
 	//FXAA parameters
 	mFXAASubPixTrim = 1.0f/4.0f;
 	mFXAASubPixOffset = 1.0f/2.0f;
+	mDefaultFXAA = false;
+
+	mDefaultNumberOfAASamples = 1;
 
 	for(size_t i=0; i<3; i++)
 		mCapturePath[i].assign("SGCT");
@@ -190,7 +194,7 @@ void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::Ca
 {
 	if( path.empty() ) //invalid filename
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
+		MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
 		return;
 	}
 
@@ -308,6 +312,41 @@ void sgct::SGCTSettings::setOSDTextFontPath( std::string path )
 }
 
 /*!
+Set the default number of AA samples (MSAA) for all windows
+*/
+void sgct::SGCTSettings::setDefaultNumberOfAASamples(int samples)
+{
+	if ((samples != 0) && ((samples & (samples - 1)) == 0)) //if power of two
+		mDefaultNumberOfAASamples = samples;
+	else
+		MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTSettings: Number of default MSAA samples must be a power of two (not %d)!\n", samples);
+}
+
+/*!
+Set the default FXAA state for all windows (enabled or disabled)
+*/
+void sgct::SGCTSettings::setDefaultFXAAState(bool state)
+{
+	mDefaultFXAA = state;
+}
+
+/*!
+Set the glTexImage2D (legacy) should be used instead of glTexStorage2D (modern). For example gDebugger can't display textures created using glTexStorage2D.
+*/
+void sgct::SGCTSettings::setForceGlTexImage2D(bool state)
+{
+	mForceGlTexImage2D = state;
+}
+
+/*!
+Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern). For example gDebugger can't display textures created using glTexStorage2D.
+*/
+bool sgct::SGCTSettings::getForceGlTexImage2D()
+{
+	return mForceGlTexImage2D;
+}
+
+/*!
 	Get the OSD text font size
 */
 const int &	sgct::SGCTSettings::getOSDTextFontSize()
@@ -337,4 +376,20 @@ const std::string & sgct::SGCTSettings::getOSDTextFontPath()
 int	sgct::SGCTSettings::getBufferFloatPrecisionAsGLint()
 {
 	return mCurrentBufferFloatPrecision == Float_16Bit ? GL_RGB16F : GL_RGB32F;
+}
+
+/*!
+Get the default MSAA setting
+*/
+int sgct::SGCTSettings::getDefaultNumberOfAASamples()
+{
+	return mDefaultNumberOfAASamples;
+}
+
+/*!
+Get the FXAA default state
+*/
+bool sgct::SGCTSettings::getDefaultFXAAState()
+{
+	return mDefaultFXAA;
 }

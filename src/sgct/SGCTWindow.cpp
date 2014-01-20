@@ -46,7 +46,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFisheyeMode = false;
 	mFisheyeAlpha = false;
 	mVisible = false;
-	mUseFXAA = false;
+	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
 	mFullRes = true;
 	mFocused = false;
@@ -133,7 +133,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mVAO[FishEyeQuad]	= GL_FALSE;
 
 	mStereoMode = No_Stereo;
-	mNumberOfAASamples = 1;
+	mNumberOfAASamples = SGCTSettings::instance()->getDefaultNumberOfAASamples();
 
 	//FBO targets init
 	for(int i=0; i<NUMBER_OF_TEXTURES; i++)
@@ -1157,7 +1157,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 
 	if (type == DepthTexture)
 	{
-		if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             glTexImage2D( GL_TEXTURE_2D, 0, GL_DEPTH_COMPONENT32, xSize, ySize, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
         }
@@ -1171,7 +1171,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 	}
 	else if (type == NormalTexture)
 	{
-		if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
         }
@@ -1185,7 +1185,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 	}
 	else if (type == PositionTexture)
 	{
-		if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
         }
@@ -1199,7 +1199,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 	}
 	else
 	{
-		if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
         }
@@ -1252,7 +1252,7 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 
 	if( type == DepthTexture )
 	{
-        if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             for (int side = 0; side < 6; ++side)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
@@ -1267,7 +1267,7 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 	}
 	else if (type == NormalTexture)
 	{
-        if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             for (int side = 0; side < 6; ++side)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
@@ -1282,7 +1282,7 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 	}
 	else if (type == PositionTexture)
 	{
-		if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             for (int side = 0; side < 6; ++side)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
@@ -1297,7 +1297,7 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 	}
 	else
 	{
-        if( Engine::instance()->isOGLPipelineFixed() )
+		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             for (int side = 0; side < 6; ++side)
                 glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);

@@ -183,7 +183,7 @@ void Dome::generateDisplayList()
 		glVertex3f(-5.18765f, 5.939094f, -2.23591f);
 	glEnd();*/
 
-	glLineWidth(3.0f);
+	glLineWidth(2.0f);
 
 	for(float e=0.0f; e<=90.0f; e+=2.25f)
 	//for(int e=0; e<=90; e+=5)

@@ -2,6 +2,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-01-20 SGCT ver 2.1.0
+---------------------------
+* Changed to glTexStorage2D for FBO target textures in modern pipeline
+* Added --gDebugger, -MSAA and --FXAA arguments (defaults)
+
 2014-01-17 SGCT ver 2.1.0
 ---------------------------
 * Added support for choosing 16 or 32 bit floats for normal and positional textures

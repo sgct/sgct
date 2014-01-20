@@ -360,18 +360,18 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		glGenTextures(1, &tmpTexID);
 		glBindTexture(GL_TEXTURE_2D, tmpTexID);
 
-		int textureType = GL_BGR;
+		int textureType = GL_RGB;
 
 		//if OpenGL 1-2
 		if (Engine::instance()->isOGLPipelineFixed())
 		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
 			else if (img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
 			else if (img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
 		}
 		else //OpenGL 3+
 		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
 			else if (img.getChannels() == 1)	textureType = GL_RED;
 			else if (img.getChannels() == 2)	textureType = GL_RG;
 		}

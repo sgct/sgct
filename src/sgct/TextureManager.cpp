@@ -291,10 +291,9 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
         if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
-        
 		
 		if(mipmapLevels > 1)
 		{
@@ -450,9 +449,9 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
 
 		if (mipmapLevels > 1)
 		{

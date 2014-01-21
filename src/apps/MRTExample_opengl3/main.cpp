@@ -138,6 +138,12 @@ void myInitOGLFun()
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
 	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
 
+	//test
+	int size_x, size_y, size_c;
+	std::string path = sgct::TextureManager::instance()->getTexturePath("box");
+	sgct::TextureManager::instance()->getDimensions("box", size_x, size_y, size_c);
+	sgct::MessageHandler::instance()->print("Texture info, x=%d, y=%d, c=%d, path=%s\n", size_x, size_y, size_c, path.c_str());
+
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);

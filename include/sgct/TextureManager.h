@@ -11,6 +11,24 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <string>
 
+#include "Image.h"
+
+namespace sgct_core
+{
+class TextureData
+{
+public:
+	TextureData();
+	~TextureData();
+	void reset();
+
+	std::string mName;
+	std::string mPath;
+	unsigned int mId;
+	int mDim[3];
+};
+}
+
 namespace sgct //simple graphics cluster toolkit
 {
 
@@ -48,6 +66,11 @@ public:
 
 	const unsigned int getTextureByHandle(const std::size_t handle);
 	const unsigned int getTextureByName(const std::string name);
+	const std::string getTextureName(const std::size_t handle);
+	const std::string getTexturePath(const std::size_t handle);
+	const std::string getTexturePath(const std::string name);
+	void getDimensions(const std::size_t handle, int & x, int & y, int & channels);
+	void getDimensions(const std::string name, int & x, int & y, int & channels);
 
 	/*!
 		Sets if a single channel texture should be interpreted as alpha or luminance.
@@ -86,7 +109,7 @@ private:
 	CompressionMode mCompression;
 	bool mAlphaMode;
 	bool mOverWriteMode;
-	std::vector< std::pair<std::string, unsigned int> > mTextures;
+	std::vector<sgct_core::TextureData> mTextures;
 	int mWarpMode[2];
 };
 

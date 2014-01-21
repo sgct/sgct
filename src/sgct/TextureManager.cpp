@@ -10,10 +10,29 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Image.h"
 #include "../include/sgct/Engine.h"
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
+
+sgct_core::TextureData::TextureData()
+{
+	reset();
+}
+
+sgct_core::TextureData::~TextureData()
+{
+	reset();
+}
+
+void sgct_core::TextureData::reset()
+{
+	mId = GL_FALSE;
+	mName.assign("NOTSET");
+	mPath.assign("NOTSET");
+	mDim[0] = -1;
+	mDim[1] = -1;
+	mDim[2] = -1;
+}
 
 sgct::TextureManager::TextureManager()
 {
@@ -26,7 +45,8 @@ sgct::TextureManager::TextureManager()
 	mOverWriteMode = true;
 
 	//add empty texture
-	mTextures.push_back( std::pair<std::string, unsigned int>( "NOTSET", 0 ) );
+	sgct_core::TextureData tmpTexture;
+	mTextures.push_back(tmpTexture);
 }
 
 sgct::TextureManager::~TextureManager()
@@ -42,7 +62,7 @@ sgct::TextureManager::~TextureManager()
 */
 const unsigned int sgct::TextureManager::getTextureByHandle(const std::size_t handle)
 {
-	return handle >= mTextures.size() ? 0 : mTextures[handle].second;
+	return handle >= mTextures.size() ? 0 : mTextures[handle].mId;
 }
 
 /*!
@@ -55,7 +75,7 @@ const unsigned int sgct::TextureManager::getTextureByHandle(const std::size_t ha
 bool sgct::TextureManager::getIndexByName(std::size_t &handle, const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
-		if( mTextures[i].first.compare(name) == 0 )
+		if( mTextures[i].mName.compare(name) == 0 )
 		{
 			handle = i;
 			return true;
@@ -75,9 +95,85 @@ bool sgct::TextureManager::getIndexByName(std::size_t &handle, const std::string
 const unsigned int sgct::TextureManager::getTextureByName(const std::string name)
 {
 	for(unsigned int i=0; i<mTextures.size(); i++)
-		if( mTextures[i].first.compare(name) == 0 )
-			return mTextures[i].second;
+	if (mTextures[i].mName.compare(name) == 0)
+			return mTextures[i].mId;
 	return 0;
+}
+
+/*!
+Get the texture name. If not found then "NOT_FOUND" is returned.
+*/
+const std::string sgct::TextureManager::getTextureName(const std::size_t handle)
+{
+	if (handle < mTextures.size())
+	{
+		return mTextures[handle].mName;
+	}
+	else
+		return std::string("NOT_FOUND");
+}
+
+/*!
+Get the texture path. If not found then "NOT_FOUND" is returned.
+*/
+const std::string sgct::TextureManager::getTexturePath(const std::size_t handle)
+{
+	if (handle < mTextures.size())
+	{
+		return mTextures[handle].mPath;
+	}
+	else
+		return std::string("NOT_FOUND");
+}
+
+/*!
+Get the texture path. If not found then "NOT_FOUND" is returned.
+*/
+const std::string sgct::TextureManager::getTexturePath(const std::string name)
+{
+	for (unsigned int i = 0; i<mTextures.size(); i++)
+		if (mTextures[i].mName.compare(name) == 0)
+			return mTextures[i].mPath;
+	return std::string("NOT_FOUND");
+}
+
+/*!
+Get the dimensions of a texture by handle. If not found all variables will be set to -1.
+*/
+void sgct::TextureManager::getDimensions(const std::size_t handle, int & x, int & y, int & channels)
+{
+	if (handle < mTextures.size())
+	{
+		x = mTextures[handle].mDim[0];
+		y = mTextures[handle].mDim[1];
+		channels = mTextures[handle].mDim[2];
+		return;
+	}
+
+	//if not found
+	x = -1;
+	y = -1;
+	channels = -1;
+}
+
+/*!
+Get the dimensions of a texture by name. If not found all variables will be set to -1.
+*/
+void sgct::TextureManager::getDimensions(const std::string name, int & x, int & y, int & channels)
+{
+	for (unsigned int i = 0; i<mTextures.size(); i++)
+		if (mTextures[i].mName.compare(name) == 0)
+		{
+			x = mTextures[i].mDim[0];
+			y = mTextures[i].mDim[1];
+			channels = mTextures[i].mDim[2];
+			return;
+		}
+		
+	//if not found
+	x = -1;
+	y = -1;
+	channels = -1;
 }
 
 /*!
@@ -165,6 +261,8 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 {
 	GLuint texID = 0;
 	bool reload = false;
+	sgct_core::TextureData tmpTexture;
+	sgct_core::Image img;
 
 	//check if texture exits in manager
 	if( getIndexByName(handle, name) ) //texture with that name exists already
@@ -187,17 +285,19 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	}
 
 	//load image
-	sgct_core::Image img;
-	if( !img.load(filename.c_str()) )
+	if ( !img.load(filename.c_str()) )
 	{
-		if( reload )
-			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, 0); //point to zero texture
+		if (reload)
+		{
+			mTextures[handle].reset();
+		}
 		else
 			handle = 0;
+
 		return false;
 	}
-
-	if(img.getData() != NULL)
+	
+	if (img.getData() != NULL)
 	{
 		glGenTextures( 1, &texID );
 		glBindTexture(GL_TEXTURE_2D, texID);
@@ -207,20 +307,20 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		//if OpenGL 1-2
 		if( Engine::instance()->isOGLPipelineFixed() )
 		{
-			if(img.getChannels() == 4)	textureType = GL_RGBA;
-			else if(img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
-			else if(img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
+			else if (img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
+			else if (img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
 		}
 		else //OpenGL 3+
 		{
-			if(img.getChannels() == 4)	textureType = GL_RGBA;
-			else if(img.getChannels() == 1)	textureType = GL_RED;
-			else if(img.getChannels() == 2)	textureType = GL_RG;
+			if (img.getChannels() == 4)	textureType = GL_RGBA;
+			else if (img.getChannels() == 1)	textureType = GL_RED;
+			else if (img.getChannels() == 2)	textureType = GL_RG;
 		}
 
 		GLint internalFormat;
 
-		switch(img.getChannels())
+		switch (img.getChannels())
 		{
 		case 4:
 			{
@@ -291,7 +391,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
         if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
 		
@@ -316,13 +416,22 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0] );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1] );
 
+		tmpTexture.mId = texID;
+		tmpTexture.mName.assign(name);
+		tmpTexture.mPath.assign(filename);
+		tmpTexture.mDim[0] = img.getSizeX();
+		tmpTexture.mDim[1] = img.getSizeY();
+		tmpTexture.mDim[2] = img.getChannels();
+
 		if(!reload)
 		{
-			mTextures.push_back( std::pair<std::string, unsigned int>( name, (unsigned int)texID ) );
+			mTextures.push_back(tmpTexture);
 			handle = mTextures.size()-1;
 		}
-		else if(handle != 0) //valid handle
-			mTextures[ handle ] = std::pair<std::string, unsigned int>( name, (unsigned int)texID );
+		else if (handle != 0) //valid handle
+		{
+			mTextures[handle] = tmpTexture;
+		}
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
 		img.cleanup();
@@ -491,7 +600,7 @@ void sgct::TextureManager::freeTextureData()
 	//the textures might not be stored in a sequence so
 	//let's erase them one by one
 	for(unsigned int i=0; i<mTextures.size(); i++)
-		if(mTextures[i].second) //if set, delete
-			glDeleteTextures(1, &mTextures[i].second);
+		if(mTextures[i].mId) //if set, delete
+			glDeleteTextures(1, &mTextures[i].mId);
 	mTextures.clear();
 }

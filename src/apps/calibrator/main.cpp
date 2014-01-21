@@ -176,7 +176,7 @@ void initGL()
     
     imageSaver = new sgct_core::ScreenCapture();
     imageSaver->init(0);
-    imageSaver->initOrResize(4096, 4096);
+    imageSaver->initOrResize(4096, 4096, 3);
 }
 
 void preSync()
@@ -277,9 +277,21 @@ void keyCallback(int key, int action)
 				showGeoCorrectionPattern.toggle();
 			break;
                 
-        case SGCT_KEY_T:
-            if(action == SGCT_PRESS)
-                imageSaver->SaveScreenCapture(textures[0].second , 2000);
+		case SGCT_KEY_T:
+			if (action == SGCT_PRESS)
+			{
+				imageSaver->SaveTexture(textures[0].second, GL_TEXTURE_2D, 0, "test.png");
+				
+				imageSaver->setUsePBO(false);
+				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, "Cubemap_right.png");
+				//imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, "Cubemap1.png");
+				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, "Cubemap_bottom.png");
+				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, "Cubemap_top.png");
+				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, "Cubemap_left.png");
+				//imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, "Cubemap5.png");
+
+				imageSaver->setUsePBO(true); //restore
+			}
             break;
 
 		case SGCT_KEY_P:
@@ -459,15 +471,15 @@ void drawTexturedObject()
 		glBindTexture(GL_TEXTURE_2D, textures[0].second);
 		glEnable(GL_TEXTURE_2D);
 
-		glActiveTexture(GL_TEXTURE1);
+		/*glActiveTexture(GL_TEXTURE1);
 		glBindTexture(GL_TEXTURE_2D, textures[0].second);
-		glEnable(GL_TEXTURE_2D);
+		glEnable(GL_TEXTURE_2D);*/
 
 		mDome->drawTexturedSphere();
 		
 		glDisable(GL_TEXTURE_2D);
-		glActiveTexture(GL_TEXTURE0);
-		glDisable(GL_TEXTURE_2D);
+		//glActiveTexture(GL_TEXTURE0);
+		//glDisable(GL_TEXTURE_2D);
 	}
 	
 	

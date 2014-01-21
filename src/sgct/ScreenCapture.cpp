@@ -301,6 +301,114 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in taking screenshot/capture!\n");
 }
 
+/*!
+This function saves a texture to disc. At the moment only 2D textures and cube maps are supported. Only 8-bit images are supported.
+
+@param textureId textureId is the texture that will be saved
+@param target target can be GL_TEXTURE_2D, GL_TEXTURE_CUBE_MAP_POSITIVE_X, GL_TEXTURE_CUBE_MAP_NEGATIVE_X, GL_TEXTURE_CUBE_MAP_POSITIVE_Y, GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, GL_TEXTURE_CUBE_MAP_POSITIVE_Z, GL_TEXTURE_CUBE_MAP_NEGATIVE_Z
+@param level level specifies the LOD level
+@param path path is the path + filename
+*/
+void sgct_core::ScreenCapture::SaveTexture(unsigned int textureId, unsigned int target, int level, std::string path)
+{
+	bool error = false;
+
+	int threadIndex = getAvailibleCaptureThread();
+	if (threadIndex == -1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
+		return;
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", threadIndex);
+
+	Image ** imPtr = &mSCTIPtrs[threadIndex].mframeBufferImagePtr;
+	if ((*imPtr) == NULL)
+	{
+		(*imPtr) = new sgct_core::Image();
+		(*imPtr)->setChannels(mChannels);
+		(*imPtr)->setSize(mX, mY);
+
+		if (!(*imPtr)->allocateOrResizeData()) //if allocation fails
+		{
+			//wait and try again
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
+			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
+			if (!(*imPtr)->allocateOrResizeData())
+			{
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str());
+				return;
+			}
+		}
+	}
+
+	(*imPtr)->setFilename(path.c_str());
+
+	if (sgct::Engine::instance()->isOGLPipelineFixed())
+		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
+
+	GLenum colorType;
+	switch (mChannels)
+	{
+	default:
+		colorType = (mFormat == TGA ? GL_BGRA : GL_RGBA);
+		break;
+
+	case 1:
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
+		break;
+
+	case 2:
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
+		break;
+
+	case 3:
+		colorType = (mFormat == TGA ? GL_BGR : GL_RGB);
+		break;
+	}
+
+	if (mUsePBO)
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //bind pbo
+
+	if (sgct::Engine::instance()->isOGLPipelineFixed())
+		glEnable(target == GL_TEXTURE_2D ? GL_TEXTURE_2D : GL_TEXTURE_CUBE_MAP);
+	glBindTexture(target == GL_TEXTURE_2D ? GL_TEXTURE_2D : GL_TEXTURE_CUBE_MAP, textureId);
+
+	mUsePBO ?
+		glGetTexImage(target, level, colorType, GL_UNSIGNED_BYTE, 0) :
+		glGetTexImage(target, level, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
+
+	if (mUsePBO)
+	{
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //map pbo
+		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		if (ptr)
+		{
+			memcpy((*imPtr)->getData(), ptr, mDataSize);
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+		}
+		else
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
+
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //un-bind pbo
+	}
+
+	if (sgct::Engine::checkForOGLErrors())
+	{
+		mSCTIPtrs[threadIndex].mRunning = true;
+		mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+	}
+	else
+		error = true;
+
+	if (sgct::Engine::instance()->isOGLPipelineFixed())
+		glPopAttrib();
+
+	if (error)
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in saving texture id=%d!\n", textureId);
+}
+
 void sgct_core::ScreenCapture::setUsePBO(bool state)
 {
 	mUsePBO = state;

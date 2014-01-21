@@ -33,6 +33,8 @@ double tilt = 0.0;
 std::vector<glm::vec3> colors;
 std::vector<std::pair<std::string, unsigned int>> textures;
 
+sgct_core::ScreenCapture * imageSaver;
+
 int main( int argc, char* argv[] )
 {
 
@@ -89,6 +91,7 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up (de-allocate)
+    delete imageSaver;
 	delete gEngine;
 
 	// Exit program
@@ -168,8 +171,12 @@ void initGL()
 	
 	glDisable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
-	glEnable(GL_COLOR_MATERIAL);
-	glEnable(GL_NORMALIZE);
+	//glEnable(GL_COLOR_MATERIAL);
+	//glEnable(GL_NORMALIZE);
+    
+    imageSaver = new sgct_core::ScreenCapture();
+    imageSaver->init(0);
+    imageSaver->initOrResize(4096, 4096);
 }
 
 void preSync()
@@ -269,6 +276,11 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				showGeoCorrectionPattern.toggle();
 			break;
+                
+        case SGCT_KEY_T:
+            if(action == SGCT_PRESS)
+                imageSaver->SaveScreenCapture(textures[0].second , 2000);
+            break;
 
 		case SGCT_KEY_P:
 			if(action == SGCT_PRESS)

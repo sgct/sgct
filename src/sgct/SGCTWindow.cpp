@@ -1314,7 +1314,9 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
     glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
 	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
 	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -1608,6 +1610,7 @@ void sgct::SGCTWindow::loadShaders()
 					case sgct::SGCTSettings::Diffuse:
 					default:
 						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        //mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
@@ -1714,6 +1717,7 @@ void sgct::SGCTWindow::loadShaders()
 					case sgct::SGCTSettings::Diffuse:
 					default:
 						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        //mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:

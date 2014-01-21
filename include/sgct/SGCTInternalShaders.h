@@ -67,6 +67,127 @@ namespace sgct_core
 				else\n\
 					gl_FragColor = bgColor;\n\
 			}\n";
+        
+        const std::string Fisheye_Frag_Shader_Cubic = "\
+            #version 120\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform float halfFov;\n\
+            uniform vec4 bgColor;\n\
+            float size = 4096.0;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            vec4 getCubeSample(vec2 texel)\n\
+            {\n\
+                float s = 2.0 * (texel.s - 0.5);\n\
+                float t = 2.0 * (texel.t - 0.5);\n\
+                float r2 = s*s + t*t;\n\
+                if( r2 <= 1.0 )\n\
+                {\n\
+                    float phi = sqrt(r2) * halfFov;\n\
+                    float theta = atan(s,t);\n\
+                    float x = sin(phi) * sin(theta);\n\
+                    float y = -sin(phi) * cos(theta);\n\
+                    float z = cos(phi);\n\
+                    vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+                    return textureCube(cubemap, rotVec);\n\
+                }\n\
+                else\n\
+                    return bgColor;\n\
+            }\n\
+            \n\
+            vec4 cubic(float x)\n\
+            {\n\
+                float x2 = x * x;\n\
+                float x3 = x2 * x;\n\
+                vec4 w;\n\
+                w.x =   -x3 + 3*x2 - 3*x + 1;\n\
+                w.y =  3*x3 - 6*x2       + 4;\n\
+                w.z = -3*x3 + 3*x2 + 3*x + 1;\n\
+                w.w =  x3;\n\
+                return w / 6.0;\n\
+            }\n\
+            \n\
+            vec4 catmull_rom(float x)\n\
+            {\n\
+                float x2 = x * x;\n\
+                float x3 = x2 * x;\n\
+                vec4 w;\n\
+                w.x = -x + 2*x2 - x3;\n\
+                w.y = 2 - 5*x2 + 3*x3;\n\
+                w.z = x + 4*x2 - 3*x3;\n\
+                w.w = -x2 + x3;\n\
+                return w / 2.0;\n\
+            }\n\
+            \n\
+            vec4 filter4(vec2 texcoord)\n\
+            {\n\
+                float fx = fract(texcoord.x);\n\
+                float fy = fract(texcoord.y);\n\
+                texcoord.x -= fx;\n\
+                texcoord.y -= fy;\n\
+                \n\
+                vec4 xcubic = cubic(fx);\n\
+                vec4 ycubic = cubic(fy);\n\
+                \n\
+                vec4 c = vec4(texcoord.x - 0.5, texcoord.x + 1.5, texcoord.y - 0.5, texcoord.y + 1.5);\n\
+                vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);\n\
+                vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;\n\
+                \n\
+                vec4 sample0 = getCubeSample(vec2(offset.x, offset.z) / vec2(size, size));\n\
+                vec4 sample1 = getCubeSample(vec2(offset.y, offset.z) / vec2(size, size));\n\
+                vec4 sample2 = getCubeSample(vec2(offset.x, offset.w) / vec2(size, size));\n\
+                vec4 sample3 = getCubeSample(vec2(offset.y, offset.w) / vec2(size, size));\n\
+                \n\
+                float sx = s.x / (s.x + s.y);\n\
+                float sy = s.z / (s.z + s.w);\n\
+                \n\
+                return mix(\n\
+                       mix(sample3, sample2, sx),\n\
+                       mix(sample1, sample0, sx), sy);\n\
+            }\n\
+            vec4 filter16(vec2 texcoord)\n\
+            {\n\
+                vec2 xy = floor(texcoord);\n\
+                vec2 normxy = texcoord - xy;\n\
+                \n\
+                vec2 st0 = ((2.0 - normxy) * normxy - 1.0) * normxy;\n\
+                vec2 st1 = (3.0 * normxy - 5.0) * normxy * normxy + 2.0;\n\
+                vec2 st2 = ((4.0 - 3.0 * normxy) * normxy + 1.0) * normxy;\n\
+                vec2 st3 = (normxy - 1.0) * normxy * normxy;\n\
+                \n\
+                vec4 row0 =\n\
+                st0.s * getCubeSample((xy + vec2(-1.0, -1.0)) / vec2(size, size)) +\n\
+                st1.s * getCubeSample((xy + vec2(0.0, -1.0)) / vec2(size, size)) +\n\
+                st2.s * getCubeSample((xy + vec2(1.0, -1.0)) / vec2(size, size)) +\n\
+                st3.s * getCubeSample((xy + vec2(2.0, -1.0)) / vec2(size, size));\n\
+                \n\
+                vec4 row1 =\n\
+                st0.s * getCubeSample((xy + vec2(-1.0, 0.0)) / vec2(size, size)) +\n\
+                st1.s * getCubeSample((xy + vec2(0.0, 0.0)) / vec2(size, size)) +\n\
+                st2.s * getCubeSample((xy + vec2(1.0, 0.0)) / vec2(size, size)) +\n\
+                st3.s * getCubeSample((xy + vec2(2.0, 0.0)) / vec2(size, size));\n\
+                \n\
+                vec4 row2 =\n\
+                st0.s * getCubeSample((xy + vec2(-1.0, 1.0)) / vec2(size, size)) +\n\
+                st1.s * getCubeSample((xy + vec2(0.0, 1.0)) / vec2(size, size)) +\n\
+                st2.s * getCubeSample((xy + vec2(1.0, 1.0)) / vec2(size, size)) +\n\
+                st3.s * getCubeSample((xy + vec2(2.0, 1.0)) / vec2(size, size));\n\
+                \n\
+                vec4 row3 =\n\
+                st0.s * getCubeSample((xy + vec2(-1.0, 2.0)) / vec2(size, size)) +\n\
+                st1.s * getCubeSample((xy + vec2(0.0, 2.0)) / vec2(size, size)) +\n\
+                st2.s * getCubeSample((xy + vec2(1.0, 2.0)) / vec2(size, size)) +\n\
+                st3.s * getCubeSample((xy + vec2(2.0, 2.0)) / vec2(size, size));\n\
+                \n\
+                return 0.25 * ((st0.t * row0) + (st1.t * row1) + (st2.t * row2) + (st3.t * row3));\n\
+            }\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_FragColor = filter16(gl_TexCoord[0].st * vec2(size, size));\n\
+                //gl_FragColor = getCubeSample(gl_TexCoord[0].st);\n\
+            }\n";
 
 		const std::string Fisheye_Frag_Shader_Normal = "\
 			#version 120\n\

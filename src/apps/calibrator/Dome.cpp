@@ -183,7 +183,7 @@ void Dome::generateDisplayList()
 		glVertex3f(-5.18765f, 5.939094f, -2.23591f);
 	glEnd();*/
 
-	glLineWidth(2.0f);
+	glLineWidth(5.0f);
 
 	for(float e=0.0f; e<=90.0f; e+=2.25f)
 	//for(int e=0; e<=90; e+=5)
@@ -475,7 +475,7 @@ void Dome::generateDisplayList()
 	glEndList();*/
 
 	glNewList( mTexDisplayList, GL_COMPILE );
-	glColor3f( 1.0f, 1.0f, 1.0f );
+	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	if( projectionType == FISHEYE )
 	{

@@ -16,6 +16,7 @@ if( APPLE  )
 	endif()
 endif()
 
+ADD_SUBDIRECTORY(calibrator)
 ADD_SUBDIRECTORY(clustertest)
 ADD_SUBDIRECTORY(depthBuffer)
 ADD_SUBDIRECTORY(example1)

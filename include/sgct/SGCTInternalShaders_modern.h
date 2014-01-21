@@ -95,6 +95,81 @@ namespace sgct_core
 			   gl_Position = MVP * vec4(Position, 1.0);\n\
 			   UV = TexCoords;\n\
 			}\n";
+        
+        const std::string Fisheye_Frag_Shader_Cubic = "\
+            #version 330 core\n\
+            \n\
+            in vec2 UV;\n\
+            out vec4 diffuse;\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform float halfFov;\n\
+            uniform vec4 bgColor;\n\
+            //float resolution = 1024.0;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            vec4 getCubeSample(vec2 texel)\n\
+            {\n\
+                float s = 2.0 * (texel.s - 0.5);\n\
+                float t = 2.0 * (texel.t - 0.5);\n\
+                float r2 = s*s + t*t;\n\
+                if( r2 <= 1.0 )\n\
+                {\n\
+                    float phi = sqrt(r2) * halfFov;\n\
+                    float theta = atan(s,t);\n\
+                    float x = sin(phi) * sin(theta);\n\
+                    float y = -sin(phi) * cos(theta);\n\
+                    float z = cos(phi);\n\
+                    vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+                    return texture(cubemap, rotVec);\n\
+                }\n\
+                else\n\
+                    return bgColor;\n\
+            }\n\
+            \n\
+            vec4 cubic(float x)\n\
+            {\n\
+                float x2 = x * x;\n\
+                float x3 = x2 * x;\n\
+                vec4 w;\n\
+                w.x =   -x3 + 3*x2 - 3*x + 1;\n\
+                w.y =  3*x3 - 6*x2       + 4;\n\
+                w.z = -3*x3 + 3*x2 + 3*x + 1;\n\
+                w.w =  x3;\n\
+                return w / 6.f;\n\
+            }\n\
+            \n\
+            vec4 filter(vec2 texcoord, vec2 texscale)\n\
+            {\n\
+                float fx = fract(texcoord.x);\n\
+                float fy = fract(texcoord.y);\n\
+                texcoord.x -= fx;\n\
+                texcoord.y -= fy;\n\
+                \n\
+                vec4 xcubic = cubic(fx);\n\
+                vec4 ycubic = cubic(fy);\n\
+                \n\
+                vec4 c = vec4(texcoord.x - 0.5, texcoord.x + 1.5, texcoord.y - 0.5, texcoord.y + 1.5);\n\
+                vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);\n\
+                vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;\n\
+                \n\
+                vec4 sample0 = getCubeSample(vec2(offset.x, offset.z) * texscale);\n\
+                vec4 sample1 = getCubeSample(vec2(offset.y, offset.z) * texscale);\n\
+                vec4 sample2 = getCubeSample(vec2(offset.x, offset.w) * texscale);\n\
+                vec4 sample3 = getCubeSample(vec2(offset.y, offset.w) * texscale);\n\
+                \n\
+                float sx = s.x / (s.x + s.y);\n\
+                float sy = s.z / (s.z + s.w);\n\
+                \n\
+                return mix(\n\
+                       mix(sample3, sample2, sx),\n\
+                       mix(sample1, sample0, sx), sy);\n\
+            }\n\
+            \n\
+            void main()\n\
+            {\n\
+                diffuse = filter(UV, vec2(1.0, 1.0));\n\
+            }\n";
 
 		const std::string Fisheye_Frag_Shader = "\
 			#version 330 core\n\

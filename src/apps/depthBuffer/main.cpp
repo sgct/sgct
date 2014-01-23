@@ -49,7 +49,7 @@ int fxFarLoc = -1;
 sgct_utils::SGCTSphere * mySphere = NULL;
 #endif
 
-void updatePass(float * mat)
+void updatePass()
 {
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);

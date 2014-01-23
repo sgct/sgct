@@ -47,7 +47,6 @@ public:
 	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
 	bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
 	void render(bool warped);
-	inline const double * getOrthoCoords() { return &mOrthoCoords[0]; }
 
 private:
 	bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
@@ -64,8 +63,6 @@ private:
 	unsigned int * mTempIndices;
 
 	CorrectionMeshGeometry mGeometries[2];
-    double mOrthoCoords[5];
-	unsigned int mResolution[2];
 
 	float mXSize;
 	float mYSize;

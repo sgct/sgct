@@ -17,8 +17,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/SharedData.h"
-#include "../include/sgct/SGCTInternalShaders.h"
-#include "../include/sgct/SGCTInternalShaders_modern.h"
+#include "../include/sgct/shaders/SGCTInternalShaders.h"
+#include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
 #include "../include/sgct/SGCTVersion.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ogl_headers.h"
@@ -1215,17 +1217,13 @@ void sgct::Engine::drawOverlays()
 				To ensure correct mapping enter the current viewport.
 			*/
 
-			//enter ortho mode
-			glm::mat4 orthoMat;
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
 				enterFisheyeViewport();
-				orthoMat = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
 			}
 			else
 			{
 				enterCurrentViewport();
-				orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
 			}
 
 			glActiveTexture(GL_TEXTURE0);
@@ -1234,7 +1232,6 @@ void sgct::Engine::drawOverlays()
 			mShaders[OverlayShader].bind();
 
 			glUniform1i( mShaderLocs[OverlayTex], 0);
-			glUniformMatrix4fv( mShaderLocs[OverlayMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
 			getActiveWindowPtr()->isUsingFisheyeRendering() ?
 				getActiveWindowPtr()->bindVAO(SGCTWindow::FishEyeQuad):
@@ -1267,6 +1264,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 			glMatrixMode(GL_PROJECTION);
 			glLoadIdentity();
 			glPushMatrix();
+			
 			/*
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
 				To ensure correct mapping enter the current viewport.
@@ -1274,14 +1272,13 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
 				enterFisheyeViewport();
-				glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 			}
 			else
 			{
 				enterCurrentViewport();
-				glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
 			}
 
+			glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 			glMatrixMode(GL_MODELVIEW);
 
 			glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -1292,7 +1289,6 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
 			glLoadIdentity();
-
 			glColor4f(1.0f,1.0f,1.0f,1.0f);
 
 			//glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
@@ -1381,9 +1377,6 @@ void sgct::Engine::renderFBOTexture()
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //needed for shaders
 
-	//enter ortho mode
-	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
-
 	//clear buffers
 	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
 	setAndClearBuffer(BackBufferBlack);
@@ -1403,7 +1396,6 @@ void sgct::Engine::renderFBOTexture()
 
 		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
 		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
-		glUniformMatrix4fv( getActiveWindowPtr()->getStereoShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 
 		for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
 			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
@@ -1416,7 +1408,6 @@ void sgct::Engine::renderFBOTexture()
 
 			mShaders[FBOQuadShader].bind(); //bind
 			glUniform1i(mShaderLocs[MonoTex], 0);
-			glUniformMatrix4fv(mShaderLocs[MonoMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
 			glActiveTexture(GL_TEXTURE0);
 			glEnable(GL_BLEND);
@@ -1441,7 +1432,6 @@ void sgct::Engine::renderFBOTexture()
 
 		mShaders[FBOQuadShader].bind(); //bind
 		glUniform1i( mShaderLocs[MonoTex], 0);
-		glUniformMatrix4fv( mShaderLocs[MonoMVP], 1, GL_FALSE, &orthoMat[0][0]);
 
 		for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
 			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
@@ -1503,7 +1493,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	glOrtho(0.0, 1.0, 0.0, 1.0, -1.0, 1.0);
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+
 	glMatrixMode(GL_MODELVIEW);
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
@@ -1556,8 +1547,6 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 			//clear buffers
 			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
-
-			glLoadIdentity();
 
 			glViewport(0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
 
@@ -1699,8 +1688,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				glDepthFunc( GL_ALWAYS );
 				statesSet = true;
 
-				glm::mat4 mat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
-
 				glActiveTexture(GL_TEXTURE0);
 				glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(FisheyeColorSwap));
 
@@ -1709,7 +1696,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 				//bind shader
 				getActiveWindowPtr()->bindFisheyeDepthCorrectionShaderProgram();
-				glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeSwapShaderMVPLoc(), 1, GL_FALSE, &mat[0][0]);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderColorLoc(), 0);
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
 				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderNearLoc(), mNearClippingPlaneDist);
@@ -1748,11 +1734,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-
-	/*
-		The code below flips the viewport vertically. Top & bottom coords are flipped.
-	*/
-	glm::mat4 orthoMat = glm::ortho( -1.0f, 1.0f, -1.0f, 1.0f, 0.1f, 2.0f );
 
 	enterFisheyeViewport();
 
@@ -1799,7 +1780,6 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		glDepthFunc( GL_ALWAYS );
 	}
 
-	glUniformMatrix4fv( getActiveWindowPtr()->getFisheyeShaderMVPLoc(), 1, GL_FALSE, &orthoMat[0][0]);
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
@@ -1975,23 +1955,11 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 				mClearBufferFn();
 
-				glMatrixMode(GL_PROJECTION);
-				glLoadIdentity();
-
-				glOrtho( 0.0,
-					1.0,
-					0.0,
-					1.0,
-					0.1,
-					2.0);
-
 				glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 				glMatrixMode(GL_TEXTURE);
 				glLoadIdentity();
 
-				glMatrixMode(GL_MODELVIEW);
-				glLoadIdentity();
-				glPushMatrix();
+				glMatrixMode(GL_MODELVIEW); //restore
 
 				//bind shader
 				getActiveWindowPtr()->bindFisheyeDepthCorrectionShaderProgram();
@@ -2036,7 +2004,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 				glPopClientAttrib();
 				ShaderProgram::unbind();
-				glPopMatrix();
 				glPopAttrib();
 			}//end if depthmap
 		}
@@ -2068,27 +2035,11 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
-	/*
-		The code below flips the viewport vertically. Top & bottom coords are flipped.
-	*/
-
-	glOrtho( -1.0,
-		1.0,
-		-1.0,
-		1.0,
-		0.1,
-		2.0);
-
 	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
-	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glPushMatrix();
+	glMatrixMode(GL_MODELVIEW); //restore
 	enterFisheyeViewport();
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2165,7 +2116,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	ShaderProgram::unbind();
 
 	glPopClientAttrib();
-	glPopMatrix();
 
 	glActiveTexture(GL_TEXTURE3);
 	glDisable(GL_TEXTURE_CUBE_MAP);
@@ -2409,11 +2359,6 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		/*
-			The code below flips the viewport vertically. Top & bottom coords are flipped.
-		*/
-		glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
-
 		//if for some reson the active texture has been reset
 		glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
 
@@ -2425,7 +2370,6 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture( Intermediate ) );
 
 		mShaders[FXAAShader].bind();
-		glUniformMatrix4fv( mShaderLocs[FXAA_MVP], 1, GL_FALSE, &orthoMat[0][0]);
 		glUniform1f( mShaderLocs[SizeX], static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()) );
 		glUniform1f( mShaderLocs[SizeY], static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) );
 		glUniform1i( mShaderLocs[FXAA_Texture], 0 );
@@ -2495,28 +2439,12 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT);
 
-		glMatrixMode(GL_PROJECTION);
-		glLoadIdentity();
-
-		/*
-			The code below flips the viewport vertically. Top & bottom coords are flipped.
-		*/
-
-		glOrtho( 0.0,
-			1.0,
-			0.0,
-			1.0,
-			0.1,
-			2.0);
-
 		//if for some reson the active texture has been reset
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 		glMatrixMode(GL_TEXTURE);
 		glLoadIdentity();
 
-		glMatrixMode(GL_MODELVIEW);
-		glLoadIdentity();
-		glPushMatrix();
+		glMatrixMode(GL_MODELVIEW); //restore
 		glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
@@ -2556,7 +2484,6 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 
 		glPopClientAttrib();
 		glPopAttrib();
-		glPopMatrix();
 	}
 }
 
@@ -2632,9 +2559,6 @@ void sgct::Engine::loadShaders()
 	mShaders[FXAAShader].createAndLinkProgram();
 	mShaders[FXAAShader].bind();
 
-	if( !mFixedOGLPipeline )
-		mShaderLocs[FXAA_MVP] = mShaders[FXAAShader].getUniformLocation( "MVP" );
-
 	mShaderLocs[SizeX] = mShaders[FXAAShader].getUniformLocation( "rt_w" );
 	glUniform1f( mShaderLocs[SizeX], static_cast<float>( getActiveWindowPtr()->getXFramebufferResolution()) );
 
@@ -2662,7 +2586,6 @@ void sgct::Engine::loadShaders()
 		mShaders[FBOQuadShader].addShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[FBOQuadShader].createAndLinkProgram();
 		mShaders[FBOQuadShader].bind();
-		mShaderLocs[MonoMVP] = mShaders[FBOQuadShader].getUniformLocation( "MVP" );
 		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[MonoTex], 0 );
 		ShaderProgram::unbind();
@@ -2672,7 +2595,6 @@ void sgct::Engine::loadShaders()
 		mShaders[OverlayShader].addShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
 		mShaders[OverlayShader].createAndLinkProgram();
 		mShaders[OverlayShader].bind();
-		mShaderLocs[OverlayMVP] = mShaders[OverlayShader].getUniformLocation( "MVP" );
 		mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[OverlayTex], 0 );
 		ShaderProgram::unbind();

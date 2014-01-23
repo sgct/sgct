@@ -23,24 +23,24 @@ GLint PostFX_Texture_Loc[] = { -1, -1, -1, -1};
 GLint Tex2_Loc = -1;
 GLint Size_Loc[] = { -1, -1 };
 
-void updatePass1(float * mat)
+void updatePass1()
 {
 	glUniform1i( PostFX_Texture_Loc[0], 0 );
 }
 
-void updatePass2(float * mat)
+void updatePass2()
 {
 	glUniform1i( PostFX_Texture_Loc[1], 0 );
 	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getActiveXResolution() ) );
 }
 
-void updatePass3(float * mat)
+void updatePass3()
 {
 	glUniform1i( PostFX_Texture_Loc[2], 0 );
 	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getActiveYResolution() ) );
 }
 
-void updatePass4(float * mat)
+void updatePass4()
 {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );

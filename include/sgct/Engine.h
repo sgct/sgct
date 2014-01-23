@@ -66,9 +66,9 @@ private:
 	enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
 	enum ViewportSpace { ScreenSpace = 0, FBOSpace };
 	enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
-	enum ShaderLocIndexes { MonoMVP = 0, MonoTex,
-			OverlayMVP, OverlayTex,
-			SizeX, SizeY, FXAA_MVP, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture };
+	enum ShaderLocIndexes { MonoTex = 0,
+			OverlayTex,
+			SizeX, SizeY, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture };
 
 public:
 	Engine( int& argc, char**& argv );

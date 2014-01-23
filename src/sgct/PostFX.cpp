@@ -86,7 +86,7 @@ void sgct::PostFX::render()
 		(this->*mRenderFn)();
 }
 
-void sgct::PostFX::setUpdateUniformsFunction( void(*fnPtr)(float * mat) )
+void sgct::PostFX::setUpdateUniformsFunction( void(*fnPtr)() )
 {
 	mUpdateFn = fnPtr;
 }
@@ -114,11 +114,6 @@ void sgct::PostFX::internalRender()
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
 
-	/*
-		The code below flips the viewport vertically. Top & bottom coords are flipped.
-	*/
-	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
-
 	//if for some reson the active texture has been reset
 	glViewport(0, 0, mXSize, mYSize);
 
@@ -128,7 +123,7 @@ void sgct::PostFX::internalRender()
 	mShaderProgram.bind();
 
 	if( mUpdateFn != NULL )
-		mUpdateFn( &orthoMat[0][0] );
+		mUpdateFn();
 
 	win->bindVAO( sgct::SGCTWindow::RenderQuad );
 	glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
@@ -147,17 +142,8 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	mXSize =  win->getXFramebufferResolution();
 	mYSize =  win->getYFramebufferResolution();
 
-	glMatrixMode(GL_PROJECTION);
-	glLoadIdentity();
-
 	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	glClear(GL_COLOR_BUFFER_BIT);
-
-	/*
-		The code below flips the viewport vertically. Top & bottom coords are flipped.
-	*/
-	glm::mat4 orthoMat = glm::ortho(0.0f, 1.0f, 0.0f, 1.0f);
-	glLoadMatrixf( &orthoMat[0][0] );
 
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
@@ -165,8 +151,6 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW);
-	glLoadIdentity();
-	glPushMatrix();
 
 	//if for some reson the active texture has been reset
 	glViewport(0, 0, mXSize, mYSize);
@@ -176,7 +160,7 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	mShaderProgram.bind();
 
 	if( mUpdateFn != NULL )
-		mUpdateFn( &orthoMat[0][0] );
+		mUpdateFn();
 
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
@@ -195,5 +179,4 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	ShaderProgram::unbind();
 
 	glPopClientAttrib();
-	glPopMatrix();
 }

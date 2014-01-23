@@ -3,14 +3,13 @@
 layout (location = 0) in vec2 TexCoords;
 layout (location = 1) in vec3 Position;
 
-uniform mat4 MVP;
 uniform float Size;
 out vec2 UV;
 out vec2 BlurUV[14]; 
 
 void main()
 {
-	gl_Position = MVP * vec4(Position, 1.0);
+	gl_Position = vec4(Position, 1.0);
 	UV = TexCoords;
 	
 	float step = 1.0/Size;

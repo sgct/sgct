@@ -85,11 +85,6 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 	mYSize = 1.0f;
 	mXOffset = 0.0f;
 	mYOffset = 0.0f;
-
-	mOrthoCoords[0] = 0.0;
-	mOrthoCoords[1] = 1.0;
-	mOrthoCoords[2] = 0.0;
-	mOrthoCoords[3] = 1.0;
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
@@ -189,6 +184,15 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 	unsigned int numberOfVertices = 0;
 	unsigned int numberOfIndices = 0;
 
+	double orthoCoords[4];
+	orthoCoords[0] = -1.0;
+	orthoCoords[1] = 1.0;
+	orthoCoords[2] = -1.0;
+	orthoCoords[3] = 1.0;
+	unsigned int resolution[2];
+	resolution[0] = 0;
+	resolution[1] = 0;
+
 	char lineBuffer[MAX_LINE_LENGTH];
 	while( !feof( meshFile ) )
 	{
@@ -200,10 +204,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 			if( sscanf(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5 )
 #endif
 			{
-				if( mTempVertices != NULL && mResolution[0] != 0 && mResolution[1] != 0 )
+				if( mTempVertices != NULL && resolution[0] != 0 && resolution[1] != 0 )
 				{
-					mTempVertices[numOfVerticesRead].x = (x / static_cast<float>(mResolution[0])) * mXSize + mXOffset;
-					mTempVertices[numOfVerticesRead].y = (y / static_cast<float>(mResolution[1])) * mYSize + mYOffset;
+					mTempVertices[numOfVerticesRead].x = (x / static_cast<float>(resolution[0])) * mXSize + mXOffset;
+					mTempVertices[numOfVerticesRead].y = (y / static_cast<float>(resolution[1])) * mYSize + mYOffset;
 					mTempVertices[numOfVerticesRead].r = static_cast<unsigned char>(intensity);
 					mTempVertices[numOfVerticesRead].g = static_cast<unsigned char>(intensity);
 					mTempVertices[numOfVerticesRead].b = static_cast<unsigned char>(intensity);
@@ -263,13 +267,13 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 #endif
 				{
 					if( strcmp(tmpString, "LEFT") == 0 )
-						mOrthoCoords[0] = tmpD;
+						orthoCoords[0] = tmpD;
 					else if( strcmp(tmpString, "RIGHT") == 0 )
-						mOrthoCoords[1] = tmpD;
+						orthoCoords[1] = tmpD;
 					else if( strcmp(tmpString, "BOTTOM") == 0 )
-						mOrthoCoords[2] = tmpD;
+						orthoCoords[2] = tmpD;
 					else if( strcmp(tmpString, "TOP") == 0 )
-						mOrthoCoords[3] = tmpD;
+						orthoCoords[3] = tmpD;
 				}
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -277,14 +281,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 #else
 				else if( sscanf(lineBuffer, "NATIVEXRES %u", &tmpUI) == 1 )
 #endif
-					mResolution[0] = tmpUI;
+					resolution[0] = tmpUI;
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 				else if( sscanf_s(lineBuffer, "NATIVEYRES %u", &tmpUI) == 1 )
 #else
 				else if( sscanf(lineBuffer, "NATIVEYRES %u", &tmpUI) == 1 )
 #endif
-					mResolution[1] = tmpUI;
+					resolution[1] = tmpUI;
 			}
 
 			//fprintf(stderr, "Row text: %s", lineBuffer);
@@ -296,6 +300,23 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Incorrect mesh data geometry!");
 		return false;
+	}
+
+	//normalize
+	for (unsigned int i = 0; i < numberOfVertices; i++)
+	{
+		float xMin = static_cast<float>(orthoCoords[0]);
+		float xMax = static_cast<float>(orthoCoords[1]);
+		float yMin = static_cast<float>(orthoCoords[2]);
+		float yMax = static_cast<float>(orthoCoords[3]);
+
+		//normalize between 0.0 and 1.0
+		float xVal = (mTempVertices[i].x - xMin) / (xMax - xMin);
+		float yVal = (mTempVertices[i].y - yMin) / (yMax - yMin);
+
+		//normalize between -1.0 to 1.0
+		mTempVertices[i].x = xVal * 2.0f - 1.0f;
+		mTempVertices[i].y = yVal * 2.0f - 1.0f;
 	}
 
 	fclose( meshFile );
@@ -536,9 +557,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 				texturedVertexList[i].tx, texturedVertexList[i].ty, texturedVertexList[i].tz);
 		}*/
 
-
-		mTempVertices[i].x = texturedVertexList[i].x * mXSize + mXOffset;
-		mTempVertices[i].y = (1.0f - texturedVertexList[i].y) * mYSize + mYOffset;
+		//convert to [-1, 1]
+		mTempVertices[i].x = 2.0f*(texturedVertexList[i].x * mXSize + mXOffset) - 1.0f;
+		mTempVertices[i].y = 2.0f*((1.0f - texturedVertexList[i].y) * mYSize + mYOffset) - 1.0f;
 
 		mTempVertices[i].s = texturedVertexList[i].tx * mXSize + mXOffset;
 		mTempVertices[i].t = texturedVertexList[i].ty * mYSize + mYOffset;
@@ -592,32 +613,32 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 	mTempVertices[0].b = 255;
 	mTempVertices[0].s = 0.0f * mXSize + mXOffset;
 	mTempVertices[0].t = 0.0f * mYSize + mYOffset;
-	mTempVertices[0].x = 0.0f * mXSize + mXOffset;
-	mTempVertices[0].y = 0.0f * mYSize + mYOffset;
+	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) -1.0f;
 
 	mTempVertices[1].r = 255;
 	mTempVertices[1].g = 255;
 	mTempVertices[1].b = 255;
 	mTempVertices[1].s = 1.0f * mXSize + mXOffset;
 	mTempVertices[1].t = 0.0f * mYSize + mYOffset;
-	mTempVertices[1].x = 1.0f * mXSize + mXOffset;
-	mTempVertices[1].y = 0.0f * mYSize + mYOffset;
+	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
 	mTempVertices[2].r = 255;
 	mTempVertices[2].g = 255;
 	mTempVertices[2].b = 255;
 	mTempVertices[2].s = 1.0f * mXSize + mXOffset;
 	mTempVertices[2].t = 1.0f * mYSize + mYOffset;
-	mTempVertices[2].x = 1.0f * mXSize + mXOffset;
-	mTempVertices[2].y = 1.0f * mYSize + mYOffset;
+	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[2].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
 
 	mTempVertices[3].r = 255;
 	mTempVertices[3].g = 255;
 	mTempVertices[3].b = 255;
 	mTempVertices[3].s = 0.0f * mXSize + mXOffset;
 	mTempVertices[3].t = 1.0f * mYSize + mYOffset;
-	mTempVertices[3].x = 0.0f * mXSize + mXOffset;
-	mTempVertices[3].y = 1.0f * mYSize + mYOffset;
+	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[3].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
 }
 
 void sgct_core::CorrectionMesh::setupMaskMesh()
@@ -645,32 +666,32 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempVertices[0].b = 255;
 	mTempVertices[0].s = 0.0f;
 	mTempVertices[0].t = 0.0f;
-	mTempVertices[0].x = 0.0f * mXSize + mXOffset;
-	mTempVertices[0].y = 0.0f * mYSize + mYOffset;
+	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
 	mTempVertices[1].r = 255;
 	mTempVertices[1].g = 255;
 	mTempVertices[1].b = 255;
 	mTempVertices[1].s = 1.0f;
 	mTempVertices[1].t = 0.0f;
-	mTempVertices[1].x = 1.0f * mXSize + mXOffset;
-	mTempVertices[1].y = 0.0f * mYSize + mYOffset;
+	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
 	mTempVertices[2].r = 255;
 	mTempVertices[2].g = 255;
 	mTempVertices[2].b = 255;
 	mTempVertices[2].s = 1.0f;
 	mTempVertices[2].t = 1.0f;
-	mTempVertices[2].x = 1.0f * mXSize + mXOffset;
-	mTempVertices[2].y = 1.0f * mYSize + mYOffset;
+	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[2].y = 2.0f*(1.0f *mYSize + mYOffset) - 1.0f;
 
 	mTempVertices[3].r = 255;
 	mTempVertices[3].g = 255;
 	mTempVertices[3].b = 255;
 	mTempVertices[3].s = 0.0f;
 	mTempVertices[3].t = 1.0f;
-	mTempVertices[3].x = 0.0f * mXSize + mXOffset;
-	mTempVertices[3].y = 1.0f * mYSize + mYOffset;
+	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
+	mTempVertices[3].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
 }
 
 void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * geomPtr)

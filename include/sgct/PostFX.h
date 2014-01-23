@@ -23,7 +23,7 @@ public:
 	bool init( const std::string & name, const std::string & vertShaderSrc, const std::string & fragShaderSrc, ShaderProgram::ShaderSourceType srcType = ShaderProgram::SHADER_SRC_FILE);
 	void destroy();
 	void render();
-	void setUpdateUniformsFunction( void(*fnPtr)(float * mat) );
+	void setUpdateUniformsFunction( void(*fnPtr)() );
 	void setInputTexture( unsigned int inputTex );
 	void setOutputTexture( unsigned int outputTex );
 	
@@ -49,7 +49,7 @@ private:
 	void internalRenderFixedPipeline();
 
 private:
-	void (*mUpdateFn)(float * mat);
+	void (*mUpdateFn)();
 	void (PostFX::*mRenderFn)(void);
 
 	ShaderProgram mShaderProgram;

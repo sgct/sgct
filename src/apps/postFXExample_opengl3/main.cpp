@@ -19,36 +19,31 @@ GLint Matrix_Loc = -1;
 sgct::SharedDouble curr_time(0.0);
 
 //Post FX shader locations
-GLint PostFX_Matrix_Loc[] = { -1, -1, -1, -1};
 GLint PostFX_Texture_Loc[] = { -1, -1, -1, -1};
 GLint Tex2_Loc = -1;
 GLint Size_Loc[] = { -1, -1 };
 
-void updatePass1(float * mat)
+void updatePass1()
 {
-	glUniformMatrix4fv( PostFX_Matrix_Loc[0], 1, GL_FALSE, mat);
 	glUniform1i( PostFX_Texture_Loc[0], 0 );
 }
 
-void updatePass2(float * mat)
+void updatePass2()
 {
-	glUniformMatrix4fv( PostFX_Matrix_Loc[1], 1, GL_FALSE, mat);
 	glUniform1i( PostFX_Texture_Loc[1], 0 );
 	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getActiveXResolution() ) );
 }
 
-void updatePass3(float * mat)
+void updatePass3()
 {
-	glUniformMatrix4fv( PostFX_Matrix_Loc[2], 1, GL_FALSE, mat);
 	glUniform1i( PostFX_Texture_Loc[2], 0 );
 	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getActiveYResolution() ) );
 }
 
-void updatePass4(float * mat)
+void updatePass4()
 {
 	glActiveTexture(GL_TEXTURE1);
 	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
-	glUniformMatrix4fv( PostFX_Matrix_Loc[3], 1, GL_FALSE, mat);
 	glUniform1i( PostFX_Texture_Loc[3], 0 );
 	glUniform1i( Tex2_Loc, 1 );
 }
@@ -62,7 +57,6 @@ void setupPostFXs()
 	fx[0].setUpdateUniformsFunction( updatePass1 );
 	sp = fx[0].getShaderProgram();
 	sp->bind();
-		PostFX_Matrix_Loc[0] = sp->getUniformLocation( "MVP" );
 		PostFX_Texture_Loc[0] = sp->getUniformLocation( "Tex" );
 		Tex2_Loc = sp->getUniformLocation( "TexOrig" );
 	sp->unbind();
@@ -72,7 +66,6 @@ void setupPostFXs()
 	fx[1].setUpdateUniformsFunction( updatePass2 );
 	sp = fx[1].getShaderProgram();
 	sp->bind();
-		PostFX_Matrix_Loc[1] = sp->getUniformLocation( "MVP" );
 		PostFX_Texture_Loc[1] = sp->getUniformLocation( "Tex" );
 		Size_Loc[0] = sp->getUniformLocation( "Size" );
 	sp->unbind();
@@ -82,7 +75,6 @@ void setupPostFXs()
 	fx[2].setUpdateUniformsFunction( updatePass3 );
 	sp = fx[2].getShaderProgram();
 	sp->bind();
-		PostFX_Matrix_Loc[2] = sp->getUniformLocation( "MVP" );
 		PostFX_Texture_Loc[2] = sp->getUniformLocation( "Tex" );
 		Size_Loc[1] = sp->getUniformLocation( "Size" );
 	sp->unbind();
@@ -92,7 +84,6 @@ void setupPostFXs()
 	fx[3].setUpdateUniformsFunction( updatePass4 );
 	sp = fx[3].getShaderProgram();
 	sp->bind();
-		PostFX_Matrix_Loc[3] = sp->getUniformLocation( "MVP" );
 		PostFX_Texture_Loc[3] = sp->getUniformLocation( "Tex" );
 		Tex2_Loc = sp->getUniformLocation( "TexOrig" );
 	sp->unbind();

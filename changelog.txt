@@ -2,6 +2,10 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-01-23 SGCT ver 2.1.0
+---------------------------
+* Optimized shaders by removing projection matrix multiplication by changing all ortho meshes to [-1,1]
+
 2014-01-21 SGCT ver 2.1.0
 ---------------------------
 * Added support for getting texture dimensions and path in texture manager

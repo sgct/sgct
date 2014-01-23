@@ -11,8 +11,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/SGCTInternalShaders.h"
-#include "../include/sgct/SGCTInternalShaders_modern.h"
+#include "../include/sgct/shaders/SGCTInternalShaders.h"
+#include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
@@ -68,7 +70,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mAspectRatio = 1.0f;
 	mShotCounter = 0;
 
-	FisheyeMVP		= -1;
 	Cubemap			= -1;
 	DepthCubemap	= -1;
 	NormalCubemap	= -1;
@@ -76,7 +77,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	FishEyeHalfFov	= -1;
 	FishEyeBGColor	= -1;
 	FisheyeOffset	= -1;
-	FishEyeSwapMVP	= -1;
 	FishEyeSwapColor = -1;
 	FishEyeSwapDepth = -1;
 	FishEyeSwapNear	= -1;
@@ -105,19 +105,19 @@ sgct::SGCTWindow::SGCTWindow(int id)
 
 	mQuadVerts[0] = 0.0f;
 	mQuadVerts[1] = 0.0f;
-	mQuadVerts[2] = 0.0f;
-	mQuadVerts[3] = 0.0f;
+	mQuadVerts[2] = -1.0f;
+	mQuadVerts[3] = -1.0f;
 	mQuadVerts[4] = -1.0f;
 
 	mQuadVerts[5] = 1.0f;
 	mQuadVerts[6] = 0.0f;
 	mQuadVerts[7] = 1.0f;
-	mQuadVerts[8] = 0.0f;
+	mQuadVerts[8] = -1.0f;
 	mQuadVerts[9] = -1.0f;
 
 	mQuadVerts[10] = 0.0f;
 	mQuadVerts[11] = 1.0f;
-	mQuadVerts[12] = 0.0f;
+	mQuadVerts[12] = -1.0f;
 	mQuadVerts[13] = 1.0f;
 	mQuadVerts[14] = -1.0f;
 
@@ -1747,11 +1747,6 @@ void sgct::SGCTWindow::loadShaders()
 		mFisheyeShader.createAndLinkProgram();
 		mFisheyeShader.bind();
 
-		if( !Engine::instance()->isOGLPipelineFixed() )
-		{
-			FisheyeMVP = mFisheyeShader.getUniformLocation( "MVP" );
-		}
-
 		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
 		glUniform1i( Cubemap, 0 );
 
@@ -1825,8 +1820,6 @@ void sgct::SGCTWindow::loadShaders()
 			mFisheyeDepthCorrectionShader.createAndLinkProgram();
 			mFisheyeDepthCorrectionShader.bind();
 
-			if( !Engine::instance()->isOGLPipelineFixed() )
-				FishEyeSwapMVP = mFisheyeDepthCorrectionShader.getUniformLocation( "MVP" );
 			FishEyeSwapColor = mFisheyeDepthCorrectionShader.getUniformLocation( "cTex" );
 			glUniform1i( FishEyeSwapColor, 0 );
 			FishEyeSwapDepth = mFisheyeDepthCorrectionShader.getUniformLocation( "dTex" );

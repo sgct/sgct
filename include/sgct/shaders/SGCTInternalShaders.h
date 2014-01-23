@@ -16,20 +16,8 @@ namespace sgct_core
 		All shaders are in GLSL 1.2 for compability with Mac OS X
 	*/
 
-	/*! \namespace shaders
-	\brief shaders namespace contains legacy opengl shaders
-	*/
 	namespace shaders
 	{
-		const std::string Base_Vert_Shader = "\
-			#version 120\n\
-			\n\
-			void main()\n\
-			{\n\
-				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_Position = gl_Vertex;\n\
-			}\n";
-
 		const std::string Anaglyph_Vert_Shader = "\
 			#version 120\n\
 			\n\

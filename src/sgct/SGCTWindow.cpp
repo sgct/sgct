@@ -148,6 +148,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mScreenCapture = NULL;
 
 	mCurrentViewportIndex = 0;
+	mCurrentContext = Unset_Context;
 }
 
 /*!
@@ -545,8 +546,12 @@ void sgct::SGCTWindow::update()
 */
 void sgct::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
-	if( sgct_core::ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 )
+	//if single window or current == new
+	if( sgct_core::ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 ||
+		mCurrentContext == context)
 		return;
+
+	mCurrentContext = context;
 
 	if( context == Window_Context )
 		glfwMakeContextCurrent( mWindowHandle );
@@ -1530,7 +1535,7 @@ void sgct::SGCTWindow::loadShaders()
 
 		if( Engine::instance()->isOGLPipelineFixed() )
 		{
-			mFisheyeShader.addShaderSrc( sgct_core::shaders::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
 			if(mFisheyeOffaxis)
 			{
@@ -1540,19 +1545,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1562,19 +1567,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}	
@@ -1587,19 +1592,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1609,20 +1614,20 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
                         //mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1631,13 +1636,13 @@ void sgct::SGCTWindow::loadShaders()
 			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_fisheye::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
 		else //modern pipeline
 		{
-			mFisheyeShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+			mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
 			if(mFisheyeOffaxis)
 			{
@@ -1647,19 +1652,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1669,19 +1674,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1694,19 +1699,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1716,20 +1721,20 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
                         //mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 						break;
 					}
 				}
@@ -1738,8 +1743,8 @@ void sgct::SGCTWindow::loadShaders()
 			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-				mFisheyeDepthCorrectionShader.addShaderSrc( sgct_core::shaders_modern::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
 

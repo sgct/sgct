@@ -164,7 +164,7 @@ void sgct_core::Statistics::initVBO(bool fixedPipeline)
 			glEnableVertexAttribArray(0);
 		}
 		glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
-		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_DYNAMIC_DRAW );
+		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_STREAM_DRAW);
 		if(!mFixedPipeline)
 			glVertexAttribPointer( 0, 2, GL_DOUBLE, GL_FALSE, 0, NULL );
 	}
@@ -329,39 +329,29 @@ void sgct_core::Statistics::addSyncTime(double t)
 	mAvgSyncTime += (t/static_cast<double>(STATS_AVERAGE_LENGTH));
 }
 
-void sgct_core::Statistics::draw(unsigned int frameNumber, float lineWidth)
+void sgct_core::Statistics::update()
 {
-	//make sure to only update the VBOs once per frame
-	static unsigned int lastFrameNumber = 0;
-	bool updateGPU = true;
-	if( lastFrameNumber == frameNumber )
-		updateGPU = false;
-	lastFrameNumber = frameNumber;
+	GLvoid* PositionBuffer;
 
-	//update buffers if needed
-	if( updateGPU )
+	for (unsigned int i = 0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 	{
-		GLvoid* PositionBuffer;
+		glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
 
-		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
-		{
-			glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBOs[i]);
-			PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-			if( PositionBuffer != NULL )
-				memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
-			//This shouldn't happen.. but in case
-			if( glUnmapBuffer(GL_ARRAY_BUFFER) == GL_FALSE )
-			{
-				//re-init
-				glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), getVerts(i), GL_DYNAMIC_DRAW );
-				if(!mFixedPipeline)
-					glVertexAttribPointer( 0, 2, GL_DOUBLE, GL_FALSE, 0, NULL );
-			}
-		}
+		glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex), NULL, GL_STREAM_DRAW);
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+		//PositionBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, STATS_HISTORY_LENGTH * sizeof(StatsVertex), GL_MAP_WRITE_BIT | GL_MAP_INVALIDATE_BUFFER_BIT);
 
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+		if (PositionBuffer != NULL)
+			memcpy(PositionBuffer, getVerts(i), STATS_HISTORY_LENGTH * sizeof(StatsVertex));
+
+		glUnmapBuffer(GL_ARRAY_BUFFER);
 	}
 
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
+}
+
+void sgct_core::Statistics::draw(float lineWidth)
+{
 	mShader.bind();
 
 	if(mFixedPipeline)

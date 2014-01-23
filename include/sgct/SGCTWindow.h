@@ -36,7 +36,7 @@ public:
 
 	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
-	enum OGL_Context { Shared_Context = 0, Window_Context };
+	enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
 	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture};
 
 public:
@@ -264,6 +264,8 @@ private:
 
 	bool mUseFXAA;
 	bool mUsePostFX;
+
+	OGL_Context mCurrentContext;
 
 	//FBO stuff
 	unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];

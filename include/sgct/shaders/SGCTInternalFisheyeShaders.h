@@ -16,11 +16,17 @@ namespace sgct_core
 		All shaders are in GLSL 1.2 for compability with Mac OS X
 	*/
 
-	/*! \namespace shaders
-	\brief shaders namespace contains legacy opengl shaders
-	*/
-	namespace shaders
+	namespace shaders_fisheye
 	{
+		const std::string Base_Vert_Shader = "\
+			#version 120\n\
+			\n\
+			void main()\n\
+			{\n\
+				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+				gl_Position = gl_Vertex;\n\
+			}\n";
+		
 		const std::string Fisheye_Vert_Shader = "\
 			#version 120\n\
 			\n\
@@ -628,7 +634,7 @@ namespace sgct_core
 				//gl_FragDepth = texture2D(dTex, gl_TexCoord[0].st).x;//no warping\n\
 			}\n";
 
-		const std::string Fisheye_Frag_Shader_Cubic = "\
+		const std::string Fisheye_Frag_Shader_Cubic_Test = "\
             #version 120\n\
             \n\
             uniform samplerCube cubemap;\n\

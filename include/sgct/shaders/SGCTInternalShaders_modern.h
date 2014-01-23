@@ -16,9 +16,6 @@ namespace sgct_core
 		Contains GLSL 3.3+ shaders
 	*/
 
-	/*! \namespace shaders_modern
-	\brief shaders_modern namespace contains modern opengl shaders
-	*/
 	namespace shaders_modern
 	{
 		const std::string Base_Vert_Shader = "\

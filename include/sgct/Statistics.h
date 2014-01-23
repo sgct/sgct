@@ -40,7 +40,8 @@ public:
 	void setSyncTime(double t);
 	void setLoopTime(double min, double max);
 	void addSyncTime(double t);
-	void draw(unsigned int frameNumber, float lineWidth);
+	void update();
+	void draw(float lineWidth);
 
 	const double & getAvgFPS() { return mAvgFPS; }
 	const double & getAvgDrawTime() { return mAvgDrawTime; }

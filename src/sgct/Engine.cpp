@@ -974,10 +974,6 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Running post-sync\n");
 #endif
-		//run post frame actions
-		if( mPostDrawFn != NULL )
-			mPostDrawFn();
-
 		/*
 			For single threaded rendering glFinish should be fine to use for frame sync.
 			For multitheded usage a glFenceSync fence should be used to synchronize all GPU threads.
@@ -987,10 +983,9 @@ void sgct::Engine::render()
 		*/
 		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
+		getActiveWindowPtr()->makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
 		if( mTakeScreenshot )
 		{
-            getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
-
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 				if( mThisNode->getWindowPtr(i)->isVisible() )
 				{
@@ -1016,6 +1011,13 @@ void sgct::Engine::render()
 #endif
 		//master will wait for nodes render before swapping
 		frameLock(PostStage);
+
+		//run post frame actions
+		if (mPostDrawFn != NULL)
+			mPostDrawFn();
+
+		if (mShowGraph)
+			mStatistics->update();
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Swap buffers\n");
@@ -2300,7 +2302,7 @@ void sgct::Engine::render2D()
 			getActiveWindowPtr()->isUsingFisheyeRendering() ? enterFisheyeViewport() : enterCurrentViewport();
 
 			if( mShowGraph )
-				mStatistics->draw(mFrameCounter,
+				mStatistics->draw(
 					static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
 			/*
 				The text renderer enters automatically the correct viewport

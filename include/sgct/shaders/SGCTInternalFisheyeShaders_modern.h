@@ -16,11 +16,22 @@ namespace sgct_core
 		Contains GLSL 3.3+ shaders
 	*/
 
-	/*! \namespace shaders_modern
-	\brief shaders_modern namespace contains modern opengl shaders
-	*/
-	namespace shaders_modern
+	namespace shaders_modern_fisheye
 	{
+		const std::string Base_Vert_Shader = "\
+			#version 330 core\n\
+			\n\
+			layout (location = 0) in vec2 TexCoords;\n\
+			layout (location = 1) in vec3 Position;\n\
+			\n\
+			out vec2 UV;\n\
+			\n\
+			void main()\n\
+			{\n\
+			   gl_Position = vec4(Position, 1.0);\n\
+			   UV = TexCoords;\n\
+			}\n";
+		
 		const std::string Fisheye_Vert_Shader = "\
 			#version 330 core\n\
 			\n\
@@ -683,7 +694,7 @@ namespace sgct_core
 				gl_FragDepth = convertBack(r);\n\
 			}\n";
 
-		const std::string Fisheye_Frag_Shader_Cubic = "\
+		const std::string Fisheye_Frag_Shader_Cubic_Test = "\
             #version 330 core\n\
             \n\
             in vec2 UV;\n\

@@ -64,10 +64,12 @@ public:
 	void setStrokeSize( signed long size );
 	void setStrokeColor( glm::vec4 color );
 	void setDrawInScreenSpace( bool state );
+	void setUseMipMaps( bool state );
 
 	inline glm::vec4 getStrokeColor() { return mStrokeColor; }
 	inline signed long getStrokeSize() { return mStrokeSize; }
 	inline bool getDrawInScreenSpace() { return mDrawInScreenSpace; }
+	inline bool getUseMipMaps() { return mUseMipMaps; }
 
 	sgct::ShaderProgram getShader() { return mShader; }
 	inline unsigned int getMVPLoc() { return mMVPLoc; }
@@ -119,6 +121,7 @@ private:
 	glm::vec4 mStrokeColor;
 
 	bool mDrawInScreenSpace;
+	bool mUseMipMaps;
 
 	std::map<std::string, std::string> mFontPaths;	// Holds all predefined font paths for generating font glyphs
 	std::set<Font> mFonts;				// All generated fonts

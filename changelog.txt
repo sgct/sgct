@@ -6,6 +6,7 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 ---------------------------
 * Optimized shaders by removing projection matrix multiplication by changing all ortho meshes to [-1,1]
 * Optimized Statistics by updating the buffers before swapping front and back buffers.
+* Added mipmap support in font manager
 
 2014-01-21 SGCT ver 2.1.0
 ---------------------------

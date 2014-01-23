@@ -492,12 +492,12 @@ void sgct::Engine::initOGL()
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
 		mFixedOGLPipeline ? "comp. profile" : "core profile");
 
-	if( !GLEW_EXT_framebuffer_object && mOpenGL_Version[0] < 2)
+	if (!glfwExtensionSupported("GL_EXT_framebuffer_object") && mOpenGL_Version[0] < 2)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! Frame buffer objects are not supported! A lot of features in SGCT will not work!\n");
 		SGCTSettings::instance()->setUseFBO( false );
 	}
-	else if(!GLEW_EXT_framebuffer_multisample && mOpenGL_Version[0] < 2)
+	else if (!glfwExtensionSupported("GL_EXT_framebuffer_multisample") && mOpenGL_Version[0] < 2)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Warning! FBO multisampling is not supported!\n");
 		SGCTSettings::instance()->setUseFBO( true );
@@ -2709,10 +2709,10 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 	{
 		//check if swapgroups are supported
 		#ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") )
+		if (glfwExtensionSupported("WGL_NV_swap_group"))
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
 		#else
-		if( glewIsSupported("GLX_NV_swap_group") )
+		if( glfwExtensionSupported("GLX_NV_swap_group") )
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are supported by hardware.\n");
 		#endif
 		else

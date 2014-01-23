@@ -45,7 +45,6 @@ public:
 	void setFormat(CaptureFormat cf);
 	CaptureFormat getFormat();
 	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
-	void SaveTexture(unsigned int textureId, unsigned int target, int level, std::string path);
 	void setUsePBO(bool state);
 
 private: 

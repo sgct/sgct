@@ -33,8 +33,6 @@ double tilt = 0.0;
 std::vector<glm::vec3> colors;
 std::vector<std::pair<std::string, unsigned int>> textures;
 
-sgct_core::ScreenCapture * imageSaver;
-
 int main( int argc, char* argv[] )
 {
 
@@ -91,8 +89,7 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up (de-allocate)
-    delete imageSaver;
-	delete gEngine;
+    delete gEngine;
 
 	// Exit program
 	exit( EXIT_SUCCESS );
@@ -173,10 +170,6 @@ void initGL()
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_COLOR_MATERIAL);
 	//glEnable(GL_NORMALIZE);
-    
-    imageSaver = new sgct_core::ScreenCapture();
-    imageSaver->init(0);
-    imageSaver->initOrResize(4096, 4096, 3);
 }
 
 void preSync()
@@ -276,23 +269,6 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				showGeoCorrectionPattern.toggle();
 			break;
-                
-		case SGCT_KEY_T:
-			if (action == SGCT_PRESS)
-			{
-				imageSaver->SaveTexture(textures[0].second, GL_TEXTURE_2D, 0, "test.png");
-				
-				imageSaver->setUsePBO(false);
-				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_X, 0, "Cubemap_right.png");
-				//imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_X, 0, "Cubemap1.png");
-				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_Y, 0, "Cubemap_bottom.png");
-				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_Y, 0, "Cubemap_top.png");
-				imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_POSITIVE_Z, 0, "Cubemap_left.png");
-				//imageSaver->SaveTexture(sgct::Engine::instance()->getActiveWindowPtr()->getFrameBufferTexture(sgct::Engine::CubeMap), GL_TEXTURE_CUBE_MAP_NEGATIVE_Z, 0, "Cubemap5.png");
-
-				imageSaver->setUsePBO(true); //restore
-			}
-            break;
 
 		case SGCT_KEY_P:
 			if(action == SGCT_PRESS)

@@ -653,6 +653,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if (element[1]->Attribute("value") != NULL)
 						sgct::SGCTSettings::instance()->setUsePositionTexture(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
 				}
+				else if (strcmp("PBO", val[1]) == 0)
+				{
+					if (element[1]->Attribute("value") != NULL)
+						sgct::SGCTSettings::instance()->setUsePBO(strcmp(element[1]->Attribute("value"), "true") == 0 ? true : false);
+				}
 				else if (strcmp("Precision", val[1]) == 0)
 				{
 					int fprec = 0;

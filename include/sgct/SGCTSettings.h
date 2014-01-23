@@ -68,6 +68,7 @@ public:
 	void setDefaultNumberOfAASamples(int samples);
 	void setDefaultFXAAState(bool state);
 	void setForceGlTexImage2D(bool state);
+	void setUsePBO(bool state);
 	
 	// ----------- get functions ---------------- //
 	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
@@ -81,6 +82,7 @@ public:
 	int					getDefaultNumberOfAASamples();
 	bool				getDefaultFXAAState();
 	bool				getForceGlTexImage2D();
+	bool				getUsePBO();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -132,6 +134,7 @@ private:
 	bool mUseFBO;
 	bool mDefaultFXAA;
 	bool mForceGlTexImage2D;
+	bool mUsePBO;
 
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;

@@ -261,7 +261,7 @@ void sgct::SGCTWindow::close()
 //#ifdef __WITHSWAPBARRIERS__
 
 #ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") )
+		if (glfwExtensionSupported("WGL_NV_swap_group"))
 		{
 			//un-bind
 			wglBindSwapBarrierNV(1,0);
@@ -270,7 +270,7 @@ void sgct::SGCTWindow::close()
 		}
 #else
     #ifndef __APPLE__
-		if( glewIsSupported("GLX_NV_swap_group") )
+		if( glfwExtensionSupported("GLX_NV_swap_group") )
 		{
 			//un-bind
 			glXBindSwapBarrierNV(disp,1,0);
@@ -860,7 +860,7 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 	setUseSwapGroups(true);
 
 #ifdef __WIN32__ //Windows uses wglew.h
-	if (wglewIsSupported("WGL_NV_swap_group") && mUseSwapGroups)
+	if (glfwExtensionSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
@@ -896,7 +896,7 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
 
-    if (glewIsSupported("GLX_NV_swap_group") && mUseSwapGroups)
+	if (glfwExtensionSupported("GLX_NV_swap_group") && mUseSwapGroups)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
@@ -972,7 +972,9 @@ void sgct::SGCTWindow::initScreenCapture()
 {
 	//init PBO in screen capture
 	mScreenCapture->init( mId );
-	mScreenCapture->setUsePBO( GLEW_EXT_pixel_buffer_object && glfwGetWindowAttrib( mWindowHandle, GLFW_CONTEXT_VERSION_MAJOR) > 1 ); //if supported then use them
+	mScreenCapture->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
+		SGCTSettings::instance()->getUsePBO()); //if supported then use them
+	
 	if( mFisheyeMode && !mFisheyeAlpha )
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
 	else
@@ -991,11 +993,11 @@ void sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
 	{
 
     #ifdef __WIN32__ //Windows uses wglew.h
-		if( wglewIsSupported("WGL_NV_swap_group") )
+		if (glfwExtensionSupported("WGL_NV_swap_group"))
 			wglQueryFrameCountNV(hDC, &frameNumber);
     #else //Apple and Linux uses glext.h
         #ifndef __APPLE__
-		if( glewIsSupported("GLX_NV_swap_group") )
+		if( glfwExtensionSupported("GLX_NV_swap_group") )
 			glXQueryFrameCountNV(disp, hDC, &frameNumber);
         #endif
     #endif
@@ -1011,12 +1013,12 @@ void sgct::SGCTWindow::resetSwapGroupFrameNumber()
 	if (mBarrier)
 	{
 #ifdef __WIN32__
-		if( wglewIsSupported("WGL_NV_swap_group") && wglResetFrameCountNV(hDC) )
+		if ( glfwExtensionSupported("WGL_NV_swap_group") && wglResetFrameCountNV(hDC) )
 #else
     #ifdef __APPLE__
         if(false)
     #else //linux
-		if( glewIsSupported("GLX_NV_swap_group") && glXResetFrameCountNV(disp,hDC) )
+		if( glfwExtensionSupported("GLX_NV_swap_group") && glXResetFrameCountNV(disp,hDC) )
     #endif
 #endif
 		{

@@ -24,6 +24,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUsePositionTexture = false;
 	mUseFBO = true;
 	mForceGlTexImage2D = false;
+	mUsePBO = true;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -344,6 +345,22 @@ Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern). Fo
 bool sgct::SGCTSettings::getForceGlTexImage2D()
 {
 	return mForceGlTexImage2D;
+}
+
+/*!
+Set if pixel buffer object transferes should be used
+*/
+void sgct::SGCTSettings::setUsePBO(bool state)
+{
+	mUsePBO = state;
+}
+
+/*!
+Get if pixel buffer object transferes should be used
+*/
+bool sgct::SGCTSettings::getUsePBO()
+{
+	return mUsePBO;
 }
 
 /*!

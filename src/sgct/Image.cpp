@@ -143,10 +143,12 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	png_read_png( png_ptr, info_ptr,
                 PNG_TRANSFORM_STRIP_16 |
                 PNG_TRANSFORM_PACKING |
-                PNG_TRANSFORM_EXPAND, NULL );
+                PNG_TRANSFORM_EXPAND | 
+				PNG_TRANSFORM_BGR, NULL);
+	png_set_bgr(png_ptr);
 
-	//channels = png_get_channels(png_ptr, info_ptr);
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
+	png_set_bgr(png_ptr);
 
 	if(color_type == PNG_COLOR_TYPE_GRAY )
 	{
@@ -281,6 +283,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	//set compression
 	png_set_compression_level( png_ptr, compressionLevel );
 	png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
+	//png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
@@ -318,8 +321,10 @@ bool sgct_core::Image::savePNG(int compressionLevel)
     png_set_IHDR(png_ptr, info_ptr, mSize_x, mSize_y,
         8, color_type, PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
-
-    png_write_info(png_ptr, info_ptr);
+	
+	if (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+		png_set_bgr(png_ptr);
+	png_write_info(png_ptr, info_ptr);
 
 	/* write bytes */
     if (setjmp(png_jmpbuf(png_ptr)))

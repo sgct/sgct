@@ -8,15 +8,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <fstream>
 #include "../include/external/png.h"
-#include <stdlib.h>
-
-#ifdef __WIN32__
 #include "../include/external/pngpriv.h"
-#endif
+#include <stdlib.h>
 
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/SGCTSettings.h"
+#include "../include/sgct/Engine.h"
 
 sgct_core::Image::Image()
 {
@@ -259,7 +257,9 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	if( mData == NULL && !allocateOrResizeData())
 		return false;
 
-	FILE *fp = NULL;
+	double t0 = sgct::Engine::getTime();
+    
+    FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename, "wb") != 0 || !fp )
 	{
@@ -281,9 +281,22 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 		return false;
 
 	//set compression
-	png_set_compression_level( png_ptr, compressionLevel );
-	png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
+	//png_set_compression_level( png_ptr, compressionLevel );
+    png_set_compression_level( png_ptr, 0 );
+	//png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
+    
+    png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
+    
+    png_set_compression_mem_level(png_ptr, 8);
+    //png_set_compression_mem_level(png_ptr, MAX_MEM_LEVEL);
+    
 	//png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
+    png_set_compression_strategy(png_ptr, Z_RLE);
+    //png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
+    
+    png_set_compression_window_bits(png_ptr, 15);
+    png_set_compression_method(png_ptr, 8);
+    png_set_compression_buffer_size(png_ptr, 8192);
 
     png_infop info_ptr = png_create_info_struct(png_ptr);
     if (!info_ptr)
@@ -344,7 +357,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully!\n", mFilename);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }
@@ -353,6 +366,8 @@ bool sgct_core::Image::saveTGA()
 {
 	if( mData == NULL && !allocateOrResizeData())
 		return false;
+    
+    double t0 = sgct::Engine::getTime();
 
 	FILE *fp = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -394,7 +409,8 @@ bool sgct_core::Image::saveTGA()
 	switch( mChannels )
 	{
 	default:
-		data_type = 2;
+		//data_type = 2;//uncompressed RGB
+        data_type = 10;//RLE compressed RGB
 		break;
 
 	case 1:
@@ -420,16 +436,102 @@ bool sgct_core::Image::saveTGA()
 		"TRUEVISION-XFILE"  // yep, this is a TGA file
 		".";
 
-	for(int y=0; y<mSize_y; y++)
-		fwrite( &mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
+    //write row-by-row
+    if( data_type != 10 ) //Non RLE compression
+    {
+        for(int y=0; y<mSize_y; y++)
+            fwrite( &mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
+    }
+    else //RLE ->only for RBG and minimum size is 3x3
+    {
+        for(int y=0; y<mSize_y; y++)
+        {
+            int pos = 0;
+            unsigned char * row;
+            
+            while (pos < mSize_y)
+            {
+                row = &mData[y * mSize_x * mChannels];
+                bool rle = isTGAPackageRLE(row, pos);
+                int len = getTGAPackageLength(row, pos, rle);
+                
+                unsigned char packetHeader = static_cast<unsigned char>(len) - 1;
+                
+                if (rle)
+                    packetHeader |= (1 << 7);
+                
+                fwrite( &packetHeader, 1, 1, fp);
+                
+                rle ?
+                    fwrite( row + pos * mChannels, mChannels, 1, fp) :
+                    fwrite( row + pos * mChannels, mChannels, len, fp);
+                
+                pos += len;
+
+            }
+        }//end for
+    }//end if RLE
 
 	fwrite(footer, sizeof(char), sizeof(footer), fp);
 
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: '%s' was saved successfully!\n", mFilename);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
+}
+
+bool sgct_core::Image::isTGAPackageRLE(unsigned char * row, int pos)
+{
+    if (pos == mSize_x - 1)
+        return false;
+    
+    unsigned char * p0 = row + pos * mChannels;
+    unsigned char * p1 = p0 + mChannels;
+    
+    //minimum three same pixels in row
+    return ((pos < mSize_x - 2) && memcmp(p0, p1, mChannels) == 0 && memcmp(p1, p1 + mChannels, mChannels) == 0);
+}
+
+int sgct_core::Image::getTGAPackageLength(unsigned char * row, int pos, bool rle)
+{
+    if (mSize_x - pos < 3)
+        return mSize_x - pos;
+    
+    /*if (pos == mSize_x - 1)
+        return 1;
+    
+    if (pos == mSize_x - 2)
+        return 2;*/
+    
+    int len = 2;
+    if (rle)
+    {
+        while (pos + len < mSize_x)
+        {
+            if ( memcmp(&row[pos * mChannels], &row[(pos+len) * mChannels], mChannels) == 0 )
+                len++;
+            else
+                return len;
+            
+            if (len == 128)
+                return 128;
+        }
+    }
+    else
+    {
+        while (pos + len < mSize_x)
+        {
+            if(isTGAPackageRLE(row, pos+len))
+               return len;
+            else
+               len++;
+            
+            if (len == 128)
+                return 128;
+        }
+    }
+    return len;
 }
 
 void sgct_core::Image::setFilename(const char * filename)

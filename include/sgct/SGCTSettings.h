@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdio.h>
 #include <string>
+#include "external/tinythread.h"
 
 namespace sgct
 {
@@ -69,6 +70,7 @@ public:
 	void setDefaultFXAAState(bool state);
 	void setForceGlTexImage2D(bool state);
 	void setUsePBO(bool state);
+	void setUseRLE(bool state);
 	
 	// ----------- get functions ---------------- //
 	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
@@ -83,6 +85,8 @@ public:
 	bool				getDefaultFXAAState();
 	bool				getForceGlTexImage2D();
 	bool				getUsePBO();
+	bool				getUseRLE();
+	int					getPNGCompressionLevel();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -95,8 +99,6 @@ public:
 	inline bool		useFBO() { return mUseFBO; }
 	//! Get the number of capture threads (for screenshot recording)
 	inline int		getNumberOfCaptureThreads() { return mNumberOfCaptureThreads; }
-	//! Get the zlib compression level if png files used for saving screenshots
-	inline int		getPNGCompressionLevel() { return mPNGCompressionLevel; }
 	//! The relative On-Screen-Display text x-offset in range [0, 1]
 	inline float	getOSDTextXOffset() { return mOSDTextOffset[0]; }
 	//! The relative On-Screen-Display text y-offset in range [0, 1]
@@ -135,6 +137,7 @@ private:
 	bool mDefaultFXAA;
 	bool mForceGlTexImage2D;
 	bool mUsePBO;
+	bool mUseRLE;
 
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;
@@ -149,6 +152,9 @@ private:
 
 	DrawBufferType mCurrentDrawBuffer;
 	BufferFloatPrecision mCurrentBufferFloatPrecision;
+
+	//mutex
+	tthread::mutex mMutex;
 };
 }
 

@@ -70,6 +70,13 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
+	sgct::SGCTSettings::instance()->setCaptureFormat("tga");
+	//sgct::SGCTSettings::instance()->setCaptureFormat("png");
+	sgct::SGCTSettings::instance()->setUseRLE(true);
+	sgct::SGCTSettings::instance()->setUsePBO(false);
+	sgct::SGCTSettings::instance()->setPNGCompressionLevel(3);
+	sgct::SGCTSettings::instance()->setNumberOfCaptureThreads(32);
+
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
@@ -93,6 +100,7 @@ void myDrawFun()
 {
 	glEnable( GL_CULL_FACE );
 	glEnable(GL_DEPTH_TEST);
+	glEnable(GL_BLEND);
 
 	glLineWidth(1.0); //for wireframe
 
@@ -130,6 +138,10 @@ void myDrawFun()
 	glBindVertexArray(0);
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
+
+	glDisable(GL_BLEND);
+	glDisable(GL_DEPTH_TEST);
+	glDisable(GL_CULL_FACE);
 }
 
 void myPreSyncFun()
@@ -158,7 +170,7 @@ void myPostSyncPreDrawFun()
 	if( takeScreenshot.getVal() )
 	{
 		gEngine->takeScreenshot();
-		takeScreenshot.setVal(false);
+		//takeScreenshot.setVal(false);
 	}
 }
 

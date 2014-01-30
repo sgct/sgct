@@ -915,7 +915,7 @@ void sgct::Engine::render()
 		fprintf(stderr, "Render-Loop: Rendering fisheye\n");
 	#endif
 				//set alpha value
-				mFisheyeClearColor[3] = getActiveWindowPtr()->useFisheyeAlpha() ? 0.0f : 1.0f;
+				mFisheyeClearColor[3] = getActiveWindowPtr()->getAlpha() ? 0.0f : 1.0f;
 
 				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::No_Stereo) ? Frustum::StereoLeftEye : Frustum::Mono;
 				(this->*mInternalRenderFisheyeFn)(LeftEye);
@@ -984,15 +984,6 @@ void sgct::Engine::render()
 		//glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the framerate is halfed if it's used. */
 
 		getActiveWindowPtr()->makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
-		if( mTakeScreenshot )
-		{
-			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-				if( mThisNode->getWindowPtr(i)->isVisible() )
-				{
-					mThisNode->setCurrentWindowIndex(i);
-					getActiveWindowPtr()->captureBuffer();
-				}
-        }
 
 #ifdef __SGCT_DEBUG__
 		//check for errors
@@ -1026,7 +1017,7 @@ void sgct::Engine::render()
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		{
 			mThisNode->setCurrentWindowIndex(i);
-			getActiveWindowPtr()->swap();
+			getActiveWindowPtr()->swap(mTakeScreenshot);
 		}
 
 		glfwPollEvents();
@@ -1679,7 +1670,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				mClearBufferFn();
 
 				glDisable( GL_CULL_FACE );
-				if( getActiveWindowPtr()->useFisheyeAlpha() )
+				if( getActiveWindowPtr()->getAlpha() )
 				{
 					glEnable(GL_BLEND);
 					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -1771,7 +1762,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if( !statesSet )
 	{
 		glDisable( GL_CULL_FACE );
-		if( getActiveWindowPtr()->useFisheyeAlpha() )
+		if( getActiveWindowPtr()->getAlpha() )
 		{
 			glEnable(GL_BLEND);
 			glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -1833,7 +1824,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 		}
 	}
 
-	if( !getActiveWindowPtr()->useFisheyeAlpha() )
+	if (!getActiveWindowPtr()->getAlpha())
 		glEnable(GL_BLEND);
 
 	glDisable(GL_DEPTH_TEST);
@@ -1973,7 +1964,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 				glDisable( GL_CULL_FACE );
-				if( getActiveWindowPtr()->useFisheyeAlpha() )
+				if (getActiveWindowPtr()->getAlpha())
 				{
 					glEnable(GL_BLEND);
 					glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -2052,7 +2043,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glBindTexture(GL_TEXTURE_CUBE_MAP, getActiveWindowPtr()->getFrameBufferTexture(CubeMap));
 
 	glDisable(GL_CULL_FACE);
-	if( getActiveWindowPtr()->useFisheyeAlpha() )
+	if (getActiveWindowPtr()->getAlpha())
 	{
 		glEnable(GL_BLEND);
 		glBlendFunc( GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA );
@@ -2163,7 +2154,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		}
 	}
 
-	if( !getActiveWindowPtr()->useFisheyeAlpha() )
+	if (!getActiveWindowPtr()->getAlpha())
 		glEnable(GL_BLEND);
 
 	glDisable(GL_DEPTH_TEST);
@@ -3341,7 +3332,7 @@ void sgct::Engine::clearBuffer()
 {
 	const float * colorPtr = Engine::instance()->getClearColor();
 
-	float alpha = (instance()->getActiveWindowPtr()->useFisheyeAlpha() && instance()->getActiveWindowPtr()->isUsingFisheyeRendering()) ? 0.0f : colorPtr[3];
+	float alpha = instance()->getActiveWindowPtr()->getAlpha() ? 0.0f : colorPtr[3];
 
 	glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], alpha);
 	//glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT | GL_STENCIL_BUFFER_BIT );

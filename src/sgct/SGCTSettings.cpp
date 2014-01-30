@@ -25,6 +25,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUseFBO = true;
 	mForceGlTexImage2D = false;
 	mUsePBO = true;
+	mUseRLE = false;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -182,7 +183,21 @@ Compression levels 1-9.
 */
 void sgct::SGCTSettings::setPNGCompressionLevel(int level)
 {
+	mMutex.lock();
 	mPNGCompressionLevel = level;
+	mMutex.unlock();
+}
+
+/*!
+Get the zlib compression level used in png export.
+*/
+int sgct::SGCTSettings::getPNGCompressionLevel()
+{ 
+	int tmpI;
+	mMutex.lock();
+	tmpI = mPNGCompressionLevel;
+	mMutex.unlock();
+	return tmpI;
 }
 
 /*!
@@ -220,6 +235,8 @@ Set the capture format which can be one of the following:
 */
 void sgct::SGCTSettings::setCaptureFormat(const char * format)
 {
+	mMutex.lock();
+	
 	if( strcmp("png", format) == 0 || strcmp("PNG", format) == 0 )
 	{
 		mCaptureFormat = sgct_core::ScreenCapture::PNG;
@@ -228,6 +245,8 @@ void sgct::SGCTSettings::setCaptureFormat(const char * format)
 	{
 		mCaptureFormat = sgct_core::ScreenCapture::TGA;
 	}
+
+	mMutex.unlock();
 }
 
 /*!
@@ -247,7 +266,11 @@ const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathI
 */
 int sgct::SGCTSettings::getCaptureFormat()
 {
-	return mCaptureFormat;
+	int tmpI;
+	mMutex.lock();
+	tmpI = mCaptureFormat;
+	mMutex.unlock();
+	return tmpI;
 }
 
 /*!
@@ -361,6 +384,28 @@ Get if pixel buffer object transferes should be used
 bool sgct::SGCTSettings::getUsePBO()
 {
 	return mUsePBO;
+}
+
+/*!
+Set if run length encoding (RLE) should be used in PNG and TGA export.
+*/
+void sgct::SGCTSettings::setUseRLE(bool state)
+{
+	mMutex.lock();
+	mUseRLE = state;
+	mMutex.unlock();
+}
+
+/*!
+Get if run length encoding (RLE) is used in PNG and TGA export.
+*/
+bool sgct::SGCTSettings::getUseRLE()
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = mUseRLE;
+	mMutex.unlock();
+	return tmpB;
 }
 
 /*!

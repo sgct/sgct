@@ -47,7 +47,7 @@ public:
 	void initContextSpecificOGL();
 	static void initNvidiaSwapGroups();
 	void initWindowResolution(const int x, const int y);
-	void swap();
+	void swap(bool takeScreenshot);
 	void update();
 	void captureBuffer();
 	bool openWindow(GLFWwindow* share);
@@ -77,6 +77,7 @@ public:
 	void setStereoMode( StereoMode sm );
 	void setScreenShotNumber(int number);
 	void setCurrentViewport(std::size_t index);
+	void setAlpha(bool state);
 
 	// -------------- is functions --------------- //
 	bool				isFullScreen();
@@ -111,6 +112,7 @@ public:
 	void							getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize);
 	std::size_t						getNumberOfViewports();
 	std::string						getStereoModeStr();
+	bool							getAlpha();
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -196,13 +198,10 @@ public:
 	inline int getFisheyeSwapShaderNearLoc() { return FishEyeSwapNear; }
 	inline int getFisheyeSwapShaderFarLoc() { return FishEyeSwapFar; }
 	inline float getFisheyeOffset(unsigned int axis) { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
-	//! Set to true if alpha should be used in fisheye rendering
-	inline bool useFisheyeAlpha() { return mFisheyeAlpha; }
 
 	void setFisheyeRendering(bool state);
 	void setCubeMapResolution(int res);
 	void setDomeDiameter(float size);
-	void setFisheyeAlpha(bool state);
 	void setFisheyeTilt(float angle);
 	void setFisheyeFOV(float angle);
 	void setFisheyeCropValues(float left, float right, float bottom, float top);
@@ -251,6 +250,7 @@ private:
 	bool mSetWindowPos;
 	bool mDecorated;
 	bool mFullRes; //for mac retina screens and similar
+	bool mAlpha;
 	int mFramebufferResolution[2];
 	int mWindowInitialRes[2];
 	int mWindowRes[2];
@@ -294,7 +294,6 @@ private:
 
 	//Fisheye
 	std::string mFisheyeOverlayFilename;
-	bool mFisheyeAlpha;
 	bool mFisheyeOffaxis;
 	float mFisheyeTilt;
 	float mFieldOfView;

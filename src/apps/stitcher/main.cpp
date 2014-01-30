@@ -366,7 +366,7 @@ void myPreWinInitFun()
 	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
 	{
 		gEngine->getWindowPtr(i)->setScreenShotNumber(startFrame);
-		gEngine->getWindowPtr(i)->setFisheyeAlpha(alpha);
+		gEngine->getWindowPtr(i)->setAlpha(alpha);
 		gEngine->getWindowPtr(i)->setDomeDiameter(domeDiameter);
 		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
 		gEngine->getWindowPtr(i)->setCubeMapResolution(resolution / 2);

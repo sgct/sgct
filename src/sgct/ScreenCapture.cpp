@@ -74,7 +74,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 		mSCTIPtrs = NULL;
 	}
 
-	if( mUsePBO && mPBO != GL_FALSE ) //delete if buffer exitsts
+	if( mUsePBO && mPBO ) //delete if buffer exitsts
 	{
 		glDeleteBuffers(1, &mPBO);
 		mPBO = GL_FALSE;
@@ -92,7 +92,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 */
 void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 {
-	if( mUsePBO && mPBO != GL_FALSE ) //delete if buffer exitsts
+	if (mUsePBO && mPBO) //delete if buffer exitsts
 	{
 		glDeleteBuffers(1, &mPBO);
 		mPBO = GL_FALSE;
@@ -100,6 +100,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 
 	mX = x;
 	mY = y;
+	
 	mChannels = channels;
 	mDataSize = mX * mY * mChannels;
 
@@ -131,7 +132,7 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 	if( mUsePBO )
 	{
 		glGenBuffers(1, &mPBO);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating PBO: %d\n", mPBO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating %dx%dx%d PBO: %d\n", mX, mY, mChannels, mPBO);
 
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
 		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
@@ -178,106 +179,56 @@ This function saves the images to disc.
 */
 void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
 {
-	bool error = false;
-
+	Image * imPtr = NULL;
+	int threadIndex = -1;
+	
 	addFrameNumberToFilename(frameNumber, cm);
 
-	int threadIndex = getAvailibleCaptureThread();
-	if( threadIndex == -1 )
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
-		return;
-	}
-	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", threadIndex);
-
-	Image ** imPtr = &mSCTIPtrs[ threadIndex ].mframeBufferImagePtr;
-	if( (*imPtr) == NULL )
-	{
-		(*imPtr) = new sgct_core::Image();
-		(*imPtr)->setChannels( mChannels );
-		(*imPtr)->setSize( mX, mY );
-
-		if( !(*imPtr)->allocateOrResizeData() ) //if allocation fails
-		{
-			//wait and try again
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
-			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
-			if( !(*imPtr)->allocateOrResizeData() )
-			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str() );
-				return;
-			}
-		}
-	}
-	(*imPtr)->setFilename( mScreenShotFilename.c_str() );
-
-	if( sgct::Engine::instance()->isOGLPipelineFixed() )
-		glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
-	GLenum colorType;
-	switch(mChannels)
+	if (mUsePBO)
 	{
-	default:
-		colorType = (mFormat == TGA ? GL_BGRA : GL_RGBA);
-		break;
-
-	case 1:
-		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
-		break;
-
-	case 2:
-		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
-		break;
-
-	case 3:
-		colorType = (mFormat == TGA ? GL_BGR : GL_RGB);
-		break;
-	}
-
-	if(mUsePBO)
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //bind pbo
-
-	if(cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
-	{
-		if( sgct::Engine::instance()->isOGLPipelineFixed() )
-			glEnable(GL_TEXTURE_2D);
-		glBindTexture(GL_TEXTURE_2D, textureId);
-
-		mUsePBO ?
-			glGetTexImage(GL_TEXTURE_2D, 0, colorType, GL_UNSIGNED_BYTE, 0) :
-			glGetTexImage(GL_TEXTURE_2D, 0, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-	else if(cm == Front_Buffer)
-	{
-		glReadBuffer(GL_FRONT);
-		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-	else if(cm == Left_Front_Buffer)
-	{
-		glReadBuffer(GL_FRONT_LEFT);
-		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-	else if(cm == Right_Front_Buffer)
-	{
-		glReadBuffer(GL_FRONT_RIGHT);
-		mUsePBO ?
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, 0) :
-			glReadPixels(0, 0, mX, mY, colorType, GL_UNSIGNED_BYTE, (*imPtr)->getData());
-	}
-
-	if(mUsePBO)
-	{
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO); //map pbo
-		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-		if(ptr)
+		
+		if (cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
 		{
-			memcpy( (*imPtr)->getData(), ptr, mDataSize );
+			if (sgct::Engine::instance()->isOGLPipelineFixed())
+			{
+				glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+				glEnable(GL_TEXTURE_2D);
+			}
+			
+			glBindTexture(GL_TEXTURE_2D, textureId);
+			glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, 0);
+
+			if (sgct::Engine::instance()->isOGLPipelineFixed())
+				glPopAttrib();
+		}
+		else if (cm == Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
+		}
+		else if (cm == Left_Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT_LEFT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
+		}
+		else if (cm == Right_Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT_RIGHT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
+		}
+
+		threadIndex = getAvailibleCaptureThread();
+		imPtr = prepareImage(threadIndex);
+		if (!imPtr)
+			return;
+		
+		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		if (ptr)
+		{
+			memcpy(imPtr->getData(), ptr, mDataSize);
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
 		}
 		else
@@ -285,19 +236,51 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //un-bind pbo
 	}
-
-	if(sgct::Engine::checkForOGLErrors())
+	else //no PBO
 	{
-		mSCTIPtrs[ threadIndex ].mRunning = true;
-		mSCTIPtrs[ threadIndex ].mFrameCaptureThreadPtr = new tthread::thread( screenCaptureHandler, &mSCTIPtrs[ threadIndex ] );
+		threadIndex = getAvailibleCaptureThread();
+		imPtr = prepareImage(threadIndex);
+		if (!imPtr)
+			return;
+		
+		if (cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
+		{
+			if (sgct::Engine::instance()->isOGLPipelineFixed())
+			{
+				glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+				glEnable(GL_TEXTURE_2D);
+			}
+			
+			glBindTexture(GL_TEXTURE_2D, textureId);
+			glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+
+			if (sgct::Engine::instance()->isOGLPipelineFixed())
+				glPopAttrib();
+		}
+		else if (cm == Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+		}
+		else if (cm == Left_Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT_LEFT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+		}
+		else if (cm == Right_Front_Buffer)
+		{
+			glReadBuffer(GL_FRONT_RIGHT);
+			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+		}
+	}
+
+	//save the image
+	if (sgct::Engine::checkForOGLErrors())
+	{
+		mSCTIPtrs[threadIndex].mRunning = true;
+		mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
 	}
 	else
-		error = true;
-
-	if( sgct::Engine::instance()->isOGLPipelineFixed() )
-		glPopAttrib();
-
-	if(error)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in taking screenshot/capture!\n");
 }
 
@@ -438,6 +421,66 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
 	}
 
 	return -1;
+}
+
+unsigned int sgct_core::ScreenCapture::getColorType()
+{
+	unsigned int colorType;
+
+	switch (mChannels)
+	{
+	default:
+		colorType = GL_BGRA;
+		break;
+
+	case 1:
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
+		break;
+
+	case 2:
+		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
+		break;
+
+	case 3:
+		colorType = GL_BGR;
+		break;
+	}
+
+	return colorType;
+}
+
+sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
+{
+	if (index == -1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error in finding availible thread for screenshot/capture!\n");
+		return NULL;
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Starting thread for screenshot/capture [%d]\n", index);
+
+	Image ** imPtr = &mSCTIPtrs[index].mframeBufferImagePtr;
+	if ((*imPtr) == NULL)
+	{
+		(*imPtr) = new sgct_core::Image();
+		(*imPtr)->setChannels(mChannels);
+		(*imPtr)->setSize(mX, mY);
+
+		if (!(*imPtr)->allocateOrResizeData()) //if allocation fails
+		{
+			//wait and try again
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
+			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
+			if (!(*imPtr)->allocateOrResizeData())
+			{
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str());
+				return NULL;
+			}
+		}
+	}
+	(*imPtr)->setFilename(mScreenShotFilename.c_str());
+
+	return (*imPtr);
 }
 
 //multi-threaded screenshot saver

@@ -46,7 +46,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mSetWindowPos = false;
 	mDecorated = true;
 	mFisheyeMode = false;
-	mFisheyeAlpha = false;
+	mAlpha = false;
 	mVisible = false;
 	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
@@ -495,10 +495,13 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 /*!
 	Swap previus data and current data. This is done at the end of the render loop.
 */
-void sgct::SGCTWindow::swap()
+void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
 	if( mVisible )
 	{
+		if (takeScreenshot)
+			captureBuffer();
+		
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
 
@@ -535,9 +538,9 @@ void sgct::SGCTWindow::update()
 		resizeFBOs();
 
 		//resize PBOs
-		(mFisheyeMode && !mFisheyeAlpha) ?
-				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 ) :
-				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 );
+		mAlpha ?
+				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 ) :
+				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 );
 	}
 }
 
@@ -975,10 +978,10 @@ void sgct::SGCTWindow::initScreenCapture()
 	mScreenCapture->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
 		SGCTSettings::instance()->getUsePBO()); //if supported then use them
 	
-	if( mFisheyeMode && !mFisheyeAlpha )
-		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
-	else
+	if( mAlpha )
 		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
+	else
+		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
 	if( SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET )
 		mScreenCapture->setFormat( static_cast<sgct_core::ScreenCapture::CaptureFormat>( SGCTSettings::instance()->getCaptureFormat() ) );
 }
@@ -1180,7 +1183,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 	{
 		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_RGB, GL_FLOAT, NULL);
         }
         else
         {
@@ -1194,7 +1197,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
 	{
 		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
-            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_BGR, GL_FLOAT, NULL);
+            glTexImage2D(GL_TEXTURE_2D, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), xSize, ySize, 0, GL_RGB, GL_FLOAT, NULL);
         }
         else
         {
@@ -1215,7 +1218,7 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sg
             glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, xSize, ySize);
         }
         
-        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d RGBA texture (id: %d, type %d) generated for window %d!\n",
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d BGRA texture (id: %d, type %d) generated for window %d!\n",
 			xSize, ySize, mFrameBufferTextures[id], id, mId);
 	}
     
@@ -2445,14 +2448,6 @@ void sgct::SGCTWindow::setDomeDiameter(float size)
 }
 
 /*!
-Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
-*/
-void sgct::SGCTWindow::setFisheyeAlpha(bool state)
-{
-	mFisheyeAlpha = state;
-}
-
-/*!
 Set the fisheye/dome tilt angle used in the fisheye renderer.
 The tilt angle is from the horizontal.
 
@@ -2645,5 +2640,21 @@ std::string sgct::SGCTWindow::getStereoModeStr()
 	}
 
 	return mode;
+}
+
+/*!
+Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
+*/
+void sgct::SGCTWindow::setAlpha(bool state)
+{
+	mAlpha = state;
+}
+
+/*!
+Enable alpha clear color and 4-component screenshots
+*/
+bool sgct::SGCTWindow::getAlpha()
+{
+	return mAlpha;
 }
 

@@ -49,7 +49,9 @@ public:
 
 private: 
 	void addFrameNumberToFilename( int frameNumber, CaptureMode cm = FBO_Texture );
-	int getAvailibleCaptureThread(); 
+	int getAvailibleCaptureThread();
+	unsigned int getColorType();
+	Image * prepareImage(int index);
 
 	tthread::mutex mMutex;
 	ScreenCaptureThreadInfo * mSCTIPtrs;

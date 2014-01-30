@@ -286,6 +286,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 					else if (element[1]->QueryIntAttribute("MSAA", &tmpSamples) == XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
 
+					if (element[1]->Attribute("alpha") != NULL)
+						tmpWin.setAlpha(strcmp(element[1]->Attribute("alpha"), "true") == 0 ? true : false);
+
 					if( element[1]->Attribute("fxaa") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
 
@@ -463,9 +466,6 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpWin.setFisheyeOverlay( std::string(element[2]->Attribute("overlay")) );
-
-							if( element[2]->Attribute("alpha") != NULL )
-								tmpWin.setFisheyeAlpha( strcmp( element[2]->Attribute("alpha"), "true" ) == 0 ? true : false );
 
 							float tilt;
 							if( element[2]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )

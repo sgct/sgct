@@ -202,6 +202,9 @@ bool sgct_core::Image::loadPNG(const char *filename)
 */
 bool sgct_core::Image::save()
 {
+	//test
+	//return true;
+	
 	int length = 0;
 
 	if(mFilename == NULL)
@@ -281,18 +284,18 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 		return false;
 
 	//set compression
-	//png_set_compression_level( png_ptr, compressionLevel );
-    png_set_compression_level( png_ptr, 0 );
+	png_set_compression_level( png_ptr, compressionLevel );
 	//png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
     
     png_set_filter(png_ptr, 0, PNG_FILTER_NONE );
     
     png_set_compression_mem_level(png_ptr, 8);
     //png_set_compression_mem_level(png_ptr, MAX_MEM_LEVEL);
-    
 	//png_set_compression_strategy(png_ptr, Z_HUFFMAN_ONLY);
-    png_set_compression_strategy(png_ptr, Z_RLE);
-    //png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
+    
+	sgct::SGCTSettings::instance()->getUseRLE() ? 
+		png_set_compression_strategy(png_ptr, Z_RLE) :
+		png_set_compression_strategy(png_ptr, Z_DEFAULT_STRATEGY);
     
     png_set_compression_window_bits(png_ptr, 15);
     png_set_compression_method(png_ptr, 8);
@@ -409,8 +412,9 @@ bool sgct_core::Image::saveTGA()
 	switch( mChannels )
 	{
 	default:
+		data_type = sgct::SGCTSettings::instance()->getUseRLE() ? 10 : 2;
 		//data_type = 2;//uncompressed RGB
-        data_type = 10;//RLE compressed RGB
+        //data_type = 10;//RLE compressed RGB
 		break;
 
 	case 1:

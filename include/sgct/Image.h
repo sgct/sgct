@@ -37,6 +37,10 @@ public:
 	inline const char * getFilename() { return mFilename; }
 
 private:
+    bool isTGAPackageRLE(unsigned char * row, int pos);
+    int getTGAPackageLength(unsigned char * row, int pos, bool rle);
+    
+private:
 	int mChannels;
 	int mSize_x;
 	int mSize_y;

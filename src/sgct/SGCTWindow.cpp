@@ -499,7 +499,9 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
 	if( mVisible )
 	{
-		if (takeScreenshot)
+		mScreenCapture->update();
+        
+        if (takeScreenshot)
 			captureBuffer();
 		
 		mWindowResOld[0] = mWindowRes[0];
@@ -538,9 +540,18 @@ void sgct::SGCTWindow::update()
 		resizeFBOs();
 
 		//resize PBOs
-		mAlpha ?
-				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 ) :
-				mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 );
+        if( SGCTSettings::instance()->useFBO() )
+        {
+            mAlpha ?
+                mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 ) :
+                mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 );
+        }
+        else
+        {
+            mAlpha ?
+                mScreenCapture->initOrResize( mWindowRes[0], mWindowRes[1], 4 ) :
+                mScreenCapture->initOrResize( mWindowRes[0], mWindowRes[1], 3 );
+        }
 	}
 }
 
@@ -975,13 +986,34 @@ void sgct::SGCTWindow::initScreenCapture()
 {
 	//init PBO in screen capture
 	mScreenCapture->init( mId );
-	mScreenCapture->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
-		SGCTSettings::instance()->getUsePBO()); //if supported then use them
+    
+    //a workaround for devices that are supporting pbos but not showing it, like OS X (Intel)
+    if( Engine::instance()->isOGLPipelineFixed() )
+    {
+        mScreenCapture->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
+            SGCTSettings::instance()->getUsePBO()); //if supported then use them
+    }
+    else //in modern openGL pbos must be supported
+    {
+        mScreenCapture->setUsePBO(SGCTSettings::instance()->getUsePBO());
+    }
 	
-	if( mAlpha )
-		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
-	else
-		mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
+	if( SGCTSettings::instance()->useFBO() )
+    {
+        if( mAlpha )
+            mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
+        else
+            mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
+    }
+    else
+    {
+        if( mAlpha )
+            mScreenCapture->initOrResize( getXResolution(), getYResolution(), 4 );
+        else
+            mScreenCapture->initOrResize( getXResolution(), getYResolution(), 3 );
+    }
+    
+    
 	if( SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET )
 		mScreenCapture->setFormat( static_cast<sgct_core::ScreenCapture::CaptureFormat>( SGCTSettings::instance()->getCaptureFormat() ) );
 }

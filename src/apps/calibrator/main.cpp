@@ -69,6 +69,8 @@ int main( int argc, char* argv[] )
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
 	else
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::VBO );
+    
+    sgct::SGCTSettings::instance()->setCaptureFormat("tga");
 
 	// Bind your functions
 	gEngine->setDrawFunction( draw );

@@ -49,7 +49,6 @@ public:
 	void initWindowResolution(const int x, const int y);
 	void swap(bool takeScreenshot);
 	void update();
-	void captureBuffer();
 	bool openWindow(GLFWwindow* share);
 	void makeOpenGLContextCurrent( OGL_Context context );
 	static void resetSwapGroupFrameNumber();
@@ -221,6 +220,7 @@ private:
 	static void windowFocusCallback( GLFWwindow * window, int state );
 	static void windowIconifyCallback( GLFWwindow * window, int state );
 	void initScreenCapture();
+    void captureBuffer();
 	void deleteAllViewports();
 	void createTextures();
 	void generateTexture(unsigned int id, int xSize, int ySize, TextureType type, bool interpolate);

@@ -997,18 +997,23 @@ void sgct::Engine::render()
 		mStatistics->setDrawTime(endFrameTime - startFrameTime);
         updateTimers( endFrameTime );
 
-#ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: lock\n");
-#endif
-		//master will wait for nodes render before swapping
-		frameLock(PostStage);
-
 		//run post frame actions
 		if (mPostDrawFn != NULL)
 			mPostDrawFn();
 
 		if (mShowGraph)
+        {
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+            fprintf(stderr, "Render-Loop: update stats VBOs\n");
+#endif
 			mStatistics->update();
+        }
+        
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+        fprintf(stderr, "Render-Loop: lock\n");
+#endif
+		//master will wait for nodes render before swapping
+		frameLock(PostStage);
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
     fprintf(stderr, "Render-Loop: Swap buffers\n");

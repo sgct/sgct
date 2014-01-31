@@ -331,7 +331,7 @@ void sgct_core::Statistics::addSyncTime(double t)
 
 void sgct_core::Statistics::update()
 {
-	GLvoid* PositionBuffer;
+    GLvoid* PositionBuffer;
 
 	for (unsigned int i = 0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 	{
@@ -352,7 +352,7 @@ void sgct_core::Statistics::update()
 
 void sgct_core::Statistics::draw(float lineWidth)
 {
-	mShader.bind();
+    mShader.bind();
 
 	if(mFixedPipeline)
 	{
@@ -414,8 +414,9 @@ void sgct_core::Statistics::draw(float lineWidth)
 		glPopMatrix();
 	}
 	else //programmable pipeline
-	{	
-		glLineWidth( lineWidth ); 
+	{
+        //gives an opengl error in mac os x (intel iris)
+        glLineWidth( lineWidth );
 		
 		glm::mat4 orthoMat = glm::ortho( 0.0f, static_cast<float>(STATS_HISTORY_LENGTH)*2.0f,
 			0.0f, static_cast<float>(STATS_HISTORY_LENGTH) );

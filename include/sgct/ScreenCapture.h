@@ -46,6 +46,7 @@ public:
 	CaptureFormat getFormat();
 	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
 	void setUsePBO(bool state);
+    void update();
 
 private: 
 	void addFrameNumberToFilename( int frameNumber, CaptureMode cm = FBO_Texture );
@@ -57,7 +58,7 @@ private:
 	ScreenCaptureThreadInfo * mSCTIPtrs;
 
 	unsigned int mNumberOfThreads;
-	unsigned int mPBO;
+	unsigned int mPBO[2];
 	int mDataSize;
 	int mX;
 	int mY;
@@ -65,6 +66,8 @@ private:
 
 	std::string mScreenShotFilename;
 	bool mUsePBO;
+    bool mSaveScreenShot;
+    unsigned int mCurrentPBOIndex;
 	CaptureFormat mFormat;
 	std::size_t mWindowIndex;
 };

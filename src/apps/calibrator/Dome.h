@@ -10,6 +10,7 @@ class Dome
 {
 public:
 	Dome(float radius, float tilt, int type );
+	~Dome();
 	void drawGeoCorrPattern();
 	void drawChannelZones();
 	void drawBlendZones();

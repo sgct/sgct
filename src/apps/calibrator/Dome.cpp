@@ -6,6 +6,17 @@ Dome::Dome(float radius, float tilt, int type )
 	mTilt = tilt;
 	projectionType = type;
 	mTiltOffset = 0.0f;
+
+	mGeoDisplayList = GL_FALSE;
+	mBlendZonesDisplayList = GL_FALSE;
+	mChannelZonesDisplayList = GL_FALSE;
+	mTexDisplayList = GL_FALSE;
+}
+
+Dome::~Dome()
+{
+	if( mGeoDisplayList )
+		glDeleteLists(mGeoDisplayList, 4);
 }
 
 void Dome::drawGeoCorrPattern()

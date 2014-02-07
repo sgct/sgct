@@ -7,6 +7,7 @@ void initGL();
 void preSync();
 void encode();
 void decode();
+void cleanUp();
 void keyCallback(int key, int action);
 
 void drawGeoCorrPatt();
@@ -15,7 +16,7 @@ void drawCube();
 void loadData();
 void drawTexturedObject();
 
-Dome * mDome;
+Dome * mDome = NULL;
 
 sgct::SharedShort displayState(0);
 sgct::SharedShort colorState(0);
@@ -77,6 +78,7 @@ int main( int argc, char* argv[] )
 	gEngine->setInitOGLFunction( initGL );
 	gEngine->setPreSyncFunction( preSync );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
+	gEngine->setCleanUpFunction( cleanUp );
 	sgct::SharedData::instance()->setEncodeFunction(encode);
 	sgct::SharedData::instance()->setDecodeFunction(decode);
 
@@ -283,6 +285,16 @@ void keyCallback(int key, int action)
 			break;
 		}
 	}
+}
+
+void cleanUp()
+{
+	for (std::size_t i = 0; i < textures.size(); i++)
+		if( textures[i].second )
+			glDeleteTextures(1, &(textures[i].second));
+
+	if( mDome )
+		delete mDome;
 }
 
 void drawGeoCorrPatt()

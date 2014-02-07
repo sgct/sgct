@@ -40,6 +40,7 @@ public:
 	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
 	void setEnabled(bool state);
+    void setAsDummy();
 	void loadData();
 	void calculateFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane);
 	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near_clipping_plane, float far_clipping_plane);
@@ -98,6 +99,7 @@ private:
 	bool mCorrectionMesh;
 	bool mTracked;
 	bool mEnabled;
+    bool mGenerateGPUData;
 	unsigned int mOverlayTextureIndex;
 	unsigned int mMaskTextureIndex;
 };

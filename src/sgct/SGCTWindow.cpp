@@ -2289,6 +2289,10 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 	for(unsigned int i=0; i<6; i++)
 	{
 		sgct_core::Viewport tmpVP;
+        
+        //only generate GPU data in first viewport and the rest can use it's data
+        if(i>0)
+            tmpVP.setAsDummy();
 		tmpVP.setName("Fisheye");
 
 		glm::mat4 rotMat(1.0f);

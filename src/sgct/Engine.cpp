@@ -1208,7 +1208,8 @@ void sgct::Engine::drawOverlays()
 
 		//if viewport has overlay
 		sgct_core::Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
-		if( tmpVP->hasOverlayTexture() )
+		
+        if( tmpVP->hasOverlayTexture() && tmpVP->isEnabled() )
 		{
 			/*
 				Some code (using OpenSceneGraph) can mess up the viewport settings.
@@ -1256,7 +1257,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 
 		//if viewport has overlay
 		sgct_core::Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
-		if( tmpVP->hasOverlayTexture() )
+		if( tmpVP->hasOverlayTexture() && tmpVP->isEnabled() )
 		{
 			//enter ortho mode
 			glMatrixMode(GL_PROJECTION);
@@ -1380,6 +1381,8 @@ void sgct::Engine::renderFBOTexture()
 	setAndClearBuffer(BackBufferBlack);
 
 	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    
+    std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
 	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
@@ -1395,8 +1398,8 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
 		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
 
-		for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+		for(std::size_t i=0; i<numberOfIterations; i++)
+            getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 
 		//render mask (mono)
 		if (getActiveWindowPtr()->hasAnyMasks())
@@ -1410,10 +1413,10 @@ void sgct::Engine::renderFBOTexture()
 			glActiveTexture(GL_TEXTURE0);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
-			for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
 				sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
-				if (vpPtr->hasMaskTexture())
+				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
 					vpPtr->renderMesh(false);
@@ -1431,7 +1434,7 @@ void sgct::Engine::renderFBOTexture()
 		mShaders[FBOQuadShader].bind(); //bind
 		glUniform1i( mShaderLocs[MonoTex], 0);
 
-		for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+		for (std::size_t i = 0; i < numberOfIterations; i++)
 			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 
 		//render right eye in active stereo mode
@@ -1446,7 +1449,7 @@ void sgct::Engine::renderFBOTexture()
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 			glUniform1i( mShaderLocs[MonoTex], 0);
 
-			for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
+			for(std::size_t i=0; i<numberOfIterations; i++)
 				getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 		}
 
@@ -1458,10 +1461,10 @@ void sgct::Engine::renderFBOTexture()
 			glActiveTexture(GL_TEXTURE0);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
-			for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
 				sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
-				if (vpPtr->hasMaskTexture())
+				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
 					vpPtr->renderMesh(false);
@@ -1509,6 +1512,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glLoadIdentity();
 
 	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    
+    std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
 	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
@@ -1526,7 +1531,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 		glEnable(GL_TEXTURE_2D);
 
-		for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
+		for(std::size_t i=0; i<numberOfIterations; i++)
 			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 		ShaderProgram::unbind();
 	}
@@ -1536,7 +1541,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
 		glEnable(GL_TEXTURE_2D);
 
-		for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+		for (std::size_t i = 0; i < numberOfIterations; i++)
 			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 
 		//render right eye in active stereo mode
@@ -1550,7 +1555,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 
-			for(std::size_t i=0; i<getActiveWindowPtr()->getNumberOfViewports(); i++)
+			for(std::size_t i=0; i<numberOfIterations; i++)
 				getActiveWindowPtr()->getViewport(i)->renderMesh(true);
 		}
 	}
@@ -1568,10 +1573,10 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_DST_COLOR, GL_ZERO);
-		for (std::size_t i = 0; i < getActiveWindowPtr()->getNumberOfViewports(); i++)
+		for (std::size_t i = 0; i < numberOfIterations; i++)
 		{
 			sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
-			if (vpPtr->hasMaskTexture())
+			if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 			{
 				glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
 				vpPtr->renderMesh(false);

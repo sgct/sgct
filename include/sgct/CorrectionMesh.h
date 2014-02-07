@@ -46,7 +46,7 @@ public:
 	~CorrectionMesh();
 	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
 	bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
-	void render(bool warped);
+	void render(bool mask);
 
 private:
 	bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
@@ -57,7 +57,7 @@ private:
 	void cleanUp();
 
 	enum buffer { Vertex = 0, Index, Array };
-	enum warpingMode { Warped = 0, UnWarped};
+	enum textureCoordMode { NoMask = 0, Mask};
 
 	CorrectionMeshVertex * mTempVertices;
 	unsigned int * mTempIndices;

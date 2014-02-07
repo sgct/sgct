@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/Viewport.h"
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/ClusterManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
@@ -71,6 +72,8 @@ void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
 	mMaskTextureIndex = GL_FALSE;
 	mTracked = false;
 	mEnabled = true;
+    mGenerateGPUData = true;
+    mName.assign("NoName");
 
 	mCM.setViewportCoords(static_cast<float>(mXSize), 
 		static_cast<float>(mYSize),
@@ -128,16 +131,29 @@ void sgct_core::Viewport::setEnabled(bool state)
 	mEnabled = state;
 }
 
+/*!
+Set if this viewport should disable all VBO, VAO and texture usage.
+*/
+void sgct_core::Viewport::setAsDummy()
+{
+    mGenerateGPUData = false;
+}
+
 void sgct_core::Viewport::loadData()
 {
-	if( mOverlayFilename.size() > 0 )
-		sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
+	if(mGenerateGPUData)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Viewport: loading GPU data for '%s'\n", mName.c_str());
+        
+        if( mOverlayFilename.size() > 0 )
+            sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
 
-	if ( mMaskFilename.size() > 0 )
-		sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
+        if ( mMaskFilename.size() > 0 )
+            sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
 
-	//load default if mMeshFilename is NULL
-	mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename.c_str(), this);
+        //load default if mMeshFilename is NULL
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename.c_str(), this);
+    }
 }
 
 void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane)
@@ -308,5 +324,6 @@ Render the viewport mesh which the framebuffer texture is attached to
 */
 void sgct_core::Viewport::renderMesh(bool warped)
 {
-	mCM.render(warped);
+	if( mEnabled )
+        mCM.render(warped);
 }

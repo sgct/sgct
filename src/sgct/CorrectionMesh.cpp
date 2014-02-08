@@ -502,7 +502,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 		retval = fread_s(mTempIndices, sizeof(unsigned int)* numberOfIndices, sizeof(unsigned int), numberOfIndices, meshFile);
 #else
-		retval = fread(texturedVertexList, sizeof(unsigned int), numberOfIndices, meshFile);
+		retval = fread(mTempIndices, sizeof(unsigned int), numberOfIndices, meshFile);
 #endif
 		if (retval != numberOfIndices)
 		{

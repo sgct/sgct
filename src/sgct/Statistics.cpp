@@ -365,8 +365,9 @@ void sgct_core::Statistics::draw(float lineWidth)
 		glMatrixMode(GL_PROJECTION);
 		glLoadIdentity();
 		glPushMatrix();
-		glOrtho(0.0, STATS_HISTORY_LENGTH,
-			0.0, STATS_HISTORY_LENGTH, -1.0, 1.0);
+		
+        float size = static_cast<float>(STATS_HISTORY_LENGTH);
+        glOrthof(0.0f, size, 0.0f, size, -1.0f, 1.0f);
 
 		glMatrixMode(GL_MODELVIEW);
 
@@ -378,7 +379,7 @@ void sgct_core::Statistics::draw(float lineWidth)
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glEnableClientState(GL_VERTEX_ARRAY);
 
-		glTranslatef(0.0f, 32.0f, 0.0f);
+		glTranslatef(0.0f, size/4.0f, 0.0f);
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
 		glLineWidth( lineWidth );
@@ -422,10 +423,11 @@ void sgct_core::Statistics::draw(float lineWidth)
 	{
         //gives an opengl error in mac os x (intel iris)
         glLineWidth( lineWidth );
+        
+        float size = static_cast<float>(STATS_HISTORY_LENGTH);
 		
-		glm::mat4 orthoMat = glm::ortho( 0.0f, static_cast<float>(STATS_HISTORY_LENGTH),
-			0.0f, static_cast<float>(STATS_HISTORY_LENGTH) );
-		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, 32.0f, 0.0f) );
+		glm::mat4 orthoMat = glm::ortho( 0.0f, size, 0.0f, size );
+		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, size/4.0f, 0.0f) );
 		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, static_cast<float>(VERT_SCALE), 1.0f) );
 		
 		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);

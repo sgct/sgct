@@ -92,40 +92,40 @@ inline void setupViewport()
 	glViewport( x, y, xSize, ySize );
 }
 
-inline glm::dmat4 setupOrthoMat()
+inline glm::mat4 setupOrthoMat()
 {
-	glm::dmat4 orthoMat;
+	glm::mat4 orthoMat;
 	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
 	if( FontManager::instance()->getDrawInScreenSpace() )
 	{
 		if( cWin->isFixResolution() )
 		{
-			orthoMat = glm::ortho(0.0,
-				cWin->getCurrentViewport()->getXSize() *
-				static_cast<double>(cWin->getXInitialResolution()),
-				0.0,
-				cWin->getCurrentViewport()->getYSize() *
-				static_cast<double>(cWin->getYInitialResolution()));
+			orthoMat = glm::ortho(0.0f,
+				static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+				static_cast<float>(cWin->getXInitialResolution()),
+				0.0f,
+				static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+				static_cast<float>(cWin->getYInitialResolution()));
 		}
 		else
 		{
-			orthoMat = glm::ortho(0.0,
-				cWin->getCurrentViewport()->getXSize() *
-				static_cast<double>(cWin->getXResolution()),
-				0.0,
-				cWin->getCurrentViewport()->getYSize() *
-				static_cast<double>(cWin->getYResolution()));
+			orthoMat = glm::ortho(0.0f,
+				static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+				static_cast<float>(cWin->getXResolution()),
+				0.0f,
+				static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+				static_cast<float>(cWin->getYResolution()));
 		}
 	}
 	else
 	{
-		orthoMat = glm::ortho(0.0,
-			cWin->getCurrentViewport()->getXSize() *
-			static_cast<double>(cWin->getXFramebufferResolution()),
-			0.0,
-			cWin->getCurrentViewport()->getYSize() *
-			static_cast<double>(cWin->getYFramebufferResolution()));
+		orthoMat = glm::ortho(0.0f,
+			static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+			static_cast<float>(cWin->getXFramebufferResolution()),
+			0.0f,
+			static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+			static_cast<float>(cWin->getYFramebufferResolution()));
 	}
 
 	return orthoMat;
@@ -137,7 +137,7 @@ inline void pushScreenCoordinateMatrix()
 	glPushMatrix();
 
 	setupViewport();
-	glLoadMatrixd( glm::value_ptr( setupOrthoMat() ) );
+	glLoadMatrixf( glm::value_ptr( setupOrthoMat() ) );
 }
 
 /// Pops the projection matrix without changing the current
@@ -391,9 +391,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 	else
 	{
 		setupViewport();
-		glm::mat4 projectionMat( setupOrthoMat() );
-
-		glDisable(GL_DEPTH_TEST);
+        glDisable(GL_DEPTH_TEST);
 		glEnable(GL_BLEND);
 		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
@@ -409,7 +407,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 
 		for(size_t i=0;i<lines.size();i++)
 		{
-			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
+			glm::mat4 trans = glm::translate( setupOrthoMat(), glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
 
 			for(size_t j=0; j < lines[i].length(); j++)
 			{

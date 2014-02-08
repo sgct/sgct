@@ -1277,7 +1277,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 				enterCurrentViewport();
 			}
 
-			glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+			glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 			glMatrixMode(GL_MODELVIEW);
 
 			glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -1494,7 +1494,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
+	glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
 
 	glMatrixMode(GL_MODELVIEW);
 
@@ -2299,25 +2299,27 @@ void sgct::Engine::render2D()
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getActiveWindowPtr()->setCurrentViewport(i);
+            
+            if( getActiveWindowPtr()->getCurrentViewport()->isEnabled() )
+            {
+                getActiveWindowPtr()->isUsingFisheyeRendering() ? enterFisheyeViewport() : enterCurrentViewport();
 
-			getActiveWindowPtr()->isUsingFisheyeRendering() ? enterFisheyeViewport() : enterCurrentViewport();
+                if( mShowGraph )
+                    mStatistics->draw(
+                        static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
 
-			if( mShowGraph )
-				mStatistics->draw(
-					static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()) / static_cast<float>(getActiveWindowPtr()->getYResolution()));
-			/*
-				The text renderer enters automatically the correct viewport
-			*/
-			if( mShowInfo )
-			{
-				//choose specified eye from config
-				if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::No_Stereo )
-					mActiveFrustumMode = getActiveWindowPtr()->getCurrentViewport()->getEye();
-				renderDisplayInfo();
-			}
+                //The text renderer enters automatically the correct viewport
+                if( mShowInfo )
+                {
+                    //choose specified eye from config
+                    if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::No_Stereo )
+                        mActiveFrustumMode = getActiveWindowPtr()->getCurrentViewport()->getEye();
+                    renderDisplayInfo();
+                }
 
-			if( mDraw2DFn != NULL )
-				mDraw2DFn();
+                if( mDraw2DFn != NULL )
+                    mDraw2DFn();
+            }
 		}
 	}
 }

@@ -53,11 +53,11 @@ void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
 	Sets user's head position
 	@param pos double array with 3 slots for x, y & z
 */
-void sgct_core::SGCTUser::setPos(double * pos)
+void sgct_core::SGCTUser::setPos(float * pos)
 {
-	mPos[Frustum::Mono].x = static_cast<float>(pos[0]);
-	mPos[Frustum::Mono].y = static_cast<float>(pos[1]);
-	mPos[Frustum::Mono].z = static_cast<float>(pos[2]);
+	mPos[Frustum::Mono].x = pos[0];
+	mPos[Frustum::Mono].y = pos[1];
+	mPos[Frustum::Mono].z = pos[2];
 	updateEyeSeparation();
 }
 

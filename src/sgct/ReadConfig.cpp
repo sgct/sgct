@@ -389,23 +389,23 @@ void sgct_core::ReadConfig::readAndParseXML()
 							while( element[3] != NULL )
 							{
 								val[3] = element[3]->Value();
-								double dTmp[2];
-								dTmp[0] = 0.0;
-								dTmp[1] = 0.0;
+								float fTmp[2];
+								fTmp[0] = 0.0f;
+								fTmp[1] = 0.0f;
 
 								if(strcmp("Pos", val[3]) == 0)
 								{
-									if( element[3]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
-										element[3]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR )
-										tmpVp.setPos( dTmp[0], dTmp[1] );
+									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+										tmpVp.setPos( fTmp[0], fTmp[1] );
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
 								}
 								else if(strcmp("Size", val[3]) == 0)
 								{
-									if( element[3]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
-										element[3]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR )
-										tmpVp.setSize( dTmp[0], dTmp[1] );
+									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+										tmpVp.setSize( fTmp[0], fTmp[1] );
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
 								}
@@ -558,11 +558,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 				if( strcmp("Pos", val[1]) == 0 )
 				{
-					double dTmp[3];
-					if( element[1]->QueryDoubleAttribute("x", &dTmp[0]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("y", &dTmp[1]) == XML_NO_ERROR &&
-                        element[1]->QueryDoubleAttribute("z", &dTmp[2]) == XML_NO_ERROR )
-                        ClusterManager::instance()->getUserPtr()->setPos(dTmp);
+					float fTmp[3];
+					if (element[1]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR)
+                        ClusterManager::instance()->getUserPtr()->setPos(fTmp);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user position from XML!\n");
 				}

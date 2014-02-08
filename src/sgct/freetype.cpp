@@ -23,10 +23,10 @@ inline void setupViewport()
 	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
 	int x, y, xSize, ySize;
-	x		= static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<double>(cWin->getXFramebufferResolution()));
-	y		= static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<double>(cWin->getYFramebufferResolution()));
-	xSize	= static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<double>(cWin->getXFramebufferResolution()));
-	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<double>(cWin->getYFramebufferResolution()));
+	x		= static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<float>(cWin->getXFramebufferResolution()));
+	y		= static_cast<int>(cWin->getCurrentViewport()->getY() * static_cast<float>(cWin->getYFramebufferResolution()));
+	xSize	= static_cast<int>(cWin->getCurrentViewport()->getXSize() * static_cast<float>(cWin->getXFramebufferResolution()));
+	ySize	= static_cast<int>(cWin->getCurrentViewport()->getYSize() * static_cast<float>(cWin->getYFramebufferResolution()));
 
 	sgct::SGCTWindow::StereoMode sm = cWin->getStereoMode();
 	if( sm >= sgct::SGCTWindow::Side_By_Side_Stereo )
@@ -102,29 +102,29 @@ inline glm::mat4 setupOrthoMat()
 		if( cWin->isFixResolution() )
 		{
 			orthoMat = glm::ortho(0.0f,
-				static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+				cWin->getCurrentViewport()->getXSize() *
 				static_cast<float>(cWin->getXInitialResolution()),
 				0.0f,
-				static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+				cWin->getCurrentViewport()->getYSize() *
 				static_cast<float>(cWin->getYInitialResolution()));
 		}
 		else
 		{
 			orthoMat = glm::ortho(0.0f,
-				static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+				cWin->getCurrentViewport()->getXSize() *
 				static_cast<float>(cWin->getXResolution()),
 				0.0f,
-				static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+				cWin->getCurrentViewport()->getYSize() *
 				static_cast<float>(cWin->getYResolution()));
 		}
 	}
 	else
 	{
 		orthoMat = glm::ortho(0.0f,
-			static_cast<float>(cWin->getCurrentViewport()->getXSize()) *
+			cWin->getCurrentViewport()->getXSize() *
 			static_cast<float>(cWin->getXFramebufferResolution()),
 			0.0f,
-			static_cast<float>(cWin->getCurrentViewport()->getYSize()) *
+			cWin->getCurrentViewport()->getYSize() *
 			static_cast<float>(cWin->getYFramebufferResolution()));
 	}
 

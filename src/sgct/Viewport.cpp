@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::Viewport::Viewport()
 {
-	set(0.0, 0.0, 1.0, 1.0);
+	set(0.0f, 0.0f, 1.0f, 1.0f);
 
 	for(int i=0; i<3; i++)
 	{
@@ -28,7 +28,7 @@ sgct_core::Viewport::Viewport()
 /*!
 	Create a viewport coordinates are relative to the window size [0, 1]
 */
-sgct_core::Viewport::Viewport(double x, double y, double xSize, double ySize)
+sgct_core::Viewport::Viewport(float x, float y, float xSize, float ySize)
 {
 	set(x, y, xSize, ySize);
 
@@ -60,7 +60,7 @@ void sgct_core::Viewport::setName(const std::string & name)
 	mName = name;
 }
 
-void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
+void sgct_core::Viewport::set(float x, float y, float xSize, float ySize)
 {
 	mX = x;
 	mY = y;
@@ -75,30 +75,21 @@ void sgct_core::Viewport::set(double x, double y, double xSize, double ySize)
     mGenerateGPUData = true;
     mName.assign("NoName");
 
-	mCM.setViewportCoords(static_cast<float>(mXSize), 
-		static_cast<float>(mYSize),
-		static_cast<float>(mX),
-		static_cast<float>(mY));
+	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
 }
 
-void sgct_core::Viewport::setPos(double x, double y)
+void sgct_core::Viewport::setPos(float x, float y)
 {
 	mX = x;
 	mY = y;
-	mCM.setViewportCoords(static_cast<float>(mXSize), 
-		static_cast<float>(mYSize),
-		static_cast<float>(mX),
-		static_cast<float>(mY));
+	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
 }
 
-void sgct_core::Viewport::setSize(double x, double y)
+void sgct_core::Viewport::setSize(float x, float y)
 {
 	mXSize = x;
 	mYSize = y;
-	mCM.setViewportCoords(static_cast<float>(mXSize), 
-		static_cast<float>(mYSize),
-		static_cast<float>(mX),
-		static_cast<float>(mY));
+	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
 }
 
 void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)

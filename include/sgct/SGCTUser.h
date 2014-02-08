@@ -28,7 +28,7 @@ public:
 	void setPos(float x, float y, float z);
 	void setPos(glm::vec3 pos);
 	void setPos(glm::dvec4 pos);
-	void setPos(double * pos);
+	void setPos(float * pos);
 	void setHeadTracker(const char * trackerName, const char * deviceName);
 
 	void setTransform(const glm::mat4 & transform);

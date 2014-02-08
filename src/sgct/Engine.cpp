@@ -3414,13 +3414,13 @@ void sgct::Engine::enterCurrentViewport()
 	else
 	{
 		currentViewportCoords[0] =
-			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()));
 		currentViewportCoords[1] =
-			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()));
 		currentViewportCoords[2] =
-			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<double>(getActiveWindowPtr()->getXFramebufferResolution()));
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * static_cast<float>(getActiveWindowPtr()->getXFramebufferResolution()));
 		currentViewportCoords[3] =
-			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<double>(getActiveWindowPtr()->getYFramebufferResolution()));
+			static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * static_cast<float>(getActiveWindowPtr()->getYFramebufferResolution()));
 
 		SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 		if( sm >= SGCTWindow::Side_By_Side_Stereo )

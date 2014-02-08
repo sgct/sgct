@@ -27,13 +27,13 @@ public:
 	enum ViewPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
 	Viewport();
-	Viewport(double x, double y, double xSize, double ySize);
+	Viewport(float x, float y, float xSize, float ySize);
 	~Viewport();
 
 	void setName(const std::string & name);
-	void set(double x, double y, double xSize, double ySize);
-	void setPos(double x, double y);
-	void setSize(double x, double y);
+	void set(float x, float y, float xSize, float ySize);
+	void setPos(float x, float y);
+	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
 	void setMaskTexture(const char * texturePath);
@@ -56,13 +56,13 @@ public:
 	/*!
 		\returns the normalized x viewport coordinate
 	*/
-	inline double getX() { return mX; }
+	inline float getX() { return mX; }
 	/*!
 		\returns the normalized y viewport coordinate
 	*/
-	inline double getY() { return mY; }
-	inline double getXSize() { return mXSize; }
-	inline double getYSize() { return mYSize; }
+	inline float getY() { return mY; }
+	inline float getXSize() { return mXSize; }
+	inline float getYSize() { return mYSize; }
 	inline Frustum::FrustumMode getEye() { return mEye; }
 	inline Frustum * getFrustum(Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
@@ -86,10 +86,10 @@ private:
 	glm::mat4 mProjectionMatrix[3];
 	std::string mName;
 
-	double mX;
-	double mY;
-	double mXSize;
-	double mYSize;
+	float mX;
+	float mY;
+	float mXSize;
+	float mYSize;
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
 	CorrectionMesh mCM;

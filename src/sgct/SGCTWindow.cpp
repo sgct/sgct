@@ -2382,13 +2382,13 @@ Get the current viewport data in pixels.
 void sgct::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *
-		static_cast<double>(mFramebufferResolution[0]));
+		static_cast<float>(mFramebufferResolution[0]));
 	y = static_cast<int>(getCurrentViewport()->getY() *
-		static_cast<double>(mFramebufferResolution[1]));
+		static_cast<float>(mFramebufferResolution[1]));
 	xSize = static_cast<int>(getCurrentViewport()->getXSize() *
-		static_cast<double>(mFramebufferResolution[0]));
+		static_cast<float>(mFramebufferResolution[0]));
 	ySize = static_cast<int>(getCurrentViewport()->getYSize() *
-		static_cast<double>(mFramebufferResolution[1]));
+		static_cast<float>(mFramebufferResolution[1]));
 }
 
 /*!

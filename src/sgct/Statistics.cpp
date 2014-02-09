@@ -366,8 +366,8 @@ void sgct_core::Statistics::draw(float lineWidth)
 		glLoadIdentity();
 		glPushMatrix();
 		
-        float size = static_cast<float>(STATS_HISTORY_LENGTH);
-        glOrthof(0.0f, size, 0.0f, size, -1.0f, 1.0f);
+        double size = static_cast<double>(STATS_HISTORY_LENGTH);
+        glOrtho(0.0, size, 0.0, size, -1.0, 1.0);
 
 		glMatrixMode(GL_MODELVIEW);
 

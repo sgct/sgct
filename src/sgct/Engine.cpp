@@ -1277,7 +1277,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 				enterCurrentViewport();
 			}
 
-			glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+			glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 			glMatrixMode(GL_MODELVIEW);
 
 			glPushAttrib( GL_ALL_ATTRIB_BITS );
@@ -1494,7 +1494,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	glOrthof(-1.0f, 1.0f, -1.0f, 1.0f, -1.0f, 1.0f);
+	glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
 
 	glMatrixMode(GL_MODELVIEW);
 

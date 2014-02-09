@@ -2284,6 +2284,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 	//pan 45 deg
 	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
 	//glm::mat4 panRot(1.0f);
+    //glm::mat4 panRot = tiltMat;
 
 	//add viewports
 	for(unsigned int i=0; i<6; i++)

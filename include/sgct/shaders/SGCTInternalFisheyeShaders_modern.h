@@ -54,7 +54,6 @@ namespace sgct_core
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -69,11 +68,11 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 				}\n\
 				else\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal = "\
@@ -86,7 +85,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -101,13 +99,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
 			}\n";
@@ -122,7 +120,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -137,13 +134,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
 			}\n";
@@ -160,7 +157,6 @@ namespace sgct_core
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -175,14 +171,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
@@ -197,7 +193,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -212,13 +207,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";
@@ -234,7 +229,6 @@ namespace sgct_core
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -249,14 +243,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
@@ -273,7 +267,6 @@ namespace sgct_core
 			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -288,14 +281,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
@@ -314,7 +307,6 @@ namespace sgct_core
 			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
 			void main()\n\
@@ -329,7 +321,7 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta);\n\
 					float y = -sin(phi) * cos(theta);\n\
 					float z = cos(phi);\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					position = texture(positionmap, rotVec).xyz;\n\
@@ -337,7 +329,7 @@ namespace sgct_core
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
@@ -352,7 +344,6 @@ namespace sgct_core
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -368,11 +359,11 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 				}\n\
 				else\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
@@ -385,7 +376,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -401,13 +391,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
 			}\n";
@@ -422,7 +412,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -438,13 +427,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
 			}\n";
@@ -461,7 +450,6 @@ namespace sgct_core
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -477,14 +465,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 				}\n\
@@ -499,7 +487,6 @@ namespace sgct_core
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -515,13 +502,13 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
 			}\n";
@@ -537,7 +524,6 @@ namespace sgct_core
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -553,14 +539,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
@@ -577,7 +563,6 @@ namespace sgct_core
 			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -593,14 +578,14 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					position = texture(positionmap, rotVec).xyz;\n\
 					gl_FragDepth = texture(depthmap, rotVec).x;\n\
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
 				}\n\
@@ -619,7 +604,6 @@ namespace sgct_core
 			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
-			uniform vec4 bgColor;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
@@ -635,7 +619,7 @@ namespace sgct_core
 					float x = sin(phi) * sin(theta) - offset.x;\n\
 					float y = -sin(phi) * cos(theta) - offset.y;\n\
 					float z = cos(phi) - offset.z;\n\
-					vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+					**rotVec**;\n\
 					diffuse = texture(cubemap, rotVec);\n\
 					normal = texture(normalmap, rotVec).xyz;\n\
 					position = texture(positionmap, rotVec).xyz;\n\
@@ -643,7 +627,7 @@ namespace sgct_core
 				}\n\
 				else\n\
 				{\n\
-					diffuse = bgColor;\n\
+					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
 					gl_FragDepth = 1.0f;\n\
@@ -702,7 +686,7 @@ namespace sgct_core
             \n\
             uniform samplerCube cubemap;\n\
             uniform float halfFov;\n\
-            uniform vec4 bgColor;\n\
+            uniform vec4 **bgColor**;\n\
             float size = 4096.0;\n\
             float angle45Factor = 0.7071067812;\n\
             \n\
@@ -718,11 +702,11 @@ namespace sgct_core
                     float x = sin(phi) * sin(theta);\n\
                     float y = -sin(phi) * cos(theta);\n\
                     float z = cos(phi);\n\
-                    vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z);\n\
+                    **rotVec**;\n\
                     return texture(cubemap, rotVec);\n\
                 }\n\
                 else\n\
-                    return bgColor;\n\
+                    return **bgColor**;\n\
             }\n\
             \n\
             vec4 cubic(float x)\n\

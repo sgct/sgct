@@ -24,6 +24,7 @@ public:
 	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
 	enum DrawBufferType { Diffuse = 0, Diffuse_Normal, Diffuse_Position, Diffuse_Normal_Position };
 	enum BufferFloatPrecision { Float_16Bit = 0, Float_32Bit };
+    enum FisheyeMethod { FourFaceCube = 0, FiveFaceCube };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTSettings * instance()
@@ -71,6 +72,7 @@ public:
 	void setForceGlTexImage2D(bool state);
 	void setUsePBO(bool state);
 	void setUseRLE(bool state);
+    void setFisheyeMethod(FisheyeMethod fm);
 	
 	// ----------- get functions ---------------- //
 	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
@@ -86,6 +88,7 @@ public:
 	bool				getForceGlTexImage2D();
 	bool				getUsePBO();
 	bool				getUseRLE();
+    FisheyeMethod       getFisheyeMethod();
 	int					getPNGCompressionLevel();
 
 	// ----------- inline functions ---------------- //
@@ -152,6 +155,7 @@ private:
 
 	DrawBufferType mCurrentDrawBuffer;
 	BufferFloatPrecision mCurrentBufferFloatPrecision;
+    FisheyeMethod mFisheyeMethod;
 
 	//mutex
 	tthread::mutex mMutex;

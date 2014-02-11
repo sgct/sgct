@@ -31,7 +31,6 @@ public:
 	~Viewport();
 
 	void setName(const std::string & name);
-	void set(float x, float y, float xSize, float ySize);
 	void setPos(float x, float y);
 	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
@@ -79,6 +78,9 @@ public:
 	inline unsigned int getMaskTextureIndex() { return mMaskTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
 
+private:
+    void reset(float x, float y, float xSize, float ySize);
+    
 private:
 	glm::vec3 mViewPlaneCoords[3];
 	glm::mat4 mViewMatrix[3];

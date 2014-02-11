@@ -917,17 +917,23 @@ void sgct::Engine::render()
 				//set alpha value
 				mFisheyeClearColor[3] = getActiveWindowPtr()->getAlpha() ? 0.0f : 1.0f;
 
-				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::No_Stereo) ? Frustum::StereoLeftEye : Frustum::Mono;
-				(this->*mInternalRenderFisheyeFn)(LeftEye);
-
-				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::No_Stereo )
-				{
-					mActiveFrustumMode = Frustum::StereoRightEye;
-
-					sm >= SGCTWindow::Side_By_Side_Stereo ?
-						(this->*mInternalRenderFisheyeFn)(LeftEye) :
-						(this->*mInternalRenderFisheyeFn)(RightEye);
-				}
+                if( sm == static_cast<int>(SGCTWindow::No_Stereo) )
+                {
+                    mActiveFrustumMode = Frustum::Mono;
+                    (this->*mInternalRenderFisheyeFn)(LeftEye);
+                }
+                else
+                {
+                    mActiveFrustumMode = Frustum::StereoLeftEye;
+                    (this->*mInternalRenderFisheyeFn)(LeftEye);
+                    
+                    mActiveFrustumMode = Frustum::StereoRightEye;
+                    
+                    //use a single texture for side-by-side and top-bottom stereo modes
+                    sm >= SGCTWindow::Side_By_Side_Stereo ?
+                        (this->*mInternalRenderFisheyeFn)(LeftEye) :
+                        (this->*mInternalRenderFisheyeFn)(RightEye);
+                }
 			}
 			//--------------------------------------------------------------
 			//     RENDER REGULAR VIEWPORTS
@@ -938,19 +944,23 @@ void sgct::Engine::render()
 		fprintf(stderr, "Render-Loop: Rendering\n");
 	#endif
 				//if any stereo type (except passive) then set frustum mode to left eye
-				mActiveFrustumMode = sm != static_cast<int>(SGCTWindow::No_Stereo) ? Frustum::StereoLeftEye : Frustum::Mono;
-				renderViewports(LeftEye);
-
-				//render right eye view port(s)
-				if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::No_Stereo )
-				{
-					mActiveFrustumMode = Frustum::StereoRightEye;
-
+				if( sm == static_cast<int>(SGCTWindow::No_Stereo))
+                {
+                    mActiveFrustumMode = Frustum::Mono;
+                    renderViewports(LeftEye);
+                }
+                else
+                {
+                    mActiveFrustumMode = Frustum::StereoLeftEye;
+                    renderViewports(LeftEye);
+                    
+                    mActiveFrustumMode = Frustum::StereoRightEye;
+                    
 					//use a single texture for side-by-side and top-bottom stereo modes
 					sm >= SGCTWindow::Side_By_Side_Stereo ?
-						renderViewports(LeftEye):
-						renderViewports(RightEye);
-				}
+                        renderViewports(LeftEye):
+                        renderViewports(RightEye);
+                }
 			}
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -1142,7 +1152,15 @@ void sgct::Engine::renderDisplayInfo()
 */
 void sgct::Engine::draw()
 {
-	enterCurrentViewport();
+	//run scissor test to prevent clearing of entire buffer
+    glEnable(GL_SCISSOR_TEST);
+    
+    enterCurrentViewport();
+    
+    //clear buffers
+    SGCTSettings::instance()->useFBO() ? setAndClearBuffer(RenderToTexture) : setAndClearBuffer(BackBuffer);
+    
+    glDisable(GL_SCISSOR_TEST);
 
 	if( mDrawFn != NULL )
 	{
@@ -1161,7 +1179,16 @@ void sgct::Engine::draw()
 */
 void sgct::Engine::drawFixedPipeline()
 {
-	enterCurrentViewport();
+	//run scissor test to prevent clearing of entire buffer
+    glEnable(GL_SCISSOR_TEST);
+    
+    enterCurrentViewport();
+    
+    //clear buffers
+    SGCTSettings::instance()->useFBO() ? setAndClearBuffer(RenderToTexture) : setAndClearBuffer(BackBuffer);
+    
+    glDisable(GL_SCISSOR_TEST);
+
 
 	glMatrixMode(GL_PROJECTION);
 
@@ -1323,11 +1350,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 }
 
 /*!
-	This function clears and sets the correct buffer like:
-
-	- Backbuffer
-	- FBO
-	- Multisampled FBO
+	This function attaches targets to FBO if FBO is in use
 */
 void sgct::Engine::prepareBuffer(TextureIndexes ti)
 {
@@ -1353,13 +1376,7 @@ void sgct::Engine::prepareBuffer(TextureIndexes ti)
 			if (SGCTSettings::instance()->usePositionTexture())
 				fbo->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 		}
-
-		//dont clear buffer if side-by-side or top-bottom stereo
-		if( !(getActiveWindowPtr()->getStereoMode() >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
-			setAndClearBuffer(RenderToTexture);
-	}
-	else
-		setAndClearBuffer(BackBuffer);
+    }
 }
 
 /*!
@@ -1378,9 +1395,9 @@ void sgct::Engine::renderFBOTexture()
 
 	//clear buffers
 	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
-	setAndClearBuffer(BackBufferBlack);
 
 	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    setAndClearBuffer(BackBufferBlack);
     
     std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
@@ -1440,11 +1457,11 @@ void sgct::Engine::renderFBOTexture()
 		//render right eye in active stereo mode
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
 		{
-			//clear buffers
+			glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+            
+            //clear buffers
 			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
-
-			glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
 
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 			glUniform1i( mShaderLocs[MonoTex], 0);
@@ -1489,6 +1506,10 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	OffScreenBuffer::unBind();
 
 	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+    
+    mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
+	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    setAndClearBuffer(BackBufferBlack);
 
 	//enter ortho mode
 	glMatrixMode(GL_PROJECTION);
@@ -1505,13 +1526,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //needed for shaders
 
-	//clear buffers
-	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
-	setAndClearBuffer(BackBufferBlack);
-
 	glLoadIdentity();
-
-	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
     
     std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
@@ -1547,11 +1562,11 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		//render right eye in active stereo mode
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
 		{
-			//clear buffers
+			glViewport(0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+            
+            //clear buffers
 			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
-
-			glViewport(0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
 
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 
@@ -1634,9 +1649,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 			}
 
-			setAndClearBuffer(RenderToTexture);
-
-			//reset depth function
+            //reset depth function
 			glDepthFunc( GL_LESS );
 
 			//render
@@ -1731,14 +1744,13 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if (SGCTSettings::instance()->usePositionTexture())
 		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 
-	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	enterFisheyeViewport();
+    sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
 	{
 		glClearColor(mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3]);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
-
-	enterFisheyeViewport();
 
 	getActiveWindowPtr()->bindFisheyeShaderProgram();
 
@@ -1786,9 +1798,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	glUniform1i( getActiveWindowPtr()->getFisheyeShaderCubemapLoc(), 0);
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
-	glUniform4fv( getActiveWindowPtr()->getFisheyeBGColorLoc(), 1, mFisheyeClearColor );
-
-	if( getActiveWindowPtr()->isFisheyeOffaxis() )
+	
+    if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
 		glUniform3f( getActiveWindowPtr()->getFisheyeShaderOffsetLoc(),
 			getActiveWindowPtr()->getFisheyeOffset(0),
@@ -1915,11 +1926,10 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				if (SGCTSettings::instance()->usePositionTexture())
 					CubeMapFBO->attachCubeMapTexture(getActiveWindowPtr()->getFrameBufferTexture(CubeMapPositions), static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
 			}
-
-			setAndClearBuffer(RenderToTexture);
-
-			//render
+            
+            //render
 			(this->*mInternalDrawFn)();
+
 
 			//copy AA-buffer to "regular"/non-AA buffer
 			if( CubeMapFBO->isMultiSampled() )
@@ -2031,6 +2041,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	if (SGCTSettings::instance()->usePositionTexture())
 		finalFBO->attachColorTexture(getActiveWindowPtr()->getFrameBufferTexture(Positions), GL_COLOR_ATTACHMENT2);
 
+    enterFisheyeViewport();
 	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( !(sm >= SGCTWindow::Side_By_Side_Stereo && mActiveFrustumMode == Frustum::StereoRightEye) )
 	{
@@ -2043,7 +2054,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW); //restore
-	enterFisheyeViewport();
 
 	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
@@ -2092,7 +2102,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 	}
 
 	glUniform1f( getActiveWindowPtr()->getFisheyeShaderHalfFOVLoc(), glm::radians<float>(getActiveWindowPtr()->getFisheyeFOV()/2.0f) );
-	glUniform4f( getActiveWindowPtr()->getFisheyeBGColorLoc(), mFisheyeClearColor[0], mFisheyeClearColor[1], mFisheyeClearColor[2], mFisheyeClearColor[3] );
 
 	if( getActiveWindowPtr()->isFisheyeOffaxis() )
 	{
@@ -2361,11 +2370,10 @@ void sgct::Engine::renderPostFX(TextureIndexes finalTargetIndex)
 		//bind target FBO
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
 		//if for some reson the active texture has been reset
 		glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glActiveTexture(GL_TEXTURE0);
 
@@ -2441,9 +2449,6 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 		//bind target FBO
 		getActiveWindowPtr()->mFinalFBO_Ptr->attachColorTexture( getActiveWindowPtr()->getFrameBufferTexture( finalTargetIndex ) );
 
-		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-		glClear(GL_COLOR_BUFFER_BIT);
-
 		//if for some reson the active texture has been reset
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 		glMatrixMode(GL_TEXTURE);
@@ -2451,6 +2456,9 @@ void sgct::Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex)
 
 		glMatrixMode(GL_MODELVIEW); //restore
 		glViewport(0, 0, getActiveWindowPtr()->getXFramebufferResolution(), getActiveWindowPtr()->getYFramebufferResolution());
+        
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT);
 
 		glPushAttrib(GL_ALL_ATTRIB_BITS);
 
@@ -3405,11 +3413,15 @@ void sgct::Engine::enterCurrentViewport()
 {
 	if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 	{
-		int cmRes = getActiveWindowPtr()->getCubeMapResolution();
-		currentViewportCoords[0] = 0;
-		currentViewportCoords[1] = 0;
-		currentViewportCoords[2] = cmRes;
-		currentViewportCoords[3] = cmRes;
+		float cmRes = static_cast<float>(getActiveWindowPtr()->getCubeMapResolution());
+		currentViewportCoords[0] =
+        static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getX() * cmRes);
+		currentViewportCoords[1] =
+        static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getY() * cmRes);
+		currentViewportCoords[2] =
+        static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getXSize() * cmRes);
+		currentViewportCoords[3] =
+        static_cast<int>( getActiveWindowPtr()->getCurrentViewport()->getYSize() * cmRes);
 	}
 	else
 	{
@@ -3484,10 +3496,15 @@ void sgct::Engine::enterCurrentViewport()
 		}
 	}
 
-	glViewport( currentViewportCoords[0],
-		currentViewportCoords[1],
-		currentViewportCoords[2],
-		currentViewportCoords[3]);
+	glViewport(currentViewportCoords[0],
+               currentViewportCoords[1],
+               currentViewportCoords[2],
+               currentViewportCoords[3]);
+    
+    glScissor(currentViewportCoords[0],
+              currentViewportCoords[1],
+              currentViewportCoords[2],
+              currentViewportCoords[3]);
 }
 
 void sgct::Engine::enterFisheyeViewport()

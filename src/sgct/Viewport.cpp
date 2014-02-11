@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::Viewport::Viewport()
 {
-	set(0.0f, 0.0f, 1.0f, 1.0f);
+	reset(0.0f, 0.0f, 1.0f, 1.0f);
 
 	for(int i=0; i<3; i++)
 	{
@@ -30,7 +30,7 @@ sgct_core::Viewport::Viewport()
 */
 sgct_core::Viewport::Viewport(float x, float y, float xSize, float ySize)
 {
-	set(x, y, xSize, ySize);
+	reset(x, y, xSize, ySize);
 
 	for(int i=0; i<3; i++)
 	{
@@ -60,7 +60,7 @@ void sgct_core::Viewport::setName(const std::string & name)
 	mName = name;
 }
 
-void sgct_core::Viewport::set(float x, float y, float xSize, float ySize)
+void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 {
 	mX = x;
 	mY = y;

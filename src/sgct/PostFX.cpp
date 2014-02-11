@@ -111,11 +111,11 @@ void sgct::PostFX::internalRender()
 	mXSize =  win->getXFramebufferResolution();
 	mYSize =  win->getYFramebufferResolution();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	//if for some reson the active texture has been reset
 	glViewport(0, 0, mXSize, mYSize);
+    
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, mInputTexture );
@@ -142,9 +142,6 @@ void sgct::PostFX::internalRenderFixedPipeline()
 	mXSize =  win->getXFramebufferResolution();
 	mYSize =  win->getYFramebufferResolution();
 
-	glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
-	glClear(GL_COLOR_BUFFER_BIT);
-
 	//if for some reson the active texture has been reset
 	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glMatrixMode(GL_TEXTURE);
@@ -154,6 +151,9 @@ void sgct::PostFX::internalRenderFixedPipeline()
 
 	//if for some reson the active texture has been reset
 	glViewport(0, 0, mXSize, mYSize);
+    
+    glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+	glClear(GL_COLOR_BUFFER_BIT);
 
 	glBindTexture(GL_TEXTURE_2D, mInputTexture );
 

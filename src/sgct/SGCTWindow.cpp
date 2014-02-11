@@ -75,7 +75,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	NormalCubemap	= -1;
 	PositionCubemap = -1;
 	FishEyeHalfFov	= -1;
-	FishEyeBGColor	= -1;
 	FisheyeOffset	= -1;
 	FishEyeSwapColor = -1;
 	FishEyeSwapDepth = -1;
@@ -1569,6 +1568,8 @@ void sgct::SGCTWindow::loadShaders()
 		//reload shader program if it exists
 		if( mFisheyeShader.isLinked() )
 			mFisheyeShader.deleteProgram();
+        
+        std::string fisheyeFragmentShader;
 
 		if( Engine::instance()->isOGLPipelineFixed() )
 		{
@@ -1582,19 +1583,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1604,19 +1605,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
 						break;
 					}
 				}	
@@ -1629,19 +1630,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1651,20 +1652,20 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
-                        //mFisheyeShader.addShaderSrc(sgct_core::shaders::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader;
+                        //fisheyeFragmentShader = sgct_core::shaders::Fisheye_Frag_Shader_Cubic;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
 						break;
 					}
 				}
@@ -1689,19 +1690,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+                        fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1711,19 +1712,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
 						break;
 					}
 				}
@@ -1736,19 +1737,19 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1758,20 +1759,20 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
-                        //mFisheyeShader.addShaderSrc(sgct_core::shaders_modern::Fisheye_Frag_Shader_Cubic, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader;
+                        //fisheyeFragmentShader = sgct_core::shaders_modern::Fisheye_Frag_Shader_Cubic;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position;
 						break;
 					}
 				}
@@ -1784,6 +1785,33 @@ void sgct::SGCTWindow::loadShaders()
 				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
+        
+        //replace add correct transform in the fragment shader
+        std::size_t found = fisheyeFragmentShader.find("**rotVec**");
+        if (found!=std::string::npos)
+        {
+            if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FourFaceCube )
+                fisheyeFragmentShader.replace(found,10,"vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
+            else
+                fisheyeFragmentShader.replace(found,10,"vec3 rotVec = vec3( angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
+        }
+        
+        //replace color
+        found = fisheyeFragmentShader.find("**bgColor**");
+        if (found!=std::string::npos)
+        {
+            const float * col = Engine::instance()->getFisheyeClearColor();
+            char colorStr[32];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+            sprintf_s(colorStr, 32, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+#else
+            sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+#endif
+            fprintf(stderr, "Color string '%s'\n\n", colorStr);
+            fisheyeFragmentShader.replace(found,11,std::string(colorStr));
+        }
+        
+        mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
 		mFisheyeShader.setName("FisheyeShader");
 		mFisheyeShader.createAndLinkProgram();
@@ -1791,8 +1819,8 @@ void sgct::SGCTWindow::loadShaders()
 
 		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
 		glUniform1i( Cubemap, 0 );
-
-		if( SGCTSettings::instance()->useDepthTexture() )
+        
+        if( SGCTSettings::instance()->useDepthTexture() )
 		{
 			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
 			glUniform1i( DepthCubemap, 1 );
@@ -1812,10 +1840,6 @@ void sgct::SGCTWindow::loadShaders()
 
 		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );
 		glUniform1f( FishEyeHalfFov, glm::half_pi<float>() );
-
-		const float * bgColor = Engine::instance()->getFisheyeClearColor();
-		FishEyeBGColor = mFisheyeShader.getUniformLocation( "bgColor" );
-		glUniform4f( FishEyeBGColor, bgColor[0], bgColor[1], bgColor[2], bgColor[3] );
 
 		if( mFisheyeOffaxis )
 		{
@@ -2251,112 +2275,232 @@ void sgct::SGCTWindow::deleteAllViewports()
 }
 
 /*!
-	Generates six viewports that renders the inside of a cube. The method used in SGCT is to only use four faces by rotating the cube 45 degrees.
+	Generates six viewports that renders the inside of a cube.
 */
 void sgct::SGCTWindow::generateCubeMapViewports()
 {
-	//clear the viewports since they will be replaced
+	enum cubeFaces { Pos_X=0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
+    
+    //clear the viewports since they will be replaced
 	deleteAllViewports();
-	glm::vec4 lowerLeft, upperLeft, upperRight;
-
+    
 	float radius = getDomeDiameter() / 2.0f;
+    
+    if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FiveFaceCube )
+    {
+        glm::vec4 lowerLeft, upperLeft, upperRight;
 
-	//+Z face
-	lowerLeft.x = -1.0f * radius;
-	lowerLeft.y = -1.0f * radius;
-	lowerLeft.z = 1.0f * radius;
-	lowerLeft.w = 1.0f;
+        //tilt
+        glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+        //glm::mat4 tiltMat(1.0f);
 
-	upperLeft.x = -1.0f * radius;
-	upperLeft.y = 1.0f * radius;
-	upperLeft.z = 1.0f * radius;
-	upperLeft.w = 1.0f;
+        //roll 45 deg
+        glm::mat4 rollRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+        //glm::mat4 rollRot(1.0f);
+        //glm::mat4 rollRot = tiltMat;
 
-	upperRight.x = 1.0f * radius;
-	upperRight.y = 1.0f * radius;
-	upperRight.z = 1.0f * radius;
-	upperRight.w = 1.0f;
+        //add viewports
+        for(unsigned int i=0; i<6; i++)
+        {
+            //+Z face
+            lowerLeft.x = -1.0f * radius;
+            lowerLeft.y = -1.0f * radius;
+            lowerLeft.z = 1.0f * radius;
+            lowerLeft.w = 1.0f;
+            
+            upperLeft.x = -1.0f * radius;
+            upperLeft.y = 1.0f * radius;
+            upperLeft.z = 1.0f * radius;
+            upperLeft.w = 1.0f;
+            
+            upperRight.x = 1.0f * radius;
+            upperRight.y = 1.0f * radius;
+            upperRight.z = 1.0f * radius;
+            upperRight.w = 1.0f;
+            
+            sgct_core::Viewport tmpVP;
+            
+            //only generate GPU data in first viewport and the rest can use it's data
+            if( i != 0 )
+                tmpVP.setAsDummy();
+            tmpVP.setName("Fisheye");
 
-	//tilt
-	glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
-	//glm::mat4 tiltMat(1.0f);
+            glm::mat4 rotMat(1.0f);
 
-	//pan 45 deg
-	glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-	//glm::mat4 panRot(1.0f);
-    //glm::mat4 panRot = tiltMat;
+            /*
+             Rotate and clamp the halv height viewports
+             */
+            switch(i)
+            {
+            case Pos_X: //+X face
+                {
+                    rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    upperRight.x = 0.0f;
+                    tmpVP.setSize(0.5f, 1.0f);
+                    //restore the mesh for the non-dummy viewport since setSize modifes that
+                    tmpVP.getCorrectionMeshPtr()->setViewportCoords(1.0f, 1.0f, 0.0f, 0.0f);
+                }
+                break;
 
-	//add viewports
-	for(unsigned int i=0; i<6; i++)
-	{
-		sgct_core::Viewport tmpVP;
+            case Neg_X: //-X face
+                {
+                    rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    lowerLeft.x = 0.0f;
+                    upperLeft.x = 0.0f;
+                    tmpVP.setPos(0.5f, 0.0f);
+                    tmpVP.setSize(0.5f, 1.0f);
+                }
+                break;
+
+            case Pos_Y: //+Y face
+                {
+                    rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+                    lowerLeft.y = 0.0f;
+                    tmpVP.setPos(0.0f, 0.5f);
+                    tmpVP.setSize(1.0f, 0.5f);
+                }
+                break;
+
+            case Neg_Y: //-Y face
+                {
+                    rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+                    upperLeft.y = 0.0f;
+                    upperRight.y = 0.0f;
+                    tmpVP.setSize(1.0f, 0.5f);
+                }
+                break;
+
+            case Pos_Z: //+Z face
+                rotMat = rollRot;
+                break;
+
+            case Neg_Z: //-Z face
+                tmpVP.setEnabled( false );
+                rotMat = glm::rotate(rollRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                break;
+            }
+
+            //Compensate for users pos
+            glm::vec4 userVec = glm::vec4(
+                sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
+                sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
+                sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
+                1.0f );
+
+            tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
+            tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
+            tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
+
+            //Each viewport contains frustums for mono, left stereo and right stereo
+            addViewport( tmpVP );
+
+            /*
+             fprintf(stderr, "View #%d:\n", i);
+             fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).z);
+             fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).z);
+             fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).z);
+             */
+        }
+    }
+    else
+    {
+        glm::vec4 lowerLeft, upperLeft, upperRight;
         
-        //only generate GPU data in first viewport and the rest can use it's data
-        if(i>0)
-            tmpVP.setAsDummy();
-		tmpVP.setName("Fisheye");
-
-		glm::mat4 rotMat(1.0f);
-
-		switch(i)
-		{
-		case 0: //+X face
-			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			break;
-
-		case 1: //-X face
-			tmpVP.setEnabled( false );
-			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			break;
-
-		case 2: //+Y face
-			rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			break;
-
-		case 3: //-Y face
-			rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
-			break;
-
-		case 4: //+Z face
-			rotMat = panRot;
-			break;
-
-		case 5: //-Z face
-			tmpVP.setEnabled( false );
-			rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
-			break;
-		}
-
-		//Compensate for users pos
-		glm::vec4 userVec = glm::vec4(
-			sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
-			sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
-			sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
-			1.0f );
-
-		//add viewplane vertices
-		tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
-		tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
-		tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
-
-		/*
-			Each viewport contains frustums for mono, left stereo and right stereo
-		*/
-		addViewport( tmpVP );
-
-		/*
-		fprintf(stderr, "View #%d:\n", i);
-		fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).z);
-		fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).z);
-		fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).z);
-		*/
-	}
-
-	if( getFisheyeOverlay() != NULL )
-	{
-		mViewports[0].setOverlayTexture( getFisheyeOverlay() );
-		//MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
-	}
+        //+Z face
+        lowerLeft.x = -1.0f * radius;
+        lowerLeft.y = -1.0f * radius;
+        lowerLeft.z = 1.0f * radius;
+        lowerLeft.w = 1.0f;
+        
+        upperLeft.x = -1.0f * radius;
+        upperLeft.y = 1.0f * radius;
+        upperLeft.z = 1.0f * radius;
+        upperLeft.w = 1.0f;
+        
+        upperRight.x = 1.0f * radius;
+        upperRight.y = 1.0f * radius;
+        upperRight.z = 1.0f * radius;
+        upperRight.w = 1.0f;
+        
+        //tilt
+        glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+        //glm::mat4 tiltMat(1.0f);
+        
+        //pan 45 deg
+        glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+        //glm::mat4 panRot(1.0f);
+        //glm::mat4 panRot = tiltMat;
+        
+        //add viewports
+        for(unsigned int i=0; i<6; i++)
+        {
+            sgct_core::Viewport tmpVP;
+            
+            //only generate GPU data in first viewport and the rest can use it's data
+            if( i != 0 )
+                tmpVP.setAsDummy();
+            tmpVP.setName("Fisheye");
+            
+            glm::mat4 rotMat(1.0f);
+            
+            switch(i)
+            {
+                case Pos_X: //+X face
+                    rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    break;
+                    
+                case Neg_X: //-X face
+                    tmpVP.setEnabled( false );
+                    rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    break;
+                    
+                case Pos_Y: //+Y face
+                    rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+                    break;
+                    
+                case Neg_Y: //-Y face
+                    rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+                    break;
+                    
+                case Pos_Z: //+Z face
+                    rotMat = panRot;
+                    break;
+                    
+                case Neg_Z: //-Z face
+                    tmpVP.setEnabled( false );
+                    rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+                    break;
+            }
+            
+            //Compensate for users pos
+            glm::vec4 userVec = glm::vec4(
+                sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
+                sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
+                sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
+                1.0f );
+            
+            //add viewplane vertices
+            tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
+            tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
+            tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
+            
+            //Each viewport contains frustums for mono, left stereo and right stereo
+            addViewport( tmpVP );
+            
+            /*
+             fprintf(stderr, "View #%d:\n", i);
+             fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).z);
+             fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).z);
+             fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).z);
+             */
+        }
+        
+        if( getFisheyeOverlay() != NULL )
+        {
+            mViewports[0].setOverlayTexture( getFisheyeOverlay() );
+            //MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
+        }
+    }
 
 	mAreCubeMapViewPortsGenerated = true;
 }

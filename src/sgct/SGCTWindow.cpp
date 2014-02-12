@@ -1801,13 +1801,13 @@ void sgct::SGCTWindow::loadShaders()
         if (found!=std::string::npos)
         {
             const float * col = Engine::instance()->getFisheyeClearColor();
-            char colorStr[32];
+            char colorStr[64];
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            sprintf_s(colorStr, 32, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+            sprintf_s(colorStr, 64, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
 #else
             sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
 #endif
-            fprintf(stderr, "Color string '%s'\n\n", colorStr);
+            //fprintf(stderr, "Color string '%s'\n\n", colorStr);
             fisheyeFragmentShader.replace(found,11,std::string(colorStr));
         }
         

@@ -4,6 +4,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
 2014-02-08 SGCT ver 2.1.0
 ---------------------------
+* Added support for five side cube fisheye
+* Added keywords in fisheye shaders that will be replaced on load instead of uniforms
+
+2014-02-08 SGCT ver 2.1.0
+---------------------------
 * Removed bug where final texture is rendered 6 times using fisheye
 * In a fisheye all viewports but one are set to dummy viewports
 * Viewport class is not using any doubles anymore (float only)

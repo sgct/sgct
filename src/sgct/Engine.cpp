@@ -1690,6 +1690,15 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
+				int cmRes = static_cast<int>(getActiveWindowPtr()->getCubeMapResolution());
+				glViewport(0, 0, cmRes, cmRes);
+				glScissor(currentViewportCoords[0],
+					currentViewportCoords[1],
+					currentViewportCoords[2],
+					currentViewportCoords[3]);
+
+				glEnable(GL_SCISSOR_TEST);
+
 				mClearBufferFn();
 
 				glDisable( GL_CULL_FACE );
@@ -1723,6 +1732,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 				//unbind shader
 				ShaderProgram::unbind();
+
+				glDisable(GL_SCISSOR_TEST);
 			}//end if depthmap
 		}//end if viewport is enabled
 	}//end for
@@ -1966,6 +1977,16 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				CubeMapFBO->attachCubeMapTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMap), static_cast<unsigned int>(i) );
 				CubeMapFBO->attachCubeMapDepthTexture( getActiveWindowPtr()->getFrameBufferTexture(CubeMapDepth), static_cast<unsigned int>(i) );
 
+				int cmRes = static_cast<int>(getActiveWindowPtr()->getCubeMapResolution());
+				glViewport(0, 0, cmRes, cmRes);
+				glScissor(currentViewportCoords[0],
+					currentViewportCoords[1],
+					currentViewportCoords[2],
+					currentViewportCoords[3]);
+
+				glPushAttrib(GL_ALL_ATTRIB_BITS);
+				glEnable(GL_SCISSOR_TEST);
+
 				mClearBufferFn();
 
 				glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
@@ -1980,8 +2001,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glUniform1i( getActiveWindowPtr()->getFisheyeSwapShaderDepthLoc(), 1);
 				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderNearLoc(), mNearClippingPlaneDist);
 				glUniform1f( getActiveWindowPtr()->getFisheyeSwapShaderFarLoc(), mFarClippingPlaneDist);
-
-				glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 				glDisable( GL_CULL_FACE );
 				if (getActiveWindowPtr()->getAlpha())
@@ -3505,6 +3524,13 @@ void sgct::Engine::enterCurrentViewport()
               currentViewportCoords[1],
               currentViewportCoords[2],
               currentViewportCoords[3]);
+
+	/*fprintf(stderr, "Viewport %d: %d %d %d %d\n",
+		getActiveWindowPtr()->getCurrentViewportIndex(),
+		currentViewportCoords[0],
+        currentViewportCoords[1],
+        currentViewportCoords[2],
+        currentViewportCoords[3]);*/
 }
 
 void sgct::Engine::enterFisheyeViewport()

@@ -70,8 +70,9 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
     
-    //sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FourFaceCube);
+    //sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
     //sgct::SGCTSettings::instance()->setSwapInterval(0);
+
 
 	/*sgct::SGCTSettings::instance()->setCaptureFormat("tga");
 	//sgct::SGCTSettings::instance()->setCaptureFormat("png");

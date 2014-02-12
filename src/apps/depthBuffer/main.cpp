@@ -91,6 +91,10 @@ int main( int argc, char* argv[] )
 	gEngine->setKeyboardCallbackFunction( keyCallback );
     
     sgct::SGCTSettings::instance()->setUseDepthTexture(true);
+	sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
+    sgct::SGCTSettings::instance()->setSwapInterval(0);
+	//sgct::Engine::instance()->setClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+	//sgct::Engine::instance()->setFisheyeClearColor(1.0f, 0.0f, 0.0f);
 
 	if( !gEngine->init() )
 	{
@@ -105,7 +109,6 @@ int main( int argc, char* argv[] )
 	gEngine->render();
 
 	// Clean up
-	glDeleteLists(myTerrainDisplayList, 1);
 	delete gEngine;
 
 	// Exit program
@@ -258,6 +261,7 @@ void myCleanUpFun()
 	if (mySphere != NULL)
 		delete mySphere;
 #endif
+	glDeleteLists(myTerrainDisplayList, 1);
 }
 
 /*!

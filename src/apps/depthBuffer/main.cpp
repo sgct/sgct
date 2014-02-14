@@ -136,6 +136,8 @@ void myDrawFun()
 	//set current shader program
 	sgct::ShaderManager::instance()->bindShaderProgram("Heightmap");
 	glUniform1f( curr_timeLoc, static_cast<float>( curr_time.getVal() ) );
+	glUniform1i( myTextureLocations[0], 0 );
+	glUniform1i( myTextureLocations[1], 1 );
 	//glUniform1f(curr_timeLoc, 0.0f);
 
 	glLineWidth(2.0); //for wireframe
@@ -179,6 +181,7 @@ void myPostSyncPreDrawFun()
 	{
 		fx.getShaderProgram()->reload();
 		reloadShaders.setVal(false);
+		sgct::ShaderManager::instance()->reloadShaderProgram("Heightmap");
 	}
 }
 

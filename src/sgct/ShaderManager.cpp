@@ -333,10 +333,30 @@ void sgct::ShaderManager::setCurrentBin( ShaderBinIndex bin )
 }
 
 /*!
+Reloads a shader program from the manager for the current bin.
+@param	name	Name of the shader program to reload
+@return	true if the shader program was reloaded correctly
+*/
+bool sgct::ShaderManager::reloadShaderProgram( const std::string & name )
+{
+	std::vector<ShaderProgram>::iterator shaderIt = std::find( mShaderPrograms[mCurrentBin].begin(), mShaderPrograms[mCurrentBin].end(), name );
+
+	if( shaderIt == mShaderPrograms[mCurrentBin].end() )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Unable to reload shader program [%s]: Not found in current bin.\n", name.c_str() );
+		return false;
+	}
+
+	shaderIt->reload();
+
+	return true;
+}
+
+/*!
 Removes a shader program from the manager for the current bin.
-All resources allocated for the program will be deallocated and remved
+All resources allocated for the program will be deallocated and removed
 @param	name	Name of the shader program to remove
-@return	If the shader program was removed correctly
+@return	true if the shader program was removed correctly
 */
 bool sgct::ShaderManager::removeShaderProgram( const std::string & name )
 {
@@ -360,7 +380,7 @@ Removes a shader program from the manager for the selected bin.
 All resources allocated for the program will be deallocated and remved
 @param	name	Name of the shader program to remove
 @param	bin		Which bin to remove the shader from
-@return	If the shader program was removed correctly
+@return	true if the shader program was removed correctly
 */
 bool sgct::ShaderManager::removeShaderProgram( const std::string & name, ShaderBinIndex bin )
 {
@@ -404,16 +424,16 @@ Set a shader program to be used in the current rendering pipeline
 @param	shader	Reference to the shader program to set as active
 @return	Wether the specified shader was set as active or not.
 */
-bool sgct::ShaderManager::bindShaderProgram( const ShaderProgram & shader ) const
+bool sgct::ShaderManager::bindShaderProgram( const ShaderProgram & shaderProgram ) const
 {
-	if( shader == NullShader )
+	if( shaderProgram == NullShader )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Could not set shader program [Invalid Pointer] as active: Not found in manager.\n");
 		glUseProgram( GL_FALSE ); //unbind to prevent errors
 		return false;
 	}
 
-	return shader.bind();
+	return shaderProgram.bind();
 }
 //----------------------------------------------------------------------------//
 

@@ -60,10 +60,11 @@ public:
 		ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
 
 	void setCurrentBin( ShaderBinIndex bin );
+	bool reloadShaderProgram( const std::string & name );
 	bool removeShaderProgram( const std::string & name );
 	bool removeShaderProgram( const std::string & name, ShaderBinIndex bin );
 	bool bindShaderProgram( const std::string & name ) const;
-	bool bindShaderProgram( const ShaderProgram & shader ) const;
+	bool bindShaderProgram( const ShaderProgram & shaderProgram ) const;
 	void unBindShaderProgram();
 
 	bool shaderProgramExists( const std::string & name ) const;

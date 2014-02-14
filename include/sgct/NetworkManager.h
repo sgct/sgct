@@ -35,6 +35,11 @@ public:
 	bool isSyncComplete();
 	void close();
 
+	/*!
+		\returns the static pointer to the NetworkManager instance
+	*/
+	static NetworkManager * instance() { return mInstance; }
+
 	bool matchAddress(const std::string address);
 	void retrieveNodeId();
 	bool isComputerServer() { return mIsServer; }
@@ -58,6 +63,7 @@ public:
 	static tthread::condition_variable gCond;
 
 private:
+	static NetworkManager * mInstance;
 	std::vector<SGCTNetwork*> mNetworkConnections;
 
 	std::string mHostName; //stores this computers hostname

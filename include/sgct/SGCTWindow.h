@@ -42,7 +42,7 @@ public:
 public:
 	SGCTWindow(int id);
 	void close();
-	void init(int id);
+	void init();
 	void initOGL();
 	void initContextSpecificOGL();
 	static void initNvidiaSwapGroups();

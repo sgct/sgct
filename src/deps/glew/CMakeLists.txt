@@ -10,6 +10,8 @@ if( MSVC )
 	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 endif()
 
+add_definitions(-DGLEW_STATIC)
+
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()

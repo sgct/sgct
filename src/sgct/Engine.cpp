@@ -434,8 +434,8 @@ bool sgct::Engine::initWindows()
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
 		mThisNode->setCurrentWindowIndex(i);
-		getActiveWindowPtr()->init( static_cast<int>(i) );
-		getActiveWindowPtr()->setWindowTitle( getBasicInfo(i) );
+		getActiveWindowPtr()->init();
+		updateAAInfo(i);
 	}
 
 	waitForAllWindowsInSwapGroupToOpen();
@@ -491,6 +491,12 @@ void sgct::Engine::initOGL()
 
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "OpenGL version %d.%d.%d %s\n", mOpenGL_Version[0], mOpenGL_Version[1], mOpenGL_Version[2],
 		mFixedOGLPipeline ? "comp. profile" : "core profile");
+
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Vendor: %s\n",
+		glGetString(GL_VENDOR));
+
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Renderer: %s\n",
+		glGetString(GL_RENDERER));	
 
 	if (!glfwExtensionSupported("GL_EXT_framebuffer_object") && mOpenGL_Version[0] < 2)
 	{
@@ -1083,7 +1089,7 @@ void sgct::Engine::renderDisplayInfo()
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
 			lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.0f,1.0f),
-			"Frame rate: %.3f Hz, frame: %u",
+			"Frame rate: %.2f Hz, frame: %u",
 			mStatistics->getAvgFPS(),
 			mFrameCounter);
 
@@ -1098,30 +1104,37 @@ void sgct::Engine::renderDisplayInfo()
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
 			lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.0f,0.8f,0.8f,1.0f),
-			"Avg. sync time (size: %d, comp. ratio: %.3f): %.2f ms",
-			SharedData::instance()->getUserDataSize(),
-			SharedData::instance()->getCompressionRatio(),
+			"Avg. sync time: %.2f ms",
 			mStatistics->getAvgSyncTime()*1000.0);
 
-		sgct_text::print(font,
-			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Swap groups: %s and %s (%s) | Frame: %d",
-			getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
-			getActiveWindowPtr()->isBarrierActive() ? "active" : "not active",
-			getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
-			lFrameNumber);
+		bool usingSwapGroups = getActiveWindowPtr()->isUsingSwapGroups();
+		if(usingSwapGroups)
+		{
+			sgct_text::print(font,
+				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+				lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Swap groups: %s and barrier is %s (%s) | Frame: %d",
+				getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
+				getActiveWindowPtr()->isBarrierActive() ? "active" : "inactive",
+				getActiveWindowPtr()->isSwapGroupMaster() ? "master" : "slave",
+				lFrameNumber);
+		}
+		else
+		{
+			sgct_text::print(font,
+				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+				lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				glm::vec4(0.8f,0.8f,0.8f,1.0f),
+				"Swap groups: Disabled");
+		}
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
 			lineHeight * 0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
-			"Tracked: %s | User position: %.3f %.3f %.3f",
-			getActiveWindowPtr()->getCurrentViewport()->isTracked() ? "true" : "false",
-			getUserPtr()->getXPos(),
-			getUserPtr()->getYPos(),
-			getUserPtr()->getZPos());
+			"Anti-Aliasing: %s",
+			aaInfo);
 
 		//if active stereoscopic rendering
 		if( mActiveFrustumMode == Frustum::StereoLeftEye )
@@ -3621,8 +3634,8 @@ void sgct::Engine::calculateFPS(double timestamp)
 		tmpTime = 0.0;
 
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-			if( !mThisNode->getWindowPtr(i)->isFullScreen() )
-				mThisNode->getWindowPtr(i)->setWindowTitle( getBasicInfo(i) );
+			if( mThisNode->getWindowPtr(i)->isVisible() )
+				updateAAInfo(i);
 	}
 }
 
@@ -3846,44 +3859,10 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 }
 
 /*!
-	This function returns the window name string containing info as node ip, if its master or slave, fps and AA settings.
+	This function updates the Anti-Aliasing (AA) settings.
 	This function is called once per second.
 */
-const char * sgct::Engine::getBasicInfo(std::size_t winIndex)
-{
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( basicInfo, sizeof(basicInfo), "Node: %s (%s:%Iu) | fps: %.2f | AA: %s",
-		localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
-		mNetworkConnections->isComputerServer() ? "master" : "slave",
-		winIndex,
-		static_cast<float>(mStatistics->getAvgFPS()),
-        getAAInfo(winIndex));
-    #else
-        #ifdef __WIN32__
-        sprintf( basicInfo, "Node: %s (%s:%u) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
-            mNetworkConnections->isComputerServer() ? "master" : "slave",
-            winIndex,
-            static_cast<float>(mStatistics->getAvgFPS()),
-            getAAInfo(winIndex));
-        #else
-        sprintf( basicInfo, "Node: %s (%s:%zu) | fps: %.2f | AA: %s",
-            localRunningMode == NetworkManager::Remote ? mThisNode->getAddress().c_str() : "127.0.0.1",
-            mNetworkConnections->isComputerServer() ? "master" : "slave",
-            winIndex,
-            static_cast<float>(mStatistics->getAvgFPS()),
-            getAAInfo(winIndex));
-        #endif
-    #endif
-
-	return basicInfo;
-}
-
-/*!
-	This function returns the Anti-Aliasing (AA) settings.
-	This function is called once per second.
-*/
-const char * sgct::Engine::getAAInfo(std::size_t winIndex)
+void sgct::Engine::updateAAInfo(std::size_t winIndex)
 {
     if( getWindowPtr(winIndex)->useFXAA() )
 	{
@@ -3923,8 +3902,6 @@ const char * sgct::Engine::getAAInfo(std::size_t winIndex)
             strcpy(aaInfo, "none");
         #endif
     }
-
-	return aaInfo;
 }
 
 /*!

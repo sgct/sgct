@@ -282,7 +282,7 @@ void sgct::SGCTWindow::close()
 	}
 }
 
-void sgct::SGCTWindow::init(int id)
+void sgct::SGCTWindow::init()
 {
 	if(!mFullScreen)
 	{
@@ -292,6 +292,21 @@ void sgct::SGCTWindow::init(int id)
 		glfwSetWindowFocusCallback( mWindowHandle, windowFocusCallback );
 		glfwSetWindowIconifyCallback( mWindowHandle, windowIconifyCallback );
 	}
+
+	char winName[1024];
+	#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	sprintf_s( winName, 1024, "SGCT node: %s (%s:%d)",
+		sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str(),
+		sgct_core::NetworkManager::instance()->isComputerServer() ? "master" : "slave",
+		mId);
+    #else
+    sprintf( winName, "SGCT node: %s (%s:%d)",
+		sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str(),
+		sgct_core::NetworkManager::instance()->isComputerServer() ? "master" : "slave",
+		mId);
+    #endif
+	
+	mName.empty() ?  setWindowTitle( winName ) : setWindowTitle( mName.c_str() );
 
 	//swap the buffers and update the window
 	glfwSwapBuffers( mWindowHandle );
@@ -869,8 +884,7 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 void sgct::SGCTWindow::initNvidiaSwapGroups()
 {
-//#ifdef __WITHSWAPBARRIERS__
-	setUseSwapGroups(true);
+	fprintf(stderr, "Swap groupd supported %d\n", glfwExtensionSupported("WGL_NV_swap_group"));
 
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (glfwExtensionSupported("WGL_NV_swap_group") && mUseSwapGroups)

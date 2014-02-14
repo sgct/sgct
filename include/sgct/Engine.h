@@ -315,8 +315,7 @@ private:
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport();
 	void enterFisheyeViewport();
-	const char * getBasicInfo(std::size_t winIndex);
-	const char * getAAInfo(std::size_t winIndex);
+	void updateAAInfo(std::size_t winIndex);
 
 	void draw();
 	void drawOverlays();
@@ -410,7 +409,6 @@ private:
 
 	std::string configFilename;
 	int mRunning;
-	char basicInfo[256];
 	char aaInfo[32];
 
 	unsigned int mFrameCounter;

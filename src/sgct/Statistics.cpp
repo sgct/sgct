@@ -341,7 +341,7 @@ void sgct_core::Statistics::update()
 
     mVBOIndex = 1 - mVBOIndex; //ping-pong
 	glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
-    
+   
     size_t size = STATS_HISTORY_LENGTH * sizeof(StatsVertex) * STATS_NUMBER_OF_DYNAMIC_OBJS;
 
 	glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
@@ -379,7 +379,7 @@ void sgct_core::Statistics::draw(float lineWidth)
 		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 		glEnableClientState(GL_VERTEX_ARRAY);
 
-		glTranslatef(0.0f, size/4.0f, 0.0f);
+		glTranslatef(0.0f, static_cast<float>(size)/4.0f, 0.0f);
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
 		glLineWidth( lineWidth );

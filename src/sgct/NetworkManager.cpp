@@ -30,8 +30,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 tthread::condition_variable sgct_core::NetworkManager::gCond;
 
+sgct_core::NetworkManager * sgct_core::NetworkManager::mInstance = NULL;
+
 sgct_core::NetworkManager::NetworkManager(int mode)
 {
+	mInstance = this;
 	mNumberOfConnections = 0;
 	mNumberOfSyncConnections = 0;
 	mAllNodesConnected = false;

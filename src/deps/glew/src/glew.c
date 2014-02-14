@@ -9468,15 +9468,32 @@ static GLboolean _glewInit_GL_WIN_swap_hint (GLEW_CONTEXT_ARG_DEF_INIT)
 
 /* ------------------------------------------------------------------------- */
 
-GLboolean GLEWAPIENTRY glewGetExtension (const char* name)
-{    
-  const GLubyte* start;
-  const GLubyte* end;
-  start = (const GLubyte*)glGetString(GL_EXTENSIONS);
-  if (start == 0)
-    return GL_FALSE;
-  end = start + _glewStrLen(start);
-  return _glewSearchExtension(name, start, end);
+GLboolean glewGetExtension (const char* name)
+{
+	GLubyte* p;
+	GLubyte* end;
+	GLuint len = _glewStrLen((const GLubyte*)name);
+	if (glGetStringi){
+		GLint i, num_extensions;
+		glGetIntegerv (GL_NUM_EXTENSIONS, &num_extensions);
+		for (i = 0; i < num_extensions; i++){
+			p = (GLubyte*) glGetStringi (GL_EXTENSIONS, i);
+			if (0 == p) return GL_FALSE;
+			if (len == _glewStrLen (p)){
+				if (_glewStrSame ((const GLubyte*)name, p, len)) return GL_TRUE;
+			}
+		}
+	}else{
+		p = (GLubyte*)glGetString(GL_EXTENSIONS);
+		if (0 == p) return GL_FALSE;
+		end = p + _glewStrLen(p);
+		while (p < end){
+			GLuint n = _glewStrCLen(p, ' ');
+			if (len == n && _glewStrSame((const GLubyte*)name, p, n)) return GL_TRUE;
+			p += n+1;
+		}
+	}
+	return GL_FALSE;
 }
 
 /* ------------------------------------------------------------------------- */

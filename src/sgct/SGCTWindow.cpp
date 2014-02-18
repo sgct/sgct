@@ -884,8 +884,6 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 void sgct::SGCTWindow::initNvidiaSwapGroups()
 {
-	fprintf(stderr, "Swap groupd supported %d\n", glfwExtensionSupported("WGL_NV_swap_group"));
-
 #ifdef __WIN32__ //Windows uses wglew.h
 	if (glfwExtensionSupported("WGL_NV_swap_group") && mUseSwapGroups)
 	{

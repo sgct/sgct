@@ -27,9 +27,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#include <arpa/inet.h>
 	#include <netdb.h>
 	#include <errno.h>
-    #ifdef _XCODE
-        typedef unsigned int SOCKET;
-    #endif
 	#define SOCKET_ERROR (-1)
 	#define INVALID_SOCKET (SGCT_SOCKET)(~0)
 	#define NO_ERROR 0L

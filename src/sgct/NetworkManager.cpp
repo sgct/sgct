@@ -161,8 +161,9 @@ bool sgct_core::NetworkManager::init()
 	//add connection for external communication
 	if( mIsServer )
 	{
-		if(addConnection( (*ClusterManager::instance()->getExternalControlPort()),
-            "127.0.0.1", SGCTNetwork::ExternalControlConnection))
+		if(addConnection( ClusterManager::instance()->getExternalControlPort(),
+            "127.0.0.1",
+			ClusterManager::instance()->getUseASCIIForExternalControl() ? SGCTNetwork::ExternalASCIIConnection : SGCTNetwork::ExternalRawConnection))
 		{
 			mIsExternalControlPresent = true;
 
@@ -286,7 +287,8 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 	{
 		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
 		{
-			if( mNetworkConnections[i]->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection )
+			//check if any external connection
+			if( mNetworkConnections[i]->getTypeOfConnection() > sgct_core::SGCTNetwork::SyncConnection )
 				return mNetworkConnections[i];
 		}
 	}
@@ -368,10 +370,17 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 					}
 				}
 
-		if( mNetworkConnections[index]->getTypeOfConnection() == sgct_core::SGCTNetwork::ExternalControlConnection &&
-			 mNetworkConnections[index]->isConnected())
+		/*
+			Check if any external connection
+		*/
+		if( mNetworkConnections[index]->getTypeOfConnection() > sgct_core::SGCTNetwork::SyncConnection )
 		{
-			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
+			bool externalControlConnectionStatus = mNetworkConnections[index]->isConnected();
+
+			if(externalControlConnectionStatus && sgct_core::SGCTNetwork::ExternalASCIIConnection)
+				mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
+
+			sgct::Engine::instance()->updateStatusForExternalControl( externalControlConnectionStatus, index);
 		}
 
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connections: %u (IG slaves %u of %u)\n",

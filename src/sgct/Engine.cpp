@@ -109,7 +109,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mNetworkCallbackFn = NULL;
+	mNetworkMessageCallbackFn = NULL;
+	mNetworkStatusCallbackFn = NULL;
 	mThreadPtr = NULL;
 
 	mTerminate = false;
@@ -701,7 +702,8 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mNetworkCallbackFn = NULL;
+	mNetworkMessageCallbackFn = NULL;
+	mNetworkStatusCallbackFn = NULL;
 
 	//global
 	gKeyboardCallbackFn = NULL;
@@ -3171,9 +3173,9 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 }
 
 /*!
-	\param fnPtr is the function pointer to an external control function callback
+	\param fnPtr is the function pointer to an external control message callback
 
-	This function sets the external control callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
+	This function sets the external control message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
 	Example:
 	\code
 	<Cluster masterAddress="127.0.0.1" externalControlPort="20500">
@@ -3184,7 +3186,18 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 */
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))
 {
-	mNetworkCallbackFn = fnPtr;
+	mNetworkMessageCallbackFn = fnPtr;
+}
+
+/*!
+	\param fnPtr is the function pointer to an external control status callback
+
+	This function sets the external control status callback which will be called when the connection status changes (connect or disconnect).
+
+*/
+void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool, int))
+{
+	mNetworkStatusCallbackFn = fnPtr;
 }
 
 /*!
@@ -3820,8 +3833,17 @@ std::size_t sgct::Engine::getFocusedWindowIndex()
 */
 void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(mNetworkCallbackFn != NULL && receivedlength > 0)
-		mNetworkCallbackFn(receivedData, receivedlength, clientIndex);
+	if(mNetworkMessageCallbackFn != NULL && receivedlength > 0)
+		mNetworkMessageCallbackFn(receivedData, receivedlength, clientIndex);
+}
+
+/*!
+	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
+*/
+void sgct::Engine::updateStatusForExternalControl(bool connected, int clientIndex)
+{
+	if(mNetworkStatusCallbackFn != NULL)
+		mNetworkStatusCallbackFn(connected, clientIndex);
 }
 
 /*!

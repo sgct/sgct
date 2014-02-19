@@ -17,6 +17,7 @@ sgct_core::ClusterManager::ClusterManager(void)
 	mThisNodeId = -1;
 	validCluster = false;
 	mFirmFrameLockSync = false;
+	mUseASCIIForExternalControl = true;
 
 	mUser = new SGCTUser();
 	mTrackingManager = new sgct::SGCTTrackingManager();
@@ -84,6 +85,22 @@ void sgct_core::ClusterManager::setSceneRotation(float yaw, float pitch, float r
 {
 	mSceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
 	calculateSceneTransform();
+}
+
+/*!
+	Set if external control should use ASCII (Telnet) or raw binary parsing.
+*/
+void sgct_core::ClusterManager::setUseASCIIForExternalControl(bool useASCII)
+{
+	mUseASCIIForExternalControl = useASCII;
+}
+
+/*!
+	Get if external control is using ASCII (Telnet) or raw binary parsing.
+*/
+bool sgct_core::ClusterManager::getUseASCIIForExternalControl()
+{
+	return mUseASCIIForExternalControl;
 }
 
 /*!

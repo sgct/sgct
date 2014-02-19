@@ -7,6 +7,8 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 * Improved context handling in SGCTWindow and swap group initialization
 * FragDepth is set to 1.0 outside the fisheye for all fisheye shaders
 * Added initial clear buffer for all windows
+* Added external control status callback
+* Added support for binary/raw external communication
 
 2014-02-08 SGCT ver 2.1.0
 ---------------------------

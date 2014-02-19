@@ -101,12 +101,15 @@ public:
 	/*!
 		\returns the external control port number if it's set or specified in the XML configuration
 	*/
-	std::string * getExternalControlPort() { return &mExternalControlPort; }
+	std::string getExternalControlPort() { return mExternalControlPort; }
 
 	/*!
 		\param the external control port number
 	*/
 	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
+
+	void setUseASCIIForExternalControl(bool useASCII);
+	bool getUseASCIIForExternalControl();
 
 	void setSceneOffset(glm::vec3 offset);
 	void setSceneRotation(float yaw, float pitch, float roll);
@@ -147,6 +150,7 @@ private:
 	bool mFirmFrameLockSync;
 	std::string mMasterAddress;
 	std::string mExternalControlPort;
+	bool mUseASCIIForExternalControl;
 
 	SGCTUser * mUser;
 	sgct::SGCTTrackingManager * mTrackingManager;

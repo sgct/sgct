@@ -166,12 +166,14 @@ public:
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
 
 	//external control network functions
-	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: chonst char * buffer, int buffer length, int clientIndex
+	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: const char * buffer, int buffer length, int clientIndex
+	void setExternalControlStatusCallback( void(*fnPtr)(bool, int) ); //arguments_ const bool & connected, int clientIndex
 	void sendMessageToExternalControl(void * data, int length);
 	void sendMessageToExternalControl(const std::string msg);
 	bool isExternalControlConnected();
 	void setExternalControlBufferSize(unsigned int newSize);
 	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
+	void updateStatusForExternalControl(bool connected, int clientIndex);
 
     //GLFW wrapped functions
 	static double getTime();
@@ -354,7 +356,8 @@ private:
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
-	typedef void (*NetworkCallbackFn)(const char *, int, int);
+	typedef void (*NetworkMessageCallbackFn)(const char *, int, int);
+	typedef void (*NetworkStatusCallbackFn)(bool, int);
     typedef void (*timerCallbackFn)(size_t);
 
 	//function pointers
@@ -372,7 +375,8 @@ private:
 	InternalCallbackFn			mInternalDrawOverlaysFn;
 	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
 	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
-	NetworkCallbackFn			mNetworkCallbackFn;
+	NetworkMessageCallbackFn	mNetworkMessageCallbackFn;
+	NetworkStatusCallbackFn		mNetworkStatusCallbackFn;
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;

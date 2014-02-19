@@ -21,7 +21,6 @@ using namespace tinyxml2;
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
-	useExternalControlPort = false;
 
 	if( filename.empty() )
 	{
@@ -162,7 +161,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 	{
 		std::string tmpStr( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::instance()->setExternalControlPort(tmpStr);
-		useExternalControlPort = true;
+	}
+
+	if( XMLroot->Attribute( "externalASCII" ) != NULL )
+	{
+		ClusterManager::instance()->setUseASCIIForExternalControl(
+			strcmp( XMLroot->Attribute( "externalASCII" ), "true" ) == 0 ? true : false );
 	}
 
 	if( XMLroot->Attribute( "firmSync" ) != NULL )

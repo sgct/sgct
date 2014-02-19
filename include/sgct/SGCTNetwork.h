@@ -64,7 +64,7 @@ class SGCTNetwork
 public:
 	//ASCII device control chars = 17, 18, 19 & 20
 	enum PackageHeaders { SyncByte = 17, ConnectedByte, DisconnectByte, FillByte };
-	enum ConnectionTypes { SyncConnection = 0, ExternalControlConnection };
+	enum ConnectionTypes { SyncConnection = 0, ExternalASCIIConnection, ExternalRawConnection };
 	enum ReceivedIndex { Current = 0, Previous };
 
 	SGCTNetwork();

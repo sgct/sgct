@@ -22,7 +22,6 @@ public:
 	ReadConfig( const std::string filename );
 
 	bool isValid() { return valid; }
-	bool isExternalControlPortSet() { return useExternalControlPort; }
 
 private:
     bool replaceEnvVars( const std::string &filename );
@@ -31,7 +30,6 @@ private:
 	int getFisheyeCubemapRes( std::string quality );
 
 	bool valid;
-	bool useExternalControlPort;
 	std::string xmlFileName;
 };
 

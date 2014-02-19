@@ -10,7 +10,8 @@ void myDecodeFun();
 sgct::SharedDouble curr_time(0.0);
 
 void myPostSyncPreDrawFun();
-void externalControlCallback(const char * receivedChars, int size, int clientId);
+void externalControlMessageCallback(const char * receivedChars, int size, int clientId);
+void externalControlStatusCallback(bool connected, int clientId);
 
 sgct::SharedBool showStats(false);
 sgct::SharedBool showGraph(false);
@@ -27,7 +28,8 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
-	gEngine->setExternalControlCallback( externalControlCallback );
+	gEngine->setExternalControlCallback( externalControlMessageCallback );
+	gEngine->setExternalControlStatusCallback( externalControlStatusCallback );
 
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
@@ -104,7 +106,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool( &showWireframe );
 }
 
-void externalControlCallback(const char * receivedChars, int size, int clientId)
+void externalControlMessageCallback(const char * receivedChars, int size, int clientId)
 {
 	if( gEngine->isMaster() )
 	{
@@ -127,5 +129,15 @@ void externalControlCallback(const char * receivedChars, int size, int clientId)
 			//recalc percent to float
 			size_factor.setVal(static_cast<float>(tmpVal)/100.0f);
 		}
+
+		sgct::MessageHandler::instance()->print("Message: '%s', size: %d\n", receivedChars, size);
 	}
+}
+
+void externalControlStatusCallback(bool connected, int clientId)
+{
+	if(connected)
+		sgct::MessageHandler::instance()->print("External control %d connected.\n", clientId);
+	else
+		sgct::MessageHandler::instance()->print("External control %d disconnected.\n", clientId);
 }

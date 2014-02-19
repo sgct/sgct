@@ -2,6 +2,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-02-19 SGCT ver 2.1.0
+---------------------------
+* Improved context handling in SGCTWindow and swap group initialization
+* FragDepth is set to 1.0 outside the fisheye for all fisheye shaders
+* Added initial clear buffer for all windows
+
 2014-02-08 SGCT ver 2.1.0
 ---------------------------
 * Added support for five side cube fisheye

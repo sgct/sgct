@@ -214,7 +214,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					diffuse = **bgColor**;\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -252,7 +252,7 @@ namespace sgct_core
 				{\n\
 					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -290,7 +290,7 @@ namespace sgct_core
 				{\n\
 					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -332,7 +332,7 @@ namespace sgct_core
 					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -509,7 +509,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					diffuse = **bgColor**;\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -548,7 +548,7 @@ namespace sgct_core
 				{\n\
 					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -587,7 +587,7 @@ namespace sgct_core
 				{\n\
 					diffuse = **bgColor**;\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -630,7 +630,7 @@ namespace sgct_core
 					diffuse = **bgColor**;\n\
 					normal = vec3(0.0, 0.0, 0.0);\n\
 					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 

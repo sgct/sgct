@@ -70,7 +70,6 @@ public:
 	void setFixResolution(const bool state);
 	void setUsePostFX(bool state);
 	void setUseFXAA(bool state);
-	static void setUseSwapGroups(const bool state);
 	void setUseQuadbuffer(const bool state);
 	void setNumberOfAASamples(int samples);
 	void setStereoMode( StereoMode sm );

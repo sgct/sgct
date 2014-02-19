@@ -881,6 +881,13 @@ void sgct::Engine::render()
     fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
 #endif
 
+		//check if re-size needed of VBO and PBO
+		//context switching may occur if multiple windows are used
+		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
+		{
+			mThisNode->getWindowPtr(i)->update();
+		}
+	
 		mRenderingOffScreen = SGCTSettings::instance()->useFBO();
 		if( mRenderingOffScreen )
 			getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
@@ -891,13 +898,6 @@ void sgct::Engine::render()
 
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
-
-		//check if re-size needed
-		//dont merge with other for loops, number of context switches needs to be minimized
-		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-		{
-			mThisNode->getWindowPtr(i)->update();
-		}
 
 		//--------------------------------------------------------------
 		//     RENDER VIEWPORTS / DRAW
@@ -2747,6 +2747,18 @@ bool sgct::Engine::checkForOGLErrors()
 */
 void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 {
+	//clear the buffers initially
+	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
+	{
+		mThisNode->getWindowPtr(i)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+		glDrawBuffer(GL_BACK);
+		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+	}
+	glfwPollEvents();
+	
 	//Must wait until all nodes are running if using swap barrier
 	if( !mIgnoreSync && ClusterManager::instance()->getNumberOfNodes() > 1)
 	{
@@ -2762,14 +2774,6 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are not supported by hardware.\n");
 
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.\n");
-		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-		{
-			if( !mThisNode->getWindowPtr(i)->isUsingSwapGroups() )
-				MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swapgroups (swap-lock) are disabled for window %d.\n", i);
-
-			glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
-		}
-		glfwPollEvents();
 
 		while(mNetworkConnections->isRunning() &&
 			!mThisNode->getKeyPressed( mExitKey ) &&

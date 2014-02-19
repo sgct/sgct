@@ -513,6 +513,8 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
 	if( mVisible )
 	{
+		makeOpenGLContextCurrent( Window_Context );
+		
 		mScreenCapture->update();
         
         if (takeScreenshot)
@@ -550,6 +552,8 @@ void sgct::SGCTWindow::update()
 {
 	if( mVisible && isWindowResized() )
 	{
+		makeOpenGLContextCurrent( Window_Context );
+		
 		//resize FBOs
 		resizeFBOs();
 
@@ -722,15 +726,6 @@ void sgct::SGCTWindow::setUseFXAA(bool state)
 }
 
 /*!
-	Use nvidia swap groups. This freature is only supported on quadro cards together with a compatible sync card.
-	This function can only be used before the window is created.
-*/
-void sgct::SGCTWindow::setUseSwapGroups(const bool state)
-{
-	mUseSwapGroups = state;
-}
-
-/*!
 	Use quad buffer (hardware stereoscopic rendering).
 	This function can only be used before the window is created.
 	The quad buffer feature is only supported on professional CAD graphics cards such as
@@ -882,10 +877,14 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		return false;
 }
 
+/*!
+Init Nvidia swap groups if they are supported by hardware. Supported hardware is Nvidia Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync card.
+*/
 void sgct::SGCTWindow::initNvidiaSwapGroups()
-{
+{	
+
 #ifdef __WIN32__ //Windows uses wglew.h
-	if (glfwExtensionSupported("WGL_NV_swap_group") && mUseSwapGroups)
+	if (glfwExtensionSupported("WGL_NV_swap_group"))
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
@@ -908,12 +907,14 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 
 		*/
 		if( wglJoinSwapGroupNV(hDC, 1) )
+		{
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [ok].\n");
+			mUseSwapGroups = true;
+		}
 		else
 		{
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
-			return;
 		}
 	}
 	else
@@ -921,7 +922,7 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 #else //Apple and Linux uses glext.h
     #ifndef __APPLE__
 
-	if (glfwExtensionSupported("GLX_NV_swap_group") && mUseSwapGroups)
+	if (glfwExtensionSupported("GLX_NV_swap_group"))
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining Nvidia swap group.\n");
 
@@ -935,12 +936,14 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 			maxGroup, maxBarrier);
 
 		if( glXJoinSwapGroupNV(disp, hDC, 1) )
+		{
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [ok].\n");
+			mUseSwapGroups = true;
+		}
 		else
 		{
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow: Joining swapgroup 1 [failed].\n");
 			mUseSwapGroups = false;
-			return;
 		}
 	}
 	else
@@ -948,10 +951,6 @@ void sgct::SGCTWindow::initNvidiaSwapGroups()
 
     #endif
 #endif
-
-//#else
-//        mUseSwapGroups = false;
-//#endif
 }
 
 void sgct::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int height )

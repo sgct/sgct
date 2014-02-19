@@ -199,7 +199,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					gl_FragColor = **bgColor**;\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -235,7 +235,7 @@ namespace sgct_core
 				{\n\
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -271,7 +271,7 @@ namespace sgct_core
 				{\n\
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -310,7 +310,7 @@ namespace sgct_core
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
 					gl_FragData[2] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -468,7 +468,7 @@ namespace sgct_core
 				else\n\
 				{\n\
 					gl_FragColor = **bgColor**;\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -503,7 +503,7 @@ namespace sgct_core
 				{\n\
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -538,7 +538,7 @@ namespace sgct_core
 				{\n\
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 
@@ -576,7 +576,7 @@ namespace sgct_core
 					gl_FragData[0] = **bgColor**;\n\
 					gl_FragData[1] = vec4(0.0, 0.0, 0.0, 0.0);\n\
 					gl_FragData[2] = vec4(0.0, 0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 0.0f;\n\
+					gl_FragDepth = 1.0;\n\
 				}\n\
 			}\n";
 

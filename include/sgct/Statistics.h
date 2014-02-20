@@ -68,10 +68,10 @@ private:
     unsigned int mVBOIndex;
 	unsigned int mDynamicVBO[2]; //double buffered for ping-pong
 	unsigned int mDynamicVAO[2]; //double buffered for ping-pong
-	unsigned int mStaticVBOs[STATS_NUMBER_OF_STATIC_OBJS];
-	unsigned int mStaticVAOs[STATS_NUMBER_OF_STATIC_OBJS];
+	unsigned int mStaticVBO;
+	unsigned int mStaticVAO;
 
-	size_t mNumberOfLineVerts;
+	int mNumberOfLines;
 	bool mFixedPipeline;
 
 	sgct::ShaderProgram mShader;

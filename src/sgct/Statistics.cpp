@@ -383,14 +383,22 @@ void sgct_core::Statistics::draw(float lineWidth)
 
 		glLoadIdentity();
 
-		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-		glEnableClientState(GL_VERTEX_ARRAY);
-
 		glTranslatef(0.0f, static_cast<float>(size)/4.0f, 0.0f);
 		glScalef(1.0f, VERT_SCALE, 1.0f);
 
 		glLineWidth( lineWidth );
 
+		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+		glEnableClientState(GL_VERTEX_ARRAY);
+
+		glDisableClientState(GL_COLOR_ARRAY);
+		glDisableClientState(GL_EDGE_FLAG_ARRAY);
+		glDisableClientState(GL_FOG_COORD_ARRAY);
+		glDisableClientState(GL_INDEX_ARRAY);
+		glDisableClientState(GL_NORMAL_ARRAY);
+		glDisableClientState(GL_SECONDARY_COLOR_ARRAY);
+		glDisableClientState(GL_TEXTURE_COORD_ARRAY);
+		
 		glBindBuffer(GL_ARRAY_BUFFER, mStaticVBO);
 		glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
@@ -401,16 +409,17 @@ void sgct_core::Statistics::draw(float lineWidth)
 		//1 ms lines
 		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
 		glDrawArrays( GL_LINES, 4, mNumberOfLines*2);
-		
+
 		//zero line, 60hz & 30hz
 		glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
 		glDrawArrays( GL_LINES, 4+mNumberOfLines*2, 6 );
 
 		glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
+		glVertexPointer(2, GL_DOUBLE, 0, reinterpret_cast<void*>(0));
+
 		for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
 		{
 			glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[ i ]) );
-			glVertexPointer(2, GL_DOUBLE, 0, NULL);
 			glDrawArrays(GL_LINE_STRIP, i * STATS_HISTORY_LENGTH, STATS_HISTORY_LENGTH);
 		}
 
@@ -432,7 +441,7 @@ void sgct_core::Statistics::draw(float lineWidth)
 		
 		glm::mat4 orthoMat = glm::ortho( 0.0f, size, 0.0f, size );
 		orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, size/4.0f, 0.0f) );
-		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, static_cast<float>(VERT_SCALE), 1.0f) );
+		orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, VERT_SCALE, 1.0f) );
 		
 		glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
 		

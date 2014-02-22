@@ -347,18 +347,18 @@ void sgct_core::Statistics::update()
 
     mVBOIndex = 1 - mVBOIndex; //ping-pong
 	glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
-   
     size_t size = STATS_HISTORY_LENGTH * sizeof(StatsVertex) * STATS_NUMBER_OF_DYNAMIC_OBJS;
 
 	//glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
 	
-	//PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	PositionBuffer = glMapBufferRange(GL_ARRAY_BUFFER, 0, STATS_HISTORY_LENGTH * sizeof(StatsVertex), GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
-
+    PositionBuffer = mFixedPipeline ?
+        glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY) :
+        glMapBufferRange(GL_ARRAY_BUFFER, 0, STATS_HISTORY_LENGTH * sizeof(StatsVertex), GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+    
 	if (PositionBuffer != NULL)
 		memcpy(PositionBuffer, &mDynamicVertexList[0], size);
-	glUnmapBuffer(GL_ARRAY_BUFFER);
 	
+    glUnmapBuffer(GL_ARRAY_BUFFER);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 

@@ -36,6 +36,8 @@ GLXEWContext * glxewGetContext();
 bool sgct::SGCTWindow::mUseSwapGroups = false;
 bool sgct::SGCTWindow::mBarrier = false;
 bool sgct::SGCTWindow::mSwapGroupMaster = false;
+GLFWwindow * sgct::SGCTWindow::mCurrentContextOwner = NULL;
+GLFWwindow * sgct::SGCTWindow::mSharedHandle = NULL;
 
 sgct::SGCTWindow::SGCTWindow(int id)
 {
@@ -55,6 +57,8 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mIconified = false;
 	mHasAnyMasks = false;
 	mAreCubeMapViewPortsGenerated = false;
+    
+    mWindowHandle = NULL;
 
 	mWindowRes[0] = 640;
 	mWindowRes[1] = 480;
@@ -147,7 +151,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mScreenCapture = NULL;
 
 	mCurrentViewportIndex = 0;
-	mCurrentContext = Unset_Context;
 }
 
 /*!
@@ -574,21 +577,28 @@ void sgct::SGCTWindow::update()
 }
 
 /*!
-	Set the this window's OpenGL context as current
+	Set this window's OpenGL context or the shared context as current. This function keeps track of which context is in use and only set the context to current if it's not.
 */
 void sgct::SGCTWindow::makeOpenGLContextCurrent(OGL_Context context)
 {
-	//if single window or current == new
-	if( sgct_core::ClusterManager::instance()->getThisNodePtr()->getNumberOfWindows() < 2 ||
-		mCurrentContext == context)
-		return;
+	if( context == Shared_Context && mCurrentContextOwner != mSharedHandle )
+    {
+        glfwMakeContextCurrent( mSharedHandle );
+        mCurrentContextOwner = mSharedHandle;
+    }
+    else if( context == Window_Context && mCurrentContextOwner != mWindowHandle )
+    {
+        glfwMakeContextCurrent( mWindowHandle );
+        mCurrentContextOwner = mWindowHandle;
+    }
+}
 
-	mCurrentContext = context;
-
-	if( context == Window_Context )
-		glfwMakeContextCurrent( mWindowHandle );
-	else
-		glfwMakeContextCurrent( mSharedHandle );
+/*!
+    Force a restore of the shared openGL context
+*/
+void sgct::SGCTWindow::restoreSharedContext()
+{
+    glfwMakeContextCurrent( mSharedHandle );
 }
 
 /*!

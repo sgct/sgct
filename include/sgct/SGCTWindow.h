@@ -51,6 +51,7 @@ public:
 	void update();
 	bool openWindow(GLFWwindow* share);
 	void makeOpenGLContextCurrent( OGL_Context context );
+    static void restoreSharedContext();
 	static void resetSwapGroupFrameNumber();
 
 	// ------------- set functions ----------------- //
@@ -257,13 +258,12 @@ private:
 	int mMonitorIndex;
 	GLFWmonitor * mMonitor;
 	GLFWwindow * mWindowHandle;
-	GLFWwindow * mSharedHandle;
+	static GLFWwindow * mSharedHandle;
+    static GLFWwindow * mCurrentContextOwner;
 	float mAspectRatio;
 
 	bool mUseFXAA;
 	bool mUsePostFX;
-
-	OGL_Context mCurrentContext;
 
 	//FBO stuff
 	unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];

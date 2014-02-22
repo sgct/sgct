@@ -915,7 +915,7 @@ void sgct::Engine::render()
 			SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 
 			//--------------------------------------------------------------
-			//     RENDER FISHEYE/CUBEMAP VIEWPORTS
+			//     RENDER FISHEYE/CUBEMAP VIEWPORTS TO FBO
 			//--------------------------------------------------------------
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
@@ -944,7 +944,7 @@ void sgct::Engine::render()
                 }
 			}
 			//--------------------------------------------------------------
-			//     RENDER REGULAR VIEWPORTS
+			//     RENDER REGULAR VIEWPORTS TO FBO
 			//--------------------------------------------------------------
 			else
 			{
@@ -970,15 +970,18 @@ void sgct::Engine::render()
                         renderViewports(RightEye);
                 }
 			}
+            //--------------------------------------------------------------
+			//           DONE RENDERING VIEWPORTS TO FBO
+			//--------------------------------------------------------------
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
 		fprintf(stderr, "Render-Loop: Rendering FBO quad\n");
 #endif
 		}//end window loop
 
-		/*
-			Draw the rendered textures on the screen
-		*/
+        //--------------------------------------------------------------
+        //           RENDER TO SCREEN
+        //--------------------------------------------------------------
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 			if( mThisNode->getWindowPtr(i)->isVisible() )
 			{
@@ -1197,7 +1200,7 @@ void sgct::Engine::drawFixedPipeline()
 	//run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
     
-    enterCurrentViewport();
+    enterCurrentViewport(); //set glViewport & glScissor
     
     //clear buffers
     SGCTSettings::instance()->useFBO() ? setAndClearBuffer(RenderToTexture) : setAndClearBuffer(BackBuffer);
@@ -1219,19 +1222,7 @@ void sgct::Engine::drawFixedPipeline()
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		if( mRunMode == OSG_Encapsulation_Mode)
-		{
-			//glPushAttrib(GL_ALL_ATTRIB_BITS);
-			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-			//glPushClientAttrib(GL_CLIENT_ALL_ATTRIB_BITS);
-			mDrawFn();
-			glPopClientAttrib();
-			//glPopAttrib();
-		}
-		else
-		{
-			mDrawFn();
-		}
+		mDrawFn();
 
 		//restore polygon mode
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -2252,7 +2243,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 */
 void sgct::Engine::renderViewports(TextureIndexes ti)
 {
-	prepareBuffer( ti );
+	prepareBuffer( ti ); //attach FBO
 	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 
 	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();

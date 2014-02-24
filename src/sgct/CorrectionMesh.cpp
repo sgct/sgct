@@ -200,6 +200,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 	resolution[0] = 0;
 	resolution[1] = 0;
 
+	CorrectionMeshVertex * vertexPtr;
+
 	char lineBuffer[MAX_LINE_LENGTH];
 	while( !feof( meshFile ) )
 	{
@@ -213,13 +215,15 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 			{
 				if( mTempVertices != NULL && resolution[0] != 0 && resolution[1] != 0 )
 				{
-					mTempVertices[numOfVerticesRead].x = (x / static_cast<float>(resolution[0])) * mXSize + mXOffset;
-					mTempVertices[numOfVerticesRead].y = (y / static_cast<float>(resolution[1])) * mYSize + mYOffset;
-					mTempVertices[numOfVerticesRead].r = static_cast<unsigned char>(intensity);
-					mTempVertices[numOfVerticesRead].g = static_cast<unsigned char>(intensity);
-					mTempVertices[numOfVerticesRead].b = static_cast<unsigned char>(intensity);
-					mTempVertices[numOfVerticesRead].s = (1.0f - t) * mXSize + mXOffset;
-					mTempVertices[numOfVerticesRead].t = (1.0f - s) * mYSize + mYOffset;
+					vertexPtr = &mTempVertices[numOfVerticesRead];
+					vertexPtr->x = (x / static_cast<float>(resolution[0])) * mXSize + mXOffset;
+					vertexPtr->y = (y / static_cast<float>(resolution[1])) * mYSize + mYOffset;
+					vertexPtr->r = static_cast<float>(intensity)/255.0f;
+					vertexPtr->g = static_cast<float>(intensity)/255.0f;
+					vertexPtr->b = static_cast<float>(intensity)/255.0f;
+					vertexPtr->a = 1.0f;
+					vertexPtr->s = (1.0f - t) * mXSize + mXOffset;
+					vertexPtr->t = (1.0f - s) * mYSize + mYOffset;
 
 					numOfVerticesRead++;
 				}
@@ -527,53 +531,60 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 
 	sgct::Engine::instance()->updateFrustums();
 
+	CorrectionMeshVertex * vertexPtr;
+	SCISSTexturedVertex * scissVertexPtr;
+
 	//store all verts in sgct format
 	mTempVertices = new CorrectionMeshVertex[numberOfVertices];
 	for (unsigned int i = 0; i < numberOfVertices; i++)
 	{
-		mTempVertices[i].r = 255;
-		mTempVertices[i].g = 255;
-		mTempVertices[i].b = 255;
+		vertexPtr = &mTempVertices[i];
+		scissVertexPtr = &texturedVertexList[i];
+
+		vertexPtr->r = 1.0f;
+		vertexPtr->g = 1.0f;
+		vertexPtr->b = 1.0f;
+		vertexPtr->a = 1.0f;
 
 		//clamp
-		if (texturedVertexList[i].x > 1.0f)
-			texturedVertexList[i].x = 1.0f;
-		if (texturedVertexList[i].x < 0.0f)
-			texturedVertexList[i].x = 0.0f;
+		if (scissVertexPtr->x > 1.0f)
+			scissVertexPtr->x = 1.0f;
+		if (scissVertexPtr->x < 0.0f)
+			scissVertexPtr->x = 0.0f;
 
-		if (texturedVertexList[i].y > 1.0f)
-			texturedVertexList[i].y = 1.0f;
-		if (texturedVertexList[i].y < 0.0f)
-			texturedVertexList[i].y = 0.0f;
+		if (scissVertexPtr->y > 1.0f)
+			scissVertexPtr->y = 1.0f;
+		if (scissVertexPtr->y < 0.0f)
+			scissVertexPtr->y = 0.0f;
 
-		if (texturedVertexList[i].tx > 1.0f)
-			texturedVertexList[i].tx = 1.0f;
-		if (texturedVertexList[i].tx < 0.0f)
-			texturedVertexList[i].tx = 0.0f;
+		if (scissVertexPtr->tx > 1.0f)
+			scissVertexPtr->tx = 1.0f;
+		if (scissVertexPtr->tx < 0.0f)
+			scissVertexPtr->tx = 0.0f;
 
-		if (texturedVertexList[i].ty > 1.0f)
-			texturedVertexList[i].ty = 1.0f;
-		if (texturedVertexList[i].ty < 0.0f)
-			texturedVertexList[i].ty = 0.0f;
+		if (scissVertexPtr->ty > 1.0f)
+			scissVertexPtr->ty = 1.0f;
+		if (scissVertexPtr->ty < 0.0f)
+			scissVertexPtr->ty = 0.0f;
 
-		/*if (texturedVertexList[i].x > 1.0f || texturedVertexList[i].x < 0.0f ||
-			texturedVertexList[i].y > 1.0f || texturedVertexList[i].y < 0.0f)
+		/*if (scissVertexPtr->x > 1.0f || scissVertexPtr->x < 0.0f ||
+			scissVertexPtr->y > 1.0f || scissVertexPtr->y < 0.0f)
 		{
 			fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
-				texturedVertexList[i].x, texturedVertexList[i].y, texturedVertexList[i].z,
-				texturedVertexList[i].tx, texturedVertexList[i].ty, texturedVertexList[i].tz);
+				scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
+				scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);
 		}*/
 
 		//convert to [-1, 1]
-		mTempVertices[i].x = 2.0f*(texturedVertexList[i].x * mXSize + mXOffset) - 1.0f;
-		mTempVertices[i].y = 2.0f*((1.0f - texturedVertexList[i].y) * mYSize + mYOffset) - 1.0f;
+		vertexPtr->x = 2.0f*(scissVertexPtr->x * mXSize + mXOffset) - 1.0f;
+		vertexPtr->y = 2.0f*((1.0f - scissVertexPtr->y) * mYSize + mYOffset) - 1.0f;
 
-		mTempVertices[i].s = texturedVertexList[i].tx * mXSize + mXOffset;
-		mTempVertices[i].t = texturedVertexList[i].ty * mYSize + mYOffset;
+		vertexPtr->s = scissVertexPtr->tx * mXSize + mXOffset;
+		vertexPtr->t = scissVertexPtr->ty * mYSize + mYOffset;
 
 		/*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
-			texturedVertexList[i].x, texturedVertexList[i].y, texturedVertexList[i].z,
-			texturedVertexList[i].tx, texturedVertexList[i].ty, texturedVertexList[i].tz);*/
+			scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
+			scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);*/
 	}
 
 	mGeometries[NoMask].mNumberOfVertices = numberOfVertices;
@@ -615,33 +626,37 @@ void sgct_core::CorrectionMesh::setupSimpleMesh()
 	mTempIndices[2] = 1;
 	mTempIndices[3] = 2;
 
-	mTempVertices[0].r = 255;
-	mTempVertices[0].g = 255;
-	mTempVertices[0].b = 255;
+	mTempVertices[0].r = 1.0f;
+	mTempVertices[0].g = 1.0f;
+	mTempVertices[0].b = 1.0f;
+	mTempVertices[0].a = 1.0f;
 	mTempVertices[0].s = 0.0f * mXSize + mXOffset;
 	mTempVertices[0].t = 0.0f * mYSize + mYOffset;
 	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) -1.0f;
 
-	mTempVertices[1].r = 255;
-	mTempVertices[1].g = 255;
-	mTempVertices[1].b = 255;
+	mTempVertices[1].r = 1.0f;
+	mTempVertices[1].g = 1.0f;
+	mTempVertices[1].b = 1.0f;
+	mTempVertices[1].a = 1.0f;
 	mTempVertices[1].s = 1.0f * mXSize + mXOffset;
 	mTempVertices[1].t = 0.0f * mYSize + mYOffset;
 	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
-	mTempVertices[2].r = 255;
-	mTempVertices[2].g = 255;
-	mTempVertices[2].b = 255;
+	mTempVertices[2].r = 1.0f;
+	mTempVertices[2].g = 1.0f;
+	mTempVertices[2].b = 1.0f;
+	mTempVertices[2].a = 1.0f;
 	mTempVertices[2].s = 1.0f * mXSize + mXOffset;
 	mTempVertices[2].t = 1.0f * mYSize + mYOffset;
 	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[2].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
 
-	mTempVertices[3].r = 255;
-	mTempVertices[3].g = 255;
-	mTempVertices[3].b = 255;
+	mTempVertices[3].r = 1.0f;
+	mTempVertices[3].g = 1.0f;
+	mTempVertices[3].b = 1.0f;
+	mTempVertices[3].a = 1.0f;
 	mTempVertices[3].s = 0.0f * mXSize + mXOffset;
 	mTempVertices[3].t = 1.0f * mYSize + mYOffset;
 	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
@@ -668,33 +683,37 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempIndices[2] = 1;
 	mTempIndices[3] = 2;
 
-	mTempVertices[0].r = 255;
-	mTempVertices[0].g = 255;
-	mTempVertices[0].b = 255;
+	mTempVertices[0].r = 1.0f;
+	mTempVertices[0].g = 1.0f;
+	mTempVertices[0].b = 1.0f;
+	mTempVertices[0].a = 1.0f;
 	mTempVertices[0].s = 0.0f;
 	mTempVertices[0].t = 0.0f;
 	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
-	mTempVertices[1].r = 255;
-	mTempVertices[1].g = 255;
-	mTempVertices[1].b = 255;
+	mTempVertices[1].r = 1.0f;
+	mTempVertices[1].g = 1.0f;
+	mTempVertices[1].b = 1.0f;
+	mTempVertices[1].a = 1.0f;
 	mTempVertices[1].s = 1.0f;
 	mTempVertices[1].t = 0.0f;
 	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
 
-	mTempVertices[2].r = 255;
-	mTempVertices[2].g = 255;
-	mTempVertices[2].b = 255;
+	mTempVertices[2].r = 1.0f;
+	mTempVertices[2].g = 1.0f;
+	mTempVertices[2].b = 1.0f;
+	mTempVertices[2].a = 1.0f;
 	mTempVertices[2].s = 1.0f;
 	mTempVertices[2].t = 1.0f;
 	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
 	mTempVertices[2].y = 2.0f*(1.0f *mYSize + mYOffset) - 1.0f;
 
-	mTempVertices[3].r = 255;
-	mTempVertices[3].g = 255;
-	mTempVertices[3].b = 255;
+	mTempVertices[3].r = 1.0f;
+	mTempVertices[3].g = 1.0f;
+	mTempVertices[3].b = 1.0f;
+	mTempVertices[3].a = 1.0f;
 	mTempVertices[3].s = 0.0f;
 	mTempVertices[3].t = 1.0f;
 	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
@@ -705,28 +724,10 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 {
 	/*sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Uploading mesh data (type=%d)...\n",
 		ClusterManager::instance()->getMeshImplementation());*/
-
-	if (ClusterManager::instance()->getMeshImplementation() == ClusterManager::DISPLAY_LIST)
+	
+	if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS)
 	{
-		geomPtr->mMeshData[Vertex] = glGenLists(1);
-		glNewList(geomPtr->mMeshData[Vertex], GL_COMPILE);
-
-		glBegin(geomPtr->mGeometryType);
-		for (unsigned int i = 0; i < geomPtr->mNumberOfIndices; i++)
-		{
-			glColor3ub(mTempVertices[mTempIndices[i]].r, mTempVertices[mTempIndices[i]].g, mTempVertices[mTempIndices[i]].b);
-			glTexCoord2f(mTempVertices[mTempIndices[i]].s, mTempVertices[mTempIndices[i]].t);
-			glVertex2f(mTempVertices[mTempIndices[i]].x, mTempVertices[mTempIndices[i]].y);
-		}
-		glEnd();
-
-		glEndList();
-        
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating display list: %d\n", geomPtr->mMeshData[Vertex]);
-	}
-	else
-	{
-		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(!sgct::Engine::instance()->isOGLPipelineFixed())
 		{
 			glGenVertexArrays(1, &(geomPtr->mMeshData[Array]));
 			glBindVertexArray(geomPtr->mMeshData[Array]);
@@ -740,7 +741,7 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 		glBindBuffer(GL_ARRAY_BUFFER, geomPtr->mMeshData[Vertex]);
 		glBufferData(GL_ARRAY_BUFFER, geomPtr->mNumberOfVertices * sizeof(CorrectionMeshVertex), &mTempVertices[0], GL_STATIC_DRAW);
 
-		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(!sgct::Engine::instance()->isOGLPipelineFixed())
 		{
 			glEnableVertexAttribArray(0);
 			glVertexAttribPointer(
@@ -765,9 +766,9 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 			glEnableVertexAttribArray(2);
 			glVertexAttribPointer(
 				2, // The attribute we want to configure
-				3,                           // size
-				GL_UNSIGNED_BYTE,            // type
-				GL_TRUE,                    // normalized?
+				4,                           // size
+				GL_FLOAT,					// type
+				GL_FALSE,                    // normalized?
 				sizeof(CorrectionMeshVertex),// stride
 				reinterpret_cast<void*>(16)  // array buffer offset
 			);
@@ -777,11 +778,33 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 		glBufferData(GL_ELEMENT_ARRAY_BUFFER, geomPtr->mNumberOfIndices * sizeof(unsigned int), &mTempIndices[0], GL_STATIC_DRAW);
 
 		//unbind
-		if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO)
+		if(!sgct::Engine::instance()->isOGLPipelineFixed())
 			glBindVertexArray(0);
 		
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+	}
+	else //display lists
+	{
+		geomPtr->mMeshData[Vertex] = glGenLists(1);
+		glNewList(geomPtr->mMeshData[Vertex], GL_COMPILE);
+
+		glBegin(geomPtr->mGeometryType);
+		CorrectionMeshVertex vertex;
+		
+		for (unsigned int i = 0; i < geomPtr->mNumberOfIndices; i++)
+		{
+			vertex = mTempVertices[mTempIndices[i]];
+
+			glColor4f(vertex.r, vertex.g, vertex.b, vertex.a);
+			glTexCoord2f(vertex.s, vertex.t);
+			glVertex2f(vertex.x, vertex.y);
+		}
+		glEnd();
+
+		glEndList();
+        
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Generating display list: %d\n", geomPtr->mMeshData[Vertex]);
 	}
 }
 
@@ -809,34 +832,37 @@ void sgct_core::CorrectionMesh::render(bool mask)
 {
 	CorrectionMeshGeometry * geomPtr = mask ? &mGeometries[NoMask] : &mGeometries[Mask];
 	
-	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VBO )
+	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS )
 	{
-		glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+		if(sgct::Engine::instance()->isOGLPipelineFixed())
+		{
+			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-		glEnableClientState(GL_VERTEX_ARRAY);
-		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		glEnableClientState(GL_COLOR_ARRAY);
+			glEnableClientState(GL_VERTEX_ARRAY);
+			glClientActiveTexture(GL_TEXTURE0);
+			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+			glEnableClientState(GL_COLOR_ARRAY);
 
-		glBindBuffer(GL_ARRAY_BUFFER, geomPtr->mMeshData[Vertex]);
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomPtr->mMeshData[Index]);
+			glBindBuffer(GL_ARRAY_BUFFER, geomPtr->mMeshData[Vertex]);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomPtr->mMeshData[Index]);
 		
-		glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(0));		
-		glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(8));
-		glColorPointer(3, GL_UNSIGNED_BYTE, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(16));
+			glVertexPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(0));		
+			glTexCoordPointer(2, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(8));
+			glColorPointer(4, GL_FLOAT, sizeof(CorrectionMeshVertex), reinterpret_cast<void*>(16));
 
-		glDrawElements(geomPtr->mGeometryType, geomPtr->mNumberOfIndices, GL_UNSIGNED_INT, NULL);
+			glDrawElements(geomPtr->mGeometryType, geomPtr->mNumberOfIndices, GL_UNSIGNED_INT, NULL);
 		
-		glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
+			glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-		glPopClientAttrib();
-	}
-	else if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::VAO )
-	{
-		glBindVertexArray(geomPtr->mMeshData[Array]);
-		glDrawElements(geomPtr->mGeometryType, geomPtr->mNumberOfIndices, GL_UNSIGNED_INT, NULL);
-		glBindVertexArray(0);
+			glPopClientAttrib();
+		}
+		else
+		{
+			glBindVertexArray(geomPtr->mMeshData[Array]);
+			glDrawElements(geomPtr->mGeometryType, geomPtr->mNumberOfIndices, GL_UNSIGNED_INT, NULL);
+			glBindVertexArray(0);
+		}
 	}
 	else
 	{

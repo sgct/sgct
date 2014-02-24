@@ -15,10 +15,9 @@ struct CorrectionMeshVertex
 {
 	float x, y;	//Vertex 8
 	float s, t;	//Texcoord0 8
-	unsigned char r, g, b; //color 3
+	float r, g, b, a; //color 16
 
 	//ATI performs better using sizes of power of two
-	//unsigned char padding[13]; //32 - 8 - 8 - 3 = 13
 };
 
 class CorrectionMeshGeometry

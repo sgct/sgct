@@ -184,7 +184,7 @@ Engine initiation that:
 	4.3 Init VBOs
 	4.4 Init PBOs
 
- @param rm rm is the optional run mode. If any problems are experienced with Open Scene Graph then use the OSG_Encapsulation_Mode.
+ @param rm rm is the optional run mode.
 */
 bool sgct::Engine::init(RunMode rm)
 {
@@ -470,7 +470,8 @@ void sgct::Engine::initOGL()
 		mInternalRenderPostFXFn = &Engine::renderPostFX;
 		mInternalRenderFisheyeFn = &Engine::renderFisheye;
 
-		ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::VAO );
+		//force buffer objects since display lists are not supported in core opengl 3.3+
+		ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
 		mFixedOGLPipeline = false;
 	}
 	else
@@ -732,7 +733,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 	{
 		double t0 = glfwGetTime();
 		mNetworkConnections->sync(NetworkManager::SendDataToClients, mStatistics); //from server to clients
-		mStatistics->setSyncTime(glfwGetTime() - t0);
+		mStatistics->setSyncTime( static_cast<float>(glfwGetTime() - t0) );
 
 		//run only on clients/slaves
 		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
@@ -762,8 +763,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 							unsigned int lFrameNumber = 0;
 							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave%d: waiting for master... send frame %d, recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
-								i,
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave: waiting for master... send frame %d, recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
 								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
@@ -780,7 +780,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 			*/
 			mNetworkConnections->sync(NetworkManager::AcknowledgeData, mStatistics);
 
-			mStatistics->addSyncTime(glfwGetTime() - t0);
+			mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
 		}//end if client
 	}
 	else //post stage
@@ -828,7 +828,7 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 					}
 				}
 			}//end while
-			mStatistics->addSyncTime(glfwGetTime() - t0);
+			mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
 		}//end if server
 	}
 }
@@ -1015,7 +1015,7 @@ void sgct::Engine::render()
     fprintf(stderr, "Render-Loop: swap and update data\n");
 #endif
         double endFrameTime = glfwGetTime();
-		mStatistics->setDrawTime(endFrameTime - startFrameTime);
+		mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
         updateTimers( endFrameTime );
 
 		//run post frame actions
@@ -1049,9 +1049,10 @@ void sgct::Engine::render()
 		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed
-		mRunning = !mThisNode->getKeyPressed( mExitKey ) &&
-			!mThisNode->shouldAllWindowsClose() &&
-			!mTerminate;
+		mRunning = !(mThisNode->getKeyPressed( mExitKey ) ||
+			mThisNode->shouldAllWindowsClose() ||
+			mTerminate ||
+			!mNetworkConnections->isRunning());
 
 		//for all windows
 		mFrameCounter++;
@@ -3629,17 +3630,17 @@ void sgct::Engine::enterFisheyeViewport()
 void sgct::Engine::calculateFPS(double timestamp)
 {
 	static double lastTimestamp = glfwGetTime();
-	mStatistics->setFrameTime(timestamp - lastTimestamp);
+	mStatistics->setFrameTime(static_cast<float>(timestamp - lastTimestamp));
 	lastTimestamp = timestamp;
-    static double renderedFrames = 0.0;
-	static double tmpTime = 0.0;
-	renderedFrames += 1.0;
+    static float renderedFrames = 0.0f;
+	static float tmpTime = 0.0f;
+	renderedFrames += 1.0f;
 	tmpTime += mStatistics->getFrameTime();
-	if( tmpTime >= 1.0 )
+	if( tmpTime >= 1.0f )
 	{
 		mStatistics->setAvgFPS(renderedFrames / tmpTime);
-		renderedFrames = 0.0;
-		tmpTime = 0.0;
+		renderedFrames = 0.0f;
+		tmpTime = 0.0f;
 
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 			if( mThisNode->getWindowPtr(i)->isVisible() )
@@ -3650,7 +3651,7 @@ void sgct::Engine::calculateFPS(double timestamp)
 /*!
 \returns the frame time (delta time) in seconds
 */
-const double & sgct::Engine::getDt()
+const double sgct::Engine::getDt()
 {
 	return mStatistics->getFrameTime();
 }
@@ -3658,7 +3659,7 @@ const double & sgct::Engine::getDt()
 /*!
 \returns the average frame time (delta time) in seconds
 */
-const double & sgct::Engine::getAvgDt()
+const double sgct::Engine::getAvgDt()
 {
 	return mStatistics->getAvgFrameTime();
 }
@@ -3666,7 +3667,7 @@ const double & sgct::Engine::getAvgDt()
 /*!
 \returns the draw time in seconds
 */
-const double & sgct::Engine::getDrawTime()
+const double sgct::Engine::getDrawTime()
 {
 	return mStatistics->getDrawTime();
 }
@@ -3674,7 +3675,7 @@ const double & sgct::Engine::getDrawTime()
 /*!
 \returns the sync time (time waiting for other nodes and network) in seconds
 */
-const double & sgct::Engine::getSyncTime()
+const double sgct::Engine::getSyncTime()
 {
 	return mStatistics->getSyncTime();
 }

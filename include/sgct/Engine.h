@@ -81,10 +81,10 @@ public:
 	*/
 	static Engine * instance() { return mInstance; }
 
-	const double & getDt();
-	const double & getAvgDt();
-	const double & getDrawTime();
-	const double & getSyncTime();
+	const double getDt();
+	const double getAvgDt();
+	const double getDrawTime();
+	const double getSyncTime();
 
 	/*!
 		\returns the clear color as 4 floats (RGBA)

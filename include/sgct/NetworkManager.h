@@ -42,9 +42,9 @@ public:
 
 	bool matchAddress(const std::string address);
 	void retrieveNodeId();
-	bool isComputerServer() { return mIsServer; }
-	bool isRunning() { return mIsRunning; }
-	bool areAllNodesConnected() { return mAllNodesConnected; }
+	bool isComputerServer();
+	bool isRunning();
+	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
 
 	unsigned int getConnectionsCount();

@@ -16,10 +16,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "ShaderProgram.h"
 #include <glm/glm.hpp>
+#include <vector>
 
 struct StatsVertex
 {
-	double x, y;
+	float x, y;
 };
 
 namespace sgct_core
@@ -38,28 +39,28 @@ public:
 	Statistics();
 	~Statistics();
 	void initVBO(bool fixedPipeline);
-	void setAvgFPS(double afps);
-	void setFrameTime(double t);
-	void setDrawTime(double t);
-	void setSyncTime(double t);
-	void setLoopTime(double min, double max);
-	void addSyncTime(double t);
+	void setAvgFPS(float afps);
+	void setFrameTime(float t);
+	void setDrawTime(float t);
+	void setSyncTime(float t);
+	void setLoopTime(float min, float max);
+	void addSyncTime(float t);
 	void update();
 	void draw(float lineWidth);
 
-	const double & getAvgFPS() { return mAvgFPS; }
-	const double & getAvgDrawTime() { return mAvgDrawTime; }
-	const double & getAvgSyncTime() { return mAvgSyncTime; }
-	const double & getAvgFrameTime() { return mAvgFrameTime; }
-	const double & getFrameTime() { return mDynamicVertexList[FRAME_TIME * STATS_HISTORY_LENGTH].y; }
-	const double & getDrawTime() { return mDynamicVertexList[DRAW_TIME * STATS_HISTORY_LENGTH].y; }
-	const double & getSyncTime() { return mDynamicVertexList[SYNC_TIME * STATS_HISTORY_LENGTH].y; }
+	const float getAvgFPS() { return mAvgFPS; }
+	const float getAvgDrawTime() { return mAvgDrawTime; }
+	const float getAvgSyncTime() { return mAvgSyncTime; }
+	const float getAvgFrameTime() { return mAvgFrameTime; }
+	const float getFrameTime() { return mDynamicVertexList[FRAME_TIME * STATS_HISTORY_LENGTH].y; }
+	const float getDrawTime() { return mDynamicVertexList[DRAW_TIME * STATS_HISTORY_LENGTH].y; }
+	const float getSyncTime() { return mDynamicVertexList[SYNC_TIME * STATS_HISTORY_LENGTH].y; }
 
 private:
-	double mAvgFPS;
-	double mAvgDrawTime;
-	double mAvgSyncTime;
-	double mAvgFrameTime;
+	float mAvgFPS;
+	float mAvgDrawTime;
+	float mAvgSyncTime;
+	float mAvgFrameTime;
 	StatsVertex mDynamicVertexList[STATS_HISTORY_LENGTH * STATS_NUMBER_OF_DYNAMIC_OBJS];
 	glm::vec4 mDynamicColors[STATS_NUMBER_OF_DYNAMIC_OBJS];
 	glm::vec4 mStaticColors[STATS_NUMBER_OF_STATIC_OBJS];
@@ -76,6 +77,8 @@ private:
 
 	sgct::ShaderProgram mShader;
 	int mMVPLoc, mColLoc;
+
+	std::vector<float> mStaticVerts;
 };
 
 } //sgct_core

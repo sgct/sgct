@@ -238,7 +238,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 		}//end for
 
 		if( isComputerServer() )
-			statsPtr->setLoopTime(minTime, maxTime);
+			statsPtr->setLoopTime(static_cast<float>(minTime), static_cast<float>(maxTime));
 	}
 
 	else if(sm == AcknowledgeData)
@@ -338,8 +338,8 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
         //create a local copy to use so we don't need mutex on several locations
         bool isServer = mIsServer;
 
-        //if all clients disconnect it's not longer running
-        if(mNumberOfConnections == 0 && !isServer)
+        //if client disconnects then it cannot run anymore
+        if(mNumberOfSyncConnections == 0 && !isServer)
             mIsRunning = false;
     sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
@@ -595,6 +595,33 @@ bool sgct_core::NetworkManager::matchAddress(const std::string address)
 			return true;
 	//No match
 	return false;
+}
+
+bool sgct_core::NetworkManager::isComputerServer()
+{ 
+	bool tmpB;
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	tmpB = mIsServer;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	return tmpB;
+}
+	
+bool sgct_core::NetworkManager::isRunning()
+{
+	bool tmpB;
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	tmpB = mIsRunning;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	return tmpB;
+}
+
+bool sgct_core::NetworkManager::areAllNodesConnected()
+{
+	bool tmpB;
+	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	tmpB = mAllNodesConnected;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	return tmpB;
 }
 
 /*!

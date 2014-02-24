@@ -50,7 +50,7 @@ public:
 	/*!
 		Different modes for warping/edge blending meshes 
 	*/
-	enum MeshImplementation { VBO=0, DISPLAY_LIST, VAO };
+	enum MeshImplementation { BUFFER_OBJECTS=0, DISPLAY_LIST };
 
 	void addNode(SGCTNode node);
 
@@ -116,7 +116,7 @@ public:
 	void setSceneScale(float scale);
 
 	/*!
-		Sets the warping and blending mesh implemtation (must be done before opengl init)
+		Sets the rendering hint for SGCT's internal draw functions (must be done before opengl init)
 	*/
 	void setMeshImplementation( MeshImplementation impl ) { mMeshImpl = impl; }
 

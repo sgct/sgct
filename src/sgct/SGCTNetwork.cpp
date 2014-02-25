@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#include <windows.h>
 	#include <winsock2.h>
 	#include <ws2tcpip.h>
+	#define SGCT_ERRNO WSAGetLastError()
 #else //Use BSD sockets
     #ifdef _XCODE
         #include <unistd.h>
@@ -30,6 +31,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#define SOCKET_ERROR (-1)
 	#define INVALID_SOCKET (SGCT_SOCKET)(~0)
 	#define NO_ERROR 0L
+	#define SGCT_ERRNO errno
 #endif
 
 #include "../include/sgct/NetworkManager.h"
@@ -248,7 +250,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 		sizeof(int));    /* length of option value */
 
         if( iResult != NO_ERROR )
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", errno);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", SGCT_ERRNO);
 
 		//set timeout
 		int timeout = 0; //infinite
@@ -261,7 +263,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 
 		iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_REUSEADDR, (char*)&flag, sizeof(int));
         if (iResult == SOCKET_ERROR)
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set reuse address with error: %d\n!", errno);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set reuse address with error: %d\n!", SGCT_ERRNO);
 
 		/*
 			The default buffer value is 8k (8192 bytes) which is good for external control
@@ -272,17 +274,17 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 			int bufferSize = SGCT_SOCKET_BUFFER_SIZE;
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_RCVBUF, (char*)&bufferSize, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set send buffer size to %d with error: %d\n!", bufferSize, SGCT_ERRNO);
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_SNDBUF, (char*)&bufferSize, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, SGCT_ERRNO);
 		}
 		//set only on external control, cluster nodes sends data several times per second so there is no need so send alive packages
 		else
 		{
 			iResult = setsockopt(*socketPtr, SOL_SOCKET, SO_KEEPALIVE, (char*)&flag, sizeof(int));
 			if (iResult == SOCKET_ERROR)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set keep alive with error: %d\n!", errno);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTNetwork: Failed to set keep alive with error: %d\n!", SGCT_ERRNO);
 		}
 	}
 }
@@ -695,9 +697,9 @@ ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer
         if( tmpRes > 0 )
             iResult += tmpRes;
 #ifdef __WIN32__
-        else if( errno == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+        else if( SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
 #else
-        else if( errno == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+        else if( SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
 #endif
         {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
@@ -765,11 +767,10 @@ void communicationHandler(void *arg)
 
         nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 
+		int accErr = SGCT_ERRNO;
 #ifdef __WIN32__
-        int accErr = WSAGetLastError();
         while( !nPtr->isTerminated() && nPtr->mSocket == INVALID_SOCKET && accErr == WSAEINTR)
 #else
-        int accErr = errno;
         while( !nPtr->isTerminated() && nPtr->mSocket == INVALID_SOCKET && accErr == EINTR)
 #endif
 		{
@@ -956,9 +957,9 @@ void communicationHandler(void *arg)
 			//if read fails try for x attempts
 			int attempts = 1;
 #ifdef __WIN32__
-			while( iResult <= 0 && errno == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+			while( iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
 #else
-			while( iResult <= 0 && errno == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
+			while( iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
 #endif
 			{
 				iResult = recv( nPtr->mSocket,
@@ -1049,10 +1050,10 @@ void communicationHandler(void *arg)
 						{
 							nPtr->pushClientMessage();
 						}*/
-
 						sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 						sgct_core::NetworkManager::gCond.notify_all();
 						sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+
 #ifdef __SGCT_NETWORK_DEBUG__
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -1208,11 +1209,7 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
-#ifdef __WIN32__
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), WSAGetLastError());
-#else
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), errno);
-#endif
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), SGCT_ERRNO);
 		}
 		else //if negative
 		{
@@ -1224,11 +1221,7 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
-#ifdef __WIN32__
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), WSAGetLastError());
-#else
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), errno);
-#endif
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), SGCT_ERRNO);
 		}
 
 	} while (iResult > 0 || nPtr->isConnected());

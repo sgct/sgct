@@ -47,9 +47,12 @@ public:
 	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
 
-	unsigned int getConnectionsCount();
+	unsigned int getActiveConnectionsCount();
+	unsigned int getActiveSyncConnectionsCount();
+    unsigned int getConnectionsCount();
 	unsigned int getSyncConnectionsCount();
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
+    inline SGCTNetwork* getSyncConnection(unsigned int index) { return mSyncConnections[index]; }
 
 private:
 	bool addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
@@ -65,6 +68,8 @@ public:
 private:
 	static NetworkManager * mInstance;
 	std::vector<SGCTNetwork*> mNetworkConnections;
+    std::vector<SGCTNetwork*> mSyncConnections;
+    std::vector<SGCTNetwork*> mExternalConnections;
 
 	std::string mHostName; //stores this computers hostname
 	std::string mDNSName;
@@ -72,11 +77,10 @@ private:
 
 	bool mIsServer;
 	bool mIsRunning;
-	bool mIsExternalControlPresent;
 	bool mAllNodesConnected;
 	int mMode;
-	unsigned int mNumberOfConnections;
-	unsigned int mNumberOfSyncConnections;
+	unsigned int mNumberOfActiveConnections;
+	unsigned int mNumberOfActiveSyncConnections;
 };
 
 }

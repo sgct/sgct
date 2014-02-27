@@ -82,7 +82,7 @@ public:
 	void closeSocket(SGCT_SOCKET lSocket);
 
 	ConnectionTypes getTypeOfConnection();
-	int getId();
+	const int getId();
 	bool isServer();
 	bool isConnected();
 	bool isTerminated();

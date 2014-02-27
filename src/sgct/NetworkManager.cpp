@@ -35,10 +35,9 @@ sgct_core::NetworkManager * sgct_core::NetworkManager::mInstance = NULL;
 sgct_core::NetworkManager::NetworkManager(int mode)
 {
 	mInstance = this;
-	mNumberOfConnections = 0;
-	mNumberOfSyncConnections = 0;
+	mNumberOfActiveConnections = 0;
+	mNumberOfActiveSyncConnections = 0;
 	mAllNodesConnected = false;
-	mIsExternalControlPresent = false;
 	mIsRunning = true;
 	mIsServer = true;
 
@@ -165,8 +164,6 @@ bool sgct_core::NetworkManager::init()
             "127.0.0.1",
 			ClusterManager::instance()->getUseASCIIForExternalControl() ? SGCTNetwork::ExternalASCIIConnection : SGCTNetwork::ExternalRawConnection))
 		{
-			mIsExternalControlPresent = true;
-
 			sgct_cppxeleven::function< void(const char*, int, int) > callback;
 			callback = sgct_cppxeleven::bind(&sgct::Engine::decodeExternalControl, sgct::Engine::instance(),
 				sgct_cppxeleven::placeholders::_1,
@@ -192,15 +189,14 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 		double maxTime = -999999.0;
 		double minTime = 999999.0;
 
-		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+		for(unsigned int i=0; i<mSyncConnections.size(); i++)
 		{
-			if( mNetworkConnections[i]->isServer() &&
-				mNetworkConnections[i]->isConnected() &&
-				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
+			if( mSyncConnections[i]->isServer() &&
+				mSyncConnections[i]->isConnected() )
 			{
-				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mNetworkConnections[i]->getLoopTime()*1000.0);
+				//fprintf(stderr, "Connection: %u time: %lf ms\n", i, mSyncConnections[i]->getLoopTime()*1000.0);
 
-				double currentTime = mNetworkConnections[i]->getLoopTime();
+				double currentTime = mSyncConnections[i]->getLoopTime();
 				if( currentTime > maxTime )
 					maxTime = currentTime;
 				if( currentTime < minTime )
@@ -210,7 +206,7 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 					sgct::SharedData::instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
 
 				//iterate counter
-				int currentFrame = mNetworkConnections[i]->iterateFrameCounter();
+				int currentFrame = mSyncConnections[i]->iterateFrameCounter();
 
 				/* The server only writes the sync data and never reads, no need for mutex protection
 				sgct::Engine::lockMutex(gMutex);*/
@@ -230,29 +226,28 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				//sgct::MessageHandler::instance()->print("NetworkManager::sync size %u\n", currentSize);
 
 				//send
-				mNetworkConnections[i]->sendData(
+				mSyncConnections[i]->sendData(
 					sgct::SharedData::instance()->getDataBlock(),
 					static_cast<int>(sgct::SharedData::instance()->getDataSize()) );
 				//sgct::Engine::unlockMutex(gMutex);
 			}
 		}//end for
 
-		if( isComputerServer() )
+        if( isComputerServer() )
 			statsPtr->setLoopTime(static_cast<float>(minTime), static_cast<float>(maxTime));
 	}
 
 	else if(sm == AcknowledgeData)
-		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+		for(unsigned int i=0; i<mSyncConnections.size(); i++)
 		{
 			//Client
-			if( !mNetworkConnections[i]->isServer() &&
-				mNetworkConnections[i]->isConnected() &&
-				mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
+			if( !mSyncConnections[i]->isServer() &&
+				mSyncConnections[i]->isConnected() )
 			{
 				//The servers's render function is locked until a message starting with the ack-byte is received.
 
 				//send message to server
-				mNetworkConnections[i]->pushClientMessage();
+				mSyncConnections[i]->pushClientMessage();
 			}
 		}
 }
@@ -264,9 +259,8 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 bool sgct_core::NetworkManager::isSyncComplete()
 {
 	unsigned int counter = 0;
-	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-		if(mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection &&
-			mNetworkConnections[i]->isUpdated()) //has all data been received?
+	for(unsigned int i=0; i<mSyncConnections.size(); i++)
+		if(mSyncConnections[i]->isUpdated()) //has all data been received?
 		{
 			counter++;
 		}
@@ -276,98 +270,105 @@ bool sgct_core::NetworkManager::isSyncComplete()
 		counter, getSyncConnectionsCount());
 #endif
 
-	return counter == getSyncConnectionsCount();
+	return counter == getActiveSyncConnectionsCount();
 }
 
 sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 {
-	sgct_core::SGCTNetwork * netPtr = NULL;
+	return (mExternalConnections.size() > 0 ? mExternalConnections[0] : NULL);
+}
 
-	if( mIsExternalControlPresent )
-	{
-		for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-		{
-			//check if any external connection
-			if( mNetworkConnections[i]->getTypeOfConnection() > sgct_core::SGCTNetwork::SyncConnection )
-				return mNetworkConnections[i];
-		}
-	}
+unsigned int sgct_core::NetworkManager::getActiveConnectionsCount()
+{
+	unsigned int retVal;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+		retVal = mNumberOfActiveConnections;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	return retVal;
+}
 
-	return netPtr;
+unsigned int sgct_core::NetworkManager::getActiveSyncConnectionsCount()
+{
+	unsigned int retVal;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+		retVal = mNumberOfActiveSyncConnections;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+	return retVal;
 }
 
 unsigned int sgct_core::NetworkManager::getConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-		retVal = mNumberOfConnections;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    retVal = static_cast<unsigned int>(mNetworkConnections.size());
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return retVal;
 }
+
 unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 {
 	unsigned int retVal;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-		retVal = mNumberOfSyncConnections;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    retVal = static_cast<unsigned int>(mSyncConnections.size());
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return retVal;
 }
 
 void sgct_core::NetworkManager::updateConnectionStatus(int index)
 {
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: updating connection status %d\n", index);
-
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Updating status for connection %d\n", index);
+    
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
 
     //count connections
 	for(unsigned int i=0; i<mNetworkConnections.size(); i++)
+    {
 		if( mNetworkConnections[i] != NULL && mNetworkConnections[i]->isConnected() )
 		{
 			numberOfConnectionsCounter++;
 			if(mNetworkConnections[i]->getTypeOfConnection() == SGCTNetwork::SyncConnection)
 				numberOfConnectedSyncNodesCounter++;
 		}
+    }
 
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Number of active connections %u\n", numberOfConnectionsCounter);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Number of connected sync nodes %u\n", numberOfConnectedSyncNodesCounter);
 
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-        mNumberOfConnections = numberOfConnectionsCounter;
-		mNumberOfSyncConnections = numberOfConnectedSyncNodesCounter;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+        mNumberOfActiveConnections = numberOfConnectionsCounter;
+		mNumberOfActiveSyncConnections = numberOfConnectedSyncNodesCounter;
         //create a local copy to use so we don't need mutex on several locations
         bool isServer = mIsServer;
 
         //if client disconnects then it cannot run anymore
-        if(mNumberOfSyncConnections == 0 && !isServer)
+        if(mNumberOfActiveSyncConnections == 0 && !isServer)
             mIsRunning = false;
     sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 	if(isServer)
 	{
-		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+		bool allNodesConnectedCopy;
+        
+        sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
             //local copy (thread safe) -- don't count server, therefore -1
             std::size_t numberOfSlavesInConfig = ClusterManager::instance()->getNumberOfNodes()-1;
             //local copy (thread safe)
-            bool allNodesConnectedCopy =
-                (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
+            allNodesConnectedCopy = (numberOfConnectedSyncNodesCounter == numberOfSlavesInConfig);
             mAllNodesConnected = allNodesConnectedCopy;
         sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
         //send cluster connected message to nodes/slaves
 		if(allNodesConnectedCopy)
-			for(unsigned int i=0; i<mNetworkConnections.size(); i++)
-				if( mNetworkConnections[i]->isConnected() )
+			for(unsigned int i=0; i<mSyncConnections.size(); i++)
+				if( mSyncConnections[i]->isConnected() )
 				{
-					if( mNetworkConnections[i]->getTypeOfConnection() == sgct_core::SGCTNetwork::SyncConnection )
-					{
-						char tmpc[SGCTNetwork::mHeaderSize];
-						tmpc[0] = SGCTNetwork::ConnectedByte;
-						for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
-							tmpc[j] = SGCTNetwork::FillByte;
+					char tmpc[SGCTNetwork::mHeaderSize];
+                    tmpc[0] = SGCTNetwork::ConnectedByte;
+                    for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
+                        tmpc[j] = SGCTNetwork::FillByte;
 
-						mNetworkConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
-					}
+                    mSyncConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 				}
 
 		/*
@@ -445,6 +446,8 @@ void sgct_core::NetworkManager::close()
 		}
 
 	mNetworkConnections.clear();
+    mSyncConnections.clear();
+    mExternalConnections.clear();
 
 #ifdef __WIN32__
     WSACleanup();
@@ -491,20 +494,29 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 	try
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
-
-		netPtr->init(port, address, mIsServer, static_cast<int>(mNetworkConnections.size()), connectionType,
-			ClusterManager::instance()->getFirmFrameLockSyncStatus());
-
-		//bind callback
+        
+        //bind callback
 		sgct_cppxeleven::function< void(int) > updateCallback;
 		updateCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
-			sgct_cppxeleven::placeholders::_1);
+                                               sgct_cppxeleven::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
-
-		//bind callback
+        
+        //bind callback
 		sgct_cppxeleven::function< void(void) > connectedCallback;
 		connectedCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::setAllNodesConnected, this);
 		netPtr->setConnectedFunction(connectedCallback);
+        
+        
+        if( connectionType == SGCTNetwork::SyncConnection )
+            mSyncConnections.push_back(netPtr);
+        else
+            mExternalConnections.push_back(netPtr);
+        mNetworkConnections.push_back(netPtr);
+        
+
+        //must be inited after binding
+		netPtr->init(port, address, mIsServer, static_cast<int>(mNetworkConnections.size()-1), connectionType,
+			ClusterManager::instance()->getFirmFrameLockSyncStatus());
     }
     catch( const char * err )
     {
@@ -512,7 +524,6 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
         return false;
     }
 
-	mNetworkConnections.push_back(netPtr);
 	return true;
 }
 
@@ -600,7 +611,7 @@ bool sgct_core::NetworkManager::matchAddress(const std::string address)
 bool sgct_core::NetworkManager::isComputerServer()
 { 
 	bool tmpB;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	tmpB = mIsServer;
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return tmpB;
@@ -609,7 +620,7 @@ bool sgct_core::NetworkManager::isComputerServer()
 bool sgct_core::NetworkManager::isRunning()
 {
 	bool tmpB;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	tmpB = mIsRunning;
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return tmpB;
@@ -618,7 +629,7 @@ bool sgct_core::NetworkManager::isRunning()
 bool sgct_core::NetworkManager::areAllNodesConnected()
 {
 	bool tmpB;
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	tmpB = mAllNodesConnected;
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return tmpB;

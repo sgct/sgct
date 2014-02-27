@@ -308,7 +308,7 @@ private:
 	void clean();
 	void clearAllCallbacks();
 
-	void frameLock(SyncStage stage);
+	bool frameLock(SyncStage stage);
 	void calculateFPS(double timestamp);
 	void parseArguments( int& argc, char**& argv );
 	void renderDisplayInfo();
@@ -410,6 +410,7 @@ private:
 	tthread::thread * mThreadPtr;
 
 	std::string configFilename;
+    std::string mLogfilePath;
 	int mRunning;
 	char aaInfo[32];
 

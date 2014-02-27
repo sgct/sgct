@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/NetworkManager.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SGCTMutexManager.h"
 #include <stdlib.h>
 #include <stdio.h>
@@ -144,7 +145,10 @@ void sgct::MessageHandler::logToFile(const char * buffer)
 	fclose(pFile);
 }
 
-void sgct::MessageHandler::setLogPath(const char * path)
+/*!
+ Set the log file path/directoy. The nodeId is optional and will be appended on the filename if larger than -1.
+ */
+void sgct::MessageHandler::setLogPath(const char * path, int nodeId)
 {
 	time_t now = time(NULL);
 
@@ -154,24 +158,44 @@ void sgct::MessageHandler::setLogPath(const char * path)
 	if( err == 0 )
 	{
 		if( path == NULL )
-			strftime(mFileName, LOG_FILENAME_BUFFER_SIZE, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", &timeInfo);
+        {
+			char tmpBuff[64];
+			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
+            if( nodeId > -1 )
+                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s_node%d.txt", tmpBuff, nodeId);
+            else
+                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s.txt", tmpBuff);
+        }
 		else
 		{
 			char tmpBuff[64];
-			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", &timeInfo);
-			sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s", path, tmpBuff);
+			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
+            if( nodeId > -1 )
+                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s_node%d.txt", path, tmpBuff, nodeId);
+            else
+                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s.txt", path, tmpBuff);
 		}
 	}
 #else
 	struct tm * timeInfoPtr;
 	timeInfoPtr = localtime(&now);
 	if( path == NULL )
-		strftime(mFileName, LOG_FILENAME_BUFFER_SIZE, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", timeInfoPtr);
+    {
+		char tmpBuff[64];
+        strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
+        if( nodeId > -1 )
+            sprintf(mFileName, "%s_node%d.txt", tmpBuff, nodeId);
+        else
+            sprintf(mFileName, "%s.txt", tmpBuff);
+    }
 	else
 	{
 		char tmpBuff[64];
-		strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S.txt", timeInfoPtr);
-		sprintf(mFileName, "%s/%s", path, tmpBuff);
+		strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
+        if( nodeId > -1 )
+            sprintf(mFileName, "%s/%s_node%d.txt", path, tmpBuff, nodeId);
+        else
+            sprintf(mFileName, "%s/%s.txt", path, tmpBuff);
 	}
 #endif
 }

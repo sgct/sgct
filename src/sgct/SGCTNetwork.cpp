@@ -67,9 +67,9 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
 	mSendFrame[Current]	= 0;
-	mSendFrame[Previous]= -1;
+	mSendFrame[Previous]= 0;
 	mRecvFrame[Current]	= 0;
-	mRecvFrame[Previous]= mRecvFrame[Current];
+	mRecvFrame[Previous]= -1;
 	mTimeStamp[Send]	= 0.0;
 	mTimeStamp[Total]	= 0.0;
 
@@ -128,7 +128,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 
 	if( mServer )
 	{
-		// Create a SOCKET for the server to listen for client connections
+        // Create a SOCKET for the server to listen for client connections
 		mListenSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 		if (mListenSocket == INVALID_SOCKET)
 		{
@@ -233,7 +233,7 @@ void connectionHandler(void *arg)
 		nPtr->mCommThread = new tthread::thread( communicationHandler, nPtr );
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection handler for connection %d... \n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Exiting connection handler for connection %d... \n", nPtr->getId());
 }
 
 void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
@@ -389,6 +389,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[3] = p[2];
 		messageToSend[4] = p[3];
 
+        //crop if needed
 		std::size_t currentMessageSize =
 			sgct::MessageHandler::instance()->getDataSize() > static_cast<size_t>(mBufferSize) ?
 			static_cast<size_t>(mBufferSize) :
@@ -401,7 +402,6 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[7] = currentMessageSizePtr[2];
 		messageToSend[8] = currentMessageSizePtr[3];
 
-		//crop if needed
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 		
 		sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
@@ -601,7 +601,7 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getTypeOfConnect
 	return tmpct;
 }
 
-int sgct_core::SGCTNetwork::getId()
+const int sgct_core::SGCTNetwork::getId()
 {
 #ifdef __SGCT_NETWORK_DEBUG__    
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
@@ -1145,17 +1145,16 @@ void communicationHandler(void *arg)
 					//extracted message
 					//fprintf(stderr, "Extracted: '%s'\n", extMessage.c_str());
 
-					sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-						extBuffer = extBuffer.substr(found+2);//jump over \r\n
+                    extBuffer = extBuffer.substr(found+2);//jump over \r\n
+                    
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
-						if( nPtr->mDecoderCallbackFn != nullptr )
+                    if( nPtr->mDecoderCallbackFn != nullptr )
 #else
-						if( nPtr->mDecoderCallbackFn != NULL )
+                    if( nPtr->mDecoderCallbackFn != NULL )
 #endif
-						{
-							(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
-						}
-					sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+                    {
+                        (nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
+                    }
 
 					//reply
 					nPtr->sendStr("OK\r\n");
@@ -1176,7 +1175,6 @@ void communicationHandler(void *arg)
 				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP raw data... ");
 #endif
 		
-				sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 				if( nPtr->mDecoderCallbackFn != nullptr )
 #else
@@ -1185,8 +1183,6 @@ void communicationHandler(void *arg)
 				{
 					(nPtr->mDecoderCallbackFn)(recvBuf, iResult, nPtr->getId());
 				}
-				
-				sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");

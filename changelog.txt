@@ -2,6 +2,12 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-02-27 SGCT ver 2.1.0
+---------------------------
+* Resolved network bugs related to firm sync
+* Improved network manager
+* Resolved some mutex issues with SGCTNetwork callbacks
+
 2014-02-19 SGCT ver 2.1.0
 ---------------------------
 * Improved context handling in SGCTWindow and swap group initialization

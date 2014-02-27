@@ -60,7 +60,7 @@ public:
 	void setShowTime( bool state );
 	bool getShowTime();
 	void setLogToFile( bool state );
-	void setLogPath(const char * path);
+	void setLogPath(const char * path, int nodeId = -1);
 	const char * getTimeOfDayStr();
 	inline std::size_t getDataSize() { return mBuffer.size(); }
 

@@ -286,20 +286,30 @@ bool sgct::Engine::initNetwork()
 	else
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Running locally as node %d\n", ClusterManager::instance()->getThisNodeId());
 
-	//Set node pointer
-	mThisNode = ClusterManager::instance()->getThisNodePtr();
+    //If the user has provided the node id as an incorrect cmd argument then make the mThisNode invalid
+	if(ClusterManager::instance()->getThisNodeId() >= static_cast<int>(ClusterManager::instance()->getNumberOfNodes()) ||
+       ClusterManager::instance()->getThisNodeId() < 0)
+        mThisNode = NULL;
+    else
+        mThisNode = ClusterManager::instance()->getThisNodePtr(); //Set node pointer
 
 	//if any error occured
-	if( mThisNode == NULL || ClusterManager::instance()->getThisNodeId() == -1 ||
-		ClusterManager::instance()->getThisNodeId() >= static_cast<int>( ClusterManager::instance()->getNumberOfNodes() )) //fatal error
+	if( mThisNode == NULL ) //fatal error
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "This computer is not a part of the cluster configuration!\n");
 		mNetworkConnections->close();
 		return false;
 	}
+    
+    //set logfile path
+    if( !mLogfilePath.empty() )
+    {
+        MessageHandler::instance()->setLogPath( mLogfilePath.c_str(), ClusterManager::instance()->getThisNodeId() );
+        MessageHandler::instance()->setLogToFile(true);
+    }
 
 	//Set message handler to send messages or not
-	MessageHandler::instance()->setSendFeedbackToServer( !mNetworkConnections->isComputerServer() );
+	//MessageHandler::instance()->setSendFeedbackToServer( !mNetworkConnections->isComputerServer() );
 
 	if(!mNetworkConnections->init())
 		return false;
@@ -441,7 +451,7 @@ bool sgct::Engine::initWindows()
 
 	waitForAllWindowsInSwapGroupToOpen();
 
-	if( RUN_FRAME_LOCK_CHECK_THREAD == 1 )
+	if( RUN_FRAME_LOCK_CHECK_THREAD )
 	{
 		if(ClusterManager::instance()->getNumberOfNodes() > 1)
 			mThreadPtr = new tthread::thread( updateFrameLockLoop, 0 );
@@ -727,11 +737,11 @@ Locks the rendering thread for synchronization. The two stages are:
 
 Sync time from statistics is the time each computer waits for sync.
 */
-void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
+bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 {
 	if( stage == PreStage )
 	{
-		double t0 = glfwGetTime();
+        double t0 = glfwGetTime();
 		mNetworkConnections->sync(NetworkManager::SendDataToClients, mStatistics); //from server to clients
 		mStatistics->setSyncTime( static_cast<float>(glfwGetTime() - t0) );
 
@@ -739,12 +749,12 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
 		{
 			t0 = glfwGetTime();
-			while(mNetworkConnections->isRunning() && mRunning)
+            while(mNetworkConnections->isRunning() && mRunning)
 			{
-				if( mNetworkConnections->isSyncComplete() )
+                if( mNetworkConnections->isSyncComplete() )
 						break;
 
-				if(USE_SLEEP_TO_WAIT_FOR_NODES)
+                if(USE_SLEEP_TO_WAIT_FOR_NODES)
 					tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
 				else
 				{
@@ -752,25 +762,32 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 					NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
 					SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
 				}
-
-				//for debuging
+                
+                //for debuging
+                SGCTNetwork * conn;
 				if( glfwGetTime() - t0 > 1.0 ) //more than a second
 				{
-					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
-					{
-						if( !mNetworkConnections->getConnection(i)->isUpdated() )
-						{
-							unsigned int lFrameNumber = 0;
-							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
+					conn = mNetworkConnections->getSyncConnection(0);
+                    if( !conn->isUpdated() )
+                    {
+                        unsigned int lFrameNumber = 0;
+                        getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave: waiting for master... send frame %d, recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
-								mNetworkConnections->getConnection(i)->getSendFrame(),
-								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
-								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
-								getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
-								lFrameNumber);
-						}
-					}
+                        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Slave: waiting for master... send frame %d != previous recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n\tSGCT frame number: %u\n",
+                            conn->getSendFrame(),
+                            conn->getRecvFrame(SGCTNetwork::Previous),
+                            getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
+                            getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
+                            lFrameNumber,
+                            mFrameCounter);
+                    }
+                    
+                    if( glfwGetTime() - t0 > 60.0 ) //more than a minute
+                    {
+                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Slave: no sync signal from master after 60 seconds! Exiting...");
+                        
+                        return false;
+                    }
 				}
 			}//end while wait loop
 
@@ -791,9 +808,9 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 			//!getActiveWindowPtr()->isBarrierActive() )//post stage
 		{
 			double t0 = glfwGetTime();
-			while(mNetworkConnections->isRunning() &&
+            while(mNetworkConnections->isRunning() &&
 				mRunning &&
-				mNetworkConnections->getConnectionsCount() > 0)
+				mNetworkConnections->getActiveConnectionsCount() > 0)
 			{
 				if( mNetworkConnections->isSyncComplete() )
 						break;
@@ -808,29 +825,41 @@ void sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 				}
 
 				//for debuging
+                SGCTNetwork * conn;
 				if( glfwGetTime() - t0 > 1.0 ) //more than a second
 				{
-					for(unsigned int i=0; i<mNetworkConnections->getConnectionsCount(); i++)
+                    for(unsigned int i=0; i<mNetworkConnections->getSyncConnectionsCount(); i++)
 					{
-						if( !mNetworkConnections->getConnection(i)->isUpdated() )
-						{
+						conn = mNetworkConnections->getConnection(i);
+                        if( !conn->isUpdated() )
+                        {
 							unsigned int lFrameNumber = 0;
 							getActiveWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
-							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n",
+							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n\tSGCT frame number: %u\n",
 								i,
 								mNetworkConnections->getConnection(i)->getSendFrame(),
 								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
 								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
 								getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
-								lFrameNumber);
+								lFrameNumber,
+                                mFrameCounter);
 						}
 					}
+                    
+                    if( glfwGetTime() - t0 > 60.0 ) //more than a minute
+                    {
+                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Master: no sync signal from all slaves after 60 seconds! Exiting...");
+                        
+                        return false;
+                    }
 				}
 			}//end while
 			mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
 		}//end if server
 	}
+    
+    return true;
 }
 
 /*!
@@ -845,7 +874,7 @@ void sgct::Engine::render()
 		mRenderingOffScreen = false;
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: Updating tracking devices.\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Updating tracking devices.\n");
 #endif
 
 		//update tracking data
@@ -853,7 +882,7 @@ void sgct::Engine::render()
 			ClusterManager::instance()->getTrackingManagerPtr()->updateTrackingDevices();
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: Running pre-sync.\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Running pre-sync.\n");
 #endif
 		if( mPreSyncFn != NULL )
 			mPreSyncFn();
@@ -861,13 +890,13 @@ void sgct::Engine::render()
 		if( mNetworkConnections->isComputerServer() )
 		{
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: Encoding data.\n");
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Encoding data.\n");
 #endif
 			SharedData::instance()->encode();
 		}
 		else
 		{
-			if( !mNetworkConnections->isRunning() ) //exit if not running
+            if( !mNetworkConnections->isRunning() ) //exit if not running
 			{
 				MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Network disconnected! Exiting...\n");
 				break;
@@ -875,12 +904,13 @@ void sgct::Engine::render()
 		}
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: Sync/framelock\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Sync/framelock\n");
 #endif
-		frameLock(PreStage);
+		if( !frameLock(PreStage) )
+            break;
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: running post-sync-pre-draw\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: running post-sync-pre-draw\n");
 #endif
 
 		//check if re-size needed of VBO and PBO
@@ -920,7 +950,7 @@ void sgct::Engine::render()
 			if( getActiveWindowPtr()->isUsingFisheyeRendering() )
 			{
 	#ifdef __SGCT_RENDER_LOOP_DEBUG__
-		fprintf(stderr, "Render-Loop: Rendering fisheye\n");
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering fisheye\n");
 	#endif
 				//set alpha value
 				mFisheyeClearColor[3] = getActiveWindowPtr()->getAlpha() ? 0.0f : 1.0f;
@@ -949,7 +979,7 @@ void sgct::Engine::render()
 			else
 			{
 	#ifdef __SGCT_RENDER_LOOP_DEBUG__
-		fprintf(stderr, "Render-Loop: Rendering\n");
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering\n");
 	#endif
 				//if any stereo type (except passive) then set frustum mode to left eye
 				if( sm == static_cast<int>(SGCTWindow::No_Stereo))
@@ -975,7 +1005,7 @@ void sgct::Engine::render()
 			//--------------------------------------------------------------
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-		fprintf(stderr, "Render-Loop: Rendering FBO quad\n");
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering FBO quad\n");
 #endif
 		}//end window loop
 
@@ -993,7 +1023,7 @@ void sgct::Engine::render()
 			}
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-		fprintf(stderr, "Render-Loop: Running post-sync\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Running post-sync\n");
 #endif
 		/*
 			For single threaded rendering glFinish should be fine to use for frame sync.
@@ -1012,7 +1042,7 @@ void sgct::Engine::render()
 #endif
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: swap and update data\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: swap and update data\n");
 #endif
         double endFrameTime = glfwGetTime();
 		mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
@@ -1025,19 +1055,20 @@ void sgct::Engine::render()
 		if (mShowGraph)
         {
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-            fprintf(stderr, "Render-Loop: update stats VBOs\n");
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: update stats VBOs\n");
 #endif
 			mStatistics->update();
         }
         
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-        fprintf(stderr, "Render-Loop: lock\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: lock\n");
 #endif
 		//master will wait for nodes render before swapping
-		frameLock(PostStage);
+		if( !frameLock(PostStage) )
+            break;
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: Swap buffers\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Swap buffers\n");
 #endif
 		// Swap front and back rendering buffers
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -1049,7 +1080,7 @@ void sgct::Engine::render()
 		glfwPollEvents();
 
 		// Check if ESC key was pressed or window was closed
-		mRunning = !(mThisNode->getKeyPressed( mExitKey ) ||
+        mRunning = !(mThisNode->getKeyPressed( mExitKey ) ||
 			mThisNode->shouldAllWindowsClose() ||
 			mTerminate ||
 			!mNetworkConnections->isRunning());
@@ -1059,7 +1090,7 @@ void sgct::Engine::render()
 		mTakeScreenshot = false;
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
-    fprintf(stderr, "Render-Loop: End iteration\n");
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: End iteration\n");
 #endif
 	}
 }
@@ -2768,13 +2799,14 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Swap groups are not supported by hardware.\n");
 
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for all nodes to connect.\n");
-
+        MessageHandler::instance()->setShowTime(false);
+        
 		while(mNetworkConnections->isRunning() &&
 			!mThisNode->getKeyPressed( mExitKey ) &&
 			!mThisNode->shouldAllWindowsClose() &&
 			!mTerminate)
 		{
-			fprintf(stdout, ".");
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
 
 			// Swap front and back rendering buffers
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
@@ -2786,7 +2818,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 
 			sleep( 0.1 );
 		}
-		fprintf(stdout, "\n");
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "\n");
 
 		//wait for user to release exit key
 		while( mThisNode->getKeyPressed( mExitKey ) )
@@ -2796,11 +2828,14 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 				glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
 			glfwPollEvents();
+            
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
 
 			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(50));
 		}
 
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "\n");
+        MessageHandler::instance()->setShowTime(true);
 	}
 }
 
@@ -2933,8 +2968,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 			if( last == '\\' || last == '/' )
 				tmpStr.erase( lastPos );
 
-			MessageHandler::instance()->setLogPath( tmpStr.c_str() );
-			MessageHandler::instance()->setLogToFile(true);
+            mLogfilePath.assign( tmpStr );
 
 			argumentsToRemove.push_back(i);
             argumentsToRemove.push_back(i+1);

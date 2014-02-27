@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 	if( useDisplayLists )
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
 	else
-		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::VBO );
+		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
     
     sgct::SGCTSettings::instance()->setCaptureFormat("tga");
 

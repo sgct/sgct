@@ -45,12 +45,9 @@ if( APPLE  )
 endif()
 	
 find_library(SGCT_RELEASE_LIBRARY
-	NAMES sgct libsgct libsgct_cpp11
-	REQUIRED)
-	
+	NAMES sgct libsgct libsgct_cpp11 REQUIRED)
 find_library(SGCT_DEBUG_LIBRARY 
-	NAMES sgctd libsgctd libsgct_cpp11d
-	REQUIRED)
+	NAMES sgctd libsgctd libsgct_cpp11d REQUIRED)
 
 if( WIN32 )
 	find_path(SGCT_INCLUDE_DIRECTORY 
@@ -71,6 +68,7 @@ find_library(ALUT_DEBUG_LIBRARY
 find_library(ALUT_RELEASE_LIBRARY
 	NAMES alut libalut libalut_cpp11
 	REQUIRED)
+
 find_path(ALUT_INCLUDE_DIRECTORY NAMES AL/alut.h REQUIRED)
 
 set(SGCT_LIBS
@@ -173,6 +171,7 @@ elseif( APPLE  )
 	add_definitions(-D__APPLE__)
 	if( SGCT_CPP11 )
     	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
+		set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -stdlib=libc++")
 		add_definitions(-D__SGCT_CPP11__)
 	else()
 		set(CMAKE_CXX_FLAGS "-std=c++0x -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")

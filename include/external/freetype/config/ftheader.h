@@ -4,7 +4,7 @@
 /*                                                                         */
 /*    Build macros of the FreeType 2 library.                              */
 /*                                                                         */
-/*  Copyright 1996-2001, 2002, 2003, 2004, 2005, 2006, 2007, 2008, 2010 by */
+/*  Copyright 1996-2008, 2010, 2012, 2013 by                               */
 /*  David Turner, Robert Wilhelm, and Werner Lemberg.                      */
 /*                                                                         */
 /*  This file is part of the FreeType project, and may only be used,       */
@@ -21,10 +21,10 @@
 
   /*@***********************************************************************/
   /*                                                                       */
-  /* <Macro>                                                               */
+  /* <external/freetype/Macro>                                                               */
   /*    FT_BEGIN_HEADER                                                    */
   /*                                                                       */
-  /* <Description>                                                         */
+  /* <external/freetype/Description>                                                         */
   /*    This macro is used in association with @FT_END_HEADER in header    */
   /*    files to ensure that the declarations within are properly          */
   /*    encapsulated in an `extern "C" { .. }' block when included from a  */
@@ -39,10 +39,10 @@
 
   /*@***********************************************************************/
   /*                                                                       */
-  /* <Macro>                                                               */
+  /* <external/freetype/Macro>                                                               */
   /*    FT_END_HEADER                                                      */
   /*                                                                       */
-  /* <Description>                                                         */
+  /* <external/freetype/Description>                                                         */
   /*    This macro is used in association with @FT_BEGIN_HEADER in header  */
   /*    files to ensure that the declarations within are properly          */
   /*    encapsulated in an `extern "C" { .. }' block when included from a  */
@@ -63,16 +63,16 @@
 
   /*************************************************************************/
   /*                                                                       */
-  /* <Section>                                                             */
+  /* <external/freetype/Section>                                                             */
   /*    header_file_macros                                                 */
   /*                                                                       */
-  /* <Title>                                                               */
+  /* <external/freetype/Title>                                                               */
   /*    Header File Macros                                                 */
   /*                                                                       */
-  /* <Abstract>                                                            */
+  /* <external/freetype/Abstract>                                                            */
   /*    Macro definitions used to #include specific header files.          */
   /*                                                                       */
-  /* <Description>                                                         */
+  /* <external/freetype/Description>                                                         */
   /*    The following macros are defined to the name of specific           */
   /*    FreeType~2 header files.  They can be used directly in #include    */
   /*    statements as in:                                                  */
@@ -313,6 +313,45 @@
    *
    */
 #define FT_RENDER_H  <external/freetype/ftrender.h>
+
+
+  /*************************************************************************
+   *
+   * @macro:
+   *   FT_AUTOHINTER_H
+   *
+   * @description:
+   *   A macro used in #include statements to name the file containing
+   *   structures and macros related to the auto-hinting module.
+   *
+   */
+#define FT_AUTOHINTER_H  <external/freetype/ftautoh.h>
+
+
+  /*************************************************************************
+   *
+   * @macro:
+   *   FT_CFF_DRIVER_H
+   *
+   * @description:
+   *   A macro used in #include statements to name the file containing
+   *   structures and macros related to the CFF driver module.
+   *
+   */
+#define FT_CFF_DRIVER_H  <external/freetype/ftcffdrv.h>
+
+
+  /*************************************************************************
+   *
+   * @macro:
+   *   FT_TRUETYPE_DRIVER_H
+   *
+   * @description:
+   *   A macro used in #include statements to name the file containing
+   *   structures and macros related to the TrueType driver module.
+   *
+   */
+#define FT_TRUETYPE_DRIVER_H  <external/freetype/ftttdrv.h>
 
 
   /*************************************************************************
@@ -778,7 +817,7 @@
 
 
   /*
-   * Include internal headers definitions from <freetype/internal/...>
+   * Include internal headers definitions from <external/freetype/internal/...>
    * only when building the library.
    */
 #ifdef FT2_BUILD_LIBRARY

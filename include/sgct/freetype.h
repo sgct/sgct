@@ -8,13 +8,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef FREE__TYPE_H
 #define FREE__TYPE_H
 
-//FreeType Headers
-#include "external/ft2build.h"
-#include FT_FREETYPE_H
-#include "external/freetype/ftglyph.h"
-#include "external/freetype/ftoutln.h"
-#include "external/freetype/fttrigon.h"
-
 #include "Font.h"
 
 //Some STL headers

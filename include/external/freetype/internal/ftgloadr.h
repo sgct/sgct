@@ -20,7 +20,7 @@
 #define __FTGLOADR_H__
 
 
-#include <ft2build.h>
+#include <external/freetype/ft2build.h>
 #include FT_FREETYPE_H
 
 

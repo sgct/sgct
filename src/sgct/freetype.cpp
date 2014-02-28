@@ -9,11 +9,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/freetype.h"
 #include "../include/sgct/FontManager.h"
 #include "../include/sgct/ShaderManager.h"
+#include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#define TEXT_RENDER_BUFFER_SIZE 2048
+#define TEXT_RENDER_BUFFER_SIZE 4
 
 namespace sgct_text
 {
@@ -152,26 +153,31 @@ inline void pop_projection_matrix()
 ///with freetype fonts.
 void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...)
 {
-	if( ft_font == NULL ) { return; }
+	if (ft_font == NULL || fmt == NULL)
+		return;
 
 	float h = ft_font->getHeight() * 1.59f;
 
-	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
 
-	if (fmt == NULL)									// If There's No Text
-		*text=0;											// Do Nothing
-
-	else {
 	va_start(ap, fmt);									// Parses The String For Variables
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+	int need = 1 + _vscprintf(fmt, ap);	// And Converts Symbols To Actual Numbers
+	char * buffer = new char[need];
+	vsnprintf_s(buffer, need, need - 1, fmt, ap);
 #else
-		vsprintf(text, fmt, ap);
+	char buffer0[TEXT_RENDER_BUFFER_SIZE];
+	char * buffer = buffer0;
+
+	int need = 1 + vsnprintf(buffer, TEXT_RENDER_BUFFER_SIZE-1, fmt, ap);
+	if (need > TEXT_RENDER_BUFFER_SIZE)
+	{
+		buffer = new char[need];
+		vsnprintf(buffer, need-1, fmt, ap);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCT_Text warning: String larger than buffer (%d), reallocating...\n", TEXT_RENDER_BUFFER_SIZE);
+	}
 #endif
 	va_end(ap);											// Results Are Stored In Text
-	}
-
 
 	//Here is some code to split the text that we have been
 	//given into a set of lines.
@@ -179,10 +185,10 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 	//a regular expression library such as the one avliable from
 	//boost.org (I've only done it out by hand to avoid complicating
 	//this tutorial with unnecessary library dependencies).
-	const char *start_line=text;
+	const char *start_line = buffer;
 	std::vector<std::string> lines;
 	char *c;
-	for(c=text;*c;c++)
+	for (c = buffer; *c; c++)
 	{
 		if(*c=='\n')
 		{
@@ -289,31 +295,44 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 		glBindVertexArray(0);
 		sgct::ShaderProgram::unbind();
 	}
+
+#if (_MSC_VER >= 1400)
+	delete[] buffer;
+#else
+	if (buffer != buffer0)
+		delete[] buffer;
+#endif
 }
 
 ///Much like Nehe's glPrint function, but modified to work
 ///with freetype fonts.
 void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *fmt, ...)
 {
-	if( ft_font == NULL ) { return; }
+	if (ft_font == NULL || fmt == NULL)
+		return;
 
 	float h = ft_font->getHeight() * 1.59f;
 
-	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
-	va_list		ap;										// Pointer To List Of Arguments
+	va_list		ap;	// Pointer To List Of Arguments
 
-	if (fmt == NULL)									// If There's No Text
-		*text=0;											// Do Nothing
-
-	else {
-	va_start(ap, fmt);									// Parses The String For Variables
+	va_start(ap, fmt); // Parses The String For Variables
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+	int need = 1 + _vscprintf(fmt, ap);	// And Converts Symbols To Actual Numbers
+	char * buffer = new char[need];
+	vsnprintf_s(buffer, need, need-1, fmt, ap);
 #else
-		vsprintf(text, fmt, ap);
+	char buffer0[TEXT_RENDER_BUFFER_SIZE];
+	char * buffer = buffer0;
+
+	int need = 1 + vsnprintf(buffer, TEXT_RENDER_BUFFER_SIZE-1, fmt, ap);
+	if (need > TEXT_RENDER_BUFFER_SIZE)
+	{
+		buffer = new char[need];
+		vsnprintf(buffer, need-1, fmt, ap);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCT_Text warning: String larger than buffer (%d), reallocating...\n", TEXT_RENDER_BUFFER_SIZE);
+	}
 #endif
 	va_end(ap);											// Results Are Stored In Text
-	}
 
 
 	//Here is some code to split the text that we have been
@@ -322,10 +341,10 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 	//a regular expression library such as the one avliable from
 	//boost.org (I've only done it out by hand to avoid complicating
 	//this tutorial with unnecessary library dependencies).
-	const char *start_line=text;
+	const char *start_line = buffer;
 	std::vector<std::string> lines;
 	char *c;
-	for(c=text;*c;c++)
+	for (c = buffer; *c; c++)
 	{
 		if(*c=='\n')
 		{
@@ -429,31 +448,43 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 		glBindVertexArray(0);
 		sgct::ShaderProgram::unbind();
 	}
+
+#if (_MSC_VER >= 1400)
+	delete[] buffer;
+#else
+	if (buffer != buffer0)
+		delete[] buffer;
+#endif
 }
 
 void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ...)
 {
-	if( ft_font == NULL ) { return; }
+	if (ft_font == NULL || fmt == NULL)
+		return;
 
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight() * 1.59f;
 
-	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
 
-	if (fmt == NULL)									// If There's No Text
-		*text=0;										// Do Nothing
-
-	else {
 	va_start(ap, fmt);									// Parses The String For Variables
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+	int need = 1 + _vscprintf(fmt, ap);	// And Converts Symbols To Actual Numbers
+	char * buffer = new char[need];
+	vsnprintf_s(buffer, need, need - 1, fmt, ap);
 #else
-		vsprintf(text, fmt, ap);
-#endif
-	va_end(ap);											// Results Are Stored In Text
-	}
+	char buffer0[TEXT_RENDER_BUFFER_SIZE];
+	char * buffer = buffer0;
 
+	int need = 1 + vsnprintf(buffer, TEXT_RENDER_BUFFER_SIZE - 1, fmt, ap);
+	if (need > TEXT_RENDER_BUFFER_SIZE)
+	{
+		buffer = new char[need];
+		vsnprintf(buffer, need-1, fmt, ap);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCT_Text warning: String larger than buffer (%d), reallocating...\n", TEXT_RENDER_BUFFER_SIZE);
+	}
+#endif
+	va_end(ap);
 
 	//Here is some code to split the text that we have been
 	//given into a set of lines.
@@ -461,10 +492,10 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 	//a regular expression library such as the one avliable from
 	//boost.org (I've only done it out by hand to avoid complicating
 	//this tutorial with unnecessary library dependencies).
-	const char *start_line=text;
+	const char *start_line = buffer;
 	char *c;
 	std::vector<std::string> lines;
-	for(c=text;*c;c++) {
+	for (c = buffer; *c; c++) {
 		if(*c=='\n') {
 			std::string line;
 			for(const char *n=start_line;n<c;n++) line.append(1,*n);
@@ -563,31 +594,43 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
 		glBindVertexArray(0);
 		sgct::ShaderProgram::unbind();
 	}
+
+#if (_MSC_VER >= 1400)
+	delete[] buffer;
+#else
+	if (buffer != buffer0)
+		delete[] buffer;
+#endif
 }
 
 void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *fmt, ...)
 {
-	if( ft_font == NULL ) { return; }
+	if (ft_font == NULL || fmt == NULL)
+		return;
 
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight() * 1.59f;
 
-	char		text[TEXT_RENDER_BUFFER_SIZE];			// Holds Our String
 	va_list		ap;										// Pointer To List Of Arguments
 
-	if (fmt == NULL)									// If There's No Text
-		*text=0;										// Do Nothing
-
-	else {
 	va_start(ap, fmt);									// Parses The String For Variables
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	    vsprintf_s(text, TEXT_RENDER_BUFFER_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+	int need = 1 + _vscprintf(fmt, ap);	// And Converts Symbols To Actual Numbers
+	char * buffer = new char[need];
+	vsnprintf_s(buffer, need, need - 1, fmt, ap);
 #else
-		vsprintf(text, fmt, ap);
-#endif
-	va_end(ap);											// Results Are Stored In Text
-	}
+	char buffer0[TEXT_RENDER_BUFFER_SIZE];
+	char * buffer = buffer0;
 
+	int need = 1 + vsnprintf(buffer, TEXT_RENDER_BUFFER_SIZE - 1, fmt, ap);
+	if (need > TEXT_RENDER_BUFFER_SIZE)
+	{
+		buffer = new char[need];
+		vsnprintf(buffer, need-1, fmt, ap);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCT_Text warning: String larger than buffer (%d), reallocating...\n", TEXT_RENDER_BUFFER_SIZE);
+	}
+#endif
+	va_end(ap);
 
 	//Here is some code to split the text that we have been
 	//given into a set of lines.
@@ -595,10 +638,10 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 	//a regular expression library such as the one avliable from
 	//boost.org (I've only done it out by hand to avoid complicating
 	//this tutorial with unnecessary library dependencies).
-	const char *start_line=text;
+	const char *start_line = buffer;
 	char *c;
 	std::vector<std::string> lines;
-	for(c=text;*c;c++) {
+	for (c = buffer; *c; c++) {
 		if(*c=='\n') {
 			std::string line;
 			for(const char *n=start_line;n<c;n++) line.append(1,*n);
@@ -696,6 +739,13 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 		glBindVertexArray(0);
 		sgct::ShaderProgram::unbind();
 	}
+
+#if (_MSC_VER >= 1400)
+	delete[] buffer;
+#else
+	if (buffer != buffer0)
+		delete[] buffer;
+#endif
 }
 
 }

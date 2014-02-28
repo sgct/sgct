@@ -206,11 +206,13 @@ public:
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
+	void setFisheyeUseCubicInterpolation(bool state);
 	int getCubeMapResolution();
 	float getDomeDiameter();
 	float getFisheyeTilt();
 	float getFisheyeFOV();
 	float getFisheyeCropValue(FisheyeCropSide side);
+	bool getFisheyeUseCubicInterpolation();
 	bool isFisheyeOffaxis();
 	const char * getFisheyeOverlay();
 
@@ -228,6 +230,7 @@ private:
 	void resizeFBOs();
 	void createVBOs();
 	void loadShaders();
+	void findAndReplace(std::string & src, std::string pattern, std::string replaceStr);
 	void initFisheye();
 
 public:
@@ -302,6 +305,7 @@ private:
 	bool mAreCubeMapViewPortsGenerated;
 	bool mHasAnyMasks;
 	int mCubeMapResolution;
+	bool mCubicInterpolation;
 
 	std::size_t mCurrentViewportIndex;
 	std::vector<sgct_core::Viewport> mViewports;

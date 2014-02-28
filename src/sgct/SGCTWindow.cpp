@@ -15,6 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders.h"
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_cubic.h"
+#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
@@ -105,6 +107,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFisheyeBaseOffset[1] = 0.0f;
 	mFisheyeBaseOffset[2] = 0.0f;
 	mFisheyeOffaxis = false;
+	mCubicInterpolation = false;
 
 	mQuadVerts[0] = 0.0f;
 	mQuadVerts[1] = 0.0f;
@@ -1604,19 +1607,27 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
+                        fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1626,19 +1637,27 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
 						break;
 					}
 				}	
@@ -1651,19 +1670,27 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-                        fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
 						break;
 					}
 				}
@@ -1673,20 +1700,27 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader;
-                        //fisheyeFragmentShader = sgct_core::shaders::Fisheye_Frag_Shader_Cubic;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Normal :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Normal_Position :
+							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
 						break;
 					}
 				}
@@ -1806,31 +1840,47 @@ void sgct::SGCTWindow::loadShaders()
 				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
-        
-        //replace add correct transform in the fragment shader
-        std::size_t found = fisheyeFragmentShader.find("**rotVec**");
-        if (found!=std::string::npos)
-        {
-            if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FourFaceCube )
-                fisheyeFragmentShader.replace(found,10,"vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
-            else
-                fisheyeFragmentShader.replace(found,10,"vec3 rotVec = vec3( angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
-        }
-        
-        //replace color
-        found = fisheyeFragmentShader.find("**bgColor**");
-        if (found!=std::string::npos)
-        {
-            const float * col = Engine::instance()->getFisheyeClearColor();
-            char colorStr[64];
+
+		if (mCubicInterpolation)
+		{
+			char sizeStr[8];
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            sprintf_s(colorStr, 64, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+			sprintf_s(sizeStr, 8, "%d.0", getCubeMapResolution());
 #else
-            sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+			sprintf(sizeStr, "%d.0", getCubeMapResolution());
 #endif
-            //fprintf(stderr, "Color string '%s'\n\n", colorStr);
-            fisheyeFragmentShader.replace(found,11,std::string(colorStr));
-        }
+			
+			//add functions to shader
+			if (mFisheyeOffaxis)
+				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_offset_fun);
+			else
+				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_fun);
+			findAndReplace(fisheyeFragmentShader, "**catmull_rom_fun**", sgct_core::shaders_fisheye_cubic::catmull_rom_fun);
+			findAndReplace(fisheyeFragmentShader, "**interpolate4_4f**", sgct_core::shaders_fisheye_cubic::interpolate4_4f);
+			findAndReplace(fisheyeFragmentShader, "**interpolate4_f**", sgct_core::shaders_fisheye_cubic::interpolate4_f);
+			
+			//set size
+			findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
+
+			//set step
+			findAndReplace(fisheyeFragmentShader, "**step**", "0.75");
+		}
+
+		//replace add correct transform in the fragment shader
+		if (SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FourFaceCube)
+			findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
+		else
+			findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
+        
+		//replace color
+		const float * col = Engine::instance()->getFisheyeClearColor();
+		char colorStr[64];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		sprintf_s(colorStr, 64, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+#else
+		sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
+#endif
+		findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
         
         mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
@@ -1870,34 +1920,6 @@ void sgct::SGCTWindow::loadShaders()
 				mFisheyeBaseOffset[1] + mFisheyeOffset[1],
 				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
 		}
-
-        //Run only on modern pipeline otherwise it results in segfaults in OS X
-        /*if( !Engine::instance()->isOGLPipelineFixed() )
-		{
-            switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-            {
-            case sgct::SGCTSettings::Diffuse:
-            default:
-                mFisheyeShader.bindFragDataLocation(0, "diffuse");
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal:
-                mFisheyeShader.bindFragDataLocation(0, "diffuse");
-                mFisheyeShader.bindFragDataLocation(1, "normal");
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Position:
-                mFisheyeShader.bindFragDataLocation(0, "diffuse");
-                mFisheyeShader.bindFragDataLocation(1, "position");
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal_Position:
-                mFisheyeShader.bindFragDataLocation(0, "diffuse");
-                mFisheyeShader.bindFragDataLocation(1, "normal");
-                mFisheyeShader.bindFragDataLocation(2, "position");
-                break;
-            }
-        }*/
 
 		ShaderProgram::unbind();
 
@@ -2015,6 +2037,18 @@ void sgct::SGCTWindow::loadShaders()
 		glUniform1i( StereoLeftTex, 0 );
 		glUniform1i( StereoRightTex, 1 );
 		ShaderProgram::unbind();
+	}
+}
+
+void sgct::SGCTWindow::findAndReplace(std::string & src, std::string pattern, std::string replaceStr)
+{
+	while (true)
+	{
+		std::size_t found = src.find(pattern);
+		if (found != std::string::npos)
+			src.replace(found, pattern.length(), replaceStr);
+		else
+			break;
 	}
 }
 
@@ -2729,6 +2763,22 @@ Set the fisheye overlay image.
 void sgct::SGCTWindow::setFisheyeOverlay(std::string filename)
 {
 	mFisheyeOverlayFilename.assign(filename);
+}
+
+/*!
+Set if cubic interpolation should be used in cubemap sampling
+*/
+void sgct::SGCTWindow::setFisheyeUseCubicInterpolation(bool state)
+{
+	mCubicInterpolation = state;
+}
+
+/*!
+Get if cubic interpolation is used in cubemap sampling
+*/
+bool sgct::SGCTWindow::getFisheyeUseCubicInterpolation()
+{
+	return mCubicInterpolation;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer

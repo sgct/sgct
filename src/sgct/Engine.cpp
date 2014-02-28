@@ -1116,7 +1116,7 @@ void sgct::Engine::renderDisplayInfo()
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 6.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Node ip: %s (%s)",
 			mThisNode->getAddress().c_str(),
@@ -1124,7 +1124,7 @@ void sgct::Engine::renderDisplayInfo()
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 5.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.0f,1.0f),
 			"Frame rate: %.2f Hz, frame: %u",
 			mStatistics->getAvgFPS(),
@@ -1132,14 +1132,14 @@ void sgct::Engine::renderDisplayInfo()
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 3.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.0f,0.8f,1.0f),
 			"Avg. draw time: %.2f ms",
 			mStatistics->getAvgDrawTime()*1000.0);
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 3.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.0f,0.8f,0.8f,1.0f),
 			"Avg. sync time: %.2f ms",
 			mStatistics->getAvgSyncTime()*1000.0);
@@ -1149,7 +1149,7 @@ void sgct::Engine::renderDisplayInfo()
 		{
 			sgct_text::print(font,
 				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-				lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 				glm::vec4(0.8f,0.8f,0.8f,1.0f),
 				"Swap groups: %s and barrier is %s (%s) | Frame: %d",
 				getActiveWindowPtr()->isUsingSwapGroups() ? "Enabled" : "Disabled",
@@ -1161,24 +1161,34 @@ void sgct::Engine::renderDisplayInfo()
 		{
 			sgct_text::print(font,
 				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-				lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				lineHeight * 2.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 				glm::vec4(0.8f,0.8f,0.8f,1.0f),
 				"Swap groups: Disabled");
 		}
 
 		sgct_text::print(font,
 			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 0.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+			lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Anti-Aliasing: %s",
 			aaInfo);
+
+		if (getActiveWindowPtr()->isUsingFisheyeRendering())
+		{
+			sgct_text::print(font,
+				static_cast<float>(getActiveWindowPtr()->getXResolution()) * SGCTSettings::instance()->getOSDTextXOffset(),
+				lineHeight * 0.0f + static_cast<float>(getActiveWindowPtr()->getYResolution()) * SGCTSettings::instance()->getOSDTextYOffset(),
+				glm::vec4(0.8f, 0.8f, 0.8f, 1.0f),
+				"Interpolation: %s",
+				getActiveWindowPtr()->getFisheyeUseCubicInterpolation() ? "Cubic" : "Linear");
+		}
 
 		//if active stereoscopic rendering
 		if( mActiveFrustumMode == Frustum::StereoLeftEye )
 		{
 			sgct_text::print(font,
 				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-				lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				lineHeight * 8.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 				glm::vec4(0.8f,0.8f,0.8f,1.0f),
 				"Stereo type: %s\nActive eye: Left", getActiveWindowPtr()->getStereoModeStr().c_str() );
 		}
@@ -1186,7 +1196,7 @@ void sgct::Engine::renderDisplayInfo()
 		{
 			sgct_text::print(font,
 				static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-				lineHeight * 7.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+				lineHeight * 8.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 				glm::vec4(0.8f,0.8f,0.8f,1.0f),
 				"Stereo type: %s\nActive eye:          Right", getActiveWindowPtr()->getStereoModeStr().c_str() );
 		}

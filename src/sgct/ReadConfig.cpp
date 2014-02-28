@@ -476,6 +476,10 @@ void sgct_core::ReadConfig::readAndParseXML()
                                     strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?
                                         sgct::SGCTSettings::FiveFaceCube : sgct::SGCTSettings::FourFaceCube);
 
+							if (element[2]->Attribute("interpolation") != NULL)
+								tmpWin.setFisheyeUseCubicInterpolation(
+									strcmp( element[2]->Attribute("interpolation"), "cubic") == 0 ? true : false);
+
 							float tilt;
 							if( element[2]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
 							{

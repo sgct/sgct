@@ -141,7 +141,6 @@ private:
 	bool mForceGlTexImage2D;
 	bool mUsePBO;
 	bool mUseRLE;
-
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;
 	float mFXAASubPixOffset;

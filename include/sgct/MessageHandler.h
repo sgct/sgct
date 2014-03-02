@@ -91,6 +91,8 @@ private:
 	bool mLogToFile;
 	char mTimeBuffer[TIME_BUFFER_SIZE];
 	char mFileName[LOG_FILENAME_BUFFER_SIZE];
+    size_t mMaxMessageSize;
+    size_t mCombinedMessageSize;
 };
 
 }

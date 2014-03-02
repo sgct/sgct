@@ -9,22 +9,23 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/SGCTMutexManager.h"
+#include "../include/sgct/helpers/SGCTPortedFunctions.h"
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
 #include <string.h>
 #include <time.h>
 
-#define MESSAGE_HANDLER_MAX_SIZE 8192
-#define COMBINED_MESSAGE_MAX_SIZE 8224 //MESSAGE_HANDLER_MAX_SIZE + 32
-
 sgct::MessageHandler * sgct::MessageHandler::mInstance = NULL;
 
 sgct::MessageHandler::MessageHandler(void)
 {
+    mMaxMessageSize = 2048;
+    mCombinedMessageSize = mMaxMessageSize + 32;
+    
     //nothrow makes sure that a null pointer is returned upon failiure
-	mParseBuffer	= new (std::nothrow) char[MESSAGE_HANDLER_MAX_SIZE];
-	mCombinedBuffer = new (std::nothrow) char[COMBINED_MESSAGE_MAX_SIZE];
+	mParseBuffer	= new (std::nothrow) char[mMaxMessageSize];
+	mCombinedBuffer = new (std::nothrow) char[mCombinedMessageSize];
 	headerSpace		= new (std::nothrow) unsigned char[ sgct_core::SGCTNetwork::mHeaderSize ];
 
 	if( !headerSpace || !mCombinedBuffer || !headerSpace)
@@ -39,8 +40,8 @@ sgct::MessageHandler::MessageHandler(void)
 	mLevel = NOTIFY_WARNING;
 #endif
 
-	mRecBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
-	mBuffer.reserve(MESSAGE_HANDLER_MAX_SIZE);
+	mRecBuffer.reserve(mMaxMessageSize);
+	mBuffer.reserve(mMaxMessageSize);
 
 	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
 		headerSpace[i] = sgct_core::SGCTNetwork::SyncByte;
@@ -85,10 +86,29 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 {
 	//prevent writing to console simultaneously
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::ConsoleMutex );
-	mParseBuffer[0] = '\0';
 
+    int size = 1 + sgct_helpers::vscprintf(fmt, ap);
+    if( size > mMaxMessageSize )
+    {
+        delete [] mParseBuffer;
+        mParseBuffer = new (std::nothrow) char[size];
+        memset(mParseBuffer, 0, size);
+        
+        mMaxMessageSize = size;
+        mCombinedMessageSize = mMaxMessageSize + 32;
+
+        delete [] mCombinedBuffer;
+        mCombinedBuffer = new (std::nothrow) char[mCombinedMessageSize];
+        memset(mCombinedBuffer, 0, mCombinedMessageSize);
+        
+        mRecBuffer.resize(mMaxMessageSize);
+        mBuffer.resize(mMaxMessageSize);
+    }
+        
+    mParseBuffer[0] = '\0';
+    
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(mParseBuffer, MESSAGE_HANDLER_MAX_SIZE, fmt, ap);	// And Converts Symbols To Actual Numbers
+    vsprintf_s(mParseBuffer, mMaxMessageSize, fmt, ap);	// And Converts Symbols To Actual Numbers
 #else
     vsprintf(mParseBuffer, fmt, ap);
 #endif
@@ -98,7 +118,7 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 	if( getShowTime() )
 	{
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s( mCombinedBuffer, COMBINED_MESSAGE_MAX_SIZE, "%s| %s", getTimeOfDayStr(), mParseBuffer );
+		sprintf_s( mCombinedBuffer, mCombinedMessageSize, "%s| %s", getTimeOfDayStr(), mParseBuffer );
 #else
 		sprintf( mCombinedBuffer, "%s| %s", getTimeOfDayStr(), mParseBuffer );
 #endif
@@ -214,6 +234,7 @@ void sgct::MessageHandler::print(const char *fmt, ...)
 	va_list		ap;		// Pointer To List Of Arguments
     va_start(ap, fmt);	// Parses The String For Variables
     printv(fmt, ap);
+    va_end(ap);
 }
 
 /*!
@@ -232,6 +253,7 @@ void sgct::MessageHandler::print(NotifyLevel nl, const char *fmt, ...)
 	va_list		ap;		// Pointer To List Of Arguments
     va_start(ap, fmt);	// Parses The String For Variables
     printv(fmt, ap);
+    va_end(ap);
 }
 
 void sgct::MessageHandler::clearBuffer()
@@ -334,6 +356,7 @@ void sgct::MessageHandler::printDebug(NotifyLevel nl, const char *fmt, ...)
 	va_list ap;
     va_start(ap, fmt);	// Parses The String For Variables
     printv(fmt, ap);
+    va_end(ap);
 #endif
 }
 
@@ -345,9 +368,10 @@ void sgct::MessageHandler::printIndent(NotifyLevel nl, unsigned int indentation,
         return;
     }
 
-	 va_list ap;
+    va_list ap;
 
-    if (indentation > 0) {
+    if (indentation > 0)
+    {
         const std::string padding(indentation, ' ');
         const std::string fmtString = std::string(fmt);
         const std::string fmtComplete = padding + fmtString;
@@ -355,10 +379,13 @@ void sgct::MessageHandler::printIndent(NotifyLevel nl, unsigned int indentation,
         const char *fmtIndented = fmtComplete.c_str();
         va_start(ap, fmt);	// Parses The String For Variables
         printv(fmtIndented, ap);
+        va_end(ap);
     }
-    else {
+    else
+    {
         va_start(ap, fmt);	// Parses The String For Variables
         printv(fmt, ap);
+        va_end(ap);
     }
 }
 

@@ -1859,8 +1859,6 @@ void sgct::SGCTWindow::loadShaders()
             //findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct_core::shaders_fisheye_cubic::B_spline_fun);
 			findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct_core::shaders_fisheye_cubic::interpolate4_4f);
 			findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct_core::shaders_fisheye_cubic::interpolate4_f);
-			//findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct_core::shaders_fisheye_cubic::weightedMultisample_4f);
-			//findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct_core::shaders_fisheye_cubic::weightedMultisample_f);
             
 			//set size
 			findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));

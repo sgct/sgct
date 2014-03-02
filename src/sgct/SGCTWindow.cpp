@@ -1855,15 +1855,18 @@ void sgct::SGCTWindow::loadShaders()
 				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_offset_fun);
 			else
 				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_fun);
-			findAndReplace(fisheyeFragmentShader, "**catmull_rom_fun**", sgct_core::shaders_fisheye_cubic::catmull_rom_fun);
-			findAndReplace(fisheyeFragmentShader, "**interpolate4_4f**", sgct_core::shaders_fisheye_cubic::interpolate4_4f);
-			findAndReplace(fisheyeFragmentShader, "**interpolate4_f**", sgct_core::shaders_fisheye_cubic::interpolate4_f);
-			
+			findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct_core::shaders_fisheye_cubic::catmull_rom_fun);
+            //findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct_core::shaders_fisheye_cubic::B_spline_fun);
+			findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct_core::shaders_fisheye_cubic::interpolate4_4f);
+			findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct_core::shaders_fisheye_cubic::interpolate4_f);
+			//findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct_core::shaders_fisheye_cubic::weightedMultisample_4f);
+			//findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct_core::shaders_fisheye_cubic::weightedMultisample_f);
+            
 			//set size
 			findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
 
 			//set step
-			findAndReplace(fisheyeFragmentShader, "**step**", "0.75");
+			findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
 		}
 
 		//replace add correct transform in the fragment shader

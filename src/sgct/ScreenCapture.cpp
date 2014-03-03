@@ -26,14 +26,18 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
+	mType = sgct::SGCTSettings::Mono;
 	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
 	mCurrentPBOIndex = 0;
-    mPBO[0] = GL_FALSE;
-    mPBO[1] = GL_FALSE;
+    
+	for (int i = 0; i < NUMBER_OF_PBOS; i++)
+		mPBO[i] = GL_FALSE;
+		
+	mSaveScreenShot[0] = false;
+	mSaveScreenShot[1] = false;
 	mDataSize = 0;
 	mWindowIndex = 0;
 	mUsePBO = true;
-    mSaveScreenShot = false;
 	mFormat = PNG;
 
 	mSCTIPtrs = NULL;
@@ -79,9 +83,9 @@ sgct_core::ScreenCapture::~ScreenCapture()
 
 	if( mPBO[0] ) //delete if buffer exitsts
 	{
-		glDeleteBuffers(2, &mPBO[0]);
-		mPBO[0] = GL_FALSE;
-        mPBO[1] = GL_FALSE;
+		glDeleteBuffers(NUMBER_OF_PBOS, &mPBO[0]);
+		for (int i = 0; i < NUMBER_OF_PBOS; i++)
+			mPBO[i] = GL_FALSE;
 	}
 }
 
@@ -98,9 +102,9 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 {
 	if( mPBO[0] ) //delete if buffer exitsts
 	{
-		glDeleteBuffers(2, &mPBO[0]);
-		mPBO[0] = GL_FALSE;
-        mPBO[1] = GL_FALSE;
+		glDeleteBuffers(NUMBER_OF_PBOS, &mPBO[0]);
+		for (int i = 0; i < NUMBER_OF_PBOS; i++)
+			mPBO[i] = GL_FALSE;
 	}
 
 	mX = x;
@@ -136,16 +140,15 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 
 	if( mUsePBO )
 	{
-		glGenBuffers(2, &mPBO[0]);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating %dx%dx%d PBOs: %d and %d\n", mX, mY, mChannels, mPBO[0], mPBO[1]);
+		glGenBuffers(NUMBER_OF_PBOS, &mPBO[0]);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating %dx%dx%d PBOs: %d - %d\n", mX, mY, mChannels, mPBO[0], mPBO[NUMBER_OF_PBOS-1]);
 
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[0]);
-		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
-		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
-        
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[1]);
-		//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
-		glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
+		for (int i = 0; i < NUMBER_OF_PBOS; i++)
+		{
+			glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[i]);
+			//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
+			glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
+		}
 
 		//unbind
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -186,50 +189,36 @@ This function saves the images to disc.
 	5. Left_Front_Buffer
 	6. Right_Front_Buffer
 */
-void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
+void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int frameNumber)
 {
-	addFrameNumberToFilename(frameNumber, cm);
+	addFrameNumberToFilename(frameNumber);
     
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	if (mUsePBO)
 	{
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[mCurrentPBOIndex]); //bind pbo
-        
+		fprintf(stderr, "Taking shot %u, buffer %d\n", sgct::Engine::instance()->getCurrentFrameNumber(), mCurrentPBOIndex);
 		
-		if (cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[mCurrentPBOIndex]);
+		
+		if (sgct::Engine::instance()->isOGLPipelineFixed())
 		{
-			if (sgct::Engine::instance()->isOGLPipelineFixed())
-			{
-				glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-				glEnable(GL_TEXTURE_2D);
-			}
+			glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+			glEnable(GL_TEXTURE_2D);
+		}
             
-            glBindTexture(GL_TEXTURE_2D, textureId);
-            glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, 0);
+        glBindTexture(GL_TEXTURE_2D, textureId);
+        glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, 0);
             
-            if (sgct::Engine::instance()->isOGLPipelineFixed())
-				glPopAttrib();
-		}
-		else if (cm == Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
-		}
-		else if (cm == Left_Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT_LEFT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
-		}
-		else if (cm == Right_Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, 0);
-		}
-        
-        glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
-        
-        mSaveScreenShot = true;
+        if (sgct::Engine::instance()->isOGLPipelineFixed())
+			glPopAttrib();
+		
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
+
+		mSaveScreenShot[0] = true;
+
+		//ping-pong
+		mCurrentPBOIndex = 1 - mCurrentPBOIndex;
 	}
 	else //no PBO
 	{
@@ -238,35 +227,17 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 		if (!imPtr)
 			return;
 		
-		if (cm == FBO_Texture || cm == FBO_Left_Texture || cm == FBO_Right_Texture)
+		if (sgct::Engine::instance()->isOGLPipelineFixed())
 		{
-			if (sgct::Engine::instance()->isOGLPipelineFixed())
-			{
-				glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
-				glEnable(GL_TEXTURE_2D);
-			}
+			glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
+			glEnable(GL_TEXTURE_2D);
+		}
 			
-			glBindTexture(GL_TEXTURE_2D, textureId);
-			glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+		glBindTexture(GL_TEXTURE_2D, textureId);
+		glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
             
-            if (sgct::Engine::instance()->isOGLPipelineFixed())
-				glPopAttrib();
-		}
-		else if (cm == Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
-		}
-		else if (cm == Left_Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT_LEFT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
-		}
-		else if (cm == Right_Front_Buffer)
-		{
-			glReadBuffer(GL_FRONT_RIGHT);
-			glReadPixels(0, 0, mX, mY, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
-		}
+        if (sgct::Engine::instance()->isOGLPipelineFixed())
+			glPopAttrib();
         
         //save the image
         mSCTIPtrs[threadIndex].mRunning = true;
@@ -279,18 +250,19 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
  */
 void sgct_core::ScreenCapture::update()
 {
-    if( mSaveScreenShot )
-    {
-        mSaveScreenShot = false;
-        
-        int threadIndex = getAvailibleCaptureThread();
+	if (mSaveScreenShot[1])
+	{
+		fprintf(stderr, "saving shot %u, buffer %d\n", sgct::Engine::instance()->getCurrentFrameNumber(), mCurrentPBOIndex);
+		mSaveScreenShot[mCurrentPBOIndex] = false;
+
+		int threadIndex = getAvailibleCaptureThread();
 		Image * imPtr = prepareImage(threadIndex);
 		if (!imPtr)
 			return;
-		
+
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[mCurrentPBOIndex]); //bind pbo
-        
-        GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+
+		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
 		if (ptr)
 		{
 			memcpy(imPtr->getData(), ptr, mDataSize);
@@ -298,16 +270,17 @@ void sgct_core::ScreenCapture::update()
 		}
 		else
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
-        
+
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //un-bind pbo
-        
-        //save the image
-        mSCTIPtrs[threadIndex].mRunning = true;
-        mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
-        
-        //ping-pong
-        mCurrentPBOIndex = 1 - mCurrentPBOIndex;
-    }
+
+		//save the image
+		mSCTIPtrs[threadIndex].mRunning = true;
+		mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+	}
+
+	//swap
+	mSaveScreenShot[1] = mSaveScreenShot[0];
+	mSaveScreenShot[0] = false;
 }
 
 void sgct_core::ScreenCapture::setUsePBO(bool state)
@@ -320,8 +293,10 @@ void sgct_core::ScreenCapture::setUsePBO(bool state)
 /*!
 	Init
 */
-void sgct_core::ScreenCapture::init(std::size_t windowIndex)
+void sgct_core::ScreenCapture::init(std::size_t windowIndex, int type)
 {
+	mType = type;
+	
 	mSCTIPtrs = new ScreenCaptureThreadInfo[mNumberOfThreads];
 	for( unsigned int i=0; i<mNumberOfThreads; i++ )
 		mSCTIPtrs[i].mMutexPtr = &mMutex;
@@ -330,26 +305,23 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex)
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
 
-void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber, sgct_core::ScreenCapture::CaptureMode cm)
+void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber )
 {
 	std::string eye;
-	switch( cm )
+	switch (mType)
 	{
-	case FBO_Texture:
-	case Front_Buffer:
+	case sgct::SGCTSettings::Mono:
 	default:
 		eye.assign("");
 		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::Mono ) );
 		break;
 
-	case FBO_Left_Texture:
-	case Left_Front_Buffer:
+	case sgct::SGCTSettings::LeftStereo:
 		eye.assign("_L");
 		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::LeftStereo ) );
 		break;
 
-	case FBO_Right_Texture:
-	case Right_Front_Buffer:
+	case sgct::SGCTSettings::RightStereo:
 		eye.assign("_R");
 		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::RightStereo ) );
 		break;

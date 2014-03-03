@@ -12,6 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include "external/tinythread.h"
 
+#define NUMBER_OF_PBOS 2
+
 namespace sgct_core
 {
 
@@ -32,24 +34,22 @@ public:
 class ScreenCapture
 {
 public:
-	//! The different capture enums used by the SaveScreenCapture function
-	enum CaptureMode { FBO_Texture = 0, FBO_Left_Texture, FBO_Right_Texture, Front_Buffer, Left_Front_Buffer, Right_Front_Buffer };
 	//! The different file formats supported
 	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA };
 
 	ScreenCapture();
 	~ScreenCapture();
 
-	void init(std::size_t windowIndex);
+	void init(std::size_t windowIndex, int type);
 	void initOrResize(int x, int y, int channels=4);
 	void setFormat(CaptureFormat cf);
 	CaptureFormat getFormat();
-	void SaveScreenCapture(unsigned int textureId, int frameNumber, CaptureMode cm = FBO_Texture);
+	void SaveScreenCapture(unsigned int textureId, int frameNumber);
 	void setUsePBO(bool state);
     void update();
 
-private: 
-	void addFrameNumberToFilename( int frameNumber, CaptureMode cm = FBO_Texture );
+private:
+	void addFrameNumberToFilename( int frameNumber);
 	int getAvailibleCaptureThread();
 	unsigned int getColorType();
 	Image * prepareImage(int index);
@@ -58,7 +58,7 @@ private:
 	ScreenCaptureThreadInfo * mSCTIPtrs;
 
 	unsigned int mNumberOfThreads;
-	unsigned int mPBO[2];
+	unsigned int mPBO[NUMBER_OF_PBOS];
 	int mDataSize;
 	int mX;
 	int mY;
@@ -66,8 +66,9 @@ private:
 
 	std::string mScreenShotFilename;
 	bool mUsePBO;
-    bool mSaveScreenShot;
+	bool mSaveScreenShot[2];
     unsigned int mCurrentPBOIndex;
+	int mType;
 	CaptureFormat mFormat;
 	std::size_t mWindowIndex;
 };

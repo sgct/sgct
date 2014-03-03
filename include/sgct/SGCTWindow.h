@@ -95,7 +95,7 @@ public:
 	std::string						getName();
 	int								getId();
 	unsigned int					getFrameBufferTexture(unsigned int index);
-	sgct_core::ScreenCapture *		getScreenCapturePointer();
+	sgct_core::ScreenCapture *		getScreenCapturePointer(unsigned int eye);
 	int								getNumberOfAASamples();
 	int								getScreenShotNumber();
 	StereoMode						getStereoMode();
@@ -271,7 +271,7 @@ private:
 	//FBO stuff
 	unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];
 
-	sgct_core::ScreenCapture * mScreenCapture;
+	sgct_core::ScreenCapture * mScreenCapture[2];
 
 	StereoMode mStereoMode;
 	bool mFisheyeMode; //if fisheye rendering is used
@@ -306,6 +306,7 @@ private:
 	bool mHasAnyMasks;
 	int mCubeMapResolution;
 	bool mCubicInterpolation;
+	bool mUseRightEyeTexture;
 
 	std::size_t mCurrentViewportIndex;
 	std::vector<sgct_core::Viewport> mViewports;

@@ -151,9 +151,11 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mSharedHandle = NULL;
 	mFinalFBO_Ptr = NULL;
 	mCubeMapFBO_Ptr = NULL;
-	mScreenCapture = NULL;
+	mScreenCapture[0] = NULL;
+	mScreenCapture[1] = NULL;
 
 	mCurrentViewportIndex = 0;
+	mUseRightEyeTexture = false;
 }
 
 /*!
@@ -205,12 +207,13 @@ void sgct::SGCTWindow::close()
 		mPostFXPasses[i].destroy();
 	mPostFXPasses.clear();
 
-	if( mScreenCapture )
-	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting screen capture data for window %d...\n", mId);
-		delete mScreenCapture;
-		mScreenCapture = NULL;
-	}
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting screen capture data for window %d...\n", mId);
+	for (int i = 0; i < 2; i++)
+		if( mScreenCapture[i] )
+		{
+			delete mScreenCapture[i];
+			mScreenCapture[i] = NULL;
+		}
 
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
@@ -520,11 +523,13 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
 	if( mVisible )
 	{
 		makeOpenGLContextCurrent( Window_Context );
-		
-		mScreenCapture->update();
         
         if (takeScreenshot)
 			captureBuffer();
+
+		for (int i = 0; i < 2; i++)
+		if (mScreenCapture[i] != NULL)
+			mScreenCapture[i]->update();
 		
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
@@ -564,18 +569,11 @@ void sgct::SGCTWindow::update()
 		resizeFBOs();
 
 		//resize PBOs
-        if( SGCTSettings::instance()->useFBO() )
-        {
-            mAlpha ?
-                mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 4 ) :
-                mScreenCapture->initOrResize( mFramebufferResolution[0], mFramebufferResolution[1], 3 );
-        }
-        else
-        {
-            mAlpha ?
-                mScreenCapture->initOrResize( mWindowRes[0], mWindowRes[1], 4 ) :
-                mScreenCapture->initOrResize( mWindowRes[0], mWindowRes[1], 3 );
-        }
+		for (int i = 0; i < 2; i++)
+		if (mScreenCapture[i]!= NULL)
+			mAlpha ?
+			mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4) :
+			mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3);
 	}
 }
 
@@ -880,7 +878,14 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 		glfwMakeContextCurrent( mSharedHandle );
 
-		mScreenCapture = new sgct_core::ScreenCapture();
+		if (SGCTSettings::instance()->useFBO())
+		{
+			mScreenCapture[0] = new sgct_core::ScreenCapture();
+
+			if (mUseRightEyeTexture)
+				mScreenCapture[1] = new sgct_core::ScreenCapture();
+		}
+
 		mFinalFBO_Ptr = new sgct_core::OffScreenBuffer();
 		mCubeMapFBO_Ptr = new sgct_core::OffScreenBuffer();
 
@@ -1007,38 +1012,43 @@ void sgct::SGCTWindow::windowIconifyCallback( GLFWwindow * window, int state )
 
 void sgct::SGCTWindow::initScreenCapture()
 {
-	//init PBO in screen capture
-	mScreenCapture->init( mId );
-    
-    //a workaround for devices that are supporting pbos but not showing it, like OS X (Intel)
-    if( Engine::instance()->isOGLPipelineFixed() )
-    {
-        mScreenCapture->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
-            SGCTSettings::instance()->getUsePBO()); //if supported then use them
-    }
-    else //in modern openGL pbos must be supported
-    {
-        mScreenCapture->setUsePBO(SGCTSettings::instance()->getUsePBO());
-    }
-	
-	if( SGCTSettings::instance()->useFBO() )
-    {
-        if( mAlpha )
-            mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 4 );
-        else
-            mScreenCapture->initOrResize( getXFramebufferResolution(), getYFramebufferResolution(), 3 );
-    }
-    else
-    {
-        if( mAlpha )
-            mScreenCapture->initOrResize( getXResolution(), getYResolution(), 4 );
-        else
-            mScreenCapture->initOrResize( getXResolution(), getYResolution(), 3 );
-    }
-    
-    
-	if( SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET )
-		mScreenCapture->setFormat( static_cast<sgct_core::ScreenCapture::CaptureFormat>( SGCTSettings::instance()->getCaptureFormat() ) );
+	for (int i = 0; i < 2; i++)
+	if (mScreenCapture[i] != NULL)
+	{
+		//init PBO in screen capture
+		if (i == 0)
+		{
+			if (mUseRightEyeTexture)
+				mScreenCapture[i]->init(mId, SGCTSettings::LeftStereo);
+			else
+				mScreenCapture[i]->init(mId, SGCTSettings::Mono);
+		}
+		else
+			mScreenCapture[i]->init(mId, SGCTSettings::RightStereo);
+
+		//a workaround for devices that are supporting pbos but not showing it, like OS X (Intel)
+		if (Engine::instance()->isOGLPipelineFixed())
+		{
+			mScreenCapture[i]->setUsePBO(glfwExtensionSupported("GL_ARB_pixel_buffer_object") == GL_TRUE &&
+				SGCTSettings::instance()->getUsePBO()); //if supported then use them
+		}
+		else //in modern openGL pbos must be supported
+		{
+			mScreenCapture[i]->setUsePBO(SGCTSettings::instance()->getUsePBO());
+		}
+
+		if (SGCTSettings::instance()->useFBO())
+		{
+			if (mAlpha)
+				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 4);
+			else
+				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 3);
+		}
+
+
+		if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET)
+			mScreenCapture[i]->setFormat(static_cast<sgct_core::ScreenCapture::CaptureFormat>(SGCTSettings::instance()->getCaptureFormat()));
+	}
 }
 
 void sgct::SGCTWindow::getSwapGroupFrameNumber(unsigned int &frameNumber)
@@ -1126,7 +1136,7 @@ void sgct::SGCTWindow::createTextures()
 		switch( i )
 		{
 		case Engine::RightEye:
-			if( mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo )
+			if( mUseRightEyeTexture )
 				generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 
@@ -2091,26 +2101,10 @@ void sgct::SGCTWindow::unbindVAO()
 */
 void sgct::SGCTWindow::captureBuffer()
 {
-	if(mStereoMode == No_Stereo)
-	{
-		if( SGCTSettings::instance()->useFBO() )
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::LeftEye], mShotCounter, sgct_core::ScreenCapture::FBO_Texture );
-		else
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Front_Buffer );
-	}
-	else
-	{
-		if( SGCTSettings::instance()->useFBO() )
-		{
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::LeftEye], mShotCounter, sgct_core::ScreenCapture::FBO_Left_Texture );
-			mScreenCapture->SaveScreenCapture( mFrameBufferTextures[Engine::RightEye], mShotCounter, sgct_core::ScreenCapture::FBO_Right_Texture );
-		}
-		else
-		{
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Left_Front_Buffer );
-			mScreenCapture->SaveScreenCapture( 0, mShotCounter, sgct_core::ScreenCapture::Right_Front_Buffer );
-		}
-	}
+	if (mScreenCapture[0] != NULL)
+		mScreenCapture[0]->SaveScreenCapture(mFrameBufferTextures[Engine::LeftEye], mShotCounter);
+	if (mScreenCapture[1] != NULL)
+		mScreenCapture[1]->SaveScreenCapture(mFrameBufferTextures[Engine::RightEye], mShotCounter);
 
 	mShotCounter++;
 }
@@ -2627,16 +2621,25 @@ void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
 		getStereoModeStr().c_str(), mId);
 
+	if (mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo)
+		mUseRightEyeTexture = true;
+	else
+		mUseRightEyeTexture = false;
+
 	if( mWindowHandle )
 		loadShaders();
 }
 
 /*!
+	This function returns the screen capture pointer if it's set otherwise NULL.
+
+	@param eye can either be 0 (left) or 1 (right)
+	
 	Returns pointer to screen capture ptr
 */
-sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer()
+sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer(unsigned int eye)
 {
-	return mScreenCapture;
+	return eye < 2 ? mScreenCapture[eye] : NULL;
 }
 
 /*!

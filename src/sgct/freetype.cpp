@@ -150,24 +150,24 @@ inline void pop_projection_matrix()
 
 ///Much like Nehe's glPrint function, but modified to work
 ///with freetype fonts.
-void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...)
+void print(const sgct_text::Font * ft_font, float x, float y, const char *format, ...)
 {
-	if (ft_font == NULL || fmt == NULL)
+	if (ft_font == NULL || format == NULL)
 		return;
 
 	float h = ft_font->getHeight() * 1.59f;
 
 	va_list		args;	 // Pointer To List Of Arguments
-	va_start(args, fmt); // Parses The String For Variables
+	va_start(args, format); // Parses The String For Variables
     
-    int size = 1 + sgct_helpers::vscprintf(fmt, args);
+    int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	vsprintf_s(buffer, size, mt, args);
+	vsprintf_s(buffer, size, format, args);
 #else
-    vsprintf(buffer, fmt, args);
+    vsprintf(buffer, format, args);
 #endif
 	va_end(args);										// Results Are Stored In Text
 
@@ -293,24 +293,24 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, .
 
 ///Much like Nehe's glPrint function, but modified to work
 ///with freetype fonts.
-void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *fmt, ...)
+void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *format, ...)
 {
-	if (ft_font == NULL || fmt == NULL)
+	if (ft_font == NULL || format == NULL)
 		return;
 
 	float h = ft_font->getHeight() * 1.59f;
 
 	va_list		args;	 // Pointer To List Of Arguments
-	va_start(args, fmt); // Parses The String For Variables
+	va_start(args, format); // Parses The String For Variables
     
-    int size = 1 + sgct_helpers::vscprintf(fmt, args);
+    int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	vsprintf_s(buffer, size, mt, args);
+	vsprintf_s(buffer, size, format, args);
 #else
-    vsprintf(buffer, fmt, args);
+    vsprintf(buffer, format, args);
 #endif
 	va_end(args);
 
@@ -432,25 +432,25 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
     delete[] buffer;
 }
 
-void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ...)
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format, ...)
 {
-	if (ft_font == NULL || fmt == NULL)
+	if (ft_font == NULL || format == NULL)
 		return;
 
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight() * 1.59f;
 
     va_list		args;	 // Pointer To List Of Arguments
-	va_start(args, fmt); // Parses The String For Variables
+	va_start(args, format); // Parses The String For Variables
     
-    int size = 1 + sgct_helpers::vscprintf(fmt, args);
+    int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	vsprintf_s(buffer, size, mt, args);
+	vsprintf_s(buffer, size, format, args);
 #else
-    vsprintf(buffer, fmt, args);
+    vsprintf(buffer, format, args);
 #endif
 	va_end(args);
 
@@ -566,25 +566,25 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ..
     delete[] buffer;
 }
 
-void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *fmt, ...)
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *format, ...)
 {
-	if (ft_font == NULL || fmt == NULL)
+	if (ft_font == NULL || format == NULL)
 		return;
 
 	GLuint font = ft_font->getListBase();
 	float h = ft_font->getHeight() * 1.59f;
 
 	va_list		args;	 // Pointer To List Of Arguments
-	va_start(args, fmt); // Parses The String For Variables
+	va_start(args, format); // Parses The String For Variables
     
-    int size = 1 + sgct_helpers::vscprintf(fmt, args);
+    int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	vsprintf_s(buffer, size, mt, args);
+	vsprintf_s(buffer, size, format, args);
 #else
-    vsprintf(buffer, fmt, args);
+    vsprintf(buffer, format, args);
 #endif
 
 	//Here is some code to split the text that we have been

@@ -12,11 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <stdarg.h>
 
-namespace sgct_helpers
-{
-
 //Replacement for Visual Studio's _vscprintf function
-#ifndef _vscprintf
+#if (_MSC_VER < 1400) //if older than visual studio 2005
 static int vscprintf (const char * format, va_list pargs)
 {
     int retval;
@@ -29,7 +26,5 @@ static int vscprintf (const char * format, va_list pargs)
 #else
 #define vscprintf(f,a) _vscprintf(f,a)
 #endif
-    
-}
 
 #endif

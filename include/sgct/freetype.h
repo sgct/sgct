@@ -23,10 +23,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_text
 {
 
-void print(const sgct_text::Font * ft_font, float x, float y, const char *fmt, ...);
-void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *fmt, ...);
-void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *fmt, ...);
-void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *fmt, ...);
+void print(const sgct_text::Font * ft_font, float x, float y, const char *format, ...);
+void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *format, ...);
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format, ...);
+void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *format, ...);
 
 }
 

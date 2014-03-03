@@ -292,8 +292,8 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Position = "\
@@ -310,8 +310,8 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal_Position = "\
@@ -329,9 +329,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
@@ -349,8 +349,8 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragColor = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
@@ -368,9 +368,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Position = "\
@@ -388,9 +388,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
@@ -409,10 +409,10 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
@@ -429,7 +429,7 @@ namespace sgct_core
             \n\
             void main()\n\
             {\n\
-                gl_FragColor = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
+                gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
             }\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
@@ -447,8 +447,8 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
@@ -466,8 +466,8 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
@@ -486,9 +486,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
@@ -506,8 +506,8 @@ namespace sgct_core
             \n\
             void main()\n\
             {\n\
-                gl_FragColor = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
             }\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
@@ -526,9 +526,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
@@ -547,9 +547,9 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
@@ -569,10 +569,10 @@ namespace sgct_core
             \n\
 			void main()\n\
 			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st * vec2(**size**, **size**), positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st * vec2(**size**, **size**), depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n"; 
 
 		const std::string Fisheye_Depth_Correction_Frag_Shader = "\

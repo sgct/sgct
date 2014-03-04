@@ -39,8 +39,8 @@ sgct::SharedInt stereoMode(0);
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
-
-	gEngine->setInitOGLFunction( myInitOGLFun );
+    
+    gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
@@ -113,11 +113,6 @@ void myPostSyncPreDrawFun()
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	sgct_core::ClusterManager::instance()->getTrackingManagerPtr()->setEnabled( useTracking.getVal() );
-
-	/*int tmpStereoMode = stereoMode.getVal();
-	for( std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++ )
-		if( tmpStereoMode != gEngine->getWindowPtr(i)->getStereoMode() )
-			gEngine->getWindowPtr(i)->setStereoMode( static_cast<sgct::SGCTWindow::StereoMode>(tmpStereoMode) );*/
 
 	if( takeScreenshot.getVal() )
 	{

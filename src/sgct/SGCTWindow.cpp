@@ -74,7 +74,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
 	mAspectRatio = 1.0f;
-	mShotCounter = 0;
 
 	Cubemap			= -1;
 	DepthCubemap	= -1;
@@ -520,17 +519,19 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
-	if( mVisible )
+    if( mVisible )
 	{
 		makeOpenGLContextCurrent( Window_Context );
         
         if (takeScreenshot)
-			captureBuffer();
-
-		for (int i = 0; i < 2; i++)
-		if (mScreenCapture[i] != NULL)
-			mScreenCapture[i]->update();
+		{
+            if (mScreenCapture[0] != NULL)
+                mScreenCapture[0]->SaveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
+            if (mScreenCapture[1] != NULL)
+                mScreenCapture[1]->SaveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
+        }
 		
+        //swap
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
 
@@ -2094,22 +2095,6 @@ void sgct::SGCTWindow::unbindVAO()
 }
 
 /*!
-	This functions saves a png screenshot or a stereoscopic pair in the current working directory.
-	All screenshots are numbered so this function can be called several times whitout overwriting previous screenshots.
-
-	The PNG images are saved as RGBA images with transparancy. Alpha is taken from the clear color alpha.
-*/
-void sgct::SGCTWindow::captureBuffer()
-{
-	if (mScreenCapture[0] != NULL)
-		mScreenCapture[0]->SaveScreenCapture(mFrameBufferTextures[Engine::LeftEye], mShotCounter);
-	if (mScreenCapture[1] != NULL)
-		mScreenCapture[1]->SaveScreenCapture(mFrameBufferTextures[Engine::RightEye], mShotCounter);
-
-	mShotCounter++;
-}
-
-/*!
 	Returns pointer to FBO container
 */
 sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr()
@@ -2640,22 +2625,6 @@ void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer(unsigned int eye)
 {
 	return eye < 2 ? mScreenCapture[eye] : NULL;
-}
-
-/*!
-	Set the screenshot number (file index)
-*/
-void sgct::SGCTWindow::setScreenShotNumber(int number)
-{
-	mShotCounter = number;
-}
-
-/*!
-	\returns the current screenshot number (file index)
-*/
-int sgct::SGCTWindow::getScreenShotNumber()
-{
-	return mShotCounter;
 }
 
 /*!

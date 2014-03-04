@@ -148,6 +148,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mTakeScreenshot = false;
 	mActiveFrustumMode = Frustum::Mono;
 	mFrameCounter = 0;
+    mShotCounter = 0;
     mTimerID = 0;
 	mExitKey = GLFW_KEY_ESCAPE;
 
@@ -1087,6 +1088,8 @@ void sgct::Engine::render()
 
 		//for all windows
 		mFrameCounter++;
+        if(mTakeScreenshot)
+            mShotCounter++;
 		mTakeScreenshot = false;
 
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
@@ -1890,7 +1893,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 			//draw in pixel space / FBO space
 			sgct_text::FontManager::instance()->setDrawInScreenSpace(false);
-			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %u", mShotCounter);
 
 			if( mActiveFrustumMode == Frustum::Mono )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
@@ -2226,7 +2229,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 
 			//draw in pixel space / FBO space
 			sgct_text::FontManager::instance()->setDrawInScreenSpace(false);
-			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %d", getActiveWindowPtr()->getScreenShotNumber());
+			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, 2.0f * y + y/5.0f, "Frame#: %u", mShotCounter);
 
 			if( mActiveFrustumMode == Frustum::Mono )
 				sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ), x, y, "Mono");
@@ -4145,6 +4148,22 @@ void sgct::Engine::getActiveViewportSize(int & x, int & y)
 {
 	x = currentViewportCoords[2];
 	y = currentViewportCoords[3];
+}
+
+/*!
+ Set the screenshot number (file index)
+ */
+void sgct::Engine::setScreenShotNumber(unsigned int number)
+{
+	mShotCounter = number;
+}
+
+/*!
+ \returns the current screenshot number (file index)
+ */
+unsigned int sgct::Engine::getScreenShotNumber()
+{
+	return mShotCounter;
 }
 
 void sgct::Engine::outputHelpMessage()

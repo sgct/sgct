@@ -357,9 +357,7 @@ void sgct_core::Statistics::update()
 
 		//glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
 	
-		PositionBuffer = mFixedPipeline ?
-			glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY) :
-			glMapBufferRange(GL_ARRAY_BUFFER, 0, STATS_HISTORY_LENGTH * sizeof(StatsVertex), GL_MAP_WRITE_BIT | GL_MAP_UNSYNCHRONIZED_BIT);
+		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
 		if (PositionBuffer != NULL)
 			memcpy(PositionBuffer, &mDynamicVertexList[0], size);

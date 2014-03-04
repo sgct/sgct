@@ -74,7 +74,6 @@ public:
 	void setUseQuadbuffer(const bool state);
 	void setNumberOfAASamples(int samples);
 	void setStereoMode( StereoMode sm );
-	void setScreenShotNumber(int number);
 	void setCurrentViewport(std::size_t index);
 	void setAlpha(bool state);
 
@@ -97,7 +96,6 @@ public:
 	unsigned int					getFrameBufferTexture(unsigned int index);
 	sgct_core::ScreenCapture *		getScreenCapturePointer(unsigned int eye);
 	int								getNumberOfAASamples();
-	int								getScreenShotNumber();
 	StereoMode						getStereoMode();
 	bool							getFullResolutionMode();
 	static void						getSwapGroupFrameNumber(unsigned int & frameNumber);
@@ -221,7 +219,6 @@ private:
 	static void windowFocusCallback( GLFWwindow * window, int state );
 	static void windowIconifyCallback( GLFWwindow * window, int state );
 	void initScreenCapture();
-    void captureBuffer();
 	void deleteAllViewports();
 	void createTextures();
 	void generateTexture(unsigned int id, int xSize, int ySize, TextureType type, bool interpolate);
@@ -277,7 +274,6 @@ private:
 	bool mFisheyeMode; //if fisheye rendering is used
 	int mNumberOfAASamples;
 	int mId;
-	int mShotCounter;
 
 	float mFisheyeQuadVerts[20];
 	float mQuadVerts[20];

@@ -143,6 +143,8 @@ public:
 		-numberOfCaptureThreads command line argument.
 	*/
 	void takeScreenshot() { mTakeScreenshot = true; }
+	void setScreenShotNumber(unsigned int number);
+    unsigned int getScreenShotNumber();
 
 	size_t createTimer( double millisec, void(*fnPtr)(size_t) );
 	void stopTimer(size_t id);
@@ -415,6 +417,7 @@ private:
 	char aaInfo[32];
 
 	unsigned int mFrameCounter;
+    unsigned int mShotCounter;
 
     typedef struct  {
         size_t mId;

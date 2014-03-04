@@ -28,13 +28,8 @@ sgct_core::ScreenCapture::ScreenCapture()
 {
 	mType = sgct::SGCTSettings::Mono;
 	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
-	mCurrentPBOIndex = 0;
-    
-	for (int i = 0; i < NUMBER_OF_PBOS; i++)
-		mPBO[i] = GL_FALSE;
+	mPBO = GL_FALSE;
 		
-	mSaveScreenShot[0] = false;
-	mSaveScreenShot[1] = false;
 	mDataSize = 0;
 	mWindowIndex = 0;
 	mUsePBO = true;
@@ -81,11 +76,10 @@ sgct_core::ScreenCapture::~ScreenCapture()
 		mSCTIPtrs = NULL;
 	}
 
-	if( mPBO[0] ) //delete if buffer exitsts
+	if( mPBO ) //delete if buffer exitsts
 	{
-		glDeleteBuffers(NUMBER_OF_PBOS, &mPBO[0]);
-		for (int i = 0; i < NUMBER_OF_PBOS; i++)
-			mPBO[i] = GL_FALSE;
+		glDeleteBuffers(1, &mPBO);
+		mPBO = GL_FALSE;
 	}
 }
 
@@ -100,11 +94,10 @@ sgct_core::ScreenCapture::~ScreenCapture()
 */
 void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 {
-	if( mPBO[0] ) //delete if buffer exitsts
+	if( mPBO ) //delete if buffer exitsts
 	{
-		glDeleteBuffers(NUMBER_OF_PBOS, &mPBO[0]);
-		for (int i = 0; i < NUMBER_OF_PBOS; i++)
-			mPBO[i] = GL_FALSE;
+		glDeleteBuffers(1, &mPBO);
+		mPBO = GL_FALSE;
 	}
 
 	mX = x;
@@ -140,15 +133,12 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 
 	if( mUsePBO )
 	{
-		glGenBuffers(NUMBER_OF_PBOS, &mPBO[0]);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating %dx%dx%d PBOs: %d - %d\n", mX, mY, mChannels, mPBO[0], mPBO[NUMBER_OF_PBOS-1]);
+		glGenBuffers(1, &mPBO);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ScreenCapture: Generating %dx%dx%d PBO: %u\n", mX, mY, mChannels, mPBO);
 
-		for (int i = 0; i < NUMBER_OF_PBOS; i++)
-		{
-			glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[i]);
-			//glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
-			glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
-		}
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
+        //glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STREAM_READ); //work but might cause incomplete buffer images
+        glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
 
 		//unbind
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
@@ -179,27 +169,17 @@ sgct_core::ScreenCapture::CaptureFormat sgct_core::ScreenCapture::getFormat()
 /*!
 This function saves the images to disc.
 
-@param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering. If normal front buffer is used then this parameter has no effect.
-@param frameNumber frameNumber is the index that will be added to the filename
-@param cm cm is the capture mode used and can be one of the following:
-	1. FBO_Texture
-	2. FBO_Left_Texture
-	3. FBO_Right_Texture
-	4. Front_Buffer
-	5. Left_Front_Buffer
-	6. Right_Front_Buffer
+@param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering.
 */
-void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int frameNumber)
+void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
 {
-	addFrameNumberToFilename(frameNumber);
+	addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
     
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
 	if (mUsePBO)
 	{
-		fprintf(stderr, "Taking shot %u, buffer %d\n", sgct::Engine::instance()->getCurrentFrameNumber(), mCurrentPBOIndex);
-		
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[mCurrentPBOIndex]);
+		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
 		
 		if (sgct::Engine::instance()->isOGLPipelineFixed())
 		{
@@ -212,13 +192,26 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
+        
+        int threadIndex = getAvailibleCaptureThread();
+        Image * imPtr = prepareImage(threadIndex);
+        if (!imPtr)
+            return;
+        
+        GLvoid * ptr = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+        if (ptr)
+        {
+            memcpy(imPtr->getData(), ptr, mDataSize);
+            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+        }
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
+        
+        //save the image
+        mSCTIPtrs[threadIndex].mRunning = true;
+        mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
 		
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
-
-		mSaveScreenShot[0] = true;
-
-		//ping-pong
-		mCurrentPBOIndex = 1 - mCurrentPBOIndex;
 	}
 	else //no PBO
 	{
@@ -245,44 +238,6 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId, int fra
 	}
 }
 
-/*!
- Swap pbo buffers if needed and save image.
- */
-void sgct_core::ScreenCapture::update()
-{
-	if (mSaveScreenShot[1])
-	{
-		fprintf(stderr, "saving shot %u, buffer %d\n", sgct::Engine::instance()->getCurrentFrameNumber(), mCurrentPBOIndex);
-		mSaveScreenShot[mCurrentPBOIndex] = false;
-
-		int threadIndex = getAvailibleCaptureThread();
-		Image * imPtr = prepareImage(threadIndex);
-		if (!imPtr)
-			return;
-
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO[mCurrentPBOIndex]); //bind pbo
-
-		GLubyte* ptr = (GLubyte*)glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
-		if (ptr)
-		{
-			memcpy(imPtr->getData(), ptr, mDataSize);
-			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
-		}
-		else
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
-
-		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //un-bind pbo
-
-		//save the image
-		mSCTIPtrs[threadIndex].mRunning = true;
-		mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
-	}
-
-	//swap
-	mSaveScreenShot[1] = mSaveScreenShot[0];
-	mSaveScreenShot[0] = false;
-}
-
 void sgct_core::ScreenCapture::setUsePBO(bool state)
 {
 	mUsePBO = state;
@@ -305,7 +260,7 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex, int type)
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Number of screen capture threads is set to %d\n", mNumberOfThreads);
 }
 
-void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber )
+void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumber )
 {
 	std::string eye;
 	switch (mType)
@@ -353,30 +308,30 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( int frameNumber )
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if( frameNumber < 10 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 #else
    if( frameNumber < 10 )
-		sprintf( tmpStr, "%s%s_00000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_00000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100 )
-		sprintf( tmpStr, "%s%s_0000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_0000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000 )
-		sprintf( tmpStr, "%s%s_000%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 10000 )
-		sprintf( tmpStr, "%s%s_00%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_00%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 100000 )
-		sprintf( tmpStr, "%s%s_0%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_0%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 	else if( frameNumber < 1000000 )
-		sprintf( tmpStr, "%s%s_%d.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		sprintf( tmpStr, "%s%s_%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
 #endif
 
 	mScreenShotFilename.append( std::string(tmpStr) );

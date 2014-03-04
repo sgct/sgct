@@ -244,17 +244,8 @@ namespace sgct_core
                 return 0.25 * ((st0.t * row0) + (st1.t * row1) + (st2.t * row2) + (st3.t * row3));\n\
             }\n";
 		
-		const std::string Base_Vert_Shader = "\
-			#version 120\n\
-			\n\
-			void main()\n\
-			{\n\
-				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_Position = gl_Vertex;\n\
-			}\n";
-		
 		const std::string Fisheye_Vert_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			void main()\n\
 			{\n\
@@ -263,7 +254,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader = "\
-            #version 120\n\
+            **glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
             uniform float halfFov;\n\
@@ -279,7 +270,7 @@ namespace sgct_core
             }\n";
 
 		const std::string Fisheye_Frag_Shader_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -297,7 +288,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -315,7 +306,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -335,7 +326,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -354,7 +345,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -374,7 +365,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -394,7 +385,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -416,7 +407,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
-			#version 120\n\
+			**glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
             uniform float halfFov;\n\
@@ -433,7 +424,7 @@ namespace sgct_core
             }\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -452,7 +443,7 @@ namespace sgct_core
 			}\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -471,7 +462,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -492,7 +483,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
-			#version 120\n\
+			**glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -511,7 +502,7 @@ namespace sgct_core
             }\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -532,7 +523,7 @@ namespace sgct_core
 			}\n"; 
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -553,7 +544,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -574,49 +565,6 @@ namespace sgct_core
 				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n"; 
-
-		const std::string Fisheye_Depth_Correction_Frag_Shader = "\
-			#version 120\n\
-			\n\
-			uniform sampler2D cTex;\n\
-			uniform sampler2D dTex;\n\
-			uniform float near;\n\
-			uniform float far;\n\
-			\n\
-			float getDepth(float bufferVal)\n\
-			{\n\
-				float z_n = 2.0 * bufferVal - 1.0;\n\
-				return 2.0 * near * far / (far + near - z_n * (far - near));\n\
-			}\n\
-			\n\
-			float convertBack(float z)\n\
-			{\n\
-				float za = (2.0 * near * far)/z; \n\
-				float zb = (za - (far + near))/(far - near); \n\
-				return (1.0 - zb)/2.0; \n\
-			}\n\
-			\n\
-			void main()\n\
-			{\n\
-				//get angle from -45 to 45 degrees (-pi/4 to +pi/4) \n\
-				//float xAngle = 1.57079632679 * (gl_TexCoord[0].s - 0.5);//correct artifacts are visible\n\
-				//float yAngle = 1.57079632679 * (gl_TexCoord[0].t - 0.5);//correct artifacts are visible\n\
-				float xAngle = 1.45 * (gl_TexCoord[0].s - 0.5);//less correct but gives better results\n\
-				float yAngle = 1.45 * (gl_TexCoord[0].t - 0.5);//less correct but gives better results\n\
-				\n\
-				float z = getDepth(texture2D(dTex, gl_TexCoord[0].st).x); \n\
-				float a = tan(xAngle); \n\
-				float b = tan(yAngle); \n\
-				//use r = sqrt(x*x + y*y + z*z) \n\
-				// x = z * tan ( xAngle ) \n\
-				// y = z * tan ( yAngle ) \n\
-				float r = z * sqrt(a*a + b*b + 1.0); \n\
-				\n\
-				gl_FragColor = texture2D(cTex, gl_TexCoord[0].st);\n\
-				gl_FragDepth = convertBack(r);\n\
-				//gl_FragDepth = texture2D(dTex, gl_TexCoord[0].st).x;//no warping\n\
-			}\n";
-
 	}//end shaders
 }
 #endif

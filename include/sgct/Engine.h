@@ -295,9 +295,14 @@ public:
 	inline bool isOGLPipelineFixed() { return mFixedOGLPipeline; }
 
 	/*!
-		Get the current run mode setting (context version and compability modes)
+		Get the run mode setting (context version and compability modes)
 	*/
 	inline RunMode getRunMode() { return mRunMode; }
+
+	/*!
+	Get the GLSL version string that matches the run mode setting
+	*/
+	inline std::string getGLSLVersion() { return mGLSLVersion; }
 
 	void getActiveViewportSize(int & x, int & y);
 
@@ -430,6 +435,7 @@ private:
     size_t mTimerID; //< the timer created next will use this ID
 
 	RunMode mRunMode;
+	std::string mGLSLVersion;
 	int mExitKey;
 };
 

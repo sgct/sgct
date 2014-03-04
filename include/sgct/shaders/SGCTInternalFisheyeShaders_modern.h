@@ -19,7 +19,7 @@ namespace sgct_core
 	namespace shaders_modern_fisheye
 	{
 		const std::string Base_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 TexCoords;\n\
 			layout (location = 1) in vec3 Position;\n\
@@ -33,7 +33,7 @@ namespace sgct_core
 			}\n";
 		
 		const std::string Fisheye_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 TexCoords;\n\
 			layout (location = 1) in vec3 Position;\n\
@@ -47,7 +47,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
@@ -76,7 +76,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -111,7 +111,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -146,7 +146,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -185,7 +185,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
@@ -219,7 +219,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -257,7 +257,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -295,7 +295,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -337,7 +337,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
@@ -367,7 +367,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -403,7 +403,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -439,7 +439,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -479,7 +479,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
@@ -514,7 +514,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -553,7 +553,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -592,7 +592,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
             layout(location = 0) out vec4 diffuse;\n\
@@ -635,7 +635,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Depth_Correction_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 Color;\n\
@@ -679,7 +679,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Cubic_Test = "\
-            #version 330 core\n\
+            **glsl_version**\n\
             \n\
             in vec2 UV;\n\
             out vec4 diffuse;\n\

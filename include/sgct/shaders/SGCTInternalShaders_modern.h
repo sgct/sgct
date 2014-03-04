@@ -19,7 +19,7 @@ namespace sgct_core
 	namespace shaders_modern
 	{
 		const std::string Base_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 Position;\n\
 			layout (location = 1) in vec2 TexCoords;\n\
@@ -36,7 +36,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Base_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -50,7 +50,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Overlay_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 TexCoords;\n\
 			layout (location = 1) in vec3 Position;\n\
@@ -64,7 +64,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Overlay_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			out vec4 Color;\n\
@@ -77,7 +77,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 Position;\n\
 			layout (location = 1) in vec2 TexCoords;\n\
@@ -94,7 +94,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -116,7 +116,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -136,7 +136,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Amber_Blue_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -158,7 +158,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string CheckerBoard_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -177,7 +177,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -196,7 +196,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Vertical_Interlaced_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -215,7 +215,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Vertical_Interlaced_Inverted_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -234,7 +234,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string SBS_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -253,7 +253,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string SBS_Stereo_Inverted_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -272,7 +272,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string TB_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -291,7 +291,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string TB_Stereo_Inverted_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -310,7 +310,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Dummy_Stereo_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			in vec2 UV;\n\
 			in vec4 Col;\n\
@@ -325,7 +325,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string FXAA_Vert_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			\n\
 			layout (location = 0) in vec2 TexCoords;\n\
 			layout (location = 1) in vec3 Position;\n\
@@ -349,7 +349,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string FXAA_Frag_Shader = "\
-			#version 330 core\n\
+			**glsl_version**\n\
 			/* \n\
 			FXAA_EDGE_THRESHOLD \n\
 			The minimum amount of local contrast required to apply algorithm. \n\

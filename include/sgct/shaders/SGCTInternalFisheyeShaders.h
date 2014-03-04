@@ -19,7 +19,7 @@ namespace sgct_core
 	namespace shaders_fisheye
 	{
 		const std::string Base_Vert_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			void main()\n\
 			{\n\
@@ -28,7 +28,7 @@ namespace sgct_core
 			}\n";
 		
 		const std::string Fisheye_Vert_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			void main()\n\
 			{\n\
@@ -37,7 +37,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -69,7 +69,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -102,7 +102,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -135,7 +135,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -171,7 +171,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -204,7 +204,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -240,7 +240,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -276,7 +276,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			//#pragma optionNV(fastmath off) // For NVIDIA cards.\n\
 			//#pragma optionNV(fastprecision off) // For NVIDIA cards.\n\
 			\n\
@@ -315,7 +315,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform float halfFov;\n\
@@ -342,7 +342,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -374,7 +374,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube positionmap;\n\
@@ -406,7 +406,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube normalmap;\n\
@@ -441,7 +441,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -473,7 +473,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -508,7 +508,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -543,7 +543,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
@@ -581,7 +581,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Fisheye_Depth_Correction_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			uniform sampler2D cTex;\n\
 			uniform sampler2D dTex;\n\

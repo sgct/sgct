@@ -25,6 +25,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/ShaderManager.h"
+#include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include "../include/external/tinythread.h"
 #include <glm/gtc/constants.hpp>
 #include <math.h>
@@ -347,6 +348,7 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 330 core");
 		}
 		break;
 
@@ -359,6 +361,7 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 400 core");
 		}
 		break;
 
@@ -371,6 +374,7 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 410 core");
 		}
 		break;
 
@@ -383,6 +387,7 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 420 core");
 		}
 		break;
 
@@ -395,6 +400,7 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 430 core");
 		}
 		break;
 
@@ -407,10 +413,12 @@ bool sgct::Engine::initWindows()
 #endif
 			glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
 			glewExperimental = true; // Needed for core profile
+			mGLSLVersion.assign("#version 440 core");
 		}
 		break;
 
     default:
+		mGLSLVersion.assign("#version 120");
         break;
 	}
 
@@ -2629,16 +2637,26 @@ void sgct::Engine::loadShaders()
 {
 	//create FXAA shaders
 	mShaders[FXAAShader].setName("FXAAShader");
+	std::string fxaa_vert_shader;
+	std::string fxaa_frag_shader;
+	
 	if( mFixedOGLPipeline )
 	{
-		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders::FXAA_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders::FXAA_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		fxaa_vert_shader = sgct_core::shaders::FXAA_Vert_Shader;
+		fxaa_frag_shader = sgct_core::shaders::FXAA_Frag_Shader;
 	}
 	else
 	{
-		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders_modern::FXAA_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FXAAShader].addShaderSrc( sgct_core::shaders_modern::FXAA_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		fxaa_vert_shader = sgct_core::shaders_modern::FXAA_Vert_Shader;
+		fxaa_frag_shader = sgct_core::shaders_modern::FXAA_Frag_Shader;
 	}
+
+	//replace glsl version
+	sgct_helpers::findAndReplace(fxaa_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+	sgct_helpers::findAndReplace(fxaa_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+
+	mShaders[FXAAShader].addShaderSrc(fxaa_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+	mShaders[FXAAShader].addShaderSrc(fxaa_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 	mShaders[FXAAShader].createAndLinkProgram();
 	mShaders[FXAAShader].bind();
 
@@ -2664,18 +2682,36 @@ void sgct::Engine::loadShaders()
 	*/
 	if( !mFixedOGLPipeline )
 	{
+		std::string FBO_quad_vert_shader;
+		std::string FBO_quad_frag_shader;
+		FBO_quad_vert_shader = sgct_core::shaders_modern::Base_Vert_Shader;
+		FBO_quad_frag_shader = sgct_core::shaders_modern::Base_Frag_Shader;
+		
+		//replace glsl version
+		sgct_helpers::findAndReplace(FBO_quad_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(FBO_quad_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+		
 		mShaders[FBOQuadShader].setName("FBOQuadShader");
-		mShaders[FBOQuadShader].addShaderSrc( sgct_core::shaders_modern::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[FBOQuadShader].addShaderSrc( sgct_core::shaders_modern::Base_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[FBOQuadShader].addShaderSrc(FBO_quad_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		mShaders[FBOQuadShader].addShaderSrc(FBO_quad_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 		mShaders[FBOQuadShader].createAndLinkProgram();
 		mShaders[FBOQuadShader].bind();
 		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[MonoTex], 0 );
 		ShaderProgram::unbind();
 
+		std::string Overlay_vert_shader;
+		std::string Overlay_frag_shader;
+		Overlay_vert_shader = sgct_core::shaders_modern::Overlay_Vert_Shader;
+		Overlay_frag_shader = sgct_core::shaders_modern::Overlay_Frag_Shader;
+
+		//replace glsl version
+		sgct_helpers::findAndReplace(Overlay_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(Overlay_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+
 		mShaders[OverlayShader].setName("OverlayShader");
-		mShaders[OverlayShader].addShaderSrc( sgct_core::shaders_modern::Overlay_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		mShaders[OverlayShader].addShaderSrc( sgct_core::shaders_modern::Overlay_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		mShaders[OverlayShader].addShaderSrc(Overlay_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		mShaders[OverlayShader].addShaderSrc(Overlay_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 		mShaders[OverlayShader].createAndLinkProgram();
 		mShaders[OverlayShader].bind();
 		mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );

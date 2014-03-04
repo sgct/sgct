@@ -202,6 +202,7 @@ SGCT is using the following libraries.
 #include "sgct/SGCTVersion.h"
 #include "sgct/ogl_headers.h"
 
+
 #ifndef TINYXML_H
 	#define TINYXML_H "../include/external/tinyxml2.h"
 #endif
@@ -216,6 +217,15 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTSphere.h"
 #include "sgct/utils/SGCTBox.h"
 #include "sgct/utils/SGCTDome.h"
+
+//helpers
+/*!
+Ths namespace contains various help classes and functions.
+*/
+namespace sgct_helpers{}; //empty for doxygen documentation only
+#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include "../include/sgct/helpers/SGCTVertexData.h"
+#include "../include/sgct/helpers/SGCTPortedFunctions.h"
 
 //for backwards compability
 namespace Freetype = sgct_text;

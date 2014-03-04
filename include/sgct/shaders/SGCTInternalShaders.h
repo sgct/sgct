@@ -19,7 +19,7 @@ namespace sgct_core
 	namespace shaders
 	{
 		const std::string Anaglyph_Vert_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			\n\
 			void main()\n\
 			{\n\
@@ -29,7 +29,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -45,7 +45,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -59,7 +59,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Anaglyph_Amber_Blue_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -75,7 +75,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string CheckerBoard_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -88,7 +88,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string CheckerBoard_Inverted_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -102,7 +102,7 @@ namespace sgct_core
 
 		//--------> vertical interlaced shaders
 		const std::string Vertical_Interlaced_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -116,7 +116,7 @@ namespace sgct_core
 
 		//------------> dummy stereo shader
 		const std::string Dummy_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -125,7 +125,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string Vertical_Interlaced_Inverted_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -138,7 +138,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string SBS_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -151,7 +151,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string SBS_Stereo_Inverted_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -164,7 +164,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string TB_Stereo_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -177,7 +177,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string TB_Stereo_Inverted_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform sampler2D LeftTex;\n\
 			uniform sampler2D RightTex;\n\
 			void main()\n\
@@ -190,7 +190,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string FXAA_Vert_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			uniform float rt_w;\n\
 			uniform float rt_h;\n\
 			uniform float FXAA_SUBPIX_OFFSET; \n\
@@ -209,7 +209,7 @@ namespace sgct_core
 			}\n";
 
 		const std::string FXAA_Frag_Shader = "\
-			#version 120\n\
+			**glsl_version**\n\
 			#extension GL_EXT_gpu_shader4 : enable // For NVIDIA cards.\n\
 			/* \n\
 			FXAA_EDGE_THRESHOLD \n\

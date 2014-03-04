@@ -227,7 +227,6 @@ private:
 	void resizeFBOs();
 	void createVBOs();
 	void loadShaders();
-	void findAndReplace(std::string & src, std::string pattern, std::string replaceStr);
 	void initFisheye();
 
 public:

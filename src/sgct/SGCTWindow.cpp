@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders_cubic.h"
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h"
+#include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 
@@ -1605,10 +1606,11 @@ void sgct::SGCTWindow::loadShaders()
 			mFisheyeShader.deleteProgram();
         
         std::string fisheyeFragmentShader;
+		std::string fisheyeVertexShader;
 
 		if( Engine::instance()->isOGLPipelineFixed() )
 		{
-			mFisheyeShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+			fisheyeVertexShader = mCubicInterpolation ? sgct_core::shaders_fisheye_cubic::Fisheye_Vert_Shader : sgct_core::shaders_fisheye::Fisheye_Vert_Shader;
 
 			if(mFisheyeOffaxis)
 			{
@@ -1740,13 +1742,20 @@ void sgct::SGCTWindow::loadShaders()
 			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_fisheye::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				std::string depth_corr_frag_shader = sgct_core::shaders_fisheye::Base_Vert_Shader;
+				std::string depth_corr_vert_shader = sgct_core::shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader;
+
+				//replace glsl version
+				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+				
+				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
 		else //modern pipeline
 		{
-			mFisheyeShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+			fisheyeVertexShader = mCubicInterpolation ? sgct_core::shaders_modern_fisheye_cubic::Fisheye_Vert_Shader : sgct_core::shaders_modern_fisheye::Fisheye_Vert_Shader;
 
 			if(mFisheyeOffaxis)
 			{
@@ -1825,8 +1834,9 @@ void sgct::SGCTWindow::loadShaders()
 					{
 					case sgct::SGCTSettings::Diffuse:
 					default:
-						fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader;
-                        //fisheyeFragmentShader = sgct_core::shaders_modern::Fisheye_Frag_Shader_Cubic;
+						fisheyeFragmentShader = mCubicInterpolation ?
+							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader :
+							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader;
 						break;
 
 					case sgct::SGCTSettings::Diffuse_Normal:
@@ -1847,8 +1857,15 @@ void sgct::SGCTWindow::loadShaders()
 			//depth correction shader only
 			if( SGCTSettings::instance()->useDepthTexture() )
 			{
-				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Base_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-				mFisheyeDepthCorrectionShader.addShaderSrc(sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				std::string depth_corr_frag_shader = sgct_core::shaders_modern_fisheye::Base_Vert_Shader;
+				std::string depth_corr_vert_shader = sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader;
+
+				//replace glsl version
+				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+
+				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 			}
 		}
 
@@ -1863,27 +1880,31 @@ void sgct::SGCTWindow::loadShaders()
 			
 			//add functions to shader
 			if (mFisheyeOffaxis)
-				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_offset_fun);
+				sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::sample_offset_fun : sgct_core::shaders_modern_fisheye_cubic::sample_offset_fun);
 			else
-				findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct_core::shaders_fisheye_cubic::sample_fun);
-			findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct_core::shaders_fisheye_cubic::catmull_rom_fun);
-            //findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct_core::shaders_fisheye_cubic::B_spline_fun);
-			findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct_core::shaders_fisheye_cubic::interpolate4_4f);
-			findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct_core::shaders_fisheye_cubic::interpolate4_f);
+				sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::sample_fun : sgct_core::shaders_modern_fisheye_cubic::sample_fun);
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**cubic_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::catmull_rom_fun : sgct_core::shaders_modern_fisheye_cubic::catmull_rom_fun);
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolatef**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_f);
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate3f**", sgct_core::shaders_modern_fisheye_cubic::interpolate4_3f);
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate4f**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_4f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_4f);
             
 			//set size
-			findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
 
 			//set step
-			findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
 		}
 
 		//replace add correct transform in the fragment shader
 		if (SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FourFaceCube)
-			findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
 		else
-			findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
         
+		//replace glsl version
+		sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+
 		//replace color
 		const float * col = Engine::instance()->getFisheyeClearColor();
 		char colorStr[64];
@@ -1892,8 +1913,9 @@ void sgct::SGCTWindow::loadShaders()
 #else
 		sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
 #endif
-		findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
+		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
         
+		mFisheyeShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
         mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
 		mFisheyeShader.setName("FisheyeShader");
@@ -1956,88 +1978,74 @@ void sgct::SGCTWindow::loadShaders()
 
 	if( mStereoMode > Active_Stereo && mStereoMode < Side_By_Side_Stereo)
 	{
+		std::string stereo_frag_shader;
+		std::string stereo_vert_shader;
+		
 		//reload shader program if it exists
 		if( mStereoShader.isLinked() )
 			mStereoShader.deleteProgram();
 
-		if( Engine::instance()->isOGLPipelineFixed() )
-			mStereoShader.addShaderSrc( sgct_core::shaders::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+		if (Engine::instance()->isOGLPipelineFixed())
+			stereo_vert_shader = sgct_core::shaders::Anaglyph_Vert_Shader;
 		else
-			mStereoShader.addShaderSrc( sgct_core::shaders_modern::Anaglyph_Vert_Shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING );
+			stereo_vert_shader = sgct_core::shaders_modern::Anaglyph_Vert_Shader;
 
 		if( mStereoMode == Anaglyph_Red_Cyan_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader;
 
 		}
 		else if( mStereoMode == Anaglyph_Amber_Blue_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader;
 		}
 		else if( mStereoMode == Anaglyph_Red_Cyan_Wimmer_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer :
+				stereo_frag_shader = sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer;
 		}
 		else if( mStereoMode == Checkerboard_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::CheckerBoard_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::CheckerBoard_Frag_Shader;
 		}
 		else if( mStereoMode == Checkerboard_Inverted_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader;
 		}
 		else if( mStereoMode == Vertical_Interlaced_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader;
 		}
 		else if( mStereoMode == Vertical_Interlaced_Inverted_Stereo )
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader;
 		}
-		/*else if( mStereoMode == Side_By_Side_Stereo )
-		{
-			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		}
-		else if( mStereoMode == Side_By_Side_Inverted_Stereo )
-		{
-			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::SBS_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		}
-		else if( mStereoMode == Top_Bottom_Stereo )
-		{
-			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		}
-		else if( mStereoMode == Top_Bottom_Inverted_Stereo )
-		{
-			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::TB_Stereo_Inverted_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
-		}*/
 		else
 		{
 			Engine::instance()->isOGLPipelineFixed() ?
-				mStereoShader.addShaderSrc(sgct_core::shaders::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING ) :
-				mStereoShader.addShaderSrc(sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING );
+				stereo_frag_shader = sgct_core::shaders::Dummy_Stereo_Frag_Shader :
+				stereo_frag_shader = sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader;
 		}
+
+		//replace glsl version
+		sgct_helpers::findAndReplace(stereo_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(stereo_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+
+		mStereoShader.addShaderSrc(stereo_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		mStereoShader.addShaderSrc(stereo_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
 
 		mStereoShader.setName("StereoShader");
 		mStereoShader.createAndLinkProgram();
@@ -2049,18 +2057,6 @@ void sgct::SGCTWindow::loadShaders()
 		glUniform1i( StereoLeftTex, 0 );
 		glUniform1i( StereoRightTex, 1 );
 		ShaderProgram::unbind();
-	}
-}
-
-void sgct::SGCTWindow::findAndReplace(std::string & src, std::string pattern, std::string replaceStr)
-{
-	while (true)
-	{
-		std::size_t found = src.find(pattern);
-		if (found != std::string::npos)
-			src.replace(found, pattern.length(), replaceStr);
-		else
-			break;
 	}
 }
 

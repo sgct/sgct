@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SCREEN_CAPTURE_H_
 
 #include "Image.h"
+#include "helpers/SGCTCPPEleven.h"
 #include <string>
 #include "external/tinythread.h"
 
@@ -44,6 +45,11 @@ public:
 	CaptureFormat getFormat();
 	void SaveScreenCapture(unsigned int textureId);
 	void setUsePBO(bool state);
+
+#ifdef __LOAD_CPP11_FUN__
+	void setCaptureCallback(sgct_cppxeleven::function<void(Image* imPtr)> callback);
+	sgct_cppxeleven::function< void(Image* imPtr) > mCaptureCallbackFn;
+#endif
 
 private:
 	void addFrameNumberToFilename( unsigned int frameNumber);

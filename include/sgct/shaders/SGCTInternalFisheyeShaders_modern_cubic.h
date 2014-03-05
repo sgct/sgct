@@ -369,27 +369,15 @@ namespace sgct_core
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+			**interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Position = "\
@@ -404,27 +392,15 @@ namespace sgct_core
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+			**interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Normal_Position = "\
@@ -441,29 +417,16 @@ namespace sgct_core
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+			**interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth = "\
@@ -477,27 +440,15 @@ namespace sgct_core
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
@@ -508,34 +459,22 @@ namespace sgct_core
             layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
 			uniform samplerCube depthmap;\n\
+			uniform samplerCube normalmap;\n\
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Position = "\
@@ -546,34 +485,22 @@ namespace sgct_core
             layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
-			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
+			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
@@ -585,37 +512,24 @@ namespace sgct_core
             layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
+			uniform samplerCube depthmap;\n\
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube positionmap;\n\
-			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta);\n\
-					float y = -sin(phi) * cos(theta);\n\
-					float z = cos(phi);\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis = "\
@@ -623,30 +537,20 @@ namespace sgct_core
 			\n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform float halfFov;\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform float halfFov;\n\
 			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			void main()\n\
-			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-				}\n\
-				else\n\
-					diffuse = **bgColor**;\n\
-			}\n";
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+            \n\
+            void main()\n\
+            {\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+            }\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
 			**glsl_version**\n\
@@ -661,27 +565,15 @@ namespace sgct_core
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
@@ -697,27 +589,15 @@ namespace sgct_core
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
@@ -735,64 +615,39 @@ namespace sgct_core
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate3f**\n\
+            **interpolate4f**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
 			**glsl_version**\n\
-			\n\
+            \n\
 			in vec2 UV;\n\
 			out vec4 diffuse;\n\
 			\n\
-			uniform samplerCube cubemap;\n\
+            uniform samplerCube cubemap;\n\
 			uniform samplerCube depthmap;\n\
-			uniform float halfFov;\n\
+            uniform float halfFov;\n\
 			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
@@ -803,35 +658,23 @@ namespace sgct_core
             layout(location = 1) out vec3 normal;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
 			uniform samplerCube depthmap;\n\
+			uniform samplerCube normalmap;\n\
 			uniform float halfFov;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
@@ -842,35 +685,23 @@ namespace sgct_core
             layout(location = 1) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
-			uniform samplerCube positionmap;\n\
 			uniform samplerCube depthmap;\n\
+			uniform samplerCube positionmap;\n\
 			uniform float halfFov;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+			**interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
 
 		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
@@ -882,39 +713,26 @@ namespace sgct_core
             layout(location = 2) out vec3 position;\n\
 			\n\
 			uniform samplerCube cubemap;\n\
+			uniform samplerCube depthmap;\n\
 			uniform samplerCube normalmap;\n\
 			uniform samplerCube positionmap;\n\
-			uniform samplerCube depthmap;\n\
 			uniform float halfFov;\n\
 			uniform vec3 offset;\n\
 			float angle45Factor = 0.7071067812;\n\
 			\n\
+			**sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+			**interpolate3f**\n\
+			**interpolatef**\n\
+            \n\
 			void main()\n\
 			{\n\
-				float s = 2.0 * (UV.s - 0.5);\n\
-				float t = 2.0 * (UV.t - 0.5);\n\
-				float r2 = s*s + t*t;\n\
-				if( r2 <= 1.0 )\n\
-				{\n\
-					float phi = sqrt(r2) * halfFov;\n\
-					float theta = atan(s,t);\n\
-					float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-					**rotVec**;\n\
-					diffuse = texture(cubemap, rotVec);\n\
-					normal = texture(normalmap, rotVec).xyz;\n\
-					position = texture(positionmap, rotVec).xyz;\n\
-					gl_FragDepth = texture(depthmap, rotVec).x;\n\
-				}\n\
-				else\n\
-				{\n\
-					diffuse = **bgColor**;\n\
-					normal = vec3(0.0, 0.0, 0.0);\n\
-					position = vec3(0.0, 0.0, 0.0);\n\
-					gl_FragDepth = 1.0;\n\
-				}\n\
+                diffuse = filter4f(UV, cubemap, **bgColor**);\n\
+				normal = filter3f(UV, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				position = filter3f(UV, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+				gl_FragDepth = filterf(UV, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
 			}\n";
-	}
+	}//end shaders
 }
 #endif

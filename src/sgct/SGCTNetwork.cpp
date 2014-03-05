@@ -98,6 +98,9 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 	mId = id;
 	mFirmSync = firmSync;
 
+	mPort.assign(port);
+	mAddress.assign(address);
+
 	struct addrinfo *result = NULL, *ptr = NULL, hints;
 #ifdef __WIN32__ //WinSock
 	ZeroMemory(&hints, sizeof (hints));
@@ -234,6 +237,22 @@ void connectionHandler(void *arg)
 	}
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Exiting connection handler for connection %d... \n", nPtr->getId());
+}
+
+/*!
+\return the port of this connection
+*/
+std::string sgct_core::SGCTNetwork::getPort()
+{
+	return mPort;
+}
+
+/*!
+\return the address of this connection
+*/
+std::string sgct_core::SGCTNetwork::getAddress()
+{
+	return mAddress;
 }
 
 void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)

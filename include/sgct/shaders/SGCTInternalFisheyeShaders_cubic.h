@@ -356,6 +356,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\
@@ -376,6 +377,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\
@@ -397,6 +399,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\
@@ -494,6 +497,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
             void main()\n\
             {\n\
@@ -514,6 +518,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\
@@ -535,6 +540,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\
@@ -557,6 +563,7 @@ namespace sgct_core
 			**sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
+			**interpolatef**\n\
             \n\
 			void main()\n\
 			{\n\

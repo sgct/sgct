@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/FontManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
+#include "../include/sgct/helpers/SGCTStringFunctions.h"
 
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -20,7 +21,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 
 const static std::string Font_Vert_Shader = "\
-#version 330 core\n\
+**glsl_version**\n\
 \n\
 layout (location = 0) in vec2 TexCoord;\n\
 layout (location = 1) in vec2 Position;\n\
@@ -35,7 +36,7 @@ void main()\n\
 }\n";
 
 const static std::string Font_Frag_Shader = "\
-#version 330 core\n\
+**glsl_version**\n\
 \n\
 uniform vec4 Col;\n\
 uniform vec4 StrokeCol;\n\
@@ -52,7 +53,7 @@ void main()\n\
 }\n";
 
 const static std::string Font_Vert_Shader_Legacy = "\
-#version 120\n\
+**glsl_version**\n\
 \n\
 void main()\n\
 {\n\
@@ -61,7 +62,7 @@ void main()\n\
 }\n";
 
 const static std::string Font_Frag_Shader_Legacy = "\
-#version 120\n\
+**glsl_version**\n\
 \n\
 uniform vec4 Col;\n\
 uniform vec4 StrokeCol;\n\
@@ -318,17 +319,27 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 
 	if( !shaderCreated )
 	{
+		std::string vert_shader;
+		std::string frag_shader;
+		
 		mShader.setName("FontShader");
 		if( sgct::Engine::instance()->isOGLPipelineFixed() )
 		{
-			mShader.addShaderSrc( Font_Vert_Shader_Legacy, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			mShader.addShaderSrc( Font_Frag_Shader_Legacy, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			vert_shader = Font_Vert_Shader_Legacy;
+			frag_shader = Font_Frag_Shader_Legacy;
 		}
 		else
 		{
-			mShader.addShaderSrc( Font_Vert_Shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
-			mShader.addShaderSrc( Font_Frag_Shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING );
+			vert_shader = Font_Vert_Shader;
+			frag_shader = Font_Frag_Shader;
 		}
+
+		//replace glsl version
+		sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+
+		mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING);
+		mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING);
 		mShader.createAndLinkProgram();
 		mShader.bind();
 

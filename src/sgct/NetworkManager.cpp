@@ -89,7 +89,7 @@ bool sgct_core::NetworkManager::init()
 		this_address.assign( ClusterManager::instance()->getThisNodePtr()->getAddress() );
 	else //error
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for this node availible!");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for this node availible!\n");
 		return false;
 	}
 
@@ -100,7 +100,7 @@ bool sgct_core::NetworkManager::init()
 			remote_address.assign( *ClusterManager::instance()->getMasterAddress() );
 		else
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for master/host availible!");
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: No address information for master/host availible!\n");
 			return false;
 		}
 	}
@@ -170,6 +170,17 @@ bool sgct_core::NetworkManager::init()
 				sgct_cppxeleven::placeholders::_2,
 				sgct_cppxeleven::placeholders::_3);
 			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
+		}
+	}
+
+	//sanity check if port is used somewhere else
+	for (size_t i = 0; i < mNetworkConnections.size(); i++)
+	{
+		if (mNetworkConnections[i]->getPort().compare(ClusterManager::instance()->getThisNodePtr()->getPort()) == 0)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Port %s is already used by connection %u!\n",
+				ClusterManager::instance()->getThisNodePtr()->getPort().c_str(), i);
+			return false;
 		}
 	}
 

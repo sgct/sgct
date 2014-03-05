@@ -561,8 +561,8 @@ void sgct_core::ReadConfig::readAndParseXML()
 			float fTmp;
 			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == XML_NO_ERROR )
                 ClusterManager::instance()->getUserPtr()->setEyeSeparation( fTmp );
-            else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");
+            /*else -- not required
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");*/
 
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )

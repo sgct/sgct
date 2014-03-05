@@ -26,6 +26,12 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	mCaptureCallbackFn = nullptr;
+#else
+	mDecoderCallbackFn = NULL;
+#endif
+	
 	mType = sgct::SGCTSettings::Mono;
 	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
 	mPBO = GL_FALSE;
@@ -42,6 +48,12 @@ sgct_core::ScreenCapture::~ScreenCapture()
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
 
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+	mCaptureCallbackFn = nullptr;
+#else
+	mDecoderCallbackFn = NULL;
+#endif
+	
 	if( mSCTIPtrs != NULL )
 	{
 		for(unsigned int i=0; i<mNumberOfThreads; i++)
@@ -207,11 +219,20 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
         else
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
         
-        //save the image
-        mSCTIPtrs[threadIndex].mRunning = true;
-        mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
-		
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
+
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+		if (mCaptureCallbackFn != nullptr)
+#else
+		if (mCaptureCallbackFn != NULL)
+#endif
+			mCaptureCallbackFn(imPtr);
+		else
+		{
+			//save the image
+			mSCTIPtrs[threadIndex].mRunning = true;
+			mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+		}
 	}
 	else //no PBO
 	{
@@ -232,9 +253,18 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
         
-        //save the image
-        mSCTIPtrs[threadIndex].mRunning = true;
-        mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+		if (mCaptureCallbackFn != nullptr)
+#else
+		if (mCaptureCallbackFn != NULL)
+#endif
+			mCaptureCallbackFn(imPtr);
+		else
+		{
+			//save the image
+			mSCTIPtrs[threadIndex].mRunning = true;
+			mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+		}
 	}
 }
 
@@ -457,4 +487,12 @@ void screenCaptureHandler(void *arg)
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Mutex for screencapture is unlocked.\n");
 	#endif
+}
+
+/*!
+Set the screen capture callback
+*/
+void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image* imPtr)> callback)
+{
+	mCaptureCallbackFn = callback;
 }

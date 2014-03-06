@@ -2,6 +2,11 @@ XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXX version 2 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX
 
+2014-03-06 SGCT ver 2.1.0
+---------------------------
+* Added screenshot callback
+* All fisheye shaders are now supporting bi-cubic (Catmull-Rom) interpolation
+
 2014-02-27 SGCT ver 2.1.0
 ---------------------------
 * Resolved network bugs related to firm sync

@@ -8,4 +8,4 @@ GL_ARB_map_buffer_range
 	GL_MAP_FLUSH_EXPLICIT_BIT 0x0010
 	GL_MAP_UNSYNCHRONIZED_BIT 0x0020
 	void glFlushMappedBufferRange (GLenum target, GLintptr offset, GLsizeiptr length)
-	GLvoid * glMapBufferRange (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)
+	void * glMapBufferRange (GLenum target, GLintptr offset, GLsizeiptr length, GLbitfield access)

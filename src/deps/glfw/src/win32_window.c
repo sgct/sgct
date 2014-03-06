@@ -412,7 +412,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                 if (window->cursorMode != GLFW_CURSOR_NORMAL)
                     showCursor(window);
 
-                if (window->monitor)
+                /*if (window->monitor)
                 {
                     if (!iconified)
                     {
@@ -422,7 +422,7 @@ static LRESULT CALLBACK windowProc(HWND hWnd, UINT uMsg,
                     }
 
                     _glfwRestoreVideoMode(window->monitor);
-                }
+                }*/
             }
             else if (focused && _glfw.focusedWindow != window)
             {

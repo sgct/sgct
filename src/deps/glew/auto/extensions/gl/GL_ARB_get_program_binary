@@ -5,6 +5,6 @@ GL_ARB_get_program_binary
 	GL_PROGRAM_BINARY_LENGTH 0x8741
 	GL_NUM_PROGRAM_BINARY_FORMATS 0x87FE
 	GL_PROGRAM_BINARY_FORMATS 0x87FF
-	void glGetProgramBinary (GLuint program, GLsizei bufSize, GLsizei* length, GLenum *binaryFormat, GLvoid*binary)
-	void glProgramBinary (GLuint program, GLenum binaryFormat, const GLvoid *binary, GLsizei length)
+	void glGetProgramBinary (GLuint program, GLsizei bufSize, GLsizei* length, GLenum *binaryFormat, void*binary)
+	void glProgramBinary (GLuint program, GLenum binaryFormat, const void *binary, GLsizei length)
 	void glProgramParameteri (GLuint program, GLenum pname, GLint value)

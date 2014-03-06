@@ -10,4 +10,4 @@ GL_EXT_texture3D
 	GL_TEXTURE_DEPTH_EXT 0x8071
 	GL_TEXTURE_WRAP_R_EXT 0x8072
 	GL_MAX_3D_TEXTURE_SIZE_EXT 0x8073
-	void glTexImage3DEXT (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const GLvoid *pixels)
+	void glTexImage3DEXT (GLenum target, GLint level, GLenum internalformat, GLsizei width, GLsizei height, GLsizei depth, GLint border, GLenum format, GLenum type, const void *pixels)

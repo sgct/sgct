@@ -22,7 +22,7 @@ GL_EXT_paletted_texture
 	GL_TEXTURE_INDEX_SIZE_EXT 0x80ED
 	GL_TEXTURE_CUBE_MAP_ARB 0x8513
 	GL_PROXY_TEXTURE_CUBE_MAP_ARB 0x851B
-	void glColorTableEXT (GLenum target, GLenum internalFormat, GLsizei width, GLenum format, GLenum type, const GLvoid *data)
-	void glGetColorTableEXT (GLenum target, GLenum format, GLenum type, GLvoid *data)
+	void glColorTableEXT (GLenum target, GLenum internalFormat, GLsizei width, GLenum format, GLenum type, const void *data)
+	void glGetColorTableEXT (GLenum target, GLenum format, GLenum type, void *data)
 	void glGetColorTableParameterfvEXT (GLenum target, GLenum pname, GLfloat* params)
 	void glGetColorTableParameterivEXT (GLenum target, GLenum pname, GLint* params)

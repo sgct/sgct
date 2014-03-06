@@ -87,7 +87,7 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 	//prevent writing to console simultaneously
 	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::ConsoleMutex );
 
-    int size = 1 + vscprintf(fmt, ap);
+    std::size_t size = static_cast<std::size_t>(1 + vscprintf(fmt, ap));
     if( size > mMaxMessageSize )
     {
         delete [] mParseBuffer;

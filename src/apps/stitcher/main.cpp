@@ -365,7 +365,7 @@ void myPreWinInitFun()
 	gEngine->getUserPtr()->setEyeSeparation(eyeSeparation);
 	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
 	{
-		gEngine->getWindowPtr(i)->setScreenShotNumber(startFrame);
+		gEngine->setScreenShotNumber(startFrame);
 		gEngine->getWindowPtr(i)->setAlpha(alpha);
 		gEngine->getWindowPtr(i)->setDomeDiameter(domeDiameter);
 		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);

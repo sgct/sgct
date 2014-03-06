@@ -15,5 +15,5 @@ GL_EXT_coordinate_frame
 	GL_MAP2_TANGENT_EXT 0x8445
 	GL_MAP1_BINORMAL_EXT 0x8446
 	GL_MAP2_BINORMAL_EXT 0x8447
-	void glBinormalPointerEXT (GLenum type, GLsizei stride, GLvoid *pointer)
-	void glTangentPointerEXT (GLenum type, GLsizei stride, GLvoid *pointer)
+	void glBinormalPointerEXT (GLenum type, GLsizei stride, void *pointer)
+	void glTangentPointerEXT (GLenum type, GLsizei stride, void *pointer)

@@ -42,5 +42,5 @@ GL_ARB_uniform_buffer_object
 	void glGetActiveUniformsiv (GLuint program, GLsizei uniformCount, const GLuint* uniformIndices, GLenum pname, GLint* params)
 	void glGetIntegeri_v (GLenum target, GLuint index, GLint* data)
 	GLuint glGetUniformBlockIndex (GLuint program, const GLchar* uniformBlockName)
-	void glGetUniformIndices (GLuint program, GLsizei uniformCount, const GLchar** uniformNames, GLuint* uniformIndices)
+	void glGetUniformIndices (GLuint program, GLsizei uniformCount, const GLchar* const * uniformNames, GLuint* uniformIndices)
 	void glUniformBlockBinding (GLuint program, GLuint uniformBlockIndex, GLuint uniformBlockBinding)

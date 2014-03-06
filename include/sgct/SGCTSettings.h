@@ -21,7 +21,7 @@ namespace sgct
 class SGCTSettings
 {
 public:
-	enum CapturePathIndexes { Mono = 0, LeftStereo, RightStereo };
+	enum CapturePathIndex { Mono = 0, LeftStereo, RightStereo };
 	enum DrawBufferType { Diffuse = 0, Diffuse_Normal, Diffuse_Position, Diffuse_Normal_Position };
 	enum BufferFloatPrecision { Float_16Bit = 0, Float_32Bit };
     enum FisheyeMethod { FourFaceCube = 0, FiveFaceCube };
@@ -57,8 +57,8 @@ public:
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
-	void setCapturePath(std::string path, CapturePathIndexes cpi = Mono);
-	void appendCapturePath(std::string str, CapturePathIndexes cpi = Mono);
+	void setCapturePath(std::string path, CapturePathIndex cpi = Mono);
+	void appendCapturePath(std::string str, CapturePathIndex cpi = Mono);
 	void setCaptureFormat(const char * format);
 	void setFXAASubPixTrim(float val);
 	void setFXAASubPixOffset(float val);
@@ -75,7 +75,7 @@ public:
     void setFisheyeMethod(FisheyeMethod fm);
 	
 	// ----------- get functions ---------------- //
-	const char *		getCapturePath(CapturePathIndexes cpi = Mono);
+	const char *		getCapturePath(CapturePathIndex cpi = Mono);
 	int					getCaptureFormat();
 	int					getSwapInterval();
 	int					getRefreshRateHint();

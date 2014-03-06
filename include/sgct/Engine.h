@@ -145,9 +145,11 @@ public:
 	void takeScreenshot() { mTakeScreenshot = true; }
 	void setScreenShotNumber(unsigned int number);
     unsigned int getScreenShotNumber();
+    void invokeScreenShotCallback(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei);
+    void setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex));
 
-	size_t createTimer( double millisec, void(*fnPtr)(size_t) );
-	void stopTimer(size_t id);
+	std::size_t createTimer( double millisec, void(*fnPtr)(std::size_t) );
+	void stopTimer(std::size_t id);
 
     //set callback functions
 	void setInitOGLFunction( void(*fnPtr)(void) );
@@ -363,7 +365,7 @@ private:
 	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
 	typedef void (*NetworkMessageCallbackFn)(const char *, int, int);
 	typedef void (*NetworkStatusCallbackFn)(bool, int);
-    typedef void (*timerCallbackFn)(size_t);
+    typedef void (*timerCallbackFn)(std::size_t);
 
 	//function pointers
 	CallbackFn mDrawFn;
@@ -382,6 +384,7 @@ private:
 	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
 	NetworkMessageCallbackFn	mNetworkMessageCallbackFn;
 	NetworkStatusCallbackFn		mNetworkStatusCallbackFn;
+    void (*mScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex);
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;
@@ -425,14 +428,14 @@ private:
     unsigned int mShotCounter;
 
     typedef struct  {
-        size_t mId;
+        std::size_t mId;
         double mLastFired;
         double mInterval;
         timerCallbackFn mCallback;
     } TimerInformation;
 
     std::vector<TimerInformation> mTimers; //< stores all active timers
-    size_t mTimerID; //< the timer created next will use this ID
+    std::size_t mTimerID; //< the timer created next will use this ID
 
 	RunMode mRunMode;
 	std::string mGLSLVersion;

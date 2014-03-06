@@ -112,6 +112,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkMessageCallbackFn = NULL;
 	mNetworkStatusCallbackFn = NULL;
+    mScreenShotFn = NULL;
 	mThreadPtr = NULL;
 
 	mTerminate = false;
@@ -490,7 +491,7 @@ void sgct::Engine::initOGL()
 		mInternalRenderFisheyeFn = &Engine::renderFisheye;
 
 		//force buffer objects since display lists are not supported in core opengl 3.3+
-		ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
+		ClusterManager::instance()->setMeshImplementation( ClusterManager::BUFFER_OBJECTS );
 		mFixedOGLPipeline = false;
 	}
 	else
@@ -567,6 +568,23 @@ void sgct::Engine::initOGL()
 	{
 		mThisNode->setCurrentWindowIndex(i);
 		getActiveWindowPtr()->initOGL(); //sets context to shared
+        
+        if(mScreenShotFn != NULL)
+        {
+            //set callback
+            sgct_cppxeleven::function< void(Image *, std::size_t, ScreenCapture::EyeIndex) > callback;
+            callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback, this,
+                                             sgct_cppxeleven::placeholders::_1,
+                                             sgct_cppxeleven::placeholders::_2,
+                                             sgct_cppxeleven::placeholders::_3);
+            
+            //left channel (Mono and Stereo_Left)
+            if( getActiveWindowPtr()->getScreenCapturePointer(0) != NULL )
+                getActiveWindowPtr()->getScreenCapturePointer(0)->setCaptureCallback(callback);
+            //right channel (Stereo_Right)
+            if( getActiveWindowPtr()->getScreenCapturePointer(1) != NULL )
+                getActiveWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
+        }
 	}
 
 	updateFrustums();
@@ -724,6 +742,7 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkMessageCallbackFn = NULL;
 	mNetworkStatusCallbackFn = NULL;
+    mScreenShotFn = NULL;
 
 	//global
 	gKeyboardCallbackFn = NULL;
@@ -1300,7 +1319,7 @@ void sgct::Engine::drawOverlays()
 		getActiveWindowPtr()->setCurrentViewport(i);
 
 		//if viewport has overlay
-		sgct_core::Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
+		Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
 		
         if( tmpVP->hasOverlayTexture() && tmpVP->isEnabled() )
 		{
@@ -1349,7 +1368,7 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 		getActiveWindowPtr()->setCurrentViewport(i);
 
 		//if viewport has overlay
-		sgct_core::Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
+		Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
 		if( tmpVP->hasOverlayTexture() && tmpVP->isEnabled() )
 		{
 			//enter ortho mode
@@ -1498,7 +1517,7 @@ void sgct::Engine::renderFBOTexture()
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
-				sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+				Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -1546,7 +1565,7 @@ void sgct::Engine::renderFBOTexture()
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
-				sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+				Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -1656,7 +1675,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glBlendFunc(GL_DST_COLOR, GL_ZERO);
 		for (std::size_t i = 0; i < numberOfIterations; i++)
 		{
-			sgct_core::Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+			Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
 			if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 			{
 				glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -2649,13 +2668,13 @@ void sgct::Engine::loadShaders()
 	
 	if( mFixedOGLPipeline )
 	{
-		fxaa_vert_shader = sgct_core::shaders::FXAA_Vert_Shader;
-		fxaa_frag_shader = sgct_core::shaders::FXAA_Frag_Shader;
+		fxaa_vert_shader = shaders::FXAA_Vert_Shader;
+		fxaa_frag_shader = shaders::FXAA_Frag_Shader;
 	}
 	else
 	{
-		fxaa_vert_shader = sgct_core::shaders_modern::FXAA_Vert_Shader;
-		fxaa_frag_shader = sgct_core::shaders_modern::FXAA_Frag_Shader;
+		fxaa_vert_shader = shaders_modern::FXAA_Vert_Shader;
+		fxaa_frag_shader = shaders_modern::FXAA_Frag_Shader;
 	}
 
 	//replace glsl version
@@ -2691,8 +2710,8 @@ void sgct::Engine::loadShaders()
 	{
 		std::string FBO_quad_vert_shader;
 		std::string FBO_quad_frag_shader;
-		FBO_quad_vert_shader = sgct_core::shaders_modern::Base_Vert_Shader;
-		FBO_quad_frag_shader = sgct_core::shaders_modern::Base_Frag_Shader;
+		FBO_quad_vert_shader = shaders_modern::Base_Vert_Shader;
+		FBO_quad_frag_shader = shaders_modern::Base_Frag_Shader;
 		
 		//replace glsl version
 		sgct_helpers::findAndReplace(FBO_quad_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
@@ -2709,8 +2728,8 @@ void sgct::Engine::loadShaders()
 
 		std::string Overlay_vert_shader;
 		std::string Overlay_frag_shader;
-		Overlay_vert_shader = sgct_core::shaders_modern::Overlay_Vert_Shader;
-		Overlay_frag_shader = sgct_core::shaders_modern::Overlay_Frag_Shader;
+		Overlay_vert_shader = shaders_modern::Overlay_Vert_Shader;
+		Overlay_frag_shader = shaders_modern::Overlay_Frag_Shader;
 
 		//replace glsl version
 		sgct_helpers::findAndReplace(Overlay_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
@@ -3280,6 +3299,16 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool, int))
 {
 	mNetworkStatusCallbackFn = fnPtr;
+}
+
+/*!
+ \param fnPtr is the function pointer to a screenshot callback for custom frame capture & export
+ This callback must be set before Engine::init is called\n
+ Parameters to the callback are: Image pointer for image data, window index, eye index
+ */
+void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, ScreenCapture::EyeIndex))
+{
+    mScreenShotFn = fnPtr;
 }
 
 /*!
@@ -3929,6 +3958,15 @@ void sgct::Engine::updateStatusForExternalControl(bool connected, int clientInde
 }
 
 /*!
+ Don't use this. This function is called from ScreenCapture and will invoke the screen shot callback.
+*/
+void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex, ScreenCapture::EyeIndex ei)
+{
+    if(mScreenShotFn != NULL)
+        mScreenShotFn(imPtr, winIndex, ei);
+}
+
+/*!
 	This function sends a message to the external control interface.
 	\param data a pointer to the data buffer
 	\param length is the number of bytes of data that will be sent
@@ -4131,7 +4169,7 @@ void sgct::Engine::sleep(double secs)
 
 	\returns Handle/id to the created timer
 */
-size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(size_t) )
+size_t sgct::Engine::createTimer( double millisec, void(*fnPtr)(std::size_t) )
 {
     if ( isMaster() )
     {

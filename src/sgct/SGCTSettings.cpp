@@ -207,7 +207,7 @@ Set capture/screenshot path used by SGCT
 \param path the path including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::CapturePathIndexes cpi)
+void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::CapturePathIndex cpi)
 {
 	if( path.empty() ) //invalid filename
 	{
@@ -224,7 +224,7 @@ Append capture/screenshot path used by SGCT
 \param str the string to append including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct::SGCTSettings::appendCapturePath(std::string str, sgct::SGCTSettings::CapturePathIndexes cpi)
+void sgct::SGCTSettings::appendCapturePath(std::string str, sgct::SGCTSettings::CapturePathIndex cpi)
 {
 	mCapturePath[cpi].append( str );
 }
@@ -255,7 +255,7 @@ void sgct::SGCTSettings::setCaptureFormat(const char * format)
 
 	\param cpi index to which path to get (Mono = default, Left or Right)
 */
-const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndexes cpi)
+const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndex cpi)
 {
 	return mCapturePath[cpi].c_str();
 }

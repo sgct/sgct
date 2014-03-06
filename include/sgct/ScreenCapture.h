@@ -35,11 +35,12 @@ class ScreenCapture
 public:
 	//! The different file formats supported
 	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA };
+    enum EyeIndex { MONO = 0, STEREO_LEFT, STEREO_RIGHT};
 
 	ScreenCapture();
 	~ScreenCapture();
 
-	void init(std::size_t windowIndex, int type);
+	void init(std::size_t windowIndex, EyeIndex ei);
 	void initOrResize(int x, int y, int channels=4);
 	void setFormat(CaptureFormat cf);
 	CaptureFormat getFormat();
@@ -47,8 +48,8 @@ public:
 	void setUsePBO(bool state);
 
 #ifdef __LOAD_CPP11_FUN__
-	void setCaptureCallback(sgct_cppxeleven::function<void(Image* imPtr)> callback);
-	sgct_cppxeleven::function< void(Image* imPtr) > mCaptureCallbackFn;
+	void setCaptureCallback(sgct_cppxeleven::function<void(Image*, std::size_t, EyeIndex)> callback);
+	sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex) > mCaptureCallbackFn;
 #endif
 
 private:
@@ -69,7 +70,7 @@ private:
 
 	std::string mScreenShotFilename;
 	bool mUsePBO;
-	int mType;
+	EyeIndex mEyeIndex;
 	CaptureFormat mFormat;
 	std::size_t mWindowIndex;
 };

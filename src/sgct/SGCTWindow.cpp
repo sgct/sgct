@@ -1021,12 +1021,12 @@ void sgct::SGCTWindow::initScreenCapture()
 		if (i == 0)
 		{
 			if (mUseRightEyeTexture)
-				mScreenCapture[i]->init(mId, SGCTSettings::LeftStereo);
+				mScreenCapture[i]->init(mId, sgct_core::ScreenCapture::STEREO_LEFT);
 			else
-				mScreenCapture[i]->init(mId, SGCTSettings::Mono);
+				mScreenCapture[i]->init(mId, sgct_core::ScreenCapture::MONO);
 		}
 		else
-			mScreenCapture[i]->init(mId, SGCTSettings::RightStereo);
+			mScreenCapture[i]->init(mId, sgct_core::ScreenCapture::STEREO_RIGHT);
 
 		//a workaround for devices that are supporting pbos but not showing it, like OS X (Intel)
 		if (Engine::instance()->isOGLPipelineFixed())

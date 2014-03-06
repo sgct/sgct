@@ -9,6 +9,7 @@ void encode();
 void decode();
 void cleanUp();
 void keyCallback(int key, int action);
+void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei);
 
 void drawGeoCorrPatt();
 void drawColCorrPatt();
@@ -17,6 +18,7 @@ void loadData();
 void drawTexturedObject();
 
 Dome * mDome = NULL;
+unsigned char * mData = NULL;
 
 sgct::SharedShort displayState(0);
 sgct::SharedShort colorState(0);
@@ -79,6 +81,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( preSync );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setCleanUpFunction( cleanUp );
+    gEngine->setScreenShotCallback( screenShot );
 	sgct::SharedData::instance()->setEncodeFunction(encode);
 	sgct::SharedData::instance()->setDecodeFunction(decode);
 
@@ -287,6 +290,50 @@ void keyCallback(int key, int action)
 	}
 }
 
+void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei)
+{
+    std::string eye;
+    switch(ei)
+    {
+        case sgct_core::ScreenCapture::MONO:
+        default:
+            eye.assign("mono");
+            break;
+            
+        case sgct_core::ScreenCapture::STEREO_LEFT:
+            eye.assign("left");
+            break;
+            
+        case sgct_core::ScreenCapture::STEREO_RIGHT:
+            eye.assign("Right");
+            break;
+    }
+    
+    sgct::MessageHandler::instance()->print("Taking screenshot %dx%d %d bpp, win=%u %s\n",
+                                            imPtr->getSizeX(), imPtr->getSizeY(),
+                                            imPtr->getChannels() * 8,
+                                            winIndex, eye.c_str()
+                                            );
+    static int lastAllocSize = 0;
+    int dataSize = imPtr->getSizeX() * imPtr->getSizeY() * imPtr->getChannels();
+    if( mData == NULL )
+    {
+        mData = new (std::nothrow) unsigned char[dataSize];
+        lastAllocSize = dataSize;
+    }
+    else if( lastAllocSize < dataSize )
+    {
+        sgct::MessageHandler::instance()->print("Re-allocating image data to...\n");
+        delete [] mData;
+        mData = new (std::nothrow) unsigned char[dataSize];
+        lastAllocSize = dataSize;
+    }
+    
+    double t0 = sgct::Engine::getTime();
+    memcpy(mData, imPtr->getData(), dataSize);
+    sgct::MessageHandler::instance()->print("Time to copy %.3f ms\n", (sgct::Engine::getTime()-t0)*1000.0);
+}
+
 void cleanUp()
 {
 	for (std::size_t i = 0; i < textures.size(); i++)
@@ -295,6 +342,12 @@ void cleanUp()
 
 	if( mDome )
 		delete mDome;
+    
+    if( mData )
+    {
+        delete [] mData;
+        mData = NULL;
+    }
 }
 
 void drawGeoCorrPatt()

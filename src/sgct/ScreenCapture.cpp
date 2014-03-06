@@ -29,10 +29,10 @@ sgct_core::ScreenCapture::ScreenCapture()
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 	mCaptureCallbackFn = nullptr;
 #else
-	mDecoderCallbackFn = NULL;
+	mCaptureCallbackFn = NULL;
 #endif
 	
-	mType = sgct::SGCTSettings::Mono;
+	mEyeIndex = MONO;
 	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
 	mPBO = GL_FALSE;
 		
@@ -51,7 +51,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 	mCaptureCallbackFn = nullptr;
 #else
-	mDecoderCallbackFn = NULL;
+	mCaptureCallbackFn = NULL;
 #endif
 	
 	if( mSCTIPtrs != NULL )
@@ -226,7 +226,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
 #else
 		if (mCaptureCallbackFn != NULL)
 #endif
-			mCaptureCallbackFn(imPtr);
+			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
 		else
 		{
 			//save the image
@@ -258,7 +258,7 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
 #else
 		if (mCaptureCallbackFn != NULL)
 #endif
-			mCaptureCallbackFn(imPtr);
+			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
 		else
 		{
 			//save the image
@@ -278,9 +278,9 @@ void sgct_core::ScreenCapture::setUsePBO(bool state)
 /*!
 	Init
 */
-void sgct_core::ScreenCapture::init(std::size_t windowIndex, int type)
+void sgct_core::ScreenCapture::init(std::size_t windowIndex, sgct_core::ScreenCapture::EyeIndex ei)
 {
-	mType = type;
+	mEyeIndex = ei;
 	
 	mSCTIPtrs = new ScreenCaptureThreadInfo[mNumberOfThreads];
 	for( unsigned int i=0; i<mNumberOfThreads; i++ )
@@ -293,22 +293,22 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex, int type)
 void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumber )
 {
 	std::string eye;
-	switch (mType)
+	switch (mEyeIndex)
 	{
-	case sgct::SGCTSettings::Mono:
+	case MONO:
 	default:
 		eye.assign("");
-		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::Mono ) );
+        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::Mono) );
 		break;
 
-	case sgct::SGCTSettings::LeftStereo:
+	case STEREO_LEFT:
 		eye.assign("_L");
-		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::LeftStereo ) );
+        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::LeftStereo) );
 		break;
 
-	case sgct::SGCTSettings::RightStereo:
+	case STEREO_RIGHT:
 		eye.assign("_R");
-		mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath( sgct::SGCTSettings::RightStereo ) );
+        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::RightStereo) );
 		break;
 	}
 
@@ -490,9 +490,10 @@ void screenCaptureHandler(void *arg)
 }
 
 /*!
-Set the screen capture callback
+Set the screen capture callback\n
+Parameters are: image pointer to captured image, window index and eye index
 */
-void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image* imPtr)> callback)
+void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex)> callback)
 {
 	mCaptureCallbackFn = callback;
 }

@@ -223,9 +223,9 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 Ths namespace contains various help classes and functions.
 */
 namespace sgct_helpers{}; //empty for doxygen documentation only
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+//#include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include "../include/sgct/helpers/SGCTVertexData.h"
-#include "../include/sgct/helpers/SGCTPortedFunctions.h"
+//#include "../include/sgct/helpers/SGCTPortedFunctions.h"
 
 //for backwards compability
 namespace Freetype = sgct_text;

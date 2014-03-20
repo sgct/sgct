@@ -4290,8 +4290,9 @@ void updateFrameLockLoop(void * arg)
 	{
 		sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 		run = sRunUpdateFrameLockLoop;
-		sgct_core::NetworkManager::gCond.notify_all();
 		sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+
+		sgct_core::NetworkManager::gCond.notify_all();
 
 		tthread::this_thread::sleep_for(tthread::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
 	}

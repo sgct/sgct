@@ -1069,9 +1069,7 @@ void communicationHandler(void *arg)
 						{
 							nPtr->pushClientMessage();
 						}*/
-						sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 						sgct_core::NetworkManager::gCond.notify_all();
-						sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 
 #ifdef __SGCT_NETWORK_DEBUG__
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
@@ -1089,9 +1087,7 @@ void communicationHandler(void *arg)
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
 #endif
 						(nPtr->mConnectedCallbackFn)();
-						sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 						sgct_core::NetworkManager::gCond.notify_all();
-						sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
 #ifdef __SGCT_NETWORK_DEBUG__
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
@@ -1307,19 +1303,8 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 #endif
 	
 	//release conditions
-	sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	NetworkManager::gCond.notify_all();
-	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
 	mStartConnectionCond.notify_all();
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
 
 	if( mCommThread != NULL )
     {
@@ -1380,15 +1365,7 @@ void sgct_core::SGCTNetwork::initShutdown()
 	//wake up the connection handler thread (in order to finish)
 	if( isServer() )
 	{
-		#ifdef __SGCT_MUTEX_DEBUG__
-			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-		#endif
-		mConnectionMutex.lock();
 		mStartConnectionCond.notify_all();
-		mConnectionMutex.unlock();
-		#ifdef __SGCT_MUTEX_DEBUG__
-			fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-		#endif
 	}
 
     closeSocket( mSocket );

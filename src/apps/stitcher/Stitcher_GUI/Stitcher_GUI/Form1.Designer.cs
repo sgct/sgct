@@ -105,6 +105,9 @@
             this.samples = new System.Windows.Forms.Label();
             this.MSAA_ComboBox = new System.Windows.Forms.ComboBox();
             this.MSAALabel = new System.Windows.Forms.Label();
+            this.cubicCheckBox = new System.Windows.Forms.CheckBox();
+            this.cubemapComboBox = new System.Windows.Forms.ComboBox();
+            this.label19 = new System.Windows.Forms.Label();
             this.left_input_groupbox.SuspendLayout();
             this.setting_groupBox.SuspendLayout();
             this.transform_groupbox.SuspendLayout();
@@ -117,6 +120,8 @@
             // 
             // left_input_groupbox
             // 
+            this.left_input_groupbox.Controls.Add(this.cubemapComboBox);
+            this.left_input_groupbox.Controls.Add(this.label19);
             this.left_input_groupbox.Controls.Add(this.browse_bottom_L_button);
             this.left_input_groupbox.Controls.Add(this.input_bottom_L_textbox);
             this.left_input_groupbox.Controls.Add(this.label4);
@@ -131,14 +136,14 @@
             this.left_input_groupbox.Controls.Add(this.label1);
             this.left_input_groupbox.Location = new System.Drawing.Point(13, 70);
             this.left_input_groupbox.Name = "left_input_groupbox";
-            this.left_input_groupbox.Size = new System.Drawing.Size(507, 166);
+            this.left_input_groupbox.Size = new System.Drawing.Size(507, 198);
             this.left_input_groupbox.TabIndex = 0;
             this.left_input_groupbox.TabStop = false;
             this.left_input_groupbox.Text = "Input";
             // 
             // browse_bottom_L_button
             // 
-            this.browse_bottom_L_button.Location = new System.Drawing.Point(459, 115);
+            this.browse_bottom_L_button.Location = new System.Drawing.Point(459, 146);
             this.browse_bottom_L_button.Name = "browse_bottom_L_button";
             this.browse_bottom_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_bottom_L_button.TabIndex = 11;
@@ -148,7 +153,7 @@
             // 
             // input_bottom_L_textbox
             // 
-            this.input_bottom_L_textbox.Location = new System.Drawing.Point(63, 116);
+            this.input_bottom_L_textbox.Location = new System.Drawing.Point(63, 147);
             this.input_bottom_L_textbox.Name = "input_bottom_L_textbox";
             this.input_bottom_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_bottom_L_textbox.TabIndex = 10;
@@ -157,7 +162,7 @@
             // label4
             // 
             this.label4.AutoSize = true;
-            this.label4.Location = new System.Drawing.Point(19, 119);
+            this.label4.Location = new System.Drawing.Point(19, 150);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(40, 13);
             this.label4.TabIndex = 9;
@@ -165,7 +170,7 @@
             // 
             // browse_top_L_button
             // 
-            this.browse_top_L_button.Location = new System.Drawing.Point(459, 88);
+            this.browse_top_L_button.Location = new System.Drawing.Point(459, 119);
             this.browse_top_L_button.Name = "browse_top_L_button";
             this.browse_top_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_top_L_button.TabIndex = 8;
@@ -175,7 +180,7 @@
             // 
             // input_top_L_textbox
             // 
-            this.input_top_L_textbox.Location = new System.Drawing.Point(63, 89);
+            this.input_top_L_textbox.Location = new System.Drawing.Point(63, 120);
             this.input_top_L_textbox.Name = "input_top_L_textbox";
             this.input_top_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_top_L_textbox.TabIndex = 7;
@@ -184,7 +189,7 @@
             // label3
             // 
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(19, 92);
+            this.label3.Location = new System.Drawing.Point(19, 123);
             this.label3.Name = "label3";
             this.label3.Size = new System.Drawing.Size(26, 13);
             this.label3.TabIndex = 6;
@@ -192,7 +197,7 @@
             // 
             // browse_right_L_button
             // 
-            this.browse_right_L_button.Location = new System.Drawing.Point(459, 59);
+            this.browse_right_L_button.Location = new System.Drawing.Point(459, 90);
             this.browse_right_L_button.Name = "browse_right_L_button";
             this.browse_right_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_right_L_button.TabIndex = 5;
@@ -202,7 +207,7 @@
             // 
             // input_right_L_textbox
             // 
-            this.input_right_L_textbox.Location = new System.Drawing.Point(63, 60);
+            this.input_right_L_textbox.Location = new System.Drawing.Point(63, 91);
             this.input_right_L_textbox.Name = "input_right_L_textbox";
             this.input_right_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_right_L_textbox.TabIndex = 4;
@@ -211,7 +216,7 @@
             // label2
             // 
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(19, 63);
+            this.label2.Location = new System.Drawing.Point(19, 94);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(32, 13);
             this.label2.TabIndex = 3;
@@ -219,7 +224,7 @@
             // 
             // browse_left_L_button
             // 
-            this.browse_left_L_button.Location = new System.Drawing.Point(459, 31);
+            this.browse_left_L_button.Location = new System.Drawing.Point(459, 62);
             this.browse_left_L_button.Name = "browse_left_L_button";
             this.browse_left_L_button.Size = new System.Drawing.Size(32, 23);
             this.browse_left_L_button.TabIndex = 2;
@@ -229,7 +234,7 @@
             // 
             // input_left_L_textbox
             // 
-            this.input_left_L_textbox.Location = new System.Drawing.Point(63, 32);
+            this.input_left_L_textbox.Location = new System.Drawing.Point(63, 63);
             this.input_left_L_textbox.Name = "input_left_L_textbox";
             this.input_left_L_textbox.Size = new System.Drawing.Size(388, 20);
             this.input_left_L_textbox.TabIndex = 1;
@@ -238,7 +243,7 @@
             // label1
             // 
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(19, 35);
+            this.label1.Location = new System.Drawing.Point(19, 66);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(25, 13);
             this.label1.TabIndex = 0;
@@ -345,7 +350,7 @@
             this.transform_groupbox.Controls.Add(this.LeftTransformLabel);
             this.transform_groupbox.Location = new System.Drawing.Point(770, 12);
             this.transform_groupbox.Name = "transform_groupbox";
-            this.transform_groupbox.Size = new System.Drawing.Size(261, 194);
+            this.transform_groupbox.Size = new System.Drawing.Size(261, 224);
             this.transform_groupbox.TabIndex = 2;
             this.transform_groupbox.TabStop = false;
             this.transform_groupbox.Text = "Transform";
@@ -488,7 +493,7 @@
             this.right_input_groupbox.Controls.Add(this.browse_left_R_button);
             this.right_input_groupbox.Controls.Add(this.input_left_R_textbox);
             this.right_input_groupbox.Controls.Add(this.label15);
-            this.right_input_groupbox.Location = new System.Drawing.Point(12, 242);
+            this.right_input_groupbox.Location = new System.Drawing.Point(12, 274);
             this.right_input_groupbox.Name = "right_input_groupbox";
             this.right_input_groupbox.Size = new System.Drawing.Size(507, 175);
             this.right_input_groupbox.TabIndex = 12;
@@ -605,6 +610,7 @@
             // 
             // output_groupBox
             // 
+            this.output_groupBox.Controls.Add(this.cubicCheckBox);
             this.output_groupBox.Controls.Add(this.compressionTrackBar);
             this.output_groupBox.Controls.Add(this.CompressionLabel);
             this.output_groupBox.Controls.Add(this.start_index_textBox);
@@ -623,7 +629,7 @@
             this.output_groupBox.Controls.Add(this.alpha_checkBox);
             this.output_groupBox.Controls.Add(this.resolution_comboBox);
             this.output_groupBox.Controls.Add(this.label16);
-            this.output_groupBox.Location = new System.Drawing.Point(526, 212);
+            this.output_groupBox.Location = new System.Drawing.Point(525, 244);
             this.output_groupBox.Name = "output_groupBox";
             this.output_groupBox.Size = new System.Drawing.Size(507, 205);
             this.output_groupBox.TabIndex = 13;
@@ -776,7 +782,7 @@
             // alpha_checkBox
             // 
             this.alpha_checkBox.AutoSize = true;
-            this.alpha_checkBox.Location = new System.Drawing.Point(217, 32);
+            this.alpha_checkBox.Location = new System.Drawing.Point(202, 32);
             this.alpha_checkBox.Name = "alpha_checkBox";
             this.alpha_checkBox.Size = new System.Drawing.Size(115, 17);
             this.alpha_checkBox.TabIndex = 2;
@@ -794,8 +800,9 @@
             "8192x8192"});
             this.resolution_comboBox.Location = new System.Drawing.Point(80, 30);
             this.resolution_comboBox.Name = "resolution_comboBox";
-            this.resolution_comboBox.Size = new System.Drawing.Size(106, 21);
+            this.resolution_comboBox.Size = new System.Drawing.Size(95, 21);
             this.resolution_comboBox.TabIndex = 1;
+            this.resolution_comboBox.SelectedIndexChanged += new System.EventHandler(this.resolution_comboBox_SelectedIndexChanged);
             // 
             // label16
             // 
@@ -867,7 +874,7 @@
             this.groupBox1.Controls.Add(this.MSAALabel);
             this.groupBox1.Location = new System.Drawing.Point(527, 133);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(237, 73);
+            this.groupBox1.Size = new System.Drawing.Size(237, 105);
             this.groupBox1.TabIndex = 16;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "Anti-aliasing";
@@ -875,8 +882,6 @@
             // FXAACheckBox
             // 
             this.FXAACheckBox.AutoSize = true;
-            this.FXAACheckBox.Checked = true;
-            this.FXAACheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
             this.FXAACheckBox.Location = new System.Drawing.Point(16, 48);
             this.FXAACheckBox.Name = "FXAACheckBox";
             this.FXAACheckBox.Size = new System.Drawing.Size(53, 17);
@@ -918,11 +923,47 @@
             this.MSAALabel.TabIndex = 12;
             this.MSAALabel.Text = "MSAA";
             // 
+            // cubicCheckBox
+            // 
+            this.cubicCheckBox.AutoSize = true;
+            this.cubicCheckBox.Checked = true;
+            this.cubicCheckBox.CheckState = System.Windows.Forms.CheckState.Checked;
+            this.cubicCheckBox.Location = new System.Drawing.Point(202, 55);
+            this.cubicCheckBox.Name = "cubicCheckBox";
+            this.cubicCheckBox.Size = new System.Drawing.Size(134, 17);
+            this.cubicCheckBox.TabIndex = 24;
+            this.cubicCheckBox.Text = "Use cubic interpolation";
+            this.cubicCheckBox.UseVisualStyleBackColor = true;
+            // 
+            // cubemapComboBox
+            // 
+            this.cubemapComboBox.FormattingEnabled = true;
+            this.cubemapComboBox.Items.AddRange(new object[] {
+            "256x256",
+            "512x512",
+            "1024x1024",
+            "2048x2048",
+            "4096x4096",
+            "8192x8192"});
+            this.cubemapComboBox.Location = new System.Drawing.Point(126, 27);
+            this.cubemapComboBox.Name = "cubemapComboBox";
+            this.cubemapComboBox.Size = new System.Drawing.Size(95, 21);
+            this.cubemapComboBox.TabIndex = 13;
+            // 
+            // label19
+            // 
+            this.label19.AutoSize = true;
+            this.label19.Location = new System.Drawing.Point(18, 30);
+            this.label19.Name = "label19";
+            this.label19.Size = new System.Drawing.Size(100, 13);
+            this.label19.TabIndex = 12;
+            this.label19.Text = "Cubemap resolution";
+            // 
             // stitcher_form
             // 
             this.AutoScaleDimensions = new System.Drawing.SizeF(6F, 13F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
-            this.ClientSize = new System.Drawing.Size(1040, 421);
+            this.ClientSize = new System.Drawing.Size(1040, 455);
             this.Controls.Add(this.groupBox1);
             this.Controls.Add(this.Sequence_groupBox);
             this.Controls.Add(this.output_groupBox);
@@ -1033,6 +1074,9 @@
         private System.Windows.Forms.Label samples;
         private System.Windows.Forms.ComboBox MSAA_ComboBox;
         private System.Windows.Forms.Label MSAALabel;
+        private System.Windows.Forms.ComboBox cubemapComboBox;
+        private System.Windows.Forms.Label label19;
+        private System.Windows.Forms.CheckBox cubicCheckBox;
     }
 }
 

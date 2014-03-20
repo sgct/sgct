@@ -81,7 +81,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( preSync );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setCleanUpFunction( cleanUp );
-    gEngine->setScreenShotCallback( screenShot );
+    //gEngine->setScreenShotCallback( screenShot );
 	sgct::SharedData::instance()->setEncodeFunction(encode);
 	sgct::SharedData::instance()->setDecodeFunction(decode);
 

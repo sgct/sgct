@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
+#include "../include/sgct/SGCTSettings.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
@@ -315,6 +316,6 @@ Render the viewport mesh which the framebuffer texture is attached to
 */
 void sgct_core::Viewport::renderMesh(bool warped)
 {
-	if( mEnabled )
+	if( mEnabled && sgct::SGCTSettings::instance()->getUseWarping() )
         mCM.render(warped);
 }

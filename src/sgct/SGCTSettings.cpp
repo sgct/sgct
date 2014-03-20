@@ -19,6 +19,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mPNGCompressionLevel = 1;
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
+	mUseWarping = true;
 	mUseDepthTexture = false;
 	mUseNormalTexture = false;
 	mUsePositionTexture = false;
@@ -398,6 +399,14 @@ void sgct::SGCTSettings::setUseRLE(bool state)
 }
 
 /*!
+Set if screen warping should be used or not
+*/
+void sgct::SGCTSettings::setUseWarping(bool state)
+{
+	mUseWarping = state;
+}
+
+/*!
 Get if run length encoding (RLE) is used in PNG and TGA export.
 */
 bool sgct::SGCTSettings::getUseRLE()
@@ -407,6 +416,14 @@ bool sgct::SGCTSettings::getUseRLE()
 	tmpB = mUseRLE;
 	mMutex.unlock();
 	return tmpB;
+}
+
+/*!
+Get if screen warping is used
+*/
+bool sgct::SGCTSettings::getUseWarping()
+{
+	return mUseWarping;
 }
 
 /*!

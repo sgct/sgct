@@ -72,6 +72,7 @@ public:
 	void setForceGlTexImage2D(bool state);
 	void setUsePBO(bool state);
 	void setUseRLE(bool state);
+	void setUseWarping(bool state);
     void setFisheyeMethod(FisheyeMethod fm);
 	
 	// ----------- get functions ---------------- //
@@ -88,6 +89,7 @@ public:
 	bool				getForceGlTexImage2D();
 	bool				getUsePBO();
 	bool				getUseRLE();
+	bool				getUseWarping();
     FisheyeMethod       getFisheyeMethod();
 	int					getPNGCompressionLevel();
 
@@ -141,6 +143,7 @@ private:
 	bool mForceGlTexImage2D;
 	bool mUsePBO;
 	bool mUseRLE;
+	bool mUseWarping;
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;
 	float mFXAASubPixOffset;

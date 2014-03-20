@@ -34,6 +34,7 @@ namespace Stitcher_GUI
             top_transform_comboBox.SelectedIndex = 0;
             bottom_transform_comboBox.SelectedIndex = 0;
             resolution_comboBox.SelectedIndex = 2;
+            cubemapComboBox.SelectedIndex = resolution_comboBox.SelectedIndex;
             format_comboBox.SelectedIndex = 0;
 
             start_button.Enabled = false;
@@ -409,6 +410,10 @@ namespace Stitcher_GUI
             else
                 arguments += " -fxaa 0";
 
+            if (cubicCheckBox.Checked)
+                arguments += " -cubic 1";
+            else
+                arguments += " -cubic 0";
 
             arguments += " -eyeSep " + eyeSeparation.ToString("0.000000", System.Globalization.CultureInfo.InvariantCulture);
             arguments += " -diameter " + domeDiameter.ToString("0.000000", System.Globalization.CultureInfo.InvariantCulture);
@@ -416,6 +421,9 @@ namespace Stitcher_GUI
             
             string resolutionString = resolution_comboBox.Items[resolution_comboBox.SelectedIndex].ToString();
             arguments += " -res " + resolutionString.Substring(0, resolutionString.IndexOf("x"));
+
+            string cubemapResString = cubemapComboBox.Items[cubemapComboBox.SelectedIndex].ToString();
+            arguments += " -cubemap " + cubemapResString.Substring(0, cubemapResString.IndexOf("x"));
 
             arguments += " -format " + format_comboBox.Items[format_comboBox.SelectedIndex].ToString();
             arguments += " -compression " + compressionTrackBar.Value.ToString();
@@ -492,6 +500,11 @@ namespace Stitcher_GUI
         {
             updateStartButtonStatus();
             updateTextBoxes();
+        }
+
+        private void resolution_comboBox_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            cubemapComboBox.SelectedIndex = resolution_comboBox.SelectedIndex;
         }
     }
 }

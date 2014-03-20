@@ -33,6 +33,7 @@ int stopIndex;
 int numberOfDigits = 0;
 int iterator;
 bool sequence = false;
+bool cubic = true;
 
 int counter = 0;
 int startFrame = 0;
@@ -41,6 +42,7 @@ bool stereo = false;
 bool fxaa = false;
 int numberOfMSAASamples = 1;
 int resolution = 512;
+int cubemapRes = 256;
 float eyeSeparation = 0.065f;
 float domeDiameter = 14.8f;
 
@@ -140,7 +142,12 @@ int main( int argc, char* argv[] )
 		else if (strcmp(argv[i], "-stereo") == 0 && argc > (i + 1))
 		{
 			stereo = (strcmp(argv[i + 1], "1") == 0);
-			sgct::MessageHandler::instance()->print("Setting stereo to %s\n", alpha ? "true" : "false");
+			sgct::MessageHandler::instance()->print("Setting stereo to %s\n", stereo ? "true" : "false");
+		}
+		else if (strcmp(argv[i], "-cubic") == 0 && argc > (i + 1))
+		{
+			cubic = (strcmp(argv[i + 1], "1") == 0);
+			sgct::MessageHandler::instance()->print("Setting cubic interpolation to %s\n", cubic ? "true" : "false");
 		}
 		else if (strcmp(argv[i], "-fxaa") == 0 && argc > (i + 1))
 		{
@@ -166,6 +173,11 @@ int main( int argc, char* argv[] )
 		{
 			resolution = atoi(argv[i + 1]);
 			sgct::MessageHandler::instance()->print("Resolution set to %d\n", resolution);
+		}
+		else if (strcmp(argv[i], "-cubemap") == 0 && argc > (i + 1))
+		{
+			cubemapRes = atoi(argv[i + 1]);
+			sgct::MessageHandler::instance()->print("Cubemap resolution set to %d\n", cubemapRes);
 		}
 		else if (strcmp(argv[i], "-format") == 0 && argc > (i + 1))
 		{
@@ -202,14 +214,14 @@ int main( int argc, char* argv[] )
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setPreWindowFunction( myPreWinInitFun );
 
+	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
+	gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
+
 	if( !gEngine->init() )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
-
-	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
 
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
@@ -368,14 +380,15 @@ void myPreWinInitFun()
 		gEngine->setScreenShotNumber(startFrame);
 		gEngine->getWindowPtr(i)->setAlpha(alpha);
 		gEngine->getWindowPtr(i)->setDomeDiameter(domeDiameter);
+		gEngine->getWindowPtr(i)->setCubeMapResolution(cubemapRes);
 		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
-		gEngine->getWindowPtr(i)->setCubeMapResolution(resolution / 2);
 		gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
 		gEngine->getWindowPtr(i)->setUseFXAA(fxaa);
 		if (stereo)
 			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::Dummy_Stereo);
 		else
 			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::No_Stereo);
+		gEngine->getWindowPtr(i)->setFisheyeUseCubicInterpolation(cubic);
 	}
 }
 

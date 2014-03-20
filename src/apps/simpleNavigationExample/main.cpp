@@ -142,18 +142,21 @@ void myPreSyncFun()
 
 			This is done by:
 			1, Transform the user to coordinate system origin
-			2, Apply transformation
-			3, Transform the user back to original position
+			2, Apply navigation
+			3, Apply rotation
+			4, Transform the user back to original position
 
 			However, mathwise this process need to be reversed
 			due to the matrix multiplication order.
 		*/
 
-		//3. transform user back to original position
 		glm::mat4 result;
+		//4. transform user back to original position
 		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
-		//2. apply transformation
-		result *= (ViewRotateX * glm::translate( glm::mat4(1.0f), pos ));
+		//3. apply view rotation
+		result *= ViewRotateX;
+		//2. apply navigation translation
+		result *= glm::translate(glm::mat4(1.0f), pos);
 		//1. transform user to coordinate system origin
 		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
 

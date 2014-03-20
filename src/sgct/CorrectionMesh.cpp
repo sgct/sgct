@@ -104,13 +104,18 @@ void sgct_core::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, 
 
 bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_core::Viewport * parent)
 {
+	//generate unwarped mask
+	setupSimpleMesh(&mGeometries[QUAD_MESH]);
+	createMesh(&mGeometries[QUAD_MESH]);
+	cleanUp();
+	
 	//generate unwarped mesh for mask
 	if(parent->hasMaskTexture())
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Creating mask mesh\n");
         
         setupMaskMesh();
-        createMesh(&mGeometries[Mask]);
+		createMesh(&mGeometries[MASK_MESH]);
         cleanUp();
     }
 	
@@ -123,8 +128,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_
 
 	if (length == 0)
 	{
-		setupSimpleMesh();
-		createMesh(&mGeometries[NoMask]);
+		setupSimpleMesh(&mGeometries[WARP_MESH]);
+		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
 		return false;
 	}
@@ -133,8 +138,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_
 	{
 		if (!readAndGenerateScissMesh(meshPath, parent))
 		{
-			setupSimpleMesh();
-			createMesh(&mGeometries[NoMask]);
+			setupSimpleMesh(&mGeometries[WARP_MESH]);
+			createMesh(&mGeometries[WARP_MESH]);
 			cleanUp();
 			return false;
 		}
@@ -143,8 +148,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_
 	{
 		if( !readAndGenerateScalableMesh(meshPath, parent))
 		{
-			setupSimpleMesh();
-			createMesh(&mGeometries[NoMask]);
+			setupSimpleMesh(&mGeometries[WARP_MESH]);
+			createMesh(&mGeometries[WARP_MESH]);
 			cleanUp();
 			return false;
 		}
@@ -152,8 +157,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(const char * meshPath, sgct_
 	else
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Loading failed (bad filename: %s)\n", meshPath);
-		setupSimpleMesh();
-		createMesh(&mGeometries[NoMask]);
+		setupSimpleMesh(&mGeometries[WARP_MESH]);
+		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
 		return false;
 	}
@@ -332,11 +337,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const char * meshPat
 
 	fclose( meshFile );
 
-	mGeometries[NoMask].mNumberOfVertices = numberOfVertices;
-	mGeometries[NoMask].mNumberOfIndices = numberOfIndices;
-	mGeometries[NoMask].mGeometryType = GL_TRIANGLES;
+	mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
+	mGeometries[WARP_MESH].mNumberOfIndices = numberOfIndices;
+	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
-	createMesh(&mGeometries[NoMask]);
+	createMesh(&mGeometries[WARP_MESH]);
 
 	cleanUp();
 
@@ -587,18 +592,18 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 			scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);*/
 	}
 
-	mGeometries[NoMask].mNumberOfVertices = numberOfVertices;
-	mGeometries[NoMask].mNumberOfIndices = numberOfIndices;
+	mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
+	mGeometries[WARP_MESH].mNumberOfIndices = numberOfIndices;
 	
 	//GL_QUAD_STRIP removed in OpenGL 3.3+
-	//mGeometries[NoMask].mGeometryType = GL_QUAD_STRIP;
-	mGeometries[NoMask].mGeometryType = GL_TRIANGLE_STRIP;
+	//mGeometries[WARP_MESH].mGeometryType = GL_QUAD_STRIP;
+	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
 
 	//clean up
 	delete [] texturedVertexList;
 	texturedVertexList = NULL;
 
-	createMesh(&mGeometries[NoMask]);
+	createMesh(&mGeometries[WARP_MESH]);
 	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", numberOfVertices, numberOfIndices);
@@ -606,14 +611,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 	return true;
 }
 
-void sgct_core::CorrectionMesh::setupSimpleMesh()
+void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr)
 {
 	unsigned int numberOfVertices = 4;
 	unsigned int numberOfIndices = 4;
 	
-	mGeometries[NoMask].mNumberOfVertices = numberOfVertices;
-	mGeometries[NoMask].mNumberOfIndices = numberOfIndices;
-	mGeometries[NoMask].mGeometryType = GL_TRIANGLE_STRIP;
+	geomPtr->mNumberOfVertices = numberOfVertices;
+	geomPtr->mNumberOfIndices = numberOfIndices;
+	geomPtr->mGeometryType = GL_TRIANGLE_STRIP;
 
 	mTempVertices = new CorrectionMeshVertex[ numberOfVertices ];
 	memset(mTempVertices, 0, numberOfVertices * sizeof(CorrectionMeshVertex));
@@ -668,9 +673,9 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	unsigned int numberOfVertices = 4;
 	unsigned int numberOfIndices = 4;
 
-	mGeometries[Mask].mNumberOfVertices = numberOfVertices;
-	mGeometries[Mask].mNumberOfIndices = numberOfIndices;
-	mGeometries[Mask].mGeometryType = GL_TRIANGLE_STRIP;
+	mGeometries[MASK_MESH].mNumberOfVertices = numberOfVertices;
+	mGeometries[MASK_MESH].mNumberOfIndices = numberOfIndices;
+	mGeometries[MASK_MESH].mGeometryType = GL_TRIANGLE_STRIP;
 
 	mTempVertices = new CorrectionMeshVertex[numberOfVertices];
 	memset(mTempVertices, 0, numberOfVertices * sizeof(CorrectionMeshVertex));
@@ -828,10 +833,10 @@ void sgct_core::CorrectionMesh::cleanUp()
 Render the final mesh where for mapping the frame buffer to the screen
 \param mask to enable mask texture mode
 */
-void sgct_core::CorrectionMesh::render(bool mask)
+void sgct_core::CorrectionMesh::render(MeshType mt)
 {
-	CorrectionMeshGeometry * geomPtr = mask ? &mGeometries[NoMask] : &mGeometries[Mask];
-	
+	CorrectionMeshGeometry * geomPtr = &mGeometries[mt];
+
 	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS )
 	{
 		if(sgct::Engine::instance()->isOGLPipelineFixed())

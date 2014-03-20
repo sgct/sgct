@@ -46,7 +46,7 @@ public:
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist=10.0f);
-	void renderMesh(bool warped);
+	void renderMesh(CorrectionMesh::MeshType mt);
 
 	/*!
 		\returns the name of this viewport

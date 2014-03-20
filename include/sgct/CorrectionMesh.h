@@ -41,27 +41,28 @@ A correction mesh is used for warping and edge-blending.
 class CorrectionMesh
 {
 public:
+	enum MeshType { QUAD_MESH = 0, WARP_MESH, MASK_MESH };
+
 	CorrectionMesh();
 	~CorrectionMesh();
 	void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
 	bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
-	void render(bool mask);
+	void render(MeshType mt);
 
 private:
 	bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
 	bool readAndGenerateScissMesh(const char * meshPath, Viewport * parent);
-	void setupSimpleMesh();
+	void setupSimpleMesh(CorrectionMeshGeometry * geomPtr);
 	void setupMaskMesh();
 	void createMesh(CorrectionMeshGeometry * geomPtr);
 	void cleanUp();
 
 	enum buffer { Vertex = 0, Index, Array };
-	enum textureCoordMode { NoMask = 0, Mask};
 
 	CorrectionMeshVertex * mTempVertices;
 	unsigned int * mTempIndices;
 
-	CorrectionMeshGeometry mGeometries[2];
+	CorrectionMeshGeometry mGeometries[3];
 
 	float mXSize;
 	float mYSize;

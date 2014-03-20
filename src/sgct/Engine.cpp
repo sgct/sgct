@@ -1486,6 +1486,9 @@ void sgct::Engine::renderFBOTexture()
     
     std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
+	sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
+		sgct_core::CorrectionMesh::WARP_MESH : sgct_core::CorrectionMesh::QUAD_MESH;
+
 	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
 	{
@@ -1501,7 +1504,7 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
 
 		for(std::size_t i=0; i<numberOfIterations; i++)
-            getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 
 		//render mask (mono)
 		if (getActiveWindowPtr()->hasAnyMasks())
@@ -1521,7 +1524,7 @@ void sgct::Engine::renderFBOTexture()
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
-					vpPtr->renderMesh(false);
+					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 				}
 			}
 		}
@@ -1537,7 +1540,7 @@ void sgct::Engine::renderFBOTexture()
 		glUniform1i( mShaderLocs[MonoTex], 0);
 
 		for (std::size_t i = 0; i < numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 
 		//render right eye in active stereo mode
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
@@ -1552,7 +1555,7 @@ void sgct::Engine::renderFBOTexture()
 			glUniform1i( mShaderLocs[MonoTex], 0);
 
 			for(std::size_t i=0; i<numberOfIterations; i++)
-				getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+				getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 		}
 
 		//render mask (mono)
@@ -1569,7 +1572,7 @@ void sgct::Engine::renderFBOTexture()
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
-					vpPtr->renderMesh(false);
+					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 				}
 			}
 		}
@@ -1616,6 +1619,10 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
     std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 
 	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+
+	sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
+		sgct_core::CorrectionMesh::WARP_MESH : sgct_core::CorrectionMesh::QUAD_MESH;
+
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
 	{
 		getActiveWindowPtr()->bindStereoShaderProgram();
@@ -1632,7 +1639,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glEnable(GL_TEXTURE_2D);
 
 		for(std::size_t i=0; i<numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 		ShaderProgram::unbind();
 	}
 	else
@@ -1642,7 +1649,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glEnable(GL_TEXTURE_2D);
 
 		for (std::size_t i = 0; i < numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 
 		//render right eye in active stereo mode
 		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
@@ -1656,7 +1663,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
 
 			for(std::size_t i=0; i<numberOfIterations; i++)
-				getActiveWindowPtr()->getViewport(i)->renderMesh(true);
+				getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
 		}
 	}
 
@@ -1679,7 +1686,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 			if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 			{
 				glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
-				vpPtr->renderMesh(false);
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 			}
 		}
 	}

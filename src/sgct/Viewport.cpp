@@ -10,7 +10,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTSettings.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
@@ -312,10 +311,10 @@ void sgct_core::Viewport::setViewPlaneCoordsUsingFOVs(float up, float down, floa
 
 /*!
 Render the viewport mesh which the framebuffer texture is attached to
-\param warped set to true to enable warping
+\param type of mesh; quad, warped or mask
 */
-void sgct_core::Viewport::renderMesh(bool warped)
+void sgct_core::Viewport::renderMesh(sgct_core::CorrectionMesh::MeshType mt)
 {
-	if( mEnabled && sgct::SGCTSettings::instance()->getUseWarping() )
-        mCM.render(warped);
+	if( mEnabled )
+		mCM.render(mt);
 }

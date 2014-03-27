@@ -20,7 +20,7 @@
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{6BEED415-7744-4E36-B6FA-6924C16751A5}</ProjectGuid>
-    <RootNamespace>fmodExample_opengl3</RootNamespace>
+    <RootNamespace>FMOD_Example_opengl3</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
@@ -62,19 +62,19 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <OutDir>$(SGCT_ROOT_DIR)\bin\fmodExample_opengl3\msvc10\</OutDir>
+    <OutDir>$(SGCT_ROOT_DIR)\bin\FMOD_Example_opengl3\msvc10\</OutDir>
     <TargetName>$(ProjectName)_x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>$(SGCT_ROOT_DIR)\bin\fmodExample_opengl3\msvc10\</OutDir>
+    <OutDir>$(SGCT_ROOT_DIR)\bin\FMOD_Example_opengl3\msvc10\</OutDir>
     <TargetName>$(ProjectName)_x64</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <OutDir>$(SGCT_ROOT_DIR)\bin\fmodExample_opengl3\msvc10\</OutDir>
+    <OutDir>$(SGCT_ROOT_DIR)\bin\FMOD_Example_opengl3\msvc10\</OutDir>
     <TargetName>$(ProjectName)_x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>$(SGCT_ROOT_DIR)\bin\fmodExample_opengl3\msvc10\</OutDir>
+    <OutDir>$(SGCT_ROOT_DIR)\bin\FMOD_Example_opengl3\msvc10\</OutDir>
     <TargetName>$(ProjectName)_x64</TargetName>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">

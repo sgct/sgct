@@ -1,6 +1,9 @@
 #include "fmod_errors.h"
 #include "FMOD_Audio.h"
 
+#define USE_FMOD_EX 1
+#define USE_FMOD_HARDWARE 0
+
 SoundItem::SoundItem()
 {
 	mSound = NULL;
@@ -81,8 +84,12 @@ void FMOD_Audio::init()
     {
         sgct::MessageHandler::instance()->print("FMOD lib version %08x doesn't match header version %08x\n", version, FMOD_VERSION);
     }
-    
-    result = mSystem->init(100, FMOD_INIT_NORMAL | FMOD_INIT_PROFILE_ENABLE, NULL);
+
+#if USE_FMOD_EX
+    result = mSystem->init(100, FMOD_INIT_NORMAL, NULL);
+#else
+	result = mSystem->init(100, FMOD_INIT_NORMAL | FMOD_INIT_PROFILE_ENABLE, NULL);
+#endif
     if (result != FMOD_OK)
     {
         sgct::MessageHandler::instance()->print("FMOD error %d - %s\n", result, FMOD_ErrorString(result));
@@ -105,9 +112,15 @@ bool FMOD_Audio::addSound(const std::string & name, const std::string & path, bo
 	SoundItem si;
 	si.mName.assign( name );
 
+#if USE_FMOD_HARDWARE
 	result = stream ?
 		mSystem->createStream( path.c_str(), FMOD_3D, 0, &(si.mSound) ):
 		mSystem->createSound( path.c_str(), FMOD_3D, 0, &(si.mSound) );
+#else
+	result = stream ?
+		mSystem->createStream(path.c_str(), FMOD_SOFTWARE | FMOD_3D, 0, &(si.mSound)) :
+		mSystem->createSound(path.c_str(), FMOD_SOFTWARE | FMOD_3D, 0, &(si.mSound));
+#endif
     
 	if (result != FMOD_OK)
     {
@@ -126,7 +139,11 @@ bool FMOD_Audio::addSound(const std::string & name, const std::string & path, bo
 	//sgct::MessageHandler::instance()->print("Creating channel...\n");
 
 	//add a channel to the sound (paused)
+#if USE_FMOD_EX
+	result = mSystem->playSound(FMOD_CHANNEL_FREE, si.mSound, true, &(si.mChannel));
+#else
 	result = mSystem->playSound(si.mSound, 0, true, &(si.mChannel));
+#endif
 	if (result != FMOD_OK)
 	{
 		sgct::MessageHandler::instance()->print("Failed to make sound '%s' playable, FMOD error %d - %s\n",

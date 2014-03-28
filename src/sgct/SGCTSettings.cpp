@@ -17,6 +17,8 @@ sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
 sgct::SGCTSettings::SGCTSettings()
 {
 	mPNGCompressionLevel = 1;
+	mJPEGQuality = 100;
+
 	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
 
 	mUseWarping = true;
@@ -191,6 +193,16 @@ void sgct::SGCTSettings::setPNGCompressionLevel(int level)
 }
 
 /*!
+Set the JPEG quality in range [0-100].
+*/
+void sgct::SGCTSettings::setJPEGQuality(int quality)
+{
+	mMutex.lock();
+	mJPEGQuality = quality;
+	mMutex.unlock();
+}
+
+/*!
 Get the zlib compression level used in png export.
 */
 int sgct::SGCTSettings::getPNGCompressionLevel()
@@ -198,6 +210,18 @@ int sgct::SGCTSettings::getPNGCompressionLevel()
 	int tmpI;
 	mMutex.lock();
 	tmpI = mPNGCompressionLevel;
+	mMutex.unlock();
+	return tmpI;
+}
+
+/*!
+Get the JPEG quality settings (0-100)
+*/
+int sgct::SGCTSettings::getJPEGQuality()
+{
+	int tmpI;
+	mMutex.lock();
+	tmpI = mJPEGQuality;
 	mMutex.unlock();
 	return tmpI;
 }
@@ -246,6 +270,10 @@ void sgct::SGCTSettings::setCaptureFormat(const char * format)
 	else if( strcmp("tga", format) == 0 || strcmp("TGA", format) == 0 )
 	{
 		mCaptureFormat = sgct_core::ScreenCapture::TGA;
+	}
+	else if (strcmp("jpg", format) == 0 || strcmp("JPG", format) == 0)
+	{
+		mCaptureFormat = sgct_core::ScreenCapture::JPEG;
 	}
 
 	mMutex.unlock();

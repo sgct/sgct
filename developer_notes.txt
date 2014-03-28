@@ -27,3 +27,12 @@ For visual studio projects use:
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
+
+JPEG TURBO 
+=========================================================================
+NASM is requred for compiling libJPEG-turbo: http://www.nasm.us/
+Add NASM install directory to path like: C:\Program Files (x86)\nasm
+
+SIMD: Copy all inc and inc.h files to simd directory
+
+Copy jconfig.h to external headers

@@ -73,7 +73,7 @@ int main( int argc, char* argv[] )
     //sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
     //sgct::SGCTSettings::instance()->setSwapInterval(0);
 
-
+	//sgct::SGCTSettings::instance()->setCaptureFormat("jpg");
 	/*sgct::SGCTSettings::instance()->setCaptureFormat("tga");
 	//sgct::SGCTSettings::instance()->setCaptureFormat("png");
 	sgct::SGCTSettings::instance()->setUseRLE(true);

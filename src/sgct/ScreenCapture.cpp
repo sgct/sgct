@@ -315,8 +315,10 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumbe
 	std::string suffix;
 	if(mFormat == PNG)
 		suffix.assign("png");
-	else/* if(mFormat == TGA)*/
+	else if(mFormat == TGA)
 		suffix.assign("tga");
+	else
+		suffix.assign("jpg");
 
 	char tmpStr[FILENAME_APPEND_BUFFER_LENGTH];
 	char window_node_info_str[32];

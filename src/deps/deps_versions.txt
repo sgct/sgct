@@ -7,3 +7,4 @@ glfw 3.0.4
 glm 0.9.4.6
 vrpn 07.31
 TinyThread++ 1.1
+libjpeg-turbo-1.3.1

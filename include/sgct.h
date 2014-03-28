@@ -99,6 +99,15 @@ Copyright (c) 2010-2012 Marcus Geelnard
 Web: http://tinythreadpp.bitsnbites.eu/
 ---------------------------------------------------------
 
+TurboJPEG
+=========================================================
+Copyright (c) 1991-1998, Thomas G. Lane.
+Modified 2002-2009 by Guido Vollbeding.
+Copyright (C) 2009-2011, 2013, D. R. Commander.
+
+Web: http://www.libjpeg-turbo.org/
+---------------------------------------------------------
+
 *************************************************************************/
 
 /*!

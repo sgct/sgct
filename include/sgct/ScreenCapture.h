@@ -34,7 +34,7 @@ class ScreenCapture
 {
 public:
 	//! The different file formats supported
-	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA };
+	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA, JPEG };
     enum EyeIndex { MONO = 0, STEREO_LEFT, STEREO_RIGHT};
 
 	ScreenCapture();

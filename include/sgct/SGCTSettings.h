@@ -57,6 +57,7 @@ public:
 	void setUseFBO(bool state);
 	void setNumberOfCaptureThreads(int count);
 	void setPNGCompressionLevel(int level);
+	void setJPEGQuality(int quality);
 	void setCapturePath(std::string path, CapturePathIndex cpi = Mono);
 	void appendCapturePath(std::string str, CapturePathIndex cpi = Mono);
 	void setCaptureFormat(const char * format);
@@ -92,6 +93,7 @@ public:
 	bool				getUseWarping();
     FisheyeMethod       getFisheyeMethod();
 	int					getPNGCompressionLevel();
+	int					getJPEGQuality();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -133,6 +135,7 @@ private:
 	int mRefreshRate;
 	int mNumberOfCaptureThreads;
 	int mPNGCompressionLevel;
+	int mJPEGQuality;
 	int mDefaultNumberOfAASamples;
 	
 	bool mUseDepthTexture;

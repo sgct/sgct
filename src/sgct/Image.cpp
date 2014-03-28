@@ -9,12 +9,44 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <fstream>
 #include "../include/external/png.h"
 #include "../include/external/pngpriv.h"
+#include "../include/external/jpeglib.h"
 #include <stdlib.h>
 
 #include "../include/sgct/Image.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/Engine.h"
+
+#include <setjmp.h>
+
+#define PNG_BYTES_TO_CHECK 8
+
+//---------------- JPEG helpers -----------------
+struct my_error_mgr
+{
+	struct jpeg_error_mgr pub;	/* "public" fields */
+
+	jmp_buf setjmp_buffer;	/* for return to caller */
+};
+
+typedef struct my_error_mgr * my_error_ptr;
+
+/*
+* Here's the routine that will replace the standard error_exit method:
+*/
+
+METHODDEF(void) my_error_exit(j_common_ptr cinfo)
+{
+	/* cinfo->err really points to a my_error_mgr struct, so coerce pointer */
+	my_error_ptr myerr = (my_error_ptr)cinfo->err;
+
+	/* Always display the message. */
+	/* We could postpone this until after returning, if we chose. */
+	(*cinfo->err->output_message) (cinfo);
+
+	/* Return control to the setjmp point */
+	longjmp(myerr->setjmp_buffer, 1);
+}
 
 sgct_core::Image::Image()
 {
@@ -46,6 +78,8 @@ bool sgct_core::Image::load(const char * filename)
 
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
 			return loadPNG(filename);
+		else if (strcmp(".JPG", type) == 0 || strcmp(".jpg", type) == 0)
+			return loadJPEG(filename);
 		else
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown filesuffix: \"%s\"\n", type);
@@ -59,7 +93,102 @@ bool sgct_core::Image::load(const char * filename)
 	}
 }
 
-#define PNG_BYTES_TO_CHECK 8
+bool sgct_core::Image::loadJPEG(const char * filename)
+{
+	mFilename = NULL;
+	if (filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	{
+		return false;
+	}
+
+	//copy filename
+	mFilename = new char[strlen(filename) + 1];
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (strcpy_s(mFilename, strlen(filename) + 1, filename) != 0)
+		return false;
+#else
+	strcpy(mFilename, filename);
+#endif
+	
+	struct my_error_mgr jerr;
+	struct jpeg_decompress_struct cinfo;
+	FILE * fp = NULL;
+	JSAMPARRAY buffer;
+	int row_stride;
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&fp, mFilename, "rb") != 0 || !fp)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		return false;
+	}
+#else
+	fp = fopen(mFilename, "rb");
+	if (fp == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		return false;
+	}
+#endif
+
+	/* Step 1: allocate and initialize JPEG decompression object */
+
+	/* We set up the normal JPEG error routines, then override error_exit. */
+	cinfo.err = jpeg_std_error(&jerr.pub);
+	jerr.pub.error_exit = my_error_exit;
+	/* Establish the setjmp return context for my_error_exit to use. */
+	if (setjmp(jerr.setjmp_buffer))
+	{
+		/* If we get here, the JPEG code has signaled an error.
+		* We need to clean up the JPEG object, close the input file, and return.
+		*/
+		jpeg_destroy_decompress(&cinfo);
+		fclose(fp);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		return false;
+	}
+	
+	jpeg_create_decompress(&cinfo);
+	jpeg_stdio_src(&cinfo, fp);
+	jpeg_read_header(&cinfo, TRUE);
+	jpeg_start_decompress(&cinfo);
+	row_stride = cinfo.output_width * cinfo.output_components;
+
+	//SGCT uses BGR so convert to that
+	cinfo.out_color_space = JCS_EXT_BGR;
+
+	mChannels = cinfo.output_components;
+	mSize_x = cinfo.output_width;
+	mSize_y = cinfo.output_height;
+	mData = new unsigned char[mChannels * mSize_x * mSize_y];
+
+	/* Make a one-row-high sample array that will go away when done with image */
+	buffer = (*cinfo.mem->alloc_sarray)
+		((j_common_ptr)&cinfo, JPOOL_IMAGE, row_stride, 1);
+
+	int r = 0;
+	while (cinfo.output_scanline < cinfo.output_height)
+	{
+		jpeg_read_scanlines(&cinfo, buffer, 1);
+		memcpy(mData + row_stride*r, buffer[0], row_stride);
+		r++;
+	}
+
+	jpeg_finish_decompress(&cinfo);
+	jpeg_destroy_decompress(&cinfo);
+	fclose(fp);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename);
+
+	//clean up filename
+	if (mFilename != NULL)
+	{
+		delete[] mFilename;
+		mFilename = NULL;
+	}
+
+	return true;
+}
 
 bool sgct_core::Image::loadPNG(const char *filename)
 {
@@ -227,8 +356,10 @@ bool sgct_core::Image::save()
 
 		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
 			return savePNG( sgct::SGCTSettings::instance()->getPNGCompressionLevel() );
-		if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
+		else if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
 			return saveTGA();
+		else if (strcmp(".JPG", type) == 0 || strcmp(".jpg", type) == 0)
+			return saveJPEG( sgct::SGCTSettings::instance()->getJPEGQuality() );
 		else
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to save image! Unknown filesuffix: \"%s\"\n", type);
@@ -362,6 +493,91 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 
+	return true;
+}
+
+bool sgct_core::Image::saveJPEG(int quality)
+{
+	if (mData == NULL && !allocateOrResizeData())
+		return false;
+
+	double t0 = sgct::Engine::getTime();
+
+	FILE *fp = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&fp, mFilename, "wb") != 0 || !fp)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename);
+		return false;
+	}
+#else
+	fp = fopen(mFilename, "wb");
+	if (fp == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename);
+		return false;
+	}
+#endif
+	
+	struct jpeg_compress_struct cinfo;
+	struct jpeg_error_mgr jerr;
+	
+	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
+	int row_stride;	/* physical row width in image buffer */
+
+	cinfo.err = jpeg_std_error(&jerr);
+	jpeg_create_compress(&cinfo);
+	jpeg_stdio_dest(&cinfo, fp);
+
+	cinfo.image_width = mSize_x;
+	cinfo.image_height = mSize_y;
+	cinfo.input_components = mChannels;
+
+	switch (mChannels)
+	{
+	case 4:
+		cinfo.in_color_space = JCS_EXT_BGRA;
+		break;
+
+	case 3:
+	default:
+		cinfo.in_color_space = JCS_EXT_BGR;
+		break;
+
+	case 2:
+		cinfo.in_color_space = JCS_UNKNOWN;
+		break;
+
+	case 1:
+		cinfo.in_color_space = JCS_GRAYSCALE;
+		break;
+	}
+
+	if (cinfo.in_color_space == JCS_UNKNOWN)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: JPEG doesn't support two channel output!\n");
+		return false;
+	}
+
+	jpeg_set_defaults(&cinfo);
+	jpeg_set_quality(&cinfo, quality, TRUE /* limit to baseline-JPEG values */);
+
+	jpeg_start_compress(&cinfo, TRUE);
+
+	row_stride = mSize_x * mChannels;	/* JSAMPLEs per row in image_buffer */
+
+	while (cinfo.next_scanline < cinfo.image_height)
+	{
+		row_pointer[0] = &mData[(mSize_y - cinfo.next_scanline - 1) * row_stride];
+		jpeg_write_scanlines(&cinfo, row_pointer, 1);
+	}
+
+	jpeg_finish_compress(&cinfo);
+	fclose(fp);
+
+	jpeg_destroy_compress(&cinfo);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 	return true;
 }
 

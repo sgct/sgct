@@ -13,6 +13,7 @@ ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
 ar x deps/libpng15.a
+ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a
@@ -24,6 +25,7 @@ ar x deps/libglewd.a
 ar x deps/libglfw3d.a
 ar x deps/libzlibstaticd.a
 ar x deps/libpng15d.a
+ar x deps/libturbojpegd.a
 ar x deps/libfreetyped.a
 ar x deps/libtinyxml2d.a
 ar x deps/libtinythreadppd.a
@@ -39,6 +41,7 @@ ar x deps/libglewd.a
 ar x deps/libglfw3d.a
 ar x deps/libzlibstaticd.a
 ar x deps/libpng15d.a
+ar x deps/libturbojpegd.a
 ar x deps/libfreetyped.a
 ar x deps/libtinyxml2d.a
 ar x deps/libtinythreadppd.a
@@ -54,6 +57,7 @@ ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
 ar x deps/libpng15.a
+ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a

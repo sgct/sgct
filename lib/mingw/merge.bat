@@ -3,6 +3,7 @@ ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
 ar x deps/libpng15.a
+ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a

@@ -166,12 +166,13 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 	buffer = (*cinfo.mem->alloc_sarray)
 		((j_common_ptr)&cinfo, JPOOL_IMAGE, row_stride, 1);
 
-	int r = 0;
+	int r = mSize_y-1;
 	while (cinfo.output_scanline < cinfo.output_height)
 	{
 		jpeg_read_scanlines(&cinfo, buffer, 1);
+		//flip vertically
 		memcpy(mData + row_stride*r, buffer[0], row_stride);
-		r++;
+		r--;
 	}
 
 	jpeg_finish_decompress(&cinfo);
@@ -568,6 +569,7 @@ bool sgct_core::Image::saveJPEG(int quality)
 
 	while (cinfo.next_scanline < cinfo.image_height)
 	{
+		//flip vertically
 		row_pointer[0] = &mData[(mSize_y - cinfo.next_scanline - 1) * row_stride];
 		jpeg_write_scanlines(&cinfo, row_pointer, 1);
 	}

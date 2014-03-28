@@ -6,13 +6,35 @@ SET(APP_NAME FMOD_example_opengl3)
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
+set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 PROJECT(${APP_NAME})
 
 add_executable(${APP_NAME}
 	main.cpp
 	FMOD_Audio.cpp
-	FMOD_Audio.h)	
+	FMOD_Audio.h)
+
+option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
+if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+	set(EXAMPE_TARGET_PATH ${PROJECT_SOURCE_DIR})
+else()
+	set(EXAMPE_TARGET_PATH ${PROJECT_BINARY_DIR}) 
+endif()
+
+set(EXECUTABLE_OUTPUT_PATH ${EXAMPE_TARGET_PATH})
+	
+set_target_properties(${APP_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPE_TARGET_PATH}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPE_TARGET_PATH}
+)
+
+#copy data
+if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+	add_custom_command(TARGET ${APP_NAME}
+		PRE_BUILD
+		COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR} ${EXAMPE_TARGET_PATH})
+endif()
 	
 if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
@@ -28,6 +50,8 @@ find_library(SGCT_RELEASE_LIBRARY
 find_library(SGCT_DEBUG_LIBRARY 
 	NAMES sgctd libsgctd libsgct_cpp11d REQUIRED)
 
+FIND_PACKAGE(FMOD REQUIRED)
+
 if( WIN32 )
 	find_path(SGCT_INCLUDE_DIRECTORY 
 		NAMES sgct
@@ -41,8 +65,8 @@ else()
 		REQUIRED)
 endif()
 	
-find_library(FMOD_LIBRARY REQUIRED)
-find_path(FMOD_INCLUDE_DIRECTORY REQUIRED)
+#find_library(FMOD_LIBRARY REQUIRED)
+#find_path(FMOD_INCLUDE_DIRECTORY REQUIRED)
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
@@ -51,7 +75,7 @@ set(SGCT_LIBS
 
 find_package(OpenGL REQUIRED)
 
-include_directories(${SGCT_INCLUDE_DIRECTORY} ${FMOD_INCLUDE_DIRECTORY})
+include_directories(${SGCT_INCLUDE_DIRECTORY} ${FMOD_INCLUDE_DIR})
 
 if( MSVC )
 	set(LIBS

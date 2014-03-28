@@ -6,6 +6,7 @@ project(SGCT_Examples)
 
 option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
 option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
+option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
 
 if( APPLE  )
 	option(SGCT_CPP11 "Use c++11" OFF)
@@ -45,6 +46,9 @@ endif()
 ADD_SUBDIRECTORY(textureExample)
 ADD_SUBDIRECTORY(textureExample_opengl3)
 ADD_SUBDIRECTORY(trackingExample)
+if(SGCT_EXAMPLES_FMOD)
+	ADD_SUBDIRECTORY(fmodExample_opengl3)
+endif()
 
 if( WIN32 )
 	add_definitions(-D__WIN32__)

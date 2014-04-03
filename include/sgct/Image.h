@@ -16,6 +16,8 @@ namespace sgct_core
 class Image
 {
 public:
+    enum ChannelType { Blue = 0, Green, Red, Alpha };
+    
 	Image();
 	~Image();
 	bool load(const char * filename);
@@ -32,6 +34,8 @@ public:
 	int getChannels();
 	int getSizeX();
 	int getSizeY();
+    unsigned char getSampleAt(int x, int y, ChannelType c);
+    float getInterpolatedSampleAt(float x, float y, ChannelType c);
 	void setDataPtr(unsigned char * dPtr);
 	void setSize(int width, int height);
 	void setChannels(int channels);

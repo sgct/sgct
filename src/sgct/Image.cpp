@@ -53,6 +53,10 @@ sgct_core::Image::Image()
 	mFilename = NULL;
 	mData = NULL;
 	mRowPtrs = NULL;
+    
+    mChannels = 0;
+	mSize_x = 0;
+	mSize_y = 0;
 }
 
 sgct_core::Image::~Image()
@@ -818,6 +822,41 @@ int sgct_core::Image::getSizeX()
 int sgct_core::Image::getSizeY()
 {
 	return mSize_y;
+}
+
+/*!
+Get sample from image data
+*/
+unsigned char sgct_core::Image::getSampleAt(int x, int y, sgct_core::Image::ChannelType c)
+{
+    return mData[(y * mSize_x + x) * mChannels + c];
+}
+
+/*!
+ Get interpolated sample from image data
+*/
+float sgct_core::Image::getInterpolatedSampleAt(float x, float y, sgct_core::Image::ChannelType c)
+{
+    int px = static_cast<int>(x); //floor x
+    int py = static_cast<int>(y); //floor y
+    
+    // Calculate the weights for each pixel
+    float fx = x - static_cast<float>(px);
+    float fy = y - static_cast<float>(py);
+    float fx1 = 1.0f - fx;
+    float fy1 = 1.0f - fy;
+    
+    float w0 = fx1 * fy1;
+    float w1 = fx  * fy1;
+    float w2 = fx1 * fy;
+    float w3 = fx  * fy;
+    
+    float p0 = static_cast<float>( getSampleAt(px, py, c) );
+    float p1 = static_cast<float>( getSampleAt(px, py+1, c) );
+    float p2 = static_cast<float>( getSampleAt(px+1, py, c) );
+    float p3 = static_cast<float>( getSampleAt(px+1, py+1, c) );
+    
+    return p0 * w0 + p1 * w1 + p2 * w2 + p3 * w3;
 }
 
 void sgct_core::Image::setDataPtr(unsigned char * dPtr)

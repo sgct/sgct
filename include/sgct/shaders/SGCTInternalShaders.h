@@ -18,7 +18,27 @@ namespace sgct_core
 
 	namespace shaders
 	{
-		const std::string Anaglyph_Vert_Shader = "\
+		const std::string Overlay_Vert_Shader = "\
+            **glsl_version**\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+				gl_Position = gl_Vertex;\n\
+				gl_FrontColor = gl_Color;\n\
+            }\n";
+        
+		const std::string Overlay_Frag_Shader = "\
+            **glsl_version**\n\
+            \n\
+            uniform sampler2D Tex;\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_FragColor = texture2D(Tex, gl_TexCoord[0].st);\n\
+            }\n";
+        
+        const std::string Anaglyph_Vert_Shader = "\
 			**glsl_version**\n\
 			\n\
 			void main()\n\

@@ -1402,19 +1402,22 @@ void sgct::Engine::drawOverlaysFixedPipeline()
 			glLoadIdentity();
 			glColor4f(1.0f,1.0f,1.0f,1.0f);
 
-			//glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+            //Open Scene Graph or the user may have changed the active texture
+			glActiveTexture(GL_TEXTURE0);
+            //glMatrixMode(GL_TEXTURE);
+            //glLoadIdentity();
+            
 			glEnable(GL_TEXTURE_2D);
 			glBindTexture(GL_TEXTURE_2D, tmpVP->getOverlayTextureIndex() );
 
 			glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
-
-			getActiveWindowPtr()->isUsingFisheyeRendering() ?
+            
+            getActiveWindowPtr()->isUsingFisheyeRendering() ?
 				getActiveWindowPtr()->bindVBO(SGCTWindow::FishEyeQuad):
 				getActiveWindowPtr()->bindVBO(SGCTWindow::RenderQuad);
 
 			glClientActiveTexture(GL_TEXTURE0);
-
-			glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+            glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 			glTexCoordPointer(2, GL_FLOAT, 5*sizeof(float), reinterpret_cast<void*>(0));
 
 			glEnableClientState(GL_VERTEX_ARRAY);
@@ -2732,24 +2735,24 @@ void sgct::Engine::loadShaders()
 		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
 		glUniform1i( mShaderLocs[MonoTex], 0 );
 		ShaderProgram::unbind();
-
-		std::string Overlay_vert_shader;
-		std::string Overlay_frag_shader;
-		Overlay_vert_shader = shaders_modern::Overlay_Vert_Shader;
-		Overlay_frag_shader = shaders_modern::Overlay_Frag_Shader;
-
-		//replace glsl version
-		sgct_helpers::findAndReplace(Overlay_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-		sgct_helpers::findAndReplace(Overlay_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-
-		mShaders[OverlayShader].setName("OverlayShader");
-		mShaders[OverlayShader].addShaderSrc(Overlay_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-		mShaders[OverlayShader].addShaderSrc(Overlay_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
-		mShaders[OverlayShader].createAndLinkProgram();
-		mShaders[OverlayShader].bind();
-		mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );
-		glUniform1i( mShaderLocs[OverlayTex], 0 );
-		ShaderProgram::unbind();
+        
+        std::string Overlay_vert_shader;
+        std::string Overlay_frag_shader;
+        Overlay_vert_shader = shaders_modern::Overlay_Vert_Shader;
+        Overlay_frag_shader = shaders_modern::Overlay_Frag_Shader;
+        
+        //replace glsl version
+        sgct_helpers::findAndReplace(Overlay_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+        sgct_helpers::findAndReplace(Overlay_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
+        
+        mShaders[OverlayShader].setName("OverlayShader");
+        mShaders[OverlayShader].addShaderSrc(Overlay_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
+        mShaders[OverlayShader].addShaderSrc(Overlay_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+        mShaders[OverlayShader].createAndLinkProgram();
+        mShaders[OverlayShader].bind();
+        mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );
+        glUniform1i( mShaderLocs[OverlayTex], 0 );
+        ShaderProgram::unbind();
 	}
 }
 

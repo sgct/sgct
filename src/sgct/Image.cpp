@@ -843,6 +843,11 @@ float sgct_core::Image::getInterpolatedSampleAt(float x, float y, sgct_core::Ima
     // Calculate the weights for each pixel
     float fx = x - static_cast<float>(px);
     float fy = y - static_cast<float>(py);
+    
+    //if no need for interpolation
+    if(fx == 0.0f && fy == 0.0f)
+        return static_cast<float>( getSampleAt(px, py, c) );
+    
     float fx1 = 1.0f - fx;
     float fy1 = 1.0f - fy;
     

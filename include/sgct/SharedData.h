@@ -181,6 +181,12 @@ template<class T>
 void SharedData::readVector(SharedVector<T> * vector)
 {
 	std::size_t size = readSize();
+	if(size == 0)
+	{
+		vector->clear();
+		return;
+	}
+
 	std::size_t totalSize = size * sizeof(T);
     unsigned char* data = new unsigned char[ totalSize ];
 	unsigned char* c = readUCharArray( totalSize );

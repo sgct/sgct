@@ -127,6 +127,7 @@ namespace sgct //simple graphics cluster toolkit
 		SharedString(const std::string & str);
 		std::string getVal();
 		void setVal(const std::string & str);
+		void clear();
 
 	private:
 		SharedString( const SharedString & ss );
@@ -213,6 +214,13 @@ namespace sgct //simple graphics cluster toolkit
 			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
 			mVector.clear();
 			mVector = mCopy;
+			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+		}
+
+		void clear()
+		{
+			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mVector.clear();
 			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
 		}
 

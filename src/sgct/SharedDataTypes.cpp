@@ -211,6 +211,13 @@ void sgct::SharedString::setVal(const std::string & str)
 	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
 }
 
+void sgct::SharedString::clear()
+{
+	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mStr.clear();
+	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+}
+
 /*
 template <class T>
 sgct::SharedObject<T>::SharedObject()

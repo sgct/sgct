@@ -535,6 +535,12 @@ void SharedData::readString(SharedString * ss)
     ci.c[3] = dataBlock[pos+3];
     pos += 4;
 
+	if( ci.i == 0 )
+	{
+		ss->clear();
+		return;
+	}
+
     char * stringData = new (std::nothrow) char[ ci.i ];
     if( stringData )
 		memcpy(stringData, &dataBlock[pos], ci.i);

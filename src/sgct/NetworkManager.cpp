@@ -112,6 +112,17 @@ bool sgct_core::NetworkManager::init()
 	if( mMode != Remote )
 		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->getAddress());
 
+	//sanity check if port is used somewhere else
+	for (size_t i = 0; i < mNetworkConnections.size(); i++)
+	{
+		if (mNetworkConnections[i]->getPort().compare(ClusterManager::instance()->getThisNodePtr()->getPort()) == 0)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Port %s is already used by connection %u!\n",
+				ClusterManager::instance()->getThisNodePtr()->getPort().c_str(), i);
+			return false;
+		}
+	}
+
 	//if client
 	if( !mIsServer )
 	{
@@ -172,18 +183,6 @@ bool sgct_core::NetworkManager::init()
 			mNetworkConnections[mNetworkConnections.size()-1]->setDecodeFunction(callback);
 		}
 	}
-
-	//sanity check if port is used somewhere else
-	if( mMode == Remote )
-		for (size_t i = 0; i < mNetworkConnections.size(); i++)
-		{
-			if (mNetworkConnections[i]->getPort().compare(ClusterManager::instance()->getThisNodePtr()->getPort()) == 0)
-			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Port %s is already used by connection %u!\n",
-					ClusterManager::instance()->getThisNodePtr()->getPort().c_str(), i);
-				return false;
-			}
-		}
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Cluster sync is set to %s\n",
         ClusterManager::instance()->getFirmFrameLockSyncStatus() ? "firm/strict" : "loose" );

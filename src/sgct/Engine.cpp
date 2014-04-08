@@ -2163,13 +2163,13 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 	}
 
+	glPushAttrib(GL_ALL_ATTRIB_BITS);
+	
 	glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 	glMatrixMode(GL_TEXTURE);
 	glLoadIdentity();
 
 	glMatrixMode(GL_MODELVIEW); //restore
-
-	glPushAttrib(GL_ALL_ATTRIB_BITS);
 
 	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 	//if for some reson the active texture has been reset

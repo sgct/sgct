@@ -85,6 +85,7 @@ find_package(OpenGL REQUIRED)
 find_package(OpenAL REQUIRED)
 
 include_directories(${SGCT_INCLUDE_DIRECTORY}
+	${OPENAL_INCLUDE_DIRECTORY}
 	${ALUT_INCLUDE_DIRECTORY})
 
 if( MSVC )

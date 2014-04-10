@@ -2,17 +2,17 @@
 Copyright (c) 2012-2014 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <glm/gtc/constants.hpp>
 #include "../include/sgct/utils/SGCTSphere.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
+#include <glm/gtc/constants.hpp>
 
 /*!
-	This constructor requires a valid openGL contex 
+	This constructor requires a valid openGL contex
 */
 sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 {
@@ -28,15 +28,15 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	float x, y, z, R;
 	double theta, phi;
 	unsigned int vsegs, hsegs;
-	
+
 	vsegs = segments;
 	if (vsegs < 2)
 		vsegs = 2;
-	
+
 	hsegs = vsegs*2;
 	mNumberOfVertices = 1 + (vsegs-1)*(hsegs+1) + 1; // top + middle + bottom
 	mNumberOfFaces = hsegs + (vsegs-2)*hsegs*2 + hsegs; // top + middle + bottom
-	
+
 	mVerts = new (std::nothrow) sgct_helpers::SGCTVertexData[mNumberOfVertices];
 	memset(mVerts, 0, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData));
 
@@ -44,13 +44,13 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	memset(mIndices, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
 
 	// First vertex: top pole (+y is "up" in object local coords)
-	addVertexData( 0, 
+	addVertexData( 0,
 		0.5f, 1.0f,
 		0.0f, 1.0f, 0.0f, //normal
 		0.0f, radius, 0.0f);
 
 	// Last vertex: bottom pole
-	addVertexData( mNumberOfVertices-1, 
+	addVertexData( mNumberOfVertices-1,
 		0.5f, 0.0f,
 		0.0f, -1.0f, 0.0f, //normal
 		0.0f, -radius, 0.0f);
@@ -62,14 +62,14 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
         theta = (static_cast<double>(j+1) / static_cast<double>(vsegs)) * glm::pi<double>();
         y = static_cast<float>( cos(theta) );
         R = static_cast<float>( sin(theta) );
-        
+
 		for (i=0; i<=hsegs; i++)
 		{ // hsegs+1 vertices in each ring (duplicate for texcoords)
             phi = (static_cast<double>(i) / static_cast<double>(hsegs)) * 2.0 * glm::pi<double>();
             x = R * static_cast<float>( cos(phi) );
             z = R * static_cast<float>( sin(phi) );
 
-			addVertexData( 1+j*(hsegs+1)+i, 
+			addVertexData( 1+j*(hsegs+1)+i,
 				static_cast<float>( i )/static_cast<float>( hsegs ), //s
 				1.0f - static_cast<float>( j+1 )/static_cast<float>( vsegs ), //t
 				x, y, z, //normals
@@ -179,13 +179,13 @@ void sgct_utils::SGCTSphere::drawVBO()
 	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
 	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
-	
+
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
-	
+
 	glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
     glDrawElements(GL_TRIANGLES, mNumberOfFaces * 3, GL_UNSIGNED_INT, 0);
-	
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
@@ -204,7 +204,7 @@ void sgct_utils::SGCTSphere::createVBO()
 	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mInternalDrawFn = &SGCTSphere::drawVAO;
-		
+
 		glGenVertexArrays(1, &mVAO);
 		glBindVertexArray( mVAO );
 		glEnableVertexAttribArray(0);
@@ -213,7 +213,7 @@ void sgct_utils::SGCTSphere::createVBO()
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VAO: %d\n", mVAO);
 	}
-	
+
 	glGenBuffers(2, &mVBO[0]);
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSphere: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]);
 
@@ -235,7 +235,7 @@ void sgct_utils::SGCTSphere::createVBO()
 	{
 		glBindVertexArray( 0 );
 	}
-	
+
 	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

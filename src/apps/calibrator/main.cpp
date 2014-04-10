@@ -34,7 +34,7 @@ bool isTiltSet = false;
 bool useDisplayLists = false;
 double tilt = 0.0;
 std::vector<glm::vec3> colors;
-std::vector<std::pair<std::string, unsigned int>> textures;
+std::vector<std::pair<std::string, unsigned int> > textures;
 
 int main( int argc, char* argv[] )
 {
@@ -51,7 +51,7 @@ int main( int argc, char* argv[] )
 			tmpPair.first.assign(argv[i + 1]);
 			tmpPair.second = GL_FALSE;
 			textures.push_back(tmpPair);
-			
+
 			sgct::MessageHandler::instance()->print("Adding texture: %s\n", argv[i + 1]);
 		}
 		else if (strcmp(argv[i], "-tilt") == 0 && argc > (i + 1))
@@ -72,7 +72,7 @@ int main( int argc, char* argv[] )
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
 	else
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
-    
+
     //sgct::SGCTSettings::instance()->setCaptureFormat("tga");
 
 	// Bind your functions
@@ -160,7 +160,7 @@ void initGL()
 	colors.push_back( glm::vec3(1.00f, 0.00f, 1.00f) ); //magenta
 	colors.push_back( glm::vec3(1.00f, 0.00f, 0.50f) ); //magenta-red
 	colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
-	
+
 	if (isTiltSet)
 		mDome = new Dome(7.4f, static_cast<float>(tilt), FISHEYE);
 	else
@@ -172,7 +172,7 @@ void initGL()
 	for (std::size_t i = 0; i < textures.size(); i++)
 		sgct::TextureManager::instance()->loadUnManagedTexture(
 		textures[i].second, textures[i].first, true, 4);
-	
+
 	glDisable(GL_LIGHTING);
 	glEnable(GL_DEPTH_TEST);
 	//glEnable(GL_COLOR_MATERIAL);
@@ -299,16 +299,16 @@ void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::Scree
         default:
             eye.assign("mono");
             break;
-            
+
         case sgct_core::ScreenCapture::STEREO_LEFT:
             eye.assign("left");
             break;
-            
+
         case sgct_core::ScreenCapture::STEREO_RIGHT:
             eye.assign("Right");
             break;
     }
-    
+
     sgct::MessageHandler::instance()->print("Taking screenshot %dx%d %d bpp, win=%u %s\n",
                                             imPtr->getSizeX(), imPtr->getSizeY(),
                                             imPtr->getChannels() * 8,
@@ -328,7 +328,7 @@ void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::Scree
         mData = new (std::nothrow) unsigned char[dataSize];
         lastAllocSize = dataSize;
     }
-    
+
     double t0 = sgct::Engine::getTime();
     memcpy(mData, imPtr->getData(), dataSize);
     sgct::MessageHandler::instance()->print("Time to copy %.3f ms\n", (sgct::Engine::getTime()-t0)*1000.0);
@@ -342,7 +342,7 @@ void cleanUp()
 
 	if( mDome )
 		delete mDome;
-    
+
     if( mData )
     {
         delete [] mData;
@@ -369,7 +369,7 @@ void drawGeoCorrPatt()
 void drawColCorrPatt()
 {
 	glDepthMask(GL_FALSE);
-	
+
 	mDome->drawColCorrPattern( &colors[ colorState.getVal() ],
 		   static_cast<int>((displayState.getVal()-1)) %5);
 
@@ -379,7 +379,7 @@ void drawColCorrPatt()
 void drawCube()
 {
 	/*vpr::System::usleep( mSharedData->delay );
-	
+
 	glPushMatrix();
 	glTranslatef(offset[0],offset[1],offset[2]);
 
@@ -395,7 +395,7 @@ void drawCube()
 	if( mSharedData->bufferTest )
 	{
 		static unsigned int frames = 0;
-		
+
 		if( frames % 2 == 0 )
 			glColor4f(1.0f, 0.0f, 0.0f, 1.0);
 		else
@@ -428,7 +428,7 @@ void drawCube()
 
 	glBegin(GL_LINES);
 		//X-lines
-		
+
 		glVertex3f( -size*0.5f, size*0.5f, size*0.5f );
 		glVertex3f( size*0.5f, size*0.5f, size*0.5f );
 
@@ -496,11 +496,11 @@ void loadData()
 			texLoc1 = -1;
 			texLoc2 = -1;
 			blenderLoc = -1;
-			
+
 			texLoc1 = glGetUniformLocation( blender->p, "tex1" );
 			texLoc2 = glGetUniformLocation( blender->p, "tex2" );
 			blenderLoc = glGetUniformLocation( blender->p, "blender" );
-			
+
 			fprintf( stderr, "Shader object '%s' created\n", shaderName);
 		}
 	 }*/
@@ -519,16 +519,16 @@ void drawTexturedObject()
 		glEnable(GL_TEXTURE_2D);*/
 
 		mDome->drawTexturedSphere();
-		
+
 		glDisable(GL_TEXTURE_2D);
 		//glActiveTexture(GL_TEXTURE0);
 		//glDisable(GL_TEXTURE_2D);
 	}
-	
-	
+
+
 	/*if(tex.getStoredTextureCount() == 0)
 		return;
-	
+
 	if( useShader )
     {
 		float crossFadeTime = 0.6f;
@@ -536,13 +536,13 @@ void drawTexturedObject()
 
 	    if( blendVal < 0.0f)
 			blendVal = 0.0f;
-	   
+
 	    glUseProgram( blender->p );
 		glUniform1i( texLoc1, 0 );
 		glUniform1i( texLoc2, 1 );
 		glUniform1f( blenderLoc, blendVal );
     }
-	
+
 	glActiveTexture( GL_TEXTURE0 );
 	glBindTexture( GL_TEXTURE_2D, tex.getTexID(mSharedData->frameCount) );
 	glEnable( GL_TEXTURE_2D );
@@ -550,7 +550,7 @@ void drawTexturedObject()
 	glActiveTexture( GL_TEXTURE1 );
 	glBindTexture( GL_TEXTURE_2D, tex.getTexID((mSharedData->frameCount+1)%tex.getStoredTextureCount()) );
 	glEnable( GL_TEXTURE_2D );
-	
+
 	if( calibrationType == DOME )
 	{
 		mDome->setTiltOffset( mSharedData->tiltOffset );
@@ -560,7 +560,7 @@ void drawTexturedObject()
 	glActiveTexture( GL_TEXTURE1 );
 	glDisable( GL_TEXTURE_2D );
 	glActiveTexture( GL_TEXTURE0 );
-	glDisable( GL_TEXTURE_2D );	
+	glDisable( GL_TEXTURE_2D );
 
 	if( useShader )
 	   glUseProgram( 0 );

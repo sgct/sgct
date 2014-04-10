@@ -2,17 +2,17 @@
 Copyright (c) 2012-2014 Miroslav Andel
 All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
+For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include <glm/gtc/constants.hpp>
 #include "../include/sgct/utils/SGCTDome.h"
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/Engine.h"
+#include <glm/gtc/constants.hpp>
 
 /*!
-	This constructor requires a valid openGL contex 
+	This constructor requires a valid openGL contex
 */
 sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution)
 {
@@ -63,12 +63,12 @@ void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, 
 
 		for(unsigned int i = 0; i < mResolution; i++)
 		{
-			theta = glm::pi<float>() * 2.0f * (static_cast<float>(i)/static_cast<float>(mResolution)); 
-			
+			theta = glm::pi<float>() * 2.0f * (static_cast<float>(i)/static_cast<float>(mResolution));
+
 			vertex.x = radius * sinf( elevationAngle ) * cosf(theta);
 			vertex.z = radius * sinf( elevationAngle ) * sinf(theta);
 			transformedVertex = rotMat * vertex;
-			
+
 			mVerts[pos] = transformedVertex.x;
 			mVerts[pos + 1] = transformedVertex.y;
 			mVerts[pos + 2] = transformedVertex.z;
@@ -80,7 +80,7 @@ void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, 
 	//create segments
 	for(unsigned int s = 0; s < mSegments; s++)
 	{
-		theta = (glm::pi<float>() * 2.0f) * (static_cast<float>(s)/static_cast<float>(mSegments)); 
+		theta = (glm::pi<float>() * 2.0f) * (static_cast<float>(s)/static_cast<float>(mSegments));
 
 		for(unsigned int i = 0; i < (mResolution/4)+1; i++)
 		{
@@ -180,13 +180,13 @@ void sgct_utils::SGCTDome::createVBO()
 	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mInternalDrawFn = &SGCTDome::drawVAO;
-		
+
 		glGenVertexArrays(1, &mVAO);
 		glBindVertexArray( mVAO );
 		glEnableVertexAttribArray(0);
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTDome: Generating VAO: %d\n", mVAO);
 	}
-	
+
 	glGenBuffers(1, &mVBO);
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTDome: Generating VBO: %d\n", mVBO);
 

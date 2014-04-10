@@ -191,8 +191,9 @@ void SharedData::readVector(SharedVector<T> * vector)
     unsigned char* data = new unsigned char[ totalSize ];
 	unsigned char* c = readUCharArray( totalSize );
 
-	for(std::size_t i = 0; i < totalSize; i++)
-		data[i] = c[i];
+	//for(std::size_t i = 0; i < totalSize; i++)
+	//	data[i] = c[i];
+	memcpy(data, c, totalSize);
 
 	std::vector<T> tmpVec;
 	tmpVec.insert( tmpVec.begin(), reinterpret_cast<T*>(data), reinterpret_cast<T*>(data)+size);

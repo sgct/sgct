@@ -24,7 +24,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #endif
 
     //should be defined by compiler
-    #ifdef _WIN32
+    #if defined(_WIN64) || defined(_WIN32)
         #ifndef __WIN32__
         #define __WIN32__
         #endif
@@ -47,7 +47,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 		#include <GL/glxew.h>
 	#endif
 
-    #define GLFW_INCLUDE_GLU
+    //#define GLFW_INCLUDE_GLU
 
 	#ifdef __WIN32__
 		#define GLFW_EXPOSE_NATIVE_WIN32

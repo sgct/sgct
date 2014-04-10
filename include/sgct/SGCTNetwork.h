@@ -14,10 +14,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
 #ifdef __WIN32__
-	typedef size_t SGCT_SOCKET;
-	typedef int ssize_t;
-#else
-	typedef int SGCT_SOCKET;
+    typedef size_t SGCT_SOCKET;
+    #if (_MSC_VER >= 1100) //visual studio 5 or later (basically all visual studio versions)
+        typedef int ssize_t;
+    #endif
+#else //linux & OS X
+    typedef int SGCT_SOCKET;
 #endif
 
 #include "external/tinythread.h"

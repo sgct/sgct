@@ -2,7 +2,7 @@
 #include <math.h>
 #include <string.h>
 
-#if defined(_WIN32)
+#if defined(_WIN32) || defined(_WIN64)
 #define random() rand()
 #endif
 

@@ -16,8 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include <algorithm>
 
-using namespace tinyxml2;
-
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
@@ -132,13 +130,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 	if( xmlFileName.empty() )
         throw "Invalid XML file!";
 
-	XMLDocument xmlDoc;
-	if( xmlDoc.LoadFile(xmlFileName.c_str()) != XML_NO_ERROR )
+	tinyxml2::XMLDocument xmlDoc;
+	if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
 	{
 		throw "Invalid XML file!";
 	}
 
-	XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
+	tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{
 		throw "Cannot find XML root!";
@@ -175,7 +173,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 			strcmp( XMLroot->Attribute( "firmSync" ), "true" ) == 0 ? true : false );
 	}
 
-	XMLElement* element[MAX_XML_DEPTH];
+	tinyxml2::XMLElement* element[MAX_XML_DEPTH];
 	for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
 		element[i] = NULL;
 	const char * val[MAX_XML_DEPTH];
@@ -194,9 +192,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("Offset", val[1]) == 0 )
 				{
 				    float tmpOffset[] = {0.0f, 0.0f, 0.0f};
-					if( element[1]->QueryFloatAttribute("x", &tmpOffset[0] ) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == XML_NO_ERROR)
+					if( element[1]->QueryFloatAttribute("x", &tmpOffset[0] ) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == tinyxml2::XML_NO_ERROR)
                     {
                         glm::vec3 sceneOffset(1.0f);
 						sceneOffset.x = tmpOffset[0];
@@ -215,9 +213,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
 					float tmpOrientation[] = {0.0f, 0.0f, 0.0f};
-					if( element[1]->QueryFloatAttribute("yaw", &tmpOrientation[0] ) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == XML_NO_ERROR)
+					if( element[1]->QueryFloatAttribute("yaw", &tmpOrientation[0] ) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == tinyxml2::XML_NO_ERROR)
                     {
                         float mYaw = glm::radians( tmpOrientation[0] );
                         float mPitch = glm::radians( tmpOrientation[1] );
@@ -235,7 +233,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Scale", val[1]) == 0 )
 				{
 					float tmpScale = 1.0f;
-					if( element[1]->QueryFloatAttribute("value", &tmpScale ) == XML_NO_ERROR )
+					if( element[1]->QueryFloatAttribute("value", &tmpScale ) == tinyxml2::XML_NO_ERROR )
                     {
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting scene scale to %f\n",
                                                                 tmpScale );
@@ -283,11 +281,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullScreen"), "true" ) == 0 );
 
 					int tmpSamples = 0;
-					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
+					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
-					else if( element[1]->QueryIntAttribute("msaa", &tmpSamples ) == XML_NO_ERROR && tmpSamples <= 128)
+					else if( element[1]->QueryIntAttribute("msaa", &tmpSamples ) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
-					else if (element[1]->QueryIntAttribute("MSAA", &tmpSamples) == XML_NO_ERROR && tmpSamples <= 128)
+					else if (element[1]->QueryIntAttribute("MSAA", &tmpSamples) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
 
 					if (element[1]->Attribute("alpha") != NULL)
@@ -312,7 +310,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						tmpWin.setFullResolutionMode( strcmp( element[1]->Attribute("retina"), "true" ) == 0 ? true : false);
 
 					int tmpMonitorIndex = 0;
-					if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == XML_NO_ERROR)
+					if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == tinyxml2::XML_NO_ERROR)
 						tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
 
 					element[2] = element[1]->FirstChildElement();
@@ -328,24 +326,24 @@ void sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
-							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
                                 tmpWin.setWindowPosition(tmpWinData[0],tmpWinData[1]);
                             else
                                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse window position from XML!\n");
 						}
 						else if( strcmp("Size", val[2]) == 0 )
 						{
-							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
                                 tmpWin.initWindowResolution(tmpWinData[0],tmpWinData[1]);
                             else
                                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse window resolution from XML!\n");
 						}
 						else if( strcmp("Res", val[2]) == 0 )
 						{
-							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == XML_NO_ERROR )
+							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
+                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
 							{
                                 tmpWin.setFramebufferResolution(tmpWinData[0],tmpWinData[1]);
 								tmpWin.setFixResolution(true);
@@ -399,16 +397,16 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 								if(strcmp("Pos", val[3]) == 0)
 								{
-									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
 										tmpVp.setPos( fTmp[0], fTmp[1] );
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
 								}
 								else if(strcmp("Size", val[3]) == 0)
 								{
-									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
 										tmpVp.setSize( fTmp[0], fTmp[1] );
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
@@ -425,9 +423,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 											glm::vec3 tmpVec;
 											float fTmp[3];
 											static unsigned int i=0;
-											if( element[4]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR )
+											if( element[4]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+												element[4]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+												element[4]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
 											{
 												tmpVec.x = fTmp[0];
 												tmpVec.y = fTmp[1];
@@ -458,7 +456,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if(strcmp("Fisheye", val[2]) == 0)
 						{
 							float fov;
-							if( element[2]->QueryFloatAttribute("fov", &fov) == XML_NO_ERROR )
+							if( element[2]->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR )
 								tmpWin.setFisheyeFOV( fov );
 
 							if( element[2]->Attribute("quality") != NULL )
@@ -470,7 +468,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpWin.setFisheyeOverlay( std::string(element[2]->Attribute("overlay")) );
-                            
+
                             if( element[2]->Attribute("method") != NULL )
 								sgct::SGCTSettings::instance()->setFisheyeMethod(
                                     strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?
@@ -481,14 +479,14 @@ void sgct_core::ReadConfig::readAndParseXML()
 									strcmp( element[2]->Attribute("interpolation"), "cubic") == 0 ? true : false);
 
 							float tilt;
-							if( element[2]->QueryFloatAttribute("tilt", &tilt) == XML_NO_ERROR )
+							if( element[2]->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR )
 							{
 								tmpWin.setFisheyeTilt( tilt );
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt);
 							}
 
 							float diameter;
-							if( element[2]->QueryFloatAttribute("diameter", &diameter) == XML_NO_ERROR )
+							if( element[2]->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR )
 							{
 								tmpWin.setDomeDiameter( diameter );
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter);
@@ -504,13 +502,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 									float tmpFArr[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 									float ftmp;
 
-									if( element[3]->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("left", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropLeft] = ftmp;
-									if( element[3]->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("right", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropRight] = ftmp;
-									if( element[3]->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("bottom", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropBottom] = ftmp;
-									if( element[3]->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("top", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropTop] = ftmp;
 
 									tmpWin.setFisheyeCropValues(
@@ -524,11 +522,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 									float tmpFArr[] = { 0.0f, 0.0f, 0.0f };
 									float ftmp;
 
-									if( element[3]->QueryFloatAttribute("x", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("x", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[0] = ftmp;
-									if( element[3]->QueryFloatAttribute("y", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("y", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[1] = ftmp;
-									if( element[3]->QueryFloatAttribute("z", &ftmp) == XML_NO_ERROR )
+									if( element[3]->QueryFloatAttribute("z", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[2] = ftmp;
 
 									tmpWin.setFisheyeBaseOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
@@ -559,7 +557,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 		else if( strcmp("User", val[0]) == 0 )
 		{
 			float fTmp;
-			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == XML_NO_ERROR )
+			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == tinyxml2::XML_NO_ERROR )
                 ClusterManager::instance()->getUserPtr()->setEyeSeparation( fTmp );
             /*else -- not required
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");*/
@@ -572,9 +570,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("Pos", val[1]) == 0 )
 				{
 					float fTmp[3];
-					if (element[1]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR)
                         ClusterManager::instance()->getUserPtr()->setPos(fTmp);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user position from XML!\n");
@@ -582,9 +580,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
 					float fTmp[3];
-					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR )
+					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+                        element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
                         ClusterManager::instance()->getUserPtr()->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user Orientation from XML!\n");
@@ -592,10 +590,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Quaternion", val[1]) == 0)
 				{
 					float tmpd[4];
-					if (element[1]->QueryFloatAttribute("w", &tmpd[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x", &tmpd[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &tmpd[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &tmpd[3]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("w", &tmpd[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x", &tmpd[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpd[2]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpd[3]) == tinyxml2::XML_NO_ERROR)
 						ClusterManager::instance()->getUserPtr()->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
@@ -603,26 +601,26 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
 					float tmpf[16];
-					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == tinyxml2::XML_NO_ERROR)
 					{
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
 						glm::mat4 mat = glm::make_mat4( tmpf );
-						ClusterManager::instance()->getUserPtr()->setTransform(  
+						ClusterManager::instance()->getUserPtr()->setTransform(
 							glm::transpose( mat ));
 					}
 					else
@@ -674,7 +672,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Precision", val[1]) == 0)
 				{
 					int fprec = 0;
-					if (element[1]->QueryIntAttribute("float", &fprec) == XML_NO_ERROR)
+					if (element[1]->QueryIntAttribute("float", &fprec) == tinyxml2::XML_NO_ERROR)
 					{
 						if (fprec == 16)
 							sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_16Bit);
@@ -689,14 +687,14 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Display", val[1]) == 0 )
 				{
 					int tmpInterval = 0;
-					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == XML_NO_ERROR )
+					if( element[1]->QueryIntAttribute("swapInterval", &tmpInterval) == tinyxml2::XML_NO_ERROR )
 					{
 						sgct::SGCTSettings::instance()->setSwapInterval( tmpInterval );
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display swap interval is set to %d.\n", tmpInterval);
 					}
 
 					int rate = 0;
-					if( element[1]->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR )
+					if( element[1]->QueryIntAttribute("refreshRate", &rate) == tinyxml2::XML_NO_ERROR )
 					{
 						sgct::SGCTSettings::instance()->setRefreshRateHint( rate );
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate);
@@ -724,7 +722,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("size") != NULL )
 					{
 						int tmpi = -1;
-						if( element[1]->QueryIntAttribute("size", &tmpi) == XML_NO_ERROR && tmpi > 0)
+						if( element[1]->QueryIntAttribute("size", &tmpi) == tinyxml2::XML_NO_ERROR && tmpi > 0)
 						{
 							sgct::SGCTSettings::instance()->setOSDTextFontSize( tmpi );
 							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
@@ -734,14 +732,14 @@ void sgct_core::ReadConfig::readAndParseXML()
 							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
 					}
 
-					if( element[1]->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR )
+					if( element[1]->QueryFloatAttribute("xOffset", &x) == tinyxml2::XML_NO_ERROR )
                     {
 						sgct::SGCTSettings::instance()->setOSDTextXOffset( x );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
                             "ReadConfig: Setting font x offset to %f\n", x );
                     }
 
-					if( element[1]->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR )
+					if( element[1]->QueryFloatAttribute("yOffset", &y) == tinyxml2::XML_NO_ERROR )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextYOffset( y );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
@@ -751,7 +749,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("FXAA", val[1]) == 0 )
 				{
 					float offset = 0.0f;
-					if( element[1]->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR)
+					if( element[1]->QueryFloatAttribute("offset", &offset) == tinyxml2::XML_NO_ERROR)
 					{
 						sgct::SGCTSettings::instance()->setFXAASubPixOffset( offset );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
@@ -759,7 +757,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					}
 
 					float trim = 0.0f;
-					if( element[1]->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR )
+					if( element[1]->QueryFloatAttribute("trim", &trim) == tinyxml2::XML_NO_ERROR )
 					{
 						if(trim > 0.0f)
 						{
@@ -830,7 +828,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						if( strcmp("Sensor", val[2]) == 0 )
 						{
 							if( element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryIntAttribute("id", &tmpi) == XML_NO_ERROR )
+                                element[2]->QueryIntAttribute("id", &tmpi) == tinyxml2::XML_NO_ERROR )
 							{
                                 ClusterManager::instance()->getTrackingManagerPtr()->addSensorToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpi);
@@ -839,7 +837,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Buttons", val[2]) == 0 )
 						{
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
+                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
                             {
                                 ClusterManager::instance()->getTrackingManagerPtr()->addButtonsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpUI);
@@ -849,7 +847,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Axes", val[2]) == 0 )
 						{
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == XML_NO_ERROR )
+                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
                             {
                                 ClusterManager::instance()->getTrackingManagerPtr()->addAnalogsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"), tmpUI);
@@ -858,9 +856,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Offset", val[2]) == 0 )
 						{
 							float tmpf[3];
-							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
 									setOffset( tmpf[0], tmpf[1], tmpf[2] );
 							else
@@ -869,9 +867,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Orientation", val[2]) == 0 )
 						{
 							float tmpf[3];
-							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
 									setOrientation( tmpf[0], tmpf[1], tmpf[2] );
 							else
@@ -880,10 +878,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if (strcmp("Quaternion", val[2]) == 0)
 						{
 							float tmpf[4];
-							if (element[2]->QueryFloatAttribute("w", &tmpf[0]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("x", &tmpf[1]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y", &tmpf[2]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z", &tmpf[3]) == XML_NO_ERROR)
+							if (element[2]->QueryFloatAttribute("w", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z", &tmpf[3]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
 									setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
 							else
@@ -892,26 +890,26 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if (strcmp("Matrix", val[2]) == 0)
 						{
 							float tmpf[16];
-							if (element[2]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
+							if (element[2]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z0", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w0", &tmpf[3]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x1", &tmpf[4]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y1", &tmpf[5]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z1", &tmpf[6]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w1", &tmpf[7]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x2", &tmpf[8]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y2", &tmpf[9]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z2", &tmpf[10]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w2", &tmpf[11]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("x3", &tmpf[12]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("y3", &tmpf[13]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("z3", &tmpf[14]) == tinyxml2::XML_NO_ERROR &&
+								element[2]->QueryFloatAttribute("w3", &tmpf[15]) == tinyxml2::XML_NO_ERROR)
 							{
 								//glm & opengl uses column major order (normally row major order is used in linear algebra)
 								glm::mat4 mat = glm::make_mat4( tmpf );
-								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform( 
+								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
 									glm::transpose( mat ));
 							}
 							else
@@ -926,9 +924,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Offset", val[1]) == 0 )
 				{
 					float tmpf[3];
-					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOffset(tmpf[0], tmpf[1], tmpf[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker offset in XML!\n");
@@ -936,9 +934,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
 					float tmpf[3];
-					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &tmpf[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &tmpf[2]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpf[0], tmpf[1], tmpf[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation angles in XML!\n");
@@ -946,10 +944,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Quaternion", val[1]) == 0)
 				{
 					float tmpf[4];
-					if (element[1]->QueryFloatAttribute("w", &tmpf[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x", &tmpf[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &tmpf[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &tmpf[3]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("w", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z", &tmpf[3]) == tinyxml2::XML_NO_ERROR)
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation quaternion in XML!\n");
@@ -957,7 +955,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Scale", val[1]) == 0 )
 				{
 					double scaleVal;
-					if( element[1]->QueryDoubleAttribute("value", &scaleVal) == XML_NO_ERROR )
+					if( element[1]->QueryDoubleAttribute("value", &scaleVal) == tinyxml2::XML_NO_ERROR )
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setScale( scaleVal );
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker scale in XML!\n");
@@ -965,26 +963,26 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
 					float tmpf[16];
-					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == XML_NO_ERROR)
+					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z0", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w0", &tmpf[3]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x1", &tmpf[4]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y1", &tmpf[5]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z1", &tmpf[6]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w1", &tmpf[7]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x2", &tmpf[8]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y2", &tmpf[9]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z2", &tmpf[10]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w2", &tmpf[11]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("x3", &tmpf[12]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("y3", &tmpf[13]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("z3", &tmpf[14]) == tinyxml2::XML_NO_ERROR &&
+						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == tinyxml2::XML_NO_ERROR)
 					{
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
 						glm::mat4 mat = glm::make_mat4( tmpf );
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform( 
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
 							glm::transpose( mat ));
 					}
 					else
@@ -1004,7 +1002,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string type )
 {
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-	
+
 	if( strcmp( type.c_str(), "none" ) == 0 || strcmp( type.c_str(), "no_stereo" ) == 0  )
 		return sgct::SGCTWindow::No_Stereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 || strcmp( type.c_str(), "quadbuffer" ) == 0 )
@@ -1041,7 +1039,7 @@ sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string t
 int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
 {
 	std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
-	
+
 	if( strcmp( quality.c_str(), "low" ) == 0 )
 		return 256;
 	else if( strcmp( quality.c_str(), "medium" ) == 0 )

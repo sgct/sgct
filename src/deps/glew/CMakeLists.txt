@@ -20,4 +20,4 @@ add_definitions(-DGLEW_BUILD)
 add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLEW_STATIC)
 
-add_library(glew STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/glew.c ${CMAKE_CURRENT_SOURCE_DIR}/build/glew.rc)
+add_library(glew STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/glew.c)

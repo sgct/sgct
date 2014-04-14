@@ -106,7 +106,7 @@ public:
 	/*!
 		\param the external control port number
 	*/
-	void setExternalControlPort(std::string & port) { mExternalControlPort.assign(port); }
+	void setExternalControlPort(std::string port) { mExternalControlPort.assign(port); }
 
 	void setUseASCIIForExternalControl(bool useASCII);
 	bool getUseASCIIForExternalControl();

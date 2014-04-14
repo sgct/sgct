@@ -93,7 +93,7 @@ namespace Stitcher_GUI
                 outStr = "0";
             else
             {
-                if (Int32.TryParse(start_index_textBox.Text, out tmpVal))
+                if (Int32.TryParse(str, out tmpVal))
                     outStr = tmpVal.ToString();
                 else
                     outStr = "0";

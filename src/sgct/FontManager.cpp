@@ -14,8 +14,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-#include <external/freetype/ftglyph.h>
-#include <external/freetype/ftstroke.h>
+
+
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include <external/freetype/ftglyph.h>
+	#include <external/freetype/ftstroke.h>
+#else
+	#include <freetype/ftglyph.h>
+	#include <freetype/ftstroke.h>
+#endif
 
 #include <algorithm>
 #include <stdio.h>

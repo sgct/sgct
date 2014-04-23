@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2014 Miroslav Andel, Linköping University
 All rights reserved.
 
 Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson
@@ -11,14 +11,14 @@ are permitted provided that the following conditions are met:
 
 1.	Redistributions of source code must retain the above copyright
     notice, this list of conditions and the following disclaimer.
-
+	
 2.	Redistributions in binary form must reproduce the above copyright
     notice, this list of conditions and the following disclaimer in the
     documentation and/or other materials provided with the distribution.
-
-3.	Neither the name of the Linköping University nor the
-    names of its contributors may be used to endorse or promote products
-	derived from this software without specific prior written permission.
+	
+3.	Neither the name of the copyright holder nor the names of its contributors
+    may be used to endorse or promote products derived from this software
+    without specific prior written permission.
 
 THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS ''AS IS''
 AND ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO,
@@ -66,7 +66,7 @@ All rights reserved.
 Web: http://glew.sourceforge.net/
 ---------------------------------------------------------
 
-libPNG - Portable Network Graphics library
+libpng - Portable Network Graphics library
 =========================================================
 Copyright (c) 1998-2011 Glenn Randers-Pehrson
  * (Version 0.96 Copyright (c) 1996, 1997 Andreas Dilger)
@@ -87,7 +87,7 @@ The Virtual Reality Peripheral Network (VRPN) is public-domain software released
 Web: http://www.cs.unc.edu/Research/vrpn/
 ---------------------------------------------------------
 
-ZLib
+zlib
 =========================================================
 Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 Web: http://www.zlib.net/
@@ -99,12 +99,13 @@ Copyright (c) 2010-2012 Marcus Geelnard
 Web: http://tinythreadpp.bitsnbites.eu/
 ---------------------------------------------------------
 
-TurboJPEG
+libjpeg-turbo
 =========================================================
 Copyright (c) 1991-1998, Thomas G. Lane.
 Modified 2002-2009 by Guido Vollbeding.
 Copyright (C) 2009-2011, 2013, D. R. Commander.
 
+Acknowledgement: "this software is based in part on the work of the Independent JPEG Group"
 Web: http://www.libjpeg-turbo.org/
 ---------------------------------------------------------
 
@@ -211,12 +212,19 @@ SGCT is using the following libraries.
 #include "sgct/SGCTVersion.h"
 #include "sgct/ogl_headers.h"
 
-
 #ifndef TINYXML_H
-	#define TINYXML_H "../include/external/tinyxml2.h"
+	#ifndef SGCT_DONT_USE_EXTERNAL
+		#define TINYXML_H "../include/external/tinyxml2.h"
+	#else
+		#define TINYXML_H "tinyxml2.h"
+	#endif
 #endif
 
-#include "external/tinythread.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include "external/tinythread.h"
+#else
+	#include <tinythread.h>
+#endif
 
 //utilities
 /*!

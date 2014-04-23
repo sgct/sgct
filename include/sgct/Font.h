@@ -8,7 +8,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _FREETYPE_FONT_H_
 #define _FREETYPE_FONT_H_
 
-#include <external/freetype/ftglyph.h>
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include <external/freetype/ftglyph.h>
+#else
+	#include <freetype/ftglyph.h>
+#endif
 
 #include <vector>
 #include <string>

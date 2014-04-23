@@ -9,7 +9,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SharedData.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/MessageHandler.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"
+#else
+#include <zlib.h>
+#endif
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

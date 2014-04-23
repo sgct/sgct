@@ -7,19 +7,18 @@
 cmake_minimum_required(VERSION 2.8)
 
 SET(BUILD_SHARED_LIBS OFF)
-SET(LIB_NAME sgct)
-PROJECT(${LIB_NAME})
+PROJECT("sgct")
 set(SGCT_VERSION_MAJOR "2")
 set(SGCT_VERSION_MINOR "1")
-set(SGCT_VERSION_REVISION "1")
+set(SGCT_VERSION_REVISION "2")
 set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 option(SGCT_INSTALL "Install SGCT" ON)
-option(SGCT_BUILD_DEPS "Build dependencies" ON)
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
+option(SGCT_LIGHT_ONLY "Don't merge external libs" OFF)
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
 if( MINGW )
 	option(SGCT_MINGW64 "Use MinGW64" ON)
@@ -107,6 +106,9 @@ MESSAGE(STATUS "SGCT lib path: ${SGCT_LIB_PATH}")
 if(APPLE AND SGCT_CPP11)
 	set(SGCT_LIB_PATH "${SGCT_LIB_PATH}_cpp11")
 	set(SGCT_LIB_SRC_PATH "${SGCT_LIB_SRC_PATH}_cpp11")
+	SET(LIB_NAME sgct_light_cpp11)
+else()
+	SET(LIB_NAME sgct_light)
 endif()
 
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
@@ -128,92 +130,50 @@ FOREACH(ALL_SRCName ${ALL_SRC})
 	MESSAGE(STATUS "Adding file: ${ALL_SRCName}")
 ENDFOREACH(ALL_SRCName)
 
-add_library(${LIB_NAME}_light STATIC
+add_library(${LIB_NAME} STATIC
 	${ALL_SRC}
 	)
- 
-INCLUDE_DIRECTORIES(
-  include
-)
+
+if(SGCT_LIGHT_ONLY)	
+	INCLUDE_DIRECTORIES(
+	  include
+	  include/external
+	)
+	add_definitions(-DSGCT_DONT_USE_EXTERNAL)
+else(SGCT_LIGHT_ONLY)
+	INCLUDE_DIRECTORIES(
+	  include
+	)
+endif(SGCT_LIGHT_ONLY)
 
 find_package(OpenGL REQUIRED)
 
-if(SGCT_BUILD_DEPS)
-	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}/deps" )
-	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${SGCT_LIB_PATH}/deps" )
-	set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}/deps" )
-	set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_BUILD_DIR}/bin" )
-	set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BUILD_DIR}/bin" )
-	set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
-	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BUILD_DIR}/bin" )
-	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BUILD_DIR}/bin" )
-	set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}/deps" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${SGCT_LIB_PATH}/deps" )
+set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}/deps" )
+set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_EXECUTABLE_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BUILD_DIR}/bin" )
+set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
+
+if(NOT SGCT_LIGHT_ONLY)
 
 	ADD_SUBDIRECTORY(src/deps)
-	
+
 	if(SGCT_BUILD_ALUT)
 		ADD_SUBDIRECTORY(additional_deps/freealut-1.1.0-src)
-	endif()
-	
-	set(COMMON_DEBUG_LIBS
-		${OPENGL_LIBRARY}
-	)
-
-	set(COMMON_RELEASE_LIBS
-		${OPENGL_LIBRARY}
-	)
-else()
-	#find_library(GLEW_DEBUG_LIBRARY REQUIRED)
-	#find_library(GLEW_RELEASE_LIBRARY REQUIRED)
-	#find_library(GLFW3_DEBUG_LIBRARY REQUIRED)
-	#find_library(GLFW3_RELEASE_LIBRARY REQUIRED)
-	#find_library(GLFW3_DEBUG_LIBRARY REQUIRED)
-	#find_library(GLFW3_RELEASE_LIBRARY REQUIRED)
-	#find_library(FREETYPE2_DEBUG_LIBRARY REQUIRED)
-	#find_library(FREETYPE2_RELEASE_LIBRARY REQUIRED)
-	#find_library(VRPN_DEBUG_LIBRARY REQUIRED)
-	#find_library(VRPN_RELEASE_LIBRARY REQUIRED)
-	#find_library(PNG_DEBUG_LIBRARY REQUIRED)
-	#find_library(PNG_RELEASE_LIBRARY REQUIRED)
-	#find_library(Z_DEBUG_LIBRARY REQUIRED)
-	#find_library(Z_RELEASE_LIBRARY REQUIRED)
-	#find_library(TINYXML2_DEBUG_LIBRARY REQUIRED)
-	#find_library(TINYXML2_RELEASE_LIBRARY REQUIRED)
-	#find_library(TINYTHREAD_DEBUG_LIBRARY REQUIRED)
-	#find_library(TINYTHREAD_RELEASE_LIBRARY REQUIRED)
-	
-	#set(COMMON_DEBUG_LIBS
-	#	${GLEW_DEBUG_LIBRARY}
-	#	${GLFW3_DEBUG_LIBRARY}
-	#	${OPENGL_LIBRARY}
-	#	${FREETYPE2_DEBUG_LIBRARY}
-	#	${VRPN_DEBUG_LIBRARY}
-	#	${PNG_DEBUG_LIBRARY}
-	#	${Z_DEBUG_LIBRARY}
-	#	${TINYXML2_DEBUG_LIBRARY}
-	#	${TINYTHREAD_DEBUG_LIBRARY}
-	#)
-
-	#set(COMMON_RELEASE_LIBS
-	#	${GLEW_RELEASE_LIBRARY}
-	#	${GLFW3_RELEASE_LIBRARY}
-	#	${OPENGL_LIBRARY}
-	#	${FREETYPE2_RELEASE_LIBRARY}
-	#	${VRPN_RELEASE_LIBRARY}
-	#	${PNG_RELEASE_LIBRARY}
-	#	${Z_RELEASE_LIBRARY}
-	#	${TINYXML2_RELEASE_LIBRARY}
-	#	${TINYTHREAD_RELEASE_LIBRARY}
-	#)
-	
-	set(COMMON_DEBUG_LIBS
-		${OPENGL_LIBRARY}
-	)
-
-	set(COMMON_RELEASE_LIBS
-		${OPENGL_LIBRARY}
-	)
+	endif(SGCT_BUILD_ALUT)
 endif()
+	
+set(COMMON_DEBUG_LIBS
+	${OPENGL_LIBRARY}
+)
+
+set(COMMON_RELEASE_LIBS
+	${OPENGL_LIBRARY}
+)
 
 if( MSVC )
 	set(DEBUG_LIBS
@@ -307,69 +267,136 @@ if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")
 endif()
 
-target_link_libraries( ${LIB_NAME}_light debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
+target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
-add_dependencies(${LIB_NAME}_light freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
+add_dependencies(${LIB_NAME} freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
 
-if(WIN32)
-	add_custom_command(TARGET ${LIB_NAME}_light
-		POST_BUILD
-		COMMAND "merge_libs.bat"
-		WORKING_DIRECTORY ${SGCT_LIB_PATH})
-	
-	#copy script
-	if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-		add_custom_command(TARGET ${LIB_NAME}_light
-			PRE_BUILD
-			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
-	endif()
-else()
-	if(CMAKE_GENERATOR STREQUAL Xcode)
-		set(SGCT_SHELL_NAME merge_libs_xcode.sh)
-	else()
-		set(SGCT_SHELL_NAME merge_libs.sh)
-	endif()
-
-	add_custom_command(TARGET ${LIB_NAME}_light
-		POST_BUILD
-		COMMAND "./${SGCT_SHELL_NAME}"
-		WORKING_DIRECTORY ${SGCT_LIB_PATH})
+#merge libs
+if(NOT SGCT_LIGHT_ONLY)
+	if(WIN32)
+		add_custom_command(TARGET ${LIB_NAME}
+			POST_BUILD
+			COMMAND "merge_libs.bat"
+			WORKING_DIRECTORY ${SGCT_LIB_PATH})
 		
-	#copy script
-	if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-		add_custom_command(TARGET ${LIB_NAME}_light
-			PRE_BUILD
-			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
+		#copy script
+		if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+			add_custom_command(TARGET ${LIB_NAME}
+				PRE_BUILD
+				#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+				COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
+		endif()
+	else()
+		if(CMAKE_GENERATOR STREQUAL Xcode)
+			set(SGCT_SHELL_NAME merge_libs_xcode.sh)
+		else()
+			set(SGCT_SHELL_NAME merge_libs.sh)
+		endif()
+
+		add_custom_command(TARGET ${LIB_NAME}
+			POST_BUILD
+			COMMAND "./${SGCT_SHELL_NAME}"
+			WORKING_DIRECTORY ${SGCT_LIB_PATH})
+			
+		#copy script
+		if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+			add_custom_command(TARGET ${LIB_NAME}
+				PRE_BUILD
+				#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+				COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
+		endif()
 	endif()
 endif()
 
 if(SGCT_INSTALL)
-	if( MSVC )
-		INSTALL(FILES ${SGCT_LIB_PATH}/sgct.lib DESTINATION lib CONFIGURATIONS Release)
-		INSTALL(FILES ${SGCT_LIB_PATH}/sgctd.lib DESTINATION lib CONFIGURATIONS Debug)
-	else( MSVC )
-		if( APPLE AND SGCT_CPP11 )
-			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11.a DESTINATION lib CONFIGURATIONS Release)
-			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11d.a DESTINATION lib CONFIGURATIONS Debug)
-		else()
-			INSTALL(FILES ${SGCT_LIB_PATH}/libsgct.a DESTINATION lib CONFIGURATIONS Release)
-			INSTALL(FILES ${SGCT_LIB_PATH}/libsgctd.a DESTINATION lib CONFIGURATIONS Debug)
-		endif()
-	endif( MSVC )
-	#include files
-	INSTALL(FILES ${PROJECT_SOURCE_DIR}/include/sgct.h DESTINATION include)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/external DESTINATION include)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/sgct DESTINATION include)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include)
+	if(SGCT_LIGHT_ONLY)
+		if( MSVC )
+			INSTALL(FILES ${SGCT_LIB_PATH}/sgct_light.lib DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+			INSTALL(FILES ${SGCT_LIB_PATH}/sgct_lightd.lib DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+		else( MSVC )
+			if( APPLE AND SGCT_CPP11 )
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_light_cpp11.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_light_cpp11d.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+			else()
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_light.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_lightd.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+			endif()
+		endif( MSVC )
+	else(SGCT_LIGHT_ONLY)
+		if( MSVC )
+			INSTALL(FILES ${SGCT_LIB_PATH}/sgct.lib DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+			INSTALL(FILES ${SGCT_LIB_PATH}/sgctd.lib DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+		else( MSVC )
+			if( APPLE AND SGCT_CPP11 )
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct_cpp11d.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+			else()
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgct.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)
+				INSTALL(FILES ${SGCT_LIB_PATH}/libsgctd.a DESTINATION lib COMPONENT libraries CONFIGURATIONS Debug)
+			endif()
+		endif( MSVC )
+		#include files
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/external DESTINATION include COMPONENT headers)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include COMPONENT headers)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include COMPONENT headers)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include COMPONENT headers)
+	endif()
+		
+	INSTALL(FILES ${PROJECT_SOURCE_DIR}/include/sgct.h DESTINATION include COMPONENT headers)
+	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/sgct DESTINATION include COMPONENT headers)
+	
+	#make install on other systems should not copy docs into the compiler's directory
+	if(MSVC)
+		#docs
+		INSTALL(FILES ${PROJECT_SOURCE_DIR}/EULA.rtf DESTINATION docs COMPONENT documentation)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/readme DESTINATION docs COMPONENT documentation)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/html DESTINATION docs COMPONENT documentation)
+	endif(WIN32)
 	
 	set(CPACK_PACKAGE_NAME "SGCT")
+	#path to readme
+	set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/readme/readme.txt")
+	#path to license
+	set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/EULA.rtf")
+	set(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/readme/readme.txt")
+	
+	#New CMake variables:
+	#CPACK_WIX_PRODUCT_ICON
+	#CPACK_WIX_UI_BANNER
+	#CPACK_WIX_UI_DIALOG
+
+	#Documentation:
+	#CPACK_WIX_PRODUCT_ICON -- icon used to the left of the application entry in add/remove programs.
+	#CPACK_WIX_UI_BANNER -- 493 by 58 pixels, this bitmap will appear at the top of all but the first page of the installer.
+	#CPACK_WIX_UI_DIALOG -- 493 by 312 pixels, this bitmap will appear on the first page of the installer.
+	
+	#fix nsis path problem
+	if(WIN32)
+		SET(IMAGE_PATH "${PROJECT_SOURCE_DIR}\\\\image.bmp")
+		SET(SIDEBAR_IMAGE "${PROJECT_SOURCE_DIR}/src/installers\\\\sgct.bmp")
+		#STRING(REGEX REPLACE "/" "\\\\" IMAGE_PATH "${PROJECT_SOURCE_DIR}/image.bmp")
+	else()
+		SET(IMAGE_PATH "${PROJECT_SOURCE_DIR}/image.bmp")
+		SET(SIDEBAR_IMAGE "${PROJECT_SOURCE_DIR}/src/installers/sgct.bmp")
+	endif()
+	SET(CPACK_NSIS_INSTALLER_MUI_ICON_CODE "!define MUI_WELCOMEFINISHPAGE_BITMAP \\\"${SIDEBAR_IMAGE}\\\"\n!define MUI_ICON \\\"${PROJECT_SOURCE_DIR}/icon.ico\\\"")
+	
+	#icon
+	#SET(CPACK_NSIS_MUI_ICON "${PROJECT_SOURCE_DIR}/icon.ico")
+	SET(CPACK_WIX_PRODUCT_ICON "${PROJECT_SOURCE_DIR}/icon.ico")
+	
+	if(WIN32)
+		if(CMAKE_CL_64)
+			SET(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES64")
+		else(CMAKE_CL_64)
+			SET(CPACK_NSIS_INSTALL_ROOT "$PROGRAMFILES")
+		endif(CMAKE_CL_64)
+	endif(WIN32)
+	
+	SET(CPACK_PACKAGE_ICON ${IMAGE_PATH})
 	set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "SGCT - Simple Graphics Cluster Toolkit")
-	set(CPACK_PACKAGE_VENDOR "Linköping University")
+	set(CPACK_PACKAGE_VENDOR "Linkoping University")
 	set(CPACK_PACKAGE_VERSION_MAJOR	${SGCT_VERSION_MAJOR})
 	set(CPACK_PACKAGE_VERSION_MINOR	${SGCT_VERSION_MINOR})
 	set(CPACK_PACKAGE_VERSION_PATCH ${SGCT_VERSION_REVISION})

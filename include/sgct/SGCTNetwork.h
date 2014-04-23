@@ -22,7 +22,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
     typedef int SGCT_SOCKET;
 #endif
 
-#include "external/tinythread.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include "external/tinythread.h"
+#else
+	#include <tinythread.h>
+#endif
 
 namespace sgct_core //small graphics cluster toolkit
 {

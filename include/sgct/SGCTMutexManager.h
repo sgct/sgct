@@ -11,7 +11,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define SGCT_NUMBER_OF_MUTEXES 5
 
 #include <stddef.h>
-#include "external/tinythread.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include "external/tinythread.h"
+#else
+	#include <tinythread.h>
+#endif
 
 namespace sgct
 {

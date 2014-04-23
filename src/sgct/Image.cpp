@@ -7,9 +7,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdio.h>
 #include <fstream>
+#ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/png.h"
 #include "../include/external/pngpriv.h"
 #include "../include/external/jpeglib.h"
+#else
+#include <png.h>
+#include <pngpriv.h>
+#include <jpeglib.h>
+#endif
 #include <stdlib.h>
 
 #include "../include/sgct/Image.h"

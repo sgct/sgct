@@ -12,7 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/tinyxml2.h"
+#else
+#include <tinyxml2.h>
+#endif
+
 #include "../include/sgct/SGCTSettings.h"
 #include <algorithm>
 

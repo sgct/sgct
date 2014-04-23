@@ -356,10 +356,10 @@ if(SGCT_INSTALL)
 	
 	set(CPACK_PACKAGE_NAME "SGCT")
 	#path to readme
-	set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/readme/readme.txt")
+	set(CPACK_PACKAGE_DESCRIPTION_FILE "${PROJECT_SOURCE_DIR}/installer_readme.txt")
 	#path to license
 	set(CPACK_RESOURCE_FILE_LICENSE "${PROJECT_SOURCE_DIR}/EULA.rtf")
-	set(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/readme/readme.txt")
+	set(CPACK_RESOURCE_FILE_README "${PROJECT_SOURCE_DIR}/installer_readme.txt")
 	
 	#New CMake variables:
 	#CPACK_WIX_PRODUCT_ICON

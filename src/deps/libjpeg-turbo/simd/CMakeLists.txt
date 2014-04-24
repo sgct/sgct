@@ -88,8 +88,14 @@ foreach(file ${SIMD_BASENAMES})
     string(REGEX REPLACE "gra" "gry" DEPFILE ${DEPFILE})
     set(DEPFILE ${CMAKE_CURRENT_SOURCE_DIR}/${DEPFILE}.asm)
   endif()
-  set(SIMD_OBJ ${OBJDIR}/${file}.obj)
-  add_custom_command(OUTPUT ${SIMD_OBJ}
+  
+  if(WIN32)
+  	set(SIMD_OBJ ${OBJDIR}/${file}.obj)
+  else(WIN32)
+	set(SIMD_OBJ ${OBJDIR}/${file}.o)
+  endif(WIN32)
+  
+add_custom_command(OUTPUT ${SIMD_OBJ}
     DEPENDS ${SIMD_SRC} ${DEPFILE} ${INC_FILES}
     COMMAND ${NASM} ${NAFLAGS} ${SIMD_SRC} -o${SIMD_OBJ})
   set(SIMD_OBJS ${SIMD_OBJS} ${SIMD_OBJ})

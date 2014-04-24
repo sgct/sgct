@@ -270,7 +270,7 @@ endif()
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
-add_dependencies(${LIB_NAME} freetype glew glfw png15_static tinythreadpp tinyxml2static zlibstatic vrpn)
+add_dependencies(${LIB_NAME} freetype glew glfw png15_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)
@@ -337,21 +337,21 @@ if(SGCT_INSTALL)
 			endif()
 		endif( MSVC )
 		#include files
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/external DESTINATION include COMPONENT headers)
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include COMPONENT headers)
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include COMPONENT headers)
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include COMPONENT headers)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/external DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 	endif()
 		
 	INSTALL(FILES ${PROJECT_SOURCE_DIR}/include/sgct.h DESTINATION include COMPONENT headers)
-	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/sgct DESTINATION include COMPONENT headers)
+	INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/sgct DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 	
 	#make install on other systems should not copy docs into the compiler's directory
 	if(MSVC)
 		#docs
 		INSTALL(FILES ${PROJECT_SOURCE_DIR}/EULA.rtf DESTINATION docs COMPONENT documentation)
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/readme DESTINATION docs COMPONENT documentation)
-		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/html DESTINATION docs COMPONENT documentation)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/readme DESTINATION docs COMPONENT documentation PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/docs/html DESTINATION docs COMPONENT documentation PATTERN ".svn" EXCLUDE)
 	endif(MSVC)
 	
 	set(CPACK_PACKAGE_NAME "SGCT")

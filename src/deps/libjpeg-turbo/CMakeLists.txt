@@ -11,10 +11,7 @@ SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windo
 project(libjpeg-turbo)
 set(VERSION 1.3.1)
 
-if(MINGW OR CYGWIN)
-  execute_process(COMMAND "date" "+%Y%m%d" OUTPUT_VARIABLE BUILD)
-  string(REGEX REPLACE "\n" "" BUILD "${BUILD}")
-elseif(WIN32)
+if(WIN32)
   execute_process(COMMAND "wmic.exe" "os" "get" "LocalDateTime" OUTPUT_VARIABLE
     BUILD)
   string(REGEX REPLACE "[^0-9]" "" BUILD "${BUILD}")
@@ -195,28 +192,13 @@ endif()
 
 #add_subdirectory(sharedlib)
 
-add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
-if(NOT MSVC)
-  set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
-endif()
-if(TURBOJPEG_WITH_SIMD)
-  add_dependencies(jpeg-static simd)
-endif()
-
-set(TURBOJPEG_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/turbojpeg.c
-	${CMAKE_CURRENT_SOURCE_DIR}/transupp.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdatadst-tj.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdatasrc-tj.c)
-
-#add_library(turbojpeg SHARED ${TURBOJPEG_SOURCES})
-#set_target_properties(turbojpeg PROPERTIES DEFINE_SYMBOL DLLDEFINE)
-#if(MINGW)
-#  set_target_properties(turbojpeg PROPERTIES LINK_FLAGS -Wl,--kill-at)
+#add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
+#if(NOT MSVC)
+#  set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
 #endif()
-
-#target_link_libraries(turbojpeg jpeg-static)
-#set_target_properties(turbojpeg PROPERTIES LINK_INTERFACE_LIBRARIES "")
+#if(TURBOJPEG_WITH_SIMD)
+#  add_dependencies(jpeg-static simd)
+#endif()
 
 add_library(turbojpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS}
   ${CMAKE_CURRENT_SOURCE_DIR}/turbojpeg.c
@@ -229,10 +211,6 @@ if(NOT MSVC)
 endif()
 if(TURBOJPEG_WITH_SIMD)
   add_dependencies(turbojpeg-static simd)
-endif()
-	
-if(CMAKE_SYSTEM_NAME MATCHES "Linux")
-	add_definitions(-fPIC)
 endif()
 
 #add_executable(tjunittest tjunittest.c tjutil.c)

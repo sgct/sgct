@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stddef.h> //get definition for NULL
 #include <vector>
 #include <string>
+#include <string.h> //for memcpy
 #include "SharedDataTypes.h"
 
 namespace sgct //simple graphics cluster toolkit
@@ -188,7 +189,7 @@ void SharedData::readVector(SharedVector<T> * vector)
 	}
 
 	std::size_t totalSize = size * sizeof(T);
-    unsigned char* data = new unsigned char[ totalSize ];
+	unsigned char* data = new unsigned char[ totalSize ];
 	unsigned char* c = readUCharArray( totalSize );
 
 	//for(std::size_t i = 0; i < totalSize; i++)
@@ -198,8 +199,8 @@ void SharedData::readVector(SharedVector<T> * vector)
 	std::vector<T> tmpVec;
 	tmpVec.insert( tmpVec.begin(), reinterpret_cast<T*>(data), reinterpret_cast<T*>(data)+size);
 
-    vector->setVal( tmpVec );
-    delete[] data;
+	vector->setVal( tmpVec );
+	delete[] data;
 }
 
 }

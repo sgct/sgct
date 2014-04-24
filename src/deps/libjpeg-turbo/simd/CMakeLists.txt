@@ -2,14 +2,40 @@ if(NOT DEFINED NASM)
   set(NASM nasm CACHE PATH "Path to NASM/YASM executable")
 endif()
 
-if(SIMD_X86_64)
-  set(NAFLAGS -fwin64 -DWIN64 -D__x86_64__ -I${CMAKE_SOURCE_DIR}/win/
-    -I${CMAKE_CURRENT_SOURCE_DIR}/)
-else()
-  set(NAFLAGS -fwin32 -DWIN32 -I${CMAKE_SOURCE_DIR}/win/
-    -I${CMAKE_CURRENT_SOURCE_DIR}/)
-endif()
+#orig code
+#if(SIMD_X86_64)
+#  set(NAFLAGS -fwin64 -DWIN64 -D__x86_64__ -I${CMAKE_SOURCE_DIR}/win/
+#    -I${CMAKE_CURRENT_SOURCE_DIR}/)
+#else()
+#  set(NAFLAGS -fwin32 -DWIN32 -I${CMAKE_SOURCE_DIR}/win/
+#    -I${CMAKE_CURRENT_SOURCE_DIR}/)
+#endif()
 
+set(NAFLAGS -I${CMAKE_CURRENT_SOURCE_DIR}/ -I${CMAKE_SOURCE_DIR}/win/)
+if(SIMD_X86_64) #64bit
+	set(NAFLAGS ${NAFLAGS} -D__x86_64__)
+	if(WIN32)
+		set(NAFLAGS ${NAFLAGS} -fwin64 -DWIN64)
+	else(WIN32)
+		if(APPLE)
+			set(NAFLAGS ${NAFLAGS} -fmacho64 -DMACHO)
+		else(APPLE)#linux
+			set(NAFLAGS ${NAFLAGS} -felf64 -DELF)
+		endif(APPLE)
+	endif(WIN32)
+else(SIMD_X86_64) #32-bit
+	set(NAFLAGS ${NAFLAGS} -D__i386__)
+	if(WIN32)
+		set(NAFLAGS ${NAFLAGS} -fwin32 -DWIN32)
+	else(WIN32)
+		if(APPLE)
+			set(NAFLAGS ${NAFLAGS} -fmacho -DMACHO)
+		else(APPLE)#linux
+			set(NAFLAGS ${NAFLAGS} -felf32 -DELF)
+		endif(APPLE)
+	endif(WIN32)
+endif(SIMD_X86_64)
+			
 # This only works if building from the command line.  There is currently no way
 # to set a variable's value based on the build type when using the MSVC IDE.
 if(CMAKE_BUILD_TYPE STREQUAL "Debug"

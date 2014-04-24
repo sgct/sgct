@@ -1,6 +1,6 @@
 #!/bin/bash
 # merge libs
-if [ -f libsgct_light.a ] && [ -f libsgct_lightd.a ];
+if [ -f libsgct_light_cpp11.a ] && [ -f libsgct_light_cpp11d.a ];
 then
 	echo "Merging release libs... "
 	if [ -f libsgct_cpp11.a ];
@@ -37,7 +37,7 @@ then
 	ar r libsgct_cpp11d.a *.o
 	rm *.o
 	echo "Done."
-elif [ -f libsgct_light.a ];
+elif [ -f libsgct_light_cpp11.a ];
 then
 	echo "Merging release libs... "
 	if [ -f libsgct_cpp11.a ];
@@ -57,7 +57,7 @@ then
 	ar r libsgct_cpp11.a *.o
 	rm *.o
 	echo "Done."
-elif [ -f libsgct_lightd.a ];
+elif [ -f libsgct_light_cpp11d.a ];
 then
 	echo "Merging debug libs... "
 	if [ -f libsgct_cpp11d.a ];

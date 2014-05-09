@@ -48,16 +48,16 @@ int main( int argc, char* argv[] )
 void myDrawFun()
 {
 	double speed = 25.0;
-	
+
 	glTranslatef(0.0f, 0.0f, -3.0f);
 	glRotated(curr_time.getVal() * speed, 0.0, -1.0, 0.0);
 	glRotated(curr_time.getVal() * (speed/2.0), 1.0, 0.0, 0.0);
 	glColor3f(1.0f,1.0f,1.0f);
-	
+
 	glActiveTexture(GL_TEXTURE0);
 	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
-	
+
 	//draw the box
 	myBox->draw();
 }
@@ -79,7 +79,7 @@ void myInitOGLFun()
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::SkyBox);
-	
+
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_COLOR_MATERIAL );
 	glDisable( GL_LIGHTING );

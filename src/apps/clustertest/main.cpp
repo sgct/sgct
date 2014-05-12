@@ -2,7 +2,7 @@
 #include <stdio.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
-#define EXTENDED_SIZE 40000
+#define EXTENDED_SIZE 100000
 
 sgct::Engine * gEngine;
 
@@ -68,6 +68,10 @@ int main( int argc, char* argv[] )
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setPostDrawFunction( myPostDrawFun );
 
+	std::vector<std::string> addresses = sgct_core::NetworkManager::instance()->getLocalAddresses();
+	for (std::size_t i = 0; i < addresses.size(); i++)
+		fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
+
 	// Main loop
 	gEngine->render();
 
@@ -83,8 +87,11 @@ void myDraw2DFun()
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getActiveWindowPtr()->isFocused() ? "true" : "false");
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
-	if(extraPackages.getVal())
-		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 14 ), 100, 300, glm::vec4(0.0, 0.0, 1.0, 1.0), "Vector val: %f", extraData.getValAt(EXTENDED_SIZE/2) );
+	if (extraPackages.getVal())
+	{
+		float xPos = static_cast<float>(gEngine->getActiveWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 16), xPos, 150.0f, glm::vec4(0.0, 1.0, 0.5, 1.0), "Vector val: %f, size: %u", extraData.getValAt(EXTENDED_SIZE / 2), extraData.getSize());
+	}
 }
 
 void myDrawFun()

@@ -298,6 +298,7 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 			if (iResult == SOCKET_ERROR)
 				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set receive buffer size to %d with error: %d\n!", bufferSize, SGCT_ERRNO);
 		}
+
 		//set only on external control, cluster nodes sends data several times per second so there is no need so send alive packages
 		else
 		{

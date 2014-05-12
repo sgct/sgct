@@ -212,8 +212,7 @@ namespace sgct //simple graphics cluster toolkit
 		void setVal( std::vector<T> mCopy )
 		{
 			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
-			mVector.clear();
-			mVector = mCopy;
+			mVector.assign(mCopy.begin(), mCopy.end());
 			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
 		}
 

@@ -57,6 +57,7 @@ public:
 	unsigned int getSyncConnectionsCount();
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
     inline SGCTNetwork* getSyncConnection(unsigned int index) { return mSyncConnections[index]; }
+	inline std::vector<std::string> getLocalAddresses() { return localAddresses; }
 
 private:
 	bool addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);

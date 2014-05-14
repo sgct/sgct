@@ -5,7 +5,7 @@
 !include x64.nsh
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "2.0.7"
+!define SGCT_VERSION "2.1.2"
 !define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
@@ -149,8 +149,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	!endif
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}"
-	File "..\..\license.txt"
-	File "..\..\Attribution.txt"
+	File /r "..\..\readme"
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\docs"
 	File /r "..\..\docs\html"
@@ -299,7 +298,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	
 	#Depth Buffer
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\depth_buffer_example"
-	File "..\..\bin\depthBuffer\${SGCT_COMPILER}\depthBuffer_${SGCT_COMPILER}_${ARCH}.exe"
+	File "..\..\bin\depthBufferExample\${SGCT_COMPILER}\depthBufferExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\depthBuffer\fisheye.xml"
 	File "..\..\src\apps\depthBuffer\normalmap.png"
 	File "..\..\src\apps\depthBuffer\main.cpp"
@@ -307,7 +306,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\depthBuffer\heightmap.frag"
 	File "..\..\src\apps\depthBuffer\depth.vert"
 	File "..\..\src\apps\depthBuffer\depth.frag"
-	File "..\..\src\apps\depthBuffer\MRTExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\depthBuffer\depthBufferExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\depthBuffer\user_cmake\CMakeLists.txt"
 	
 	#MRT
@@ -325,8 +324,8 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\bin\MRTExample_opengl3\${SGCT_COMPILER}\MRTExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\MRTExample_opengl3\box.png"
 	File "..\..\src\apps\MRTExample_opengl3\main.cpp"
-	File "..\..\src\apps\MRTExample_opengl3\base.vert"
-	File "..\..\src\apps\MRTExample_opengl3\blur.frag"
+	File "..\..\src\apps\MRTExample_opengl3\mrt.vert"
+	File "..\..\src\apps\MRTExample_opengl3\mrt.frag"
 	File "..\..\src\apps\MRTExample_opengl3\MRTExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\MRTExample_opengl3\user_cmake\CMakeLists.txt"
 	

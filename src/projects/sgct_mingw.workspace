@@ -6,7 +6,6 @@
 		<Project filename="../apps/SGCTRemote/remote_app_mingw.cbp" />
 		<Project filename="../apps/simpleNavigationExample/simpleNavigationExample_mingw.cbp" />
 		<Project filename="../apps/simpleShaderExample/simpleShaderExample_mingw.cbp" />
-		<Project filename="../apps/soundExample/soundExample_mingw.cbp" />
 		<Project filename="../apps/textureExample/textureExample_mingw.cbp" />
 		<Project filename="../apps/trackingExample/trackingExample_mingw.cbp" />
 		<Project filename="../apps/clustertest/clustertest_mingw.cbp" />
@@ -24,5 +23,8 @@
 		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" />
 		<Project filename="../apps/renderToTexture/renderToTexture_mingw.cbp" />
 		<Project filename="../apps/simpleShaderExample_opengl3/simpleShaderExample_opengl3_mingw.cbp" />
+		<Project filename="../apps/depthBuffer/depthBufferExample_mingw.cbp" />
+		<Project filename="../apps/MRTExample/MRTExample_mingw.cbp" />
+		<Project filename="../apps/MRTExample_opengl3/MRTExample_opengl3_mingw.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

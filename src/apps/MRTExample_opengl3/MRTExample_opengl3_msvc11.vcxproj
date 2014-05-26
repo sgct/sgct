@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{096E6631-A50D-45CE-AB8C-3033C0BC5A14}</ProjectGuid>
+    <ProjectGuid>{B8F46454-85FC-4591-B50D-9816E298ECBB}</ProjectGuid>
     <RootNamespace>MRTExample_opengl3</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

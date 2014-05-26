@@ -6,10 +6,10 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.1.2"
-!define SGCT_COMPILER "msvc12"
-!define ARCH "x64"
+!define SGCT_COMPILER "mingw"
+!define ARCH "x86"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 0
+!define INC_OSG 1
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"

@@ -15,12 +15,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #ifdef __WIN32__
     typedef size_t SGCT_SOCKET;
-    #if (_MSC_VER >= 1100) //visual studio 5 or later (basically all visual studio versions)
-        typedef int ssize_t;
-    #endif
 #else //linux & OS X
     typedef int SGCT_SOCKET;
 #endif
+
+typedef int _ssize_t;
 
 #ifndef SGCT_DONT_USE_EXTERNAL
 	#include "external/tinythread.h"
@@ -68,7 +67,7 @@ public:
 	void setRecvFrame(int i);
 	void sendData(void * data, int length);
 	void sendStr(std::string msg);
-	static ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
+	static _ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
 	static int parseInt(char * str);
 	static unsigned int parseUnsignedInt(char * str);
 	int iterateFrameCounter();

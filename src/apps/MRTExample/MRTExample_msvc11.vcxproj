@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{096E6631-A50D-45CE-AB8C-3033C0BC5A14}</ProjectGuid>
+    <ProjectGuid>{F7376A07-200A-42DD-A724-E6005E8C5207}</ProjectGuid>
     <RootNamespace>MRTExample</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

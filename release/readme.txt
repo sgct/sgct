@@ -15,8 +15,6 @@ Compatible with new binary packages that uses the later c++11 standard
 libsgct_cpp11.a - Release build compiled with -std=c++11 -stdlib=libc++
 libsgct_cpp11d.a - Debug build compiled with -std=c++11 -stdlib=libc++
 
-There are also corresponding ALUT (Audio Library Utility Toolkit) libraries in this release.
-
 Linux/Unix
 #############################################################
 Install the libs to: /usr/local/lib/ and the include directory to: /usr/local/include/

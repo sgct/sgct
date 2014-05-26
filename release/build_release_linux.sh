@@ -62,10 +62,9 @@ fi
 #
 cd build
 echo "Running Cmake..."
-cmake -G Unix -D SGCT_EXAMPLES_OSG=On -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -D SGCT_EXAMPLES_OSG=On -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
 echo "Building.."
-xcodebuild -target ALL_BUILD -configuration Release clean
-xcodebuild -target ALL_BUILD -configuration Release
+make clean all
 cd ..
 rm -rf build
 rm -f CMakeLists.txt

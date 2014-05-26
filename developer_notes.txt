@@ -12,14 +12,18 @@ Make sure that CMAKE is using the correct NASM build (OS X is using an really ol
 Make all shell files executable: chmod 755 script_name
 for all files: 
 
-sudo find ./ -name "*.sh" -exec chmod 755 {}  \;
-sudo find ./ -name "*.command" -exec chmod 755 {}  \;
+sudo find ./ -name "*.sh" -exec chmod 755 {} \;
+sudo find ./ -name "*.command" -exec chmod 755 {} \;
 
 xcodebuild -target ALL_BUILD -configuration Debug
 xcodebuild -target ALL_BUILD -configuration Release	
 sudo xcodebuild -target install -configuration Debug
 sudo xcodebuild -target install -configuration Release
 
+Linux
+=======================================================================
+sudo find . -name "*.sh" -exec chmod +x {} \;
+sudo find . -name "*.command" -exec chmod +x {} \;
 
 CMAKE FLAGS
 ========================================================================

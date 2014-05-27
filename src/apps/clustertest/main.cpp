@@ -39,7 +39,7 @@ void drawGrid(float size, int steps);
 int main( int argc, char* argv[] )
 {
 	//sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
-	
+
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	gEngine->setInitOGLFunction( myInitOGLFun );
@@ -69,7 +69,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPostDrawFunction( myPostDrawFun );
 
 	std::vector<std::string> addresses = sgct_core::NetworkManager::instance()->getLocalAddresses();
-	for (std::size_t i = 0; i < addresses.size(); i++)
+	for (unsigned int i = 0; i < addresses.size(); i++)
 		fprintf(stderr, "Address %u: %s\n", i, addresses[i].c_str());
 
 	// Main loop
@@ -192,7 +192,7 @@ void myDrawFun()
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
 
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
-		
+
 		if( gEngine->getActiveWindowPtr()->isBarrierActive() )
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
 		else
@@ -265,9 +265,9 @@ void myInitOGLFun()
 			{
 				numberOfActiveViewports++;
 
-				glm::mat4 prjMatMono  = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::Mono );
+				/*glm::mat4 prjMatMono  = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::Mono );
 				glm::mat4 prjMatLeft  = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoLeftEye );
-				glm::mat4 prjMatRight = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );
+				glm::mat4 prjMatRight = thisNode->getWindowPtr(i)->getViewport(j)->getViewProjectionMatrix( sgct_core::Frustum::StereoRightEye );*/
 			}
 
 	sgct::MessageHandler::instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
@@ -336,7 +336,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 				frametest.toggle();
 			break;
-		
+
 		case 'I':
 			if(action == SGCT_PRESS)
 				showFPS.toggle();

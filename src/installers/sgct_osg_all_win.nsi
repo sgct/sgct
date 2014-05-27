@@ -7,9 +7,9 @@
 ;Change the following defines to make different installers
 !define SGCT_VERSION "2.1.2"
 !define SGCT_COMPILER "mingw"
-!define ARCH "x86"
+!define ARCH "x64"
 !define OSG_VERSION "3.0.1"
-!define INC_OSG 1
+!define INC_OSG 0
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -135,11 +135,13 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\lib\${SGCT_LIB_PATH}"
 	!if "${SGCT_COMPILER}" == "mingw"
-		File "..\..\lib\mingw\libsgct.a"
-		File "..\..\lib\mingw\libsgctd.a"
-	!else if "${ARCH}" == "mingw_x64"
-		File "..\..\lib\${SGCT_COMPILER}\libsgct.a"
-		File "..\..\lib\${SGCT_COMPILER}\libsgctd.a"
+		!if "${ARCH}" == "x86"
+			File "..\..\lib\mingw\libsgct.a"
+			File "..\..\lib\mingw\libsgctd.a"
+		!else
+			File "..\..\lib\mingw_x64\libsgct.a"
+			File "..\..\lib\mingw_x64\libsgctd.a"
+		!endif
 	!else if "${ARCH}" == "x86"
 		File "..\..\lib\${SGCT_COMPILER}\sgct.lib"
 		File "..\..\lib\${SGCT_COMPILER}\sgctd.lib"

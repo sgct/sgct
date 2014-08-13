@@ -109,6 +109,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFisheyeOffaxis = false;
 	mCubicInterpolation = false;
 
+	//2 texels + 3 vertex
 	mQuadVerts[0] = 0.0f;
 	mQuadVerts[1] = 0.0f;
 	mQuadVerts[2] = -1.0f;

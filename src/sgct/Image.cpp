@@ -820,12 +820,12 @@ int sgct_core::Image::getChannels()
 	return mChannels;
 }
 
-int sgct_core::Image::getSizeX()
+int sgct_core::Image::getWidth()
 {
 	return mSize_x;
 }
 
-int sgct_core::Image::getSizeY()
+int sgct_core::Image::getHeight()
 {
 	return mSize_y;
 }

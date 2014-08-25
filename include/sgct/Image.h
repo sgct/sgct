@@ -36,8 +36,8 @@ public:
 	void cleanup();
 	unsigned char * getData();
 	int getChannels();
-	int getSizeX();
-	int getSizeY();
+	int getWidth();
+	int getHeight();
     unsigned char getSampleAt(int x, int y, ChannelType c);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
 	void setDataPtr(unsigned char * dPtr);

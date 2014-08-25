@@ -310,12 +310,12 @@ void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::Scree
     }
 
     sgct::MessageHandler::instance()->print("Taking screenshot %dx%d %d bpp, win=%u %s\n",
-                                            imPtr->getSizeX(), imPtr->getSizeY(),
+                                            imPtr->getWidth(), imPtr->getHeight(),
                                             imPtr->getChannels() * 8,
                                             winIndex, eye.c_str()
                                             );
     static int lastAllocSize = 0;
-    int dataSize = imPtr->getSizeX() * imPtr->getSizeY() * imPtr->getChannels();
+	int dataSize = imPtr->getWidth() * imPtr->getChannels() * imPtr->getChannels();
     if( mData == NULL )
     {
         mData = new (std::nothrow) unsigned char[dataSize];

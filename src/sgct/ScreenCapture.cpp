@@ -210,11 +210,14 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
         if (!imPtr)
             return;
         
-        GLvoid * ptr = glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY);
+		GLubyte * ptr = reinterpret_cast<GLubyte*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
         if (ptr)
         {
-            memcpy(imPtr->getData(), ptr, mDataSize);
-            glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
+            //memcpy(imPtr->getData(), ptr, mDataSize);
+			int stride = imPtr->getWidth() * imPtr->getChannels();
+			for (int r = 0; r < imPtr->getHeight(); r++)
+				memcpy(imPtr->getData()+stride*r, ptr+stride*r, stride);
+			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         }
         else
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");

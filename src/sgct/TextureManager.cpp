@@ -380,8 +380,8 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		}
 		
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
-			img.getSizeX(),
-			img.getSizeY(),
+			img.getWidth(),
+			img.getHeight(),
 			img.getChannels(),
 			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
 
@@ -391,7 +391,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
         if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
 		
@@ -419,8 +419,8 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		tmpTexture.mId = texID;
 		tmpTexture.mName.assign(name);
 		tmpTexture.mPath.assign(filename);
-		tmpTexture.mDim[0] = img.getSizeX();
-		tmpTexture.mDim[1] = img.getSizeY();
+		tmpTexture.mDim[0] = img.getWidth();
+		tmpTexture.mDim[1] = img.getHeight();
 		tmpTexture.mDim[2] = img.getChannels();
 
 		if(!reload)
@@ -547,8 +547,8 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		}
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
-			img.getSizeX(),
-			img.getSizeY(),
+			img.getWidth(),
+			img.getHeight(),
 			img.getChannels(),
 			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
 
@@ -558,7 +558,7 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getSizeX(), img.getSizeY(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
 

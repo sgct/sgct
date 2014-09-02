@@ -81,6 +81,8 @@ int main( int argc, char* argv[] )
 	sgct::SGCTSettings::instance()->setPNGCompressionLevel(3);
 	sgct::SGCTSettings::instance()->setNumberOfCaptureThreads(24);*/
 
+	//sgct::SGCTSettings::instance()->setUseWarping(false);
+
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
@@ -101,7 +103,7 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{
+{	
 	glEnable( GL_CULL_FACE );
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);

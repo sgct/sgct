@@ -5,6 +5,7 @@ sgct::Engine * gEngine;
 void draw();
 void initGL();
 void preSync();
+void postSync();
 void encode();
 void decode();
 void cleanUp();
@@ -25,10 +26,14 @@ sgct::SharedShort colorState(0);
 sgct::SharedBool showGeoCorrectionPattern(true);
 sgct::SharedBool showBlendZones(false);
 sgct::SharedBool showChannelZones(false);
+sgct::SharedBool showId(false);
 sgct::SharedBool takeScreenShot(false);
 sgct::SharedBool wireframe(false);
+sgct::SharedBool warping(true);
 
 const short lastState = 7;
+bool ctrlPressed = false;
+bool shiftPressed = false;
 bool useShader = true;
 bool isTiltSet = false;
 bool useDisplayLists = false;
@@ -79,6 +84,7 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( draw );
 	gEngine->setInitOGLFunction( initGL );
 	gEngine->setPreSyncFunction( preSync );
+	gEngine->setPostSyncPreDrawFunction( postSync );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setCleanUpFunction( cleanUp );
     //gEngine->setScreenShotCallback( screenShot );
@@ -104,6 +110,8 @@ int main( int argc, char* argv[] )
 
 void draw()
 {
+	glDepthMask(GL_FALSE);
+	
 	switch( displayState.getVal() )
 	{
 	case 0:
@@ -139,6 +147,25 @@ void draw()
 		drawTexturedObject();
 		break;
 	}
+
+	if (showBlendZones.getVal())
+		mDome->drawBlendZones();
+
+	if (showChannelZones.getVal())
+		mDome->drawChannelZones();
+
+	if (showId.getVal())
+	{
+		int w = gEngine->getActiveWindowPtr()->getXResolution();
+		int h = gEngine->getActiveWindowPtr()->getYResolution();
+		int s1 = h / 5;
+		int s2 = h / 20;
+		
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", s1), w/2 - s1/2, h/2 - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId() );
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", s2), w / 2 - s1*2 / 2, h / 5, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress());
+	}
+
+	glDepthMask(GL_TRUE);
 }
 
 void initGL()
@@ -181,10 +208,15 @@ void initGL()
 
 void preSync()
 {
+	;
+}
+
+void postSync()
+{
 	//set the time only on the master
-	if( gEngine->isMaster() )
+	if (gEngine->isMaster())
 	{
-		if( takeScreenShot.getVal() )
+		if (takeScreenShot.getVal())
 		{
 			takeScreenShot.setVal(false);
 			gEngine->takeScreenshot();
@@ -192,6 +224,7 @@ void preSync()
 	}
 
 	gEngine->setWireframe(wireframe.getVal());
+	sgct::SGCTSettings::instance()->setUseWarping(warping.getVal());
 }
 
 void encode()
@@ -203,6 +236,8 @@ void encode()
 	sgct::SharedData::instance()->writeBool( &showChannelZones );
 	sgct::SharedData::instance()->writeBool( &takeScreenShot );
 	sgct::SharedData::instance()->writeBool( &wireframe );
+	sgct::SharedData::instance()->writeBool( &warping );
+	sgct::SharedData::instance()->writeBool( &showId );
 }
 
 void decode()
@@ -214,6 +249,8 @@ void decode()
 	sgct::SharedData::instance()->readBool( &showChannelZones );
 	sgct::SharedData::instance()->readBool( &takeScreenShot );
 	sgct::SharedData::instance()->readBool( &wireframe );
+	sgct::SharedData::instance()->readBool( &warping );
+	sgct::SharedData::instance()->readBool( &showId );
 }
 
 void keyCallback(int key, int action)
@@ -222,6 +259,16 @@ void keyCallback(int key, int action)
 	{
 		switch( key )
 		{
+		case SGCT_KEY_LEFT_CONTROL:
+		case SGCT_KEY_RIGHT_CONTROL:
+			ctrlPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
+			break;
+
+		case SGCT_KEY_LEFT_SHIFT:
+		case SGCT_KEY_RIGHT_SHIFT:
+			shiftPressed = (action == SGCT_REPEAT || action == SGCT_PRESS);
+			break;
+
 		case SGCT_KEY_LEFT:
 			if(action == SGCT_PRESS)
             {
@@ -277,6 +324,11 @@ void keyCallback(int key, int action)
 				showGeoCorrectionPattern.toggle();
 			break;
 
+		case SGCT_KEY_I:
+			if (action == SGCT_PRESS)
+				showId.toggle();
+			break;
+
 		case SGCT_KEY_P:
 			if(action == SGCT_PRESS)
 				takeScreenShot.setVal(true);
@@ -284,7 +336,12 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_W:
 			if (action == SGCT_PRESS)
-				wireframe.toggle();
+			{
+				if (ctrlPressed)
+					warping.toggle();
+				else
+					wireframe.toggle();
+			}
 			break;
 		}
 	}
@@ -352,28 +409,14 @@ void cleanUp()
 
 void drawGeoCorrPatt()
 {
-	glDepthMask(GL_FALSE);
-
 	if( showGeoCorrectionPattern.getVal() )
 		mDome->drawGeoCorrPattern();
-
-	if( showBlendZones.getVal() )
-		mDome->drawBlendZones();
-
-	if( showChannelZones.getVal() )
-		mDome->drawChannelZones();
-
-	glDepthMask(GL_TRUE);
 }
 
 void drawColCorrPatt()
 {
-	glDepthMask(GL_FALSE);
-
 	mDome->drawColCorrPattern( &colors[ colorState.getVal() ],
 		   static_cast<int>((displayState.getVal()-1)) %5);
-
-	glDepthMask(GL_TRUE);
 }
 
 void drawCube()

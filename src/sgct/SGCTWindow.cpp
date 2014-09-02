@@ -2243,10 +2243,18 @@ void sgct::SGCTWindow::initFisheye()
 
 	float cropAspect = ((1.0f-2.0f * bottomcrop) + (1.0f-2.0f*topcrop)) / ((1.0f-2.0f*leftcrop) + (1.0f-2.0f*rightcrop));
 
+	float x_scale = 1.0f;
+	float y_scale = 1.0f;
 	float x = 1.0f;
 	float y = 1.0f;
-	float frameBufferAspect = static_cast<float>( mFramebufferResolution[0] ) /
-		static_cast<float>( mFramebufferResolution[1] );
+
+	if (mStereoMode == StereoMode::Side_By_Side_Stereo || mStereoMode == StereoMode::Side_By_Side_Inverted_Stereo)
+		x_scale = 0.5f;
+	else if (mStereoMode == StereoMode::Top_Bottom_Stereo || mStereoMode == StereoMode::Top_Bottom_Inverted_Stereo)
+		y_scale = 0.5f;
+
+	float frameBufferAspect = (static_cast<float>( mFramebufferResolution[0])*x_scale) /
+		(static_cast<float>( mFramebufferResolution[1])*y_scale);
 
 	float aspect = frameBufferAspect * cropAspect;
 	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;

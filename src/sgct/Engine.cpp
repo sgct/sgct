@@ -1536,6 +1536,9 @@ void sgct::Engine::renderFBOTexture()
 					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 				}
 			}
+
+			//restore
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		ShaderProgram::unbind();
@@ -1584,6 +1587,9 @@ void sgct::Engine::renderFBOTexture()
 					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 				}
 			}
+
+			//restore
+			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 		}
 
 		ShaderProgram::unbind();
@@ -1929,6 +1935,8 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	if(mTakeScreenshot)
 	{
 		int size = getActiveWindowPtr()->getXFramebufferResolution();
+		//if (sm == sgct::SGCTWindow::Side_By_Side_Stereo || sm == sgct::SGCTWindow::Side_By_Side_Inverted_Stereo)
+		//	size /= 2;
 		unsigned int fontSize = 0;
 
 		if( size > 512 )
@@ -1996,6 +2004,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	}
 
 	glDisable(GL_BLEND);
+
+	//restore depth func
+	glDepthFunc(GL_LESS);
 }
 
 /*!
@@ -2265,6 +2276,9 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 		glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
 		int size = getActiveWindowPtr()->getXFramebufferResolution();
+		//if (sm == sgct::SGCTWindow::Side_By_Side_Stereo || sm == sgct::SGCTWindow::Side_By_Side_Inverted_Stereo)
+		//	size /= 2;
+
 		unsigned int fontSize = 0;
 
 		if( size > 512 )

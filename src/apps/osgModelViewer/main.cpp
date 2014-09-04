@@ -100,6 +100,9 @@ int main( int argc, char* argv[] )
 	gEngine->setMouseButtonCallbackFunction( mouseButtonCallback );
 	//gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
 
+	//fix incompability with warping and OSG
+	sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
+
 	for(int i=0; i<6; i++)
 		arrowButtonStatus[i] = false;
 

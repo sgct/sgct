@@ -54,6 +54,9 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
+	//fix incompability with warping and OSG
+	sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::DISPLAY_LIST );
+
 	for(int i=0; i<4; i++)
 		arrowButtons[i] = false;
 

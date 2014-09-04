@@ -166,8 +166,15 @@ void myPreSyncFun()
 
 void myDrawFun()
 {
+	//glEnable(GL_DEPTH_TEST);
+	//glDepthFunc(GL_LESS);
+	glDisable(GL_DEPTH_TEST);
+	
 	glMultMatrixf(glm::value_ptr(xform.getVal()));
 	glCallList(myLandscapeDisplayList);
+
+	//glDisable(GL_DEPTH_TEST);
+	glEnable(GL_DEPTH_TEST);
 }
 
 void myEncodeFun()
@@ -227,6 +234,7 @@ void mouseButtonCallback(int button, int action)
 
 void drawXZGrid(int size, float yPos)
 {
+	glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
 	glPushMatrix();
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -259,24 +267,7 @@ void drawPyramid(float width)
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//disable depth sorting to avoid flickering
-	glDisable(GL_DEPTH_TEST);
-
-	glColor4f(1.0f, 0.0f, 0.5f, 0.6f);
-
-	glBegin(GL_TRIANGLE_FAN);
-	//draw top
-	glVertex3f(0.0f, 2.0f, 0.0f);
-
-	//draw sides
-	glVertex3f(-width/2.0f, 0.0f, -width/2.0f);
-	glVertex3f(-width/2.0f, 0.0f, width/2.0f);
-	glVertex3f(width/2.0f, 0.0f, width/2.0f);
-	glVertex3f(width/2.0f, 0.0f, -width/2.0f);
-	glVertex3f(-width/2.0f, 0.0f, -width/2.0f);
-
-	glEnd();
-
+	glPolygonOffset(1.0f, 0.1f); //offset to avoid z-buffer fighting
 	//enhance the pyramids with lines in the edges
 	glLineWidth(2.0f);
 	glColor4f(1.0f, 0.0f, 0.5f, 0.8f);
@@ -305,6 +296,21 @@ void drawPyramid(float width)
 	glVertex3f(-width/2.0f, 0.0f, -width/2.0f);
 	glEnd();
 
-	glEnable(GL_DEPTH_TEST);
+	glColor4f(1.0f, 0.0f, 0.5f, 0.3f);
+
+	glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
+	glBegin(GL_TRIANGLE_FAN);
+	//draw top
+	glVertex3f(0.0f, 2.0f, 0.0f);
+
+	//draw sides
+	glVertex3f(-width / 2.0f, 0.0f, -width / 2.0f);
+	glVertex3f(-width / 2.0f, 0.0f, width / 2.0f);
+	glVertex3f(width / 2.0f, 0.0f, width / 2.0f);
+	glVertex3f(width / 2.0f, 0.0f, -width / 2.0f);
+	glVertex3f(-width / 2.0f, 0.0f, -width / 2.0f);
+
+	glEnd();
+
 	glDisable(GL_BLEND);
 }

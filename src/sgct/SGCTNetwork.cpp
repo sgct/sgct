@@ -922,6 +922,7 @@ void communicationHandler(void *arg)
 						fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
 					#endif
 					nPtr->mConnectionMutex.lock();
+					//grow only
 					if( dataSize > nPtr->mBufferSize )
 					{
 						//clean up

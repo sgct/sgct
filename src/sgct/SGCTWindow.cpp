@@ -2324,7 +2324,7 @@ bool sgct::SGCTWindow::getFullResolutionMode()
 
 void sgct::SGCTWindow::addViewport(float left, float right, float bottom, float top)
 {
-	sgct_core::Viewport tmpVP(left, right, bottom, top);
+	sgct_core::Viewport tmpVP(mViewports.size(), left, right, bottom, top);
 	mViewports.push_back(tmpVP);
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
 }
@@ -2388,7 +2388,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             upperRight.z = 1.0f * radius;
             upperRight.w = 1.0f;
             
-            sgct_core::Viewport tmpVP;
+            sgct_core::Viewport tmpVP(i);
             
             //only generate GPU data in first viewport and the rest can use it's data
             if( i != 0 )
@@ -2504,7 +2504,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
         //add viewports
         for(unsigned int i=0; i<6; i++)
         {
-            sgct_core::Viewport tmpVP;
+            sgct_core::Viewport tmpVP(i);
             
             //only generate GPU data in first viewport and the rest can use it's data
             if( i != 0 )

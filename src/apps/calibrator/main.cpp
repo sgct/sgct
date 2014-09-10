@@ -156,13 +156,18 @@ void draw()
 
 	if (showId.getVal())
 	{
-		int w = gEngine->getActiveWindowPtr()->getXResolution();
-		int h = gEngine->getActiveWindowPtr()->getYResolution();
-		int s1 = h / 5;
-		int s2 = h / 20;
+		sgct::SGCTWindow * win = gEngine->getActiveWindowPtr();
+		sgct_core::Viewport * vp = win->getCurrentViewport();
+		float w = static_cast<float>(win->getXResolution()) * vp->getXSize();
+		float h = static_cast<float>(win->getYResolution()) * vp->getYSize();
 		
-		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", s1), w/2 - s1/2, h/2 - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId() );
-		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", s2), w / 2 - s1*2 / 2, h / 5, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress());
+		float s1 = h / 8.0f;
+		float s2 = h / 20.0f;
+
+		float offset = w / 2.0f - w/7.0f;
+		
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s1)), offset, h/2.0f - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d:%d", sgct_core::ClusterManager::instance()->getThisNodeId(), vp->getId() );
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s2)), offset, h / 2.0f - (s1 + s2) * 1.2f, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress());
 	}
 
 	glDepthMask(GL_TRUE);

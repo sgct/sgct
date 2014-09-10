@@ -5,8 +5,8 @@
 !include x64.nsh
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "2.1.2"
-!define SGCT_COMPILER "mingw"
+!define SGCT_VERSION "2.1.3"
+!define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
 !define OSG_VERSION "3.0.1"
 !define INC_OSG 0
@@ -251,6 +251,17 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleNavigationExample\simpleNavigationExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleNavigationExample\user_cmake\CMakeLists.txt"
 	
+	#simple navigation opengl3
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3"
+	File "..\..\bin\simpleNavigationExample_opengl3\${SGCT_COMPILER}\simpleNavigationExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\main.cpp"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\gridShader.frag"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\gridShader.vert"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\pyramidShader.frag"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\pyramidShader.vert"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\simpleNavigationExample_opengl3\user_cmake\CMakeLists.txt"
+	
 	#gamepad
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
 	File "..\..\bin\gamepadExample\${SGCT_COMPILER}\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe"
@@ -432,6 +443,11 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
   CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
   CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
+  
+  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3"
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""

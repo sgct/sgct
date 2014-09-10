@@ -13,8 +13,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <string.h>
 
-sgct_core::Viewport::Viewport()
+sgct_core::Viewport::Viewport(size_t id)
 {
+	mId = id;
 	reset(0.0f, 0.0f, 1.0f, 1.0f);
 
 	for(int i=0; i<3; i++)
@@ -28,8 +29,9 @@ sgct_core::Viewport::Viewport()
 /*!
 	Create a viewport coordinates are relative to the window size [0, 1]
 */
-sgct_core::Viewport::Viewport(float x, float y, float xSize, float ySize)
+sgct_core::Viewport::Viewport(size_t id, float x, float y, float xSize, float ySize)
 {
+	mId = id;
 	reset(x, y, xSize, ySize);
 
 	for(int i=0; i<3; i++)

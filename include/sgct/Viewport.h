@@ -26,8 +26,8 @@ class Viewport
 public:
 	enum ViewPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
-	Viewport();
-	Viewport(float x, float y, float xSize, float ySize);
+	Viewport(size_t id);
+	Viewport(size_t id, float x, float y, float xSize, float ySize);
 	~Viewport();
 
 	void setName(const std::string & name);
@@ -59,6 +59,7 @@ public:
 	/*!
 		\returns the normalized y viewport coordinate
 	*/
+	inline size_t getId() { return mId;  }
 	inline float getY() { return mY; }
 	inline float getXSize() { return mXSize; }
 	inline float getYSize() { return mYSize; }
@@ -102,6 +103,7 @@ private:
 	bool mTracked;
 	bool mEnabled;
     bool mGenerateGPUData;
+	size_t mId;
 	unsigned int mOverlayTextureIndex;
 	unsigned int mMaskTextureIndex;
 };

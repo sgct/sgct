@@ -358,7 +358,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if(strcmp("Viewport", val[2]) == 0)
 						{
-							Viewport tmpVp;
+							Viewport tmpVp(tmpWin.getNumberOfViewports());
 
 							if( element[2]->Attribute("name") != NULL )
 								tmpVp.setName( element[2]->Attribute("name") );

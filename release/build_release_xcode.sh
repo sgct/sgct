@@ -32,6 +32,7 @@ cp -r ../../src/apps/renderToTexture examples/renderToTexture
 cp -r ../../src/apps/sgct_template examples/sgct_template
 cp -r ../../src/apps/SGCTRemote examples/SGCTRemote
 cp -r ../../src/apps/simpleNavigationExample examples/simpleNavigationExample
+cp -r ../../src/apps/simpleNavigationExample_opengl3 examples/simpleNavigationExample_opengl3
 cp -r ../../src/apps/simpleShaderExample examples/simpleShaderExample
 cp -r ../../src/apps/simpleShaderExample_opengl3 examples/simpleShaderExample_opengl3
 #cp -r ../../src/apps/soundExample examples/soundExample
@@ -128,6 +129,9 @@ rm -rf examples/SGCTRemote/user_cmake
 #
 cp examples/simpleNavigationExample/user_cmake/CMakeLists.txt examples/simpleNavigationExample/CMakeLists.txt
 rm -rf examples/simpleNavigationExample/user_cmake
+#
+cp examples/simpleNavigationExample_opengl3/user_cmake/CMakeLists.txt examples/simpleNavigationExample_opengl3/CMakeLists.txt
+rm -rf examples/simpleNavigationExample_opengl3/user_cmake
 #
 cp examples/simpleShaderExample/user_cmake/CMakeLists.txt examples/simpleShaderExample/CMakeLists.txt
 rm -rf examples/simpleShaderExample/user_cmake

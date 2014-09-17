@@ -536,6 +536,22 @@ void sgct_core::ReadConfig::readAndParseXML()
 
 									tmpWin.setFisheyeBaseOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
 								}
+								/*if (strcmp("Pos", val[3]) == 0)
+								{
+									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
+										tmpVp.setPos(fTmp[0], fTmp[1]);
+									else
+										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
+								}
+								else if (strcmp("Size", val[3]) == 0)
+								{
+									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
+										tmpVp.setSize(fTmp[0], fTmp[1]);
+									else
+										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
+								}*/
 
 								//iterate
 								element[3] = element[3]->NextSiblingElement();

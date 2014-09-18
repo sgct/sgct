@@ -166,10 +166,12 @@ public:
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
-
+    
 	//external control network functions
 	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: const char * buffer, int buffer length, int clientIndex
-	void setExternalControlStatusCallback( void(*fnPtr)(bool, int) ); //arguments_ const bool & connected, int clientIndex
+	void setExternalControlStatusCallback( void(*fnPtr)(bool, int) ); //arguments: const bool & connected, int clientIndex
+    void setContextCreationCallback( void(*fnPtr)(GLFWwindow*) ); //arguments: glfw window share
+    
 	void sendMessageToExternalControl(void * data, int length);
 	void sendMessageToExternalControl(const std::string msg);
 	bool isExternalControlConnected();
@@ -385,6 +387,7 @@ private:
 	NetworkMessageCallbackFn	mNetworkMessageCallbackFn;
 	NetworkStatusCallbackFn		mNetworkStatusCallbackFn;
     void (*mScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex);
+    void (*mContextCreationFn)(GLFWwindow*);
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;

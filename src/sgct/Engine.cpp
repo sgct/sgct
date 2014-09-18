@@ -118,6 +118,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkMessageCallbackFn = NULL;
 	mNetworkStatusCallbackFn = NULL;
+    mContextCreationFn = NULL;
     mScreenShotFn = NULL;
 	mThreadPtr = NULL;
 
@@ -445,6 +446,26 @@ bool sgct::Engine::initWindows()
 			return false;
 		}
 	}
+    
+    /*
+    -----------------------------------
+    WINDOW/Context Creation callback
+    -----------------------------------
+    */
+    if( mThisNode->getNumberOfWindows() > 0 )
+    {
+        share = mThisNode->getWindowPtr(0)->getWindowHandle();
+    
+        if(mContextCreationFn != NULL)
+        {
+            mContextCreationFn(share);
+        }
+    }
+    else
+    {
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "No windows created on this node!\n");
+        return false;
+    }
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
@@ -708,11 +729,14 @@ void sgct::Engine::clean()
 	//Window specific context ------------------------------------------------------------------->
 	if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 		mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
+	
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying shared data...\n");
 	SharedData::destroy();
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying cluster manager...\n");
+	
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying cluster manager...\n");
 	ClusterManager::destroy();
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying settings...\n");
+	
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying settings...\n");
 	SGCTSettings::destroy();
 
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying message handler...\n");
@@ -748,6 +772,7 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalRenderFisheyeFn = NULL;
 	mNetworkMessageCallbackFn = NULL;
 	mNetworkStatusCallbackFn = NULL;
+    mContextCreationFn = NULL;
     mScreenShotFn = NULL;
 
 	//global
@@ -3332,6 +3357,16 @@ void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool, int))
 }
 
 /*!
+\param fnPtr is the funtion pointer to an OpenGL context (GLFW window) creation callback
+ 
+This function sets the OpenGL context creation callback which will be called directly after all SGCT windows are created. This enables the user to create additional OpenGL context for multithreaded OpenGL.
+*/
+void sgct::Engine::setContextCreationCallback(void(*fnPtr)(GLFWwindow*))
+{
+    mContextCreationFn = fnPtr;
+}
+
+/*!
  \param fnPtr is the function pointer to a screenshot callback for custom frame capture & export
  This callback must be set before Engine::init is called\n
  Parameters to the callback are: Image pointer for image data, window index, eye index
@@ -3988,7 +4023,7 @@ void sgct::Engine::updateStatusForExternalControl(bool connected, int clientInde
 }
 
 /*!
- Don't use this. This function is called from ScreenCapture and will invoke the screen shot callback.
+    Don't use this. This function is called internally in SGCT.
 */
 void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex, ScreenCapture::EyeIndex ei)
 {

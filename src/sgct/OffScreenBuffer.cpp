@@ -314,16 +314,23 @@ void sgct_core::OffScreenBuffer::blit()
 void sgct_core::OffScreenBuffer::destroy()
 {
 	//delete all
-	glDeleteFramebuffers(1,		&mFrameBuffer);
-	glDeleteRenderbuffers(1,	&mDepthBuffer);
-	if(mMultiSampled)
+    if( mFrameBuffer )
+        glDeleteFramebuffers(1,		&mFrameBuffer);
+    
+    if( mDepthBuffer )
+        glDeleteRenderbuffers(1,	&mDepthBuffer);
+	
+    if(mMultiSampled)
 	{
-		glDeleteFramebuffers(1,		&mMultiSampledFrameBuffer);
-		glDeleteRenderbuffers(1,	&mColorBuffer);
+		if( mMultiSampledFrameBuffer )
+            glDeleteFramebuffers(1,		&mMultiSampledFrameBuffer);
+        
+        if( mColorBuffer )
+            glDeleteRenderbuffers(1,	&mColorBuffer);
 
-		if (sgct::SGCTSettings::instance()->useNormalTexture())
+		if (sgct::SGCTSettings::instance()->useNormalTexture() && mNormalBuffer)
 			glDeleteRenderbuffers(1, &mNormalBuffer);
-		if (sgct::SGCTSettings::instance()->usePositionTexture())
+		if (sgct::SGCTSettings::instance()->usePositionTexture() && mPositionBuffer)
 			glDeleteRenderbuffers(1, &mPositionBuffer);
 	}
 

@@ -116,8 +116,11 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mNetworkMessageCallbackFn = NULL;
-	mNetworkStatusCallbackFn = NULL;
+	mExternalDecodeCallbackFn = NULL;
+	mExternalStatusCallbackFn = NULL;
+	mDataTransferDecodeCallbackFn = NULL;
+	mDataTransferStatusCallbackFn = NULL;
+	mDataTransferAcknowledgeCallbackFn = NULL;
     mContextCreationFn = NULL;
     mScreenShotFn = NULL;
 	mThreadPtr = NULL;
@@ -770,8 +773,11 @@ void sgct::Engine::clearAllCallbacks()
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mNetworkMessageCallbackFn = NULL;
-	mNetworkStatusCallbackFn = NULL;
+	mExternalDecodeCallbackFn = NULL;
+	mExternalStatusCallbackFn = NULL;
+	mDataTransferDecodeCallbackFn = NULL;
+	mDataTransferStatusCallbackFn = NULL;
+	mDataTransferAcknowledgeCallbackFn = NULL;
     mContextCreationFn = NULL;
     mScreenShotFn = NULL;
 
@@ -3340,9 +3346,9 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 	All TCP messages must be separated by carriage return (CR) followed by a newline (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
 
 */
-void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, int))
+void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int))
 {
-	mNetworkMessageCallbackFn = fnPtr;
+	mExternalDecodeCallbackFn = fnPtr;
 }
 
 /*!
@@ -3351,9 +3357,9 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int, in
 	This function sets the external control status callback which will be called when the connection status changes (connect or disconnect).
 
 */
-void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool, int))
+void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool))
 {
-	mNetworkStatusCallbackFn = fnPtr;
+	mExternalStatusCallbackFn = fnPtr;
 }
 
 /*!
@@ -4007,19 +4013,19 @@ std::size_t sgct::Engine::getFocusedWindowIndex()
 /*!
 	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
 */
-void sgct::Engine::decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex)
+void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if(mNetworkMessageCallbackFn != NULL && receivedlength > 0)
-		mNetworkMessageCallbackFn(receivedData, receivedlength, clientIndex);
+	if (mExternalDecodeCallbackFn != NULL && receivedlength > 0)
+		mExternalDecodeCallbackFn(receivedData, receivedlength);
 }
 
 /*!
-	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
+	Don't use this. This function is called from SGCTNetwork and will invoke the external network update callback when connection is connected/disconnected.
 */
-void sgct::Engine::updateStatusForExternalControl(bool connected, int clientIndex)
+void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
 {
-	if(mNetworkStatusCallbackFn != NULL)
-		mNetworkStatusCallbackFn(connected, clientIndex);
+	if (mExternalStatusCallbackFn != NULL)
+		mExternalStatusCallbackFn(connected);
 }
 
 /*!
@@ -4043,6 +4049,17 @@ void sgct::Engine::sendMessageToExternalControl(void * data, int length)
 }
 
 /*!
+This function sends data between nodes.
+\param data a pointer to the data buffer
+\param length is the number of bytes of data that will be sent
+\param packageId is the identification id of this specific package
+*/
+void sgct::Engine::transferDataBetweenNodes(void * data, int length, int packageId)
+{
+	mNetworkConnections->transferData(data, length, packageId);
+}
+
+/*!
 	This function sends a message to the external control interface.
 	\param msg the message string that will be sent
 */
@@ -4061,7 +4078,7 @@ bool sgct::Engine::isExternalControlConnected()
 }
 
 /*!
-	Set the buffer size for the communication buffer. This size must be equal or larger than the receive buffer size.
+	Set the buffer size for the external control communication buffer. This size must be equal or larger than the receive buffer size.
 */
 void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 {

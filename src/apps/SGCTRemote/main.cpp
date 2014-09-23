@@ -10,8 +10,8 @@ void myDecodeFun();
 sgct::SharedDouble curr_time(0.0);
 
 void myPostSyncPreDrawFun();
-void externalControlMessageCallback(const char * receivedChars, int size, int clientId);
-void externalControlStatusCallback(bool connected, int clientId);
+void externalControlMessageCallback(const char * receivedChars, int size);
+void externalControlStatusCallback(bool connected);
 
 sgct::SharedBool showStats(false);
 sgct::SharedBool showGraph(false);
@@ -106,7 +106,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool( &showWireframe );
 }
 
-void externalControlMessageCallback(const char * receivedChars, int size, int clientId)
+void externalControlMessageCallback(const char * receivedChars, int size)
 {
 	if( gEngine->isMaster() )
 	{
@@ -134,10 +134,10 @@ void externalControlMessageCallback(const char * receivedChars, int size, int cl
 	}
 }
 
-void externalControlStatusCallback(bool connected, int clientId)
+void externalControlStatusCallback(bool connected)
 {
 	if(connected)
-		sgct::MessageHandler::instance()->print("External control %d connected.\n", clientId);
+		sgct::MessageHandler::instance()->print("External control connected.\n");
 	else
-		sgct::MessageHandler::instance()->print("External control %d disconnected.\n", clientId);
+		sgct::MessageHandler::instance()->print("External control disconnected.\n");
 }

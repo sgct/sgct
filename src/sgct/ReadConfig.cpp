@@ -56,7 +56,7 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 	for(unsigned int i = 0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) address: %s [%s]\n", i,
 		ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
-		ClusterManager::instance()->getNodePtr(i)->getPort().c_str());
+		ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
 }
 
 bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
@@ -262,7 +262,11 @@ void sgct_core::ReadConfig::readAndParseXML()
 			if( element[0]->Attribute( "ip" ) ) //backward compability with older versions of SGCT config files
 				tmpNode.setAddress( element[0]->Attribute( "ip" ) );
 			if( element[0]->Attribute( "port" ) )
-				tmpNode.setPort( element[0]->Attribute( "port" ) );
+				tmpNode.setSyncPort( element[0]->Attribute( "port" ) );
+			if (element[0]->Attribute("syncPort"))
+				tmpNode.setSyncPort(element[0]->Attribute("syncPort"));
+			if (element[0]->Attribute("dataTransferPort"))
+				tmpNode.setDataTransferPort(element[0]->Attribute("dataTransferPort"));
 
 			if( element[0]->Attribute("swapLock") != NULL )
 				tmpNode.setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false );

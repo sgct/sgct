@@ -54,7 +54,7 @@ SharedData::SharedData()
 	}
 	
 	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
-		headerSpace[i] = sgct_core::SGCTNetwork::SyncByte;
+		headerSpace[i] = sgct_core::SGCTNetwork::DataId;
 }
 
 SharedData::~SharedData()

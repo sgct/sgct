@@ -98,15 +98,8 @@ public:
 	*/
 	void setFirmFrameLockSyncStatus( bool state ) { mFirmFrameLockSync = state; }
 
-	/*!
-		\returns the external control port number if it's set or specified in the XML configuration
-	*/
-	std::string getExternalControlPort() { return mExternalControlPort; }
-
-	/*!
-		\param the external control port number
-	*/
-	void setExternalControlPort(std::string port) { mExternalControlPort.assign(port); }
+	std::string getExternalControlPort();
+	void setExternalControlPort(std::string port);
 
 	void setUseASCIIForExternalControl(bool useASCII);
 	bool getUseASCIIForExternalControl();

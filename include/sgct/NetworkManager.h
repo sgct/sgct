@@ -50,9 +50,11 @@ public:
 	bool isRunning();
 	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
+	void transferData(void * data, int length, int packageId);
 
 	unsigned int getActiveConnectionsCount();
 	unsigned int getActiveSyncConnectionsCount();
+	unsigned int getActiveDataTransferConnectionsCount();
     unsigned int getConnectionsCount();
 	unsigned int getSyncConnectionsCount();
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
@@ -74,7 +76,8 @@ private:
 	static NetworkManager * mInstance;
 	std::vector<SGCTNetwork*> mNetworkConnections;
     std::vector<SGCTNetwork*> mSyncConnections;
-    std::vector<SGCTNetwork*> mExternalConnections;
+	std::vector<SGCTNetwork*> mDataTransferConnections;
+	SGCTNetwork* mExternalControlConnection;
 
 	std::string mHostName; //stores this computers hostname
 	std::string mDNSName;
@@ -86,6 +89,7 @@ private:
 	int mMode;
 	unsigned int mNumberOfActiveConnections;
 	unsigned int mNumberOfActiveSyncConnections;
+	unsigned int mNumberOfActiveDataTransferConnections;
 };
 
 }

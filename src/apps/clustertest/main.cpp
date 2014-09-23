@@ -16,7 +16,7 @@ void myEncodeFun();
 void myDecodeFun();
 
 void keyCallback(int key, int action);
-void externalControlCallback(const char * receivedChars, int size, int clientId);
+void externalControlCallback(const char * receivedChars, int size);
 
 //variables to share across cluster
 sgct::SharedDouble dt(0.0);
@@ -43,7 +43,7 @@ int main( int argc, char* argv[] )
 	gEngine = new sgct::Engine( argc, argv );
 	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 	gEngine->setInitOGLFunction( myInitOGLFun );
-	gEngine->setExternalControlCallback( externalControlCallback );
+	gEngine->setExternalControlCallback(externalControlCallback);
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 	gEngine->setDraw2DFunction( myDraw2DFun );
 	//gEngine->setExitKey( 'Y' );
@@ -398,7 +398,7 @@ void keyCallback(int key, int action)
 	}
 }
 
-void externalControlCallback(const char * receivedChars, int size, int clientId)
+void externalControlCallback(const char * receivedChars, int size)
 {
 	if( gEngine->isMaster() )
 	{

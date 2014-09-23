@@ -19,6 +19,7 @@ endif()
 
 ADD_SUBDIRECTORY(calibrator)
 ADD_SUBDIRECTORY(clustertest)
+ADD_SUBDIRECTORY(dataTransfer_opengl3)
 ADD_SUBDIRECTORY(depthBuffer)
 ADD_SUBDIRECTORY(example1)
 ADD_SUBDIRECTORY(example1_opengl3)

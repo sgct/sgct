@@ -176,8 +176,17 @@ public:
 	void sendMessageToExternalControl(const std::string msg);
 	bool isExternalControlConnected();
 	void setExternalControlBufferSize(unsigned int newSize);
-	void decodeExternalControl(const char * receivedData, int receivedlength, int clientIndex);
-	void updateStatusForExternalControl(bool connected, int clientIndex);
+	void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex);
+	void invokeUpdateCallbackForExternalControl(bool connected);
+
+	//data transfer functions
+	void setDataTransferCallback(void(*fnPtr)(const char *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
+	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
+	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
+	void transferDataBetweenNodes(void * data, int length, int packageId);
+	void invokeDecodeCallbackForDataTransfer(const char * receivedData, int receivedlength, int packageId, int clientIndex);
+	void invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex);
+	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex);
 
     //GLFW wrapped functions
 	static double getTime();
@@ -365,8 +374,11 @@ private:
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
-	typedef void (*NetworkMessageCallbackFn)(const char *, int, int);
-	typedef void (*NetworkStatusCallbackFn)(bool, int);
+	typedef void (*DataTransferDecodeCallbackFn)(const char *, int, int, int);
+	typedef void (*DataTransferStatusCallbackFn)(bool, int);
+	typedef void (*DataTransferAcknowledgeCallbackFn)(int, int);
+	typedef void (*ExternalDecodeCallbackFn)(const char *, int);
+	typedef void (*ExternalStatusCallbackFn)(bool);
     typedef void (*timerCallbackFn)(std::size_t);
 
 	//function pointers
@@ -379,13 +391,16 @@ private:
 	CallbackFn mClearBufferFn;
 	CallbackFn mCleanUpFn;
 	CallbackFn mDraw2DFn;
-	InternalCallbackFn			mInternalDrawFn;
-	InternalCallbackFn			mInternalRenderFBOFn;
-	InternalCallbackFn			mInternalDrawOverlaysFn;
-	InternalCallbackTexArgFn	mInternalRenderPostFXFn;
-	InternalCallbackTexArgFn	mInternalRenderFisheyeFn;
-	NetworkMessageCallbackFn	mNetworkMessageCallbackFn;
-	NetworkStatusCallbackFn		mNetworkStatusCallbackFn;
+	InternalCallbackFn					mInternalDrawFn;
+	InternalCallbackFn					mInternalRenderFBOFn;
+	InternalCallbackFn					mInternalDrawOverlaysFn;
+	InternalCallbackTexArgFn			mInternalRenderPostFXFn;
+	InternalCallbackTexArgFn			mInternalRenderFisheyeFn;
+	ExternalDecodeCallbackFn			mExternalDecodeCallbackFn;
+	ExternalStatusCallbackFn			mExternalStatusCallbackFn;
+	DataTransferDecodeCallbackFn		mDataTransferDecodeCallbackFn;
+	DataTransferStatusCallbackFn		mDataTransferStatusCallbackFn;
+	DataTransferAcknowledgeCallbackFn	mDataTransferAcknowledgeCallbackFn;
     void (*mScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex);
     void (*mContextCreationFn)(GLFWwindow*);
 

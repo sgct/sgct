@@ -111,14 +111,25 @@ void sgct_core::SGCTNode::setAddress(std::string address)
 }
 
 /*!
-\param port is the number of the tcp port used for communication with this node
+\param sync port is the number of the tcp port used for communication with this node
 */
-void sgct_core::SGCTNode::setPort(std::string port)
+void sgct_core::SGCTNode::setSyncPort(std::string port)
 {
-	mPort.assign( port );
+	mSyncPort.assign( port );
 	
 	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-		"SGCTNode: Setting port to %s\n", mPort.c_str() );
+		"SGCTNode: Setting sync port to %s\n", mSyncPort.c_str());
+}
+
+/*!
+\param data transfer port is the number of the tcp port used for data transfers to this node
+*/
+void sgct_core::SGCTNode::setDataTransferPort(std::string port)
+{
+	mDataTransferPort.assign(port);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"SGCTNode: Setting data transfer port to %s\n", mDataTransferPort.c_str());
 }
 
 /*!
@@ -130,10 +141,18 @@ std::string sgct_core::SGCTNode::getAddress()
 }
 
 /*!
-\returns the port of this node
+\returns the sync port of this node
 */
-std::string sgct_core::SGCTNode::getPort()
+std::string sgct_core::SGCTNode::getSyncPort()
 {
-	return mPort;
+	return mSyncPort;
+}
+
+/*!
+\returns the data transfer port of this node
+*/
+std::string sgct_core::SGCTNode::getDataTransferPort()
+{
+	return mDataTransferPort;
 }
 

@@ -50,13 +50,16 @@ public:
 	void hideAllWindows();
 
 	void setAddress(std::string address);
-	void setPort(std::string port);
+	void setSyncPort(std::string port);
+	void setDataTransferPort(std::string port);
 	std::string getAddress();
-	std::string getPort();
+	std::string getSyncPort();
+	std::string getDataTransferPort();
 
 private:
 	std::string mAddress;
-	std::string mPort;
+	std::string mSyncPort;
+	std::string mDataTransferPort;
 
 	std::size_t mCurrentWindowIndex;
 	std::vector<sgct::SGCTWindow> mWindows;

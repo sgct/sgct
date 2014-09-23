@@ -37,25 +37,27 @@ class SGCTNetwork
 {
 public:
 	//ASCII device control chars = 17, 18, 19 & 20
-	enum PackageHeaders { SyncByte = 17, ConnectedByte, DisconnectByte, FillByte };
-	enum ConnectionTypes { SyncConnection = 0, ExternalASCIIConnection, ExternalRawConnection };
+	enum PackageHeaderId { Ack = 6, DataId = 17, ConnectedId = 18, DisconnectId = 19, DefaultId = 20 };
+	enum ConnectionTypes { SyncConnection = 0, ExternalASCIIConnection, ExternalRawConnection, DataTransfer };
 	enum ReceivedIndex { Current = 0, Previous };
 
 	SGCTNetwork();
-	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType, bool firmSync);
+	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType);
 	void closeNetwork(bool forced);
 	void initShutdown();
 #ifdef __LOAD_CPP11_FUN__
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
+	void setPackageDecodeFunction(sgct_cppxeleven::function<void(const char*, int, int, int)> callback);
 	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
+	void setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback);
 #endif
 	void setBufferSize(unsigned int newSize);
 	void setConnectedStatus(bool state);
 	void setOptions(SGCT_SOCKET * socketPtr);
 	void closeSocket(SGCT_SOCKET lSocket);
 
-	ConnectionTypes getTypeOfConnection();
+	ConnectionTypes getType();
 	const int getId();
 	bool isServer();
 	bool isConnected();
@@ -74,13 +76,17 @@ public:
 	void pushClientMessage();
 	std::string getPort();
 	std::string getAddress();
+	std::string getTypeStr();
+	static std::string getTypeStr(ConnectionTypes ct);
 
 	SGCT_SOCKET mSocket;
 	SGCT_SOCKET mListenSocket;
 #ifdef __LOAD_CPP11_FUN__
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
+	sgct_cppxeleven::function< void(const char*, int, int, int) > mPackageDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
+	sgct_cppxeleven::function< void(int, int) > mAcknowledgeCallbackFn;
 #endif
 
     bool mTerminate; //set to true upon exit
@@ -97,7 +103,7 @@ public:
 private:
 	enum timeStampIndex { Send = 0, Total };
 
-	bool mFirmSync, mUpdated;
+	bool mUpdated;
 	ConnectionTypes mConnectionType;
 	bool mServer;
 	bool mConnected;

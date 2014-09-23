@@ -135,3 +135,19 @@ void sgct_core::ClusterManager::setMasterAddress(std::string address)
 	std::transform(address.begin(), address.end(), address.begin(), ::tolower);
 	mMasterAddress.assign(address);
 }
+
+/*!
+\returns the external control port number if it's set or specified in the XML configuration
+*/
+std::string sgct_core::ClusterManager::getExternalControlPort()
+{
+	return mExternalControlPort;
+}
+
+/*!
+\param the external control port number
+*/
+void sgct_core::ClusterManager::setExternalControlPort(std::string port)
+{
+	mExternalControlPort.assign(port);
+}

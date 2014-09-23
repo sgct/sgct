@@ -168,8 +168,8 @@ public:
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
     
 	//external control network functions
-	void setExternalControlCallback( void(*fnPtr)(const char *, int, int) ); //arguments: const char * buffer, int buffer length, int clientIndex
-	void setExternalControlStatusCallback( void(*fnPtr)(bool, int) ); //arguments: const bool & connected, int clientIndex
+	void setExternalControlCallback( void(*fnPtr)(const char *, int) ); //arguments: const char * buffer, int buffer length
+	void setExternalControlStatusCallback( void(*fnPtr)(bool) ); //arguments: const bool & connected
     void setContextCreationCallback( void(*fnPtr)(GLFWwindow*) ); //arguments: glfw window share
     
 	void sendMessageToExternalControl(void * data, int length);

@@ -3335,31 +3335,64 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 }
 
 /*!
-	\param fnPtr is the function pointer to an external control message callback
-
-	This function sets the external control message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
-	Example:
-	\code
-	<Cluster masterAddress="127.0.0.1" externalControlPort="20500">
-	\endcode
-
-	All TCP messages must be separated by carriage return (CR) followed by a newline (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
-
-*/
+ \param fnPtr is the function pointer to an external control message callback
+ 
+ This function sets the external control message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Cluster tag by externalControlPort, where the portnumber is an integer preferably above 20000.
+ Example:
+ \code
+ <Cluster masterAddress="127.0.0.1" externalControlPort="20500">
+ \endcode
+ 
+ All TCP messages must be separated by carriage return (CR) followed by a newline (NL). Look at this [tutorial](https://c-student.itn.liu.se/wiki/develop:sgcttutorials:externalguicsharp) for more info.
+ 
+ */
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int))
 {
 	mExternalDecodeCallbackFn = fnPtr;
 }
 
 /*!
-	\param fnPtr is the function pointer to an external control status callback
-
-	This function sets the external control status callback which will be called when the connection status changes (connect or disconnect).
-
-*/
+ \param fnPtr is the function pointer to an external control status callback
+ 
+ This function sets the external control status callback which will be called when the connection status changes (connect or disconnect).
+ 
+ */
 void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool))
 {
 	mExternalStatusCallbackFn = fnPtr;
+}
+
+/*!
+ \param fnPtr is the function pointer to a data transfer callback
+ 
+ This function sets the data transfer message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Node tag by dataTransferPort, where the portnumber is an integer preferably above 20000.
+ 
+ */
+void sgct::Engine::setDataTransferCallback(void(*fnPtr)(const char *, int, int, int))
+{
+	mDataTransferDecodeCallbackFn = fnPtr;
+}
+
+/*!
+ \param fnPtr is the function pointer to a data transfer status callback
+ 
+ This function sets the data transfer status callback which will be called when the connection status changes (connect or disconnect).
+ 
+ */
+void sgct::Engine::setDataTransferStatusCallback(void(*fnPtr)(bool, int))
+{
+	mDataTransferStatusCallbackFn = fnPtr;
+}
+
+/*!
+ \param fnPtr is the function pointer to a data transfer acknowledge callback
+ 
+ This function sets the data transfer acknowledge callback which will be called when the data is successfully sent.
+ 
+ */
+void sgct::Engine::setDataAcknowledgeCallback(void(*fnPtr)(int, int))
+{
+	mDataTransferAcknowledgeCallbackFn = fnPtr;
 }
 
 /*!
@@ -4011,8 +4044,8 @@ std::size_t sgct::Engine::getFocusedWindowIndex()
 }
 
 /*!
-	Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
-*/
+ Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
+ */
 void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
 	if (mExternalDecodeCallbackFn != NULL && receivedlength > 0)
@@ -4020,12 +4053,39 @@ void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedD
 }
 
 /*!
-	Don't use this. This function is called from SGCTNetwork and will invoke the external network update callback when connection is connected/disconnected.
-*/
+ Don't use this. This function is called from SGCTNetwork and will invoke the external network update callback when connection is connected/disconnected.
+ */
 void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
 {
 	if (mExternalStatusCallbackFn != NULL)
 		mExternalStatusCallbackFn(connected);
+}
+
+/*!
+ Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when messages are received.
+ */
+void sgct::Engine::invokeDecodeCallbackForDataTransfer(const char * receivedData, int receivedlength, int packageId, int clientIndex)
+{
+	if (mDataTransferDecodeCallbackFn != NULL && receivedlength > 0)
+		mDataTransferDecodeCallbackFn(receivedData, receivedlength, packageId, clientIndex);
+}
+
+/*!
+ Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when connection is connected/disconnected.
+ */
+void sgct::Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex)
+{
+	if (mDataTransferStatusCallbackFn != NULL)
+		mDataTransferStatusCallbackFn(connected, clientIndex);
+}
+
+/*!
+ Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when data is successfully sent.
+ */
+void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex)
+{
+	if (mDataTransferAcknowledgeCallbackFn != NULL)
+		mDataTransferAcknowledgeCallbackFn(packageId, clientIndex);
 }
 
 /*!

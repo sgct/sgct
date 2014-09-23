@@ -230,13 +230,13 @@ void threadWorker(void *arg)
             transfere.setVal(false);
             
             //load texture on master
-            loadTexture();
+            //loadTexture();
         }
         
         if(loadImage.getVal())
         {
             //load texture on slave
-            loadTexture();
+            //loadTexture();
             
             loadImage.setVal(false);
         }

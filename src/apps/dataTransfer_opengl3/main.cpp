@@ -38,10 +38,9 @@ sgct::SharedInt texIndex(-1);
 sgct::SharedInt currentPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfere(false);
-sgct::SharedBool loadImage(false);
 sgct::SharedVector<std::string> imagePaths;
 sgct::SharedVector<GLuint> texIds;
-int localTexIndex;
+sgct::SharedInt localTexIndex(-1);
 
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
@@ -116,7 +115,7 @@ void myDrawFun()
 	glActiveTexture(GL_TEXTURE0);
 	
     if(texIndex.getVal() != -1)
-        glBindTexture(GL_TEXTURE_2D, texIds.getValAt(localTexIndex));
+        glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
     else
         glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
 
@@ -138,6 +137,7 @@ void myPreSyncFun()
 	if( gEngine->isMaster() )
 	{
 		curr_time.setVal( sgct::Engine::getTime() );
+        texIndex.setVal( localTexIndex.getVal() );
 	}
 }
 
@@ -145,7 +145,6 @@ void myPostSyncPreDrawFun()
 {
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
-    localTexIndex = texIndex.getVal();
 }
 
 void myInitOGLFun()
@@ -248,7 +247,8 @@ void contextCreationCallback(GLFWwindow * win)
     //restore to normal
     glfwMakeContextCurrent( sharedWindow );
     
-    loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
+    if( gEngine->isMaster() )
+        loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
 }
 
 void myDataTransferDecoder(const char * receivedData, int receivedlength, int packageId, int clientIndex)
@@ -283,9 +283,6 @@ void myDataTransferDecoder(const char * receivedData, int receivedlength, int pa
                 transImg->setSize(w, h);
                 transImg->setChannels(c);
                 transImg->setDataPtr(data);
-            
-                //signal load image
-                loadImage.setVal(true);
             }
             mutex.unlock();
             
@@ -309,9 +306,9 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
         counter++;
         if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
         {
-            int tmpIndex = texIndex.getVal();
+            int tmpIndex = localTexIndex.getVal();
             tmpIndex++;
-            texIndex.setVal(tmpIndex);
+            localTexIndex.setVal(tmpIndex);
             counter = 0;
         }
     }
@@ -332,9 +329,9 @@ void threadWorker(void *arg)
             
             if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
             {
-                int tmpIndex = texIndex.getVal();
+                int tmpIndex = localTexIndex.getVal();
                 tmpIndex++;
-                texIndex.setVal(tmpIndex);
+                localTexIndex.setVal(tmpIndex);
             }
         }
 

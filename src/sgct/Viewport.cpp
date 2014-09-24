@@ -11,11 +11,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
 #include <glm/gtc/matrix_transform.hpp>
-#include <string.h>
 
-sgct_core::Viewport::Viewport(size_t id)
+sgct_core::Viewport::Viewport()
 {
-	mId = id;
 	reset(0.0f, 0.0f, 1.0f, 1.0f);
 
 	for(int i=0; i<3; i++)
@@ -29,9 +27,8 @@ sgct_core::Viewport::Viewport(size_t id)
 /*!
 	Create a viewport coordinates are relative to the window size [0, 1]
 */
-sgct_core::Viewport::Viewport(size_t id, float x, float y, float xSize, float ySize)
+sgct_core::Viewport::Viewport(float x, float y, float xSize, float ySize)
 {
-	mId = id;
 	reset(x, y, xSize, ySize);
 
 	for(int i=0; i<3; i++)
@@ -54,14 +51,6 @@ sgct_core::Viewport::~Viewport()
 		glDeleteTextures(1, &mMaskTextureIndex);
 }
 
-/*!
-	Name this viewport
-*/
-void sgct_core::Viewport::setName(const std::string & name)
-{
-	mName = name;
-}
-
 void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 {
 	mX = x;
@@ -76,22 +65,6 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 	mEnabled = true;
     mGenerateGPUData = true;
     mName.assign("NoName");
-
-	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
-}
-
-void sgct_core::Viewport::setPos(float x, float y)
-{
-	mX = x;
-	mY = y;
-	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
-}
-
-void sgct_core::Viewport::setSize(float x, float y)
-{
-	mXSize = x;
-	mYSize = y;
-	mCM.setViewportCoords( mXSize, mYSize, mX, mY );
 }
 
 void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)
@@ -119,11 +92,6 @@ void sgct_core::Viewport::setTracked(bool state)
 	mTracked = state;
 }
 
-void sgct_core::Viewport::setEnabled(bool state)
-{
-	mEnabled = state;
-}
-
 /*!
 Set if this viewport should disable all VBO, VAO and texture usage.
 */
@@ -145,6 +113,7 @@ void sgct_core::Viewport::loadData()
             sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
 
         //load default if mMeshFilename is NULL
+		mCM.setViewportCoords(mXSize, mYSize, mX, mY);
         mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename.c_str(), this);
     }
 }

@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _VIEWPORT_H
 #define _VIEWPORT_H
 
+#include "BaseViewport.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
@@ -21,24 +22,20 @@ namespace sgct_core
 /*!
 	This class holds and manages viewportdata and calculates frustums
 */
-class Viewport
+class Viewport : public BaseViewport
 {
 public:
 	enum ViewPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
-	Viewport(size_t id);
-	Viewport(size_t id, float x, float y, float xSize, float ySize);
+	Viewport();
+	Viewport(float x, float y, float xSize, float ySize);
 	~Viewport();
 
-	void setName(const std::string & name);
-	void setPos(float x, float y);
-	void setSize(float x, float y);
 	void setEye(Frustum::FrustumMode eye);
 	void setOverlayTexture(const char * texturePath);
 	void setMaskTexture(const char * texturePath);
 	void setCorrectionMesh(const char * meshPath);
 	void setTracked(bool state);
-	void setEnabled(bool state);
     void setAsDummy();
 	void loadData();
 	void calculateFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane);
@@ -48,21 +45,6 @@ public:
 	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist=10.0f);
 	void renderMesh(CorrectionMesh::MeshType mt);
 
-	/*!
-		\returns the name of this viewport
-	*/
-	inline std::string getName() { return mName; }
-	/*!
-		\returns the normalized x viewport coordinate
-	*/
-	inline float getX() { return mX; }
-	/*!
-		\returns the normalized y viewport coordinate
-	*/
-	inline size_t getId() { return mId;  }
-	inline float getY() { return mY; }
-	inline float getXSize() { return mXSize; }
-	inline float getYSize() { return mYSize; }
 	inline Frustum::FrustumMode getEye() { return mEye; }
 	inline Frustum * getFrustum(Frustum::FrustumMode frustumMode) { return &mFrustums[frustumMode]; }
 	inline Frustum * getFrustum() { return &mFrustums[mEye]; }
@@ -74,7 +56,6 @@ public:
 	inline bool hasMaskTexture() { return mMaskTextureIndex != GL_FALSE; }
 	inline bool hasCorrectionMesh() { return mCorrectionMesh; }
 	inline bool isTracked() { return mTracked; }
-	inline bool isEnabled() { return mEnabled; }
 	inline unsigned int getOverlayTextureIndex() { return mOverlayTextureIndex; }
 	inline unsigned int getMaskTextureIndex() { return mMaskTextureIndex; }
 	inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
@@ -87,12 +68,7 @@ private:
 	glm::mat4 mViewMatrix[3];
 	glm::mat4 mViewProjectionMatrix[3];
 	glm::mat4 mProjectionMatrix[3];
-	std::string mName;
 
-	float mX;
-	float mY;
-	float mXSize;
-	float mYSize;
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
 	CorrectionMesh mCM;
@@ -101,9 +77,7 @@ private:
 	std::string mMeshFilename;
 	bool mCorrectionMesh;
 	bool mTracked;
-	bool mEnabled;
     bool mGenerateGPUData;
-	size_t mId;
 	unsigned int mOverlayTextureIndex;
 	unsigned int mMaskTextureIndex;
 };

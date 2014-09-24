@@ -164,7 +164,7 @@ public:
 	//------------- Other ------------------------- //
 	void addPostFX( sgct::PostFX & fx );
 	void addViewport(float left, float right, float bottom, float top);
-	void addViewport(sgct_core::Viewport &vp);
+	void addViewport(sgct_core::Viewport * vpPtr);
 	void generateCubeMapViewports();
 
 	/*! \return true if any masks are used */
@@ -304,7 +304,7 @@ private:
 	bool mUseRightEyeTexture;
 
 	std::size_t mCurrentViewportIndex;
-	std::vector<sgct_core::Viewport> mViewports;
+	std::vector<sgct_core::Viewport *> mViewports;
 	std::vector<sgct::PostFX> mPostFXPasses;
 };
 }

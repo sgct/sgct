@@ -12,22 +12,36 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
+void contextCreationCallback(GLFWwindow * win);
 
 void myDataTransferDecoder(const char * receivedData, int receivedlength, int packageId, int clientIndex);
 void myDataTransferStatus(bool connected, int clientIndex);
 void myDataTransferAcknowledge(int packageId, int clientIndex);
 
 void startDataTransfer();
-void loadTexture(sgct_core::Image * imPtr);
+void uploadTexture();
 void threadWorker(void *arg);
+
+tthread::thread * loadThread;
+tthread::mutex mutex;
+GLFWwindow * hiddenWindow;
+GLFWwindow * sharedWindow;
+sgct_core::Image * transImg = NULL;
+
 
 //sync variables
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
+sgct::SharedInt texIndex(-1);
+
 //other mutex variables
+sgct::SharedInt currentPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfere(false);
 sgct::SharedBool loadImage(false);
+sgct::SharedVector<std::string> imagePaths;
+sgct::SharedVector<GLuint> texIds;
+int localTexIndex;
 
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
@@ -41,6 +55,10 @@ int main( int argc, char* argv[] )
 	//sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
 	
 	gEngine = new sgct::Engine( argc, argv );
+    
+    imagePaths.addVal("test_00.jpg");
+    imagePaths.addVal("test_01.jpg");
+    imagePaths.addVal("test_02.jpg");
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
@@ -48,21 +66,20 @@ int main( int argc, char* argv[] )
 	gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction(keyCallback);
-
-	gEngine->setDataTransferCallback(myDataTransferDecoder);
-	gEngine->setDataTransferStatusCallback(myDataTransferStatus);
-	gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
+    gEngine->setContextCreationCallback( contextCreationCallback );
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
+    
+    gEngine->setDataTransferCallback(myDataTransferDecoder);
+	gEngine->setDataTransferStatusCallback(myDataTransferStatus);
+	gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
 
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
-
-	tthread::thread * loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
 
 	// Main loop
 	gEngine->render();
@@ -97,8 +114,11 @@ void myDrawFun()
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+	
+    if(texIndex.getVal() != -1)
+        glBindTexture(GL_TEXTURE_2D, texIds.getValAt(localTexIndex));
+    else
+        glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
 
 	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
@@ -125,6 +145,7 @@ void myPostSyncPreDrawFun()
 {
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
+    localTexIndex = texIndex.getVal();
 }
 
 void myInitOGLFun()
@@ -159,6 +180,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeDouble(&curr_time);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
+    sgct::SharedData::instance()->writeInt(&texIndex);
 }
 
 void myDecodeFun()
@@ -166,12 +188,16 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readDouble(&curr_time);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
+    sgct::SharedData::instance()->readInt(&texIndex);
 }
 
 void myCleanUpFun()
 {
 	if(myBox != NULL)
 		delete myBox;
+    
+    if(hiddenWindow)
+        glfwDestroyWindow(hiddenWindow);
 }
 
 void keyCallback(int key, int action)
@@ -198,15 +224,65 @@ void keyCallback(int key, int action)
 	}
 }
 
+void contextCreationCallback(GLFWwindow * win)
+{
+    glfwWindowHint( GLFW_VISIBLE, GL_FALSE );
+    
+    sharedWindow = win;
+    hiddenWindow = glfwCreateWindow( 1, 1, "Thread Window", NULL, sharedWindow );
+    
+    if( !hiddenWindow )
+    {
+        sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
+    }
+    
+    //restore to normal
+    glfwMakeContextCurrent( sharedWindow );
+    
+    loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
+}
+
 void myDataTransferDecoder(const char * receivedData, int receivedlength, int packageId, int clientIndex)
 {
 	sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
-	if (receivedlength > 255)
-		sgct::MessageHandler::instance()->print("Test %d\n", receivedData[255]);
+	currentPackage.setVal(packageId);
     
-    //signal load image
-    loadImage.setVal(true);
+    int offset = 0;
+    int w, h, c;
+    
+    if( receivedlength > sizeof(int)*3 )
+    {
+        memcpy(&w, receivedData + offset, sizeof(int)); offset += sizeof(int);
+        memcpy(&h, receivedData + offset, sizeof(int)); offset += sizeof(int);
+        memcpy(&c, receivedData + offset, sizeof(int)); offset += sizeof(int);
+    
+        int totalSize = w * h * c + sizeof(int)*3;
+        if( receivedlength >= totalSize )
+        {
+            unsigned char * data = new (std::nothrow) unsigned char[w*h*c];
+            
+            for( int i = 0; i<(h*c); i++ )
+            {
+                memcpy(data + i*w, receivedData + offset + i*w, w);
+            }
+            
+            mutex.lock();
+            if(!transImg)
+            {
+                transImg = new (std::nothrow) sgct_core::Image();
+                transImg->setSize(w, h);
+                transImg->setChannels(c);
+                transImg->setDataPtr(data);
+            
+                //signal load image
+                loadImage.setVal(true);
+            }
+            mutex.unlock();
+            
+            uploadTexture();
+        }
+    }
 }
 
 void myDataTransferStatus(bool connected, int clientIndex)
@@ -217,11 +293,24 @@ void myDataTransferStatus(bool connected, int clientIndex)
 void myDataTransferAcknowledge(int packageId, int clientIndex)
 {
 	sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
+    
+    static int counter = 0;
+    if( packageId == currentPackage.getVal())
+    {
+        counter++;
+        if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
+        {
+            int tmpIndex = texIndex.getVal();
+            tmpIndex++;
+            texIndex.setVal(tmpIndex);
+            counter = 0;
+        }
+    }
 }
 
 void threadWorker(void *arg)
 {
-	while (running.getVal())
+    while (running.getVal())
 	{
 		//runs only on master
         if (transfere.getVal())
@@ -230,15 +319,7 @@ void threadWorker(void *arg)
             transfere.setVal(false);
             
             //load texture on master
-            //loadTexture();
-        }
-        
-        if(loadImage.getVal())
-        {
-            //load texture on slave
-            //loadTexture();
-            
-            loadImage.setVal(false);
+            uploadTexture();
         }
 
 		sgct::Engine::sleep(0.1); //ten iteration per second
@@ -247,24 +328,124 @@ void threadWorker(void *arg)
 
 void startDataTransfer()
 {
-	static int packageId = 0;
-
-	int size = 4096 * 4096 * 3; //4k image size
-	char * data = new (std::nothrow) char[size];
-
-	if (data)
-	{
-		data[255] = 55;
-		gEngine->transferDataBetweenNodes(data, size, packageId);
-
-		//clean up
-		delete data;
-	}
-
-	packageId++;
+    //iterate
+    int id = currentPackage.getVal();
+    id++;
+    currentPackage.setVal(id);
+    
+    mutex.lock();
+    
+    //make sure to keep within bounds
+    if(static_cast<int>(imagePaths.getSize()) > id)
+    {
+        transImg = new (std::nothrow) sgct_core::Image();
+        transImg->load(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str());
+        
+        if (transImg->getData())
+        {
+            int w, h, c, offset;
+            
+            w = transImg->getWidth();
+            h = transImg->getHeight();
+            c = transImg->getChannels();
+            offset = 0;
+            
+            int imSize = w * h * c;
+            int totalSize = imSize + sizeof(int)*3;
+            
+            //create datablock
+            char * data = new (std::nothrow) char[totalSize];
+            if(data)
+            {
+                memcpy(data + offset, &w, sizeof(int)); offset += sizeof(int);
+                memcpy(data + offset, &h, sizeof(int)); offset += sizeof(int);
+                memcpy(data + offset, &c, sizeof(int)); offset += sizeof(int);
+                for( int i = 0; i<(h*c); i++ )
+                {
+                    memcpy(data + offset + i*w, transImg->getData() + i*w, w);
+                }
+            
+                gEngine->transferDataBetweenNodes(data, totalSize, id);
+                delete data;
+                data = NULL;
+            }
+        }
+    }
+    
+    mutex.unlock();
 }
 
-void loadTexture(sgct_core::Image * imPtr)
+void uploadTexture()
 {
-
+    mutex.lock();
+    
+    if( transImg )
+    {
+        glfwMakeContextCurrent( hiddenWindow );
+        
+        //create texture
+        GLuint tex;
+        glGenTextures(1, &tex);
+        glBindTexture(GL_TEXTURE_2D, tex);
+        glPixelStorei(GL_PACK_ALIGNMENT, 1);
+        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+        
+        GLenum internalformat;
+        GLenum type;
+        switch( transImg->getChannels() )
+        {
+            case 1:
+                internalformat = GL_R8;
+                type = GL_RED;
+                break;
+                
+            case 2:
+                internalformat = GL_RG8;
+                type = GL_RG;
+                break;
+                
+            case 3:
+            default:
+                internalformat = GL_RGB8;
+                type = GL_BGR;
+                break;
+                
+            case 4:
+                internalformat = GL_RGBA8;
+                type = GL_BGRA;
+                break;
+        }
+        
+        int mipMapLevels = 8;
+        glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, GL_UNSIGNED_BYTE, transImg->getData());
+        
+        //glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
+        
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels-1);
+		
+		glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
+        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+        
+        //unbind
+        glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+        
+        sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImg->getWidth(), transImg->getHeight(), transImg->getChannels());
+        
+        texIds.addVal(tex);
+        
+        delete transImg;
+        transImg = NULL;
+        
+        glFinish();
+        
+        //restore
+        glfwMakeContextCurrent( sharedWindow );
+    }
+    
+    mutex.unlock();
 }

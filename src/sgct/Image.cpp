@@ -815,17 +815,17 @@ unsigned char * sgct_core::Image::getData()
 {
 	return mData;
 }
-int sgct_core::Image::getChannels()
+int sgct_core::Image::getChannels() const
 {
 	return mChannels;
 }
 
-int sgct_core::Image::getWidth()
+int sgct_core::Image::getWidth() const
 {
 	return mSize_x;
 }
 
-int sgct_core::Image::getHeight()
+int sgct_core::Image::getHeight() const
 {
 	return mSize_y;
 }

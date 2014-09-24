@@ -2324,14 +2324,14 @@ bool sgct::SGCTWindow::getFullResolutionMode()
 
 void sgct::SGCTWindow::addViewport(float left, float right, float bottom, float top)
 {
-	sgct_core::Viewport tmpVP(mViewports.size(), left, right, bottom, top);
-	mViewports.push_back(tmpVP);
+	sgct_core::Viewport * vpPtr = new sgct_core::Viewport(left, right, bottom, top);
+	mViewports.push_back(vpPtr);
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
 }
 
-void sgct::SGCTWindow::addViewport(sgct_core::Viewport &vp)
+void sgct::SGCTWindow::addViewport(sgct_core::Viewport * vpPtr)
 {
-	mViewports.push_back(vp);
+	mViewports.push_back(vpPtr);
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Adding viewport (total %d)\n", mViewports.size());
 }
 
@@ -2341,6 +2341,8 @@ void sgct::SGCTWindow::addViewport(sgct_core::Viewport &vp)
 void sgct::SGCTWindow::deleteAllViewports()
 {
 	mCurrentViewportIndex = 0;
+	for (unsigned int i = 0; i < mViewports.size(); i++)
+		delete mViewports[i];
 	mViewports.clear();
 }
 
@@ -2388,12 +2390,12 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             upperRight.z = 1.0f * radius;
             upperRight.w = 1.0f;
             
-            sgct_core::Viewport tmpVP(i);
+			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
             
             //only generate GPU data in first viewport and the rest can use it's data
             if( i != 0 )
-                tmpVP.setAsDummy();
-            tmpVP.setName("Fisheye");
+				vpPtr->setAsDummy();
+			vpPtr->setName("Fisheye");
 
             glm::mat4 rotMat(1.0f);
 
@@ -2406,9 +2408,9 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 {
                     rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
                     upperRight.x = 0.0f;
-                    tmpVP.setSize(0.5f, 1.0f);
+					vpPtr->setSize(0.5f, 1.0f);
                     //restore the mesh for the non-dummy viewport since setSize modifes that
-                    tmpVP.getCorrectionMeshPtr()->setViewportCoords(1.0f, 1.0f, 0.0f, 0.0f);
+					vpPtr->getCorrectionMeshPtr()->setViewportCoords(1.0f, 1.0f, 0.0f, 0.0f);
                 }
                 break;
 
@@ -2417,8 +2419,8 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                     rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
                     lowerLeft.x = 0.0f;
                     upperLeft.x = 0.0f;
-                    tmpVP.setPos(0.5f, 0.0f);
-                    tmpVP.setSize(0.5f, 1.0f);
+					vpPtr->setPos(0.5f, 0.0f);
+					vpPtr->setSize(0.5f, 1.0f);
                 }
                 break;
 
@@ -2426,8 +2428,8 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 {
                     rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
                     lowerLeft.y = 0.0f;
-                    tmpVP.setPos(0.0f, 0.5f);
-                    tmpVP.setSize(1.0f, 0.5f);
+					vpPtr->setPos(0.0f, 0.5f);
+					vpPtr->setSize(1.0f, 0.5f);
                 }
                 break;
 
@@ -2436,7 +2438,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                     rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
                     upperLeft.y = 0.0f;
                     upperRight.y = 0.0f;
-                    tmpVP.setSize(1.0f, 0.5f);
+					vpPtr->setSize(1.0f, 0.5f);
                 }
                 break;
 
@@ -2445,7 +2447,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 break;
 
             case Neg_Z: //-Z face
-                tmpVP.setEnabled( false );
+				vpPtr->setEnabled(false);
                 rotMat = glm::rotate(rollRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
                 break;
             }
@@ -2457,12 +2459,12 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
                 1.0f );
 
-            tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
-            tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
-            tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
+			vpPtr->setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
+			vpPtr->setViewPlaneCoords(1, rotMat * upperLeft + userVec);
+			vpPtr->setViewPlaneCoords(2, rotMat * upperRight + userVec);
 
             //Each viewport contains frustums for mono, left stereo and right stereo
-            addViewport( tmpVP );
+			addViewport(vpPtr);
 
             /*
              fprintf(stderr, "View #%d:\n", i);
@@ -2504,12 +2506,12 @@ void sgct::SGCTWindow::generateCubeMapViewports()
         //add viewports
         for(unsigned int i=0; i<6; i++)
         {
-            sgct_core::Viewport tmpVP(i);
+			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
             
             //only generate GPU data in first viewport and the rest can use it's data
             if( i != 0 )
-                tmpVP.setAsDummy();
-            tmpVP.setName("Fisheye");
+				vpPtr->setAsDummy();
+			vpPtr->setName("Fisheye");
             
             glm::mat4 rotMat(1.0f);
             
@@ -2520,7 +2522,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                     break;
                     
                 case Neg_X: //-X face
-                    tmpVP.setEnabled( false );
+					vpPtr->setEnabled(false);
                     rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
                     
@@ -2537,7 +2539,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                     break;
                     
                 case Neg_Z: //-Z face
-                    tmpVP.setEnabled( false );
+					vpPtr->setEnabled(false);
                     rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
             }
@@ -2550,12 +2552,12 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 1.0f );
             
             //add viewplane vertices
-            tmpVP.setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
-            tmpVP.setViewPlaneCoords(1, rotMat * upperLeft + userVec);
-            tmpVP.setViewPlaneCoords(2, rotMat * upperRight + userVec);
+			vpPtr->setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
+			vpPtr->setViewPlaneCoords(1, rotMat * upperLeft + userVec);
+			vpPtr->setViewPlaneCoords(2, rotMat * upperRight + userVec);
             
             //Each viewport contains frustums for mono, left stereo and right stereo
-            addViewport( tmpVP );
+			addViewport(vpPtr);
             
             /*
              fprintf(stderr, "View #%d:\n", i);
@@ -2567,7 +2569,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
         
         if( getFisheyeOverlay() != NULL )
         {
-            mViewports[0].setOverlayTexture( getFisheyeOverlay() );
+            mViewports[0]->setOverlayTexture( getFisheyeOverlay() );
             //MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
         }
     }
@@ -2580,7 +2582,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 */
 sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport()
 {
-	return &mViewports[mCurrentViewportIndex];
+	return mViewports[mCurrentViewportIndex];
 }
 
 /*!
@@ -2588,7 +2590,7 @@ sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport()
 */
 sgct_core::Viewport * sgct::SGCTWindow::getViewport(std::size_t index)
 {
-	return &mViewports[index];
+	return mViewports[index];
 }
 
 /*!

@@ -1,9 +1,9 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
-All rights reserved.
-
-For conditions of distribution and use, see copyright notice in sgct.h
-*************************************************************************/
+ Copyright (c) 2012-2014 Miroslav Andel
+ All rights reserved.
+ 
+ For conditions of distribution and use, see copyright notice in sgct.h
+ *************************************************************************/
 
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #define MAX_XML_DEPTH 16
@@ -24,7 +24,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
-
+    
 	if( filename.empty() )
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: No XML config file loaded.\n");
@@ -34,10 +34,10 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 	{
 	    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Parsing XML config '%s'...\n", filename.c_str());
 	}
-
+    
     if( !replaceEnvVars(filename) )
         return;
-
+    
 	try
 	{
 		readAndParseXML();
@@ -48,15 +48,15 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
 		return;
 	}
 	valid = true;
-
+    
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str());
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Number of nodes in cluster: %d\n",
-		ClusterManager::instance()->getNumberOfNodes());
-
+                                            ClusterManager::instance()->getNumberOfNodes());
+    
 	for(unsigned int i = 0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) address: %s [%s]\n", i,
-		ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
-		ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
+                                                ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
+                                                ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
 }
 
 bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
@@ -67,10 +67,10 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: SGCT doesn't support the usage of '%%' characters in path or file name.\n");
 		return false;
     }
-
+    
     std::vector< size_t > beginEnvVar;
     std::vector< size_t > endEnvVar;
-
+    
     foundIndex = 0;
     while( foundIndex != std::string::npos )
     {
@@ -83,7 +83,7 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
                 endEnvVar.push_back(foundIndex);
         }
     }
-
+    
     if(beginEnvVar.size() != endEnvVar.size())
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: Bad configuration path string!\n");
@@ -97,7 +97,7 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
             xmlFileName.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
             std::string envVar = filename.substr(beginEnvVar[i] + 2, endEnvVar[i] - (beginEnvVar[i] + 2) );
             char * fetchedEnvVar = NULL;
-
+            
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 			size_t len;
 			errno_t err = _dupenv_s( &fetchedEnvVar, &len, envVar.c_str() );
@@ -114,19 +114,19 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
 				return false;
 			}
 #endif
-
+            
 			xmlFileName.append( fetchedEnvVar );
             appendPos = endEnvVar[i]+1;
         }
-
+        
         xmlFileName.append( filename.substr( appendPos ) );
-
+        
         //replace all backslashes with slashes
         for(unsigned int i=0; i<xmlFileName.size(); i++)
             if(xmlFileName[i] == 92) //backslash
                 xmlFileName[i] = '/';
     }
-
+    
     return true;
 }
 
@@ -134,50 +134,50 @@ void sgct_core::ReadConfig::readAndParseXML()
 {
 	if( xmlFileName.empty() )
         throw "Invalid XML file!";
-
+    
 	tinyxml2::XMLDocument xmlDoc;
 	if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
 	{
 		throw "Invalid XML file!";
 	}
-
+    
 	tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{
 		throw "Cannot find XML root!";
 	}
-
+    
 	const char * masterAddress = XMLroot->Attribute( "masterAddress" );
 	if( masterAddress )
 		ClusterManager::instance()->setMasterAddress( masterAddress );
 	else
 		throw "Cannot find master address or DNS name in XML!";
-
+    
 	const char * debugMode = XMLroot->Attribute( "debug" );
 	if( debugMode != NULL )
 	{
 		sgct::MessageHandler::instance()->setNotifyLevel( strcmp( debugMode, "true" ) == 0 ?
-			sgct::MessageHandler::NOTIFY_DEBUG : sgct::MessageHandler::NOTIFY_WARNING );
+                                                         sgct::MessageHandler::NOTIFY_DEBUG : sgct::MessageHandler::NOTIFY_WARNING );
 	}
-
+    
 	if( XMLroot->Attribute( "externalControlPort" ) != NULL )
 	{
 		std::string tmpStr( XMLroot->Attribute( "externalControlPort" ) );
 		ClusterManager::instance()->setExternalControlPort(tmpStr);
 	}
-
+    
 	if( XMLroot->Attribute( "externalASCII" ) != NULL )
 	{
 		ClusterManager::instance()->setUseASCIIForExternalControl(
-			strcmp( XMLroot->Attribute( "externalASCII" ), "true" ) == 0 ? true : false );
+                                                                  strcmp( XMLroot->Attribute( "externalASCII" ), "true" ) == 0 ? true : false );
 	}
-
+    
 	if( XMLroot->Attribute( "firmSync" ) != NULL )
 	{
 		ClusterManager::instance()->setFirmFrameLockSyncStatus(
-			strcmp( XMLroot->Attribute( "firmSync" ), "true" ) == 0 ? true : false );
+                                                               strcmp( XMLroot->Attribute( "firmSync" ), "true" ) == 0 ? true : false );
 	}
-
+    
 	tinyxml2::XMLElement* element[MAX_XML_DEPTH];
 	for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
 		element[i] = NULL;
@@ -186,20 +186,20 @@ void sgct_core::ReadConfig::readAndParseXML()
 	while( element[0] != NULL )
 	{
 		val[0] = element[0]->Value();
-
+        
         if( strcmp("Scene", val[0]) == 0 )
         {
             element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-
+                
 				if( strcmp("Offset", val[1]) == 0 )
 				{
 				    float tmpOffset[] = {0.0f, 0.0f, 0.0f};
 					if( element[1]->QueryFloatAttribute("x", &tmpOffset[0] ) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == tinyxml2::XML_NO_ERROR)
+                       element[1]->QueryFloatAttribute("y", &tmpOffset[1] ) == tinyxml2::XML_NO_ERROR &&
+                       element[1]->QueryFloatAttribute("z", &tmpOffset[2] ) == tinyxml2::XML_NO_ERROR)
                     {
                         glm::vec3 sceneOffset(1.0f);
 						sceneOffset.x = tmpOffset[0];
@@ -209,7 +209,7 @@ void sgct_core::ReadConfig::readAndParseXML()
                                                                 sceneOffset.x,
                                                                 sceneOffset.y,
                                                                 sceneOffset.z);
-
+                        
 						ClusterManager::instance()->setSceneOffset( sceneOffset );
                     }
                     else
@@ -219,8 +219,8 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					float tmpOrientation[] = {0.0f, 0.0f, 0.0f};
 					if( element[1]->QueryFloatAttribute("yaw", &tmpOrientation[0] ) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == tinyxml2::XML_NO_ERROR)
+                       element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == tinyxml2::XML_NO_ERROR &&
+                       element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == tinyxml2::XML_NO_ERROR)
                     {
                         float mYaw = glm::radians( tmpOrientation[0] );
                         float mPitch = glm::radians( tmpOrientation[1] );
@@ -229,7 +229,7 @@ void sgct_core::ReadConfig::readAndParseXML()
                                                                 mYaw,
                                                                 mPitch,
                                                                 mRoll);
-
+                        
 						ClusterManager::instance()->setSceneRotation( mYaw, mPitch, mRoll );
                     }
                     else
@@ -242,13 +242,13 @@ void sgct_core::ReadConfig::readAndParseXML()
                     {
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting scene scale to %f\n",
                                                                 tmpScale );
-
+                        
 						ClusterManager::instance()->setSceneScale( tmpScale );
                     }
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse scene orientation from XML!\n");
 				}
-
+                
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
@@ -256,7 +256,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 		else if( strcmp("Node", val[0]) == 0 )
 		{
 			SGCTNode tmpNode;
-
+            
 			if( element[0]->Attribute( "address" ) )
 				tmpNode.setAddress( element[0]->Attribute( "address" ) );
 			if( element[0]->Attribute( "ip" ) ) //backward compability with older versions of SGCT config files
@@ -267,10 +267,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 				tmpNode.setSyncPort(element[0]->Attribute("syncPort"));
 			if (element[0]->Attribute("dataTransferPort"))
 				tmpNode.setDataTransferPort(element[0]->Attribute("dataTransferPort"));
-
+            
 			if( element[0]->Attribute("swapLock") != NULL )
 				tmpNode.setUseSwapGroups( strcmp( element[0]->Attribute("swapLock"), "true" ) == 0 ? true : false );
-
+            
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
@@ -278,17 +278,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 				if( strcmp("Window", val[1]) == 0 )
 				{
 					sgct::SGCTWindow tmpWin( static_cast<int>(tmpNode.getNumberOfWindows()) );
-
+                    
 					if( element[1]->Attribute("name") != NULL )
 						tmpWin.setName( element[1]->Attribute("name") );
-
+                    
 					//compability with older versions
 					if( element[1]->Attribute("fullscreen") != NULL )
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 );
-
+                    
 					if( element[1]->Attribute("fullScreen") != NULL )
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullScreen"), "true" ) == 0 );
-
+                    
 					int tmpSamples = 0;
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
@@ -296,39 +296,39 @@ void sgct_core::ReadConfig::readAndParseXML()
 						tmpWin.setNumberOfAASamples(tmpSamples);
 					else if (element[1]->QueryIntAttribute("MSAA", &tmpSamples) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
-
+                    
 					if (element[1]->Attribute("alpha") != NULL)
 						tmpWin.setAlpha(strcmp(element[1]->Attribute("alpha"), "true") == 0 ? true : false);
-
+                    
 					if( element[1]->Attribute("fxaa") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("fxaa"), "true" ) == 0 ? true : false );
-
+                    
 					if( element[1]->Attribute("FXAA") != NULL )
 						tmpWin.setUseFXAA( strcmp( element[1]->Attribute("FXAA"), "true" ) == 0 ? true : false );
-
+                    
 					if( element[1]->Attribute("decorated") != NULL )
 						tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("decorated"), "true" ) == 0 ? true : false);
-
+                    
 					if( element[1]->Attribute("border") != NULL )
 						tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("border"), "true" ) == 0 ? true : false);
-
+                    
 					if( element[1]->Attribute("fullRes") != NULL )
 						tmpWin.setFullResolutionMode( strcmp( element[1]->Attribute("fullRes"), "true" ) == 0 ? true : false);
-
+                    
 					if( element[1]->Attribute("retina") != NULL )
 						tmpWin.setFullResolutionMode( strcmp( element[1]->Attribute("retina"), "true" ) == 0 ? true : false);
-
+                    
 					int tmpMonitorIndex = 0;
 					if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == tinyxml2::XML_NO_ERROR)
 						tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
-
+                    
 					element[2] = element[1]->FirstChildElement();
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
 						int tmpWinData[2];
 						memset(tmpWinData,0,4);
-
+                        
 						if( strcmp("Stereo", val[2]) == 0 )
 						{
 							tmpWin.setStereoMode( getStereoType( element[2]->Attribute("type") ) );
@@ -336,7 +336,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Pos", val[2]) == 0 )
 						{
 							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
                                 tmpWin.setWindowPosition(tmpWinData[0],tmpWinData[1]);
                             else
                                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse window position from XML!\n");
@@ -344,7 +344,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Size", val[2]) == 0 )
 						{
 							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
                                 tmpWin.initWindowResolution(tmpWinData[0],tmpWinData[1]);
                             else
                                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse window resolution from XML!\n");
@@ -352,7 +352,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						else if( strcmp("Res", val[2]) == 0 )
 						{
 							if( element[2]->QueryIntAttribute("x", &tmpWinData[0] ) == tinyxml2::XML_NO_ERROR &&
-                                element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryIntAttribute("y", &tmpWinData[1] ) == tinyxml2::XML_NO_ERROR )
 							{
                                 tmpWin.setFramebufferResolution(tmpWinData[0],tmpWinData[1]);
 								tmpWin.setFixResolution(true);
@@ -362,40 +362,40 @@ void sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if(strcmp("Viewport", val[2]) == 0)
 						{
-							Viewport tmpVp(tmpWin.getNumberOfViewports());
-
+							Viewport * vpPtr = new sgct_core::Viewport();
+                            
 							if( element[2]->Attribute("name") != NULL )
-								tmpVp.setName( element[2]->Attribute("name") );
-
+								vpPtr->setName(element[2]->Attribute("name"));
+                            
 							if( element[2]->Attribute("overlay") != NULL )
-								tmpVp.setOverlayTexture( element[2]->Attribute("overlay") );
-
+								vpPtr->setOverlayTexture(element[2]->Attribute("overlay"));
+                            
 							if (element[2]->Attribute("mask") != NULL)
-								tmpVp.setMaskTexture(element[2]->Attribute("mask"));
-
+								vpPtr->setMaskTexture(element[2]->Attribute("mask"));
+                            
 							if( element[2]->Attribute("mesh") != NULL )
-								tmpVp.setCorrectionMesh( element[2]->Attribute("mesh") );
-
+								vpPtr->setCorrectionMesh(element[2]->Attribute("mesh"));
+                            
 							if( element[2]->Attribute("tracked") != NULL )
-								tmpVp.setTracked( strcmp( element[2]->Attribute("tracked"), "true" ) == 0 ? true : false );
-
+								vpPtr->setTracked(strcmp(element[2]->Attribute("tracked"), "true") == 0 ? true : false);
+                            
 							//get eye if set
 							if( element[2]->Attribute("eye") != NULL )
 							{
 								if( strcmp("center", element[2]->Attribute("eye")) == 0 )
 								{
-									tmpVp.setEye(Frustum::Mono);
+									vpPtr->setEye(Frustum::Mono);
 								}
 								else if( strcmp("left", element[2]->Attribute("eye")) == 0 )
 								{
-									tmpVp.setEye(Frustum::StereoLeftEye);
+									vpPtr->setEye(Frustum::StereoLeftEye);
 								}
 								else if( strcmp("right", element[2]->Attribute("eye")) == 0 )
 								{
-									tmpVp.setEye(Frustum::StereoRightEye);
+									vpPtr->setEye(Frustum::StereoRightEye);
 								}
 							}
-
+                            
 							element[3] = element[2]->FirstChildElement();
 							while( element[3] != NULL )
 							{
@@ -403,12 +403,12 @@ void sgct_core::ReadConfig::readAndParseXML()
 								float fTmp[2];
 								fTmp[0] = 0.0f;
 								fTmp[1] = 0.0f;
-
+                                
 								if(strcmp("Pos", val[3]) == 0)
 								{
 									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										tmpVp.setPos( fTmp[0], fTmp[1] );
+                                       element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
+										vpPtr->setPos(fTmp[0], fTmp[1]);
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
 								}
@@ -416,7 +416,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 								{
 									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
 										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										tmpVp.setSize( fTmp[0], fTmp[1] );
+										vpPtr->setSize(fTmp[0], fTmp[1]);
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
 								}
@@ -426,91 +426,91 @@ void sgct_core::ReadConfig::readAndParseXML()
 									while( element[4] != NULL )
 									{
 										val[4] = element[4]->Value();
-
+                                        
 										if( strcmp("Pos", val[4]) == 0 )
 										{
 											glm::vec3 tmpVec;
 											float fTmp[3];
 											static unsigned int i=0;
 											if( element[4]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
+                                               element[4]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+                                               element[4]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
 											{
 												tmpVec.x = fTmp[0];
 												tmpVec.y = fTmp[1];
 												tmpVec.z = fTmp[2];
-
+                                                
 												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-													"ReadConfig: Adding view plane coordinates %f %f %f for plane %d\n",
-													tmpVec.x, tmpVec.y, tmpVec.z, i%3);
-
-												tmpVp.setViewPlaneCoords(i%3, tmpVec);
+                                                                                        "ReadConfig: Adding view plane coordinates %f %f %f for plane %d\n",
+                                                                                        tmpVec.x, tmpVec.y, tmpVec.z, i%3);
+                                                
+												vpPtr->setViewPlaneCoords(i % 3, tmpVec);
 												i++;
 											}
 											else
 												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse view plane coordinates from XML!\n");
 										}
-
+                                        
 										//iterate
 										element[4] = element[4]->NextSiblingElement();
 									}//end while level 3
 								}//end if viewplane
-
+                                
 								//iterate
 								element[3] = element[3]->NextSiblingElement();
 							}//end while level 2
-
-							tmpWin.addViewport(tmpVp);
+                            
+							tmpWin.addViewport(vpPtr);
 						}//end viewport
 						else if(strcmp("Fisheye", val[2]) == 0)
 						{
 							float fov;
 							if( element[2]->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR )
 								tmpWin.setFisheyeFOV( fov );
-
+                            
 							if( element[2]->Attribute("quality") != NULL )
 							{
 								int resolution = getFisheyeCubemapRes( std::string(element[2]->Attribute("quality")) );
 								if( resolution > 0 )
 									tmpWin.setCubeMapResolution( resolution );
 							}
-
+                            
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpWin.setFisheyeOverlay( std::string(element[2]->Attribute("overlay")) );
-
+                            
                             if( element[2]->Attribute("method") != NULL )
 								sgct::SGCTSettings::instance()->setFisheyeMethod(
-                                    strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?
-                                        sgct::SGCTSettings::FiveFaceCube : sgct::SGCTSettings::FourFaceCube);
-
+                                                                                 strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?
+                                                                                 sgct::SGCTSettings::FiveFaceCube : sgct::SGCTSettings::FourFaceCube);
+                            
 							if (element[2]->Attribute("interpolation") != NULL)
 								tmpWin.setFisheyeUseCubicInterpolation(
-									strcmp( element[2]->Attribute("interpolation"), "cubic") == 0 ? true : false);
-
+                                                                       strcmp( element[2]->Attribute("interpolation"), "cubic") == 0 ? true : false);
+                            
 							float tilt;
 							if( element[2]->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR )
 							{
 								tmpWin.setFisheyeTilt( tilt );
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt);
 							}
-
+                            
 							float diameter;
 							if( element[2]->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR )
 							{
 								tmpWin.setDomeDiameter( diameter );
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter);
 							}
-
+                            
 							element[3] = element[2]->FirstChildElement();
 							while( element[3] != NULL )
 							{
 								val[3] = element[3]->Value();
-
+                                
 								if( strcmp("Crop", val[3]) == 0 )
 								{
 									float tmpFArr[] = { 0.0f, 0.0f, 0.0f, 0.0f };
 									float ftmp;
-
+                                    
 									if( element[3]->QueryFloatAttribute("left", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropLeft] = ftmp;
 									if( element[3]->QueryFloatAttribute("right", &ftmp) == tinyxml2::XML_NO_ERROR )
@@ -519,64 +519,48 @@ void sgct_core::ReadConfig::readAndParseXML()
 										tmpFArr[sgct::SGCTWindow::CropBottom] = ftmp;
 									if( element[3]->QueryFloatAttribute("top", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[sgct::SGCTWindow::CropTop] = ftmp;
-
+                                    
 									tmpWin.setFisheyeCropValues(
-										tmpFArr[sgct::SGCTWindow::CropLeft],
-										tmpFArr[sgct::SGCTWindow::CropRight],
-										tmpFArr[sgct::SGCTWindow::CropBottom],
-										tmpFArr[sgct::SGCTWindow::CropTop]);
+                                                                tmpFArr[sgct::SGCTWindow::CropLeft],
+                                                                tmpFArr[sgct::SGCTWindow::CropRight],
+                                                                tmpFArr[sgct::SGCTWindow::CropBottom],
+                                                                tmpFArr[sgct::SGCTWindow::CropTop]);
 								}
 								else if( strcmp("Offset", val[3]) == 0 )
 								{
 									float tmpFArr[] = { 0.0f, 0.0f, 0.0f };
 									float ftmp;
-
+                                    
 									if( element[3]->QueryFloatAttribute("x", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[0] = ftmp;
 									if( element[3]->QueryFloatAttribute("y", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[1] = ftmp;
 									if( element[3]->QueryFloatAttribute("z", &ftmp) == tinyxml2::XML_NO_ERROR )
 										tmpFArr[2] = ftmp;
-
+                                    
 									tmpWin.setFisheyeBaseOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
 								}
-								/*if (strcmp("Pos", val[3]) == 0)
-								{
-									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										tmpVp.setPos(fTmp[0], fTmp[1]);
-									else
-										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
-								}
-								else if (strcmp("Size", val[3]) == 0)
-								{
-									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										tmpVp.setSize(fTmp[0], fTmp[1]);
-									else
-										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
-								}*/
-
+                                
 								//iterate
 								element[3] = element[3]->NextSiblingElement();
 							}
-
+                            
 							tmpWin.setFisheyeRendering(true);
-
+                            
 						}//end fisheye
-
+                        
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
 					}
-
+                    
 					tmpNode.addWindow( tmpWin );
 				}//end window
-
+                
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
-
+                
 			}//end while
-
+            
 			ClusterManager::instance()->addNode(tmpNode);
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
@@ -585,13 +569,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == tinyxml2::XML_NO_ERROR )
                 ClusterManager::instance()->getUserPtr()->setEyeSeparation( fTmp );
             /*else -- not required
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");*/
-
+             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");*/
+            
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-
+                
 				if( strcmp("Pos", val[1]) == 0 )
 				{
 					float fTmp[3];
@@ -606,8 +590,8 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					float fTmp[3];
 					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
-                        element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
+                       element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+                       element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
                         ClusterManager::instance()->getUserPtr()->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user Orientation from XML!\n");
@@ -646,7 +630,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
 						glm::mat4 mat = glm::make_mat4( tmpf );
 						ClusterManager::instance()->getUserPtr()->setTransform(
-							glm::transpose( mat ));
+                                                                               glm::transpose( mat ));
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
@@ -654,15 +638,15 @@ void sgct_core::ReadConfig::readAndParseXML()
 				else if( strcmp("Tracking", val[1]) == 0 )
 				{
 					if(	element[1]->Attribute("tracker") != NULL &&
-						element[1]->Attribute("device") != NULL )
+                       element[1]->Attribute("device") != NULL )
 					{
 						ClusterManager::instance()->getUserPtr()->setHeadTracker(
-							element[1]->Attribute("tracker"), element[1]->Attribute("device") );
+                                                                                 element[1]->Attribute("tracker"), element[1]->Attribute("device") );
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user tracking data from XML!\n");
 				}
-
+                
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
@@ -673,7 +657,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-
+                
 				if( strcmp("DepthBufferTexture", val[1]) == 0 )
 				{
 					if (element[1]->Attribute("value") != NULL)
@@ -717,7 +701,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						sgct::SGCTSettings::instance()->setSwapInterval( tmpInterval );
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display swap interval is set to %d.\n", tmpInterval);
 					}
-
+                    
 					int rate = 0;
 					if( element[1]->QueryIntAttribute("refreshRate", &rate) == tinyxml2::XML_NO_ERROR )
 					{
@@ -729,21 +713,21 @@ void sgct_core::ReadConfig::readAndParseXML()
 				{
 					float x = 0.0f;
 					float y = 0.0f;
-
+                    
 					if( element[1]->Attribute("name") != NULL )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextFontName( element[1]->Attribute("name") );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-							"ReadConfig: Setting font name to %s\n", element[1]->Attribute("name") );
+                                                                "ReadConfig: Setting font name to %s\n", element[1]->Attribute("name") );
 					}
-
+                    
 					if( element[1]->Attribute("path") != NULL )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextFontPath( element[1]->Attribute("path") );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-							"ReadConfig: Setting font path to %s\n", element[1]->Attribute("path") );
+                                                                "ReadConfig: Setting font path to %s\n", element[1]->Attribute("path") );
 					}
-
+                    
 					if( element[1]->Attribute("size") != NULL )
 					{
 						int tmpi = -1;
@@ -751,24 +735,24 @@ void sgct_core::ReadConfig::readAndParseXML()
 						{
 							sgct::SGCTSettings::instance()->setOSDTextFontSize( tmpi );
 							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-                                "ReadConfig: Setting font size to %d\n", tmpi );
+                                                                    "ReadConfig: Setting font size to %d\n", tmpi );
 						}
 						else
 							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
 					}
-
+                    
 					if( element[1]->QueryFloatAttribute("xOffset", &x) == tinyxml2::XML_NO_ERROR )
                     {
 						sgct::SGCTSettings::instance()->setOSDTextXOffset( x );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-                            "ReadConfig: Setting font x offset to %f\n", x );
+                                                                "ReadConfig: Setting font x offset to %f\n", x );
                     }
-
+                    
 					if( element[1]->QueryFloatAttribute("yOffset", &y) == tinyxml2::XML_NO_ERROR )
 					{
 						sgct::SGCTSettings::instance()->setOSDTextYOffset( y );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-                            "ReadConfig: Setting font y offset to %f\n", y );
+                                                                "ReadConfig: Setting font y offset to %f\n", y );
                     }
 				}
 				else if( strcmp("FXAA", val[1]) == 0 )
@@ -778,9 +762,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 					{
 						sgct::SGCTSettings::instance()->setFXAASubPixOffset( offset );
 						sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-							"ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset );
+                                                                "ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset );
 					}
-
+                    
 					float trim = 0.0f;
 					if( element[1]->QueryFloatAttribute("trim", &trim) == tinyxml2::XML_NO_ERROR )
 					{
@@ -788,17 +772,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 						{
 							sgct::SGCTSettings::instance()->setFXAASubPixTrim( 1.0f/trim );
 							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f/trim );
+                                                                    "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f/trim );
 						}
 						else
 						{
 							sgct::SGCTSettings::instance()->setFXAASubPixTrim( 0.0f );
 							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-								"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f );
+                                                                    "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f );
 						}
 					}
 				}
-
+                
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
@@ -823,7 +807,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 			{
 			    sgct::SGCTSettings::instance()->setCapturePath( element[0]->Attribute("rightPath"), sgct::SGCTSettings::RightStereo );
             }
-
+            
             if( element[0]->Attribute("format") != NULL )
 			{
 			    sgct::SGCTSettings::instance()->setCaptureFormat( element[0]->Attribute("format") );
@@ -832,50 +816,50 @@ void sgct_core::ReadConfig::readAndParseXML()
 		else if( strcmp("Tracker", val[0]) == 0 && element[0]->Attribute("name") != NULL )
 		{
 			ClusterManager::instance()->getTrackingManagerPtr()->addTracker( std::string(element[0]->Attribute("name")) );
-
+            
 			element[1] = element[0]->FirstChildElement();
 			while( element[1] != NULL )
 			{
 				val[1] = element[1]->Value();
-
+                
 				if( strcmp("Device", val[1]) == 0 && element[1]->Attribute("name") != NULL)
 				{
 					ClusterManager::instance()->getTrackingManagerPtr()->addDeviceToCurrentTracker( std::string(element[1]->Attribute("name")) );
-
+                    
 					element[2] = element[1]->FirstChildElement();
-
+                    
 					while( element[2] != NULL )
 					{
 						val[2] = element[2]->Value();
 						unsigned int tmpUI = 0;
 						int tmpi = -1;
-
+                        
 						if( strcmp("Sensor", val[2]) == 0 )
 						{
 							if( element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryIntAttribute("id", &tmpi) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryIntAttribute("id", &tmpi) == tinyxml2::XML_NO_ERROR )
 							{
                                 ClusterManager::instance()->getTrackingManagerPtr()->addSensorToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"), tmpi);
+                                                                                                              element[2]->Attribute("vrpnAddress"), tmpi);
 							}
 						}
 						else if( strcmp("Buttons", val[2]) == 0 )
 						{
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
                             {
                                 ClusterManager::instance()->getTrackingManagerPtr()->addButtonsToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"), tmpUI);
+                                                                                                               element[2]->Attribute("vrpnAddress"), tmpUI);
                             }
-
+                            
 						}
 						else if( strcmp("Axes", val[2]) == 0 )
 						{
 							if(element[2]->Attribute("vrpnAddress") != NULL &&
-                                element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
+                               element[2]->QueryUnsignedAttribute("count", &tmpUI) == tinyxml2::XML_NO_ERROR )
                             {
                                 ClusterManager::instance()->getTrackingManagerPtr()->addAnalogsToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"), tmpUI);
+                                                                                                               element[2]->Attribute("vrpnAddress"), tmpUI);
                             }
 						}
 						else if( strcmp("Offset", val[2]) == 0 )
@@ -885,7 +869,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 								element[2]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-									setOffset( tmpf[0], tmpf[1], tmpf[2] );
+                                setOffset( tmpf[0], tmpf[1], tmpf[2] );
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device offset in XML!\n");
 						}
@@ -896,7 +880,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 								element[2]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-									setOrientation( tmpf[0], tmpf[1], tmpf[2] );
+                                setOrientation( tmpf[0], tmpf[1], tmpf[2] );
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 						}
@@ -908,7 +892,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 								element[2]->QueryFloatAttribute("y", &tmpf[2]) == tinyxml2::XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("z", &tmpf[3]) == tinyxml2::XML_NO_ERROR)
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-									setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
+                                setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 						}
@@ -935,16 +919,16 @@ void sgct_core::ReadConfig::readAndParseXML()
 								//glm & opengl uses column major order (normally row major order is used in linear algebra)
 								glm::mat4 mat = glm::make_mat4( tmpf );
 								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
-									glm::transpose( mat ));
+                                                                                                                                           glm::transpose( mat ));
 							}
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
 						}
-
+                        
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
 					}
-
+                    
 				}
 				else if( strcmp("Offset", val[1]) == 0 )
 				{
@@ -1008,17 +992,17 @@ void sgct_core::ReadConfig::readAndParseXML()
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
 						glm::mat4 mat = glm::make_mat4( tmpf );
 						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
-							glm::transpose( mat ));
+                                                                                                               glm::transpose( mat ));
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker matrix in XML!\n");
 				}
-
+                
 				//iterate
 				element[1] = element[1]->NextSiblingElement();
 			}
 		}// end tracking part
-
+        
 		//iterate
 		element[0] = element[0]->NextSiblingElement();
 	}
@@ -1027,7 +1011,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string type )
 {
 	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-
+    
 	if( strcmp( type.c_str(), "none" ) == 0 || strcmp( type.c_str(), "no_stereo" ) == 0  )
 		return sgct::SGCTWindow::No_Stereo;
 	else if( strcmp( type.c_str(), "active" ) == 0 || strcmp( type.c_str(), "quadbuffer" ) == 0 )
@@ -1056,7 +1040,7 @@ sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string t
 		return sgct::SGCTWindow::Top_Bottom_Stereo;
 	else if( strcmp( type.c_str(), "top_bottom_inverted" ) == 0 )
 		return sgct::SGCTWindow::Top_Bottom_Inverted_Stereo;
-
+    
 	//if match not found
 	return sgct::SGCTWindow::No_Stereo;
 }
@@ -1064,7 +1048,7 @@ sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string t
 int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
 {
 	std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
-
+    
 	if( strcmp( quality.c_str(), "low" ) == 0 )
 		return 256;
 	else if( strcmp( quality.c_str(), "medium" ) == 0 )
@@ -1079,7 +1063,7 @@ int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
 		return 8192;
 	else if (strcmp(quality.c_str(), "16k") == 0 )
 		return 16384;
-
+    
 	//if match not found
 	return -1;
 }

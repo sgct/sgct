@@ -196,6 +196,15 @@ void myCleanUpFun()
 	if(myBox != NULL)
 		delete myBox;
     
+    for(std::size_t i=0; i < texIds.getSize(); i++)
+    {
+        GLuint tex = texIds.getValAt(i);
+        glDeleteTextures(1, &tex);
+        texIds.setValAt(i, GL_FALSE);
+    }
+    texIds.clear();
+    
+    
     if(hiddenWindow)
         glfwDestroyWindow(hiddenWindow);
 }

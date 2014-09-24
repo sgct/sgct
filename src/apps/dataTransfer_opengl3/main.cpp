@@ -320,6 +320,13 @@ void threadWorker(void *arg)
             
             //load texture on master
             uploadTexture();
+            
+            if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
+            {
+                int tmpIndex = texIndex.getVal();
+                tmpIndex++;
+                texIndex.setVal(tmpIndex);
+            }
         }
 
 		sgct::Engine::sleep(0.1); //ten iteration per second

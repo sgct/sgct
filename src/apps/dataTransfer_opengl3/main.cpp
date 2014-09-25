@@ -77,7 +77,9 @@ int main( int argc, char* argv[] )
     gEngine->setDataTransferCallback(myDataTransferDecoder);
 	gEngine->setDataTransferStatusCallback(myDataTransferStatus);
 	gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
+    //gEngine->setDataTransferCompression(true, 6);
 
+    sgct::SharedData::instance()->setCompression(true);
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 

@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_MUTEX_MANAGER
 #define _SGCT_MUTEX_MANAGER
 
-#define SGCT_NUMBER_OF_MUTEXES 5
+#define SGCT_NUMBER_OF_MUTEXES 6
 
 #include <stddef.h>
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -26,7 +26,7 @@ namespace sgct
 class SGCTMutexManager
 {
 public:
-	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex, ConsoleMutex };
+	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex, ConsoleMutex, TransferMutex };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTMutexManager * instance()

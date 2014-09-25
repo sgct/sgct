@@ -1204,12 +1204,26 @@ void sgct::Engine::renderDisplayInfo()
 			"Avg. draw time: %.2f ms",
 			mStatistics->getAvgDrawTime()*1000.0);
 
-		sgct_text::print(font,
-			static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
-			lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
-			glm::vec4(0.0f,0.8f,0.8f,1.0f),
-			"Avg. sync time: %.2f ms",
-			mStatistics->getAvgSyncTime()*1000.0);
+		if(isMaster())
+        {
+            sgct_text::print(font,
+                static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+                lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+                glm::vec4(0.0f,0.8f,0.8f,1.0f),
+                "Avg. sync time: %.2f ms (%d bytes, comp: %.3f)",
+                mStatistics->getAvgSyncTime()*1000.0,
+                SharedData::instance()->getUserDataSize(),
+                SharedData::instance()->getCompressionRatio());
+        }
+        else
+        {
+            sgct_text::print(font,
+                static_cast<float>( getActiveWindowPtr()->getXResolution() ) * SGCTSettings::instance()->getOSDTextXOffset(),
+                lineHeight * 4.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
+                glm::vec4(0.0f,0.8f,0.8f,1.0f),
+                "Avg. sync time: %.2f ms",
+                mStatistics->getAvgSyncTime()*1000.0);
+        }
 
 		bool usingSwapGroups = getActiveWindowPtr()->isUsingSwapGroups();
 		if(usingSwapGroups)
@@ -4106,6 +4120,18 @@ void sgct::Engine::sendMessageToExternalControl(void * data, int length)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->sendData( data, length );
+}
+
+/*!
+ Compression levels 1-9.
+ -1 = Default compression
+ 0 = No compression
+ 1 = Best speed
+ 9 = Best compression
+ */
+void sgct::Engine::setDataTransferCompression(bool state, int level)
+{
+    mNetworkConnections->setDataTransferCompression(state, level);
 }
 
 /*!

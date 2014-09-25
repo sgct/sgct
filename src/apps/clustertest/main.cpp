@@ -59,7 +59,6 @@ int main( int argc, char* argv[] )
 		for(int i=0;i<EXTENDED_SIZE;i++)
 			extraData.addVal(static_cast<float>(rand()%500)/500.0f);
 
-	sgct::SharedData::instance()->setCompression(true);
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
@@ -332,7 +331,16 @@ void keyCallback(int key, int action)
 
 		switch( key )
 		{
-		case 'F':
+        case SGCT_KEY_C:
+            if(action == SGCT_PRESS)
+            {
+                static bool useCompress = false;
+                useCompress = !useCompress;
+                sgct::SharedData::instance()->setCompression(useCompress);
+            }
+            break;
+            
+        case 'F':
 			if(action == SGCT_PRESS)
 				frametest.toggle();
 			break;

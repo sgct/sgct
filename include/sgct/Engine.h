@@ -183,7 +183,8 @@ public:
 	void setDataTransferCallback(void(*fnPtr)(const char *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
 	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
 	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
-	void transferDataBetweenNodes(void * data, int length, int packageId);
+	void setDataTransferCompression(bool state, int level = 1);
+    void transferDataBetweenNodes(void * data, int length, int packageId);
 	void invokeDecodeCallbackForDataTransfer(const char * receivedData, int receivedlength, int packageId, int clientIndex);
 	void invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex);
 	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex);

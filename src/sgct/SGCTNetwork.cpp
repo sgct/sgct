@@ -52,6 +52,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 void communicationHandler(void *arg);
 void connectionHandler(void *arg);
 bool parseDisconnectPackage(char * headerPtr);
+std::string getUncompressionErrorAsStr(int err);
 
 #define MAX_NUMBER_OF_ATTEMPS 10
 #define SGCT_SOCKET_BUFFER_SIZE 4096
@@ -78,6 +79,7 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mConnectionType		= SyncConnection;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
+    mUncompressedBufferSize = mBufferSize;
 	mSendFrame[Current]	= 0;
 	mSendFrame[Previous]= 0;
 	mRecvFrame[Current]	= 0;
@@ -106,7 +108,10 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 	mServer = _isServer;
 	mConnectionType = connectionType;
 	if (mConnectionType == SyncConnection)
+    {
 		mBufferSize = static_cast<int>(sgct::SharedData::instance()->getBufferSize());
+        mUncompressedBufferSize = mBufferSize;
+    }
 	mId = id;
 
 	mPort.assign(port);
@@ -474,6 +479,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[6] = currentMessageSizePtr[1];
 		messageToSend[7] = currentMessageSizePtr[2];
 		messageToSend[8] = currentMessageSizePtr[3];
+        
+        //fill rest of header with DefaultId
+        memset(messageToSend+9, DefaultId, 4);
 
 		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
 
@@ -496,6 +504,9 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		tmpca[6] = currentMessageSizePtr[1];
 		tmpca[7] = currentMessageSizePtr[2];
 		tmpca[8] = currentMessageSizePtr[3];
+        
+        //fill rest of header with DefaultId
+        memset(tmpca+9, DefaultId, 4);
 
 		sendData((void *)tmpca, mHeaderSize);
 	}
@@ -889,9 +900,13 @@ void communicationHandler(void *arg)
 	char recvHeader[sgct_core::SGCTNetwork::mHeaderSize];
 	memset(recvHeader, sgct_core::SGCTNetwork::DefaultId, sgct_core::SGCTNetwork::mHeaderSize);
 	char * recvBuf = NULL;
+    char * uncompressBuf = NULL;
 
-	//recvbuf = reinterpret_cast<char *>( malloc(nPtr->mBufferSize) );
+    nPtr->mConnectionMutex.lock();
 	recvBuf = new (std::nothrow) char[nPtr->mBufferSize];
+    uncompressBuf = new (std::nothrow) char[nPtr->mUncompressedBufferSize];
+    nPtr->mConnectionMutex.unlock();
+    
 	std::string extBuffer; //for external comm
 
 	// Receive data until the server closes the connection
@@ -941,6 +956,8 @@ void communicationHandler(void *arg)
 		int packageId = -1;
 		int syncFrameNumber = -1;
         int dataSize = 0;
+        int uncompressedDataSize = 0;
+        
 		char headerId = sgct_core::SGCTNetwork::DefaultId;
 
 		/*!
@@ -956,38 +973,38 @@ void communicationHandler(void *arg)
                                static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
                                0);
 
-#ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Header: %u | %u %u %u %u | %u %u %u %u\n",
-                                                recvHeader[0],
-                                                recvHeader[1],
-                                                recvHeader[2],
-                                                recvHeader[3],
-                                                recvHeader[4],
-                                                recvHeader[5],
-                                                recvHeader[6],
-                                                recvHeader[7],
-                                                recvHeader[8]);
-#endif
-
 			if( iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
 			{
 				headerId = recvHeader[0];
 #ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", packageId);
+				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
 #endif
-				if (headerId == sgct_core::SGCTNetwork::DataId)
+				if (headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId)
 				{
 					//parse the sync frame number
 					syncFrameNumber = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
 					//parse the data size
 					dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
+                    //parse the uncompressed size if compression is used
+                    uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[9]);
+                    
+                    nPtr->setRecvFrame( syncFrameNumber );
+                    if( syncFrameNumber < 0 )
+                    {
+                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
+                    }
+                    
+#ifdef __SGCT_NETWORK_DEBUG__
+                    sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
+#endif
 
 					//resize buffer if needed
 					#ifdef __SGCT_MUTEX_DEBUG__
 						fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
 					#endif
 					nPtr->mConnectionMutex.lock();
-					//grow only
+					
+                    //grow only
 					if( dataSize > nPtr->mBufferSize )
 					{
 						if (!recvBuf)
@@ -1003,6 +1020,22 @@ void communicationHandler(void *arg)
 							nPtr->mBufferSize = dataSize;
 						}
 					}
+                    
+                    if( uncompressedDataSize > nPtr->mUncompressedBufferSize )
+                    {
+                        if (!uncompressBuf)
+						{
+							delete[] uncompressBuf;
+							uncompressBuf = NULL;
+						}
+                        
+						//allocate
+						uncompressBuf = new (std::nothrow) char[uncompressedDataSize];
+						if(uncompressBuf != NULL)
+						{
+							nPtr->mUncompressedBufferSize = uncompressedDataSize;
+						}
+                    }
 
 					nPtr->mConnectionMutex.unlock();
 					#ifdef __SGCT_MUTEX_DEBUG__
@@ -1041,24 +1074,11 @@ void communicationHandler(void *arg)
 				static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
 				0);
 
-#ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Header: %u | %u %u %u %u | %u %u %u %u\n",
-				recvHeader[0],
-				recvHeader[1],
-				recvHeader[2],
-				recvHeader[3],
-				recvHeader[4],
-				recvHeader[5],
-				recvHeader[6],
-				recvHeader[7],
-				recvHeader[8]);
-#endif
-
 			if (iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
 			{
 				headerId = recvHeader[0];
 #ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", packageId);
+				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
 #endif
 				if (headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId)
 				{
@@ -1066,13 +1086,16 @@ void communicationHandler(void *arg)
 					packageId = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
 					//parse the data size
 					dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
+                    //parse the uncompressed size if compression is used
+                    uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[9]);
 
 					//resize buffer if needed
 #ifdef __SGCT_MUTEX_DEBUG__
 					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
 #endif
 					nPtr->mConnectionMutex.lock();
-					//resize
+					
+                    //resize
 					if (dataSize != nPtr->mBufferSize)
 					{
 						//clean up
@@ -1089,6 +1112,22 @@ void communicationHandler(void *arg)
 							nPtr->mBufferSize = dataSize;
 						}
 					}
+                    
+                    if( uncompressedDataSize != nPtr->mUncompressedBufferSize )
+                    {
+                        if (!uncompressBuf)
+						{
+							delete[] uncompressBuf;
+							uncompressBuf = NULL;
+						}
+                        
+						//allocate
+						uncompressBuf = new (std::nothrow) char[uncompressedDataSize];
+						if(uncompressBuf != NULL)
+						{
+							nPtr->mUncompressedBufferSize = uncompressedDataSize;
+						}
+                    }
 
 					nPtr->mConnectionMutex.unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
@@ -1211,15 +1250,6 @@ void communicationHandler(void *arg)
 					nPtr->mDecoderCallbackFn != NULL)
 #endif
 					{
-						nPtr->setRecvFrame( syncFrameNumber );
-						if( syncFrameNumber < 0 )
-						{
-							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
-						}
-
-#ifdef __SGCT_NETWORK_DEBUG__
-						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
-#endif
 						//decode callback
 						if(dataSize > 0)
 							(nPtr->mDecoderCallbackFn)(recvBuf, dataSize, nPtr->getId());
@@ -1234,6 +1264,43 @@ void communicationHandler(void *arg)
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 					}
+#if (_MSC_VER >= 1700) //visual studio 2012 or later
+                    else if( headerId == sgct_core::SGCTNetwork::CompressedDataId &&
+                       nPtr->mDecoderCallbackFn != nullptr)
+#else
+                    else if( headerId == sgct_core::SGCTNetwork::CompressedDataId &&
+                        nPtr->mDecoderCallbackFn != NULL)
+#endif
+                    {
+                        //decode callback
+						if(dataSize > 0)
+                        {
+							//parse the package id
+                            uLongf uncompressedSize = static_cast<uLongf>(uncompressedDataSize);
+    
+                            int err = uncompress(
+                                                 reinterpret_cast<Bytef*>(uncompressBuf),
+                                                 &uncompressedSize,
+                                                 reinterpret_cast<Bytef*>(recvBuf),
+                                                 static_cast<uLongf>(dataSize));
+                            
+                            if(err == Z_OK)
+                            {
+                                //decode callback
+                                (nPtr->mDecoderCallbackFn)(uncompressBuf, static_cast<int>(uncompressedSize), nPtr->getId());
+                            }
+                            else
+                            {
+                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->getId(), getUncompressionErrorAsStr(err).c_str());
+                            }
+                        }
+                        
+						/*if(!nPtr->isServer())
+                         {
+                         nPtr->pushClientMessage();
+                         }*/
+						sgct_core::NetworkManager::gCond.notify_all();
+                    }
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
 					else if( headerId == sgct_core::SGCTNetwork::ConnectedId &&
 						nPtr->mConnectedCallbackFn != nullptr)
@@ -1384,70 +1451,42 @@ void communicationHandler(void *arg)
 				{
                     if ((headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId) &&
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
-						nPtr->mPackageDecoderCallbackFn != nullptr )
+						nPtr->mPackageDecoderCallbackFn != nullptr &&
 #else
-						nPtr->mPackageDecoderCallbackFn != NULL )
+						nPtr->mPackageDecoderCallbackFn != NULL &&
 #endif
-					{
+                        dataSize > 0)
+                    {
 						bool recvOk = false;
                         
-                        if( headerId == sgct_core::SGCTNetwork::CompressedDataId && dataSize > 4)
-                        {
-                            //parse the package id
-                            uLongf uncompressedSize = static_cast<uLongf>(sgct_core::SGCTNetwork::parseInt(recvBuf));
-                            char * buffer = new (std::nothrow) char[uncompressedSize];
-                            
-                            if(buffer)
-                            {
-                                char * compDataPtr = recvBuf + 4;
-                                int err = uncompress(
-                                                     reinterpret_cast<Bytef*>(buffer),
-                                                     &uncompressedSize,
-                                                     reinterpret_cast<Bytef*>(compDataPtr),
-                                                     static_cast<uLongf>(dataSize-4));
-                                
-                                if(err == Z_OK)
-                                {
-                                    //decode callback
-                                    (nPtr->mPackageDecoderCallbackFn)(buffer, static_cast<int>(uncompressedSize), packageId, nPtr->getId());
-                                    recvOk = true;
-                                }
-                                else
-                                {
-                                    std::string errStr;
-                                    switch(err)
-                                    {
-                                        case Z_BUF_ERROR:
-                                            errStr.assign("Dest. buffer no large enough.");
-                                            break;
-                                            
-                                        case Z_MEM_ERROR:
-                                            errStr.assign("Insufficient memory.");
-                                            break;
-                                            
-                                        case Z_DATA_ERROR:
-                                            errStr.assign("Corrupted data.");
-                                            break;
-                                            
-                                        default:
-                                            errStr.assign("Unknown error.");
-                                            break;
-                                    }
-                                    
-                                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d!\n", nPtr->getId());
-                                }
-                                
-                                //clean up
-                                delete [] buffer;
-                                buffer = NULL;
-                            }
-                        }
                         //uncompressed
-                        else if(dataSize > 0)
+                        if( headerId == sgct_core::SGCTNetwork::DataId )
                         {
                             //decode callback
                             (nPtr->mPackageDecoderCallbackFn)(recvBuf, dataSize, packageId, nPtr->getId());
                             recvOk = true;
+                        }
+                        else //compressed
+                        {
+                            //parse the package id
+                            uLongf uncompressedSize = static_cast<uLongf>(uncompressedDataSize);
+                            
+                            int err = uncompress(
+                                                 reinterpret_cast<Bytef*>(uncompressBuf),
+                                                 &uncompressedSize,
+                                                 reinterpret_cast<Bytef*>(recvBuf),
+                                                 static_cast<uLongf>(dataSize));
+                            
+                            if(err == Z_OK)
+                            {
+                                //decode callback
+                                (nPtr->mPackageDecoderCallbackFn)(uncompressBuf, static_cast<int>(uncompressedSize), packageId, nPtr->getId());
+                                recvOk = true;
+                            }
+                            else
+                            {
+                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->getId(), getUncompressionErrorAsStr(err).c_str());
+                            }
                         }
                         
                         if(recvOk)
@@ -1477,8 +1516,15 @@ void communicationHandler(void *arg)
 						//clean up
 						delete[] recvBuf;
 						recvBuf = NULL;
+                        
+                        if(uncompressBuf)
+                        {
+                            delete [] uncompressBuf;
+                            uncompressBuf = NULL;
+                        }
 
 						nPtr->mBufferSize = 0;
+                        nPtr->mUncompressedBufferSize = 0;
 						nPtr->mConnectionMutex.unlock();
 					}
 #if (_MSC_VER >= 1700) //visual studio 2012 or later
@@ -1537,20 +1583,17 @@ void communicationHandler(void *arg)
 
 
 	//cleanup
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
-	#endif
-	nPtr->mConnectionMutex.lock();
 	if( recvBuf != NULL )
     {
-        //free(recvbuf);
         delete [] recvBuf;
         recvBuf = NULL;
     }
-    nPtr->mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
-	#endif
+    
+    if( uncompressBuf != NULL )
+    {
+        delete [] uncompressBuf;
+        uncompressBuf = NULL;
+    }
 
     //Close socket
     //contains mutex
@@ -1697,4 +1740,29 @@ bool parseDisconnectPackage(char * headerPtr)
 		return true;
 	else
 		return false;
+}
+
+std::string getUncompressionErrorAsStr(int err)
+{
+    std::string errStr;
+    switch(err)
+    {
+        case Z_BUF_ERROR:
+            errStr.assign("Dest. buffer not large enough.");
+            break;
+            
+        case Z_MEM_ERROR:
+            errStr.assign("Insufficient memory.");
+            break;
+            
+        case Z_DATA_ERROR:
+            errStr.assign("Corrupted data.");
+            break;
+            
+        default:
+            errStr.assign("Unknown error.");
+            break;
+    }
+    
+    return errStr;
 }

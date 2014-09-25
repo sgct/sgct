@@ -49,6 +49,9 @@ sgct_core::NetworkManager::NetworkManager(int mode)
 	mIsServer = true;
 
 	mExternalControlConnection = NULL;
+    
+    mCompress = false;
+    mCompressionLevel = Z_BEST_SPEED;
 
 	mMode = mode;
 
@@ -271,8 +274,8 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				if( currentTime < minTime )
 					minTime = currentTime;
 
-				std::size_t currentSize =
-					sgct::SharedData::instance()->getDataSize() - sgct_core::SGCTNetwork::mHeaderSize;
+				int currentSize =
+					static_cast<int>(sgct::SharedData::instance()->getDataSize()) - sgct_core::SGCTNetwork::mHeaderSize;
 
 				//iterate counter
 				int currentFrame = mSyncConnections[i]->iterateFrameCounter();
@@ -282,7 +285,6 @@ void sgct_core::NetworkManager::sync(sgct_core::NetworkManager::SyncMode sm, sgc
 				unsigned char *currentFrameDataPtr = (unsigned char *)&currentFrame;
 				unsigned char *currentSizeDataPtr = (unsigned char *)&currentSize;
 
-				sgct::SharedData::instance()->getDataBlock()[0] = SGCTNetwork::DataId;
 				sgct::SharedData::instance()->getDataBlock()[1] = currentFrameDataPtr[0];
 				sgct::SharedData::instance()->getDataBlock()[2] = currentFrameDataPtr[1];
 				sgct::SharedData::instance()->getDataBlock()[3] = currentFrameDataPtr[2];
@@ -349,14 +351,18 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 
 void sgct_core::NetworkManager::transferData(void * data, int length, int packageId)
 {
-	//create buffer
-    bool mCompress = true;
-    int mCompressionLevel = Z_BEST_SPEED;
+	int sendSize = length;
     
-    int sendSize = length;
+    bool useCompression;
+    int level;
     
-    if(mCompress)
-        sendSize = compressBound( static_cast<uLong>( sendSize )) + 4;
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TransferMutex );
+    useCompression = mCompress;
+    level = mCompressionLevel;
+    sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TransferMutex );
+    
+    if(useCompression)
+        sendSize = compressBound( static_cast<uLong>( sendSize ));
     sendSize += static_cast<int>(SGCTNetwork::mHeaderSize);
     
 	char * buffer = new (std::nothrow) char[sendSize];
@@ -364,22 +370,22 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
 	{
 		char *packageIdPtr = (char *)&packageId;
 
-		buffer[0] = mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
+		buffer[0] = useCompression ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
 		buffer[1] = packageIdPtr[0];
 		buffer[2] = packageIdPtr[1];
 		buffer[3] = packageIdPtr[2];
 		buffer[4] = packageIdPtr[3];
         
-        char * compDataPtr = buffer + SGCTNetwork::mHeaderSize + 4;
+        char * compDataPtr = buffer + SGCTNetwork::mHeaderSize;
         
-        if(mCompress)
+        if(useCompression)
         {
             uLong compressedSize;
             int err = compress2(reinterpret_cast<Bytef*>(compDataPtr),
                                 &compressedSize,
                                 reinterpret_cast<Bytef*>(data),
                                 static_cast<uLong>(length),
-                                mCompressionLevel);
+                                level);
             
             if(err != Z_OK)
             {
@@ -387,7 +393,7 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
                 switch(err)
                 {
                     case Z_BUF_ERROR:
-                        errStr.assign("Dest. buffer no large enough.");
+                        errStr.assign("Dest. buffer not large enough.");
                         break;
                         
                     case Z_MEM_ERROR:
@@ -409,17 +415,19 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
             
             //send original size
             char *uncompressedSizePtr = (char *)&length;
-            buffer[SGCTNetwork::mHeaderSize] = uncompressedSizePtr[0];
-            buffer[SGCTNetwork::mHeaderSize+1] = uncompressedSizePtr[1];
-            buffer[SGCTNetwork::mHeaderSize+2] = uncompressedSizePtr[2];
-            buffer[SGCTNetwork::mHeaderSize+3] = uncompressedSizePtr[3];
+            buffer[9] = uncompressedSizePtr[0];
+            buffer[10] = uncompressedSizePtr[1];
+            buffer[11] = uncompressedSizePtr[2];
+            buffer[12] = uncompressedSizePtr[3];
             
-            length = static_cast<int>(compressedSize) + 4;
+            length = static_cast<int>(compressedSize);
             //re-calculate the true send size
             sendSize = length + static_cast<int>(SGCTNetwork::mHeaderSize);
         }
         else
         {
+            memset(buffer+9, SGCTNetwork::DefaultId, 4); //set uncompressed size to DefaultId since compression is not used
+            
             //add data to buffer
             //memcpy(buffer + SGCTNetwork::mHeaderSize, data, length);
             //faster to copy chunks of 4k than the whole buffer
@@ -455,6 +463,21 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
 	}
 	else
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to allocate data for transfer (bytes %d)!\n", sendSize);
+}
+
+/*!
+ Compression levels 1-9.
+ -1 = Default compression
+ 0 = No compression
+ 1 = Best speed
+ 9 = Best compression
+ */
+void sgct_core::NetworkManager::setDataTransferCompression(bool state, int level)
+{
+    sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::TransferMutex );
+    mCompress = state;
+    mCompressionLevel = level;
+	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::TransferMutex );
 }
 
 unsigned int sgct_core::NetworkManager::getActiveConnectionsCount()

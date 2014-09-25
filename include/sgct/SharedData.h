@@ -46,13 +46,6 @@ public:
 		}
 	}
 
-	/*!
-		Compression levels 1-9.
-		-1 = Default compression
-		0 = No compression
-		1 = Best speed
-		9 = Best compression
-	*/
 	void setCompression(bool state, int level = 1);
 	/*! Get the compresson ratio:
 	\f[ratio = \frac{compressed data size + Huffman tree}{original data size}\f]
@@ -87,26 +80,13 @@ public:
 	void setEncodeFunction( void(*fnPtr)(void) );
 	void setDecodeFunction( void(*fnPtr)(void) );
 
-	/*
-		Compression error/info codes:
-
-		Z_OK            0
-		Z_STREAM_END    1
-		Z_NEED_DICT     2
-		Z_ERRNO        (-1)
-		Z_STREAM_ERROR (-2)
-		Z_DATA_ERROR   (-3)
-		Z_MEM_ERROR    (-4)
-		Z_BUF_ERROR    (-5)
-		Z_VERSION_ERROR (-6)
-	*/
 	void encode();
 	void decode(const char * receivedData, int receivedlength, int clientIndex);
 
+    std::size_t getUserDataSize();
 	inline unsigned char * getDataBlock() { return &dataBlock[0]; }
 	inline std::size_t getDataSize() { return dataBlock.size(); }
 	inline std::size_t getBufferSize() { return dataBlock.capacity(); }
-	std::size_t getUserDataSize();
 
 private:
 	SharedData();
@@ -133,7 +113,6 @@ private:
 	std::vector<unsigned char> * currentStorage;
 	unsigned char * mCompressedBuffer;
     std::size_t mCompressedBufferSize;
-	std::size_t mCompressedSize;
 	unsigned char * headerSpace;
 	unsigned int pos;
 	int mCompressionLevel;

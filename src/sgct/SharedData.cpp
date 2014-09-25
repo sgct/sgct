@@ -42,7 +42,6 @@ SharedData::SharedData()
 	mUseCompression = false;
 	mCompressionRatio = 1.0f;
 	mCompressionLevel = Z_BEST_SPEED;
-	mCompressedSize = 0;
 
 	if(mUseCompression)
 		currentStorage = &dataBlockToCompress;
@@ -59,8 +58,8 @@ SharedData::SharedData()
 	
     headerSpace[0] = sgct_core::SGCTNetwork::DataId;
     
-    //fill rest of header with zeros
-	memset(headerSpace+1, 0, sgct_core::SGCTNetwork::mHeaderSize-1);
+    //fill rest of header with SGCTNetwork::DefaultId
+	memset(headerSpace+1, sgct_core::SGCTNetwork::DefaultId, sgct_core::SGCTNetwork::mHeaderSize-1);
 }
 
 SharedData::~SharedData()
@@ -75,9 +74,17 @@ SharedData::~SharedData()
 	dataBlockToCompress.clear();
 }
 
+/*!
+ Compression levels 1-9.
+ -1 = Default compression
+ 0 = No compression
+ 1 = Best speed
+ 9 = Best compression
+ */
 void SharedData::setCompression(bool state, int level)
 {
-	mUseCompression = state;
+	SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
+    mUseCompression = state;
 	mCompressionLevel = level;
 
 	if(mUseCompression)
@@ -87,14 +94,7 @@ void SharedData::setCompression(bool state, int level)
 		currentStorage = &dataBlock;
 		mCompressionRatio = 1.0f;
 	}
-}
-
-/*!
-	Returns the data size used by the user. Header size is excluded.
-*/
-std::size_t SharedData::getUserDataSize()
-{
-	return mUseCompression ? mCompressedSize : (dataBlock.size() - sgct_core::SGCTNetwork::mHeaderSize);
+    SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 }
 
 /*!
@@ -143,67 +143,9 @@ void SharedData::decode(const char * receivedData, int receivedlength, int clien
     pos = 0;
     dataBlock.clear();
 
-    if(mUseCompression)
-    {
-        //get original size (fist 4 bytes after header)
-        union
-        {
-            unsigned int ui;
-            unsigned char c[4];
-        } cui;
-
-        cui.c[0] = receivedData[0];
-        cui.c[1] = receivedData[1];
-        cui.c[2] = receivedData[2];
-        cui.c[3] = receivedData[3];
-
-        //re-allocatate if needed
-        if(mCompressedBufferSize < cui.ui)
-        {
-            delete [] mCompressedBuffer;
-			mCompressedBuffer = new (std::nothrow) unsigned char[ cui.ui ];
-            mCompressedBufferSize = cui.ui;
-        }
-
-        //get compressed data block size
-        cui.c[0] = receivedData[4];
-        cui.c[1] = receivedData[5];
-        cui.c[2] = receivedData[6];
-        cui.c[3] = receivedData[7];
-        mCompressedSize = cui.ui;
-
-        uLongf data_size = static_cast<uLongf>(mCompressedSize);
-        uLongf uncompressed_size = static_cast<uLongf>(mCompressedBufferSize);
-        const Bytef * data = reinterpret_cast<const Bytef *>(receivedData + 8);
-
-        int err = uncompress(
-            mCompressedBuffer,
-            &uncompressed_size,
-            data,
-            data_size);
-
-        if(err == Z_OK)
-        {
-            //re-allocate buffer if needed
-            if( uncompressed_size > dataBlock.capacity() )
-                dataBlock.reserve(uncompressed_size);
-            dataBlock.insert(dataBlock.end(), mCompressedBuffer, mCompressedBuffer + uncompressed_size);
-
-            mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(uncompressed_size);
-        }
-        else
-        {
-            SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-            MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SharedData: Failed to un-compress data (error: %d). Received %d bytes.\n", err, receivedlength);
-            return;
-        }
-    }
-    else //not using compression
-    {
-        if( receivedlength > static_cast<int>(dataBlock.capacity()) )
-            dataBlock.reserve(receivedlength);
-        dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
-    }
+    if( receivedlength > static_cast<int>(dataBlock.capacity()) )
+        dataBlock.reserve(receivedlength);
+    dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
 
     SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
@@ -223,7 +165,14 @@ void SharedData::encode()
 
 	dataBlock.clear();
 	if(mUseCompression)
+    {
 		dataBlockToCompress.clear();
+        headerSpace[0] = sgct_core::SGCTNetwork::CompressedDataId;
+    }
+    else
+    {
+        headerSpace[0] = sgct_core::SGCTNetwork::DataId;
+    }
 
 	//reserve header space
 	dataBlock.insert( dataBlock.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize );
@@ -237,7 +186,7 @@ void SharedData::encode()
 	{
 		SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
-		//re-allocatate if needed
+		// re-allocatate if needed
         // use a compression buffer twice as large
         // to fit huffman tree + data which can be
         // larger than original data in some cases.
@@ -260,17 +209,16 @@ void SharedData::encode()
 
 		if(err == Z_OK)
 		{
-			//add size of uncompressed data
-			std::size_t originalSize = dataBlockToCompress.size();
-			unsigned char *p = (unsigned char *)&originalSize;
-			dataBlock.insert( dataBlock.end(), p, p+4);
-
-			//add size of compressed data (needed for cross-platform compability)
-			mCompressedSize = static_cast<unsigned int>(compressed_size);
-			unsigned char *p2 = (unsigned char *)&mCompressedSize;
-			dataBlock.insert( dataBlock.end(), p2, p2+4);
-
-			mCompressionRatio = static_cast<float>(mCompressedSize) / static_cast<float>(originalSize);
+			//add original size
+            int uncompressedSize = static_cast<int>(dataBlockToCompress.size());
+            char *uncompressedSizePtr = (char *)&uncompressedSize;
+            
+            dataBlock[9] = uncompressedSizePtr[0];
+            dataBlock[10] = uncompressedSizePtr[1];
+            dataBlock[11] = uncompressedSizePtr[2];
+            dataBlock[12] = uncompressedSizePtr[3];
+			
+            mCompressionRatio = static_cast<float>(compressed_size) / static_cast<float>(uncompressedSize);
 
 			//add the compressed block
 			dataBlock.insert( dataBlock.end(), mCompressedBuffer, mCompressedBuffer + compressed_size );
@@ -284,6 +232,11 @@ void SharedData::encode()
 
 		SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	}
+}
+
+std::size_t SharedData::getUserDataSize()
+{
+    return dataBlock.size()-sgct_core::SGCTNetwork::mHeaderSize;
 }
 
 void SharedData::writeFloat(SharedFloat * sf)

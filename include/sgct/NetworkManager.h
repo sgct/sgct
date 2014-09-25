@@ -51,6 +51,7 @@ public:
 	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
 	void transferData(void * data, int length, int packageId);
+    void setDataTransferCompression(bool state, int level = 1);
 
 	unsigned int getActiveConnectionsCount();
 	unsigned int getActiveSyncConnectionsCount();
@@ -86,6 +87,8 @@ private:
 	bool mIsServer;
 	bool mIsRunning;
 	bool mAllNodesConnected;
+    bool mCompress;
+    int mCompressionLevel;
 	int mMode;
 	unsigned int mNumberOfActiveConnections;
 	unsigned int mNumberOfActiveSyncConnections;

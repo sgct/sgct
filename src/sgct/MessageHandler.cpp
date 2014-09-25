@@ -43,8 +43,11 @@ sgct::MessageHandler::MessageHandler(void)
 	mRecBuffer.reserve(mMaxMessageSize);
 	mBuffer.reserve(mMaxMessageSize);
 
-	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
-		headerSpace[i] = sgct_core::SGCTNetwork::DataId;
+	headerSpace[0] = sgct_core::SGCTNetwork::DataId;
+    
+    //fill rest of header with SGCTNetwork::DefaultId
+	memset(headerSpace+1, sgct_core::SGCTNetwork::DefaultId, sgct_core::SGCTNetwork::mHeaderSize-1);
+    
 	mBuffer.insert(mBuffer.begin(), headerSpace, headerSpace+sgct_core::SGCTNetwork::mHeaderSize);
 
     mLocal = true;

@@ -29,8 +29,12 @@ SharedData::SharedData()
 	mEncodeFn = NULL;
 	mDecodeFn = NULL;
 
-	mCompressedBuffer = new (std::nothrow) unsigned char[DEFAULT_SIZE];
-	mCompressedBufferSize = DEFAULT_SIZE;
+    // use a compression buffer twice as large
+    // to fit huffman tree + data which can be
+    // larger than original data in some cases.
+    // Normally a sixe x 1.1 should be enough.
+	mCompressedBuffer = new (std::nothrow) unsigned char[DEFAULT_SIZE * 2];
+	mCompressedBufferSize = DEFAULT_SIZE * 2;
 
 	dataBlock.reserve(DEFAULT_SIZE);
 	dataBlockToCompress.reserve(DEFAULT_SIZE);
@@ -53,8 +57,10 @@ SharedData::SharedData()
 		return;
 	}
 	
-	for(unsigned int i=0; i<sgct_core::SGCTNetwork::mHeaderSize; i++)
-		headerSpace[i] = sgct_core::SGCTNetwork::DataId;
+    headerSpace[0] = sgct_core::SGCTNetwork::DataId;
+    
+    //fill rest of header with zeros
+	memset(headerSpace+1, 0, sgct_core::SGCTNetwork::mHeaderSize-1);
 }
 
 SharedData::~SharedData()
@@ -232,11 +238,15 @@ void SharedData::encode()
 		SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
 		//re-allocatate if needed
-		if(mCompressedBufferSize < dataBlockToCompress.size())
+        // use a compression buffer twice as large
+        // to fit huffman tree + data which can be
+        // larger than original data in some cases.
+        // Normally a sixe x 1.1 should be enough.
+		if(mCompressedBufferSize < (dataBlockToCompress.size()/2))
 		{
 			delete [] mCompressedBuffer;
-			mCompressedBuffer = new (std::nothrow) unsigned char[ dataBlockToCompress.size() ];
-			mCompressedBufferSize = dataBlockToCompress.size();
+            mCompressedBufferSize = dataBlockToCompress.size()*2;
+			mCompressedBuffer = new (std::nothrow) unsigned char[ mCompressedBufferSize ];
 		}
 
 		uLongf compressed_size = static_cast<uLongf>(mCompressedBufferSize);

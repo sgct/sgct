@@ -41,6 +41,7 @@ sgct::SharedBool transfere(false);
 sgct::SharedVector<std::string> imagePaths;
 sgct::SharedVector<GLuint> texIds;
 sgct::SharedInt localTexIndex(-1);
+double sendTimer = 0.0;
 
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
@@ -310,6 +311,8 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
             tmpIndex++;
             localTexIndex.setVal(tmpIndex);
             counter = 0;
+            
+            sgct::MessageHandler::instance()->print("Time to distribute and upload textures on cluster: %f ms\n", (sgct::Engine::getTime() - sendTimer)*1000.0);
         }
     }
 }
@@ -351,6 +354,8 @@ void startDataTransfer()
     //make sure to keep within bounds
     if(static_cast<int>(imagePaths.getSize()) > id)
     {
+        sendTimer = sgct::Engine::getTime();
+        
         transImg = new (std::nothrow) sgct_core::Image();
         transImg->load(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str());
         

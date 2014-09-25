@@ -12,6 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/Engine.h"
 #include <algorithm>
 
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include "../include/external/zlib.h"
+#else
+#include <zlib.h>
+#endif
+
 #ifdef __WIN32__ //WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
@@ -344,30 +350,108 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 void sgct_core::NetworkManager::transferData(void * data, int length, int packageId)
 {
 	//create buffer
-	int sendSize = length + static_cast<int>(SGCTNetwork::mHeaderSize);
+    bool mCompress = true;
+    int mCompressionLevel = Z_BEST_SPEED;
+    
+    int sendSize = length;
+    
+    if(mCompress)
+        sendSize = compressBound( static_cast<uLong>( sendSize )) + 4;
+    sendSize += static_cast<int>(SGCTNetwork::mHeaderSize);
+    
 	char * buffer = new (std::nothrow) char[sendSize];
 	if (buffer != NULL)
 	{
-
 		char *packageIdPtr = (char *)&packageId;
-		char *sizeDataPtr = (char *)&length;
 
-		buffer[0] = SGCTNetwork::DataId;
+		buffer[0] = mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
 		buffer[1] = packageIdPtr[0];
 		buffer[2] = packageIdPtr[1];
 		buffer[3] = packageIdPtr[2];
 		buffer[4] = packageIdPtr[3];
-		buffer[5] = sizeDataPtr[0];
-		buffer[6] = sizeDataPtr[1];
-		buffer[7] = sizeDataPtr[2];
-		buffer[8] = sizeDataPtr[3];
-		memcpy(buffer + SGCTNetwork::mHeaderSize, data, length);
+        
+        char * compDataPtr = buffer + SGCTNetwork::mHeaderSize + 4;
+        
+        if(mCompress)
+        {
+            uLong compressedSize;
+            int err = compress2(reinterpret_cast<Bytef*>(compDataPtr),
+                                &compressedSize,
+                                reinterpret_cast<Bytef*>(data),
+                                static_cast<uLong>(length),
+                                mCompressionLevel);
+            
+            if(err != Z_OK)
+            {
+                std::string errStr;
+                switch(err)
+                {
+                    case Z_BUF_ERROR:
+                        errStr.assign("Dest. buffer no large enough.");
+                        break;
+                        
+                    case Z_MEM_ERROR:
+                        errStr.assign("Insufficient memory.");
+                        break;
+                        
+                    case Z_STREAM_ERROR:
+                        errStr.assign("Incorrect compression level.");
+                        break;
+                        
+                    default:
+                        errStr.assign("Unknown error.");
+                        break;
+                }
+                
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to compress data! Error: %s\n", errStr.c_str());
+                return;
+            }
+            
+            //send original size
+            char *uncompressedSizePtr = (char *)&length;
+            buffer[SGCTNetwork::mHeaderSize] = uncompressedSizePtr[0];
+            buffer[SGCTNetwork::mHeaderSize+1] = uncompressedSizePtr[1];
+            buffer[SGCTNetwork::mHeaderSize+2] = uncompressedSizePtr[2];
+            buffer[SGCTNetwork::mHeaderSize+3] = uncompressedSizePtr[3];
+            
+            length = static_cast<int>(compressedSize) + 4;
+            //re-calculate the true send size
+            sendSize = length + static_cast<int>(SGCTNetwork::mHeaderSize);
+        }
+        else
+        {
+            //add data to buffer
+            //memcpy(buffer + SGCTNetwork::mHeaderSize, data, length);
+            //faster to copy chunks of 4k than the whole buffer
+            int offset = 0;
+            int stride = 4096;
+            while( offset < length )
+            {
+                if((length-offset) < stride)
+                    stride = length-offset;
+                
+                memcpy(buffer + SGCTNetwork::mHeaderSize + offset, reinterpret_cast<char*>(data) + offset, stride);
+                offset += stride;
+            }
 
+        }
+        
+        char *sizePtr = (char *)&length;
+        buffer[5] = sizePtr[0];
+		buffer[6] = sizePtr[1];
+		buffer[7] = sizePtr[2];
+		buffer[8] = sizePtr[3];
+        
+        //Send the data
 		for (size_t i = 0; i < mDataTransferConnections.size(); i++)
 		if (mDataTransferConnections[i]->isConnected())
 		{
 			mDataTransferConnections[i]->sendData(buffer, sendSize);
 		}
+        
+        //clean up
+        delete [] buffer;
+        buffer = NULL;
 	}
 	else
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Failed to allocate data for transfer (bytes %d)!\n", sendSize);

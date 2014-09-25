@@ -37,7 +37,7 @@ class SGCTNetwork
 {
 public:
 	//ASCII device control chars = 17, 18, 19 & 20
-	enum PackageHeaderId { Ack = 6, DataId = 17, ConnectedId = 18, DisconnectId = 19, DefaultId = 20 };
+	enum PackageHeaderId { Ack = 6, DataId = 17, ConnectedId = 18, DisconnectId = 19, DefaultId = 20, CompressedDataId = 21 };
 	enum ConnectionTypes { SyncConnection = 0, ExternalASCIIConnection, ExternalRawConnection, DataTransfer };
 	enum ReceivedIndex { Current = 0, Previous };
 

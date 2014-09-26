@@ -1,5 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
+#include <fstream>
 #include "sgct.h"
 
 sgct::Engine * gEngine;
@@ -19,6 +20,7 @@ void myDataTransferStatus(bool connected, int clientIndex);
 void myDataTransferAcknowledge(int packageId, int clientIndex);
 
 void startDataTransfer();
+void readImage(unsigned char * data, int len);
 void uploadTexture();
 void threadWorker(void *arg);
 
@@ -260,7 +262,7 @@ void myDataTransferDecoder(const char * receivedData, int receivedlength, int pa
 
 	currentPackage.setVal(packageId);
     
-    int offset = 0;
+    /*int offset = 0;
     int w, h, c;
     
     if( receivedlength > sizeof(int)*3 )
@@ -291,6 +293,32 @@ void myDataTransferDecoder(const char * receivedData, int receivedlength, int pa
             
             uploadTexture();
         }
+    }*/
+    
+    unsigned char * data = new (std::nothrow) unsigned char[receivedlength];
+    if( data )
+    {
+        //copy buffer
+        //memcpy(data, receivedData, len);
+        //faster more optimized copy
+        int offset = 0;
+        int stride = 4096;
+        while( offset < receivedlength )
+        {
+            if((receivedlength-offset) < stride)
+                stride = receivedlength-offset;
+            
+            memcpy(data + offset, receivedData + offset, stride);
+            offset += stride;
+        }
+        
+        //read the image on master
+        readImage(data, receivedlength);
+        
+        uploadTexture();
+        
+        delete [] data;
+        data = NULL;
     }
 }
 
@@ -329,6 +357,8 @@ void threadWorker(void *arg)
 			startDataTransfer();
             transfere.setVal(false);
             
+            
+            
             //load texture on master
             uploadTexture();
             
@@ -351,13 +381,14 @@ void startDataTransfer()
     id++;
     currentPackage.setVal(id);
     
-    mutex.lock();
-    
     //make sure to keep within bounds
     if(static_cast<int>(imagePaths.getSize()) > id)
     {
         sendTimer = sgct::Engine::getTime();
         
+        /*
+        //Load image and send
+        mutex.lock();
         transImg = new (std::nothrow) sgct_core::Image();
         transImg->load(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str());
         
@@ -390,8 +421,41 @@ void startDataTransfer()
                 data = NULL;
             }
         }
+        
+        mutex.unlock();
+        */
+        
+        //load from file
+        std::ifstream file(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str(), std::ios::binary);
+        file.seekg(0, std::ios::end);
+        std::streamsize size = file.tellg();
+        file.seekg(0, std::ios::beg);
+        
+        std::vector<char> buffer(size);
+        if (file.read(buffer.data(), size))
+        {
+            gEngine->transferDataBetweenNodes(buffer.data(), buffer.size(), id);
+            
+            //read the image on master
+            readImage(reinterpret_cast<unsigned char *>(buffer.data()), buffer.size());
+        }
     }
     
+}
+
+void readImage(unsigned char * data, int len)
+{
+    mutex.lock();
+    
+    transImg = new (std::nothrow) sgct_core::Image();
+    
+    if(!transImg->loadJPEG(reinterpret_cast<unsigned char*>(data), len))
+    {
+        //clear if failed
+        delete transImg;
+        transImg = NULL;
+    }
+
     mutex.unlock();
 }
 
@@ -465,6 +529,10 @@ void uploadTexture()
         
         //restore
         glfwMakeContextCurrent( sharedWindow );
+    }
+    else //if invalid load
+    {
+        texIds.addVal(GL_FALSE);
     }
     
     mutex.unlock();

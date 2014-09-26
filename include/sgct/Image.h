@@ -27,6 +27,7 @@ public:
 	bool load(const char * filename);
 	bool loadPNG(const char * filename);
 	bool loadJPEG(const char * filename);
+    bool loadJPEG(unsigned char * data, int len);
 	bool save();
 	bool savePNG(const char * filename, int compressionLevel = -1);
 	bool savePNG(int compressionLevel = -1);

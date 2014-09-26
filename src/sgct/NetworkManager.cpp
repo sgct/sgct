@@ -380,7 +380,7 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
         
         if(useCompression)
         {
-            uLong compressedSize;
+            uLong compressedSize = static_cast<uLongf>(sendSize-SGCTNetwork::mHeaderSize);
             int err = compress2(reinterpret_cast<Bytef*>(compDataPtr),
                                 &compressedSize,
                                 reinterpret_cast<Bytef*>(data),

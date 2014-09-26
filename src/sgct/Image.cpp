@@ -11,10 +11,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/external/png.h"
 #include "../include/external/pngpriv.h"
 #include "../include/external/jpeglib.h"
+#include "../include/external/turbojpeg.h"
 #else
 #include <png.h>
 #include <pngpriv.h>
 #include <jpeglib.h>
+#include <turbojpeg.h>
 #endif
 #include <stdlib.h>
 
@@ -199,6 +201,99 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 	}
 
 	return true;
+}
+
+/*!
+ Load a jpeg compressed image from memory.
+ */
+bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
+{
+    tjhandle turbo_jpeg_handle = tjInitDecompress();
+    
+    int jpegsubsamp;
+    int pixelformat;
+    
+    /*
+     use tjDecompressHeader3 for newer versions of turbo-jpeg.
+     */
+    
+    if( tjDecompressHeader2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), &mSize_x, &mSize_y, &jpegsubsamp) < 0 )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
+        tjDestroy(turbo_jpeg_handle);
+        return false;
+    }
+    
+    switch(jpegsubsamp)
+    {
+        case TJSAMP_444:
+            mChannels = 3;
+            pixelformat = TJPF_BGR;
+            break;
+            
+        case TJSAMP_GRAY:
+            mChannels = 1;
+            pixelformat = TJPF_GRAY;
+            break;
+            
+        case TJSAMP_422:
+        case TJSAMP_420:
+        case TJSAMP_440:
+            mChannels = 3;
+            pixelformat = TJPF_BGR;
+            break;
+
+        default:
+            mChannels = -1;
+            break;
+    }
+    
+    if(mChannels < 1)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Unsupported chrominance subsampling!\n");
+        tjDestroy(turbo_jpeg_handle);
+        return false;
+    }
+    
+    int imageSize = mSize_x*mSize_y*mChannels;
+    if( imageSize <= 0 )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Invalid image size!\n");
+        tjDestroy(turbo_jpeg_handle);
+        return false;
+    }
+    
+    //clear if needed
+    if( mData )
+    {
+        delete [] mData;
+        mData = NULL;
+    }
+    
+    mData = new (std::nothrow) unsigned char [imageSize];
+    if( !mData )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Cannot allocate memory block of %d bytes!\n", imageSize);
+        tjDestroy(turbo_jpeg_handle);
+        return false;
+
+    }
+    
+    if( tjDecompress2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), mData, mSize_x, 0, mSize_y, pixelformat, TJFLAG_FASTDCT) < 0 )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
+        tjDestroy(turbo_jpeg_handle);
+        
+        delete [] mData;
+        mData = NULL;
+        
+        return false;
+    }
+    
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: Loaded %dx%d JPEG from memory.\n", mSize_x, mSize_y);
+    
+    tjDestroy(turbo_jpeg_handle);
+    return true;
 }
 
 bool sgct_core::Image::loadPNG(const char *filename)
@@ -792,19 +887,19 @@ void sgct_core::Image::setFilename(const char * filename)
 
 void sgct_core::Image::cleanup()
 {
-	if(mData != NULL)
+	if(mData)
 	{
 		delete [] mData;
 		mData = NULL;
 	}
 
-	if(mRowPtrs != NULL)
+	if(mRowPtrs)
 	{
 		delete [] mRowPtrs;
 		mRowPtrs = NULL;
 	}
 
-	if( mFilename != NULL )
+	if(mFilename)
 	{
 		delete [] mFilename;
 		mFilename = NULL;

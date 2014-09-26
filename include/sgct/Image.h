@@ -26,6 +26,7 @@ public:
 	~Image();
 	bool load(const char * filename);
 	bool loadPNG(const char * filename);
+    bool loadPNG(unsigned char * data, int len);
 	bool loadJPEG(const char * filename);
     bool loadJPEG(unsigned char * data, int len);
 	bool save();

@@ -40,11 +40,13 @@ sgct::SharedInt texIndex(-1);
 sgct::SharedInt currentPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfere(false);
-sgct::SharedVector<std::string> imagePaths;
+sgct::SharedVector<std::pair<std::string, int>> imagePaths;
 sgct::SharedVector<GLuint> texIds;
 sgct::SharedInt localTexIndex(-1);
 double sendTimer = 0.0;
 
+enum imageType { IM_JPEG, IM_PNG };
+const int headerSize = 4;
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
@@ -58,9 +60,9 @@ int main( int argc, char* argv[] )
 	
 	gEngine = new sgct::Engine( argc, argv );
     
-    imagePaths.addVal("test_00.jpg");
-    imagePaths.addVal("test_01.jpg");
-    imagePaths.addVal("test_02.jpg");
+    imagePaths.addVal( std::pair<std::string, int>("test_00.jpg", IM_JPEG) );
+    imagePaths.addVal( std::pair<std::string, int>("test_01.png", IM_PNG) );
+    imagePaths.addVal( std::pair<std::string, int>("test_02.jpg", IM_JPEG) );
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
@@ -300,6 +302,7 @@ void myDataTransferDecoder(const char * receivedData, int receivedlength, int pa
     {
         //copy buffer
         //memcpy(data, receivedData, len);
+        
         //faster more optimized copy
         int offset = 0;
         int stride = 4096;
@@ -426,13 +429,23 @@ void startDataTransfer()
         */
         
         //load from file
-        std::ifstream file(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str(), std::ios::binary);
+        std::pair<std::string, int> tmpPair = imagePaths.getValAt(static_cast<std::size_t>(id));
+        
+        std::ifstream file(tmpPair.first.c_str(), std::ios::binary);
         file.seekg(0, std::ios::end);
         std::streamsize size = file.tellg();
         file.seekg(0, std::ios::beg);
         
-        std::vector<char> buffer(size);
-        if (file.read(buffer.data(), size))
+        std::vector<char> buffer(size + headerSize);
+        char * typePtr = (char *)&(tmpPair.second);
+        
+        //write header (single int)
+        buffer[0] = typePtr[0];
+        buffer[1] = typePtr[1];
+        buffer[2] = typePtr[2];
+        buffer[3] = typePtr[3];
+        
+        if (file.read(buffer.data()+headerSize, size))
         {
             gEngine->transferDataBetweenNodes(buffer.data(), buffer.size(), id);
             
@@ -449,7 +462,32 @@ void readImage(unsigned char * data, int len)
     
     transImg = new (std::nothrow) sgct_core::Image();
     
-    if(!transImg->loadJPEG(reinterpret_cast<unsigned char*>(data), len))
+    //get type
+    union
+    {
+        int i;
+        unsigned char c[4];
+    } type;
+    
+    type.c[0] = data[0];
+    type.c[1] = data[1];
+    type.c[2] = data[2];
+    type.c[3] = data[3];
+    
+    bool result = false;
+    
+    switch( type.i )
+    {
+        case IM_JPEG:
+            result = transImg->loadJPEG(reinterpret_cast<unsigned char*>(data+headerSize), len-headerSize);
+            break;
+            
+        case IM_PNG:
+            result = transImg->loadPNG(reinterpret_cast<unsigned char*>(data+headerSize), len-headerSize);
+            break;
+    }
+    
+    if(!result)
     {
         //clear if failed
         delete transImg;

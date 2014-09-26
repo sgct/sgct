@@ -28,6 +28,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <setjmp.h>
 
 #define PNG_BYTES_TO_CHECK 8
+size_t memOffset;
 
 //---------------- JPEG helpers -----------------
 struct my_error_mgr
@@ -54,6 +55,45 @@ METHODDEF(void) my_error_exit(j_common_ptr cinfo)
 
 	/* Return control to the setjmp point */
 	longjmp(myerr->setjmp_buffer, 1);
+}
+
+void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length)
+{
+    if ( length <= 0 )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: PNG reading error! Invalid lenght.");
+        return;
+    }
+        
+    /* The file 'handle', a pointer, is stored in png_ptr->io_ptr */
+    if ( png_ptr->io_ptr == NULL )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: PNG reading error! Invalid source pointer.");
+        return;
+    }
+    
+    if ( outData == NULL )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: PNG reading error! Invalid destination pointer.");
+        return;
+    }
+            
+    //copy buffer
+    //faster more optimized copy
+    png_size_t offset = 0;
+    png_size_t stride = 4096;
+    png_bytep src = reinterpret_cast<png_bytep>(png_ptr->io_ptr);
+    
+    while( offset < length )
+    {
+        if((length-offset) < stride)
+            stride = length-offset;
+        
+        memcpy(outData + offset, src + offset + memOffset, stride);
+        offset += stride;
+    }
+    
+    memOffset += offset;
 }
 
 sgct_core::Image::Image()
@@ -208,6 +248,12 @@ bool sgct_core::Image::loadJPEG(const char * filename)
  */
 bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
 {
+    if(data == NULL || len <= 0)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Invalid input data.");
+        return false;
+    }
+    
     tjhandle turbo_jpeg_handle = tjInitDecompress();
     
     int jpegsubsamp;
@@ -227,6 +273,9 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
     switch(jpegsubsamp)
     {
         case TJSAMP_444:
+        case TJSAMP_422:
+        case TJSAMP_420:
+        case TJSAMP_440:
             mChannels = 3;
             pixelformat = TJPF_BGR;
             break;
@@ -234,13 +283,6 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
         case TJSAMP_GRAY:
             mChannels = 1;
             pixelformat = TJPF_GRAY;
-            break;
-            
-        case TJSAMP_422:
-        case TJSAMP_420:
-        case TJSAMP_440:
-            mChannels = 3;
-            pixelformat = TJPF_BGR;
             break;
 
         default:
@@ -316,7 +358,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	unsigned char *pb;
 	png_structp png_ptr;
 	png_infop info_ptr;
-	char header[PNG_BYTES_TO_CHECK];
+	unsigned char header[PNG_BYTES_TO_CHECK];
 	//int numChannels;
 	int r, color_type, bpp;
 
@@ -339,7 +381,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	size_t result = fread( header, 1, PNG_BYTES_TO_CHECK, fp );
 	if( result != PNG_BYTES_TO_CHECK || png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Texture file '%s' is not in PNG format\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is not in PNG format\n", mFilename);
 		fclose(fp);
 		return false;
 	}
@@ -430,6 +472,107 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	}
 
 	return true;
+}
+
+bool sgct_core::Image::loadPNG(unsigned char * data, int len)
+{
+    if(data == NULL || len <= PNG_BYTES_TO_CHECK)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load PNG from memory. Invalid input data.");
+        return false;
+    }
+    
+    unsigned char *pb;
+	png_structp png_ptr;
+	png_infop info_ptr;
+	unsigned char header[PNG_BYTES_TO_CHECK];
+	//int numChannels;
+	int r, color_type, bpp;
+    
+	//get header
+    memcpy( header, data, PNG_BYTES_TO_CHECK);
+    if(!png_check_sig( header, PNG_BYTES_TO_CHECK))
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Invalid PNG file header.\n");
+        return false;
+    }
+    
+	png_ptr = png_create_read_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
+	if( png_ptr == NULL )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't initialize PNG.\n");
+		return false;
+	}
+    
+	info_ptr = png_create_info_struct(png_ptr);
+	if( info_ptr == NULL )
+	{
+		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't allocate memory to read PNG data.\n");
+		return false;
+	}
+    
+    //set the read position in memory
+    memOffset = PNG_BYTES_TO_CHECK;
+    png_set_read_fn(png_ptr, data, readPNGFromBuffer);
+    
+	if( setjmp(png_jmpbuf(png_ptr)) )
+	{
+		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Exception occurred while reading PNG data.\n");
+		return false;
+	}
+    
+    png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
+    
+    png_read_png( png_ptr, info_ptr,
+                 PNG_TRANSFORM_STRIP_16 |
+                 PNG_TRANSFORM_PACKING |
+                 PNG_TRANSFORM_EXPAND |
+                 PNG_TRANSFORM_BGR, NULL);
+	png_set_bgr(png_ptr);
+    
+	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
+	png_set_bgr(png_ptr);
+    
+	if(color_type == PNG_COLOR_TYPE_GRAY )
+	{
+		mChannels = 1;
+		if(bpp < 8)
+		{
+			png_set_expand_gray_1_2_4_to_8(png_ptr);
+			png_read_update_info(png_ptr, info_ptr);
+		}
+	}
+	else if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
+		mChannels = 2;
+	else if(color_type == PNG_COLOR_TYPE_RGB)
+		mChannels = 3;
+	else if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+		mChannels = 4;
+	else
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unsupported format!\n" );
+		return false;
+	}
+    
+	mData = pb = new unsigned char[ mChannels * mSize_x * mSize_y ];
+	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
+	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
+	{
+		//png_bytep row = info_ptr->row_pointers[r];
+        png_bytep row = row_pointers[r];
+		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
+		int c;
+		for( c = 0 ; c < rowbytes ; c++ )
+			*(pb)++ = row[c];
+	}
+    
+	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
+    
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d PNG from memory.\n", mSize_x, mSize_y);
+    
+    return true;
 }
 
 /*!

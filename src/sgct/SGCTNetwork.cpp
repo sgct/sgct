@@ -620,7 +620,7 @@ void sgct_core::SGCTNetwork::setDecodeFunction(sgct_cppxeleven::function<void (c
 	mDecoderCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setPackageDecodeFunction(sgct_cppxeleven::function<void(const char*, int, int, int)> callback)
+void sgct_core::SGCTNetwork::setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback)
 {
 	mPackageDecoderCallbackFn = callback;
 }

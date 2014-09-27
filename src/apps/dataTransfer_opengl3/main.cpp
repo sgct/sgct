@@ -15,7 +15,7 @@ void myCleanUpFun();
 void keyCallback(int key, int action);
 void contextCreationCallback(GLFWwindow * win);
 
-void myDataTransferDecoder(const char * receivedData, int receivedlength, int packageId, int clientIndex);
+void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex);
 void myDataTransferStatus(bool connected, int clientIndex);
 void myDataTransferAcknowledge(int packageId, int clientIndex);
 
@@ -46,7 +46,7 @@ sgct::SharedInt localTexIndex(-1);
 double sendTimer = 0.0;
 
 enum imageType { IM_JPEG, IM_PNG };
-const int headerSize = 4;
+const int headerSize = 1;
 size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
@@ -258,7 +258,7 @@ void contextCreationCallback(GLFWwindow * win)
         loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
 }
 
-void myDataTransferDecoder(const char * receivedData, int receivedlength, int packageId, int clientIndex)
+void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
 	sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
@@ -297,32 +297,9 @@ void myDataTransferDecoder(const char * receivedData, int receivedlength, int pa
         }
     }*/
     
-    unsigned char * data = new (std::nothrow) unsigned char[receivedlength];
-    if( data )
-    {
-        //copy buffer
-        //memcpy(data, receivedData, len);
-        
-        //faster more optimized copy
-        int offset = 0;
-        int stride = 4096;
-        while( offset < receivedlength )
-        {
-            if((receivedlength-offset) < stride)
-                stride = receivedlength-offset;
-            
-            memcpy(data + offset, receivedData + offset, stride);
-            offset += stride;
-        }
-        
-        //read the image on master
-        readImage(data, receivedlength);
-        
-        uploadTexture();
-        
-        delete [] data;
-        data = NULL;
-    }
+    //read the image on master
+    readImage( reinterpret_cast<unsigned char*>(receivedData), receivedlength);
+    uploadTexture();
 }
 
 void myDataTransferStatus(bool connected, int clientIndex)
@@ -359,8 +336,6 @@ void threadWorker(void *arg)
         {
 			startDataTransfer();
             transfere.setVal(false);
-            
-            
             
             //load texture on master
             uploadTexture();
@@ -437,13 +412,10 @@ void startDataTransfer()
         file.seekg(0, std::ios::beg);
         
         std::vector<char> buffer(size + headerSize);
-        char * typePtr = (char *)&(tmpPair.second);
+        char type = tmpPair.second;
         
-        //write header (single int)
-        buffer[0] = typePtr[0];
-        buffer[1] = typePtr[1];
-        buffer[2] = typePtr[2];
-        buffer[3] = typePtr[3];
+        //write header (single unsigned char)
+        buffer[0] = type;
         
         if (file.read(buffer.data()+headerSize, size))
         {
@@ -462,21 +434,10 @@ void readImage(unsigned char * data, int len)
     
     transImg = new (std::nothrow) sgct_core::Image();
     
-    //get type
-    union
-    {
-        int i;
-        unsigned char c[4];
-    } type;
-    
-    type.c[0] = data[0];
-    type.c[1] = data[1];
-    type.c[2] = data[2];
-    type.c[3] = data[3];
+    char type = static_cast<char>(data[0]);
     
     bool result = false;
-    
-    switch( type.i )
+    switch( type )
     {
         case IM_JPEG:
             result = transImg->loadJPEG(reinterpret_cast<unsigned char*>(data+headerSize), len-headerSize);

@@ -3382,7 +3382,7 @@ void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool))
  This function sets the data transfer message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Node tag by dataTransferPort, where the portnumber is an integer preferably above 20000.
  
  */
-void sgct::Engine::setDataTransferCallback(void(*fnPtr)(const char *, int, int, int))
+void sgct::Engine::setDataTransferCallback(void(*fnPtr)(void *, int, int, int))
 {
 	mDataTransferDecodeCallbackFn = fnPtr;
 }
@@ -4078,7 +4078,7 @@ void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
 /*!
  Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when messages are received.
  */
-void sgct::Engine::invokeDecodeCallbackForDataTransfer(const char * receivedData, int receivedlength, int packageId, int clientIndex)
+void sgct::Engine::invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
 	if (mDataTransferDecodeCallbackFn != NULL && receivedlength > 0)
 		mDataTransferDecodeCallbackFn(receivedData, receivedlength, packageId, clientIndex);

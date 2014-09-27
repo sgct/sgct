@@ -167,7 +167,7 @@ bool sgct_core::NetworkManager::init()
 			//add data transfer connection
 			if (addConnection(ClusterManager::instance()->getThisNodePtr()->getDataTransferPort(), remote_address, SGCTNetwork::DataTransfer))
 			{
-				sgct_cppxeleven::function< void(const char*, int, int, int) > callback;
+				sgct_cppxeleven::function< void(void*, int, int, int) > callback;
 				callback = sgct_cppxeleven::bind(&sgct::Engine::invokeDecodeCallbackForDataTransfer, sgct::Engine::instance(),
 					sgct_cppxeleven::placeholders::_1,
 					sgct_cppxeleven::placeholders::_2,
@@ -210,7 +210,7 @@ bool sgct_core::NetworkManager::init()
 				//add data transfer connection
 				if (addConnection(ClusterManager::instance()->getNodePtr(i)->getDataTransferPort(), remote_address, SGCTNetwork::DataTransfer))
 				{
-					sgct_cppxeleven::function< void(const char*, int, int, int) > callback;
+					sgct_cppxeleven::function< void(void*, int, int, int) > callback;
 					callback = sgct_cppxeleven::bind(&sgct::Engine::invokeDecodeCallbackForDataTransfer, sgct::Engine::instance(),
 						sgct_cppxeleven::placeholders::_1,
 						sgct_cppxeleven::placeholders::_2,

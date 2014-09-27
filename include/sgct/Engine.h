@@ -180,12 +180,12 @@ public:
 	void invokeUpdateCallbackForExternalControl(bool connected);
 
 	//data transfer functions
-	void setDataTransferCallback(void(*fnPtr)(const char *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
+	void setDataTransferCallback(void(*fnPtr)(void *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
 	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
 	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
 	void setDataTransferCompression(bool state, int level = 1);
     void transferDataBetweenNodes(void * data, int length, int packageId);
-	void invokeDecodeCallbackForDataTransfer(const char * receivedData, int receivedlength, int packageId, int clientIndex);
+	void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex);
 	void invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex);
 	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex);
 
@@ -375,7 +375,7 @@ private:
 	typedef void (*CallbackFn)(void);
 	typedef void (Engine::*InternalCallbackFn)(void);
 	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
-	typedef void (*DataTransferDecodeCallbackFn)(const char *, int, int, int);
+	typedef void (*DataTransferDecodeCallbackFn)(void *, int, int, int);
 	typedef void (*DataTransferStatusCallbackFn)(bool, int);
 	typedef void (*DataTransferAcknowledgeCallbackFn)(int, int);
 	typedef void (*ExternalDecodeCallbackFn)(const char *, int);

@@ -47,7 +47,7 @@ public:
 	void initShutdown();
 #ifdef __LOAD_CPP11_FUN__
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
-	void setPackageDecodeFunction(sgct_cppxeleven::function<void(const char*, int, int, int)> callback);
+	void setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback);
 	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
 	void setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback);
@@ -83,7 +83,7 @@ public:
 	SGCT_SOCKET mListenSocket;
 #ifdef __LOAD_CPP11_FUN__
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
-	sgct_cppxeleven::function< void(const char*, int, int, int) > mPackageDecoderCallbackFn;
+	sgct_cppxeleven::function< void(void*, int, int, int) > mPackageDecoderCallbackFn;
 	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
 	sgct_cppxeleven::function< void(int, int) > mAcknowledgeCallbackFn;

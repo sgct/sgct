@@ -2960,7 +2960,10 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 
 			// Swap front and back rendering buffers
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-				glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+			{
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+            }
 			glfwPollEvents();
 
 			if(mNetworkConnections->areAllNodesConnected())
@@ -2976,7 +2979,10 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			// Swap front and back rendering buffers
 			// key buffers also swapped
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-				glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+            {
+				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+                glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+            }
 			glfwPollEvents();
             
             MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");

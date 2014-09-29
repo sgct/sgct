@@ -419,10 +419,10 @@ void startDataTransfer()
         
         if (file.read(buffer.data()+headerSize, size))
         {
-            gEngine->transferDataBetweenNodes(buffer.data(), buffer.size(), id);
+            gEngine->transferDataBetweenNodes(buffer.data(), static_cast<int>(buffer.size()), id);
             
             //read the image on master
-            readImage(reinterpret_cast<unsigned char *>(buffer.data()), buffer.size());
+			readImage(reinterpret_cast<unsigned char *>(buffer.data()), static_cast<int>(buffer.size()));
         }
     }
     
@@ -527,7 +527,7 @@ void uploadTexture()
         glFinish();
         
         //restore
-        glfwMakeContextCurrent( sharedWindow );
+        glfwMakeContextCurrent( NULL );
     }
     else //if invalid load
     {

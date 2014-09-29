@@ -419,6 +419,9 @@ License type: BSD\n
 \n
 */
 
+#ifndef _SGCT_H_
+#define _SGCT_H_
+
 //If windows OS detected
 #if defined(_WIN64) || defined(_WIN32)
     #ifndef __WIN32__
@@ -432,18 +435,13 @@ License type: BSD\n
 #endif
 
 #ifdef __WIN32__
-#ifndef WIN32_LEAN_AND_MEAN
-#define WIN32_LEAN_AND_MEAN
-#endif
+	#ifndef WIN32_LEAN_AND_MEAN
+		#define WIN32_LEAN_AND_MEAN
+	#endif
 
-#define _CRT_SECURE_NO_DEPRECATE 1
-#define _CRT_NONSTDC_NO_DEPRECATE 1
-#endif
+	//#define _CRT_SECURE_NO_DEPRECATE 1
+	//#define _CRT_NONSTDC_NO_DEPRECATE 1
 
-#ifndef _SGCT_H_
-#define _SGCT_H_
-
-#ifdef __WIN32__
 	#ifndef SGCT_WINDOWS_INCLUDE
 		#define SGCT_WINDOWS_INCLUDE
 		#include <windows.h> //must be declared before glfw

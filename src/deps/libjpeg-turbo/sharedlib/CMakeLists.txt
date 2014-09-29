@@ -7,12 +7,12 @@
 
 if(MSVC)
   # Build all configurations against shared C library
-  foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-    CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-    if(${var} MATCHES "/MT")
-      string(REGEX REPLACE "/MT" "/MD" ${var} "${${var}}")
-    endif()
-  endforeach()
+  # foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+  #  CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+  #  if(${var} MATCHES "/MT")
+  #    string(REGEX REPLACE "/MT" "/MD" ${var} "${${var}}")
+  #  endif()
+  # endforeach()
 endif()
 
 foreach(src ${JPEG_SOURCES})

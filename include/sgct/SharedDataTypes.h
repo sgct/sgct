@@ -38,13 +38,33 @@ namespace sgct //simple graphics cluster toolkit
 	{
 	public:
 		SharedDouble();
-		SharedDouble(double val);
+		SharedDouble( double val );
+        SharedDouble( const SharedDouble & sd );
+        
 		double getVal();
 		void setVal(double val);
-
+        
+        void operator=( const double & val );
+        void operator+=( const double & val );
+        void operator-=( const double & val );
+        void operator*=( const double & val );
+        void operator/=( const double & val );
+        void operator++();
+        void operator--();
+        
+        bool operator<( const double & val );
+        bool operator<=( const double & val );
+        bool operator>( const double & val );
+        bool operator>=( const double & val );
+        bool operator==( const double & val );
+        bool operator!=( const double & val );
+        
+        double operator+( const double & val );
+        double operator-( const double & val );
+        double operator*( const double & val );
+        double operator/( const double & val );
+        
 	private:
-		SharedDouble( const SharedDouble & sd );
-		const SharedDouble & operator=(const SharedDouble & sd );
 		double mVal;
 	};
 
@@ -90,13 +110,17 @@ namespace sgct //simple graphics cluster toolkit
 	public:
 		SharedBool();
 		SharedBool(bool val);
-		bool getVal();
+        SharedBool( const SharedBool & sb );
+		
+        bool getVal();
 		void setVal(bool val);
 		void toggle();
+        
+        void operator=( const bool & val );
+        bool operator==( const bool & val );
+        bool operator!=( const bool & val );
 
 	private:
-		SharedBool( const SharedBool & sb );
-		const SharedBool & operator=(const SharedBool & sb );
 		bool mVal;
 	};
 

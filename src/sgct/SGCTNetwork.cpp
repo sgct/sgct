@@ -188,7 +188,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 		// Connect to server.
 		while( true )
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server (id: %d, type: %s)...\n", getId(), getTypeStr().c_str());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server (id: %d, ip: %s, type: %s)...\n", getId(), getAddress().c_str(), getTypeStr().c_str());
 
 			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 			if (mSocket == INVALID_SOCKET)

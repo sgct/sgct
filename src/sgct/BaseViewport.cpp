@@ -6,6 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/BaseViewport.h"
+#include "../include/sgct/ClusterManager.h"
 //#include "../include/sgct/MessageHandler.h"
 
 bool sgct_core::BaseViewport::isEnabled()
@@ -63,3 +64,22 @@ float sgct_core::BaseViewport::getYSize()
 	return mYSize;
 }
 
+void sgct_core::BaseViewport::setUser(sgct_core::SGCTUser * user)
+{
+	mUser = user;
+}
+
+void sgct_core::BaseViewport::setUserName(std::string userName)
+{
+	mUserName.assign(userName);
+	linkUserName();
+}
+
+void sgct_core::BaseViewport::linkUserName()
+{
+	SGCTUser * user = ClusterManager::instance()->getUserPtr(mUserName);
+	if (user != NULL)
+	{
+		mUser = user;
+	}
+}

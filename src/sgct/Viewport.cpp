@@ -65,6 +65,7 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 	mEnabled = true;
     mGenerateGPUData = true;
     mName.assign("NoName");
+	mUser = ClusterManager::instance()->getDefaultUserPtr();
 }
 
 void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)
@@ -118,8 +119,10 @@ void sgct_core::Viewport::loadData()
     }
 }
 
-void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane)
+void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
 {
+	glm::vec3 eyePos = mUser->getPos(frustumMode);
+	
 	//calculate viewplane's internal coordinate system bases
 	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
 	glm::vec3 plane_y = mViewPlaneCoords[ UpperLeft ] - mViewPlaneCoords[ LowerLeft ];
@@ -155,7 +158,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	transformedViewPlaneCoords[ LowerLeft ] = DCM_inv * mViewPlaneCoords[ LowerLeft ];
 	transformedViewPlaneCoords[ UpperLeft ] = DCM_inv * mViewPlaneCoords[ UpperLeft ];
 	transformedViewPlaneCoords[ UpperRight ] = DCM_inv * mViewPlaneCoords[ UpperRight ];
-	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
+	glm::vec3 transformedEyePos = DCM_inv * eyePos;
 
 	//nearFactor = near clipping plane / focus plane dist
 	float nearFactor = near_clipping_plane / (transformedViewPlaneCoords[LowerLeft].z - transformedEyePos.z);
@@ -170,7 +173,7 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 		near_clipping_plane,
 		far_clipping_plane);
 
-	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*eyePos));
+	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -eyePos);
 
 	//calc frustum matrix
 	mProjectionMatrix[frustumMode] = glm::frustum( 
@@ -184,8 +187,11 @@ void sgct_core::Viewport::calculateFrustum(const sgct_core::Frustum::FrustumMode
 	mViewProjectionMatrix[frustumMode] = mProjectionMatrix[frustumMode] * mViewMatrix[frustumMode];
 }
 
-void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near_clipping_plane, float far_clipping_plane)
+void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
 {
+	glm::vec3 eyePos = mUser->getPos();
+	glm::vec3 offset = mUser->getPos(frustumMode);
+	
 	//calculate viewplane's internal coordinate system bases
 	glm::vec3 plane_x = mViewPlaneCoords[ UpperRight ] - mViewPlaneCoords[ UpperLeft ];
 	glm::vec3 plane_y = mViewPlaneCoords[ UpperLeft ] - mViewPlaneCoords[ LowerLeft ];
@@ -221,7 +227,7 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
 	transformedViewPlaneCoords[ LowerLeft ] = DCM_inv * mViewPlaneCoords[ LowerLeft ];
 	transformedViewPlaneCoords[ UpperLeft ] = DCM_inv * mViewPlaneCoords[ UpperLeft ];
 	transformedViewPlaneCoords[ UpperRight ] = DCM_inv * mViewPlaneCoords[ UpperRight ];
-	glm::vec3 transformedEyePos = DCM_inv * (*eyePos);
+	glm::vec3 transformedEyePos = DCM_inv * eyePos;
 
 	//nearFactor = near clipping plane / focus plane dist
 	float nearFactor = near_clipping_plane / (transformedViewPlaneCoords[LowerLeft].z - transformedEyePos.z);
@@ -236,7 +242,7 @@ void sgct_core::Viewport::calculateFisheyeFrustum(const sgct_core::Frustum::Frus
 		near_clipping_plane,
 		far_clipping_plane);
 
-	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -(*offset));
+	mViewMatrix[frustumMode] = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.0f), -offset);
 
 	//calc frustum matrix
 	mProjectionMatrix[frustumMode] = glm::frustum( 
@@ -277,7 +283,7 @@ void sgct_core::Viewport::setViewPlaneCoordsUsingFOVs(float up, float down, floa
 	unTransformedViewPlaneCoords[UpperRight].z = -dist;
 
 	for (unsigned int i = 0; i < 3; i++)
-		mViewPlaneCoords[i] = (rot * unTransformedViewPlaneCoords[i]) - ClusterManager::instance()->getUserPtr()->getPos();
+		mViewPlaneCoords[i] = (rot * unTransformedViewPlaneCoords[i]) - mUser->getPos();
 }
 
 /*!

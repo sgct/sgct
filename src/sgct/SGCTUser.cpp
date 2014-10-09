@@ -11,8 +11,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 /*!
 	Default contructor
 */
-sgct_core::SGCTUser::SGCTUser()
+sgct_core::SGCTUser::SGCTUser(std::string name)
 {
+	mName = name;
+	
 	for(unsigned int i=0; i<3; i++)
 		mPos[i] = glm::vec3(0.0f);
 	mEyeSeparation = 0.065f;
@@ -178,4 +180,14 @@ void sgct_core::SGCTUser::updateEyeTransform()
 const glm::vec3 & sgct_core::SGCTUser::getPos(Frustum::FrustumMode fm)
 {
 	return mPos[fm];
+}
+
+
+/*!
+Get the users name
+@returns users name
+*/
+std::string sgct_core::SGCTUser::getName()
+{
+	return mName;
 }

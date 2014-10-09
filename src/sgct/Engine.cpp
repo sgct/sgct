@@ -617,6 +617,14 @@ void sgct::Engine::initOGL()
         }
 	}
 
+	//link all users to their viewports
+	for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++)
+	{
+		SGCTWindow * winPtr = mThisNode->getWindowPtr(w);
+		for (unsigned int i = 0; i < winPtr->getNumberOfViewports(); i++)
+			winPtr->getViewport(i)->linkUserName();
+	}
+
 	updateFrustums();
 
 	//
@@ -1768,9 +1776,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 	bool statesSet = false;
 
 	if( mActiveFrustumMode == Frustum::StereoLeftEye )
-		getActiveWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
+		getActiveWindowPtr()->setFisheyeOffset( -getDefaultUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 	else if( mActiveFrustumMode == Frustum::StereoRightEye )
-		getActiveWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
+		getActiveWindowPtr()->setFisheyeOffset(getDefaultUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
 	OffScreenBuffer * CubeMapFBO = getActiveWindowPtr()->mCubeMapFBO_Ptr;
@@ -2062,9 +2070,9 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 {
 	if( mActiveFrustumMode == Frustum::StereoLeftEye )
-		getActiveWindowPtr()->setFisheyeOffset( -getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
+		getActiveWindowPtr()->setFisheyeOffset(-getDefaultUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 	else if( mActiveFrustumMode == Frustum::StereoRightEye )
-		getActiveWindowPtr()->setFisheyeOffset( getUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
+		getActiveWindowPtr()->setFisheyeOffset(getDefaultUserPtr()->getEyeSeparation() / getActiveWindowPtr()->getDomeDiameter(), 0.0f);
 
 	//iterate the cube sides
 	OffScreenBuffer * CubeMapFBO = getActiveWindowPtr()->mCubeMapFBO_Ptr;
@@ -2398,7 +2406,6 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 void sgct::Engine::renderViewports(TextureIndexes ti)
 {
 	prepareBuffer( ti ); //attach FBO
-	SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
 
 	sgct::SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
 
@@ -2417,7 +2424,6 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 			{
 				getActiveWindowPtr()->getCurrentViewport()->calculateFrustum(
 					mActiveFrustumMode,
-					usrPtr->getPosPtr(mActiveFrustumMode),
 					mNearClippingPlaneDist,
 					mFarClippingPlaneDist);
 			}
@@ -3007,25 +3013,20 @@ void sgct::Engine::updateFrustums()
 		for(unsigned int i=0; i < winPtr->getNumberOfViewports(); i++)
 			if( !winPtr->getViewport(i)->isTracked() ) //if not tracked update, otherwise this is done on the fly
 			{
-				SGCTUser * usrPtr = ClusterManager::instance()->getUserPtr();
-
 				if( !winPtr->isUsingFisheyeRendering() )
 				{
 					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::Mono,
-						usrPtr->getPosPtr(),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
 					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::StereoLeftEye,
-						usrPtr->getPosPtr(Frustum::StereoLeftEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
 					winPtr->getViewport(i)->calculateFrustum(
 						Frustum::StereoRightEye,
-						usrPtr->getPosPtr(Frustum::StereoRightEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 				}
@@ -3033,22 +3034,16 @@ void sgct::Engine::updateFrustums()
 				{
 					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::Mono,
-						usrPtr->getPosPtr(),
-						usrPtr->getPosPtr(),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
 					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::StereoLeftEye,
-						usrPtr->getPosPtr(),
-						usrPtr->getPosPtr(Frustum::StereoLeftEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
 					winPtr->getViewport(i)->calculateFisheyeFrustum(
 						Frustum::StereoRightEye,
-						usrPtr->getPosPtr(),
-						usrPtr->getPosPtr(Frustum::StereoRightEye),
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 				}
@@ -3937,13 +3932,19 @@ void sgct::Engine::setNearAndFarClippingPlanes(float nearClippingPlane, float fa
 }
 
 /*!
-	Set the eye separation (interocular distance) for the user. This operation recalculates all frustums for all viewports.
+	Set the eye separation (interocular distance) for all users. This operation recalculates all frustums for all viewports.
 
 	@param eyeSeparation eye separation in meters
 */
 void sgct::Engine::setEyeSeparation(float eyeSeparation)
 {
-	getUserPtr()->setEyeSeparation( eyeSeparation );
+	for (size_t w = 0; w < mThisNode->getNumberOfWindows(); w++)
+	{
+		SGCTWindow * winPtr = mThisNode->getWindowPtr(w);
+
+		for (unsigned int i = 0; i < winPtr->getNumberOfViewports(); i++)
+			winPtr->getViewport(i)->getUser()->setEyeSeparation( eyeSeparation );
+	}
 	updateFrustums();
 }
 

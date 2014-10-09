@@ -19,7 +19,8 @@ sgct_core::ClusterManager::ClusterManager(void)
 	mFirmFrameLockSync = false;
 	mUseASCIIForExternalControl = true;
 
-	mUser = new SGCTUser();
+	SGCTUser * defaultUser = new SGCTUser("default");
+	mUsers.push_back(defaultUser);
 	mTrackingManager = new sgct::SGCTTrackingManager();
 
 	mSceneTransform = glm::mat4(1.0f);
@@ -34,8 +35,12 @@ sgct_core::ClusterManager::~ClusterManager()
 {
 	nodes.clear();
 	
-	delete mUser;
-	mUser = NULL;
+	for (std::size_t i=0; i < mUsers.size(); i++)
+	{
+		delete mUsers[i];
+		mUsers[i] = NULL;
+	}
+	mUsers.clear();
 
 	delete mTrackingManager;
 	mTrackingManager = NULL;
@@ -47,6 +52,14 @@ sgct_core::ClusterManager::~ClusterManager()
 void sgct_core::ClusterManager::addNode(sgct_core::SGCTNode node)
 {
 	nodes.push_back(node);
+}
+
+/*!
+	Add an user ptr. The cluster manager will deallocate the user upon destruction.
+*/
+void sgct_core::ClusterManager::addUserPtr(sgct_core::SGCTUser * userPtr)
+{
+	mUsers.push_back( userPtr );
 }
 
 /*!
@@ -66,6 +79,26 @@ sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(std::size_t index)
 sgct_core::SGCTNode * sgct_core::ClusterManager::getThisNodePtr()
 {
 	return mThisNodeId < 0 ? NULL : &nodes[mThisNodeId];
+}
+
+/*!
+\returns the pointer to the default user
+*/
+sgct_core::SGCTUser * sgct_core::ClusterManager::getDefaultUserPtr()
+{
+	return mUsers[0];
+}
+
+sgct_core::SGCTUser * sgct_core::ClusterManager::getUserPtr(std::string name)
+{
+	for (std::size_t i=0; i < mUsers.size(); i++)
+	{
+		if (mUsers[i]->getName().compare(name) == 0)
+			return mUsers[i];
+	}
+
+	//if not found
+	return NULL;
 }
 
 /*!

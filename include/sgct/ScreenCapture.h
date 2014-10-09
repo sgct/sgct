@@ -49,7 +49,8 @@ public:
 	void initOrResize(int x, int y, int channels=4);
 	void setFormat(CaptureFormat cf);
 	CaptureFormat getFormat();
-	void SaveScreenCapture(unsigned int textureId);
+	void saveScreenCapture(unsigned int textureId);
+	void setPathAndFileName(std::string path, std::string filename);
 	void setUsePBO(bool state);
 
 #ifdef __LOAD_CPP11_FUN__
@@ -73,7 +74,9 @@ private:
 	int mY;
 	int mChannels;
 
-	std::string mScreenShotFilename;
+	std::string mFilename;
+	std::string mBaseName;
+	std::string mPath;
 	bool mUsePBO;
 	EyeIndex mEyeIndex;
 	CaptureFormat mFormat;

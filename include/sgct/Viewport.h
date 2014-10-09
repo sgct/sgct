@@ -38,8 +38,9 @@ public:
 	void setTracked(bool state);
     void setAsDummy();
 	void loadData();
-	void calculateFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, float near_clipping_plane, float far_clipping_plane);
-	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, glm::vec3 * eyePos, glm::vec3 * offset, float near_clipping_plane, float far_clipping_plane);
+
+	void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
+	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec3 cornerPos);
 	void setViewPlaneCoords(const unsigned int cornerIndex, glm::vec4 cornerPos);
 	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist=10.0f);
@@ -72,6 +73,7 @@ private:
 	Frustum mFrustums[3];
 	Frustum::FrustumMode mEye;
 	CorrectionMesh mCM;
+
 	std::string mOverlayFilename;
 	std::string mMaskFilename;
 	std::string mMeshFilename;

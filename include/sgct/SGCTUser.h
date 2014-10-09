@@ -23,7 +23,7 @@ Helper class for setting user variables
 class SGCTUser
 {
 public:
-	SGCTUser();
+	SGCTUser(std::string name);
 
 	void setPos(float x, float y, float z);
 	void setPos(glm::vec3 pos);
@@ -37,6 +37,7 @@ public:
 	void setOrientation(float w, float x, float y, float z);
 	void setEyeSeparation(float eyeSeparation);
 
+	std::string getName();
 	const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::Mono);
 	glm::vec3 * getPosPtr() { return &mPos[Frustum::Mono]; }
 	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
@@ -60,6 +61,7 @@ private:
 	float mEyeSeparation;
 	float mHalfEyeSeparation;
 
+	std::string mName;
 	std::string mHeadTrackerDeviceName;
 	std::string mHeadTrackerName;
 

@@ -53,14 +53,12 @@ public:
 	enum MeshImplementation { BUFFER_OBJECTS=0, DISPLAY_LIST };
 
 	void addNode(SGCTNode node);
+	void addUserPtr(SGCTUser * userPtr);
 
 	SGCTNode * getNodePtr(std::size_t );
 	SGCTNode * getThisNodePtr();
-
-	/*!
-		\returns the pointer to the user (where all the projections are calculated from)
-	*/
-	SGCTUser * getUserPtr() { return mUser; }
+	SGCTUser * getDefaultUserPtr();
+	SGCTUser * getUserPtr(std::string name);
 
 	/*!
 		\returns the number of nodes in the cluster
@@ -145,7 +143,7 @@ private:
 	std::string mExternalControlPort;
 	bool mUseASCIIForExternalControl;
 
-	SGCTUser * mUser;
+	std::vector<SGCTUser*> mUsers;
 	sgct::SGCTTrackingManager * mTrackingManager;
 
 	glm::mat4 mSceneTransform;

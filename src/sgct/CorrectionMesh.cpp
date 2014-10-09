@@ -531,7 +531,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const char * meshPath, 
 		glm::quat(viewData.qw, viewData.qx, viewData.qy, viewData.qz)
 		);
 
-	sgct_core::ClusterManager::instance()->getUserPtr()->setPos(
+	parent->getUser()->setPos(
 		viewData.x, viewData.y, viewData.z);
 
 	sgct::Engine::instance()->updateFrustums();

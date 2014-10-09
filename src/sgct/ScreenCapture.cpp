@@ -10,9 +10,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/SGCTSettings.h"
+#include <sstream>
 #include <string>
-
-#define FILENAME_APPEND_BUFFER_LENGTH 256
 
 void screenCaptureHandler(void *arg);
 
@@ -183,7 +182,7 @@ This function saves the images to disc.
 
 @param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering.
 */
-void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
+void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 {
 	addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
     
@@ -271,6 +270,12 @@ void sgct_core::ScreenCapture::SaveScreenCapture(unsigned int textureId)
 	}
 }
 
+void sgct_core::ScreenCapture::setPathAndFileName(std::string path, std::string filename)
+{
+	mPath.assign(path);
+	mBaseName.assign(filename);
+}
+
 void sgct_core::ScreenCapture::setUsePBO(bool state)
 {
 	mUsePBO = state;
@@ -296,22 +301,32 @@ void sgct_core::ScreenCapture::init(std::size_t windowIndex, sgct_core::ScreenCa
 void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumber )
 {
 	std::string eye;
+	
+	//use default settings if path is empty
+	bool useDefaultSettings = true;
+	if (!mPath.empty())
+		useDefaultSettings = false;
+
+	std::string tmpPath;
 	switch (mEyeIndex)
 	{
 	case MONO:
 	default:
 		eye.assign("");
-        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::Mono) );
+		if (useDefaultSettings)
+			tmpPath.assign(sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::Mono));
 		break;
 
 	case STEREO_LEFT:
 		eye.assign("_L");
-        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::LeftStereo) );
+		if (useDefaultSettings)
+			tmpPath.assign(sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::LeftStereo));
 		break;
 
 	case STEREO_RIGHT:
 		eye.assign("_R");
-        mScreenShotFilename.assign( sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::RightStereo) );
+		if (useDefaultSettings)
+			tmpPath.assign(sgct::SGCTSettings::instance()->getCapturePath(sgct::SGCTSettings::RightStereo));
 		break;
 	}
 
@@ -323,53 +338,39 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumbe
 	else
 		suffix.assign("jpg");
 
-	char tmpStr[FILENAME_APPEND_BUFFER_LENGTH];
-	char window_node_info_str[32];
-	window_node_info_str[0] = '\0';
+	std::stringstream ss;
+	if (useDefaultSettings)
+	{
+		ss << tmpPath;
+		sgct::SGCTWindow * win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+		
+		if (win->getName().empty() )
+			ss << "_win" << mWindowIndex;
+		else
+			ss << "_" << win->getName();
+	}
+	else
+		ss << mPath << "/" << mBaseName;
 
-//get window information
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (sgct::Engine::instance()->getNumberOfWindows() > 1)
-		sprintf_s( window_node_info_str, 32, "_win%Iu", mWindowIndex );
-#else
-	#ifdef __WIN32__
-    if (sgct::Engine::instance()->getNumberOfWindows() > 1)
-		sprintf( window_node_info_str, "_win%u", mWindowIndex );
-	#else //linux & mac
-    if (sgct::Engine::instance()->getNumberOfWindows() > 1)
-		sprintf( window_node_info_str, "_win%zu", mWindowIndex );
-	#endif
-#endif
+	ss << eye;
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if( frameNumber < 10 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+	//add frame numbers
+	if (frameNumber < 10)
+		ss << "_00000" << frameNumber;
 	else if( frameNumber < 100 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		ss << "_0000" << frameNumber;
 	else if( frameNumber < 1000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		ss << "_000" << frameNumber;
 	else if( frameNumber < 10000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_00%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		ss << "_00" << frameNumber;
 	else if( frameNumber < 100000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_0%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
+		ss << "_0" << frameNumber;
 	else if( frameNumber < 1000000 )
-		sprintf_s(tmpStr, FILENAME_APPEND_BUFFER_LENGTH, "%s%s_%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-#else
-   if( frameNumber < 10 )
-		sprintf( tmpStr, "%s%s_00000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 100 )
-		sprintf( tmpStr, "%s%s_0000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 1000 )
-		sprintf( tmpStr, "%s%s_000%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 10000 )
-		sprintf( tmpStr, "%s%s_00%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 100000 )
-		sprintf( tmpStr, "%s%s_0%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-	else if( frameNumber < 1000000 )
-		sprintf( tmpStr, "%s%s_%u.%s", window_node_info_str, eye.c_str(), frameNumber, suffix.c_str());
-#endif
+		ss << "_" << frameNumber;
 
-	mScreenShotFilename.append( std::string(tmpStr) );
+	//add suffix
+	ss << "." << suffix;
+	mFilename = ss.str();
 }
 
 int sgct_core::ScreenCapture::getAvailibleCaptureThread()
@@ -463,12 +464,12 @@ sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
 			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
 			if (!(*imPtr)->allocateOrResizeData())
 			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mScreenShotFilename.c_str());
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mFilename.c_str());
 				return NULL;
 			}
 		}
 	}
-	(*imPtr)->setFilename(mScreenShotFilename.c_str());
+	(*imPtr)->setFilename(mFilename.c_str());
 
 	return (*imPtr);
 }

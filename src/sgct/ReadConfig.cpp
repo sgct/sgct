@@ -364,6 +364,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 						{
 							Viewport * vpPtr = new sgct_core::Viewport();
                             
+							if (element[2]->Attribute("user") != NULL)
+								vpPtr->setUserName(element[2]->Attribute("user"));
+
 							if( element[2]->Attribute("name") != NULL )
 								vpPtr->setName(element[2]->Attribute("name"));
                             
@@ -565,9 +568,20 @@ void sgct_core::ReadConfig::readAndParseXML()
 		}//end if node
 		else if( strcmp("User", val[0]) == 0 )
 		{
+			SGCTUser * usrPtr;
+			if (element[0]->Attribute("name") != NULL)
+			{
+				std::string name(element[0]->Attribute("name"));
+				usrPtr = new SGCTUser(name);
+				ClusterManager::instance()->addUserPtr(usrPtr);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Adding user '%s'!\n", name.c_str());
+			}
+			else
+				usrPtr = ClusterManager::instance()->getDefaultUserPtr();
+
 			float fTmp;
 			if( element[0]->QueryFloatAttribute("eyeSeparation", &fTmp) == tinyxml2::XML_NO_ERROR )
-                ClusterManager::instance()->getUserPtr()->setEyeSeparation( fTmp );
+				usrPtr->setEyeSeparation(fTmp);
             /*else -- not required
              sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user eye separation from XML!\n");*/
             
@@ -582,7 +596,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if (element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR)
-                        ClusterManager::instance()->getUserPtr()->setPos(fTmp);
+						usrPtr->setPos(fTmp);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user position from XML!\n");
 				}
@@ -592,7 +606,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
                        element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
                        element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
-                        ClusterManager::instance()->getUserPtr()->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
+					   usrPtr->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
                     else
                         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user Orientation from XML!\n");
 				}
@@ -603,7 +617,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 						element[1]->QueryFloatAttribute("x", &tmpd[1]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("y", &tmpd[2]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("z", &tmpd[3]) == tinyxml2::XML_NO_ERROR)
-						ClusterManager::instance()->getUserPtr()->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+						usrPtr->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 				}
@@ -629,8 +643,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					{
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
 						glm::mat4 mat = glm::make_mat4( tmpf );
-						ClusterManager::instance()->getUserPtr()->setTransform(
-                                                                               glm::transpose( mat ));
+						usrPtr->setTransform(glm::transpose( mat ));
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
@@ -640,8 +653,7 @@ void sgct_core::ReadConfig::readAndParseXML()
 					if(	element[1]->Attribute("tracker") != NULL &&
                        element[1]->Attribute("device") != NULL )
 					{
-						ClusterManager::instance()->getUserPtr()->setHeadTracker(
-                                                                                 element[1]->Attribute("tracker"), element[1]->Attribute("device") );
+						usrPtr->setHeadTracker( element[1]->Attribute("tracker"), element[1]->Attribute("device") );
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user tracking data from XML!\n");

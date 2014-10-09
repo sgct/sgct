@@ -127,8 +127,8 @@ void sgct::SGCTTrackingManager::startSampling()
 	if( !mTrackers.empty() )
 	{
 		//link the head tracker
-		setHeadTracker( sgct_core::ClusterManager::instance()->getUserPtr()->getHeadTrackerName(),
-			sgct_core::ClusterManager::instance()->getUserPtr()->getHeadTrackerDeviceName() );
+		setHeadTracker(sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getHeadTrackerName(),
+			sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getHeadTrackerDeviceName());
 
 		mSamplingThread = new tthread::thread( samplingLoop, this );
 	}
@@ -148,7 +148,7 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::instance();
 
 				//set head rot & pos
-				cm->getUserPtr()->setTransform( tdPtr->getWorldTransform() );
+				cm->getDefaultUserPtr()->setTransform(tdPtr->getWorldTransform());
 			}
 		}
 }

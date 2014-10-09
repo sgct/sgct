@@ -528,9 +528,9 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
         if (takeScreenshot)
 		{
             if (mScreenCapture[0] != NULL)
-                mScreenCapture[0]->SaveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
+                mScreenCapture[0]->saveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
             if (mScreenCapture[1] != NULL)
-                mScreenCapture[1]->SaveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
+                mScreenCapture[1]->saveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
         }
 		
         //swap
@@ -2454,9 +2454,9 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
             //Compensate for users pos
             glm::vec4 userVec = glm::vec4(
-                sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
-                sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
-                sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getXPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getYPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getZPos(),
                 1.0f );
 
 			vpPtr->setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
@@ -2546,9 +2546,9 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             
             //Compensate for users pos
             glm::vec4 userVec = glm::vec4(
-                sgct_core::ClusterManager::instance()->getUserPtr()->getXPos(),
-                sgct_core::ClusterManager::instance()->getUserPtr()->getYPos(),
-                sgct_core::ClusterManager::instance()->getUserPtr()->getZPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getXPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getYPos(),
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getZPos(),
                 1.0f );
             
             //add viewplane vertices

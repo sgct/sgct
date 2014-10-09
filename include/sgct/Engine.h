@@ -229,19 +229,13 @@ public:
 	/*!
 		Returns a pinter to the user (VR observer position) object
 	*/
-	static sgct_core::SGCTUser * getUserPtr() { return sgct_core::ClusterManager::instance()->getUserPtr(); }
+	static sgct_core::SGCTUser * getDefaultUserPtr() { return sgct_core::ClusterManager::instance()->getDefaultUserPtr(); }
 
 	/*!
 		Returns a pointer to the tracking manager pointer
 	*/
 	static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::instance()->getTrackingManagerPtr(); }
-
 	static bool checkForOGLErrors();
-
-	/*!
-		Get the user's eye separation in meters
-		*/
-	static float getEyeSeparation() { return mInstance->getUserPtr()->getEyeSeparation(); }
 
 	/*!
 		Returns true if this node is the master

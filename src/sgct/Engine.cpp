@@ -48,6 +48,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 
 //Callback wrappers for GLFW
 void (*gKeyboardCallbackFn)(int, int) = NULL;
+void (*gKeyboardCallbackFn2)(int, int, int, int) = NULL;
 void (*gCharCallbackFn)(unsigned int) = NULL;
 void (*gMouseButtonCallbackFn)(int, int) = NULL;
 void (*gMousePosCallbackFn)(double, double) = NULL;
@@ -245,7 +246,7 @@ bool sgct::Engine::init(RunMode rm)
 
 	for(std::size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
-		if( gKeyboardCallbackFn != NULL )
+		if( gKeyboardCallbackFn != NULL || gKeyboardCallbackFn2 != NULL )
 			glfwSetKeyCallback( getWindowPtr(i)->getWindowHandle(), internal_key_callback );
 		if( gMouseButtonCallbackFn != NULL )
 			glfwSetMouseButtonCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_button_callback );
@@ -791,6 +792,7 @@ void sgct::Engine::clearAllCallbacks()
 
 	//global
 	gKeyboardCallbackFn = NULL;
+    gKeyboardCallbackFn2 = NULL;
 	gCharCallbackFn = NULL;
 	gMouseButtonCallbackFn = NULL;
 	gMousePosCallbackFn = NULL;
@@ -3578,6 +3580,18 @@ void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 }
 
 /*!
+\param fnPtr is the function pointer to a keyboard callback function
+
+ This function sets the keyboard callback (GLFW wrapper) where the four parameters are: int key, int scancode, int action, int mods. Modifier keys can be a combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All windows are connected to this callback.
+ 
+ @see sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
+ */
+void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) )
+{
+    gKeyboardCallbackFn2 = fnPtr;
+}
+
+/*!
 All windows are connected to this callback.
 */
 void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
@@ -3642,6 +3656,9 @@ void sgct::Engine::internal_key_callback(GLFWwindow* window, int key, int scanco
 {
 	if( gKeyboardCallbackFn != NULL )
 		gKeyboardCallbackFn(key, action);
+    
+    if( gKeyboardCallbackFn2 != NULL )
+        gKeyboardCallbackFn2(key, scancode, action, mods);
 }
 
 void sgct::Engine::internal_key_char_callback(GLFWwindow* window, unsigned int ch)

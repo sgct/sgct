@@ -162,6 +162,7 @@ public:
 	void setPostDrawFunction( void(*fnPtr)(void) );
 	void setCleanUpFunction( void(*fnPtr)(void) );
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
+    void setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) ); //arguments: int key, int scancode, int action, int mods
 	void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y

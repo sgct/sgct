@@ -521,13 +521,13 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
-    if( mVisible )
+	if( mVisible )
 	{
 		makeOpenGLContextCurrent( Window_Context );
         
         if (takeScreenshot)
 		{
-            if (mScreenCapture[0] != NULL)
+			if (mScreenCapture[0] != NULL)
                 mScreenCapture[0]->saveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
             if (mScreenCapture[1] != NULL)
                 mScreenCapture[1]->saveScreenCapture(mFrameBufferTextures[Engine::RightEye]);

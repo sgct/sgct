@@ -880,6 +880,10 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		mIconified = (glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GL_TRUE ? true : false);
 
 		glfwMakeContextCurrent( mSharedHandle );
+        
+        //clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
+        glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
+        glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
 		if (SGCTSettings::instance()->useFBO())
 		{

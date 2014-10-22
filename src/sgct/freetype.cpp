@@ -162,6 +162,9 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *format
     
     int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
+	if (buffer == NULL)
+		return;
+
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -305,6 +308,9 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
     
     int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
+	if (buffer == NULL)
+		return;
+
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -445,6 +451,9 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format,
     
     int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
+	if (buffer == NULL)
+		return;
+
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -579,6 +588,9 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
     
     int size = 1 + vscprintf(format, args);
 	char * buffer = new (std::nothrow) char[size];
+	if (buffer == NULL)
+		return;
+
     memset(buffer, 0, size);
     
 #if (_MSC_VER >= 1400) //visual studio 2005 or later

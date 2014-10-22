@@ -41,6 +41,9 @@ sgct_utils::SGCTSphere::SGCTSphere(float radius, unsigned int segments)
 	memset(mVerts, 0, mNumberOfVertices * sizeof(sgct_helpers::SGCTVertexData));
 
 	mIndices = new (std::nothrow) unsigned int[mNumberOfFaces * 3];
+	if (mIndices == NULL)
+		return;
+
 	memset(mIndices, 0, mNumberOfFaces * 3 * sizeof(unsigned int));
 
 	// First vertex: top pole (+y is "up" in object local coords)

@@ -102,6 +102,9 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 
         delete [] mCombinedBuffer;
         mCombinedBuffer = new (std::nothrow) char[mCombinedMessageSize];
+		if (mCombinedBuffer == NULL)
+			return;
+
         memset(mCombinedBuffer, 0, mCombinedMessageSize);
         
         mRecBuffer.resize(mMaxMessageSize);

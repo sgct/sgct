@@ -22,12 +22,33 @@ namespace sgct //simple graphics cluster toolkit
 	public:
 		SharedFloat();
 		SharedFloat(float val);
+		SharedFloat(const SharedFloat & sf);
+
 		float getVal();
 		void setVal(float val);
 
+		void operator=(const SharedFloat & sf);
+		void operator=(const float & val);
+		void operator+=(const float & val);
+		void operator-=(const float & val);
+		void operator*=(const float & val);
+		void operator/=(const float & val);
+		void operator++();
+		void operator--();
+
+		bool operator<(const float & val);
+		bool operator<=(const float & val);
+		bool operator>(const float & val);
+		bool operator>=(const float & val);
+		bool operator==(const float & val);
+		bool operator!=(const float & val);
+
+		float operator+(const float & val);
+		float operator-(const float & val);
+		float operator*(const float & val);
+		float operator/(const float & val);
+
 	private:
-		SharedFloat( const SharedFloat & sf );
-		const SharedFloat & operator=(const SharedFloat & sf );
 		float mVal;
 	};
 
@@ -44,6 +65,7 @@ namespace sgct //simple graphics cluster toolkit
 		double getVal();
 		void setVal(double val);
         
+		void operator=(const SharedDouble & sd);
         void operator=( const double & val );
         void operator+=( const double & val );
         void operator-=( const double & val );
@@ -117,6 +139,7 @@ namespace sgct //simple graphics cluster toolkit
 		void toggle();
         
         void operator=( const bool & val );
+		void operator=(const SharedBool & sb);
         bool operator==( const bool & val );
         bool operator!=( const bool & val );
 
@@ -149,13 +172,16 @@ namespace sgct //simple graphics cluster toolkit
 	public:
 		SharedString();
 		SharedString(const std::string & str);
+		SharedString(const SharedString & ss);
+
 		std::string getVal();
 		void setVal(const std::string & str);
 		void clear();
 
+		void operator=(const std::string & str);
+		void operator=(const SharedString & ss);
+
 	private:
-		SharedString( const SharedString & ss );
-		const SharedString & operator=(const SharedString & ss );
 		std::string mStr;
 	};
 

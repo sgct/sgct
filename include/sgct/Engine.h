@@ -161,18 +161,50 @@ public:
 	void setDraw2DFunction( void(*fnPtr)(void) );
 	void setPostDrawFunction( void(*fnPtr)(void) );
 	void setCleanUpFunction( void(*fnPtr)(void) );
+	
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
     void setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) ); //arguments: int key, int scancode, int action, int mods
 	void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
+
+	void setExternalControlCallback(void(*fnPtr)(const char *, int)); //arguments: const char * buffer, int buffer length
+	void setExternalControlStatusCallback(void(*fnPtr)(bool)); //arguments: const bool & connected
+	void setContextCreationCallback(void(*fnPtr)(GLFWwindow*)); //arguments: glfw window share
+
+	void setDataTransferCallback(void(*fnPtr)(void *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
+	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
+	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
+
+//#ifdef __LOAD_CPP11_FUN__
+	void setInitOGLFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setPreWindowFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setPreSyncFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setPostSyncPreDrawFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setClearBufferFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setDrawFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setDraw2DFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setPostDrawFunction(sgct_cppxeleven::function<void(void)> fn);
+	void setCleanUpFunction(sgct_cppxeleven::function<void(void)> fn);
+	
+	void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int key, int action
+	void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
+	void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
+	void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int button, int action
+	void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
+	void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
+
+	void setExternalControlCallback(sgct_cppxeleven::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
+	void setExternalControlStatusCallback(sgct_cppxeleven::function<void(bool)> fn); //arguments: const bool & connected
+	void setContextCreationCallback(sgct_cppxeleven::function<void(GLFWwindow*)> fn); //arguments: glfw window share
+
+	void setDataTransferCallback(sgct_cppxeleven::function<void(void *, int, int, int)> fn); //arguments: const char * buffer, int buffer length, int package id, int client
+	void setDataTransferStatusCallback(sgct_cppxeleven::function<void(bool, int)> fn); //arguments: const bool & connected, int client
+	void setDataAcknowledgeCallback(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int package id, int client
+//#endif
     
 	//external control network functions
-	void setExternalControlCallback( void(*fnPtr)(const char *, int) ); //arguments: const char * buffer, int buffer length
-	void setExternalControlStatusCallback( void(*fnPtr)(bool) ); //arguments: const bool & connected
-    void setContextCreationCallback( void(*fnPtr)(GLFWwindow*) ); //arguments: glfw window share
-    
 	void sendMessageToExternalControl(void * data, int length);
 	void sendMessageToExternalControl(const std::string msg);
 	bool isExternalControlConnected();
@@ -181,9 +213,6 @@ public:
 	void invokeUpdateCallbackForExternalControl(bool connected);
 
 	//data transfer functions
-	void setDataTransferCallback(void(*fnPtr)(void *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
-	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
-	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
 	void setDataTransferCompression(bool state, int level = 1);
     void transferDataBetweenNodes(void * data, int length, int packageId);
 	void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex);
@@ -367,38 +396,53 @@ private:
 	static Engine * mInstance;
 
 	// Convinience typedef
+#ifdef __LOAD_CPP11_FUN__
+	typedef sgct_cppxeleven::function<void()> CallbackFn;
+	typedef sgct_cppxeleven::function<void(void *, int, int, int)> DataTransferDecodeCallbackFn;
+	typedef sgct_cppxeleven::function<void(bool, int)> DataTransferStatusCallbackFn;
+	typedef sgct_cppxeleven::function<void(int, int)> DataTransferAcknowledgeCallbackFn;
+	typedef sgct_cppxeleven::function<void(const char *, int)> ExternalDecodeCallbackFn;
+	typedef sgct_cppxeleven::function<void(bool)> ExternalStatusCallbackFn;
+	typedef sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex)> ScreenShotFn;
+	typedef sgct_cppxeleven::function<void(GLFWwindow*)> ContextCreationFn;
+#else
 	typedef void (*CallbackFn)(void);
-	typedef void (Engine::*InternalCallbackFn)(void);
-	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
 	typedef void (*DataTransferDecodeCallbackFn)(void *, int, int, int);
 	typedef void (*DataTransferStatusCallbackFn)(bool, int);
 	typedef void (*DataTransferAcknowledgeCallbackFn)(int, int);
 	typedef void (*ExternalDecodeCallbackFn)(const char *, int);
 	typedef void (*ExternalStatusCallbackFn)(bool);
+	typedef void (*ScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex);
+	typedef void (*ContextCreationFn)(GLFWwindow*);
+#endif
+
+	typedef void (Engine::*InternalCallbackFn)(void);
+	typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
     typedef void (*timerCallbackFn)(std::size_t);
 
 	//function pointers
-	CallbackFn mDrawFn;
-	CallbackFn mPreSyncFn;
-	CallbackFn mPostSyncPreDrawFn;
-	CallbackFn mPostDrawFn;
-	CallbackFn mPreWindowFn;
-	CallbackFn mInitOGLFn;
-	CallbackFn mClearBufferFn;
-	CallbackFn mCleanUpFn;
-	CallbackFn mDraw2DFn;
+	CallbackFn mDrawFnPtr;
+	CallbackFn mPreSyncFnPtr;
+	CallbackFn mPostSyncPreDrawFnPtr;
+	CallbackFn mPostDrawFnPtr;
+	CallbackFn mPreWindowFnPtr;
+	CallbackFn mInitOGLFnPtr;
+	CallbackFn mClearBufferFnPtr;
+	CallbackFn mCleanUpFnPtr;
+	CallbackFn mDraw2DFnPtr;
+	ExternalDecodeCallbackFn			mExternalDecodeCallbackFnPtr;
+	ExternalStatusCallbackFn			mExternalStatusCallbackFnPtr;
+	DataTransferDecodeCallbackFn		mDataTransferDecodeCallbackFnPtr;
+	DataTransferStatusCallbackFn		mDataTransferStatusCallbackFnPtr;
+	DataTransferAcknowledgeCallbackFn	mDataTransferAcknowledgeCallbackFnPtr;
+	ScreenShotFn						mScreenShotFnPtr;
+	ContextCreationFn					mContextCreationFnPtr;
+	
 	InternalCallbackFn					mInternalDrawFn;
 	InternalCallbackFn					mInternalRenderFBOFn;
 	InternalCallbackFn					mInternalDrawOverlaysFn;
 	InternalCallbackTexArgFn			mInternalRenderPostFXFn;
 	InternalCallbackTexArgFn			mInternalRenderFisheyeFn;
-	ExternalDecodeCallbackFn			mExternalDecodeCallbackFn;
-	ExternalStatusCallbackFn			mExternalStatusCallbackFn;
-	DataTransferDecodeCallbackFn		mDataTransferDecodeCallbackFn;
-	DataTransferStatusCallbackFn		mDataTransferStatusCallbackFn;
-	DataTransferAcknowledgeCallbackFn	mDataTransferAcknowledgeCallbackFn;
-    void (*mScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex);
-    void (*mContextCreationFn)(GLFWwindow*);
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;

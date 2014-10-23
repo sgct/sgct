@@ -47,12 +47,21 @@ using namespace sgct_core;
 sgct::Engine * sgct::Engine::mInstance = NULL;
 
 //Callback wrappers for GLFW
-void (*gKeyboardCallbackFn)(int, int) = NULL;
-void (*gKeyboardCallbackFn2)(int, int, int, int) = NULL;
-void (*gCharCallbackFn)(unsigned int) = NULL;
-void (*gMouseButtonCallbackFn)(int, int) = NULL;
-void (*gMousePosCallbackFn)(double, double) = NULL;
-void (*gMouseScrollCallbackFn)(double, double) = NULL;
+#ifdef __LOAD_CPP11_FUN__
+	sgct_cppxeleven::function<void(int, int)> gKeyboardCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(int, int, int, int)> gKeyboardCallbackFnPtr2 = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(unsigned int)> gCharCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(int, int)> gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(double, double)> gMousePosCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(double, double)> gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
+#else
+	void (*gKeyboardCallbackFnPtr)(int, int) = NULL;
+	void (*gKeyboardCallbackFnPtr2)(int, int, int, int) = NULL;
+	void (*gCharCallbackFnPtr)(unsigned int) = NULL;
+	void (*gMouseButtonCallbackFnPtr)(int, int) = NULL;
+	void (*gMousePosCallbackFnPtr)(double, double) = NULL;
+	void (*gMouseScrollCallbackFnPtr)(double, double) = NULL;
+#endif
 
 void updateFrameLockLoop(void * arg);
 static bool sRunUpdateFrameLockLoop = true;
@@ -101,30 +110,31 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRunMode = Default_Mode;
 	mStatistics = NULL;
 	mThisNode = NULL;
+	mThreadPtr = NULL;
 
 	//init function pointers
-	mDrawFn = NULL;
-	mDraw2DFn = NULL;
-	mPreSyncFn = NULL;
-	mPostSyncPreDrawFn = NULL;
-	mPostDrawFn = NULL;
-	mPreWindowFn = NULL;
-	mInitOGLFn = NULL;
-	mClearBufferFn = NULL;
-	mCleanUpFn = NULL;
+	mDrawFnPtr = SGCT_NULL_PTR;
+	mDraw2DFnPtr = SGCT_NULL_PTR;
+	mPreSyncFnPtr = SGCT_NULL_PTR;
+	mPostSyncPreDrawFnPtr = SGCT_NULL_PTR;
+	mPostDrawFnPtr = SGCT_NULL_PTR;
+	mInitOGLFnPtr = SGCT_NULL_PTR;
+	mPreWindowFnPtr = SGCT_NULL_PTR;
+	mClearBufferFnPtr = SGCT_NULL_PTR;
+	mCleanUpFnPtr = SGCT_NULL_PTR;
+	mExternalDecodeCallbackFnPtr = SGCT_NULL_PTR;
+	mExternalStatusCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferDecodeCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferStatusCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
+	mContextCreationFnPtr = SGCT_NULL_PTR;
+	mScreenShotFnPtr = SGCT_NULL_PTR;
+
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mExternalDecodeCallbackFn = NULL;
-	mExternalStatusCallbackFn = NULL;
-	mDataTransferDecodeCallbackFn = NULL;
-	mDataTransferStatusCallbackFn = NULL;
-	mDataTransferAcknowledgeCallbackFn = NULL;
-    mContextCreationFn = NULL;
-    mScreenShotFn = NULL;
-	mThreadPtr = NULL;
 
 	mTerminate = false;
 	mIgnoreSync = false;
@@ -246,15 +256,15 @@ bool sgct::Engine::init(RunMode rm)
 
 	for(std::size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
-		if( gKeyboardCallbackFn != NULL || gKeyboardCallbackFn2 != NULL )
+		if (gKeyboardCallbackFnPtr != SGCT_NULL_PTR || gKeyboardCallbackFnPtr2 != SGCT_NULL_PTR)
 			glfwSetKeyCallback( getWindowPtr(i)->getWindowHandle(), internal_key_callback );
-		if( gMouseButtonCallbackFn != NULL )
+		if (gMouseButtonCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetMouseButtonCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_button_callback );
-		if( gMousePosCallbackFn != NULL )
+		if (gMousePosCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetCursorPosCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_pos_callback );
-		if( gCharCallbackFn != NULL )
+		if (gCharCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetCharCallback( getWindowPtr(i)->getWindowHandle(), internal_key_char_callback );
-		if( gMouseScrollCallbackFn != NULL )
+		if (gMouseScrollCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetScrollCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_scroll_callback );
 	}
 
@@ -434,8 +444,8 @@ bool sgct::Engine::initWindows()
         break;
 	}
 
-	if( mPreWindowFn != NULL )
-		mPreWindowFn();
+	if (mPreWindowFnPtr != SGCT_NULL_PTR)
+		mPreWindowFnPtr();
 
 	mStatistics = new Statistics();
 	GLFWwindow* share = NULL;
@@ -460,9 +470,9 @@ bool sgct::Engine::initWindows()
     {
         share = mThisNode->getWindowPtr(0)->getWindowHandle();
     
-        if(mContextCreationFn != NULL)
+		if (mContextCreationFnPtr != SGCT_NULL_PTR)
         {
-            mContextCreationFn(share);
+            mContextCreationFnPtr(share);
         }
     }
     else
@@ -495,7 +505,7 @@ bool sgct::Engine::initWindows()
 	if( RUN_FRAME_LOCK_CHECK_THREAD )
 	{
 		if(ClusterManager::instance()->getNumberOfNodes() > 1)
-			mThreadPtr = new tthread::thread( updateFrameLockLoop, 0 );
+			mThreadPtr = new (std::nothrow) tthread::thread( updateFrameLockLoop, 0 );
 	}
 
 	//init swap group if enabled
@@ -587,10 +597,10 @@ void sgct::Engine::initOGL()
 	loadShaders();
 	mStatistics->initVBO(mFixedOGLPipeline);
 
-	if( mInitOGLFn != NULL )
+	if (mInitOGLFnPtr != SGCT_NULL_PTR)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "\n---- Calling init callback ----\n");
-		mInitOGLFn();
+		mInitOGLFnPtr();
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "-------------------------------\n");
 	}
 
@@ -600,7 +610,7 @@ void sgct::Engine::initOGL()
 		mThisNode->setCurrentWindowIndex(i);
 		getActiveWindowPtr()->initOGL(); //sets context to shared
         
-        if(mScreenShotFn != NULL)
+		if (mScreenShotFnPtr != SGCT_NULL_PTR)
         {
             //set callback
             sgct_cppxeleven::function< void(Image *, std::size_t, ScreenCapture::EyeIndex) > callback;
@@ -668,11 +678,11 @@ void sgct::Engine::clean()
 {
     MessageHandler::instance()->print(MessageHandler::NOTIFY_IMPORTANT, "Cleaning up...\n");
 
-	if( mCleanUpFn != NULL )
+	if (mCleanUpFnPtr != SGCT_NULL_PTR)
 	{
 		if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
 			mThisNode->getWindowPtr(0)->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
-		mCleanUpFn();
+		mCleanUpFnPtr();
 	}
 
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Clearing all callbacks...\n");
@@ -768,35 +778,36 @@ Un-binds all callbacks.
 */
 void sgct::Engine::clearAllCallbacks()
 {
-	mDrawFn = NULL;
-	mDraw2DFn = NULL;
-	mPreSyncFn = NULL;
-	mPostSyncPreDrawFn = NULL;
-	mPostDrawFn = NULL;
-	mInitOGLFn = NULL;
-	mPreWindowFn = NULL;
-	mClearBufferFn = NULL;
-	mCleanUpFn = NULL;
+	mDrawFnPtr = SGCT_NULL_PTR;
+	mDraw2DFnPtr = SGCT_NULL_PTR;
+	mPreSyncFnPtr = SGCT_NULL_PTR;
+	mPostSyncPreDrawFnPtr = SGCT_NULL_PTR;
+	mPostDrawFnPtr = SGCT_NULL_PTR;
+	mInitOGLFnPtr = SGCT_NULL_PTR;
+	mPreWindowFnPtr = SGCT_NULL_PTR;
+	mClearBufferFnPtr = SGCT_NULL_PTR;
+	mCleanUpFnPtr = SGCT_NULL_PTR;
+	mExternalDecodeCallbackFnPtr = SGCT_NULL_PTR;
+	mExternalStatusCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferDecodeCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferStatusCallbackFnPtr = SGCT_NULL_PTR;
+	mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
+	mContextCreationFnPtr = SGCT_NULL_PTR;
+	mScreenShotFnPtr = SGCT_NULL_PTR;
+
 	mInternalDrawFn = NULL;
 	mInternalRenderFBOFn = NULL;
 	mInternalDrawOverlaysFn = NULL;
 	mInternalRenderPostFXFn = NULL;
 	mInternalRenderFisheyeFn = NULL;
-	mExternalDecodeCallbackFn = NULL;
-	mExternalStatusCallbackFn = NULL;
-	mDataTransferDecodeCallbackFn = NULL;
-	mDataTransferStatusCallbackFn = NULL;
-	mDataTransferAcknowledgeCallbackFn = NULL;
-    mContextCreationFn = NULL;
-    mScreenShotFn = NULL;
 
 	//global
-	gKeyboardCallbackFn = NULL;
-    gKeyboardCallbackFn2 = NULL;
-	gCharCallbackFn = NULL;
-	gMouseButtonCallbackFn = NULL;
-	gMousePosCallbackFn = NULL;
-	gMouseScrollCallbackFn = NULL;
+	gKeyboardCallbackFnPtr = SGCT_NULL_PTR;
+	gKeyboardCallbackFnPtr2 = SGCT_NULL_PTR;
+	gCharCallbackFnPtr = SGCT_NULL_PTR;
+	gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
+	gMousePosCallbackFnPtr = SGCT_NULL_PTR;
+	gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
 
 	for(unsigned int i=0; i < mTimers.size(); i++)
 	{
@@ -959,8 +970,8 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Running pre-sync.\n");
 #endif
-		if( mPreSyncFn != NULL )
-			mPreSyncFn();
+		if (mPreSyncFnPtr != SGCT_NULL_PTR)
+			mPreSyncFnPtr();
 
 		if( mNetworkConnections->isComputerServer() )
 		{
@@ -1000,8 +1011,8 @@ void sgct::Engine::render()
 			getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Shared_Context );
 
 		//Make sure correct context is current
-		if( mPostSyncPreDrawFn != NULL )
-			mPostSyncPreDrawFn();
+		if (mPostSyncPreDrawFnPtr != SGCT_NULL_PTR)
+			mPostSyncPreDrawFnPtr();
 
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
@@ -1124,8 +1135,8 @@ void sgct::Engine::render()
         updateTimers( endFrameTime );
 
 		//run post frame actions
-		if (mPostDrawFn != NULL)
-			mPostDrawFn();
+		if (mPostDrawFnPtr != SGCT_NULL_PTR)
+			mPostDrawFnPtr();
 
 		if (mShowGraph)
         {
@@ -1320,12 +1331,12 @@ void sgct::Engine::draw()
     
     glDisable(GL_SCISSOR_TEST);
 
-	if( mDrawFn != NULL )
+	if (mDrawFnPtr != SGCT_NULL_PTR)
 	{
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		mDrawFn();
+		mDrawFnPtr();
 
 		//restore polygon mode
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -1357,12 +1368,12 @@ void sgct::Engine::drawFixedPipeline()
 
 	glLoadMatrixf( glm::value_ptr( tmpVP->getViewMatrix(mActiveFrustumMode) * getModelMatrix() ) );
 
-	if( mDrawFn != NULL )
+	if (mDrawFnPtr != SGCT_NULL_PTR)
 	{
 		glLineWidth(1.0);
 		mShowWireframe ? glPolygonMode( GL_FRONT_AND_BACK, GL_LINE ) : glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
 
-		mDrawFn();
+		mDrawFnPtr();
 
 		//restore polygon mode
 		glPolygonMode( GL_FRONT_AND_BACK, GL_FILL );
@@ -1861,7 +1872,7 @@ void sgct::Engine::renderFisheye(TextureIndexes ti)
 
 				glEnable(GL_SCISSOR_TEST);
 
-				mClearBufferFn();
+				mClearBufferFnPtr();
 
 				glDisable( GL_CULL_FACE );
 				if( getActiveWindowPtr()->getAlpha() )
@@ -2154,7 +2165,7 @@ void sgct::Engine::renderFisheyeFixedPipeline(TextureIndexes ti)
 				glPushAttrib(GL_ALL_ATTRIB_BITS);
 				glEnable(GL_SCISSOR_TEST);
 
-				mClearBufferFn();
+				mClearBufferFnPtr();
 
 				glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
 				glMatrixMode(GL_TEXTURE);
@@ -2489,7 +2500,7 @@ void sgct::Engine::render2D()
 	//draw info & stats
 	//the cubemap viewports are all the same so it makes no sense to render everything several times
 	//therefore just loop one iteration in that case.
-	if( mShowGraph || mShowInfo || mDraw2DFn != NULL )
+	if (mShowGraph || mShowInfo || mDraw2DFnPtr != SGCT_NULL_PTR)
 	{
 		std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
 		for(std::size_t i=0; i < numberOfIterations; i++)
@@ -2513,8 +2524,8 @@ void sgct::Engine::render2D()
                     renderDisplayInfo();
                 }
 
-                if( mDraw2DFn != NULL )
-                    mDraw2DFn();
+				if (mDraw2DFnPtr != SGCT_NULL_PTR)
+                    mDraw2DFnPtr();
             }
 		}
 	}
@@ -2865,9 +2876,9 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 	}
 
 	//clear
-	if( mode != BackBufferBlack && mClearBufferFn != NULL )
+	if (mode != BackBufferBlack && mClearBufferFnPtr != SGCT_NULL_PTR)
 	{
-		mClearBufferFn();
+		mClearBufferFnPtr();
 	}
 	else //when rendering textures to backbuffer (using fbo)
 	{
@@ -3253,7 +3264,17 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 */
 void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 {
-	mDrawFn = fnPtr;
+	mDrawFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a draw callback
+
+@see sgct::Engine::setDrawFunction(void(*fnPtr)(void))
+*/
+void sgct::Engine::setDrawFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mDrawFnPtr = fn;
 }
 
 /*!
@@ -3264,7 +3285,18 @@ void sgct::Engine::setDrawFunction(void(*fnPtr)(void))
 */
 void sgct::Engine::setDraw2DFunction( void(*fnPtr)(void) )
 {
-	mDraw2DFn = fnPtr;
+	mDraw2DFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a draw 2D callback
+
+This function sets the draw 2D callback. This callback will be called after overlays and post effects has been drawn.
+This makes it possible to render text and HUDs that will not be filtered and antialiasied.
+*/
+void sgct::Engine::setDraw2DFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mDraw2DFnPtr = fn;
 }
 
 /*!
@@ -3275,7 +3307,18 @@ void sgct::Engine::setDraw2DFunction( void(*fnPtr)(void) )
 */
 void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 {
-	mPreSyncFn = fnPtr;
+	mPreSyncFnPtr = fnPtr;
+}
+
+/*!
+	\param fn is the std function of a pre-sync callback
+
+	This function sets the pre-sync callback. The Engine will then use the callback before the sync stage.
+	In the callback set the variables that will be shared.
+*/
+void sgct::Engine::setPreSyncFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mPreSyncFnPtr = fn;
 }
 
 /*!
@@ -3286,7 +3329,18 @@ void sgct::Engine::setPreSyncFunction(void(*fnPtr)(void))
 */
 void sgct::Engine::setPostSyncPreDrawFunction(void(*fnPtr)(void))
 {
-	mPostSyncPreDrawFn = fnPtr;
+	mPostSyncPreDrawFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a post-sync-pre-draw callback
+
+This function sets the post-sync-pre-draw callback. The Engine will then use the callback after the sync stage but before the draw stage. Compared to the draw callback the post-sync-pre-draw callback is called only once per frame.
+In this callback synchronized variables can be applied or simulations depending on synchronized input can run.
+*/
+void sgct::Engine::setPostSyncPreDrawFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mPostSyncPreDrawFnPtr = fn;
 }
 
 /*!
@@ -3297,18 +3351,40 @@ void sgct::Engine::setPostSyncPreDrawFunction(void(*fnPtr)(void))
 */
 void sgct::Engine::setPostDrawFunction(void(*fnPtr)(void))
 {
-	mPostDrawFn = fnPtr;
+	mPostDrawFnPtr = fnPtr;
 }
 
 /*!
-	\param fnPtr is the function pointer to a initiation of OpenGL callback
+\param fn is the std function of a post-draw callback
+
+This function sets the post-draw callback. The Engine will then use the callback after the draw stage but before the OpenGL buffer swap. Compared to the draw callback the post-draw callback is called only once per frame.
+In this callback data/buffer swaps can be made.
+*/
+void sgct::Engine::setPostDrawFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mPostDrawFnPtr = fn;
+}
+
+/*!
+	\param fnPtr is the function pointer to a OpenGL initiation callback
 
 	This function sets the initOGL callback. The Engine will then use the callback only once before the starting the render loop.
 	Textures, Models, Buffers, etc. can be loaded/allocated here.
 */
 void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 {
-	mInitOGLFn = fnPtr;
+	mInitOGLFnPtr = fnPtr;
+}
+
+/*!
+	\param fn is the std function of an OpenGL initiation callback
+
+	This function sets the initOGL callback. The Engine will then use the callback only once before the starting the render loop.
+	Textures, Models, Buffers, etc. can be loaded/allocated here.
+*/
+void sgct::Engine::setInitOGLFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mInitOGLFnPtr = fn;
 }
 
 /*!
@@ -3319,7 +3395,18 @@ void sgct::Engine::setInitOGLFunction(void(*fnPtr)(void))
 */
 void sgct::Engine::setPreWindowFunction( void(*fnPtr)(void) )
 {
-	mPreWindowFn = fnPtr;
+	mPreWindowFnPtr = fnPtr;
+}
+
+/*!
+	This callback is called before the window is created (before OpenGL context is created).
+	At this stage the config file has been read and network initialized. Therefore it's suitable for loading master or slave specific data.
+
+	\param fn is the std function of a pre window creation callback
+*/
+void sgct::Engine::setPreWindowFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mPreWindowFnPtr = fn;
 }
 
 /*!
@@ -3338,7 +3425,17 @@ void sgct::Engine::setPreWindowFunction( void(*fnPtr)(void) )
 */
 void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 {
-	mClearBufferFn = fnPtr;
+	mClearBufferFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a clear buffer function callback
+
+@see sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
+*/
+void sgct::Engine::setClearBufferFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mClearBufferFnPtr = fn;
 }
 
 /*!
@@ -3348,7 +3445,17 @@ void sgct::Engine::setClearBufferFunction(void(*fnPtr)(void))
 */
 void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
 {
-	mCleanUpFn = fnPtr;
+	mCleanUpFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function pointer of a clean up function callback
+
+This function sets the clean up callback which will be called in the Engine destructor before all sgct components (like window, OpenGL context, network, etc.) will be destroyed.
+*/
+void sgct::Engine::setCleanUpFunction(sgct_cppxeleven::function<void(void)> fn)
+{
+	mCleanUpFnPtr = fn;
 }
 
 /*!
@@ -3365,7 +3472,17 @@ void sgct::Engine::setCleanUpFunction( void(*fnPtr)(void) )
  */
 void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int))
 {
-	mExternalDecodeCallbackFn = fnPtr;
+	mExternalDecodeCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of an external control message callback
+
+@see sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int))
+*/
+void sgct::Engine::setExternalControlCallback(sgct_cppxeleven::function<void(const char *, int)> fn)
+{
+	mExternalDecodeCallbackFnPtr = fn;
 }
 
 /*!
@@ -3376,7 +3493,18 @@ void sgct::Engine::setExternalControlCallback(void(*fnPtr)(const char *, int))
  */
 void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool))
 {
-	mExternalStatusCallbackFn = fnPtr;
+	mExternalStatusCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of an external control status callback
+
+This function sets the external control status callback which will be called when the connection status changes (connect or disconnect).
+
+*/
+void sgct::Engine::setExternalControlStatusCallback(sgct_cppxeleven::function<void(bool)> fn)
+{
+	mExternalStatusCallbackFnPtr = fn;
 }
 
 /*!
@@ -3387,7 +3515,17 @@ void sgct::Engine::setExternalControlStatusCallback(void(*fnPtr)(bool))
  */
 void sgct::Engine::setDataTransferCallback(void(*fnPtr)(void *, int, int, int))
 {
-	mDataTransferDecodeCallbackFn = fnPtr;
+	mDataTransferDecodeCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a data transfer callback
+
+This function sets the data transfer message callback which will be called when a TCP message is received. The TCP listner is enabled in the XML configuration file in the Node tag by dataTransferPort, where the portnumber is an integer preferably above 20000.
+*/
+void sgct::Engine::setDataTransferCallback(sgct_cppxeleven::function<void(void *, int, int, int)> fn)
+{
+	mDataTransferDecodeCallbackFnPtr = fn;
 }
 
 /*!
@@ -3398,7 +3536,18 @@ void sgct::Engine::setDataTransferCallback(void(*fnPtr)(void *, int, int, int))
  */
 void sgct::Engine::setDataTransferStatusCallback(void(*fnPtr)(bool, int))
 {
-	mDataTransferStatusCallbackFn = fnPtr;
+	mDataTransferStatusCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a data transfer status callback
+
+This function sets the data transfer status callback which will be called when the connection status changes (connect or disconnect).
+
+*/
+void sgct::Engine::setDataTransferStatusCallback(sgct_cppxeleven::function<void(bool, int)> fn)
+{
+	mDataTransferStatusCallbackFnPtr = fn;
 }
 
 /*!
@@ -3409,7 +3558,18 @@ void sgct::Engine::setDataTransferStatusCallback(void(*fnPtr)(bool, int))
  */
 void sgct::Engine::setDataAcknowledgeCallback(void(*fnPtr)(int, int))
 {
-	mDataTransferAcknowledgeCallbackFn = fnPtr;
+	mDataTransferAcknowledgeCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a data transfer acknowledge callback
+
+This function sets the data transfer acknowledge callback which will be called when the data is successfully sent.
+
+*/
+void sgct::Engine::setDataAcknowledgeCallback(sgct_cppxeleven::function<void(int, int)> fn)
+{
+	mDataTransferAcknowledgeCallbackFnPtr = fn;
 }
 
 /*!
@@ -3419,7 +3579,17 @@ This function sets the OpenGL context creation callback which will be called dir
 */
 void sgct::Engine::setContextCreationCallback(void(*fnPtr)(GLFWwindow*))
 {
-    mContextCreationFn = fnPtr;
+    mContextCreationFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std funtion of an OpenGL context (GLFW window) creation callback
+
+This function sets the OpenGL context creation callback which will be called directly after all SGCT windows are created. This enables the user to create additional OpenGL context for multithreaded OpenGL.
+*/
+void sgct::Engine::setContextCreationCallback(sgct_cppxeleven::function<void(GLFWwindow*)> fn)
+{
+	mContextCreationFnPtr = fn;
 }
 
 /*!
@@ -3429,7 +3599,7 @@ void sgct::Engine::setContextCreationCallback(void(*fnPtr)(GLFWwindow*))
  */
 void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, ScreenCapture::EyeIndex))
 {
-    mScreenShotFn = fnPtr;
+    mScreenShotFnPtr = fnPtr;
 }
 
 /*!
@@ -3576,7 +3746,17 @@ void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, Scre
 */
 void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
 {
-	gKeyboardCallbackFn = fnPtr;
+	gKeyboardCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a keyboard callback function
+
+@see sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
+*/
+void sgct::Engine::setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn)
+{
+	gKeyboardCallbackFnPtr = fn;
 }
 
 /*!
@@ -3588,7 +3768,19 @@ void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
  */
 void sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) )
 {
-    gKeyboardCallbackFn2 = fnPtr;
+    gKeyboardCallbackFnPtr2 = fnPtr;
+}
+
+/*!
+\param fn is the std function of a keyboard callback function
+
+This function sets the keyboard callback (GLFW wrapper) where the four parameters are: int key, int scancode, int action, int mods. Modifier keys can be a combination of SGCT_MOD_SHIFT, SGCT_MOD_CONTROL, SGCT_MOD_ALT, SGCT_MOD_SUPER. All windows are connected to this callback.
+
+@see sgct::Engine::setKeyboardCallbackFunction( void(*fnPtr)(int,int) )
+*/
+void sgct::Engine::setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int, int, int)> fn)
+{
+	gKeyboardCallbackFnPtr2 = fn;
 }
 
 /*!
@@ -3596,8 +3788,17 @@ All windows are connected to this callback.
 */
 void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 {
-	gCharCallbackFn = fnPtr;
+	gCharCallbackFnPtr = fnPtr;
 }
+
+/*!
+All windows are connected to this callback.
+*/
+void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn)
+{
+	gCharCallbackFnPtr = fn;
+}
+
 /*!
 	\param fnPtr is the function pointer to a mouse button callback function
 
@@ -3622,7 +3823,17 @@ void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 */
 void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 {
-	gMouseButtonCallbackFn = fnPtr;
+	gMouseButtonCallbackFnPtr = fnPtr;
+}
+
+/*!
+\param fn is the std function of a mouse button callback function
+
+@see sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
+*/
+void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn)
+{
+	gMouseButtonCallbackFnPtr = fn;
 }
 
 /*!
@@ -3630,7 +3841,15 @@ All windows are connected to this callback.
 */
 void sgct::Engine::setMousePosCallbackFunction( void(*fnPtr)(double, double) )
 {
-	gMousePosCallbackFn = fnPtr;
+	gMousePosCallbackFnPtr = fnPtr;
+}
+
+/*!
+All windows are connected to this callback.
+*/
+void sgct::Engine::setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn)
+{
+	gMousePosCallbackFnPtr = fn;
 }
 
 /*!
@@ -3638,7 +3857,15 @@ All windows are connected to this callback.
 */
 void sgct::Engine::setMouseScrollCallbackFunction( void(*fnPtr)(double, double) )
 {
-	gMouseScrollCallbackFn = fnPtr;
+	gMouseScrollCallbackFnPtr = fnPtr;
+}
+
+/*!
+All windows are connected to this callback.
+*/
+void sgct::Engine::setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn)
+{
+	gMouseScrollCallbackFnPtr = fn;
 }
 
 void sgct::Engine::clearBuffer()
@@ -3654,35 +3881,35 @@ void sgct::Engine::clearBuffer()
 
 void sgct::Engine::internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods)
 {
-	if( gKeyboardCallbackFn != NULL )
-		gKeyboardCallbackFn(key, action);
+	if (gKeyboardCallbackFnPtr != SGCT_NULL_PTR)
+		gKeyboardCallbackFnPtr(key, action);
     
-    if( gKeyboardCallbackFn2 != NULL )
-        gKeyboardCallbackFn2(key, scancode, action, mods);
+	if (gKeyboardCallbackFnPtr2 != SGCT_NULL_PTR)
+        gKeyboardCallbackFnPtr2(key, scancode, action, mods);
 }
 
 void sgct::Engine::internal_key_char_callback(GLFWwindow* window, unsigned int ch)
 {
-	if( gCharCallbackFn != NULL )
-		gCharCallbackFn(ch);
+	if (gCharCallbackFnPtr != SGCT_NULL_PTR)
+		gCharCallbackFnPtr(ch);
 }
 
 void sgct::Engine::internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
-	if( gMouseButtonCallbackFn != NULL )
-		gMouseButtonCallbackFn(button, action);
+	if (gMouseButtonCallbackFnPtr != SGCT_NULL_PTR)
+		gMouseButtonCallbackFnPtr(button, action);
 }
 
 void sgct::Engine::internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos)
 {
-	if( gMousePosCallbackFn != NULL )
-		gMousePosCallbackFn(xPos, yPos);
+	if (gMousePosCallbackFnPtr != SGCT_NULL_PTR)
+		gMousePosCallbackFnPtr(xPos, yPos);
 }
 
 void sgct::Engine::internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset)
 {
-	if( gMouseScrollCallbackFn != NULL)
-		gMouseScrollCallbackFn(xOffset, yOffset);
+	if (gMouseScrollCallbackFnPtr != SGCT_NULL_PTR)
+		gMouseScrollCallbackFnPtr(xOffset, yOffset);
 }
 
 void sgct::Engine::internal_glfw_error_callback(int error, const char* description)
@@ -4086,8 +4313,8 @@ std::size_t sgct::Engine::getFocusedWindowIndex()
  */
 void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex)
 {
-	if (mExternalDecodeCallbackFn != NULL && receivedlength > 0)
-		mExternalDecodeCallbackFn(receivedData, receivedlength);
+	if (mExternalDecodeCallbackFnPtr != SGCT_NULL_PTR && receivedlength > 0)
+		mExternalDecodeCallbackFnPtr(receivedData, receivedlength);
 }
 
 /*!
@@ -4095,8 +4322,8 @@ void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedD
  */
 void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
 {
-	if (mExternalStatusCallbackFn != NULL)
-		mExternalStatusCallbackFn(connected);
+	if (mExternalStatusCallbackFnPtr != SGCT_NULL_PTR)
+		mExternalStatusCallbackFnPtr(connected);
 }
 
 /*!
@@ -4104,8 +4331,8 @@ void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
  */
 void sgct::Engine::invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
-	if (mDataTransferDecodeCallbackFn != NULL && receivedlength > 0)
-		mDataTransferDecodeCallbackFn(receivedData, receivedlength, packageId, clientIndex);
+	if (mDataTransferDecodeCallbackFnPtr != SGCT_NULL_PTR && receivedlength > 0)
+		mDataTransferDecodeCallbackFnPtr(receivedData, receivedlength, packageId, clientIndex);
 }
 
 /*!
@@ -4113,8 +4340,8 @@ void sgct::Engine::invokeDecodeCallbackForDataTransfer(void * receivedData, int 
  */
 void sgct::Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex)
 {
-	if (mDataTransferStatusCallbackFn != NULL)
-		mDataTransferStatusCallbackFn(connected, clientIndex);
+	if (mDataTransferStatusCallbackFnPtr != SGCT_NULL_PTR)
+		mDataTransferStatusCallbackFnPtr(connected, clientIndex);
 }
 
 /*!
@@ -4122,8 +4349,8 @@ void sgct::Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clien
  */
 void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex)
 {
-	if (mDataTransferAcknowledgeCallbackFn != NULL)
-		mDataTransferAcknowledgeCallbackFn(packageId, clientIndex);
+	if (mDataTransferAcknowledgeCallbackFnPtr != SGCT_NULL_PTR)
+		mDataTransferAcknowledgeCallbackFnPtr(packageId, clientIndex);
 }
 
 /*!
@@ -4131,8 +4358,8 @@ void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int c
 */
 void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex, ScreenCapture::EyeIndex ei)
 {
-    if(mScreenShotFn != NULL)
-        mScreenShotFn(imPtr, winIndex, ei);
+	if (mScreenShotFnPtr != SGCT_NULL_PTR)
+        mScreenShotFnPtr(imPtr, winIndex, ei);
 }
 
 /*!

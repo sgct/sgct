@@ -63,19 +63,13 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mMainThread		= NULL;
 	mSocket				= INVALID_SOCKET;
 	mListenSocket		= INVALID_SOCKET;
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	mDecoderCallbackFn	= nullptr;
-	mUpdateCallbackFn	= nullptr;
-	mConnectedCallbackFn = nullptr;
-	mAcknowledgeCallbackFn = nullptr;
-	mPackageDecoderCallbackFn = nullptr;
-#else
-	mDecoderCallbackFn	= NULL;
-	mUpdateCallbackFn	= NULL;
-	mConnectedCallbackFn = NULL;
-	mAcknowledgeCallbackFn = NULL;
-	mPackageDecoderCallbackFn = NULL;
-#endif
+	
+	mDecoderCallbackFn			= SGCT_NULL_PTR;
+	mUpdateCallbackFn			= SGCT_NULL_PTR;
+	mConnectedCallbackFn		= SGCT_NULL_PTR;
+	mAcknowledgeCallbackFn		= SGCT_NULL_PTR;
+	mPackageDecoderCallbackFn	= SGCT_NULL_PTR;
+
 	mConnectionType		= SyncConnection;
 	mBufferSize			= 1024;
 	mRequestedSize		= mBufferSize;
@@ -876,12 +870,9 @@ void communicationHandler(void *arg)
 		if (nPtr->mSocket == INVALID_SOCKET)
 		{
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", nPtr->getId(), accErr);
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-			if(nPtr->mUpdateCallbackFn != nullptr)
-#else
-			if(nPtr->mUpdateCallbackFn != NULL)
-#endif
-                nPtr->mUpdateCallbackFn( nPtr->getId() );
+
+			if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
+				nPtr->mUpdateCallbackFn( nPtr->getId() );
 			return;
 		}
 	}
@@ -889,11 +880,7 @@ void communicationHandler(void *arg)
 	nPtr->setConnectedStatus(true);
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", nPtr->getId());
 
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	if(nPtr->mUpdateCallbackFn != nullptr)
-#else
-	if(nPtr->mUpdateCallbackFn != NULL)
-#endif
+	if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
 	//init buffers
@@ -1135,11 +1122,7 @@ void communicationHandler(void *arg)
 #endif
 				}
 				else if (headerId == sgct_core::SGCTNetwork::Ack &&
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-					nPtr->mAcknowledgeCallbackFn != nullptr)
-#else
-					nPtr->mAcknowledgeCallbackFn != NULL)
-#endif
+					nPtr->mAcknowledgeCallbackFn != SGCT_NULL_PTR)
 				{
 					//parse the package id
 					packageId = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
@@ -1242,13 +1225,8 @@ void communicationHandler(void *arg)
 				*/
 				else
 				{
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
 				if( headerId == sgct_core::SGCTNetwork::DataId &&
-					nPtr->mDecoderCallbackFn != nullptr)
-#else
-				if( headerId == sgct_core::SGCTNetwork::DataId &&
-					nPtr->mDecoderCallbackFn != NULL)
-#endif
+					nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
 					{
 						//decode callback
 						if(dataSize > 0)
@@ -1264,13 +1242,8 @@ void communicationHandler(void *arg)
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 					}
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
                     else if( headerId == sgct_core::SGCTNetwork::CompressedDataId &&
-                       nPtr->mDecoderCallbackFn != nullptr)
-#else
-                    else if( headerId == sgct_core::SGCTNetwork::CompressedDataId &&
-                        nPtr->mDecoderCallbackFn != NULL)
-#endif
+						nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
                     {
                         //decode callback
 						if(dataSize > 0)
@@ -1301,13 +1274,8 @@ void communicationHandler(void *arg)
                          }*/
 						sgct_core::NetworkManager::gCond.notify_all();
                     }
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
 					else if( headerId == sgct_core::SGCTNetwork::ConnectedId &&
-						nPtr->mConnectedCallbackFn != nullptr)
-#else
-					else if( headerId == sgct_core::SGCTNetwork::ConnectedId &&
-						nPtr->mConnectedCallbackFn != NULL)
-#endif
+						nPtr->mConnectedCallbackFn != SGCT_NULL_PTR)
 					{
 #ifdef __SGCT_NETWORK_DEBUG__
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
@@ -1388,11 +1356,7 @@ void communicationHandler(void *arg)
 
                     extBuffer = extBuffer.substr(found+2);//jump over \r\n
 
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-                    if( nPtr->mDecoderCallbackFn != nullptr )
-#else
-                    if( nPtr->mDecoderCallbackFn != NULL )
-#endif
+					if (nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
                     {
                         (nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
                     }
@@ -1415,12 +1379,7 @@ void communicationHandler(void *arg)
 #ifdef __SGCT_NETWORK_DEBUG__
 				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP raw data... ");
 #endif
-
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-				if( nPtr->mDecoderCallbackFn != nullptr )
-#else
-				if( nPtr->mDecoderCallbackFn != NULL )
-#endif
+				if (nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
 				{
 					(nPtr->mDecoderCallbackFn)(recvBuf, iResult, nPtr->getId());
 				}
@@ -1450,12 +1409,7 @@ void communicationHandler(void *arg)
 				else
 				{
                     if ((headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId) &&
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-						nPtr->mPackageDecoderCallbackFn != nullptr &&
-#else
-						nPtr->mPackageDecoderCallbackFn != NULL &&
-#endif
-                        dataSize > 0)
+						nPtr->mPackageDecoderCallbackFn != SGCT_NULL_PTR && dataSize > 0)
                     {
 						bool recvOk = false;
                         
@@ -1527,13 +1481,8 @@ void communicationHandler(void *arg)
                         nPtr->mUncompressedBufferSize = 0;
 						nPtr->mConnectionMutex.unlock();
 					}
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
 					else if (headerId == sgct_core::SGCTNetwork::ConnectedId &&
-						nPtr->mConnectedCallbackFn != nullptr)
-#else
-					else if (headerId == sgct_core::SGCTNetwork::ConnectedId &&
-						nPtr->mConnectedCallbackFn != NULL)
-#endif
+						nPtr->mConnectedCallbackFn != SGCT_NULL_PTR)
 					{
 #ifdef __SGCT_NETWORK_DEBUG__
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
@@ -1599,11 +1548,7 @@ void communicationHandler(void *arg)
     //contains mutex
 	nPtr->closeSocket( nPtr->mSocket );
 
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	if(nPtr->mUpdateCallbackFn != nullptr)
-#else
-	if(nPtr->mUpdateCallbackFn != NULL)
-#endif
+	if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
 		nPtr->mUpdateCallbackFn( nPtr->getId() );
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", nPtr->getId());
@@ -1643,19 +1588,11 @@ void sgct_core::SGCTNetwork::sendStr(std::string msg)
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 {
     //clear callbacks
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	mDecoderCallbackFn	= nullptr;
-	mUpdateCallbackFn	= nullptr;
-	mConnectedCallbackFn = nullptr;
-	mAcknowledgeCallbackFn = nullptr;
-	mPackageDecoderCallbackFn = nullptr;
-#else
-	mDecoderCallbackFn	= NULL;
-	mUpdateCallbackFn	= NULL;
-	mConnectedCallbackFn = NULL;
-	mAcknowledgeCallbackFn = NULL;
-	mPackageDecoderCallbackFn = NULL;
-#endif
+	mDecoderCallbackFn			= SGCT_NULL_PTR;
+	mUpdateCallbackFn			= SGCT_NULL_PTR;
+	mConnectedCallbackFn		= SGCT_NULL_PTR;
+	mAcknowledgeCallbackFn		= SGCT_NULL_PTR;
+	mPackageDecoderCallbackFn	= SGCT_NULL_PTR;
 
 	//release conditions
 	NetworkManager::gCond.notify_all();
@@ -1706,11 +1643,7 @@ void sgct_core::SGCTNetwork::initShutdown()
 	#endif
 	mConnectionMutex.lock();
         mTerminate = true;
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-        mDecoderCallbackFn = nullptr;
-#else
-		 mDecoderCallbackFn = NULL;
-#endif
+		mDecoderCallbackFn = SGCT_NULL_PTR;
         mConnected = false;
 	mConnectionMutex.unlock();
 	#ifdef __SGCT_MUTEX_DEBUG__

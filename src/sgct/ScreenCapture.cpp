@@ -25,11 +25,7 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	mCaptureCallbackFn = nullptr;
-#else
-	mCaptureCallbackFn = NULL;
-#endif
+	mCaptureCallbackFn = SGCT_NULL_PTR;
 	
 	mEyeIndex = MONO;
 	mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
@@ -47,11 +43,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
 
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-	mCaptureCallbackFn = nullptr;
-#else
-	mCaptureCallbackFn = NULL;
-#endif
+	mCaptureCallbackFn = SGCT_NULL_PTR;
 	
 	if( mSCTIPtrs != NULL )
 	{
@@ -224,11 +216,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
         
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
 
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-		if (mCaptureCallbackFn != nullptr)
-#else
-		if (mCaptureCallbackFn != NULL)
-#endif
+		if (mCaptureCallbackFn != SGCT_NULL_PTR)
 			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
 		else
 		{
@@ -256,11 +244,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
         
-#if (_MSC_VER >= 1700) //visual studio 2012 or later
-		if (mCaptureCallbackFn != nullptr)
-#else
-		if (mCaptureCallbackFn != NULL)
-#endif
+		if (mCaptureCallbackFn != SGCT_NULL_PTR)
 			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
 		else
 		{

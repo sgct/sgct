@@ -40,8 +40,8 @@ The macros below set the propper c++ includes and namespaces
 	//#pragma message "SGCTNetwork will use std::functional"
 	#endif
 
-#elif __USE_CPP0X__ && !defined(__LINUX__)
-#include <functional>
+#elif __USE_CPP0X__ && defined(__APPLE__)
+#include <tr1/functional>
 namespace sgct_cppxeleven = std::tr1;
 //#pragma message "SGCTNetwork will use std::tr1::functional"
 
@@ -49,6 +49,11 @@ namespace sgct_cppxeleven = std::tr1;
 #include <tr1/functional>
 namespace sgct_cppxeleven = std::tr1;
 //#pragma message "SGCTNetwork will use std:tr1::functional"
+
+#elif __USE_CPP0X__ && !defined(__LINUX__)
+#include <functional>
+namespace sgct_cppxeleven = std::tr1;
+//#pragma message "SGCTNetwork will use std::tr1::functional"
 
 #endif
 

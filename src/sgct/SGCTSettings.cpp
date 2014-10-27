@@ -9,8 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ScreenCapture.h"
 #include "../include/sgct/ogl_headers.h"
-
-#define DEFAULT_NUMBER_OF_CAPTURE_THREADS 8
+#include "external/tinythread.h"
 
 sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
 
@@ -19,7 +18,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mPNGCompressionLevel = 1;
 	mJPEGQuality = 100;
 
-	mNumberOfCaptureThreads = DEFAULT_NUMBER_OF_CAPTURE_THREADS;
+	mNumberOfCaptureThreads = tthread::thread::hardware_concurrency();
 
 	mUseWarping = true;
 	mUseDepthTexture = false;

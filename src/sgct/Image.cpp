@@ -365,7 +365,6 @@ bool sgct_core::Image::loadPNG(std::string filename)
 
 	mFilename.assign(filename);
 
-	unsigned char *pb;
 	png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned char header[PNG_BYTES_TO_CHECK];
@@ -471,7 +470,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
-			*(pb)++ = row[c];
+			*(mData)++ = row[c];
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);

@@ -462,6 +462,8 @@ bool sgct_core::Image::loadPNG(std::string filename)
 		return false;
 	}
 
+	unsigned char * pb = mData;
+
 	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -470,7 +472,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
-			*(mData)++ = row[c];
+			*(pb)++ = row[c];
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -567,6 +569,8 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		return false;
 	}
 
+	unsigned char * pb = mData;
+
 	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -575,7 +579,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
-			*(mData)++ = row[c];
+			*(pb)++ = row[c];
 	}
     
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -1122,17 +1126,12 @@ bool sgct_core::Image::allocateOrResizeData()
 		return false;
 	}
 
-	if (mData != NULL && mDataSize != dataSize) //re-allocate if needed
+	if (mData && mDataSize != dataSize) //re-allocate if needed
 	{
-		delete[] mData;
-		mData = NULL;
-		mDataSize = 0;
-
-		delete[] mRowPtrs;
-		mRowPtrs = NULL;
+		cleanup();
 	}
 
-	if ( mData == NULL )
+	if ( !mData )
 	{
 		try
 		{

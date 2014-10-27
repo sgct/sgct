@@ -176,7 +176,6 @@ This function saves the images to disc.
 */
 void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 {
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Saving frame...4\n");
 	addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
     
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
@@ -441,6 +440,11 @@ sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
 		(*imPtr) = new sgct_core::Image();
 		(*imPtr)->setChannels(mChannels);
 		(*imPtr)->setSize(mX, mY);
+		if (!(*imPtr)->allocateOrResizeData())
+		{
+			delete (*imPtr);
+			return NULL;
+		}
 	}
 	(*imPtr)->setFilename(mFilename);
 

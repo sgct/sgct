@@ -27,6 +27,8 @@ public:
     
 	Image();
 	~Image();
+
+	bool allocateOrResizeData();
 	bool load(std::string filename);
 	bool loadPNG(std::string filename);
     bool loadPNG(unsigned char * data, int len);
@@ -54,7 +56,6 @@ public:
 
 private:
 	void cleanup();
-	bool allocateOrResizeData();
 	FormatType getFormatType(const std::string & filename);
     bool isTGAPackageRLE(unsigned char * row, int pos);
     int getTGAPackageLength(unsigned char * row, int pos, bool rle);

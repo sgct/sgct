@@ -640,7 +640,7 @@ bool sgct_core::Image::savePNG(std::string filename, int compressionLevel)
 
 bool sgct_core::Image::savePNG(int compressionLevel)
 {
-	if( mData == NULL && !allocateOrResizeData())
+	if( mData == NULL )
 		return false;
 
 	double t0 = sgct::Engine::getTime();
@@ -743,14 +743,14 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	fclose(fp);
 
-	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }
 
 bool sgct_core::Image::saveJPEG(int quality)
 {
-	if (mData == NULL && !allocateOrResizeData())
+	if (mData == NULL)
 		return false;
 
 	double t0 = sgct::Engine::getTime();
@@ -830,13 +830,13 @@ bool sgct_core::Image::saveJPEG(int quality)
 
 	jpeg_destroy_compress(&cinfo);
 
-	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 	return true;
 }
 
 bool sgct_core::Image::saveTGA()
 {
-	if( mData == NULL && !allocateOrResizeData())
+	if( mData == NULL )
 		return false;
     
     double t0 = sgct::Engine::getTime();
@@ -949,7 +949,7 @@ bool sgct_core::Image::saveTGA()
 
 	fclose(fp);
 
-	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }

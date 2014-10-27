@@ -830,7 +830,7 @@ bool sgct_core::Image::saveJPEG(int quality)
 
 	jpeg_destroy_compress(&cinfo);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 	return true;
 }
 
@@ -949,7 +949,7 @@ bool sgct_core::Image::saveTGA()
 
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }

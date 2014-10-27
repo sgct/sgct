@@ -374,7 +374,7 @@ void myPostSyncPreDrawFun()
 
 void myPreWinInitFun()
 {
-	gEngine->getUserPtr()->setEyeSeparation(eyeSeparation);
+	gEngine->getDefaultUserPtr()->setEyeSeparation(eyeSeparation);
 	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
 	{
 		gEngine->setScreenShotNumber(startFrame);

@@ -344,7 +344,7 @@ void keyCallback(int key, int action)
 			if(action == SGCT_PRESS)
 			{
 				glm::dmat4 xform = glm::translate( glm::dmat4(1.0), glm::dvec3(0.0f, 0.0f, 4.0f) );
-				sgct_core::ClusterManager::instance()->getUserPtr()->setTransform(xform);
+				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->setTransform(xform);
 			}
 			break;
 

@@ -441,20 +441,8 @@ sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
 		(*imPtr) = new sgct_core::Image();
 		(*imPtr)->setChannels(mChannels);
 		(*imPtr)->setSize(mX, mY);
-
-		if (!(*imPtr)->allocateOrResizeData()) //if allocation fails
-		{
-			//wait and try again
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Failed to allocate image memory! Trying again...\n");
-			tthread::this_thread::sleep_for(tthread::chrono::milliseconds(100));
-			if (!(*imPtr)->allocateOrResizeData())
-			{
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Failed to allocate image memory for image '%s'!\n", mFilename.c_str());
-				return NULL;
-			}
-		}
 	}
-	(*imPtr)->setFilename(mFilename.c_str());
+	(*imPtr)->setFilename(mFilename);
 
 	return (*imPtr);
 }

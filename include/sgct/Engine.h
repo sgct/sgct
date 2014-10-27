@@ -177,7 +177,7 @@ public:
 	void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
 	void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
 
-//#ifdef __LOAD_CPP11_FUN__
+#ifdef __LOAD_CPP11_FUN__
 	void setInitOGLFunction(sgct_cppxeleven::function<void(void)> fn);
 	void setPreWindowFunction(sgct_cppxeleven::function<void(void)> fn);
 	void setPreSyncFunction(sgct_cppxeleven::function<void(void)> fn);
@@ -202,7 +202,7 @@ public:
 	void setDataTransferCallback(sgct_cppxeleven::function<void(void *, int, int, int)> fn); //arguments: const char * buffer, int buffer length, int package id, int client
 	void setDataTransferStatusCallback(sgct_cppxeleven::function<void(bool, int)> fn); //arguments: const bool & connected, int client
 	void setDataAcknowledgeCallback(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int package id, int client
-//#endif
+#endif
     
 	//external control network functions
 	void sendMessageToExternalControl(void * data, int length);

@@ -7,6 +7,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdio.h>
 #include <fstream>
+#include <algorithm>
+
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/png.h"
 #include "../include/external/pngpriv.h"
@@ -98,13 +100,13 @@ void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length
 
 sgct_core::Image::Image()
 {
-	mFilename = NULL;
 	mData = NULL;
 	mRowPtrs = NULL;
     
     mChannels = 0;
 	mSize_x = 0;
 	mSize_y = 0;
+	mDataSize = 0;
 }
 
 sgct_core::Image::~Image()
@@ -112,55 +114,83 @@ sgct_core::Image::~Image()
 	cleanup();
 }
 
-bool sgct_core::Image::load(const char * filename)
+sgct_core::Image::FormatType sgct_core::Image::getFormatType(const std::string & filename)
 {
-	int length = 0;
+	std::string filenameLC;
+	filenameLC.resize(filename.size());
 
-	while(filename[length] != '\0')
-		length++;
+	std::transform(filename.begin(), filename.end(), filenameLC.begin(), ::tolower);
 
-	char type[5];
-	if(length > 4)
+	std::size_t found;
+
+	//if png file
+	found = filenameLC.find(".png");
+	if (found != std::string::npos)
 	{
-		type[0] = filename[length-4];
-		type[1] = filename[length-3];
-		type[2] = filename[length-2];
-		type[3] = filename[length-1];
-		type[4] = '\0';
-
-		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
-			return loadPNG(filename);
-		else if (strcmp(".JPG", type) == 0 || strcmp(".jpg", type) == 0)
-			return loadJPEG(filename);
-		else
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown filesuffix: \"%s\"\n", type);
-			return false;
-		}
+		return FORMAT_PNG;
 	}
-	else
+
+	//if jpg
+	found = filenameLC.find(".jpg");
+	if (found != std::string::npos)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Loading failed (bad filename: %s)\n", filename);
+		return FORMAT_JPEG;
+	}
+
+	//if jpeg
+	found = filenameLC.find(".jpeg");
+	if (found != std::string::npos)
+	{
+		return FORMAT_JPEG;
+	}
+
+	//if tga
+	found = filenameLC.find(".tga");
+	if (found != std::string::npos)
+	{
+		return FORMAT_TGA;
+	}
+
+	//no match found
+	return UNKNOWN_FORMAT;
+}
+
+bool sgct_core::Image::load(std::string filename)
+{
+	if (filename.empty())
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Cannot load emtpy filepath!\n");
 		return false;
+	}
+
+	switch (getFormatType(filename))
+	{
+	case FORMAT_PNG:
+		loadPNG(filename);
+		return true;
+		break;
+
+	case FORMAT_JPEG:
+		loadJPEG(filename);
+		return true;
+		break;
+
+	default:
+		//not found
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown file '%s'\n", filename.c_str());
+		return false;
+		break;
 	}
 }
 
-bool sgct_core::Image::loadJPEG(const char * filename)
+bool sgct_core::Image::loadJPEG(std::string filename)
 {
-	mFilename = NULL;
-	if (filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	if (filename.empty()) //one char + dot and suffix and is 5 char
 	{
 		return false;
 	}
 
-	//copy filename
-	mFilename = new char[strlen(filename) + 1];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (strcpy_s(mFilename, strlen(filename) + 1, filename) != 0)
-		return false;
-#else
-	strcpy(mFilename, filename);
-#endif
+	mFilename.assign(filename);
 	
 	struct my_error_mgr jerr;
 	struct jpeg_decompress_struct cinfo;
@@ -169,16 +199,16 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 	int row_stride;
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (fopen_s(&fp, mFilename, "rb") != 0 || !fp)
+	if (fopen_s(&fp, mFilename.c_str(), "rb") != 0 || !fp)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #else
-	fp = fopen(mFilename, "rb");
+	fp = fopen(mFilename.c_str(), "rb");
 	if (fp == NULL)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #endif
@@ -196,7 +226,7 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 		*/
 		jpeg_destroy_decompress(&cinfo);
 		fclose(fp);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 	
@@ -212,7 +242,13 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 	mChannels = cinfo.output_components;
 	mSize_x = cinfo.output_width;
 	mSize_y = cinfo.output_height;
-	mData = new unsigned char[mChannels * mSize_x * mSize_y];
+	
+	if (!allocateOrResizeData())
+	{
+		jpeg_destroy_decompress(&cinfo);
+		fclose(fp);
+		return false;
+	}
 
 	/* Make a one-row-high sample array that will go away when done with image */
 	buffer = (*cinfo.mem->alloc_sarray)
@@ -231,14 +267,7 @@ bool sgct_core::Image::loadJPEG(const char * filename)
 	jpeg_destroy_decompress(&cinfo);
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename);
-
-	//clean up filename
-	if (mFilename != NULL)
-	{
-		delete[] mFilename;
-		mFilename = NULL;
-	}
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename.c_str());
 
 	return true;
 }
@@ -297,25 +326,14 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
         return false;
     }
     
-    int imageSize = mSize_x*mSize_y*mChannels;
-    if( imageSize <= 0 )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Invalid image size!\n");
-        tjDestroy(turbo_jpeg_handle);
-        return false;
-    }
-    
-    //clear if needed
-    if( mData )
-    {
-        delete [] mData;
-        mData = NULL;
-    }
-    
-    mData = new (std::nothrow) unsigned char [imageSize];
+	if (!allocateOrResizeData())
+	{
+		tjDestroy(turbo_jpeg_handle);
+		return false;
+	}
+
     if( !mData )
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Cannot allocate memory block of %d bytes!\n", imageSize);
         tjDestroy(turbo_jpeg_handle);
         return false;
 
@@ -338,22 +356,14 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
     return true;
 }
 
-bool sgct_core::Image::loadPNG(const char *filename)
+bool sgct_core::Image::loadPNG(std::string filename)
 {
-	mFilename = NULL;
-	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	if (filename.empty()) //one char + dot and suffix and is 5 char
 	{
-	    return false;
+		return false;
 	}
 
-	//copy filename
-	mFilename = new char[strlen(filename)+1];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
-		return false;
-    #else
-		strcpy(mFilename, filename );
-    #endif
+	mFilename.assign(filename);
 
 	unsigned char *pb;
 	png_structp png_ptr;
@@ -364,16 +374,16 @@ bool sgct_core::Image::loadPNG(const char *filename)
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "rb") != 0 || !fp )
+	if (fopen_s(&fp, mFilename.c_str(), "rb") != 0 || !fp)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #else
-    fp = fopen(mFilename, "rb");
+	fp = fopen(mFilename.c_str(), "rb");
     if( fp == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #endif
@@ -381,7 +391,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	size_t result = fread( header, 1, PNG_BYTES_TO_CHECK, fp );
 	if( result != PNG_BYTES_TO_CHECK || png_sig_cmp( (png_byte*) &header[0], 0, PNG_BYTES_TO_CHECK) )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is not in PNG format\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is not in PNG format\n", mFilename.c_str());
 		fclose(fp);
 		return false;
 	}
@@ -389,7 +399,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	png_ptr = png_create_read_struct( PNG_LIBPNG_VER_STRING, NULL, NULL, NULL );
 	if( png_ptr == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't initialize PNG file for reading: %s\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't initialize PNG file for reading: %s\n", mFilename.c_str());
 		fclose(fp);
 		return false;
 	}
@@ -399,7 +409,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	{
 		fclose(fp);
 		png_destroy_read_struct(&png_ptr, (png_infopp)NULL, (png_infopp)NULL);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't allocate memory to read PNG file: %s\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't allocate memory to read PNG file: %s\n", mFilename.c_str());
 		return false;
 	}
 
@@ -407,7 +417,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	{
 		png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 		fclose(fp);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Exception occurred while reading PNG file: %s\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Exception occurred while reading PNG file: %s\n", mFilename.c_str());
 		return false;
 	}
 
@@ -442,12 +452,17 @@ bool sgct_core::Image::loadPNG(const char *filename)
 		mChannels = 4;
 	else
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unsupported format '%s'\n", mFilename );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unsupported format '%s'\n", mFilename.c_str());
 		fclose(fp);
 		return false;
 	}
 
-	mData = pb = new unsigned char[ mChannels * mSize_x * mSize_y ];
+	if (!allocateOrResizeData())
+	{
+		fclose(fp);
+		return false;
+	}
+
 	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -462,14 +477,7 @@ bool sgct_core::Image::loadPNG(const char *filename)
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename);
-
-	//clean up filename
-	if( mFilename != NULL )
-	{
-		delete [] mFilename;
-		mFilename = NULL;
-	}
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename.c_str());
 
 	return true;
 }
@@ -482,8 +490,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
         return false;
     }
     
-    unsigned char *pb;
-	png_structp png_ptr;
+    png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned char header[PNG_BYTES_TO_CHECK];
 	//int numChannels;
@@ -556,7 +563,11 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		return false;
 	}
     
-	mData = pb = new unsigned char[ mChannels * mSize_x * mSize_y ];
+	if (!allocateOrResizeData())
+	{
+		return false;
+	}
+
 	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
 	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
 	{
@@ -565,7 +576,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
 		int c;
 		for( c = 0 ; c < rowbytes ; c++ )
-			*(pb)++ = row[c];
+			*(mData)++ = row[c];
 	}
     
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -580,45 +591,34 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 */
 bool sgct_core::Image::save()
 {
-	//test
-	//return true;
-	
-	int length = 0;
-
-	if(mFilename == NULL)
+	if(mFilename.empty())
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Filename not set for saving image.\n");
 		return false;
 	}
 
-	while(mFilename[length] != '\0')
-		length++;
-
-	char type[5];
-	if(length > 5)
+	switch (getFormatType(mFilename))
 	{
-		type[0] = mFilename[length-4];
-		type[1] = mFilename[length-3];
-		type[2] = mFilename[length-2];
-		type[3] = mFilename[length-1];
-		type[4] = '\0';
+	case FORMAT_PNG:
+		savePNG();
+		return true;
+		break;
 
-		if( strcmp(".PNG", type) == 0 || strcmp(".png", type) == 0 )
-			return savePNG( sgct::SGCTSettings::instance()->getPNGCompressionLevel() );
-		else if( strcmp(".TGA", type) == 0 || strcmp(".tga", type) == 0 )
-			return saveTGA();
-		else if (strcmp(".JPG", type) == 0 || strcmp(".jpg", type) == 0)
-			return saveJPEG( sgct::SGCTSettings::instance()->getJPEGQuality() );
-		else
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to save image! Unknown filesuffix: \"%s\"\n", type);
-			return false;
-		}
-	}
-	else
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to save image! Bad filename: %s\n", mFilename);
+	case FORMAT_JPEG:
+		saveJPEG();
+		return true;
+		break;
+
+	case FORMAT_TGA:
+		saveTGA();
+		return true;
+		break;
+
+	default:
+		//not found
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Cannot save file '%s'\n", mFilename.c_str());
 		return false;
+		break;
 	}
 }
 
@@ -629,7 +629,7 @@ bool sgct_core::Image::save()
 		1 = Best speed
 		9 = Best compression
 */
-bool sgct_core::Image::savePNG(const char * filename, int compressionLevel)
+bool sgct_core::Image::savePNG(std::string filename, int compressionLevel)
 {
 	setFilename( filename );
 	return savePNG( compressionLevel );
@@ -644,16 +644,16 @@ bool sgct_core::Image::savePNG(int compressionLevel)
     
     FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "wb") != 0 || !fp )
+    if( fopen_s( &fp, mFilename.c_str(), "wb") != 0 || !fp )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #else
-    fp = fopen(mFilename, "wb");
+	fp = fopen(mFilename.c_str(), "wb");
     if( fp == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #endif
@@ -740,7 +740,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }
@@ -754,16 +754,16 @@ bool sgct_core::Image::saveJPEG(int quality)
 
 	FILE *fp = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (fopen_s(&fp, mFilename, "wb") != 0 || !fp)
+	if (fopen_s(&fp, mFilename.c_str(), "wb") != 0 || !fp)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #else
-	fp = fopen(mFilename, "wb");
+	fp = fopen(mFilename.c_str(), "wb");
 	if (fp == NULL)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #endif
@@ -827,7 +827,7 @@ bool sgct_core::Image::saveJPEG(int quality)
 
 	jpeg_destroy_compress(&cinfo);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 	return true;
 }
 
@@ -840,23 +840,23 @@ bool sgct_core::Image::saveTGA()
 
 	FILE *fp = NULL;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( fopen_s( &fp, mFilename, "wb") != 0 || !fp )
+	if (fopen_s(&fp, mFilename.c_str(), "wb") != 0 || !fp)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #else
-    fp = fopen(mFilename, "wb");
+	fp = fopen(mFilename.c_str(), "wb");
     if( fp == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #endif
 
 	if( mChannels == 2 )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'.\nLuminance alpha not supported by the TGA format.\n", mFilename);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create TGA texture file '%s'.\nLuminance alpha not supported by the TGA format.\n", mFilename.c_str());
 		return false;
 	}
 
@@ -946,7 +946,7 @@ bool sgct_core::Image::saveTGA()
 
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: '%s' was saved successfully (%.2f ms)!\n", mFilename, (sgct::Engine::getTime() - t0)*1000.0);
 
 	return true;
 }
@@ -1004,28 +1004,16 @@ int sgct_core::Image::getTGAPackageLength(unsigned char * row, int pos, bool rle
     return len;
 }
 
-void sgct_core::Image::setFilename(const char * filename)
+void sgct_core::Image::setFilename(std::string filename)
 {
-	if( mFilename != NULL )
-	{
-		delete [] mFilename;
-		mFilename = NULL;
-	}
 
-	if( filename == NULL || strlen(filename) < 5) //one char + dot and suffix and is 5 char
+	if( filename.empty() || filename.length() < 5) //one char + dot and suffix and is 5 char
 	{
 	    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Invalid filename!\n");
 		return;
 	}
 
-	//copy filename
-	mFilename = new char[strlen(filename)+1];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if( strcpy_s(mFilename, strlen(filename)+1, filename ) != 0)
-		return;
-    #else
-		strcpy(mFilename, filename );
-    #endif
+	mFilename.assign(filename);
 }
 
 void sgct_core::Image::cleanup()
@@ -1034,18 +1022,13 @@ void sgct_core::Image::cleanup()
 	{
 		delete [] mData;
 		mData = NULL;
+		mDataSize = 0;
 	}
 
 	if(mRowPtrs)
 	{
 		delete [] mRowPtrs;
 		mRowPtrs = NULL;
-	}
-
-	if(mFilename)
-	{
-		delete [] mFilename;
-		mFilename = NULL;
 	}
 }
 
@@ -1066,6 +1049,11 @@ int sgct_core::Image::getWidth() const
 int sgct_core::Image::getHeight() const
 {
 	return mSize_y;
+}
+
+int sgct_core::Image::getDataSize() const
+{
+	return mDataSize;
 }
 
 /*!
@@ -1126,44 +1114,53 @@ void sgct_core::Image::setChannels(int channels)
 
 bool sgct_core::Image::allocateOrResizeData()
 {
-	if(mSize_x <= 0 || mSize_y <= 0 || mChannels <= 0)
+	int dataSize = mChannels * mSize_x * mSize_y;
+
+	if (dataSize <= 0)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Invalid image size %dx%d %d channels!\n",
 			mSize_x, mSize_y, mChannels);
 		return false;
 	}
 
-	if(mData != NULL) //re-allocate
+	if (mData != NULL && mDataSize != dataSize) //re-allocate if needed
 	{
-		delete [] mData;
+		delete[] mData;
 		mData = NULL;
+		mDataSize = 0;
 
-		delete [] mRowPtrs;
+		delete[] mRowPtrs;
 		mRowPtrs = NULL;
 	}
 
-	try
+	if ( mData == NULL )
 	{
-		mData = new unsigned char[ mChannels * mSize_x * mSize_y ];
-	}
-	catch(std::bad_alloc& ba)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate %d bytes of image data (%s).\n", mChannels * mSize_x * mSize_y, ba.what());
-		mData = NULL;
-		return false;
+		try
+		{
+			mData = new unsigned char[dataSize];
+			mDataSize = dataSize;
+		}
+		catch (std::bad_alloc& ba)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate %d bytes of image data (%s).\n", dataSize, ba.what());
+			mData = NULL;
+			mDataSize = 0;
+			return false;
+		}
+
+		try
+		{
+			mRowPtrs = new png_bytep[mSize_y];
+		}
+		catch (std::bad_alloc& ba)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate pointers for image data (%s).\n", ba.what());
+			mRowPtrs = NULL;
+			return false;
+		}
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Allocated %d bytes for image data\n", mDataSize);
 	}
 
-	try
-	{
-		mRowPtrs = new png_bytep[ mSize_y ];
-	}
-	catch(std::bad_alloc& ba)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate pointers for image data (%s).\n", ba.what());
-		mRowPtrs = NULL;
-		return false;
-	}
-
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Allocated %d bytes for image data\n", mChannels * mSize_x * mSize_y);
 	return true;
 }

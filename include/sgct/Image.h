@@ -14,6 +14,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <pngconf.h>
 #endif
 
+#include <string>
+
 namespace sgct_core
 {
 
@@ -21,34 +23,39 @@ class Image
 {
 public:
     enum ChannelType { Blue = 0, Green, Red, Alpha };
+	enum FormatType { FORMAT_PNG = 0, FORMAT_JPEG, FORMAT_TGA, UNKNOWN_FORMAT };
     
 	Image();
 	~Image();
-	bool load(const char * filename);
-	bool loadPNG(const char * filename);
+	bool load(std::string filename);
+	bool loadPNG(std::string filename);
     bool loadPNG(unsigned char * data, int len);
-	bool loadJPEG(const char * filename);
+	bool loadJPEG(std::string filename);
     bool loadJPEG(unsigned char * data, int len);
 	bool save();
-	bool savePNG(const char * filename, int compressionLevel = -1);
+	bool savePNG(std::string filename, int compressionLevel = -1);
 	bool savePNG(int compressionLevel = -1);
 	bool saveJPEG(int quality = 100);
 	bool saveTGA();
-	void setFilename(const char * filename);
-	void cleanup();
+	void setFilename(std::string filename);
+
 	unsigned char * getData();
 	int getChannels() const;
 	int getWidth() const;
 	int getHeight() const;
+	int getDataSize() const;
     unsigned char getSampleAt(int x, int y, ChannelType c);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
+
 	void setDataPtr(unsigned char * dPtr);
 	void setSize(int width, int height);
 	void setChannels(int channels);
-	bool allocateOrResizeData();
-	inline const char * getFilename() { return mFilename; }
+	inline const char * getFilename() { return mFilename.c_str(); }
 
 private:
+	void cleanup();
+	bool allocateOrResizeData();
+	FormatType getFormatType(const std::string & filename);
     bool isTGAPackageRLE(unsigned char * row, int pos);
     int getTGAPackageLength(unsigned char * row, int pos, bool rle);
     
@@ -56,7 +63,8 @@ private:
 	int mChannels;
 	int mSize_x;
 	int mSize_y;
-	char * mFilename;
+	int mDataSize;
+	std::string mFilename;
 	unsigned char * mData;
 	png_bytep * mRowPtrs;
 };

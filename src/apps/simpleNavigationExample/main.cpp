@@ -152,13 +152,13 @@ void myPreSyncFun()
 
 		glm::mat4 result;
 		//4. transform user back to original position
-		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
+		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getDefaultUserPtr()->getPos() );
 		//3. apply view rotation
 		result *= ViewRotateX;
 		//2. apply navigation translation
 		result *= glm::translate(glm::mat4(1.0f), pos);
 		//1. transform user to coordinate system origin
-		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
+		result *= glm::translate(glm::mat4(1.0f), -sgct::Engine::getDefaultUserPtr()->getPos());
 
 		xform.setVal( result );
 	}

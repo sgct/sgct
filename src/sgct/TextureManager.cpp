@@ -285,7 +285,7 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 	}
 
 	//load image
-	if ( !img.load(filename.c_str()) )
+	if ( !img.load(filename) )
 	{
 		if (reload)
 		{
@@ -434,7 +434,6 @@ bool sgct::TextureManager::loadTexure(std::size_t &handle, const std::string nam
 		}
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Texture created from '%s' [id=%d]\n", filename.c_str(), texID );
-		img.cleanup();
 	}
 	else //image data not valid
 	{
@@ -459,7 +458,7 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 	
 	//load image
 	sgct_core::Image img;
-	if (!img.load(filename.c_str()))
+	if (!img.load(filename))
 	{
 		return false;
 	}
@@ -584,7 +583,6 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), tmpTexID);
-		img.cleanup();
 	}
 	else //image data not valid
 	{

@@ -34,7 +34,7 @@ if( !sgct_text::FontManager::instance()->addFont( "Verdana", "verdana.ttf" ) )
 	sgct_text::FontManager::instance()->getFont( "Verdana", 14 );
  
 //Add Special font from local path
-if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", "myfonts/" ) )
+if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", sgct_text::FontManager::FontPath_Local ) )
 	sgct_text::FontManager::instance()->getFont( "Special", 14 );
 \endcode
 \n
@@ -45,7 +45,7 @@ sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), 5
 \n
 SGCT has an internal font that can be used as well:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 14 ), 50, 50, "Hello World!");
+sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), 50, 50, "Hello World!");
 \endcode
 */
 class FontManager

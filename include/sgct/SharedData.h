@@ -150,11 +150,14 @@ void SharedData::writeVector(SharedVector<T> * vector)
 {
 	std::vector<T> tmpVec = vector->getVal();
 
-	unsigned char *p = reinterpret_cast<unsigned char *>(&tmpVec[0]);
+	unsigned char *p;
+	p = tmpVec.size() ? reinterpret_cast<unsigned char *>(&tmpVec[0]) : NULL;
+	
     std::size_t element_size = sizeof(T);
     
 	writeSize( tmpVec.size() );
-	writeUCharArray(p, element_size * tmpVec.size());
+	if (p)
+		writeUCharArray(p, element_size * tmpVec.size());
 }
 
 template<class T>

@@ -23,7 +23,7 @@ namespace sgct_core
 			\n\
 			layout (location = 0) in vec2 Position;\n\
 			layout (location = 1) in vec2 TexCoords;\n\
-			layout (location = 2) in vec3 VertColor;\n\
+			layout (location = 2) in vec4 VertColor;\n\
 			\n\
 			out vec2 UV;\n\
 			out vec4 Col;\n\
@@ -32,7 +32,7 @@ namespace sgct_core
 			{\n\
 			   gl_Position = vec4(Position, 0.0, 1.0);\n\
 			   UV = TexCoords;\n\
-			   Col = vec4(VertColor, 1.0);\n\
+			   Col = VertColor;\n\
 			}\n";
 
 		const std::string Base_Frag_Shader = "\

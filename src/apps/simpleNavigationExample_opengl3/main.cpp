@@ -207,8 +207,8 @@ void myDrawFun()
 
 	drawXZGrid();
 
-	for (int i = 0; i < numberOfPyramids; i++)
-		drawPyramid(i);
+	//for (int i = 0; i < numberOfPyramids; i++)
+	//	drawPyramid(i);
 
 	glEnable(GL_DEPTH_TEST);
 	//glDisable(GL_DEPTH_TEST);

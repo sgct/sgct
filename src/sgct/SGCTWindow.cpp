@@ -344,7 +344,7 @@ void sgct::SGCTWindow::initContextSpecificOGL()
 	makeOpenGLContextCurrent(Window_Context);
 	unsigned int numberOfMasks = 0;
 	TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
-	TextureManager::instance()->setCompression(TextureManager::S3TC_DXT);
+	TextureManager::instance()->setCompression(TextureManager::No_Compression); //must be uncompressed otherwise arifacts will occur in gradients
 
 	for (std::size_t j = 0; j < getNumberOfViewports(); j++)
 	{

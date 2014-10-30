@@ -20,6 +20,7 @@
 
 #include "../include/sgct/SGCTSettings.h"
 #include <algorithm>
+#include <sstream>
 
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
@@ -133,12 +134,14 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
 void sgct_core::ReadConfig::readAndParseXML()
 {
 	if( xmlFileName.empty() )
-        throw "Invalid XML file!";
+        throw "No XML file set!";
     
 	tinyxml2::XMLDocument xmlDoc;
 	if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
 	{
-		throw "Invalid XML file!";
+        std::stringstream ss;
+        ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        throw ss.str().c_str();
 	}
     
 	tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );

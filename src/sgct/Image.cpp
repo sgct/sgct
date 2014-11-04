@@ -1157,7 +1157,7 @@ bool sgct_core::Image::allocateOrResizeData()
 			return false;
 		}
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Allocated %d bytes for image data\n", mDataSize);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: Allocated %d bytes for image data\n", mDataSize);
 	}
 
 	return true;

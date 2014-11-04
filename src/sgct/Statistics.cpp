@@ -381,10 +381,12 @@ void sgct_core::Statistics::update()
 	
 		PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     
-		if (PositionBuffer != NULL)
+		if (PositionBuffer)
+		{
 			memcpy(PositionBuffer, &mDynamicVertexList[0], size);
-	
-		glUnmapBuffer(GL_ARRAY_BUFFER);
+			glUnmapBuffer(GL_ARRAY_BUFFER);
+		}
+
 		glBindBuffer(GL_ARRAY_BUFFER, 0);
 	}
 }

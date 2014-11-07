@@ -204,6 +204,7 @@ public:
 	void setFisheyeOffset(float x, float y, float z = 0.0f);
 	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
 	void setFisheyeOverlay(std::string filename);
+    void setFisheyeMask(std::string filename);
 	void setFisheyeUseCubicInterpolation(bool state);
 	int getCubeMapResolution();
 	float getDomeDiameter();
@@ -213,6 +214,7 @@ public:
 	bool getFisheyeUseCubicInterpolation();
 	bool isFisheyeOffaxis();
 	const char * getFisheyeOverlay();
+    const char * getFisheyeMask();
 
 private:
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
@@ -290,6 +292,7 @@ private:
 
 	//Fisheye
 	std::string mFisheyeOverlayFilename;
+    std::string mFisheyeMaskFilename;
 	bool mFisheyeOffaxis;
 	float mFisheyeTilt;
 	float mFieldOfView;

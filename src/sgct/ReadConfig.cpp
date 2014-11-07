@@ -484,6 +484,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 							if( element[2]->Attribute("overlay") != NULL )
 								tmpWin.setFisheyeOverlay( std::string(element[2]->Attribute("overlay")) );
                             
+                            if (element[2]->Attribute("mask") != NULL)
+                                tmpWin.setFisheyeMask( std::string(element[2]->Attribute("mask")) );
+                            
                             if( element[2]->Attribute("method") != NULL )
 								sgct::SGCTSettings::instance()->setFisheyeMethod(
                                                                                  strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?

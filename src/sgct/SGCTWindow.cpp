@@ -2576,6 +2576,11 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             mViewports[0]->setOverlayTexture( getFisheyeOverlay() );
             //MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
         }
+        
+        if( getFisheyeMask() != NULL )
+        {
+            mViewports[0]->setMaskTexture( getFisheyeMask() );
+        }
     }
 
 	mAreCubeMapViewPortsGenerated = true;
@@ -2780,6 +2785,14 @@ void sgct::SGCTWindow::setFisheyeOverlay(std::string filename)
 }
 
 /*!
+ Set the fisheye overlay image.
+ */
+void sgct::SGCTWindow::setFisheyeMask(std::string filename)
+{
+    mFisheyeMaskFilename.assign(filename);
+}
+
+/*!
 Set if cubic interpolation should be used in cubemap sampling
 */
 void sgct::SGCTWindow::setFisheyeUseCubicInterpolation(bool state)
@@ -2840,6 +2853,12 @@ bool sgct::SGCTWindow::isFisheyeOffaxis()
 const char * sgct::SGCTWindow::getFisheyeOverlay()
 {
 	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
+}
+
+//! Get the fisheye mask image filename/path.
+const char * sgct::SGCTWindow::getFisheyeMask()
+{
+    return mFisheyeMaskFilename.empty() ? NULL : mFisheyeMaskFilename.c_str();
 }
 
 std::string sgct::SGCTWindow::getStereoModeStr()

@@ -460,26 +460,6 @@ bool sgct::Engine::initWindows()
 			return false;
 		}
 	}
-    
-    /*
-    -----------------------------------
-    WINDOW/Context Creation callback
-    -----------------------------------
-    */
-    if( mThisNode->getNumberOfWindows() > 0 )
-    {
-        share = mThisNode->getWindowPtr(0)->getWindowHandle();
-    
-		if (mContextCreationFnPtr != SGCT_NULL_PTR)
-        {
-            mContextCreationFnPtr(share);
-        }
-    }
-    else
-    {
-        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "No windows created on this node!\n");
-        return false;
-    }
 
 	GLenum err = glewInit();
 	if (GLEW_OK != err)
@@ -492,6 +472,26 @@ bool sgct::Engine::initWindows()
 
 	if( !checkForOGLErrors() )
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "GLEW init triggered an OpenGL error.\n");
+
+	/*
+	-----------------------------------
+	WINDOW/Context Creation callback
+	-----------------------------------
+	*/
+	if (mThisNode->getNumberOfWindows() > 0)
+	{
+		share = mThisNode->getWindowPtr(0)->getWindowHandle();
+
+		if (mContextCreationFnPtr != SGCT_NULL_PTR)
+		{
+			mContextCreationFnPtr(share);
+		}
+	}
+	else
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "No windows created on this node!\n");
+		return false;
+	}
 
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{

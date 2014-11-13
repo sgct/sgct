@@ -462,7 +462,7 @@ License type: BSD\n
 
 #ifndef TINYXML_H
 	#ifndef SGCT_DONT_USE_EXTERNAL
-		#define TINYXML_H "../include/external/tinyxml2.h"
+		#define TINYXML_H "external/tinyxml2.h"
 	#else
 		#define TINYXML_H "tinyxml2.h"
 	#endif
@@ -488,9 +488,9 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 Ths namespace contains various help classes and functions.
 */
 namespace sgct_helpers{}; //empty for doxygen documentation only
-//#include "../include/sgct/helpers/SGCTStringFunctions.h"
-#include "../include/sgct/helpers/SGCTVertexData.h"
-//#include "../include/sgct/helpers/SGCTPortedFunctions.h"
+//#include "sgct/helpers/SGCTStringFunctions.h"
+#include "sgct/helpers/SGCTVertexData.h"
+//#include "sgct/helpers/SGCTPortedFunctions.h"
 
 //for backwards compability
 namespace Freetype = sgct_text;

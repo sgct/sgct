@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _OFF_SCREEN_BUFFER
 #define _OFF_SCREEN_BUFFER
 
-#include "../include/sgct/ogl_headers.h"
+#include "ogl_headers.h"
 
 namespace sgct_core
 {

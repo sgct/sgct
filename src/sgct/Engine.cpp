@@ -354,7 +354,7 @@ bool sgct::Engine::initWindows()
 
 	int tmpGlfwVer[3];
     glfwGetVersion( &tmpGlfwVer[0], &tmpGlfwVer[1], &tmpGlfwVer[2] );
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLFW version %d.%d.%d.\n",
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_VERSION_INFO, "Using GLFW version %d.%d.%d\n",
                                          tmpGlfwVer[0],
                                          tmpGlfwVer[1],
                                          tmpGlfwVer[2]);

@@ -56,6 +56,8 @@ if [ ! -d doc ];
 then
 	mkdir doc
 fi
+cp -r ../../docs/html doc
+
 if [ ! -d build ];
 then
 	mkdir build
@@ -147,6 +149,7 @@ rm -rf examples/trackingExample/user_cmake
 
 #
 echo "Removing unwanted files..."
+find . -name '*.command' -type f -delete
 find . -name '*.layout' -type f -delete
 find . -name '*.depend' -type f -delete
 find . -name '*.cbp' -type f -delete

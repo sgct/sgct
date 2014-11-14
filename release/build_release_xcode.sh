@@ -58,6 +58,8 @@ if [ ! -d doc ];
 then
 	mkdir doc
 fi
+cp -r ../../docs/html doc
+
 if [ ! -d build ];
 then
 	mkdir build

@@ -61,7 +61,7 @@ if (BUILD_SHARED_LIBS)
         # The GLFW DLL needs a special compile-time macro and import library name
         set_target_properties(glfw PROPERTIES PREFIX "" IMPORT_PREFIX "")
 
-        if (MINGW)
+        if( NOT MSVC )
             set_target_properties(glfw PROPERTIES IMPORT_SUFFIX "dll.a")
         else()
             set_target_properties(glfw PROPERTIES IMPORT_SUFFIX "dll.lib")

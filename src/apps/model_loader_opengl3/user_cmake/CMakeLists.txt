@@ -122,7 +122,7 @@ endif()
 
 if( WIN32 )
 	add_definitions(-D__WIN32__)
-	if( MINGW )
+	if( NOT MSVC )
 		if( SGCT_CPP11 )
 			set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 		else()

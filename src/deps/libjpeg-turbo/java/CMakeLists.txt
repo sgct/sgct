@@ -19,7 +19,7 @@ else()
 endif()
 
 set(TURBOJPEG_DLL_NAME "turbojpeg")
-if(MINGW)
+if( NOT MSVC )
   set(TURBOJPEG_DLL_NAME "libturbojpeg")
 endif()
 configure_file(org/libjpegturbo/turbojpeg/TJLoader.java.in

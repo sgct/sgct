@@ -39,7 +39,7 @@ endif()
 		
 if( APPLE )
 	set(ALUT_OUTPUT_PATH "${ALUT_TARGET_PATH}/mac")
-elseif( NOT MSVC )
+elseif( WIN32 AND NOT MSVC )
 	if( SGCT_MINGW64 )
 		set(ALUT_OUTPUT_PATH "${ALUT_TARGET_PATH}/mingw_x64")
 	else()

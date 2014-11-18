@@ -253,6 +253,7 @@ else()
 endif()
 
 add_definitions(-DGLEW_STATIC)
+add_definitions(-DGLEW_NO_GLU)
 	
 if( CMAKE_COMPILER_IS_GNUCXX )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -s")

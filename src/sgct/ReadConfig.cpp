@@ -629,6 +629,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
+					bool transpose = true;
+					if (element[1]->Attribute("transpose") != NULL)
+						transpose = (strcmp(element[1]->Attribute("transpose"), "true") == 0);
+
 					float tmpf[16];
 					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
@@ -648,11 +652,13 @@ void sgct_core::ReadConfig::readAndParseXML()
 						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == tinyxml2::XML_NO_ERROR)
 					{
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
-						glm::mat4 mat = glm::make_mat4( tmpf );
-						usrPtr->setTransform(glm::transpose( mat ));
+						glm::mat4 mat = glm::make_mat4(tmpf);
+						if (transpose)
+							mat = glm::transpose(mat);
+						usrPtr->setTransform(mat);
 					}
 					else
-						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
+						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user matrix in XML!\n");
 				}
 				else if( strcmp("Tracking", val[1]) == 0 )
 				{
@@ -916,6 +922,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if (strcmp("Matrix", val[2]) == 0)
 						{
+							bool transpose = true;
+							if (element[2]->Attribute("transpose") != NULL)
+								transpose = (strcmp(element[2]->Attribute("transpose"), "true") == 0);
+							
 							float tmpf[16];
 							if (element[2]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
 								element[2]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
@@ -936,8 +946,9 @@ void sgct_core::ReadConfig::readAndParseXML()
 							{
 								//glm & opengl uses column major order (normally row major order is used in linear algebra)
 								glm::mat4 mat = glm::make_mat4( tmpf );
-								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform(
-                                                                                                                                           glm::transpose( mat ));
+								if (transpose)
+									mat = glm::transpose(mat);
+								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->setTransform( mat );
 							}
 							else
 								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device matrix in XML!\n");
@@ -989,6 +1000,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if (strcmp("Matrix", val[1]) == 0)
 				{
+					bool transpose = true;
+					if (element[1]->Attribute("transpose") != NULL)
+						transpose = (strcmp(element[1]->Attribute("transpose"), "true") == 0);
+
 					float tmpf[16];
 					if (element[1]->QueryFloatAttribute("x0", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("y0", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
@@ -1008,9 +1023,10 @@ void sgct_core::ReadConfig::readAndParseXML()
 						element[1]->QueryFloatAttribute("w3", &tmpf[15]) == tinyxml2::XML_NO_ERROR)
 					{
 						//glm & opengl uses column major order (normally row major order is used in linear algebra)
-						glm::mat4 mat = glm::make_mat4( tmpf );
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(
-                                                                                                               glm::transpose( mat ));
+						glm::mat4 mat = glm::make_mat4(tmpf);
+						if (transpose)
+							mat = glm::transpose(mat);
+						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setTransform(mat);
 					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker matrix in XML!\n");

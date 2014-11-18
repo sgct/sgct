@@ -43,7 +43,9 @@ thread_local int gLocalVar;
 // Mutex + global count variable
 mutex gMutex;
 fast_mutex gFastMutex;
+atomic_flag gFlag(ATOMIC_FLAG_INIT);
 int gCount;
+atomic_int gAtomicCount;
 
 // Condition variable
 condition_variable gCond;
@@ -73,13 +75,38 @@ void ThreadLock(void * aArg)
   }
 }
 
-// Thread function: Mutex locking
+// Thread function: Fast mutex locking
 void ThreadLock2(void * aArg)
 {
   for(int i = 0; i < 10000; ++ i)
   {
     lock_guard<fast_mutex> lock(gFastMutex);
     ++ gCount;
+  }
+}
+
+// Thread function: Spin-lock locking
+void ThreadSpinLock(void * aArg)
+{
+  for(int i = 0; i < 10000; ++ i)
+  {
+    // CPU-friendly spin-lock
+    while (gFlag.test_and_set())
+      this_thread::yield();
+
+    ++ gCount;
+
+    // Release lock
+    gFlag.clear();
+  }
+}
+
+// Thread function: Atomic count
+void ThreadAtomicCount(void * aArg)
+{
+  for(int i = 0; i < 10000; ++ i)
+  {
+    ++ gAtomicCount;
   }
 }
 
@@ -116,6 +143,7 @@ void ThreadDetach(void * aArg)
 {
   // We don't do anything much, just sleep a little...
   this_thread::sleep_for(chrono::milliseconds(100));
+  cout << " Detached thread finished." << endl;
 }
 
 
@@ -214,8 +242,56 @@ int main()
     cout << " gCount = " << gCount << endl;
   }
 
-  // Test 6: condition variable
-  cout << endl << "PART VI: Condition variable (40 + 1 threads)" << endl;
+  // Test 6: Atomic lock
+  cout << endl << "PART VI: Atomic spin-lock (100 threads x 10000 iterations)" << endl;
+  {
+    // Clear the global counter.
+    gCount = 0;
+
+    // Start a bunch of child threads
+    list<thread *> threadList;
+    for(int i = 0; i < 100; ++ i)
+      threadList.push_back(new thread(ThreadSpinLock, 0));
+
+    // Wait for the threads to finish
+    list<thread *>::iterator it;
+    for(it = threadList.begin(); it != threadList.end(); ++ it)
+    {
+      thread * t = *it;
+      t->join();
+      delete t;
+    }
+
+    // Check the global count
+    cout << " gCount = " << gCount << endl;
+  }
+
+  // Test 7: Atomic variable
+  cout << endl << "PART VII: Atomic variable (100 threads x 10000 iterations)" << endl;
+  {
+    // Clear the global counter.
+    gAtomicCount = 0;
+
+    // Start a bunch of child threads
+    list<thread *> threadList;
+    for(int i = 0; i < 100; ++ i)
+      threadList.push_back(new thread(ThreadAtomicCount, 0));
+
+    // Wait for the threads to finish
+    list<thread *>::iterator it;
+    for(it = threadList.begin(); it != threadList.end(); ++ it)
+    {
+      thread * t = *it;
+      t->join();
+      delete t;
+    }
+
+    // Check the global count
+    cout << " gAtomicCount = " << gAtomicCount << endl;
+  }
+
+  // Test 8: condition variable
+  cout << endl << "PART VIII: Condition variable (40 + 1 threads)" << endl;
   {
     // Set the global counter to the number of threads to run.
     gCount = 40;
@@ -242,8 +318,8 @@ int main()
     }
   }
 
-  // Test 7: yield
-  cout << endl << "PART VII: Yield (40 + 1 threads)" << endl;
+  // Test 9: yield
+  cout << endl << "PART IX: Yield (40 + 1 threads)" << endl;
   {
     // Start a bunch of child threads
     list<thread *> threadList;
@@ -263,8 +339,8 @@ int main()
     }
   }
 
-  // Test 8: sleep
-  cout << endl << "PART VIII: Sleep (10 x 100 ms)" << endl;
+  // Test 10: sleep
+  cout << endl << "PART X: Sleep (10 x 100 ms)" << endl;
   {
     // Sleep...
     cout << " Sleeping" << flush;
@@ -276,11 +352,16 @@ int main()
     cout << endl;
   }
 
-  // Test 9: detach
-  cout << endl << "PART IX: Detach" << endl;
+  // Test 11: detach
+  cout << endl << "PART XI: Detach" << endl;
   {
     thread t(ThreadDetach, 0);
     t.detach();
     cout << " Detached from thread." << endl;
+
+    // Give the thread a chanse to finish too...
+    this_thread::sleep_for(chrono::milliseconds(400));
   }
+
+  cout << endl << "Tests done!" << endl;
 }

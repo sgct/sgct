@@ -47,6 +47,8 @@ freely, subject to the following restrictions:
 /// @li tthread::condition_variable
 /// @li tthread::lock_guard
 /// @li tthread::fast_mutex
+/// @li tthread::atomic
+/// @li tthread::atomic_flag
 ///
 /// @section misc_sec Miscellaneous
 /// The following special keywords are available: #thread_local.
@@ -89,7 +91,7 @@ freely, subject to the following restrictions:
 /// TinyThread++ version (major number).
 #define TINYTHREAD_VERSION_MAJOR 1
 /// TinyThread++ version (minor number).
-#define TINYTHREAD_VERSION_MINOR 1
+#define TINYTHREAD_VERSION_MINOR 2
 /// TinyThread++ version (full version).
 #define TINYTHREAD_VERSION (TINYTHREAD_VERSION_MAJOR * 100 + TINYTHREAD_VERSION_MINOR)
 
@@ -101,6 +103,18 @@ freely, subject to the following restrictions:
 // ...at least partial C++11?
 #if defined(_TTHREAD_CPP11_) || defined(__GXX_EXPERIMENTAL_CXX0X__) || defined(__GXX_EXPERIMENTAL_CPP0X__)
   #define _TTHREAD_CPP11_PARTIAL_
+#endif
+
+// Do we have atomic builtins?
+#if defined(__GNUC__) && defined(__GNUC_MINOR__) && (__GNUC__ > 4 || (__GNUC__ == 4 && __GNUC_MINOR__ >= 1))
+  #define _TTHREAD_HAS_ATOMIC_BUILTINS_
+#endif
+
+// Check if we can support the assembly language atomic operations?
+#if (defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))) || \
+    (defined(_MSC_VER) && (defined(_M_IX86))) || \
+    (defined(__GNUC__) && (defined(__ppc__)))
+  #define _TTHREAD_HAS_ASM_ATOMICS_
 #endif
 
 // Macro for disabling assignments of objects.
@@ -365,7 +379,7 @@ class lock_guard {
 };
 
 /// Condition variable class.
-/// This is a signalling object for synchronizing the execution flow for
+/// This is a signaling object for synchronizing the execution flow for
 /// several threads. Example usage:
 /// @code
 /// // Shared data and associated mutex and condition variable objects
@@ -476,6 +490,335 @@ class condition_variable {
 #endif
 };
 
+/// Memory access order.
+/// Specifies how non-atomic memory accesses are to be ordered around an atomic
+/// operation.
+enum memory_order {
+  memory_order_relaxed, ///< Relaxed ordering: there are no constraints on
+                        ///  reordering of memory accesses around the atomic
+                        ///  variable.
+  memory_order_consume, ///< Consume operation: no reads in the current thread
+                        ///  dependent on the value currently loaded can be
+                        ///  reordered before this load. This ensures that
+                        ///  writes to dependent variables in other threads
+                        ///  that release the same atomic variable are visible
+                        ///  in the current thread. On most platforms, this
+                        ///  affects compiler optimization only.
+  memory_order_acquire, ///< Acquire operation: no reads in the current thread
+                        ///  can be reordered before this load. This ensures
+                        ///  that all writes in other threads that release the
+                        ///  same atomic variable are visible in the current
+                        ///  thread.
+  memory_order_release, ///< Release operation: no writes in the current thread
+                        ///  can be reordered after this store. This ensures
+                        ///  that all writes in the current thread are visible
+                        ///  in other threads that acquire the same atomic
+                        ///  variable.
+  memory_order_acq_rel, ///< Acquire-release operation: no reads in the current
+                        ///  thread can be reordered before this load as well
+                        ///  as no writes in the current thread can be
+                        ///  reordered after this store. The operation is
+                        ///  read-modify-write operation. It is ensured that
+                        ///  all writes in another threads that release the
+                        ///  same atomic variable are visible before the
+                        ///  modification and the modification is visible in
+                        ///  other threads that acquire the same atomic
+                        ///  variable.
+  memory_order_seq_cst  ///< Sequential ordering: The operation has the same
+                        ///  semantics as acquire-release operation, and
+                        ///  additionally has sequentially-consistent operation
+                        ///  ordering.
+};
+
+/// Expression which can be used to initialize atomic_flag to clear state.
+/// Example usage:
+/// \code{.cpp}
+/// tthread::atomic_flag myFlag(ATOMIC_FLAG_INIT);
+/// \endcode
+#ifndef ATOMIC_FLAG_INIT
+#define ATOMIC_FLAG_INIT 0
+#endif
+
+/// Atomic flag class.
+/// This is an atomic boolean object that provides methods for atomically
+/// testing, setting and clearing the state of the object. It can be used
+/// for implementing user space spin-locks, for instance.
+class atomic_flag {
+  public:
+    atomic_flag() : mFlag(0)
+    {
+    }
+
+    atomic_flag(int value) : mFlag(value)
+    {
+    }
+
+    /// Atomically test and set the value.
+    /// @param order The memory synchronization ordering for this operation.
+    /// @return The value held before this operation.
+    inline bool test_and_set(memory_order order = memory_order_seq_cst)
+    {
+#if defined(_TTHREAD_HAS_ATOMIC_BUILTINS_)
+      return static_cast<bool>(__sync_lock_test_and_set(&mFlag, 1));
+#elif defined(_TTHREAD_HAS_ASM_ATOMICS_)
+      int result;
+  #if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+      asm volatile (
+        "movl $1,%%eax\n\t"
+        "xchg %%eax,%0\n\t"
+        "movl %%eax,%1\n\t"
+        : "=m" (mFlag), "=m" (result)
+        :
+        : "%eax", "memory"
+      );
+  #elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+      volatile int *ptrFlag = &mFlag;
+      __asm {
+        mov eax,1
+        mov ecx,ptrFlag
+        xchg eax,[ecx]
+        mov result,eax
+      }
+  #elif defined(__GNUC__) && (defined(__ppc__))
+      int newFlag = 1;
+      asm volatile (
+        "\n1:\n\t"
+        "lwarx  %0,0,%1\n\t"
+        "cmpwi  0,%0,0\n\t"
+        "bne-   2f\n\t"
+        "stwcx. %2,0,%1\n\t"
+        "bne-   1b\n\t"
+        "isync\n"
+        "2:\n\t"
+        : "=&r" (result)
+        : "r" (&mFlag), "r" (newFlag)
+        : "cr0", "memory"
+      );
+  #endif
+      return static_cast<bool>(result);
+#else
+      lock_guard<mutex> guard(mLock);
+      int result = mFlag;
+      mFlag = 1;
+      return static_cast<bool>(result);
+#endif
+    }
+
+    /// Atomically changes the state to cleared (false).
+    /// @param order The memory synchronization ordering for this operation.
+    inline void clear(memory_order order = memory_order_seq_cst)
+    {
+#if defined(_TTHREAD_HAS_ATOMIC_BUILTINS_)
+      __sync_lock_release(&mFlag);
+#elif defined(_TTHREAD_HAS_ASM_ATOMICS_)
+  #if defined(__GNUC__) && (defined(__i386__) || defined(__x86_64__))
+      asm volatile (
+        "movl $0,%%eax\n\t"
+        "xchg %%eax,%0\n\t"
+        : "=m" (mFlag)
+        :
+        : "%eax", "memory"
+      );
+  #elif defined(_MSC_VER) && (defined(_M_IX86) || defined(_M_X64))
+      volatile int *ptrFlag = &mFlag;
+      __asm {
+        mov eax,0
+        mov ecx,ptrFlag
+        xchg eax,[ecx]
+      }
+  #elif defined(__GNUC__) && (defined(__ppc__))
+      asm volatile (
+        "sync\n\t"  // Replace with lwsync where possible?
+        : : : "memory"
+      );
+      mFlag = 0;
+  #endif
+#else
+      lock_guard<mutex> guard(mLock);
+      mFlag = 0;
+#endif
+    }
+
+    _TTHREAD_DISABLE_ASSIGNMENT(atomic_flag)
+
+  private:
+#if !(defined(_TTHREAD_HAS_ATOMIC_BUILTINS_) || defined(_TTHREAD_HAS_ASM_ATOMICS_))
+    mutex mLock;
+#endif // !(_TTHREAD_HAS_ATOMIC_BUILTINS_ || _TTHREAD_HAS_ASM_ATOMICS_)
+    volatile int mFlag;
+};
+
+
+/// Atomic template class.
+/// An atomic object provides atomic access to an underlying data element of
+/// the template type T.
+template<class T>
+struct atomic {
+  public:
+    atomic() : mValue(0)
+    {
+    }
+
+    atomic(T desired) : mValue(desired)
+    {
+    }
+
+    /// Checks whether the atomic operations on the object are lock-free.
+    inline bool is_lock_free() const
+    {
+#ifdef _TTHREAD_HAS_ATOMIC_BUILTINS_
+      return true;
+#else
+      return false;
+#endif
+    }
+
+    /// Atomically replaces the current value.
+    /// @param desired The new value.
+    /// @param order The memory synchronization ordering for this operation.
+    inline void store(T desired, memory_order order = memory_order_seq_cst)
+    {
+#ifdef _TTHREAD_HAS_ATOMIC_BUILTINS_
+      // FIXME: Use something more suitable here
+      __sync_lock_test_and_set(&mValue, desired);
+#else
+      lock_guard<mutex> guard(mLock);
+      mValue = desired;
+#endif
+    }
+
+    /// Atomically loads the current value.
+    /// @param order The memory synchronization ordering for this operation.
+    inline T load(memory_order order = memory_order_seq_cst) const
+    {
+#ifdef _TTHREAD_HAS_ATOMIC_BUILTINS_
+      // FIXME: Use something more suitable here
+      return __sync_add_and_fetch((volatile T*)&mValue, 0);
+#else
+      lock_guard<mutex> guard(mLock);
+      return mValue;
+#endif
+    }
+
+    /// Atomically increments the current value.
+    /// Atomically replaces the current value with the result of arithmetic
+    /// addition of the value and arg. The operation is a read-modify-write
+    /// operation.
+    /// @param arg The value to be added to the current value.
+    /// @param order The memory synchronization ordering for this operation.
+    inline T fetch_add(T arg, memory_order order = memory_order_seq_cst)
+    {
+#ifdef _TTHREAD_HAS_ATOMIC_BUILTINS_
+      return __sync_fetch_and_add(&mValue, arg);
+#else
+      lock_guard<mutex> guard(mLock);
+      T result = mValue;
+      mValue += arg;
+      return result;
+#endif
+    }
+
+    /// Atomically decrements the current value.
+    /// Atomically replaces the current value with the result of arithmetic
+    /// subtraction of the value and arg. The operation is a read-modify-write
+    /// operation.
+    /// @param arg The value to be subtracted from the current value.
+    /// @param order The memory synchronization ordering for this operation.
+    inline T fetch_sub(T arg, memory_order order = memory_order_seq_cst)
+    {
+#ifdef _TTHREAD_HAS_ATOMIC_BUILTINS_
+      return __sync_fetch_and_sub(&mValue, arg);
+#else
+      lock_guard<mutex> guard(mLock);
+      T result = mValue;
+      mValue -= arg;
+      return result;
+#endif
+    }
+
+    /// Atomically replaces the current value.
+    /// Equivalent to store(desired).
+    /// @param desired The new value.
+    /// @return The new value.
+    inline T operator=(T desired)
+    {
+      store(desired);
+      return desired;
+    }
+
+    /// Atomically loads the current value.
+    /// Equivalent to load().
+    /// @return The current value.
+    inline operator T() const
+    {
+      return load();
+    }
+
+    /// Atomic post-increment.
+    /// Equivalent to fetch_add(1) + 1.
+    /// @return The value after the increment operation.
+    inline T operator++()
+    {
+      return fetch_add(1) + 1;
+    }
+
+    /// Atomic pre-increment.
+    /// Equivalent to fetch_add(1).
+    /// @return The value before the increment operation.
+    inline T operator++(int)
+    {
+      return fetch_add(1);
+    }
+
+    /// Atomic post-decrement.
+    /// Equivalent to fetch_sub(1) - 1.
+    /// @return The value a the decrement operation.
+    inline T operator--()
+    {
+      return fetch_sub(1) - 1;
+    }
+
+    /// Atomic pre-decrement.
+    /// Equivalent to fetch_sub(1).
+    /// @return The value before the decrement operation.
+    inline T operator--(int)
+    {
+      return fetch_sub(1);
+    }
+
+    _TTHREAD_DISABLE_ASSIGNMENT(atomic<T>)
+
+  private:
+#ifndef _TTHREAD_HAS_ATOMIC_BUILTINS_
+    mutable mutex mLock;
+#endif // _TTHREAD_HAS_ATOMIC_BUILTINS_
+    volatile T mValue;
+};
+
+typedef atomic<char>               atomic_char;   ///< Specialized atomic for type char.
+typedef atomic<signed char>        atomic_schar;  ///< Specialized atomic for type signed char.
+typedef atomic<unsigned char>      atomic_uchar;  ///< Specialized atomic for type unsigned char.
+typedef atomic<short>              atomic_short;  ///< Specialized atomic for type short.
+typedef atomic<unsigned short>     atomic_ushort; ///< Specialized atomic for type unsigned short.
+typedef atomic<int>                atomic_int;    ///< Specialized atomic for type int.
+typedef atomic<unsigned int>       atomic_uint;   ///< Specialized atomic for type unsigned int.
+typedef atomic<long>               atomic_long;   ///< Specialized atomic for type long.
+typedef atomic<unsigned long>      atomic_ulong;  ///< Specialized atomic for type unsigned long.
+typedef atomic<long long>          atomic_llong;  ///< Specialized atomic for type long long.
+typedef atomic<unsigned long long> atomic_ullong; ///< Specialized atomic for type unsigned long long.
+
+#if defined(_TTHREAD_WIN32_)
+#define MS_VC_EXCEPTION 0x406d1388
+#pragma warning(disable: 6312)
+#pragma warning(disable: 6322)
+typedef struct
+{
+    DWORD dwType;        // must be 0x1000
+    LPCSTR szName;       // pointer to name (in same addr space)
+    DWORD dwThreadID;    // thread ID (-1 caller thread)
+    DWORD dwFlags;       // reserved for future use, most be zero
+} THREADNAME_INFO;
+#endif
 
 /// Thread class.
 class thread {
@@ -491,7 +834,7 @@ class thread {
     /// Default constructor.
     /// Construct a @c thread object without an associated thread of execution
     /// (i.e. non-joinable).
-    thread() : mHandle(0), mNotAThread(true)
+    thread() : mHandle(0), mWrapper(0)
 #if defined(_TTHREAD_WIN32_)
     , mWin32ThreadID(0)
 #endif
@@ -541,6 +884,18 @@ class thread {
       return mHandle;
     }
 
+    /// Tell the operating system to schedule this thread with lower priority.
+    /// @note This call may or may not effect the thread's performance, this is
+    /// why the class only allows one to decrease the priority, since increasing
+    /// it usually requires root permissions on POSIX systems, or may otherwise
+    /// be ignored by the OS.
+    void set_low_priority();
+
+    /// Set the human-readable name for the thread. This is mostly useful while
+    /// debugging.
+    /// @param[in] name Name of the thread
+    void set_name(const char* name);
+
     /// Determine the number of threads which can possibly execute concurrently.
     /// This function is useful for determining the optimal number of threads to
     /// use for a task.
@@ -552,8 +907,7 @@ class thread {
 
   private:
     native_handle_type mHandle;   ///< Thread handle.
-    mutable mutex mDataMutex;     ///< Serializer for access to the thread private data.
-    bool mNotAThread;             ///< True if this object is not a thread of execution.
+    void * mWrapper;              ///< Thread wrapper info.
 #if defined(_TTHREAD_WIN32_)
     unsigned int mWin32ThreadID;  ///< Unique thread ID (filled out by _beginthreadex).
 #endif
@@ -651,7 +1005,7 @@ namespace chrono {
 
       /// Construct a duration object with the given duration.
       template <class _Rep2>
-        explicit duration(const _Rep2& r) : rep_(r) {};
+        explicit duration(const _Rep2& r) : rep_(r) {}
 
       /// Return the value of the duration object.
       rep count() const

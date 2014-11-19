@@ -8,7 +8,7 @@
 #ifndef _CORRECTION_MESH_H_
 #define _CORRECTION_MESH_H_
 
-#include "../include/sgct/ogl_headers.h"
+#include "sgct/ogl_headers.h"
 
 namespace sgct_core
 {

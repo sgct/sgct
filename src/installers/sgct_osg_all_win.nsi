@@ -5,7 +5,7 @@
 !include x64.nsh
 
 ;Change the following defines to make different installers
-!define SGCT_VERSION "2.1.3"
+!define SGCT_VERSION "2.3.1"
 !define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
 !define OSG_VERSION "3.2.0"
@@ -166,14 +166,14 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#template
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\sgct_template"
 	File "..\..\src\apps\sgct_template\main.cpp"
-	File "..\..\src\apps\sgct_template\sgct_template_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\sgct_template\sgct_template_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\sgct_template\user_cmake\CMakeLists.txt"
 	
 	#example1
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle"
 	File "..\..\bin\example1\${SGCT_COMPILER}\example1_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\example1\main.cpp"
-	File "..\..\src\apps\example1\example1_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\example1\example1_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\example1\user_cmake\CMakeLists.txt"
 	
 	#example1 opengl3
@@ -182,7 +182,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\example1_opengl3\main.cpp"
 	File "..\..\src\apps\example1_opengl3\SimpleFragmentShader.fragmentshader"
 	File "..\..\src\apps\example1_opengl3\SimpleVertexShader.vertexshader"
-	File "..\..\src\apps\example1_opengl3\example1_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\example1_opengl3\example1_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\example1_opengl3\user_cmake\CMakeLists.txt"
 	
 	#texture_example
@@ -190,7 +190,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\bin\textureExample\${SGCT_COMPILER}\textureExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\textureExample\box.png"
 	File "..\..\src\apps\textureExample\main.cpp"
-	File "..\..\src\apps\textureExample\textureExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\textureExample\textureExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\textureExample\user_cmake\CMakeLists.txt"
 	
 	#texture_example opengl3
@@ -200,7 +200,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\textureExample_opengl3\main.cpp"
 	File "..\..\src\apps\textureExample_opengl3\SimpleFragmentShader.fragmentshader"
 	File "..\..\src\apps\textureExample_opengl3\SimpleVertexShader.vertexshader"
-	File "..\..\src\apps\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\textureExample_opengl3\textureExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\textureExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#simple shader
@@ -209,7 +209,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleShaderExample\simple.frag"
 	File "..\..\src\apps\simpleShaderExample\simple.vert"
 	File "..\..\src\apps\simpleShaderExample\main.cpp"
-	File "..\..\src\apps\simpleShaderExample\simpleShaderExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\simpleShaderExample\simpleShaderExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleShaderExample\user_cmake\CMakeLists.txt"
 	
 	#simple shader opengl3
@@ -218,7 +218,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleShaderExample_opengl3\simple.frag"
 	File "..\..\src\apps\simpleShaderExample_opengl3\simple.vert"
 	File "..\..\src\apps\simpleShaderExample_opengl3\main.cpp"
-	File "..\..\src\apps\simpleShaderExample_opengl3\simpleShaderExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\simpleShaderExample_opengl3\simpleShaderExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleShaderExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#height mapping example
@@ -230,7 +230,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\heightMappingExample\normalmap.png"
 	File "..\..\src\apps\heightMappingExample\main.cpp"
 	File "..\..\src\apps\heightMappingExample\fisheye.xml"
-	File "..\..\src\apps\heightMappingExample\heightMappingExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\heightMappingExample\heightMappingExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\heightMappingExample\user_cmake\CMakeLists.txt"
 	
 	#height mapping example opengl3
@@ -242,14 +242,14 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\heightMappingExample_opengl3\normalmap.png"
 	File "..\..\src\apps\heightMappingExample_opengl3\main.cpp"
 	File "..\..\src\apps\heightMappingExample_opengl3\fisheye.xml"
-	File "..\..\src\apps\heightMappingExample_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\heightMappingExample_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\heightMappingExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#simple navigation
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation"
 	File "..\..\bin\simpleNavigationExample\${SGCT_COMPILER}\simpleNavigationExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\simpleNavigationExample\main.cpp"
-	File "..\..\src\apps\simpleNavigationExample\simpleNavigationExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\simpleNavigationExample\simpleNavigationExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleNavigationExample\user_cmake\CMakeLists.txt"
 	
 	#simple navigation opengl3
@@ -260,14 +260,14 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\simpleNavigationExample_opengl3\gridShader.vert"
 	File "..\..\src\apps\simpleNavigationExample_opengl3\pyramidShader.frag"
 	File "..\..\src\apps\simpleNavigationExample_opengl3\pyramidShader.vert"
-	File "..\..\src\apps\simpleNavigationExample_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\simpleNavigationExample_opengl3\simpleNavigationExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\simpleNavigationExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#gamepad
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
 	File "..\..\bin\gamepadExample\${SGCT_COMPILER}\gamepadExample_${SGCT_COMPILER}_${ARCH}.exe"
 	File "..\..\src\apps\gamepadExample\main.cpp"
-	File "..\..\src\apps\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\gamepadExample\user_cmake\CMakeLists.txt"
 	
 	#render to texture
@@ -277,7 +277,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\renderToTexture\simple.vert"
 	File "..\..\src\apps\renderToTexture\main.cpp"
 	File "..\..\src\apps\textureExample\box.png"
-	File "..\..\src\apps\renderToTexture\renderToTexture_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\renderToTexture\renderToTexture_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\renderToTexture\user_cmake\CMakeLists.txt"
 	
 	#post FX
@@ -291,7 +291,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\postFXExample\blur_v.vert"
 	File "..\..\src\apps\postFXExample\glow.frag"
 	File "..\..\src\apps\postFXExample\threshold.frag"
-	File "..\..\src\apps\postFXExample\postFXExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\postFXExample\postFXExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\postFXExample\user_cmake\CMakeLists.txt"
 	
 	#post FX opengl3
@@ -307,7 +307,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\postFXExample_opengl3\threshold.frag"
 	File "..\..\src\apps\postFXExample_opengl3\SimpleFragmentShader.fragmentshader"
 	File "..\..\src\apps\postFXExample_opengl3\SimpleVertexShader.vertexshader"
-	File "..\..\src\apps\postFXExample_opengl3\postFXExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\postFXExample_opengl3\postFXExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\postFXExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#Depth Buffer
@@ -320,7 +320,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\depthBuffer\heightmap.frag"
 	File "..\..\src\apps\depthBuffer\depth.vert"
 	File "..\..\src\apps\depthBuffer\depth.frag"
-	File "..\..\src\apps\depthBuffer\depthBufferExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\depthBuffer\depthBufferExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\depthBuffer\user_cmake\CMakeLists.txt"
 	
 	#MRT
@@ -330,7 +330,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\MRTExample\main.cpp"
 	File "..\..\src\apps\MRTExample\mrt.vert"
 	File "..\..\src\apps\MRTExample\mrt.frag"
-	File "..\..\src\apps\MRTExample\MRTExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\MRTExample\MRTExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\MRTExample\user_cmake\CMakeLists.txt"
 	
 	#MRT opengl3
@@ -340,7 +340,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\src\apps\MRTExample_opengl3\main.cpp"
 	File "..\..\src\apps\MRTExample_opengl3\mrt.vert"
 	File "..\..\src\apps\MRTExample_opengl3\mrt.frag"
-	File "..\..\src\apps\MRTExample_opengl3\MRTExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\MRTExample_opengl3\MRTExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\MRTExample_opengl3\user_cmake\CMakeLists.txt"
 	
 	#osg examples
@@ -349,7 +349,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "..\..\bin\osgExample\${SGCT_COMPILER}\osgExample_${SGCT_COMPILER}_${ARCH}.exe"
 		File "..\..\src\apps\osgExample\airplane.ive"
 		File "..\..\src\apps\osgExample\main.cpp"
-		File "..\..\src\apps\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+		File "..\..\src\apps\install_project_files\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 		File "..\..\src\apps\osgExample\user_cmake\CMakeLists.txt"
 		
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT"
@@ -358,7 +358,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "..\..\src\apps\osgExampleRTT\main.cpp"
 		File "..\..\src\apps\osgExampleRTT\RenderToTexture.cpp"
 		File "..\..\src\apps\osgExampleRTT\RenderToTexture.h"
-		File "..\..\src\apps\osgExampleRTT\osgExampleRTT_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+		File "..\..\src\apps\install_project_files\osgExampleRTT\osgExampleRTT_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 		File "..\..\src\apps\osgExample\user_cmake\CMakeLists.txt"
 	!endif
 	
@@ -368,7 +368,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "..\..\bin\remote_app\SGCTRemote.exe"
 	File "..\..\src\apps\SGCTRemote\main.cpp"
 	File "..\..\src\apps\SGCTRemote\single_remote.xml"
-	File "..\..\src\apps\SGCTRemote\remote_app_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "..\..\src\apps\install_project_files\SGCTRemote\remote_app_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "..\..\src\apps\SGCTRemote\user_cmake\CMakeLists.txt"
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\remote_app\SGCTRemote_GUI"
 	File /r "..\..\src\apps\SGCTRemote\SGCTRemote_GUI\Properties"

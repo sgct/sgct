@@ -91,6 +91,13 @@ void myDraw2DFun()
 		float xPos = static_cast<float>(gEngine->getActiveWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
 		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 16), xPos, 150.0f, glm::vec4(0.0, 1.0, 0.5, 1.0), "Vector val: %f, size: %u", extraData.getValAt(EXTENDED_SIZE / 2), extraData.getSize());
 	}
+
+	/*static int counter = 0;
+	sgct_text::FontManager::instance()->setStrokeColor(glm::vec4(1.0, 0.0, 0.0, 0.5));
+	sgct_text::FontManager::instance()->setStrokeSize(10);
+	sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 256), 500, 500, glm::vec4(1.0, 1.0, 1.0, 1.0), "%d", counter);
+	gEngine->takeScreenshot();
+	counter++;*/
 }
 
 void myDrawFun()

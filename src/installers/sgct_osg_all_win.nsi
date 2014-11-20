@@ -8,8 +8,8 @@
 !define SGCT_VERSION "2.1.3"
 !define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
-!define OSG_VERSION "3.0.1"
-!define INC_OSG 0
+!define OSG_VERSION "3.2.0"
+!define INC_OSG 1
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -21,6 +21,7 @@
 	!define PRJ_SUFFIX "vcxproj"
 !else if "${SGCT_COMPILER}" == "msvc12"		
 	!define PRJ_SUFFIX "vcxproj"
+	!define OSG_BIN_DIR "D:\bin\osg\osg-3.2.0-VS12_x64\"
 !else	
 	!define PRJ_SUFFIX "cbp"
 	!define OSG_BIN_DIR "D:\bin\osg\OpenSceneGraph-${OSG_VERSION}-MinGW\"

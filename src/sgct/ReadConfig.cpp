@@ -39,13 +39,9 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
     if( !replaceEnvVars(filename) )
         return;
     
-	try
+	if(!readAndParseXML())
 	{
-		readAndParseXML();
-	}
-	catch(const char * err)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), err);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), mErrorMsg.c_str());
 		return;
 	}
 	valid = true;
@@ -131,30 +127,41 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
     return true;
 }
 
-void sgct_core::ReadConfig::readAndParseXML()
+bool sgct_core::ReadConfig::readAndParseXML()
 {
-	if( xmlFileName.empty() )
-        throw "No XML file set!";
+	if (xmlFileName.empty())
+	{
+		mErrorMsg.assign("No XML file set!");
+		return false;
+	}
     
 	tinyxml2::XMLDocument xmlDoc;
 	if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
 	{
         std::stringstream ss;
-        ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-        throw ss.str().c_str();
+		if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+			ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+		else
+			ss << "File not found";
+		mErrorMsg = ss.str();
+		return false;
 	}
     
 	tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{
-		throw "Cannot find XML root!";
+		mErrorMsg.assign("Cannot find XML root!");
+		return false;
 	}
     
 	const char * masterAddress = XMLroot->Attribute( "masterAddress" );
 	if( masterAddress )
 		ClusterManager::instance()->setMasterAddress( masterAddress );
 	else
-		throw "Cannot find master address or DNS name in XML!";
+	{
+		mErrorMsg.assign("Cannot find master address or DNS name in XML!");
+		return false;
+	}
     
 	const char * debugMode = XMLroot->Attribute( "debug" );
 	if( debugMode != NULL )
@@ -1040,6 +1047,8 @@ void sgct_core::ReadConfig::readAndParseXML()
 		//iterate
 		element[0] = element[0]->NextSiblingElement();
 	}
+
+	return true;
 }
 
 sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string type )

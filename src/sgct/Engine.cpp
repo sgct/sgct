@@ -3831,7 +3831,7 @@ void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 
 @see sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 */
-void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn)
+void sgct::Engine::setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn)
 {
 	gMouseButtonCallbackFnPtr = fn;
 }

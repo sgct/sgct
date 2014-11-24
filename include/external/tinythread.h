@@ -595,12 +595,14 @@ class atomic_flag {
         : "cr0", "memory"
       );
   #endif
-      return static_cast<bool>(result);
+	  //return static_cast<bool>(result);
+	  return result != 0;
 #else
       lock_guard<mutex> guard(mLock);
       int result = mFlag;
       mFlag = 1;
-      return static_cast<bool>(result);
+      //return static_cast<bool>(result);
+	  return result != 0;
 #endif
     }
 

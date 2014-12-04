@@ -52,7 +52,10 @@ sgct::MessageHandler::MessageHandler(void)
 
     mLocal = true;
 	mShowTime = true;
+	mLogToConsole = true;
 	mLogToFile = false;
+	mLogToCallback = false;
+	mMessageCallback = SGCT_NULL_PTR;
 
 	setLogPath(NULL);
 }
@@ -128,16 +131,24 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 #else
 		sprintf( mCombinedBuffer, "%s| %s", getTimeOfDayStr(), mParseBuffer );
 #endif
-		std::cerr << mCombinedBuffer;
+		if(mLogToConsole)
+			std::cerr << mCombinedBuffer;
 
 		if(mLogToFile)
 			logToFile( mCombinedBuffer );
+		if(mLogToCallback && mMessageCallback)
+			mMessageCallback( mCombinedBuffer );
 	}
 	else
 	{
-		std::cerr << mParseBuffer;
+		if (mLogToConsole)
+			std::cerr << mParseBuffer;
+
 		if(mLogToFile)
 			logToFile( mParseBuffer );
+		if(mLogToCallback && mMessageCallback)
+			mMessageCallback( mParseBuffer );
+
 	}
 
 	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::ConsoleMutex );
@@ -318,11 +329,34 @@ bool sgct::MessageHandler::getShowTime()
 }
 
 /*!
+Set if log to console should be enabled. It is enabled on default
+*/
+void sgct::MessageHandler::setLogToConsole(bool state)
+{
+	mLogToConsole = state;
+}
+
+/*!
 Set if log to file should be enabled
 */
 void sgct::MessageHandler::setLogToFile( bool state )
 {
 	mLogToFile = state;
+}
+
+/*!
+Set if a callback should be called for each incoming log message
+*/
+void sgct::MessageHandler::setLogToCallback( bool state )
+{
+	mLogToCallback = state;
+}
+
+/*!
+Set the callback that gets invoked for each log if setLogToCallback is <code>true</code>
+*/
+void sgct::MessageHandler::setLogCallback(MessageCallbackFn fn) {
+	mMessageCallback = fn;
 }
 
 /*!

@@ -21,6 +21,12 @@ namespace sgct //simple graphics cluster toolkit
 class MessageHandler
 {
 public:
+#ifdef __LOAD_CPP11_FUN__
+	typedef sgct_cppxeleven::function<void(const char *)> MessageCallbackFn;
+#else
+	typedef void (*MessageCallbackFn)(const char *);
+#endif
+
 	/*!
 		Different notify levels for messages
 	*/
@@ -59,8 +65,11 @@ public:
 	NotifyLevel getNotifyLevel();
 	void setShowTime( bool state );
 	bool getShowTime();
+	void setLogToConsole( bool state );
 	void setLogToFile( bool state );
 	void setLogPath(const char * path, int nodeId = -1);
+	void setLogToCallback( bool state );
+	void setLogCallback(MessageCallbackFn fn);
 	const char * getTimeOfDayStr();
 	inline std::size_t getDataSize() { return mBuffer.size(); }
 
@@ -88,7 +97,10 @@ private:
 	unsigned char  * headerSpace;
 	bool mLocal;
 	bool mShowTime;
+	bool mLogToConsole;
 	bool mLogToFile;
+	bool mLogToCallback;
+	MessageCallbackFn mMessageCallback;
 	char mTimeBuffer[TIME_BUFFER_SIZE];
 	char mFileName[LOG_FILENAME_BUFFER_SIZE];
     size_t mMaxMessageSize;

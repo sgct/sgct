@@ -18,7 +18,6 @@ void myCleanUpFun();
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
-size_t myTextureHandles[2];
 int myTextureLocations[2];
 int curr_timeLoc;
 bool mPause = false;
@@ -92,8 +91,8 @@ int main( int argc, char* argv[] )
     
     sgct::SGCTSettings::instance()->setUseDepthTexture(true);
 	sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
-    sgct::SGCTSettings::instance()->setSwapInterval(0);
-	//sgct::Engine::instance()->setClearColor(1.0f, 0.0f, 0.0f, 1.0f);
+    //sgct::SGCTSettings::instance()->setSwapInterval(0);
+	//sgct::Engine::instance()->setClearColor(0.0f, 1.0f, 0.0f, 1.0f);
 	//sgct::Engine::instance()->setFisheyeClearColor(1.0f, 0.0f, 0.0f);
 
 	if( !gEngine->init() )
@@ -126,11 +125,11 @@ void myDrawFun()
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandles[0]));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("heightmap"));
 	glEnable(GL_TEXTURE_2D);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandles[1]));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("normalmap"));
 	glEnable(GL_TEXTURE_2D);
 
 	//set current shader program
@@ -209,8 +208,8 @@ void myInitOGLFun()
 	glEndList();
 
 	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("heightmap", "heightmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("normalmap", "normalmap.png", true, 0);
 
 	sgct::ShaderManager::instance()->addShaderProgram("Heightmap", "heightmap.vert", "heightmap.frag");
 

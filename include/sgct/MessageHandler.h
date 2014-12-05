@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stddef.h> //get definition for NULL
 #include <stdarg.h>
 #include <vector>
+#include "helpers/SGCTCPPEleven.h"
 
 #define TIME_BUFFER_SIZE 9
 #define LOG_FILENAME_BUFFER_SIZE 1024 //include path
@@ -21,12 +22,6 @@ namespace sgct //simple graphics cluster toolkit
 class MessageHandler
 {
 public:
-#ifdef __LOAD_CPP11_FUN__
-	typedef sgct_cppxeleven::function<void(const char *)> MessageCallbackFn;
-#else
-	typedef void (*MessageCallbackFn)(const char *);
-#endif
-
 	/*!
 		Different notify levels for messages
 	*/
@@ -69,7 +64,10 @@ public:
 	void setLogToFile( bool state );
 	void setLogPath(const char * path, int nodeId = -1);
 	void setLogToCallback( bool state );
-	void setLogCallback(MessageCallbackFn fn);
+	void setLogCallback(void(*fnPtr)(const char *));
+#ifdef __LOAD_CPP11_FUN__
+	void setLogCallback(sgct_cppxeleven::function<void(const char *)> fn);
+#endif
 	const char * getTimeOfDayStr();
 	inline std::size_t getDataSize() { return mBuffer.size(); }
 
@@ -86,6 +84,12 @@ private:
 	void logToFile(const char * buffer);
 
 private:
+#ifdef __LOAD_CPP11_FUN__
+	typedef sgct_cppxeleven::function<void(const char *)> MessageCallbackFn;
+#else
+	typedef void(*MessageCallbackFn)(const char *);
+#endif
+
 	static MessageHandler * mInstance;
 
 	char * mParseBuffer;

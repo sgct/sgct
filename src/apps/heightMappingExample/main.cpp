@@ -14,8 +14,6 @@ void myDecodeFun();
 
 void keyCallback(int key, int action);
 void drawTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
-
-size_t myTextureHandles[2];
 int myTextureLocations[2];
 int curr_timeLoc;
 bool mPause = false;
@@ -75,11 +73,11 @@ void myDrawFun()
 
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[0] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("heightmap"));
 	glEnable(GL_TEXTURE_2D);
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[1] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("normalmap"));
 	glEnable(GL_TEXTURE_2D);
 
 	//set current shader program
@@ -147,8 +145,8 @@ void myInitOGLFun()
 	glEndList();
 
 	//sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("heightmap", "heightmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("normalmap", "normalmap.png", true, 0);
 
 	sgct::ShaderManager::instance()->addShaderProgram( "Heightmap", "heightmap.vert", "heightmap.frag" );
 

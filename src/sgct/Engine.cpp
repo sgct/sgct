@@ -2775,8 +2775,10 @@ void sgct::Engine::loadShaders()
 	sgct_helpers::findAndReplace(fxaa_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 	sgct_helpers::findAndReplace(fxaa_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 
-	mShaders[FXAAShader].addShaderSrc(fxaa_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-	mShaders[FXAAShader].addShaderSrc(fxaa_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+	if (!mShaders[FXAAShader].addShaderSrc(fxaa_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load FXAA vertex shader\n");
+	if(!mShaders[FXAAShader].addShaderSrc(fxaa_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load FXAA fragment shader\n");
 	mShaders[FXAAShader].createAndLinkProgram();
 	mShaders[FXAAShader].bind();
 
@@ -2812,8 +2814,10 @@ void sgct::Engine::loadShaders()
 		sgct_helpers::findAndReplace(FBO_quad_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 		
 		mShaders[FBOQuadShader].setName("FBOQuadShader");
-		mShaders[FBOQuadShader].addShaderSrc(FBO_quad_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-		mShaders[FBOQuadShader].addShaderSrc(FBO_quad_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		if(!mShaders[FBOQuadShader].addShaderSrc(FBO_quad_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load FBO quad vertex shader\n");
+		if(!mShaders[FBOQuadShader].addShaderSrc(FBO_quad_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load FBO quad fragment shader\n");
 		mShaders[FBOQuadShader].createAndLinkProgram();
 		mShaders[FBOQuadShader].bind();
 		mShaderLocs[MonoTex] = mShaders[FBOQuadShader].getUniformLocation( "Tex" );
@@ -2830,8 +2834,10 @@ void sgct::Engine::loadShaders()
         sgct_helpers::findAndReplace(Overlay_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
         
         mShaders[OverlayShader].setName("OverlayShader");
-        mShaders[OverlayShader].addShaderSrc(Overlay_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-        mShaders[OverlayShader].addShaderSrc(Overlay_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+        if(!mShaders[OverlayShader].addShaderSrc(Overlay_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load overlay vertex shader\n");
+        if(!mShaders[OverlayShader].addShaderSrc(Overlay_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load overlay fragment shader\n");
         mShaders[OverlayShader].createAndLinkProgram();
         mShaders[OverlayShader].bind();
         mShaderLocs[OverlayTex] = mShaders[OverlayShader].getUniformLocation( "Tex" );

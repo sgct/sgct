@@ -23,7 +23,7 @@ sides getSideIndex(size_t index);
 void face(rotation rot);
 
 std::string texturePaths[8];
-size_t textureHandles[] = {0, 0, 0, 0, 0, 0, 0, 0};
+GLuint textureIndices[] = {0, 0, 0, 0, 0, 0, 0, 0};
 rotation sideRotations[] = { ROT_0_DEG, ROT_0_DEG, ROT_0_DEG, ROT_0_DEG };
 size_t activeTexture = 0;
 size_t numberOfTextures = 0;
@@ -242,9 +242,7 @@ void myDrawFun()
 {
 	size_t index = counter % numberOfTextures;
 
-	unsigned int texId = sgct::TextureManager::instance()->getTextureByHandle(textureHandles[index]);
-
-	if( texId ) //if valid
+	if (textureIndices[index]) //if valid
 	{
 		//enter ortho mode
 		glMatrixMode(GL_PROJECTION);
@@ -261,7 +259,7 @@ void myDrawFun()
 		glColor3f(1.0f,1.0f,1.0f);
 		glEnable(GL_TEXTURE_2D);
 
-		glBindTexture( GL_TEXTURE_2D, texId );
+		glBindTexture(GL_TEXTURE_2D, textureIndices[index]);
 
 		if( index == LEFT_SIDE_L || index == LEFT_SIDE_R )
 			face( sideRotations[0] );
@@ -338,11 +336,14 @@ void myPreSyncFun()
 			}
 
 			//load the texture
-			if( !sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], std::string(tmpStr), true, 1) )
+			if( !sgct::TextureManager::instance()->loadTexure(texturePaths[i], std::string(tmpStr), true, 1) )
 			{
-				std::cout << "Error: Texture handle:" << textureHandles[i] << " ogl: " << sgct::TextureManager::instance()->getTextureByHandle(textureHandles[i]) <<
+				std::cout << "Error: texture: " << textureIndices[i] <<
 					" file: " << std::string(tmpStr) << " count: " << numberOfTextures << std::endl;
 			}
+			else
+				textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+
 		}
 
 		//for( size_t i=0; i < numberOfTextures; i++)
@@ -353,8 +354,11 @@ void myPreSyncFun()
 	}
 	else if(sequence && iterator <= stopIndex && numberOfDigits == 0 )
 	{
-		for( size_t i=0; i<numberOfTextures; i++)
-			sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], texturePaths[i], true, 1);
+		for (size_t i = 0; i < numberOfTextures; i++)
+		{
+			if( sgct::TextureManager::instance()->loadTexure(texturePaths[i], texturePaths[i], true, 1) )
+				textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
+		}
 
 		takeScreenshot.setVal( true );
 		iterator++;
@@ -403,7 +407,8 @@ void myInitOGLFun()
 	if(!sequence)
 	{
 		for( size_t i=0; i<numberOfTextures; i++)
-			sgct::TextureManager::instance()->loadTexure(textureHandles[i], texturePaths[i], texturePaths[i], true, 1);
+		if (sgct::TextureManager::instance()->loadTexure(texturePaths[i], texturePaths[i], true, 1))
+			textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
 	}
 
 	//dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 360, 90);

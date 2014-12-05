@@ -17,8 +17,6 @@ void myCleanUpFun();
 void keyCallback(int key, int action);
 void generateTerrainGrid( float width, float height, unsigned int wRes, unsigned int dRes );
 
-size_t myTextureHandles[2];
-
 //shader data
 sgct::ShaderProgram mSp;
 GLint myTextureLocations[]	= { -1, -1 };
@@ -104,7 +102,7 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {	
-	glEnable( GL_CULL_FACE );
+	glEnable(GL_CULL_FACE);
 	glEnable(GL_DEPTH_TEST);
 	glEnable(GL_BLEND);
 
@@ -122,10 +120,10 @@ void myDrawFun()
 	glm::mat3 NM		= glm::inverseTranspose( glm::mat3( MV ) );
 
 	glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[0] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId( "heightmap" ));
 
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle( myTextureHandles[1] ));
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId( "normalmap" ));
 
 	mSp.bind();
 
@@ -182,8 +180,8 @@ void myInitOGLFun()
 	glDepthFunc(GL_LESS);
 
 	//setup textures
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[0], "heightmap", "heightmap.png", true, 0);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandles[1], "normalmap", "normalmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("heightmap", "heightmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("normalmap", "normalmap.png", true, 0);
 
 	//setup shader
 	sgct::ShaderManager::instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );

@@ -5,8 +5,6 @@ sgct::Engine * gEngine;
 void myDrawFun();
 void myInitOGLFun();
 
-size_t texHandle = 0;
-
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
@@ -46,7 +44,7 @@ void myDrawFun()
 	
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(texHandle) );
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("grid"));
 
 	glBegin(GL_QUADS);
 	glTexCoord2d(0.0, 0.0);
@@ -73,5 +71,5 @@ void myDrawFun()
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::instance()->loadTexure(texHandle, "grid", "grid.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("grid", "grid.png", true, 0);
 }

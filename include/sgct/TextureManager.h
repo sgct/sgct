@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _TEXTURE_MANAGER_H_
 #define _TEXTURE_MANAGER_H_
 
-#include <vector>
+#include <unordered_map>
 #include <string>
 
 #include "Image.h"
@@ -22,10 +22,11 @@ public:
 	~TextureData();
 	void reset();
 
-	std::string mName;
 	std::string mPath;
 	unsigned int mId;
-	int mDim[3];
+	int mWidth;
+	int mHeight;
+	int mChannels;
 };
 }
 
@@ -64,13 +65,9 @@ public:
 		}
 	}
 
-	const unsigned int getTextureByHandle(const std::size_t handle);
-	const unsigned int getTextureByName(const std::string name);
-	const std::string getTextureName(const std::size_t handle);
-	const std::string getTexturePath(const std::size_t handle);
+	const unsigned int getTextureId(const std::string name);
 	const std::string getTexturePath(const std::string name);
-	void getDimensions(const std::size_t handle, int & x, int & y, int & channels);
-	void getDimensions(const std::string name, int & x, int & y, int & channels);
+	void getDimensions(const std::string name, int & width, int & height, int & channels);
 
 	/*!
 		Sets if a single channel texture should be interpreted as alpha or luminance.
@@ -86,7 +83,6 @@ public:
 	void setCompression(CompressionMode cm);
 	void setWarpingMode(int warp_s, int warp_t);
 	CompressionMode getCompression();
-	bool loadTexure(std::size_t &handle, const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 	bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
 	bool loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels = 8);
 
@@ -101,15 +97,13 @@ private:
 	const TextureManager & operator=(const TextureManager & rhs );
 
 private:
-	bool getIndexByName(std::size_t &handle, const std::string name);
-
 	static TextureManager * mInstance;
 	
 	float mAnisotropicFilterSize;
 	CompressionMode mCompression;
 	bool mAlphaMode;
 	bool mOverWriteMode;
-	std::vector<sgct_core::TextureData> mTextures;
+	std::unordered_map<std::string, sgct_core::TextureData> mTextures;
 	int mWarpMode[2];
 };
 

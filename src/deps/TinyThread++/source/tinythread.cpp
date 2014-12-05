@@ -343,7 +343,7 @@ void thread::set_low_priority()
 
 void thread::set_name(const char* name)
 {
-#if defined(_TTHREAD_WIN32_)
+#if defined(_TTHREAD_WIN32_) && defined(_MSC_VER)
     THREADNAME_INFO info;
     info.dwType = 0x1000;
     info.szName = (LPCSTR)name;

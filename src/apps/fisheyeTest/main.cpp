@@ -8,8 +8,6 @@ void myInitOGLFun();
 void keyCallback(int key, int action);
 void myCleanUpFun();
 
-size_t textureIndexes[4];
-size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
 
 bool info = false;
@@ -59,7 +57,7 @@ void myDrawFun()
 	float r = 7.5f; //dome radius
 
 	//right face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureIndexes[0]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("right") );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, -r);
 		glTexCoord2d(1.0,0.0); glVertex3f(r, -r, 0.0f);
@@ -68,7 +66,7 @@ void myDrawFun()
 	glEnd();
 
 	//left face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureIndexes[1]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("left") );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(-r, -r, 0.0f);
 		glTexCoord2d(1.0,0.0); glVertex3f(0.0f, -r, -r);
@@ -77,7 +75,7 @@ void myDrawFun()
 	glEnd();
 
 	//top face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureIndexes[2]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("top") );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, r,  r);
 		glTexCoord2d(1.0,0.0); glVertex3f(r,    r,  0.0f);
@@ -86,7 +84,7 @@ void myDrawFun()
 	glEnd();
 
 	//bottom face
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(textureIndexes[3]) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("bottom") );
 	glBegin(GL_QUADS);
 		glTexCoord2d(0.0,0.0); glVertex3f(0.0f, -r, r);
 		glTexCoord2d(1.0,0.0); glVertex3f(-r,   -r, 0.0f);
@@ -97,7 +95,7 @@ void myDrawFun()
 	/*glPushMatrix();
 	glTranslatef(0.0f, 0.0, -1.0f);
 	glColor3f(1.0f,1.0f,1.0f);
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
 	
 	glPushMatrix();
 	glTranslatef(-1.0f, 0.0, 0.0f);
@@ -211,17 +209,14 @@ void myDrawFun()
 
 void myInitOGLFun()
 {
-	for(unsigned int i=0; i<4; i++)
-		textureIndexes[i] = 0;
-
 	//sgct::TextureManager::instance()->setAnisotropicFilterSize(2.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
-	sgct::TextureManager::instance()->loadTexure(textureIndexes[0], "right", "grid_right.png", true, 4);
-	sgct::TextureManager::instance()->loadTexure(textureIndexes[1], "left", "grid_left.png", true, 4);
-	sgct::TextureManager::instance()->loadTexure(textureIndexes[2], "top", "grid_top.png", true, 4);
-	sgct::TextureManager::instance()->loadTexure(textureIndexes[3], "bottom", "grid_bottom.png", true, 4);
+	sgct::TextureManager::instance()->loadTexure("right", "grid_right.png", true, 4);
+	sgct::TextureManager::instance()->loadTexure("left", "grid_left.png", true, 4);
+	sgct::TextureManager::instance()->loadTexure("top", "grid_top.png", true, 4);
+	sgct::TextureManager::instance()->loadTexure("bottom", "grid_bottom.png", true, 4);
 
-	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true, 4);
+	sgct::TextureManager::instance()->loadTexure("box", "box.png", true, 4);
 	myBox = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
 
 	glEnable( GL_DEPTH_TEST );

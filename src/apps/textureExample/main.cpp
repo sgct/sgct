@@ -11,7 +11,6 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 
-size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
@@ -55,8 +54,7 @@ void myDrawFun()
 	glColor3f(1.0f,1.0f,1.0f);
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
 
 	//draw the box
 	myBox->draw();
@@ -74,7 +72,7 @@ void myInitOGLFun()
 {
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(1.0f, sgct_utils::SGCTBox::CubeMap);

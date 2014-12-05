@@ -15,7 +15,6 @@ void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
 
-size_t myTextureHandle;
 sgct_utils::SGCTBox * myBox = NULL;
 
 //variables to share across cluster
@@ -81,8 +80,7 @@ void myDrawFun()
 	glm::mat3 NormalMatrix = glm::inverseTranspose(glm::mat3(MV));
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle));
+	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
 
 	sgct::ShaderManager::instance()->bindShaderProgram("MRT");
 
@@ -136,7 +134,7 @@ void myInitOGLFun()
 	
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
 
 	//test
 	int size_x, size_y, size_c;

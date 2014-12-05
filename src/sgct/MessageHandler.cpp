@@ -62,7 +62,9 @@ sgct::MessageHandler::MessageHandler(void)
 
 sgct::MessageHandler::~MessageHandler(void)
 {
-    if(mParseBuffer)
+	mMessageCallback = SGCT_NULL_PTR;
+
+	if(mParseBuffer)
 		delete [] mParseBuffer;
     mParseBuffer = NULL;
 
@@ -136,7 +138,7 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 
 		if(mLogToFile)
 			logToFile( mCombinedBuffer );
-		if(mLogToCallback && mMessageCallback)
+		if (mLogToCallback && mMessageCallback != SGCT_NULL_PTR)
 			mMessageCallback( mCombinedBuffer );
 	}
 	else
@@ -146,7 +148,7 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 
 		if(mLogToFile)
 			logToFile( mParseBuffer );
-		if(mLogToCallback && mMessageCallback)
+		if (mLogToCallback && mMessageCallback != SGCT_NULL_PTR)
 			mMessageCallback( mParseBuffer );
 
 	}
@@ -355,7 +357,16 @@ void sgct::MessageHandler::setLogToCallback( bool state )
 /*!
 Set the callback that gets invoked for each log if setLogToCallback is <code>true</code>
 */
-void sgct::MessageHandler::setLogCallback(MessageCallbackFn fn) {
+void sgct::MessageHandler::setLogCallback(void(*fnPtr)(const char *))
+{
+	mMessageCallback = fnPtr;
+}
+
+/*!
+Set the std callback that gets invoked for each log if setLogToCallback is <code>true</code>
+*/
+void sgct::MessageHandler::setLogCallback(sgct_cppxeleven::function<void(const char *)> fn)
+{
 	mMessageCallback = fn;
 }
 

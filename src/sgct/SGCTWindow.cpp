@@ -1754,8 +1754,10 @@ void sgct::SGCTWindow::loadShaders()
 				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 				
-				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
+				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
 			}
 		}
 		else //modern pipeline
@@ -1899,8 +1901,10 @@ void sgct::SGCTWindow::loadShaders()
 				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 
-				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-				mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
+				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
 			}
 		}
 
@@ -1935,7 +1939,7 @@ void sgct::SGCTWindow::loadShaders()
 			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
 		else
 			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
-        
+
 		//replace glsl version
 		sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
@@ -1950,8 +1954,10 @@ void sgct::SGCTWindow::loadShaders()
 #endif
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
         
-		mFisheyeShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-        mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		if(!mFisheyeShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader\n");
+        if(!mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye fragment shader\n");
 
 		mFisheyeShader.setName("FisheyeShader");
 		mFisheyeShader.createAndLinkProgram();
@@ -2079,8 +2085,10 @@ void sgct::SGCTWindow::loadShaders()
 		sgct_helpers::findAndReplace(stereo_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 		sgct_helpers::findAndReplace(stereo_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
 
-		mStereoShader.addShaderSrc(stereo_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING);
-		mStereoShader.addShaderSrc(stereo_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING);
+		if(!mStereoShader.addShaderSrc(stereo_vert_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load stereo vertex shader\n");
+		if(!mStereoShader.addShaderSrc(stereo_frag_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
+			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load stereo fragment shader\n");
 
 		mStereoShader.setName("StereoShader");
 		mStereoShader.createAndLinkProgram();

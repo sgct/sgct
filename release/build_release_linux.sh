@@ -5,6 +5,9 @@ if [ ! -d $1 ];
 then
 	mkdir $1
 fi
+cd ..
+doxygen Doxyfile
+cd release
 cp CMakeLists.txt $1/CMakeLists.txt
 cp readme.txt $1/readme.txt
 cd $1

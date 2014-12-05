@@ -564,7 +564,7 @@ bool sgct_core::SGCTNetwork::isUpdated()
 			//slaves receives first and then sends so the prevois should be equal to the send
 			(mRecvFrame[Previous] == mSendFrame[Current]) :
 			//if loose sync just check if updated
-			mUpdated;
+			mUpdated.load();
 	}
 
 	return (state && mConnected);

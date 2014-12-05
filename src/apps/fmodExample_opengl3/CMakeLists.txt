@@ -10,6 +10,11 @@ set(CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/Modules)
 
 PROJECT(${APP_NAME})
 
+macro (set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
+set_property (TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY}
+	    ${XCODE_VALUE})
+endmacro (set_xcode_property)
+
 add_executable(${APP_NAME}
 	main.cpp
 	FMOD_Audio.cpp
@@ -153,6 +158,8 @@ if( WIN32 )
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
 	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
+	set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
+	set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libstdc++")
 else()
 	add_definitions(-D__LINUX__)
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")

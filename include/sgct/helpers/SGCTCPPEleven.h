@@ -34,8 +34,10 @@ pragma message("Warning: C++0x/11 not supported by compiler!")
 
 #if __USE_CPP11__
 #include <functional>
+#include <unordered_map>
 	#if defined(__APPLE__) && defined(_GLIBCXX_FUNCTIONAL) //incorrect header loaded
 	#include <tr1/functional>
+    #include <tr1/unordered_map>
 	namespace sgct_cppxeleven = std::tr1;
 	//#pragma message("SGCT will use std:tr1::functional")
 	#else
@@ -45,16 +47,19 @@ pragma message("Warning: C++0x/11 not supported by compiler!")
 
 #elif __USE_CPP0X__ && defined(__APPLE__)
 #include <tr1/functional>
+#include <tr1/unordered_map>
 namespace sgct_cppxeleven = std::tr1;
 //#pragma message("SGCT will use std::tr1::functional")
 
 #elif __USE_CPP0X__ && defined(__LINUX__)
 #include <tr1/functional>
+#include <tr1/unordered_map>
 namespace sgct_cppxeleven = std::tr1;
 //#pragma message("SGCT will use std:tr1::functional")
 
 #elif __USE_CPP0X__ && !defined(__LINUX__)
 #include <tr1/functional>
+#include <tr1/unordered_map>
 namespace sgct_cppxeleven = std::tr1;
 //#pragma message("SGCT will use std::tr1::functional")
 

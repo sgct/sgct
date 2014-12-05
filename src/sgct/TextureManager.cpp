@@ -166,7 +166,7 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 	
 	//check if texture exits in manager
 	bool exist = mTextures.count(name) > 0;
-	std::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
 	if (exist)
 	{	

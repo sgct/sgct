@@ -5,6 +5,9 @@ if [ ! -d $1 ];
 then
 	mkdir $1
 fi
+cd ..
+doxygen Doxyfile
+cd release
 cp CMakeLists.txt $1/CMakeLists.txt
 cp readme.txt $1/readme.txt
 cd $1
@@ -50,8 +53,6 @@ if [ ! -d lib ];
 then
 	mkdir lib
 fi
-cp /usr/local/lib/libsgct_cpp11d.a lib/libsgct_cpp11d.a
-cp /usr/local/lib/libsgct_cpp11.a lib/libsgct_cpp11.a
 cp /usr/local/lib/libsgctd.a lib/libsgctd.a
 cp /usr/local/lib/libsgct.a lib/libsgct.a
 if [ ! -d doc ];

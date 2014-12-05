@@ -8,10 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _TEXTURE_MANAGER_H_
 #define _TEXTURE_MANAGER_H_
 
-#include <unordered_map>
 #include <string>
 
 #include "Image.h"
+#include "helpers/SGCTCPPEleven.h"
 
 namespace sgct_core
 {
@@ -103,7 +103,7 @@ private:
 	CompressionMode mCompression;
 	bool mAlphaMode;
 	bool mOverWriteMode;
-	std::unordered_map<std::string, sgct_core::TextureData> mTextures;
+	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData> mTextures;
 	int mWarpMode[2];
 };
 

@@ -13,6 +13,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include "helpers/SGCTCPPEleven.h"
 
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include "external/tinythread.h"
+#else
+#include <tinythread.h>
+#endif
+
 #define TIME_BUFFER_SIZE 9
 #define LOG_FILENAME_BUFFER_SIZE 1024 //include path
 
@@ -54,7 +60,7 @@ public:
     void printDebug(NotifyLevel nl, const char *fmt, ...);
     void printIndent(NotifyLevel nl, unsigned int indentation, const char* fmt, ...);
 	void sendMessageToServer(const char *fmt);
-    void setSendFeedbackToServer( bool state ) { mLocal = !state; }
+	void setSendFeedbackToServer(bool state);
     void clearBuffer();
 	void setNotifyLevel( NotifyLevel nl );
 	NotifyLevel getNotifyLevel();
@@ -95,15 +101,17 @@ private:
 	char * mParseBuffer;
 	char * mCombinedBuffer;
 	
-	NotifyLevel mLevel;
 	std::vector<char> mBuffer;
 	std::vector<char> mRecBuffer;
 	unsigned char  * headerSpace;
-	bool mLocal;
-	bool mShowTime;
-	bool mLogToConsole;
-	bool mLogToFile;
-	bool mLogToCallback;
+
+	tthread::atomic<int> mLevel;
+	tthread::atomic<bool> mLocal;
+	tthread::atomic<bool> mShowTime;
+	tthread::atomic<bool> mLogToConsole;
+	tthread::atomic<bool> mLogToFile;
+	tthread::atomic<bool> mLogToCallback;
+
 	MessageCallbackFn mMessageCallback;
 	char mTimeBuffer[TIME_BUFFER_SIZE];
 	char mFileName[LOG_FILENAME_BUFFER_SIZE];

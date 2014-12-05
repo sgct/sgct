@@ -49,11 +49,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdlib.h>
 #include <stdio.h>
 
-void communicationHandler(void *arg);
-void connectionHandler(void *arg);
-bool parseDisconnectPackage(char * headerPtr);
-std::string getUncompressionErrorAsStr(int err);
-
 #define MAX_NUMBER_OF_ATTEMPS 10
 #define SGCT_SOCKET_BUFFER_SIZE 4096
 
@@ -61,8 +56,10 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 {
 	mCommThread		= NULL;
 	mMainThread		= NULL;
-	mSocket				= INVALID_SOCKET;
-	mListenSocket		= INVALID_SOCKET;
+	mRecvBuf		= NULL;
+	mUncompressBuf	= NULL;
+	mSocket			= INVALID_SOCKET;
+	mListenSocket	= INVALID_SOCKET;
 	
 	mDecoderCallbackFn			= SGCT_NULL_PTR;
 	mUpdateCallbackFn			= SGCT_NULL_PTR;
@@ -182,7 +179,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 		// Connect to server.
 		while( true )
 		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server (id: %d, ip: %s, type: %s)...\n", getId(), getAddress().c_str(), getTypeStr().c_str());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server (id: %d, ip: %s, type: %s)...\n", mId, getAddress().c_str(), getTypeStr().c_str());
 
 			mSocket = socket(ptr->ai_family, ptr->ai_socktype, ptr->ai_protocol);
 			if (mSocket == INVALID_SOCKET)
@@ -209,15 +206,15 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 	mMainThread = new tthread::thread( connectionHandler, this );
 }
 
-void connectionHandler(void *arg)
+void sgct_core::SGCTNetwork::connectionHandler(void *arg)
 {
 	sgct_core::SGCTNetwork * nPtr = (sgct_core::SGCTNetwork *)arg;
 
-	if( nPtr->isServer() )
+	if( nPtr->mServer )
 	{
 		while( !nPtr->isTerminated() )
 		{
-			if( !nPtr->isConnected() )
+			if( !nPtr->mConnected )
 			{
                 //first time the thread is NULL so the wait will not run
 				if( nPtr->mCommThread != NULL )
@@ -234,13 +231,13 @@ void connectionHandler(void *arg)
             if( !nPtr->isTerminated() )
             {
                 #ifdef __SGCT_MUTEX_DEBUG__
-					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->mId);
 				#endif
 				nPtr->mConnectionMutex.lock();
 				nPtr->mStartConnectionCond.wait( nPtr->mConnectionMutex );
 				nPtr->mConnectionMutex.unlock();
 				#ifdef __SGCT_MUTEX_DEBUG__
-					fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+					fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->mId);
 				#endif
             }
 		}
@@ -250,7 +247,7 @@ void connectionHandler(void *arg)
 		nPtr->mCommThread = new tthread::thread( communicationHandler, nPtr );
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Exiting connection handler for connection %d... \n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Exiting connection handler for connection %d... \n", nPtr->mId);
 }
 
 /*!
@@ -412,12 +409,7 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::iterateFrameCounter\n");
 #endif
 
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-
-	mSendFrame[Previous] = mSendFrame[Current];
+	mSendFrame[Previous].store(mSendFrame[Current].load());
 
 	if( mSendFrame[Current] < MAX_NET_SYNC_FRAME_NUMBER )
 		mSendFrame[Current]++;
@@ -426,13 +418,18 @@ int sgct_core::SGCTNetwork::iterateFrameCounter()
 
 	mUpdated = false;
 
+
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+#endif
+	mConnectionMutex.lock();
 	mTimeStamp[Send] = sgct::Engine::getTime();
 	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+#endif
 
-	return mSendFrame[Current];
+	return mSendFrame[Current].load();
 }
 
 /*!
@@ -508,38 +505,12 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
 int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getSendFrame\n");
-#endif
-	int tmpi;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-		tmpi = mSendFrame[ri];
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-	return tmpi;
+	return mSendFrame[ri].load();
 }
 
 int sgct_core::SGCTNetwork::getRecvFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)
 {
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getRecvFrame\n");
-#endif
-	int tmpi;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-		tmpi = mRecvFrame[ri];
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-	return tmpi;
+	return mRecvFrame[ri].load();
 }
 
 /*!
@@ -577,36 +548,26 @@ bool sgct_core::SGCTNetwork::isUpdated()
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isUpdated\n");
 #endif
-	bool tmpb = false;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-		if(mServer)
-		{
-			tmpb = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
-				//master sends first -> so on reply they should be equal
-				(mRecvFrame[Current] == mSendFrame[Current]) :
-				//don't check if loose sync
-				true;
-		}
-		else
-		{
-			tmpb = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
-				//slaves receives first and then sends so the prevois should be equal to the send
-				(mRecvFrame[Previous] == mSendFrame[Current]) :
-				//if loose sync just check if updated
-				mUpdated;
-		}
 
-	tmpb = (tmpb && mConnected);
+	bool state = false;
+	if(mServer)
+	{
+		state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
+			//master sends first -> so on reply they should be equal
+			(mRecvFrame[Current] == mSendFrame[Current]) :
+			//don't check if loose sync
+			true;
+	}
+	else
+	{
+		state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
+			//slaves receives first and then sends so the prevois should be equal to the send
+			(mRecvFrame[Previous] == mSendFrame[Current]) :
+			//if loose sync just check if updated
+			mUpdated;
+	}
 
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-
-	return tmpb;
+	return (state && mConnected);
 }
 
 void sgct_core::SGCTNetwork::setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback)
@@ -653,22 +614,7 @@ void sgct_core::SGCTNetwork::setConnectedStatus(bool state)
 
 bool sgct_core::SGCTNetwork::isConnected()
 {
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isConnected\n");
-#endif
-	bool tmpb;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-
-	mConnectionMutex.lock();
-		tmpb = mConnected;
-	mConnectionMutex.unlock();
-
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-    return tmpb;
+	return mConnected.load();
 }
 
 sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getType()
@@ -689,62 +635,14 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getType()
 	return tmpct;
 }
 
-const int sgct_core::SGCTNetwork::getId()
-{
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::getId\n");
-#endif
-
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-
-	int tmpi = 0;
-	mConnectionMutex.lock();
-		tmpi = mId;
-	mConnectionMutex.unlock();
-
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-
-	return tmpi;
-}
-
 bool sgct_core::SGCTNetwork::isServer()
 {
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isServer\n");
-#endif
-	bool tmpb;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-		tmpb = mServer;
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-	return tmpb;
+	return mServer.load();
 }
 
 bool sgct_core::SGCTNetwork::isTerminated()
 {
-#ifdef __SGCT_NETWORK_DEBUG__
-	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::isTerminated\n");
-#endif
-    bool tmpb;
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-		tmpb = mTerminate;
-	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
-	return tmpb;
+	return mTerminate.load();
 }
 
 void sgct_core::SGCTNetwork::setRecvFrame(int i)
@@ -752,19 +650,20 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 #ifdef __SGCT_NETWORK_DEBUG__
 	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork::setRecvFrame\n");
 #endif
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
-	mConnectionMutex.lock();
-	mRecvFrame[Previous] = mRecvFrame[Current];
+	
+	mRecvFrame[Previous].store(mRecvFrame[Current].load());
 	mRecvFrame[Current] = i;
-
-	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
 	mUpdated = true;
+
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+#endif
+	mConnectionMutex.lock();
+	mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
 	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+#endif
 }
 
 _ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
@@ -837,10 +736,230 @@ unsigned int sgct_core::SGCTNetwork::parseUnsignedInt(char * str)
     return cui.ui;
 }
 
+int sgct_core::SGCTNetwork::readSyncMessage(char * _header, int & _syncFrameNumber, int & _dataSize, int & _uncompressedDataSize)
+{
+	int iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
+		_header,
+		static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
+		0);
+
+	if (iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
+	{
+		mHeaderId = _header[0];
+#ifdef __SGCT_NETWORK_DEBUG__
+		sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
+#endif
+		if (mHeaderId == sgct_core::SGCTNetwork::DataId || mHeaderId == sgct_core::SGCTNetwork::CompressedDataId)
+		{
+			//parse the sync frame number
+			_syncFrameNumber = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			//parse the data size
+			_dataSize = sgct_core::SGCTNetwork::parseInt(&_header[5]);
+			//parse the uncompressed size if compression is used
+			_uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&_header[9]);
+
+			setRecvFrame(_syncFrameNumber);
+			if (_syncFrameNumber < 0)
+			{
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", _syncFrameNumber, mId);
+			}
+
+#ifdef __SGCT_NETWORK_DEBUG__
+			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Network: Package info: Frame = %d, Size = %u for connection %d\n", _syncFrameNumber, _dataSize, mId);
+#endif
+
+			//resize buffer if needed
+#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+#endif
+			mConnectionMutex.lock();
+
+			//grow only
+			if (_dataSize > mBufferSize)
+			{
+				if (!mRecvBuf)
+				{
+					delete[] mRecvBuf;
+					mRecvBuf = NULL;
+				}
+
+				//allocate
+				mRecvBuf = new (std::nothrow) char[_dataSize];
+				if (mRecvBuf != NULL)
+				{
+					mBufferSize = _dataSize;
+				}
+			}
+
+			if (_uncompressedDataSize > mUncompressedBufferSize)
+			{
+				if (!mUncompressBuf)
+				{
+					delete[] mUncompressBuf;
+					mUncompressBuf = NULL;
+				}
+
+				//allocate
+				mUncompressBuf = new (std::nothrow) char[_uncompressedDataSize];
+				if (mUncompressBuf != NULL)
+				{
+					mUncompressedBufferSize = _uncompressedDataSize;
+				}
+			}
+
+			mConnectionMutex.unlock();
+#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+#endif
+		}
+	}
+
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", _dataSize);
+#endif
+
+	/*
+	Get the data/message
+	*/
+	if (_dataSize > 0)
+	{
+		iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
+			mRecvBuf,
+			_dataSize,
+			0);
+	}
+
+	return iResult;
+}
+
+int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int & _packageId, int & _dataSize, int & _uncompressedDataSize)
+{
+	int iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
+		_header,
+		static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
+		0);
+
+	if (iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
+	{
+		mHeaderId = _header[0];
+#ifdef __SGCT_NETWORK_DEBUG__
+		sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
+#endif
+		if (mHeaderId == sgct_core::SGCTNetwork::DataId || mHeaderId == sgct_core::SGCTNetwork::CompressedDataId)
+		{
+			//parse the package id
+			_packageId = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			//parse the data size
+			_dataSize = sgct_core::SGCTNetwork::parseInt(&_header[5]);
+			//parse the uncompressed size if compression is used
+			_uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&_header[9]);
+
+			//resize buffer if needed
+#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+#endif
+			mConnectionMutex.lock();
+
+			//resize
+			if (_dataSize != mBufferSize)
+			{
+				//clean up
+				if (!mRecvBuf)
+				{
+					delete[] mRecvBuf;
+					mRecvBuf = NULL;
+				}
+
+				//allocate
+				mRecvBuf = new (std::nothrow) char[_dataSize];
+				if (mRecvBuf != NULL)
+				{
+					mBufferSize = _dataSize;
+				}
+			}
+
+			if (_uncompressedDataSize != mUncompressedBufferSize)
+			{
+				if (!mUncompressBuf)
+				{
+					delete[] mUncompressBuf;
+					mUncompressBuf = NULL;
+				}
+
+				//allocate
+				mUncompressBuf = new (std::nothrow) char[_uncompressedDataSize];
+				if (mUncompressBuf != NULL)
+				{
+					mUncompressedBufferSize = _uncompressedDataSize;
+				}
+			}
+
+			mConnectionMutex.unlock();
+#ifdef __SGCT_MUTEX_DEBUG__
+			fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->mId);
+#endif
+		}
+		else if (mHeaderId == sgct_core::SGCTNetwork::Ack &&
+			mAcknowledgeCallbackFn != SGCT_NULL_PTR)
+		{
+			//parse the package id
+			_packageId = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			(mAcknowledgeCallbackFn)(_packageId, mId);
+		}
+	}
+
+#ifdef __SGCT_NETWORK_DEBUG__
+	sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", _dataSize);
+#endif
+	/*
+	Get the data/message
+	*/
+	if (_dataSize > 0 && _packageId > -1)
+	{
+		iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
+			mRecvBuf,
+			_dataSize,
+			0);
+#ifdef __SGCT_NETWORK_DEBUG__
+		sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Data type: %d, %d bytes of %u...\n", _packageId, iResult, _dataSize);
+#endif
+	}
+
+	return iResult;
+}
+
+int sgct_core::SGCTNetwork::readExternalMessage()
+{
+	//do a normal read
+	int iResult = recv(mSocket,
+		mRecvBuf,
+		mBufferSize,
+		0);
+
+	//if read fails try for x attempts
+	int attempts = 1;
+#ifdef __WIN32__
+	while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS)
+#else
+	while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS)
+#endif
+	{
+		iResult = recv(mSocket,
+			mRecvBuf,
+			mBufferSize,
+			0);
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
+		attempts++;
+	}
+	
+	return iResult;
+}
+
 /*
 function to decode messages
 */
-void communicationHandler(void *arg)
+void sgct_core::SGCTNetwork::communicationHandler(void *arg)
 {
 	sgct_core::SGCTNetwork * nPtr = (sgct_core::SGCTNetwork *)arg;
 
@@ -849,9 +968,9 @@ void communicationHandler(void *arg)
         return;
 
 	//listen for client if server
-	if( nPtr->isServer() )
+	if( nPtr->mServer )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Waiting for client to connect to connection %d (port %s)...\n", nPtr->getId(), nPtr->getPort().c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Waiting for client to connect to connection %d (port %s)...\n", nPtr->mId, nPtr->getPort().c_str());
 
         nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 
@@ -862,36 +981,34 @@ void communicationHandler(void *arg)
         while( !nPtr->isTerminated() && nPtr->mSocket == INVALID_SOCKET && accErr == EINTR)
 #endif
 		{
-		    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-accept after interrupted system on connection %d...\n", nPtr->getId());
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-accept after interrupted system on connection %d...\n", nPtr->mId);
 
 		    nPtr->mSocket = accept(nPtr->mListenSocket, NULL, NULL);
 		}
 
 		if (nPtr->mSocket == INVALID_SOCKET)
 		{
-            sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", nPtr->getId(), accErr);
+			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", nPtr->mId, accErr);
 
 			if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
-				nPtr->mUpdateCallbackFn( nPtr->getId() );
+				nPtr->mUpdateCallbackFn(nPtr->mId);
 			return;
 		}
 	}
 
 	nPtr->setConnectedStatus(true);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", nPtr->mId);
 
 	if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
-		nPtr->mUpdateCallbackFn( nPtr->getId() );
+		nPtr->mUpdateCallbackFn(nPtr->mId);
 
 	//init buffers
 	char recvHeader[sgct_core::SGCTNetwork::mHeaderSize];
 	memset(recvHeader, sgct_core::SGCTNetwork::DefaultId, sgct_core::SGCTNetwork::mHeaderSize);
-	char * recvBuf = NULL;
-    char * uncompressBuf = NULL;
 
     nPtr->mConnectionMutex.lock();
-	recvBuf = new (std::nothrow) char[nPtr->mBufferSize];
-    uncompressBuf = new (std::nothrow) char[nPtr->mUncompressedBufferSize];
+	nPtr->mRecvBuf = new (std::nothrow) char[nPtr->mBufferSize];
+	nPtr->mUncompressBuf = new (std::nothrow) char[nPtr->mUncompressedBufferSize];
     nPtr->mConnectionMutex.unlock();
     
 	std::string extBuffer; //for external comm
@@ -906,27 +1023,27 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", nPtr->mBufferSize, nPtr->mRequestedSize);
 
 			#ifdef __SGCT_MUTEX_DEBUG__
-				fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
+				fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->mId);
 			#endif
             nPtr->mConnectionMutex.lock();
 				nPtr->mBufferSize = nPtr->mRequestedSize;
 
 				//clean up
-				if (!recvBuf)
+				if (!nPtr->mRecvBuf)
 				{
-					delete[] recvBuf;
-					recvBuf = NULL;
+					delete[] nPtr->mRecvBuf;
+					nPtr->mRecvBuf = NULL;
 				}
 
                 //allocate
                 bool allocError = false;
-                recvBuf = new (std::nothrow) char[nPtr->mRequestedSize];
-                if(recvBuf == NULL)
+				nPtr->mRecvBuf = new (std::nothrow) char[nPtr->mRequestedSize];
+				if (nPtr->mRecvBuf == NULL)
                     allocError = true;
 
 			nPtr->mConnectionMutex.unlock();
 			#ifdef __SGCT_MUTEX_DEBUG__
-				fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
+				fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->mId);
 			#endif
 
 			if(allocError)
@@ -945,238 +1062,19 @@ void communicationHandler(void *arg)
         int dataSize = 0;
         int uncompressedDataSize = 0;
         
-		char headerId = sgct_core::SGCTNetwork::DefaultId;
+		nPtr->mHeaderId = sgct_core::SGCTNetwork::DefaultId;
 
-		/*!
-			==========================================================
-			      READ SOCKET FOR SYNC DATA
-			==========================================================
-		*/
-        if( nPtr->getType() == sgct_core::SGCTNetwork::SyncConnection )
+		if( nPtr->getType() == sgct_core::SGCTNetwork::SyncConnection )
         {
-
-			iResult = sgct_core::SGCTNetwork::receiveData(nPtr->mSocket,
-                               recvHeader,
-                               static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
-                               0);
-
-			if( iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
-			{
-				headerId = recvHeader[0];
-#ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
-#endif
-				if (headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId)
-				{
-					//parse the sync frame number
-					syncFrameNumber = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
-					//parse the data size
-					dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
-                    //parse the uncompressed size if compression is used
-                    uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[9]);
-                    
-                    nPtr->setRecvFrame( syncFrameNumber );
-                    if( syncFrameNumber < 0 )
-                    {
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Error sync in sync frame: %d for connection %d\n", syncFrameNumber, nPtr->getId());
-                    }
-                    
-#ifdef __SGCT_NETWORK_DEBUG__
-                    sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Package info: Frame = %d, Size = %u\n", syncFrameNumber, dataSize);
-#endif
-
-					//resize buffer if needed
-					#ifdef __SGCT_MUTEX_DEBUG__
-						fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
-					#endif
-					nPtr->mConnectionMutex.lock();
-					
-                    //grow only
-					if( dataSize > nPtr->mBufferSize )
-					{
-						if (!recvBuf)
-						{
-							delete[] recvBuf;
-							recvBuf = NULL;
-						}
-
-						//allocate
-						recvBuf = new (std::nothrow) char[dataSize];
-						if(recvBuf != NULL)
-						{
-							nPtr->mBufferSize = dataSize;
-						}
-					}
-                    
-                    if( uncompressedDataSize > nPtr->mUncompressedBufferSize )
-                    {
-                        if (!uncompressBuf)
-						{
-							delete[] uncompressBuf;
-							uncompressBuf = NULL;
-						}
-                        
-						//allocate
-						uncompressBuf = new (std::nothrow) char[uncompressedDataSize];
-						if(uncompressBuf != NULL)
-						{
-							nPtr->mUncompressedBufferSize = uncompressedDataSize;
-						}
-                    }
-
-					nPtr->mConnectionMutex.unlock();
-					#ifdef __SGCT_MUTEX_DEBUG__
-						fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
-					#endif
-				}
-			}
-
-#ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", dataSize);
-#endif
-			/*
-				Get the data/message
-			*/
-			if( dataSize > 0 )
-			{
-				iResult = sgct_core::SGCTNetwork::receiveData(nPtr->mSocket,
-                                        recvBuf,
-                                        dataSize,
-                                        0);
-#ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
-#endif
-			}
+			iResult = nPtr->readSyncMessage(recvHeader, syncFrameNumber, dataSize, uncompressedDataSize);
 		}
-
-		/*!
-			==========================================================
-				  READ SOCKET FOR DATA TRANSFER
-			==========================================================
-		*/
 		else if (nPtr->getType() == sgct_core::SGCTNetwork::DataTransfer)
 		{
-			iResult = sgct_core::SGCTNetwork::receiveData(nPtr->mSocket,
-				recvHeader,
-				static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize),
-				0);
-
-			if (iResult == static_cast<int>(sgct_core::SGCTNetwork::mHeaderSize))
-			{
-				headerId = recvHeader[0];
-#ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Header id=%d...\n", headerId);
-#endif
-				if (headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId)
-				{
-					//parse the package id
-					packageId = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
-					//parse the data size
-					dataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[5]);
-                    //parse the uncompressed size if compression is used
-                    uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&recvHeader[9]);
-
-					//resize buffer if needed
-#ifdef __SGCT_MUTEX_DEBUG__
-					fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
-#endif
-					nPtr->mConnectionMutex.lock();
-					
-                    //resize
-					if (dataSize != nPtr->mBufferSize)
-					{
-						//clean up
-						if (!recvBuf)
-						{
-							delete[] recvBuf;
-							recvBuf = NULL;
-						}
-
-						//allocate
-						recvBuf = new (std::nothrow) char[dataSize];
-						if (recvBuf != NULL)
-						{
-							nPtr->mBufferSize = dataSize;
-						}
-					}
-                    
-                    if( uncompressedDataSize != nPtr->mUncompressedBufferSize )
-                    {
-                        if (!uncompressBuf)
-						{
-							delete[] uncompressBuf;
-							uncompressBuf = NULL;
-						}
-                        
-						//allocate
-						uncompressBuf = new (std::nothrow) char[uncompressedDataSize];
-						if(uncompressBuf != NULL)
-						{
-							nPtr->mUncompressedBufferSize = uncompressedDataSize;
-						}
-                    }
-
-					nPtr->mConnectionMutex.unlock();
-#ifdef __SGCT_MUTEX_DEBUG__
-					fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
-#endif
-				}
-				else if (headerId == sgct_core::SGCTNetwork::Ack &&
-					nPtr->mAcknowledgeCallbackFn != SGCT_NULL_PTR)
-				{
-					//parse the package id
-					packageId = sgct_core::SGCTNetwork::parseInt(&recvHeader[1]);
-					(nPtr->mAcknowledgeCallbackFn)(packageId, nPtr->getId());
-				}
-			}
-
-#ifdef __SGCT_NETWORK_DEBUG__
-			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Receiving data (buffer size: %d)...\n", dataSize);
-#endif
-			/*
-			Get the data/message
-			*/
-			if (dataSize > 0 && packageId > -1)
-			{
-				iResult = sgct_core::SGCTNetwork::receiveData(nPtr->mSocket,
-					recvBuf,
-					dataSize,
-					0);
-#ifdef __SGCT_NETWORK_DEBUG__
-				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Data type: %d, %d bytes of %u...\n", packageId, iResult, dataSize);
-#endif
-			}
+			iResult = nPtr->readDataTransferMessage(recvHeader, packageId, dataSize, uncompressedDataSize);
 		}
-
-		/*!
-			==========================================================
-			      READ SOCKET FOR EXTERNAL DATA
-			==========================================================
-		*/
 		else
 		{
-			//do a normal read
-			iResult = recv( nPtr->mSocket,
-                            recvBuf,
-                            nPtr->mBufferSize,
-                            0);
-
-			//if read fails try for x attempts
-			int attempts = 1;
-#ifdef __WIN32__
-			while( iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
-#else
-			while( iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPS )
-#endif
-			{
-				iResult = recv( nPtr->mSocket,
-                                        recvBuf,
-                                        nPtr->mBufferSize,
-                                        0);
-
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Receiving data after interrupted system error (attempt %d)...\n", attempts);
-				attempts++;
-			}
+			iResult = nPtr->readExternalMessage();
 		}
 
 		/*!
@@ -1201,20 +1099,12 @@ void communicationHandler(void *arg)
 						Terminate client only. The server only resets the connection,
 						allowing clients to connect.
 					*/
-					if( !nPtr->isServer() )
+					if( !nPtr->mServer )
 					{
-						#ifdef __SGCT_MUTEX_DEBUG__
-							fprintf(stderr, "Locking mutex for connection %d...\n", nPtr->getId());
-						#endif
-						nPtr->mConnectionMutex.lock();
 						nPtr->mTerminate = true;
-						nPtr->mConnectionMutex.unlock();
-						#ifdef __SGCT_MUTEX_DEBUG__
-							fprintf(stderr, "Mutex for connection %d is unlocked.\n", nPtr->getId());
-						#endif
 					}
 
-					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Client %d terminated connection.\n", nPtr->getId());
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Client %d terminated connection.\n", nPtr->mId);
 
 					break; //exit loop
 				}
@@ -1225,14 +1115,14 @@ void communicationHandler(void *arg)
 				*/
 				else
 				{
-				if( headerId == sgct_core::SGCTNetwork::DataId &&
+				if( nPtr->mHeaderId == sgct_core::SGCTNetwork::DataId &&
 					nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
 					{
 						//decode callback
 						if(dataSize > 0)
-							(nPtr->mDecoderCallbackFn)(recvBuf, dataSize, nPtr->getId());
+							(nPtr->mDecoderCallbackFn)(nPtr->mRecvBuf, dataSize, nPtr->mId);
 
-						/*if(!nPtr->isServer())
+						/*if(!nPtr->mServer)
 						{
 							nPtr->pushClientMessage();
 						}*/
@@ -1242,7 +1132,7 @@ void communicationHandler(void *arg)
 						sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 					}
-                    else if( headerId == sgct_core::SGCTNetwork::CompressedDataId &&
+                    else if( nPtr->mHeaderId == sgct_core::SGCTNetwork::CompressedDataId &&
 						nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
                     {
                         //decode callback
@@ -1252,29 +1142,29 @@ void communicationHandler(void *arg)
                             uLongf uncompressedSize = static_cast<uLongf>(uncompressedDataSize);
     
                             int err = uncompress(
-                                                 reinterpret_cast<Bytef*>(uncompressBuf),
+                                                 reinterpret_cast<Bytef*>(nPtr->mUncompressBuf),
                                                  &uncompressedSize,
-                                                 reinterpret_cast<Bytef*>(recvBuf),
+												 reinterpret_cast<Bytef*>(nPtr->mRecvBuf),
                                                  static_cast<uLongf>(dataSize));
                             
                             if(err == Z_OK)
                             {
                                 //decode callback
-                                (nPtr->mDecoderCallbackFn)(uncompressBuf, static_cast<int>(uncompressedSize), nPtr->getId());
+								(nPtr->mDecoderCallbackFn)(nPtr->mUncompressBuf, static_cast<int>(uncompressedSize), nPtr->mId);
                             }
                             else
                             {
-                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->getId(), getUncompressionErrorAsStr(err).c_str());
+								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->mId, getUncompressionErrorAsStr(err).c_str());
                             }
                         }
                         
-						/*if(!nPtr->isServer())
+						/*if(!nPtr->mServer)
                          {
                          nPtr->pushClientMessage();
                          }*/
 						sgct_core::NetworkManager::gCond.notify_all();
                     }
-					else if( headerId == sgct_core::SGCTNetwork::ConnectedId &&
+					else if (nPtr->mHeaderId == sgct_core::SGCTNetwork::ConnectedId &&
 						nPtr->mConnectedCallbackFn != SGCT_NULL_PTR)
 					{
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -1298,7 +1188,7 @@ void communicationHandler(void *arg)
 #ifdef __SGCT_NETWORK_DEBUG__
 				sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP ASCII data... ");
 #endif
-				std::string tmpStr(recvBuf);
+				std::string tmpStr(nPtr->mRecvBuf);
 				extBuffer += tmpStr.substr(0, iResult);
 
                 bool breakConnection = false;
@@ -1358,7 +1248,7 @@ void communicationHandler(void *arg)
 
 					if (nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
                     {
-                        (nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->getId());
+						(nPtr->mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), nPtr->mId);
                     }
 
 					//reply
@@ -1381,7 +1271,7 @@ void communicationHandler(void *arg)
 #endif
 				if (nPtr->mDecoderCallbackFn != SGCT_NULL_PTR)
 				{
-					(nPtr->mDecoderCallbackFn)(recvBuf, iResult, nPtr->getId());
+					(nPtr->mDecoderCallbackFn)(nPtr->mRecvBuf, iResult, nPtr->mId);
 				}
 
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -1401,23 +1291,23 @@ void communicationHandler(void *arg)
 				if (parseDisconnectPackage(recvHeader))
 				{
 					nPtr->setConnectedStatus(false);
-					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: File transfer %d terminated connection.\n", nPtr->getId());
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: File transfer %d terminated connection.\n", nPtr->mId);
 				}
 				/*
 					Handle communication
 				*/
 				else
 				{
-                    if ((headerId == sgct_core::SGCTNetwork::DataId || headerId == sgct_core::SGCTNetwork::CompressedDataId) &&
+					if ((nPtr->mHeaderId == sgct_core::SGCTNetwork::DataId || nPtr->mHeaderId == sgct_core::SGCTNetwork::CompressedDataId) &&
 						nPtr->mPackageDecoderCallbackFn != SGCT_NULL_PTR && dataSize > 0)
                     {
 						bool recvOk = false;
                         
                         //uncompressed
-                        if( headerId == sgct_core::SGCTNetwork::DataId )
+						if (nPtr->mHeaderId == sgct_core::SGCTNetwork::DataId)
                         {
                             //decode callback
-                            (nPtr->mPackageDecoderCallbackFn)(recvBuf, dataSize, packageId, nPtr->getId());
+							(nPtr->mPackageDecoderCallbackFn)(nPtr->mRecvBuf, dataSize, packageId, nPtr->mId);
                             recvOk = true;
                         }
                         else //compressed
@@ -1426,20 +1316,20 @@ void communicationHandler(void *arg)
                             uLongf uncompressedSize = static_cast<uLongf>(uncompressedDataSize);
                             
                             int err = uncompress(
-                                                 reinterpret_cast<Bytef*>(uncompressBuf),
+                                                 reinterpret_cast<Bytef*>(nPtr->mUncompressBuf),
                                                  &uncompressedSize,
-                                                 reinterpret_cast<Bytef*>(recvBuf),
+												 reinterpret_cast<Bytef*>(nPtr->mRecvBuf),
                                                  static_cast<uLongf>(dataSize));
                             
                             if(err == Z_OK)
                             {
                                 //decode callback
-                                (nPtr->mPackageDecoderCallbackFn)(uncompressBuf, static_cast<int>(uncompressedSize), packageId, nPtr->getId());
+								(nPtr->mPackageDecoderCallbackFn)(nPtr->mUncompressBuf, static_cast<int>(uncompressedSize), packageId, nPtr->mId);
                                 recvOk = true;
                             }
                             else
                             {
-                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->getId(), getUncompressionErrorAsStr(err).c_str());
+								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network: Failed to uncompress data for connection %d! Error: %s\n", nPtr->mId, getUncompressionErrorAsStr(err).c_str());
                             }
                         }
                         
@@ -1468,20 +1358,20 @@ void communicationHandler(void *arg)
 						nPtr->mConnectionMutex.lock();
 
 						//clean up
-						delete[] recvBuf;
-						recvBuf = NULL;
+						delete[] nPtr->mRecvBuf;
+						nPtr->mRecvBuf = NULL;
                         
-                        if(uncompressBuf)
+						if (nPtr->mUncompressBuf)
                         {
-                            delete [] uncompressBuf;
-                            uncompressBuf = NULL;
+							delete[] nPtr->mUncompressBuf;
+							nPtr->mUncompressBuf = NULL;
                         }
 
 						nPtr->mBufferSize = 0;
                         nPtr->mUncompressedBufferSize = 0;
 						nPtr->mConnectionMutex.unlock();
 					}
-					else if (headerId == sgct_core::SGCTNetwork::ConnectedId &&
+					else if (nPtr->mHeaderId == sgct_core::SGCTNetwork::ConnectedId &&
 						nPtr->mConnectedCallbackFn != SGCT_NULL_PTR)
 					{
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -1513,7 +1403,7 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->getId(), SGCT_ERRNO);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP Connection %d closed (error: %d)\n", nPtr->mId, SGCT_ERRNO);
 		}
 		else //if negative
 		{
@@ -1525,23 +1415,23 @@ void communicationHandler(void *arg)
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 #endif
 
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->getId(), SGCT_ERRNO);
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TCP connection %d recv failed: %d\n", nPtr->mId, SGCT_ERRNO);
 		}
 
-	} while (iResult > 0 || nPtr->isConnected());
+	} while (iResult > 0 || nPtr->mConnected);
 
 
 	//cleanup
-	if( recvBuf != NULL )
+	if (nPtr->mRecvBuf != NULL)
     {
-        delete [] recvBuf;
-        recvBuf = NULL;
+		delete[] nPtr->mRecvBuf;
+		nPtr->mRecvBuf = NULL;
     }
     
-    if( uncompressBuf != NULL )
+	if (nPtr->mUncompressBuf != NULL)
     {
-        delete [] uncompressBuf;
-        uncompressBuf = NULL;
+		delete[] nPtr->mUncompressBuf;
+		nPtr->mUncompressBuf = NULL;
     }
 
     //Close socket
@@ -1549,9 +1439,9 @@ void communicationHandler(void *arg)
 	nPtr->closeSocket( nPtr->mSocket );
 
 	if (nPtr->mUpdateCallbackFn != SGCT_NULL_PTR)
-		nPtr->mUpdateCallbackFn( nPtr->getId() );
+		nPtr->mUpdateCallbackFn( nPtr->mId );
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", nPtr->getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", nPtr->mId);
 }
 
 void sgct_core::SGCTNetwork::sendData(void * data, int length)
@@ -1621,7 +1511,7 @@ void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 
 void sgct_core::SGCTNetwork::initShutdown()
 {
-	if( isConnected() )
+	if( mConnected )
 	{
         char gameOver[9];
 		gameOver[0] = DisconnectId;
@@ -1636,22 +1526,25 @@ void sgct_core::SGCTNetwork::initShutdown()
         sendData(gameOver, mHeaderSize);
 	}
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d...\n", getId());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Closing connection %d...\n", mId);
 
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-	#endif
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Locking mutex for connection %d...\n", mId);
+#endif
+
 	mConnectionMutex.lock();
-        mTerminate = true;
 		mDecoderCallbackFn = SGCT_NULL_PTR;
-        mConnected = false;
 	mConnectionMutex.unlock();
-	#ifdef __SGCT_MUTEX_DEBUG__
-		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-	#endif
+
+#ifdef __SGCT_MUTEX_DEBUG__
+	fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
+#endif
+
+	mConnected = false;
+	mTerminate = true;
 
 	//wake up the connection handler thread (in order to finish)
-	if( isServer() )
+	if( mServer )
 	{
 		mStartConnectionCond.notify_all();
 	}
@@ -1660,7 +1553,7 @@ void sgct_core::SGCTNetwork::initShutdown()
     closeSocket( mListenSocket );
 }
 
-bool parseDisconnectPackage(char * headerPtr)
+bool sgct_core::SGCTNetwork::parseDisconnectPackage(char * headerPtr)
 {
 	if (headerPtr[0] == sgct_core::SGCTNetwork::DisconnectId &&
 		headerPtr[1] == 24 &&
@@ -1675,7 +1568,7 @@ bool parseDisconnectPackage(char * headerPtr)
 		return false;
 }
 
-std::string getUncompressionErrorAsStr(int err)
+std::string sgct_core::SGCTNetwork::getUncompressionErrorAsStr(int err)
 {
     std::string errStr;
     switch(err)

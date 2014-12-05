@@ -277,6 +277,9 @@ void myInitOGLFun()
 			}
 
 	sgct::MessageHandler::instance()->print("Number of active viewports: %d\n", numberOfActiveViewports);
+
+	//sgct_text::FontManager::instance()->addFont("myFont", "Roboto-Regular.ttf", sgct_text::FontManager::FontPath_Local);
+	//sgct_text::FontManager::instance()->addFont("myFont", "D:/src/sgct/trunk/bin/calibrator/msvc12/Roboto-Regular.ttf", sgct_text::FontManager::FontPath_Local);
 }
 
 void myEncodeFun()

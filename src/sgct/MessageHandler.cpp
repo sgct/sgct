@@ -288,9 +288,7 @@ This function is mutex protected/thread safe
 */
 void sgct::MessageHandler::setNotifyLevel( NotifyLevel nl )
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
 	mLevel = nl;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
 }
 
 /*!
@@ -299,11 +297,7 @@ This function is mutex protected/thread safe
 */
 sgct::MessageHandler::NotifyLevel sgct::MessageHandler::getNotifyLevel()
 {
-	NotifyLevel tmpNL;
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
-	tmpNL = mLevel;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
-	return tmpNL;
+	return static_cast<sgct::MessageHandler::NotifyLevel>(mLevel.load());
 }
 
 /*!
@@ -312,9 +306,7 @@ This function is mutex protected/thread safe
 */
 void sgct::MessageHandler::setShowTime( bool state )
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
 	mShowTime = state;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
 }
 
 /*!
@@ -323,11 +315,7 @@ This function is mutex protected/thread safe
 */
 bool sgct::MessageHandler::getShowTime()
 {
-	bool tmpBool;
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
-	tmpBool = mShowTime;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
-	return tmpBool;
+	return mShowTime.load();
 }
 
 /*!
@@ -454,4 +442,9 @@ void sgct::MessageHandler::sendMessageToServer(const char * str)
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));
         SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
     }
+}
+
+void sgct::MessageHandler::setSendFeedbackToServer(bool state)
+{
+	mLocal.store(!state);
 }

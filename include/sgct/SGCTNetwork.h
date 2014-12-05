@@ -45,6 +45,7 @@ public:
 	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType);
 	void closeNetwork(bool forced);
 	void initShutdown();
+
 #ifdef __LOAD_CPP11_FUN__
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
 	void setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback);
@@ -58,9 +59,9 @@ public:
 	void closeSocket(SGCT_SOCKET lSocket);
 
 	ConnectionTypes getType();
-	const int getId();
 	bool isServer();
 	bool isConnected();
+
 	bool isTerminated();
 	int getSendFrame(ReceivedIndex ri = Current);
 	int getRecvFrame(ReceivedIndex ri);
@@ -79,8 +80,6 @@ public:
 	std::string getTypeStr();
 	static std::string getTypeStr(ConnectionTypes ct);
 
-	SGCT_SOCKET mSocket;
-	SGCT_SOCKET mListenSocket;
 #ifdef __LOAD_CPP11_FUN__
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(void*, int, int, int) > mPackageDecoderCallbackFn;
@@ -89,31 +88,50 @@ public:
 	sgct_cppxeleven::function< void(int, int) > mAcknowledgeCallbackFn;
 #endif
 
-    bool mTerminate; //set to true upon exit
+private:
+	int readSyncMessage(char * _header, int & _syncFrameNumber, int & _dataSize, int & _uncompressedDataSize);
+	int readDataTransferMessage(char * _header, int & _packageId, int & _dataSize, int & _uncompressedDataSize);
+	int readExternalMessage();
 
-	int mBufferSize;
-	int mRequestedSize;
-    int mUncompressedBufferSize;
+	static void communicationHandler(void *arg);
+	static void connectionHandler(void *arg);
+	static bool parseDisconnectPackage(char * headerPtr);
+	static std::string getUncompressionErrorAsStr(int err);
+
+public:
 	static const std::size_t mHeaderSize = 13;
-
-	tthread::mutex mConnectionMutex;
 	tthread::condition_variable mStartConnectionCond;
-	tthread::thread * mCommThread;
-	tthread::thread * mMainThread;
 
 private:
 	enum timeStampIndex { Send = 0, Total };
 
-	bool mUpdated;
+	SGCT_SOCKET mSocket;
+	SGCT_SOCKET mListenSocket;
+
 	ConnectionTypes mConnectionType;
-	bool mServer;
-	bool mConnected;
-	int mSendFrame[2];
-	int mRecvFrame[2];
+	tthread::atomic<bool> mServer;
+	tthread::atomic<bool> mConnected;
+	tthread::atomic<bool> mUpdated;
+	tthread::atomic<int> mSendFrame[2];
+	tthread::atomic<int> mRecvFrame[2];
+	tthread::atomic<bool> mTerminate; //set to true upon exit
+
+	int mBufferSize;
+	int mRequestedSize;
+	int mUncompressedBufferSize;
+
+	tthread::mutex mConnectionMutex;
+	tthread::thread * mCommThread;
+	tthread::thread * mMainThread;
+
 	double mTimeStamp[2];
 	int mId;
 	std::string mPort;
 	std::string mAddress;
+
+	char * mRecvBuf;
+	char * mUncompressBuf;
+	char mHeaderId;
 };
 }
 

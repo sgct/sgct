@@ -308,7 +308,7 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 	}
 	else if( error != 0 || face == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str(), fontName.c_str() );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str());
 		return mFonts.end();
 	}
 

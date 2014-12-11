@@ -989,35 +989,9 @@ void sgct_core::SGCTNetwork::communicationHandler()
 		//resize buffer request
 		if (getType() != sgct_core::SGCTNetwork::DataTransfer && mRequestedSize > mBufferSize)
 		{
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", mBufferSize, mRequestedSize);
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Re-sizing tcp buffer size from %d to %d... ", mBufferSize, mRequestedSize.load());
 
-			mBufferSize = mRequestedSize;
-#ifdef __SGCT_MUTEX_DEBUG__
-			fprintf(stderr, "Locking mutex for connection %d...\n", mId);
-#endif
-            mConnectionMutex.lock();
-				//clean up
-				if (!mRecvBuf)
-				{
-					delete[] mRecvBuf;
-					mRecvBuf = NULL;
-				}
-
-                //allocate
-                bool allocError = false;
-				mRecvBuf = new (std::nothrow) char[mRequestedSize];
-				if (mRecvBuf == NULL)
-                    allocError = true;
-
-			mConnectionMutex.unlock();
-			#ifdef __SGCT_MUTEX_DEBUG__
-				fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
-			#endif
-
-			if(allocError)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: Buffer failed to resize!\n");
-			else
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network: Buffer resized successfully!\n");
+            updateBuffer(&mRecvBuf, mRequestedSize.load(), mBufferSize);
 
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Done.\n");
 		}

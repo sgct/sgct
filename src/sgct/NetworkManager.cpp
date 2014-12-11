@@ -122,7 +122,7 @@ bool sgct_core::NetworkManager::init()
 
 	//if faking an address (running local) then add it to the search list
 	if( mMode != Remote )
-		localAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->getAddress());
+		mLocalAddresses.push_back(ClusterManager::instance()->getThisNodePtr()->getAddress());
 
 	/*
 	========================================
@@ -787,6 +787,7 @@ void sgct_core::NetworkManager::initAPI()
 void sgct_core::NetworkManager::getHostInfo()
 {
 	//get name & local ips
+	//retrieves the standard host name for the local computer
 	char tmpStr[128];
     if (gethostname(tmpStr, sizeof(tmpStr)) == SOCKET_ERROR)
 	{
@@ -797,43 +798,66 @@ void sgct_core::NetworkManager::getHostInfo()
 #endif
 		throw "Failed to get host name!";
     }
-	mHostName.assign(tmpStr);
 
-	struct hostent *phe = gethostbyname(tmpStr);
-    if (phe == 0)
+	mHostName.assign(tmpStr);
+	//add hostname and adress in lower case
+	std::transform(mHostName.begin(), mHostName.end(), mHostName.begin(), ::tolower);
+	mLocalAddresses.push_back(mHostName);
+
+	struct addrinfo hints, *info, *p;
+	struct sockaddr_in  *sockaddr_ipv4;
+	int result;
+	memset(&hints, 0, sizeof hints);
+	hints.ai_family = AF_INET;
+	//hints.ai_family = AF_UNSPEC; /*either IPV4 or IPV6*/
+	hints.ai_socktype = SOCK_STREAM;
+	hints.ai_flags = AI_CANONNAME;
+
+	if ((result = getaddrinfo(tmpStr, "http", &hints, &info)) != 0)
 	{
 #ifdef __WIN32__
-        WSACleanup();
+		WSACleanup();
 #else
-        //No cleanup needed
+		//No cleanup needed
 #endif
-      	throw "Bad host lockup!";
-    }
+		throw "Failed to get address info!";
+	}
 
-	mDNSName.assign( phe->h_name );
-    for (int i = 0; phe->h_addr_list[i] != 0; ++i)
+	char addr_str[INET_ADDRSTRLEN];
+	for (p = info; p != NULL; p = p->ai_next)
 	{
-        struct in_addr addr;
-        memcpy(&addr, phe->h_addr_list[i], sizeof(struct in_addr));
-		localAddresses.push_back( inet_ntoa(addr) );
-    }
+		sockaddr_ipv4 = (struct sockaddr_in *) p->ai_addr;
+		inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
+		mDNSNames.push_back(p->ai_canonname);
+		mLocalAddresses.push_back(addr_str);
 
-	//add hostname and adress
-	std::transform(mHostName.begin(), mHostName.end(), mHostName.begin(), ::tolower);
-	std::transform(mDNSName.begin(), mDNSName.end(), mDNSName.begin(), ::tolower);
+		//fprintf(stderr, "Adding address: %s\n", mLocalAddresses.back().c_str());
+	}
 
-	localAddresses.push_back(mHostName);
-	localAddresses.push_back(mDNSName);
+	freeaddrinfo(info);
+
+	for (std::size_t i = 0; i < mDNSNames.size(); i++)
+	{
+		std::transform(mDNSNames[i].begin(), mDNSNames[i].end(), mDNSNames[i].begin(), ::tolower);
+		mLocalAddresses.push_back(mDNSNames[i]);
+
+		//fprintf(stderr, "Adding dns name: %s\n", mLocalAddresses.back().c_str());
+	}
 
 	//add the loop-back
-	localAddresses.push_back("127.0.0.1");
-	localAddresses.push_back("localhost");
+	mLocalAddresses.push_back("127.0.0.1");
+	mLocalAddresses.push_back("localhost");
+
+	//all items in vector
+	//for (std::vector<std::string>::iterator it = mLocalAddresses.begin(); it != mLocalAddresses.end(); ++it)
+	//	fprintf(stderr, "Item: %s\n", it->c_str());
+
 }
 
 bool sgct_core::NetworkManager::matchAddress(const std::string address)
 {
-	for( unsigned int i=0; i<localAddresses.size(); i++)
-		if( strcmp(address.c_str(), localAddresses[i].c_str()) == 0 )
+	for (unsigned int i = 0; i<mLocalAddresses.size(); i++)
+		if (strcmp(address.c_str(), mLocalAddresses[i].c_str()) == 0)
 			return true;
 	//No match
 	return false;

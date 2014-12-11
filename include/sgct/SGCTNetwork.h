@@ -89,12 +89,15 @@ public:
 #endif
 
 private:
+	void updateBuffer(char ** buffer, int requested_size, int & current_size);
 	int readSyncMessage(char * _header, int & _syncFrameNumber, int & _dataSize, int & _uncompressedDataSize);
 	int readDataTransferMessage(char * _header, int & _packageId, int & _dataSize, int & _uncompressedDataSize);
 	int readExternalMessage();
 
-	static void communicationHandler(void *arg);
-	static void connectionHandler(void *arg);
+	static void communicationHandlerStarter(void *arg);
+	static void connectionHandlerStarter(void *arg);
+	void communicationHandler();
+	void connectionHandler();
 	static bool parseDisconnectPackage(char * headerPtr);
 	static std::string getUncompressionErrorAsStr(int err);
 
@@ -115,10 +118,7 @@ private:
 	tthread::atomic<int> mSendFrame[2];
 	tthread::atomic<int> mRecvFrame[2];
 	tthread::atomic<bool> mTerminate; //set to true upon exit
-
-	int mBufferSize;
-	int mRequestedSize;
-	int mUncompressedBufferSize;
+	tthread::atomic<int> mRequestedSize;
 
 	tthread::mutex mConnectionMutex;
 	tthread::thread * mCommThread;
@@ -126,6 +126,8 @@ private:
 
 	double mTimeStamp[2];
 	int mId;
+	int mBufferSize;
+	int mUncompressedBufferSize;
 	std::string mPort;
 	std::string mAddress;
 

@@ -60,7 +60,7 @@ public:
 	unsigned int getSyncConnectionsCount();
 	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
     inline SGCTNetwork* getSyncConnection(unsigned int index) { return mSyncConnections[index]; }
-	inline std::vector<std::string> getLocalAddresses() { return localAddresses; }
+	inline std::vector<std::string> getLocalAddresses() { return mLocalAddresses; }
 
 private:
 	bool addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
@@ -81,8 +81,8 @@ private:
 	SGCTNetwork* mExternalControlConnection;
 
 	std::string mHostName; //stores this computers hostname
-	std::string mDNSName;
-	std::vector<std::string> localAddresses; //stors this computers ip addresses
+	std::vector<std::string> mDNSNames;
+	std::vector<std::string> mLocalAddresses; //stors this computers ip addresses
 
 	bool mIsServer;
 	bool mIsRunning;

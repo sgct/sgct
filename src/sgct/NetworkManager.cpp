@@ -828,8 +828,9 @@ void sgct_core::NetworkManager::getHostInfo()
 	{
 		sockaddr_ipv4 = (struct sockaddr_in *) p->ai_addr;
 		inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
-		mDNSNames.push_back(p->ai_canonname);
-		mLocalAddresses.push_back(addr_str);
+		if (p->ai_canonname)
+			mDNSNames.push_back(std::string(p->ai_canonname));
+		mLocalAddresses.push_back(std::string(addr_str));
 
 		//fprintf(stderr, "Adding address: %s\n", mLocalAddresses.back().c_str());
 	}

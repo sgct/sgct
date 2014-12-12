@@ -423,7 +423,7 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 		return false;
 	}
 
-	FT_Stroker  stroker = NULL;
+	FT_Stroker stroker = NULL;
 	FT_Error error = FT_Stroker_New( mFTLibrary, &stroker );
 	if ( !error )
 	{
@@ -565,6 +565,7 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 	glEndList();
 
 	//delete the stroke glyph
+	FT_Stroker_Done(stroker);
 	FT_Done_Glyph( strokeGlyph );
 	// Can't delete them while they are used, delete when font is cleaned
 	font.AddGlyph( glyph );
@@ -721,6 +722,7 @@ bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 		coords.push_back( static_cast<float>(strokeBitmap.rows) + offset.y );
 
 		//delete the stroke glyph
+		FT_Stroker_Done( stroker );
 		FT_Done_Glyph( strokeGlyph );
 
 		// Can't delete them while they are used, delete when font is cleaned

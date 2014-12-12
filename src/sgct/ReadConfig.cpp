@@ -269,6 +269,8 @@ bool sgct_core::ReadConfig::readAndParseXML()
             
 			if( element[0]->Attribute( "address" ) )
 				tmpNode.setAddress( element[0]->Attribute( "address" ) );
+			if (element[0]->Attribute("name"))
+				tmpNode.setName(element[0]->Attribute("name"));
 			if( element[0]->Attribute( "ip" ) ) //backward compability with older versions of SGCT config files
 				tmpNode.setAddress( element[0]->Attribute( "ip" ) );
 			if( element[0]->Attribute( "port" ) )

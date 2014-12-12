@@ -55,7 +55,8 @@ public:
 	void addNode(SGCTNode node);
 	void addUserPtr(SGCTUser * userPtr);
 
-	SGCTNode * getNodePtr(std::size_t );
+	SGCTNode * getNodePtr(std::size_t index);
+	SGCTNode * getNodePtr(std::string name);
 	SGCTNode * getThisNodePtr();
 	SGCTUser * getDefaultUserPtr();
 	SGCTUser * getUserPtr(std::string name);
@@ -135,6 +136,7 @@ private:
 	static ClusterManager * mInstance;
 
 	std::vector<SGCTNode> nodes;
+
 	int masterIndex;
 	int mThisNodeId;
 	bool validCluster;

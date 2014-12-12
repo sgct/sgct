@@ -63,14 +63,32 @@ void sgct_core::ClusterManager::addUserPtr(sgct_core::SGCTUser * userPtr)
 }
 
 /*!
-	Get a pointer to a specific node. Use \link getNumberOfNodes \endlink to prevent out of bounds error.
+	Get a pointer to a specific node.
 
 	\param index the index to a node in the vector
-	\returns the pointer to the requested node
+	\returns the pointer to the requested node or NULL if not found
 */
 sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(std::size_t index)
 {
 	return (index < nodes.size()) ? &nodes[index] : NULL;
+}
+
+/*!
+	Get a pointer to a specific node.
+
+	\param name of the node to search for
+	\returns the pointer to the requested node or NULL if not found
+*/
+sgct_core::SGCTNode * sgct_core::ClusterManager::getNodePtr(std::string name)
+{
+	for (std::size_t i = 0; i < nodes.size(); i++)
+	{
+		if (nodes[i].getName().compare(name) == 0)
+			return &nodes[i];
+	}
+
+	//if not found
+	return NULL;
 }
 
 /*!

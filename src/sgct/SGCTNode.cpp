@@ -133,6 +133,14 @@ void sgct_core::SGCTNode::setDataTransferPort(std::string port)
 }
 
 /*!
+\param name the name identification string of this node
+*/
+void sgct_core::SGCTNode::setName(std::string name)
+{
+	mName = name;
+}
+
+/*!
 \returns the address of this node
 */
 std::string sgct_core::SGCTNode::getAddress()
@@ -156,3 +164,10 @@ std::string sgct_core::SGCTNode::getDataTransferPort()
 	return mDataTransferPort;
 }
 
+/*!
+\returns the name if this node
+*/
+std::string sgct_core::SGCTNode::getName()
+{
+	return mName;
+}

@@ -51,6 +51,7 @@ public:
 	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
 	void transferData(void * data, int length, int packageId);
+	void transferData(void * data, int length, int packageId, std::size_t nodeIndex);
     void setDataTransferCompression(bool state, int level = 1);
 
 	unsigned int getActiveConnectionsCount();
@@ -68,6 +69,7 @@ private:
 	void getHostInfo();
 	void updateConnectionStatus(int index);
 	void setAllNodesConnected();
+	bool prepareTransferData(void * data, char ** bufferPtr, int & length, int packageId);
 
 public:
 	enum ManagerMode { Remote = 0, LocalServer, LocalClient };
@@ -87,8 +89,8 @@ private:
 	bool mIsServer;
 	bool mIsRunning;
 	bool mAllNodesConnected;
-    bool mCompress;
-    int mCompressionLevel;
+	tthread::atomic<bool> mCompress;
+	tthread::atomic<int> mCompressionLevel;
 	int mMode;
 	unsigned int mNumberOfActiveConnections;
 	unsigned int mNumberOfActiveSyncConnections;

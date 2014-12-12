@@ -4403,6 +4403,18 @@ void sgct::Engine::transferDataBetweenNodes(void * data, int length, int package
 }
 
 /*!
+This function sends data to a specific node.
+\param data a pointer to the data buffer
+\param length is the number of bytes of data that will be sent
+\param packageId is the identification id of this specific package
+\param nodeIndex is the index of a specific node
+*/
+void sgct::Engine::transferDataToNode(void * data, int length, int packageId, std::size_t nodeIndex)
+{
+	mNetworkConnections->transferData(data, length, packageId, nodeIndex);
+}
+
+/*!
 	This function sends a message to the external control interface.
 	\param msg the message string that will be sent
 */

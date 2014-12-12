@@ -52,11 +52,14 @@ public:
 	void setAddress(std::string address);
 	void setSyncPort(std::string port);
 	void setDataTransferPort(std::string port);
+	void setName(std::string name);
 	std::string getAddress();
 	std::string getSyncPort();
 	std::string getDataTransferPort();
+	std::string getName();
 
 private:
+	std::string mName;
 	std::string mAddress;
 	std::string mSyncPort;
 	std::string mDataTransferPort;

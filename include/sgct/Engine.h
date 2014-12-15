@@ -75,6 +75,7 @@ public:
 	bool init(RunMode rm = Default_Mode);
 	void terminate();
 	void render();
+	void setConfigurationFile(std::string configFilePath);
 	
 	/*!
 		\returns the static pointer to the engine instance
@@ -450,7 +451,6 @@ private:
 	float mClearColor[4];
 	float mFisheyeClearColor[4];
 
-	int localRunningMode;
 	sgct_core::Frustum::FrustumMode mActiveFrustumMode;
 	int currentViewportCoords[4];
 
@@ -459,7 +459,6 @@ private:
 	bool mShowWireframe;
 	bool mTakeScreenshot;
 	bool mTerminate;
-	bool mIgnoreSync;
 	bool mRenderingOffScreen;
 	bool mFixedOGLPipeline;
 	bool mHelpMode;

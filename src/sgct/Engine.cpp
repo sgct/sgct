@@ -137,12 +137,9 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mInternalRenderFisheyeFn = NULL;
 
 	mTerminate = false;
-	mIgnoreSync = false;
 	mRenderingOffScreen = false;
 	mFixedOGLPipeline = true;
 	mHelpMode = false;
-
-	localRunningMode = NetworkManager::Remote;
 
 	currentViewportCoords[0] = 0;
 	currentViewportCoords[1] = 0;
@@ -252,7 +249,7 @@ bool sgct::Engine::init(RunMode rm)
 
 	//if a single node, skip syncing
 	if(ClusterManager::instance()->getNumberOfNodes() == 1)
-		mIgnoreSync = true;
+		ClusterManager::instance()->setUseIgnoreSync(true);
 
 	for(std::size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
@@ -292,7 +289,7 @@ bool sgct::Engine::initNetwork()
 {
 	try
 	{
-		mNetworkConnections = new NetworkManager(localRunningMode);
+		mNetworkConnections = new NetworkManager(sgct_core::ClusterManager::instance()->getNetworkMode());
 
 	}
 	catch(const char * err)
@@ -302,7 +299,7 @@ bool sgct::Engine::initNetwork()
 	}
 
 	//check in cluster configuration which it is
-	if( localRunningMode == NetworkManager::Remote )
+	if (sgct_core::ClusterManager::instance()->getNetworkMode() == NetworkManager::Remote)
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Matching ip address to find node in configuration...\n");
 		mNetworkConnections->retrieveNodeId();
@@ -832,7 +829,7 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 		mStatistics->setSyncTime( static_cast<float>(glfwGetTime() - t0) );
 
 		//run only on clients/slaves
-		if( !mIgnoreSync && !mNetworkConnections->isComputerServer() ) //not server
+		if (!ClusterManager::instance()->getIgnoreSync() && !mNetworkConnections->isComputerServer()) //not server
 		{
 			t0 = glfwGetTime();
             while(mNetworkConnections->isRunning() && mRunning)
@@ -888,7 +885,7 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 	}
 	else //post stage
 	{
-		if( !mIgnoreSync && mNetworkConnections->isComputerServer() )//&&
+		if (!ClusterManager::instance()->getIgnoreSync() && mNetworkConnections->isComputerServer())//&&
 			//mConfig->isMasterSyncLocked() &&
 			/*localRunningMode == NetworkManager::Remote &&*/
 			//!getActiveWindowPtr()->isBarrierActive() )//post stage
@@ -1181,6 +1178,14 @@ void sgct::Engine::render()
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: End iteration\n");
 #endif
 	}
+}
+
+/*!
+	Set the configuration file path. Must be done before Engine::init().
+*/
+void sgct::Engine::setConfigurationFile(std::string configFilePath)
+{
+	configFilename.assign(configFilePath);
 }
 
 /*!
@@ -2960,7 +2965,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 	glfwPollEvents();
 	
 	//Must wait until all nodes are running if using swap barrier
-	if( !mIgnoreSync && ClusterManager::instance()->getNumberOfNodes() > 1)
+	if (!ClusterManager::instance()->getIgnoreSync() && ClusterManager::instance()->getNumberOfNodes() > 1)
 	{
 		//check if swapgroups are supported
 		#ifdef __WIN32__
@@ -3093,13 +3098,13 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"--client") == 0 )
 		{
-			localRunningMode = NetworkManager::LocalClient;
+			sgct_core::ClusterManager::instance()->setNetworkMode( NetworkManager::LocalClient );
             argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--slave") == 0 )
 		{
-			localRunningMode = NetworkManager::LocalClient;
+			sgct_core::ClusterManager::instance()->setNetworkMode(NetworkManager::LocalClient );
             argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -3118,7 +3123,7 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"-local") == 0 && argc > (i+1) )
 		{
-			localRunningMode = NetworkManager::LocalServer;
+			sgct_core::ClusterManager::instance()->setNetworkMode( NetworkManager::LocalServer );
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
@@ -3146,7 +3151,6 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"-notify") == 0 && argc > (i+1) )
 		{
-			localRunningMode = NetworkManager::LocalServer;
 			int tmpi = -1;
 			std::stringstream ss( argv[i+1] );
 			ss >> tmpi;
@@ -3170,13 +3174,13 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		}
 		else if( strcmp(argv[i],"--Ignore-Sync") == 0 )
 		{
-			mIgnoreSync = true;
+			ClusterManager::instance()->setUseIgnoreSync(true);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
 		else if( strcmp(argv[i],"--No-Sync") == 0 )
 		{
-			mIgnoreSync = true;
+			ClusterManager::instance()->setUseIgnoreSync(true);
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -3217,6 +3221,12 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 		else if( strcmp(argv[i],"--Capture-PNG") == 0 )
 		{
 			SGCTSettings::instance()->setCaptureFormat("PNG");
+			argumentsToRemove.push_back(i);
+			i++;
+		}
+		else if (strcmp(argv[i], "--Capture-JPG") == 0)
+		{
+			SGCTSettings::instance()->setCaptureFormat("JPG");
 			argumentsToRemove.push_back(i);
 			i++;
 		}
@@ -4704,6 +4714,7 @@ void sgct::Engine::outputHelpMessage()
 \n--gDebugger                      \n\tForce textures to be genareted using glTexImage2D instead of glTexStorage2D\n\
 \n--No-FBO                         \n\tDisable frame buffer objects\n\t(some stereo modes, Multi-Window rendering,\n\tFXAA and fisheye rendering will be disabled)\n\
 \n--Capture-PNG                    \n\tUse png images for screen capture (default)\n\
+\n--Capture-JPG                    \n\tUse jpg images for screen capture\n\
 \n--Capture-TGA                    \n\tUse tga images for screen capture\n\
 \n-numberOfCaptureThreads <integer>\n\tSet the maximum amount of threads\n\tthat should be used during framecapture (default 8)\n------------------------------------\n\n");
 }

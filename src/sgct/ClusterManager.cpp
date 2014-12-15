@@ -17,6 +17,7 @@ sgct_core::ClusterManager::ClusterManager(void)
 	mThisNodeId = -1;
 	validCluster = false;
 	mFirmFrameLockSync = false;
+	mIgnoreSync = false;
 	mUseASCIIForExternalControl = true;
 
 	SGCTUser * defaultUser = new SGCTUser("default");
@@ -29,6 +30,7 @@ sgct_core::ClusterManager::ClusterManager(void)
 	mSceneRotation = glm::mat4(1.0f);
 
 	mMeshImpl = BUFFER_OBJECTS; //default
+	mNetMode = NetworkManager::Remote;
 }
 
 sgct_core::ClusterManager::~ClusterManager()
@@ -120,6 +122,22 @@ sgct_core::SGCTUser * sgct_core::ClusterManager::getUserPtr(std::string name)
 }
 
 /*!
+\returns the current network mode
+*/
+sgct_core::NetworkManager::NetworkMode sgct_core::ClusterManager::getNetworkMode()
+{
+	return mNetMode;
+}
+
+/*!
+Sets the current network mode
+*/
+void sgct_core::ClusterManager::setNetworkMode(sgct_core::NetworkManager::NetworkMode nm)
+{
+	mNetMode = nm;
+}
+
+/*!
 	Set the scene offset/translation. This is set using the XML config file for easier transitions between different hardware setups.
 */
 void sgct_core::ClusterManager::setSceneOffset(glm::vec3 offset)
@@ -135,6 +153,22 @@ void sgct_core::ClusterManager::setSceneRotation(float yaw, float pitch, float r
 {
 	mSceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
 	calculateSceneTransform();
+}
+
+/*!
+Get if software sync between nodes is disabled
+*/
+bool sgct_core::ClusterManager::getIgnoreSync()
+{
+	return mIgnoreSync;
+}
+
+/*!
+Set if software sync between nodes should be ignored
+*/
+void sgct_core::ClusterManager::setUseIgnoreSync(bool state)
+{
+	mIgnoreSync = state;
 }
 
 /*!

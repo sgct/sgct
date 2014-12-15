@@ -38,7 +38,7 @@ tthread::condition_variable sgct_core::NetworkManager::gCond;
 
 sgct_core::NetworkManager * sgct_core::NetworkManager::mInstance = NULL;
 
-sgct_core::NetworkManager::NetworkManager(int mode)
+sgct_core::NetworkManager::NetworkManager(NetworkMode nm)
 {
 	mInstance = this;
 	mNumberOfActiveConnections = 0;
@@ -53,7 +53,7 @@ sgct_core::NetworkManager::NetworkManager(int mode)
     mCompress = false;
     mCompressionLevel = Z_BEST_SPEED;
 
-	mMode = mode;
+	mMode = nm;
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network API...\n");
 	try

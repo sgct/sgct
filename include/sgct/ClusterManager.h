@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "SGCTNode.h"
 #include "SGCTUser.h"
 #include "SGCTTrackingManager.h"
+#include "NetworkManager.h"
 #include <string>
 
 /*! \namespace sgct_core
@@ -60,6 +61,8 @@ public:
 	SGCTNode * getThisNodePtr();
 	SGCTUser * getDefaultUserPtr();
 	SGCTUser * getUserPtr(std::string name);
+	NetworkManager::NetworkMode getNetworkMode();
+	void setNetworkMode(NetworkManager::NetworkMode nm);
 
 	/*!
 		\returns the number of nodes in the cluster
@@ -103,6 +106,9 @@ public:
 	void setUseASCIIForExternalControl(bool useASCII);
 	bool getUseASCIIForExternalControl();
 
+	void setUseIgnoreSync(bool state);
+	bool getIgnoreSync();
+
 	void setSceneOffset(glm::vec3 offset);
 	void setSceneRotation(float yaw, float pitch, float roll);
 	void setSceneScale(float scale);
@@ -141,6 +147,7 @@ private:
 	int mThisNodeId;
 	bool validCluster;
 	bool mFirmFrameLockSync;
+	bool mIgnoreSync;
 	std::string mMasterAddress;
 	std::string mExternalControlPort;
 	bool mUseASCIIForExternalControl;
@@ -153,6 +160,7 @@ private:
 	glm::mat4 mSceneTranslate;
 	glm::mat4 mSceneRotation;
 	MeshImplementation mMeshImpl;
+	NetworkManager::NetworkMode mNetMode;
 };
 }
 

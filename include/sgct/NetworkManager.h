@@ -31,8 +31,9 @@ public:
 		Different sync stages. Server sync data to clients and clients syncs acknowlagement
 	*/
 	enum SyncMode { SendDataToClients = 0, AcknowledgeData };
+	enum NetworkMode { Remote = 0, LocalServer, LocalClient };
 
-	NetworkManager(int mode);
+	NetworkManager(NetworkMode nm);
 	~NetworkManager();
 	bool init();
 	void sync(SyncMode sm, Statistics * statsPtr);
@@ -72,7 +73,6 @@ private:
 	bool prepareTransferData(void * data, char ** bufferPtr, int & length, int packageId);
 
 public:
-	enum ManagerMode { Remote = 0, LocalServer, LocalClient };
 	static tthread::condition_variable gCond;
 
 private:

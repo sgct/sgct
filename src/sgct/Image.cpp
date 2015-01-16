@@ -107,6 +107,7 @@ sgct_core::Image::Image()
 	mSize_x = 0;
 	mSize_y = 0;
 	mDataSize = 0;
+	mExternalData = false;
 }
 
 sgct_core::Image::~Image()
@@ -1021,7 +1022,7 @@ void sgct_core::Image::setFilename(std::string filename)
 
 void sgct_core::Image::cleanup()
 {
-	if(mData)
+	if (!mExternalData && mData)
 	{
 		delete [] mData;
 		mData = NULL;
@@ -1101,7 +1102,17 @@ float sgct_core::Image::getInterpolatedSampleAt(float x, float y, sgct_core::Ima
 
 void sgct_core::Image::setDataPtr(unsigned char * dPtr)
 {
+	if (!mExternalData && mData)
+	{
+		delete[] mData;
+		mData = NULL;
+		mDataSize = 0;
+	}
+
+	allocateRowPtrs();
+	
 	mData = dPtr;
+	mExternalData = true;
 }
 
 void sgct_core::Image::setSize(int width, int height)
@@ -1137,6 +1148,7 @@ bool sgct_core::Image::allocateOrResizeData()
 		{
 			mData = new unsigned char[dataSize];
 			mDataSize = dataSize;
+			mExternalData = false;
 		}
 		catch (std::bad_alloc& ba)
 		{
@@ -1146,18 +1158,32 @@ bool sgct_core::Image::allocateOrResizeData()
 			return false;
 		}
 
-		try
-		{
-			mRowPtrs = new png_bytep[mSize_y];
-		}
-		catch (std::bad_alloc& ba)
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate pointers for image data (%s).\n", ba.what());
-			mRowPtrs = NULL;
+		if (!allocateRowPtrs())
 			return false;
-		}
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: Allocated %d bytes for image data\n", mDataSize);
+	}
+
+	return true;
+}
+
+bool sgct_core::Image::allocateRowPtrs()
+{
+	if (mRowPtrs)
+	{
+		delete[] mRowPtrs;
+		mRowPtrs = NULL;
+	}
+
+	try
+	{
+		mRowPtrs = new png_bytep[mSize_y];
+	}
+	catch (std::bad_alloc& ba)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Failed to allocate pointers for image data (%s).\n", ba.what());
+		mRowPtrs = NULL;
+		return false;
 	}
 
 	return true;

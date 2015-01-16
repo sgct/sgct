@@ -56,11 +56,13 @@ public:
 
 private:
 	void cleanup();
+	bool allocateRowPtrs();
 	FormatType getFormatType(const std::string & filename);
     bool isTGAPackageRLE(unsigned char * row, int pos);
     int getTGAPackageLength(unsigned char * row, int pos, bool rle);
     
 private:
+	bool mExternalData;
 	int mChannels;
 	int mSize_x;
 	int mSize_y;

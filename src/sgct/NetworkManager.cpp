@@ -395,6 +395,8 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
 
 bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferPtr, int & length, int packageId)
 {
+	int msg_len = length;
+	
 	if (mCompress)
 		length = compressBound(static_cast<uLong>(length));
 	length += static_cast<int>(SGCTNetwork::mHeaderSize);
@@ -467,10 +469,11 @@ bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferP
 			//faster to copy chunks of 4k than the whole buffer
 			int offset = 0;
 			int stride = 4096;
-			while (offset < length)
+			 
+			while (offset < msg_len)
 			{
-				if ((length - offset) < stride)
-					stride = length - offset;
+				if ((msg_len - offset) < stride)
+					stride = msg_len - offset;
 
 				memcpy((*bufferPtr) + SGCTNetwork::mHeaderSize + offset, reinterpret_cast<char*>(data)+offset, stride);
 				offset += stride;
@@ -478,7 +481,7 @@ bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferP
 
 		}
 
-		char *sizePtr = (char *)&length;
+		char *sizePtr = (char *)&msg_len;
 		(*bufferPtr)[5] = sizePtr[0];
 		(*bufferPtr)[6] = sizePtr[1];
 		(*bufferPtr)[7] = sizePtr[2];

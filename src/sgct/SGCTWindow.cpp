@@ -48,6 +48,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mUseFixResolution = false;
 	mUseQuadBuffer = false;
 	mFullScreen = false;
+	mFloating = false;
 	mSetWindowPos = false;
 	mDecorated = true;
 	mFisheyeMode = false;
@@ -75,6 +76,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
 	mAspectRatio = 1.0f;
+	mGamma = 1.0f;
 
 	Cubemap			= -1;
 	DepthCubemap	= -1;
@@ -622,6 +624,14 @@ bool sgct::SGCTWindow::isFullScreen()
 }
 
 /*!
+	\return true if window is floating/allways on top/topmost
+*/
+bool sgct::SGCTWindow::isFloating()
+{
+	return mFloating;
+}
+
+/*!
 	\returns if the window is visible or not
 */
 bool sgct::SGCTWindow::isVisible()
@@ -663,6 +673,14 @@ Set if fullscreen mode should be used
 void sgct::SGCTWindow::setWindowMode(bool fullscreen)
 {
 	mFullScreen = fullscreen;
+}
+
+/*!
+Set if the window should float (be on top / topmost)
+*/
+void sgct::SGCTWindow::setFloating(bool floating)
+{
+	mFloating = floating;
 }
 
 /*!
@@ -792,36 +810,43 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	if( antiAliasingSamples > 1 && !SGCTSettings::instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
 
-	int count;
-	GLFWmonitor** monitors = glfwGetMonitors(&count);
-
-	//get video modes and print them
+	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 	
-	/*for(int i=0; i<count; i++)
-	{
-		int numberOfVideoModes;
-		const GLFWvidmode * videoModes = glfwGetVideoModes( monitors[i], &numberOfVideoModes);
-
-		MessageHandler::instance()->print("\nMonitor %d '%s' video modes\n========================\n",
-			i, glfwGetMonitorName( monitors[i] ) );
-
-		for(int j=0; j<numberOfVideoModes; j++)
-			MessageHandler::instance()->print("%d x %d @ %d | R%d G%d B%d\n",
-			videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate,
-			videoModes[j].redBits, videoModes[j].greenBits, videoModes[j].blueBits);
-
-		MessageHandler::instance()->print("\n");
-	}*/
+	if (mFloating)
+		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
 
 	setUseQuadbuffer( mStereoMode == Active_Stereo );
 
 	if( mFullScreen )
 	{
+		int count;
+		GLFWmonitor** monitors = glfwGetMonitors(&count);
+
+		//get video modes
+		/*for (int i = 0; i<count; i++)
+		{
+			int numberOfVideoModes;
+			const GLFWvidmode * videoModes = glfwGetVideoModes(monitors[i], &numberOfVideoModes);
+
+			MessageHandler::instance()->print("\nMonitor %d '%s' video modes\n========================\n",
+				i, glfwGetMonitorName( monitors[i] ) );
+
+			for (int j = 0; j < numberOfVideoModes; j++)
+			{
+				MessageHandler::instance()->print("%d x %d @ %d | R%d G%d B%d\n",
+					videoModes[j].width, videoModes[j].height, videoModes[j].refreshRate,
+					videoModes[j].redBits, videoModes[j].greenBits, videoModes[j].blueBits);
+			}
+			MessageHandler::instance()->print("\n");
+		}*/
+		
 		if( SGCTSettings::instance()->getRefreshRateHint() > 0 )
 			glfwWindowHint(GLFW_REFRESH_RATE, SGCTSettings::instance()->getRefreshRateHint());
 		
-		if( mMonitorIndex > 0 && mMonitorIndex < count )
-			mMonitor = monitors[ mMonitorIndex ];
+		if (mMonitorIndex > 0 && mMonitorIndex < count)
+		{
+			mMonitor = monitors[mMonitorIndex];
+		}
 		else
 		{
 			mMonitor = glfwGetPrimaryMonitor();
@@ -830,6 +855,10 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 					"SGCTWindow(%d): Invalid monitor index (%d). This computer has %d monitors.\n",
 					mId, mMonitorIndex, count);
 		}
+
+		const GLFWvidmode* currentMode = glfwGetVideoMode(mMonitor);
+		mWindowRes[0] = currentMode->width;
+		mWindowRes[1] = currentMode->height;
 	}
 
 	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);
@@ -871,6 +900,9 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 			2  = fix when using swapgroups in xp and running half the framerate
 		*/
 		glfwSwapInterval( SGCTSettings::instance()->getSwapInterval() );
+
+		if (mMonitor)
+			glfwSetGamma(mMonitor, mGamma);
 
 		//if slave disable mouse pointer
 		if( !Engine::instance()->isMaster() )
@@ -2944,6 +2976,16 @@ void sgct::SGCTWindow::setAlpha(bool state)
 }
 
 /*!
+Set the gamma of the monitor (works only if fullscreen)
+*/
+void sgct::SGCTWindow::setGamma(float gamma)
+{
+	mGamma = gamma;
+	if (mMonitor)
+		glfwSetGamma(mMonitor, mGamma);
+}
+
+/*!
 Enable alpha clear color and 4-component screenshots
 */
 bool sgct::SGCTWindow::getAlpha()
@@ -2951,3 +2993,10 @@ bool sgct::SGCTWindow::getAlpha()
 	return mAlpha;
 }
 
+/*!
+Get current gamma value
+*/
+float sgct::SGCTWindow::getGamma()
+{
+	return mGamma;
+}

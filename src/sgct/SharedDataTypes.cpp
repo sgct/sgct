@@ -27,163 +27,163 @@ float sgct::SharedFloat::getVal()
 {
 	float tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedFloat::setVal(float val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator=(const SharedFloat & sf)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal = sf.mVal;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator=(const float & val)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator+=(const float & val)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal += val;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator-=(const float & val)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal -= val;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator*=(const float & val)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal *= val;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator/=(const float & val)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal /= val;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator++()
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal += 1.0f;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedFloat::operator--()
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal -= 1.0f;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 bool sgct::SharedFloat::operator<(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal < val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 bool sgct::SharedFloat::operator<=(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal <= val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 bool sgct::SharedFloat::operator>(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal > val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 bool sgct::SharedFloat::operator>=(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal >= val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 bool sgct::SharedFloat::operator==(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal == val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 bool sgct::SharedFloat::operator!=(const float & val)
 {
 	bool tmpB;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpB = (mVal != val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpB;
 }
 
 float sgct::SharedFloat::operator+(const float & val)
 {
 	float tmpF;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpF = (mVal + val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpF;
 }
 
 float sgct::SharedFloat::operator-(const float & val)
 {
 	float tmpF;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpF = (mVal - val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpF;
 }
 
 float sgct::SharedFloat::operator*(const float & val)
 {
 	float tmpF;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpF = (mVal * val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpF;
 }
 
 float sgct::SharedFloat::operator/(const float & val)
 {
 	float tmpF;
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	tmpF = (mVal / val);
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 	return tmpF;
 }
 
@@ -206,163 +206,163 @@ double sgct::SharedDouble::getVal()
 {
 	double tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedDouble::setVal(double val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator=(const SharedDouble & sd)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal = sd.mVal;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator=( const double & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator+=( const double & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal += val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator-=( const double & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal -= val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator*=( const double & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal *= val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator/=( const double & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal /= val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator++()
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal += 1.0;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedDouble::operator--()
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal -= 1.0;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 bool sgct::SharedDouble::operator<( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal < val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedDouble::operator<=( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal <= val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedDouble::operator>( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal > val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedDouble::operator>=( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal >= val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedDouble::operator==( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal == val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedDouble::operator!=( const double & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal != val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 double sgct::SharedDouble::operator+( const double & val )
 {
     double tmpD;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpD = (mVal + val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpD;
 }
 
 double sgct::SharedDouble::operator-( const double & val )
 {
     double tmpD;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpD = (mVal - val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpD;
 }
 
 double sgct::SharedDouble::operator*( const double & val )
 {
     double tmpD;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpD = (mVal * val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpD;
 }
 
 double sgct::SharedDouble::operator/( const double & val )
 {
     double tmpD;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpD = (mVal / val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpD;
 }
 
@@ -381,18 +381,18 @@ int sgct::SharedInt::getVal()
 {
 	int tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedInt::setVal(int val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 sgct::SharedUChar::SharedUChar()
@@ -409,18 +409,18 @@ unsigned char sgct::SharedUChar::getVal()
 {
 	unsigned char tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedUChar::setVal(unsigned char val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 sgct::SharedBool::SharedBool()
@@ -442,56 +442,56 @@ bool sgct::SharedBool::getVal()
 {
 	bool tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedBool::setVal(bool val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedBool::toggle()
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = !mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedBool::operator=( const bool & val )
 {
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedBool::operator=(const SharedBool & sb)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mVal = sb.mVal;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 bool sgct::SharedBool::operator==( const bool & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal == val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
 bool sgct::SharedBool::operator!=( const bool & val )
 {
     bool tmpB;
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.lock();
     tmpB = (mVal != val);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+    mMutex.unlock();
     return tmpB;
 }
 
@@ -509,18 +509,18 @@ short sgct::SharedShort::getVal()
 {
 	short tmpVal;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpVal = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpVal;
 }
 
 void sgct::SharedShort::setVal(short val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 sgct::SharedString::SharedString()
@@ -542,39 +542,39 @@ std::string sgct::SharedString::getVal()
 {
 	std::string tmpStr;
 
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpStr.assign( mStr );
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 
 	return tmpStr;
 }
 
 void sgct::SharedString::setVal(const std::string & str)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mStr.assign(str);
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedString::clear()
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mStr.clear();
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 
 void sgct::SharedString::operator=(const std::string & str)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mStr = str;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 void sgct::SharedString::operator=(const SharedString & ss)
 {
-	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.lock();
 	mStr = ss.mStr;
-	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::SharedVariableMutex);
+	mMutex.unlock();
 }
 
 /*
@@ -594,17 +594,17 @@ template <class T>
 T sgct::SharedObject<T>::getVal()
 {
 	T tmpT;
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	tmpT = mVal;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 	return tmpT;
 }
 
 template <class T>
 void sgct::SharedObject<T>::setVal(T val)
 {
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.lock();
 	mVal = val;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+	mMutex.unlock();
 }
 */

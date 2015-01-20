@@ -10,7 +10,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <string>
 #include <vector>
-#include "SGCTMutexManager.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include "external/tinythread.h"
+#else
+#include <tinythread.h>
+#endif
 
 namespace sgct //simple graphics cluster toolkit
 {
@@ -50,6 +54,7 @@ namespace sgct //simple graphics cluster toolkit
 
 	private:
 		float mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -88,6 +93,7 @@ namespace sgct //simple graphics cluster toolkit
         
 	private:
 		double mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -105,6 +111,7 @@ namespace sgct //simple graphics cluster toolkit
 		SharedInt( const SharedInt & si );
 		const SharedInt & operator=(const SharedInt & si );
 		int mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -122,6 +129,7 @@ namespace sgct //simple graphics cluster toolkit
 		SharedUChar( const SharedUChar & suc );
 		const SharedUChar & operator=(const SharedUChar & suc );
 		unsigned char mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -145,6 +153,7 @@ namespace sgct //simple graphics cluster toolkit
 
 	private:
 		bool mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -162,6 +171,7 @@ namespace sgct //simple graphics cluster toolkit
 		SharedShort( const SharedShort & ss );
 		const SharedShort & operator=(const SharedShort & ss );
 		short mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -183,6 +193,7 @@ namespace sgct //simple graphics cluster toolkit
 
 	private:
 		std::string mStr;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -198,23 +209,24 @@ namespace sgct //simple graphics cluster toolkit
 		T getVal()
 		{
 			T tmpT;
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			tmpT = mVal;
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 			return tmpT;
 		}
 
 		void setVal(T val)
 		{
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mVal = val;
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 		}
 
 	private:
 		SharedObject( const SharedObject & so );
 		const SharedObject & operator=(const SharedObject & so );
 		T mVal;
+		tthread::mutex mMutex;
 	};
 
 	/*!
@@ -230,55 +242,55 @@ namespace sgct //simple graphics cluster toolkit
 		T getValAt(std::size_t index)
 		{
 			T tmpT;
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			tmpT = mVector[ index ];
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 			return tmpT;
 		}
 
 		std::vector<T> getVal()
 		{
 			std::vector<T> mCopy;
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mCopy = mVector;
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 			return mCopy;
 		}
 
 		void setValAt(std::size_t index, T val)
 		{
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mVector[ index ] = val;
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 		}
 
 		void addVal(T val)
 		{
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mVector.push_back(val);
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 		}
 
 		void setVal( std::vector<T> mCopy )
 		{
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mVector.assign(mCopy.begin(), mCopy.end());
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 		}
 
 		void clear()
 		{
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			mVector.clear();
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 		}
 
 		std::size_t getSize()
 		{
 			std::size_t size = 0;
-			SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.lock();
 			size = mVector.size();
-			SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::SharedVariableMutex );
+			mMutex.unlock();
 			return size;
 		}
 
@@ -286,6 +298,7 @@ namespace sgct //simple graphics cluster toolkit
 		SharedVector( const SharedVector & sv );
 		const SharedVector & operator=(const SharedVector & sv );
 		std::vector<T> mVector;
+		tthread::mutex mMutex;
 	};
 }
 

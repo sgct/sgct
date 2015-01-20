@@ -26,7 +26,7 @@ namespace sgct
 class SGCTMutexManager
 {
 public:
-	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, SharedVariableMutex, TrackingMutex, ConsoleMutex, TransferMutex };
+	enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, TrackingMutex, ConsoleMutex, TransferMutex };
 
 	/*! Get the SGCTSettings instance */
 	static SGCTMutexManager * instance()

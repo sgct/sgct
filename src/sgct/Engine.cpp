@@ -54,6 +54,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	sgct_cppxeleven::function<void(int, int)> gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(double, double)> gMousePosCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(double, double)> gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(int, const char**)> gDropCallbackFnPtr = SGCT_NULL_PTR;
 #else
 	void (*gKeyboardCallbackFnPtr)(int, int) = NULL;
 	void (*gKeyboardCallbackFnPtr2)(int, int, int, int) = NULL;
@@ -61,6 +62,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	void (*gMouseButtonCallbackFnPtr)(int, int) = NULL;
 	void (*gMousePosCallbackFnPtr)(double, double) = NULL;
 	void (*gMouseScrollCallbackFnPtr)(double, double) = NULL;
+	void (*gDropCallbackFnPtr)(int, const char**) = NULL;
 #endif
 
 void updateFrameLockLoop(void * arg);
@@ -263,6 +265,8 @@ bool sgct::Engine::init(RunMode rm)
 			glfwSetCharCallback( getWindowPtr(i)->getWindowHandle(), internal_key_char_callback );
 		if (gMouseScrollCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetScrollCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_scroll_callback );
+		if (gDropCallbackFnPtr != SGCT_NULL_PTR)
+			glfwSetDropCallback( getWindowPtr(i)->getWindowHandle(), internal_drop_callback );
 	}
 
 	initOGL();
@@ -435,6 +439,89 @@ bool sgct::Engine::initWindows()
 			mGLSLVersion.assign("#version 440 core");
 		}
 		break;
+
+	case OpenGL_4_5_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 450 core");
+	}
+	break;
+
+	case OpenGL_4_1_Debug_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 1);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 410 core");
+	}
+	break;
+
+	case OpenGL_4_2_Debug_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 420 core");
+	}
+	break;
+
+	case OpenGL_4_3_Debug_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 3);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 430 core");
+	}
+	break;
+
+	case OpenGL_4_4_Debug_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 4);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 440 core");
+	}
+	break;
+
+	case OpenGL_4_5_Debug_Core_Profile:
+	{
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+		glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 5);
+#if __APPLE__
+		glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+		glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+		glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+		glewExperimental = true; // Needed for core profile
+		mGLSLVersion.assign("#version 450 core");
+	}
+	break;
 
     default:
 		mGLSLVersion.assign("#version 120");
@@ -805,6 +892,7 @@ void sgct::Engine::clearAllCallbacks()
 	gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
 	gMousePosCallbackFnPtr = SGCT_NULL_PTR;
 	gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
+	gDropCallbackFnPtr = SGCT_NULL_PTR;
 
 	for(unsigned int i=0; i < mTimers.size(); i++)
 	{
@@ -3884,6 +3972,22 @@ void sgct::Engine::setMouseScrollCallbackFunction(sgct_cppxeleven::function<void
 	gMouseScrollCallbackFnPtr = fn;
 }
 
+/*!
+Drop files to any window. All windows are connected to this callback.
+*/
+void sgct::Engine::setDropCallbackFunction(void(*fnPtr)(int, const char**))
+{
+	gDropCallbackFnPtr = fnPtr;
+}
+
+/*!
+Drop files to any window. All windows are connected to this callback.
+*/
+void sgct::Engine::setDropCallbackFunction(sgct_cppxeleven::function<void(int, const char**)> fn)
+{
+	gDropCallbackFnPtr = fn;
+}
+
 void sgct::Engine::clearBuffer()
 {
 	const float * colorPtr = Engine::instance()->getClearColor();
@@ -3931,6 +4035,12 @@ void sgct::Engine::internal_mouse_scroll_callback(GLFWwindow* window, double xOf
 void sgct::Engine::internal_glfw_error_callback(int error, const char* description)
 {
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "GLFW error: %s\n", description);
+}
+
+void sgct::Engine::internal_drop_callback(GLFWwindow* window, int count, const char** paths)
+{
+	if (gDropCallbackFnPtr != SGCT_NULL_PTR)
+		gDropCallbackFnPtr(count, paths);
 }
 
 /*!

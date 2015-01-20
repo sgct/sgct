@@ -64,6 +64,7 @@ public:
 	void setFramebufferResolution(const int x, const int y);
 	void setWindowPosition(const int x, const int y);
 	void setWindowMode(bool fullscreen);
+	void setFloating(bool floating);
 	void setWindowDecoration(bool state);
 	void setFullResolutionMode(bool state);
 	void setFullScreenMonitorIndex( int index );
@@ -76,9 +77,11 @@ public:
 	void setStereoMode( StereoMode sm );
 	void setCurrentViewport(std::size_t index);
 	void setAlpha(bool state);
+	void setGamma(float gamma);
 
 	// -------------- is functions --------------- //
 	bool				isFullScreen();
+	bool				isFloating();
 	bool				isFocused();
 	bool				isIconified();
 	bool				isWindowResized();
@@ -110,6 +113,7 @@ public:
 	std::size_t						getNumberOfViewports();
 	std::string						getStereoModeStr();
 	bool							getAlpha();
+	float							getGamma();
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -206,6 +210,7 @@ public:
 	void setFisheyeOverlay(std::string filename);
     void setFisheyeMask(std::string filename);
 	void setFisheyeUseCubicInterpolation(bool state);
+
 	int getCubeMapResolution();
 	float getDomeDiameter();
 	float getFisheyeTilt();
@@ -247,6 +252,7 @@ private:
 	static bool mSwapGroupMaster;
 	bool mUseQuadBuffer;
 	bool mFullScreen;
+	bool mFloating;
 	bool mSetWindowPos;
 	bool mDecorated;
 	bool mFullRes; //for mac retina screens and similar
@@ -262,6 +268,7 @@ private:
 	static GLFWwindow * mSharedHandle;
     static GLFWwindow * mCurrentContextOwner;
 	float mAspectRatio;
+	float mGamma;
 
 	bool mUseFXAA;
 	bool mUsePostFX;

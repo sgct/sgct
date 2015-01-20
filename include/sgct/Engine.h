@@ -54,7 +54,20 @@ public:
 		/// This option is using a programmable OpenGL 4.3 pipeline using a core profile
 		OpenGL_4_3_Core_Profile,
 		/// This option is using a programmable OpenGL 4.4 pipeline using a core profile
-		OpenGL_4_4_Core_Profile
+		OpenGL_4_4_Core_Profile,
+		/// This option is using a programmable OpenGL 4.5 pipeline using a core profile
+		OpenGL_4_5_Core_Profile,
+		
+		/// This option is using a programmable OpenGL 4.1 pipeline using a core profile and debug feedback
+		OpenGL_4_1_Debug_Core_Profile,
+		/// This option is using a programmable OpenGL 4.2 pipeline using a core profile and debug feedback
+		OpenGL_4_2_Debug_Core_Profile,
+		/// This option is using a programmable OpenGL 4.3 pipeline using a core profile and debug feedback
+		OpenGL_4_3_Debug_Core_Profile,
+		/// This option is using a programmable OpenGL 4.4 pipeline using a core profile and debug feedback
+		OpenGL_4_4_Debug_Core_Profile,
+		/// This option is using a programmable OpenGL 4.5 pipeline using a core profile and debug feedback
+		OpenGL_4_5_Debug_Core_Profile
 	};
 	//! The different texture indexes in window buffers
 	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions, CubeMap, CubeMapDepth, CubeMapNormals, CubeMapPositions, FisheyeColorSwap, FisheyeDepthSwap };
@@ -169,6 +182,7 @@ public:
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
+	void setDropCallbackFunction(void(*fnPtr)(int, const char**) ); //arguments: int count, const char ** list of path strings
 
 	void setExternalControlCallback(void(*fnPtr)(const char *, int)); //arguments: const char * buffer, int buffer length
 	void setExternalControlStatusCallback(void(*fnPtr)(bool)); //arguments: const bool & connected
@@ -195,6 +209,7 @@ public:
 	void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int button, int action
 	void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
 	void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
+	void setDropCallbackFunction(sgct_cppxeleven::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings
 
 	void setExternalControlCallback(sgct_cppxeleven::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
 	void setExternalControlStatusCallback(sgct_cppxeleven::function<void(bool)> fn); //arguments: const bool & connected
@@ -392,6 +407,7 @@ private:
 	static void internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos);
 	static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 	static void internal_glfw_error_callback(int error, const char* description);
+	static void internal_drop_callback(GLFWwindow* window, int count, const char** paths);
 	static void outputHelpMessage();
 
 private:

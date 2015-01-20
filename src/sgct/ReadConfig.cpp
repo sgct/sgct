@@ -295,13 +295,21 @@ bool sgct_core::ReadConfig::readAndParseXML()
 						tmpWin.setName( element[1]->Attribute("name") );
                     
 					//compability with older versions
+					if (element[1]->Attribute("fullScreen") != NULL)
+						tmpWin.setWindowMode(strcmp(element[1]->Attribute("fullScreen"), "true") == 0);
+
 					if( element[1]->Attribute("fullscreen") != NULL )
 						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullscreen"), "true" ) == 0 );
                     
-					if( element[1]->Attribute("fullScreen") != NULL )
-						tmpWin.setWindowMode( strcmp( element[1]->Attribute("fullScreen"), "true" ) == 0 );
+					if( element[1]->Attribute("floating") != NULL )
+						tmpWin.setFloating( strcmp( element[1]->Attribute("floating"), "true" ) == 0 );
+
+					float gamma = 0.0f;
+					if (element[1]->QueryFloatAttribute("gamma", &gamma) == tinyxml2::XML_NO_ERROR && gamma > 0.1f)
+						tmpWin.setGamma(gamma);
                     
 					int tmpSamples = 0;
+					//compability with older versions
 					if( element[1]->QueryIntAttribute("numberOfSamples", &tmpSamples ) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)
 						tmpWin.setNumberOfAASamples(tmpSamples);
 					else if( element[1]->QueryIntAttribute("msaa", &tmpSamples ) == tinyxml2::XML_NO_ERROR && tmpSamples <= 128)

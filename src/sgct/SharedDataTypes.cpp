@@ -83,14 +83,14 @@ void sgct::SharedFloat::operator/=(const float & val)
 	mMutex.unlock();
 }
 
-void sgct::SharedFloat::operator++()
+void sgct::SharedFloat::operator++(int)
 {
 	mMutex.lock();
 	mVal += 1.0f;
 	mMutex.unlock();
 }
 
-void sgct::SharedFloat::operator--()
+void sgct::SharedFloat::operator--(int)
 {
 	mMutex.lock();
 	mVal -= 1.0f;
@@ -262,14 +262,14 @@ void sgct::SharedDouble::operator/=( const double & val )
 	mMutex.unlock();
 }
 
-void sgct::SharedDouble::operator++()
+void sgct::SharedDouble::operator++(int)
 {
     mMutex.lock();
 	mVal += 1.0;
 	mMutex.unlock();
 }
 
-void sgct::SharedDouble::operator--()
+void sgct::SharedDouble::operator--(int)
 {
     mMutex.lock();
 	mVal -= 1.0;
@@ -377,6 +377,11 @@ sgct::SharedInt::SharedInt(int val)
 	mVal = val;
 }
 
+sgct::SharedInt::SharedInt(const SharedInt & sf)
+{
+	mVal = sf.mVal;
+}
+
 int sgct::SharedInt::getVal()
 {
 	int tmpVal;
@@ -393,6 +398,152 @@ void sgct::SharedInt::setVal(int val)
 	mMutex.lock();
 	mVal = val;
 	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator=(const SharedInt & sf)
+{
+	mMutex.lock();
+	mVal = sf.mVal;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator=(const int & val)
+{
+	mMutex.lock();
+	mVal = val;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator+=(const int & val)
+{
+	mMutex.lock();
+	mVal += val;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator-=(const int & val)
+{
+	mMutex.lock();
+	mVal -= val;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator*=(const int & val)
+{
+	mMutex.lock();
+	mVal *= val;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator/=(const int & val)
+{
+	mMutex.lock();
+	mVal /= val;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator++(int)
+{
+	mMutex.lock();
+	mVal++;
+	mMutex.unlock();
+}
+
+void sgct::SharedInt::operator--(int)
+{
+	mMutex.lock();
+	mVal--;
+	mMutex.unlock();
+}
+
+bool sgct::SharedInt::operator<(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal < val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+bool sgct::SharedInt::operator<=(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal <= val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+bool sgct::SharedInt::operator>(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal > val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+bool sgct::SharedInt::operator>=(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal >= val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+bool sgct::SharedInt::operator==(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal == val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+bool sgct::SharedInt::operator!=(const int & val)
+{
+	bool tmpB;
+	mMutex.lock();
+	tmpB = (mVal != val);
+	mMutex.unlock();
+	return tmpB;
+}
+
+int sgct::SharedInt::operator+(const int & val)
+{
+	int tmpI;
+	mMutex.lock();
+	tmpI = (mVal + val);
+	mMutex.unlock();
+	return tmpI;
+}
+
+int sgct::SharedInt::operator-(const int & val)
+{
+	int tmpI;
+	mMutex.lock();
+	tmpI = (mVal - val);
+	mMutex.unlock();
+	return tmpI;
+}
+
+int sgct::SharedInt::operator*(const int & val)
+{
+	int tmpI;
+	mMutex.lock();
+	tmpI = (mVal * val);
+	mMutex.unlock();
+	return tmpI;
+}
+
+int sgct::SharedInt::operator/(const int & val)
+{
+	int tmpI;
+	mMutex.lock();
+	tmpI = (mVal / val);
+	mMutex.unlock();
+	return tmpI;
 }
 
 sgct::SharedUChar::SharedUChar()

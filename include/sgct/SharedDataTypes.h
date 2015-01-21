@@ -37,8 +37,8 @@ namespace sgct //simple graphics cluster toolkit
 		void operator-=(const float & val);
 		void operator*=(const float & val);
 		void operator/=(const float & val);
-		void operator++();
-		void operator--();
+		void operator++(int);
+		void operator--(int);
 
 		bool operator<(const float & val);
 		bool operator<=(const float & val);
@@ -76,8 +76,8 @@ namespace sgct //simple graphics cluster toolkit
         void operator-=( const double & val );
         void operator*=( const double & val );
         void operator/=( const double & val );
-        void operator++();
-        void operator--();
+        void operator++(int);
+        void operator--(int);
         
         bool operator<( const double & val );
         bool operator<=( const double & val );
@@ -104,12 +104,33 @@ namespace sgct //simple graphics cluster toolkit
 	public:
 		SharedInt();
 		SharedInt(int val);
+		SharedInt(const SharedInt & si);
+
 		int getVal();
 		void setVal(int val);
 
+		void operator=(const SharedInt & si);
+		void operator=(const int & val);
+		void operator+=(const int & val);
+		void operator-=(const int & val);
+		void operator*=(const int & val);
+		void operator/=(const int & val);
+		void operator++(int);
+		void operator--(int);
+
+		bool operator<(const int & val);
+		bool operator<=(const int & val);
+		bool operator>(const int & val);
+		bool operator>=(const int & val);
+		bool operator==(const int & val);
+		bool operator!=(const int & val);
+
+		int operator+(const int & val);
+		int operator-(const int & val);
+		int operator*(const int & val);
+		int operator/(const int & val);
+
 	private:
-		SharedInt( const SharedInt & si );
-		const SharedInt & operator=(const SharedInt & si );
 		int mVal;
 		tthread::mutex mMutex;
 	};

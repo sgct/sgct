@@ -811,11 +811,11 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	int antiAliasingSamples = getNumberOfAASamples();
 	if( antiAliasingSamples > 1 && !SGCTSettings::instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
+	else
+		glfwWindowHint(GLFW_SAMPLES, 0);
 
 	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
-	
-	if (mFloating)
-		glfwWindowHint(GLFW_FLOATING, GL_TRUE);
+	glfwWindowHint(GLFW_FLOATING, mFloating ? GL_TRUE : GL_FALSE);
 
 	setUseQuadbuffer( mStereoMode == Active_Stereo );
 

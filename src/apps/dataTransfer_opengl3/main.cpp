@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include <fstream>
+#include <algorithm> //used for transform string to lowercase
 #include "sgct.h"
 
 sgct::Engine * gEngine;
@@ -14,6 +15,9 @@ void myDecodeFun();
 void myCleanUpFun();
 void keyCallback(int key, int action);
 void contextCreationCallback(GLFWwindow * win);
+
+//drag and drop files to window
+void myDropCallback(int count, const char** paths);
 
 void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex);
 void myDataTransferStatus(bool connected, int clientIndex);
@@ -39,10 +43,11 @@ sgct::SharedInt texIndex(-1);
 //other mutex variables
 sgct::SharedInt currentPackage(-1);
 sgct::SharedBool running(true);
-sgct::SharedBool transfere(false);
+sgct::SharedBool transfer(false);
+sgct::SharedBool serverUploadDone(false);
+sgct::SharedBool clientsUploadDone(false);
 sgct::SharedVector<std::pair<std::string, int>> imagePaths;
 sgct::SharedVector<GLuint> texIds;
-sgct::SharedInt localTexIndex(-1);
 double sendTimer = 0.0;
 
 enum imageType { IM_JPEG, IM_PNG };
@@ -59,9 +64,9 @@ int main( int argc, char* argv[] )
 	
 	gEngine = new sgct::Engine( argc, argv );
     
-    imagePaths.addVal( std::pair<std::string, int>("test_00.jpg", IM_JPEG) );
+    /*imagePaths.addVal( std::pair<std::string, int>("test_00.jpg", IM_JPEG) );
     imagePaths.addVal( std::pair<std::string, int>("test_01.png", IM_PNG) );
-    imagePaths.addVal( std::pair<std::string, int>("test_02.jpg", IM_JPEG) );
+    imagePaths.addVal( std::pair<std::string, int>("test_02.jpg", IM_JPEG) );*/
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
@@ -70,6 +75,7 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setContextCreationCallback( contextCreationCallback );
+	gEngine->setDropCallbackFunction(myDropCallback);
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
@@ -82,7 +88,7 @@ int main( int argc, char* argv[] )
 	gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
     //gEngine->setDataTransferCompression(true, 6);
 
-    sgct::SharedData::instance()->setCompression(true);
+    //sgct::SharedData::instance()->setCompression(true);
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
@@ -143,7 +149,14 @@ void myPreSyncFun()
 	if( gEngine->isMaster() )
 	{
 		curr_time.setVal( sgct::Engine::getTime() );
-        texIndex.setVal( localTexIndex.getVal() );
+		
+		//if texture is uploaded then iterate the index
+		if (serverUploadDone.getVal() && clientsUploadDone.getVal())
+		{
+			texIndex++;
+			serverUploadDone = false;
+			clientsUploadDone = false;
+		}
 	}
 }
 
@@ -230,10 +243,10 @@ void keyCallback(int key, int action)
 				info.toggle();
 			break;
                 
-        case SGCT_KEY_SPACE:
+        /*case SGCT_KEY_SPACE:
             if (action == SGCT_PRESS)
-                transfere.setVal(true);
-            break;
+                transfer.setVal(true);
+            break;*/
 		}
 	}
 }
@@ -244,7 +257,7 @@ void contextCreationCallback(GLFWwindow * win)
     
     sharedWindow = win;
     hiddenWindow = glfwCreateWindow( 1, 1, "Thread Window", NULL, sharedWindow );
-    
+     
     if( !hiddenWindow )
     {
         sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
@@ -262,39 +275,6 @@ void myDataTransferDecoder(void * receivedData, int receivedlength, int packageI
 	sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
 	currentPackage.setVal(packageId);
-    
-    /*int offset = 0;
-    int w, h, c;
-    
-    if( receivedlength > sizeof(int)*3 )
-    {
-        memcpy(&w, receivedData + offset, sizeof(int)); offset += sizeof(int);
-        memcpy(&h, receivedData + offset, sizeof(int)); offset += sizeof(int);
-        memcpy(&c, receivedData + offset, sizeof(int)); offset += sizeof(int);
-    
-        int totalSize = w * h * c + sizeof(int)*3;
-        if( receivedlength >= totalSize )
-        {
-            unsigned char * data = new (std::nothrow) unsigned char[w*h*c];
-            
-            for( int i = 0; i<(h*c); i++ )
-            {
-                memcpy(data + i*w, receivedData + offset + i*w, w);
-            }
-            
-            mutex.lock();
-            if(!transImg)
-            {
-                transImg = new (std::nothrow) sgct_core::Image();
-                transImg->setSize(w, h);
-                transImg->setChannels(c);
-                transImg->setDataPtr(data);
-            }
-            mutex.unlock();
-            
-            uploadTexture();
-        }
-    }*/
     
     //read the image on master
     readImage( reinterpret_cast<unsigned char*>(receivedData), receivedlength);
@@ -316,9 +296,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
         counter++;
         if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
         {
-            int tmpIndex = localTexIndex.getVal();
-            tmpIndex++;
-            localTexIndex.setVal(tmpIndex);
+			clientsUploadDone = true;
             counter = 0;
             
             sgct::MessageHandler::instance()->print("Time to distribute and upload textures on cluster: %f ms\n", (sgct::Engine::getTime() - sendTimer)*1000.0);
@@ -331,19 +309,18 @@ void threadWorker(void *arg)
     while (running.getVal())
 	{
 		//runs only on master
-        if (transfere.getVal())
+		if (transfer.getVal() && !serverUploadDone.getVal() && !clientsUploadDone.getVal())
         {
 			startDataTransfer();
-            transfere.setVal(false);
+            transfer.setVal(false);
             
             //load texture on master
             uploadTexture();
+			serverUploadDone = true;
             
             if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
             {
-                int tmpIndex = localTexIndex.getVal();
-                tmpIndex++;
-                localTexIndex.setVal(tmpIndex);
+				clientsUploadDone = true;
             }
         }
 
@@ -362,45 +339,6 @@ void startDataTransfer()
     if(static_cast<int>(imagePaths.getSize()) > id)
     {
         sendTimer = sgct::Engine::getTime();
-        
-        /*
-        //Load image and send
-        mutex.lock();
-        transImg = new (std::nothrow) sgct_core::Image();
-        transImg->load(imagePaths.getValAt(static_cast<std::size_t>(id)).c_str());
-        
-        if (transImg->getData())
-        {
-            int w, h, c, offset;
-            
-            w = transImg->getWidth();
-            h = transImg->getHeight();
-            c = transImg->getChannels();
-            offset = 0;
-            
-            int imSize = w * h * c;
-            int totalSize = imSize + sizeof(int)*3;
-            
-            //create datablock
-            char * data = new (std::nothrow) char[totalSize];
-            if(data)
-            {
-                memcpy(data + offset, &w, sizeof(int)); offset += sizeof(int);
-                memcpy(data + offset, &h, sizeof(int)); offset += sizeof(int);
-                memcpy(data + offset, &c, sizeof(int)); offset += sizeof(int);
-                for( int i = 0; i<(h*c); i++ )
-                {
-                    memcpy(data + offset + i*w, transImg->getData() + i*w, w);
-                }
-            
-                gEngine->transferDataBetweenNodes(data, totalSize, id);
-                delete data;
-                data = NULL;
-            }
-        }
-        
-        mutex.unlock();
-        */
         
         //load from file
         std::pair<std::string, int> tmpPair = imagePaths.getValAt(static_cast<std::size_t>(id));
@@ -534,4 +472,42 @@ void uploadTexture()
     }
     
     mutex.unlock();
+}
+
+void myDropCallback(int count, const char** paths)
+{
+	if (gEngine->isMaster())
+	{
+		std::size_t found;
+
+		//simpy pick the first path to transmit
+		std::string tmpStr(paths[0]);
+
+		//transform to lowercase
+		std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+
+		found = tmpStr.find(".jpg");
+		if (found != std::string::npos)
+		{
+			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
+			transfer.setVal(true);
+			return;
+		}
+
+		found = tmpStr.find(".jpeg");
+		if (found != std::string::npos)
+		{
+			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
+			transfer.setVal(true);
+			return;
+		}
+
+		found = tmpStr.find(".png");
+		if (found != std::string::npos)
+		{
+			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_PNG));
+			transfer.setVal(true);
+			return;
+		}
+	}
 }

@@ -77,6 +77,8 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFramebufferResolution[1] = 256;
 	mAspectRatio = 1.0f;
 	mGamma = 1.0f;
+	mContrast = 1.0f;
+	mBrightness = 1.0f;
 
 	Cubemap			= -1;
 	DepthCubemap	= -1;
@@ -901,8 +903,7 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		*/
 		glfwSwapInterval( SGCTSettings::instance()->getSwapInterval() );
 
-		if (mMonitor)
-			glfwSetGamma(mMonitor, mGamma);
+		updateTransferCurve();
 
 		//if slave disable mouse pointer
 		if( !Engine::instance()->isMaster() )
@@ -2967,22 +2968,48 @@ std::string sgct::SGCTWindow::getStereoModeStr()
 	return mode;
 }
 
+void sgct::SGCTWindow::updateTransferCurve()
+{
+	if (!mMonitor)
+		return;
+
+	GLFWgammaramp ramp;
+	unsigned short red[256], green[256], blue[256];
+	
+	ramp.size = 256;
+	ramp.red = red;
+	ramp.green = green;
+	ramp.blue = blue;
+
+	float gamma_exp = 1.0f / mGamma;
+
+	for (unsigned int i = 0; i < ramp.size; i++)
+	{
+		float c = (static_cast<float>(i)/255.0f) * mContrast;
+		float b = c + (mBrightness - 1.0f);
+		float g = powf(b, gamma_exp);
+
+		//transform back
+		//unsigned short t = static_cast<unsigned short>(roundf(256.0f * g));
+
+		unsigned short t = static_cast<unsigned short>(roundf(
+			std::fmaxf(0.0f, std::fminf(65535.0f * g, 65535.0f)) //clamp to range
+			));
+
+		ramp.red[i] = t;
+		ramp.green[i] = t;
+		ramp.blue[i] = t;
+	}
+
+	glfwSetGammaRamp(mMonitor, &ramp);
+}
+
 /*!
 Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
 */
 void sgct::SGCTWindow::setAlpha(bool state)
 {
 	mAlpha = state;
-}
-
-/*!
-Set the gamma of the monitor (works only if fullscreen)
-*/
-void sgct::SGCTWindow::setGamma(float gamma)
-{
-	mGamma = gamma;
-	if (mMonitor)
-		glfwSetGamma(mMonitor, mGamma);
 }
 
 /*!
@@ -2994,9 +3021,52 @@ bool sgct::SGCTWindow::getAlpha()
 }
 
 /*!
-Get current gamma value
+Set monitor gamma (works only if fullscreen)
+*/
+void sgct::SGCTWindow::setGamma(float gamma)
+{
+	mGamma = gamma;
+	updateTransferCurve();
+}
+
+/*!
+Get monitor gamma value (works only if fullscreen)
 */
 float sgct::SGCTWindow::getGamma()
 {
 	return mGamma;
+}
+
+/*!
+Set monitor contrast in range [0.5, 1.5] (works only if fullscreen)
+*/
+void sgct::SGCTWindow::setContrast(float contrast)
+{
+	mContrast = contrast;
+	updateTransferCurve();
+}
+
+/*!
+Get monitor contrast value (works only if fullscreen)
+*/
+float sgct::SGCTWindow::getContrast()
+{
+	return mContrast;
+}
+
+/*!
+Set monitor brightness in range [0.5, 1.5] (works only if fullscreen)
+*/
+void sgct::SGCTWindow::setBrightness(float brightness)
+{
+	mBrightness = brightness;
+	updateTransferCurve();
+}
+
+/*!
+Get monitor brightness value (works only if fullscreen)
+*/
+float sgct::SGCTWindow::getBrightness()
+{
+	return mBrightness;
 }

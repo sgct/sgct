@@ -307,6 +307,14 @@ bool sgct_core::ReadConfig::readAndParseXML()
 					float gamma = 0.0f;
 					if (element[1]->QueryFloatAttribute("gamma", &gamma) == tinyxml2::XML_NO_ERROR && gamma > 0.1f)
 						tmpWin.setGamma(gamma);
+
+					float contrast = -1.0f;
+					if (element[1]->QueryFloatAttribute("contrast", &contrast) == tinyxml2::XML_NO_ERROR && contrast > 0.0f)
+						tmpWin.setContrast(contrast);
+
+					float brightness = -1.0f;
+					if (element[1]->QueryFloatAttribute("brightness", &brightness) == tinyxml2::XML_NO_ERROR && brightness > 0.0f)
+						tmpWin.setContrast(brightness);
                     
 					int tmpSamples = 0;
 					//compability with older versions

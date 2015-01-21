@@ -78,6 +78,8 @@ public:
 	void setCurrentViewport(std::size_t index);
 	void setAlpha(bool state);
 	void setGamma(float gamma);
+	void setContrast(float contrast);
+	void setBrightness(float brightness);
 
 	// -------------- is functions --------------- //
 	bool				isFullScreen();
@@ -114,6 +116,8 @@ public:
 	std::string						getStereoModeStr();
 	bool							getAlpha();
 	float							getGamma();
+	float							getContrast();
+	float							getBrightness();
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -235,6 +239,7 @@ private:
 	void createVBOs();
 	void loadShaders();
 	void initFisheye();
+	void updateTransferCurve();
 
 public:
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
@@ -269,6 +274,8 @@ private:
     static GLFWwindow * mCurrentContextOwner;
 	float mAspectRatio;
 	float mGamma;
+	float mContrast;
+	float mBrightness;
 
 	bool mUseFXAA;
 	bool mUsePostFX;

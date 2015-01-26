@@ -1677,8 +1677,8 @@ void sgct::Engine::renderFBOTexture()
 		//render mask (mono)
 		if (getActiveWindowPtr()->hasAnyMasks())
 		{
-			glDrawBuffer(GL_BACK);
-			glReadBuffer(GL_BACK);
+			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 
 			mShaders[FBOQuadShader].bind(); //bind
 			glUniform1i(mShaderLocs[MonoTex], 0);
@@ -1732,8 +1732,8 @@ void sgct::Engine::renderFBOTexture()
 		//render mask (mono)
 		if (getActiveWindowPtr()->hasAnyMasks())
 		{
-			glDrawBuffer(GL_BACK);
-			glReadBuffer(GL_BACK);
+			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 			glActiveTexture(GL_TEXTURE0);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
@@ -1844,8 +1844,8 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 	//render mask (mono)
 	if (getActiveWindowPtr()->hasAnyMasks())
 	{
-		glDrawBuffer(GL_BACK);
-		glReadBuffer(GL_BACK);
+		glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+		glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 
 		//if stereo != active stereo
 		glActiveTexture(GL_TEXTURE1);
@@ -2959,18 +2959,18 @@ void sgct::Engine::setAndClearBuffer(sgct::Engine::BufferMode mode)
 		//Set buffer
 		if( getActiveWindowPtr()->getStereoMode() != SGCTWindow::Active_Stereo )
 		{
-			glDrawBuffer(GL_BACK);
-			glReadBuffer(GL_BACK);
+			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 		}
 		else if( mActiveFrustumMode == Frustum::StereoLeftEye ) //if active left
 		{
-			glDrawBuffer(GL_BACK_LEFT);
-			glReadBuffer(GL_BACK_LEFT);
+			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK_LEFT : GL_FRONT_LEFT);
+			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK_LEFT : GL_FRONT_LEFT);
 		}
 		else if( mActiveFrustumMode == Frustum::StereoRightEye ) //if active right
 		{
-			glDrawBuffer(GL_BACK_RIGHT);
-			glReadBuffer(GL_BACK_RIGHT);
+			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
+			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK_RIGHT : GL_FRONT_RIGHT);
 		}
 	}
 
@@ -3044,11 +3044,13 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 	for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 	{
 		mThisNode->getWindowPtr(i)->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
-		glDrawBuffer(GL_BACK);
+		glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 		glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
 		glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-		glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+		mThisNode->getWindowPtr(i)->isDoubleBuffered() ?
+			glfwSwapBuffers(mThisNode->getWindowPtr(i)->getWindowHandle()) :
+			glFinish();
 	}
 	glfwPollEvents();
 	
@@ -3080,7 +3082,9 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 			{
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+				mThisNode->getWindowPtr(i)->isDoubleBuffered() ?
+					glfwSwapBuffers(mThisNode->getWindowPtr(i)->getWindowHandle()) :
+					glFinish();
             }
 			glfwPollEvents();
 
@@ -3099,7 +3103,9 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
 			for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
             {
 				glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-                glfwSwapBuffers( mThisNode->getWindowPtr(i)->getWindowHandle() );
+				mThisNode->getWindowPtr(i)->isDoubleBuffered() ?
+					glfwSwapBuffers(mThisNode->getWindowPtr(i)->getWindowHandle()) :
+					glFinish();
             }
 			glfwPollEvents();
             

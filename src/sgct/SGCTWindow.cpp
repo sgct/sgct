@@ -49,6 +49,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mUseQuadBuffer = false;
 	mFullScreen = false;
 	mFloating = false;
+	mDoubleBuffered = true;
 	mSetWindowPos = false;
 	mDecorated = true;
 	mFisheyeMode = false;
@@ -174,7 +175,7 @@ void sgct::SGCTWindow::setName(const std::string & name)
 /*!
 \returns the name of this window
 */
-std::string sgct::SGCTWindow::getName()
+const std::string & sgct::SGCTWindow::getName() const
 {
 	return mName;
 }
@@ -182,7 +183,7 @@ std::string sgct::SGCTWindow::getName()
 /*!
 	\returns this window's id
 */
-int sgct::SGCTWindow::getId()
+const int & sgct::SGCTWindow::getId() const
 {
 	return mId;
 }
@@ -190,7 +191,7 @@ int sgct::SGCTWindow::getId()
 /*!
 	\returns this window's focused flag
 */
-bool sgct::SGCTWindow::isFocused()
+const bool & sgct::SGCTWindow::isFocused() const
 {
 	return mFocused;
 }
@@ -198,7 +199,7 @@ bool sgct::SGCTWindow::isFocused()
 /*!
 	\returns this window's inconify flag 
 */
-bool sgct::SGCTWindow::isIconified()
+const bool & sgct::SGCTWindow::isIconified() const
 {
 	return mIconified;
 }
@@ -541,7 +542,7 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
 		mWindowResOld[0] = mWindowRes[0];
 		mWindowResOld[1] = mWindowRes[1];
 
-		glfwSwapBuffers( mWindowHandle );
+		mDoubleBuffered ? glfwSwapBuffers(mWindowHandle): glFinish();
 	}
 }
 
@@ -612,7 +613,7 @@ void sgct::SGCTWindow::restoreSharedContext()
 /*!
 	\returns true if this window is resized
 */
-bool sgct::SGCTWindow::isWindowResized()
+bool sgct::SGCTWindow::isWindowResized() const
 {
 	return (mWindowRes[0] != mWindowResOld[0] || mWindowRes[1] != mWindowResOld[1]);
 }
@@ -620,7 +621,7 @@ bool sgct::SGCTWindow::isWindowResized()
 /*!
 	\returns true if full screen rendering is enabled
 */
-bool sgct::SGCTWindow::isFullScreen()
+const bool & sgct::SGCTWindow::isFullScreen() const
 {
 	return mFullScreen;
 }
@@ -628,15 +629,23 @@ bool sgct::SGCTWindow::isFullScreen()
 /*!
 	\return true if window is floating/allways on top/topmost
 */
-bool sgct::SGCTWindow::isFloating()
+const bool & sgct::SGCTWindow::isFloating() const
 {
 	return mFloating;
 }
 
 /*!
+\return true if window is double-buffered
+*/
+const bool & sgct::SGCTWindow::isDoubleBuffered() const
+{
+	return mDoubleBuffered;
+}
+
+/*!
 	\returns if the window is visible or not
 */
-bool sgct::SGCTWindow::isVisible()
+const bool & sgct::SGCTWindow::isVisible() const
 {
 	return mVisible;
 }
@@ -644,7 +653,7 @@ bool sgct::SGCTWindow::isVisible()
 /*!
 	\returns If the frame buffer has a fix resolution this function returns true.
 */
-bool sgct::SGCTWindow::isFixResolution()
+const bool & sgct::SGCTWindow::isFixResolution() const
 {
 	return mUseFixResolution;
 }
@@ -652,7 +661,7 @@ bool sgct::SGCTWindow::isFixResolution()
 /*!
 	Returns true if any kind of stereo is enabled
 */
-bool sgct::SGCTWindow::isStereo()
+bool sgct::SGCTWindow::isStereo() const
 {
 	return mStereoMode != No_Stereo;
 }
@@ -683,6 +692,14 @@ Set if the window should float (be on top / topmost)
 void sgct::SGCTWindow::setFloating(bool floating)
 {
 	mFloating = floating;
+}
+
+/*!
+Set if the window should be double buffered (can only be set before window is created)
+*/
+void sgct::SGCTWindow::setDoubleBuffered(bool doubleBuffered)
+{
+	mDoubleBuffered = doubleBuffered;
 }
 
 /*!
@@ -816,6 +833,7 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 	glfwWindowHint(GLFW_FLOATING, mFloating ? GL_TRUE : GL_FALSE);
+	glfwWindowHint(GLFW_DOUBLEBUFFER, mDoubleBuffered ? GL_TRUE : GL_FALSE);
 
 	setUseQuadbuffer( mStereoMode == Active_Stereo );
 
@@ -1146,7 +1164,7 @@ void sgct::SGCTWindow::resetSwapGroupFrameNumber()
 /*!
 	Returns if fisheye rendering is active in this window
 */
-bool sgct::SGCTWindow::isUsingFisheyeRendering()
+const bool & sgct::SGCTWindow::isUsingFisheyeRendering() const
 {
 	return mFisheyeMode;
 }
@@ -2136,32 +2154,32 @@ void sgct::SGCTWindow::loadShaders()
 	}
 }
 
-void sgct::SGCTWindow::bindVAO()
+void sgct::SGCTWindow::bindVAO() const
 {
 	mFisheyeMode ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
 }
 
-void sgct::SGCTWindow::bindVAO( VBOIndex index )
+void sgct::SGCTWindow::bindVAO(VBOIndex index) const
 {
 	glBindVertexArray( mVAO[ index ] );
 }
 
-void sgct::SGCTWindow::bindVBO()
+void sgct::SGCTWindow::bindVBO() const
 {
 	mFisheyeMode ? glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]) : glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
 }
 
-void sgct::SGCTWindow::bindVBO( VBOIndex index )
+void sgct::SGCTWindow::bindVBO(VBOIndex index) const
 {
 	glBindBuffer(GL_ARRAY_BUFFER, mVBO[index]);
 }
 
-void sgct::SGCTWindow::unbindVBO()
+void sgct::SGCTWindow::unbindVBO() const
 {
 	glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE);
 }
 
-void sgct::SGCTWindow::unbindVAO()
+void sgct::SGCTWindow::unbindVAO() const
 {
 	glBindVertexArray( GL_FALSE );
 }
@@ -2169,7 +2187,7 @@ void sgct::SGCTWindow::unbindVAO()
 /*!
 	Returns pointer to FBO container
 */
-sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr()
+sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr() const
 {
 	return mFisheyeMode ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
 }
@@ -2177,7 +2195,7 @@ sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr()
 /*!
 	\returns pointer to GLFW monitor
 */
-GLFWmonitor * sgct::SGCTWindow::getMonitor()
+GLFWmonitor * sgct::SGCTWindow::getMonitor() const
 {
 	return mMonitor;
 }
@@ -2185,7 +2203,7 @@ GLFWmonitor * sgct::SGCTWindow::getMonitor()
 /*!
 	\returns pointer to GLFW window
 */
-GLFWwindow * sgct::SGCTWindow::getWindowHandle()
+GLFWwindow * sgct::SGCTWindow::getWindowHandle() const
 {
 	return mWindowHandle;
 }
@@ -2193,7 +2211,7 @@ GLFWwindow * sgct::SGCTWindow::getWindowHandle()
 /*!
 	Get the dimensions of the FBO that the Engine::draw function renders to.
 */
-void sgct::SGCTWindow::getDrawFBODimensions( int & width, int & height )
+void sgct::SGCTWindow::getDrawFBODimensions(int & width, int & height) const
 {
 	if( mFisheyeMode )
 	{
@@ -2211,7 +2229,7 @@ void sgct::SGCTWindow::getDrawFBODimensions( int & width, int & height )
 	Get the dimensions of the final FBO. Regular viewport rendering renders directly to this FBO but a fisheye renders first a cubemap and then to the final FBO.
 	Post effects are rendered using these dimensions.
 */
-void sgct::SGCTWindow::getFinalFBODimensions( int & width, int & height )
+void sgct::SGCTWindow::getFinalFBODimensions(int & width, int & height) const
 {
 	width = mFramebufferResolution[0];
 	height = mFramebufferResolution[1];
@@ -2354,7 +2372,7 @@ void sgct::SGCTWindow::setFisheyeRendering(bool state)
 /*!
 	Returns the stereo mode. The value can be compared to the sgct_core::ClusterManager::StereoMode enum
 */
-sgct::SGCTWindow::StereoMode sgct::SGCTWindow::getStereoMode()
+const sgct::SGCTWindow::StereoMode & sgct::SGCTWindow::getStereoMode() const
 {
 	return mStereoMode;
 }
@@ -2362,7 +2380,7 @@ sgct::SGCTWindow::StereoMode sgct::SGCTWindow::getStereoMode()
 /*!
 	\returns true if full resoultion is used for displays where point resolution is different from pixel resolution like Apple's retina displays
 */
-bool sgct::SGCTWindow::getFullResolutionMode()
+const bool & sgct::SGCTWindow::getFullResolutionMode() const
 {
 	return mFullRes;
 }
@@ -2630,7 +2648,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 /*!
 \returns a pointer to the viewport that is beeing rendered to at the moment
 */
-sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport()
+sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport() const
 {
 	return mViewports[mCurrentViewportIndex];
 }
@@ -2638,7 +2656,7 @@ sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport()
 /*!
 \returns a pointer to a specific viewport
 */
-sgct_core::Viewport * sgct::SGCTWindow::getViewport(std::size_t index)
+sgct_core::Viewport * sgct::SGCTWindow::getViewport(std::size_t index) const
 {
 	return mViewports[index];
 }
@@ -2646,7 +2664,7 @@ sgct_core::Viewport * sgct::SGCTWindow::getViewport(std::size_t index)
 /*!
 Get the current viewport data in pixels.
 */
-void sgct::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize)
+void sgct::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize) const
 {
 	x = static_cast<int>(getCurrentViewport()->getX() *
 		static_cast<float>(mFramebufferResolution[0]));
@@ -2661,7 +2679,7 @@ void sgct::SGCTWindow::getCurrentViewportPixelCoords(int &x, int &y, int &xSize,
 /*!
 \returns the viewport count for this window
 */
-std::size_t sgct::SGCTWindow::getNumberOfViewports()
+std::size_t sgct::SGCTWindow::getNumberOfViewports() const
 {
 	return mViewports.size();
 }
@@ -2677,7 +2695,7 @@ void sgct::SGCTWindow::setNumberOfAASamples(int samples)
 /*!
 	\returns the number of samples used in multisampled anti-aliasing
 */
-int sgct::SGCTWindow::getNumberOfAASamples()
+const int & sgct::SGCTWindow::getNumberOfAASamples() const
 {
 	return mNumberOfAASamples;
 }
@@ -2709,7 +2727,7 @@ void sgct::SGCTWindow::setStereoMode( StereoMode sm )
 	
 	Returns pointer to screen capture ptr
 */
-sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer(unsigned int eye)
+sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer(unsigned int eye) const
 {
 	return eye < 2 ? mScreenCapture[eye] : NULL;
 }
@@ -2844,31 +2862,31 @@ void sgct::SGCTWindow::setFisheyeUseCubicInterpolation(bool state)
 /*!
 Get if cubic interpolation is used in cubemap sampling
 */
-bool sgct::SGCTWindow::getFisheyeUseCubicInterpolation()
+const bool & sgct::SGCTWindow::getFisheyeUseCubicInterpolation() const
 {
 	return mCubicInterpolation;
 }
 
 //! Get the cubemap size in pixels used in the fisheye renderer
-int sgct::SGCTWindow::getCubeMapResolution()
+const int & sgct::SGCTWindow::getCubeMapResolution() const
 {
 	return mCubeMapResolution;
 }
 
 //! Get the dome diameter in meters used in the fisheye renderer
-float sgct::SGCTWindow::getDomeDiameter()
+const float & sgct::SGCTWindow::getDomeDiameter() const
 {
 	return mCubeMapSize;
 }
 
 //! Get the fisheye/dome tilt angle in degrees
-float sgct::SGCTWindow::getFisheyeTilt()
+const float & sgct::SGCTWindow::getFisheyeTilt() const
 {
 	return mFisheyeTilt;
 }
 
 //! Get the fisheye/dome field-of-view angle in degrees
-float sgct::SGCTWindow::getFisheyeFOV()
+const float & sgct::SGCTWindow::getFisheyeFOV() const
 {
 	return mFieldOfView;
 }
@@ -2879,30 +2897,30 @@ float sgct::SGCTWindow::getFisheyeFOV()
 	- Bottom
 	- Top
 */
-float sgct::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side)
+const float & sgct::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side) const
 {
 	return mCropFactors[side];
 }
 
 //! Get if fisheye is offaxis (not rendered from centre)
-bool sgct::SGCTWindow::isFisheyeOffaxis()
+const bool & sgct::SGCTWindow::isFisheyeOffaxis() const
 {
 	return mFisheyeOffaxis;
 }
 
 //! Get the fisheye overlay image filename/path.
-const char * sgct::SGCTWindow::getFisheyeOverlay()
+const char * sgct::SGCTWindow::getFisheyeOverlay() const
 {
 	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
 }
 
 //! Get the fisheye mask image filename/path.
-const char * sgct::SGCTWindow::getFisheyeMask()
+const char * sgct::SGCTWindow::getFisheyeMask() const
 {
     return mFisheyeMaskFilename.empty() ? NULL : mFisheyeMaskFilename.c_str();
 }
 
-std::string sgct::SGCTWindow::getStereoModeStr()
+std::string sgct::SGCTWindow::getStereoModeStr() const
 {
 	std::string mode;
 
@@ -3015,7 +3033,7 @@ void sgct::SGCTWindow::setAlpha(bool state)
 /*!
 Enable alpha clear color and 4-component screenshots
 */
-bool sgct::SGCTWindow::getAlpha()
+const bool & sgct::SGCTWindow::getAlpha() const
 {
 	return mAlpha;
 }
@@ -3032,7 +3050,7 @@ void sgct::SGCTWindow::setGamma(float gamma)
 /*!
 Get monitor gamma value (works only if fullscreen)
 */
-float sgct::SGCTWindow::getGamma()
+const float & sgct::SGCTWindow::getGamma() const
 {
 	return mGamma;
 }
@@ -3049,7 +3067,7 @@ void sgct::SGCTWindow::setContrast(float contrast)
 /*!
 Get monitor contrast value (works only if fullscreen)
 */
-float sgct::SGCTWindow::getContrast()
+const float & sgct::SGCTWindow::getContrast() const
 {
 	return mContrast;
 }
@@ -3066,7 +3084,7 @@ void sgct::SGCTWindow::setBrightness(float brightness)
 /*!
 Get monitor brightness value (works only if fullscreen)
 */
-float sgct::SGCTWindow::getBrightness()
+const float & sgct::SGCTWindow::getBrightness() const
 {
 	return mBrightness;
 }

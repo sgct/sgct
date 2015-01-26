@@ -304,6 +304,9 @@ bool sgct_core::ReadConfig::readAndParseXML()
 					if( element[1]->Attribute("floating") != NULL )
 						tmpWin.setFloating( strcmp( element[1]->Attribute("floating"), "true" ) == 0 );
 
+					if (element[1]->Attribute("dbuffered") != NULL)
+						tmpWin.setDoubleBuffered(strcmp(element[1]->Attribute("dbuffered"), "true") == 0);
+
 					float gamma = 0.0f;
 					if (element[1]->QueryFloatAttribute("gamma", &gamma) == tinyxml2::XML_NO_ERROR && gamma > 0.1f)
 						tmpWin.setGamma(gamma);

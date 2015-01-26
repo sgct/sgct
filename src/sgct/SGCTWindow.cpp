@@ -2993,7 +2993,7 @@ void sgct::SGCTWindow::updateTransferCurve()
 		//unsigned short t = static_cast<unsigned short>(roundf(256.0f * g));
 
 		unsigned short t = static_cast<unsigned short>(roundf(
-			std::fmaxf(0.0f, std::fminf(65535.0f * g, 65535.0f)) //clamp to range
+			fmaxf(0.0f, fminf(65535.0f * g, 65535.0f)) //clamp to range
 			));
 
 		ramp.red[i] = t;

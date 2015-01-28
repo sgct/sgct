@@ -16,14 +16,14 @@ The macros below set the propper c++ includes and namespaces
     #define __USE_CPP0X__ 0
     #define __LOAD_CPP11_FUN__
     #define SGCT_NULL_PTR nullptr
-    #pragma message("SGCT will use c++11")
+    //#pragma message("SGCT will use c++11")
 
 #elif (defined(__cplusplus) && __cplusplus > 199711L) || _MSC_VER >= 1400 //c++0x compiler or visual studio 2008 - 2010
     #define __USE_CPP11__ 0
     #define __USE_CPP0X__ 1
     #define __LOAD_CPP11_FUN__
     #define SGCT_NULL_PTR NULL
-    #pragma message "SGCT will use c++0x"
+    //#pragma message "SGCT will use c++0x"
 
 #else //older compiler
     #define __USE_CPP11__ 0

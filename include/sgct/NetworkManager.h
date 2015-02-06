@@ -51,8 +51,9 @@ public:
 	bool isRunning();
 	bool areAllNodesConnected();
 	SGCTNetwork * getExternalControlPtr();
-	void transferData(void * data, int length, int packageId);
-	void transferData(void * data, int length, int packageId, std::size_t nodeIndex);
+	void transferData(const void * data, int length, int packageId);
+	void transferData(const void * data, int length, int packageId, std::size_t nodeIndex);
+	void transferData(const void * data, int length, int packageId, SGCTNetwork * connection);
     void setDataTransferCompression(bool state, int level = 1);
 
 	unsigned int getActiveConnectionsCount();
@@ -60,17 +61,17 @@ public:
 	unsigned int getActiveDataTransferConnectionsCount();
     unsigned int getConnectionsCount();
 	unsigned int getSyncConnectionsCount();
-	inline SGCTNetwork* getConnection(unsigned int index) { return mNetworkConnections[index]; }
-    inline SGCTNetwork* getSyncConnection(unsigned int index) { return mSyncConnections[index]; }
+	inline SGCTNetwork* getConnectionByIndex(unsigned int index) const { return mNetworkConnections[index]; }
+    inline SGCTNetwork* getSyncConnectionByIndex(unsigned int index) const { return mSyncConnections[index]; }
 	inline std::vector<std::string> getLocalAddresses() { return mLocalAddresses; }
 
 private:
 	bool addConnection(const std::string & port, const std::string & address, SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
 	void initAPI();
 	void getHostInfo();
-	void updateConnectionStatus(int index);
+	void updateConnectionStatus(SGCTNetwork * connection);
 	void setAllNodesConnected();
-	bool prepareTransferData(void * data, char ** bufferPtr, int & length, int packageId);
+	bool prepareTransferData(const void * data, char ** bufferPtr, int & length, int packageId);
 
 public:
 	static tthread::condition_variable gCond;

@@ -230,8 +230,8 @@ public:
 
 	//data transfer functions
 	void setDataTransferCompression(bool state, int level = 1);
-    void transferDataBetweenNodes(void * data, int length, int packageId);
-	void transferDataToNode(void * data, int length, int packageId, std::size_t nodeIndex);
+    void transferDataBetweenNodes(const void * data, int length, int packageId);
+	void transferDataToNode(const void * data, int length, int packageId, std::size_t nodeIndex);
 	void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex);
 	void invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex);
 	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex);

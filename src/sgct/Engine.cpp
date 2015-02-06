@@ -938,7 +938,7 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                 SGCTNetwork * conn;
 				if( glfwGetTime() - t0 > 1.0 ) //more than a second
 				{
-					conn = mNetworkConnections->getSyncConnection(0);
+					conn = mNetworkConnections->getSyncConnectionByIndex(0);
                     if( !conn->isUpdated() )
                     {
                         unsigned int lFrameNumber = 0;
@@ -1001,7 +1001,7 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 				{
                     for(unsigned int i=0; i<mNetworkConnections->getSyncConnectionsCount(); i++)
 					{
-						conn = mNetworkConnections->getConnection(i);
+						conn = mNetworkConnections->getConnectionByIndex(i);
                         if( !conn->isUpdated() )
                         {
 							unsigned int lFrameNumber = 0;
@@ -1009,8 +1009,8 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 
 							MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Waiting for slave%d: send frame %d != recv frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: %s\n\tNvidia universal frame number: %u\n\tSGCT frame number: %u\n",
 								i,
-								mNetworkConnections->getConnection(i)->getSendFrame(),
-								mNetworkConnections->getConnection(i)->getRecvFrame(SGCTNetwork::Current),
+								mNetworkConnections->getConnectionByIndex(i)->getSendFrame(),
+								mNetworkConnections->getConnectionByIndex(i)->getRecvFrame(SGCTNetwork::Current),
 								getActiveWindowPtr()->isUsingSwapGroups() ? "enabled" : "disabled",
 								getActiveWindowPtr()->isBarrierActive() ? "enabled" : "disabled",
 								lFrameNumber,
@@ -4523,7 +4523,7 @@ This function sends data between nodes.
 \param length is the number of bytes of data that will be sent
 \param packageId is the identification id of this specific package
 */
-void sgct::Engine::transferDataBetweenNodes(void * data, int length, int packageId)
+void sgct::Engine::transferDataBetweenNodes(const void * data, int length, int packageId)
 {
 	mNetworkConnections->transferData(data, length, packageId);
 }
@@ -4535,7 +4535,7 @@ This function sends data to a specific node.
 \param packageId is the identification id of this specific package
 \param nodeIndex is the index of a specific node
 */
-void sgct::Engine::transferDataToNode(void * data, int length, int packageId, std::size_t nodeIndex)
+void sgct::Engine::transferDataToNode(const void * data, int length, int packageId, std::size_t nodeIndex)
 {
 	mNetworkConnections->transferData(data, length, packageId, nodeIndex);
 }

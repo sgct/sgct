@@ -349,7 +349,7 @@ sgct_core::SGCTNetwork * sgct_core::NetworkManager::getExternalControlPtr()
 	return mExternalControlConnection;
 }
 
-void sgct_core::NetworkManager::transferData(void * data, int length, int packageId)
+void sgct_core::NetworkManager::transferData(const void * data, int length, int packageId)
 {
 	char * buffer = NULL;
 	int sendSize = length;
@@ -372,9 +372,9 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
 	}
 }
 
-void sgct_core::NetworkManager::transferData(void * data, int length, int packageId, std::size_t nodeIndex)
+void sgct_core::NetworkManager::transferData(const void * data, int length, int packageId, std::size_t nodeIndex)
 {
-	if (nodeIndex < mDataTransferConnections.size())
+	if (nodeIndex < mDataTransferConnections.size() && mDataTransferConnections[nodeIndex]->isConnected())
 	{
 		char * buffer = NULL;
 		int sendSize = length;
@@ -393,7 +393,29 @@ void sgct_core::NetworkManager::transferData(void * data, int length, int packag
 	}
 }
 
-bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferPtr, int & length, int packageId)
+void sgct_core::NetworkManager::transferData(const void * data, int length, int packageId, SGCTNetwork * connection)
+{
+	if (connection->isConnected())
+	{
+
+		char * buffer = NULL;
+		int sendSize = length;
+
+		if (prepareTransferData(data, &buffer, sendSize, packageId))
+		{
+			connection->sendData(buffer, sendSize);
+		}
+
+		if (buffer)
+		{
+			//clean up
+			delete[] buffer;
+			buffer = NULL;
+		}
+	}
+}
+
+bool sgct_core::NetworkManager::prepareTransferData(const void * data, char ** bufferPtr, int & length, int packageId)
 {
 	int msg_len = length;
 	
@@ -419,7 +441,7 @@ bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferP
 			uLong compressedSize = static_cast<uLongf>(length - SGCTNetwork::mHeaderSize);
 			int err = compress2(reinterpret_cast<Bytef*>(compDataPtr),
 				&compressedSize,
-				reinterpret_cast<Bytef*>(data),
+				reinterpret_cast<const Bytef*>(data),
 				static_cast<uLong>(length),
 				mCompressionLevel);
 
@@ -475,7 +497,7 @@ bool sgct_core::NetworkManager::prepareTransferData(void * data, char ** bufferP
 				if ((msg_len - offset) < stride)
 					stride = msg_len - offset;
 
-				memcpy((*bufferPtr) + SGCTNetwork::mHeaderSize + offset, reinterpret_cast<char*>(data)+offset, stride);
+				memcpy((*bufferPtr) + SGCTNetwork::mHeaderSize + offset, reinterpret_cast<const char*>(data)+offset, stride);
 				offset += stride;
 			}
 
@@ -554,9 +576,9 @@ unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 	return retVal;
 }
 
-void sgct_core::NetworkManager::updateConnectionStatus(int index)
+void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 {
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Updating status for connection %d\n", index);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Updating status for connection %d\n", connection->getId());
     
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
@@ -639,28 +661,28 @@ void sgct_core::NetworkManager::updateConnectionStatus(int index)
 		/*
 			Check if any external connection
 		*/
-		if( mNetworkConnections[index]->getType() == sgct_core::SGCTNetwork::ExternalASCIIConnection )
+		if (connection->getType() == sgct_core::SGCTNetwork::ExternalASCIIConnection)
 		{
-			bool externalControlConnectionStatus = mNetworkConnections[index]->isConnected();
-			mNetworkConnections[index]->sendStr("Connected to SGCT!\r\n");
+			bool externalControlConnectionStatus = connection->isConnected();
+			connection->sendStr("Connected to SGCT!\r\n");
 			sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(externalControlConnectionStatus);
 		}
-		else if (mNetworkConnections[index]->getType() == sgct_core::SGCTNetwork::ExternalRawConnection)
+		else if (connection->getType() == sgct_core::SGCTNetwork::ExternalRawConnection)
 		{
-			bool externalControlConnectionStatus = mNetworkConnections[index]->isConnected();
+			bool externalControlConnectionStatus = connection->isConnected();
 			sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(externalControlConnectionStatus);
 		}
 
 		//wake up the connection handler thread on server
 		//if node disconnects to enable reconnection
-		mNetworkConnections[index]->mStartConnectionCond.notify_all();
+		connection->mStartConnectionCond.notify_all();
 	}
 	
 	
-	if (mNetworkConnections[index]->getType() == sgct_core::SGCTNetwork::DataTransfer)
+	if (connection->getType() == sgct_core::SGCTNetwork::DataTransfer)
 	{
-		bool dataTransferConnectionStatus = mNetworkConnections[index]->isConnected();
-		sgct::Engine::instance()->invokeUpdateCallbackForDataTransfer(dataTransferConnectionStatus, index);
+		bool dataTransferConnectionStatus = connection->isConnected();
+		sgct::Engine::instance()->invokeUpdateCallbackForDataTransfer(dataTransferConnectionStatus, connection->getId());
 	}
 
 	//signal done to caller
@@ -756,7 +778,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
         
         //bind callback
-		sgct_cppxeleven::function< void(int) > updateCallback;
+		sgct_cppxeleven::function< void(SGCTNetwork *) > updateCallback;
 		updateCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
                                                sgct_cppxeleven::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
@@ -776,7 +798,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
         
 
         //must be inited after binding
-		netPtr->init(port, address, mIsServer, static_cast<int>(mNetworkConnections.size()-1), connectionType);
+		netPtr->init(port, address, mIsServer, connectionType);
     }
     catch( const char * err )
     {

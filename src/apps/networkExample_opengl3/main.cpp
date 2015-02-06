@@ -10,9 +10,24 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
+void keyCallback(int key, int action);
 
 void parseArguments(int& argc, char**& argv);
 void connect();
+void disconnect();
+void sendData(const void * data, int length, int packageId);
+void sendTestMessage();
+void networkLoop(void * arg);
+
+tthread::thread * connectionThread = NULL;
+tthread::atomic<bool> connected = false;
+tthread::atomic<bool> running = true;
+
+//network callbacks
+void networkConnected();
+void networkConnectionUpdated(sgct_core::SGCTNetwork * conn);
+void networkAck(int packageId, int clientIndex);
+void networkDecode(void * receivedData, int receivedlength, int packageId, int clientIndex);
 
 sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
@@ -23,6 +38,7 @@ sgct::SharedDouble curr_time(0.0);
 std::string port;
 std::string address;
 bool server = false;
+sgct_core::SGCTNetwork * networkPtr = NULL;
 
 int main( int argc, char* argv[] )
 {
@@ -34,12 +50,15 @@ int main( int argc, char* argv[] )
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
+	gEngine->setKeyboardCallbackFunction(keyCallback);
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
 		delete gEngine;
 		return EXIT_FAILURE;
 	}
+
+	connectionThread = new tthread::thread(networkLoop, NULL);
 
 	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
 	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
@@ -139,6 +158,9 @@ void myInitOGLFun()
 	glUniform1i( Tex_Loc, 0 );
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
+
+	for (std::size_t i = 0; i < gEngine->getNumberOfWindows(); i++)
+		gEngine->getWindowPtr(i)->setWindowTitle(server ? "SERVER" : "CLIENT");
 }
 
 void myEncodeFun()
@@ -155,9 +177,197 @@ void myCleanUpFun()
 {
 	if(myBox != NULL)
 		delete myBox;
+
+	running = false;
+
+	if (connectionThread != NULL)
+	{
+		if (networkPtr)
+			networkPtr->initShutdown();
+		connectionThread->join();
+
+		delete connectionThread;
+		connectionThread = NULL;
+	}
+
+	disconnect();
+}
+
+void networkConnected()
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network connected.\n");
+}
+
+void networkConnectionUpdated(sgct_core::SGCTNetwork * conn)
+{
+	if (conn->isServer())
+	{
+		//wake up the connection handler thread on server
+		//if node disconnects to enable reconnection
+		conn->mStartConnectionCond.notify_all();
+	}
+
+	connected = conn->isConnected();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network is %s.\n", conn->isConnected() ? "connected" : "disconneced");
+}
+
+void networkAck(int packageId, int clientIndex)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network package %d is received.\n", packageId);
+}
+
+void networkDecode(void * receivedData, int receivedlength, int packageId, int clientIndex)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network decoding package %d...\n", packageId);
+
+	std::string test;
+	test.insert(0, reinterpret_cast<char *>(receivedData), receivedlength);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Message: \"%s\"\n", test.c_str());
+}
+
+void networkLoop(void * arg)
+{
+	connect();
+
+	//if client try to connect to server even after disconnection
+	if (!server)
+	{
+		while (running.load())
+		{
+			if (connected.load() == false)
+			{
+				connect();
+			}
+			else
+			{
+				//just check if connected once per second
+				tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
+			}
+		}
+	}
 }
 
 void connect()
 {
+	if (!gEngine->isMaster())
+		return;
+	
+	if (port.empty())
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+			"Network error: No port set!\n");
+		return;
+	}
 
+	if (address.empty())
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+			"Network error: No address set!\n");
+		return;
+	}
+
+	//reset if set
+	if (networkPtr)
+	{
+		delete networkPtr;
+		networkPtr = NULL;
+	}
+	
+	//allocate
+	try
+	{
+		networkPtr = new sgct_core::SGCTNetwork();
+	}
+	catch (const char * err)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+		if (networkPtr != NULL)
+		{
+			networkPtr->initShutdown();
+			tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
+			networkPtr->closeNetwork(true);
+		}
+		return;
+	}
+
+	//init
+	try
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Initiating network connection at port %s.\n", port.c_str());
+
+		sgct_cppxeleven::function< void(sgct_core::SGCTNetwork *) > updateCallback;
+		updateCallback = networkConnectionUpdated;
+		networkPtr->setUpdateFunction(updateCallback);
+
+		sgct_cppxeleven::function< void(void) > connectedCallback;
+		connectedCallback = networkConnected;
+		networkPtr->setConnectedFunction(connectedCallback);
+
+		sgct_cppxeleven::function< void(void*, int, int, int) > decodeCallback;
+		decodeCallback = networkDecode;
+		networkPtr->setPackageDecodeFunction(decodeCallback);
+
+		sgct_cppxeleven::function< void(int, int) > ackCallback;
+		ackCallback = networkAck;
+		networkPtr->setAcknowledgeFunction(ackCallback);
+
+		//must be inited after binding
+		networkPtr->init(port, address, server, sgct_core::SGCTNetwork::DataTransfer);
+	}
+	catch (const char * err)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
+		networkPtr->initShutdown();
+		tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
+		networkPtr->closeNetwork(true);
+		return;
+	}
+
+	connected = true;
+}
+
+void disconnect()
+{
+	if (networkPtr)
+	{
+		networkPtr->initShutdown();
+
+		//wait for all nodes callbacks to run
+		tthread::this_thread::sleep_for(tthread::chrono::milliseconds(250));
+
+		//wait for threads to die
+		networkPtr->closeNetwork(false);
+		delete networkPtr;
+		networkPtr = NULL;
+	}
+}
+
+void sendData(const void * data, int length, int packageId)
+{
+	if (networkPtr)
+		sgct_core::NetworkManager::instance()->transferData(data, length, packageId, networkPtr);
+}
+
+void sendTestMessage()
+{
+	std::string test("What's up?");
+	static int counter = 0;
+	sendData(test.data(), static_cast<int>(test.size()), counter);
+	counter++;
+}
+
+void keyCallback(int key, int action)
+{
+	if (gEngine->isMaster())
+	{
+		switch (key)
+		{
+		case SGCT_KEY_SPACE:
+			if (action == SGCT_PRESS)
+				sendTestMessage();
+			break;
+		}
+	}
 }

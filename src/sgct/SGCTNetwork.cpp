@@ -94,7 +94,7 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	\param connectionType is the type of connection
 	\param firmSync if set to true then firm framesync will be used for the whole cluster
 */
-void sgct_core::SGCTNetwork::init(const std::string port, const std::string address, bool _isServer, int id, sgct_core::SGCTNetwork::ConnectionTypes connectionType)
+void sgct_core::SGCTNetwork::init(const std::string port, const std::string address, bool _isServer, sgct_core::SGCTNetwork::ConnectionTypes connectionType)
 {
 	mServer = _isServer;
 	mConnectionType = connectionType;
@@ -103,7 +103,10 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 		mBufferSize = static_cast<int>(sgct::SharedData::instance()->getBufferSize());
         mUncompressedBufferSize = mBufferSize;
     }
+
+	static int id = 0;
 	mId = id;
+	id++;
 
 	mPort.assign(port);
 	mAddress.assign(address);
@@ -177,7 +180,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 		//Client socket
 
 		// Connect to server.
-		while( true )
+		while (mTerminate.load() == false)
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Attempting to connect to server (id: %d, ip: %s, type: %s)...\n", mId, getAddress().c_str(), getTypeStr().c_str());
 
@@ -586,7 +589,7 @@ void sgct_core::SGCTNetwork::setPackageDecodeFunction(sgct_cppxeleven::function<
 	mPackageDecoderCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setUpdateFunction(sgct_cppxeleven::function<void (int)> callback)
+void sgct_core::SGCTNetwork::setUpdateFunction(sgct_cppxeleven::function<void(SGCTNetwork *)> callback)
 {
 	mUpdateCallbackFn = callback;
 }
@@ -639,6 +642,11 @@ sgct_core::SGCTNetwork::ConnectionTypes sgct_core::SGCTNetwork::getType()
 		fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 	#endif
 	return tmpct;
+}
+
+int sgct_core::SGCTNetwork::getId() const
+{
+	return mId;
 }
 
 bool sgct_core::SGCTNetwork::isServer()
@@ -960,7 +968,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 			sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", mId, accErr);
 
 			if (mUpdateCallbackFn != SGCT_NULL_PTR)
-				mUpdateCallbackFn(mId);
+				mUpdateCallbackFn(this);
 			return;
 		}
 	}
@@ -969,7 +977,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", mId);
 
 	if (mUpdateCallbackFn != SGCT_NULL_PTR)
-		mUpdateCallbackFn(mId);
+		mUpdateCallbackFn(this);
 
 	//init buffers
 	char recvHeader[sgct_core::SGCTNetwork::mHeaderSize];
@@ -1381,7 +1389,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 	closeSocket( mSocket );
 
 	if (mUpdateCallbackFn != SGCT_NULL_PTR)
-		mUpdateCallbackFn( mId );
+		mUpdateCallbackFn( this );
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", mId);
 }

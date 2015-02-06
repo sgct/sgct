@@ -42,14 +42,14 @@ public:
 	enum ReceivedIndex { Current = 0, Previous };
 
 	SGCTNetwork();
-	void init(const std::string port, const std::string address, bool _isServer, int id, ConnectionTypes serverType);
+	void init(const std::string port, const std::string address, bool _isServer, ConnectionTypes serverType);
 	void closeNetwork(bool forced);
 	void initShutdown();
 
 #ifdef __LOAD_CPP11_FUN__
 	void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
 	void setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback);
-	void setUpdateFunction(sgct_cppxeleven::function<void (int)> callback);
+	void setUpdateFunction(sgct_cppxeleven::function<void (SGCTNetwork *)> callback);
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
 	void setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback);
 #endif
@@ -59,6 +59,7 @@ public:
 	void closeSocket(SGCT_SOCKET lSocket);
 
 	ConnectionTypes getType();
+	int getId() const;
 	bool isServer();
 	bool isConnected();
 
@@ -83,7 +84,7 @@ public:
 #ifdef __LOAD_CPP11_FUN__
 	sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
 	sgct_cppxeleven::function< void(void*, int, int, int) > mPackageDecoderCallbackFn;
-	sgct_cppxeleven::function< void(int) > mUpdateCallbackFn;
+	sgct_cppxeleven::function< void(SGCTNetwork *) > mUpdateCallbackFn;
 	sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
 	sgct_cppxeleven::function< void(int, int) > mAcknowledgeCallbackFn;
 #endif

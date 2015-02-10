@@ -40,6 +40,8 @@ std::string address;
 bool server = false;
 sgct_core::SGCTNetwork * networkPtr = NULL;
 
+std::pair<double, int> timerData;
+
 int main( int argc, char* argv[] )
 {
 	gEngine = new sgct::Engine( argc, argv );
@@ -215,6 +217,9 @@ void networkConnectionUpdated(sgct_core::SGCTNetwork * conn)
 void networkAck(int packageId, int clientIndex)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network package %d is received.\n", packageId);
+
+	if (timerData.second == packageId)
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Loop time: %lf ms\n", (sgct::Engine::getTime() - timerData.first)*1000.0);
 }
 
 void networkDecode(void * receivedData, int receivedlength, int packageId, int clientIndex)
@@ -347,7 +352,11 @@ void disconnect()
 void sendData(const void * data, int length, int packageId)
 {
 	if (networkPtr)
+	{
 		sgct_core::NetworkManager::instance()->transferData(data, length, packageId, networkPtr);
+		timerData.first = sgct::Engine::getTime();
+		timerData.second = packageId;
+	}
 }
 
 void sendTestMessage()

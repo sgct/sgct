@@ -225,16 +225,16 @@ public:
 	void sendMessageToExternalControl(const std::string msg);
 	bool isExternalControlConnected();
 	void setExternalControlBufferSize(unsigned int newSize);
-	void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex);
+	void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientId);
 	void invokeUpdateCallbackForExternalControl(bool connected);
 
 	//data transfer functions
 	void setDataTransferCompression(bool state, int level = 1);
     void transferDataBetweenNodes(const void * data, int length, int packageId);
 	void transferDataToNode(const void * data, int length, int packageId, std::size_t nodeIndex);
-	void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex);
-	void invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex);
-	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex);
+	void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientd);
+	void invokeUpdateCallbackForDataTransfer(bool connected, int clientId);
+	void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId);
 
     //GLFW wrapped functions
 	static double getTime();

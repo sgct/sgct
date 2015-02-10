@@ -757,21 +757,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 		return false;
 	}
 
-	try
-	{
-		netPtr = new SGCTNetwork();
-	}
-	catch( const char * err )
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NetworkManager: Network error: %s\n", err);
-		if(netPtr != NULL)
-		{
-		    netPtr->initShutdown();
-		    tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
-		    netPtr->closeNetwork(true);
-		}
-		return false;
-	}
+	netPtr = new SGCTNetwork();
 
 	try
 	{

@@ -4443,7 +4443,7 @@ std::size_t sgct::Engine::getFocusedWindowIndex()
 /*!
  Don't use this. This function is called from SGCTNetwork and will invoke the external network callback when messages are received.
  */
-void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientIndex)
+void sgct::Engine::invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientId)
 {
 	if (mExternalDecodeCallbackFnPtr != SGCT_NULL_PTR && receivedlength > 0)
 		mExternalDecodeCallbackFnPtr(receivedData, receivedlength);
@@ -4461,28 +4461,28 @@ void sgct::Engine::invokeUpdateCallbackForExternalControl(bool connected)
 /*!
  Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when messages are received.
  */
-void sgct::Engine::invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientIndex)
+void sgct::Engine::invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientId)
 {
 	if (mDataTransferDecodeCallbackFnPtr != SGCT_NULL_PTR && receivedlength > 0)
-		mDataTransferDecodeCallbackFnPtr(receivedData, receivedlength, packageId, clientIndex);
+		mDataTransferDecodeCallbackFnPtr(receivedData, receivedlength, packageId, clientId);
 }
 
 /*!
  Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when connection is connected/disconnected.
  */
-void sgct::Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientIndex)
+void sgct::Engine::invokeUpdateCallbackForDataTransfer(bool connected, int clientId)
 {
 	if (mDataTransferStatusCallbackFnPtr != SGCT_NULL_PTR)
-		mDataTransferStatusCallbackFnPtr(connected, clientIndex);
+		mDataTransferStatusCallbackFnPtr(connected, clientId);
 }
 
 /*!
  Don't use this. This function is called from SGCTNetwork and will invoke the data transfer callback when data is successfully sent.
  */
-void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientIndex)
+void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId)
 {
 	if (mDataTransferAcknowledgeCallbackFnPtr != SGCT_NULL_PTR)
-		mDataTransferAcknowledgeCallbackFnPtr(packageId, clientIndex);
+		mDataTransferAcknowledgeCallbackFnPtr(packageId, clientId);
 }
 
 /*!

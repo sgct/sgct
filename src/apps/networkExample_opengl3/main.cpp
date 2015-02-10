@@ -26,8 +26,8 @@ tthread::atomic<bool> running = true;
 //network callbacks
 void networkConnected();
 void networkConnectionUpdated(sgct_core::SGCTNetwork * conn);
-void networkAck(int packageId, int clientIndex);
-void networkDecode(void * receivedData, int receivedlength, int packageId, int clientIndex);
+void networkAck(int packageId, int clientId);
+void networkDecode(void * receivedData, int receivedlength, int packageId, int clientId);
 
 sgct_utils::SGCTBox * myBox = NULL;
 GLint Matrix_Loc = -1;
@@ -214,7 +214,7 @@ void networkConnectionUpdated(sgct_core::SGCTNetwork * conn)
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network is %s.\n", conn->isConnected() ? "connected" : "disconneced");
 }
 
-void networkAck(int packageId, int clientIndex)
+void networkAck(int packageId, int clientId)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network package %d is received.\n", packageId);
 
@@ -222,7 +222,7 @@ void networkAck(int packageId, int clientIndex)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Loop time: %lf ms\n", (sgct::Engine::getTime() - timerData.first)*1000.0);
 }
 
-void networkDecode(void * receivedData, int receivedlength, int packageId, int clientIndex)
+void networkDecode(void * receivedData, int receivedlength, int packageId, int clientId)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network decoding package %d...\n", packageId);
 
@@ -281,21 +281,7 @@ void connect()
 	}
 	
 	//allocate
-	try
-	{
-		networkPtr = new sgct_core::SGCTNetwork();
-	}
-	catch (const char * err)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
-		if (networkPtr != NULL)
-		{
-			networkPtr->initShutdown();
-			tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
-			networkPtr->closeNetwork(true);
-		}
-		return;
-	}
+	networkPtr = new sgct_core::SGCTNetwork();
 
 	//init
 	try

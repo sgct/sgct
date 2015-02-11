@@ -576,6 +576,15 @@ unsigned int sgct_core::NetworkManager::getSyncConnectionsCount()
 	return retVal;
 }
 
+unsigned int sgct_core::NetworkManager::getDataTransferConnectionsCount()
+{
+	unsigned int retVal;
+	sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	retVal = static_cast<unsigned int>(mDataTransferConnections.size());
+	sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	return retVal;
+}
+
 void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Updating status for connection %d\n", connection->getId());

@@ -61,6 +61,7 @@ public:
 	unsigned int getActiveDataTransferConnectionsCount();
     unsigned int getConnectionsCount();
 	unsigned int getSyncConnectionsCount();
+	unsigned int getDataTransferConnectionsCount();
 	inline SGCTNetwork* getConnectionByIndex(unsigned int index) const { return mNetworkConnections[index]; }
     inline SGCTNetwork* getSyncConnectionByIndex(unsigned int index) const { return mSyncConnections[index]; }
 	inline std::vector<std::string> getLocalAddresses() { return mLocalAddresses; }

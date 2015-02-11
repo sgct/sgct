@@ -24,7 +24,6 @@ tthread::atomic<bool> connected = false;
 tthread::atomic<bool> running = true;
 
 //network callbacks
-void networkConnected();
 void networkConnectionUpdated(sgct_core::SGCTNetwork * conn);
 void networkAck(int packageId, int clientId);
 void networkDecode(void * receivedData, int receivedlength, int packageId, int clientId);
@@ -195,11 +194,6 @@ void myCleanUpFun()
 	disconnect();
 }
 
-void networkConnected()
-{
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Network connected.\n");
-}
-
 void networkConnectionUpdated(sgct_core::SGCTNetwork * conn)
 {
 	if (conn->isServer())
@@ -291,10 +285,6 @@ void connect()
 		sgct_cppxeleven::function< void(sgct_core::SGCTNetwork *) > updateCallback;
 		updateCallback = networkConnectionUpdated;
 		networkPtr->setUpdateFunction(updateCallback);
-
-		sgct_cppxeleven::function< void(void) > connectedCallback;
-		connectedCallback = networkConnected;
-		networkPtr->setConnectedFunction(connectedCallback);
 
 		sgct_cppxeleven::function< void(void*, int, int, int) > decodeCallback;
 		decodeCallback = networkDecode;

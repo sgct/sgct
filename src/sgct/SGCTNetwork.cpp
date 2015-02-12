@@ -81,7 +81,10 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mUpdated			= false;
 	mConnected			= false;
 	mTerminate          = false;
-	mId					= -1;
+	
+	static int id = 0;
+	mId = id;
+	id++;
 }
 
 /*!
@@ -103,10 +106,6 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 		mBufferSize = static_cast<int>(sgct::SharedData::instance()->getBufferSize());
         mUncompressedBufferSize = mBufferSize;
     }
-
-	static int id = 0;
-	mId = id;
-	id++;
 
 	mPort.assign(port);
 	mAddress.assign(address);

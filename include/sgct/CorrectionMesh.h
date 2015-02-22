@@ -48,12 +48,13 @@ namespace sgct_core
         CorrectionMesh();
         ~CorrectionMesh();
         void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
-        bool readAndGenerateMesh(const char * meshPath, Viewport * parent);
+		bool readAndGenerateMesh(std::string meshPath, Viewport * parent);
         void render(MeshType mt);
         
     private:
-        bool readAndGenerateScalableMesh(const char * meshPath, Viewport * parent);
-        bool readAndGenerateScissMesh(const char * meshPath, Viewport * parent);
+		bool readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent);
+		bool readAndGenerateScissMesh(const std::string & meshPath, Viewport * parent);
+		bool readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent);
         void setupSimpleMesh(CorrectionMeshGeometry * geomPtr);
         void setupMaskMesh();
         void createMesh(CorrectionMeshGeometry * geomPtr);

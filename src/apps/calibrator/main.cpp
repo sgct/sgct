@@ -46,6 +46,8 @@ int main( int argc, char* argv[] )
     
 	// Allocate
 	gEngine = new sgct::Engine( argc, argv );
+
+	sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
     
 	//parse arguments
 	for (int i = 0; i < argc; i++)

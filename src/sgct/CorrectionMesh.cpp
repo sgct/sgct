@@ -646,6 +646,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 	float elevation = 0.0f;
 	float horizontal_fov = 0.0f;
 	float vertical_fov = 0.0f;
+	float fovTweeks[2] = { -1.0f, -1.0f };
+	float UVTweeks[2] = { -1.0f, -1.0f };
 	bool dimensionsSet = false;
 	bool azimuthSet = false;
 	bool elevationSet = false;
@@ -699,6 +701,42 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 			}
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
+			else if (sscanf_s(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
+#else
+			else if (sscanf(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
+#endif
+			{
+				;
+			}
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			else if (sscanf_s(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
+#else
+			else if (sscanf(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
+#endif
+			{
+				;
+			}
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			else if (sscanf_s(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
+#else
+			else if (sscanf(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
+#endif
+			{
+				;
+			}
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			else if (sscanf_s(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
+#else
+			else if (sscanf(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
+#endif
+			{
+				;
+			}
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
 			else if (!dimensionsSet && sscanf_s(lineBuffer, "%u %u", &size[0], &size[1]) == 2)
 #else
 			else if (!dimensionsSet && sscanf(lineBuffer, "%u %u", &size[0], &size[1]) == 2)
@@ -715,6 +753,12 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 			else if (dimensionsSet && sscanf_s(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
 #endif
 			{
+				if (UVTweeks[0] > -1.0f)
+					u *= UVTweeks[0];
+
+				if (UVTweeks[1] > -1.0f)
+					v *= UVTweeks[1];
+				
 				mTempVertices[counter].x = x;
 				mTempVertices[counter].y = y;
 				mTempVertices[counter].s = u;
@@ -768,6 +812,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 	//correct fovs ??
 	//horizontal_fov *= 0.948f;
 	//vertical_fov *= 1.51f;
+
+	if (fovTweeks[0] > 0.0f)
+		horizontal_fov *= fovTweeks[0];
+	if (fovTweeks[1] > 0.0f)
+		vertical_fov *= fovTweeks[1];
 
 	glm::quat rotQuat;
 	rotQuat = glm::rotate(rotQuat, -azimuth, glm::vec3(0.0f, 1.0f, 0.0f));

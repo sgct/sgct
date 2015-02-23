@@ -750,7 +750,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 			else if (dimensionsSet && sscanf_s(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
 #else
-			else if (dimensionsSet && sscanf_s(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
+			else if (dimensionsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
 #endif
 			{
 				if (UVTweeks[0] > -1.0f)

@@ -67,7 +67,6 @@ public:
 	void setFloating(bool floating);
 	void setDoubleBuffered(bool doubleBuffered);
 	void setWindowDecoration(bool state);
-	void setFullResolutionMode(bool state);
 	void setFullScreenMonitorIndex( int index );
 	static void setBarrier(const bool state);
 	void setFixResolution(const bool state);
@@ -104,7 +103,6 @@ public:
 	sgct_core::ScreenCapture *		getScreenCapturePointer(unsigned int eye) const;
 	const int &						getNumberOfAASamples() const;
 	const StereoMode &				getStereoMode() const;
-	const bool &					getFullResolutionMode() const;
 	static void						getSwapGroupFrameNumber(unsigned int & frameNumber);
 	void							getDrawFBODimensions(int & width, int & height) const;
 	void							getFinalFBODimensions(int & width, int & height) const;
@@ -159,6 +157,14 @@ public:
 		\returns Get the initial vertical window resolution.
 	*/
 	inline const int & getYInitialResolution() const { return mWindowInitialRes[1]; }
+    /*!
+     \returns Get the horizontal scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
+     */
+    inline const float & getXScale() const { return mScale[0]; }
+    /*!
+     \returns Get the vertical scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
+     */
+    inline const float & getYScale() const { return mScale[1]; }
 
 	//! \returns the aspect ratio of the window 
 	inline const float & getAspectRatio() const { return mAspectRatio; }
@@ -229,6 +235,7 @@ public:
 
 private:
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
+    static void frameBufferResizeCallback( GLFWwindow * window, int width, int height );
 	static void windowFocusCallback( GLFWwindow * window, int state );
 	static void windowIconifyCallback( GLFWwindow * window, int state );
 	void initScreenCapture();
@@ -279,6 +286,7 @@ private:
 	float mGamma;
 	float mContrast;
 	float mBrightness;
+    float mScale[2];
 
 	bool mUseFXAA;
 	bool mUsePostFX;

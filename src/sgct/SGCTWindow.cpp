@@ -57,7 +57,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mVisible = false;
 	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
-	mFullRes = true;
 	mFocused = false;
 	mIconified = false;
 	mHasAnyMasks = false;
@@ -73,6 +72,8 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mWindowInitialRes[1] = mWindowRes[1];
 	mWindowPos[0] = 0;
 	mWindowPos[1] = 0;
+    mScale[0] = 0.0f;
+    mScale[1] = 0.0f;
 	mMonitorIndex = 0;
 	mFramebufferResolution[0] = 512;
 	mFramebufferResolution[1] = 256;
@@ -303,7 +304,8 @@ void sgct::SGCTWindow::init()
 	{
 		if(mSetWindowPos)
 			glfwSetWindowPos( mWindowHandle, mWindowPos[0], mWindowPos[1] );
-		glfwSetFramebufferSizeCallback( mWindowHandle, windowResizeCallback );
+        glfwSetWindowSizeCallback( mWindowHandle, windowResizeCallback );
+		glfwSetFramebufferSizeCallback( mWindowHandle, frameBufferResizeCallback );
 		glfwSetWindowFocusCallback( mWindowHandle, windowFocusCallback );
 		glfwSetWindowIconifyCallback( mWindowHandle, windowIconifyCallback );
 	}
@@ -494,17 +496,6 @@ void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 	mAspectRatio = static_cast<float>( x ) /
 			static_cast<float>( y );
 
-	if( !mUseFixResolution )
-	{
-		if( mFullRes )
-		{
-			mFramebufferResolution[0] = x;
-			mFramebufferResolution[1] = y;
-		}
-		else
-			glfwGetWindowSize( mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1] );
-	}
-
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Resolution changed to %dx%d for window %d...\n", mWindowRes[0], mWindowRes[1], mId);
 }
 
@@ -517,8 +508,11 @@ void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 {
-	mFramebufferResolution[0] = x;
-	mFramebufferResolution[1] = y;
+	if( !mUseFixResolution )
+    {
+        mFramebufferResolution[0] = x;
+        mFramebufferResolution[1] = y;
+    }
 }
 
 /*!
@@ -711,14 +705,6 @@ void sgct::SGCTWindow::setWindowDecoration(bool state)
 }
 
 /*!
-Set if full resolution should be used on displays which have different point resoultion than pixel resolution like Apple's retina displays
-*/
-void sgct::SGCTWindow::setFullResolutionMode(bool state)
-{
-	mFullRes = state;
-}
-
-/*!
 Set which monitor that should be used for fullscreen mode
 */
 void sgct::SGCTWindow::setFullScreenMonitorIndex( int index )
@@ -896,21 +882,16 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		/*
             Mac for example scales the window size != frame buffer size
         */
-        glfwGetFramebufferSize(mWindowHandle, &mWindowRes[0], &mWindowRes[1]);
+        glfwGetFramebufferSize(mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1]);
 
         mWindowInitialRes[0] = mWindowRes[0];
         mWindowInitialRes[1] = mWindowRes[1];
-        if( !mUseFixResolution )
-        {
-            if( mFullRes )
-			{
-				mFramebufferResolution[0] = mWindowRes[0];
-				mFramebufferResolution[1] = mWindowRes[1];
-			}
-			else
-				glfwGetWindowSize( mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1] );
-        }
-
+        mScale[0] = static_cast<float>(mFramebufferResolution[0])/static_cast<float>(mWindowRes[0]);
+        mScale[1] = static_cast<float>(mFramebufferResolution[1])/static_cast<float>(mWindowRes[1]);
+        
+        /*
+         Verified that sizes are set correctly
+         */
 
 		/*
 			Swap inerval:
@@ -1040,6 +1021,19 @@ void sgct::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int
 			if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
 				thisNode->getWindowPtr(i)->setWindowResolution(width > 0 ? width : 1, height > 0 ? height : 1);
 	}
+}
+
+void sgct::SGCTWindow::frameBufferResizeCallback( GLFWwindow * window, int width, int height )
+{
+    sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    
+    if( thisNode != NULL )
+    {
+        //find the correct window to update
+        for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
+            if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
+                thisNode->getWindowPtr(i)->setFramebufferResolution(width > 0 ? width : 1, height > 0 ? height : 1);
+    }
 }
 
 void sgct::SGCTWindow::windowFocusCallback( GLFWwindow * window, int state )
@@ -2375,14 +2369,6 @@ void sgct::SGCTWindow::setFisheyeRendering(bool state)
 const sgct::SGCTWindow::StereoMode & sgct::SGCTWindow::getStereoMode() const
 {
 	return mStereoMode;
-}
-
-/*!
-	\returns true if full resoultion is used for displays where point resolution is different from pixel resolution like Apple's retina displays
-*/
-const bool & sgct::SGCTWindow::getFullResolutionMode() const
-{
-	return mFullRes;
 }
 
 void sgct::SGCTWindow::addViewport(float left, float right, float bottom, float top)

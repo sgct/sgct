@@ -40,17 +40,25 @@ endif()
 
 option(ALUT_STATIC "Use static linking for ALUT" ON)
 
-if( APPLE  )
+if( APPLE )
+	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
 	if(CMAKE_GENERATOR STREQUAL Xcode)
 		set(CMAKE_OSX_DEPLOYMENT_TARGET "10.9")
 	endif()
 endif()
 	
-find_library(SGCT_RELEASE_LIBRARY
-	NAMES sgct libsgct REQUIRED)
-find_library(SGCT_DEBUG_LIBRARY 
-	NAMES sgctd libsgctd REQUIRED)
+if(SGCT_CPP11)	
+	find_library(SGCT_RELEASE_LIBRARY
+		NAMES sgct_cpp11 libsgct_cpp11 REQUIRED)
+	find_library(SGCT_DEBUG_LIBRARY 
+		NAMES sgct_cpp11d libsgct_cpp11d REQUIRED)
+else()
+	find_library(SGCT_RELEASE_LIBRARY
+		NAMES sgct libsgct REQUIRED)
+	find_library(SGCT_DEBUG_LIBRARY 
+		NAMES sgctd libsgctd REQUIRED)
+endif()
 
 if( WIN32 )
 	find_path(SGCT_INCLUDE_DIRECTORY 
@@ -176,9 +184,15 @@ if( WIN32 )
 	endif()
 elseif( APPLE  )
 	add_definitions(-D__APPLE__)
-	set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
-	set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
-	set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libstdc++")
+	if(SGCT_CPP11)
+		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libc++ ${CMAKE_CXX_FLAGS}")
+		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
+		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libc++")
+	else()
+		set(CMAKE_CXX_FLAGS "-std=c++11 -stdlib=libstdc++ ${CMAKE_CXX_FLAGS}")
+		set_xcode_property(${APP_NAME} CLANG_CXX_LANGUAGE_STANDARD "c++11")
+		set_xcode_property(${APP_NAME} CLANG_CXX_LIBRARY "libstdc++")
+	endif()
 else()
 	add_definitions(-D__LINUX__)
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")

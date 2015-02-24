@@ -40,7 +40,7 @@ public:
 	/*! Get the current window index */
 	inline std::size_t		getCurrentWindowIndex() { return mCurrentWindowIndex; }
 
-	void addWindow(sgct::SGCTWindow &window);
+	void addWindow(sgct::SGCTWindow window);
 	void setCurrentWindowIndex(std::size_t index);
 	void setUseSwapGroups(bool state);
 

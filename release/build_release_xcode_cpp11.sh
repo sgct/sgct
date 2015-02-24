@@ -27,8 +27,6 @@ cp -r ../../src/apps/heightMappingExample_opengl3 examples/heightMappingExample_
 cp -r ../../src/apps/kinectExample examples/kinectExample
 cp -r ../../src/apps/MRTExample examples/MRTExample
 cp -r ../../src/apps/MRTExample_opengl3 examples/MRTExample_opengl3
-cp -r ../../src/apps/osgExample examples/osgExample
-cp -r ../../src/apps/osgExampleRTT examples/osgExampleRTT
 cp -r ../../src/apps/postFXExample examples/postFXExample
 cp -r ../../src/apps/postFXExample_opengl3 examples/postFXExample_opengl3
 cp -r ../../src/apps/renderToTexture examples/renderToTexture
@@ -44,7 +42,6 @@ cp -r ../../src/apps/textureExample_opengl3 examples/textureExample_opengl3
 cp -r ../../src/apps/trackingExample examples/trackingExample
 
 echo "Copying files... "
-cp ../../src/apps/osgExample/airplane.ive examples/osgExampleRTT/airplane.ive
 cp ../../src/apps/textureExample/box.png examples/renderToTexture/box.png
 cp -r ../../config config
 cp -r ../../include include
@@ -53,8 +50,8 @@ if [ ! -d lib ];
 then
 	mkdir lib
 fi
-cp /usr/local/lib/libsgctd.a lib/libsgctd.a
-cp /usr/local/lib/libsgct.a lib/libsgct.a
+cp /usr/local/lib/libsgct_cpp11d.a lib/libsgct_cpp11d.a
+cp /usr/local/lib/libsgct_cpp11.a lib/libsgct_cpp11.a
 if [ ! -d doc ];
 then
 	mkdir doc
@@ -68,7 +65,7 @@ fi
 #
 cd build
 echo "Running Cmake..."
-cmake -G Xcode -DCMAKE_BUILD_TYPE=Release -D SGCT_CPP11=Off SGCT_EXAMPLES_OSG=On -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
+cmake -G Xcode -DCMAKE_BUILD_TYPE=Release -D SGCT_CPP11=On SGCT_EXAMPLES_OSG=Off -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
 echo "Building.."
 xcodebuild -target ALL_BUILD -configuration Release clean
 xcodebuild -target ALL_BUILD -configuration Release
@@ -108,12 +105,6 @@ rm -rf examples/MRTExample/user_cmake
 #
 cp examples/MRTExample_opengl3/user_cmake/CMakeLists.txt examples/MRTExample_opengl3/CMakeLists.txt
 rm -rf examples/MRTExample_opengl3/user_cmake
-#
-cp examples/osgExample/user_cmake/CMakeLists.txt examples/osgExample/CMakeLists.txt
-rm -rf examples/osgExample/user_cmake
-#
-cp examples/osgExampleRTT/user_cmake/CMakeLists.txt examples/osgExampleRTT/CMakeLists.txt
-rm -rf examples/osgExampleRTT/user_cmake
 #
 cp examples/postFXExample/user_cmake/CMakeLists.txt examples/postFXExample/CMakeLists.txt
 rm -rf examples/postFXExample/user_cmake

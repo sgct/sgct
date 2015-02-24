@@ -263,10 +263,10 @@ void myInitOGLFun()
 	glDisable(GL_LIGHTING);
 	glEnable(GL_COLOR_MATERIAL);
 
-	unsigned int numberOfActiveViewports = 0;
+	std::size_t numberOfActiveViewports = 0;
 	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
-		for(unsigned int j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
+	for(std::size_t i=0; i < thisNode->getNumberOfWindows(); i++)
+		for(std::size_t j=0; j < thisNode->getWindowPtr(i)->getNumberOfViewports(); j++)
 			if( thisNode->getWindowPtr(i)->getViewport(j)->isEnabled() )
 			{
 				numberOfActiveViewports++;

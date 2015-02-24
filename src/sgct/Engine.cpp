@@ -1641,44 +1641,49 @@ void sgct::Engine::renderFBOTexture()
 	//unbind framebuffer
 	OffScreenBuffer::unBind();
 
-	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+    SGCTWindow * win = getActiveWindowPtr();
+    win->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 
 	glDisable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //needed for shaders
 
 	//clear buffers
-	mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
+	mActiveFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
 
-	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    int xSize = static_cast<int>(ceilf(win->getXScale() * static_cast<float>(win->getXResolution())));
+    int ySize = static_cast<int>(ceilf(win->getYScale() * static_cast<float>(win->getYResolution())));
+
+                                    
+	glViewport (0, 0, xSize, ySize);
     setAndClearBuffer(BackBufferBlack);
     
-    std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
+    std::size_t numberOfIterations = (win->isUsingFisheyeRendering() ? 1 : win->getNumberOfViewports());
 
 	sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
 		sgct_core::CorrectionMesh::WARP_MESH : sgct_core::CorrectionMesh::QUAD_MESH;
 
-	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	SGCTWindow::StereoMode sm = win->getStereoMode();
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(LeftEye));
 
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(RightEye));
 
-		getActiveWindowPtr()->bindStereoShaderProgram();
+		win->bindStereoShaderProgram();
 
-		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
-		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
+		glUniform1i( win->getStereoShaderLeftTexLoc(), 0);
+		glUniform1i( win->getStereoShaderRightTexLoc(), 1);
 
 		for(std::size_t i=0; i<numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+			win->getViewport(i)->renderMesh( mt );
 
 		//render mask (mono)
-		if (getActiveWindowPtr()->hasAnyMasks())
+		if (win->hasAnyMasks())
 		{
-			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 
 			mShaders[FBOQuadShader].bind(); //bind
 			glUniform1i(mShaderLocs[MonoTex], 0);
@@ -1688,7 +1693,7 @@ void sgct::Engine::renderFBOTexture()
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
-				Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+				Viewport * vpPtr = win->getViewport(i);
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -1705,41 +1710,41 @@ void sgct::Engine::renderFBOTexture()
 	else
 	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(LeftEye));
 
 		mShaders[FBOQuadShader].bind(); //bind
 		glUniform1i( mShaderLocs[MonoTex], 0);
 
 		for (std::size_t i = 0; i < numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+			win->getViewport(i)->renderMesh( mt );
 
 		//render right eye in active stereo mode
-		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
+		if( win->getStereoMode() == SGCTWindow::Active_Stereo )
 		{
-			glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+			glViewport (0, 0, xSize, ySize);
             
             //clear buffers
 			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
 
-			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
+			glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(RightEye));
 			glUniform1i( mShaderLocs[MonoTex], 0);
 
 			for(std::size_t i=0; i<numberOfIterations; i++)
-				getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+				win->getViewport(i)->renderMesh( mt );
 		}
 
 		//render mask (mono)
-		if (getActiveWindowPtr()->hasAnyMasks())
+		if (win->hasAnyMasks())
 		{
-			glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-			glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+			glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 			glActiveTexture(GL_TEXTURE0);
 			glEnable(GL_BLEND);
 			glBlendFunc(GL_DST_COLOR, GL_ZERO);
 			for (std::size_t i = 0; i < numberOfIterations; i++)
 			{
-				Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+				Viewport * vpPtr = win->getViewport(i);
 				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 				{
 					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -1766,11 +1771,18 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 {
 	//unbind framebuffer
 	OffScreenBuffer::unBind();
-
-	getActiveWindowPtr()->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
     
-    mActiveFrustumMode = getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
-	glViewport (0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+    SGCTWindow * win = getActiveWindowPtr();
+    win->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
+    
+    //clear buffers
+    mActiveFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
+    
+    int xSize = static_cast<int>(ceilf(win->getXScale() * static_cast<float>(win->getXResolution())));
+    int ySize = static_cast<int>(ceilf(win->getYScale() * static_cast<float>(win->getYResolution())));
+    
+    
+    glViewport (0, 0, xSize, ySize);
     setAndClearBuffer(BackBufferBlack);
 
 	//enter ortho mode
@@ -1790,62 +1802,62 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 	glLoadIdentity();
     
-    std::size_t numberOfIterations = (getActiveWindowPtr()->isUsingFisheyeRendering() ? 1 : getActiveWindowPtr()->getNumberOfViewports());
+    std::size_t numberOfIterations = (win->isUsingFisheyeRendering() ? 1 : win->getNumberOfViewports());
 
-	SGCTWindow::StereoMode sm = getActiveWindowPtr()->getStereoMode();
+	SGCTWindow::StereoMode sm = win->getStereoMode();
 
 	sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
 		sgct_core::CorrectionMesh::WARP_MESH : sgct_core::CorrectionMesh::QUAD_MESH;
 
 	if( sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo )
 	{
-		getActiveWindowPtr()->bindStereoShaderProgram();
+		win->bindStereoShaderProgram();
 
-		glUniform1i( getActiveWindowPtr()->getStereoShaderLeftTexLoc(), 0);
-		glUniform1i( getActiveWindowPtr()->getStereoShaderRightTexLoc(), 1);
+		glUniform1i( win->getStereoShaderLeftTexLoc(), 0);
+		glUniform1i( win->getStereoShaderRightTexLoc(), 1);
 
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(LeftEye));
 		glEnable(GL_TEXTURE_2D);
 
 		glActiveTexture(GL_TEXTURE1);
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(RightEye));
 		glEnable(GL_TEXTURE_2D);
 
 		for(std::size_t i=0; i<numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+			win->getViewport(i)->renderMesh( mt );
 		ShaderProgram::unbind();
 	}
 	else
 	{
 		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-		glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(LeftEye));
+		glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(LeftEye));
 		glEnable(GL_TEXTURE_2D);
 
 		for (std::size_t i = 0; i < numberOfIterations; i++)
-			getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+			win->getViewport(i)->renderMesh( mt );
 
 		//render right eye in active stereo mode
-		if( getActiveWindowPtr()->getStereoMode() == SGCTWindow::Active_Stereo )
+		if( win->getStereoMode() == SGCTWindow::Active_Stereo )
 		{
-			glViewport(0, 0, getActiveWindowPtr()->getXResolution(), getActiveWindowPtr()->getYResolution());
+			glViewport(0, 0, win->getXResolution(), win->getYResolution());
             
             //clear buffers
 			mActiveFrustumMode = Frustum::StereoRightEye;
 			setAndClearBuffer(BackBufferBlack);
 
-			glBindTexture(GL_TEXTURE_2D, getActiveWindowPtr()->getFrameBufferTexture(RightEye));
+			glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(RightEye));
 
 			for(std::size_t i=0; i<numberOfIterations; i++)
-				getActiveWindowPtr()->getViewport(i)->renderMesh( mt );
+				win->getViewport(i)->renderMesh( mt );
 		}
 	}
 
 	//render mask (mono)
-	if (getActiveWindowPtr()->hasAnyMasks())
+	if (win->hasAnyMasks())
 	{
-		glDrawBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-		glReadBuffer(getActiveWindowPtr()->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+		glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+		glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
 
 		//if stereo != active stereo
 		glActiveTexture(GL_TEXTURE1);
@@ -1856,7 +1868,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 		glBlendFunc(GL_DST_COLOR, GL_ZERO);
 		for (std::size_t i = 0; i < numberOfIterations; i++)
 		{
-			Viewport * vpPtr = getActiveWindowPtr()->getViewport(i);
+			Viewport * vpPtr = win->getViewport(i);
 			if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
 			{
 				glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
@@ -4161,12 +4173,19 @@ void sgct::Engine::enterCurrentViewport()
               currentViewportCoords[2],
               currentViewportCoords[3]);
 
-	/*fprintf(stderr, "Viewport %d: %d %d %d %d\n",
-		getActiveWindowPtr()->getCurrentViewportIndex(),
+	/*fprintf(stderr, "Viewport: %d %d %d %d\n",
 		currentViewportCoords[0],
         currentViewportCoords[1],
         currentViewportCoords[2],
-        currentViewportCoords[3]);*/
+        currentViewportCoords[3]);
+    
+    fprintf(stderr, "Window size: %dx%d (%dx%d)\n",
+            getActiveWindowPtr()->getXResolution(),
+            getActiveWindowPtr()->getYResolution(),
+            getActiveWindowPtr()->getXFramebufferResolution(),
+            getActiveWindowPtr()->getYFramebufferResolution());*/
+    
+    
 }
 
 void sgct::Engine::enterFisheyeViewport()

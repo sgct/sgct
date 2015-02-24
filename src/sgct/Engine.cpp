@@ -725,7 +725,7 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
-	if( SGCTSettings::instance()->getOSDTextFontPath().empty() )
+    if( SGCTSettings::instance()->getOSDTextFontPath().empty() )
 	{
 	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontName() ) )
             sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );

@@ -50,6 +50,7 @@ ADD_SUBDIRECTORY(trackingExample)
 if(SGCT_EXAMPLES_FMOD)
 	ADD_SUBDIRECTORY(fmodExample_opengl3)
 endif()
+ADD_SUBDIRECTORY(networkExample_opengl3)
 
 if( WIN32 )
 	add_definitions(-D__WIN32__)

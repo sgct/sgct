@@ -20,8 +20,8 @@ void sendTestMessage();
 void networkLoop(void * arg);
 
 tthread::thread * connectionThread = NULL;
-tthread::atomic<bool> connected = false;
-tthread::atomic<bool> running = true;
+tthread::atomic<bool> connected;
+tthread::atomic<bool> running;
 
 //network callbacks
 void networkConnectionUpdated(sgct_core::SGCTNetwork * conn);
@@ -43,7 +43,10 @@ std::pair<double, int> timerData;
 
 int main( int argc, char* argv[] )
 {
-	gEngine = new sgct::Engine( argc, argv );
+    connected = false;
+    running = true;
+    
+    gEngine = new sgct::Engine( argc, argv );
 
 	parseArguments(argc, argv);
 

@@ -861,25 +861,23 @@ void sgct_core::NetworkManager::getHostInfo()
 
 	if ((result = getaddrinfo(tmpStr, "http", &hints, &info)) != 0)
 	{
-#ifdef __WIN32__
-		WSACleanup();
-#else
-		//No cleanup needed
-#endif
-		throw "Failed to get address info!";
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+                                                "NetworkManager: Failed to get address info!\n");
 	}
+    else
+    {
+        char addr_str[INET_ADDRSTRLEN];
+        for (p = info; p != NULL; p = p->ai_next)
+        {
+            sockaddr_ipv4 = (struct sockaddr_in *) p->ai_addr;
+            inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
+            if (p->ai_canonname)
+                mDNSNames.push_back(std::string(p->ai_canonname));
+            mLocalAddresses.push_back(std::string(addr_str));
 
-	char addr_str[INET_ADDRSTRLEN];
-	for (p = info; p != NULL; p = p->ai_next)
-	{
-		sockaddr_ipv4 = (struct sockaddr_in *) p->ai_addr;
-		inet_ntop(AF_INET, &(sockaddr_ipv4->sin_addr), addr_str, INET_ADDRSTRLEN);
-		if (p->ai_canonname)
-			mDNSNames.push_back(std::string(p->ai_canonname));
-		mLocalAddresses.push_back(std::string(addr_str));
-
-		//fprintf(stderr, "Adding address: %s\n", mLocalAddresses.back().c_str());
-	}
+            //fprintf(stderr, "Adding address: %s\n", mLocalAddresses.back().c_str());
+        }
+    }
 
 	freeaddrinfo(info);
 

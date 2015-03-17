@@ -510,8 +510,10 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 {
 	if( !mUseFixResolution )
     {
-        mFramebufferResolution[0] = x;
+		mFramebufferResolution[0] = x;
         mFramebufferResolution[1] = y;
+
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Framebuffer resolution changed to %dx%d for window %d...\n", mFramebufferResolution[0], mFramebufferResolution[1], mId);
     }
 }
 
@@ -882,12 +884,18 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		/*
             Mac for example scales the window size != frame buffer size
         */
-        glfwGetFramebufferSize(mWindowHandle, &mFramebufferResolution[0], &mFramebufferResolution[1]);
+		int buffer_width, buffer_height;
+		glfwGetFramebufferSize(mWindowHandle, &buffer_width, &buffer_height);
 
         mWindowInitialRes[0] = mWindowRes[0];
         mWindowInitialRes[1] = mWindowRes[1];
-        mScale[0] = static_cast<float>(mFramebufferResolution[0])/static_cast<float>(mWindowRes[0]);
-        mScale[1] = static_cast<float>(mFramebufferResolution[1])/static_cast<float>(mWindowRes[1]);
+		mScale[0] = static_cast<float>(buffer_width) / static_cast<float>(mWindowRes[0]);
+        mScale[1] = static_cast<float>(buffer_height) / static_cast<float>(mWindowRes[1]);
+		if (!mUseFixResolution)
+		{
+			mFramebufferResolution[0] = buffer_width;
+			mFramebufferResolution[1] = buffer_height;
+		}
         
         /*
          Verified that sizes are set correctly
@@ -1025,7 +1033,7 @@ void sgct::SGCTWindow::windowResizeCallback( GLFWwindow * window, int width, int
 
 void sgct::SGCTWindow::frameBufferResizeCallback( GLFWwindow * window, int width, int height )
 {
-    sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
     
     if( thisNode != NULL )
     {
@@ -1261,7 +1269,7 @@ void sgct::SGCTWindow::createTextures()
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Texture targets failed to initialize for window %d!\n", mId);
 }
 
-void sgct::SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize, sgct::SGCTWindow::TextureType type, bool interpolate)
+void sgct::SGCTWindow::generateTexture(unsigned int id, const int xSize, const int ySize, const sgct::SGCTWindow::TextureType type, const bool interpolate)
 {
 	//clean up if needed
 	if( mFrameBufferTextures[id] != GL_FALSE )

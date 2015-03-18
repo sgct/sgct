@@ -423,7 +423,7 @@ License type: BSD\n
 #define _SGCT_H_
 
 //If windows OS detected
-#if defined(_WIN64) || defined(_WIN32)
+#if defined(_WIN64) || defined(_WIN32) || defined(__MINGW32__) || defined(__MINGW64__)
     #ifndef __WIN32__
     #define __WIN32__
     #endif

@@ -18,7 +18,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <zlib.h>
 #endif
 
-#ifdef __WIN32__ //WinSock
+#if defined(_WIN_PLATFORM)//WinSock
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #ifdef _XCODE
@@ -30,6 +30,26 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <arpa/inet.h>
     #include <netdb.h>
 	#define SOCKET_ERROR (-1)
+#endif
+
+//missing function on mingw
+#if defined(__MINGW32__) || defined(__MINGW64__)
+const char* inet_ntop(int af, const void* src, char* dst, int cnt)
+{
+
+    struct sockaddr_in srcaddr;
+
+    memset(&srcaddr, 0, sizeof(struct sockaddr_in));
+    memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
+
+    srcaddr.sin_family = af;
+    if (WSAAddressToString((struct sockaddr*) &srcaddr, sizeof(struct sockaddr_in), 0, dst, (LPDWORD) &cnt) != 0) {
+        DWORD rv = WSAGetLastError();
+        printf("WSAAddressToString() : %d\n",rv);
+        return NULL;
+    }
+    return dst;
+}
 #endif
 
 //#define __SGCT_NETWORK_DEBUG__
@@ -49,7 +69,7 @@ sgct_core::NetworkManager::NetworkManager(NetworkMode nm)
 	mIsServer = true;
 
 	mExternalControlConnection = NULL;
-    
+
     mCompress = false;
     mCompressionLevel = Z_BEST_SPEED;
 
@@ -418,7 +438,7 @@ void sgct_core::NetworkManager::transferData(const void * data, int length, int 
 bool sgct_core::NetworkManager::prepareTransferData(const void * data, char ** bufferPtr, int & length, int packageId)
 {
 	int msg_len = length;
-	
+
 	if (mCompress)
 		length = compressBound(static_cast<uLong>(length));
 	length += static_cast<int>(SGCTNetwork::mHeaderSize);
@@ -491,7 +511,7 @@ bool sgct_core::NetworkManager::prepareTransferData(const void * data, char ** b
 			//faster to copy chunks of 4k than the whole buffer
 			int offset = 0;
 			int stride = 4096;
-			 
+
 			while (offset < msg_len)
 			{
 				if ((msg_len - offset) < stride)
@@ -588,11 +608,11 @@ unsigned int sgct_core::NetworkManager::getDataTransferConnectionsCount()
 void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 {
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Updating status for connection %d\n", connection->getId());
-    
+
 	unsigned int numberOfConnectionsCounter = 0;
 	unsigned int numberOfConnectedSyncNodesCounter = 0;
 	unsigned int numberOfConnectedDataTransferNodesCounter = 0;
-    
+
     sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
     unsigned int totalNumberOfConnections = static_cast<unsigned int>(mNetworkConnections.size());
     unsigned int totalNumberOfSyncConnections = static_cast<unsigned int>(mSyncConnections.size());
@@ -632,12 +652,12 @@ void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 	if(isServer)
 	{
 		bool allNodesConnectedCopy;
-        
+
         sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
         //local copy (thread safe)
         allNodesConnectedCopy = (numberOfConnectedSyncNodesCounter == totalNumberOfSyncConnections) &&
             (numberOfConnectedDataTransferNodesCounter == totalNumberOfTransferConnections);
-        
+
         mAllNodesConnected = allNodesConnectedCopy;
         sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 
@@ -654,7 +674,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 
                     mSyncConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 				}
-            
+
             for(unsigned int i=0; i<mDataTransferConnections.size(); i++)
 				if( mDataTransferConnections[i]->isConnected() )
 				{
@@ -662,7 +682,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 					tmpc[0] = SGCTNetwork::ConnectedId;
                     for(unsigned int j=1; j<SGCTNetwork::mHeaderSize; j++)
 						tmpc[j] = SGCTNetwork::DefaultId;
-                    
+
                     mDataTransferConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
 				}
         }
@@ -686,8 +706,8 @@ void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 		//if node disconnects to enable reconnection
 		connection->mStartConnectionCond.notify_all();
 	}
-	
-	
+
+
 	if (connection->getType() == sgct_core::SGCTNetwork::DataTransfer)
 	{
 		bool dataTransferConnectionStatus = connection->isConnected();
@@ -701,7 +721,7 @@ void sgct_core::NetworkManager::updateConnectionStatus(SGCTNetwork * connection)
 void sgct_core::NetworkManager::setAllNodesConnected()
 {
     sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
-    
+
     if( !mIsServer )
     {
         unsigned int totalNumberOfTransferConnections = static_cast<unsigned int>( mDataTransferConnections.size());
@@ -740,7 +760,7 @@ void sgct_core::NetworkManager::close()
     mSyncConnections.clear();
 	mDataTransferConnections.clear();
 
-#ifdef __WIN32__
+#if defined(_WIN_PLATFORM)
     WSACleanup();
 #else
     //No cleanup needed
@@ -771,18 +791,18 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 	try
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NetworkManager: Initiating network connection %d at port %s.\n", mNetworkConnections.size(), port.c_str());
-        
+
         //bind callback
 		sgct_cppxeleven::function< void(SGCTNetwork *) > updateCallback;
 		updateCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::updateConnectionStatus, this,
                                                sgct_cppxeleven::placeholders::_1);
 		netPtr->setUpdateFunction(updateCallback);
-        
+
         //bind callback
 		sgct_cppxeleven::function< void(void) > connectedCallback;
 		connectedCallback = sgct_cppxeleven::bind(&sgct_core::NetworkManager::setAllNodesConnected, this);
 		netPtr->setConnectedFunction(connectedCallback);
-        
+
         if( connectionType == SGCTNetwork::SyncConnection )
             mSyncConnections.push_back(netPtr);
 		else if (connectionType == SGCTNetwork::DataTransfer)
@@ -790,7 +810,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 		else
 			mExternalControlConnection = netPtr;
         mNetworkConnections.push_back(netPtr);
-        
+
 
         //must be inited after binding
 		netPtr->init(port, address, mIsServer, connectionType);
@@ -807,7 +827,7 @@ bool sgct_core::NetworkManager::addConnection(const std::string & port, const st
 void sgct_core::NetworkManager::initAPI()
 {
 
-#ifdef __WIN32__
+#if defined(_WIN_PLATFORM)
 	WSADATA wsaData;
 	WORD version;
 	int error;
@@ -837,7 +857,7 @@ void sgct_core::NetworkManager::getHostInfo()
 	char tmpStr[128];
     if (gethostname(tmpStr, sizeof(tmpStr)) == SOCKET_ERROR)
 	{
-#ifdef __WIN32__
+#if defined(_WIN_PLATFORM)
         WSACleanup();
 #else
         //No cleanup needed
@@ -909,14 +929,14 @@ bool sgct_core::NetworkManager::matchAddress(const std::string address)
 }
 
 bool sgct_core::NetworkManager::isComputerServer()
-{ 
+{
 	bool tmpB;
     sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	tmpB = mIsServer;
 	sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 	return tmpB;
 }
-	
+
 bool sgct_core::NetworkManager::isRunning()
 {
 	bool tmpB;

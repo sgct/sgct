@@ -13,7 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
-#ifdef __WIN32__
+#if defined(__WIN32__) || defined(__MINGW32__) || defined(__MINGW64__)
+    #define _WIN_PLATFORM
     typedef size_t SGCT_SOCKET;
 #else //linux & OS X
     typedef int SGCT_SOCKET;

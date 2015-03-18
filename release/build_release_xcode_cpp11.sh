@@ -65,7 +65,7 @@ fi
 #
 cd build
 echo "Running Cmake..."
-cmake -G Xcode -DCMAKE_BUILD_TYPE=Release -D SGCT_CPP11=On SGCT_EXAMPLES_OSG=Off -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
+cmake -G Xcode -DCMAKE_BUILD_TYPE=Release -DSGCT_CPP11=On -DSGCT_EXAMPLES_OSG=Off -DSGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
 echo "Building.."
 xcodebuild -target ALL_BUILD -configuration Release clean
 xcodebuild -target ALL_BUILD -configuration Release

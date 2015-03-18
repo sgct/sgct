@@ -68,7 +68,7 @@ fi
 #
 cd build
 echo "Running Cmake..."
-cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -D SGCT_EXAMPLES_OSG=On -D SGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
+cmake -G "Unix Makefiles" -DCMAKE_BUILD_TYPE=Release -DSGCT_EXAMPLES_OSG=On -DSGCT_PLACE_TARGETS_IN_SOURCE_TREE=On ../
 echo "Building.."
 make clean all
 cd ..

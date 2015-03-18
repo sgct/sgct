@@ -4,13 +4,13 @@
 	<Project>
 		<Option title="dataTransfer_opengl3" />
 		<Option pch_mode="2" />
-		<Option compiler="g++" />
+		<Option compiler="gcc" />
 		<Build>
 			<Target title="Debug">
 				<Option output="$(SGCT_ROOT_DIR)\bin\dataTransfer_opengl3\mingw\dataTransfer_opengl3_mingw_x64_d" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Debug\" />
 				<Option type="1" />
-				<Option compiler="g++" />
+				<Option compiler="gcc" />
 				<Option parameters='-config &quot;$(SGCT_ROOT_DIR)\config\single.xml&quot;' />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>
@@ -25,7 +25,7 @@
 				<Option output="$(SGCT_ROOT_DIR)\bin\dataTransfer_opengl3\mingw\dataTransfer_opengl3_mingw_x64" prefix_auto="1" extension_auto="1" />
 				<Option object_output="obj\Release\" />
 				<Option type="1" />
-				<Option compiler="g++" />
+				<Option compiler="gcc" />
 				<Option parameters='-config &quot;$(SGCT_ROOT_DIR)\config\single.xml&quot;' />
 				<Option projectLinkerOptionsRelation="2" />
 				<Compiler>

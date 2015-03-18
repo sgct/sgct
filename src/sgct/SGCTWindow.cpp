@@ -20,6 +20,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
+#include <algorithm>
 
 /*
 	Apple doesn't support advanced sync features
@@ -3004,9 +3005,9 @@ void sgct::SGCTWindow::updateTransferCurve()
 		//transform back
 		//unsigned short t = static_cast<unsigned short>(roundf(256.0f * g));
 
-		unsigned short t = static_cast<unsigned short>(roundf(
-			fmaxf(0.0f, fminf(65535.0f * g, 65535.0f)) //clamp to range
-			));
+		unsigned short t = static_cast<unsigned short>(
+			std::max(0.0f, std::min(65535.0f * g, 65535.0f)) //clamp to range
+			+ 0.5f); //round to closest integer
 
 		ramp.red[i] = t;
 		ramp.green[i] = t;

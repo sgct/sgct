@@ -29,8 +29,7 @@ The macros below set the propper c++ includes and namespaces
     #define __USE_CPP11__ 0
     #define __USE_CPP0X__ 0
     #define SGCT_NULL_PTR NULL
-    pragma message("Warning: C++0x/11 not supported by compiler!")
-
+    #pragma message("Warning: C++0x/11 not supported by compiler!")
 #endif
 
 #if __USE_CPP11__

@@ -19,7 +19,7 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{D23AF01D-5A85-4D66-BD9A-E40B6345801E}</ProjectGuid>
+    <ProjectGuid>{2E2F77FB-71FB-4758-BA69-80A7C7700241}</ProjectGuid>
     <RootNamespace>simpleNavigationExample_opengl3</RootNamespace>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />

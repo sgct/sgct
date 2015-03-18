@@ -290,11 +290,11 @@ void myPreSyncFun()
 
 		//3. transform user back to original position
 		glm::mat4 result;
-		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getUserPtr()->getPos() );
+		result = glm::translate( glm::mat4(1.0f), sgct::Engine::getDefaultUserPtr()->getPos() );
 		//2. apply transformation
 		result *= (ViewRotate * glm::translate( glm::mat4(1.0f), position ));
 		//1. transform user to coordinate system origin
-		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getUserPtr()->getPos() );
+		result *= glm::translate( glm::mat4(1.0f), -sgct::Engine::getDefaultUserPtr()->getPos() );
 
 		xform.setVal( result );
 	}

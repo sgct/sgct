@@ -82,7 +82,7 @@ void myInitOGLFun()
 
 	setAudioSource(audio_buffer0, source0, "file1.wav");
 
-	glm::vec3 userPos = gEngine->getUserPtr()->getPos();
+	glm::vec3 userPos = gEngine->getDefaultUserPtr()->getPos();
 	alListener3f(AL_POSITION, userPos.x, userPos.y, userPos.z);
 	alListener3f(AL_VELOCITY, 0.0f, 0.0f, 0.0f);
 

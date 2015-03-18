@@ -24,5 +24,6 @@
 		<Project filename="../apps/depthBuffer/depthBufferExample_mingw_x64.cbp" />
 		<Project filename="../apps/MRTExample/MRTExample_mingw_x64.cbp" />
 		<Project filename="../apps/MRTExample_opengl3/MRTExample_opengl3_mingw_x64.cbp" />
+		<Project filename="../apps/simpleNavigationExample_opengl3/simpleNavigationExample_opengl3_mingw_x64.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

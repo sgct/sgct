@@ -9,7 +9,7 @@
 !define SGCT_COMPILER "msvc12"
 !define ARCH "x64"
 !define OSG_VERSION "3.2.0"
-!define INC_OSG 1
+!define INC_OSG 0
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"

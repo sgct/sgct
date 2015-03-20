@@ -34,14 +34,14 @@ void myDrawFun()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+	glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 2.0);
 	glMatrixMode(GL_MODELVIEW);
 	glLoadIdentity();
 
 	glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT | GL_LIGHTING_BIT );
 	glDisable(GL_LIGHTING);
 	glDisable(GL_DEPTH_TEST);
-	
+
 	glColor3f(1.0f,1.0f,1.0f);
 	glEnable(GL_TEXTURE_2D);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("grid"));

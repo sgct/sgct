@@ -1,7 +1,6 @@
 <?xml version="1.0" encoding="UTF-8" standalone="yes" ?>
 <CodeBlocks_workspace_file>
 	<Workspace title="Workspace">
-		<Project filename="../apps/osgExample/osgExample_mingw.cbp" />
 		<Project filename="../apps/sgct_template/sgct_template_mingw.cbp" />
 		<Project filename="../apps/SGCTRemote/remote_app_mingw.cbp" />
 		<Project filename="../apps/simpleNavigationExample/simpleNavigationExample_mingw.cbp" />
@@ -18,7 +17,6 @@
 		<Project filename="../apps/kinectExample/kinectExample_mingw.cbp" />
 		<Project filename="../apps/orthoTexture/orthoTexture_mingw.cbp" />
 		<Project filename="../apps/fisheyeTest/fisheyeTest_mingw.cbp" />
-		<Project filename="../apps/osgExampleRTT/osgExampleRTT_mingw.cbp" />
 		<Project filename="../apps/example1_opengl3/example1_opengl3_mingw.cbp" />
 		<Project filename="../apps/textureExample_opengl3/textureExample_opengl3_mingw.cbp" />
 		<Project filename="../apps/renderToTexture/renderToTexture_mingw.cbp" />
@@ -26,5 +24,6 @@
 		<Project filename="../apps/depthBuffer/depthBufferExample_mingw.cbp" />
 		<Project filename="../apps/MRTExample/MRTExample_mingw.cbp" />
 		<Project filename="../apps/MRTExample_opengl3/MRTExample_opengl3_mingw.cbp" />
+		<Project filename="../apps/simpleNavigationExample_opengl3/simpleNavigationExample_opengl3_mingw.cbp" />
 	</Workspace>
 </CodeBlocks_workspace_file>

@@ -21,7 +21,8 @@
 					<Add option="-m32" />
 				</Compiler>
 				<Linker>
-					<Add library="sgctd" />
+					<Add option="-m32" />
+					<Add library="sgct" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -37,7 +38,7 @@
 					<Add option="-m32" />
 				</Compiler>
 				<Linker>
-					<Add option="-s" />
+					<Add option="-m32" />
 					<Add library="sgct" />
 				</Linker>
 			</Target>

@@ -6,3 +6,4 @@ find . -name ''*.suo'' -type f -delete
 find . -name '*.bat' -type f -delete
 find . -name '*.DS_Store' -type f -delete
 find ./ -name ".svn" | xargs rm -Rf
+find . -perm +111 -type f -delete

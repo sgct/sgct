@@ -54,8 +54,8 @@ else()
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 endif()
 	
-if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
-endif()
+#if( CMAKE_COMPILER_IS_GNUCXX )
+#	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+#endif()
 
 target_link_libraries( ${LIB_NAME} ${THREADS_LIBRARY} )

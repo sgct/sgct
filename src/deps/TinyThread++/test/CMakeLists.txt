@@ -33,9 +33,9 @@ if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
 	
-if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
-endif()
+#if( CMAKE_COMPILER_IS_GNUCXX )
+#	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+#endif()
 
 target_link_libraries(${APP_NAME} debug ${DEBUG_LIBS})
 target_link_libraries(${APP_NAME} optimized ${RELEASE_LIBS})

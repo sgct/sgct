@@ -91,14 +91,14 @@ include_directories(${SGCT_INCLUDE_DIRECTORY} ${FMOD_INCLUDE_DIR})
 if( MSVC )
 	set(LIBS
 		${SGCT_LIBS}
-		${OPENGL_LIBRARY}
+		${OPENGL_gl_LIBRARY}
 		${FMOD_LIBRARY}
 		ws2_32
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(LIBS
 		${SGCT_LIBS}
-		${OPENGL_LIBRARY}
+		${OPENGL_gl_LIBRARY}
 		${FMOD_LIBRARY}
 		ws2_32
 	)
@@ -109,7 +109,7 @@ elseif( APPLE )
 
 	set(LIBS
 		${SGCT_LIBS}
-		${OPENGL_LIBRARY}
+		${OPENGL_gl_LIBRARY}
 		${FMOD_LIBRARY}
 		${COCOA_LIBRARY}
 		${IOKIT_LIBRARY}
@@ -122,7 +122,7 @@ else() #linux
 
 	set(LIBS
 		${SGCT_LIBS}
-		${OPENGL_LIBRARY}
+		${OPENGL_gl_LIBRARY}
 		${FMOD_LIBRARY}
 		${X11_LIBRARY}
 		${XRANDR_LIBRARY}
@@ -179,8 +179,8 @@ else()
 	set(CMAKE_CXX_FLAGS "-std=c++11 ${CMAKE_CXX_FLAGS}")
 endif()
 	
-if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
-endif()
+#if( CMAKE_COMPILER_IS_GNUCXX )
+#	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+#endif()
 
 target_link_libraries(${APP_NAME} ${LIBS})

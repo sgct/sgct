@@ -171,11 +171,11 @@ if(NOT SGCT_LIGHT_ONLY)
 endif()
 	
 set(COMMON_DEBUG_LIBS
-	${OPENGL_LIBRARY}
+	${OPENGL_gl_LIBRARY}
 )
 
 set(COMMON_RELEASE_LIBS
-	${OPENGL_LIBRARY}
+	${OPENGL_gl_LIBRARY}
 )
 
 if( MSVC )
@@ -217,22 +217,27 @@ elseif( APPLE )
 		${COREVIDEO_LIBRARY}
 	)
 else() #linux
-	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
-	find_library(XI_LIBRARY Xi REQUIRED)
+	find_package(X11 REQUIRED)
+	find_package(Threads REQUIRED)
+
+	set(LINUX_LIBS
+		${X11_X11_LIB}
+		${X11_Xrandr_LIB}
+		${X11_Xinerama_LIB}
+		${X11_Xinput_LIB}
+		${X11_Xxf86vm_LIB}
+		${X11_Xcursor_LIB}
+		${CMAKE_THREAD_LIBS_INIT}		
+	)
 
 	set(DEBUG_LIBS
 		${COMMON_DEBUG_LIBS}
-		${X11_LIBRARY}
-		${XRANDR_LIBRARY}
-		${XI_LIBRARY}
+		${LINUX_LIBS}
 	)
 	
 	set(RELEASE_LIBS
 		${COMMON_RELEASE_LIBS}
-		${X11_LIBRARY}
-		${XRANDR_LIBRARY}
-		${XI_LIBRARY}
+		${LINUX_LIBS}
 	)
 endif()
 
@@ -274,9 +279,9 @@ endif()
 add_definitions(-DGLEW_STATIC)
 add_definitions(-DGLEW_NO_GLU)
 	
-if( CMAKE_COMPILER_IS_GNUCXX )
-	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
-endif()
+#if( CMAKE_COMPILER_IS_GNUCXX )
+#	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
+#endif()
 
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 

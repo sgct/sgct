@@ -51,7 +51,6 @@
 			<Add option="-static-libgcc" />
 			<Add option="-static-libstdc++" />
 			<Add library="opengl32" />
-			<Add library="glu32" />
 			<Add library="gdi32" />
 			<Add library="ws2_32" />
 			<Add directory="$(SGCT_ROOT_DIR)\lib\mingw" />

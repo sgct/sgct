@@ -105,20 +105,19 @@ elseif( APPLE )
 		${COREVIDEO_LIBRARY}
 	)
 else() #linux
-	find_library(X11_LIBRARY X11 REQUIRED)
-    find_library(XRANDR_LIBRARY Xrandr REQUIRED)
-	find_library(XI_LIBRARY Xi REQUIRED)
-	find_library(XXF86VM_LIBRARY Xxf86vm REQUIRED)
-	find_library(PTHREAD pthread REQUIRED)
+	find_package(X11 REQUIRED)
+	find_package(Threads REQUIRED)
 
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
-		${X11_LIBRARY}
-		${XRANDR_LIBRARY}
-		${XI_LIBRARY}
-		${XXF86VM_LIBRARY}
-		${PTHREAD}
+		${X11_X11_LIB}
+		${X11_Xrandr_LIB}
+		${X11_Xinerama_LIB}
+		${X11_Xinput_LIB}
+		${X11_Xxf86vm_LIB}
+		${X11_Xcursor_LIB}
+		${CMAKE_THREAD_LIBS_INIT}		
 	)
 endif()
 

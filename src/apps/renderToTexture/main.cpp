@@ -111,7 +111,7 @@ void myDrawFun()
 	glMatrixMode(GL_PROJECTION);
 	glLoadIdentity();
 	glPushMatrix();
-	gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+	glOrtho(0.0, 1.0, 0.0, 1.0, 0.0, 2.0);
 	glMatrixMode(GL_MODELVIEW);
 
 	sgct::ShaderManager::instance()->bindShaderProgram( "InvertColor" );

@@ -81,6 +81,7 @@ sgct_core::SGCTNetwork::SGCTNetwork()
 	mUpdated			= false;
 	mConnected			= false;
 	mTerminate          = false;
+	mUseNaglesAlgorithmInDataTransfer = false;
 	
 	static int id = 0;
 	mId = id;
@@ -316,16 +317,22 @@ void sgct_core::SGCTNetwork::setOptions(SGCT_SOCKET * socketPtr)
 	if(socketPtr != NULL)
 	{
 		int flag = 1;
+		int iResult;
 
-		//set no delay, disable nagle's algorithm
-		int iResult = setsockopt(*socketPtr, /* socket affected */
-		IPPROTO_TCP,     /* set option at TCP level */
-		TCP_NODELAY,     /* name of option */
-		(char *) &flag,  /* the cast is historical cruft */
-		sizeof(int));    /* length of option value */
+		if (!(getType() == sgct_core::SGCTNetwork::DataTransfer && mUseNaglesAlgorithmInDataTransfer))
+		{
+			//set no delay, disable nagle's algorithm
+			iResult = setsockopt(*socketPtr, /* socket affected */
+				IPPROTO_TCP,     /* set option at TCP level */
+				TCP_NODELAY,     /* name of option */
+				(char *)&flag,  /* the cast is historical cruft */
+				sizeof(int));    /* length of option value */
 
-        if( iResult != NO_ERROR )
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", SGCT_ERRNO);
+			if (iResult != NO_ERROR)
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTNetwork: Failed to set no delay with error: %d\nThis will reduce cluster performance!", SGCT_ERRNO);
+		}
+		else
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "SGCTNetwork: Enabling Nagle's Algorithm for connection %d.\n", mId);
 
 		//set timeout
 		int timeout = 0; //infinite
@@ -509,6 +516,11 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 
 		sendData((void *)tmpca, mHeaderSize);
 	}
+}
+
+void sgct_core::SGCTNetwork::enableNaglesAlgorithmInDataTransfer()
+{
+	mUseNaglesAlgorithmInDataTransfer = true;
 }
 
 int sgct_core::SGCTNetwork::getSendFrame(sgct_core::SGCTNetwork::ReceivedIndex ri)

@@ -77,6 +77,7 @@ public:
 	static unsigned int parseUnsignedInt(char * str);
 	int iterateFrameCounter();
 	void pushClientMessage();
+	void enableNaglesAlgorithmInDataTransfer();
 	std::string getPort();
 	std::string getAddress();
 	std::string getTypeStr();
@@ -136,6 +137,8 @@ private:
 	char * mRecvBuf;
 	char * mUncompressBuf;
 	char mHeaderId;
+
+	bool mUseNaglesAlgorithmInDataTransfer;
 };
 }
 

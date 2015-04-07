@@ -284,6 +284,24 @@ void sgct_core::Viewport::setViewPlaneCoordsUsingFOVs(float up, float down, floa
 
 	for (unsigned int i = 0; i < 3; i++)
 		mViewPlaneCoords[i] = (rot * unTransformedViewPlaneCoords[i]) - mUser->getPos();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"Viewplane lower left coords: %f %f %f\n",
+		mViewPlaneCoords[LowerLeft].x,
+		mViewPlaneCoords[LowerLeft].y,
+		mViewPlaneCoords[LowerLeft].z);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"Viewplane upper left coords: %f %f %f\n",
+		mViewPlaneCoords[UpperLeft].x,
+		mViewPlaneCoords[UpperLeft].y,
+		mViewPlaneCoords[UpperLeft].z);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"Viewplane upper right coords: %f %f %f\n\n",
+		mViewPlaneCoords[UpperRight].x,
+		mViewPlaneCoords[UpperRight].y,
+		mViewPlaneCoords[UpperRight].z);
 }
 
 /*!

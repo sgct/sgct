@@ -448,6 +448,86 @@ bool sgct_core::ReadConfig::readAndParseXML()
 									else
 										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
 								}
+								else if (strcmp("PlanarProjection", val[3]) == 0)
+								{
+									bool validFOV = false;
+									float down, left, right, up;
+									float azimuth = 0.0f;
+									float elevation = 0.0f;
+									float roll = 0.0f;
+									float distance = 10.0f;
+									glm::quat rotQuat;
+									
+									element[4] = element[3]->FirstChildElement();
+									while (element[4] != NULL)
+									{
+										val[4] = element[4]->Value();
+
+										if (strcmp("FOV", val[4]) == 0)
+										{
+											if (element[4]->QueryFloatAttribute("down", &down) == tinyxml2::XML_NO_ERROR &&
+												element[4]->QueryFloatAttribute("left", &left) == tinyxml2::XML_NO_ERROR &&
+												element[4]->QueryFloatAttribute("right", &right) == tinyxml2::XML_NO_ERROR &&
+												element[4]->QueryFloatAttribute("up", &up) == tinyxml2::XML_NO_ERROR)
+											{
+												validFOV = true;
+												
+
+												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+													"ReadConfig: Adding planar projection FOV down=%f left=%f right=%f up=%f\n",
+													down, left, right, up);
+											}
+											else
+												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse planar projection FOV from XML!\n");
+										}
+										else if (strcmp("Orientation", val[4]) == 0)
+										{
+											float tmpf;
+											
+											if (element[4]->QueryFloatAttribute("heading", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												azimuth = -tmpf;
+											}
+
+											if (element[4]->QueryFloatAttribute("azimuth", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												azimuth = tmpf;
+											}
+
+											if (element[4]->QueryFloatAttribute("pitch", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												elevation = tmpf;
+											}
+
+											if (element[4]->QueryFloatAttribute("elevation", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												elevation = tmpf;
+											}
+
+											if (element[4]->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												roll = tmpf;
+											}
+
+											if (element[4]->QueryFloatAttribute("distance", &tmpf) == tinyxml2::XML_NO_ERROR)
+											{
+												distance = tmpf;
+											}
+
+											rotQuat = glm::rotate(rotQuat, -azimuth, glm::vec3(0.0f, 1.0f, 0.0f));
+											rotQuat = glm::rotate(rotQuat, elevation, glm::vec3(1.0f, 0.0f, 0.0f));
+											rotQuat = glm::rotate(rotQuat, roll, glm::vec3(0.0f, 0.0f, -1.0f));
+										}
+
+										//iterate
+										element[4] = element[4]->NextSiblingElement();
+									}//end while level 3
+
+									if (validFOV)
+									{
+										vpPtr->setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
+									}
+								}//end if planar projection
 								else if(strcmp("Viewplane", val[3]) == 0)
 								{
 									element[4] = element[3]->FirstChildElement();

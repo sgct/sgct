@@ -24,8 +24,6 @@ GLuint vertexBuffers[3];
 GLuint VertexArrayID = GL_FALSE;
 GLsizei numberOfVertices = 0;
 
-std::size_t myTextureHandle;
-
 //shader locations
 GLint MVP_Loc = -1;
 GLint NM_Loc = -1;
@@ -79,8 +77,7 @@ void myDrawFun()
 	glm::mat3 NM = glm::inverseTranspose(glm::mat3( gEngine->getActiveModelViewMatrix() * scene_mat ));
 
 	glActiveTexture(GL_TEXTURE0);
-	//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
+	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
 
 	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
@@ -132,7 +129,7 @@ void myInitOGLFun()
 	sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
 
 	loadModel( "box.obj" );
 	

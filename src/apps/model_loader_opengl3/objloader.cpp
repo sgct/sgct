@@ -30,12 +30,22 @@ bool loadOBJ(
 	std::vector<glm::vec2> temp_uvs;
 	std::vector<glm::vec3> temp_normals;
 
-
-	FILE * file = fopen(path, "r");
-	if( file == NULL ){
-		printf("Impossible to open the file ! Are you in the right path ? See Tutorial 1 for details\n");
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	errno_t err;
+	FILE * file;
+	err = fopen_s(&file, path, "r");
+	if( err != 0 )
+	{
+		printf("Impossible to open the file!\n");
 		return false;
 	}
+#else
+	FILE * file = fopen(path, "r");
+	if( file == NULL ){
+		printf("Impossible to open the file!\n");
+		return false;
+	}
+#endif
 
 	char lineHeader[128];
 
@@ -49,25 +59,48 @@ bool loadOBJ(
 	while( 1 ){
 
 		// read the first word of the line
+#if (_MSC_VER >= 1400)
+		int res = fscanf_s(file, "%s", lineHeader, sizeof(lineHeader));
+#else
 		int res = fscanf(file, "%s", lineHeader);
+#endif
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
 
 		// else : parse lineHeader
+		glm::vec3 vertex;
+		glm::vec2 uv;
+		glm::vec3 normal;
 		
-		if ( strcmp( lineHeader, "v" ) == 0 ){
-			glm::vec3 vertex;
-			fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z );
+#if (_MSC_VER >= 1400)
+		if (strcmp(lineHeader, "v") == 0 && fscanf_s(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z) == 3)
+#else
+		if (strcmp(lineHeader, "v") == 0 && fscanf(file, "%f %f %f\n", &vertex.x, &vertex.y, &vertex.z) == 3)
+#endif
+		{
 			temp_vertices.push_back(vertex);
-		}else if ( strcmp( lineHeader, "vt" ) == 0 ){
-			glm::vec2 uv;
-			fscanf(file, "%f %f\n", &uv.x, &uv.y );
+		}
+
+#if (_MSC_VER >= 1400)
+		else if (strcmp(lineHeader, "vt") == 0 && fscanf_s(file, "%f %f\n", &uv.x, &uv.y) == 2)
+#else
+		else if ( strcmp( lineHeader, "vt" ) == 0 && fscanf(file, "%f %f\n", &uv.x, &uv.y ) == 2)
+#endif
+		{
 			temp_uvs.push_back(uv);
-		}else if ( strcmp( lineHeader, "vn" ) == 0 ){
-			glm::vec3 normal;
-			fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z );
+		}
+
+#if (_MSC_VER >= 1400)
+		else if (strcmp(lineHeader, "vn") == 0 && fscanf_s(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z) == 3)
+#else
+		else if (strcmp(lineHeader, "vn") == 0 && fscanf(file, "%f %f %f\n", &normal.x, &normal.y, &normal.z) == 3)
+#endif
+		{	
 			temp_normals.push_back(normal);
-		}else if ( strcmp( lineHeader, "f" ) == 0 ){
+		}
+
+		else if ( strcmp( lineHeader, "f" ) == 0 )
+		{
 			std::string vertex1, vertex2, vertex3;
 			unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
 			/*int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2] );
@@ -75,23 +108,41 @@ bool loadOBJ(
 				printf("File can't be read by our simple parser :-( Try exporting with other options\n");
 				return false;
 			}*/
+
+#if (_MSC_VER >= 1400)
+			int matches = fscanf_s(file, "%s %s %s\n", faceCoord0, sizeof(faceCoord0), faceCoord1, sizeof(faceCoord1), faceCoord2, sizeof(faceCoord2));
+#else
 			int matches = fscanf(file, "%s %s %s\n", faceCoord0, faceCoord1, faceCoord2 );
+#endif
 			if (matches != 3)
+
 			{
 				printf("File can't be read by our simple parser. Only triangle meshes can be read.\n");
 				return false;
 			}
 			else
 			{
-				if( sscanf( faceCoord0, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0] ) == 3 ) //vertex + uv + normal valid
+#if (_MSC_VER >= 1400)
+				if( sscanf_s( faceCoord0, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0] ) == 3 ) //vertex + uv + normal valid
+#else
+				if (sscanf(faceCoord0, "%d/%d/%d", &vertexIndex[0], &uvIndex[0], &normalIndex[0]) == 3) //vertex + uv + normal valid
+#endif
 				{
-					if( sscanf( faceCoord1, "%d/%d/%d", &vertexIndex[1], &uvIndex[1], &normalIndex[1] ) != 3 )
+#if (_MSC_VER >= 1400)
+					if( sscanf_s( faceCoord1, "%d/%d/%d", &vertexIndex[1], &uvIndex[1], &normalIndex[1] ) != 3 )
+#else
+					if (sscanf(faceCoord1, "%d/%d/%d", &vertexIndex[1], &uvIndex[1], &normalIndex[1]) != 3)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
-					
-					if( sscanf( faceCoord2, "%d/%d/%d", &vertexIndex[2], &uvIndex[2], &normalIndex[2] ) != 3 )
+
+#if (_MSC_VER >= 1400)
+					if( sscanf_s( faceCoord2, "%d/%d/%d", &vertexIndex[2], &uvIndex[2], &normalIndex[2] ) != 3 )
+#else
+					if (sscanf(faceCoord2, "%d/%d/%d", &vertexIndex[2], &uvIndex[2], &normalIndex[2]) != 3)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;
@@ -107,15 +158,28 @@ bool loadOBJ(
 					normalIndices.push_back(normalIndex[1]);
 					normalIndices.push_back(normalIndex[2]);
 				}
-				else if( sscanf( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+
+#if (_MSC_VER >= 1400)
+				else if( sscanf_s( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+#else
+				else if (sscanf(faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0]) == 2) //vertex + normal valid
+#endif
 				{
-					if( sscanf( faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1] ) != 2 )
+#if (_MSC_VER >= 1400)					
+					if( sscanf_s( faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1] ) != 2 )
+#else
+					if (sscanf(faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1]) != 2)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
-					if( sscanf( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+#if (_MSC_VER >= 1400)	
+					if( sscanf_s( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+#else
+					if (sscanf(faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2]) != 2)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;
@@ -128,15 +192,27 @@ bool loadOBJ(
 					normalIndices.push_back(normalIndex[1]);
 					normalIndices.push_back(normalIndex[2]);
 				}
-				else if( sscanf( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
+#if (_MSC_VER >= 1400)	
+				else if( sscanf_s( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
+#else
+				else if (sscanf(faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0]) == 2) //vertex + uv valid
+#endif
 				{
-					if( sscanf( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
+#if (_MSC_VER >= 1400)	
+					if( sscanf_s( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
+#else
+					if (sscanf(faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1]) != 2)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
-					if( sscanf( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
+#if (_MSC_VER >= 1400)	
+					if( sscanf_s( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
+#else
+					if (sscanf(faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2]) != 2)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;
@@ -149,15 +225,28 @@ bool loadOBJ(
 					uvIndices    .push_back(uvIndex[1]);
 					uvIndices    .push_back(uvIndex[2]);
 				}
-				else if( sscanf( faceCoord0, "%d///", &vertexIndex[0] ) == 1 ) //vertex only
+#if (_MSC_VER >= 1400)	
+				else if( sscanf_s( faceCoord0, "%d///", &vertexIndex[0] ) == 1 ) //vertex only
+#else
+				else if (sscanf(faceCoord0, "%d///", &vertexIndex[0]) == 1) //vertex only
+#endif
 				{
+
+#if (_MSC_VER >= 1400)
+					if( sscanf_s( faceCoord1, "%d///", &vertexIndex[1] ) != 1 )
+#else
 					if( sscanf( faceCoord1, "%d///", &vertexIndex[1] ) != 1 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
+#if (_MSC_VER >= 1400)
+					if( sscanf_s( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+#else
 					if( sscanf( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;

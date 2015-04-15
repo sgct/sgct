@@ -97,24 +97,12 @@ inline glm::mat4 setupOrthoMat()
 	glm::mat4 orthoMat;
 	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
 
-	if( cWin->isFixResolution() )
-    {
-        orthoMat = glm::ortho(0.0f,
-            cWin->getCurrentViewport()->getXSize() *
-            static_cast<float>(cWin->getXInitialResolution()) * cWin->getXScale(),
-            0.0f,
-            cWin->getCurrentViewport()->getYSize() *
-            static_cast<float>(cWin->getYInitialResolution()) * cWin->getYScale());
-    }
-    else
-    {
-        orthoMat = glm::ortho(0.0f,
-            cWin->getCurrentViewport()->getXSize() *
-            static_cast<float>(cWin->getXFramebufferResolution()),
-            0.0f,
-            cWin->getCurrentViewport()->getYSize() *
-            static_cast<float>(cWin->getYFramebufferResolution()));
-    }
+	orthoMat = glm::ortho(0.0f,
+		cWin->getCurrentViewport()->getXSize() *
+		static_cast<float>(cWin->getXResolution()),
+		0.0f,
+		cWin->getCurrentViewport()->getYSize() *
+		static_cast<float>(cWin->getYResolution()));
 
 	return orthoMat;
 }

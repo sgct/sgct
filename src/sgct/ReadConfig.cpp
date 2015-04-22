@@ -176,12 +176,6 @@ bool sgct_core::ReadConfig::readAndParseXML()
 		ClusterManager::instance()->setExternalControlPort(tmpStr);
 	}
     
-	if( XMLroot->Attribute( "externalASCII" ) != NULL )
-	{
-		ClusterManager::instance()->setUseASCIIForExternalControl(
-                                                                  strcmp( XMLroot->Attribute( "externalASCII" ), "true" ) == 0 ? true : false );
-	}
-    
 	if( XMLroot->Attribute( "firmSync" ) != NULL )
 	{
 		ClusterManager::instance()->setFirmFrameLockSyncStatus(

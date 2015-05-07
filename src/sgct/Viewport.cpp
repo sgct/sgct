@@ -66,6 +66,10 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
     mGenerateGPUData = true;
     mName.assign("NoName");
 	mUser = ClusterManager::instance()->getDefaultUserPtr();
+
+	mViewPlaneCoords[LowerLeft] = glm::vec3(-1.0f, -1.0f, -2.0f);
+	mViewPlaneCoords[UpperLeft] = glm::vec3(-1.0f, 1.0f, -2.0f);
+	mViewPlaneCoords[UpperRight] = glm::vec3(1.0f, 1.0f, -2.0f);
 }
 
 void sgct_core::Viewport::setEye(sgct_core::Frustum::FrustumMode eye)

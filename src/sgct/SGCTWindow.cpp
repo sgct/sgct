@@ -2998,7 +2998,7 @@ void sgct::SGCTWindow::updateTransferCurve()
 
 	for (unsigned int i = 0; i < ramp.size; i++)
 	{
-		float c = (static_cast<float>(i)/255.0f) * mContrast;
+		float c = ((static_cast<float>(i)/255.0f) - 0.5f) * mContrast + 0.5f;
 		float b = c + (mBrightness - 1.0f);
 		float g = powf(b, gamma_exp);
 

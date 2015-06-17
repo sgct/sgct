@@ -21,7 +21,9 @@ void myDecodeFun();
 void myCleanUpFun();
 
 sgct_utils::SGCTBox * myBox = NULL;
+//sgct_utils::SGCTPlane * myPlane = NULL;
 GLint Matrix_Loc = -1;
+GLint Flip_Loc = -1;
 
 SpoutReceiver * spoutReceiver = NULL;
 char spoutSenderName[256];
@@ -77,7 +79,7 @@ void myDrawFun()
 	glActiveTexture(GL_TEXTURE0);
 
 	//spout init
-	if (!spoutInited && spoutReceiver->CreateReceiver(spoutSenderName, spoutWidth, spoutHeight, true))
+	if (!spoutInited && spoutReceiver->CreateReceiver(spoutSenderName, spoutWidth, spoutHeight))
 	{	
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Initing %ux%u texture from '%s'.\n", spoutWidth, spoutHeight, spoutSenderName);
 		spoutInited = true;
@@ -85,7 +87,7 @@ void myDrawFun()
 
 	bool spooutError = true;
 	if (spoutInited)
-	{
+	{	
 		if (spoutReceiver->ReceiveTexture(spoutSenderName, spoutWidth, spoutHeight))
 		{
 			//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Receiving %ux%u texture from '%s'.\n", SpoutWidth, SpoutHeight, SpoutSenderName);
@@ -102,16 +104,22 @@ void myDrawFun()
 		}
 	}
 
-	
-	if (spooutError)
-		glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );
+	sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
-	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+	//DirectX textures are flipped around the Y axis compared to OpenGL
+	if (spooutError)
+	{
+		glUniform1i(Flip_Loc, 0);
+		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
+	}
+	else
+		glUniform1i(Flip_Loc, 1);	
 
 	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
 	//draw the box
 	myBox->draw();
+	//myPlane->draw();
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -147,6 +155,8 @@ void myInitOGLFun()
 	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
 	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
 
+	//myPlane = new sgct_utils::SGCTPlane(2.0f, 2.0f);
+
 	//Set up backface culling
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
@@ -159,9 +169,13 @@ void myInitOGLFun()
 
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
 	GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+	Flip_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("flip");
 	glUniform1i( Tex_Loc, 0 );
+	glUniform1i( Flip_Loc, 0);
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
+
+	sgct::Engine::checkForOGLErrors();
 }
 
 void myEncodeFun()
@@ -178,6 +192,9 @@ void myCleanUpFun()
 {
 	if(myBox)
 		delete myBox;
+
+	//if (myPlane)
+	//	delete myPlane;
 
 	if (spoutReceiver)
 	{

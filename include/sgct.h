@@ -486,6 +486,7 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTSphere.h"
 #include "sgct/utils/SGCTBox.h"
 #include "sgct/utils/SGCTDome.h"
+#include "sgct/utils/SGCTPlane.h"
 
 //helpers
 /*!

@@ -50,7 +50,7 @@ sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool useTracking(false);
-sgct::SharedInt stereoMode(0);
+sgct::SharedInt32 stereoMode(0);
 
 //geometry
 std::vector<float> mVertPos;
@@ -257,7 +257,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool( &stats );
 	sgct::SharedData::instance()->writeBool( &takeScreenshot );
 	sgct::SharedData::instance()->writeBool( &useTracking );
-	sgct::SharedData::instance()->writeInt( &stereoMode );
+	sgct::SharedData::instance()->writeInt32( &stereoMode );
 }
 
 void myDecodeFun()
@@ -268,7 +268,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool( &stats );
 	sgct::SharedData::instance()->readBool( &takeScreenshot );
 	sgct::SharedData::instance()->readBool( &useTracking );
-	sgct::SharedData::instance()->readInt( &stereoMode );
+	sgct::SharedData::instance()->readInt32( &stereoMode );
 }
 
 /*!

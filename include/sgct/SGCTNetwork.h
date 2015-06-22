@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SGCT_NETWORK
 #include <string>
 #include <vector>
+#include <stdint.h>
 #include "helpers/SGCTCPPEleven.h"
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
@@ -54,7 +55,7 @@ public:
 	void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
 	void setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback);
 #endif
-	void setBufferSize(unsigned int newSize);
+	void setBufferSize(uint32_t newSize);
 	void setConnectedStatus(bool state);
 	void setOptions(SGCT_SOCKET * socketPtr);
 	void closeSocket(SGCT_SOCKET lSocket);
@@ -73,8 +74,8 @@ public:
 	void sendData(void * data, int length);
 	void sendStr(std::string msg);
 	static _ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
-	static int parseInt(char * str);
-	static unsigned int parseUnsignedInt(char * str);
+	static int32_t parseInt32(char * str);
+	static uint32_t parseUInt32(char * str);
 	int iterateFrameCounter();
 	void pushClientMessage();
 	void enableNaglesAlgorithmInDataTransfer();
@@ -92,9 +93,9 @@ public:
 #endif
 
 private:
-	void updateBuffer(char ** buffer, int requested_size, int & current_size);
-	int readSyncMessage(char * _header, int & _syncFrameNumber, int & _dataSize, int & _uncompressedDataSize);
-	int readDataTransferMessage(char * _header, int & _packageId, int & _dataSize, int & _uncompressedDataSize);
+	void updateBuffer(char ** buffer, uint32_t requested_size, uint32_t & current_size);
+	int readSyncMessage(char * _header, int32_t & _syncFrameNumber, uint32_t & _dataSize, uint32_t & _uncompressedDataSize);
+	int readDataTransferMessage(char * _header, int32_t & _packageId, uint32_t & _dataSize, uint32_t & _uncompressedDataSize);
 	int readExternalMessage();
 
 	static void communicationHandlerStarter(void *arg);
@@ -118,10 +119,10 @@ private:
 	tthread::atomic<bool> mServer;
 	tthread::atomic<bool> mConnected;
 	tthread::atomic<bool> mUpdated;
-	tthread::atomic<int> mSendFrame[2];
-	tthread::atomic<int> mRecvFrame[2];
+	tthread::atomic<int32_t> mSendFrame[2];
+	tthread::atomic<int32_t> mRecvFrame[2];
 	tthread::atomic<bool> mTerminate; //set to true upon exit
-	tthread::atomic<int> mRequestedSize;
+	tthread::atomic<uint32_t> mRequestedSize;
 
 	tthread::mutex mConnectionMutex;
 	tthread::thread * mCommThread;
@@ -129,8 +130,8 @@ private:
 
 	double mTimeStamp[2];
 	int mId;
-	int mBufferSize;
-	int mUncompressedBufferSize;
+	uint32_t mBufferSize;
+	uint32_t mUncompressedBufferSize;
 	std::string mPort;
 	std::string mAddress;
 

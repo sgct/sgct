@@ -14,6 +14,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string.h> //for memcpy
 #include "SharedDataTypes.h"
 
+#if defined(_MSC_VER) //if visual studio
+	#define SGCT_DEPRICATED __declspec(deprecated)
+#else
+	#define SGCT_DEPRICATED  __attribute__((deprecated))
+#endif
+
 namespace sgct //simple graphics cluster toolkit
 {
 
@@ -57,10 +63,21 @@ public:
 	void writeObj(SharedObject<T> * sobj);
 	void writeFloat(SharedFloat * sf);
 	void writeDouble(SharedDouble * sd);
-	void writeInt(SharedInt * si);
+	SGCT_DEPRICATED void writeInt(SharedInt * si); //deprecated
+	SGCT_DEPRICATED void writeShort(SharedShort * si); //deprecated
+	
+	void writeInt64(SharedInt64 * si);
+	void writeInt32(SharedInt32 * si);
+	void writeInt16(SharedInt16 * si);
+	void writeInt8(SharedInt8 * si);
+	
+	void writeUInt64(SharedUInt64 * si);
+	void writeUInt32(SharedUInt32 * si);
+	void writeUInt16(SharedUInt16 * si);
+	void writeUInt8(SharedUInt8 * si);
+	
 	void writeUChar(SharedUChar * suc);
 	void writeBool(SharedBool * sb);
-	void writeShort(SharedShort * ss);
     void writeString(SharedString * ss);
 	template<class T>
 	void writeVector(SharedVector<T> * vector);
@@ -69,10 +86,21 @@ public:
 	void readObj(SharedObject<T> * sobj);
 	void readFloat(SharedFloat * f);
 	void readDouble(SharedDouble * d);
-	void readInt(SharedInt * si);
+	SGCT_DEPRICATED void readInt(SharedInt * si); //deprecated
+	SGCT_DEPRICATED void readShort(SharedShort * ss); //deprecated
+	
+	void readInt64(SharedInt64 * si);
+	void readInt32(SharedInt32 * si);
+	void readInt16(SharedInt16 * si);
+	void readInt8(SharedInt8 * si);
+	
+	void readUInt64(SharedUInt64 * si);
+	void readUInt32(SharedUInt32 * si);
+	void readUInt16(SharedUInt16 * si);
+	void readUInt8(SharedUInt8 * si);
+	
 	void readUChar(SharedUChar * suc);
 	void readBool(SharedBool * sb);
-	void readShort(SharedShort * ss);
     void readString(SharedString * ss);
 	template<class T>
 	void readVector(SharedVector<T> * vector);
@@ -96,11 +124,11 @@ private:
 	SharedData( const SharedData & tm );
 	const SharedData & operator=(const SharedData & rhs );
 
-	void writeUCharArray(unsigned char * c, std::size_t length);
-	unsigned char * readUCharArray(std::size_t length);
+	void writeUCharArray(unsigned char * c, uint32_t length);
+	unsigned char * readUCharArray(uint32_t length);
 
-	void writeSize( std::size_t size );
-	std::size_t readSize();
+	void writeSize(uint32_t size);
+	uint32_t readSize();
 
 private:
 	//function pointers
@@ -124,23 +152,20 @@ template <class T>
 void SharedData::writeObj( SharedObject<T> * sobj )
 {
 	T val = sobj->getVal();
-	unsigned char *p = (unsigned char *)&val;
-    std::size_t size = sizeof(val);
-    writeUCharArray(p, size);
+	
+	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	unsigned char *p = reinterpret_cast<unsigned char *>(&val);
+	(*currentStorage).insert((*currentStorage).end(), p, p + sizeof(T));
+	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T> * sobj)
 {
-	std::size_t size = sizeof(T);
-    unsigned char* data = new unsigned char[size];
-	unsigned char* c = readUCharArray(size);
-
-	for(std::size_t i = 0; i < size; i++)
-		data[i] = c[i];
-
-    T val = *reinterpret_cast<T*>(data);
-    delete[] data;
+	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	T val = (*(reinterpret_cast<T*>(&dataBlock[pos])));
+	pos += sizeof(T);
+	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
     
 	sobj->setVal( val );
 }
@@ -153,24 +178,25 @@ void SharedData::writeVector(SharedVector<T> * vector)
 	unsigned char *p;
 	p = tmpVec.size() ? reinterpret_cast<unsigned char *>(&tmpVec[0]) : NULL;
 	
-    std::size_t element_size = sizeof(T);
-    
-	writeSize( tmpVec.size() );
+	uint32_t element_size = sizeof(T);
+	uint32_t vector_size = static_cast<uint32_t>(tmpVec.size());
+
+	writeSize(vector_size);
 	if (p)
-		writeUCharArray(p, element_size * tmpVec.size());
+		writeUCharArray(p, element_size * vector_size);
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T> * vector)
 {
-	std::size_t size = readSize();
+	uint32_t size = readSize();
 	if(size == 0)
 	{
 		vector->clear();
 		return;
 	}
 
-	std::size_t totalSize = size * sizeof(T);
+	uint32_t totalSize = size * sizeof(T);
 	unsigned char* data = new unsigned char[ totalSize ];
 	unsigned char* c = readUCharArray( totalSize );
 

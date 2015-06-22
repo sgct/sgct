@@ -21,8 +21,8 @@ void drawTexturedObject();
 Dome * mDome = NULL;
 unsigned char * mData = NULL;
 
-sgct::SharedShort displayState(0);
-sgct::SharedShort colorState(0);
+sgct::SharedInt16 displayState(0);
+sgct::SharedInt16 colorState(0);
 sgct::SharedBool showGeoCorrectionPattern(true);
 sgct::SharedBool showBlendZones(false);
 sgct::SharedBool showChannelZones(false);
@@ -31,7 +31,7 @@ sgct::SharedBool takeScreenShot(false);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool warping(true);
 
-const short lastState = 7;
+const int16_t lastState = 7;
 bool ctrlPressed = false;
 bool shiftPressed = false;
 bool useShader = true;
@@ -236,8 +236,8 @@ void postSync()
 
 void encode()
 {
-	sgct::SharedData::instance()->writeShort( &displayState );
-	sgct::SharedData::instance()->writeShort( &colorState );
+	sgct::SharedData::instance()->writeInt16( &displayState );
+	sgct::SharedData::instance()->writeInt16(&colorState);
 	sgct::SharedData::instance()->writeBool( &showGeoCorrectionPattern );
 	sgct::SharedData::instance()->writeBool( &showBlendZones );
 	sgct::SharedData::instance()->writeBool( &showChannelZones );
@@ -249,8 +249,8 @@ void encode()
 
 void decode()
 {
-	sgct::SharedData::instance()->readShort( &displayState );
-	sgct::SharedData::instance()->readShort( &colorState );
+	sgct::SharedData::instance()->readInt16(&displayState);
+	sgct::SharedData::instance()->readInt16(&colorState);
 	sgct::SharedData::instance()->readBool( &showGeoCorrectionPattern );
 	sgct::SharedData::instance()->readBool( &showBlendZones );
 	sgct::SharedData::instance()->readBool( &showChannelZones );
@@ -302,14 +302,14 @@ void keyCallback(int key, int action)
                     if( colorState.getVal() > 0 )
                         colorState.setVal( colorState.getVal() - 1 );
                     else
-                        colorState.setVal( static_cast<short>(colors.size()-1) );
+                        colorState.setVal( static_cast<int16_t>(colors.size()-1) );
                 }
                 break;
                 
             case SGCT_KEY_UP:
                 if(action == SGCT_PRESS)
                 {
-                    if( colorState.getVal() < static_cast<short>(colors.size()-1) )
+					if (colorState.getVal() < static_cast<int16_t>(colors.size() - 1))
                         colorState.setVal( colorState.getVal() + 1 );
                     else
                         colorState.setVal(0);

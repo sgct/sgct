@@ -38,10 +38,10 @@ sgct_core::Image * transImg = NULL;
 //sync variables
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
-sgct::SharedInt texIndex(-1);
+sgct::SharedInt32 texIndex(-1);
 
 //other mutex variables
-sgct::SharedInt currentPackage(-1);
+sgct::SharedInt32 currentPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfer(false);
 sgct::SharedBool serverUploadDone(false);
@@ -198,7 +198,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeDouble(&curr_time);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
-    sgct::SharedData::instance()->writeInt(&texIndex);
+    sgct::SharedData::instance()->writeInt32(&texIndex);
 }
 
 void myDecodeFun()
@@ -206,7 +206,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readDouble(&curr_time);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
-    sgct::SharedData::instance()->readInt(&texIndex);
+    sgct::SharedData::instance()->readInt32(&texIndex);
 }
 
 void myCleanUpFun()

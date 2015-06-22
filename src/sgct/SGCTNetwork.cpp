@@ -104,7 +104,7 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
 	mConnectionType = connectionType;
 	if (mConnectionType == SyncConnection)
     {
-		mBufferSize = static_cast<int>(sgct::SharedData::instance()->getBufferSize());
+		mBufferSize = static_cast<uint32_t>(sgct::SharedData::instance()->getBufferSize());
         mUncompressedBufferSize = mBufferSize;
     }
 
@@ -409,7 +409,7 @@ void sgct_core::SGCTNetwork::closeSocket(SGCT_SOCKET lSocket)
 	}
 }
 
-void sgct_core::SGCTNetwork::setBufferSize(unsigned int newSize)
+void sgct_core::SGCTNetwork::setBufferSize(uint32_t newSize)
 {
 	mRequestedSize = newSize;
 }
@@ -473,14 +473,14 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		messageToSend[4] = p[3];
 
         //crop if needed
-		int size = mBufferSize;
-		std::size_t currentMessageSize =
-			sgct::MessageHandler::instance()->getDataSize() > static_cast<size_t>(size) ?
-			static_cast<size_t>(size) :
-			sgct::MessageHandler::instance()->getDataSize();
+		uint32_t size = mBufferSize;
+		uint32_t currentMessageSize =
+			static_cast<uint32_t>(sgct::MessageHandler::instance()->getDataSize()) > size ?
+			size :
+			static_cast<uint32_t>(sgct::MessageHandler::instance()->getDataSize());
 
-        std::size_t dataSize = currentMessageSize - mHeaderSize;
-		unsigned char *currentMessageSizePtr = (unsigned char *)&dataSize;
+        uint32_t dataSize = currentMessageSize - mHeaderSize;
+		unsigned char *currentMessageSizePtr = reinterpret_cast<unsigned char *>(&dataSize);
 		messageToSend[5] = currentMessageSizePtr[0];
 		messageToSend[6] = currentMessageSizePtr[1];
 		messageToSend[7] = currentMessageSizePtr[2];
@@ -489,7 +489,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
         //fill rest of header with DefaultId
         memset(messageToSend+9, DefaultId, 4);
 
-		sendData((void*)messageToSend, static_cast<int>(currentMessageSize));
+		sendData(reinterpret_cast<void*>(messageToSend), static_cast<int>(currentMessageSize));
 
 		sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 
@@ -504,7 +504,7 @@ void sgct_core::SGCTNetwork::pushClientMessage()
 		tmpca[3] = p[2];
 		tmpca[4] = p[3];
 
-		unsigned int localSyncHeaderSize = 0;
+		uint32_t localSyncHeaderSize = 0;
 		unsigned char *currentMessageSizePtr = (unsigned char *)&localSyncHeaderSize;
 		tmpca[5] = currentMessageSizePtr[0];
 		tmpca[6] = currentMessageSizePtr[1];
@@ -729,39 +729,19 @@ _ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffe
     return iResult;
 }
 
-int sgct_core::SGCTNetwork::parseInt(char * str)
+int32_t sgct_core::SGCTNetwork::parseInt32(char * str)
 {
-    union
-    {
-        int i;
-        char c[4];
-    } ci;
-
-    ci.c[0] = str[0];
-    ci.c[1] = str[1];
-    ci.c[2] = str[2];
-    ci.c[3] = str[3];
-
-    return ci.i;
+	int32_t val = (*(reinterpret_cast<int32_t*>(&str[0])));
+    return val;
 }
 
-unsigned int sgct_core::SGCTNetwork::parseUnsignedInt(char * str)
+uint32_t sgct_core::SGCTNetwork::parseUInt32(char * str)
 {
-    union
-    {
-        unsigned int ui;
-        char c[4];
-    } cui;
-
-    cui.c[0] = str[0];
-    cui.c[1] = str[1];
-    cui.c[2] = str[2];
-    cui.c[3] = str[3];
-
-    return cui.ui;
+	uint32_t val = (*(reinterpret_cast<uint32_t*>(&str[0])));
+	return val;
 }
 
-void sgct_core::SGCTNetwork::updateBuffer(char ** buffer, int requested_size, int & current_size)
+void sgct_core::SGCTNetwork::updateBuffer(char ** buffer, uint32_t requested_size, uint32_t & current_size)
 {
 	//grow only
 	if (requested_size > current_size)
@@ -785,7 +765,7 @@ void sgct_core::SGCTNetwork::updateBuffer(char ** buffer, int requested_size, in
 	}
 }
 
-int sgct_core::SGCTNetwork::readSyncMessage(char * _header, int & _syncFrameNumber, int & _dataSize, int & _uncompressedDataSize)
+int sgct_core::SGCTNetwork::readSyncMessage(char * _header, int32_t & _syncFrameNumber, uint32_t & _dataSize, uint32_t & _uncompressedDataSize)
 {
 	int iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
 		_header,
@@ -801,11 +781,11 @@ int sgct_core::SGCTNetwork::readSyncMessage(char * _header, int & _syncFrameNumb
 		if (mHeaderId == sgct_core::SGCTNetwork::DataId || mHeaderId == sgct_core::SGCTNetwork::CompressedDataId)
 		{
 			//parse the sync frame number
-			_syncFrameNumber = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			_syncFrameNumber = sgct_core::SGCTNetwork::parseInt32(&_header[1]);
 			//parse the data size
-			_dataSize = sgct_core::SGCTNetwork::parseInt(&_header[5]);
+			_dataSize = sgct_core::SGCTNetwork::parseUInt32(&_header[5]);
 			//parse the uncompressed size if compression is used
-			_uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&_header[9]);
+			_uncompressedDataSize = sgct_core::SGCTNetwork::parseUInt32(&_header[9]);
 
 			setRecvFrame(_syncFrameNumber);
 			if (_syncFrameNumber < 0)
@@ -849,7 +829,7 @@ int sgct_core::SGCTNetwork::readSyncMessage(char * _header, int & _syncFrameNumb
 	return iResult;
 }
 
-int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int & _packageId, int & _dataSize, int & _uncompressedDataSize)
+int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int32_t & _packageId, uint32_t & _dataSize, uint32_t & _uncompressedDataSize)
 {
 	int iResult = sgct_core::SGCTNetwork::receiveData(mSocket,
 		_header,
@@ -865,11 +845,11 @@ int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int & _packa
 		if (mHeaderId == sgct_core::SGCTNetwork::DataId || mHeaderId == sgct_core::SGCTNetwork::CompressedDataId)
 		{
 			//parse the package id
-			_packageId = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			_packageId = sgct_core::SGCTNetwork::parseInt32(&_header[1]);
 			//parse the data size
-			_dataSize = sgct_core::SGCTNetwork::parseInt(&_header[5]);
+			_dataSize = sgct_core::SGCTNetwork::parseUInt32(&_header[5]);
 			//parse the uncompressed size if compression is used
-			_uncompressedDataSize = sgct_core::SGCTNetwork::parseInt(&_header[9]);
+			_uncompressedDataSize = sgct_core::SGCTNetwork::parseUInt32(&_header[9]);
 
 			//resize buffer if needed
 #ifdef __SGCT_MUTEX_DEBUG__
@@ -886,7 +866,7 @@ int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int & _packa
 			mAcknowledgeCallbackFn != SGCT_NULL_PTR)
 		{
 			//parse the package id
-			_packageId = sgct_core::SGCTNetwork::parseInt(&_header[1]);
+			_packageId = sgct_core::SGCTNetwork::parseInt32(&_header[1]);
 			(mAcknowledgeCallbackFn)(_packageId, mId);
 		}
 	}
@@ -1018,10 +998,10 @@ void sgct_core::SGCTNetwork::communicationHandler()
         sgct::MessageHandler::instance()->printDebug( sgct::MessageHandler::NOTIFY_ALL, "Receiving message header...\n");
 #endif
         
-		int packageId = -1;
-		int syncFrameNumber = -1;
-        int dataSize = 0;
-        int uncompressedDataSize = 0;
+		int32_t packageId = -1;
+		int32_t syncFrameNumber = -1;
+		uint32_t dataSize = 0;
+		uint32_t uncompressedDataSize = 0;
         
 		mHeaderId = sgct_core::SGCTNetwork::DefaultId;
 
@@ -1298,9 +1278,9 @@ void sgct_core::SGCTNetwork::communicationHandler()
                         {
                             //send acknowledge
                             char sendBuff[sgct_core::SGCTNetwork::mHeaderSize];
-                            int pLenght = 0;
-                            char *packageIdPtr = (char *)&packageId;
-                            char *sizeDataPtr = (char *)&pLenght;
+                            uint32_t pLenght = 0;
+							char *packageIdPtr = reinterpret_cast<char *>(&packageId);
+							char *sizeDataPtr = reinterpret_cast<char *>(&pLenght);
                             
                             sendBuff[0] = sgct_core::SGCTNetwork::Ack;
                             sendBuff[1] = packageIdPtr[0];

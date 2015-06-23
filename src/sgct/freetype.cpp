@@ -99,10 +99,12 @@ inline glm::mat4 setupOrthoMat()
 
 	orthoMat = glm::ortho(0.0f,
 		cWin->getCurrentViewport()->getXSize() *
-		static_cast<float>(cWin->getXResolution()),
+		static_cast<float>(cWin->getXResolution())*
+        cWin->getXScale(),
 		0.0f,
 		cWin->getCurrentViewport()->getYSize() *
-		static_cast<float>(cWin->getYResolution()));
+		static_cast<float>(cWin->getYResolution())*
+        cWin->getYScale());
 
 	return orthoMat;
 }

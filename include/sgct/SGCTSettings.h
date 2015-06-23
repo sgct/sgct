@@ -69,7 +69,7 @@ public:
 	void setFXAASubPixOffset(float val);
 	void setOSDTextXOffset(float val);
 	void setOSDTextYOffset(float val);
-	void setOSDTextFontSize( int size );
+	void setOSDTextFontSize( unsigned int size );
 	void setOSDTextFontName( std::string name );
 	void setOSDTextFontPath( std::string path );
 	void setDefaultNumberOfAASamples(int samples);
@@ -85,7 +85,7 @@ public:
 	int					getCaptureFormat();
 	int					getSwapInterval();
 	int					getRefreshRateHint();
-	const int &			getOSDTextFontSize();
+	const unsigned int & getOSDTextFontSize();
 	const std::string &	getOSDTextFontName();
 	const std::string &	getOSDTextFontPath();
 	int					getBufferFloatPrecisionAsGLint();
@@ -160,7 +160,7 @@ private:
 	//fontdata
 	std::string mFontName;
 	std::string mFontPath;
-	int mFontSize;
+	unsigned int mFontSize;
 
 	DrawBufferType mCurrentDrawBuffer;
 	BufferFloatPrecision mCurrentBufferFloatPrecision;

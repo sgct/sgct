@@ -343,7 +343,7 @@ void sgct::SGCTSettings::setOSDTextYOffset(float val)
 /*!
 	Set the OSD text font size
 */
-void sgct::SGCTSettings::setOSDTextFontSize( int size )
+void sgct::SGCTSettings::setOSDTextFontSize( unsigned int size )
 {
 	mFontSize = size;
 }
@@ -474,7 +474,7 @@ sgct::SGCTSettings::FisheyeMethod sgct::SGCTSettings::getFisheyeMethod()
 /*!
 	Get the OSD text font size
 */
-const int &	sgct::SGCTSettings::getOSDTextFontSize()
+const unsigned int & sgct::SGCTSettings::getOSDTextFontSize()
 {
 	return mFontSize;
 }

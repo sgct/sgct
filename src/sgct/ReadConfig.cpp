@@ -856,12 +856,12 @@ bool sgct_core::ReadConfig::readAndParseXML()
                     
 					if( element[1]->Attribute("size") != NULL )
 					{
-						int tmpi = -1;
-						if( element[1]->QueryIntAttribute("size", &tmpi) == tinyxml2::XML_NO_ERROR && tmpi > 0)
+						unsigned int tmpi;
+						if( element[1]->QueryUnsignedAttribute("size", &tmpi) == tinyxml2::XML_NO_ERROR && tmpi > 0)
 						{
 							sgct::SGCTSettings::instance()->setOSDTextFontSize( tmpi );
 							sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-                                                                    "ReadConfig: Setting font size to %d\n", tmpi );
+                                                                    "ReadConfig: Setting font size to %u\n", tmpi );
 						}
 						else
 							sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");

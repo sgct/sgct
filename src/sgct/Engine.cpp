@@ -1290,7 +1290,11 @@ void sgct::Engine::renderDisplayInfo()
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
 	sgct_text::FontManager::instance()->setStrokeSize( 1 );
 
-	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
+    unsigned int font_size = SGCTSettings::instance()->getOSDTextFontSize();
+    
+    font_size = static_cast<unsigned int>(static_cast<float>(font_size)*getActiveWindowPtr()->getXScale());
+    
+	const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", font_size );
 
 	if( font != NULL )
 	{

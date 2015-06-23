@@ -1,5 +1,5 @@
 GL_EXT_vertex_array
-http://www.opengl.org/registry/specs/gl/EXT/vertex_array.txt
+http://www.opengl.org/registry/specs/EXT/vertex_array.txt
 GL_EXT_vertex_array
 	GL_DOUBLE_EXT 0x140A
 	GL_VERTEX_ARRAY_EXT 0x8074

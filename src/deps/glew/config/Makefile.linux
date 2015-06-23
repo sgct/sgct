@@ -16,13 +16,14 @@ else
   LDFLAGS.EXTRA = -L/usr/X11R6/lib -L/usr/lib
   LIBDIR = $(GLEW_DEST)/lib
 endif
-LDFLAGS.GL = -lXmu -lXi -lGL -lXext -lX11
+LDFLAGS.GL = -lGL -lX11
 LDFLAGS.STATIC = -Wl,-Bstatic
 LDFLAGS.DYNAMIC = -Wl,-Bdynamic
 NAME = GLEW
 WARN = -Wall -W
 POPT = -O2
 CFLAGS.EXTRA += -fPIC
+CFLAGS.EXTRA += -Wcast-qual
 BIN.SUFFIX =
 LIB.SONAME = lib$(NAME).so.$(SO_MAJOR)
 LIB.DEVLNK = lib$(NAME).so

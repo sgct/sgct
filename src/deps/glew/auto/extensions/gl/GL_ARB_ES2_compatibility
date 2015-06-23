@@ -1,5 +1,5 @@
 GL_ARB_ES2_compatibility
-http://www.opengl.org/registry/specs/gl/ARB/ES2_compatibility.txt
+http://www.opengl.org/registry/specs/ARB/ES2_compatibility.txt
 GL_ARB_ES2_compatibility
 	GL_FIXED 0x140C
 	GL_IMPLEMENTATION_COLOR_READ_TYPE 0x8B9A

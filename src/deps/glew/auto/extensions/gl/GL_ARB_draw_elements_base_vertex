@@ -1,5 +1,5 @@
 GL_ARB_draw_elements_base_vertex
-http://www.opengl.org/registry/specs/gl/ARB/draw_elements_base_vertex.txt
+http://www.opengl.org/registry/specs/ARB/draw_elements_base_vertex.txt
 GL_ARB_draw_elements_base_vertex
 	void glDrawElementsBaseVertex (GLenum mode, GLsizei count, GLenum type, const void *indices, GLint basevertex)
 	void glDrawElementsInstancedBaseVertex (GLenum mode, GLsizei count, GLenum type, const void *indices, GLsizei primcount, GLint basevertex)

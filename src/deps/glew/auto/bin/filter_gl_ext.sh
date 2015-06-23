@@ -313,19 +313,19 @@ EOT
 # add typedef to GL_AMD_debug_output
 # parse_spec.pl can't parse typedefs from New Types section, but ought to
     cat >> $1/GL_AMD_debug_output <<EOT
-	typedef void (APIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
+	typedef void (GLAPIENTRY *GLDEBUGPROCAMD)(GLuint id, GLenum category, GLenum severity, GLsizei length, const GLchar* message, void* userParam)
 EOT
 
 # add typedef to GL_ARB_debug_output
 # parse_spec.pl can't parse typedefs from New Types section, but ought to
     cat >> $1/GL_ARB_debug_output <<EOT
-	typedef void (APIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+	typedef void (GLAPIENTRY *GLDEBUGPROCARB)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 EOT
 
 # add typedef to GL_KHR_debug
 # parse_spec.pl can't parse typedefs from New Types section, but ought to
     cat >> $1/GL_KHR_debug <<EOT
-	typedef void (APIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
+	typedef void (GLAPIENTRY *GLDEBUGPROC)(GLenum source, GLenum type, GLuint id, GLenum severity, GLsizei length, const GLchar* message, const void* userParam)
 EOT
 
 # Remove glGetPointerv from GL_KHR_debug
@@ -367,6 +367,12 @@ EOT
     void glProgramUniformMatrix3x4dvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
     void glProgramUniformMatrix4x2dvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
     void glProgramUniformMatrix4x3dvEXT (GLuint program, GLint location, GLsizei count, GLboolean transpose, const GLdouble *value)
+EOT
+
+# add missing functions to GL_EXT_direct_state_access (GL_ARB_instanced_arrays related)
+# https://sourceforge.net/p/glew/bugs/242/
+    cat >> $1/GL_EXT_direct_state_access <<EOT
+    void glVertexArrayVertexAttribDivisorEXT (GLuint vaobj, GLuint index, GLuint divisor)
 EOT
 
 # Filter out GL_UNSIGNED_INT and GL_FLOAT from GL_AMD_performance_monitor
@@ -461,12 +467,44 @@ EOT
 
 # Fixup REGAL and ANGLE urls
 
-    for i in $1/GL_REGAL_*; do perl -e 's#http://www.opengl.org/registry/specs/gl/REGAL/.*#https://github.com/p3/regal/tree/master/doc/extensions#g' -pi $i; done
-    for i in $1/GL_ANGLE_*; do perl -e 's#http://www.opengl.org/registry/specs/gl/ANGLE/.*#https://code.google.com/p/angleproject/source/browse/\#git%2Fextensions#g' -pi $i; done
+    for i in $1/GL_REGAL_*; do perl -e 's#http://www.opengl.org/registry/specs/REGAL/.*#https://github.com/p3/regal/tree/master/doc/extensions#g' -pi $i; done
+    for i in $1/GL_ANGLE_*; do perl -e 's#http://www.opengl.org/registry/specs/ANGLE/.*#https://code.google.com/p/angleproject/source/browse/\#git%2Fextensions#g' -pi $i; done
 
 # Filter out GL_NV_blend_equation_advanced_coherent enums and functions
     head -n3 $1/GL_NV_blend_equation_advanced_coherent > tmp
     mv tmp $1/GL_NV_blend_equation_advanced_coherent
+
+# Filter out GL_AMD_gpu_shader_int64 enums and functions
+    head -n3 $1/GL_AMD_gpu_shader_int64 > tmp
+    mv tmp $1/GL_AMD_gpu_shader_int64
+
+# Filter out GL_NO_ERROR enum from GL_KHR_robustness
+    grep -v 'GL_NO_ERROR' $1/GL_KHR_robustness > tmp
+    mv tmp $1/GL_KHR_robustness
+
+# Filter out all enums from GL_KHR_blend_equation_advanced_coherent
+    grep -v '0x' $1/GL_KHR_blend_equation_advanced_coherent > tmp
+    mv tmp $1/GL_KHR_blend_equation_advanced_coherent
+
+# Filter out glBlendBarrierKHR enum from GL_KHR_blend_equation_advanced_coherent
+    grep -v 'glBlendBarrierKHR' $1/GL_KHR_blend_equation_advanced_coherent > tmp
+    mv tmp $1/GL_KHR_blend_equation_advanced_coherent
+
+# Filter out GL_NONE enum from GL_KHR_robustness
+    grep -v 'GL_NONE' $1/GL_KHR_context_flush_control > tmp
+    mv tmp $1/GL_KHR_context_flush_control
+
+# Filter out CoverageModulation from NV_framebuffer_mixed_samples
+# Superset of EXT_raster_multisample
+
+    grep -v "CoverageModulation" $1/GL_NV_framebuffer_mixed_samples > tmp
+    mv tmp $1/GL_NV_framebuffer_mixed_samples
+
+# Filter out glRasterSamplesEXT from NV_framebuffer_mixed_samples
+# Superset of EXT_raster_multisample
+
+    grep -v "RasterSamplesEXT" $1/GL_NV_framebuffer_mixed_samples > tmp
+    mv tmp $1/GL_NV_framebuffer_mixed_samples
 
 # clean up
     rm -f $1/*.bak

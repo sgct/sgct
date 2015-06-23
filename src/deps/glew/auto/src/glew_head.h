@@ -2,7 +2,7 @@
 #define __glew_h__
 #define __GLEW_H__
 
-#if defined(__gl_h_) || defined(__GL_H__) || defined(__X_GL_H)
+#if defined(__gl_h_) || defined(__GL_H__) || defined(_GL_H) || defined(__X_GL_H)
 #error gl.h included before glew.h
 #endif
 #if defined(__gl2_h_)
@@ -24,6 +24,7 @@
 #define __gl_h_
 #define __gl2_h_
 #define __GL_H__
+#define _GL_H
 #define __gltypes_h_
 #define __REGAL_H__
 #define __X_GL_H
@@ -38,13 +39,24 @@
  * GL needs GLAPI and GLAPIENTRY, GLU needs APIENTRY, CALLBACK, and wchar_t
  * defined properly.
  */
-/* <windef.h> */
-#ifndef APIENTRY
+/* <windef.h> and <gl.h>*/
+#ifdef APIENTRY
+#  ifndef GLAPIENTRY
+#    define GLAPIENTRY APIENTRY
+#  endif
+#  ifndef GLEWAPIENTRY
+#    define GLEWAPIENTRY APIENTRY
+#  endif
+#else
 #define GLEW_APIENTRY_DEFINED
-#  if defined(__MINGW32__) || defined(__CYGWIN__)
+#  if defined(__MINGW32__) || defined(__CYGWIN__) || (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED) || defined(__BORLANDC__)
 #    define APIENTRY __stdcall
-#  elif (_MSC_VER >= 800) || defined(_STDCALL_SUPPORTED) || defined(__BORLANDC__)
-#    define APIENTRY __stdcall
+#    ifndef GLAPIENTRY
+#      define GLAPIENTRY __stdcall
+#    endif
+#    ifndef GLEWAPIENTRY
+#      define GLEWAPIENTRY __stdcall
+#    endif
 #  else
 #    define APIENTRY
 #  endif
@@ -99,14 +111,6 @@ typedef _W64 int ptrdiff_t;
 #  else
 #    define GLAPI WINGDIAPI
 #  endif
-#endif
-
-#ifndef GLAPIENTRY
-#define GLAPIENTRY APIENTRY
-#endif
-
-#ifndef GLEWAPIENTRY
-#define GLEWAPIENTRY APIENTRY
 #endif
 
 /*
@@ -170,6 +174,8 @@ typedef _W64 int ptrdiff_t;
 #define GLAPI extern
 #endif
 
+#endif /* _WIN32 */
+
 #ifndef GLAPIENTRY
 #define GLAPIENTRY
 #endif
@@ -177,8 +183,6 @@ typedef _W64 int ptrdiff_t;
 #ifndef GLEWAPIENTRY
 #define GLEWAPIENTRY
 #endif
-
-#endif /* _WIN32 */
 
 #ifdef __cplusplus
 extern "C" {
@@ -1101,6 +1105,15 @@ GLAPI void GLAPIENTRY glViewport (GLint x, GLint y, GLsizei width, GLsizei heigh
 #endif /* GL_VERSION_1_1 */
 
 /* ---------------------------------- GLU ---------------------------------- */
+
+#ifndef GLEW_NO_GLU
+#  ifdef __APPLE__
+#    include <Availability.h>
+#    if defined(__IPHONE_OS_VERSION_MIN_REQUIRED)
+#      define GLEW_NO_GLU
+#    endif
+#  endif
+#endif
 
 #ifndef GLEW_NO_GLU
 /* this is where we can safely include GLU */

@@ -26,6 +26,14 @@ else()
   string(REGEX REPLACE "\n" "" BUILD "${BUILD}")
   #message(FATAL_ERROR "Platform not supported by this build system.  Use autotools instead.")
 endif()
+	
+#find size of size_t
+include (CheckTypeSize)
+check_type_size("size_t" SIZEOF_SIZE_T)
+if(SIZEOF_SIZE_T)
+#message(STATUS "Size of size_t=" ${SIZEOF_SIZE_T})
+add_definitions(-DSIZEOF_SIZE_T=${SIZEOF_SIZE_T})
+endif()
 
 option(TURBOJPEG_FORCE32 "Force 32-bit" FALSE)
 

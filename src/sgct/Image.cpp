@@ -666,14 +666,14 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
     if( fopen_s( &fp, mFilename.c_str(), "wb") != 0 || !fp )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #else
 	fp = fopen(mFilename.c_str(), "wb");
     if( fp == NULL )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG texture file '%s'\n", mFilename.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create PNG file '%s'\n", mFilename.c_str());
 		return false;
 	}
     #endif
@@ -786,14 +786,14 @@ bool sgct_core::Image::saveJPEG(int quality)
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if (fopen_s(&fp, mFilename.c_str(), "wb") != 0 || !fp)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #else
 	fp = fopen(mFilename.c_str(), "wb");
 	if (fp == NULL)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG texture file '%s'\n", mFilename.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't create JPEG file '%s'\n", mFilename.c_str());
 		return false;
 	}
 #endif

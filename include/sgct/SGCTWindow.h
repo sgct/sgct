@@ -276,7 +276,6 @@ private:
 	bool mDoubleBuffered;
 	bool mSetWindowPos;
 	bool mDecorated;
-	bool mFullRes; //for mac retina screens and similar
 	bool mAlpha;
 	int mFramebufferResolution[2];
 	int mWindowInitialRes[2];

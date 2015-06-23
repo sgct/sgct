@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <string.h> //for memcpy
 #include "SharedDataTypes.h"
+#include "SGCTMutexManager.h"
 
 #if defined(_MSC_VER) //if visual studio
 	#define SGCT_DEPRICATED __declspec(deprecated)
@@ -153,19 +154,19 @@ void SharedData::writeObj( SharedObject<T> * sobj )
 {
 	T val = sobj->getVal();
 	
-	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
 	unsigned char *p = reinterpret_cast<unsigned char *>(&val);
 	(*currentStorage).insert((*currentStorage).end(), p, p + sizeof(T));
-	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
 template<class T>
 void SharedData::readObj(SharedObject<T> * sobj)
 {
-	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
 	T val = (*(reinterpret_cast<T*>(&dataBlock[pos])));
 	pos += sizeof(T);
-	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
     
 	sobj->setVal( val );
 }

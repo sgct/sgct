@@ -223,13 +223,25 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 		}
 
 		GLint internalFormat;
+		unsigned int bpc = img.getBytesPerChannel();
+
+		if (bpc > 2)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TextureManager: %d-bit per channel is not supported!\n", bpc * 8);
+			return false;
+		}
+		else if (bpc == 2) //turn of compression if 16-bit per color
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: Compression is not supported for bit depths higher than 16-bit per channel!\n");
+			mCompression = No_Compression;
+		}
 
 		switch (img.getChannels())
 		{
 		case 4:
 			{
 				if( mCompression == No_Compression)
-					internalFormat = GL_RGBA8;
+					internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
 				else if( mCompression == Generic)
 					internalFormat = GL_COMPRESSED_RGBA;
 				else
@@ -239,7 +251,7 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 		case 3:
 			{
 				if( mCompression == No_Compression)
-					internalFormat = GL_RGB8;
+					internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
 				else if( mCompression == Generic)
 					internalFormat = GL_COMPRESSED_RGB;
 				else
@@ -250,14 +262,14 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 			if( Engine::instance()->isOGLPipelineFixed() )
 			{
 				if( mCompression == No_Compression)
-					internalFormat = GL_LUMINANCE8_ALPHA8;
+					internalFormat = (bpc == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16);
 				else
 					internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
 			}
 			else
 			{
 				if( mCompression == No_Compression)
-					internalFormat = GL_RG8;
+					internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
 				else if( mCompression == Generic)
 					internalFormat = GL_COMPRESSED_RG;
 				else
@@ -265,21 +277,22 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 			}
 			break;
 		case 1:
-			if( Engine::instance()->isOGLPipelineFixed() )
-				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			if (Engine::instance()->isOGLPipelineFixed())
+			{
+				if (bpc == 1)
+					internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+				else
+					internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
+			}
 			else
 			{
 				if( mCompression == No_Compression)
-					internalFormat = GL_R8;
+					internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
 				else if( mCompression == Generic)
 					internalFormat = GL_COMPRESSED_RED;
 				else
 					internalFormat = GL_COMPRESSED_RED_RGTC1;
 			}
-			break;
-
-		default:
-			internalFormat = GL_RGBA8;
 			break;
 		}
 		
@@ -295,7 +308,8 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
         if(mipmapLevels <= 1)
             mipmapLevels = 1;
         
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
+		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, format, img.getData());
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
 		

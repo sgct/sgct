@@ -34,7 +34,11 @@ sgct_core::ScreenCapture::ScreenCapture()
 	mDataSize = 0;
 	mWindowIndex = 0;
 	mUsePBO = true;
+	mPreferBGR = true;
+	mDownloadFormat = GL_BGRA;
+	mDownloadType = GL_UNSIGNED_BYTE;
 	mFormat = PNG;
+	mBytesPerColor = 1;
 
 	mSCTIPtrs = NULL;
 }
@@ -95,7 +99,7 @@ sgct_core::ScreenCapture::~ScreenCapture()
 
 	If PBOs are not supported nothing will and the screenshot process will fall back on slower GPU data fetching.
 */
-void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
+void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor)
 {
 	if( mPBO ) //delete if buffer exitsts
 	{
@@ -105,9 +109,12 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 
 	mX = x;
 	mY = y;
+	mBytesPerColor = bytesPerColor;
 	
 	mChannels = channels;
-	mDataSize = mX * mY * mChannels;
+	mDataSize = mX * mY * mChannels * mBytesPerColor;
+
+	updateDownloadFormat();
 
 	#ifdef __SGCT_MUTEX_DEBUG__
 		fprintf(stderr, "Locking mutex for screencapture...\n");
@@ -154,9 +161,20 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels)
 }
 
 /*!
+Set the opengl texture properties for glGetTexImage.  
+*/
+void sgct_core::ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR)
+{
+	mDownloadType = type;
+	mPreferBGR = preferBGR;
+
+	updateDownloadFormat();
+}
+
+/*!
 Set the image format to use
 */
-void sgct_core::ScreenCapture::setFormat(CaptureFormat cf)
+void sgct_core::ScreenCapture::setCaptureFormat(CaptureFormat cf)
 {
 	mFormat = cf;
 }
@@ -164,7 +182,7 @@ void sgct_core::ScreenCapture::setFormat(CaptureFormat cf)
 /*!
 Get the image format
 */
-sgct_core::ScreenCapture::CaptureFormat sgct_core::ScreenCapture::getFormat()
+sgct_core::ScreenCapture::CaptureFormat sgct_core::ScreenCapture::getCaptureFormat()
 {
 	return mFormat;
 }
@@ -191,7 +209,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 		}
             
         glBindTexture(GL_TEXTURE_2D, textureId);
-        glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, 0);
+		glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
@@ -205,7 +223,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
         if (ptr)
         {
             //memcpy(imPtr->getData(), ptr, mDataSize);
-			int stride = imPtr->getWidth() * imPtr->getChannels();
+			int stride = imPtr->getWidth() * imPtr->getChannels() * imPtr->getBytesPerChannel();
 			for (int r = 0; r < imPtr->getHeight(); r++)
 				memcpy(imPtr->getData()+stride*r, ptr+stride*r, stride);
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -216,8 +234,8 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 		glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
 
 		if (mCaptureCallbackFn != SGCT_NULL_PTR)
-			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
-		else
+			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+		else if (mBytesPerColor <= 2)
 		{
 			//save the image
 			mSCTIPtrs[threadIndex].mRunning = true;
@@ -238,14 +256,14 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 		}
 			
 		glBindTexture(GL_TEXTURE_2D, textureId);
-		glGetTexImage(GL_TEXTURE_2D, 0, getColorType(), GL_UNSIGNED_BYTE, imPtr->getData());
+		glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, imPtr->getData());
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
         
 		if (mCaptureCallbackFn != SGCT_NULL_PTR)
-			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex);
-		else
+			mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+		else if (mBytesPerColor <= 2)
 		{
 			//save the image
 			mSCTIPtrs[threadIndex].mRunning = true;
@@ -398,30 +416,26 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
 	return -1;
 }
 
-unsigned int sgct_core::ScreenCapture::getColorType()
+void sgct_core::ScreenCapture::updateDownloadFormat()
 {
-	unsigned int colorType;
-
 	switch (mChannels)
 	{
 	default:
-		colorType = GL_BGRA;
+		mDownloadFormat = mPreferBGR ? GL_BGRA : GL_RGBA;
 		break;
 
 	case 1:
-		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
+		mDownloadFormat = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE : GL_RED);
 		break;
 
 	case 2:
-		colorType = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
+		mDownloadFormat = (sgct::Engine::instance()->isOGLPipelineFixed() ? GL_LUMINANCE_ALPHA : GL_RG);
 		break;
 
 	case 3:
-		colorType = GL_BGR;
+		mDownloadFormat = mPreferBGR ? GL_BGR : GL_RGB;
 		break;
 	}
-
-	return colorType;
 }
 
 sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
@@ -438,6 +452,8 @@ sgct_core::Image * sgct_core::ScreenCapture::prepareImage(int index)
 	if ((*imPtr) == NULL)
 	{
 		(*imPtr) = new sgct_core::Image();
+		(*imPtr)->setBytesPerChannel(mBytesPerColor);
+		(*imPtr)->setPreferBGRExport(mPreferBGR);
 		(*imPtr)->setChannels(mChannels);
 		(*imPtr)->setSize(mX, mY);
 		if (!(*imPtr)->allocateOrResizeData())
@@ -476,7 +492,7 @@ void screenCaptureHandler(void *arg)
 Set the screen capture callback\n
 Parameters are: image pointer to captured image, window index and eye index
 */
-void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex)> callback)
+void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> callback)
 {
 	mCaptureCallbackFn = callback;
 }

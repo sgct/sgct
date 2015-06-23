@@ -103,11 +103,13 @@ sgct_core::Image::Image()
 	mData = NULL;
 	mRowPtrs = NULL;
     
+	mBytesPerChannel = 1;
     mChannels = 0;
 	mSize_x = 0;
 	mSize_y = 0;
 	mDataSize = 0;
 	mExternalData = false;
+	mPreferBGRForExport = true;
 }
 
 sgct_core::Image::~Image()
@@ -240,6 +242,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 	//SGCT uses BGR so convert to that
 	cinfo.out_color_space = JCS_EXT_BGR;
 
+	mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
 	mChannels = cinfo.output_components;
 	mSize_x = cinfo.output_width;
 	mSize_y = cinfo.output_height;
@@ -268,7 +271,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 	jpeg_destroy_decompress(&cinfo);
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename.c_str());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s (%dx%d).\n", mFilename.c_str(), mSize_x, mSize_y);
 
 	return true;
 }
@@ -288,6 +291,8 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
     
     int jpegsubsamp;
     int pixelformat;
+
+	mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
     
     /*
      use tjDecompressHeader3 for newer versions of turbo-jpeg.
@@ -426,7 +431,8 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
 
 	png_read_png( png_ptr, info_ptr,
-                PNG_TRANSFORM_STRIP_16 |
+                //PNG_TRANSFORM_STRIP_16 | //we want 16-bit support
+				PNG_TRANSFORM_SWAP_ENDIAN | //needed for 16-bit support
                 PNG_TRANSFORM_PACKING |
                 PNG_TRANSFORM_EXPAND | 
 				PNG_TRANSFORM_BGR, NULL);
@@ -434,6 +440,8 @@ bool sgct_core::Image::loadPNG(std::string filename)
 
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
 	png_set_bgr(png_ptr);
+
+	mBytesPerChannel = bpp / 8;
 
 	if(color_type == PNG_COLOR_TYPE_GRAY )
 	{
@@ -479,7 +487,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
 	fclose(fp);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s.\n", mFilename.c_str());
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s (%dx%d %d-bit).\n", mFilename.c_str(), mSize_x, mSize_y, mBytesPerChannel * 8);
 
 	return true;
 }
@@ -543,6 +551,8 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
     
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
 	png_set_bgr(png_ptr);
+
+	mBytesPerChannel = bpp / 8;
     
 	if(color_type == PNG_COLOR_TYPE_GRAY )
 	{
@@ -585,7 +595,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
     
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
     
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d PNG from memory.\n", mSize_x, mSize_y);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d %d-bit PNG from memory.\n", mSize_x, mSize_y, mBytesPerChannel*8);
     
     return true;
 }
@@ -643,6 +653,12 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 {
 	if( mData == NULL )
 		return false;
+
+	if (mBytesPerChannel > 2)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Cannot save %d-bit PNG.\n", mBytesPerChannel * 8);
+		return false;
+	}
 
 	double t0 = sgct::Engine::getTime();
     
@@ -719,10 +735,10 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 
 	/* write header */
     png_set_IHDR(png_ptr, info_ptr, mSize_x, mSize_y,
-        8, color_type, PNG_INTERLACE_NONE,
+		mBytesPerChannel*8, color_type, PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 	
-	if (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA)
+	if (mPreferBGRForExport && (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA))
 		png_set_bgr(png_ptr);
 	png_write_info(png_ptr, info_ptr);
 
@@ -730,8 +746,12 @@ bool sgct_core::Image::savePNG(int compressionLevel)
     if (setjmp(png_jmpbuf(png_ptr)))
 		return false;
 
+	//swap big-endian to little endian
+	if (mBytesPerChannel == 2)
+		png_set_swap(png_ptr);
+
 	for (int y = (mSize_y-1);  y >= 0;  y--)
-        mRowPtrs[(mSize_y-1)-y] = (png_bytep) &mData[y * mSize_x * mChannels];
+		mRowPtrs[(mSize_y - 1) - y] = (png_bytep)&mData[y * mSize_x * mChannels * mBytesPerChannel];
     png_write_image(png_ptr, mRowPtrs);
 
 	/* end write */
@@ -753,6 +773,12 @@ bool sgct_core::Image::saveJPEG(int quality)
 {
 	if (mData == NULL)
 		return false;
+
+	if (mBytesPerChannel > 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Cannot save %d-bit JPEG.\n", mBytesPerChannel * 8);
+		return false;
+	}
 
 	double t0 = sgct::Engine::getTime();
 
@@ -789,12 +815,12 @@ bool sgct_core::Image::saveJPEG(int quality)
 	switch (mChannels)
 	{
 	case 4:
-		cinfo.in_color_space = JCS_EXT_BGRA;
+		cinfo.in_color_space = mPreferBGRForExport ? JCS_EXT_BGRA : JCS_EXT_RGBA;
 		break;
 
 	case 3:
 	default:
-		cinfo.in_color_space = JCS_EXT_BGR;
+		cinfo.in_color_space = mPreferBGRForExport ? JCS_EXT_BGR : JCS_RGB;
 		break;
 
 	case 2:
@@ -839,6 +865,12 @@ bool sgct_core::Image::saveTGA()
 {
 	if( mData == NULL )
 		return false;
+
+	if (mBytesPerChannel > 1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Cannot save %d-bit TGA.\n", mBytesPerChannel * 8);
+		return false;
+	}
     
     double t0 = sgct::Engine::getTime();
 
@@ -910,11 +942,24 @@ bool sgct_core::Image::saveTGA()
 		"TRUEVISION-XFILE"  // yep, this is a TGA file
 		".";
 
+	// convert the image data from RGB(a) to BGR(A)
+	if (!mPreferBGRForExport)
+	{
+		unsigned char tmp;
+		if (mChannels >= 3)
+			for (int i = 0; i < mDataSize; i += mChannels)
+			{
+				tmp = mData[i];
+				mData[i] = mData[i + 2];
+				mData[i + 2] = tmp;
+			}
+	}
+
     //write row-by-row
     if( data_type != 10 ) //Non RLE compression
     {
         for(int y=0; y<mSize_y; y++)
-            fwrite( &mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
+			fwrite(&mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
     }
     else //RLE ->only for RBG and minimum size is 3x3
     {
@@ -1020,6 +1065,14 @@ void sgct_core::Image::setFilename(std::string filename)
 	mFilename.assign(filename);
 }
 
+/*!
+Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for most GPU hardware and is used as default.
+*/
+void sgct_core::Image::setPreferBGRExport(bool state)
+{
+	mPreferBGRForExport = state;
+}
+
 void sgct_core::Image::cleanup()
 {
 	if (!mExternalData && mData)
@@ -1058,6 +1111,11 @@ int sgct_core::Image::getHeight() const
 int sgct_core::Image::getDataSize() const
 {
 	return mDataSize;
+}
+
+int sgct_core::Image::getBytesPerChannel() const
+{
+	return mBytesPerChannel;
 }
 
 /*!
@@ -1126,9 +1184,14 @@ void sgct_core::Image::setChannels(int channels)
 	mChannels = channels;
 }
 
+void sgct_core::Image::setBytesPerChannel(int bpc)
+{
+	mBytesPerChannel = bpc;
+}
+
 bool sgct_core::Image::allocateOrResizeData()
 {
-	int dataSize = mChannels * mSize_x * mSize_y;
+	int dataSize = mChannels * mSize_x * mSize_y * mBytesPerChannel;
 
 	if (dataSize <= 0)
 	{

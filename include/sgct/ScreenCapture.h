@@ -46,22 +46,23 @@ public:
 	~ScreenCapture();
 
 	void init(std::size_t windowIndex, EyeIndex ei);
-	void initOrResize(int x, int y, int channels=4);
-	void setFormat(CaptureFormat cf);
-	CaptureFormat getFormat();
+	void initOrResize(int x, int y, int channels, int bytesPerColor);
+	void setTextureTransferProperties(unsigned int type, bool preferBGR);
+	void setCaptureFormat(CaptureFormat cf);
+	CaptureFormat getCaptureFormat();
 	void saveScreenCapture(unsigned int textureId);
 	void setPathAndFileName(std::string path, std::string filename);
 	void setUsePBO(bool state);
 
 #ifdef __LOAD_CPP11_FUN__
-	void setCaptureCallback(sgct_cppxeleven::function<void(Image*, std::size_t, EyeIndex)> callback);
-	sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex) > mCaptureCallbackFn;
+	void setCaptureCallback(sgct_cppxeleven::function<void(Image*, std::size_t, EyeIndex, unsigned int type)> callback);
+	sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn;
 #endif
 
 private:
 	void addFrameNumberToFilename( unsigned int frameNumber);
 	int getAvailibleCaptureThread();
-	unsigned int getColorType();
+	void updateDownloadFormat();
 	Image * prepareImage(int index);
 
 	tthread::mutex mMutex;
@@ -69,15 +70,19 @@ private:
 
 	unsigned int mNumberOfThreads;
 	unsigned int mPBO;
+	unsigned int mDownloadFormat;
+	unsigned int mDownloadType;
 	int mDataSize;
 	int mX;
 	int mY;
 	int mChannels;
+	int mBytesPerColor;
 
 	std::string mFilename;
 	std::string mBaseName;
 	std::string mPath;
 	bool mUsePBO;
+	bool mPreferBGR;
 	EyeIndex mEyeIndex;
 	CaptureFormat mFormat;
 	std::size_t mWindowIndex;

@@ -22,6 +22,7 @@ public:
 	OffScreenBuffer();
 	void createFBO(int width, int height, int samples = 1);
 	void resizeFBO(int width, int height, int samples = 1);
+	void setInternalColorFormat(GLint internalFormat);
 	void attachColorTexture(unsigned int texId, GLenum attachment = GL_COLOR_ATTACHMENT0);
 	void attachDepthTexture(unsigned int texId);
 	void attachCubeMapTexture(unsigned int texId, unsigned int face, GLenum attachment = GL_COLOR_ATTACHMENT0);
@@ -49,6 +50,7 @@ private:
 	unsigned int mNormalBuffer;
 	unsigned int mPositionBuffer;
 	unsigned int mDepthBuffer;
+	int mInternalColorFormat;
 
 	int mWidth;
 	int mHeight;

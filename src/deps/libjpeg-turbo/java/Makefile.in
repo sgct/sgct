@@ -43,7 +43,8 @@ am__aclocal_m4_deps = $(top_srcdir)/acinclude.m4 \
 am__configure_deps = $(am__aclocal_m4_deps) $(CONFIGURE_DEPENDENCIES) \
 	$(ACLOCAL_M4)
 mkinstalldirs = $(install_sh) -d
-CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/jconfig.h
+CONFIG_HEADER = $(top_builddir)/config.h $(top_builddir)/jconfig.h \
+	$(top_builddir)/jconfigint.h
 CONFIG_CLEAN_FILES =
 SOURCES =
 DIST_SOURCES =
@@ -120,10 +121,14 @@ RPMARCH = @RPMARCH@
 RPM_CONFIG_ARGS = @RPM_CONFIG_ARGS@
 SET_MAKE = @SET_MAKE@
 SHELL = @SHELL@
+SIMD_ARM_64_FALSE = @SIMD_ARM_64_FALSE@
+SIMD_ARM_64_TRUE = @SIMD_ARM_64_TRUE@
 SIMD_ARM_FALSE = @SIMD_ARM_FALSE@
 SIMD_ARM_TRUE = @SIMD_ARM_TRUE@
 SIMD_I386_FALSE = @SIMD_I386_FALSE@
 SIMD_I386_TRUE = @SIMD_I386_TRUE@
+SIMD_MIPS_FALSE = @SIMD_MIPS_FALSE@
+SIMD_MIPS_TRUE = @SIMD_MIPS_TRUE@
 SIMD_X86_64_FALSE = @SIMD_X86_64_FALSE@
 SIMD_X86_64_TRUE = @SIMD_X86_64_TRUE@
 SO_AGE = @SO_AGE@
@@ -134,6 +139,8 @@ VERSION = @VERSION@
 VERSION_SCRIPT_FALSE = @VERSION_SCRIPT_FALSE@
 VERSION_SCRIPT_FLAG = @VERSION_SCRIPT_FLAG@
 VERSION_SCRIPT_TRUE = @VERSION_SCRIPT_TRUE@
+WITH_12BIT_FALSE = @WITH_12BIT_FALSE@
+WITH_12BIT_TRUE = @WITH_12BIT_TRUE@
 WITH_ARITH_DEC_FALSE = @WITH_ARITH_DEC_FALSE@
 WITH_ARITH_DEC_TRUE = @WITH_ARITH_DEC_TRUE@
 WITH_ARITH_ENC_FALSE = @WITH_ARITH_ENC_FALSE@
@@ -173,6 +180,7 @@ build_cpu = @build_cpu@
 build_os = @build_os@
 build_vendor = @build_vendor@
 datadir = @datadir@
+docdir = @docdir@
 exec_prefix = @exec_prefix@
 host = @host@
 host_alias = @host_alias@
@@ -202,6 +210,7 @@ JAVASOURCES = org/libjpegturbo/turbojpeg/TJ.java \
 	org/libjpegturbo/turbojpeg/TJScalingFactor.java \
 	org/libjpegturbo/turbojpeg/TJTransform.java \
 	org/libjpegturbo/turbojpeg/TJTransformer.java \
+	org/libjpegturbo/turbojpeg/YUVImage.java \
 	TJExample.java \
 	TJUnitTest.java \
 	TJBench.java
@@ -220,6 +229,7 @@ JNIHEADERS = org_libjpegturbo_turbojpeg_TJ.h \
 @WITH_JAVA_TRUE@	org/libjpegturbo/turbojpeg/TJScalingFactor.class \
 @WITH_JAVA_TRUE@	org/libjpegturbo/turbojpeg/TJTransform.class \
 @WITH_JAVA_TRUE@	org/libjpegturbo/turbojpeg/TJTransformer.class \
+@WITH_JAVA_TRUE@	org/libjpegturbo/turbojpeg/YUVImage.class \
 @WITH_JAVA_TRUE@	TJExample.class \
 @WITH_JAVA_TRUE@	TJUnitTest.class \
 @WITH_JAVA_TRUE@	TJBench.class

@@ -287,7 +287,13 @@ bool sgct_core::ReadConfig::readAndParseXML()
                     
 					if( element[1]->Attribute("name") != NULL )
 						tmpWin.setName( element[1]->Attribute("name") );
-                    
+
+					if (element[1]->Attribute("bufferBitDepth") != NULL)
+						tmpWin.setColorBitDepth(getBufferColorBitDepth(element[1]->Attribute("bufferBitDepth")));
+
+					if (element[1]->Attribute("preferBGR") != NULL)
+						tmpWin.setPreferBGR(strcmp(element[1]->Attribute("preferBGR"), "true") == 0);
+						
 					//compability with older versions
 					if (element[1]->Attribute("fullScreen") != NULL)
 						tmpWin.setWindowMode(strcmp(element[1]->Attribute("fullScreen"), "true") == 0);
@@ -1175,6 +1181,34 @@ sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string t
     
 	//if match not found
 	return sgct::SGCTWindow::No_Stereo;
+}
+
+sgct::SGCTWindow::ColorBitDepth sgct_core::ReadConfig::getBufferColorBitDepth(std::string type)
+{
+	std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+	if (strcmp(type.c_str(), "8") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth8;
+	else if (strcmp(type.c_str(), "16") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth16;
+	
+	else if (strcmp(type.c_str(), "16f") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth16Float;
+	else if (strcmp(type.c_str(), "32f") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth32Float;
+	
+	else if (strcmp(type.c_str(), "16i") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth16Int;
+	else if (strcmp(type.c_str(), "32i") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth32Int;
+
+	else if (strcmp(type.c_str(), "16ui") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth16UInt;
+	else if (strcmp(type.c_str(), "32ui") == 0)
+		return sgct::SGCTWindow::BufferColorBitDepth32UInt;
+
+	//default
+	return sgct::SGCTWindow::BufferColorBitDepth8;
 }
 
 int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )

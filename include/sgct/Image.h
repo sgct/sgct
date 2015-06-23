@@ -40,18 +40,21 @@ public:
 	bool saveJPEG(int quality = 100);
 	bool saveTGA();
 	void setFilename(std::string filename);
+	void setPreferBGRExport(bool state);
 
 	unsigned char * getData();
 	int getChannels() const;
 	int getWidth() const;
 	int getHeight() const;
 	int getDataSize() const;
+	int getBytesPerChannel() const;
     unsigned char getSampleAt(int x, int y, ChannelType c);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
 
 	void setDataPtr(unsigned char * dPtr);
 	void setSize(int width, int height);
 	void setChannels(int channels);
+	void setBytesPerChannel(int bpc);
 	inline const char * getFilename() { return mFilename.c_str(); }
 
 private:
@@ -67,9 +70,11 @@ private:
 	int mSize_x;
 	int mSize_y;
 	int mDataSize;
+	int mBytesPerChannel;
 	std::string mFilename;
 	unsigned char * mData;
 	png_bytep * mRowPtrs;
+	bool mPreferBGRForExport;
 };
 
 }

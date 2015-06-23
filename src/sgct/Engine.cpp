@@ -697,11 +697,12 @@ void sgct::Engine::initOGL()
 		if (mScreenShotFnPtr != SGCT_NULL_PTR)
         {
             //set callback
-            sgct_cppxeleven::function< void(Image *, std::size_t, ScreenCapture::EyeIndex) > callback;
+            sgct_cppxeleven::function< void(Image *, std::size_t, ScreenCapture::EyeIndex, unsigned int type) > callback;
             callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback, this,
                                              sgct_cppxeleven::placeholders::_1,
                                              sgct_cppxeleven::placeholders::_2,
-                                             sgct_cppxeleven::placeholders::_3);
+                                             sgct_cppxeleven::placeholders::_3,
+											 sgct_cppxeleven::placeholders::_4);
             
             //left channel (Mono and Stereo_Left)
             if( getActiveWindowPtr()->getScreenCapturePointer(0) != NULL )
@@ -3719,7 +3720,7 @@ void sgct::Engine::setContextCreationCallback(sgct_cppxeleven::function<void(GLF
  This callback must be set before Engine::init is called\n
  Parameters to the callback are: Image pointer for image data, window index, eye index
  */
-void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, ScreenCapture::EyeIndex))
+void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, ScreenCapture::EyeIndex, unsigned int type))
 {
     mScreenShotFnPtr = fnPtr;
 }
@@ -4507,10 +4508,10 @@ void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int c
 /*!
     Don't use this. This function is called internally in SGCT.
 */
-void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex, ScreenCapture::EyeIndex ei)
+void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex, ScreenCapture::EyeIndex ei, unsigned int type)
 {
 	if (mScreenShotFnPtr != SGCT_NULL_PTR)
-        mScreenShotFnPtr(imPtr, winIndex, ei);
+        mScreenShotFnPtr(imPtr, winIndex, ei, type);
 }
 
 /*!

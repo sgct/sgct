@@ -27,6 +27,7 @@ private:
     bool replaceEnvVars( const std::string &filename );
 	bool readAndParseXML();
 	sgct::SGCTWindow::StereoMode getStereoType( std::string type );
+	sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
 	int getFisheyeCubemapRes( std::string quality );
 
 	bool valid;

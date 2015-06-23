@@ -324,11 +324,11 @@ public class TJExample implements TJCustomFilter {
         tjc.setSubsamp(outSubsamp);
         tjc.setJPEGQuality(outQual);
         if (img != null)
-          jpegBuf = tjc.compress(img, flags);
+          tjc.setSourceImage(img, 0, 0, 0, 0);
         else {
           tjc.setSourceImage(bmpBuf, 0, 0, width, 0, height, TJ.PF_BGRX);
-          jpegBuf = tjc.compress(flags);
         }
+        jpegBuf = tjc.compress(flags);
         jpegSize = tjc.getCompressedSize();
         tjc.close();
 

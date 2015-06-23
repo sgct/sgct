@@ -22,6 +22,7 @@ sgct_core::OffScreenBuffer::OffScreenBuffer()
 	mNormalBuffer = GL_FALSE;
 	mPositionBuffer = GL_FALSE;
 	mDepthBuffer = GL_FALSE;
+	mInternalColorFormat = GL_RGBA8;
 
 	mWidth = 1;
 	mHeight = 1;
@@ -63,16 +64,13 @@ void sgct_core::OffScreenBuffer::createFBO(int width, int height, int samples)
 		//generate render buffer for intermediate position storage
 		if (sgct::SGCTSettings::instance()->usePositionTexture())
 			glGenRenderbuffers(1, &mPositionBuffer);
-	}
-
-	//Bind FBO
-	//Setup Render Buffers for multisample FBO
-	if( mMultiSampled )
-	{
+		
+		//Bind FBO
+		//Setup Render Buffers for multisample FBO
 		glBindFramebuffer(GL_FRAMEBUFFER, mMultiSampledFrameBuffer);
 
 		glBindRenderbuffer(GL_RENDERBUFFER, mColorBuffer);
-		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, GL_RGBA8, width, height);
+		glRenderbufferStorageMultisample(GL_RENDERBUFFER, samples, mInternalColorFormat, width, height);
 
 		if (sgct::SGCTSettings::instance()->useNormalTexture())
 		{
@@ -151,6 +149,11 @@ void sgct_core::OffScreenBuffer::resizeFBO(int width, int height, int samples)
 	mPositionBuffer = GL_FALSE;
 
 	createFBO(width, height, samples);
+}
+
+void sgct_core::OffScreenBuffer::setInternalColorFormat(GLint internalFormat)
+{
+	mInternalColorFormat = internalFormat;
 }
 
 void sgct_core::OffScreenBuffer::setDrawBuffers()

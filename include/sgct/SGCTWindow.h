@@ -38,6 +38,7 @@ public:
 	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
 	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture};
+	enum ColorBitDepth { BufferColorBitDepth8, BufferColorBitDepth16, BufferColorBitDepth16Float, BufferColorBitDepth32Float, BufferColorBitDepth16Int, BufferColorBitDepth32Int, BufferColorBitDepth16UInt, BufferColorBitDepth32UInt };
 
 public:
 	SGCTWindow(int id);
@@ -80,6 +81,8 @@ public:
 	void setGamma(float gamma);
 	void setContrast(float contrast);
 	void setBrightness(float brightness);
+	void setColorBitDepth(ColorBitDepth cbd);
+	void setPreferBGR(bool state);
 
 	// -------------- is functions --------------- //
 	const bool &		isFullScreen() const;
@@ -95,6 +98,7 @@ public:
 	static inline bool	isBarrierActive() { return mBarrier; }
 	static inline bool	isUsingSwapGroups() { return mUseSwapGroups; }
 	static inline bool	isSwapGroupMaster() { return mSwapGroupMaster; }
+	bool				isBGRPrefered() const;
 		
 	// -------------- get functions ----------------- //
 	const std::string &				getName() const;
@@ -118,6 +122,7 @@ public:
 	const float &					getGamma() const;
 	const float &					getContrast() const;
 	const float &					getBrightness() const;
+	ColorBitDepth					getColorBitDepth() const;
 	
     // ------------------ Inline functions ----------------------- //
 	/*!
@@ -249,6 +254,7 @@ private:
 	void loadShaders();
 	void initFisheye();
 	void updateTransferCurve();
+	void updateColorBufferData();
 
 public:
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
@@ -290,6 +296,13 @@ private:
 
 	bool mUseFXAA;
 	bool mUsePostFX;
+
+	ColorBitDepth mBufferColorBitDepth;
+	int mInternalColorFormat;
+	unsigned int mColorFormat;
+	unsigned int mColorDataType;
+	bool mPreferBGR;
+	int mBytesPerColor;
 
 	//FBO stuff
 	unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];

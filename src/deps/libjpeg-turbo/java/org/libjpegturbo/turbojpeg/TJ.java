@@ -37,7 +37,7 @@ public final class TJ {
   /**
    * The number of chrominance subsampling options
    */
-  public static final int NUMSAMP   = 5;
+  public static final int NUMSAMP   = 6;
   /**
    * 4:4:4 chrominance subsampling (no chrominance subsampling).  The JPEG
    * or YUV image will contain one chrominance component for every pixel in the
@@ -64,6 +64,17 @@ public final class TJ {
    * Note that 4:4:0 subsampling is not fully accelerated in libjpeg-turbo.
    */
   public static final int SAMP_440  = 4;
+  /**
+   * 4:1:1 chrominance subsampling.  The JPEG or YUV image will contain one
+   * chrominance component for every 4x1 block of pixels in the source image.
+   * JPEG images compressed with 4:1:1 subsampling will be almost exactly the
+   * same size as those compressed with 4:2:0 subsampling, and in the
+   * aggregate, both subsampling methods produce approximately the same
+   * perceptual quality.  However, 4:1:1 is better able to reproduce sharp
+   * horizontal features.  Note that 4:1:1 subsampling is not fully accelerated
+   * in libjpeg-turbo.
+   */
+  public static final int SAMP_411  = 5;
 
 
   /**
@@ -73,7 +84,8 @@ public final class TJ {
    * @param subsamp the level of chrominance subsampling (one of
    * <code>SAMP_*</code>)
    *
-   * @return the MCU block width for the given level of chrominance subsampling
+   * @return the MCU block width for the given level of chrominance
+   * subsampling.
    */
   public static int getMCUWidth(int subsamp) throws Exception {
     if (subsamp < 0 || subsamp >= NUMSAMP)
@@ -82,7 +94,7 @@ public final class TJ {
   }
 
   private static final int[] mcuWidth = {
-    8, 16, 16, 8, 8
+    8, 16, 16, 8, 8, 32
   };
 
 
@@ -94,7 +106,7 @@ public final class TJ {
    * <code>SAMP_*</code>)
    *
    * @return the MCU block height for the given level of chrominance
-   * subsampling
+   * subsampling.
    */
   public static int getMCUHeight(int subsamp) throws Exception {
     if (subsamp < 0 || subsamp >= NUMSAMP)
@@ -103,14 +115,14 @@ public final class TJ {
   }
 
   private static final int[] mcuHeight = {
-    8, 8, 16, 8, 16
+    8, 8, 16, 8, 16, 8
   };
 
 
   /**
    * The number of pixel formats
    */
-  public static final int NUMPF   = 11;
+  public static final int NUMPF   = 12;
   /**
    * RGB pixel format.  The red, green, and blue components in the image are
    * stored in 3-byte pixels in the order R, G, B from lowest to highest byte
@@ -180,6 +192,22 @@ public final class TJ {
    * interpreted as an opaque alpha channel.
    */
   public static final int PF_ARGB = 10;
+  /**
+   * CMYK pixel format.  Unlike RGB, which is an additive color model used
+   * primarily for display, CMYK (Cyan/Magenta/Yellow/Key) is a subtractive
+   * color model used primarily for printing.  In the CMYK color model, the
+   * value of each color component typically corresponds to an amount of cyan,
+   * magenta, yellow, or black ink that is applied to a white background.  In
+   * order to convert between CMYK and RGB, it is necessary to use a color
+   * management system (CMS.)  A CMS will attempt to map colors within the
+   * printer's gamut to perceptually similar colors in the display's gamut and
+   * vice versa, but the mapping is typically not 1:1 or reversible, nor can it
+   * be defined with a simple formula.  Thus, such a conversion is out of scope
+   * for a codec library.  However, the TurboJPEG API allows for compressing
+   * CMYK pixels into a YCCK JPEG image (see {@link #CS_YCCK}) and
+   * decompressing YCCK JPEG images into CMYK pixels.
+   */
+  public static final int PF_CMYK = 11;
 
 
   /**
@@ -187,7 +215,7 @@ public final class TJ {
    *
    * @param pixelFormat the pixel format (one of <code>PF_*</code>)
    *
-   * @return the pixel size (in bytes) for the given pixel format
+   * @return the pixel size (in bytes) for the given pixel format.
    */
   public static int getPixelSize(int pixelFormat) throws Exception {
     if (pixelFormat < 0 || pixelFormat >= NUMPF)
@@ -196,7 +224,7 @@ public final class TJ {
   }
 
   private static final int[] pixelSize = {
-    3, 3, 4, 4, 4, 4, 1, 4, 4, 4, 4
+    3, 3, 4, 4, 4, 4, 1, 4, 4, 4, 4, 4
   };
 
 
@@ -209,7 +237,7 @@ public final class TJ {
    *
    * @param pixelFormat the pixel format (one of <code>PF_*</code>)
    *
-   * @return the red offset for the given pixel format
+   * @return the red offset for the given pixel format.
    */
   public static int getRedOffset(int pixelFormat) throws Exception {
     if (pixelFormat < 0 || pixelFormat >= NUMPF)
@@ -218,7 +246,7 @@ public final class TJ {
   }
 
   private static final int[] redOffset = {
-    0, 2, 0, 2, 3, 1, 0, 0, 2, 3, 1
+    0, 2, 0, 2, 3, 1, 0, 0, 2, 3, 1, -1
   };
 
 
@@ -231,7 +259,7 @@ public final class TJ {
    *
    * @param pixelFormat the pixel format (one of <code>PF_*</code>)
    *
-   * @return the green offset for the given pixel format
+   * @return the green offset for the given pixel format.
    */
   public static int getGreenOffset(int pixelFormat) throws Exception {
     if (pixelFormat < 0 || pixelFormat >= NUMPF)
@@ -240,7 +268,7 @@ public final class TJ {
   }
 
   private static final int[] greenOffset = {
-    1, 1, 1, 1, 2, 2, 0, 1, 1, 2, 2
+    1, 1, 1, 1, 2, 2, 0, 1, 1, 2, 2, -1
   };
 
 
@@ -253,7 +281,7 @@ public final class TJ {
    *
    * @param pixelFormat the pixel format (one of <code>PF_*</code>)
    *
-   * @return the blue offset for the given pixel format
+   * @return the blue offset for the given pixel format.
    */
   public static int getBlueOffset(int pixelFormat) throws Exception {
     if (pixelFormat < 0 || pixelFormat >= NUMPF)
@@ -262,8 +290,63 @@ public final class TJ {
   }
 
   private static final int[] blueOffset = {
-    2, 0, 2, 0, 1, 3, 0, 2, 0, 1, 3
+    2, 0, 2, 0, 1, 3, 0, 2, 0, 1, 3, -1
   };
+
+
+  /**
+   * The number of JPEG colorspaces
+   */
+  public static final int NUMCS = 5;
+  /**
+   * RGB colorspace.  When compressing the JPEG image, the R, G, and B
+   * components in the source image are reordered into image planes, but no
+   * colorspace conversion or subsampling is performed.  RGB JPEG images can be
+   * decompressed to any of the extended RGB pixel formats or grayscale, but
+   * they cannot be decompressed to YUV images.
+   */
+  public static final int CS_RGB = 0;
+  /**
+   * YCbCr colorspace.  YCbCr is not an absolute colorspace but rather a
+   * mathematical transformation of RGB designed solely for storage and
+   * transmission.  YCbCr images must be converted to RGB before they can
+   * actually be displayed.  In the YCbCr colorspace, the Y (luminance)
+   * component represents the black & white portion of the original image, and
+   * the Cb and Cr (chrominance) components represent the color portion of the
+   * original image.  Originally, the analog equivalent of this transformation
+   * allowed the same signal to drive both black & white and color televisions,
+   * but JPEG images use YCbCr primarily because it allows the color data to be
+   * optionally subsampled for the purposes of reducing bandwidth or disk
+   * space.  YCbCr is the most common JPEG colorspace, and YCbCr JPEG images
+   * can be compressed from and decompressed to any of the extended RGB pixel
+   * formats or grayscale, or they can be decompressed to YUV planar images.
+   */
+  public static final int CS_YCbCr = 1;
+  /**
+   * Grayscale colorspace.  The JPEG image retains only the luminance data (Y
+   * component), and any color data from the source image is discarded.
+   * Grayscale JPEG images can be compressed from and decompressed to any of
+   * the extended RGB pixel formats or grayscale, or they can be decompressed
+   * to YUV planar images.
+   */
+  public static final int CS_GRAY = 2;
+  /**
+   * CMYK colorspace.  When compressing the JPEG image, the C, M, Y, and K
+   * components in the source image are reordered into image planes, but no
+   * colorspace conversion or subsampling is performed.  CMYK JPEG images can
+   * only be decompressed to CMYK pixels.
+   */
+  public static final int CS_CMYK = 3;
+  /**
+   * YCCK colorspace.  YCCK (AKA "YCbCrK") is not an absolute colorspace but
+   * rather a mathematical transformation of CMYK designed solely for storage
+   * and transmission.  It is to CMYK as YCbCr is to RGB.  CMYK pixels can be
+   * reversibly transformed into YCCK, and as with YCbCr, the chrominance
+   * components in the YCCK pixels can be subsampled without incurring major
+   * perceptual loss.  YCCK JPEG images can only be compressed from and
+   * decompressed to CMYK pixels.
+   */
+  public static final int CS_YCCK = 4;
 
 
   /**
@@ -271,26 +354,16 @@ public final class TJ {
    * OpenGL) order, not top-down (X11) order.
    */
   public static final int FLAG_BOTTOMUP     = 2;
-  /**
-   * Turn off CPU auto-detection and force TurboJPEG to use MMX code
-   * (if the underlying codec supports it.)
-   */
+
+  @Deprecated
   public static final int FLAG_FORCEMMX     = 8;
-  /**
-   * Turn off CPU auto-detection and force TurboJPEG to use SSE code
-   * (if the underlying codec supports it.)
-   */
+  @Deprecated
   public static final int FLAG_FORCESSE     = 16;
-  /**
-   * Turn off CPU auto-detection and force TurboJPEG to use SSE2 code
-   * (if the underlying codec supports it.)
-   */
+  @Deprecated
   public static final int FLAG_FORCESSE2    = 32;
-  /**
-   * Turn off CPU auto-detection and force TurboJPEG to use SSE3 code
-   * (if the underlying codec supports it.)
-   */
+  @Deprecated
   public static final int FLAG_FORCESSE3    = 128;
+
   /**
    * When decompressing an image that was compressed using chrominance
    * subsampling, use the fastest chrominance upsampling algorithm available in
@@ -332,7 +405,7 @@ public final class TJ {
    * generating the JPEG image (one of {@link TJ TJ.SAMP_*})
    *
    * @return the maximum size of the buffer (in bytes) required to hold a JPEG
-   * image with the given width, height, and level of chrominance subsampling
+   * image with the given width, height, and level of chrominance subsampling.
    */
   public static native int bufSize(int width, int height, int jpegSubsamp)
     throws Exception;
@@ -343,15 +416,86 @@ public final class TJ {
    *
    * @param width the width (in pixels) of the YUV image
    *
+   * @param pad the width of each line in each plane of the image is padded to
+   * the nearest multiple of this number of bytes (must be a power of 2.)
+   *
    * @param height the height (in pixels) of the YUV image
    *
    * @param subsamp the level of chrominance subsampling used in the YUV
    * image (one of {@link TJ TJ.SAMP_*})
    *
    * @return the size of the buffer (in bytes) required to hold a YUV planar
-   * image with the given width, height, and level of chrominance subsampling
+   * image with the given width, height, and level of chrominance subsampling.
    */
+  public static native int bufSizeYUV(int width, int pad, int height,
+                                      int subsamp)
+    throws Exception;
+
+  /**
+   * @deprecated Use {@link #bufSizeYUV(int, int, int, int)} instead.
+   */
+  @Deprecated
   public static native int bufSizeYUV(int width, int height, int subsamp)
+    throws Exception;
+
+  /**
+   * Returns the size of the buffer (in bytes) required to hold a YUV image
+   * plane with the given parameters.
+   *
+   * @param componentID ID number of the image plane (0 = Y, 1 = U/Cb,
+   * 2 = V/Cr)
+   *
+   * @param width width (in pixels) of the YUV image.  NOTE: this is the width
+   * of the whole image, not the plane width.
+   *
+   * @param stride bytes per line in the image plane.
+   *
+   * @param height height (in pixels) of the YUV image.  NOTE: this is the
+   * height of the whole image, not the plane height.
+   *
+   * @param subsamp the level of chrominance subsampling used in the YUV
+   * image (one of {@link TJ TJ.SAMP_*})
+   *
+   * @return the size of the buffer (in bytes) required to hold a YUV planar
+   * image with the given parameters.
+   */
+  public static native int planeSizeYUV(int componentID, int width, int stride,
+                                        int height, int subsamp)
+    throws Exception;
+
+  /**
+   * Returns the plane width of a YUV image plane with the given parameters.
+   * Refer to {@link YUVImage YUVImage} for a description of plane width.
+   *
+   * @param componentID ID number of the image plane (0 = Y, 1 = U/Cb,
+   * 2 = V/Cr)
+   *
+   * @param width width (in pixels) of the YUV image
+   *
+   * @param subsamp the level of chrominance subsampling used in the YUV image
+   * (one of {@link TJ TJ.SAMP_*})
+   *
+   * @return the plane width of a YUV image plane with the given parameters.
+   */
+  public static native int planeWidth(int componentID, int width, int subsamp)
+    throws Exception;
+
+  /**
+   * Returns the plane height of a YUV image plane with the given parameters.
+   * Refer to {@link YUVImage YUVImage} for a description of plane height.
+   *
+   * @param componentID ID number of the image plane (0 = Y, 1 = U/Cb,
+   * 2 = V/Cr)
+   *
+   * @param height height (in pixels) of the YUV image
+   *
+   * @param subsamp the level of chrominance subsampling used in the YUV image
+   * (one of {@link TJ TJ.SAMP_*})
+   *
+   * @return the plane height of a YUV image plane with the given parameters.
+   */
+  public static native int planeHeight(int componentID, int height,
+                                       int subsamp)
     throws Exception;
 
   /**
@@ -359,7 +503,7 @@ public final class TJ {
    * this implementation of TurboJPEG supports.
    *
    * @return a list of fractional scaling factors that the JPEG decompressor in
-   * this implementation of TurboJPEG supports
+   * this implementation of TurboJPEG supports.
    */
   public static native TJScalingFactor[] getScalingFactors()
     throws Exception;

@@ -9,7 +9,7 @@ SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 project(libjpeg-turbo)
-set(VERSION 1.3.1)
+set(VERSION 1.4.1)
 
 if(WIN32)
   execute_process(COMMAND "wmic.exe" "os" "get" "LocalDateTime" OUTPUT_VARIABLE
@@ -29,52 +29,74 @@ endif()
 
 option(TURBOJPEG_FORCE32 "Force 32-bit" FALSE)
 
-#if(WIN32)
-	option(TURBOJPEG_WITH_SIMD "Include SIMD extensions" TRUE)
-#else()
-#	option(TURBOJPEG_WITH_SIMD "Include SIMD extensions" FALSE)
-#endif()
-option(TURBOJPEG_WITH_ARITH_ENC "Include arithmetic encoding support" TRUE)
-option(TURBOJPEG_WITH_ARITH_DEC "Include arithmetic decoding support" TRUE)
-option(TURBOJPEG_WITH_JPEG7 "Emulate libjpeg v7 API/ABI (this makes libjpeg-turbo backward incompatible with libjpeg v6b)" FALSE)
-option(TURBOJPEG_WITH_JPEG8 "Emulate libjpeg v8 API/ABI (this makes libjpeg-turbo backward incompatible with libjpeg v6b)" FALSE)
-option(TURBOJPEG_WITH_MEM_SRCDST "Include in-memory source/destination manager functions when emulating the libjpeg v6b or v7 API/ABI" TRUE)
+option(WITH_SIMD "Include SIMD extensions" TRUE)
+option(WITH_ARITH_ENC "Include arithmetic encoding support" TRUE)
+option(WITH_ARITH_DEC "Include arithmetic decoding support" TRUE)
+option(WITH_JPEG7 "Emulate libjpeg v7 API/ABI (this makes libjpeg-turbo backward incompatible with libjpeg v6b)" FALSE)
+option(WITH_JPEG8 "Emulate libjpeg v8 API/ABI (this makes libjpeg-turbo backward incompatible with libjpeg v6b)" FALSE)
+option(WITH_MEM_SRCDST "Include in-memory source/destination manager functions when emulating the libjpeg v6b or v7 API/ABI" TRUE)
+option(WITH_TURBOJPEG "Include the TurboJPEG wrapper library and associated test programs" TRUE)
+option(WITH_12BIT "Encode/decode JPEG images with 12-bit samples (implies WITH_SIMD=0 WITH_TURBOJPEG=0 WITH_ARITH_ENC=0 WITH_ARITH_DEC=0)" FALSE)
+option(ENABLE_STATIC "Build static libraries" TRUE)
 
-if(TURBOJPEG_WITH_ARITH_ENC)
+if(WITH_12BIT)
+  set(WITH_SIMD FALSE)
+  set(WITH_TURBOJPEG FALSE)
+  set(WITH_ARITH_ENC FALSE)
+  set(WITH_ARITH_DEC FALSE)
+  set(BITS_IN_JSAMPLE 12)
+  message(STATUS "12-bit JPEG support enabled")
+else()
+  set(BITS_IN_JSAMPLE 8)
+endif()
+
+if(WITH_ARITH_ENC)
   set(C_ARITH_CODING_SUPPORTED 1)
   message(STATUS "Arithmetic encoding support enabled")
 else()
   message(STATUS "Arithmetic encoding support disabled")
 endif()
 
-if(TURBOJPEG_WITH_ARITH_DEC)
+if(WITH_ARITH_DEC)
   set(D_ARITH_CODING_SUPPORTED 1)
   message(STATUS "Arithmetic decoding support enabled")
 else()
   message(STATUS "Arithmetic decoding support disabled")
 endif()
 
+if(WITH_TURBOJPEG)
+  message(STATUS "TurboJPEG C wrapper enabled")
+else()
+  message(STATUS "TurboJPEG C wrapper disabled")
+endif()
+
+if(WITH_JAVA)
+  message(STATUS "TurboJPEG Java wrapper enabled")
+else()
+  message(STATUS "TurboJPEG Java wrapper disabled")
+endif()
+
 set(SO_AGE 0)
-if(TURBOJPEG_WITH_MEM_SRCDST)
+if(WITH_MEM_SRCDST)
   set(SO_AGE 1)
 endif()
 
 set(JPEG_LIB_VERSION 62)
 set(DLL_VERSION ${JPEG_LIB_VERSION})
 set(FULLVERSION ${DLL_VERSION}.${SO_AGE}.0)
-if(TURBOJPEG_WITH_JPEG8)
+if(WITH_JPEG8)
   set(JPEG_LIB_VERSION 80)
   set(DLL_VERSION 8)
   set(FULLVERSION ${DLL_VERSION}.0.2)
   message(STATUS "Emulating libjpeg v8 API/ABI")
-elseif(TURBOJPEG_WITH_JPEG7)
+elseif(WITH_JPEG7)
   set(JPEG_LIB_VERSION 70)
   set(DLL_VERSION 7)
   set(FULLVERSION ${DLL_VERSION}.${SO_AGE}.0)
   message(STATUS "Emulating libjpeg v7 API/ABI")
-endif(TURBOJPEG_WITH_JPEG8)
+endif(WITH_JPEG8)
 
-if(TURBOJPEG_WITH_MEM_SRCDST)
+if(WITH_MEM_SRCDST)
   set(MEM_SRCDST_SUPPORTED 1)
   message(STATUS "In-memory source/destination managers enabled")
 else()
@@ -82,14 +104,18 @@ else()
 endif()
 
 if(MSVC)
-  # Use the static C library for all build types
-  # foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-  #  CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-  #  if(${var} MATCHES "/MD")
-  #    string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
-  #  endif()
-  # endforeach()
-
+  option(WITH_CRT_DLL
+    "Link all libjpeg-turbo libraries and executables with the C run-time DLL (msvcr*.dll) instead of the static C run-time library (libcmt*.lib.)  The default is to use the C run-time DLL only with the libraries and executables that need it."
+    FALSE)
+  if(NOT WITH_CRT_DLL)
+    # Use the static C library for all build types
+    foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
+      CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
+      if(${var} MATCHES "/MD")
+        string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
+      endif()
+    endforeach()
+  endif()
   add_definitions(-W3 -wd4996)
 endif()
 
@@ -111,7 +137,7 @@ else()
 endif()
 
 configure_file(win/jconfig.h.in jconfig.h)
-configure_file(win/config.h.in config.h)
+configure_file(win/jconfigint.h.in jconfigint.h)
 
 include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 
@@ -119,137 +145,70 @@ include_directories(${CMAKE_CURRENT_BINARY_DIR} ${CMAKE_CURRENT_SOURCE_DIR})
 # Targets
 #
 
-set(JPEG_SOURCES
-	${CMAKE_CURRENT_SOURCE_DIR}/jcapimin.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcapistd.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jccoefct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jccolor.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcdctmgr.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jchuff.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcinit.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcmainct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcmarker.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcmaster.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcomapi.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcparam.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcphuff.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcprepct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jcsample.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jctrans.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdapimin.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdapistd.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdatadst.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdatasrc.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdcoefct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdcolor.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jddctmgr.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdhuff.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdinput.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdmainct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdmarker.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdmaster.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdmerge.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdphuff.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdpostct.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdsample.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jdtrans.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jerror.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jfdctflt.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jfdctfst.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jfdctint.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jidctflt.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jidctfst.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jidctint.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jidctred.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jquant1.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jquant2.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jutils.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jmemmgr.c
-	${CMAKE_CURRENT_SOURCE_DIR}/jmemnobs.c)
+set(JPEG_SOURCES jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
+  jcinit.c jcmainct.c jcmarker.c jcmaster.c jcomapi.c jcparam.c jcphuff.c
+  jcprepct.c jcsample.c jctrans.c jdapimin.c jdapistd.c jdatadst.c jdatasrc.c
+  jdcoefct.c jdcolor.c jddctmgr.c jdhuff.c jdinput.c jdmainct.c jdmarker.c
+  jdmaster.c jdmerge.c jdphuff.c jdpostct.c jdsample.c jdtrans.c jerror.c
+  jfdctflt.c jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c jidctred.c
+  jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c)
 
-if(TURBOJPEG_WITH_ARITH_ENC OR TURBOJPEG_WITH_ARITH_DEC)
-  set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/jaricom.c)
+if(WITH_ARITH_ENC OR WITH_ARITH_DEC)
+  set(JPEG_SOURCES ${JPEG_SOURCES} jaricom.c)
 endif()
 
-if(TURBOJPEG_WITH_ARITH_ENC)
-  set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/jcarith.c)
+if(WITH_ARITH_ENC)
+  set(JPEG_SOURCES ${JPEG_SOURCES} jcarith.c)
 endif()
 
-if(TURBOJPEG_WITH_ARITH_DEC)
-  set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/jdarith.c)
+if(WITH_ARITH_DEC)
+  set(JPEG_SOURCES ${JPEG_SOURCES} jdarith.c)
 endif()
 
-if(TURBOJPEG_WITH_SIMD)
+if(WITH_SIMD)
   add_definitions(-DWITH_SIMD)
   add_subdirectory(simd)
   if(SIMD_X86_64)
-    set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/simd/jsimd_x86_64.c)
+    set(JPEG_SOURCES ${JPEG_SOURCES} simd/jsimd_x86_64.c)
   else()
-    set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/simd/jsimd_i386.c)
+    set(JPEG_SOURCES ${JPEG_SOURCES} simd/jsimd_i386.c)
   endif()
   # This tells CMake that the "source" files haven't been generated yet
   set_source_files_properties(${SIMD_OBJS} PROPERTIES GENERATED 1)
 else()
-  set(JPEG_SOURCES ${JPEG_SOURCES} ${CMAKE_CURRENT_SOURCE_DIR}/jsimd_none.c)
+  set(JPEG_SOURCES ${JPEG_SOURCES} jsimd_none.c)
   message(STATUS "Not using SIMD acceleration")
 endif()
 
-#add_subdirectory(sharedlib)
-
-#add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
-#if(NOT MSVC)
-#  set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
-#endif()
-#if(TURBOJPEG_WITH_SIMD)
-#  add_dependencies(jpeg-static simd)
-#endif()
-
-add_library(turbojpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS}
-  ${CMAKE_CURRENT_SOURCE_DIR}/turbojpeg.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/transupp.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/jdatadst-tj.c
-  ${CMAKE_CURRENT_SOURCE_DIR}/jdatasrc-tj.c)
-  
-if(NOT MSVC)
-  set_target_properties(turbojpeg-static PROPERTIES OUTPUT_NAME turbojpeg)
-endif()
-if(TURBOJPEG_WITH_SIMD)
-  add_dependencies(turbojpeg-static simd)
+if(ENABLE_STATIC OR WITH_TURBOJPEG)
+  add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
+  if(NOT MSVC)
+    set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
+  endif()
+  if(WITH_SIMD)
+    add_dependencies(jpeg-static simd)
+  endif()
 endif()
 
-#add_executable(tjunittest tjunittest.c tjutil.c)
-#target_link_libraries(tjunittest turbojpeg)
+if(WITH_TURBOJPEG)
+  set(TURBOJPEG_SOURCES turbojpeg.c transupp.c jdatadst-tj.c jdatasrc-tj.c)
 
-#add_executable(tjunittest-static tjunittest.c tjutil.c)
-#target_link_libraries(tjunittest-static turbojpeg-static)
+  if(ENABLE_STATIC)
+    add_library(turbojpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS}
+      turbojpeg.c transupp.c jdatadst-tj.c jdatasrc-tj.c)
+    if(NOT MSVC)
+      set_target_properties(turbojpeg-static PROPERTIES OUTPUT_NAME turbojpeg)
+    endif()
+    if(WITH_SIMD)
+      add_dependencies(turbojpeg-static simd)
+    endif()
+  endif()
+endif()
 
-#add_executable(tjbench tjbench.c bmp.c tjutil.c rdbmp.c rdppm.c wrbmp.c wrppm.c)
-#target_link_libraries(tjbench turbojpeg jpeg-static)
-#set_property(TARGET tjbench PROPERTY COMPILE_FLAGS
-#  "-DBMP_SUPPORTED -DPPM_SUPPORTED")
-
-#add_executable(tjbench-static tjbench.c bmp.c tjutil.c rdbmp.c rdppm.c wrbmp.c
-#  wrppm.c)
-#target_link_libraries(tjbench-static turbojpeg-static jpeg-static)
-#set_property(TARGET tjbench-static PROPERTY COMPILE_FLAGS
-#  "-DBMP_SUPPORTED -DPPM_SUPPORTED")
-
-#add_executable(cjpeg-static cjpeg.c cdjpeg.c rdbmp.c rdgif.c rdppm.c rdswitch.c
-#  rdtarga.c)
-#set_property(TARGET cjpeg-static PROPERTY COMPILE_FLAGS
-#  "-DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED -DTARGA_SUPPORTED -DUSE_SETMODE")
-#target_link_libraries(cjpeg-static jpeg-static)
-
-#add_executable(djpeg-static djpeg.c cdjpeg.c rdcolmap.c rdswitch.c wrbmp.c wrgif.c
-#  wrppm.c wrtarga.c)
-#set_property(TARGET djpeg-static PROPERTY COMPILE_FLAGS
-#  "-DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED -DTARGA_SUPPORTED -DUSE_SETMODE")
-#target_link_libraries(djpeg-static jpeg-static)
-
-#add_executable(jpegtran-static jpegtran.c cdjpeg.c rdswitch.c transupp.c)
-#target_link_libraries(jpegtran-static jpeg-static)
-#set_property(TARGET jpegtran-static PROPERTY COMPILE_FLAGS "-DUSE_SETMODE")
-
-#add_executable(rdjpgcom rdjpgcom.c)
-
-#add_executable(wrjpgcom rdjpgcom.c)
+if(WITH_12BIT)
+  set(COMPILE_FLAGS "-DGIF_SUPPORTED -DPPM_SUPPORTED -DUSE_SETMODE")
+else()
+  set(COMPILE_FLAGS "-DBMP_SUPPORTED -DGIF_SUPPORTED -DPPM_SUPPORTED -DTARGA_SUPPORTED -DUSE_SETMODE")
+	set(CJPEG_BMP_SOURCES rdbmp.c rdtarga.c)
+	set(DJPEG_BMP_SOURCES wrbmp.c wrtarga.c)
+endif()

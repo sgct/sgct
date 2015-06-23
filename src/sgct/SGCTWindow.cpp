@@ -62,6 +62,9 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mIconified = false;
 	mHasAnyMasks = false;
 	mAreCubeMapViewPortsGenerated = false;
+	mPreferBGR = true; //BGR is native on GPU
+
+	mBufferColorBitDepth = BufferColorBitDepth8;
     
     mWindowHandle = NULL;
 
@@ -337,6 +340,8 @@ void sgct::SGCTWindow::init()
 */
 void sgct::SGCTWindow::initOGL()
 {
+	updateColorBufferData();
+	
 	createTextures();
 	createVBOs(); //must be created before FBO
 	createFBOs();
@@ -575,10 +580,14 @@ void sgct::SGCTWindow::update()
 
 		//resize PBOs
 		for (int i = 0; i < 2; i++)
-		if (mScreenCapture[i]!= NULL)
-			mAlpha ?
-			mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4) :
-			mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3);
+			if (mScreenCapture[i] != NULL)
+			{
+				mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
+				
+				mAlpha ?
+				mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4, mBytesPerColor) :
+				mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3, mBytesPerColor);
+			}
 	}
 }
 
@@ -1100,15 +1109,17 @@ void sgct::SGCTWindow::initScreenCapture()
 
 		if (SGCTSettings::instance()->useFBO())
 		{
+			mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
+			
 			if (mAlpha)
-				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 4);
+				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 4, mBytesPerColor);
 			else
-				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 3);
+				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 3, mBytesPerColor);
 		}
 
 
 		if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET)
-			mScreenCapture[i]->setFormat(static_cast<sgct_core::ScreenCapture::CaptureFormat>(SGCTSettings::instance()->getCaptureFormat()));
+			mScreenCapture[i]->setCaptureFormat(static_cast<sgct_core::ScreenCapture::CaptureFormat>(SGCTSettings::instance()->getCaptureFormat()));
 	}
 }
 
@@ -1337,11 +1348,11 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, const int xSize, const i
 	{
 		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
-            glTexImage2D( GL_TEXTURE_2D, 0, GL_RGBA8, xSize, ySize, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+			glTexImage2D(GL_TEXTURE_2D, 0, mInternalColorFormat, xSize, ySize, 0, mColorFormat, mColorDataType, NULL);
         }
         else
         {
-            glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGBA8, xSize, ySize);
+            glTexStorage2D(GL_TEXTURE_2D, 1, mInternalColorFormat, xSize, ySize);
         }
         
         MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d BGRA texture (id: %d, type %d) generated for window %d!\n",
@@ -1436,11 +1447,11 @@ void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::Textur
 		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
         {
             for (int side = 0; side < 6; ++side)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_RGBA8, mCubeMapResolution, mCubeMapResolution, 0, GL_BGRA, GL_UNSIGNED_BYTE, NULL);
+				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mInternalColorFormat, mCubeMapResolution, mCubeMapResolution, 0, mColorFormat, mColorDataType, NULL);
         }
         else
         {
-            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_RGBA8, mCubeMapResolution, mCubeMapResolution);
+			glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, mInternalColorFormat, mCubeMapResolution, mCubeMapResolution);
         }
 			
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
@@ -1475,6 +1486,9 @@ void sgct::SGCTWindow::createFBOs()
 	{
 		if( mFisheyeMode )
 		{
+			mFinalFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
+			mCubeMapFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
+			
 			mFinalFBO_Ptr->createFBO(
                 mFramebufferResolution[0],
                 mFramebufferResolution[1],
@@ -1493,39 +1507,6 @@ void sgct::SGCTWindow::createFBOs()
                 MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
             else
                 MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
-
-            //-------------------------
-            // Init attachments
-            //-------------------------
-			/*mCubeMapFBO_Ptr->bind();
-			for(int i=0; i<6; i++)
-			{
-				if(!mCubeMapFBO_Ptr->isMultiSampled())
-				{
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], i );
-				}
-
-				mFisheyeAlpha ? glClearColor(0.0f, 0.0f, 0.0f, 0.0f) : glClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-				glClear(GL_COLOR_BUFFER_BIT|GL_DEPTH_BUFFER_BIT);
-
-				//copy AA-buffer to "regular"/non-AA buffer
-				if( mCubeMapFBO_Ptr->isMultiSampled() )
-				{
-					mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
-
-					//update attachments
-					mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMap], static_cast<unsigned int>(i) );
-                    
-                    if (SGCTSettings::instance()->useNormalTexture())
-                        mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMapNormals], static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT1);
-                    
-                    if (SGCTSettings::instance()->usePositionTexture())
-                        mCubeMapFBO_Ptr->attachCubeMapTexture( mFrameBufferTextures[Engine::CubeMapPositions], static_cast<unsigned int>(i), GL_COLOR_ATTACHMENT2);
-
-					mCubeMapFBO_Ptr->blit();
-				}
-			}
-             */
             
 			sgct_core::OffScreenBuffer::unBind();
 
@@ -1534,6 +1515,7 @@ void sgct::SGCTWindow::createFBOs()
 		}
 		else //regular viewport rendering
 		{
+			mFinalFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
 			mFinalFBO_Ptr->createFBO(
 				mFramebufferResolution[0],
 				mFramebufferResolution[1],
@@ -1544,23 +1526,6 @@ void sgct::SGCTWindow::createFBOs()
             else
                 MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
 		}
-
-        //-------------------------
-        // Init attachment
-        //-------------------------
-        /*if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
-        {
-            mFinalFBO_Ptr->bind(); //bind no multi-sampled);
-            
-            mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::LeftEye] );
-            if (SGCTSettings::instance()->useNormalTexture())
-                mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::Normals], GL_COLOR_ATTACHMENT1);
-            if (SGCTSettings::instance()->usePositionTexture())
-                mFinalFBO_Ptr->attachColorTexture( mFrameBufferTextures[Engine::Positions], GL_COLOR_ATTACHMENT2);
-            
-            mFinalFBO_Ptr->unBind();
-        }
-         */
 	}
 }
 
@@ -3017,6 +2982,63 @@ void sgct::SGCTWindow::updateTransferCurve()
 	glfwSetGammaRamp(mMonitor, &ramp);
 }
 
+void sgct::SGCTWindow::updateColorBufferData()
+{
+	mColorFormat = GL_BGRA;
+	
+	switch (mBufferColorBitDepth)
+	{
+	default:
+	case BufferColorBitDepth8:
+		mInternalColorFormat = GL_RGBA8;
+		mColorDataType = GL_UNSIGNED_BYTE;
+		mBytesPerColor = 1;
+		break;
+
+	case BufferColorBitDepth16:
+		mInternalColorFormat = GL_RGBA16;
+		mColorDataType = GL_UNSIGNED_SHORT;
+		mBytesPerColor = 2;
+		break;
+
+	case BufferColorBitDepth16Float:
+		mInternalColorFormat = GL_RGBA16F;
+		mColorDataType = GL_HALF_FLOAT;
+		mBytesPerColor = 2;
+		break;
+
+	case BufferColorBitDepth32Float:
+		mInternalColorFormat = GL_RGBA32F;
+		mColorDataType = GL_FLOAT;
+		mBytesPerColor = 4;
+		break;
+
+	case BufferColorBitDepth16Int:
+		mInternalColorFormat = GL_RGBA16I;
+		mColorDataType = GL_SHORT;
+		mBytesPerColor = 2;
+		break;
+
+	case BufferColorBitDepth32Int:
+		mInternalColorFormat = GL_RGBA32I;
+		mColorDataType = GL_INT;
+		mBytesPerColor = 2;
+		break;
+
+	case BufferColorBitDepth16UInt:
+		mInternalColorFormat = GL_RGBA16UI;
+		mColorDataType = GL_UNSIGNED_SHORT;
+		mBytesPerColor = 2;
+		break;
+
+	case BufferColorBitDepth32UInt:
+		mInternalColorFormat = GL_RGBA32UI;
+		mColorDataType = GL_UNSIGNED_INT;
+		mBytesPerColor = 4;
+		break;
+	}
+}
+
 /*!
 Set if fisheye alpha state. Should only be set using XML config of before calling Engine::init.
 */
@@ -3074,6 +3096,39 @@ void sgct::SGCTWindow::setBrightness(float brightness)
 {
 	mBrightness = brightness;
 	updateTransferCurve();
+}
+
+/*!
+Set the color bit depth of the FBO and Screencapture.
+*/
+void sgct::SGCTWindow::setColorBitDepth(ColorBitDepth cbd)
+{
+	mBufferColorBitDepth = cbd;
+}
+
+/*!
+Get the color bit depth of the FBO and Screencapture.
+*/
+sgct::SGCTWindow::ColorBitDepth sgct::SGCTWindow::getColorBitDepth() const
+{
+	return mBufferColorBitDepth;
+}
+
+/*!
+Set if BGR(A) or RGB(A) rendering should be used. Default is BGR(A), which is usually the native order on GPU hardware.
+This setting affects the screencapture which will return the prefered color order.
+*/
+void sgct::SGCTWindow::setPreferBGR(bool state)
+{
+	mPreferBGR = state;
+}
+
+/*!
+Get if buffer is rendered using BGR(A) or RGB(A).
+*/
+bool sgct::SGCTWindow::isBGRPrefered() const
+{
+	return mPreferBGR;
 }
 
 /*!

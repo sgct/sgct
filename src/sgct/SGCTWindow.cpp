@@ -2386,11 +2386,11 @@ void sgct::SGCTWindow::generateCubeMapViewports()
         glm::vec4 lowerLeft, upperLeft, upperRight;
 
         //tilt
-        glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
         //glm::mat4 tiltMat(1.0f);
 
         //roll 45 deg
-        glm::mat4 rollRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 0.0f, 1.0f));
+		glm::mat4 rollRot = glm::rotate(tiltMat, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         //glm::mat4 rollRot(1.0f);
         //glm::mat4 rollRot = tiltMat;
 
@@ -2429,7 +2429,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             {
             case Pos_X: //+X face
                 {
-                    rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+					rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     upperRight.x = 0.0f;
 					vpPtr->setSize(0.5f, 1.0f);
                     //restore the mesh for the non-dummy viewport since setSize modifes that
@@ -2439,7 +2439,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
             case Neg_X: //-X face
                 {
-                    rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+					rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     lowerLeft.x = 0.0f;
                     upperLeft.x = 0.0f;
 					vpPtr->setPos(0.5f, 0.0f);
@@ -2449,7 +2449,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
             case Pos_Y: //+Y face
                 {
-                    rotMat = glm::rotate(rollRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+					rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                     lowerLeft.y = 0.0f;
 					vpPtr->setPos(0.0f, 0.5f);
 					vpPtr->setSize(1.0f, 0.5f);
@@ -2458,7 +2458,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
             case Neg_Y: //-Y face
                 {
-                    rotMat = glm::rotate(rollRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+					rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                     upperLeft.y = 0.0f;
                     upperRight.y = 0.0f;
 					vpPtr->setSize(1.0f, 0.5f);
@@ -2471,7 +2471,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
             case Neg_Z: //-Z face
 				vpPtr->setEnabled(false);
-                rotMat = glm::rotate(rollRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+				rotMat = glm::rotate(rollRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                 break;
             }
 
@@ -2518,11 +2518,11 @@ void sgct::SGCTWindow::generateCubeMapViewports()
         upperRight.w = 1.0f;
         
         //tilt
-        glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), 90.0f-mFisheyeTilt, glm::vec3(1.0f, 0.0f, 0.0f));
+		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
         //glm::mat4 tiltMat(1.0f);
         
         //pan 45 deg
-        glm::mat4 panRot = glm::rotate(tiltMat, 45.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+		glm::mat4 panRot = glm::rotate(tiltMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
         //glm::mat4 panRot(1.0f);
         //glm::mat4 panRot = tiltMat;
         
@@ -2541,20 +2541,20 @@ void sgct::SGCTWindow::generateCubeMapViewports()
             switch(i)
             {
                 case Pos_X: //+X face
-                    rotMat = glm::rotate(panRot, -90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+					rotMat = glm::rotate(panRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
                     
                 case Neg_X: //-X face
 					vpPtr->setEnabled(false);
-                    rotMat = glm::rotate(panRot, 90.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+					rotMat = glm::rotate(panRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
                     
                 case Pos_Y: //+Y face
-                    rotMat = glm::rotate(panRot, -90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+					rotMat = glm::rotate(panRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                     break;
                     
                 case Neg_Y: //-Y face
-                    rotMat = glm::rotate(panRot, 90.0f, glm::vec3(1.0f, 0.0f, 0.0f));
+					rotMat = glm::rotate(panRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
                     break;
                     
                 case Pos_Z: //+Z face
@@ -2563,7 +2563,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                     
                 case Neg_Z: //-Z face
 					vpPtr->setEnabled(false);
-                    rotMat = glm::rotate(panRot, 180.0f, glm::vec3(0.0f, 1.0f, 0.0f));
+					rotMat = glm::rotate(panRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
             }
             

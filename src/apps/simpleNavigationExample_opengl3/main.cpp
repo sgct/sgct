@@ -20,7 +20,7 @@ void drawPyramid(int index);
 void createXZGrid(int size, float yPos);
 void createPyramid(float width);
 
-float rotationSpeed = 0.1f;
+float rotationSpeed = 0.0017f;
 float walkingSpeed = 2.5f;
 
 const int landscapeSize = 50;

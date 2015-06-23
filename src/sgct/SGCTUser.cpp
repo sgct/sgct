@@ -107,9 +107,9 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 {
 	//create rotation quaternion based on x, y, z rotations
 	/*glm::quat rotQuat;
-	rotQuat = glm::rotate( rotQuat, xRot, glm::vec3(1.0f, 0.0f, 0.0f) );
-	rotQuat = glm::rotate( rotQuat, yRot, glm::vec3(0.0f, 1.0f, 0.0f) );
-	rotQuat = glm::rotate( rotQuat, zRot, glm::vec3(0.0f, 0.0f, 1.0f) );*/
+	rotQuat = glm::rotate( rotQuat, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f) );
+	rotQuat = glm::rotate( rotQuat, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f) );
+	rotQuat = glm::rotate( rotQuat, glm::radians(zRot), glm::vec3(0.0f, 0.0f, 1.0f) );*/
 
 	//create offset translation matrix
 	glm::mat4 transMat = glm::translate( glm::mat4(1.0f), mPos[Frustum::Mono] );

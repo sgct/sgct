@@ -126,7 +126,7 @@ void myDrawFun()
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
 
-	double speed = 25.0;
+	double speed = 0.44;
 
 	//create scene transform (animation)
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );

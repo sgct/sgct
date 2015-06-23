@@ -53,7 +53,7 @@ void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, 
 	glm::vec3 vertex, transformedVertex;
 	unsigned int pos = 0;
 
-	glm::mat3 rotMat = glm::mat3( glm::rotate( glm::mat4(1.0f), -tilt, glm::vec3(1.0f, 0.0f, 0.0f) ) );
+	glm::mat3 rotMat = glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(-tilt), glm::vec3(1.0f, 0.0f, 0.0f)));
 
 	//create rings
 	for(unsigned int r = 1; r <= mRings; r++)

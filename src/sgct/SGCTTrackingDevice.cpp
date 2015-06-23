@@ -173,11 +173,11 @@ void sgct::SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot
 	mWorldTransform[CURRENT] = systemTransformMatrix * sensorTransMat * sensorRotMat * mDeviceTransformMatrix;
 
 	/*glm::mat4 post_rot = glm::rotate(glm::mat4(1.0f),
-		glm::degrees<float>(1.66745f),
+		1.66745f,
 		glm::vec3(0.928146f, 0.241998f, -0.282811f));
 
 	glm::mat4 pre_rot = glm::rotate(glm::mat4(1.0f),
-		glm::degrees<float>(2.09439f),
+		2.09439f,
 		glm::vec3(-0.57735f, -0.57735f, 0.57735f));
 
 	glm::mat4 worldSensorRot = post_rot * glm::mat4_cast(sensorRot) * pre_rot;
@@ -226,9 +226,9 @@ void sgct::SGCTTrackingDevice::setOrientation(float xRot, float yRot, float zRot
 {
 	//create rotation quaternion based on x, y, z rotations
 	glm::quat rotQuat;
-	rotQuat = glm::rotate( rotQuat, xRot, glm::vec3(1.0f, 0.0f, 0.0f) );
-	rotQuat = glm::rotate( rotQuat, yRot, glm::vec3(0.0f, 1.0f, 0.0f) );
-	rotQuat = glm::rotate( rotQuat, zRot, glm::vec3(0.0f, 0.0f, 1.0f) );
+	rotQuat = glm::rotate(rotQuat, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.0f, 1.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.0f, 0.0f, 1.0f));
 
 	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
 	//create inverse rotation matrix

@@ -95,7 +95,7 @@ void myInitFun()
 
 void myDrawFun()
 {
-	float speed = 50.0f;
+	float speed = 0.87f;
 
 	glm::mat4 scene_mat = glm::rotate( glm::mat4(1.0f), static_cast<float>( curr_time.getVal() ) * speed, glm::vec3(0.0f, 1.0f, 0.0f));
 	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;

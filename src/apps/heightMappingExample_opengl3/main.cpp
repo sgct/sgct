@@ -108,7 +108,7 @@ void myDrawFun()
 
 	glLineWidth(1.0); //for wireframe
 
-	double speed = 8.0;
+	double speed = 0.14;
 
 	//create scene transform (animation)
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, -0.15f, 2.5f ) );

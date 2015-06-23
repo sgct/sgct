@@ -819,8 +819,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 		vertical_fov *= fovTweeks[1];
 
 	glm::quat rotQuat;
-	rotQuat = glm::rotate(rotQuat, -azimuth, glm::vec3(0.0f, 1.0f, 0.0f));
-	rotQuat = glm::rotate(rotQuat, elevation, glm::vec3(1.0f, 0.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.0f, 1.0f, 0.0f));
+	rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.0f, 0.0f, 0.0f));
 
 	parent->getUser()->setPos(0.0f, 0.0f, 0.0f);
 	parent->setViewPlaneCoordsUsingFOVs(

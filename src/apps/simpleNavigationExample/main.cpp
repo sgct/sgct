@@ -17,7 +17,7 @@ void mouseButtonCallback(int button, int action);
 void drawXZGrid(int size, float yPos);
 void drawPyramid(float width);
 
-float rotationSpeed = 0.1f;
+float rotationSpeed = 0.0017f;
 float walkingSpeed = 2.5f;
 
 GLuint myLandscapeDisplayList = 0;

@@ -514,9 +514,9 @@ bool sgct_core::ReadConfig::readAndParseXML()
 												distance = tmpf;
 											}
 
-											rotQuat = glm::rotate(rotQuat, -azimuth, glm::vec3(0.0f, 1.0f, 0.0f));
-											rotQuat = glm::rotate(rotQuat, elevation, glm::vec3(1.0f, 0.0f, 0.0f));
-											rotQuat = glm::rotate(rotQuat, roll, glm::vec3(0.0f, 0.0f, -1.0f));
+											rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.0f, 1.0f, 0.0f));
+											rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.0f, 0.0f, 0.0f));
+											rotQuat = glm::rotate(rotQuat, glm::radians(roll), glm::vec3(0.0f, 0.0f, -1.0f));
 										}
 
 										//iterate

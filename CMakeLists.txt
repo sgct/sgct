@@ -295,7 +295,7 @@ add_definitions(-DGLEW_NO_GLU)
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
-add_dependencies(${LIB_NAME} freetype glew glfw png15_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
+add_dependencies(${LIB_NAME} freetype glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)

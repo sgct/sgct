@@ -35,11 +35,10 @@ if(UNIX AND NOT DEFINED CMAKE_BUILD_TYPE)
 endif()
 
 project(libpng C)
-enable_testing()
 
 set(PNGLIB_MAJOR 1)
-set(PNGLIB_MINOR 5)
-set(PNGLIB_RELEASE 14)
+set(PNGLIB_MINOR 6)
+set(PNGLIB_RELEASE 17)
 set(PNGLIB_NAME libpng${PNGLIB_MAJOR}${PNGLIB_MINOR})
 set(PNGLIB_VERSION ${PNGLIB_MAJOR}.${PNGLIB_MINOR}.${PNGLIB_RELEASE})
 
@@ -104,8 +103,6 @@ set(libpng_sources
 )
 # SOME NEEDED DEFINITIONS
 
-add_definitions(-DPNG_CONFIGURE_LIBPNG)
-
 if(MSVC)
   add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
   
@@ -119,40 +116,24 @@ if(MSVC)
 endif(MSVC)
 
 # NOW BUILD OUR TARGET
-include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_SRCS})
+include_directories(${CMAKE_CURRENT_SOURCE_DIR} ${ZLIB_INCLUDE_DIR})
+
+unset(PNG_LIB_TARGETS)
 
 # does not work without changing name
 set(PNG_LIB_NAME_STATIC ${PNG_LIB_NAME}_static)
 add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
+list(APPEND PNG_LIB_TARGETS ${PNG_LIB_NAME_STATIC})
 if(MSVC)
-	# msvc does not append 'lib' - do it here to have consistent name
-	set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib")
+# msvc does not append 'lib' - do it here to have consistent name
+set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib")
 endif()
-target_link_libraries(${PNG_LIB_NAME_STATIC} ${zlibstatic} ${M_LIBRARY})
+target_link_libraries(${PNG_LIB_NAME_STATIC} ${ZLIB_LIBRARY} ${M_LIBRARY})
 
 # Ensure the CMAKE_LIBRARY_OUTPUT_DIRECTORY is set
 IF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
   SET(CMAKE_LIBRARY_OUTPUT_DIRECTORY "lib")
 ENDIF(NOT CMAKE_LIBRARY_OUTPUT_DIRECTORY)
-
-# Set a variable with CMake code which:
-# Creates a symlink from src to dest (if possible) or alternatively
-# copies if different.
-macro(CREATE_SYMLINK SRC_FILE DEST_FILE)
-  FILE(REMOVE ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE})
-  if(WIN32 AND NOT CYGWIN AND NOT MSYS AND NOT MINGW)
-    ADD_CUSTOM_COMMAND(
-        OUTPUT ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE}   ${CMAKE_CURRENT_BINARY_DIR}/${DEST_FILE}
-        COMMAND ${CMAKE_COMMAND} -E copy        ${CMAKE_CURRENT_BINARY_DIR}/${SRC_FILE} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE}
-        COMMAND ${CMAKE_COMMAND} -E copy        ${CMAKE_CURRENT_BINARY_DIR}/${SRC_FILE} ${CMAKE_CURRENT_BINARY_DIR}/${DEST_FILE}
-        DEPENDS ${PNG_LIB_NAME} ${PNG_LIB_NAME_STATIC}
-        )
-    ADD_CUSTOM_TARGET(${DEST_FILE}_COPY ALL DEPENDS ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE})
-  else()
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${SRC_FILE} ${CMAKE_LIBRARY_OUTPUT_DIRECTORY}/${DEST_FILE} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-    execute_process(COMMAND ${CMAKE_COMMAND} -E create_symlink ${SRC_FILE} ${DEST_FILE} WORKING_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR})
-  endif()
-endmacro()
 
 # libpng is a library so default to 'lib'
 if(NOT DEFINED CMAKE_INSTALL_LIBDIR)
@@ -242,16 +223,3 @@ if(NOT SKIP_INSTALL_FILES AND NOT SKIP_INSTALL_ALL )
             DESTINATION bin)
   endif(NOT WIN32 OR CYGWIN OR MINGW)
 endif()
-
-# what's with libpng-$VER%.txt and all the extra files?
-
-# UNINSTALL
-# do we need this?
-
-# DIST
-# do we need this?
-
-# to create msvc import lib for mingw compiled shared lib
-# pexports libpng.dll > libpng.def
-# lib /def:libpng.def /machine:x86
-

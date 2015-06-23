@@ -12,7 +12,7 @@ DEL libsgct.a
 ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
-ar x deps/libpng15.a
+ar x deps/libpng16.a
 ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
@@ -24,7 +24,7 @@ DEL libsgctd.a
 ar x deps/libglewd.a
 ar x deps/libglfw3d.a
 ar x deps/libzlibstaticd.a
-ar x deps/libpng15d.a
+ar x deps/libpng16d.a
 ar x deps/libturbojpegd.a
 ar x deps/libfreetyped.a
 ar x deps/libtinyxml2d.a
@@ -40,7 +40,7 @@ DEL libsgctd.a
 ar x deps/libglewd.a
 ar x deps/libglfw3d.a
 ar x deps/libzlibstaticd.a
-ar x deps/libpng15d.a
+ar x deps/libpng16d.a
 ar x deps/libturbojpegd.a
 ar x deps/libfreetyped.a
 ar x deps/libtinyxml2d.a
@@ -56,7 +56,7 @@ DEL libsgct.a
 ar x deps/libglew.a
 ar x deps/libglfw3.a
 ar x deps/libzlibstatic.a
-ar x deps/libpng15.a
+ar x deps/libpng16.a
 ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a

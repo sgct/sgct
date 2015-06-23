@@ -10,7 +10,7 @@ then
 	ar x deps/libglew.a
 	ar x deps/libglfw3.a
 	ar x deps/libz.a
-	ar x deps/libpng15.a
+	ar x deps/libpng16.a
 	ar x deps/libturbojpeg.a
 	ar x deps/libfreetype.a
 	ar x deps/libtinyxml2.a
@@ -27,7 +27,7 @@ then
 	ar x deps/libglewd.a
 	ar x deps/libglfw3d.a
 	ar x deps/libzd.a
-	ar x deps/libpng15d.a
+	ar x deps/libpng16d.a
 	ar x deps/libturbojpegd.a
 	ar x deps/libfreetyped.a
 	ar x deps/libtinyxml2d.a
@@ -47,7 +47,7 @@ then
 	ar x deps/libglew.a
 	ar x deps/libglfw3.a
 	ar x deps/libz.a
-	ar x deps/libpng15.a
+	ar x deps/libpng16.a
 	ar x deps/libturbojpeg.a
 	ar x deps/libfreetype.a
 	ar x deps/libtinyxml2.a
@@ -67,7 +67,7 @@ then
 	ar x deps/libglewd.a
 	ar x deps/libglfw3d.a
 	ar x deps/libzd.a
-	ar x deps/libpng15d.a
+	ar x deps/libpng16d.a
 	ar x deps/libturbojpegd.a
 	ar x deps/libfreetyped.a
 	ar x deps/libtinyxml2d.a

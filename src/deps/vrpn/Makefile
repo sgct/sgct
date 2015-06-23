@@ -654,6 +654,7 @@ SLIB_FILES =  $(LIB_FILES) \
 	vrpn_BiosciencesTools.C \
 	vrpn_Button_NI_DIO24.C \
 	vrpn_CerealBox.C \
+	vrpn_CHProducts_Controller_Raw.C \
 	vrpn_Contour.C \
 	vrpn_Dyna.C \
 	vrpn_DreamCheeky.C \
@@ -684,9 +685,11 @@ SLIB_FILES =  $(LIB_FILES) \
 	vrpn_Mouse.C \
 	vrpn_NationalInstruments.C \
 	vrpn_nikon_controls.C \
+	vrpn_OmegaTemperature.C \
 	vrpn_Poser_Analog.C \
 	vrpn_Poser_Tek4662.C \
 	vrpn_raw_sgibox.C \
+	vrpn_Retrolink.C \
 	vrpn_Saitek_Controller_Raw.C \
 	vrpn_sgibox.C \
 	vrpn_Spaceball.C \
@@ -720,6 +723,7 @@ SLIB_FILES =  $(LIB_FILES) \
 	vrpn_WiiMote.C \
 	vrpn_Xkeys.C \
 	vrpn_Tracker_LibertyHS.C \
+	vrpn_YEI_3Space.C \
 	vrpn_Zaber.C 
 
 SLIB_OBJECTS = $(patsubst %,$(SOBJECT_DIR)/%,$(SLIB_FILES:.C=.o))
@@ -738,6 +742,7 @@ SLIB_INCLUDES = $(LIB_INCLUDES) \
 	vrpn_BiosciencesTools.h \
 	vrpn_Button_NI_DIO24.h \
 	vrpn_CerealBox.h \
+	vrpn_CHProducts_Controller_Raw.h \
 	vrpn_Contour.h \
 	vrpn_Dyna.h \
 	vrpn_DreamCheeky.h \
@@ -766,9 +771,12 @@ SLIB_INCLUDES = $(LIB_INCLUDES) \
 	vrpn_Mouse.h \
 	vrpn_NationalInstruments.h \
 	vrpn_nikon_controls.h \
+	vrpn_OneEuroFilter.h \
+	vrpn_OmegaTemperature.h \
 	vrpn_Poser_Analog.h \
 	vrpn_Poser_Tek4662.h \
 	vrpn_raw_sgibox.h \
+	vrpn_Retrolink.h \
 	vrpn_Saitek_Controller_Raw.h \
 	vrpn_sgibox.h \
 	vrpn_Spaceball.h \
@@ -802,6 +810,7 @@ SLIB_INCLUDES = $(LIB_INCLUDES) \
 	vrpn_WiiMote.h \
 	vrpn_Xkeys.h \
 	vrpn_Tracker_LibertyHS.h \
+	vrpn_YEI_3Space.h \
 	vrpn_Zaber.h 
 
 ifeq ($(HW_OS), pc_linux64)

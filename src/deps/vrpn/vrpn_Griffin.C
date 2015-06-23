@@ -6,18 +6,15 @@
 
 #include "vrpn_Griffin.h"
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #if defined(VRPN_USE_HID)
 
-static double POLL_INTERVAL = 1e+6 / 30.0;		// If we have not heard, ask.
+static const double POLL_INTERVAL = 1e+6 / 30.0;		// If we have not heard, ask.
 
 // USB vendor and product IDs for the models we support
 static const vrpn_uint16 GRIFFIN_VENDOR = 0x077d;
 static const vrpn_uint16 GRIFFIN_POWERMATE = 0x0410;
-
-static unsigned long duration(struct timeval t1, struct timeval t2)
-{
-	return ((t1.tv_usec - t2.tv_usec) + (1000000L * (t1.tv_sec - t2.tv_sec)));
-}
 
 static void normalize_axis(const unsigned int value, const short deadzone, const vrpn_float64 scale, vrpn_float64& channel) {
 	channel = (static_cast<float>(value) - 128.0f);
@@ -40,9 +37,9 @@ static void normalize_axes(const unsigned int x, const unsigned int y, const sho
 }
 
 vrpn_Griffin::vrpn_Griffin(vrpn_HidAcceptor *filter, const char *name, vrpn_Connection *c)
-  : _filter(filter)
-  , vrpn_HidInterface(_filter)
+  : vrpn_HidInterface(filter)
   , vrpn_BaseClass(name, c)
+  , _filter(filter)
 {
 	init_hid();
 }
@@ -99,7 +96,7 @@ void vrpn_Griffin_PowerMate::mainloop(void)
 	server_mainloop();
 	struct timeval current_time;
 	vrpn_gettimeofday(&current_time, NULL);
-	if (duration(current_time, _timestamp) > POLL_INTERVAL ) {
+	if (vrpn_TimevalDuration(current_time, _timestamp) > POLL_INTERVAL ) {
 		_timestamp = current_time;
 		report_changes();
 
@@ -180,17 +177,13 @@ void vrpn_Griffin_PowerMate::decodePacket(size_t bytes, vrpn_uint8 *buffer) {
         // byte is removed by the HIDAPI driver.
 	// XXX Check to see that this works with HIDAPI, there may be two smaller reports.
 	if (bytes == 6) {
-		static bool set = false;
 
-		if (vrpn_Dial::num_dials > 0)
-		{
+		if (vrpn_Dial::num_dials > 0) {
 			// dial (2nd byte)
 			// Do the unsigned/signed conversion at the last minute so the
 			// signed values work properly.
 			dials[0] = static_cast<vrpn_int8>(buffer[1]);
-		}
-		else
-		{
+		} else {
 			// dial (2nd byte)
 			normalize_axis(buffer[1], 5, 1.0f, channel[0]);
 		}

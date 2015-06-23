@@ -6,6 +6,8 @@
 
 class VRPN_API vrpn_Connection;
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #if defined(VRPN_USE_HID)
 
 // USB vendor and product IDs for the models we support
@@ -13,10 +15,11 @@ static const vrpn_uint16 DREAMCHEEKY_VENDOR = 6465;
 static const vrpn_uint16 USB_ROLL_UP_DRUM_KIT = 32801;
 
 vrpn_DreamCheeky::vrpn_DreamCheeky(vrpn_HidAcceptor *filter, const char *name, vrpn_Connection *c)
-  : _filter(filter)
-  , vrpn_HidInterface(_filter)
+  : vrpn_HidInterface(filter)
   , vrpn_BaseClass(name, c)
+  , _filter(filter)
 {
+  vrpn_gettimeofday(&_timestamp, NULL);
 }
 
 vrpn_DreamCheeky::~vrpn_DreamCheeky()

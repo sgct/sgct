@@ -14,6 +14,8 @@
 const unsigned SPACEPOINT_VENDOR = 0x20ff;
 const unsigned SPACEPOINT_PRODUCT = 0x0100;
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #ifdef VRPN_USE_HID
 vrpn_Tracker_SpacePoint::vrpn_Tracker_SpacePoint(const char * name, vrpn_Connection * trackercon) :
                     vrpn_Tracker(name, trackercon), vrpn_Button(name, trackercon),
@@ -23,6 +25,7 @@ vrpn_Tracker_SpacePoint::vrpn_Tracker_SpacePoint(const char * name, vrpn_Connect
     d_quat[3] = 1.0;
 
     vrpn_Button::num_buttons = 2;
+    vrpn_gettimeofday(&_timestamp, NULL);
 }
 
 void vrpn_Tracker_SpacePoint::on_data_received(size_t bytes, vrpn_uint8 *buffer)

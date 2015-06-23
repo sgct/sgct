@@ -10,12 +10,6 @@
 #define M_PI		3.14159265358979323846
 #endif
 
-static	double	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) / 1000000.0 +
-	       (t1.tv_sec - t2.tv_sec);
-}
-
 vrpn_Tracker_AnalogFly::vrpn_Tracker_AnalogFly
          (const char * name, vrpn_Connection * trackercon,
           vrpn_Tracker_AnalogFlyParam * params, float update_rate,
@@ -27,6 +21,7 @@ vrpn_Tracker_AnalogFly::vrpn_Tracker_AnalogFly
 	d_clutch_button(NULL),
 	d_clutch_which (params->clutch_which),
 	d_clutch_engaged(false),
+	d_clutch_was_off(false),
 	d_update_interval (update_rate ? (1/update_rate) : 1.0),
 	d_absolute (absolute),
 	d_reportChanges (reportChanges),
@@ -361,7 +356,7 @@ void vrpn_Tracker_AnalogFly::mainloop()
   // See if it has been long enough since our last report.
   // If so, generate a new one.
   vrpn_gettimeofday(&now, NULL);
-  interval = duration(now, d_prevtime);
+  interval = vrpn_TimevalDurationSeconds(now, d_prevtime);
 
   if (shouldReport(interval)) {
 
@@ -440,9 +435,8 @@ void	vrpn_Tracker_AnalogFly::update_matrix_based_on_values
 
   // While the clutch is not engaged, we don't move.  Record that
   // the clutch was off so that we know later when it is re-engaged.
-  static bool clutch_was_off = false;
   if (!d_clutch_engaged) {
-    clutch_was_off = true;
+    d_clutch_was_off = true;
     return;
   }
   
@@ -451,8 +445,8 @@ void	vrpn_Tracker_AnalogFly::update_matrix_based_on_values
   // the first frame of the mouse-hold leaves us in the same location.
   // For the absolute matrix, this re-engages new motion at the previous
   // location.
-  if (d_clutch_engaged && clutch_was_off) {
-    clutch_was_off = false;
+  if (d_clutch_engaged && d_clutch_was_off) {
+    d_clutch_was_off = false;
     q_type  diff_orient;
     // This is backwards, because Euler angles have rotation about Z first...
     q_from_euler(diff_orient, rz, ry, rx);

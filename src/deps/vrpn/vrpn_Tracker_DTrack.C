@@ -71,8 +71,19 @@
 #include <stdlib.h>                     // for strtod, exit, free, malloc, etc
 #include <string.h>                     // for strncmp, memset, strcat, etc
 
+#include "quat.h"                       // for Q_RAD_TO_DEG, etc
+#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
+#include "vrpn_Shared.h"                // for timeval, INVALID_SOCKET, etc
+#include "vrpn_Tracker_DTrack.h"
+#include "vrpn_Types.h"                 // for vrpn_float64
+#include "vrpn_MessageMacros.h"         // for VRPN_MSG_INFO, VRPN_MSG_WARNING, VRPN_MSG_ERROR
+
 #ifdef OS_WIN
-	#include <winsock.h>
+  #ifdef VRPN_USE_WINSOCK2
+    #include <winsock2.h>    // struct timeval is defined here
+  #else
+    #include <winsock.h>    // struct timeval is defined here
+  #endif
 #endif
 #ifdef OS_UNIX
 	#include <netinet/in.h>                 // for sockaddr_in, INADDR_ANY, etc
@@ -81,11 +92,6 @@
 	#include <sys/select.h>                 // for select, FD_SET, FD_SETSIZE, etc
 #endif
 
-#include "quat.h"                       // for Q_RAD_TO_DEG, etc
-#include "vrpn_Connection.h"            // for vrpn_CONNECTION_LOW_LATENCY, etc
-#include "vrpn_Shared.h"                // for timeval, INVALID_SOCKET, etc
-#include "vrpn_Tracker_DTrack.h"
-#include "vrpn_Types.h"                 // for vrpn_float64
 
 // There is a problem with linking on SGIs related to standard libraries.
 #ifndef sgi
@@ -100,10 +106,6 @@
 
 // --------------------------------------------------------------------------
 
-#define	DT_INFO(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_NORMAL) ; if (d_connection) d_connection->send_pending_reports(); }
-#define	DT_WARNING(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_WARNING) ; if (d_connection) d_connection->send_pending_reports(); }
-#define	DT_ERROR(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_ERROR) ; if (d_connection) d_connection->send_pending_reports(); }
-
 // Local error codes:
 
 #define DTRACK_ERR_NONE       0  // no error
@@ -112,8 +114,6 @@
 #define DTRACK_ERR_PARSE      3  // error in UDP packet
 
 // Local prototypes:
-
-static double duration_sec(struct timeval t1, struct timeval t2);
 
 static char* string_nextline(char* str, char* start, int len);
 static char* string_get_i(char* str, int* i);
@@ -280,11 +280,11 @@ void vrpn_Tracker_DTrack::mainloop()
 		tim_first = tim_last = timestamp;
 	}
 
-	dt = (float )duration_sec(timestamp, tim_last);
+	dt = (float )vrpn_TimevalDurationSeconds(timestamp, tim_last);
 	tim_last = timestamp;
 	
 	if(tracing && ((tracing_frames % 10) == 0)){
-		printf("framenr %u  time %.3f\n", act_framecounter, duration_sec(timestamp, tim_first));
+		printf("framenr %u  time %.3lf\n", act_framecounter, vrpn_TimevalDurationSeconds(timestamp, tim_first));
 	}
 
 	// find number of targets visible for vrpn to choose the correct vrpn ID numbers:
@@ -329,13 +329,13 @@ void vrpn_Tracker_DTrack::mainloop()
 		}
 	}
 
-	if(num_channel >= (int )joy_last.size()){  // adjust length of vector for current joystick value
+	if(num_channel >= static_cast<int>(joy_last.size())){  // adjust length of vector for current joystick value
 		size_t j0 = joy_last.size();
 		
 		joy_simulate.resize(num_channel);
 		joy_last.resize(num_channel);
 
-		for(int j=j0; j<num_channel; j++){
+		for(size_t j=j0; j< static_cast<size_t>(num_channel); j++){
 			joy_simulate[j] = false;
 			joy_last[j] = 0;
 		}
@@ -385,15 +385,6 @@ void vrpn_Tracker_DTrack::mainloop()
 
 // -----------------------------------------------------------------------------------------
 // Helpers:
-
-// Get duration between two timestamps:
-// t1, t2 (i): timestamps
-// return value (o): duration in sec
-
-static double duration_sec(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec)/ 1000000.+ (t1.tv_sec - t2.tv_sec);
-}
 
 
 // ---------------------------------------------------------------------------------------------------

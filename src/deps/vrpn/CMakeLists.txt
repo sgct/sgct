@@ -282,6 +282,7 @@ set(VRPN_CLIENT_PUBLIC_HEADERS
 	vrpn_BaseClass.h
 	vrpn_Button.h
 	vrpn_Connection.h
+	vrpn_ConnectionPtr.h
 	vrpn_Dial.h
 	vrpn_FileConnection.h
 	vrpn_FileController.h
@@ -295,6 +296,7 @@ set(VRPN_CLIENT_PUBLIC_HEADERS
 	vrpn_MainloopContainer.h
 	vrpn_MainloopObject.h
 	vrpn_Mutex.h
+	vrpn_RedundantTransmission.h
 	vrpn_SendTextMessageStreamProxy.h
 	vrpn_Serial.h
 	vrpn_SerialPort.h
@@ -305,222 +307,8 @@ set(VRPN_CLIENT_PUBLIC_HEADERS
 	vrpn_Tracker.h
 	vrpn_Types.h)
 
-set(VRPN_SERVER_SOURCES
-	${VRPN_CLIENT_SOURCES}
-	vrpn_3DConnexion.C
-	vrpn_3DMicroscribe.C
-	vrpn_3Space.C
-	vrpn_5DT16.C
-	vrpn_ADBox.C
-	vrpn_Analog_5dt.C
-	vrpn_Analog_5dtUSB.C
-	vrpn_Analog_Radamec_SPI.C
-	vrpn_Analog_USDigital_A2.C
-	vrpn_Atmel.C
-	vrpn_BiosciencesTools.C
-	vrpn_Button_NI_DIO24.C
-	vrpn_Button_USB.cpp
-	vrpn_CerealBox.C
-	vrpn_Contour.C
-	vrpn_DevInput.C
-	vrpn_DirectXFFJoystick.C
-	vrpn_DirectXRumblePad.C
-	vrpn_DreamCheeky.C
-	vrpn_Dyna.C
-	vrpn_Event_Analog.C
-	vrpn_Event.C
-	vrpn_Event_Mouse.C
-	vrpn_Flock.C
-	vrpn_Flock_Parallel.C
-	vrpn_ForceDeviceServer.C
-	vrpn_Freespace.C
-	vrpn_FunctionGenerator.C
-	vrpn_Futaba.C
-	vrpn_GlobalHapticsOrb.C
-	vrpn_Griffin.C
-	vrpn_HumanInterface.C
-	vrpn_IDEA.C
-	vrpn_Imager_Stream_Buffer.C
-	vrpn_ImmersionBox.C
-	vrpn_inertiamouse.C
-	vrpn_JoyFly.C
-	vrpn_Joylin.C
-	vrpn_Joywin32.C
-	vrpn_Keyboard.C
-	vrpn_LUDL.C
-	vrpn_Logitech_Controller_Raw.C
-	vrpn_Magellan.C
-	vrpn_Microsoft_Controller_Raw.C
-	vrpn_Mouse.C
-	vrpn_NationalInstruments.C
-	vrpn_Nidaq.C
-	vrpn_nikon_controls.C
-	vrpn_Poser_Analog.C
-	vrpn_Poser_Tek4662.C
-	vrpn_raw_sgibox.C
-	vrpn_Saitek_Controller_Raw.C
-	vrpn_sgibox.C
-	vrpn_Spaceball.C
-	vrpn_Tng3.C
-	vrpn_Tracker_3DMouse.C
-	vrpn_Tracker_AnalogFly.C
-	vrpn_Tracker_ButtonFly.C
-	vrpn_Tracker_Crossbow.C
-	vrpn_Tracker_DTrack.C
-	vrpn_Tracker_Fastrak.C
-	vrpn_Tracker_Filter.C
-	vrpn_Tracker_GameTrak.C
-	vrpn_Tracker_GPS.C
-	vrpn_Tracker_isense.C
-	vrpn_Tracker_Isotrak.C
-	vrpn_Tracker_JsonNet.C
-	vrpn_Tracker_Liberty.C
-	vrpn_Tracker_MotionNode.C
-	vrpn_Tracker_NDI_Polaris.C
-	vrpn_Tracker_NovintFalcon.C
-	vrpn_Tracker_PhaseSpace.C
-	vrpn_Tracker_RazerHydra.C
-	vrpn_Tracker_SpacePoint.C
-	vrpn_Tracker_Wintracker.C
-	vrpn_Tracker_TrivisioColibri.C
-	vrpn_Tracker_WiimoteHead.C
-	vrpn_Tracker_zSight.C
-	vrpn_Tracker_ViewPoint.C
-	vrpn_UNC_Joystick.C
-	vrpn_VPJoystick.C
-	vrpn_Wanda.C
-	vrpn_WiiMote.C
-	vrpn_XInputGamepad.C
-	vrpn_Xkeys.C
-	vrpn_Tracker_LibertyHS.C
-	vrpn_Zaber.C
-	server_src/vrpn_Generic_server_object.C
-	${HIDAPI_SOURCES}
-	${JSONCPP_SOURCES}
-	${PDI_SOURCES})
-
-set(VRPN_SERVER_PUBLIC_HEADERS
-	${VRPN_CLIENT_PUBLIC_HEADERS}
-	vrpn_3DConnexion.h
-	vrpn_3DMicroscribe.h
-	vrpn_3Space.h
-	vrpn_5DT16.h
-	vrpn_ADBox.h
-	vrpn_Analog_5dt.h
-	vrpn_Analog_5dtUSB.h
-	vrpn_Analog_Radamec_SPI.h
-	vrpn_Analog_USDigital_A2.h
-	vrpn_Atmel.h
-	vrpn_BiosciencesTools.h
-	vrpn_Button_NI_DIO24.h
-	vrpn_Button_USB.h
-	vrpn_CerealBox.h
-	vrpn_Contour.h
-	vrpn_DevInput.h
-	vrpn_DirectXFFJoystick.h
-	vrpn_DirectXRumblePad.h
-	vrpn_DreamCheeky.h
-	vrpn_Dyna.h
-	vrpn_Event_Analog.h
-	vrpn_Event.h
-	vrpn_Event_Mouse.h
-	vrpn_Flock.h
-	vrpn_Flock_Parallel.h
-	vrpn_ForceDeviceServer.h
-	vrpn_Freespace.h
-	vrpn_FunctionGenerator.h
-	vrpn_Futaba.h
-	vrpn_GlobalHapticsOrb.h
-	vrpn_Griffin.h
-	vrpn_HashST.h
-	vrpn_HumanInterface.h
-	vrpn_IDEA.h
-	vrpn_Imager_Stream_Buffer.h
-	vrpn_ImmersionBox.h
-	vrpn_inertiamouse.h
-	vrpn_JoyFly.h
-	vrpn_Joylin.h
-	vrpn_Joywin32.h
-	vrpn_Keyboard.h
-	vrpn_Logitech_Controller_Raw.h
-	vrpn_LUDL.h
-	vrpn_Magellan.h
-	vrpn_Microsoft_Controller_Raw.h
-	vrpn_Mouse.h
-	vrpn_NationalInstruments.h
-	vrpn_Nidaq.h
-	vrpn_nikon_controls.h
-	vrpn_OneEuroFilter.h
-	vrpn_Poser_Analog.h
-	vrpn_Poser.h
-	vrpn_Poser_Tek4662.h
-	vrpn_raw_sgibox.h
-	vrpn_RedundantTransmission.h
-	vrpn_Saitek_Controller_Raw.h
-	vrpn_sgibox.h
-	vrpn_Spaceball.h
-	vrpn_Tng3.h
-	vrpn_Tracker_3DMouse.h
-	vrpn_Tracker_AnalogFly.h
-	vrpn_Tracker_ButtonFly.h
-	vrpn_Tracker_Crossbow.h
-	vrpn_Tracker_DTrack.h
-	vrpn_Tracker_Fastrak.h
-	vrpn_Tracker_Filter.h
-	vrpn_Tracker_GameTrak.h
-	vrpn_Tracker_GPS.h
-	vrpn_Tracker_isense.h
-	vrpn_Tracker_Isotrak.h
-	vrpn_Tracker_JsonNet.h
-	vrpn_Tracker_Liberty.h
-	vrpn_Tracker_MotionNode.h
-	vrpn_Tracker_NDI_Polaris.h
-	vrpn_Tracker_NovintFalcon.h
-	vrpn_Tracker_PhaseSpace.h
-	vrpn_Tracker_RazerHydra.h
-	vrpn_Tracker_SpacePoint.h
-	vrpn_Tracker_Wintracker.h
-	vrpn_Tracker_TrivisioColibri.h
-	vrpn_Tracker_WiimoteHead.h
-	vrpn_Tracker_zSight.h
-	vrpn_Tracker_ViewPoint.h
-	vrpn_UNC_Joystick.h
-	vrpn_VPJoystick.h
-	vrpn_Wanda.h
-	vrpn_WiiMote.h
-	vrpn_XInputGamepad.h
-	vrpn_Xkeys.h
-	vrpn_Tracker_LibertyHS.h
-	vrpn_Zaber.h
-	server_src/vrpn_Generic_server_object.h)
-
 set(VRPN_SERVER_LIBRARY)
 set(VRPN_CLIENT_LIBRARY)
-
-if(VRPN_BUILD_SERVER_LIBRARY)
-	add_library(vrpnserver
-		${VRPN_SERVER_SOURCES}
-		${VRPN_SERVER_PUBLIC_HEADERS})
-	target_link_libraries(vrpnserver ${EXTRA_LIBS} ${SERVER_EXTRA_LIBS})
-	set(VRPN_CLIENT_LIBRARY vrpnserver)
-	set(VRPN_SERVER_LIBRARY vrpnserver)
-	set_property(TARGET
-		vrpnserver
-		PROPERTY
-		PUBLIC_HEADER
-		${VRPN_SERVER_PUBLIC_HEADERS})
-	set_property(TARGET
-		vrpnserver
-		PROPERTY
-		PROJECT_LABEL
-		"Core VRPN Server Library")
-	set_property(TARGET
-		vrpnserver
-		PROPERTY
-		FOLDER
-		"Library")
-endif()
-
 
 if(VRPN_BUILD_CLIENT_LIBRARY)
 	add_library(vrpn ${VRPN_CLIENT_SOURCES} ${VRPN_CLIENT_PUBLIC_HEADERS})
@@ -544,7 +332,7 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 		vrpn
 		PROPERTY
 		PROJECT_LABEL
-		"Core VRPN Client Library")
+		"VRPN")
 	set_property(TARGET
 		vrpn
 		PROPERTY
@@ -560,21 +348,11 @@ add_subdirectory(client_src)
 set(VRPN_DEFINITIONS "-DVRPN_USING_CMAKE=\"${CMAKE_CURRENT_BINARY_DIR}/vrpn_Configure.h\""
 	CACHE INTERNAL "Definition to add if using as a subproject" FORCE)
 set(VRPN_CLIENT_LIBRARY ${VRPN_CLIENT_LIBRARY} CACHE INTERNAL "" FORCE)
-set(VRPN_SERVER_LIBRARY ${VRPN_SERVER_LIBRARY} CACHE INTERNAL "" FORCE)
 set(VRPN_INCLUDE_DIRS
 	"${CMAKE_CURRENT_BINARY_DIR}"
 	"${VRPN_SOURCE_DIR}"
-	"${VRPN_SOURCE_DIR}/atmellib"
 	"${VRPN_SOURCE_DIR}/quat"
 	CACHE INTERNAL "" FORCE)
-
-#-----------------------------------------------------------------------------
-# Build the server applications if we've been asked to and we didn't build
-# the library client-only.
-
-if(VRPN_BUILD_SERVERS AND VRPN_BUILD_SERVER_LIBRARY)
-	add_subdirectory(server_src)
-endif()
 
 #-----------------------------------------------------------------------------
 # Build the RPC generation if we've been asked to
@@ -591,33 +369,6 @@ endif()
 # Create documentation
 if(NOT SUBPROJECT)
 	add_subdirectory(doxygen)
-endif()
-
-#-----------------------------------------------------------------------------
-# Python wrappers
-#add_subdirectory(python_vrpn)
-#add_subdirectory(python)
-
-#-----------------------------------------------------------------------------
-# Java wrappers
-#add_subdirectory(java_vrpn)
-
-#-----------------------------------------------------------------------------
-# HID Gui
-#if(VRPN_BUILD_HID_GUI)
-#	add_subdirectory(hid_gui)
-#endif()
-
-#-----------------------------------------------------------------------------
-# Testing applications that live in the main directory.
-if(VRPN_BUILD_SERVERS AND VRPN_BUILD_SERVER_LIBRARY AND BUILD_TESTING AND WIN32)
-	foreach(SOURCE time_test.cpp)
-		get_filename_component(APP ${SOURCE} NAME_WE)
-		add_executable(${APP} ${SOURCE})
-		target_link_libraries(${APP} vrpnserver)
-		set_target_properties(${APP} PROPERTIES FOLDER Tests)
-#		install(TARGETS ${APP} RUNTIME DESTINATION bin COMPONENT tests)
-	endforeach()
 endif()
 
 #-----------------------------------------------------------------------------

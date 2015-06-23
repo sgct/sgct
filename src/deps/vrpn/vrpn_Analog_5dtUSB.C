@@ -19,6 +19,8 @@
 #include "vrpn_Analog_5dtUSB.h"
 #include "vrpn_BaseClass.h"             // for ::vrpn_TEXT_NORMAL, etc
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #if defined(VRPN_USE_HID)
 
 // USB vendor and product IDs for the models we support
@@ -67,6 +69,9 @@ vrpn_Analog_5dtUSB::vrpn_Analog_5dtUSB(vrpn_HidAcceptor *filter,
 	// Initialize the state of all the analogs
 	memset(channel, 0, sizeof(channel));
 	memset(last, 0, sizeof(last));
+
+	// Set the timestamp
+	vrpn_gettimeofday(&_timestamp, NULL);
 }
 
 vrpn_Analog_5dtUSB::~vrpn_Analog_5dtUSB() {

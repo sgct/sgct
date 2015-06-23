@@ -1,15 +1,6 @@
 cmake_minimum_required(VERSION 2.6)
 project(quatlib)
 
-SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
-SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
-
-if(MSVC)
-	if(NOT "${MSVC_VERSION}" LESS 1400)
-		add_definitions( "/MP" )
-	endif()
-endif()	
-	
 if(APPLE)
 	if(NOT CMAKE_OSX_ARCHITECTURES OR CMAKE_OSX_ARCHITECTURES STREQUAL "")
 		if(_CMAKE_OSX_MACHINE MATCHES "ppc")
@@ -44,29 +35,29 @@ set(QUATLIB_HEADER quat.h)
 add_library(quat ${QUATLIB_SOURCES} ${QUATLIB_HEADER})
 set_property(TARGET quat PROPERTY PUBLIC_HEADER ${QUATLIB_HEADER})
 set_target_properties(quat PROPERTIES FOLDER Library)
-#install(TARGETS
-#	quat
-#	ARCHIVE
-#	DESTINATION
-#	lib
-#	COMPONENT
-#	serversdk
-#	PUBLIC_HEADER
-#	DESTINATION
-#	include
-#	COMPONENT
-#	serversdk)
-#install(TARGETS
-#	quat
-#	ARCHIVE
-#	DESTINATION
-#	lib
-#	COMPONENT
-#	clientsdk
-#	PUBLIC_HEADER
-#	DESTINATION
-#	include
-#	COMPONENT
-#	clientsdk)
-
-add_subdirectory(testapps)
+if(VRPN_INSTALL)
+	install(TARGETS
+		quat
+		ARCHIVE
+		DESTINATION
+		lib
+		COMPONENT
+		serversdk
+		PUBLIC_HEADER
+		DESTINATION
+		include
+		COMPONENT
+		serversdk)
+	install(TARGETS
+		quat
+		ARCHIVE
+		DESTINATION
+		lib
+		COMPONENT
+		clientsdk
+		PUBLIC_HEADER
+		DESTINATION
+		include
+		COMPONENT
+		clientsdk)
+endif()

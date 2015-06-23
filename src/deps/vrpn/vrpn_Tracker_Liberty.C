@@ -17,14 +17,11 @@
 #include "vrpn_Shared.h"                // for vrpn_SleepMsecs, timeval, etc
 #include "vrpn_Tracker.h"               // for vrpn_TRACKER_FAIL, etc
 #include "vrpn_Tracker_Liberty.h"
+#include "vrpn_MessageMacros.h"         // for VRPN_MSG_INFO, VRPN_MSG_WARNING, VRPN_MSG_ERROR
 
 #define	INCHES_TO_METERS	(2.54/100.0)
-static bool DEBUG = false;  // General Debug Messages
-static bool DEBUGA = false; // Only errors
-
-#define	FT_INFO(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_NORMAL) ; if (d_connection && d_connection->connected()) d_connection->send_pending_reports(); }
-#define	FT_WARNING(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_WARNING) ; if (d_connection && d_connection->connected()) d_connection->send_pending_reports(); }
-#define	FT_ERROR(msg)	{ send_text_message(msg, timestamp, vrpn_TEXT_ERROR) ; if (d_connection && d_connection->connected()) d_connection->send_pending_reports(); }
+const bool DEBUG = false;  // General Debug Messages
+const bool DEBUGA = false; // Only errors
 
 vrpn_Tracker_Liberty::vrpn_Tracker_Liberty(const char *name, vrpn_Connection *c, 
 		      const char *port, long baud, int enable_filtering, int numstations,
@@ -32,7 +29,9 @@ vrpn_Tracker_Liberty::vrpn_Tracker_Liberty(const char *name, vrpn_Connection *c,
     vrpn_Tracker_Serial(name,c,port,baud),
     do_filter(enable_filtering),
     num_stations(numstations>vrpn_LIBERTY_MAX_STATIONS ? vrpn_LIBERTY_MAX_STATIONS : numstations),
-    whoami_len(whoamilen>vrpn_LIBERTY_MAX_WHOAMI_LEN ? vrpn_LIBERTY_MAX_WHOAMI_LEN : whoamilen)
+    num_resets(0),
+    whoami_len(whoamilen>vrpn_LIBERTY_MAX_WHOAMI_LEN ? vrpn_LIBERTY_MAX_WHOAMI_LEN : whoamilen),
+    got_single_sync_char(0)
 {
 	int i;
 
@@ -93,7 +92,7 @@ int vrpn_Tracker_Liberty::set_sensor_output_format(int sensor)
 	    strlen(outstring)) == (int)strlen(outstring)) {
 		vrpn_SleepMsecs(50);	// Sleep for a bit to let command run
     } else {
-		FT_ERROR("Write failed on format command");
+		VRPN_MSG_ERROR("Write failed on format command");
 		status = vrpn_TRACKER_FAIL;
 		return -1;
     }
@@ -126,7 +125,6 @@ int vrpn_Tracker_Liberty::report_length(int sensor)
 
 void vrpn_Tracker_Liberty::reset()
 {
-   static int numResets = 0;	// How many resets have we tried?
    int i,resetLen,ret;
    char reset[10];
    char errmsg[512];
@@ -148,8 +146,8 @@ void vrpn_Tracker_Liberty::reset()
    // end, we're doing them all.
    fprintf(stderr,"[DEBUG] Beginning Reset");
    resetLen = 0;
-   numResets++;		  	// We're trying another reset
-   if (numResets > 0) {	// Try to get it out of a query loop if its in one
+   num_resets++;		  	// We're trying another reset
+   if (num_resets > 0) {	// Try to get it out of a query loop if its in one
    	reset[resetLen++] = (char) (13); // Return key -> get ready
 	reset[resetLen++] = 'F';
 	reset[resetLen++] = '0';
@@ -161,19 +159,19 @@ void vrpn_Tracker_Liberty::reset()
       headaches for people who are keeping state in their trackers (especially
       the InterSense trackers).  Taking them out in version 05.01; you can put
       them back in if your tracker isn't resetting as well.
-   if (numResets > 3) {	// Get a little more aggressive
+   if (num_resets > 3) {	// Get a little more aggressive
 	reset[resetLen++] = 'W'; // Reset to factory defaults
 	reset[resetLen++] = (char) (11); // Ctrl + k --> Burn settings into EPROM
    }
    */
-   if (numResets > 2) {
+   if (num_resets > 2) {
        reset[resetLen++] = (char) (25); // Ctrl + Y -> reset the tracker
        reset[resetLen++] = (char) (13); // Return Key
    }
    reset[resetLen++] = 'P'; // Put it into polled (not continuous) mode
 
-   sprintf(errmsg, "Resetting the tracker (attempt %d)", numResets);
-   FT_WARNING(errmsg);
+   sprintf(errmsg, "Resetting the tracker (attempt %d)", num_resets);
+   VRPN_MSG_WARNING(errmsg);
    for (i = 0; i < resetLen; i++) {
 	if (vrpn_write_characters(serial_fd, (unsigned char*)&reset[i], 1) == 1) {
 		fprintf(stderr,".");
@@ -188,7 +186,7 @@ void vrpn_Tracker_Liberty::reset()
    // You only need to sleep 10 seconds for an actual Liberty.
    // For the Intersense trackers, you need to sleep 20. So,
    // sleeping 20 is the more general solution...
-   if (numResets > 2) {
+   if (num_resets > 2) {
        vrpn_SleepMsecs(1000.0*20);	// Sleep to let the reset happen, if we're doing ^Y
    }
 
@@ -202,7 +200,7 @@ void vrpn_Tracker_Liberty::reset()
    unsigned char scrap[80];
    if ( (ret = vrpn_read_available_characters(serial_fd, scrap, 80)) != 0) {
      sprintf(errmsg,"Got >=%d characters after reset",ret);
-     FT_WARNING(errmsg);
+     VRPN_MSG_WARNING(errmsg);
      for (i = 0; i < ret; i++) {
       	if (isprint(scrap[i])) {
          	fprintf(stderr,"%c",scrap[i]);
@@ -256,12 +254,12 @@ void vrpn_Tracker_Liberty::reset()
          }
      }
      fprintf(stderr,"\n)\n");
-     FT_ERROR("Bad status report from Liberty, retrying reset");
+     VRPN_MSG_ERROR("Bad status report from Liberty, retrying reset");
      return;
    } else {
-     FT_WARNING("Liberty/Isense gives status (this is good)");
+     VRPN_MSG_WARNING("Liberty/Isense gives status (this is good)");
 printf("LIBERTY LATUS STATUS (whoami):\n%s\n\n",statusmsg);
-     numResets = 0; 	// Success, use simple reset next time
+     num_resets = 0; 	// Success, use simple reset next time
    }
 
    //--------------------------------------------------------------------
@@ -342,6 +340,7 @@ printf("LIBERTY LATUS STATUS (whoami):\n%s\n\n",statusmsg);
 
 	// Make a copy of the additional reset string, since it is consumed
 	strncpy(add_cmd_copy, add_reset_cmd, sizeof(add_cmd_copy));
+	add_cmd_copy[sizeof(add_cmd_copy)-1] = '\0';
 
 	// Pass through the string, testing each line to see if it is
 	// a sleep command or a line to send to the tracker. Continue until
@@ -401,7 +400,7 @@ printf("LIBERTY LATUS STATUS (whoami):\n%s\n\n",statusmsg);
 
 	if (vrpn_write_characters(serial_fd, (const unsigned char *)clear_timestamp_cmd,
 	        strlen(clear_timestamp_cmd)) != (int)strlen(clear_timestamp_cmd)) {
-	    FT_ERROR("Cannot send command to clear timestamp");
+	    VRPN_MSG_ERROR("Cannot send command to clear timestamp");
 	    status = vrpn_TRACKER_FAIL;
 	    return;
 	}
@@ -413,7 +412,7 @@ printf("LIBERTY LATUS STATUS (whoami):\n%s\n\n",statusmsg);
 
    // Done with reset.
    vrpn_gettimeofday(&watchdog_timestamp, NULL);	// Set watchdog now
-   FT_WARNING("Reset Completed (this is good)");
+   VRPN_MSG_WARNING("Reset Completed (this is good)");
    status = vrpn_TRACKER_SYNCING;	// We're trying for a new reading
 }
 
@@ -442,7 +441,6 @@ int vrpn_Tracker_Liberty::get_report(void)
    char errmsg[512];	// Error message to send to VRPN
    int ret;		// Return value from function call to be checked
    unsigned char *bufptr;	// Points into buffer at the current value to read
-   static int singleSyncChar = 0; // set if we only get a single sync char
 
    //--------------------------------------------------------------------
    // Each report starts with the ASCII 'LY' characters. If we're synching,
@@ -455,7 +453,7 @@ int vrpn_Tracker_Liberty::get_report(void)
 
      // Try to get the first sync character if don't already have it. 
      // If none, just return.
-     if (singleSyncChar != 1) {
+     if (got_single_sync_char != 1) {
        ret = vrpn_read_available_characters(serial_fd, buffer, 1);
        if (ret != 1) {
 	 //if (DEBUG) fprintf(stderr,"[DEBUG]: Missed First Sync Char, ret= %i\n",ret);
@@ -467,11 +465,11 @@ int vrpn_Tracker_Liberty::get_report(void)
      ret = vrpn_read_available_characters(serial_fd, &buffer[1], 1);
      if (ret == 1) {
        //Got second sync Char
-       singleSyncChar = 0;
+       got_single_sync_char = 0;
      }
      else if (ret != -1) {
        if (DEBUG) fprintf(stderr,"[DEBUG]: Missed Second Sync Char\n");
-       singleSyncChar = 1;
+       got_single_sync_char = 1;
        return 0;
      }
 
@@ -489,7 +487,7 @@ int vrpn_Tracker_Liberty::get_report(void)
       {
       	sprintf(errmsg,"While syncing (looking for 'LY' or 'PA' or 'LU', "
 		"got '%c%c')", buffer[0], buffer[1]);
-	FT_INFO(errmsg);
+	VRPN_MSG_INFO(errmsg);
 	vrpn_flush_input_buffer(serial_fd);
 	if (DEBUG) fprintf(stderr,"[DEBUGA]: Getting Report - Not LY or PA or LU, Got Character %c %c \n",buffer[0],buffer[1]);
       	return 0;
@@ -528,7 +526,7 @@ int vrpn_Tracker_Liberty::get_report(void)
       if ( (d_sensor < 0) || (d_sensor >= num_stations) ) {
 	   status = vrpn_TRACKER_SYNCING;
       	   sprintf(errmsg,"Bad sensor # (%d) in record, re-syncing", d_sensor);
-	   FT_INFO(errmsg);
+	   VRPN_MSG_INFO(errmsg);
 	   vrpn_flush_input_buffer(serial_fd);
 	   return 0;
       }
@@ -557,7 +555,7 @@ int vrpn_Tracker_Liberty::get_report(void)
 		REPORT_LEN-bufcount);
    if (ret == -1) {
 	if (DEBUGA) fprintf(stderr,"[DEBUG]: Error Reading Report\n");
-	FT_ERROR("Error reading report");
+	VRPN_MSG_ERROR("Error reading report");
 	status = vrpn_TRACKER_FAIL;
 	return 0;
    }
@@ -586,14 +584,14 @@ int vrpn_Tracker_Liberty::get_report(void)
    ) {
      if (DEBUGA)	fprintf(stderr,"[DEBUG]: Don't have LY or PA or 'LU' at beginning");
 	   status = vrpn_TRACKER_SYNCING;
-	   FT_INFO("Not 'LY' or 'PA' or 'LU' in record, re-syncing");
+	   VRPN_MSG_INFO("Not 'LY' or 'PA' or 'LU' in record, re-syncing");
 	   vrpn_flush_input_buffer(serial_fd);
 	   return 0;
    }
 
    if (buffer[bufcount-1] != ' ') {
 	   status = vrpn_TRACKER_SYNCING;
-	   FT_INFO("No space character at end of report, re-syncing\n");
+	   VRPN_MSG_INFO("No space character at end of report, re-syncing\n");
 	   vrpn_flush_input_buffer(serial_fd);
 	   if (DEBUGA) fprintf(stderr,"[DEBUG]: Don't have space at end of report, got (%c) sensor %i\n",buffer[bufcount-1], d_sensor);
 
@@ -697,7 +695,7 @@ int vrpn_Tracker_Liberty::add_stylus_button(const char *button_device_name, int 
     // Add a new button device and set the pointer to point at it.
     stylus_buttons[sensor] = new vrpn_Button_Server(button_device_name, d_connection, numbuttons);
     if (stylus_buttons[sensor] == NULL) {
-	FT_ERROR("Cannot open button device");
+	VRPN_MSG_ERROR("Cannot open button device");
 	return -1;
     }
 

@@ -1,18 +1,13 @@
 // $Header: /PDIvrpn.root/2.0.0/PDIVRPN/vrpn/vrpn_Tracker_G4.cpp 1     6/05/12 12:21p Ben $
 #include "vrpn_Tracker_PDI.h"
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #ifdef  VRPN_USE_PDI
 
 using namespace std;
 
 #define	CM_TO_METERS	(1/100.0)
-
-//This function is used to determine how long it has been since the last report was sent.
-static	unsigned long	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) +
-	       1000000L * (t1.tv_sec - t2.tv_sec);
-}
 
 // Constructor
 vrpn_Tracker_G4::vrpn_Tracker_G4 (const char *name, vrpn_Connection *c, const char *filepath, vrpn_float64 Hz, const char *rcmd, vrpn_Tracker_G4_HubMap * pHMap) :
@@ -75,7 +70,7 @@ void	vrpn_Tracker_G4::mainloop()
 
 	// See if its time to generate a new report
 	vrpn_gettimeofday(&current_time, NULL);
-	if ( duration(current_time,timestamp) >= 1000000.0/update_rate) {
+	if ( vrpn_TimevalDuration(current_time,timestamp) >= 1000000.0/update_rate) {
 		DisplayCont(current_time); // Sending a report is handled in ParseG4NativeFrame
 	}
 }
@@ -1103,7 +1098,7 @@ VOID vrpn_Tracker_FastrakPDI::mainloop()
 
 	// See if its time to generate a new report
 	vrpn_gettimeofday(&current_time, NULL);
-	if ( duration(current_time,timestamp) >= 1000000.0/update_rate) {
+	if ( vrpn_TimevalDuration(current_time,timestamp) >= 1000000.0/update_rate) {
 		DisplayCont(current_time);
 	}
 }
@@ -1665,7 +1660,7 @@ VOID vrpn_Tracker_LibertyPDI::mainloop()
 
 	// See if its time to generate a new report
 	vrpn_gettimeofday(&current_time, NULL);
-	if ( duration(current_time,timestamp) >= 1000000.0/update_rate) {
+	if ( vrpn_TimevalDuration(current_time,timestamp) >= 1000000.0/update_rate) {
 		DisplayCont(current_time);
 	}
 }

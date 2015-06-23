@@ -16,24 +16,18 @@
 
 #undef VERBOSE
 
-static double	POLL_INTERVAL = 5e+6;		// If we haven't heard, ask.
-static double	TIMEOUT_INTERVAL = 10e+6;	// If we haven't heard, complain.
+static const double	POLL_INTERVAL = 5e+6;		// If we haven't heard, ask.
+static const double	TIMEOUT_INTERVAL = 10e+6;	// If we haven't heard, complain.
 
-static double	REV_PER_TICK_WHEEL = 1.0/15;	// How many revolutions per encoder tick (checked)
-static double	REV_PER_TICK_BALL = 1.0/164;	// How many revolutions per encoder tick (guess)
+static const double	REV_PER_TICK_WHEEL = 1.0/15;	// How many revolutions per encoder tick (checked)
+static const double	REV_PER_TICK_BALL = 1.0/164;	// How many revolutions per encoder tick (guess)
 
-static unsigned char	reset_char = 0x81;    // Reset string sent to Orb
+static const unsigned char	reset_char = 0x81;    // Reset string sent to Orb
 
 // Defines the modes in which the box can find itself.
 #define	STATUS_RESETTING	(-1)	// Resetting the box
 #define	STATUS_SYNCING		(0)	// Looking for the first character of report
 #define	STATUS_READING		(1)	// Looking for the rest of the report
-
-static	unsigned long	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) +
-	       1000000L * (t1.tv_sec - t2.tv_sec);
-}
 
 // static
 int vrpn_GlobalHapticsOrb::handle_firstConnection(void * userdata,
@@ -336,14 +330,14 @@ void	vrpn_GlobalHapticsOrb::mainloop()
 	// request to the device -- this will cause a response of 0xfc, which
 	// will be ignored when it arrives.  Reset the poll interval when a
 	// poll is sent.
-	if ( duration(current_time, d_timestamp) > POLL_INTERVAL ) {
+	if ( vrpn_TimevalDuration(current_time, d_timestamp) > POLL_INTERVAL ) {
 	  last_poll_sent = current_time;
 	  vrpn_write_characters(serial_fd, &reset_char, 1);
 	}
 
 	// If we still haven't heard from the device after a longer time,
 	// fail and go into reset mode.
-	if ( duration(current_time, d_timestamp) > TIMEOUT_INTERVAL ) {
+	if ( vrpn_TimevalDuration(current_time, d_timestamp) > TIMEOUT_INTERVAL ) {
 	  send_text_message("Too long since last report, resetting", current_time, vrpn_TEXT_ERROR);
 	  d_status = STATUS_RESETTING;
 	}

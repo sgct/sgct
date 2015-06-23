@@ -6,24 +6,21 @@
 
 #include "vrpn_Logitech_Controller_Raw.h"
 
+VRPN_SUPPRESS_EMPTY_OBJECT_WARNING()
+
 #if defined(VRPN_USE_HID)
 
 // USB vendor and product IDs for the models we support
 static const vrpn_uint16 LOGITECH_VENDOR = 0x046d;	// 3Dconnexion is made by Logitech
 static const vrpn_uint16 EXTREME_3D_PRO = 0xc215;
 
-static double POLL_INTERVAL = 1e+6 / 30.0;		// If we have not heard, ask.
+static const double POLL_INTERVAL = 1e+6 / 30.0;		// If we have not heard, ask.
 
 #define GAMEPAD_TRIGGER_THRESHOLD 30
 
 //////////////////////////////////////////////////////////////////////////
 // helpers
 //////////////////////////////////////////////////////////////////////////
-static unsigned long duration(struct timeval t1, struct timeval t2)
-{
-	return ((t1.tv_usec - t2.tv_usec) + (1000000L * (t1.tv_sec - t2.tv_sec)));
-}
-
 static vrpn_float64 normalize_dpad(unsigned char up, unsigned char right, unsigned char down, unsigned char left)
 {
 	int x = 0;
@@ -82,7 +79,7 @@ static vrpn_float64 normalize_trigger(unsigned int trigger)
 // Common base class
 //////////////////////////////////////////////////////////////////////////
 vrpn_Logitech_Controller_Raw::vrpn_Logitech_Controller_Raw(vrpn_HidAcceptor *filter, const char *name, vrpn_Connection *c) :
-	_filter(filter), vrpn_HidInterface(_filter), vrpn_BaseClass(name, c)
+	vrpn_HidInterface(filter), vrpn_BaseClass(name, c), _filter(filter)
 {
 	init_hid();
 }
@@ -140,7 +137,7 @@ void vrpn_Logitech_Extreme_3D_Pro::mainloop(void)
 	server_mainloop();
 	struct timeval current_time;
 	vrpn_gettimeofday(&current_time, NULL);
-	if (duration(current_time, _timestamp) > POLL_INTERVAL)
+	if (vrpn_TimevalDuration(current_time, _timestamp) > POLL_INTERVAL)
 	{
 		_timestamp = current_time;
 		report_changes();

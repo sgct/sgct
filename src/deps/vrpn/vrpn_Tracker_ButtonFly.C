@@ -12,12 +12,6 @@
 #define M_PI		3.14159265358979323846
 #endif
 
-static	double	duration(struct timeval t1, struct timeval t2)
-{
-	return (t1.tv_usec - t2.tv_usec) / 1000000.0 +
-	       (t1.tv_sec - t2.tv_sec);
-}
-
 vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
          (const char * name, vrpn_Connection * trackercon,
           vrpn_Tracker_ButtonFlyParam * params, float update_rate,
@@ -45,12 +39,12 @@ vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
   }
 
   //--------------------------------------------------------------------
-  // Open the scale analogs if they have non-NULL names.
+  // Open the scale analogs if they have non-NULL, non-empty names.
   // If the name starts with the "*" character, use tracker
   //      connection rather than getting a new connection for it.
   // Set up a callback for each to set the scale factor.
 
-  if (params->vel_scale_name != NULL) {
+  if (params->vel_scale_name[0] != '\0') {
 
     // Copy the parameters into our member variables
     d_vel_scale_channel = params->vel_scale_channel;
@@ -78,7 +72,7 @@ vrpn_Tracker_ButtonFly::vrpn_Tracker_ButtonFly
     }
   }
 
-  if (params->rot_scale_name != NULL) {
+  if (params->rot_scale_name[0] != '\0') {
 
     // Copy the parameters into our member variables
     d_rot_scale_channel = params->rot_scale_channel;
@@ -359,7 +353,7 @@ void vrpn_Tracker_ButtonFly::mainloop()
   // See if it has been long enough since our last report.
   // If so, generate a new one.
   vrpn_gettimeofday(&now, NULL);
-  interval = duration(now, d_prevtime);
+  interval = vrpn_TimevalDurationSeconds(now, d_prevtime);
 
   if (shouldReport(interval)) {
     // Figure out the new matrix based on the current values and

@@ -45,7 +45,7 @@ if (UNIX AND NOT APPLE)
 endif()
 
 if (MSVC)
-    option(USE_MSVC_RUNTIME_LIBRARY_DLL "Use MSVC runtime library DLL" ON)
+    set(USE_MSVC_RUNTIME_LIBRARY_DLL ${SGCT_USE_MSVC_RUNTIMES})
 endif()
 
 if (BUILD_SHARED_LIBS)

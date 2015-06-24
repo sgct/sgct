@@ -56,7 +56,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mDecorated = true;
 	mFisheyeMode = false;
 	mAlpha = false;
-	mVisible = false;
+	mVisible = true;
 	mRenderWhileHidden = false;
 	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
@@ -452,7 +452,10 @@ void sgct::SGCTWindow::setVisibility(bool state)
 {
 	if( state != mVisible )
 	{
-		state ? glfwShowWindow( mWindowHandle ) : glfwHideWindow( mWindowHandle );
+		if (mWindowHandle)
+		{
+			state ? glfwShowWindow(mWindowHandle) : glfwHideWindow(mWindowHandle);
+		}
 		mVisible = state;
 	}
 }
@@ -842,6 +845,8 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	glfwWindowHint(GLFW_AUTO_ICONIFY, GL_FALSE);
 	glfwWindowHint(GLFW_FLOATING, mFloating ? GL_TRUE : GL_FALSE);
 	glfwWindowHint(GLFW_DOUBLEBUFFER, mDoubleBuffered ? GL_TRUE : GL_FALSE);
+	if(!mVisible)
+		glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
 
 	setUseQuadbuffer( mStereoMode == Active_Stereo );
 
@@ -890,7 +895,6 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	}
 
 	mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);
-	mVisible = true;
 
 	if( mWindowHandle != NULL )
 	{

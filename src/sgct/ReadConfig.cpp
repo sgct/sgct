@@ -307,6 +307,9 @@ bool sgct_core::ReadConfig::readAndParseXML()
 					if (element[1]->Attribute("alwaysRender") != NULL)
 						tmpWin.setRenderWhileHidden(strcmp(element[1]->Attribute("alwaysRender"), "true") == 0);
 
+					if (element[1]->Attribute("hidden") != NULL)
+						tmpWin.setVisibility(!(strcmp(element[1]->Attribute("hidden"), "true") == 0));
+
 					if (element[1]->Attribute("dbuffered") != NULL)
 						tmpWin.setDoubleBuffered(strcmp(element[1]->Attribute("dbuffered"), "true") == 0);
 

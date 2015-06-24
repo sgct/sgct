@@ -16,6 +16,9 @@ SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 option(SGCT_INSTALL "Install SGCT" ON)
+if (MSVC)
+	option(SGCT_USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
+endif()
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
 option(SGCT_LIGHT_ONLY "Don't merge external libs" OFF)
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
@@ -261,9 +264,22 @@ if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD.lib")
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 	
-	#disable pdb-file debugging
-	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
-	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+	if (NOT SGCT_USE_MSVC_RUNTIMES)
+        foreach (flag CMAKE_C_FLAGS
+                        CMAKE_C_FLAGS_DEBUG
+                        CMAKE_C_FLAGS_RELEASE
+                        CMAKE_C_FLAGS_MINSIZEREL
+                        CMAKE_C_FLAGS_RELWITHDEBINFO)
+
+            if (${flag} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+            endif()
+            if (${flag} MATCHES "/MDd")
+                string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
+            endif()
+
+        endforeach()
+    endif()
 endif()
 
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)

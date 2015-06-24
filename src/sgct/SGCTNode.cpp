@@ -64,8 +64,8 @@ bool sgct_core::SGCTNode::shouldAllWindowsClose()
 		}
 
 	for(std::size_t i=0; i<mWindows.size(); i++)
-	//if (!(mWindows[i].isVisible() || mWindows[i].isRenderingWhileHidden()))
-	if (!mWindows[i].isVisible())
+	if (!(mWindows[i].isVisible() || mWindows[i].isRenderingWhileHidden()))
+	//if (!mWindows[i].isVisible())
 		{
 			counter++;
 		}

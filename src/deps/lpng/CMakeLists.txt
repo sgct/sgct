@@ -104,15 +104,36 @@ set(libpng_sources
 # SOME NEEDED DEFINITIONS
 
 if(MSVC)
-  add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
-  
-  #disable pdb-file debugging
-  #STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
-  #set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
-  
-  if(NOT "${MSVC_VERSION}" LESS 1400)
+	add_definitions(-D_CRT_SECURE_NO_DEPRECATE)
+
+	#disable pdb-file debugging
+	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
+	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+
+	if(NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
-  endif()
+	endif()
+
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD.lib")
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
+
+	if (NOT SGCT_USE_MSVC_RUNTIMES)
+		foreach (flag CMAKE_C_FLAGS
+						CMAKE_C_FLAGS_DEBUG
+						CMAKE_C_FLAGS_RELEASE
+						CMAKE_C_FLAGS_MINSIZEREL
+						CMAKE_C_FLAGS_RELWITHDEBINFO)
+
+			if (${flag} MATCHES "/MD")
+				string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+			endif()
+			if (${flag} MATCHES "/MDd")
+				string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
+			endif()
+
+		endforeach()
+	endif()
 endif(MSVC)
 
 # NOW BUILD OUR TARGET

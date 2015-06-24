@@ -14,6 +14,7 @@
 
 sgct::Engine * gEngine;
 
+void myPreWindowInitFun();
 void myDrawFun();
 void myPostDrawFun();
 void myPreSyncFun();
@@ -38,6 +39,7 @@ struct SpoutData
 SpoutData * spoutSendersData = NULL;
 std::size_t spoutSendersCount = 0;
 std::vector<std::pair<std::size_t, bool>> windowData; //index and if lefteye
+std::vector<std::string> senderNames;
 
 
 //variables to share across cluster
@@ -52,6 +54,7 @@ int main( int argc, char* argv[] )
 	gEngine->setPostDrawFunction( myPostDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
+	gEngine->setPreWindowFunction( myPreWindowInitFun );
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
@@ -142,9 +145,8 @@ void myPreSyncFun()
 	}
 }
 
-void myInitOGLFun()
+void myPreWindowInitFun()
 {
-	std::vector<std::string> tempSenderNames;
 	std::string baseName = "SGCT_Window";
 	std::stringstream ss;
 
@@ -163,25 +165,28 @@ void myInitOGLFun()
 		{
 			ss.str(std::string()); //clear string stream
 			ss << baseName << i << "_Left";
-			tempSenderNames.push_back(ss.str());
-			windowData.push_back( std::pair<std::size_t, bool>(i, true));
+			senderNames.push_back(ss.str());
+			windowData.push_back(std::pair<std::size_t, bool>(i, true));
 
 			ss.str(std::string()); //clear string stream
 			ss << baseName << i << "_Right";
-			tempSenderNames.push_back(ss.str());
+			senderNames.push_back(ss.str());
 			windowData.push_back(std::pair<std::size_t, bool>(i, false));
 		}
 		else
 		{
 			ss.str(std::string()); //clear string stream
 			ss << baseName << i;
-			tempSenderNames.push_back(ss.str());
+			senderNames.push_back(ss.str());
 			windowData.push_back(std::pair<std::size_t, bool>(i, true));
 		}
 	}
 
-	spoutSendersCount = tempSenderNames.size();
+	spoutSendersCount = senderNames.size();
+}
 
+void myInitOGLFun()
+{
 	//setup spout
 	spoutSendersData = new SpoutData[spoutSendersCount];	// Create a new SpoutData for every SGCT window
 	for (std::size_t i = 0; i < spoutSendersCount; i++)
@@ -189,7 +194,7 @@ void myInitOGLFun()
 		spoutSendersData[i].spoutSender = new SpoutSender();
 		spoutSendersData[i].spoutInited = false;
 
-		strcpy(spoutSendersData[i].spoutSenderName, tempSenderNames[i].c_str());
+		strcpy_s(spoutSendersData[i].spoutSenderName, senderNames[i].c_str());
 		std::size_t winIndex = windowData[i].first;
 		
 		if( spoutSendersData[i].spoutSender->CreateSender(

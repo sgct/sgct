@@ -45,7 +45,7 @@ option(JPEG_TURBO_WITH_JPEG8 "Emulate libjpeg v8 API/ABI (this makes libjpeg-tur
 option(JPEG_TURBO_WITH_MEM_SRCDST "Include in-memory source/destination manager functions when emulating the libjpeg v6b or v7 API/ABI" TRUE)
 option(JPEG_TURBO_WITH_TURBOJPEG "Include the TurboJPEG wrapper library and associated test programs" TRUE)
 option(JPEG_TURBO_WITH_12BIT "Encode/decode JPEG images with 12-bit samples (implies JPEG_TURBO_WITH_SIMD=0 JPEG_TURBO_WITH_TURBOJPEG=0 JPEG_TURBO_WITH_ARITH_ENC=0 JPEG_TURBO_WITH_ARITH_DEC=0)" FALSE)
-option(ENABLE_STATIC "Build static libraries" TRUE)
+set(ENABLE_STATIC TRUE)
 
 if(JPEG_TURBO_WITH_12BIT)
   set(JPEG_TURBO_WITH_SIMD FALSE)
@@ -111,22 +111,6 @@ else()
   message(STATUS "In-memory source/destination managers disabled")
 endif()
 
-if(MSVC)
-  option(JPEG_TURBO_WITH_CRT_DLL
-    "Link all libjpeg-turbo libraries and executables with the C run-time DLL (msvcr*.dll) instead of the static C run-time library (libcmt*.lib.)  The default is to use the C run-time DLL only with the libraries and executables that need it."
-    FALSE)
-  if(NOT JPEG_TURBO_WITH_CRT_DLL)
-    # Use the static C library for all build types
-    foreach(var CMAKE_C_FLAGS CMAKE_C_FLAGS_DEBUG CMAKE_C_FLAGS_RELEASE
-      CMAKE_C_FLAGS_MINSIZEREL CMAKE_C_FLAGS_RELWITHDEBINFO)
-      if(${var} MATCHES "/MD")
-        string(REGEX REPLACE "/MD" "/MT" ${var} "${${var}}")
-      endif()
-    endforeach()
-  endif()
-  add_definitions(-W3 -wd4996)
-endif()
-
 # Detect whether compiler is 64-bit
 if(NOT TURBOJPEG_FORCE32)
 	if(MSVC AND CMAKE_CL_64)
@@ -161,6 +145,31 @@ set(JPEG_SOURCES jcapimin.c jcapistd.c jccoefct.c jccolor.c jcdctmgr.c jchuff.c
   jfdctflt.c jfdctfst.c jfdctint.c jidctflt.c jidctfst.c jidctint.c jidctred.c
   jquant1.c jquant2.c jutils.c jmemmgr.c jmemnobs.c)
 
+if( MSVC )
+	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
+	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD.lib")
+	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
+	
+	if (NOT SGCT_USE_MSVC_RUNTIMES)
+        foreach (flag CMAKE_C_FLAGS
+                        CMAKE_C_FLAGS_DEBUG
+                        CMAKE_C_FLAGS_RELEASE
+                        CMAKE_C_FLAGS_MINSIZEREL
+                        CMAKE_C_FLAGS_RELWITHDEBINFO)
+
+            if (${flag} MATCHES "/MD")
+                string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+            endif()
+            if (${flag} MATCHES "/MDd")
+                string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
+            endif()
+
+        endforeach()
+    endif()
+	
+	add_definitions(-W3 -wd4996)
+endif()
+  
 if(JPEG_TURBO_WITH_ARITH_ENC OR JPEG_TURBO_WITH_ARITH_DEC)
   set(JPEG_SOURCES ${JPEG_SOURCES} jaricom.c)
 endif()
@@ -188,15 +197,15 @@ else()
   message(STATUS "Not using SIMD acceleration")
 endif()
 
-if(ENABLE_STATIC OR JPEG_TURBO_WITH_TURBOJPEG)
-  add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
-  if(NOT MSVC)
-    set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
-  endif()
-  if(JPEG_TURBO_WITH_SIMD)
-    add_dependencies(jpeg-static simd)
-  endif()
-endif()
+#if(ENABLE_STATIC OR JPEG_TURBO_WITH_TURBOJPEG)
+#  add_library(jpeg-static STATIC ${JPEG_SOURCES} ${SIMD_OBJS})
+#  if(NOT MSVC)
+#    set_target_properties(jpeg-static PROPERTIES OUTPUT_NAME jpeg)
+#  endif()
+#  if(JPEG_TURBO_WITH_SIMD)
+#    add_dependencies(jpeg-static simd)
+#  endif()
+#endif()
 
 if(JPEG_TURBO_WITH_TURBOJPEG)
   set(TURBOJPEG_SOURCES turbojpeg.c transupp.c jdatadst-tj.c jdatasrc-tj.c)

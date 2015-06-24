@@ -45,6 +45,9 @@ if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 else()
 	set(SGCT_TARGET_PATH ${PROJECT_BINARY_DIR}) 
 endif()
+
+set(SGCT_BINARY_PATH ${PROJECT_BINARY_DIR})
+set(SGCT_SOURCE_PATH ${PROJECT_SOURCE_DIR})
 MESSAGE(STATUS "SGCT target path: ${SGCT_TARGET_PATH}")
 
 if( APPLE )
@@ -296,6 +299,15 @@ target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS}
 
 #to make sure that everything is build when post_build events runs
 add_dependencies(${LIB_NAME} freetype glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
+
+#copy configure files
+add_custom_command(TARGET ${LIB_NAME}
+				PRE_BUILD
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/vrpn/vrpn_Configure.h ${PROJECT_SOURCE_DIR}/include/vrpn/vrpn_Configure.h
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib/zconf.h ${PROJECT_SOURCE_DIR}/include/external/zconf.h
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/pnglibconf.h ${PROJECT_SOURCE_DIR}/include/external/pnglibconf.h
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfig.h ${PROJECT_SOURCE_DIR}/include/external/jconfig.h
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfigint.h ${PROJECT_SOURCE_DIR}/include/external/jconfigint.h)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)

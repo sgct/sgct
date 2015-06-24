@@ -16,7 +16,10 @@ set(PROJECT_VERSION ${VERSION_MAJOR}.${VERSION_MINOR}.${VERSION_PATCH})
 add_definitions(-DFT2_BUILD_LIBRARY)
 
 # Specify library include directories
-include_directories("${PROJECT_SOURCE_DIR}/include")
+include_directories(
+				"${SGCT_SOURCE_PATH}/src/deps/zlib"
+				"${PROJECT_SOURCE_DIR}/include"
+				"${SGCT_BINARY_PATH}/src/deps/lpng/zlib") #needed for zconf
 
 # Create the configuration file
 message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include.")

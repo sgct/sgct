@@ -154,6 +154,10 @@ void myInitOGLFun()
 	{
 		sm = gEngine->getWindowPtr(i)->getStereoMode();
 
+		gEngine->getWindowPtr(i)->setRenderWhileHidden(true); //render even if minimized
+		gEngine->getWindowPtr(i)->setFixResolution(true); //do not resize buffers while minimized
+		//gEngine->getWindowPtr(i)->setVisibility(false); //hide window
+
 		//check if stereo
 		if (sm != sgct::SGCTWindow::No_Stereo && sm < sgct::SGCTWindow::Side_By_Side_Stereo)
 		{

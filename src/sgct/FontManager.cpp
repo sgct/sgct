@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -129,9 +129,8 @@ sgct_text::FontManager::FontManager(void)
 	//
 	// Set default font path
 	//
-
-	char fontDir[128];
 #if __WIN32__
+	char fontDir[128];
 	if( GetWindowsDirectory(fontDir,128) > 0)
 	{
 		mDefaultFontPath.assign( fontDir );
@@ -139,11 +138,9 @@ sgct_text::FontManager::FontManager(void)
 	}
 #elif __APPLE__
 	//System Fonts
-    sprintf(fontDir, "/Library/Fonts/");
-    mDefaultFontPath.assign( fontDir );
+	mDefaultFontPath.assign( "/Library/Fonts/" );
 #else
-    sprintf(fontDir, "/usr/share/fonts/truetype/freefont/");
-    mDefaultFontPath.assign( fontDir );
+   mDefaultFontPath.assign( "/usr/share/fonts/truetype/freefont/" );
 #endif
 
 	mMVPLoc = -1;

@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -64,7 +64,8 @@ bool sgct_core::SGCTNode::shouldAllWindowsClose()
 		}
 
 	for(std::size_t i=0; i<mWindows.size(); i++)
-		if( !mWindows[i].isVisible() )
+	//if (!(mWindows[i].isVisible() || mWindows[i].isRenderingWhileHidden()))
+	if (!mWindows[i].isVisible())
 		{
 			counter++;
 		}

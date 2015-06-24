@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_VERSION_H_
 #define _SGCT_VERSION_H_
 
-#define SGCT_VERSION_MAJOR    2
-#define SGCT_VERSION_MINOR    6
-#define SGCT_VERSION_REVISION 0
+#define SGCT_VERSION_MAJOR    @SGCT_VERSION_MAJOR@
+#define SGCT_VERSION_MINOR    @SGCT_VERSION_MINOR@
+#define SGCT_VERSION_REVISION @SGCT_VERSION_REVISION@
 
 #include <stdio.h>
 #include <string>

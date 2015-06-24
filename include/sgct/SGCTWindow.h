@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -58,6 +58,7 @@ public:
 	// ------------- set functions ----------------- //
 	void setName(const std::string & name);
 	void setVisibility(bool state);
+	void setRenderWhileHidden(bool state);
 	void setFocused(bool state);
 	void setIconified(bool state);
 	void setWindowTitle(const char * title);
@@ -91,6 +92,7 @@ public:
 	const bool &		isFocused() const;
 	const bool &		isIconified() const;
 	const bool &		isVisible() const;
+	const bool &		isRenderingWhileHidden() const;
 	const bool &		isFixResolution() const;
 	const bool &		isUsingFisheyeRendering() const;
 	bool				isStereo() const;
@@ -264,6 +266,7 @@ private:
 	std::string mName;
 
 	bool mVisible;
+	bool mRenderWhileHidden;
 	bool mFocused;
 	bool mIconified;
 	bool mUseFixResolution;

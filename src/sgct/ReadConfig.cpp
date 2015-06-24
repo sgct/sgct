@@ -1,5 +1,5 @@
 /*************************************************************************
- Copyright (c) 2012-2014 Miroslav Andel
+ Copyright (c) 2012-2015 Miroslav Andel
  All rights reserved.
  
  For conditions of distribution and use, see copyright notice in sgct.h
@@ -303,6 +303,9 @@ bool sgct_core::ReadConfig::readAndParseXML()
                     
 					if( element[1]->Attribute("floating") != NULL )
 						tmpWin.setFloating( strcmp( element[1]->Attribute("floating"), "true" ) == 0 );
+
+					if (element[1]->Attribute("alwaysRender") != NULL)
+						tmpWin.setRenderWhileHidden(strcmp(element[1]->Attribute("alwaysRender"), "true") == 0);
 
 					if (element[1]->Attribute("dbuffered") != NULL)
 						tmpWin.setDoubleBuffered(strcmp(element[1]->Attribute("dbuffered"), "true") == 0);

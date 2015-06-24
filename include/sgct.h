@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel, Linköping University
+Copyright (c) 2012-2015 Miroslav Andel, Linköping University
 All rights reserved.
 
 Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson
@@ -124,7 +124,7 @@ SGCT applications are scalable and use a XML configuration file where all cluste
 SGCT does also support running cluster applications on a single computer for testing purposes.
 
 \subsection licence Licence
-Copyright (c) 2012-2014 Miroslav Andel, Link&ouml;ping University\n
+Copyright (c) 2012-2015 Miroslav Andel, Link&ouml;ping University\n
 All rights reserved.\n
 \n
 Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel J&ouml;nsson\n

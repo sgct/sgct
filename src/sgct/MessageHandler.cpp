@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>
+#include <sstream>
 #include <string.h>
 #include <time.h>
 
@@ -161,22 +162,25 @@ void sgct::MessageHandler::printv(const char *fmt, va_list ap)
 
 void sgct::MessageHandler::logToFile(const char * buffer)
 {
+	if (mFilename.empty())
+		return;
+	
 	FILE* pFile = NULL;
 	bool error = false;
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	errno_t err = fopen_s(&pFile, mFileName, "a");
+	errno_t err = fopen_s(&pFile, mFilename.c_str(), "a");
 	if( err != 0 || !pFile ) //error
 		error = true;
 #else
-	pFile = fopen(mFileName, "a");
+	pFile = fopen(mFileName.c_str(), "a");
 	if( pFile == NULL )
 		error = true;
 #endif
 
 	if( error )
 	{
-		std::cerr << "Failed to open '" << mFileName << "'!" << std::endl;
+		std::cerr << "Failed to open '" << mFilename << "'!" << std::endl;
 		return;
 	}
 
@@ -191,52 +195,35 @@ void sgct::MessageHandler::setLogPath(const char * path, int nodeId)
 {
 	time_t now = time(NULL);
 
+	std::stringstream ss;
+
+	if (path != NULL)
+		ss << path << "/";
+
+	char tmpBuff[64];
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	struct tm timeInfo;
 	errno_t err = localtime_s(&timeInfo, &now);
 	if( err == 0 )
 	{
-		if( path == NULL )
-        {
-			char tmpBuff[64];
-			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
-            if( nodeId > -1 )
-                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s_node%d.txt", tmpBuff, nodeId);
-            else
-                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s.txt", tmpBuff);
-        }
-		else
-		{
-			char tmpBuff[64];
-			strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
-            if( nodeId > -1 )
-                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s_node%d.txt", path, tmpBuff, nodeId);
-            else
-                sprintf_s(mFileName, LOG_FILENAME_BUFFER_SIZE, "%s/%s.txt", path, tmpBuff);
-		}
+		strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", &timeInfo);
+		if (nodeId > -1)
+			ss << tmpBuff << "_node" << nodeId << ".txt";
+        else
+			ss << tmpBuff << ".txt";
 	}
 #else
 	struct tm * timeInfoPtr;
 	timeInfoPtr = localtime(&now);
-	if( path == NULL )
-    {
-		char tmpBuff[64];
-        strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
-        if( nodeId > -1 )
-            sprintf(mFileName, "%s_node%d.txt", tmpBuff, nodeId);
-        else
-            sprintf(mFileName, "%s.txt", tmpBuff);
-    }
+
+	strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
+	if (nodeId > -1)
+		ss << tmpBuff << "_node" << nodeId << ".txt";
 	else
-	{
-		char tmpBuff[64];
-		strftime(tmpBuff, 64, "SGCT_log_%Y_%m_%d_T%H_%M_%S", timeInfoPtr);
-        if( nodeId > -1 )
-            sprintf(mFileName, "%s/%s_node%d.txt", path, tmpBuff, nodeId);
-        else
-            sprintf(mFileName, "%s/%s.txt", path, tmpBuff);
-	}
+		ss << tmpBuff << ".txt";
 #endif
+
+	mFilename.assign(ss.str());
 }
 
 /*!

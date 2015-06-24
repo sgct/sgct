@@ -18,7 +18,7 @@ for testing purposes.
 
 SOFTWARE PRODUCT LICENSE
 ========================
-Copyright (c) 2012-2014 Miroslav Andel, Linköping University
+Copyright (c) 2012-2015 Miroslav Andel, Linköping University
 All rights reserved.
 
 Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson

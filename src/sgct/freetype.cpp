@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel, Linköping University.
+Copyright (c) 2012-2015 Miroslav Andel, Linköping University.
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h

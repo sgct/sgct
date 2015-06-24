@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -21,6 +21,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 #include <algorithm>
+#include <sstream>
 
 /*
 	Apple doesn't support advanced sync features
@@ -56,6 +57,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mFisheyeMode = false;
 	mAlpha = false;
 	mVisible = false;
+	mRenderWhileHidden = false;
 	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
 	mFocused = false;
@@ -314,20 +316,12 @@ void sgct::SGCTWindow::init()
 		glfwSetWindowIconifyCallback( mWindowHandle, windowIconifyCallback );
 	}
 
-	char winName[1024];
-	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s( winName, 1024, "SGCT node: %s (%s:%d)",
-		sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str(),
-		sgct_core::NetworkManager::instance()->isComputerServer() ? "master" : "slave",
-		mId);
-    #else
-    sprintf( winName, "SGCT node: %s (%s:%d)",
-		sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str(),
-		sgct_core::NetworkManager::instance()->isComputerServer() ? "master" : "slave",
-		mId);
-    #endif
+	std::stringstream ss;
+	ss << "SGCT node: ";
+	ss << sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress() << " ";
+	ss << "(" << (sgct_core::NetworkManager::instance()->isComputerServer() ? "master" : "slave") << ":" << mId << ")";
 	
-	mName.empty() ?  setWindowTitle( winName ) : setWindowTitle( mName.c_str() );
+	mName.empty() ? setWindowTitle( ss.str().c_str() ) : setWindowTitle( mName.c_str() );
 
 	//swap the buffers and update the window
 	glfwSwapBuffers( mWindowHandle );
@@ -452,7 +446,7 @@ unsigned int sgct::SGCTWindow::getFrameBufferTexture(unsigned int index)
 }
 
 /*!
-	Set the visibility state of this window. If a window is hidden the rendering for that window will be paused.
+	Set the visibility state of this window. If a window is hidden the rendering for that window will be paused unless it's forced to render while hidden by using setRenderWhileHidden().
 */
 void sgct::SGCTWindow::setVisibility(bool state)
 {
@@ -461,6 +455,14 @@ void sgct::SGCTWindow::setVisibility(bool state)
 		state ? glfwShowWindow( mWindowHandle ) : glfwHideWindow( mWindowHandle );
 		mVisible = state;
 	}
+}
+
+/*!
+	Set if window should render while hidden. Normally a window pauses the rendering if it's hidden.
+*/
+void sgct::SGCTWindow::setRenderWhileHidden(bool state)
+{
+	mRenderWhileHidden = state;
 }
 
 /*!
@@ -528,7 +530,7 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
-	if( mVisible )
+	if (mVisible || mRenderWhileHidden)
 	{
 		makeOpenGLContextCurrent( Window_Context );
         
@@ -654,6 +656,14 @@ const bool & sgct::SGCTWindow::isDoubleBuffered() const
 const bool & sgct::SGCTWindow::isVisible() const
 {
 	return mVisible;
+}
+
+/*!
+	\returns true if the window is set to render while hidden
+*/
+const bool & sgct::SGCTWindow::isRenderingWhileHidden() const
+{
+	return mRenderWhileHidden;
 }
 
 /*!
@@ -1047,7 +1057,7 @@ void sgct::SGCTWindow::frameBufferResizeCallback( GLFWwindow * window, int width
     
     if( thisNode != NULL )
     {
-        //find the correct window to update
+		//find the correct window to update
         for(std::size_t i=0; i<thisNode->getNumberOfWindows(); i++)
             if( thisNode->getWindowPtr(i)->getWindowHandle() == window )
                 thisNode->getWindowPtr(i)->setFramebufferResolution(width > 0 ? width : 1, height > 0 ? height : 1);

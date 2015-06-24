@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h
@@ -661,18 +661,12 @@ void sgct::Engine::initOGL()
 
 	if (ClusterManager::instance()->getNumberOfNodes() > 1)
 	{
-		char nodeName[MAX_SGCT_PATH_LENGTH];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s(nodeName, MAX_SGCT_PATH_LENGTH, "_node%d",
-			ClusterManager::instance()->getThisNodeId());
-#else
-		sprintf( nodeName, "_node%d",
-			ClusterManager::instance()->getThisNodeId());
-#endif
+		std::stringstream ss;
+		ss << "_node" << ClusterManager::instance()->getThisNodeId();
 
-		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::Mono);
-		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::LeftStereo);
-		SGCTSettings::instance()->appendCapturePath(std::string(nodeName), SGCTSettings::RightStereo);
+		SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::Mono);
+		SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::LeftStereo);
+		SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::RightStereo);
 	}
 
 	//init window opengl data
@@ -1107,7 +1101,7 @@ void sgct::Engine::render()
 		//     RENDER VIEWPORTS / DRAW
 		//--------------------------------------------------------------
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
-		if( mThisNode->getWindowPtr(i)->isVisible() )
+		if (mThisNode->getWindowPtr(i)->isVisible() || mThisNode->getWindowPtr(i)->isRenderingWhileHidden())
 		{
 			mThisNode->setCurrentWindowIndex(i);
 
@@ -1378,7 +1372,7 @@ void sgct::Engine::renderDisplayInfo()
 			lineHeight * 1.0f + static_cast<float>( getActiveWindowPtr()->getYResolution() ) * SGCTSettings::instance()->getOSDTextYOffset(),
 			glm::vec4(0.8f,0.8f,0.8f,1.0f),
 			"Anti-Aliasing: %s",
-			aaInfo);
+			mAAInfo.c_str());
 
 		if (getActiveWindowPtr()->isUsingFisheyeRendering())
 		{
@@ -4597,44 +4591,23 @@ void sgct::Engine::setExternalControlBufferSize(unsigned int newSize)
 */
 void sgct::Engine::updateAAInfo(std::size_t winIndex)
 {
-    if( getWindowPtr(winIndex)->useFXAA() )
+	std::stringstream ss;
+	if( getWindowPtr(winIndex)->useFXAA() )
 	{
 		if( getWindowPtr(winIndex)->isUsingFisheyeRendering() && getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
-		{
-			#if (_MSC_VER >= 1400) //visual studio 2005 or later
-				sprintf_s(aaInfo, sizeof(aaInfo), "FXAA+MSAAx%d", getWindowPtr(winIndex)->getNumberOfAASamples() );
-			#else
-				sprintf(aaInfo, "FXAA+MSAAx%d", getWindowPtr(winIndex)->getNumberOfAASamples() );
-			#endif
-		}
+			ss << "FXAA+MSAAx" << getWindowPtr(winIndex)->getNumberOfAASamples();
 		else
-		{
-			#if (_MSC_VER >= 1400) //visual studio 2005 or later
-				strcpy_s(aaInfo, sizeof(aaInfo), "FXAA");
-			#else
-				strcpy(aaInfo, "FXAA");
-			#endif
-		}
+			ss << "FXAA";
 	}
     else //no FXAA
     {
         if( getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
-        {
-            #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            sprintf_s( aaInfo, sizeof(aaInfo), "MSAAx%d",
-                getWindowPtr(winIndex)->getNumberOfAASamples());
-            #else
-            sprintf( aaInfo, "MSAAx%d",
-                getWindowPtr(winIndex)->getNumberOfAASamples());
-            #endif
-        }
+			ss << "MSAAx" << getWindowPtr(winIndex)->getNumberOfAASamples();
         else
-        #if (_MSC_VER >= 1400) //visual studio 2005 or later
-        strcpy_s(aaInfo, sizeof(aaInfo), "none");
-        #else
-            strcpy(aaInfo, "none");
-        #endif
+			ss << "none" << getWindowPtr(winIndex)->getNumberOfAASamples();
     }
+
+	mAAInfo.assign(ss.str());
 }
 
 /*!

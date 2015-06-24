@@ -1,10 +1,11 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
+#include <sstream>
 #include "../include/sgct/SGCTVersion.h"
 
 /*!
@@ -12,11 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 */
 std::string sgct::getSGCTVersion()
 {
-    char buffer[64];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    sprintf_s(buffer, sizeof(buffer), "SGCT ver %d.%d.%d", SGCT_VERSION_MAJOR, SGCT_VERSION_MINOR, SGCT_VERSION_REVISION);
-#else
-    sprintf(buffer, "SGCT ver %d.%d.%d", SGCT_VERSION_MAJOR, SGCT_VERSION_MINOR, SGCT_VERSION_REVISION);
-#endif
-    return std::string(buffer);
+	std::stringstream ss;
+	ss << "SGCT ver " << SGCT_VERSION_MAJOR << "." << SGCT_VERSION_MINOR << "." << SGCT_VERSION_REVISION;
+
+	return ss.str();
 }

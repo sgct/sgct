@@ -1,5 +1,5 @@
 /*************************************************************************
-Copyright (c) 2012-2014 Miroslav Andel
+Copyright (c) 2012-2015 Miroslav Andel
 All rights reserved.
 
 For conditions of distribution and use, see copyright notice in sgct.h 
@@ -114,7 +114,7 @@ private:
 
 	MessageCallbackFn mMessageCallback;
 	char mTimeBuffer[TIME_BUFFER_SIZE];
-	char mFileName[LOG_FILENAME_BUFFER_SIZE];
+	std::string mFilename;
     size_t mMaxMessageSize;
     size_t mCombinedMessageSize;
 };

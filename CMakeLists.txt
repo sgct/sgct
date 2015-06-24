@@ -1,6 +1,5 @@
-# Copyright Linkoping University 2011
-# SGCT Project Authors see Authors.txt
-
+# Copyright Linkoping University 2011-2015
+# SGCT Project
 #
 # General project settings
 #
@@ -10,7 +9,7 @@ SET(BUILD_SHARED_LIBS OFF)
 PROJECT("sgct")
 set(SGCT_VERSION_MAJOR "2")
 set(SGCT_VERSION_MINOR "6")
-set(SGCT_VERSION_REVISION "0")
+set(SGCT_VERSION_REVISION "1")
 set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
 
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
@@ -128,6 +127,10 @@ set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}" )
+
+#update version in files
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
 
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})

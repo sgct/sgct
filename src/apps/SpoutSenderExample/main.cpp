@@ -31,8 +31,6 @@ struct SpoutData
 {
 	SpoutSender * spoutSender;
 	char spoutSenderName[256];
-	unsigned int spoutWidth;
-	unsigned int spoutHeight;
 	bool spoutInited;
 };
 
@@ -156,7 +154,9 @@ void myPreWindowInitFun()
 	{
 		sm = gEngine->getWindowPtr(i)->getStereoMode();
 
+#if SGCT_VERSION_MAJOR >= 2 && SGCT_VERSION_MINOR >= 6
 		gEngine->getWindowPtr(i)->setRenderWhileHidden(true); //render even if minimized
+#endif
 		gEngine->getWindowPtr(i)->setFixResolution(true); //do not resize buffers while minimized
 		//gEngine->getWindowPtr(i)->setVisibility(false); //hide window
 

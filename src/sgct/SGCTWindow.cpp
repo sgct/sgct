@@ -58,6 +58,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mAlpha = false;
 	mVisible = true;
 	mRenderWhileHidden = false;
+	mAllowCapture = true;
 	mUseFXAA = SGCTSettings::instance()->getDefaultFXAAState();
 	mUsePostFX = false;
 	mFocused = false;
@@ -533,7 +534,7 @@ void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::swap(bool takeScreenshot)
 {
-	if (mVisible || mRenderWhileHidden)
+	if ((mVisible || mRenderWhileHidden) && mAllowCapture)
 	{
 		makeOpenGLContextCurrent( Window_Context );
         
@@ -3138,11 +3139,27 @@ void sgct::SGCTWindow::setPreferBGR(bool state)
 }
 
 /*!
+Set if screen capturing is allowed.
+*/
+void sgct::SGCTWindow::setAllowCapture(bool state)
+{
+	mAllowCapture = state;
+}
+
+/*!
 Get if buffer is rendered using BGR(A) or RGB(A).
 */
 bool sgct::SGCTWindow::isBGRPrefered() const
 {
 	return mPreferBGR;
+}
+
+/*!
+Get if (screen) capturing is allowed.
+*/
+bool sgct::SGCTWindow::isCapturingAllowed() const
+{
+	return mAllowCapture;
 }
 
 /*!

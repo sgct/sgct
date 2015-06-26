@@ -84,6 +84,7 @@ public:
 	void setBrightness(float brightness);
 	void setColorBitDepth(ColorBitDepth cbd);
 	void setPreferBGR(bool state);
+	void setAllowCapture(bool state);
 
 	// -------------- is functions --------------- //
 	const bool &		isFullScreen() const;
@@ -101,6 +102,7 @@ public:
 	static inline bool	isUsingSwapGroups() { return mUseSwapGroups; }
 	static inline bool	isSwapGroupMaster() { return mSwapGroupMaster; }
 	bool				isBGRPrefered() const;
+	bool				isCapturingAllowed() const;
 		
 	// -------------- get functions ----------------- //
 	const std::string &				getName() const;
@@ -270,6 +272,7 @@ private:
 	bool mFocused;
 	bool mIconified;
 	bool mUseFixResolution;
+	bool mAllowCapture;
 	static bool mUseSwapGroups;
 	static bool mBarrier;
 	static bool mSwapGroupMaster;

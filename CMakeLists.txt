@@ -134,6 +134,7 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}" )
 #update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi @ONLY)
 
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})

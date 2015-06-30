@@ -138,6 +138,14 @@ void sgct_core::ClusterManager::setNetworkMode(sgct_core::NetworkManager::Networ
 }
 
 /*!
+Set the scene transform.
+*/
+void sgct_core::ClusterManager::setSceneTransform(glm::mat4 mat)
+{
+	mSceneTransform = mat;
+}
+
+/*!
 	Set the scene offset/translation. This is set using the XML config file for easier transitions between different hardware setups.
 */
 void sgct_core::ClusterManager::setSceneOffset(glm::vec3 offset)
@@ -152,6 +160,15 @@ void sgct_core::ClusterManager::setSceneOffset(glm::vec3 offset)
 void sgct_core::ClusterManager::setSceneRotation(float yaw, float pitch, float roll)
 {
 	mSceneRotation = glm::yawPitchRoll(yaw, pitch, roll);
+	calculateSceneTransform();
+}
+
+/*!
+Set the scene rotation. This is set using the XML config file for easier transitions between different hardware setups.
+*/
+void sgct_core::ClusterManager::setSceneRotation(glm::mat4 mat)
+{
+	mSceneRotation = mat;
 	calculateSceneTransform();
 }
 

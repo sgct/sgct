@@ -38,6 +38,7 @@ public:
 	void setAnalogVal(const double * array, size_t size);
 	void setOrientation(float xRot, float yRot, float zRot);
 	void setOrientation(float w, float x, float y, float z);
+	void setOrientation(glm::quat q);
 	void setOffset(float x, float y, float z);
 	void setTransform(glm::mat4 mat);
 

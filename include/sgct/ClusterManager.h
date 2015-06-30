@@ -109,8 +109,10 @@ public:
 	void setUseIgnoreSync(bool state);
 	bool getIgnoreSync();
 
+	void setSceneTransform(glm::mat4 mat);
 	void setSceneOffset(glm::vec3 offset);
 	void setSceneRotation(float yaw, float pitch, float roll);
+	void setSceneRotation(glm::mat4 mat);
 	void setSceneScale(float scale);
 
 	/*!

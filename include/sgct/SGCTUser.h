@@ -34,7 +34,7 @@ public:
 	void setTransform(const glm::mat4 & transform);
 	void setTransform(const glm::dmat4 & transform);
 	void setOrientation(float xRot, float yRot, float zRot);
-	void setOrientation(float w, float x, float y, float z);
+	void setOrientation(glm::quat q);
 	void setEyeSeparation(float eyeSeparation);
 
 	std::string getName();

@@ -254,6 +254,19 @@ void sgct::SGCTTrackingDevice::setOrientation(float w, float x, float y, float z
 }
 
 /*!
+Set the orientation quaternion used to generate the orientation matrix\n
+*/
+void sgct::SGCTTrackingDevice::setOrientation(glm::quat q)
+{
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+	//create inverse rotation matrix
+	mOrientation = q;
+
+	calculateTransform();
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+}
+
+/*!
 Set the offset vector used to generate the offset matrix\n
 */
 void sgct::SGCTTrackingDevice::setOffset(float x, float y, float z)

@@ -86,6 +86,20 @@ sgct::SGCTTrackingDevice * sgct::SGCTTracker::getDevicePtrBySensorId(int id)
 }
 
 /*!
+Set the orientation as quaternion
+*/
+void sgct::SGCTTracker::setOrientation(glm::quat q)
+{
+	SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+
+	//create inverse rotation matrix
+	mOrientation = glm::inverse(glm::mat4_cast(q));
+
+	calculateTransform();
+	SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+}
+
+/*!
 Set the orientation as euler angles (degrees)
 */
 void sgct::SGCTTracker::setOrientation(float xRot, float yRot, float zRot)

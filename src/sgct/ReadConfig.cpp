@@ -22,6 +22,9 @@
 #include <algorithm>
 #include <sstream>
 
+//static globals
+glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
+
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
@@ -221,23 +224,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
-					float tmpOrientation[] = {0.0f, 0.0f, 0.0f};
-					if( element[1]->QueryFloatAttribute("yaw", &tmpOrientation[0] ) == tinyxml2::XML_NO_ERROR &&
-                       element[1]->QueryFloatAttribute("pitch", &tmpOrientation[1] ) == tinyxml2::XML_NO_ERROR &&
-                       element[1]->QueryFloatAttribute("roll", &tmpOrientation[2] ) == tinyxml2::XML_NO_ERROR)
-                    {
-                        float mYaw = glm::radians( tmpOrientation[0] );
-                        float mPitch = glm::radians( tmpOrientation[1] );
-                        float mRoll = glm::radians( tmpOrientation[2] );
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting scene orientation to (%f, %f, %f) radians\n",
-                                                                mYaw,
-                                                                mPitch,
-                                                                mRoll);
-                        
-						ClusterManager::instance()->setSceneRotation( mYaw, mPitch, mRoll );
-                    }
-                    else
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse scene orientation from XML!\n");
+					ClusterManager::instance()->setSceneRotation(glm::mat4_cast(parseOrientationNode(element[1])));
 				}
 				else if( strcmp("Scale", val[1]) == 0 )
 				{
@@ -458,9 +445,6 @@ bool sgct_core::ReadConfig::readAndParseXML()
 								{
 									bool validFOV = false;
 									float down, left, right, up;
-									float azimuth = 0.0f;
-									float elevation = 0.0f;
-									float roll = 0.0f;
 									float distance = 10.0f;
 									glm::quat rotQuat;
 									
@@ -485,44 +469,16 @@ bool sgct_core::ReadConfig::readAndParseXML()
 											}
 											else
 												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse planar projection FOV from XML!\n");
-										}
-										else if (strcmp("Orientation", val[4]) == 0)
-										{
+
 											float tmpf;
-											
-											if (element[4]->QueryFloatAttribute("heading", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												azimuth = -tmpf;
-											}
-
-											if (element[4]->QueryFloatAttribute("azimuth", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												azimuth = tmpf;
-											}
-
-											if (element[4]->QueryFloatAttribute("pitch", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												elevation = tmpf;
-											}
-
-											if (element[4]->QueryFloatAttribute("elevation", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												elevation = tmpf;
-											}
-
-											if (element[4]->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												roll = tmpf;
-											}
-
 											if (element[4]->QueryFloatAttribute("distance", &tmpf) == tinyxml2::XML_NO_ERROR)
 											{
 												distance = tmpf;
 											}
-
-											rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.0f, 1.0f, 0.0f));
-											rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.0f, 0.0f, 0.0f));
-											rotQuat = glm::rotate(rotQuat, glm::radians(roll), glm::vec3(0.0f, 0.0f, -1.0f));
+										}
+										else if (strcmp("Orientation", val[4]) == 0)
+										{
+											rotQuat = parseOrientationNode(element[4]);
 										}
 
 										//iterate
@@ -716,13 +672,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
-					float fTmp[3];
-					if( element[1]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                       element[1]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
-                       element[1]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
-					   usrPtr->setOrientation(fTmp[0], fTmp[1], fTmp[2]);
-                    else
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse user Orientation from XML!\n");
+					usrPtr->setOrientation( parseOrientationNode(element[1]) );
 				}
 				else if (strcmp("Quaternion", val[1]) == 0)
 				{
@@ -731,7 +681,10 @@ bool sgct_core::ReadConfig::readAndParseXML()
 						element[1]->QueryFloatAttribute("x", &tmpd[1]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("y", &tmpd[2]) == tinyxml2::XML_NO_ERROR &&
 						element[1]->QueryFloatAttribute("z", &tmpd[3]) == tinyxml2::XML_NO_ERROR)
-						usrPtr->setOrientation(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+					{
+						glm::quat q(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
+						usrPtr->setOrientation(q);
+					}
 					else
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
 				}
@@ -1007,14 +960,8 @@ bool sgct_core::ReadConfig::readAndParseXML()
 						}
 						else if( strcmp("Orientation", val[2]) == 0 )
 						{
-							float tmpf[3];
-							if (element[2]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
-								element[2]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
-								ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
-                                setOrientation( tmpf[0], tmpf[1], tmpf[2] );
-							else
-								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse device orientation in XML!\n");
+							ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->getLastDevicePtr()->
+                                setOrientation( parseOrientationNode( element[2] ) );
 						}
 						else if (strcmp("Quaternion", val[2]) == 0)
 						{
@@ -1079,13 +1026,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
 				}
 				else if( strcmp("Orientation", val[1]) == 0 )
 				{
-					float tmpf[3];
-					if (element[1]->QueryFloatAttribute("x", &tmpf[0]) == tinyxml2::XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("y", &tmpf[1]) == tinyxml2::XML_NO_ERROR &&
-						element[1]->QueryFloatAttribute("z", &tmpf[2]) == tinyxml2::XML_NO_ERROR)
-						ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation(tmpf[0], tmpf[1], tmpf[2]);
-                    else
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse tracker orientation angles in XML!\n");
+					ClusterManager::instance()->getTrackingManagerPtr()->getLastTrackerPtr()->setOrientation( parseOrientationNode( element[1] ) );
 				}
 				else if (strcmp("Quaternion", val[1]) == 0)
 				{
@@ -1238,4 +1179,79 @@ int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
     
 	//if match not found
 	return -1;
+}
+
+glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
+{
+	float x = 0.0f;
+	float y = 0.0f;
+	float z = 0.0f;
+	float tmpf;
+
+	bool euler = false;
+
+	glm::quat quat;
+
+	if (element->QueryFloatAttribute("y", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		y = tmpf;
+		euler = true;
+	}
+
+	if (element->QueryFloatAttribute("yaw", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		y = tmpf;
+	}
+
+	if (element->QueryFloatAttribute("heading", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		y = tmpf;
+	}
+
+	if (element->QueryFloatAttribute("azimuth", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		y = -tmpf;
+	}
+
+	if (element->QueryFloatAttribute("x", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		x = tmpf;
+		euler = true;
+	}
+
+	if (element->QueryFloatAttribute("pitch", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		x = tmpf;
+	}
+
+	if (element->QueryFloatAttribute("elevation", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		x = tmpf;
+	}
+
+	if (element->QueryFloatAttribute("z", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		z = tmpf;
+		euler = true;
+	}
+
+	if (element->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		z = -tmpf;
+	}
+
+	if (euler)
+	{
+		quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+		quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+		quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+	else
+	{
+		quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+		quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+		quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+	}
+
+	return quat;
 }

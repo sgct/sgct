@@ -30,6 +30,7 @@ public:
 	SGCTTrackingDevice * getDevicePtr(const char * name);
 	SGCTTrackingDevice * getDevicePtrBySensorId(int id);
 
+	void setOrientation(glm::quat q);
 	void setOrientation(float xRot, float yRot, float zRot);
 	void setOrientation(float w, float x, float y, float z);
 	void setOffset(float x, float y, float z);

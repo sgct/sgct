@@ -125,12 +125,12 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 /*!
 Set the user's head orientation using a quaternion
 */
-void sgct_core::SGCTUser::setOrientation(float w, float x, float y, float z)
+void sgct_core::SGCTUser::setOrientation(glm::quat q)
 {
 	//create offset translation matrix
 	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::Mono]);
 
-	mTransform = transMat * glm::mat4_cast( glm::quat(w, x, y, z) );
+	mTransform = transMat * glm::mat4_cast( q );
 
 	updateEyeTransform();
 }

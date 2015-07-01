@@ -1188,14 +1188,21 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
 	float z = 0.0f;
 	float tmpf;
 
-	bool euler = false;
+	bool eulerMode = false;
+	bool quatMode = false;
 
 	glm::quat quat;
+
+	if (element->QueryFloatAttribute("w", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		quat.w = tmpf;
+		quatMode = true;
+	}
 
 	if (element->QueryFloatAttribute("y", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
 		y = tmpf;
-		euler = true;
+		eulerMode = true;
 	}
 
 	if (element->QueryFloatAttribute("yaw", &tmpf) == tinyxml2::XML_NO_ERROR)
@@ -1216,7 +1223,7 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
 	if (element->QueryFloatAttribute("x", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
 		x = tmpf;
-		euler = true;
+		eulerMode = true;
 	}
 
 	if (element->QueryFloatAttribute("pitch", &tmpf) == tinyxml2::XML_NO_ERROR)
@@ -1232,7 +1239,7 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
 	if (element->QueryFloatAttribute("z", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
 		z = tmpf;
-		euler = true;
+		eulerMode = true;
 	}
 
 	if (element->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR)
@@ -1240,17 +1247,26 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
 		z = -tmpf;
 	}
 
-	if (euler)
+	if (quatMode)
 	{
-		quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
-		quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
-		quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+		quat.x = x;
+		quat.y = y;
+		quat.z = z;
 	}
 	else
 	{
-		quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
-		quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
-		quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+		if (eulerMode)
+		{
+			quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+			quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+			quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+		}
+		else
+		{
+			quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+			quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+			quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+		}
 	}
 
 	return quat;

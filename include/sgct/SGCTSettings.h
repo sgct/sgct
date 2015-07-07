@@ -79,6 +79,7 @@ public:
 	void setUseRLE(bool state);
 	void setUseWarping(bool state);
     void setFisheyeMethod(FisheyeMethod fm);
+	void setTryMaintainAspectRatio(bool state);
 	
 	// ----------- get functions ---------------- //
 	const char *		getCapturePath(CapturePathIndex cpi = Mono);
@@ -95,6 +96,7 @@ public:
 	bool				getUsePBO();
 	bool				getUseRLE();
 	bool				getUseWarping();
+	const bool			getTryMaintainAspectRatio() const;
     FisheyeMethod       getFisheyeMethod();
 	int					getPNGCompressionLevel();
 	int					getJPEGQuality();
@@ -151,6 +153,7 @@ private:
 	bool mUsePBO;
 	bool mUseRLE;
 	bool mUseWarping;
+	bool mTryMaintainAspectRatio;
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;
 	float mFXAASubPixOffset;

@@ -793,6 +793,9 @@ bool sgct_core::ReadConfig::readAndParseXML()
 						sgct::SGCTSettings::instance()->setRefreshRateHint( rate );
 						sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate);
 					}
+
+					if (element[1]->Attribute("tryMaintainAspectRatio") != NULL)
+						sgct::SGCTSettings::instance()->setTryMaintainAspectRatio(strcmp(element[1]->Attribute("tryMaintainAspectRatio"), "true") == 0 ? true : false);
 				}
 				else if( strcmp("OSDText", val[1]) == 0 )
 				{

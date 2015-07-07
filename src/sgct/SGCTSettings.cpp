@@ -28,6 +28,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mForceGlTexImage2D = false;
 	mUsePBO = true;
 	mUseRLE = false;
+	mTryMaintainAspectRatio = true;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -446,6 +447,14 @@ bool sgct::SGCTSettings::getUseRLE()
 }
 
 /*!
+Get if aspect ratio is taken into acount when generation some display geometries.
+*/
+const bool sgct::SGCTSettings::getTryMaintainAspectRatio() const
+{
+	return mTryMaintainAspectRatio;
+}
+
+/*!
 Get if screen warping is used
 */
 bool sgct::SGCTSettings::getUseWarping()
@@ -461,6 +470,16 @@ Five cubemap faces is more fillrate efficient (33%) but calls the draw callback 
 void sgct::SGCTSettings::setFisheyeMethod(FisheyeMethod fm)
 {
     mFisheyeMethod = fm;
+}
+
+/*!
+Set if geometry should try to adapt after framebuffer dimensions. This is valid for multi-viewport renderings like fisheye projections.
+*/
+void sgct::SGCTSettings::setTryMaintainAspectRatio(bool state)
+{
+	mTryMaintainAspectRatio = state;
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSettings: Set try maintain aspect ratio to: %s.\n", 
+		mTryMaintainAspectRatio ? "true" : "false");
 }
 
 /*!

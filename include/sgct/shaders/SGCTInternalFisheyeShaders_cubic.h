@@ -18,46 +18,6 @@ namespace sgct_core
 
 	namespace shaders_fisheye_cubic
 	{
-		const std::string sample_fun = "\
-            vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg)\n\
-            {\n\
-                float s = 2.0 * (texel.s - 0.5);\n\
-                float t = 2.0 * (texel.t - 0.5);\n\
-                float r2 = s*s + t*t;\n\
-                if( r2 <= 1.0 )\n\
-                {\n\
-                    float phi = sqrt(r2) * halfFov;\n\
-                    float theta = atan(s,t);\n\
-                    float x = sin(phi) * sin(theta);\n\
-                    float y = -sin(phi) * cos(theta);\n\
-                    float z = cos(phi);\n\
-                    **rotVec**;\n\
-                    return textureCube(map, rotVec);\n\
-                }\n\
-                else\n\
-                    return bg;\n\
-            }\n";
-
-		const std::string sample_offset_fun = "\
-            vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg)\n\
-            {\n\
-                float s = 2.0 * (texel.s - 0.5);\n\
-                float t = 2.0 * (texel.t - 0.5);\n\
-                float r2 = s*s + t*t;\n\
-                if( r2 <= 1.0 )\n\
-                {\n\
-                    float phi = sqrt(r2) * halfFov;\n\
-                    float theta = atan(s,t);\n\
-                    float x = sin(phi) * sin(theta) - offset.x;\n\
-					float y = -sin(phi) * cos(theta) - offset.y;\n\
-					float z = cos(phi) - offset.z;\n\
-                    **rotVec**;\n\
-                    return textureCube(map, rotVec);\n\
-                }\n\
-                else\n\
-                    return bg;\n\
-            }\n";
-
 		const std::string B_spline_fun = "\
             vec4 cubic(float x)\n\
             {\n\

@@ -1213,6 +1213,15 @@ void sgct::SGCTWindow::createTextures()
 		glEnable(GL_TEXTURE_2D);
 	}
 
+	GLint maxTexSize;
+	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
+	if (mFramebufferResolution[0] > maxTexSize || mFramebufferResolution[1] > maxTexSize)
+	{
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTWindow %d: Requested framebuffer is to big (Max: %dx%d)!\n",
+			mId, maxTexSize, maxTexSize);
+		return;
+	}
+
 	/*
 		Create left and right color & depth textures.
 	*/
@@ -1942,6 +1951,12 @@ void sgct::SGCTWindow::loadShaders()
 			}
 		}
 
+		//add functions to shader
+		if (mFisheyeOffaxis)
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_offset_fun : sgct_core::shaders_modern_fisheye::sample_offset_fun);
+		else
+			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_fun : sgct_core::shaders_modern_fisheye::sample_fun);
+
 		if (mCubicInterpolation)
 		{
 			char sizeStr[8];
@@ -1950,12 +1965,7 @@ void sgct::SGCTWindow::loadShaders()
 #else
 			sprintf(sizeStr, "%d.0", getCubeMapResolution());
 #endif
-			
 			//add functions to shader
-			if (mFisheyeOffaxis)
-				sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::sample_offset_fun : sgct_core::shaders_modern_fisheye_cubic::sample_offset_fun);
-			else
-				sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::sample_fun : sgct_core::shaders_modern_fisheye_cubic::sample_fun);
 			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**cubic_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::catmull_rom_fun : sgct_core::shaders_modern_fisheye_cubic::catmull_rom_fun);
 			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolatef**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_f);
 			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate3f**", sgct_core::shaders_modern_fisheye_cubic::interpolate4_3f);
@@ -2302,8 +2312,11 @@ void sgct::SGCTWindow::initFisheye()
 	float frameBufferAspect = (static_cast<float>( mFramebufferResolution[0])*x_scale) /
 		(static_cast<float>( mFramebufferResolution[1])*y_scale);
 
-	float aspect = frameBufferAspect * cropAspect;
-	( aspect >= 1.0f ) ? x = 1.0f / aspect : y = aspect;
+	if (sgct::SGCTSettings::instance()->getTryMaintainAspectRatio())
+	{
+		float aspect = frameBufferAspect * cropAspect;
+		(aspect >= 1.0f) ? x = 1.0f / aspect : y = aspect;
+	}
 
 	mFisheyeQuadVerts[0] = leftcrop;
 	mFisheyeQuadVerts[1] = bottomcrop;
@@ -2393,13 +2406,30 @@ void sgct::SGCTWindow::generateCubeMapViewports()
     
     //clear the viewports since they will be replaced
 	deleteAllViewports();
-    
-	float radius = getDomeDiameter() / 2.0f;
-    
-    if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FiveFaceCube )
-    {
-        glm::vec4 lowerLeft, upperLeft, upperRight;
 
+	//radius is needed to calculate the distance to all view planes
+	float radius = getDomeDiameter() / 2.0f;
+
+	//setup base viewport that will be rotated to create the other cubemap views
+	glm::vec4 lowerLeft, upperLeft, upperRight;
+	//+Z face
+	lowerLeft.x = -radius;
+	lowerLeft.y = -radius;
+	lowerLeft.z = radius;
+	lowerLeft.w = 1.0f;
+
+	upperLeft.x = -radius;
+	upperLeft.y = radius;
+	upperLeft.z = radius;
+	upperLeft.w = 1.0f;
+
+	upperRight.x = radius;
+	upperRight.y = radius;
+	upperRight.z = radius;
+	upperRight.w = 1.0f;
+    
+	if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FiveFaceCube )
+    {
         //tilt
 		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
         //glm::mat4 tiltMat(1.0f);
@@ -2411,23 +2441,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 
         //add viewports
         for(unsigned int i=0; i<6; i++)
-        {
-            //+Z face
-            lowerLeft.x = -1.0f * radius;
-            lowerLeft.y = -1.0f * radius;
-            lowerLeft.z = 1.0f * radius;
-            lowerLeft.w = 1.0f;
-            
-            upperLeft.x = -1.0f * radius;
-            upperLeft.y = 1.0f * radius;
-            upperLeft.z = 1.0f * radius;
-            upperLeft.w = 1.0f;
-            
-            upperRight.x = 1.0f * radius;
-            upperRight.y = 1.0f * radius;
-            upperRight.z = 1.0f * radius;
-            upperRight.w = 1.0f;
-            
+        {   
 			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
             
             //only generate GPU data in first viewport and the rest can use it's data
@@ -2514,24 +2528,6 @@ void sgct::SGCTWindow::generateCubeMapViewports()
     }
     else
     {
-        glm::vec4 lowerLeft, upperLeft, upperRight;
-        
-        //+Z face
-        lowerLeft.x = -1.0f * radius;
-        lowerLeft.y = -1.0f * radius;
-        lowerLeft.z = 1.0f * radius;
-        lowerLeft.w = 1.0f;
-        
-        upperLeft.x = -1.0f * radius;
-        upperLeft.y = 1.0f * radius;
-        upperLeft.z = 1.0f * radius;
-        upperLeft.w = 1.0f;
-        
-        upperRight.x = 1.0f * radius;
-        upperRight.y = 1.0f * radius;
-        upperRight.z = 1.0f * radius;
-        upperRight.w = 1.0f;
-        
         //tilt
 		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
         //glm::mat4 tiltMat(1.0f);
@@ -2580,7 +2576,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 					vpPtr->setEnabled(false);
 					rotMat = glm::rotate(panRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
                     break;
-            }
+            }//end switch
             
             //Compensate for users pos
             glm::vec4 userVec = glm::vec4(
@@ -2603,19 +2599,19 @@ void sgct::SGCTWindow::generateCubeMapViewports()
              fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).z);
              fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).z);
              */
-        }
-        
-        if( getFisheyeOverlay() != NULL )
-        {
-            mViewports[0]->setOverlayTexture( getFisheyeOverlay() );
-            //MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
-        }
-        
-        if( getFisheyeMask() != NULL )
-        {
-            mViewports[0]->setMaskTexture( getFisheyeMask() );
-        }
-    }
+        }//end for
+    }//end if
+
+	if (getFisheyeOverlay() != NULL)
+	{
+		mViewports[0]->setOverlayTexture(getFisheyeOverlay());
+		//MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
+	}
+
+	if (getFisheyeMask() != NULL)
+	{
+		mViewports[0]->setMaskTexture(getFisheyeMask());
+	}
 
 	mAreCubeMapViewPortsGenerated = true;
 }

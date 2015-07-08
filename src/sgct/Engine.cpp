@@ -4653,7 +4653,7 @@ void sgct::Engine::updateAAInfo(std::size_t winIndex)
         if( getWindowPtr(winIndex)->getNumberOfAASamples() > 1 )
 			ss << "MSAAx" << getWindowPtr(winIndex)->getNumberOfAASamples();
         else
-			ss << "none" << getWindowPtr(winIndex)->getNumberOfAASamples();
+			ss << "none";
     }
 
 	mAAInfo.assign(ss.str());

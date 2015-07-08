@@ -353,17 +353,6 @@ TYPEDEF_HIDES_STRUCT   = NO
 # 2^(16+SYMBOL_CACHE_SIZE). The valid range is 0..9, the default is 0, 
 # corresponding to a cache size of 2^16 = 65536 symbols.
 
-SYMBOL_CACHE_SIZE      = 0
-
-# Similar to the SYMBOL_CACHE_SIZE the size of the symbol lookup cache can be 
-# set using LOOKUP_CACHE_SIZE. This cache is used to resolve symbols given 
-# their name and scope. Since this can be an expensive process and often the 
-# same symbol appear multiple times in the code, doxygen keeps a cache of 
-# pre-resolved symbols. If the cache is too small doxygen will become slower. 
-# If the cache is too large, memory is wasted. The cache size is given by this 
-# formula: 2^(16+LOOKUP_CACHE_SIZE). The valid range is 0..9, the default is 0, 
-# corresponding to a cache size of 2^16 = 65536 symbols.
-
 LOOKUP_CACHE_SIZE      = 0
 
 #---------------------------------------------------------------------------
@@ -1269,7 +1258,7 @@ SERVER_BASED_SEARCH    = NO
 # If the GENERATE_LATEX tag is set to YES (the default) Doxygen will 
 # generate Latex output.
 
-GENERATE_LATEX         = YES
+GENERATE_LATEX         = NO
 
 # The LATEX_OUTPUT tag is used to specify where the LaTeX docs will be put. 
 # If a relative path is entered the value of OUTPUT_DIRECTORY will be 
@@ -1446,18 +1435,6 @@ GENERATE_XML           = NO
 # put in front of it. If left blank `xml' will be used as the default path.
 
 XML_OUTPUT             = xml
-
-# The XML_SCHEMA tag can be used to specify an XML schema, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_SCHEMA             = 
-
-# The XML_DTD tag can be used to specify an XML DTD, 
-# which can be used by a validating XML parser to check the 
-# syntax of the XML files.
-
-XML_DTD                = 
 
 # If the XML_PROGRAMLISTING tag is set to YES Doxygen will 
 # dump the program listings (including syntax highlighting 

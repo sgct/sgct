@@ -1035,6 +1035,13 @@ void sgct::Engine::render()
 {
 	mRunning = GL_TRUE;
 
+	//create openGL query objects for opengl 3.3+
+	GLuint time_queries[2];
+	if (!mFixedOGLPipeline)
+	{
+		glGenQueries(2, time_queries);
+	}
+
 	while( mRunning )
 	{
 		mRenderingOffScreen = false;
@@ -1096,6 +1103,9 @@ void sgct::Engine::render()
 
 		double startFrameTime = glfwGetTime();
 		calculateFPS(startFrameTime); //measures time between calls
+
+		if (!mFixedOGLPipeline)
+			glQueryCounter(time_queries[0], GL_TIMESTAMP);
 
 		//--------------------------------------------------------------
 		//     RENDER VIEWPORTS / DRAW
@@ -1210,13 +1220,47 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: swap and update data\n");
 #endif
-        double endFrameTime = glfwGetTime();
-		mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
+        
+		if (!mFixedOGLPipeline)
+			glQueryCounter(time_queries[1], GL_TIMESTAMP);
+
+		double endFrameTime = glfwGetTime();
         updateTimers( endFrameTime );
 
 		//run post frame actions
 		if (mPostDrawFnPtr != SGCT_NULL_PTR)
 			mPostDrawFnPtr();
+
+		//update stats
+		if (mFixedOGLPipeline)
+			mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
+		else
+		{
+			//double t = glfwGetTime();
+			//int counter = 0;
+
+			// wait until the query results are available
+			GLint done = GL_FALSE;
+			while (!done)
+			{
+				glGetQueryObjectiv(time_queries[1],
+					GL_QUERY_RESULT_AVAILABLE, 
+					&done);
+
+				//counter++;
+			}
+
+			//fprintf(stderr, "Wait: %d %lf\n", counter, (glfwGetTime() - t) * 1000.0);
+
+			GLuint64 timerStart;
+			GLuint64 timerEnd;
+			// get the query results
+			glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
+			glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
+
+			double elapsedTime = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
+			mStatistics->setDrawTime(static_cast<float>(elapsedTime));
+		}
 
 		if (mShowGraph)
         {
@@ -1260,6 +1304,11 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: End iteration\n");
 #endif
+	}
+
+	if (!mFixedOGLPipeline)
+	{
+		glDeleteQueries(2, time_queries);
 	}
 }
 

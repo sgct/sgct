@@ -55,8 +55,10 @@ public:
 
 	void setCompression(bool state, int level = 1);
 	/*! Get the compresson ratio:
-	\f[ratio = \frac{compressed data size + Huffman tree}{original data size}\f]
-		If the ratio is larger than 1.0 then there is no use for using compression.
+	\n
+	ratio = (compressed data size + Huffman tree)/(original data size)
+	\n
+	If the ratio is larger than 1.0 then there is no use for using compression.
 	*/
 	inline float getCompressionRatio() { return mCompressionRatio; }
 

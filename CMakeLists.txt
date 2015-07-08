@@ -180,6 +180,19 @@ set( CMAKE_RUNTIME_OUTPUT_DIRECTORY "${PROJECT_BUILD_DIR}/bin" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_DEBUG "${PROJECT_BUILD_DIR}/bin" )
 set( CMAKE_RUNTIME_OUTPUT_DIRECTORY_RELEASE "${PROJECT_BUILD_DIR}/bin" )
 
+if(MSVC)
+	set(SGCTCompilerFlags
+        CMAKE_CXX_FLAGS
+        CMAKE_CXX_FLAGS_DEBUG
+        CMAKE_CXX_FLAGS_RELEASE
+		CMAKE_CXX_FLAGS_RELWITHDEBINFO
+        CMAKE_C_FLAGS
+        CMAKE_C_FLAGS_DEBUG
+        CMAKE_C_FLAGS_RELEASE
+		CMAKE_C_FLAGS_RELWITHDEBINFO
+        )
+endif(MSVC)
+
 if(NOT SGCT_LIGHT_ONLY)
 
 	ADD_SUBDIRECTORY(src/deps)
@@ -266,11 +279,7 @@ if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 	
 	if (NOT SGCT_USE_MSVC_RUNTIMES)
-        foreach (flag CMAKE_C_FLAGS
-                        CMAKE_C_FLAGS_DEBUG
-                        CMAKE_C_FLAGS_RELEASE
-                        CMAKE_C_FLAGS_MINSIZEREL
-                        CMAKE_C_FLAGS_RELWITHDEBINFO)
+        foreach (flag ${SGCTCompilerFlags})
 
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
@@ -281,6 +290,10 @@ if( MSVC )
 
         endforeach()
     endif()
+	
+	foreach(CompilerFlag ${SGCTCompilerFlags})
+		string(REPLACE "/Zi" "/Z7" ${CompilerFlag} "${${CompilerFlag}}")
+	endforeach()
 endif()
 
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)

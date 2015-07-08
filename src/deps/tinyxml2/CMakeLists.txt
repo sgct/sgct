@@ -19,11 +19,7 @@ if(MSVC)
 	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 	
 	if (NOT SGCT_USE_MSVC_RUNTIMES)
-        foreach (flag CMAKE_C_FLAGS
-                        CMAKE_C_FLAGS_DEBUG
-                        CMAKE_C_FLAGS_RELEASE
-                        CMAKE_C_FLAGS_MINSIZEREL
-                        CMAKE_C_FLAGS_RELWITHDEBINFO)
+        foreach (flag ${SGCTCompilerFlags})
 
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
@@ -35,9 +31,9 @@ if(MSVC)
         endforeach()
     endif()
 	
-	#disable pdb-file debugging
-	#STRING(REPLACE "/Zi" "/Z7" replacementFlags ${CMAKE_CXX_FLAGS_DEBUG})
-	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
+	foreach(CompilerFlag ${SGCTCompilerFlags})
+		string(REPLACE "/Zi" "/Z7" ${CompilerFlag} "${${CompilerFlag}}")
+	endforeach()
 endif(MSVC)
 
 ################################

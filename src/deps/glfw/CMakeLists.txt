@@ -118,11 +118,7 @@ if (MSVC)
     add_definitions(-D_CRT_SECURE_NO_WARNINGS)
 
     if (NOT USE_MSVC_RUNTIME_LIBRARY_DLL)
-        foreach (flag CMAKE_C_FLAGS
-                        CMAKE_C_FLAGS_DEBUG
-                        CMAKE_C_FLAGS_RELEASE
-                        CMAKE_C_FLAGS_MINSIZEREL
-                        CMAKE_C_FLAGS_RELWITHDEBINFO)
+        foreach (flag ${SGCTCompilerFlags})
 
             if (${flag} MATCHES "/MD")
                 string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
@@ -133,6 +129,10 @@ if (MSVC)
 
         endforeach()
     endif()
+	
+	foreach(CompilerFlag ${SGCTCompilerFlags})
+		string(REPLACE "/Zi" "/Z7" ${CompilerFlag} "${${CompilerFlag}}")
+	endforeach()
 endif()
 
 if (MINGW)

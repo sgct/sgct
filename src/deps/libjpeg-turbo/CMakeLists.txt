@@ -35,7 +35,7 @@ if(SIZEOF_SIZE_T)
 add_definitions(-DSIZEOF_SIZE_T=${SIZEOF_SIZE_T})
 endif()
 
-option(TURBOJPEG_FORCE32 "Force 32-bit" FALSE)
+option(JPEG_TURBO_FORCE32bit "Force 32-bit" FALSE)
 
 option(JPEG_TURBO_WITH_SIMD "Include SIMD extensions" TRUE)
 option(JPEG_TURBO_WITH_ARITH_ENC "Include arithmetic encoding support" TRUE)
@@ -78,12 +78,6 @@ else()
   message(STATUS "TurboJPEG C wrapper disabled")
 endif()
 
-if(JPEG_TURBO_WITH_JAVA)
-  message(STATUS "TurboJPEG Java wrapper enabled")
-else()
-  message(STATUS "TurboJPEG Java wrapper disabled")
-endif()
-
 set(SO_AGE 0)
 if(JPEG_TURBO_WITH_MEM_SRCDST)
   set(SO_AGE 1)
@@ -112,7 +106,7 @@ else()
 endif()
 
 # Detect whether compiler is 64-bit
-if(NOT TURBOJPEG_FORCE32)
+if(NOT JPEG_TURBO_FORCE32bit)
 	if(MSVC AND CMAKE_CL_64)
 	  set(SIMD_X86_64 1)
 	  set(64BIT 1)

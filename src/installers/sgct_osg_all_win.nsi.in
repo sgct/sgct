@@ -6,7 +6,7 @@
 
 ;Change the following defines to make different installers
 !define SGCT_VERSION "@SGCT_VERSION_MAJOR@.@SGCT_VERSION_MINOR@.@SGCT_VERSION_REVISION@"
-!define SGCT_COMPILER "msvc12"
+!define SGCT_COMPILER "msvc14"
 !define ARCH "x64"
 !define OSG_VERSION "3.2.0"
 !define INC_OSG 0
@@ -22,6 +22,8 @@
 !else if "${SGCT_COMPILER}" == "msvc12"		
 	!define PRJ_SUFFIX "vcxproj"
 	!define OSG_BIN_DIR "D:\bin\osg\osg-3.2.0-VS12_x64\"
+!else if "${SGCT_COMPILER}" == "msvc14"		
+	!define PRJ_SUFFIX "vcxproj"
 !else	
 	!define PRJ_SUFFIX "cbp"
 	!define OSG_BIN_DIR "D:\bin\osg\OpenSceneGraph-${OSG_VERSION}-MinGW\"

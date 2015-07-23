@@ -100,7 +100,7 @@ void sgct_utils::SGCTPlane::cleanUp()
 
 	if(mVAO != 0)
 	{
-		glDeleteBuffers(1, &mVAO);
+		glDeleteVertexArrays(1, &mVAO);
 		mVAO = 0;
 	}
 }

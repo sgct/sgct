@@ -29,11 +29,11 @@ include_directories(
 # For the auto-generated ftconfig.h file
 #include_directories("${PROJECT_BINARY_DIR}/include")
 #message(STATUS "Creating ${SGCT_SOURCE_PATH}/include/external/freetype/ftconfig.h.")
-execute_process(
-  COMMAND sed -e "s/FT_CONFIG_OPTIONS_H/<ftoption.h>/" -e "s/FT_CONFIG_STANDARD_LIBRARY_H/<ftstdlib.h>/" -e "s?/undef ?#undef ?"
-  INPUT_FILE ${PROJECT_SOURCE_DIR}/builds/unix/ftconfig.in
-  OUTPUT_FILE ${SGCT_SOURCE_PATH}/include/external/freetype/ftconfig.h
-)
+#execute_process(
+#  COMMAND sed -e "s/FT_CONFIG_OPTIONS_H/<ftoption.h>/" -e "s/FT_CONFIG_STANDARD_LIBRARY_H/<ftstdlib.h>/" -e "s?/undef ?#undef ?"
+#  INPUT_FILE ${PROJECT_SOURCE_DIR}/builds/unix/ftconfig.in
+#  OUTPUT_FILE ${SGCT_SOURCE_PATH}/include/external/freetype/ftconfig.h
+#)
 
 set(BASE_SRCS
   src/autofit/autofit.c

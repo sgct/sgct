@@ -90,7 +90,11 @@ foreach(file ${SIMD_BASENAMES})
     string(REGEX REPLACE "jdmerge" "jdmrgext" DEPFILE ${DEPFILE})
     set(DEPFILE ${CMAKE_CURRENT_SOURCE_DIR}/${DEPFILE}.asm)
   endif()
-  set(SIMD_OBJ ${OBJDIR}/${file}.obj)
+  if(MSVC)
+  	set(SIMD_OBJ ${OBJDIR}/${file}.obj)
+  else()
+  	set(SIMD_OBJ ${OBJDIR}/${file}.o)
+  endif()
   add_custom_command(OUTPUT ${SIMD_OBJ}
     DEPENDS ${SIMD_SRC} ${DEPFILE} ${INC_FILES}
     COMMAND ${NASM} ${NAFLAGS} ${SIMD_SRC} -o${SIMD_OBJ})

@@ -435,7 +435,7 @@
 
 2005-04-04  David Turner  <david@freetype.org>
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(FT_OPTIMIZE_MEMORY): Comment out this macro for the upcoming 2.1.10
 	release.
 	(*_CHESTER_*): Removed.  No longer used.
@@ -488,10 +488,10 @@
 
 	* builds/amiga/README: Updated.
 
-	* builds/amiga/include/freetype/config/ftconfig.h: Handle gcc for
+	* builds/amiga/include/freetype/ftconfig.h: Handle gcc for
 	AmigaOS4.
 
-	* builds/amiga/include/freetype/config/ftmodule.h: Handle new
+	* builds/amiga/include/freetype/ftmodule.h: Handle new
 	modules.
 
 	* builds/amiga/src/base/ftdebug.c: Updated to current version of
@@ -713,7 +713,7 @@
 	* src/truetype/ttpload.c (tt_face_load_loca) [FT_OPTIMIZE_MEMORY]:
 	Remove redundant variable.
 
-	* include/freetype/config/ftmodule.h: Moving the order of drivers to
+	* include/freetype/ftmodule.h: Moving the order of drivers to
 	speed up font loading.  The PCF and BDF loaders are still slow and
 	consume far too much memory.
 
@@ -773,10 +773,10 @@
 	<FT_GLYPH_FORMAT_OUTLINE>: Assure axis->num_edges > 1.  This fixes
 	a bug with certain fonts.
 
-	* include/freetype/config/ftmodule.h: The auto-fitter is now the
+	* include/freetype/ftmodule.h: The auto-fitter is now the
 	only supported auto-hinting module.
 
-	* include/freetype/config/ftstdlib.h (FT_INT_MAX): New macro.
+	* include/freetype/ftstdlib.h (FT_INT_MAX): New macro.
 
 2005-02-28  Werner Lemberg  <wl@gnu.org>
 
@@ -945,7 +945,7 @@
 
 	  FT_DumpMemory( memory );
 
-	* include/freetype/config/ftoption.h
+	* include/freetype/ftoption.h
 	(TT_CONFIG_OPTION_BYTECODE_INTERPRETER): Comment out definition --
 	again.
 	(FT_OPTIMIZE_MEMORY): New configuration macro to control various
@@ -1104,7 +1104,7 @@
 	* src/base/ftbitmap.c, include/freetype/ftbitmap.h: New files for
 	handling various bitmap formats.
 
-	* include/freetype/config/ftheader.h (FT_BITMAP_H): New macro.
+	* include/freetype/ftheader.h (FT_BITMAP_H): New macro.
 
 	* src/base/rules.mk (BASE_EXT_SRC): Add ftbitmap.c.
 
@@ -1248,7 +1248,7 @@
 
 2004-10-13  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftstdlib.h: Include `stddef.h'.
+	* include/freetype/ftstdlib.h: Include `stddef.h'.
 	(ft_ptrdiff_t): Define.
 
 	* include/freetype/fttypes.h (FT_PtrDist): Use `ft_ptrdiff_t'.
@@ -1300,8 +1300,8 @@
 	* include/freetype/ftotval.h, src/base/ftotval.c,
 	include/freetype/internal/services/svotval.h: New files.
 
-	* include/freetype/config/ftmodule.h: Add otv_module_class.
-	* include/freetype/config/ftheader.h (FT_OPENTYPE_VALIDATE_H): New
+	* include/freetype/ftmodule.h: Add otv_module_class.
+	* include/freetype/ftheader.h (FT_OPENTYPE_VALIDATE_H): New
 	macro.
 	* include/freetype/internal/ftserv.h
 	(FT_SERVICE_OPENTYPE_VALIDATE_H): New macro.
@@ -1885,7 +1885,7 @@
 
 2004-07-26  Darren J Longhorn  <darren.longhorn@redcom.co.uk>
 
-	* include/freetype/config/ftconfig.h (FT_SIZEOF_LONG): Recognize
+	* include/freetype/ftconfig.h (FT_SIZEOF_LONG): Recognize
 	five-byte `long' (which is avoided then).
 
 2004-07-25  Detlef Würkner  <TetiSoft@apg.lahn.de>
@@ -2033,7 +2033,7 @@
 	TrueType face opening by about 7%.
 	(tt_face_load_hdmx): Use FT_QNEW_ARRAY and FT_QALLOC.
 
-	* include/freetype/config/ftmodule.h: Changed the order of modules,
+	* include/freetype/ftmodule.h: Changed the order of modules,
 	putting TrueType and Type 1 first.  This dramatically improves the
 	performance of face open/close operations.  For example, putting the
 	TrueType driver first in the list results in a 5x speedup when
@@ -2171,7 +2171,7 @@
 	selection isn't a performance problem).
 
 	To test it, change `autohint' to `autofit' in
-	<freetype/config/ftmodule.h> and recompile.
+	<freetype/ftmodule.h> and recompile.
 
 	A few more testing is needed before making this the official
 	auto-hinting module.
@@ -2484,7 +2484,7 @@
 
 	Add support for Apple's distortable font technology (in GX fonts).
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(TT_CONFIG_OPTION_GX_VAR_SUPPORT): New macro.
 
 	* include/freetype/ftmm.h (FT_Var_Axis, FT_Var_Named_Style,
@@ -2646,12 +2646,12 @@
 
 2004-04-15  bytesoftware  <bytesoftware@btinternet.com>
 
-	* include/freetype/config/ftconfig.h, src/base/ftstream.c
+	* include/freetype/ftconfig.h, src/base/ftstream.c
 	(FT_Stream_ReadFields): More fixes using FT_CHAR_BIT.
 
 2004-04-14  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftconfig.h (FT_CHAR_BIT): New macro.
+	* include/freetype/ftconfig.h (FT_CHAR_BIT): New macro.
 
 2004-04-14  Alex Strelnikov  <ptktyrf@mail.ru>
 
@@ -2672,7 +2672,7 @@
 
 2004-04-13  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftconfig.h: Use CHAR_BIT to define
+	* include/freetype/ftconfig.h: Use CHAR_BIT to define
 	size of FT_SIZEOF_xxx.
 
 2004-04-12  Chisato Yamauchi  <cyamauch@a.phys.nagoya-u.ac.jp>
@@ -2817,11 +2817,11 @@
 	Add support for PCF fonts compressed with LZW (extension .pcf.Z,
 	created with `compress').
 
-	* include/freetype/config/ftoption.h, devel/ftoption.h
+	* include/freetype/ftoption.h, devel/ftoption.h
 	(FT_CONFIG_OPTION_USE_LZW): New macro.
 
 	* include/freetype/ftlzw.h: New file.
-	* include/freetype/config/ftheader.h (FT_LZW_H): New macro for
+	* include/freetype/ftheader.h (FT_LZW_H): New macro for
 	ftlzw.h.
 
 	* src/lzw/*: New files.
@@ -2986,10 +2986,10 @@
 	* include/freetype/internal/ftstream.h: Declare FT_Stream_New and
 	FT_Stream_Free.
 
-	* include/freetype/config/ftoption.h, devel/ftoption.h
+	* include/freetype/ftoption.h, devel/ftoption.h
 	(FT_CONFIG_OPTION_GUESSING_EMBEDDED_RFORK): New option.
 
-	* include/freetype/config/ftstdlib.h (ft_strrchr): New macro.
+	* include/freetype/ftstdlib.h (ft_strrchr): New macro.
 
 2004-02-23  Werner Lemberg  <wl@gnu.org>
 
@@ -3319,7 +3319,7 @@
 
 2004-01-21  Werner Lemberg  <wl@gnu.org>
 
-	include/freetype/config/ftstdlib.h (ft_atoi): Replaced with...
+	include/freetype/ftstdlib.h (ft_atoi): Replaced with...
 	(ft_atol): This.
 	* src/base/ftdbgmem.c: s/atol/ft_atol/.
 	* src/type42/t42drivr.c: s/ft_atoi/ft_atol/.
@@ -4146,7 +4146,7 @@
 	correctly.  This doesn't slow down the loading of PS fonts
 	significantly since charstrings aren't affected.
 
-	* include/freetype/config/ftstdlib.h (ft_xdigit): Renamed to...
+	* include/freetype/ftstdlib.h (ft_xdigit): Renamed to...
 	(ft_isxdigit): This.  Updated all callers.
 	(ft_isdigit): New alias to `isdigit'.
 
@@ -4238,7 +4238,7 @@
 
 	* include/freetype/ftmodule.h: Renamed to...
 	* include/freetype/ftmodapi.h: This to avoid duplicate file names.
-	* include/freetype/config/ftheader.h (FT_MODULE_H): Updated.
+	* include/freetype/ftheader.h (FT_MODULE_H): Updated.
 
 2003-10-04  Werner Lemberg  <wl@gnu.org>
 
@@ -4540,7 +4540,7 @@
 	Note that these changes will break source & binary compatibility for
 	authors of external font drivers.
 
-	* include/freetype/config/ftconfig.h (FT_BEGIN_STMNT, FT_END_STMNT,
+	* include/freetype/ftconfig.h (FT_BEGIN_STMNT, FT_END_STMNT,
 	FT_DUMMY_STMNT): New macros.
 
 	* include/freetype/internal/ftserv.h: New file, containing the new
@@ -4731,7 +4731,7 @@
 
 2003-08-18  David Turner  <david@freetype.org>
 
-	* include/freetype/config/ftoption.h: Disabling TrueType bytecode
+	* include/freetype/ftoption.h: Disabling TrueType bytecode
 	interpreter until the UNPATENTED_HINTING works as advertised.
 
 	* src/autohint/ahhint.c (ah_hinter_load_glyph): Use `|' for
@@ -4748,7 +4748,7 @@
 
 	* include/freetype/ttunpat.h: Fixing documentation comment.
 
-	* include/freetype/config/ftoption.h, devel/ftoption.h
+	* include/freetype/ftoption.h, devel/ftoption.h
 	(TT_CONFIG_OPTION_OPTION_COMPILE_UNPATENTED_HINTING): Replaced
 	with...
 	(TT_CONFIG_OPTION_UNPATENTED_HINTING): This.  Updated all users.
@@ -5010,7 +5010,7 @@
 
 	* src/pshinter/pshrec.h (PS_HINTS_MAGIC): Removed.  Not used.
 
-	* include/freetype/config/ftconfig.h [__MWERKS__]: Define FT_LONG64
+	* include/freetype/ftconfig.h [__MWERKS__]: Define FT_LONG64
 	and FT_INT64.
 
 2003-06-21  Werner Lemberg  <wl@gnu.org>
@@ -5243,7 +5243,7 @@
 	* src/pfr/rules.mk (PFR_DRV_SRC): Add pfrsbit.c.
 	(PFR_DRV_H): Add pfrtypes.h.
 
-	* include/freetype/config/ftconfig.h: s/__MWKS__/__MWERKS__/.
+	* include/freetype/ftconfig.h: s/__MWKS__/__MWERKS__/.
 
 2003-06-08  Karl Schultz  <kschultz@rsinc.com>
 
@@ -5314,7 +5314,7 @@
 	* src/base/ftstroker.c: Renamed to...
 	* src/base/ftstroke.c: This.
 
-	* include/freetype/config/ftheader.h (FT_STROKER_H): Updated.
+	* include/freetype/ftheader.h (FT_STROKER_H): Updated.
 
 	* src/base/descrip.mms, src/base/Jamfile, src/base/rules.mk:
 	Updated.
@@ -5369,7 +5369,7 @@
 
 2003-06-04  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftoption.h: Defining
+	* include/freetype/ftoption.h: Defining
 	TT_CONFIG_OPTION_FORCE_UNPATENTED_HINTING by default is a bad idea
 	since some fonts (e.g. Arial) produce worse results than without
 	hinting.  Reverted.
@@ -5382,7 +5382,7 @@
 	a segfault bug with fonts (e.g. htst3.ttf) which have nested
 	subglyphs more than one level deep.  Reported by Anthony Fok.
 
-	* include/freetype/config/ftoption.h: Define
+	* include/freetype/ftoption.h: Define
 	TT_CONFIG_OPTION_BYTECODE_INTERPRETER,
 	TT_CONFIG_OPTION_COMPILE_UNPATENTED_HINTING, and
 	TT_CONFIG_OPTION_FORCE_UNPATENTED_HINTING to make it the new
@@ -5553,7 +5553,7 @@
 
 2003-05-21  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftstdlib.h (ft_strcat): New wrapper macro
+	* include/freetype/ftstdlib.h (ft_strcat): New wrapper macro
 	for strcat.
 
 	* src/base/ftmac.c (create_lwfn_name): s/isupper/ft_isupper/.
@@ -5632,7 +5632,7 @@
 
 2003-05-18  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftoption.h [FT_CONFIG_OPTION_MAC_FONTS]:
+	* include/freetype/ftoption.h [FT_CONFIG_OPTION_MAC_FONTS]:
 	New macro.
 	* src/base/ftobjs.c: Use it to control mac font support on non-mac
 	platforms.
@@ -5680,7 +5680,7 @@
 	* builds/unix/ltmain.sh: Fix version numbering for Darwin 1.3.
 	* builds/unix/configure: Regenerated.
 
-	* include/freetype/config/ftconfig.h: Fix conditions for defining
+	* include/freetype/ftconfig.h: Fix conditions for defining
 	`FT_MACINTOSH'.
 	* src/base/ftbase.c: Include `ftmac.c' conditionally.
 	* src/base/ftmac.c: Handle __GNUC__.
@@ -5763,10 +5763,10 @@
 	* include/freetype/ttunpat.h: New file.  Defines
 	FT_PARAM_TAG_UNPATENTED_HINTING.
 
-	* include/freetype/config/ftheader.h (FT_TRUETYPE_UNPATENTED_H): New
+	* include/freetype/ftheader.h (FT_TRUETYPE_UNPATENTED_H): New
 	macro to use when including ttunpat.h.
 
-	* include/freetype/config/ftoption.h
+	* include/freetype/ftoption.h
 	(TT_CONFIG_OPTION_COMPILE_UNPATENTED_HINTING,
 	TT_CONFIG_OPTION_FORCE_UNPATENTED_HINTING): New configuration macros
 	(not defined, but in comments) for the unpatented hinting system.
@@ -6155,7 +6155,7 @@
 
 	* devel/ft2build.h, devel/ftoption.h: New files (in a new directory)
 	which are special development versions of include/ft2build.h and
-	include/freetype/config/ftoption.h, respectively.
+	include/freetype/ftoption.h, respectively.
 
 2003-02-18  David Turner  <david@freetype.org>
 
@@ -6315,7 +6315,7 @@
 	nasty bug in the header loader which would cause invalid memory
 	overwrites.
 
-	* include/freetype/config/ftheader.h (FT_WINFONTS_H): New macro
+	* include/freetype/ftheader.h (FT_WINFONTS_H): New macro
 	for ftwinfnt.h.
 	* include/freetype/internal/fnttypes.h: Include FT_WINFONTS_H.
 	(FNT_FontRec): Updated.
@@ -6358,7 +6358,7 @@
 	tweaked for optimization and testing purposes.  The configuration
 	macros will most likely disappear in the short future.
 
-	* include/freetype/config/ftoption.h
+	* include/freetype/ftoption.h
 	(FT_CONFIG_OPTION_CHESTER_HINTS): New macro.
 	(FT_CONFIG_CHESTER_{SMALL_F,ASCENDER,SERIF,STEM,BLUE_SCALE})
 	[FT_CONFIG_OPTION_CHESTER_HINTS]: New macros to control individual
@@ -6572,7 +6572,7 @@
 
 2002-11-05  David Turner  <david@freetype.org>
 
-	* include/freetype/config/ftoption.h, src/gzip/ftgzip.c: Added
+	* include/freetype/ftoption.h, src/gzip/ftgzip.c: Added
 	support for the FT_CONFIG_OPTION_SYSTEM_ZLIB option, used to specify
 	the use of system-wide zlib.
 
@@ -6643,7 +6643,7 @@
 	ftgzip.c).
 
 	* include/freetype/ftgzip.h, src/gzip/ftgzip.c: New files.
-	* include/freetype/config/ftheader.h (FT_GZIP_H): New macro for
+	* include/freetype/ftheader.h (FT_GZIP_H): New macro for
 	`ftgzip.h'.
 
 	* src/pcf/pcfdriver.c: Include FT_GZIP_H and FT_ERRORS_H.
@@ -6653,7 +6653,7 @@
 	* include/freetype/internal/pcftypes.h (PCF_Public_FaceRec),
 	src/pcf/pcf.h (PCF_FaceRec): Add `gzip_stream' and `gzip_source'.
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_USE_ZLIB):
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_USE_ZLIB):
 	New macro.
 	(T1_CONFIG_OPTION_DISABLE_HINTER, FT_CONFIG_OPTION_USE_CMAPS
 	FT_CONFIG_OPTION_NO_CONVENIENCE_FUNCS,
@@ -6854,7 +6854,7 @@
 
 2002-09-26  Detlef Würkner  <TetiSoft@apg.lahn.de>
 
-	* builds/amiga/include/freetype/config/ftmodule.h: Updated.
+	* builds/amiga/include/freetype/ftmodule.h: Updated.
 
 2002-09-25  David Turner  <david@freetype.org>
 
@@ -6960,7 +6960,7 @@
 
 	* src/base/ftinit.c (FT_Add_Default_Modules): Improve error message.
 	* src/pcf/pcfdriver.c (PCF_Face_Done): Improve tracing message.
-	* include/freetype/config/ftoption.h (FT_MAX_MODULES): Increased
+	* include/freetype/ftoption.h (FT_MAX_MODULES): Increased
 	to 32.
 
 2002-09-10  Werner Lemberg  <wl@gnu.org>
@@ -6998,7 +6998,7 @@
 
 	Various updates to correctly support sub-pixel rendering.
 
-	* include/freetype/config/ftmodule.h: Add two renderers for LCD.
+	* include/freetype/ftmodule.h: Add two renderers for LCD.
 
 	* src/base/ftobjs.c (FT_Load_Glyph): Updated.
 
@@ -7383,7 +7383,7 @@
 
 	Add support for Apple composite glyphs.
 
-	* include/freetype/config/ftoption.h
+	* include/freetype/ftoption.h
 	(TT_CONFIG_OPTION_COMPONENT_OFFSET_SCALED): New macro.
 
 	* src/truetype/ttgload.c (OVERLAP_COMPOUND, SCALED_COMPONENT_OFFSET,
@@ -7477,7 +7477,7 @@
 	* include/freetype/ftincrem.h: Adding new experimental header file
 	to demonstrate a `cleaner' API to support incremental font loading.
 
-	* include/freetype/config/ftheader.h (FT_INCREMENTAL_H): New macro.
+	* include/freetype/ftheader.h (FT_INCREMENTAL_H): New macro.
 
 	* src/tools/docmaker/*: Adding new (more advanced) version of
 	the DocMaker tool, using Python's sophisticated regexps.
@@ -7525,7 +7525,7 @@
 	from PostScript that do not necessarily provide all, or any, glyph
 	information, when first opened.
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_INCREMENTAL):
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_INCREMENTAL):
 	New configuration macro to enable incremental face loading.  By
 	default it is not defined.
 
@@ -7588,7 +7588,7 @@
 	* include/freetype/internal/ftdriver.h (FT_Driver_ClassRec): Remove
 	`get_char_index' and `get_next_char'.
 
-	* include/freetype/config/ftoption.h,
+	* include/freetype/ftoption.h,
 	include/freetype/internal/tttypes.h, src/base/ftobjs.c,
 	src/bdf/bdfdrivr.c, src/cff/cffobjs.c, src/pcf/pcfdrivr.c,
 	src/pfr/pfrdrivr.c, src/sfnt/sfobjs.c, src/sfnt/ttcmap0.c,
@@ -7861,7 +7861,7 @@
 	* include/freetype/ftstroker.h, src/base/ftstroker.c: New files.
 	* src/base/Jamfile: Updated.
 
-	* include/freetype/config/ftheader.h (FT_STROKER_H): New macro.
+	* include/freetype/ftheader.h (FT_STROKER_H): New macro.
 
 
 	* src/truetype/ttgload.c (TT_Load_Composite_Glyph),
@@ -8215,7 +8215,7 @@
 2002-05-28  Detlef Würkner  <TetiSoft@apg.lahn.de>
 
 	* builds/amiga/makefile, builds/amiga/smakefile,
-	amiga/include/freetype/config/ftmodule.h: Updated to include
+	amiga/include/freetype/ftmodule.h: Updated to include
 	support for BDF and Type42 drivers.
 
 	* docs/modules.txt: Updated.
@@ -8233,7 +8233,7 @@
 	new public header (named FT_XFREE86_H since this function should
 	only be used within the XFree86 font server IMO).
 
-	* include/freetype/config/ftheader.h (FT_XFREE86_H): New macro (not
+	* include/freetype/ftheader.h (FT_XFREE86_H): New macro (not
 	documented yet).
 
 	* src/base/fttype1.c: New file, providing two new API functions
@@ -8302,7 +8302,7 @@
 
 2002-05-22  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftheader.h (FT_BEZIER_H): Removed.
+	* include/freetype/ftheader.h (FT_BEZIER_H): Removed.
 	(FT_BDF_H): New macro for accessing `ftbdf.h'.
 
 	* src/type42/t42drivr.c (hexval): Fix typo.
@@ -8371,11 +8371,11 @@
 	* include/freetype/internal/bdftypes.h: New file.
 	* include/freetype/internal/fttrace.h: Added BDF driver components.
 	* include/freetype/fterrdef.h: Added error codes for BDF driver.
-	* include/freetype/config/ftmodule.h, src/Jamfile: Updated.
+	* include/freetype/ftmodule.h, src/Jamfile: Updated.
 	* include/freetype/internal/internal.h (FT_INTERNAL_BDF_TYPES_H):
 	New macro.
 
-	* include/freetype/config/ftstdlib.h (ft_sprintf): New alias for
+	* include/freetype/ftstdlib.h (ft_sprintf): New alias for
 	sprintf.
 
 2002-05-18  Werner Lemberg  <wl@gnu.org>
@@ -8397,8 +8397,8 @@
 	<ojancano@geekmail.de>.
 
 	* src/type42/*: New driver.
-	* include/freetype/config/ftmodule.h, src/Jamfile: Updated.
-	* include/freetype/config/ftstdlib.h (ft_xdigit, ft_memcmp,
+	* include/freetype/ftmodule.h, src/Jamfile: Updated.
+	* include/freetype/ftstdlib.h (ft_xdigit, ft_memcmp,
 	ft_atoi): New aliases for xdigit, memcmp, and atoi, respectively.
 
 2002-05-12  Owen Taylor  <otaylor@redhat.com>
@@ -8497,7 +8497,7 @@
 	search algorithm.  Certain fonts contain more than 170 distinct
 	segments!
 
-	* include/freetype/config/ftstdlib.h: Adding an alias for the `exit'
+	* include/freetype/ftstdlib.h: Adding an alias for the `exit'
 	function.  This will be used in the near future to panic in case of
 	unexpected exception (which shouldn't happen in theory).
 
@@ -8571,7 +8571,7 @@
 
 	Other changes for the Mac.
 
-	* include/freetype/config/ftconfig.h: Define FT_MACINTOSH for
+	* include/freetype/ftconfig.h: Define FT_MACINTOSH for
 	Mac platforms.
 	* src/base/ftobjs.c: s/macintosh/FT_MACINTOSH/.
 
@@ -8635,7 +8635,7 @@
 
 	src/pfr/*: New files.
 
-	* include/freetype/config/ftmodule.h,
+	* include/freetype/ftmodule.h,
 	include/freetype/internal/fttrace.h, src/Jamefile: Updated.
 
 	* src/type1/t1gload.h (T1_Load_Glyph), src/type1/t1gload.c
@@ -8683,13 +8683,13 @@
 
 	* docs/FTL.txt: Formatting.
 
-	* include/freetype/config/ftoption.h: Reduce the size of the
+	* include/freetype/ftoption.h: Reduce the size of the
 	render pool from 32kByte to 16kByte.
 
 	* src/pcf/pcfread.c (pcf_seek_to_table_type): Remove compiler
 	warning.
 
-	* include/freetype/config/ftoption.h (FT_MAX_EXTENSIONS): Removed.
+	* include/freetype/ftoption.h (FT_MAX_EXTENSIONS): Removed.
 
 	* docs/CHANGES: Preparing 2.1.0 release.
 
@@ -8703,9 +8703,9 @@
 	* README.UNX: Updated the Unix-specific quick-compilation guide to
 	warn about the GNU Make requirement at compile time.
 
-	* include/freetype/config/ftstdlib.h,
-	include/freetype/config/ftconfig.h,
-	include/freetype/config/ftheader.h,
+	* include/freetype/ftstdlib.h,
+	include/freetype/ftconfig.h,
+	include/freetype/ftheader.h,
 	include/freetype/internal/ftmemory.h,
 	include/freetype/internal/ftobjs.h,
 
@@ -8779,7 +8779,7 @@
 
 	Fixes from the stable branch:
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_OLD_CALCS):
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_OLD_CALCS):
 	Removed.
 	[FT_CONFIG_OPTION_OLD_CALCS]: Removed.
 	* include/freetype/internal/ftcalc.h, src/base/ftcalc.c
@@ -8927,7 +8927,7 @@
 	* include/freetype/fterrdef.h: New file.
 	* include/freetype/fterrors.h: Include it.  It contains all error
 	codes.
-	* include/freetype/config/ftheader.h (FT_ERROR_DEFINITIONS_H): New
+	* include/freetype/ftheader.h (FT_ERROR_DEFINITIONS_H): New
 	macro.
 
 	* include/freetype/internal/ftmemory.h, and a lot of other files:
@@ -8972,7 +8972,7 @@
 	(find_encoding): Removed.
 	(CFF_Face_Init): Remove charmap support.
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_USE_CMAPS,
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_USE_CMAPS,
 	TT_CONFIG_CMAP_FORMAT{0,2,4,6,8,10,12}): New macros to fine-tune
 	support of cmaps.
 
@@ -9090,7 +9090,7 @@
 
 2002-03-13  Antoine Leca  <antoine@oriolnet.com>
 
-	* include/freetype/config/ftoption.h: Changed the automatic
+	* include/freetype/ftoption.h: Changed the automatic
 	detection of Microsoft C compilers to automatically support 64-bit
 	integers only since revision 9.00 (i.e. >= Visual C++ 2.0).
 

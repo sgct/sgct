@@ -173,7 +173,7 @@ void sgct::MessageHandler::logToFile(const char * buffer)
 	if( err != 0 || !pFile ) //error
 		error = true;
 #else
-	pFile = fopen(mFileName.c_str(), "a");
+	pFile = fopen(mFilename.c_str(), "a");
 	if( pFile == NULL )
 		error = true;
 #endif

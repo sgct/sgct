@@ -77,7 +77,7 @@ or MSys on Win32:
     compilation in directory `foo' works as follows:
 
       cd foo
-      /src/freetype/configure [options]
+      /src/freetypeure [options]
       make
       make install
 

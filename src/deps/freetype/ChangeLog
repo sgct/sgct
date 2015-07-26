@@ -323,7 +323,7 @@
 	Simply apply the patch from the bug report.
 
 	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
-	include/freetype/config/ftconfig.h: The used #pragma directives only
+	include/freetype/ftconfig.h: The used #pragma directives only
 	work with gcc versions 4.6 and higher.
 
 2013-11-01  Werner Lemberg  <wl@gnu.org>
@@ -450,7 +450,7 @@
 	`ADD.W' will be automatically emitted when the immediate operand is
 	larger than 4095.
 
-	* builds/unix/ftconfig.in, include/freetype/config/ftconfig.h
+	* builds/unix/ftconfig.in, include/freetype/ftconfig.h
 	(FT_MulFix_arm) [__GNUC__]: Support clang compiler.
 
 	* src/truetype/ttinterp.c (TT_MulFix14_arm) [__GNUC__]: Ditto.
@@ -990,7 +990,7 @@
 	Fix Savannah bug #39700.
 
 	* builds/unix/ftconfig.h: Synchronize with
-	`include/freetype/config/ftconfig.h'.
+	`include/freetype/ftconfig.h'.
 
 	* builds/vms/ftconfig.h: Ditto.
 	Make the differences to the master `ftconfig.h' file as small as
@@ -1088,7 +1088,7 @@
 
 	[autofit] Fix `make multi'.
 
-	* include/freetype/config/ftconfig.h (FT_LOCAL_ARRAY,
+	* include/freetype/ftconfig.h (FT_LOCAL_ARRAY,
 	FT_LOCAL_ARRAY_DEF): New macros.
 
 	* src/autofit/afglobal.c (af_writing_system_classes,
@@ -1110,7 +1110,7 @@
 	           -I /usr/lib/gcc/i586-suse-linux/4.7/include \
 	           -I include \
 	           -I include/freetype \
-	           -I include/freetype/config \
+	           -I include/freetype \
 	           -I include/freetype/internal \
 	           -DFT2_BUILD_LIBRARY \
 	           . &> cppcheck.log
@@ -1432,7 +1432,7 @@
 	  Embolden                   0.028 us/op
 	  Get_BBox                   0.301 us/op
 
-	* builds/unix/ftconfig.in, include/freetype/config/ftconfig.h
+	* builds/unix/ftconfig.in, include/freetype/ftconfig.h
 	(FT_MulFix_x86_64): New function.
 
 2013-07-16  David Turner  <digit@google.com>
@@ -1485,7 +1485,7 @@
 	  [3] ftbench -t 5 -p -s 14 -b a -f 000a Arial.ttf
 	  [4] ftbench -t 5 -p -s 14 -b b -f 0008 Arial.ttf
 
-	* builds/unix/ftconfig.in, include/freetype/config/ftconfig.h
+	* builds/unix/ftconfig.in, include/freetype/ftconfig.h
 	(FT_MULFIX_ASSEMBLER): Fix handling for ARMv7.
 
 2013-06-28  Werner Lemberg  <wl@gnu.org>
@@ -1562,7 +1562,7 @@
 
 	Tag sources with `VER-2-5-0-1'.
 
-	* include/freetype/config/ftoption.h: Undefine
+	* include/freetype/ftoption.h: Undefine
 	CFF_CONFIG_OPTION_OLD_ENGINE.
 	* devel/ftoption.h: Define CFF_CONFIG_OPTION_OLD_ENGINE.
 
@@ -1840,7 +1840,7 @@
 	           --enable=all \
 	           -I include \
 	           -I include/freetype/ \
-	           -I include/freetype/config/ \
+	           -I include/freetype/ \
 	           -I include/freetype/internal/ \
 	           . &> cppcheck.log
 
@@ -1868,7 +1868,7 @@
 	This controls whether the old FreeType CFF engine gets compiled into
 	FreeType.  It is now disabled by default.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(CFF_CONFIG_OPTION_OLD_ENGINE): New macro.
 
 	* src/cff/cffdrivr.c (cff_property_set), src/cff/cffgload.c
@@ -1908,7 +1908,7 @@
 	* builds/unix/configure.raw: Search for libpng.
 	Add `--without-png' option.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(FT_CONFIG_OPTION_USE_PNG): New macro.
 
 	* include/freetype/freetype.h (FT_LOAD_COLOR): New load flag.
@@ -2043,7 +2043,7 @@
 
 	* include/freetype/ftttdrv.h: New file.
 
-	* include/freetype/config/ftheader.h (FT_TRUETYPE_DRIVER_H): New
+	* include/freetype/ftheader.h (FT_TRUETYPE_DRIVER_H): New
 	macro.
 
 	* src/truetype/ttdriver.c: Include FT_TRUETYPE_DRIVER_H.
@@ -2112,7 +2112,7 @@
 
 	Introduce unsigned 64bit type (if available).
 
-	* include/freetype/config/ftconfig.h: Define FT_UINT64 if available.
+	* include/freetype/ftconfig.h: Define FT_UINT64 if available.
 	[FT_LONG64]: Provide FT_UInt64.
 
 	* builds/unix/ftconfig.in: Synchronized.
@@ -2191,7 +2191,7 @@
 
 	Fix 64bit compilation issues.
 
-	* include/freetype/config/ftconfig.h [FT_LONG64]: Typedef
+	* include/freetype/ftconfig.h [FT_LONG64]: Typedef
 	`FT_Int64' here.
 
 	* src/base/ftcalc.c: Remove typedef of `FT_Int64'.
@@ -2317,7 +2317,7 @@
 
 	For convenience, (most of) the new files are committed separately.
 
-	* include/freetype/config/ftheader.h (FT_CFF_DRIVER_H): New macro.
+	* include/freetype/ftheader.h (FT_CFF_DRIVER_H): New macro.
 	* include/freetype/ftcffdrv.h: New file to access CFF driver
 	properties.
 	* include/freetype/fterrdef.h (FT_Err_Glyph_Too_Big): New error
@@ -2958,7 +2958,7 @@
 
 	After the next release we are going to remove the code completely.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(FT_CONFIG_OPTION_OLD_INTERNALS): Comment out.
 	* docs/CHANGES: Document it.
 
@@ -3712,7 +3712,7 @@
 	[autofit] Implement `glyph-to-script-map' property.
 
 	* include/freetype/ftautoh.h: New public header file.
-	* include/freetype/config/ftheader.h (FT_AUTOHINTER_H): New macro.
+	* include/freetype/ftheader.h (FT_AUTOHINTER_H): New macro.
 
 	* src/autofit/afglobal.c (AF_FaceGlobalsRec): Move structure to...
 	* src/autofit/afglobal.h: This header file.
@@ -3917,7 +3917,7 @@
 
 	Problem reported by Peter Breitenlohner and Akira Kakuto.
 
-	* include/freetype/config/ftstdlib.h (ft_setjmp): Updated.
+	* include/freetype/ftstdlib.h (ft_setjmp): Updated.
 	* src/sfnt/ttcmap.c (tt_face_build_cmaps): Remove cast.
 
 2012-07-09  Werner Lemberg  <wl@gnu.org>
@@ -3938,7 +3938,7 @@
 
 	[ARM] Fix FT_MulFix_arm.
 
-	* include/freetype/config/ftconfig.h (FT_MulFix_arm) [__arm__]:
+	* include/freetype/ftconfig.h (FT_MulFix_arm) [__arm__]:
 	Avoid ADDS instruction to clobber condition codes.
 
 2012-07-06  Werner Lemberg  <wl@gnu.org>
@@ -4136,7 +4136,7 @@
 
 	* src/truetype/ttsubpix.h: New file, holding the tweaking rules.
 
-	* include/freetype/config/ftoption.h, src/devel/ftoption.h
+	* include/freetype/ftoption.h, src/devel/ftoption.h
 	(TT_CONFIG_OPTION_SUBPIXEL_HINTING): New macro.
 
 	* include/freetype/internal/ftobjs.h (FT_PIX_FLOOR_GRID,
@@ -5034,7 +5034,7 @@
 	* builds/unix/ftconfig.in: Undefine FT_MACINTOSH when the support
 	for Mac OS X without Carbon (e.g.  Mac OS X 10.4 for ppc64) is
 	requested.
-	* include/freetype/config/ftconfig.in: Ditto.
+	* include/freetype/ftconfig.in: Ditto.
 	* builds/vms/ftconfig.h: Ditto.
 
 	* src/base/ftbase.h: Remove DARWIN_NO_CARBON.
@@ -5352,7 +5352,7 @@
 
 	Handle some border cases.
 
-	* include/freetype/config/ftstdlib.h (FT_USHORT_MAX): New macro.
+	* include/freetype/ftstdlib.h (FT_USHORT_MAX): New macro.
 
 	* src/base/ftbitmap.c (FT_Bitmap_Convert): Protect against invalid
 	value of `target->rows'.
@@ -5397,7 +5397,7 @@
 	Remove unused FT_ALIGNMENT macro.
 
 	* builds/unix/ftconfig.in, builds/vms/ftconfig.h,
-	include/freetype/config/ftconfig.h: Do it.
+	include/freetype/ftconfig.h: Do it.
 
 2011-09-17  Alexei Podtelezhnikov  <apodtele@gmail.com>
 
@@ -6093,7 +6093,7 @@
 	header file, ECANCELED (introduced in 10.2) in POSIX header
 	file <errno.h> is checked to detect the system version.
 
-	* include/freetype/config/ftconfig.h: Conditionalize the
+	* include/freetype/ftconfig.h: Conditionalize the
 	inclusion of `AvailabilityMacros.h'.
 	* builds/unix/ftconfig.in: Ditto.
 	* builds/vms/ftconfig.h: Ditto.
@@ -6299,7 +6299,7 @@
 
 	Integrate autofitter debugging stuff.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(FT_DEBUG_AUTOFIT): New macro.
 
 	* include/freetype/internal/fttrace.h: Add trace components for
@@ -6317,7 +6317,7 @@
 	Synchronize config files.
 
 	* builds/unix/ftconfig.in: Copy missing assembler routines from
-	include/freetype/config/ftconfig.h.
+	include/freetype/ftconfig.h.
 
 2011-04-13  Werner Lemberg  <wl@gnu.org>
 
@@ -6444,7 +6444,7 @@
 
 	Add AF_CONFIG_OPTION_USE_WARPER to control the autofit warper.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(AF_CONFIG_OPTION_USE_WARPER): New macro.
 	* src/autofit/aftypes.h (AF_USE_WARPER): Remove.
 
@@ -6507,7 +6507,7 @@
 
 	Add inline assembly version of FT_MulFix for MSVC.
 
-	* include/freetype/config/ftconfig.h: Ported the FT_MulFix_i386
+	* include/freetype/ftconfig.h: Ported the FT_MulFix_i386
 	function from GNU inline assembly syntax (see #ifdef __GNUC__ block
 	above) to MASM syntax for Microsoft Visual C++.
 
@@ -6594,9 +6594,9 @@
 
 2011-01-15  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
-	Fix ARM assembly code in include/freetype/config/ftconfig.h.
+	Fix ARM assembly code in include/freetype/ftconfig.h.
 
-	* include/freetype/config/ftconfig.h (FT_MulFix_arm):
+	* include/freetype/ftconfig.h (FT_MulFix_arm):
 	Copy the maintained code from builds/unix/ftconfig.in.
 	Old GNU binutils could not accept the reduced syntax
 	`orr %0, %2, lsl #16'.  Un-omitted syntax like RVCT,
@@ -6887,9 +6887,9 @@
 
 	* builds/unix/configure.raw: Test for libbz2 library.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(FT_CONFIG_OPTION_USE_BZIP2): Define.
-	* include/freetype/config/ftheader.h (FT_BZIP2_H): Define.
+	* include/freetype/ftheader.h (FT_BZIP2_H): Define.
 
 	* include/freetype/ftbzip2.h: New file.
 
@@ -7634,7 +7634,7 @@
 	Fix conditional usage of FT_MulFix_i386.
 	With -ansi flag, gcc does not define `i386', only `__i386__'.
 
-	* include/freetype/config/ftconfig.h, builds/unix/ftconfig.in:
+	* include/freetype/ftconfig.h, builds/unix/ftconfig.in:
 	s/i386/__i386__/.
 
 2010-08-05  Werner Lemberg  <wl@gnu.org>
@@ -7674,7 +7674,7 @@
 	`make devel' fails if FT_CONFIG_OPTION_OLD_INTERNALS is set.
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 2010-08-04  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
@@ -7889,7 +7889,7 @@
 
 	* src/cache/ftccmap.c (FTC_CMapCache_Lookup): Replace `16' the
 	minimum character code passed by a legacy rogue client by...
-	* include/freetype/config/ftoption.h (FT_MAX_CHARMAP_CACHEABLE):
+	* include/freetype/ftoption.h (FT_MAX_CHARMAP_CACHEABLE):
 	This.  It is undefined when FT_CONFIG_OPTION_OLD_INTERNALS is
 	undefined (thus the rogue client compatibility is not required).
 
@@ -7918,7 +7918,7 @@
 
 	TrueType hinting is no longer patented.
 
-	* include/freetype/config/ftoption.h, devel/ftoption.h
+	* include/freetype/ftoption.h, devel/ftoption.h
 	(TT_CONFIG_OPTION_BYTECODE_INTERPRETER): Define.
 	(TT_CONFIG_OPTION_UNPATENTED_HINTING): Undefine.
 

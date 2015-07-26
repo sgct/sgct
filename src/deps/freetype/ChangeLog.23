@@ -146,7 +146,7 @@
 	Provide inline assembly code for RVCT compiler.
 	This is Savannah patch #7059.
 
-	* include/freetype/config/ftconfig.h (FT_MULFIX_ASSEMBLER,
+	* include/freetype/ftconfig.h (FT_MULFIX_ASSEMBLER,
 	FT_MulFix_arm) [__CC_ARM || __ARM_CC]: Define.
 
 2010-01-08  Ken Sharp  <ken.sharp@artifex.com>
@@ -189,7 +189,7 @@
 	Ghostscript to be linked against the system FreeType when one is
 	available.
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_INCREMENTAL):
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_INCREMENTAL):
 	Uncomment.
 
 2010-01-05  Werner Lemberg  <wl@gnu.org>
@@ -1341,7 +1341,7 @@
 
 	Improve bitmap size or pixel variables for 16-bit systems.
 
-	* include/freetype/config/ftstdlib.h: Introduce
+	* include/freetype/ftstdlib.h: Introduce
 	FT_INT_MIN, to use in signed integer overflow in
 	16-bit and 64-bit platforms.
 	
@@ -2771,7 +2771,7 @@
 
 	Position Independent Code (PIC) support and infrastructure in base.
 
-	* include/freetype/config/ftoption.h add FT_CONFIG_OPTION_PIC
+	* include/freetype/ftoption.h add FT_CONFIG_OPTION_PIC
 	* include/freetype/internal/ftobjs.h Add pic_container member to
 	FT_LibraryRec.
 	Add macros to declare and init instances of FT_CMap_ClassRec.
@@ -2853,7 +2853,7 @@
 
 	Add support for cmap type 13.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(TT_CONFIG_CMAP_FORMAT_13): New macro.
 
 	* src/sfnt/ttcmap.c (TT_CMap13Rec, tt_cmap13_init,
@@ -3321,7 +3321,7 @@
 
 	Fix Savannah bug #25355.
 
-	* include/freetype/config/ftconfig.h (FT_MulFix_i386): Make
+	* include/freetype/ftconfig.h (FT_MulFix_i386): Make
 	assembler code work with gcc 2.95.3 (as used by the Haiku project).
 	Add `cc' register to the clobber list.
 
@@ -3411,7 +3411,7 @@
 
 	Problem reported by Mickey Gabel <mickey@monfort.co.il>.
 
-	* include/freetype/config/ftstdlib.h (ft_exit): Removed.  Unused.
+	* include/freetype/ftstdlib.h (ft_exit): Removed.  Unused.
 
 	* src/autofit/afhints.c, src/base/ftlcdfil.c, src/smooth/ftsmooth.c:
 	s/memcpy/ft_memcpy/.
@@ -3561,8 +3561,8 @@
 
 	* src/base/ftinit.c (FT_USE_MODULE): Include variable type.
 
-	* builds/amiga/include/freetype/config/ftmodule.h,
-	include/freetype/config/ftmodule.h, */module.mk: Updated to declare
+	* builds/amiga/include/freetype/ftmodule.h,
+	include/freetype/ftmodule.h, */module.mk: Updated to declare
 	pass correct types to FT_USE_MODULE.
 
 2008-12-21  Hongbo Ni  <hongbo@njstar.com>
@@ -3778,7 +3778,7 @@
 
 2008-11-05  Werner Lemberg  <wl@gnu.org>
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	[TT_CONFIG_OPTION_BYTECODE_INTERPRETER]: Undefine
 	TT_CONFIG_OPTION_UNPATENTED_HINTING.  This fixes the return value of
 	`FT_Get_TrueType_Engine_Type' (and makes it work as documented).
@@ -3902,7 +3902,7 @@
 
 2008-10-03  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
-	* include/freetype/config/ftconfig.h: Define FT_MACINTOSH when SC or
+	* include/freetype/ftconfig.h: Define FT_MACINTOSH when SC or
 	MrC compiler of MPW is used.  These compilers do not define the
 	macro __APPLE__ by themselves.
 	* builds/unix/ftconfig.in: Ditto.
@@ -4123,7 +4123,7 @@
 2008-09-13  Werner Lemberg  <wl@gnu.org>
 
 	* autogen.sh, builds/unix/configure.raw,
-	include/freetype/config/ftconfig.h, builds/unix/ftconfig.in: Minor
+	include/freetype/ftconfig.h, builds/unix/ftconfig.in: Minor
 	beautifying.
 
 	* include/freetype/ftadvanc.h, include/freetype/ftgasp.h,
@@ -4131,7 +4131,7 @@
 	Some other minor fixes.
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 2008-09-11  Werner Lemberg  <wl@gnu.org>
 
@@ -4140,7 +4140,7 @@
 2008-09-11  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
 	* builds/unix/ftconfig.in: Duplicate the cpp computation of
-	FT_SIZEOF_{INT|LONG} from include/freetype/config/ftconfig.h.
+	FT_SIZEOF_{INT|LONG} from include/freetype/ftconfig.h.
 	(FT_USE_AUTOCONF_SIZEOF_TYPES): New macro.  If defined, the cpp
 	computation is disabled and the statically configured sizes are
 	used.  This fixes Savannah bug #21250.
@@ -4176,7 +4176,7 @@
 	Use of assembler code can now be controlled with
 	FT_CONFIG_OPTION_NO_ASSEMBLER.
 
-	* include/freetype/config/ftconfig.h, builds/unix/ftconfig.in
+	* include/freetype/ftconfig.h, builds/unix/ftconfig.in
 	[!FT_CONFIG_OPTION_NO_ASSEMBLER] (FT_MulFix_arm): New assembler
 	implementation.
 	[!FT_CONFIG_OPTION_NO_ASSEMBLER] (FT_MulFix_i386): Assembler
@@ -4187,7 +4187,7 @@
 	[FT_CONFIG_OPTION_INLINE_MULFIX && FT_MULFIX_ASSEMBLER]
 	(FT_MULFIX_INLINED): New macro.
 
-	* include/freetype/config/ftoption.h (FT_CONFIG_OPTION_NO_ASSEMBLER,
+	* include/freetype/ftoption.h (FT_CONFIG_OPTION_NO_ASSEMBLER,
 	FT_CONFIG_OPTION_INLINE_MULFIX): New macros.
 
 	* include/freetype/freetype.h: Updated to handle FT_MULFIX_INLINED.
@@ -4203,7 +4203,7 @@
 
 	* src/base/ftadvanc.c, include/freetype/ftadvanc.h: New files.
 
-	* include/freetype/config/ftheader.h (FT_ADVANCES_H): New macro.
+	* include/freetype/ftheader.h (FT_ADVANCES_H): New macro.
 	* include/freetype/freetype.h (FT_LOAD_ADVANCE_ONLY): New macro.
 
 	* include/freetype/internal/ftdriver.h (FT_Face_GetAdvancesFunc):
@@ -4686,7 +4686,7 @@
 
 2008-06-01  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftheader.h (FT_UNPATENTED_HINTING_H,
+	* include/freetype/ftheader.h (FT_UNPATENTED_HINTING_H,
 	FT_INCREMENTAL_H): Added.
 
 2008-05-28  Werner Lemberg  <wl@gnu.org>
@@ -5271,7 +5271,7 @@
 
 	Add support for cmap type 14.
 
-	* devel/ftoption.h, include/freetype/config/ftoption.h
+	* devel/ftoption.h, include/freetype/ftoption.h
 	(TT_CONFIG_CMAP_FORMAT_14): New macro.
 
 	* include/freetype/internal/ftobjs.h (FT_CMap_CharVarIndexFunc,
@@ -5425,7 +5425,7 @@
 
 	Add new service for getting the ROS from a CID font.
 
-	* include/freetype/config/ftheader.h (FT_CID_H): New macro.
+	* include/freetype/ftheader.h (FT_CID_H): New macro.
 	* include/freetype/ftcid.h: New file.
 
 	* include/freetype/internal/ftserv.h (FT_SERVIVE_CID_H): New macro.
@@ -5538,10 +5538,10 @@
 	Add autofit module for Indic scripts.  This currently just reuses
 	the CJK-specific functions.
 
-	* include/freetype/config/ftoption.h (AF_CONFIG_OPTION_INDIC): New
+	* include/freetype/ftoption.h (AF_CONFIG_OPTION_INDIC): New
 	macro.
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 	* src/autofit/afindic.c, src/autofit/afindic.h: New files.
 
@@ -5738,7 +5738,7 @@
 	* src/truetype/ttgload.c (TT_Load_Simple_Glyph): Slight speed-up to
 	the TrueType glyph loader.
 
-	* include/freetype/config/ftoption.h: Clarify documentation
+	* include/freetype/ftoption.h: Clarify documentation
 	regarding unpatented hinting.
 
 
@@ -5962,7 +5962,7 @@
 
 2007-05-15  David Turner  <david@freetype.org>
 
-	* include/freetype/config/ftstdlib.h,
+	* include/freetype/ftstdlib.h,
 	include/freetype/internal/ftobjs.h: As suggested by Graham Asher,
 	ensure that ft_isalnum, ft_isdigit, etc., use hard-coded values
 	instead on relying on the locale-dependent functions provided by
@@ -6180,7 +6180,7 @@
 	* builds/unix/ftconfig.in: Disable Carbon framework dependency on
 	64bit ABI on Mac OS X 10.4.x (ppc & i386).  Found by Sean McBride.
 	* builds/vms/ftconfig.h: Ditto.
-	* include/freetype/config/ftconfig.h: Ditto.
+	* include/freetype/ftconfig.h: Ditto.
 
 2007-03-22  suzuki toshiya  <mpsuzuki@hiroshima-u.ac.jp>
 
@@ -6244,7 +6244,7 @@
 
 2007-03-05  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftstdlib.h (ft_strstr): New wrapper
+	* include/freetype/ftstdlib.h (ft_strstr): New wrapper
 	macro for `strstr'.
 
 	* src/truetype/ttobjs.c (tt_face_init): Use ft_strstr for scanning
@@ -6555,7 +6555,7 @@
 	* builds/amiga/makefile, builds/amiga/makefile.os4,
 	builds/amiga/smakefile: Add `ftgasp.c' and `ftlcdfil.c'.
 
-	* builds/amiga/include/freetype/config/ftconfig.h: Synchronize.
+	* builds/amiga/include/freetype/ftconfig.h: Synchronize.
 
 2007-01-14  Detlef Würkner  <TetiSoft@apg.lahn.de>
 
@@ -6683,7 +6683,7 @@
 	`gasp' table, in order to avoid potential problems with later
 	versions.
 
-	* include/freetype/config/ftheader.h (FT_GASP_H): New macro for
+	* include/freetype/ftheader.h (FT_GASP_H): New macro for
 	<freetype/ftgasp.h>.
 
 	* src/base/rules.mk (BASE_SRC), src/base/Jamfile (_sources),
@@ -6805,7 +6805,7 @@
 
 	* src/sfnt/sfobjs.c, src/sfnt/ttkern.c, src/sfnt/ttkern.h,
 	src/sfnt/ttmtx.c, src/sfnt/ttsbit.c, src/sfnt/ttsbit.h,
-	src/truetype/ttpload.c, include/freetype/config/ftoption.h: Remove
+	src/truetype/ttpload.c, include/freetype/ftoption.h: Remove
 	FT_OPTIMIZE_MEMORY macro (and code for !FT_OPTIMIZE_MEMORY) since
 	the optimization is no longer experimental.
 
@@ -7191,7 +7191,7 @@
 
 2006-10-03  Jens Claudius  <jens.claudius@yahoo.com>
 
-	* include/freetype/config/ftstdlib.h: Cast away volatileness from
+	* include/freetype/ftstdlib.h: Cast away volatileness from
 	argument to ft_setjmp.
 
 	* include/freetype/internal/ftvalid.h: Add comment that
@@ -7264,7 +7264,7 @@
 	(ft_smooth_render_lcd): Use `FT_RENDER_MODE_LCD'.
 	(ft_smooth_render_lcd_v): Use `FT_RENDER_MODE_LCD_V'.
 
-	* include/freetype/config/ftheader.h (FT_LCD_FILTER_H): New macro,
+	* include/freetype/ftheader.h (FT_LCD_FILTER_H): New macro,
 	pointing to <freetype/ftlcdfil.h>.
 
 	* src/base/Jamfile (_sources), src/base/rules.mk (BASE_SRC),
@@ -7289,7 +7289,7 @@
 
 	* src/autofit/aftypes.h [AF_DEBUG]: Declare above variables.
 
-	* include/freetype/config/ftoption.h, devel/ftoption.h
+	* include/freetype/ftoption.h, devel/ftoption.h
 	(FT_CONFIG_OPTION_SUBPIXEL_RENDERING): New macro to control whether
 	we want to compile LCD-optimized rendering code (à la ClearType) or
 	not.  The macro *must* be disabled in default builds of the library
@@ -7354,7 +7354,7 @@
 2006-09-03  Werner Lemberg  <wl@gnu.org>
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 	* src/smooth/ftgrays.c (gray_record_cell): Remove shadowing
 	variable declaration.
@@ -7394,7 +7394,7 @@
 
 2006-08-27  David Turner  <david@freetype.org>
 
-	* include/freetype/config/ftoption.h (TT_USE_BYTECODE_INTERPRETER):
+	* include/freetype/ftoption.h (TT_USE_BYTECODE_INTERPRETER):
 	New macro, defined if either TT_CONFIG_OPTION_BYTECODE_INTERPRETER
 	or TT_CONFIG_OPTION_UNPATENTED_HINTING is defined.
 

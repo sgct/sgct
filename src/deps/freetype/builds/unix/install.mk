@@ -44,8 +44,8 @@ install: $(PROJECT_LIBRARY)
           $(INSTALL_DATA)                                  \
             $$P $(DESTDIR)$(includedir)/freetype2/config ; \
         done
-	-$(DELETE) $(DESTDIR)$(includedir)/freetype2/freetype/config/*
-	-$(DELDIR) $(DESTDIR)$(includedir)/freetype2/freetype/config
+	-$(DELETE) $(DESTDIR)$(includedir)/freetype2/freetype/*
+	-$(DELDIR) $(DESTDIR)$(includedir)/freetype2/freetype
 	-$(DELETE) $(DESTDIR)$(includedir)/freetype2/freetype/*
 	-$(DELDIR) $(DESTDIR)$(includedir)/freetype2/freetype
 	$(INSTALL_DATA) $(OBJ_BUILD)/ftconfig.h               \

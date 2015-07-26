@@ -107,7 +107,7 @@
    *
    */
 #ifndef FT_CONFIG_CONFIG_H
-#define FT_CONFIG_CONFIG_H  <external/freetype/config/ftconfig.h>
+#define FT_CONFIG_CONFIG_H  <external/freetype/ftconfig.h>
 #endif
 
 
@@ -122,7 +122,7 @@
    *
    */
 #ifndef FT_CONFIG_STANDARD_LIBRARY_H
-#define FT_CONFIG_STANDARD_LIBRARY_H  <external/freetype/config/ftstdlib.h>
+#define FT_CONFIG_STANDARD_LIBRARY_H  <external/freetype/ftstdlib.h>
 #endif
 
 
@@ -137,7 +137,7 @@
    *
    */
 #ifndef FT_CONFIG_OPTIONS_H
-#define FT_CONFIG_OPTIONS_H  <external/freetype/config/ftoption.h>
+#define FT_CONFIG_OPTIONS_H  <external/freetype/ftoption.h>
 #endif
 
 
@@ -153,7 +153,7 @@
    *
    */
 #ifndef FT_CONFIG_MODULES_H
-#define FT_CONFIG_MODULES_H  <external/freetype/config/ftmodule.h>
+#define FT_CONFIG_MODULES_H  <external/freetype/ftmodule.h>
 #endif
 
   /* */

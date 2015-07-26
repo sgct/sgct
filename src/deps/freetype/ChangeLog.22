@@ -100,7 +100,7 @@
 	savannah.gnu.org.
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 2006-05-04  Werner Lemberg  <wl@gnu.org>
 
@@ -125,7 +125,7 @@
 
 2006-05-03  Werner Lemberg  <wl@gnu.org>
 
-	* include/freetype/config/ftoption.h (FT_STRICT_ALIASING): Removed.
+	* include/freetype/ftoption.h (FT_STRICT_ALIASING): Removed.
 
 2006-05-02  Werner Lemberg  <wl@gnu.org>
 
@@ -137,7 +137,7 @@
 
 	* src/base/ftstream.c (FT_Stream_EnterFrame): Add cast.
 
-	* include/freetype/config/ftconfig.h (FT_BASE_DEF) [__cplusplus]:
+	* include/freetype/ftconfig.h (FT_BASE_DEF) [__cplusplus]:
 	Remove `extern'.
 
 2006-05-02  David Turner  <david@freetype.org>
@@ -166,7 +166,7 @@
 	code is now the default.
 
 
-	* include/freetype/config/ftconfig.h (FT_BASE_DEF) [!__cplusplus]:
+	* include/freetype/ftconfig.h (FT_BASE_DEF) [!__cplusplus]:
 	Don't use `extern'.
 
 	* include/freetype/fterrdef.h (FT_Err_Array_Too_Large): New error
@@ -224,7 +224,7 @@
 	Further C library abstraction.  Based on a patch from
 	msn2@bidyut.com.
 
-	* include/freetype/config/ftstdlib.h (FT_CHAR_BIT, FT_FILE,
+	* include/freetype/ftstdlib.h (FT_CHAR_BIT, FT_FILE,
 	ft_fopen, ft_fclose, ft_fseek, ft_ftell, ft_fread, ft_smalloc,
 	ft_scalloc, ft_srealloc, ft_sfree, ft_labs): New wrapper macros for
 	C library functions.  Update all users accordingly (and catch some
@@ -309,7 +309,7 @@
 
 	* docs/CHANGES: Updated.
 
-	* include/freetype/ftcache.h, include/freetype/config/ftheader.h:
+	* include/freetype/ftcache.h, include/freetype/ftheader.h:
 	Update documentation comments.
 
 2006-04-01  Werner Lemberg  <wl@gnu.org>
@@ -470,7 +470,7 @@
 	$(CACHE_H).
 	Remove `freetype/cache' from the target directory.
 
-	* include/freetype/config/ftheader.h (FT_CACHE_MANAGER_H,
+	* include/freetype/ftheader.h (FT_CACHE_MANAGER_H,
 	FT_CACHE_INTERNAL_MRU_H, FT_CACHE_INTERNAL_MANAGER_H,
 	FT_CACHE_INTERNAL_CACHE_H, FT_CACHE_INTERNAL_GLYPH_H,
 	FT_CACHE_INTERNAL_IMAGE_H, FT_CACHE_INTERNAL_SBITS_H): Point to
@@ -617,7 +617,7 @@
 2006-02-25  Werner Lemberg  <wl@gnu.org>
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 	* src/cache/ftccache.c (ftc_node_destroy): Use FT_LOCAL_DEF (again).
 
@@ -641,9 +641,9 @@
 
 	* src/base/ftsystem.c: Include FT_INTERNAL_STREAM_H.
 
-	* include/freetype/config/ftheader.h (FT_PFR_H): New macro.
+	* include/freetype/ftheader.h (FT_PFR_H): New macro.
 
-	* include/freetype/config/ftoption.h (FT_STRICT_ALIASING): Don't
+	* include/freetype/ftoption.h (FT_STRICT_ALIASING): Don't
 	define for C++.
 
 	* include/freetype/internal/services/svotval.h: Don't include
@@ -824,7 +824,7 @@
 2006-02-17  Werner Lemberg  <wl@gnu.org>
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 2006-02-16  David Turner  <david@freetype.org>
 
@@ -832,7 +832,7 @@
 	layouts and exported functions of FreeType 2.1.7.  Note that the
 	cache sub-system cannot be fully retrofitted, unfortunately.
 
-	* include/freetype/config/ftoption.h
+	* include/freetype/ftoption.h
 	(FT_CONFIG_OPTION_OLD_INTERNALS): New macro.
 
 	* include/freetype/ftcache.h, include/freetype/cache/ftccache.h,
@@ -1033,7 +1033,7 @@
 
 2006-02-11  Chia-I Wu  <b90201047@ntu.edu.tw>
 
-	* include/freetype/config/ftoption.h (AF_CONFIG_OPTION_CJK): #define
+	* include/freetype/ftoption.h (AF_CONFIG_OPTION_CJK): #define
 	to enable autofit CJK script support.  (#define'd by default.)
 
 	* src/autofit/aflatin.h (AF_LATIN_CONSTANT): New macro.
@@ -1199,7 +1199,7 @@
 	Update snippet taken from autoconf's m4sh.m4 to current CVS version.
 	Be more verbose.
 
-	* include/freetype/config/ftmodule.h: Add comments -- this file is
+	* include/freetype/ftmodule.h: Add comments -- this file is
 	no longer used if FreeType is built with GNU make.
 
 	* docs/CHANGES, docs/CUSTOMIZE, docs/INSTALL, docs/INSTALL.ANY,
@@ -1244,7 +1244,7 @@
 	Other minor formatting.
 
 	* devel/ftoption.h: Synchronize with
-	include/freetype/config/ftoption.h.
+	include/freetype/ftoption.h.
 
 	* src/autofit/module.mk (add_autofit_module), src/bdf/module.mk
 	(add_bdf_module), src/type42/module.mk (add_type42_driver): Fix
@@ -1264,7 +1264,7 @@
 	* src/autofit/afwarp.c: Add simple #ifdef to prevent compilation
 	if the warp hinter isn't active (it shouldn't, still experimental).
 
-	* Jamfile, include/freetype/config/ftmodule.h: Remove `gxvalid'
+	* Jamfile, include/freetype/ftmodule.h: Remove `gxvalid'
 	and `otvalid' from the list of modules that are linked statically
 	to a given FreeType library.  Functionality has been moved to the
 	`ftvalid' CVS module.
@@ -1272,7 +1272,7 @@
 	Note also that current Make-based build system still compiles the
 	modules though.
 
-	* include/freetype/config/ftoption.h (FT_STRICT_ALIASING): New macro
+	* include/freetype/ftoption.h (FT_STRICT_ALIASING): New macro
 	which controls the definitions of the memory management functions to
 	avoid warnings with recent versions of GCC.  This macro is only here
 	to be disabled, in case we detect problems with the new scheme.
@@ -1293,7 +1293,7 @@
 	* builds/freetype.mk (FT_CFLAGS), Jamfile (DEFINES): Define the
 	macro FT2_BUILD_LIBRARY when compiling the library.
 
-	* include/freetype/config/ftheader.h: Remove inclusions of internal
+	* include/freetype/ftheader.h: Remove inclusions of internal
 	headers except if the macro FT2_BUILD_LIBRARY is defined.
 
 
@@ -1804,10 +1804,10 @@
 	At the moment, this is still experimental, the BDF table format
 	isn't cast into stone yet.
 
-	* include/freetype/config/ftoption.h (TT_CONFIG_OPTION_BDF): New
+	* include/freetype/ftoption.h (TT_CONFIG_OPTION_BDF): New
 	macro.
 
-	* include/freetype/config/ftstdlib.h (ft_memchr): New macro.
+	* include/freetype/ftstdlib.h (ft_memchr): New macro.
 
 	* include/freetype/internal/tttypes.h (TT_BDFRec, TT_BDF)
 	[TT_CONFIG_OPTION_BDF]: New structure.
@@ -1989,7 +1989,7 @@
 
 	* builds/amiga/makefile, builds/amiga/makefile.os4,
 	builds/amiga/smakefile,
-	builds/amiga/include/freetype/config/ftmodule.h: Updated the Amiga
+	builds/amiga/include/freetype/ftmodule.h: Updated the Amiga
 	build files (added support for the gxvalid module).
 
 2005-11-17  Werner Lemberg  <wl@gnu.org>
@@ -2539,9 +2539,9 @@
 	* src/base/rule.mk: Register ftgxval.c.
 	* docs/INSTALL.ANY: Register gxvalid/gxvalid.c.
 
-	* include/freetype/config/ftheader.h (FT_GX_VALIDATE_H): New macro
+	* include/freetype/ftheader.h (FT_GX_VALIDATE_H): New macro
 	to include gxvalid header file.
-	* include/freetype/config/ftmodule.h: Register gxv_module_class.
+	* include/freetype/ftmodule.h: Register gxv_module_class.
 
 	* include/freetype/ftchapters.h: Add comment about gx_validation.
 	* include/freetype/ftotval.h: Change keyword FT_VALIDATE_XXX

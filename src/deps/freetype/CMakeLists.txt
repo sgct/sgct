@@ -19,19 +19,20 @@ add_definitions(-DFT2_BUILD_LIBRARY)
 include_directories(
 				"${SGCT_SOURCE_PATH}/src/deps/zlib"
 				"${PROJECT_SOURCE_DIR}/include"
+				"${SGCT_SOURCE_PATH}/include/external/freetype"
 				"${SGCT_BINARY_PATH}/src/deps/lpng/zlib") #needed for zconf
 
 # Create the configuration file
-message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include.")
-file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
+#message(STATUS "Creating directory, ${PROJECT_BINARY_DIR}/include.")
+#file(MAKE_DIRECTORY ${PROJECT_BINARY_DIR}/include)
 
 # For the auto-generated ftconfig.h file
-include_directories("${PROJECT_BINARY_DIR}/include")
-message(STATUS "Creating ${PROJECT_BINARY_DIR}/include/ftconfig.h.")
+#include_directories("${PROJECT_BINARY_DIR}/include")
+#message(STATUS "Creating ${SGCT_SOURCE_PATH}/include/external/freetype/ftconfig.h.")
 execute_process(
   COMMAND sed -e "s/FT_CONFIG_OPTIONS_H/<ftoption.h>/" -e "s/FT_CONFIG_STANDARD_LIBRARY_H/<ftstdlib.h>/" -e "s?/undef ?#undef ?"
   INPUT_FILE ${PROJECT_SOURCE_DIR}/builds/unix/ftconfig.in
-  OUTPUT_FILE ${PROJECT_BINARY_DIR}/include/ftconfig.h
+  OUTPUT_FILE ${SGCT_SOURCE_PATH}/include/external/freetype/ftconfig.h
 )
 
 set(BASE_SRCS
@@ -122,6 +123,8 @@ endif()
 if(MSVC AND NOT "${MSVC_VERSION}" LESS 1400)
 	add_definitions( "/MP" )
 endif()
+	
+add_definitions( "-DUSE_ZLIB_ZCALLOC" )
 
 if( MSVC )
 	#disable pdb-file debugging

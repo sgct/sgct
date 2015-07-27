@@ -19,6 +19,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_text
 {
+class FontFaceData
+{
+public:
+	FontFaceData();
+
+	unsigned int mTexId;
+	float mCharWidth;
+};
 
 /*!
 Will ahandle font textures and rendering. Implementation is based on
@@ -31,6 +39,7 @@ public:
 	~Font();
 
 	void init( const std::string & fontName, unsigned int h );
+	void generateTexture(char c, int width, int height, unsigned char * data, bool generateMipMaps);
 	void clean();
 
 	/*! Get the list base index */
@@ -46,15 +55,15 @@ public:
 	inline float getHeight() const { return mHeight; }
 
 	/*! Get the texture id's */
-	inline const unsigned int * getTextures() const { return mTextures; }
+	inline const unsigned int getTexture( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mTexId; }
 
 	/*! Adds a glyph to the font */
 	inline void AddGlyph( const FT_Glyph & glyph ){ mGlyphs.push_back( glyph ); }
 
 	/*! Set the width of a character in the font */
-	inline void setCharWidth( char c, float width ){ mCharWidths[ static_cast<size_t>(c) ] = width; }
+	inline void setCharWidth( char c, float width ){ mFontFaceData[static_cast<size_t>(c)].mCharWidth = width; }
 	/*! Get the width of a character in the font */
-	inline float getCharWidth( char c ) const { return mCharWidths[ static_cast<size_t>(c) ]; }
+	inline float getCharWidth( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mCharWidth; }
 
 
 public:
@@ -70,12 +79,11 @@ public:
 private:
 	std::string mName;				// Holds the font name
 	float mHeight;					// Holds the height of the font.
-	unsigned int * mTextures;		// Holds the texture id's
+	FontFaceData * mFontFaceData;	// Holds texture index and other face specific data
 	unsigned int mListBase;			// Holds the first display list id
 	unsigned int mVBO;
 	unsigned int mVAO;
 	std::vector<FT_Glyph> mGlyphs;	// All glyphs needed by the font
-	float * mCharWidths;
 };
 
 } // sgct

@@ -210,7 +210,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *format
 				glTranslatef( trans.x, trans.y, trans.z );
 				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -252,7 +252,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *format
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -356,7 +356,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 				glTranslatef( trans.x, trans.y, trans.z );
 				trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -396,7 +396,7 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -496,7 +496,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format,
 				glLoadMatrixf( glm::value_ptr( trans ) );
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -533,7 +533,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format,
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -631,7 +631,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 				glLoadMatrixf( glm::value_ptr( trans ) );
 				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
@@ -668,7 +668,7 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
 			{
 				char c = lines[i].c_str()[j];
 
-				glBindTexture(GL_TEXTURE_2D, ft_font->getTextures()[ static_cast<size_t>(c) ] );
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
 				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);

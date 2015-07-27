@@ -16,11 +16,31 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ShaderProgram.h"
 #include <glm/glm.hpp>
 
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include <external/freetype/ftglyph.h>
+#include <external/freetype/ftstroke.h>
+#else
+#include <freetype/ftglyph.h>
+#include <freetype/ftstroke.h>
+#endif
+
 /*! \namespace sgct_text
 \brief SGCT text namespace is used for text rendering and font management
 */
 namespace sgct_text
 {
+
+class GlyphData
+{
+public:
+	FT_Glyph mGlyph;
+	FT_Glyph mStrokeGlyph;
+	FT_Stroker mStroker;
+	FT_BitmapGlyph mBitmapGlyph;
+	FT_BitmapGlyph mBitmapStrokeGlyph;
+	FT_Bitmap * mBitmapPtr;
+	FT_Bitmap * mStrokeBitmapPtr;
+};
 
 /*!
 Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehes tutorials for freetype</a>
@@ -104,6 +124,7 @@ private:
 	std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
 	bool makeDisplayList( FT_Face face, char ch, Font & font );
 	bool makeVBO( FT_Face face, Font & font );
+	bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
 
 	// Don't implement these, should give compile warning if used
 	FontManager( const FontManager & fm );

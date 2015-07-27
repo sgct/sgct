@@ -11,6 +11,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 
 /*!
+Default constructor for font face data.
+*/
+sgct_text::FontFaceData::FontFaceData()
+{
+	mTexId = GL_FALSE;
+	mCharWidth = 0.0f;
+}
+
+/*!
 Default constructor does not allocate any resources for the font.
 The init function needs to be called before the font can actually be used
 @param	fontName	Name of the font
@@ -19,12 +28,11 @@ The init function needs to be called before the font can actually be used
 sgct_text::Font::Font( const std::string & fontName, float height ) :
 	mName( fontName ),
 	mHeight( height ),
-	mTextures( NULL ),
+	mFontFaceData( NULL ),
 	mListBase( GL_FALSE )
 {
 	mVAO = GL_FALSE;
 	mVBO = GL_FALSE;
-	mCharWidths = NULL;
 }
 
 /*!
@@ -45,11 +53,9 @@ void sgct_text::Font::init( const std::string & name, unsigned int height )
 {
 	//Allocate some memory to store the texture ids.
 	mName = name;
-	mTextures = new GLuint[128];
-	mCharWidths = new float[128];
+	mFontFaceData = new FontFaceData[128];
 	mHeight = static_cast<float>( height );
 
-	glGenTextures( 128, mTextures );
 	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
 		mListBase = glGenLists(128);
@@ -64,12 +70,56 @@ void sgct_text::Font::init( const std::string & name, unsigned int height )
 	}
 }
 
+void sgct_text::Font::generateTexture(char c, int width, int height, unsigned char * data, bool generateMipMaps)
+{
+	unsigned int tex = mFontFaceData[static_cast<size_t>(c)].mTexId;
+	if (tex == GL_FALSE)
+	{
+		glGenTextures(1, &tex);
+		mFontFaceData[static_cast<size_t>(c)].mTexId = tex;
+	}
+
+	glBindTexture(GL_TEXTURE_2D, tex);
+
+	/*
+	SGCT2 change: Use non-power-of-two textures for better quality
+	*/
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	if (sgct::Engine::instance()->isOGLPipelineFixed())
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_LUMINANCE_ALPHA, width, height,
+			0, GL_LUMINANCE_ALPHA, GL_UNSIGNED_BYTE, data);
+	else
+		glTexImage2D(GL_TEXTURE_2D, 0, GL_COMPRESSED_RG, width, height,
+			0, GL_RG, GL_UNSIGNED_BYTE, data);
+
+	if (generateMipMaps)
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 7);
+		glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+}
+
 /*!
 Cleans up memory used by the Font
 */
 void sgct_text::Font::clean()
 {
-	if( mTextures )	// Check if init has been called
+	if(mFontFaceData)	// Check if init has been called
 	{
 		if( sgct::Engine::instance()->isOGLPipelineFixed() && mListBase != 0)
 			glDeleteLists( mListBase, 128 );
@@ -80,15 +130,11 @@ void sgct_text::Font::clean()
 			if( mVBO != 0)
 				glDeleteBuffers(1, &mVBO);
 		}
-		glDeleteTextures( 128, mTextures );
-		delete [] mTextures;
-		mTextures = NULL;
-	}
 
-	if( mCharWidths )
-	{
-		delete [] mCharWidths;
-		mCharWidths = NULL;
+		for (std::size_t i = 0; i < 128; i++)
+			glDeleteTextures( 1, &(mFontFaceData[i].mTexId) );
+		delete [] mFontFaceData;
+		mFontFaceData = NULL;
 	}
 
 	std::vector<FT_Glyph>::iterator it = mGlyphs.begin();

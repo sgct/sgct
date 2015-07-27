@@ -151,7 +151,7 @@ FT_BEGIN_HEADER
 #endif
 #if defined( __LP64__ ) && \
     ( MAC_OS_X_VERSION_MIN_REQUIRED <= MAC_OS_X_VERSION_10_4 )
-/undef FT_MACINTOSH
+#undef FT_MACINTOSH
 #endif
 
 #elif defined( __SC__ ) || defined( __MRC__ )
@@ -347,8 +347,8 @@ FT_BEGIN_HEADER
   /* Since `#undef' doesn't survive in configuration header files */
   /* we use the postprocessing facility of AC_CONFIG_HEADERS to   */
   /* replace the leading `/' with `#'.                            */
-/undef FT_LONG64
-/undef FT_INT64
+#undef FT_LONG64
+#undef FT_INT64
 
 #endif /* __STDC__ */
 

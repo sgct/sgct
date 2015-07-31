@@ -1156,7 +1156,7 @@ void sgct_core::CorrectionMesh::render(MeshType mt)
 {
 	//for test
 	//glDisable(GL_CULL_FACE);
-	
+
 	CorrectionMeshGeometry * geomPtr = &mGeometries[mt];
 
 	if( ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS )

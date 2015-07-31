@@ -490,7 +490,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
 										vpPtr->setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
 									}
 								}//end if planar projection
-								else if(strcmp("Viewplane", val[3]) == 0)
+								else if(strcmp("Viewplane", val[3]) == 0 || strcmp("Projectionplane", val[3]) == 0)
 								{
 									element[4] = element[3]->FirstChildElement();
 									while( element[4] != NULL )
@@ -501,7 +501,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
 										{
 											glm::vec3 tmpVec;
 											float fTmp[3];
-											static unsigned int i=0;
+											static std::size_t i=0;
 											if( element[4]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
                                                element[4]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
                                                element[4]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
@@ -514,7 +514,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
                                                                                         "ReadConfig: Adding view plane coordinates %f %f %f for plane %d\n",
                                                                                         tmpVec.x, tmpVec.y, tmpVec.z, i%3);
                                                 
-												vpPtr->setViewPlaneCoords(i % 3, tmpVec);
+												vpPtr->getProjectionPlane()->setCoordinate(i % 3, tmpVec);
 												i++;
 											}
 											else

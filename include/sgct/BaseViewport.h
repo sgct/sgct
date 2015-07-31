@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <string>
 #include "SGCTUser.h"
+#include "SGCTProjection.h"
 
 namespace sgct_core
 {
@@ -26,6 +27,7 @@ public:
 	void setEnabled(bool state);
 	void setUser(SGCTUser * user);
 	void setUserName(std::string userName);
+	void setEye(Frustum::FrustumMode eye);
 	
 	std::string getName();
 	float getX();
@@ -34,11 +36,23 @@ public:
 	float getYSize();
 
 	inline SGCTUser * getUser() { return mUser; }
+	inline Frustum::FrustumMode getEye() { return mEye; }
+	inline SGCTProjection * getProjection(Frustum::FrustumMode frustumMode) { return &mProjections[frustumMode]; }
+	inline SGCTProjection * getProjection() { return &mProjections[mEye]; }
+	inline SGCTProjectionPlane * getProjectionPlane() { return &mProjectionPlane; }
 
 	bool isEnabled();
 	void linkUserName();
+
+	void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
+	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
+	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
     
 protected:
+	SGCTProjection mProjections[3];
+	SGCTProjectionPlane mProjectionPlane;
+	Frustum::FrustumMode mEye;
+
 	SGCTUser * mUser;
 	std::string mName;
 	std::string mUserName;

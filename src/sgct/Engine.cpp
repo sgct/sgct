@@ -1502,12 +1502,13 @@ void sgct::Engine::drawFixedPipeline()
 
 	glMatrixMode(GL_PROJECTION);
 
-	Viewport * tmpVP = getActiveWindowPtr()->getCurrentViewport();
-	glLoadMatrixf( glm::value_ptr(tmpVP->getProjectionMatrix(mActiveFrustumMode)) );
+	SGCTProjection * proj = getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode);
+
+	glLoadMatrixf( glm::value_ptr(proj->getProjectionMatrix()) );
 
 	glMatrixMode(GL_MODELVIEW);
 
-	glLoadMatrixf( glm::value_ptr( tmpVP->getViewMatrix(mActiveFrustumMode) * getModelMatrix() ) );
+	glLoadMatrixf( glm::value_ptr(proj->getViewMatrix() * getModelMatrix() ) );
 
 	if (mDrawFnPtr != SGCT_NULL_PTR)
 	{
@@ -1700,10 +1701,9 @@ void sgct::Engine::renderFBOTexture()
 
     int xSize = static_cast<int>(ceilf(win->getXScale() * static_cast<float>(win->getXResolution())));
     int ySize = static_cast<int>(ceilf(win->getYScale() * static_cast<float>(win->getYResolution())));
-
-                                    
+        
 	glViewport (0, 0, xSize, ySize);
-    setAndClearBuffer(BackBufferBlack);
+	setAndClearBuffer(BackBufferBlack);
     
     std::size_t numberOfIterations = (win->isUsingFisheyeRendering() ? 1 : win->getNumberOfViewports());
 

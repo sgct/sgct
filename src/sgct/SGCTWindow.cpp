@@ -2445,7 +2445,7 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
             
             //only generate GPU data in first viewport and the rest can use it's data
-            if( i != 0 )
+            if( i != 0)
 				vpPtr->setAsDummy();
 			vpPtr->setName("Fisheye");
 
@@ -2511,9 +2511,9 @@ void sgct::SGCTWindow::generateCubeMapViewports()
 				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getZPos(),
                 1.0f );
 
-			vpPtr->setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
-			vpPtr->setViewPlaneCoords(1, rotMat * upperLeft + userVec);
-			vpPtr->setViewPlaneCoords(2, rotMat * upperRight + userVec);
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
 
             //Each viewport contains frustums for mono, left stereo and right stereo
 			addViewport(vpPtr);
@@ -2586,19 +2586,12 @@ void sgct::SGCTWindow::generateCubeMapViewports()
                 1.0f );
             
             //add viewplane vertices
-			vpPtr->setViewPlaneCoords(0, rotMat * lowerLeft + userVec);
-			vpPtr->setViewPlaneCoords(1, rotMat * upperLeft + userVec);
-			vpPtr->setViewPlaneCoords(2, rotMat * upperRight + userVec);
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
+			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
             
             //Each viewport contains frustums for mono, left stereo and right stereo
 			addViewport(vpPtr);
-            
-            /*
-             fprintf(stderr, "View #%d:\n", i);
-             fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( Viewport::LowerLeft ).z);
-             fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( Viewport::UpperLeft ).z);
-             fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( Viewport::UpperRight ).z);
-             */
         }//end for
     }//end if
 

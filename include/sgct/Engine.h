@@ -310,12 +310,12 @@ public:
 	/*!
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjectionMatrix( mActiveFrustumMode ); }
+	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getProjectionMatrix(); }
 
 	/*!
 		Returns the active view matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustumMode ); }
+	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewMatrix(); }
 
 	/*!
 		Returns the scene transform specified in the XML configuration, default is a identity matrix
@@ -325,18 +325,18 @@ public:
 	/*!
 		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustumMode ); }
+	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewProjectionMatrix(); }
 
 	/*!
 		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewProjectionMatrix( mActiveFrustumMode )
+	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewProjectionMatrix()
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 	
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getViewMatrix( mActiveFrustumMode )
+	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewMatrix()
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 
 	/*!

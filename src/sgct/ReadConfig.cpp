@@ -22,9 +22,6 @@
 #include <algorithm>
 #include <sstream>
 
-//static globals
-glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
-
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
 	valid = false;
@@ -381,158 +378,10 @@ bool sgct_core::ReadConfig::readAndParseXML()
 						else if(strcmp("Viewport", val[2]) == 0)
 						{
 							Viewport * vpPtr = new sgct_core::Viewport();
-                            
-							if (element[2]->Attribute("user") != NULL)
-								vpPtr->setUserName(element[2]->Attribute("user"));
-
-							if( element[2]->Attribute("name") != NULL )
-								vpPtr->setName(element[2]->Attribute("name"));
-                            
-							if( element[2]->Attribute("overlay") != NULL )
-								vpPtr->setOverlayTexture(element[2]->Attribute("overlay"));
-                            
-							if (element[2]->Attribute("mask") != NULL)
-								vpPtr->setMaskTexture(element[2]->Attribute("mask"));
-                            
-							if( element[2]->Attribute("mesh") != NULL )
-								vpPtr->setCorrectionMesh(element[2]->Attribute("mesh"));
-                            
-							if( element[2]->Attribute("tracked") != NULL )
-								vpPtr->setTracked(strcmp(element[2]->Attribute("tracked"), "true") == 0 ? true : false);
-                            
-							//get eye if set
-							if( element[2]->Attribute("eye") != NULL )
-							{
-								if( strcmp("center", element[2]->Attribute("eye")) == 0 )
-								{
-									vpPtr->setEye(Frustum::Mono);
-								}
-								else if( strcmp("left", element[2]->Attribute("eye")) == 0 )
-								{
-									vpPtr->setEye(Frustum::StereoLeftEye);
-								}
-								else if( strcmp("right", element[2]->Attribute("eye")) == 0 )
-								{
-									vpPtr->setEye(Frustum::StereoRightEye);
-								}
-							}
-                            
-							element[3] = element[2]->FirstChildElement();
-							while( element[3] != NULL )
-							{
-								val[3] = element[3]->Value();
-								float fTmp[2];
-								fTmp[0] = 0.0f;
-								fTmp[1] = 0.0f;
-                                
-								if(strcmp("Pos", val[3]) == 0)
-								{
-									if( element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                                       element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										vpPtr->setPos(fTmp[0], fTmp[1]);
-									else
-										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport position from XML!\n");
-								}
-								else if(strcmp("Size", val[3]) == 0)
-								{
-									if (element[3]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-										element[3]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
-										vpPtr->setSize(fTmp[0], fTmp[1]);
-									else
-										sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse viewport size from XML!\n");
-								}
-								else if (strcmp("PlanarProjection", val[3]) == 0)
-								{
-									bool validFOV = false;
-									float down, left, right, up;
-									float distance = 10.0f;
-									glm::quat rotQuat;
-									
-									element[4] = element[3]->FirstChildElement();
-									while (element[4] != NULL)
-									{
-										val[4] = element[4]->Value();
-
-										if (strcmp("FOV", val[4]) == 0)
-										{
-											if (element[4]->QueryFloatAttribute("down", &down) == tinyxml2::XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("left", &left) == tinyxml2::XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("right", &right) == tinyxml2::XML_NO_ERROR &&
-												element[4]->QueryFloatAttribute("up", &up) == tinyxml2::XML_NO_ERROR)
-											{
-												validFOV = true;
-												
-
-												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-													"ReadConfig: Adding planar projection FOV down=%f left=%f right=%f up=%f\n",
-													down, left, right, up);
-											}
-											else
-												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse planar projection FOV from XML!\n");
-
-											float tmpf;
-											if (element[4]->QueryFloatAttribute("distance", &tmpf) == tinyxml2::XML_NO_ERROR)
-											{
-												distance = tmpf;
-											}
-										}
-										else if (strcmp("Orientation", val[4]) == 0)
-										{
-											rotQuat = parseOrientationNode(element[4]);
-										}
-
-										//iterate
-										element[4] = element[4]->NextSiblingElement();
-									}//end while level 3
-
-									if (validFOV)
-									{
-										vpPtr->setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
-									}
-								}//end if planar projection
-								else if(strcmp("Viewplane", val[3]) == 0 || strcmp("Projectionplane", val[3]) == 0)
-								{
-									element[4] = element[3]->FirstChildElement();
-									while( element[4] != NULL )
-									{
-										val[4] = element[4]->Value();
-                                        
-										if( strcmp("Pos", val[4]) == 0 )
-										{
-											glm::vec3 tmpVec;
-											float fTmp[3];
-											static std::size_t i=0;
-											if( element[4]->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                                               element[4]->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
-                                               element[4]->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR )
-											{
-												tmpVec.x = fTmp[0];
-												tmpVec.y = fTmp[1];
-												tmpVec.z = fTmp[2];
-                                                
-												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                                                                                        "ReadConfig: Adding view plane coordinates %f %f %f for plane %d\n",
-                                                                                        tmpVec.x, tmpVec.y, tmpVec.z, i%3);
-                                                
-												vpPtr->getProjectionPlane()->setCoordinate(i % 3, tmpVec);
-												i++;
-											}
-											else
-												sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Failed to parse view plane coordinates from XML!\n");
-										}
-                                        
-										//iterate
-										element[4] = element[4]->NextSiblingElement();
-									}//end while level 3
-								}//end if viewplane
-                                
-								//iterate
-								element[3] = element[3]->NextSiblingElement();
-							}//end while level 2
-                            
+							vpPtr->configure(element[2]);
 							tmpWin.addViewport(vpPtr);
 						}//end viewport
-						else if(strcmp("Fisheye", val[2]) == 0)
+						/*else if(strcmp("Fisheye", val[2]) == 0)
 						{
 							float fov;
 							if( element[2]->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR )
@@ -544,12 +393,6 @@ bool sgct_core::ReadConfig::readAndParseXML()
 								if( resolution > 0 )
 									tmpWin.setCubeMapResolution( resolution );
 							}
-                            
-							if( element[2]->Attribute("overlay") != NULL )
-								tmpWin.setFisheyeOverlay( std::string(element[2]->Attribute("overlay")) );
-                            
-                            if (element[2]->Attribute("mask") != NULL)
-                                tmpWin.setFisheyeMask( std::string(element[2]->Attribute("mask")) );
                             
                             if( element[2]->Attribute("method") != NULL )
 								sgct::SGCTSettings::instance()->setFisheyeMethod(
@@ -620,7 +463,7 @@ bool sgct_core::ReadConfig::readAndParseXML()
                             
 							tmpWin.setFisheyeRendering(true);
                             
-						}//end fisheye
+						}//end fisheye*/
                         
 						//iterate
 						element[2] = element[2]->NextSiblingElement();
@@ -1161,30 +1004,7 @@ sgct::SGCTWindow::ColorBitDepth sgct_core::ReadConfig::getBufferColorBitDepth(st
 	return sgct::SGCTWindow::BufferColorBitDepth8;
 }
 
-int sgct_core::ReadConfig::getFisheyeCubemapRes( std::string quality )
-{
-	std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
-    
-	if( strcmp( quality.c_str(), "low" ) == 0 )
-		return 256;
-	else if( strcmp( quality.c_str(), "medium" ) == 0 )
-		return 512;
-	else if( strcmp( quality.c_str(), "high" ) == 0 || strcmp( quality.c_str(), "1k" ) == 0 )
-		return 1024;
-	else if( strcmp( quality.c_str(), "2k" ) == 0 )
-		return 2048;
-	else if( strcmp( quality.c_str(), "4k" ) == 0 )
-		return 4096;
-	else if( strcmp( quality.c_str(), "8k" ) == 0 )
-		return 8192;
-	else if (strcmp(quality.c_str(), "16k") == 0 )
-		return 16384;
-    
-	//if match not found
-	return -1;
-}
-
-glm::quat parseOrientationNode(tinyxml2::XMLElement* element)
+glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* element)
 {
 	float x = 0.0f;
 	float y = 0.0f;

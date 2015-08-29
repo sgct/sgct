@@ -20,7 +20,7 @@ namespace sgct_text
 
 inline void setupViewport()
 {
-	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
+	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
 	int x, y, xSize, ySize;
 	x		= static_cast<int>(cWin->getCurrentViewport()->getX() * static_cast<float>(cWin->getXFramebufferResolution()));
@@ -31,7 +31,7 @@ inline void setupViewport()
 	sgct::SGCTWindow::StereoMode sm = cWin->getStereoMode();
 	if( sm >= sgct::SGCTWindow::Side_By_Side_Stereo )
 	{
-		if( sgct::Engine::instance()->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
+		if( sgct::Engine::instance()->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye )
 		{
 			switch(sm)
 			{
@@ -95,7 +95,7 @@ inline void setupViewport()
 inline glm::mat4 setupOrthoMat()
 {
 	glm::mat4 orthoMat;
-	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getActiveWindowPtr();
+	sgct::SGCTWindow * cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
 	orthoMat = glm::ortho(0.0f,
 		cWin->getCurrentViewport()->getXSize() *

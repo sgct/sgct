@@ -48,7 +48,6 @@ sgct::SGCTSettings::SGCTSettings()
 
 	mCurrentDrawBuffer = Diffuse;
 	mCurrentBufferFloatPrecision = Float_16Bit;
-    mFisheyeMethod = FourFaceCube;
 
 	//font stuff
 	mFontSize = 10;
@@ -463,16 +462,6 @@ bool sgct::SGCTSettings::getUseWarping()
 }
 
 /*!
-Set which method should be used to generate a fisheye image.\n
-Four cubemap faces render less iterations but uses more fillrate\n
-Five cubemap faces is more fillrate efficient (33%) but calls the draw callback one additional time.
- */
-void sgct::SGCTSettings::setFisheyeMethod(FisheyeMethod fm)
-{
-    mFisheyeMethod = fm;
-}
-
-/*!
 Set if geometry should try to adapt after framebuffer dimensions. This is valid for multi-viewport renderings like fisheye projections.
 */
 void sgct::SGCTSettings::setTryMaintainAspectRatio(bool state)
@@ -480,14 +469,6 @@ void sgct::SGCTSettings::setTryMaintainAspectRatio(bool state)
 	mTryMaintainAspectRatio = state;
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSettings: Set try maintain aspect ratio to: %s.\n", 
 		mTryMaintainAspectRatio ? "true" : "false");
-}
-
-/*!
-Get the method used to generate fisheye images.
- */
-sgct::SGCTSettings::FisheyeMethod sgct::SGCTSettings::getFisheyeMethod()
-{
-    return mFisheyeMethod;
 }
 
 /*!

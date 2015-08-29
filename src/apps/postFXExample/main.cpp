@@ -30,19 +30,19 @@ void updatePass1()
 void updatePass2()
 {
 	glUniform1i( PostFX_Texture_Loc[1], 0 );
-	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getActiveXResolution() ) );
+	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getCurrentXResolution() ) );
 }
 
 void updatePass3()
 {
 	glUniform1i( PostFX_Texture_Loc[2], 0 );
-	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getActiveYResolution() ) );
+	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getCurrentYResolution() ) );
 }
 
 void updatePass4()
 {
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
+	glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture() );
 	glUniform1i( PostFX_Texture_Loc[3], 0 );
 	glUniform1i( Tex2_Loc, 1 );
 }

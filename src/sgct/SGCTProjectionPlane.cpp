@@ -6,10 +6,50 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "../include/sgct/SGCTProjectionPlane.h"
+#include "../include/sgct/MessageHandler.h"
 
 sgct_core::SGCTProjectionPlane::SGCTProjectionPlane()
 {
 	reset();
+}
+
+void sgct_core::SGCTProjectionPlane::configure(tinyxml2::XMLElement * element)
+{
+	const char * val;
+	std::size_t i = 0;
+	
+	tinyxml2::XMLElement * subElement = element->FirstChildElement();
+	while (subElement != NULL)
+	{
+		val = subElement->Value();
+
+		if (strcmp("Pos", val) == 0)
+		{
+			glm::vec3 tmpVec;
+			float fTmp[3];
+			
+			if (subElement->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
+				subElement->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR &&
+				subElement->QueryFloatAttribute("z", &fTmp[2]) == tinyxml2::XML_NO_ERROR)
+			{
+				tmpVec.x = fTmp[0];
+				tmpVec.y = fTmp[1];
+				tmpVec.z = fTmp[2];
+
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"SGCTProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
+					tmpVec.x, tmpVec.y, tmpVec.z, i % 3);
+
+				setCoordinate(i % 3, tmpVec);
+				i++;
+			}
+			else
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTProjectionPlane: Failed to parse coordinates from XML!\n");
+		}
+
+		//iterate
+		subElement = subElement->NextSiblingElement();
+	}
 }
 
 void sgct_core::SGCTProjectionPlane::reset()

@@ -22,13 +22,13 @@ public:
 	ReadConfig( const std::string filename );
 
 	bool isValid() { return valid; }
+	static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
 
 private:
     bool replaceEnvVars( const std::string &filename );
 	bool readAndParseXML();
 	sgct::SGCTWindow::StereoMode getStereoType( std::string type );
 	sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
-	int getFisheyeCubemapRes( std::string quality );
 
 	bool valid;
 	std::string xmlFileName;

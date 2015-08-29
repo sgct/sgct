@@ -9,6 +9,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/MessageHandler.h"
 
+sgct_core::BaseViewport::BaseViewport()
+{
+	mX = 0.0f;
+	mY = 0.0f;
+	mXSize = 1.0f;
+	mYSize = 1.0f;
+	mEnabled = true;
+	mEye = Frustum::Mono;
+	mUser = ClusterManager::instance()->getDefaultUserPtr();
+	mName.assign("NoName");
+}
+
 bool sgct_core::BaseViewport::isEnabled()
 {
 	return mEnabled;
@@ -95,7 +107,7 @@ void sgct_core::BaseViewport::calculateFrustum(const sgct_core::Frustum::Frustum
 	mProjections[frustumMode].calculateProjection(eyePos, &mProjectionPlane, near_clipping_plane, far_clipping_plane);
 }
 
-void sgct_core::BaseViewport::calculateFisheyeFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
+void sgct_core::BaseViewport::calculateNonLinearFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
 {
 	glm::vec3 eyePos = mUser->getPos();
 	glm::vec3 offset = mUser->getPos(frustumMode) - eyePos;

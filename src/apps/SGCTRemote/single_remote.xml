@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="localhost" externalControlPort="20500">
 	<Node address="localhost" port="20401">
-		<Window fullScreen="false" numberOfSamples="4">
+		<Window fullScreen="false" msaa="4">
 			<Stereo type="none" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="640" y="360" />

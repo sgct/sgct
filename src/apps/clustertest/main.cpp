@@ -84,11 +84,11 @@ int main( int argc, char* argv[] )
 void myDraw2DFun()
 {
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
-	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getActiveWindowPtr()->isFocused() ? "true" : "false");
+	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getCurrentWindowPtr()->isFocused() ? "true" : "false");
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
 	if (extraPackages.getVal() && extraData.getSize() == EXTENDED_SIZE)
 	{
-		float xPos = static_cast<float>(gEngine->getActiveWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
+		float xPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
 		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 16), xPos, 150.0f, glm::vec4(0.0, 1.0, 0.5, 1.0), "Vector val: %f, size: %u", extraData.getValAt(EXTENDED_SIZE / 2), extraData.getSize());
 	}
 
@@ -110,14 +110,14 @@ void myDrawFun()
 	{
 		if( gEngine->getCurrentFrameNumber()%2 == 0 ) //even
 		{
-			if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+			if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
 				gEngine->setClearColor(0.0f, 0.0f, 1.0f, 1.0f); //is paired with red
 			else //right
 				gEngine->setClearColor(1.0f, 0.0f, 0.0f, 1.0f); //is paired with blue
 		}
 		else //odd
 		{
-			if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
+			if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye ) //left eye or mono since clear color is one step behind
 				gEngine->setClearColor(0.5f, 0.5f, 0.5f, 1.0f);
 			else //right
 				gEngine->setClearColor(0.0f, 1.0f, 0.0f, 1.0f);
@@ -183,34 +183,34 @@ void myDrawFun()
 
 	glPopMatrix();
 
-	float xPos = static_cast<float>( gEngine->getActiveWindowPtr()->getXFramebufferResolution() ) / 2.0f;
+	float xPos = static_cast<float>( gEngine->getCurrentWindowPtr()->getXFramebufferResolution() ) / 2.0f;
 
 	glColor3f(1.0f,1.0f,0.0f);
-	if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoLeftEye )
+	if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
-	else if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::StereoRightEye )
+	else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
-	else if( gEngine->getActiveFrustumMode() == sgct_core::Frustum::Mono )
+	else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::Mono )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Mono");
 
-	if( gEngine->getActiveWindowPtr()->isUsingSwapGroups() )
+	if( gEngine->getCurrentWindowPtr()->isUsingSwapGroups() )
 	{
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
 
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
 
-		if( gEngine->getActiveWindowPtr()->isBarrierActive() )
+		if( gEngine->getCurrentWindowPtr()->isBarrierActive() )
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
 		else
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
 
-		if( gEngine->getActiveWindowPtr()->isSwapGroupMaster() )
+		if( gEngine->getCurrentWindowPtr()->isSwapGroupMaster() )
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: True");
 		else
 			sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: False");
 
 		unsigned int fr_number;
-		gEngine->getActiveWindowPtr()->getSwapGroupFrameNumber(fr_number);
+		gEngine->getCurrentWindowPtr()->getSwapGroupFrameNumber(fr_number);
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
 	}

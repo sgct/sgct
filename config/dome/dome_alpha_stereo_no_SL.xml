@@ -4,7 +4,7 @@
 		<Display swapInterval="1" refreshRate="60" />
 	</Settings>
 	<Node address="172.19.1.10" port="20400">
-		<Window fullScreen="false" numberOfSamples="4">
+		<Window fullScreen="false" msaa="4">
 			<!--<Size x="1388" y="400" />-->
 			<Size x="1280" y="800" />
 			<Viewport>
@@ -20,7 +20,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.11" port="20401">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>
@@ -36,7 +36,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.12" port="20402">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>
@@ -52,7 +52,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.13" port="20403">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>
@@ -68,7 +68,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.14" port="20404">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>
@@ -84,7 +84,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.15" port="20405">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>
@@ -100,7 +100,7 @@
 		</Window>
 	</Node>
 	<Node address="172.19.1.16" port="20406">
-		<Window fullScreen="true" numberOfSamples="4">
+		<Window fullScreen="true" msaa="4">
 			<Stereo type="active" />
 			<Size x="1920" y="1200" />
 			<Viewport>

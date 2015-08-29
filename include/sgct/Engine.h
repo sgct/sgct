@@ -14,6 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "Statistics.h"
 #include "ReadConfig.h"
 #include "ShaderProgram.h"
+#include "FisheyeProjection.h"
 
 #define MAX_UNIFORM_LOCATIONS 16
 #define NUMBER_OF_SHADERS 8
@@ -33,6 +34,8 @@ The figure below illustrates when different callbacks (gray and blue boxes) are 
 */
 class Engine
 {
+	friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
+
 //all enums
 public:
 	
@@ -70,7 +73,8 @@ public:
 		OpenGL_4_5_Debug_Core_Profile
 	};
 	//! The different texture indexes in window buffers
-	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions, CubeMap, CubeMapDepth, CubeMapNormals, CubeMapPositions, FisheyeColorSwap, FisheyeDepthSwap };
+	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions };
+	enum RenderTarget { WindowBuffer, NonLinearBuffer };
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -104,10 +108,7 @@ public:
 		\returns the clear color as 4 floats (RGBA)
 	*/
 	const float * getClearColor() { return mClearColor; }
-	/*!
-		\returns the clear color surrounding the fisheye circle as 4 floats (RGBA)
-	*/
-	const float * getFisheyeClearColor() { return mFisheyeClearColor; }
+	
 	/*!
 		\returns the near clipping plane distance in meters
 	*/
@@ -120,17 +121,16 @@ public:
 	void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
 	void setEyeSeparation(float eyeSeparation);
 	void setClearColor(float red, float green, float blue, float alpha);
-	void setFisheyeClearColor(float red, float green, float blue);
 	void setExitKey(int key);
 	void setExitWaitTime(double time);
 	void updateFrustums();
 	void addPostFX( PostFX & fx );
-	unsigned int getActiveDrawTexture();
-	unsigned int getActiveDepthTexture();
-	unsigned int getActiveNormalTexture();
-	unsigned int getActivePositionTexture();
-	int getActiveXResolution();
-	int getActiveYResolution();
+	unsigned int getCurrentDrawTexture();
+	unsigned int getCurrentDepthTexture();
+	unsigned int getCurrentNormalTexture();
+	unsigned int getCurrentPositionTexture();
+	int getCurrentXResolution();
+	int getCurrentYResolution();
 	std::size_t getFocusedWindowIndex();
 
 	/*!
@@ -219,7 +219,7 @@ public:
 	void setDataTransferStatusCallback(sgct_cppxeleven::function<void(bool, int)> fn); //arguments: const bool & connected, int client
 	void setDataAcknowledgeCallback(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int package id, int client
 #endif
-    
+
 	//external control network functions
 	void sendMessageToExternalControl(void * data, int length);
 	void sendMessageToExternalControl(const std::string msg);
@@ -266,12 +266,7 @@ public:
 	/*!
 		Returns a pointer to the current window that is beeing rendered
 	*/
-	inline sgct::SGCTWindow * getActiveWindowPtr() { return mThisNode->getActiveWindowPtr(); }
-
-	/*!
-		Returns the active viewport in pixels (only valid inside in the draw callback function)
-	*/
-	inline const int * getActiveViewportPixelCoords() { return currentViewportCoords; }
+	inline sgct::SGCTWindow * getCurrentWindowPtr() { return mThisNode->getCurrentWindowPtr(); }
 
 	/*!
 		Returns a pinter to the user (VR observer position) object
@@ -305,17 +300,17 @@ public:
 		- Stereo Left
 		- Stereo Right
 	*/
-	inline const sgct_core::Frustum::FrustumMode & getActiveFrustumMode() { return mActiveFrustumMode; }
+	inline const sgct_core::Frustum::FrustumMode & getCurrentFrustumMode() { return mCurrentFrustumMode; }
 
 	/*!
 		Returns the active projection matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getProjectionMatrix(); }
+	inline const glm::mat4 & getCurrentProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getProjectionMatrix(); }
 
 	/*!
 		Returns the active view matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewMatrix(); }
+	inline const glm::mat4 & getCurrentViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewMatrix(); }
 
 	/*!
 		Returns the scene transform specified in the XML configuration, default is a identity matrix
@@ -325,18 +320,18 @@ public:
 	/*!
 		Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
 	*/
-	inline const glm::mat4 & getActiveViewProjectionMatrix() { return mThisNode->getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewProjectionMatrix(); }
+	inline const glm::mat4 & getCurrentViewProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewProjectionMatrix(); }
 
 	/*!
 		Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewProjectionMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewProjectionMatrix()
+	inline glm::mat4 getCurrentModelViewProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewProjectionMatrix()
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 	
 	/*!
 		Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
 	*/
-	inline glm::mat4 getActiveModelViewMatrix() { return getActiveWindowPtr()->getCurrentViewport()->getProjection(mActiveFrustumMode)->getViewMatrix()
+	inline glm::mat4 getCurrentModelViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewMatrix()
 		* sgct_core::ClusterManager::instance()->getSceneTransform(); }
 
 	/*!
@@ -359,7 +354,16 @@ public:
 	*/
 	inline std::string getGLSLVersion() { return mGLSLVersion; }
 
-	void getActiveViewportSize(int & x, int & y);
+	void getCurrentViewportSize(int & x, int & y);
+	void getCurrentDrawBufferSize(int & x, int & y);
+	void getDrawBufferSize(const std::size_t & index, int &x, int & y);
+	std::size_t getNumberOfDrawBuffers();
+	const std::size_t & getCurrentDrawBufferIndex();
+	const RenderTarget & getCurrentRenderTarget();
+	sgct_core::OffScreenBuffer * getCurrentFBO();
+	const int * getCurrentViewportPixelCoords();
+
+	const bool & getWireframe() const;
 
 private:
 	Engine() {;} //to prevent users to start without requred parameters
@@ -376,14 +380,13 @@ private:
 	void renderDisplayInfo();
 	void printNodeInfo(unsigned int nodeId);
 	void enterCurrentViewport();
-	void enterFisheyeViewport();
 	void updateAAInfo(std::size_t winIndex);
+	void updateDrawBufferResolutions();
 
 	void draw();
 	void drawOverlays();
 	void renderFBOTexture();
 	void renderPostFX(TextureIndexes ti );
-	void renderFisheye(TextureIndexes ti);
 	void renderViewports(TextureIndexes ti);
 	void render2D();
 
@@ -391,7 +394,6 @@ private:
 	void drawOverlaysFixedPipeline();
 	void renderFBOTextureFixedPipeline();
 	void renderPostFXFixedPipeline(TextureIndexes finalTargetIndex );
-	void renderFisheyeFixedPipeline(TextureIndexes finalTargetIndex);
 
 	void prepareBuffer(TextureIndexes ti);
 	void updateRenderingTargets(TextureIndexes ti);
@@ -424,14 +426,14 @@ private:
 	typedef sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> ScreenShotFn;
 	typedef sgct_cppxeleven::function<void(GLFWwindow*)> ContextCreationFn;
 #else
-	typedef void (*CallbackFn)(void);
-	typedef void (*DataTransferDecodeCallbackFn)(void *, int, int, int);
-	typedef void (*DataTransferStatusCallbackFn)(bool, int);
-	typedef void (*DataTransferAcknowledgeCallbackFn)(int, int);
-	typedef void (*ExternalDecodeCallbackFn)(const char *, int);
-	typedef void (*ExternalStatusCallbackFn)(bool);
-	typedef void (*ScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type);
-	typedef void (*ContextCreationFn)(GLFWwindow*);
+	typedef void(*CallbackFn)(void);
+	typedef void(*DataTransferDecodeCallbackFn)(void *, int, int, int);
+	typedef void(*DataTransferStatusCallbackFn)(bool, int);
+	typedef void(*DataTransferAcknowledgeCallbackFn)(int, int);
+	typedef void(*ExternalDecodeCallbackFn)(const char *, int);
+	typedef void(*ExternalStatusCallbackFn)(bool);
+	typedef void(*ScreenShotFn)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type);
+	typedef void(*ContextCreationFn)(GLFWwindow*);
 #endif
 
 	typedef void (Engine::*InternalCallbackFn)(void);
@@ -460,15 +462,18 @@ private:
 	InternalCallbackFn					mInternalRenderFBOFn;
 	InternalCallbackFn					mInternalDrawOverlaysFn;
 	InternalCallbackTexArgFn			mInternalRenderPostFXFn;
-	InternalCallbackTexArgFn			mInternalRenderFisheyeFn;
 
 	float mNearClippingPlaneDist;
 	float mFarClippingPlaneDist;
 	float mClearColor[4];
-	float mFisheyeClearColor[4];
 
-	sgct_core::Frustum::FrustumMode mActiveFrustumMode;
-	int currentViewportCoords[4];
+	sgct_core::Frustum::FrustumMode mCurrentFrustumMode;
+	int mCurrentViewportCoords[4];
+	std::vector<glm::ivec2> mDrawBufferResolutions;
+	std::size_t mCurrentDrawBufferIndex;
+	std::size_t mCurrentViewportIndex;
+	RenderTarget mCurrentRenderTarget;
+	sgct_core::OffScreenBuffer * mCurrentOffScreenBuffer;
 
 	bool mShowInfo;
 	bool mShowGraph;

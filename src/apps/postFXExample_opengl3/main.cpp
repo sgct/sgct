@@ -30,19 +30,19 @@ void updatePass1()
 void updatePass2()
 {
 	glUniform1i( PostFX_Texture_Loc[1], 0 );
-	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getActiveXResolution() ) );
+	glUniform1f( Size_Loc[0], static_cast<float>( gEngine->getCurrentXResolution() ) );
 }
 
 void updatePass3()
 {
 	glUniform1i( PostFX_Texture_Loc[2], 0 );
-	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getActiveYResolution() ) );
+	glUniform1f( Size_Loc[1], static_cast<float>( gEngine->getCurrentYResolution() ) );
 }
 
 void updatePass4()
 {
 	glActiveTexture(GL_TEXTURE1);
-	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDrawTexture() );
+	glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDrawTexture() );
 	glUniform1i( PostFX_Texture_Loc[3], 0 );
 	glUniform1i( Tex2_Loc, 1 );
 }
@@ -88,6 +88,7 @@ void setupPostFXs()
 	sp->unbind();
 	gEngine->addPostFX( fx[3] );
 
+	//setup post FX only for first window
 	if( gEngine->getNumberOfWindows() > 1 )
 		gEngine->getWindowPtr(1)->setUsePostFX( false );
 	gEngine->setNearAndFarClippingPlanes(0.1f, 50.0f);
@@ -133,7 +134,7 @@ void myDrawFun()
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box") );

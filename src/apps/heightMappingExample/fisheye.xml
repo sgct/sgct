@@ -6,7 +6,7 @@
 		<Scale value="10.0" />
 	</Scene>
 	<Node address="127.0.0.1" port="20401">
-		<Window fullScreen="false" fxaa="false" numberOfSamples="0">
+		<Window fullScreen="false" fxaa="false" msaa="1">
 			<Stereo type="none" />
 			<!-- 16:9 aspect ratio -->
 			<Size x="512" y="512" />
@@ -21,7 +21,13 @@
 					- 8k (8192)
 				tilt specifies the dome tilt angle in degrees from the horizontal
 			-->
-			<Fisheye fov="165.0" quality="medium" tilt="40.0" alpha="false" />
+			<Viewport name="fisheye">
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<FisheyeProjection fov="180" quality="medium" tilt="40.0">
+					<Background r="0.1" g="0.1" b="0.1" a="1.0" />
+				</FisheyeProjection>
+			</Viewport>
 		</Window>
 	</Node>
 	<User eyeSeparation="0.065">

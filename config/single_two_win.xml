@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="localhost">
 	<Node address="localhost" port="20401">
-		<Window fullScreen="false" numberOfSamples="0" border="true">
+		<Window fullScreen="false" msaa="1" border="true">
 			<Pos x="10" y="100" />
 			<Size x="320" y="480" />
 			<Viewport>
@@ -17,7 +17,7 @@
 				</Viewplane>
 			</Viewport>
 		</Window>
-		<Window fullScreen="false" numberOfSamples="0" border="false">
+		<Window fullScreen="false" msaa="1" border="false">
 			<Pos x="340" y="100" />
 			<Size x="320" y="480" />
 			<Viewport>

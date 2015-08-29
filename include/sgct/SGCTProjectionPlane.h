@@ -10,6 +10,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <glm/glm.hpp>
 
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include "external/tinyxml2.h"
+#else
+#include <tinyxml2.h>
+#endif
+
 namespace sgct_core
 {
 
@@ -22,6 +28,7 @@ namespace sgct_core
 		enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
 		SGCTProjectionPlane();
+		void configure(tinyxml2::XMLElement * element);
 		void reset();
 
 		void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);

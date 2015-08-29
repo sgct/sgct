@@ -13,10 +13,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/SGCTSettings.h"
 #include "../include/sgct/shaders/SGCTInternalShaders.h"
 #include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_cubic.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h"
 #include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
@@ -54,7 +50,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mDoubleBuffered = true;
 	mSetWindowPos = false;
 	mDecorated = true;
-	mFisheyeMode = false;
 	mAlpha = false;
 	mVisible = true;
 	mRenderWhileHidden = false;
@@ -63,8 +58,6 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mUsePostFX = false;
 	mFocused = false;
 	mIconified = false;
-	mHasAnyMasks = false;
-	mAreCubeMapViewPortsGenerated = false;
 	mPreferBGR = true; //BGR is native on GPU
 
 	mBufferColorBitDepth = BufferColorBitDepth8;
@@ -89,38 +82,9 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mContrast = 1.0f;
 	mBrightness = 1.0f;
 
-	Cubemap			= -1;
-	DepthCubemap	= -1;
-	NormalCubemap	= -1;
-	PositionCubemap = -1;
-	FishEyeHalfFov	= -1;
-	FisheyeOffset	= -1;
-	FishEyeSwapColor = -1;
-	FishEyeSwapDepth = -1;
-	FishEyeSwapNear	= -1;
-	FishEyeSwapFar	= -1;
 	StereoMVP		= -1;
 	StereoLeftTex	= -1;
 	StereoRightTex	= -1;
-
-	mCubeMapResolution = 256; //low
-	mCubeMapSize = 14.8f; //dome diamter
-	mFisheyeTilt = 0.0f;
-	mFieldOfView = 180.0f;
-
-	mCropFactors[0] = 0.0f;
-	mCropFactors[1] = 0.0f;
-	mCropFactors[2] = 0.0f;
-	mCropFactors[3] = 0.0f;
-
-	mFisheyeOffset[0] = 0.0f;
-	mFisheyeOffset[1] = 0.0f;
-	mFisheyeOffset[2] = 0.0f;
-	mFisheyeBaseOffset[0] = 0.0f;
-	mFisheyeBaseOffset[1] = 0.0f;
-	mFisheyeBaseOffset[2] = 0.0f;
-	mFisheyeOffaxis = false;
-	mCubicInterpolation = false;
 
 	//2 texels + 3 vertex
 	mQuadVerts[0] = 0.0f;
@@ -147,10 +111,8 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mQuadVerts[18] = 1.0f;
 	mQuadVerts[19] = -1.0f;
 
-	mVBO[RenderQuad]	= GL_FALSE; //default to openGL false
-	mVBO[FishEyeQuad]	= GL_FALSE; //default to openGL false
-	mVAO[RenderQuad]	= GL_FALSE;
-	mVAO[FishEyeQuad]	= GL_FALSE;
+	mVBO	= GL_FALSE; //default to openGL false
+	mVBO	= GL_FALSE; //default to openGL false
 
 	mStereoMode = No_Stereo;
 	mNumberOfAASamples = SGCTSettings::instance()->getDefaultNumberOfAASamples();
@@ -164,11 +126,11 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mWindowHandle = NULL;
 	mSharedHandle = NULL;
 	mFinalFBO_Ptr = NULL;
-	mCubeMapFBO_Ptr = NULL;
 	mScreenCapture[0] = NULL;
 	mScreenCapture[1] = NULL;
 
-	mCurrentViewportIndex = 0;
+	mCurrentViewport = NULL;
+	mHasAnyMasks = false;
 	mUseRightEyeTexture = false;
 }
 
@@ -231,18 +193,13 @@ void sgct::SGCTWindow::close()
 
 	//delete FBO stuff
 	if(mFinalFBO_Ptr != NULL &&
-		mCubeMapFBO_Ptr != NULL &&
 		SGCTSettings::instance()->useFBO() )
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Releasing OpenGL buffers for window %d...\n", mId);
 		mFinalFBO_Ptr->destroy();
-		if( mFisheyeMode )
-			mCubeMapFBO_Ptr->destroy();
 
 		delete mFinalFBO_Ptr;
 		mFinalFBO_Ptr = NULL;
-		delete mCubeMapFBO_Ptr;
-		mCubeMapFBO_Ptr = NULL;
 
 		for(unsigned int i=0; i<NUMBER_OF_TEXTURES; i++)
 		{
@@ -254,21 +211,21 @@ void sgct::SGCTWindow::close()
 		}
 	}
 
-	if( mVBO[RenderQuad] )
+	if( mVBO )
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting VBOs for window %d...\n", mId);
-		glDeleteBuffers(NUMBER_OF_VBOS, &mVBO[0]);
+		glDeleteBuffers(1, &mVBO);
+		mVBO = GL_FALSE;
 	}
 
-	if( mVAO[RenderQuad] )
+	if( mVAO )
 	{
 		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Deleting VAOs for window %d...\n", mId);
-		glDeleteVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
+		glDeleteVertexArrays(1, &mVAO);
+		mVAO = GL_FALSE;
 	}
 
 	//delete shaders
-	mFisheyeShader.deleteProgram();
-	mFisheyeDepthCorrectionShader.deleteProgram();
 	mStereoShader.deleteProgram();
 
 	/*
@@ -342,6 +299,16 @@ void sgct::SGCTWindow::initOGL()
 	createFBOs();
 	initScreenCapture();
 	loadShaders();
+
+	for (std::size_t i = 0; i < mViewports.size(); i++)
+		if (mViewports[i]->hasSubViewports())
+		{
+			mViewports[i]->getNonLinearProjectionPtr()->init(mInternalColorFormat, mColorFormat, mColorDataType, mNumberOfAASamples);
+			
+			float viewPortWidth = static_cast<float>(mFramebufferResolution[0]) * mViewports[i]->getXSize();
+			float viewPortHeight = static_cast<float>(mFramebufferResolution[1]) * mViewports[i]->getYSize();
+			mViewports[i]->getNonLinearProjectionPtr()->update(viewPortWidth, viewPortHeight);
+		}
 }
 
 /*!
@@ -404,33 +371,7 @@ unsigned int sgct::SGCTWindow::getFrameBufferTexture(unsigned int index)
 
 			case Engine::Positions:
 				generateTexture(index, mFramebufferResolution[0], mFramebufferResolution[1], PositionTexture, true);
-				break;
-
-			case Engine::CubeMap:
-				generateCubeMap(index, ColorTexture);
-				break;
-
-			case Engine::CubeMapDepth:
-				generateCubeMap(index, DepthTexture);
-				break;
-
-			case Engine::CubeMapNormals:
-				generateCubeMap(index, NormalTexture);
-				break;
-
-			case Engine::CubeMapPositions:
-				generateCubeMap(index, PositionTexture);
-				break;
-
-			case Engine::FisheyeColorSwap:
-				generateTexture(index, mCubeMapResolution, mCubeMapResolution, ColorTexture, false);
-				break;
-
-			case Engine::FisheyeDepthSwap:
-				generateTexture(index, mCubeMapResolution, mCubeMapResolution, DepthTexture, false);
-				break;
-
-			
+				break;			
 
 			default:
 				break;
@@ -575,12 +516,15 @@ void sgct::SGCTWindow::initWindowResolution(const int x, const int y)
 	}
 }
 
-void sgct::SGCTWindow::update()
+/*
+\returns true if frame buffer is resized and window is visible.
+*/
+bool sgct::SGCTWindow::update()
 {
-	if( mVisible && isWindowResized() )
+	if (mVisible && isWindowResized())
 	{
-		makeOpenGLContextCurrent( Window_Context );
-		
+		makeOpenGLContextCurrent(Window_Context);
+
 		//resize FBOs
 		resizeFBOs();
 
@@ -589,12 +533,25 @@ void sgct::SGCTWindow::update()
 			if (mScreenCapture[i] != NULL)
 			{
 				mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
-				
+
 				mAlpha ?
-				mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4, mBytesPerColor) :
-				mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3, mBytesPerColor);
+					mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4, mBytesPerColor) :
+					mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3, mBytesPerColor);
 			}
+
+		//resize non linear projection buffers
+		for (std::size_t i = 0; i < mViewports.size(); i++)
+			if (mViewports[i]->hasSubViewports())
+			{
+				float viewPortWidth = static_cast<float>(mFramebufferResolution[0]) * mViewports[i]->getXSize();
+				float viewPortHeight = static_cast<float>(mFramebufferResolution[1]) * mViewports[i]->getYSize();
+				mViewports[i]->getNonLinearProjectionPtr()->update(viewPortWidth, viewPortHeight);
+			}
+
+		return true;
 	}
+	else
+		return false;
 }
 
 /*!
@@ -814,29 +771,6 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 	glfwWindowHint(GLFW_DEPTH_BITS, 32);
 	glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
 
-	//disable MSAA if FXAA is in use and fisheye is not enabled
-	/*
-		Fisheye can use MSAA for cubemap rendering and FXAA for screen space rendering
-		It's a bit overkill but usefull for rendering fisheye movies
-	*/
-	if( mUseFXAA && !isUsingFisheyeRendering())
-	{
-		setNumberOfAASamples(1);
-	}
-
-	//if using fisheye rendering for a dome display
-	if( isUsingFisheyeRendering() )
-	{
-		if( !SGCTSettings::instance()->useFBO() )
-		{
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow(%d): Forcing FBOs for fisheye mode!\n", mId);
-			SGCTSettings::instance()->setUseFBO( true );
-		}
-
-		if (!mAreCubeMapViewPortsGenerated)
-			generateCubeMapViewports();
-	}
-
 	int antiAliasingSamples = getNumberOfAASamples();
 	if( antiAliasingSamples > 1 && !SGCTSettings::instance()->useFBO() ) //if multisample is used
 		 glfwWindowHint( GLFW_SAMPLES, antiAliasingSamples );
@@ -943,12 +877,12 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
 		mFocused = (glfwGetWindowAttrib(mWindowHandle, GLFW_FOCUSED) == GL_TRUE ? true : false);
 		mIconified = (glfwGetWindowAttrib(mWindowHandle, GLFW_ICONIFIED) == GL_TRUE ? true : false);
-
-		glfwMakeContextCurrent( mSharedHandle );
         
         //clear directly otherwise junk will be displayed on some OSs (OS X Yosemite)
         glClearColor(0.0f, 0.0f, 0.0f, 0.0f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+
+		glfwMakeContextCurrent(mSharedHandle);
 
 		if (SGCTSettings::instance()->useFBO())
 		{
@@ -959,7 +893,6 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 		}
 
 		mFinalFBO_Ptr = new sgct_core::OffScreenBuffer();
-		mCubeMapFBO_Ptr = new sgct_core::OffScreenBuffer();
 
 		return true;
 	}
@@ -1132,9 +1065,11 @@ void sgct::SGCTWindow::initScreenCapture()
 				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 3, mBytesPerColor);
 		}
 
-
 		if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET)
 			mScreenCapture[i]->setCaptureFormat(static_cast<sgct_core::ScreenCapture::CaptureFormat>(SGCTSettings::instance()->getCaptureFormat()));
+
+		if (!sgct::Engine::checkForOGLErrors())
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTWindow %d: OpenGL error occured in screen capture %d init!\n", mId, i);
 	}
 }
 
@@ -1191,14 +1126,6 @@ void sgct::SGCTWindow::resetSwapGroupFrameNumber()
 }
 
 /*!
-	Returns if fisheye rendering is active in this window
-*/
-const bool & sgct::SGCTWindow::isUsingFisheyeRendering() const
-{
-	return mFisheyeMode;
-}
-
-/*!
 	This function creates textures that will act as FBO targets.
 */
 void sgct::SGCTWindow::createTextures()
@@ -1227,7 +1154,7 @@ void sgct::SGCTWindow::createTextures()
 	*/
 	//don't allocate the right eye image if stereo is not used
 	//create a postFX texture for effects
-	for( int i=0; i<(NUMBER_OF_TEXTURES-6); i++ ) //all textures except fisheye cubemap(s) and swap textures
+	for( int i=0; i<NUMBER_OF_TEXTURES; i++ )
 	{
 		switch( i )
 		{
@@ -1269,31 +1196,6 @@ void sgct::SGCTWindow::createTextures()
 			generateTexture(i, mFramebufferResolution[0], mFramebufferResolution[1], ColorTexture, true);
 			break;
 		}
-	}
-	/*
-		Create cubemap texture for fisheye rendering if enabled.
-	*/
-	if( mFisheyeMode )
-	{
-		generateCubeMap(Engine::CubeMap, ColorTexture);
-
-		if( SGCTSettings::instance()->useDepthTexture() )
-		{
-			//set up texture target
-			generateCubeMap(Engine::CubeMapDepth, DepthTexture);
-
-			//create swap textures
-			//Color
-			generateTexture(Engine::FisheyeColorSwap, mCubeMapResolution, mCubeMapResolution, ColorTexture, false);
-			//Depth
-			generateTexture(Engine::FisheyeDepthSwap, mCubeMapResolution, mCubeMapResolution, DepthTexture, false);
-		}
-
-		if (SGCTSettings::instance()->useNormalTexture())
-			generateCubeMap(Engine::CubeMapNormals, NormalTexture);
-
-		if (SGCTSettings::instance()->usePositionTexture())
-			generateCubeMap(Engine::CubeMapPositions, PositionTexture);
 	}
 
 	if( Engine::instance()->getRunMode() <= Engine::OpenGL_Compablity_Profile )
@@ -1392,107 +1294,6 @@ void sgct::SGCTWindow::generateTexture(unsigned int id, const int xSize, const i
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 }
 
-void sgct::SGCTWindow::generateCubeMap(unsigned int id, sgct::SGCTWindow::TextureType type)
-{
-	if( mFrameBufferTextures[id] != GL_FALSE )
-	{
-		glDeleteTextures(1, &mFrameBufferTextures[ id ]);
-		mFrameBufferTextures[id] = GL_FALSE;
-	}
-
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-
-	GLint MaxCubeMapRes;
-	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
-	if(mCubeMapResolution > MaxCubeMapRes)
-	{
-		mCubeMapResolution = MaxCubeMapRes;
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Info: Cubemap size set to max size: %d\n", MaxCubeMapRes);
-	}
-
-	//set up texture target
-	glGenTextures(1, &mFrameBufferTextures[ id ]);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mFrameBufferTextures[ id ]);
-    
-    //---------------------
-    // Disable mipmaps
-    //---------------------
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-    
-
-	if( type == DepthTexture )
-	{
-		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
-        {
-            for (int side = 0; side < 6; ++side)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution, 0, GL_DEPTH_COMPONENT, GL_FLOAT, NULL);
-        }
-        else
-        {
-            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, GL_DEPTH_COMPONENT32, mCubeMapResolution, mCubeMapResolution);
-        }
-        
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d depth cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
-	}
-	else if (type == NormalTexture)
-	{
-		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
-        {
-            for (int side = 0; side < 6; ++side)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
-        }
-        else
-        {
-            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),mCubeMapResolution, mCubeMapResolution);
-        }
-        
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d normal cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
-	}
-	else if (type == PositionTexture)
-	{
-		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
-        {
-            for (int side = 0; side < 6; ++side)
-                glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), mCubeMapResolution, mCubeMapResolution, 0, GL_BGR, GL_FLOAT, NULL);
-        }
-        else
-        {
-            glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(),mCubeMapResolution, mCubeMapResolution);
-        }
-        
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d position cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[id], mId);
-	}
-	else
-	{
-		if (Engine::instance()->isOGLPipelineFixed() || SGCTSettings::instance()->getForceGlTexImage2D())
-        {
-            for (int side = 0; side < 6; ++side)
-				glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, mInternalColorFormat, mCubeMapResolution, mCubeMapResolution, 0, mColorFormat, mColorDataType, NULL);
-        }
-        else
-        {
-			glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, mInternalColorFormat, mCubeMapResolution, mCubeMapResolution);
-        }
-			
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "%dx%d cube map texture (id: %d) generated for window %d!\n",
-			mCubeMapResolution, mCubeMapResolution, mFrameBufferTextures[ id ], mId);
-	}
-    
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-
-	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
-}
-
 /*!
 	This function creates FBOs if they are supported.
 	This is done in the initOGL function.
@@ -1508,48 +1309,16 @@ void sgct::SGCTWindow::createFBOs()
 	}
 	else
 	{
-		if( mFisheyeMode )
-		{
-			mFinalFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
-			mCubeMapFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
-			
-			mFinalFBO_Ptr->createFBO(
-                mFramebufferResolution[0],
-                mFramebufferResolution[1],
-                1);
+		mFinalFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
+		mFinalFBO_Ptr->createFBO(
+			mFramebufferResolution[0],
+			mFramebufferResolution[1],
+			mNumberOfAASamples);
             
-            if( mFinalFBO_Ptr->checkForErrors() )
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-            else
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-
-			mCubeMapFBO_Ptr->createFBO( mCubeMapResolution,
-				mCubeMapResolution,
-				mNumberOfAASamples);
-            
-            if( mCubeMapFBO_Ptr->checkForErrors() )
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: Cube map FBO created.\n", mId);
-            else
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: Cube map FBO created with errors!\n", mId);
-            
-			sgct_core::OffScreenBuffer::unBind();
-
-			//set ut the fisheye geometry etc.
-			initFisheye();
-		}
-		else //regular viewport rendering
-		{
-			mFinalFBO_Ptr->setInternalColorFormat(mInternalColorFormat);
-			mFinalFBO_Ptr->createFBO(
-				mFramebufferResolution[0],
-				mFramebufferResolution[1],
-				mNumberOfAASamples);
-            
-            if( mFinalFBO_Ptr->checkForErrors() )
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-            else
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
-		}
+        if( mFinalFBO_Ptr->checkForErrors() )
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Window %d: FBO initiated successfully. Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
+        else
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBO initiated with errors! Number of samples: %d\n", mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1);
 	}
 }
 
@@ -1560,52 +1329,17 @@ void sgct::SGCTWindow::createVBOs()
 {
 	if( !Engine::instance()->isOGLPipelineFixed() )
 	{
-		glGenVertexArrays(NUMBER_OF_VBOS, &mVAO[0]);
-
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAOs:\n");
-		for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\t%d\n", mVAO[i]);
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
+		glGenVertexArrays(1, &mVAO);
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VAO: %d\n", mVAO);
 	}
 
-	glGenBuffers(NUMBER_OF_VBOS, &mVBO[0]);
-
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBOs:\n");
-	for( unsigned int i=0; i<NUMBER_OF_VBOS; i++ )
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\t%d\n", mVBO[i]);
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "\n");
+	glGenBuffers(1, &mVBO);
+	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Generating VBO: %d\n", mVBO);
 
 	if( !Engine::instance()->isOGLPipelineFixed() )
-		glBindVertexArray( mVAO[RenderQuad] );
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
+		glBindVertexArray( mVAO );
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mQuadVerts, GL_STATIC_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
-	if( !Engine::instance()->isOGLPipelineFixed() )
-	{
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			2,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			5*sizeof(float),    // stride
-			reinterpret_cast<void*>(0) // array buffer offset
-		);
-
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(
-			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			5*sizeof(float),    // stride
-			reinterpret_cast<void*>(8) // array buffer offset
-		);
-	}
-
-	if( !Engine::instance()->isOGLPipelineFixed() )
-		glBindVertexArray( mVAO[FishEyeQuad] );
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
-	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mFisheyeQuadVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
 	if( !Engine::instance()->isOGLPipelineFixed() )
 	{
 		glEnableVertexAttribArray(0);
@@ -1638,429 +1372,6 @@ void sgct::SGCTWindow::createVBOs()
 void sgct::SGCTWindow::loadShaders()
 {
 	//load shaders
-	if( mFisheyeMode )
-	{
-		float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
-		float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
-		float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
-
-		if( mStereoMode != No_Stereo ) // if any stereo
-			mFisheyeOffaxis = true;
-		else if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
-			mFisheyeOffaxis = false;
-
-		//reload shader program if it exists
-		if( mFisheyeShader.isLinked() )
-			mFisheyeShader.deleteProgram();
-        
-        std::string fisheyeFragmentShader;
-		std::string fisheyeVertexShader;
-
-		if( Engine::instance()->isOGLPipelineFixed() )
-		{
-			fisheyeVertexShader = mCubicInterpolation ? sgct_core::shaders_fisheye_cubic::Fisheye_Vert_Shader : sgct_core::shaders_fisheye::Fisheye_Vert_Shader;
-
-			if(mFisheyeOffaxis)
-			{
-				if (SGCTSettings::instance()->useDepthTexture())
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-                        fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
-						break;
-					}
-				}
-				else //no depth
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
-						break;
-					}
-				}	
-			}
-			else //not off-axis
-			{	
-				if (SGCTSettings::instance()->useDepthTexture())
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
-						break;
-					}
-				}
-				else //no depth
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Normal :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_fisheye_cubic::Fisheye_Frag_Shader_Normal_Position :
-							sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
-						break;
-					}
-				}
-			}
-
-			//depth correction shader only
-			if( SGCTSettings::instance()->useDepthTexture() )
-			{
-				std::string depth_corr_frag_shader = sgct_core::shaders_fisheye::Base_Vert_Shader;
-				std::string depth_corr_vert_shader = sgct_core::shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader;
-
-				//replace glsl version
-				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-				
-				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
-					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
-				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
-					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
-			}
-		}
-		else //modern pipeline
-		{
-			fisheyeVertexShader = mCubicInterpolation ? sgct_core::shaders_modern_fisheye_cubic::Fisheye_Vert_Shader : sgct_core::shaders_modern_fisheye::Fisheye_Vert_Shader;
-
-			if(mFisheyeOffaxis)
-			{
-				if( SGCTSettings::instance()->useDepthTexture() )
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position;
-						break;
-					}
-				}
-				else //no depth
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_OffAxis_Normal_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_OffAxis_Normal_Position;
-						break;
-					}
-				}
-			}
-			else//not off axis
-			{
-				if( SGCTSettings::instance()->useDepthTexture() )
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Depth :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Depth_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Depth_Normal_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
-						break;
-					}
-				}
-				else //no depth
-				{
-					switch (SGCTSettings::instance()->getCurrentDrawBufferType())
-					{
-					case sgct::SGCTSettings::Diffuse:
-					default:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Normal :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Position;
-						break;
-
-					case sgct::SGCTSettings::Diffuse_Normal_Position:
-						fisheyeFragmentShader = mCubicInterpolation ?
-							sgct_core::shaders_modern_fisheye_cubic::Fisheye_Frag_Shader_Normal_Position :
-							sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position;
-						break;
-					}
-				}
-			}
-
-			//depth correction shader only
-			if( SGCTSettings::instance()->useDepthTexture() )
-			{
-				std::string depth_corr_frag_shader = sgct_core::shaders_modern_fisheye::Base_Vert_Shader;
-				std::string depth_corr_vert_shader = sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader;
-
-				//replace glsl version
-				sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-				sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-
-				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
-					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
-				if(!mFisheyeDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
-					MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
-			}
-		}
-
-		//add functions to shader
-		if (mFisheyeOffaxis)
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_offset_fun : sgct_core::shaders_modern_fisheye::sample_offset_fun);
-		else
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_fun : sgct_core::shaders_modern_fisheye::sample_fun);
-
-		if (mCubicInterpolation)
-		{
-			char sizeStr[8];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-			sprintf_s(sizeStr, 8, "%d.0", getCubeMapResolution());
-#else
-			sprintf(sizeStr, "%d.0", getCubeMapResolution());
-#endif
-			//add functions to shader
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**cubic_fun**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::catmull_rom_fun : sgct_core::shaders_modern_fisheye_cubic::catmull_rom_fun);
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolatef**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_f);
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate3f**", sgct_core::shaders_modern_fisheye_cubic::interpolate4_3f);
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate4f**", Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_4f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_4f);
-            
-			//set size
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
-
-			//set step
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
-		}
-
-		//replace add correct transform in the fragment shader
-		if (SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FourFaceCube)
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
-		else
-			sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
-
-		//replace glsl version
-		sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", Engine::instance()->getGLSLVersion());
-
-		//replace color
-		const float * col = Engine::instance()->getFisheyeClearColor();
-		char colorStr[64];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s(colorStr, 64, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
-#else
-		sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
-#endif
-		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
-        
-		if(!mFisheyeShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, ShaderProgram::SHADER_SRC_STRING))
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader\n");
-        if(!mFisheyeShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, ShaderProgram::SHADER_SRC_STRING))
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to load fisheye fragment shader\n");
-
-		mFisheyeShader.setName("FisheyeShader");
-		mFisheyeShader.createAndLinkProgram();
-		mFisheyeShader.bind();
-
-		Cubemap = mFisheyeShader.getUniformLocation( "cubemap" );
-		glUniform1i( Cubemap, 0 );
-        
-        if( SGCTSettings::instance()->useDepthTexture() )
-		{
-			DepthCubemap = mFisheyeShader.getUniformLocation( "depthmap" );
-			glUniform1i( DepthCubemap, 1 );
-		}
-
-		if (SGCTSettings::instance()->useNormalTexture())
-		{
-			NormalCubemap = mFisheyeShader.getUniformLocation("normalmap");
-			glUniform1i(NormalCubemap, 2);
-		}
-
-		if (SGCTSettings::instance()->usePositionTexture())
-		{
-			PositionCubemap = mFisheyeShader.getUniformLocation("positionmap");
-			glUniform1i(PositionCubemap, 3);
-		}
-
-		FishEyeHalfFov = mFisheyeShader.getUniformLocation( "halfFov" );
-		glUniform1f( FishEyeHalfFov, glm::half_pi<float>() );
-
-		if( mFisheyeOffaxis )
-		{
-			FisheyeOffset = mFisheyeShader.getUniformLocation( "offset" );
-			glUniform3f( FisheyeOffset,
-				mFisheyeBaseOffset[0] + mFisheyeOffset[0],
-				mFisheyeBaseOffset[1] + mFisheyeOffset[1],
-				mFisheyeBaseOffset[2] + mFisheyeOffset[2] );
-		}
-
-		ShaderProgram::unbind();
-
-		if( SGCTSettings::instance()->useDepthTexture() )
-		{
-			mFisheyeDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
-			mFisheyeDepthCorrectionShader.createAndLinkProgram();
-			mFisheyeDepthCorrectionShader.bind();
-
-			FishEyeSwapColor = mFisheyeDepthCorrectionShader.getUniformLocation( "cTex" );
-			glUniform1i( FishEyeSwapColor, 0 );
-			FishEyeSwapDepth = mFisheyeDepthCorrectionShader.getUniformLocation( "dTex" );
-			glUniform1i( FishEyeSwapDepth, 1 );
-			FishEyeSwapNear = mFisheyeDepthCorrectionShader.getUniformLocation( "near" );
-			FishEyeSwapFar = mFisheyeDepthCorrectionShader.getUniformLocation( "far" );
-
-			ShaderProgram::unbind();
-		}
-	}
-
-	//-------------- end fisheye shader ----------->
-
 	if( mStereoMode > Active_Stereo && mStereoMode < Side_By_Side_Stereo)
 	{
 		std::string stereo_frag_shader;
@@ -2144,27 +1455,20 @@ void sgct::SGCTWindow::loadShaders()
 		glUniform1i( StereoLeftTex, 0 );
 		glUniform1i( StereoRightTex, 1 );
 		ShaderProgram::unbind();
+
+		if (!sgct::Engine::checkForOGLErrors())
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTWindow %d: OpenGL error occured while loading shaders!\n", mId);
 	}
 }
 
 void sgct::SGCTWindow::bindVAO() const
 {
-	mFisheyeMode ? glBindVertexArray( mVAO[FishEyeQuad] ) : glBindVertexArray( mVAO[RenderQuad] );
-}
-
-void sgct::SGCTWindow::bindVAO(VBOIndex index) const
-{
-	glBindVertexArray( mVAO[ index ] );
+	glBindVertexArray( mVAO );
 }
 
 void sgct::SGCTWindow::bindVBO() const
 {
-	mFisheyeMode ? glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]) : glBindBuffer(GL_ARRAY_BUFFER, mVBO[RenderQuad]);
-}
-
-void sgct::SGCTWindow::bindVBO(VBOIndex index) const
-{
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[index]);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO );
 }
 
 void sgct::SGCTWindow::unbindVBO() const
@@ -2182,7 +1486,7 @@ void sgct::SGCTWindow::unbindVAO() const
 */
 sgct_core::OffScreenBuffer * sgct::SGCTWindow::getFBOPtr() const
 {
-	return mFisheyeMode ? mCubeMapFBO_Ptr : mFinalFBO_Ptr;
+	return mFinalFBO_Ptr;
 }
 
 /*!
@@ -2199,23 +1503,6 @@ GLFWmonitor * sgct::SGCTWindow::getMonitor() const
 GLFWwindow * sgct::SGCTWindow::getWindowHandle() const
 {
 	return mWindowHandle;
-}
-
-/*!
-	Get the dimensions of the FBO that the Engine::draw function renders to.
-*/
-void sgct::SGCTWindow::getDrawFBODimensions(int & width, int & height) const
-{
-	if( mFisheyeMode )
-	{
-		width = mCubeMapResolution;
-		height = mCubeMapResolution;
-	}
-	else
-	{
-		width = mFramebufferResolution[0];
-		height = mFramebufferResolution[1];
-	}
 }
 
 /*!
@@ -2254,24 +1541,10 @@ void sgct::SGCTWindow::resizeFBOs()
 		}
 		createTextures();
 
-		if( mFisheyeMode )
-		{
-			mFinalFBO_Ptr->resizeFBO( mFramebufferResolution[0],
-				mFramebufferResolution[1],
-				1);
-
-			//Cube map FBO is constant in size so we don't need to resize that one
-
-			//set ut the fisheye geometry etc.
-			initFisheye();
-		}
-		else //regular viewport rendering
-		{
-			mFinalFBO_Ptr->resizeFBO(mFramebufferResolution[0],
-				mFramebufferResolution[1],
-				mNumberOfAASamples);
-		}
-
+		mFinalFBO_Ptr->resizeFBO(mFramebufferResolution[0],
+			mFramebufferResolution[1],
+			mNumberOfAASamples);
+		
 		if( !mFinalFBO_Ptr->isMultiSampled() ) //attatch color buffer to prevent GL errors
         {
             mFinalFBO_Ptr->bind();
@@ -2284,85 +1557,6 @@ void sgct::SGCTWindow::resizeFBOs()
         else
             MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d: FBOs resized with GL errors!\n", mId);
 	}
-}
-
-/*!
-	Init the fisheye data by creating geometry and precalculate textures
-*/
-void sgct::SGCTWindow::initFisheye()
-{
-	//create proxy geometry
-	float leftcrop		= mCropFactors[CropLeft];
-	float rightcrop		= mCropFactors[CropRight];
-	float bottomcrop	= mCropFactors[CropBottom];
-	float topcrop		= mCropFactors[CropTop];
-
-	float cropAspect = ((1.0f-2.0f * bottomcrop) + (1.0f-2.0f*topcrop)) / ((1.0f-2.0f*leftcrop) + (1.0f-2.0f*rightcrop));
-
-	float x_scale = 1.0f;
-	float y_scale = 1.0f;
-	float x = 1.0f;
-	float y = 1.0f;
-
-	if (mStereoMode == StereoMode::Side_By_Side_Stereo || mStereoMode == StereoMode::Side_By_Side_Inverted_Stereo)
-		x_scale = 0.5f;
-	else if (mStereoMode == StereoMode::Top_Bottom_Stereo || mStereoMode == StereoMode::Top_Bottom_Inverted_Stereo)
-		y_scale = 0.5f;
-
-	float frameBufferAspect = (static_cast<float>( mFramebufferResolution[0])*x_scale) /
-		(static_cast<float>( mFramebufferResolution[1])*y_scale);
-
-	if (sgct::SGCTSettings::instance()->getTryMaintainAspectRatio())
-	{
-		float aspect = frameBufferAspect * cropAspect;
-		(aspect >= 1.0f) ? x = 1.0f / aspect : y = aspect;
-	}
-
-	mFisheyeQuadVerts[0] = leftcrop;
-	mFisheyeQuadVerts[1] = bottomcrop;
-	mFisheyeQuadVerts[2] = -x;
-	mFisheyeQuadVerts[3] = -y;
-	mFisheyeQuadVerts[4] = -1.0f;
-
-	mFisheyeQuadVerts[5] = leftcrop;
-	mFisheyeQuadVerts[6] = 1.0f - topcrop;
-	mFisheyeQuadVerts[7] = -x;
-	mFisheyeQuadVerts[8] = y;
-	mFisheyeQuadVerts[9] = -1.0f;
-
-	mFisheyeQuadVerts[10] = 1.0f - rightcrop;
-	mFisheyeQuadVerts[11] = bottomcrop;
-	mFisheyeQuadVerts[12] = x;
-	mFisheyeQuadVerts[13] = -y;
-	mFisheyeQuadVerts[14] = -1.0f;
-
-	mFisheyeQuadVerts[15] = 1.0f - rightcrop;
-	mFisheyeQuadVerts[16] = 1.0f - topcrop;
-	mFisheyeQuadVerts[17] = x;
-	mFisheyeQuadVerts[18] = y;
-	mFisheyeQuadVerts[19] = -1.0f;
-
-	//update VBO
-	if( !Engine::instance()->isOGLPipelineFixed() )
-		glBindVertexArray( mVAO[FishEyeQuad] );
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO[FishEyeQuad]);
-
-	GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-	memcpy(PositionBuffer, mFisheyeQuadVerts, 20 * sizeof(float));
-	glUnmapBuffer(GL_ARRAY_BUFFER);
-
-	if( !Engine::instance()->isOGLPipelineFixed() )
-		glBindVertexArray( 0 );
-	else
-		glBindBuffer(GL_ARRAY_BUFFER, 0);
-}
-
-/*!
-	Set if fisheye rendering is used in this window
-*/
-void sgct::SGCTWindow::setFisheyeRendering(bool state)
-{
-	mFisheyeMode = state;
 }
 
 /*!
@@ -2391,230 +1585,21 @@ void sgct::SGCTWindow::addViewport(sgct_core::Viewport * vpPtr)
 */
 void sgct::SGCTWindow::deleteAllViewports()
 {
-	mCurrentViewportIndex = 0;
+	mCurrentViewport = NULL;
+
 	for (unsigned int i = 0; i < mViewports.size(); i++)
 		delete mViewports[i];
 	mViewports.clear();
 }
 
 /*!
-	Generates six viewports that renders the inside of a cube.
-*/
-void sgct::SGCTWindow::generateCubeMapViewports()
-{
-	enum cubeFaces { Pos_X=0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
-    
-    //clear the viewports since they will be replaced
-	deleteAllViewports();
-
-	//radius is needed to calculate the distance to all view planes
-	float radius = getDomeDiameter() / 2.0f;
-
-	//setup base viewport that will be rotated to create the other cubemap views
-	glm::vec4 lowerLeft, upperLeft, upperRight;
-	//+Z face
-	lowerLeft.x = -radius;
-	lowerLeft.y = -radius;
-	lowerLeft.z = radius;
-	lowerLeft.w = 1.0f;
-
-	upperLeft.x = -radius;
-	upperLeft.y = radius;
-	upperLeft.z = radius;
-	upperLeft.w = 1.0f;
-
-	upperRight.x = radius;
-	upperRight.y = radius;
-	upperRight.z = radius;
-	upperRight.w = 1.0f;
-    
-	if( SGCTSettings::instance()->getFisheyeMethod() == SGCTSettings::FiveFaceCube )
-    {
-        //tilt
-		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
-        //glm::mat4 tiltMat(1.0f);
-
-        //roll 45 deg
-		glm::mat4 rollRot = glm::rotate(tiltMat, glm::radians(45.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        //glm::mat4 rollRot(1.0f);
-        //glm::mat4 rollRot = tiltMat;
-
-        //add viewports
-        for(unsigned int i=0; i<6; i++)
-        {   
-			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
-            
-            //only generate GPU data in first viewport and the rest can use it's data
-            if( i != 0)
-				vpPtr->setAsDummy();
-			vpPtr->setName("Fisheye");
-
-            glm::mat4 rotMat(1.0f);
-
-            /*
-             Rotate and clamp the halv height viewports
-             */
-            switch(i)
-            {
-            case Pos_X: //+X face
-                {
-					rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                    upperRight.x = 0.0f;
-					vpPtr->setSize(0.5f, 1.0f);
-                    //restore the mesh for the non-dummy viewport since setSize modifes that
-					vpPtr->getCorrectionMeshPtr()->setViewportCoords(1.0f, 1.0f, 0.0f, 0.0f);
-                }
-                break;
-
-            case Neg_X: //-X face
-                {
-					rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                    lowerLeft.x = 0.0f;
-                    upperLeft.x = 0.0f;
-					vpPtr->setPos(0.5f, 0.0f);
-					vpPtr->setSize(0.5f, 1.0f);
-                }
-                break;
-
-            case Pos_Y: //+Y face
-                {
-					rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                    lowerLeft.y = 0.0f;
-					vpPtr->setPos(0.0f, 0.5f);
-					vpPtr->setSize(1.0f, 0.5f);
-                }
-                break;
-
-            case Neg_Y: //-Y face
-                {
-					rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                    upperLeft.y = 0.0f;
-                    upperRight.y = 0.0f;
-					vpPtr->setSize(1.0f, 0.5f);
-                }
-                break;
-
-            case Pos_Z: //+Z face
-                rotMat = rollRot;
-                break;
-
-            case Neg_Z: //-Z face
-				vpPtr->setEnabled(false);
-				rotMat = glm::rotate(rollRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                break;
-            }
-
-            //Compensate for users pos
-            glm::vec4 userVec = glm::vec4(
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getXPos(),
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getYPos(),
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getZPos(),
-                1.0f );
-
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
-
-            //Each viewport contains frustums for mono, left stereo and right stereo
-			addViewport(vpPtr);
-
-            /*
-             fprintf(stderr, "View #%d:\n", i);
-             fprintf(stderr, "LowerLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::LowerLeft ).z);
-             fprintf(stderr, "UpperLeft: %f %f %f\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperLeft ).z);
-             fprintf(stderr, "UpperRight: %f %f %f\n\n", tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).x, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).y, tmpVP.getViewPlaneCoords( sgct_core::Viewport::UpperRight ).z);
-             */
-        }
-    }
-    else
-    {
-        //tilt
-		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mFisheyeTilt), glm::vec3(1.0f, 0.0f, 0.0f));
-        //glm::mat4 tiltMat(1.0f);
-        
-        //pan 45 deg
-		glm::mat4 panRot = glm::rotate(tiltMat, glm::radians(45.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-        //glm::mat4 panRot(1.0f);
-        //glm::mat4 panRot = tiltMat;
-        
-        //add viewports
-        for(unsigned int i=0; i<6; i++)
-        {
-			sgct_core::Viewport * vpPtr = new sgct_core::Viewport();
-            
-            //only generate GPU data in first viewport and the rest can use it's data
-            if( i != 0 )
-				vpPtr->setAsDummy();
-			vpPtr->setName("Fisheye");
-            
-            glm::mat4 rotMat(1.0f);
-            
-            switch(i)
-            {
-                case Pos_X: //+X face
-					rotMat = glm::rotate(panRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                    break;
-                    
-                case Neg_X: //-X face
-					vpPtr->setEnabled(false);
-					rotMat = glm::rotate(panRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                    break;
-                    
-                case Pos_Y: //+Y face
-					rotMat = glm::rotate(panRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                    break;
-                    
-                case Neg_Y: //-Y face
-					rotMat = glm::rotate(panRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-                    break;
-                    
-                case Pos_Z: //+Z face
-                    rotMat = panRot;
-                    break;
-                    
-                case Neg_Z: //-Z face
-					vpPtr->setEnabled(false);
-					rotMat = glm::rotate(panRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-                    break;
-            }//end switch
-            
-            //Compensate for users pos
-            glm::vec4 userVec = glm::vec4(
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getXPos(),
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getYPos(),
-				sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getZPos(),
-                1.0f );
-            
-            //add viewplane vertices
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
-			vpPtr->getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
-            
-            //Each viewport contains frustums for mono, left stereo and right stereo
-			addViewport(vpPtr);
-        }//end for
-    }//end if
-
-	if (getFisheyeOverlay() != NULL)
-	{
-		mViewports[0]->setOverlayTexture(getFisheyeOverlay());
-		//MessageHandler::instance()->print("Setting fisheye overlay to '%s'\n", SGCTSettings::instance()->getFisheyeOverlay());
-	}
-
-	if (getFisheyeMask() != NULL)
-	{
-		mViewports[0]->setMaskTexture(getFisheyeMask());
-	}
-
-	mAreCubeMapViewPortsGenerated = true;
-}
-
-/*!
 \returns a pointer to the viewport that is beeing rendered to at the moment
 */
-sgct_core::Viewport * sgct::SGCTWindow::getCurrentViewport() const
+sgct_core::BaseViewport * sgct::SGCTWindow::getCurrentViewport() const
 {
-	return mViewports[mCurrentViewportIndex];
+	if(mCurrentViewport == NULL)
+		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Window %d error: Current viewport is NULL!\n", mId);
+	return mCurrentViewport;
 }
 
 /*!
@@ -2701,187 +1686,15 @@ sgct_core::ScreenCapture * sgct::SGCTWindow::getScreenCapturePointer(unsigned in
 */
 void sgct::SGCTWindow::setCurrentViewport(std::size_t index)
 {
-	mCurrentViewportIndex = index;
+	mCurrentViewport = mViewports[index];
 }
 
 /*!
-Set the cubemap resolution used in the fisheye renderer
-
-@param res resolution of the cubemap sides (should be a power of two for best performance)
+Set the which viewport that is the current. This is done internally from SGCT and end users shouldn't change this
 */
-void sgct::SGCTWindow::setCubeMapResolution(int res)
+void sgct::SGCTWindow::setCurrentViewport(sgct_core::BaseViewport * vp)
 {
-	mCubeMapResolution = res;
-}
-
-/*!
-Set the dome diameter used in the fisheye renderer (used for the viewplane distance calculations)
-
-@param size size of the dome diameter (cube side) in meters
-*/
-void sgct::SGCTWindow::setDomeDiameter(float size)
-{
-	mCubeMapSize = size;
-	generateCubeMapViewports();
-}
-
-/*!
-Set the fisheye/dome tilt angle used in the fisheye renderer.
-The tilt angle is from the horizontal.
-
-@param angle the tilt angle in degrees
-*/
-void sgct::SGCTWindow::setFisheyeTilt(float angle)
-{
-	mFisheyeTilt = angle;
-}
-
-/*!
-Set the fisheye/dome field-of-view angle used in the fisheye renderer.
-
-@param angle the FOV angle in degrees
-*/
-void sgct::SGCTWindow::setFisheyeFOV(float angle)
-{
-	mFieldOfView = angle;
-}
-
-/*!
-Set the fisheye crop values. Theese values are used when rendering content for a single projector dome.
-The elumenati geodome has usually a 4:3 SXGA+ (1400x1050) projector and the fisheye is cropped 25% (350 pixels) at the top.
-*/
-void sgct::SGCTWindow::setFisheyeCropValues(float left, float right, float bottom, float top)
-{
-	mCropFactors[ CropLeft ] = (left < 1.0f && left > 0.0f) ? left : 0.0f;
-	mCropFactors[ CropRight ] = (right < 1.0f && right > 0.0f) ? right : 0.0f;
-	mCropFactors[ CropBottom ] = (bottom < 1.0f && bottom > 0.0f) ? bottom : 0.0f;
-	mCropFactors[ CropTop ] = (top < 1.0f && top > 0.0f) ? top : 0.0f;
-}
-
-/*!
-	Set fisheye base offset to render offaxis. Length of vector must be smaller then 1.
-	Base of fisheye is the XY-plane. The base offset will be added to the offset specified by setFisheyeOffset.
-	These values are set from the XML config.
-*/
-void sgct::SGCTWindow::setFisheyeBaseOffset(float x, float y, float z )
-{
-	mFisheyeBaseOffset[0] = x;
-	mFisheyeBaseOffset[1] = y;
-	mFisheyeBaseOffset[2] = z;
-
-	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
-	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
-	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
-
-	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
-		mFisheyeOffaxis = false;
-	else
-		mFisheyeOffaxis = true;
-}
-
-/*!
-	Set fisheye offset to render offaxis. Length of vector must be smaller then 1.
-	Base of fisheye is the XY-plane. This function is normally used in fisheye stereo rendering.
-*/
-void sgct::SGCTWindow::setFisheyeOffset(float x, float y, float z)
-{
-	mFisheyeOffset[0] = x;
-	mFisheyeOffset[1] = y;
-	mFisheyeOffset[2] = z;
-
-	float total_x = mFisheyeBaseOffset[0] + mFisheyeOffset[0];
-	float total_y = mFisheyeBaseOffset[1] + mFisheyeOffset[1];
-	float total_z = mFisheyeBaseOffset[2] + mFisheyeOffset[2];
-
-	if( total_x == 0.0f && total_y == 0.0f && total_z == 0.0f )
-		mFisheyeOffaxis = false;
-	else
-		mFisheyeOffaxis = true;
-}
-
-/*!
-Set the fisheye overlay image.
-*/
-void sgct::SGCTWindow::setFisheyeOverlay(std::string filename)
-{
-	mFisheyeOverlayFilename.assign(filename);
-}
-
-/*!
- Set the fisheye overlay image.
- */
-void sgct::SGCTWindow::setFisheyeMask(std::string filename)
-{
-    mFisheyeMaskFilename.assign(filename);
-}
-
-/*!
-Set if cubic interpolation should be used in cubemap sampling
-*/
-void sgct::SGCTWindow::setFisheyeUseCubicInterpolation(bool state)
-{
-	mCubicInterpolation = state;
-}
-
-/*!
-Get if cubic interpolation is used in cubemap sampling
-*/
-const bool & sgct::SGCTWindow::getFisheyeUseCubicInterpolation() const
-{
-	return mCubicInterpolation;
-}
-
-//! Get the cubemap size in pixels used in the fisheye renderer
-const int & sgct::SGCTWindow::getCubeMapResolution() const
-{
-	return mCubeMapResolution;
-}
-
-//! Get the dome diameter in meters used in the fisheye renderer
-const float & sgct::SGCTWindow::getDomeDiameter() const
-{
-	return mCubeMapSize;
-}
-
-//! Get the fisheye/dome tilt angle in degrees
-const float & sgct::SGCTWindow::getFisheyeTilt() const
-{
-	return mFisheyeTilt;
-}
-
-//! Get the fisheye/dome field-of-view angle in degrees
-const float & sgct::SGCTWindow::getFisheyeFOV() const
-{
-	return mFieldOfView;
-}
-
-/*! Get the fisheye crop value for a side:
-	- Left
-	- Right
-	- Bottom
-	- Top
-*/
-const float & sgct::SGCTWindow::getFisheyeCropValue(FisheyeCropSide side) const
-{
-	return mCropFactors[side];
-}
-
-//! Get if fisheye is offaxis (not rendered from centre)
-const bool & sgct::SGCTWindow::isFisheyeOffaxis() const
-{
-	return mFisheyeOffaxis;
-}
-
-//! Get the fisheye overlay image filename/path.
-const char * sgct::SGCTWindow::getFisheyeOverlay() const
-{
-	return mFisheyeOverlayFilename.empty() ? NULL : mFisheyeOverlayFilename.c_str();
-}
-
-//! Get the fisheye mask image filename/path.
-const char * sgct::SGCTWindow::getFisheyeMask() const
-{
-    return mFisheyeMaskFilename.empty() ? NULL : mFisheyeMaskFilename.c_str();
+	mCurrentViewport = vp;
 }
 
 std::string sgct::SGCTWindow::getStereoModeStr() const

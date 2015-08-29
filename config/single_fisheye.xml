@@ -17,7 +17,13 @@
 					- 8k (8192)
 				tilt specifies the dome tilt angle in degrees from the horizontal
 			-->
-			<Fisheye fov="165.0" quality="medium" tilt="27.0" />
+			<Viewport name="fisheye">
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<FisheyeProjection fov="180" quality="medium" tilt="27.0">
+					<Background r="0.1" g="0.1" b="0.1" a="1.0" />
+				</FisheyeProjection>
+			</Viewport>
 		</Window>
 	</Node>
 	<User eyeSeparation="0.065">

@@ -66,26 +66,20 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	//get a pointer to the current window
-	sgct::SGCTWindow * winPtr = gEngine->getActiveWindowPtr();
-
-	unsigned int index = winPtr->getId();
+	sgct_core::OffScreenBuffer * fbo = gEngine->getCurrentFBO();
+	std::size_t drawIndex = gEngine->getCurrentDrawBufferIndex();
 	
-	winPtr->getFBOPtr()->unBind();
-
 	//get viewport data and set the viewport
-	const int * coords;
-	coords = gEngine->getActiveViewportPixelCoords();
-	glViewport( coords[0], coords[1], coords[2], coords[3] );
+	glViewport(0, 0, buffers[drawIndex].width, buffers[drawIndex].height);
 
 	//bind fbo
 	glBindTexture(GL_TEXTURE_2D, 0);
-	glBindFramebuffer(GL_FRAMEBUFFER, buffers[index].fbo );
-	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffers[index].texture, 0);
+	glBindFramebuffer(GL_FRAMEBUFFER, buffers[drawIndex].fbo );
+	glFramebufferTexture2D( GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, buffers[drawIndex].texture, 0);
 
 	glMatrixMode(GL_PROJECTION);
 
-	glLoadMatrixf( glm::value_ptr(gEngine->getActiveViewProjectionMatrix()) );
+	glLoadMatrixf( glm::value_ptr(gEngine->getCurrentViewProjectionMatrix()) );
 
 	glMatrixMode(GL_MODELVIEW);
 	glLoadMatrixf( glm::value_ptr( gEngine->getModelMatrix() ) );
@@ -97,15 +91,14 @@ void myDrawFun()
 	//draw scene to texture target
 	drawScene();
 
-	//un-bind fbo
-	glBindFramebuffer(GL_FRAMEBUFFER, 0);
-
-	winPtr->getFBOPtr()->bind();
+	if (fbo)
+		fbo->bind();
 
 	//render a quad in ortho/2D mode with target texture
 	//--------------------------------------------------
 	//set viewport
-	glViewport( coords[0], coords[1], coords[2], coords[3] );
+	const int * coords = gEngine->getCurrentViewportPixelCoords();
+	glViewport(coords[0], coords[1], coords[2], coords[3]);
 	
 	//enter ortho mode (2D projection)
 	glMatrixMode(GL_PROJECTION);
@@ -122,7 +115,7 @@ void myDrawFun()
 
 	glLoadIdentity();
 
-	glBindTexture(GL_TEXTURE_2D, buffers[index].texture);
+	glBindTexture(GL_TEXTURE_2D, buffers[drawIndex].texture);
 
 	glColor3f(1.0f, 1.0f, 1.0f);
 	glBegin(GL_QUADS);
@@ -173,9 +166,8 @@ void myPreSyncFun()
 void myPostSyncPreDrawFun()
 {
 	//Fisheye cubemaps are constant size
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
-		if( gEngine->getWindowPtr(i)->isWindowResized() && !gEngine->getWindowPtr(i)->isUsingFisheyeRendering() )
+	for(unsigned int i=0; i < gEngine->getNumberOfWindows(); i++)
+		if( gEngine->getWindowPtr(i)->isWindowResized() )
 		{
 			resizeFBOs();
 			break;
@@ -205,14 +197,12 @@ void myInitOGLFun()
 	glCullFace(GL_BACK);
 	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
+	std::size_t numberOfBuffers = gEngine->getNumberOfDrawBuffers();
+	for (std::size_t i = 0; i < numberOfBuffers; i++)
 	{
 		fbData tmpBuffer;
-		buffers.push_back( tmpBuffer );
+		buffers.push_back(tmpBuffer);
 	}
-
-	sgct::MessageHandler::instance()->print("Number of targets: %d\n", buffers.size());
 
 	createFBOs();
 }
@@ -237,21 +227,14 @@ void myDecodeFun()
 
 void createFBOs()
 {
-	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
-	for(unsigned int i=0; i < thisNode->getNumberOfWindows(); i++)
+	for (std::size_t i = 0; i < buffers.size(); i++)
 	{
-		int fb_width;
-		int fb_height;
+		gEngine->getDrawBufferSize(i, buffers[i].width, buffers[i].height);
 
-		sgct::SGCTWindow * winPtr = gEngine->getWindowPtr(i);
-		winPtr->getDrawFBODimensions(fb_width, fb_height);
-
-		buffers[i].fbo = 0;
-		buffers[i].renderBuffer = 0;
-		buffers[i].depthBuffer = 0;
-		buffers[i].texture = 0;
-		buffers[i].width = fb_width;
-		buffers[i].height = fb_height;
+		buffers[i].fbo				= GL_FALSE;
+		buffers[i].renderBuffer		= GL_FALSE;
+		buffers[i].depthBuffer		= GL_FALSE;
+		buffers[i].texture			= GL_FALSE;
 	}
 	
 	//create targets

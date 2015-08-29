@@ -21,6 +21,9 @@ namespace sgct_core
 class BaseViewport
 {
 public:
+	BaseViewport();
+	virtual ~BaseViewport() {;}
+
 	void setName(const std::string & name);
 	void setPos(float x, float y);
 	void setSize(float x, float y);
@@ -45,7 +48,7 @@ public:
 	void linkUserName();
 
 	void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
-	void calculateFisheyeFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
+	void calculateNonLinearFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
 	void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
     
 protected:

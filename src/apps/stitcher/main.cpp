@@ -215,7 +215,6 @@ int main( int argc, char* argv[] )
 	gEngine->setPreWindowFunction( myPreWinInitFun );
 
 	gEngine->setClearColor(0.0f, 0.0f, 0.0f, 1.0f);
-	gEngine->setFisheyeClearColor(0.0f, 0.0f, 0.0f);
 
 	if( !gEngine->init() )
 	{
@@ -383,8 +382,18 @@ void myPreWinInitFun()
 	{
 		gEngine->setScreenShotNumber(startFrame);
 		gEngine->getWindowPtr(i)->setAlpha(alpha);
-		gEngine->getWindowPtr(i)->setDomeDiameter(domeDiameter);
-		gEngine->getWindowPtr(i)->setCubeMapResolution(cubemapRes);
+
+		for (std::size_t j = 0; j < gEngine->getWindowPtr(i)->getNumberOfViewports(); j++)
+			if (gEngine->getWindowPtr(i)->getViewport(j)->hasSubViewports())
+			{
+				gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setClearColor(glm::vec4(0.0, 0.0, 0.0, 1.0));
+				gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setCubemapResolution(cubemapRes);
+				gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()->setInterpolationMode(sgct_core::NonLinearProjection::Cubic);
+
+				if (sgct_core::FisheyeProjection * fp = dynamic_cast<sgct_core::FisheyeProjection*>(gEngine->getWindowPtr(i)->getViewport(j)->getNonLinearProjectionPtr()))
+					fp->setDomeDiameter(domeDiameter);
+			}
+		
 		gEngine->getWindowPtr(i)->setNumberOfAASamples(numberOfMSAASamples);
 		gEngine->getWindowPtr(i)->setFramebufferResolution(resolution, resolution);
 		gEngine->getWindowPtr(i)->setUseFXAA(fxaa);
@@ -392,7 +401,6 @@ void myPreWinInitFun()
 			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::Dummy_Stereo);
 		else
 			gEngine->getWindowPtr(i)->setStereoMode(sgct::SGCTWindow::No_Stereo);
-		gEngine->getWindowPtr(i)->setFisheyeUseCubicInterpolation(cubic);
 	}
 }
 

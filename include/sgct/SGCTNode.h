@@ -35,7 +35,7 @@ public:
 	/*!
 		Get the active window pointer.
 	*/
-	inline sgct::SGCTWindow *		getActiveWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
+	inline sgct::SGCTWindow *		getCurrentWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
 
 	/*! Get the current window index */
 	inline std::size_t		getCurrentWindowIndex() { return mCurrentWindowIndex; }

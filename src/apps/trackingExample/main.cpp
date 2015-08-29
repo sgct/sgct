@@ -227,7 +227,7 @@ void myDrawFun()
 	}
 
 	//draw text
-	float textVerticalPos = static_cast<float>(gEngine->getActiveWindowPtr()->getYResolution()) - 100.0f;
+	float textVerticalPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getYResolution()) - 100.0f;
 	int fontSize = 12;
 	
 	glColor3f(1.0f, 1.0f, 1.0f);

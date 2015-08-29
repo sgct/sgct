@@ -52,7 +52,7 @@ void updatePass()
 {
 	glActiveTexture(GL_TEXTURE1);
 	glEnable(GL_TEXTURE_2D);
-	glBindTexture(GL_TEXTURE_2D, gEngine->getActiveDepthTexture() );
+	glBindTexture(GL_TEXTURE_2D, gEngine->getCurrentDepthTexture() );
 	glUniform1i( fxCTexLoc, 0 );
 	glUniform1i( fxDTexLoc, 1 );
 	glUniform1f( fxNearLoc, gEngine->getNearClippingPlane() );
@@ -90,10 +90,8 @@ int main( int argc, char* argv[] )
 	gEngine->setKeyboardCallbackFunction( keyCallback );
     
     sgct::SGCTSettings::instance()->setUseDepthTexture(true);
-	//sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
     //sgct::SGCTSettings::instance()->setSwapInterval(0);
 	//sgct::Engine::instance()->setClearColor(0.0f, 1.0f, 0.0f, 1.0f);
-	//sgct::Engine::instance()->setFisheyeClearColor(1.0f, 0.0f, 0.0f);
 
 	if( !gEngine->init() )
 	{

@@ -272,7 +272,7 @@ void mouseButtonCallback(int button, int action)
 
 void drawXZGrid(void)
 {
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * xform.getVal();
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
 
 	sgct::ShaderManager::instance()->bindShaderProgram("gridShader");
 
@@ -291,7 +291,7 @@ void drawXZGrid(void)
 
 void drawPyramid(int index)
 {
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * xform.getVal() * pyramidTransforms[index];
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal() * pyramidTransforms[index];
 
 	sgct::ShaderManager::instance()->bindShaderProgram("pyramidShader");
 

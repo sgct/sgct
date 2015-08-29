@@ -73,8 +73,8 @@ void myDrawFun()
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
-	glm::mat3 NM = glm::inverseTranspose(glm::mat3( gEngine->getActiveModelViewMatrix() * scene_mat ));
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+	glm::mat3 NM = glm::inverseTranspose(glm::mat3( gEngine->getCurrentModelViewMatrix() * scene_mat ));
 
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));

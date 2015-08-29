@@ -68,18 +68,7 @@ int main( int argc, char* argv[] )
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
     
-    //sgct::SGCTSettings::instance()->setFisheyeMethod(sgct::SGCTSettings::FiveFaceCube);
-    //sgct::SGCTSettings::instance()->setSwapInterval(0);
-
-	//sgct::SGCTSettings::instance()->setCaptureFormat("jpg");
-	/*sgct::SGCTSettings::instance()->setCaptureFormat("tga");
-	//sgct::SGCTSettings::instance()->setCaptureFormat("png");
-	sgct::SGCTSettings::instance()->setUseRLE(true);
-	sgct::SGCTSettings::instance()->setUsePBO(true);
-	sgct::SGCTSettings::instance()->setPNGCompressionLevel(3);
-	sgct::SGCTSettings::instance()->setNumberOfCaptureThreads(24);*/
-
-	//sgct::SGCTSettings::instance()->setUseWarping(false);
+    sgct::SGCTSettings::instance()->setUseDepthTexture(true);
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
@@ -114,9 +103,9 @@ void myDrawFun()
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, -0.15f, 2.5f ) );
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	glm::mat4 MVP		= gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
-	glm::mat4 MV		= gEngine->getActiveModelViewMatrix() * scene_mat;
-	glm::mat4 MV_light	= gEngine->getActiveModelViewMatrix();
+	glm::mat4 MVP		= gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+	glm::mat4 MV		= gEngine->getCurrentModelViewMatrix() * scene_mat;
+	glm::mat4 MV_light	= gEngine->getCurrentModelViewMatrix();
 	glm::mat3 NM		= glm::inverseTranspose( glm::mat3( MV ) );
 
 	glActiveTexture(GL_TEXTURE0);

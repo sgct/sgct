@@ -15,8 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "PostFX.h"
 #include <vector>
 
-#define NUMBER_OF_VBOS 2
-#define NUMBER_OF_TEXTURES 14
+#define NUMBER_OF_TEXTURES 8
 
 namespace sgct
 {
@@ -34,8 +33,6 @@ public:
 		Checkerboard_Stereo, Checkerboard_Inverted_Stereo, Vertical_Interlaced_Stereo, Vertical_Interlaced_Inverted_Stereo, Dummy_Stereo,
 		Side_By_Side_Stereo, Side_By_Side_Inverted_Stereo, Top_Bottom_Stereo, Top_Bottom_Inverted_Stereo, Number_Of_Stereo_Items };
 
-	enum VBOIndex { RenderQuad = 0, FishEyeQuad };
-	enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 	enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
 	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture};
 	enum ColorBitDepth { BufferColorBitDepth8, BufferColorBitDepth16, BufferColorBitDepth16Float, BufferColorBitDepth32Float, BufferColorBitDepth16Int, BufferColorBitDepth32Int, BufferColorBitDepth16UInt, BufferColorBitDepth32UInt };
@@ -49,7 +46,7 @@ public:
 	static void initNvidiaSwapGroups();
 	void initWindowResolution(const int x, const int y);
 	void swap(bool takeScreenshot);
-	void update();
+	bool update();
 	bool openWindow(GLFWwindow* share);
 	void makeOpenGLContextCurrent( OGL_Context context );
     static void restoreSharedContext();
@@ -78,6 +75,7 @@ public:
 	void setNumberOfAASamples(int samples);
 	void setStereoMode( StereoMode sm );
 	void setCurrentViewport(std::size_t index);
+	void setCurrentViewport(sgct_core::BaseViewport * vp);
 	void setAlpha(bool state);
 	void setGamma(float gamma);
 	void setContrast(float contrast);
@@ -95,7 +93,6 @@ public:
 	const bool &		isVisible() const;
 	const bool &		isRenderingWhileHidden() const;
 	const bool &		isFixResolution() const;
-	const bool &		isUsingFisheyeRendering() const;
 	bool				isStereo() const;
 	bool				isWindowResized() const;
 	static inline bool	isBarrierActive() { return mBarrier; }
@@ -112,12 +109,11 @@ public:
 	const int &						getNumberOfAASamples() const;
 	const StereoMode &				getStereoMode() const;
 	static void						getSwapGroupFrameNumber(unsigned int & frameNumber);
-	void							getDrawFBODimensions(int & width, int & height) const;
 	void							getFinalFBODimensions(int & width, int & height) const;
 	sgct_core::OffScreenBuffer *	getFBOPtr() const;
 	GLFWmonitor *					getMonitor() const;
 	GLFWwindow *					getWindowHandle() const;
-	sgct_core::Viewport *			getCurrentViewport() const;
+	sgct_core::BaseViewport *		getCurrentViewport() const;
 	sgct_core::Viewport *			getViewport(std::size_t index) const;
 	void							getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize) const;
 	std::size_t						getNumberOfViewports() const;
@@ -129,10 +125,6 @@ public:
 	ColorBitDepth					getColorBitDepth() const;
 	
     // ------------------ Inline functions ----------------------- //
-	/*!
-		\returns the index of the current viewport
-	*/
-	inline const std::size_t & getCurrentViewportIndex() const { return mCurrentViewportIndex; }
 	/*!
 		\returns the pointer to a specific post effect
 	*/
@@ -180,9 +172,7 @@ public:
 
 	// -------------- bind functions -------------------//
 	void bindVAO() const;
-	void bindVAO(VBOIndex index) const;
 	void bindVBO() const;
-	void bindVBO(VBOIndex index) const;
 	void unbindVBO() const;
 	void unbindVAO() const;
 
@@ -190,7 +180,6 @@ public:
 	void addPostFX( sgct::PostFX & fx );
 	void addViewport(float left, float right, float bottom, float top);
 	void addViewport(sgct_core::Viewport * vpPtr);
-	void generateCubeMapViewports();
 
 	/*! \return true if any masks are used */
 	inline const bool & hasAnyMasks() const { return mHasAnyMasks; }
@@ -204,44 +193,6 @@ public:
 	inline const int & getStereoShaderLeftTexLoc() const { return StereoLeftTex; }
 	inline const int & getStereoShaderRightTexLoc() const { return StereoRightTex; }
 
-	//Fisheye settings
-	inline void bindFisheyeShaderProgram() const { mFisheyeShader.bind(); }
-	inline const int & getFisheyeShaderCubemapLoc() const { return Cubemap; }
-	inline const int & getFisheyeShaderCubemapDepthLoc() const { return DepthCubemap; }
-	inline const int & getFisheyeShaderCubemapNormalsLoc() const { return NormalCubemap; }
-	inline const int & getFisheyeShaderCubemapPositionsLoc() const { return PositionCubemap; }
-	inline const int & getFisheyeShaderHalfFOVLoc() const { return FishEyeHalfFov; }
-	inline const int & getFisheyeShaderOffsetLoc() const { return FisheyeOffset; }
-
-	inline void bindFisheyeDepthCorrectionShaderProgram() const { mFisheyeDepthCorrectionShader.bind(); }
-	inline const int & getFisheyeSwapShaderColorLoc() const { return FishEyeSwapColor; }
-	inline const int & getFisheyeSwapShaderDepthLoc() const { return FishEyeSwapDepth; }
-	inline const int & getFisheyeSwapShaderNearLoc() const { return FishEyeSwapNear; }
-	inline const int & getFisheyeSwapShaderFarLoc() const { return FishEyeSwapFar; }
-	inline float getFisheyeOffset(unsigned int axis) const { return mFisheyeBaseOffset[axis] + mFisheyeOffset[axis]; }
-
-	void setFisheyeRendering(bool state);
-	void setCubeMapResolution(int res);
-	void setDomeDiameter(float size);
-	void setFisheyeTilt(float angle);
-	void setFisheyeFOV(float angle);
-	void setFisheyeCropValues(float left, float right, float bottom, float top);
-	void setFisheyeOffset(float x, float y, float z = 0.0f);
-	void setFisheyeBaseOffset(float x, float y, float z = 0.0f);
-	void setFisheyeOverlay(std::string filename);
-    void setFisheyeMask(std::string filename);
-	void setFisheyeUseCubicInterpolation(bool state);
-
-	const int & getCubeMapResolution() const;
-	const float & getDomeDiameter() const;
-	const float & getFisheyeTilt() const;
-	const float & getFisheyeFOV() const;
-	const float & getFisheyeCropValue(FisheyeCropSide side) const;
-	const bool & getFisheyeUseCubicInterpolation() const;
-	const bool & isFisheyeOffaxis() const;
-	const char * getFisheyeOverlay() const;
-	const char * getFisheyeMask() const;
-
 private:
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
     static void frameBufferResizeCallback( GLFWwindow * window, int width, int height );
@@ -251,18 +202,15 @@ private:
 	void deleteAllViewports();
 	void createTextures();
 	void generateTexture(unsigned int id, const int xSize, const int ySize, const TextureType type, const bool interpolate);
-	void generateCubeMap(unsigned int id, TextureType type);
 	void createFBOs();
 	void resizeFBOs();
 	void createVBOs();
 	void loadShaders();
-	void initFisheye();
 	void updateTransferCurve();
 	void updateColorBufferData();
 
 public:
 	sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
-	sgct_core::OffScreenBuffer * mCubeMapFBO_Ptr;
 
 private:
 	std::string mName;
@@ -315,41 +263,24 @@ private:
 	sgct_core::ScreenCapture * mScreenCapture[2];
 
 	StereoMode mStereoMode;
-	bool mFisheyeMode; //if fisheye rendering is used
 	int mNumberOfAASamples;
 	int mId;
 
-	float mFisheyeQuadVerts[20];
 	float mQuadVerts[20];
 
 	//VBO:s
-	unsigned int mVBO[NUMBER_OF_VBOS];
+	unsigned int mVBO;
 	//VAO:s
-	unsigned int mVAO[NUMBER_OF_VBOS];
+	unsigned int mVAO;
 
 	//Shaders
-	sgct::ShaderProgram mFisheyeShader, mFisheyeDepthCorrectionShader;
-	int Cubemap, DepthCubemap, NormalCubemap, PositionCubemap, FishEyeHalfFov, FisheyeOffset, FishEyeSwapColor, FishEyeSwapDepth, FishEyeSwapNear, FishEyeSwapFar;
 	sgct::ShaderProgram mStereoShader;
 	int StereoMVP, StereoLeftTex, StereoRightTex;
 
-	//Fisheye
-	std::string mFisheyeOverlayFilename;
-    std::string mFisheyeMaskFilename;
-	bool mFisheyeOffaxis;
-	float mFisheyeTilt;
-	float mFieldOfView;
-	float mFisheyeOffset[3];
-	float mFisheyeBaseOffset[3]; //set from the config
-	float mCropFactors[4];
-	float mCubeMapSize;
-	bool mAreCubeMapViewPortsGenerated;
-	bool mHasAnyMasks;
-	int mCubeMapResolution;
-	bool mCubicInterpolation;
 	bool mUseRightEyeTexture;
+	bool mHasAnyMasks;
 
-	std::size_t mCurrentViewportIndex;
+	sgct_core::BaseViewport * mCurrentViewport;
 	std::vector<sgct_core::Viewport *> mViewports;
 	std::vector<sgct::PostFX> mPostFXPasses;
 };

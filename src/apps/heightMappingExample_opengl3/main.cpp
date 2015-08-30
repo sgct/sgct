@@ -67,8 +67,6 @@ int main( int argc, char* argv[] )
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
-    
-    sgct::SGCTSettings::instance()->setUseDepthTexture(true);
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{

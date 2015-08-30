@@ -112,7 +112,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
 	mQuadVerts[19] = -1.0f;
 
 	mVBO	= GL_FALSE; //default to openGL false
-	mVBO	= GL_FALSE; //default to openGL false
+	mVAO	= GL_FALSE; //default to openGL false
 
 	mStereoMode = No_Stereo;
 	mNumberOfAASamples = SGCTSettings::instance()->getDefaultNumberOfAASamples();

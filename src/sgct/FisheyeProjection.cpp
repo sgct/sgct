@@ -686,19 +686,16 @@ void sgct_core::FisheyeProjection::initShaders()
 
 	if (isCubic)
 	{
-		char sizeStr[8];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-		sprintf_s(sizeStr, 8, "%d.0", mCubemapResolution);
-#else
-		sprintf(sizeStr, "%d.0", mCubemapResolution);
-#endif
+        std::stringstream ssRes;
+        ssRes << mCubemapResolution << ".0";
+        
 		//add functions to shader
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_f);
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate3f**", sgct_core::shaders_modern_fisheye_cubic::interpolate4_3f);
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_4f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_4f);
 
 		//set size
-		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**size**", std::string(sizeStr));
+		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**size**", ssRes.str());
 
 		//set step
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**step**", "1.0");
@@ -715,13 +712,10 @@ void sgct_core::FisheyeProjection::initShaders()
 	sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
 
 	//replace color
-	char colorStr[64];
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	sprintf_s(colorStr, 64, "vec4(%.4f, %.4f, %.4f, %.4f)", mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
-#else
-	sprintf(colorStr, "vec4(%.4f, %.4f, %.4f, %.4f)", col[0], col[1], col[2], col[3]);
-#endif
-	sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", std::string(colorStr));
+    std::stringstream ssColor;
+    ssColor.precision(2);
+    ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g << ", " << mClearColor.b << ", " << mClearColor.a << ")";
+	sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
 	if (!mShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader\n");

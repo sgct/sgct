@@ -44,8 +44,6 @@ int main( int argc, char* argv[] )
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setKeyboardCallbackFunction( keyCallback );
 
-	sgct::SGCTSettings::instance()->setUseDepthTexture(true);
-
 	if( !gEngine->init() )
 	{
 		delete gEngine;

@@ -73,6 +73,7 @@ public:
 	void setRecvFrame(int i);
 	void sendData(void * data, int length);
 	void sendStr(std::string msg);
+    static int getLastError();
 	static _ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
 	static int32_t parseInt32(char * str);
 	static uint32_t parseUInt32(char * str);

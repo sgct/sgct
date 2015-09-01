@@ -882,7 +882,7 @@ void sgct_core::NetworkManager::getHostInfo()
 	if ((result = getaddrinfo(tmpStr, "http", &hints, &info)) != 0)
 	{
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                                                "NetworkManager: Failed to get address info!\n");
+                                                "NetworkManager: Failed to get address info (error %d)!\n", SGCTNetwork::getLastError());
 	}
     else
     {

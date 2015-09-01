@@ -691,6 +691,14 @@ void sgct_core::SGCTNetwork::setRecvFrame(int i)
 #endif
 }
 
+/*!
+@return last error code 
+*/
+int sgct_core::SGCTNetwork::getLastError()
+{
+    return SGCT_ERRNO;
+}
+
 _ssize_t sgct_core::SGCTNetwork::receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags)
 {
     _ssize_t iResult = 0;

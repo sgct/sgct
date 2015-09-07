@@ -1,0 +1,10 @@
+Doxyfile
+**/.DS_Store
+docs/html
+include/vrpn/vrpn_Configure.h
+include/external/jconfig.h
+include/external/jconfigint.h
+include/external/pnglibconf.h
+include/external/zconf.h
+include/sgct/SGCTVersion.h
+src/installers/sgct_osg_all_win.nsi

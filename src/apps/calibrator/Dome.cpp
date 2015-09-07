@@ -1,10 +1,9 @@
 #include "Dome.h"
 
-Dome::Dome(float radius, float tilt, int type )
+Dome::Dome(float radius, float tilt)
 {
 	mRadius = radius;
 	mTilt = tilt;
-	projectionType = type;
 	mTiltOffset = 0.0f;
 
 	mGeoDisplayList = GL_FALSE;
@@ -488,108 +487,96 @@ void Dome::generateDisplayList()
 	glNewList( mTexDisplayList, GL_COMPILE );
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	if( projectionType == FISHEYE )
+	float x0, y0, z0;
+	float x1, y1, z1;
+	float s0, t0, s1, t1;
+
+	float elevation0, elevation1;
+	int e;
+	float fill = 1.0f;
+
+	const int elevationSteps = 64;
+	const int azimuthSteps = 256;
+	for(e=0; e<(elevationSteps-1); e++)
 	{
-		float x0, y0, z0;
-		float x1, y1, z1;
-		float s0, t0, s1, t1;
-
-		float elevation0, elevation1;
-		int e;
-		float fill = 1.0f;
-
-		const int elevationSteps = 64;
-		const int azimuthSteps = 256;
-		for(e=0; e<(elevationSteps-1); e++)
-		{
-			elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
-			elevation1 = glm::radians( static_cast<float>((e+1) * 90)/static_cast<float>(elevationSteps) );
-			
-			glBegin( GL_TRIANGLE_STRIP );
-
-			y0 = sinf( elevation0 );
-			y1 = sinf( elevation1 );
-			for(int a=0; a<=azimuthSteps; a++)
-			{
-				azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
-				
-				x0 = cosf( elevation0 ) * sinf( azimuth );
-				z0 = -cosf( elevation0 ) * cosf( azimuth );
-
-				x1 = cosf( elevation1 ) * sinf( azimuth );
-				z1 = -cosf( elevation1 ) * cosf( azimuth );
-
-				s0 = (static_cast<float>(elevationSteps -e ) / static_cast<float>(elevationSteps)) * sinf(azimuth);
-				s1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * sinf(azimuth);
-				t0 = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
-				t1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
-
-				s0 = (s0 * 0.5f) + 0.5f;
-				s1 = (s1 * 0.5f) + 0.5f;
-				t0 = (t0 * 0.5f) + 0.5f;
-				t1 = (t1 * 0.5f) + 0.5f;
-
-				/*s0 = fill*(x0/2.0f) + 0.5f;
-				s1 = fill*(x1/2.0f) + 0.5f;
-				t0 = fill*(z0/2.0f) + 0.5f;
-				t1 = fill*(z1/2.0f) + 0.5f;*/
-
-				//if (a == 0)
-				//	fprintf(stderr, "Tex %f %f\n", s0, t0);
-
-
-				glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
-				glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
-				glVertex3f(x0*mRadius, y0*mRadius, z0*mRadius);
-
-				glMultiTexCoord2f( GL_TEXTURE0, s1, t1 );
-				glMultiTexCoord2f( GL_TEXTURE1, s1, t1 );
-				glVertex3f(x1*mRadius, y1*mRadius, z1*mRadius);
-			}
-
-			glEnd();
-		}
-		
-		//CAP
-		e = elevationSteps - 1;
 		elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
 		elevation1 = glm::radians( static_cast<float>((e+1) * 90)/static_cast<float>(elevationSteps) );
-
-		glBegin( GL_TRIANGLE_FAN );
-
-		y0 = mRadius * sinf( elevation0 );
-		y1 = mRadius * sinf( elevation1 );
-
-		glMultiTexCoord2f( GL_TEXTURE0, 0.5f, 0.5f );
-		glMultiTexCoord2f( GL_TEXTURE1, 0.5f, 0.5f );
-		glVertex3f( 0.0f, y1, 0.0f );
 			
+		glBegin( GL_TRIANGLE_STRIP );
+
+		y0 = sinf( elevation0 );
+		y1 = sinf( elevation1 );
 		for(int a=0; a<=azimuthSteps; a++)
 		{
 			azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
-			
-			x0 = mRadius * cosf( elevation0 ) * sinf( azimuth );
-			z0 = -mRadius * cosf( elevation0 ) * cosf( azimuth );
+				
+			x0 = cosf( elevation0 ) * sinf( azimuth );
+			z0 = -cosf( elevation0 ) * cosf( azimuth );
 
-			s0 = fill*((x0/mRadius)/2.0f) + 0.5f;
-			t0 = fill*((z0/mRadius)/2.0f) + 0.5f;
-			
+			x1 = cosf( elevation1 ) * sinf( azimuth );
+			z1 = -cosf( elevation1 ) * cosf( azimuth );
+
+			s0 = (static_cast<float>(elevationSteps -e ) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+			s1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+			t0 = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+			t1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+
+			s0 = (s0 * 0.5f) + 0.5f;
+			s1 = (s1 * 0.5f) + 0.5f;
+			t0 = (t0 * 0.5f) + 0.5f;
+			t1 = (t1 * 0.5f) + 0.5f;
+
+			/*s0 = fill*(x0/2.0f) + 0.5f;
+			s1 = fill*(x1/2.0f) + 0.5f;
+			t0 = fill*(z0/2.0f) + 0.5f;
+			t1 = fill*(z1/2.0f) + 0.5f;*/
+
+			//if (a == 0)
+			//	fprintf(stderr, "Tex %f %f\n", s0, t0);
+
+
 			glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
 			glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
-			glVertex3f( x0, y0, z0 );
+			glVertex3f(x0*mRadius, y0*mRadius, z0*mRadius);
+
+			glMultiTexCoord2f( GL_TEXTURE0, s1, t1 );
+			glMultiTexCoord2f( GL_TEXTURE1, s1, t1 );
+			glVertex3f(x1*mRadius, y1*mRadius, z1*mRadius);
 		}
 
 		glEnd();
 	}
-	else if( projectionType == LATLONMAP )
+		
+	//CAP
+	e = elevationSteps - 1;
+	elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
+	elevation1 = glm::radians( static_cast<float>((e+1) * 90)/static_cast<float>(elevationSteps) );
+
+	glBegin( GL_TRIANGLE_FAN );
+
+	y0 = mRadius * sinf( elevation0 );
+	y1 = mRadius * sinf( elevation1 );
+
+	glMultiTexCoord2f( GL_TEXTURE0, 0.5f, 0.5f );
+	glMultiTexCoord2f( GL_TEXTURE1, 0.5f, 0.5f );
+	glVertex3f( 0.0f, y1, 0.0f );
+			
+	for(int a=0; a<=azimuthSteps; a++)
 	{
-		GLUquadricObj *sphere;
-		sphere=gluNewQuadric();
-		//gluQuadricNormals(sphere, GLU_SMOOTH);
-		gluQuadricTexture(sphere, GL_TRUE);
-		gluSphere(sphere,mRadius,64,64);
+		azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
+			
+		x0 = mRadius * cosf( elevation0 ) * sinf( azimuth );
+		z0 = -mRadius * cosf( elevation0 ) * cosf( azimuth );
+
+		s0 = fill*((x0/mRadius)/2.0f) + 0.5f;
+		t0 = fill*((z0/mRadius)/2.0f) + 0.5f;
+			
+		glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
+		glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
+		glVertex3f( x0, y0, z0 );
 	}
 
+	glEnd();
 	glEndList();
 }
 

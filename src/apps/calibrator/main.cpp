@@ -196,9 +196,9 @@ void initGL()
 	colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
     
 	if (isTiltSet)
-		mDome = new Dome(7.4f, static_cast<float>(tilt), FISHEYE);
+		mDome = new Dome(7.4f, static_cast<float>(tilt));
 	else
-		mDome = new Dome(7.4f, 26.7f, FISHEYE);
+		mDome = new Dome(7.4f, 26.7f);
 	mDome->generateDisplayList();
     
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);

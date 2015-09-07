@@ -4,12 +4,11 @@
 #include "sgct.h"
 
 enum{ STEP = 0, STEP_INVERTED, SOLID, GRADIENT, GRADIENT_INVERTED };
-enum{ FISHEYE = 0, LATLONMAP };
 
 class Dome
 {
 public:
-	Dome(float radius, float tilt, int type );
+	Dome(float radius, float tilt);
 	~Dome();
 	void drawGeoCorrPattern();
 	void drawChannelZones();
@@ -29,7 +28,6 @@ private:
 	float mRadius;
 	float mTilt;
 	float mTiltOffset;
-	int projectionType;
 
 	unsigned int mGeoDisplayList;
 	unsigned int mBlendZonesDisplayList;

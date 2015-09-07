@@ -20,10 +20,11 @@ add_executable(${APP_NAME}
 	RenderToTexture.h)
 	
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
+option(SGCT_COPY_FILES_TO_SOURCE_TREE "Copy files to source tree" OFF)
 if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 	set(EXAMPE_TARGET_PATH ${PROJECT_SOURCE_DIR})
 else()
-	set(EXAMPE_TARGET_PATH ${PROJECT_BINARY_DIR}) 
+	set(EXAMPE_TARGET_PATH ${SGCT_EXAMPLE_OUTPUT_DIR}/${APP_NAME}) 
 endif()
 
 set(EXECUTABLE_OUTPUT_PATH ${EXAMPE_TARGET_PATH})
@@ -34,7 +35,7 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 #copy data
-if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+if(SGCT_COPY_FILES_TO_SOURCE_TREE AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 	add_custom_command(TARGET ${APP_NAME}
 		PRE_BUILD
 		COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR} ${EXAMPE_TARGET_PATH})
@@ -50,26 +51,30 @@ endif()
 	
 if(SGCT_CPP11)	
 	find_library(SGCT_RELEASE_LIBRARY
-		NAMES sgct_cpp11 libsgct_cpp11 REQUIRED)
+		NAMES sgct_cpp11 libsgct_cpp11 REQUIRED
+		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
 	find_library(SGCT_DEBUG_LIBRARY 
-		NAMES sgct_cpp11d libsgct_cpp11d REQUIRED)
+		NAMES sgct_cpp11d libsgct_cpp11d REQUIRED
+		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
 else()
 	find_library(SGCT_RELEASE_LIBRARY
-		NAMES sgct libsgct REQUIRED)
+		NAMES sgct libsgct REQUIRED
+		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
 	find_library(SGCT_DEBUG_LIBRARY 
-		NAMES sgctd libsgctd REQUIRED)
+		NAMES sgctd libsgctd REQUIRED
+		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
 endif()
 
 if( WIN32 )
 	find_path(SGCT_INCLUDE_DIRECTORY 
 		NAMES sgct
-		PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
+		PATHS ${SGCT_SOURCE_PATH}/include $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
 		REQUIRED)
 else()
 	find_path(SGCT_INCLUDE_DIRECTORY 
 		NAMES sgct
 		PATH_SUFFIXES sgct
-		PATHS $ENV{SGCT_ROOT_DIR}/include
+		PATHS ${SGCT_SOURCE_PATH}/include $ENV{SGCT_ROOT_DIR}/include
 		REQUIRED)
 endif()
 	

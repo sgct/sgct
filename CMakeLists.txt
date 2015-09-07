@@ -12,16 +12,22 @@ set(SGCT_VERSION_MINOR "7")
 set(SGCT_VERSION_REVISION "0")
 set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
 
+STRING(REGEX REPLACE "/" "\\\\" SGCT_WIN_SOURCE_DIR ${PROJECT_SOURCE_DIR})
+STRING(REGEX REPLACE "/" "\\\\" SGCT_WIN_BINARY_DIR ${PROJECT_BINARY_DIR}) 
+
 SET(CMAKE_DEBUG_POSTFIX "d" CACHE STRING "add a postfix, usually d on windows")
 SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windows")
 
 option(SGCT_INSTALL "Install SGCT" ON)
+option(SGCT_EXAMPLES "Build SGCT examples" OFF)
+option(SGCT_DOXYGEN "Build doxygen documentation" OFF)
+
 if (MSVC)
 	option(SGCT_USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
+	option(SGCT_BUILD_CSHARP_PROJECTS "Build C# projects" ON)
 endif()
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
 option(SGCT_LIGHT_ONLY "Don't merge external libs" OFF)
-option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
 if( MINGW  )
 	option(SGCT_MINGW64 "Use MinGW64" ON)
 endif()
@@ -42,12 +48,7 @@ if( APPLE )
 	endif()
 endif()
 
-if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-	set(SGCT_TARGET_PATH ${PROJECT_SOURCE_DIR})
-else()
-	set(SGCT_TARGET_PATH ${PROJECT_BINARY_DIR}) 
-endif()
-
+set(SGCT_TARGET_PATH ${PROJECT_BINARY_DIR}) 
 set(SGCT_BINARY_PATH ${PROJECT_BINARY_DIR})
 set(SGCT_SOURCE_PATH ${PROJECT_SOURCE_DIR})
 MESSAGE(STATUS "SGCT target path: ${SGCT_TARGET_PATH}")
@@ -60,50 +61,60 @@ if( APPLE )
 		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/mac")
 		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mac")
 	endif()
-elseif( MINGW  )
+elseif( MINGW )
+	set(SGCT_COMPILER "mingw")
 	if( SGCT_MINGW64 )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/mingw_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mingw_x64")
+		set(SGCT_ARCHITECTURE "x64")
+		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${SGCT_COMPILER}_${SGCT_ARCHITECTURE}")
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${SGCT_COMPILER}_${SGCT_ARCHITECTURE}")
 	else()
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/mingw")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mingw")
+		set(SGCT_ARCHITECTURE "x86")
+		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${SGCT_COMPILER}")
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${SGCT_COMPILER}")
 	endif()
 elseif( MSVC )
 	if( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" OR CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc9")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc9")
+		set(SGCT_COMPILER "msvc9")
+		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 9 2008 Win64" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc9_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc9_x64")
+		set(SGCT_COMPILER "msvc9")
+		set(SGCT_ARCHITECTURE "x64")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 10" OR CMAKE_GENERATOR STREQUAL "Visual Studio 10 2010" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc10")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc10")
+		set(SGCT_COMPILER "msvc10")
+		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 10 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 10 2010 Win64" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc10_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc10_x64")
+		set(SGCT_COMPILER "msvc10")
+		set(SGCT_ARCHITECTURE "x64")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 11" OR CMAKE_GENERATOR STREQUAL "Visual Studio 11 2012" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc11")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc11")
+		set(SGCT_COMPILER "msvc11")
+		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 11 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 11 2012 Win64" )
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc11_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc11_x64")
+		set(SGCT_COMPILER "msvc11")
+		set(SGCT_ARCHITECTURE "x64")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 12" OR CMAKE_GENERATOR STREQUAL "Visual Studio 12 2013")
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc12")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc12")
+		set(SGCT_COMPILER "msvc12")
+		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 12 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 12 2013 Win64")
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc12_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc12_x64")
+		set(SGCT_COMPILER "msvc12")
+		set(SGCT_ARCHITECTURE "x64")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 14" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015")
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc14")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc14")
+		set(SGCT_COMPILER "msvc14")
+		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 14 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015 Win64")
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/msvc14_x64")
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/msvc14_x64")
-		
+		set(SGCT_COMPILER "msvc14")
+		set(SGCT_ARCHITECTURE "x64")
 	else()
-		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${CMAKE_GENERATOR}")
 		#use mingw as template
-		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/mingw")
+		set(SGCT_COMPILER "mingw")
+		set(SGCT_ARCHITECTURE "x86")
+	endif()
+	
+	if(SGCT_ARCHITECTURE STREQUAL "x64")
+		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${SGCT_COMPILER}_${SGCT_ARCHITECTURE}")
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${SGCT_COMPILER}_${SGCT_ARCHITECTURE}")
+	else()
+		set(SGCT_LIB_PATH "${SGCT_TARGET_PATH}/lib/${SGCT_COMPILER}")
+		set(SGCT_LIB_SRC_PATH "${PROJECT_SOURCE_DIR}/lib/${SGCT_COMPILER}")
 	endif()
 elseif( UNIX AND NOT APPLE )
 	if( CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_SIZEOF_VOID_P EQUAL 8)
@@ -133,8 +144,13 @@ set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}" )
 
 #update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi @ONLY)
+if(${SGCT_DOXYGEN})
+	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
+endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/sgct_osg_all_win.nsi @ONLY)
+
+#crate directories
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/installer)
 
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
@@ -200,6 +216,12 @@ if(NOT SGCT_LIGHT_ONLY)
 	if(SGCT_BUILD_ALUT)
 		ADD_SUBDIRECTORY(additional_deps/freealut-1.1.0-src)
 	endif(SGCT_BUILD_ALUT)
+endif()
+
+if(SGCT_EXAMPLES)
+	file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/examples)
+	set(SGCT_EXAMPLE_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin/examples)
+	ADD_SUBDIRECTORY(src/apps)
 endif()
 	
 set(COMMON_DEBUG_LIBS
@@ -340,7 +362,8 @@ add_custom_command(TARGET ${LIB_NAME}
 				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib/zconf.h ${PROJECT_SOURCE_DIR}/include/external/zconf.h
 				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/pnglibconf.h ${PROJECT_SOURCE_DIR}/include/external/pnglibconf.h
 				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfig.h ${PROJECT_SOURCE_DIR}/include/external/jconfig.h
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfigint.h ${PROJECT_SOURCE_DIR}/include/external/jconfigint.h)
+				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfigint.h ${PROJECT_SOURCE_DIR}/include/external/jconfigint.h
+				)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)
@@ -352,12 +375,10 @@ if(NOT SGCT_LIGHT_ONLY)
 			)
 		
 		#copy script
-		if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-			add_custom_command(TARGET ${LIB_NAME}
-				PRE_BUILD
-				#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-				COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
-		endif()
+		add_custom_command(TARGET ${LIB_NAME}
+			PRE_BUILD
+			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
 	else()
 		if(CMAKE_GENERATOR STREQUAL Xcode)
 			set(SGCT_SHELL_NAME merge_libs_xcode.sh)
@@ -371,24 +392,23 @@ if(NOT SGCT_LIGHT_ONLY)
 			WORKING_DIRECTORY ${SGCT_LIB_PATH})
 			
 		#copy script
-		if( NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-			add_custom_command(TARGET ${LIB_NAME}
-				PRE_BUILD
-				#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-				COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
-		endif()
+		add_custom_command(TARGET ${LIB_NAME}
+			PRE_BUILD
+			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
+			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
 	endif()
 endif()
 
 if(SGCT_INSTALL)
-	find_package(Doxygen)
-	if (DOXYGEN_FOUND)
-		add_custom_command(TARGET ${LIB_NAME}
-			POST_BUILD
-            COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/Doxyfile
-			WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+	if(${SGCT_DOXYGEN})
+		find_package(Doxygen)
+		if (DOXYGEN_FOUND)
+			add_custom_command(TARGET ${LIB_NAME}
+				POST_BUILD
+				COMMAND ${DOXYGEN_EXECUTABLE} ${PROJECT_SOURCE_DIR}/Doxyfile
+				WORKING_DIRECTORY ${PROJECT_SOURCE_DIR})
+		endif()
 	endif()
-
 	if(SGCT_LIGHT_ONLY)
 		if( MSVC )
 			INSTALL(FILES ${SGCT_LIB_PATH}/sgct_light.lib DESTINATION lib COMPONENT libraries CONFIGURATIONS Release)

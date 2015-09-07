@@ -16,6 +16,9 @@ if( APPLE )
 	endif()
 endif()
 
+#force sgct to build
+link_libraries(${LIB_NAME})
+
 ADD_SUBDIRECTORY(calibrator)
 ADD_SUBDIRECTORY(clustertest)
 ADD_SUBDIRECTORY(dataTransfer_opengl3)

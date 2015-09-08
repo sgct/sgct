@@ -20,7 +20,7 @@ add_executable(${APP_NAME}
 	RenderToTexture.h)
 	
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
-option(SGCT_COPY_FILES_TO_SOURCE_TREE "Copy files to source tree" OFF)
+option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
 if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 	set(EXAMPE_TARGET_PATH ${PROJECT_SOURCE_DIR})
 else()
@@ -35,11 +35,22 @@ set_target_properties(${APP_NAME} PROPERTIES
 )
 
 #copy data
-if(SGCT_COPY_FILES_TO_SOURCE_TREE AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
-	add_custom_command(TARGET ${APP_NAME}
-		PRE_BUILD
-		COMMAND ${CMAKE_COMMAND} -E copy_directory ${PROJECT_SOURCE_DIR} ${EXAMPE_TARGET_PATH})
-endif()
+if(SGCT_COPY_EXAMPLE_RESOURCES AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+	file(GLOB files
+		"${PROJECT_SOURCE_DIR}/*.png"
+		"${PROJECT_SOURCE_DIR}/*.jpg"
+		"${PROJECT_SOURCE_DIR}/*.xml"
+		"${PROJECT_SOURCE_DIR}/*.vert*"
+		"${PROJECT_SOURCE_DIR}/*.frag*")
+	file(COPY ${files} DESTINATION ${EXAMPE_TARGET_PATH})
+	if(WIN32)
+		file(GLOB scripts "${PROJECT_SOURCE_DIR}/*.bat")
+		file(COPY ${scripts} DESTINATION ${EXAMPE_TARGET_PATH})
+	elseif(APPLE)
+		file(GLOB scripts "${PROJECT_SOURCE_DIR}/*.command")
+		file(COPY ${scripts} DESTINATION ${EXAMPE_TARGET_PATH})
+	endif()
+endif()	
 	
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)

@@ -96,8 +96,8 @@ void myInitOGLFun()
 	mRootNode->addChild( mSceneTrans.get() );
 	mSceneTrans->addChild( mModelTrans.get() );
 
-	sgct::MessageHandler::instance()->print("Loading model 'airplane.ive'...\n");
-	mModel = osgDB::readNodeFile("airplane.ive");
+	sgct::MessageHandler::instance()->print("Loading model '../SharedResources/airplane.ive'...\n");
+	mModel = osgDB::readNodeFile("../SharedResources/airplane.ive");
 
 	if ( mModel.valid() )
 	{

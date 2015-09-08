@@ -43,15 +43,9 @@ cp -r ../../src/apps/textureExample examples/textureExample
 cp -r ../../src/apps/textureExample_opengl3 examples/textureExample_opengl3
 cp -r ../../src/apps/trackingExample examples/trackingExample
 
+cp -r ../../src/apps/SharedResources examples/SharedResources
+
 echo "Copying files... "
-cp ../../src/apps/osgExample/airplane.ive examples/osgExampleRTT/airplane.ive
-cp ../../src/apps/SharedResources/box.png examples/MRTExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/MRTExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/postFXExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/postFXExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/textureExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/textureExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/renderToTexture/box.png
 cp -r ../../config config
 cp -r ../../include include
 cp -r ../../readme readme

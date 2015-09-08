@@ -23,6 +23,10 @@ option(SGCT_EXAMPLES "Build SGCT examples" OFF)
 option(SGCT_DOXYGEN "Build doxygen documentation" OFF)
 option(SGCT_DOXYGEN_QUIET "Suppress warnings" ON)
 
+#if(NOT WIN32)
+#	option(SGCT_MAKE_RELEASE "make realease" OFF)
+#endif()
+
 if (MSVC)
 	option(SGCT_USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
 	option(SGCT_BUILD_CSHARP_PROJECTS "Build C# projects" ON)
@@ -142,21 +146,25 @@ set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_DEBUG "${SGCT_LIB_PATH}" )
 set( CMAKE_ARCHIVE_OUTPUT_DIRECTORY_RELEASE "${SGCT_LIB_PATH}" )
+set( SGCT_RELEASE_DIRECTORY "${CMAKE_CURRENT_BINARY_DIR}/release" )
+
+if(SGCT_DOXYGEN_QUIET)
+	set(SGCT_DOXYGEN_QUIET_STATE "YES")
+else()
+	set(SGCT_DOXYGEN_QUIET_STATE "NO")
+endif()
 
 #update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
-if(SGCT_DOXYGEN)
-	if(SGCT_DOXYGEN_QUIET)
-		set(SGCT_DOXYGEN_QUIET_STATE "YES")
-	else()
-		set(SGCT_DOXYGEN_QUIET_STATE "NO")
-	endif()
-	configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-endif()
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/sgct_osg_all_win.nsi @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode.sh @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode_cpp11.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh @ONLY)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_linux.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_linux.sh @ONLY)
 
 #crate directories
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/installer)
+file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/docs)
 
 set(LibPath "${SGCT_LIB_PATH}")
 set(EXECUTABLE_OUTPUT_PATH ${LibPath})
@@ -398,6 +406,27 @@ if(NOT SGCT_LIGHT_ONLY)
 			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
 	endif()
 endif()
+		
+#if(SGCT_MAKE_RELEASE)
+#	if( APPLE )
+#		if( SGCT_CPP11 )
+#			add_custom_command(TARGET ${LIB_NAME}
+#				POST_BUILD
+#				COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh"
+#				WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
+#		else()
+#			add_custom_command(TARGET ${LIB_NAME}
+#				POST_BUILD
+#				COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_xcode.sh"
+#				WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
+#		endif()
+#	elseif( NOT WIN32 ) #linux
+#		add_custom_command(TARGET ${LIB_NAME}
+#			POST_BUILD
+#			COMMAND "${PROJECT_BINARY_DIR}/src/installer/build_release_linux.sh"
+#			WORKING_DIRECTORY ${PROJECT_BINARY_DIR}/src/installer)
+#	endif()
+#endif()
 
 if(SGCT_EXAMPLES)
 	if( APPLE AND SGCT_CPP11 )

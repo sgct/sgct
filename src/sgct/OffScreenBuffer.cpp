@@ -375,6 +375,14 @@ void sgct_core::OffScreenBuffer::attachCubeMapDepthTexture(unsigned int texId, u
 }
 
 /*!
+@returns the opengl internal texture format of the color buffer 
+*/
+const int & sgct_core::OffScreenBuffer::getInternalColorFormat() const
+{
+    return mInternalColorFormat;
+}
+
+/*!
 @returns true if no errors
 */
 bool sgct_core::OffScreenBuffer::checkForErrors()

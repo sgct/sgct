@@ -33,33 +33,39 @@ if( APPLE )
 	endif()
 endif()
 	
-if(SGCT_CPP11)	
-	find_library(SGCT_RELEASE_LIBRARY
-		NAMES sgct_cpp11 libsgct_cpp11 REQUIRED
-		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
-	find_library(SGCT_DEBUG_LIBRARY 
-		NAMES sgct_cpp11d libsgct_cpp11d REQUIRED
-		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
-else()
-	find_library(SGCT_RELEASE_LIBRARY
-		NAMES sgct libsgct REQUIRED
-		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
-	find_library(SGCT_DEBUG_LIBRARY 
-		NAMES sgctd libsgctd REQUIRED
-		PATHS ${SGCT_LIB_PATH} NO_DEFAULT_PATH)
+if(NOT DEFINED SGCT_RELEASE_LIBRARY)
+	if(SGCT_CPP11)	
+		find_library(SGCT_RELEASE_LIBRARY
+			NAMES sgct_cpp11 libsgct_cpp11 REQUIRED)
+	else()
+		find_library(SGCT_RELEASE_LIBRARY
+			NAMES sgct libsgct REQUIRED)
+	endif()
+endif()
+		
+if(NOT DEFINED SGCT_DEBUG_LIBRARY)		
+	if(SGCT_CPP11)	
+		find_library(SGCT_DEBUG_LIBRARY 
+			NAMES sgct_cpp11d libsgct_cpp11d REQUIRED)
+	else()
+		find_library(SGCT_DEBUG_LIBRARY 
+			NAMES sgctd libsgctd REQUIRED)
+	endif()
 endif()
 
-if( WIN32 )
-	find_path(SGCT_INCLUDE_DIRECTORY 
-		NAMES sgct
-		PATHS ${SGCT_SOURCE_PATH}/include $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
-		REQUIRED)
-else()
-	find_path(SGCT_INCLUDE_DIRECTORY 
-		NAMES sgct
-		PATH_SUFFIXES sgct
-		PATHS ${SGCT_SOURCE_PATH}/include $ENV{SGCT_ROOT_DIR}/include
-		REQUIRED)
+if(NOT DEFINED SGCT_INCLUDE_DIRECTORY)
+	if( WIN32 )
+		find_path(SGCT_INCLUDE_DIRECTORY 
+			NAMES sgct
+			PATHS $ENV{SGCT_ROOT_DIR}/include NO_DEFAULT_PATH
+			REQUIRED)
+	else()
+		find_path(SGCT_INCLUDE_DIRECTORY 
+			NAMES sgct
+			PATH_SUFFIXES sgct
+			PATHS $ENV{SGCT_ROOT_DIR}/include
+			REQUIRED)
+	endif()
 endif()
 	
 set(SGCT_LIBS

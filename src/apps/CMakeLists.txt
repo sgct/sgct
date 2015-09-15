@@ -8,6 +8,10 @@ option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
 option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
 option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
 
+if(WIN32)
+	option(SGCT_EXAMPLES_SPOUT "Build Spout examples" OFF)
+endif()
+
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
@@ -54,6 +58,11 @@ if(SGCT_EXAMPLES_FMOD)
 	ADD_SUBDIRECTORY(fmodExample_opengl3)
 endif()
 ADD_SUBDIRECTORY(networkExample_opengl3)
+
+if(SGCT_EXAMPLES_SPOUT)
+	ADD_SUBDIRECTORY(SpoutExample)
+	ADD_SUBDIRECTORY(SpoutSenderExample)
+endif()
 
 if( WIN32 )
 	add_definitions(-D__WIN32__)

@@ -74,7 +74,7 @@ void myDrawFun()
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
 
@@ -149,7 +149,7 @@ void myInitOGLFun()
 	
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);

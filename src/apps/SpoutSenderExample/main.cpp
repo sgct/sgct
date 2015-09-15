@@ -85,7 +85,7 @@ void myDrawFun()
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
 	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	glm::mat4 MVP = gEngine->getActiveModelViewProjectionMatrix() * scene_mat;
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
 	glActiveTexture(GL_TEXTURE0);
 
@@ -154,9 +154,12 @@ void myPreWindowInitFun()
 	{
 		sm = gEngine->getWindowPtr(i)->getStereoMode();
 
-#if SGCT_VERSION_MAJOR >= 2 && SGCT_VERSION_MINOR >= 6
-		gEngine->getWindowPtr(i)->setRenderWhileHidden(true); //render even if minimized
-#endif
+//#if SGCT_VERSION_MAJOR >= 2 && SGCT_VERSION_MINOR >= 6
+// enable rendering while window is closed / hidden
+// however other methods to exit application needs to be implemented
+// external tcp gui may be used to control this behaviour and exit the application in a clean way 
+//		gEngine->getWindowPtr(i)->setRenderWhileHidden(true); //render even if closed
+//#endif
 		gEngine->getWindowPtr(i)->setFixResolution(true); //do not resize buffers while minimized
 		//gEngine->getWindowPtr(i)->setVisibility(false); //hide window
 
@@ -210,7 +213,7 @@ void myInitOGLFun()
 	
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
 	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
 	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);

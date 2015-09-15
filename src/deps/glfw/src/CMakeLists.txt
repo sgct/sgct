@@ -58,12 +58,13 @@ if (APPLE)
 endif()
 
 add_library(glfw ${glfw_SOURCES} ${glfw_HEADERS})
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(glfw PROPERTIES
                       OUTPUT_NAME "${GLFW_LIB_NAME}"
                       VERSION ${GLFW_VERSION}
                       SOVERSION ${GLFW_VERSION_MAJOR}
                       POSITION_INDEPENDENT_CODE ON
-                      FOLDER "GLFW3")
+                      FOLDER "Dependencies")
 
 if (BUILD_SHARED_LIBS)
     if (WIN32)

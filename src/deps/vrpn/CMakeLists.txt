@@ -164,12 +164,6 @@ endif()
 	else()
 		set(VRPN_BUILD_WITH_PROJECT_FOLDERS ON)
 	endif()
-
-	set_property(GLOBAL
-		PROPERTY
-		USE_FOLDERS
-		${VRPN_BUILD_WITH_PROJECT_FOLDERS})
-
 #endif()
 
 # Force use of our CMake-processed configuration header before the stock one.
@@ -360,7 +354,7 @@ if(VRPN_BUILD_CLIENT_LIBRARY)
 		vrpn
 		PROPERTY
 		FOLDER
-		"Library")
+		"Dependencies")
 endif()
 
 add_subdirectory(client_src)

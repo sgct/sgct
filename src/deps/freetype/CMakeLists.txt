@@ -132,5 +132,5 @@ if( MSVC )
 	#set(CMAKE_CXX_FLAGS_DEBUG "${replacementFlags}")
 endif()
 
-
 add_library(freetype ${BASE_SRCS})
+set_target_properties(freetype PROPERTIES FOLDER "Dependencies")

@@ -103,3 +103,4 @@ endforeach()
 
 set(SIMD_OBJS ${SIMD_OBJS} PARENT_SCOPE)
 add_custom_target(simd DEPENDS ${SIMD_OBJS})
+set_target_properties(simd PROPERTIES FOLDER "Dependencies")

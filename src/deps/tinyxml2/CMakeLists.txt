@@ -41,6 +41,7 @@ endif(MSVC)
 add_library(tinyxml2static STATIC
 	tinyxml2.cpp
 	tinyxml2.h)
-set_target_properties(tinyxml2static PROPERTIES OUTPUT_NAME tinyxml2)
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_target_properties(tinyxml2static PROPERTIES OUTPUT_NAME tinyxml2 FOLDER "Dependencies")
 
 configure_file(tinyxml2.pc.in tinyxml2.pc @ONLY)

@@ -38,3 +38,4 @@ add_definitions(-DGLEW_NO_GLU)
 add_definitions(-DGLEW_STATIC)
 
 add_library(glew STATIC ${CMAKE_CURRENT_SOURCE_DIR}/src/glew.c)
+set_target_properties(glew PROPERTIES FOLDER "Dependencies")

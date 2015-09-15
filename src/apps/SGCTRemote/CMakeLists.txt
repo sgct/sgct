@@ -27,9 +27,11 @@ endif()
 
 set(EXECUTABLE_OUTPUT_PATH ${EXAMPE_TARGET_PATH})
 	
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 set_target_properties(${APP_NAME} PROPERTIES
 	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPE_TARGET_PATH}
 	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPE_TARGET_PATH}
+	FOLDER "Examples"
 )
 
 #copy data
@@ -196,6 +198,7 @@ if(DEFINED SGCT_BUILD_CSHARP_PROJECTS)
 	if(MSVC AND SGCT_BUILD_CSHARP_PROJECTS)
 		configure_file(${PROJECT_SOURCE_DIR}/SGCTRemote_GUI/SGCTRemoteGUI.csproj.in ${PROJECT_SOURCE_DIR}/SGCTRemote_GUI/SGCTRemoteGUI.csproj)
 		include_external_msproject(SGCTRemoteGUI ${PROJECT_SOURCE_DIR}/SGCTRemote_GUI/SGCTRemoteGUI.csproj)
+		set_target_properties(SGCTRemoteGUI PROPERTIES FOLDER "Examples")
 	endif()
 endif()
 	

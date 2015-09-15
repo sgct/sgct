@@ -147,7 +147,8 @@ add_library(${PNG_LIB_NAME_STATIC} STATIC ${libpng_sources})
 list(APPEND PNG_LIB_TARGETS ${PNG_LIB_NAME_STATIC})
 if(MSVC)
 # msvc does not append 'lib' - do it here to have consistent name
-set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib")
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_target_properties(${PNG_LIB_NAME_STATIC} PROPERTIES PREFIX "lib" FOLDER "Dependencies")
 endif()
 target_link_libraries(${PNG_LIB_NAME_STATIC} ${ZLIB_LIBRARY} ${M_LIBRARY})
 

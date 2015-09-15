@@ -175,9 +175,12 @@ string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
 
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if(UNIX)
-    # On unix-like platforms the library is almost always called libz
-   set_target_properties(zlibstatic PROPERTIES OUTPUT_NAME z)
+	# On unix-like platforms the library is almost always called libz
+	set_target_properties(zlibstatic PROPERTIES OUTPUT_NAME z FOLDER "Dependencies")
+else()
+	set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
 endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )

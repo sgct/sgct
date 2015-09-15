@@ -75,4 +75,5 @@ endif()
 #	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 #endif()
 
-target_link_libraries( ${LIB_NAME} ${THREADS_LIBRARY} )
+target_link_libraries(${LIB_NAME} ${THREADS_LIBRARY} )
+set_target_properties(${LIB_NAME} PROPERTIES FOLDER "Dependencies")

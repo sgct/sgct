@@ -1,1 +1,1 @@
-depthBufferExample.exe -config ../../config/single.xml
+depthBufferExample.exe -config fisheye.xml

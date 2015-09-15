@@ -175,6 +175,7 @@ endif()
 	###
 	add_executable(run_auxiliary_logger run_auxiliary_logger.C)
 	target_link_libraries(run_auxiliary_logger ${VRPN_CLIENT_LIBRARY})
+	#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 	set_target_properties(run_auxiliary_logger PROPERTIES FOLDER Servers)
 	if(VRPN_INSTALL)
 		install(TARGETS

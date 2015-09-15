@@ -1,0 +1,1 @@
+SGCTRemote.exe -config single_remote.xml

@@ -134,7 +134,7 @@ void myInitOGLFun()
 	
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
 	//test
 	int size_x, size_y, size_c;

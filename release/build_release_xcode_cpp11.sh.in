@@ -1,68 +1,82 @@
 #!/bin/bash
-# merge libs
-echo "Creating $1 directory"
-if [ ! -d $1 ];
+# create release directoy
+if [ ! -f @SGCT_LIB_PATH@/libsgct_cpp11.a ];
 then
-	mkdir $1
+	echo "Building release lib of sgct"
+	cd @PROJECT_BINARY_DIR@
+	xcodebuild -target ALL_BUILD -configuration Release
 fi
-cd ..
-doxygen Doxyfile
+
+if [ ! -f @SGCT_LIB_PATH@/libsgct_cpp11d.a ];
+then
+	echo "Building debug lib of sgct"
+	cd @PROJECT_BINARY_DIR@
+	xcodebuild -target ALL_BUILD -configuration Debug
+fi
+	
+echo "Creating @SGCT_RELEASE_DIRECTORY@ directory"
+if [ -d @SGCT_RELEASE_DIRECTORY@ ];
+then
+	rm -rf @SGCT_RELEASE_DIRECTORY@
+fi
+mkdir @SGCT_RELEASE_DIRECTORY@
+
+cd @CMAKE_CURRENT_SOURCE_DIR@
 cd release
-cp CMakeLists.txt $1/CMakeLists.txt
-cp readme.txt $1/readme.txt
-cd $1
+cp CMakeLists.txt @SGCT_RELEASE_DIRECTORY@/CMakeLists.txt
+cp readme.txt @SGCT_RELEASE_DIRECTORY@/readme.txt
+cd @SGCT_RELEASE_DIRECTORY@
 #
 echo "Copying folders... "
 if [ ! -d examples ];
 then
 	mkdir examples
 fi
-cp -r ../../src/apps/clustertest examples/clustertest
-cp -r ../../src/apps/depthBuffer examples/depthBuffer
-cp -r ../../src/apps/example1 examples/example1
-cp -r ../../src/apps/example1_opengl3 examples/example1_opengl3
-cp -r ../../src/apps/gamepadExample examples/gamepadExample
-cp -r ../../src/apps/heightMappingExample examples/heightMappingExample
-cp -r ../../src/apps/heightMappingExample_opengl3 examples/heightMappingExample_opengl3
-cp -r ../../src/apps/kinectExample examples/kinectExample
-cp -r ../../src/apps/MRTExample examples/MRTExample
-cp -r ../../src/apps/MRTExample_opengl3 examples/MRTExample_opengl3
-cp -r ../../src/apps/postFXExample examples/postFXExample
-cp -r ../../src/apps/postFXExample_opengl3 examples/postFXExample_opengl3
-cp -r ../../src/apps/renderToTexture examples/renderToTexture
-cp -r ../../src/apps/sgct_template examples/sgct_template
-cp -r ../../src/apps/SGCTRemote examples/SGCTRemote
-cp -r ../../src/apps/simpleNavigationExample examples/simpleNavigationExample
-cp -r ../../src/apps/simpleNavigationExample_opengl3 examples/simpleNavigationExample_opengl3
-cp -r ../../src/apps/simpleShaderExample examples/simpleShaderExample
-cp -r ../../src/apps/simpleShaderExample_opengl3 examples/simpleShaderExample_opengl3
-#cp -r ../../src/apps/soundExample examples/soundExample
-cp -r ../../src/apps/textureExample examples/textureExample
-cp -r ../../src/apps/textureExample_opengl3 examples/textureExample_opengl3
-cp -r ../../src/apps/trackingExample examples/trackingExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/clustertest examples/clustertest
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/depthBuffer examples/depthBuffer
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/example1 examples/example1
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/example1_opengl3 examples/example1_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/gamepadExample examples/gamepadExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/heightMappingExample examples/heightMappingExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/heightMappingExample_opengl3 examples/heightMappingExample_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/kinectExample examples/kinectExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/MRTExample examples/MRTExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/MRTExample_opengl3 examples/MRTExample_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/postFXExample examples/postFXExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/postFXExample_opengl3 examples/postFXExample_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/renderToTexture examples/renderToTexture
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/sgct_template examples/sgct_template
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/SGCTRemote examples/SGCTRemote
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/simpleNavigationExample examples/simpleNavigationExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/simpleNavigationExample_opengl3 examples/simpleNavigationExample_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/simpleShaderExample examples/simpleShaderExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/simpleShaderExample_opengl3 examples/simpleShaderExample_opengl3
+#cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/soundExample examples/soundExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/textureExample examples/textureExample
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/textureExample_opengl3 examples/textureExample_opengl3
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/trackingExample examples/trackingExample
+
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/src/apps/SharedResources examples/SharedResources
 
 echo "Copying files... "
-cp ../../src/apps/SharedResources/box.png examples/MRTExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/MRTExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/postFXExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/postFXExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/textureExample/box.png
-cp ../../src/apps/SharedResources/box.png examples/textureExample_opengl3/box.png
-cp ../../src/apps/SharedResources/box.png examples/renderToTexture/box.png
-cp -r ../../config config
-cp -r ../../include include
-cp -r ../../readme readme
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/config config
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/include include
+cp -r @CMAKE_CURRENT_SOURCE_DIR@/readme readme
 if [ ! -d lib ];
 then
 	mkdir lib
 fi
-cp /usr/local/lib/libsgct_cpp11d.a lib/libsgct_cpp11d.a
-cp /usr/local/lib/libsgct_cpp11.a lib/libsgct_cpp11.a
+cp @SGCT_LIB_PATH@/libsgct_cpp11d.a lib/libsgct_cpp11d.a
+cp @SGCT_LIB_PATH@/libsgct_cpp11.a lib/libsgct_cpp11.a
 if [ ! -d doc ];
 then
 	mkdir doc
 fi
-cp -r ../../docs/html doc
+
+cd @PROJECT_SOURCE_DIR@
+doxygen Doxyfile
+cd @SGCT_RELEASE_DIRECTORY@
+cp -r @SGCT_TARGET_PATH@/docs/html doc
 
 if [ ! -d build ];
 then

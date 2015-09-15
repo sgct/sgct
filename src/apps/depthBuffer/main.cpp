@@ -206,8 +206,8 @@ void myInitOGLFun()
 	glEndList();
 
 	//sgct::TextureManager::Instance()->setAnisotropicFilterSize(4.0f);
-	sgct::TextureManager::instance()->loadTexure("heightmap", "heightmap.png", true, 0);
-	sgct::TextureManager::instance()->loadTexure("normalmap", "normalmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("heightmap", "../SharedResources/heightmap.png", true, 0);
+	sgct::TextureManager::instance()->loadTexure("normalmap", "../SharedResources/normalmap.png", true, 0);
 
 	sgct::ShaderManager::instance()->addShaderProgram("Heightmap", "heightmap.vert", "heightmap.frag");
 

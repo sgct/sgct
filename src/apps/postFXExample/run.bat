@@ -1,0 +1,1 @@
+postFXExample.exe -config ../../config/single.xml

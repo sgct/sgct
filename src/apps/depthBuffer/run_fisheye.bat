@@ -1,0 +1,1 @@
+depthBufferExample.exe -config ../../config/single.xml

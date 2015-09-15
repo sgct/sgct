@@ -1,0 +1,1 @@
+SpoutExample_opengl3.exe -config ../../config/single.xml

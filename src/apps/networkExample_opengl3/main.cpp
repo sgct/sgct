@@ -263,7 +263,8 @@ void connect()
 		return;
 	}
 
-	if (address.empty())
+	//no need to specify the address on the host/server
+	if (!server && address.empty())
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
 			"Network error: No address set!\n");

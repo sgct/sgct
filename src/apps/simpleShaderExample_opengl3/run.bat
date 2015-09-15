@@ -1,0 +1,1 @@
+simpleShaderExample_opengl3.exe -config ../../config/single.xml

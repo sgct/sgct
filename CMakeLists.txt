@@ -5,6 +5,9 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
+#Use solution folders.
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 SET(BUILD_SHARED_LIBS OFF)
 PROJECT("sgct")
 set(SGCT_VERSION_MAJOR "2")

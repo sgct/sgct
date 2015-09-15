@@ -303,6 +303,7 @@ void sgct::SGCTWindow::initOGL()
 	for (std::size_t i = 0; i < mViewports.size(); i++)
 		if (mViewports[i]->hasSubViewports())
 		{
+			mViewports[i]->getNonLinearProjectionPtr()->setPreferedMonoFrustumMode(mViewports[i]->getEye());
 			mViewports[i]->getNonLinearProjectionPtr()->init(mInternalColorFormat, mColorFormat, mColorDataType, mNumberOfAASamples);
 			
 			float viewPortWidth = static_cast<float>(mFramebufferResolution[0]) * mViewports[i]->getXSize();

@@ -36,6 +36,8 @@ sgct_core::NonLinearProjection::NonLinearProjection()
 	mVpCoords[1] = 0;
 	mVpCoords[2] = 0;
 	mVpCoords[3] = 0;
+
+	mPreferedMonoFrustumMode = Frustum::Mono;
 }
 
 sgct_core::NonLinearProjection::~NonLinearProjection()
@@ -188,6 +190,16 @@ Set the alpha clear color value for the non linear projection renderer.
 void sgct_core::NonLinearProjection::setAlpha(float alpha)
 {
 	mClearColor.a = alpha;
+}
+
+/*!
+Set which projection frustum to use for mono projections (can be used for custom passive stereo)
+
+@param fm the prefered mono frustum mode
+*/
+void sgct_core::NonLinearProjection::setPreferedMonoFrustumMode(sgct_core::Frustum::FrustumMode fm)
+{
+	mPreferedMonoFrustumMode = fm;
 }
 
 /*!

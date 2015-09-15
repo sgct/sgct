@@ -371,7 +371,7 @@ void sgct_core::FisheyeProjection::initShaders()
 		mInternalRenderCubemapFn = &FisheyeProjection::renderCubemapInternal;
 	}
 	
-	if (mStereo) // if any stereo
+	if (mStereo || mPreferedMonoFrustumMode != Frustum::Mono) // if any frustum mode other than Mono (or stereo)
 		mOffAxis = true;
 
 	//reload shader program if it exists

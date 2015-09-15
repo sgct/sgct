@@ -1142,7 +1142,8 @@ void sgct::Engine::render()
 					nonLinearProjPtr->setAlpha(getCurrentWindowPtr()->getAlpha() ? 0.0f : 1.0f);
 					if (sm == static_cast<int>(SGCTWindow::No_Stereo))
 					{
-						mCurrentFrustumMode = Frustum::Mono;
+						//for mono viewports frustum mode can be selected by user or xml
+						mCurrentFrustumMode = win->getViewport(j)->getEye();
 						nonLinearProjPtr->renderCubemap();
 					}
 					else

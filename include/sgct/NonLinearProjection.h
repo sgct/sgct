@@ -33,7 +33,7 @@ namespace sgct_core
 		virtual void renderCubemap() = 0;
 		virtual void update(float width, float height) = 0;
 
-		void updateFrustums(const sgct_core::Frustum::FrustumMode &frustumMode, const float & near_clipping_plane, const float & far_clipping_plane);
+		void updateFrustums(const Frustum::FrustumMode &frustumMode, const float & near_clipping_plane, const float & far_clipping_plane);
 		void setCubemapResolution(int res);
 		void setCubemapResolution(std::string quality);
 		void setInterpolationMode(InterpolationMode im);
@@ -42,6 +42,7 @@ namespace sgct_core
 		void setClearColor(float red, float green, float blue, float alpha = 1.0f);
 		void setClearColor(glm::vec4 color);
 		void setAlpha(float alpha);
+		void setPreferedMonoFrustumMode(Frustum::FrustumMode fm);
 
 		const int & getCubemapResolution() const;
 		const InterpolationMode & getInterpolationMode() const;
@@ -74,6 +75,7 @@ namespace sgct_core
 
 		BaseViewport mSubViewports[6]; //cubemap
 		InterpolationMode mInterpolationMode;
+		Frustum::FrustumMode mPreferedMonoFrustumMode;
 
 		//opengl data
 		unsigned int mTextures[LastIndex];

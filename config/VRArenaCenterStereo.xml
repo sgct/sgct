@@ -12,14 +12,14 @@
 			<Viewport>
 				<Pos x="0.0" y="0.0" />
 				<Size x="1.0" y="1.0" />
-				<Viewplane>
+				<Projectionplane>
 					<!-- Lower left -->
 					<Pos x="-3.34533" y="-0.965" z="0.0" />
 					<!-- Upper left -->
 					<Pos x="-3.34533" y="0.965" z="0.0" />
 					<!-- Upper right -->
 					<Pos x="3.34533" y="0.965" z="0.0" />
-				</Viewplane>
+				</Projectionplane>
 			</Viewport>
 		</Window>
 	</Node>
@@ -31,14 +31,14 @@
 			<Viewport>
 				<Pos x="0.0" y="0.0" />
 				<Size x="1.0" y="1.0" />
-				<Viewplane>
+				<Projectionplane>
 					<!-- Lower left -->
 					<Pos x="-3.34533" y="-0.965" z="0.0" />
 					<!-- Upper left -->
 					<Pos x="-3.34533" y="0.965" z="0.0" />
 					<!-- Upper right -->
 					<Pos x="-0.772" y="0.965" z="0.0" />
-				</Viewplane>
+				</Projectionplane>
 			</Viewport>
 		</Window>
 	</Node>
@@ -50,14 +50,14 @@
 			<Viewport>
 				<Pos x="0.0" y="0.0" />
 				<Size x="1.0" y="1.0" />
-				<Viewplane>
+				<Projectionplane>
 					<!-- Lower left -->
 					<Pos x="-1.286667" y="-0.965" z="0.0" />
 					<!-- Upper left -->
 					<Pos x="-1.286667" y="0.965" z="0.0" />
 					<!-- Upper right -->
 					<Pos x="1.286667" y="0.965" z="0.0" />
-				</Viewplane>
+				</Projectionplane>
 			</Viewport>
 		</Window>
 	</Node>
@@ -69,18 +69,18 @@
 			<Viewport>
 				<Pos x="0.0" y="0.0" />
 				<Size x="1.0" y="1.0" />
-				<Viewplane>
+				<Projectionplane>
 					<!-- Lower left -->
 					<Pos x="0.772" y="-0.965" z="0.0" />
 					<!-- Upper left -->
 					<Pos x="0.772" y="0.965" z="0.0" />
 					<!-- Upper right -->
 					<Pos x="3.34533" y="0.965" z="0.0" />
-				</Viewplane>
+				</Projectionplane>
 			</Viewport>
 		</Window>
 	</Node>
-	<User eyeSeparation="0.065">
+	<User eyeSeparation="0.06">
 		<Pos x="0.0" y="-0.065" z="4.0" />
 	</User>
 </Cluster>

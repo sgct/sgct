@@ -129,9 +129,9 @@ void myInitOGLFun()
 	sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
-	loadModel( "box.obj" );
+	loadModel( "../SharedResources/box.obj" );
 	
 	//Set up backface culling
 	glCullFace(GL_BACK);

@@ -159,7 +159,6 @@ endif()
 #update version in files
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/sgct_osg_all_win.nsi @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode.sh @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode_cpp11.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_linux.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_linux.sh @ONLY)
@@ -430,6 +429,7 @@ endif()
 #	endif()
 #endif()
 
+SET(SPOUT_ENABLED "0")
 if(SGCT_EXAMPLES)
 	if( APPLE AND SGCT_CPP11 )
 		set(SGCT_RELEASE_LIBRARY "${SGCT_LIB_PATH}/libsgct_cpp11.a")
@@ -450,6 +450,9 @@ if(SGCT_EXAMPLES)
 	set(SGCT_EXAMPLE_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin/examples)
 	ADD_SUBDIRECTORY(src/apps)
 endif()
+
+#must be placed after examples subdirectory
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/installers/sgct_osg_all_win.nsi.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/sgct_osg_all_win.nsi @ONLY)
 	
 if(SGCT_DOXYGEN)
 	find_package(Doxygen)

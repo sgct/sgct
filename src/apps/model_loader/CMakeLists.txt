@@ -16,8 +16,43 @@ endmacro (set_xcode_property)
 
 add_executable(${APP_NAME}
 	main.cpp
-	objloader.hpp
-	objloader.cpp)	
+	objloader.cpp
+	objloader.hpp)
+	
+option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
+option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
+if( SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+	set(EXAMPE_TARGET_PATH ${PROJECT_SOURCE_DIR})
+else()
+	set(EXAMPE_TARGET_PATH ${SGCT_EXAMPLE_OUTPUT_DIR}/${APP_NAME}) 
+endif()
+
+set(EXECUTABLE_OUTPUT_PATH ${EXAMPE_TARGET_PATH})
+
+#set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+set_target_properties(${APP_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPE_TARGET_PATH}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPE_TARGET_PATH}
+	FOLDER "Examples"
+)
+
+#copy data
+if(SGCT_COPY_EXAMPLE_RESOURCES AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
+	file(GLOB files
+		"${PROJECT_SOURCE_DIR}/*.png"
+		"${PROJECT_SOURCE_DIR}/*.jpg"
+		"${PROJECT_SOURCE_DIR}/*.xml"
+		"${PROJECT_SOURCE_DIR}/*.vert*"
+		"${PROJECT_SOURCE_DIR}/*.frag*")
+	file(COPY ${files} DESTINATION ${EXAMPE_TARGET_PATH})
+	if(WIN32)
+		file(GLOB scripts "${PROJECT_SOURCE_DIR}/*.bat")
+		file(COPY ${scripts} DESTINATION ${EXAMPE_TARGET_PATH})
+	elseif(APPLE)
+		file(GLOB scripts "${PROJECT_SOURCE_DIR}/*.command")
+		file(COPY ${scripts} DESTINATION ${EXAMPE_TARGET_PATH})
+	endif()
+endif()		
 	
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
@@ -115,7 +150,7 @@ endif()
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	
-		if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+	if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )

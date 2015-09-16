@@ -25,8 +25,6 @@ enum VBO_INDEXES { VBO_POSITIONS = 0, VBO_UVS, VBO_NORMALS };
 GLuint vertexBuffers[3];
 GLsizei numberOfVertices = 0;
 
-std::size_t myTextureHandle;
-
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
 
@@ -62,12 +60,11 @@ int main( int argc, char* argv[] )
 
 void myDrawFun()
 {
-	//glEnable( GL_DEPTH_TEST );
-	glDisable( GL_DEPTH_TEST );
-	//glEnable( GL_CULL_FACE );
+	glEnable( GL_DEPTH_TEST );
+	glEnable( GL_CULL_FACE );
 	glEnable( GL_TEXTURE_2D );
 
-	double speed = 25.0;
+	double speed = 0.44;
 
 	//create scene transform (animation)
 	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
@@ -80,29 +77,30 @@ void myDrawFun()
 	
 	glColor4f(1.0f, 1.0f, 1.0f, 1.0f);
 
-	glEnableClientState(GL_VERTEX_ARRAY);
+	
 	glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_POSITIONS ] );
+	glEnableClientState(GL_VERTEX_ARRAY);
 	glVertexPointer(3, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
 	if(hasUVs)
 	{
 		glClientActiveTexture(GL_TEXTURE0);
-		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-		//glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByName("box") );
-		glBindTexture( GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureByHandle(myTextureHandle) );
-		
+		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_UVS ] );
-		glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
+
+		glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+		glTexCoordPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 	}
 	
 	if(hasNormals)
 	{
-		glEnableClientState(GL_NORMAL_ARRAY);
 		glBindBuffer(GL_ARRAY_BUFFER, vertexBuffers[ VBO_NORMALS ] );
-		glVertexPointer(3, GL_FLOAT, 0, reinterpret_cast<void*>(0));
+
+		glEnableClientState(GL_NORMAL_ARRAY);
+		glNormalPointer(GL_FLOAT, 0, reinterpret_cast<void*>(0));
 	}
 	
-	glDrawArrays(GL_TRIANGLES, 0, 1);
+	glDrawArrays(GL_TRIANGLES, 0, numberOfVertices);
 
 	glBindBuffer(GL_ARRAY_BUFFER, GL_FALSE); //unbind
 	glPopClientAttrib();
@@ -130,9 +128,9 @@ void myInitOGLFun()
 	sgct::TextureManager::instance()->setWarpingMode(GL_REPEAT, GL_REPEAT);
 	sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);
 	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure(myTextureHandle, "box", "box.png", true);
+	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
-	loadModel( "box.obj" );
+	loadModel( "../SharedResources/box.obj" );
 	
 	glEnable( GL_TEXTURE_2D );
 	glDisable(GL_LIGHTING); //no lights at the moment

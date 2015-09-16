@@ -16,8 +16,16 @@ endmacro (set_xcode_property)
 
 add_executable(${APP_NAME}
 	main.cpp
-	objloader.hpp
-	objloader.cpp)	
+	objloader.cpp
+	objloader.hpp)
+	
+set(EXAMPE_TARGET_PATH ${PROJECT_SOURCE_DIR})
+set(EXECUTABLE_OUTPUT_PATH ${EXAMPE_TARGET_PATH})
+	
+set_target_properties(${APP_NAME} PROPERTIES
+	RUNTIME_OUTPUT_DIRECTORY_DEBUG ${EXAMPE_TARGET_PATH}
+	RUNTIME_OUTPUT_DIRECTORY_RELEASE ${EXAMPE_TARGET_PATH}
+)
 	
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
@@ -115,7 +123,7 @@ endif()
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	
-		if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+	if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )

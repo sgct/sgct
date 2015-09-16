@@ -15,7 +15,7 @@ struct preDrawCB : public osg::Camera::DrawCallback
 	{
 		//bind SGCT FBO just before main rendering
 		//OSG renders a full-screen quad to the SGCT main FBO
-		sgct::Engine::instance()->getActiveWindowPtr()->getFBOPtr()->bind();
+		sgct::Engine::instance()->getCurrentWindowPtr()->getFBOPtr()->bind();
 	}
 };
 

@@ -210,11 +210,11 @@ void myDrawFun()
 {
 	//unbind sgct's FBO in order to use osg's FBO
 	//the sgct FBO will be binded again in osg's main camera's pre draw callback
-	sgct::Engine::instance()->getActiveWindowPtr()->getFBOPtr()->unBind();
+	sgct::Engine::instance()->getCurrentWindowPtr()->getFBOPtr()->unBind();
 	
-	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
+	const int * curr_vp = gEngine->getCurrentViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
-	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));
+	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getCurrentViewProjectionMatrix() ) ));
 
 	mViewer->renderingTraversals();
 }

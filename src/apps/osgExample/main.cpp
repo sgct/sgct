@@ -184,9 +184,9 @@ void myDrawFun()
 {
 	glLineWidth(2.0f);
 	
-	const int * curr_vp = gEngine->getActiveViewportPixelCoords();
+	const int * curr_vp = gEngine->getCurrentViewportPixelCoords();
 	mViewer->getCamera()->setViewport(curr_vp[0], curr_vp[1], curr_vp[2], curr_vp[3]);
-	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getActiveViewProjectionMatrix() ) ));
+	mViewer->getCamera()->setProjectionMatrix( osg::Matrix( glm::value_ptr(gEngine->getCurrentViewProjectionMatrix() ) ));
 
 	mViewer->renderingTraversals();
 }

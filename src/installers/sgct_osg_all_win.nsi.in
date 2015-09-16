@@ -10,6 +10,7 @@
 !define ARCH "@SGCT_ARCHITECTURE@"
 !define OSG_VERSION "3.2.0"
 !define INC_OSG 0
+!define INC_SPOUT @SPOUT_ENABLED@
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -85,7 +86,7 @@ OutFile "@SGCT_WIN_BINARY_DIR@\bin\installer\SGCT_${SGCT_VERSION}_${SGCT_COMPILE
 
 ; Registry key to check for directory (so if you install again, it will 
 ; overwrite the old one automatically)
-InstallDirRegKey HKLM "Software\SGCT" "Install_Dir"
+InstallDirRegKey HKLM "Software\SGCT_${SGCT_VERSION}" "Install_Dir"
 
 ; Request application privileges for Windows Vista
 RequestExecutionLevel admin
@@ -118,16 +119,16 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	SectionIn RO
 	
 	; Write the installation path into the registry
-	WriteRegStr HKLM "SOFTWARE\SGCT" "Install_Dir" "$INSTDIR"
+	WriteRegStr HKLM "SOFTWARE\SGCT_${SGCT_VERSION}" "Install_Dir" "$INSTDIR"
 	  
 	; Write the uninstall keys for Windows
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "DisplayName" "SGCT ${SGCT_VERSION}"
-	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "UninstallString" '"$INSTDIR\uninstall.exe"'
-	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "NoModify" 1
-	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT" "NoRepair" 1
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT_${SGCT_VERSION}" "DisplayName" "SGCT ${SGCT_VERSION}"
+	WriteRegStr HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT_${SGCT_VERSION}" "UninstallString" '"$INSTDIR\uninstall_${SGCT_VERSION}.exe"'
+	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT_${SGCT_VERSION}" "NoModify" 1
+	WriteRegDWORD HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT_${SGCT_VERSION}" "NoRepair" 1
 	
 	SetOutPath $INSTDIR
-	writeUninstaller "$INSTDIR\uninstall.exe"
+	writeUninstaller "$INSTDIR\uninstall_${SGCT_VERSION}.exe"
 	
 	File @SGCT_WIN_SOURCE_DIR@\src\installers\C-Student_wiki.url
 	File @SGCT_WIN_SOURCE_DIR@\src\installers\SGCT_tutorials.url
@@ -153,17 +154,27 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "@SGCT_WIN_BINARY_DIR@\lib\${SGCT_COMPILER}_x64\sgctd.lib"
 	!endif
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}"
-	File /r "@SGCT_WIN_SOURCE_DIR@\readme"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\readme"
+	File /r "@SGCT_WIN_SOURCE_DIR@\readme\"
 	
-	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\docs"
-	File /r "@SGCT_WIN_BINARY_DIR@\docs\html"
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\docs\html"
+	File /r "@SGCT_WIN_BINARY_DIR@\docs\html\"
 	
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\config"
 	File /r "@SGCT_WIN_SOURCE_DIR@\config\"
 	
 	#add examples
 	#============================================
+	
+	#shared resources
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SharedResources"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.obj"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\heightmap.png"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\normalmap.png"
+	!if ${INC_OSG} == 1
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\airplane.ive"
+	!endif
 	
 	#template
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\sgct_template"
@@ -174,6 +185,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#example1
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\example1\example1.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\example1\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\example1\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\example1\example1_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\example1\user_cmake\CMakeLists.txt"
@@ -181,6 +193,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#example1 opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\example1_opengl3\example1_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\example1_opengl3\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\example1_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\example1_opengl3\SimpleFragmentShader.fragmentshader"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\example1_opengl3\SimpleVertexShader.vertexshader"
@@ -190,7 +203,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#texture_example
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\textureExample\textureExample.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\textureExample\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\textureExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\textureExample\textureExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\textureExample\user_cmake\CMakeLists.txt"
@@ -198,7 +211,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#texture_example opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\textureExample_opengl3\textureExample_opengl3.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\textureExample_opengl3\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\textureExample_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\textureExample_opengl3\SimpleFragmentShader.fragmentshader"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\textureExample_opengl3\SimpleVertexShader.vertexshader"
@@ -208,6 +221,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#simple shader
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleShaderExample\simpleShaderExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleShaderExample\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample\simple.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample\simple.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample\main.cpp"
@@ -217,6 +231,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#simple shader opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleShaderExample_opengl3\simpleShaderExample_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleShaderExample_opengl3\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample_opengl3\simple.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample_opengl3\simple.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleShaderExample_opengl3\main.cpp"
@@ -226,10 +241,10 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#height mapping example
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample\heightMappingExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample\run_fisheye.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\heightmap.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\heightmap.vert"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\heightmap.png"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\normalmap.png"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample\fisheye.xml"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\heightMappingExample\heightMappingExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
@@ -238,10 +253,10 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#height mapping example opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample_opengl3\heightMappingExample_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample_opengl3\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\heightMappingExample_opengl3\run_fisheye.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\heightmap.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\heightmap.vert"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\heightmap.png"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\normalmap.png"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\heightMappingExample_opengl3\fisheye.xml"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\heightMappingExample_opengl3\heightMappingExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
@@ -250,6 +265,8 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#simple navigation
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample\simpleNavigationExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample\run_fisheye.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleNavigationExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\simpleNavigationExample\simpleNavigationExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleNavigationExample\user_cmake\CMakeLists.txt"
@@ -257,6 +274,8 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#simple navigation opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample_opengl3\simpleNavigationExample_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample_opengl3\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\simpleNavigationExample_opengl3\run_fisheye.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleNavigationExample_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleNavigationExample_opengl3\gridShader.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\simpleNavigationExample_opengl3\gridShader.vert"
@@ -268,6 +287,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#gamepad
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\gamepadExample\gamepadExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\gamepadExample\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\gamepadExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\gamepadExample\gamepadExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\gamepadExample\user_cmake\CMakeLists.txt"
@@ -275,17 +295,17 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#render to texture
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\renderToTexture\renderToTexture.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\renderToTexture\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\renderToTexture\simple.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\renderToTexture\simple.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\renderToTexture\main.cpp"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\renderToTexture\renderToTexture_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\renderToTexture\user_cmake\CMakeLists.txt"
 	
 	#post FX
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\postFXExample\postFXExample.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\postFXExample\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample\base.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample\blur.frag"
@@ -299,7 +319,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#post FX opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\postFXExample_opengl3\postFXExample_opengl3.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\postFXExample_opengl3\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample_opengl3\base.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\postFXExample_opengl3\blur.frag"
@@ -314,9 +334,10 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	
 	#Depth Buffer
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\depth_buffer_example"
-	File "@SGCT_WIN_BINARY_DIR@\bin\examples\depthBuffer\depthBufferExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\depthBufferExample\depthBufferExample.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\depthBufferExample\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\depthBufferExample\run_fisheye.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\depthBuffer\fisheye.xml"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\depthBuffer\normalmap.png"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\depthBuffer\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\depthBuffer\heightmap.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\depthBuffer\heightmap.frag"
@@ -328,7 +349,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#MRT
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\mrt_example"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\MRTExample\MRTExample.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\MRTExample\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample\mrt.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample\mrt.frag"
@@ -338,25 +359,87 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	#MRT opengl3
 	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\mrt_example_opengl3"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\MRTExample_opengl3\MRTExample_opengl3.exe"
-	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SharedResources\box.png"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\MRTExample_opengl3\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample_opengl3\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample_opengl3\mrt.vert"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample_opengl3\mrt.frag"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\MRTExample_opengl3\MRTExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\MRTExample_opengl3\user_cmake\CMakeLists.txt"
 	
+	#model_loader
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\model_loader"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\model_loader\model_loader.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\model_loader\run.bat"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader\main.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader\objloader.hpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader\objloader.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader\user_cmake\CMakeLists.txt"
+	
+	#model_loader opengl3
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\model_loader_opengl3"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\model_loader_opengl3\model_loader_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\model_loader_opengl3\run.bat"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\main.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\objloader.hpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\objloader.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\simple.vert"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\simple.frag"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\model_loader_opengl3\user_cmake\CMakeLists.txt"
+	
+	#network
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\networkExample_opengl3"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\networkExample_opengl3\networkExample_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\networkExample_opengl3\run.bat"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\networkExample_opengl3\main.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\networkExample_opengl3\box.vert"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\networkExample_opengl3\box.frag"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\networkExample_opengl3\networkExample_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\networkExample_opengl3\user_cmake\CMakeLists.txt"
+	
+	#data transfer
+	SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\dataTransfer_opengl3"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\dataTransfer_opengl3\dataTransfer_opengl3.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\dataTransfer_opengl3\run.bat"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\dataTransfer_opengl3\two_nodes.xml"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\dataTransfer_opengl3\main.cpp"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\dataTransfer_opengl3\xform.vert"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\dataTransfer_opengl3\xform.frag"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\dataTransfer_opengl3\dataTransfer_opengl3_${SGCT_COMPILER}.${PRJ_SUFFIX}"
+	File "@SGCT_WIN_SOURCE_DIR@\src\apps\dataTransfer_opengl3\user_cmake\CMakeLists.txt"
+	
+	!if ${INC_SPOUT} == 1
+		#SpoutExample
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutExample"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\SpoutExample_opengl3\SpoutExample_opengl3.exe"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\SpoutExample_opengl3\run.bat"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutExample\main.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutExample\xform.vert"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutExample\xform.frag"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutExample\user_cmake\CMakeLists.txt"
+		
+		#SpoutSenderExample
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutSenderExample"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\SpoutSenderExample_opengl3\SpoutSenderExample_opengl3.exe"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\SpoutSenderExample_opengl3\run.bat"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutSenderExample\main.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutSenderExample\xform.vert"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutSenderExample\xform.frag"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutSenderExample\user_cmake\CMakeLists.txt"
+	!endif
+	
 	#osg examples
 	!if ${INC_OSG} == 1
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example"
 		File "@SGCT_WIN_BINARY_DIR@\bin\examples\osgExample\osgExample.exe"
-		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExample\airplane.ive"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\osgExample\run.bat"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\osgExample\run_fisheye.bat"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExample\main.cpp"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\osgExample\osgExample_${SGCT_COMPILER}.${PRJ_SUFFIX}"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExample\user_cmake\CMakeLists.txt"
 		
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT"
 		File "@SGCT_WIN_BINARY_DIR@\bin\examples\osgExampleRTT\osgExampleRTT.exe"
-		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExample\airplane.ive"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\osgExampleRTT\run.bat"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExampleRTT\main.cpp"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExampleRTT\RenderToTexture.cpp"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\osgExampleRTT\RenderToTexture.h"
@@ -370,6 +453,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\SGCTRemote\SGCTRemoteGUI.exe"
 !endif
 	File "@SGCT_WIN_BINARY_DIR@\bin\examples\SGCTRemote\SGCTRemote.exe"
+	File "@SGCT_WIN_BINARY_DIR@\bin\examples\SGCTRemote\run.bat"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SGCTRemote\main.cpp"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SGCTRemote\single_remote.xml"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\install_project_files\SGCTRemote\remote_app_${SGCT_COMPILER}.${PRJ_SUFFIX}"
@@ -384,7 +468,7 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	File "@SGCT_WIN_SOURCE_DIR@\src\apps\SGCTRemote\SGCTRemote_GUI\SGCTRemoteGUI.csproj"
 SectionEnd
 
-Section "SGCT environment variable"
+Section /o "SGCT environment variable"
 	;remove if set
 	DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
 	
@@ -418,63 +502,71 @@ Section "Start Menu Shortcuts"
   CreateShortCut "$SMPROGRAMS\SGCT\SGCT_Documentation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\docs\html\index.html" ""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle\example1.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_two_win.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\ssingle_two_win.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\spinning_triangle_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\spinning_triangle_opengl3\example1_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\ssingle_two_win.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example\textureExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\texture_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\texture_example\textureExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\textureExample_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\textureExample_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\textureExample_opengl3\textureExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\textureExample_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\textureExample_opengl3\textureExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader\simpleShaderExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_shader.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_shader\simpleShaderExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample.exe" "-config fisheye.xml"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping\heightMappingExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_two_win.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3.exe" "-config fisheye.xml"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_two_win.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\height_mapping_opengl3_two_win.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\height_mapping_opengl3\heightMappingExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_two_win.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_fisheye.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation\simpleNavigationExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_fisheye_fxaa.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye.xml$\""
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single_fisheye_fxaa.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_fisheye.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\simple_navigation_fisheye_FXAA_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\simple_navigation_opengl3\simpleNavigationExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single_fisheye_fxaa.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad\gamepadExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\gamepad.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\gamepad\gamepadExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\render_to_texture.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture\renderToTexture.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\render_to_texture.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\render_to_texture\renderToTexture.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example\postFXExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example\postFXExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3"
-  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3\postFXExample_opengl3.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+  CreateShortCut "$SMPROGRAMS\SGCT\examples\post_fx_example_opengl3.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\post_fx_example_opengl3\postFXExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   
   SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\depth_buffer_example"
   CreateShortCut "$SMPROGRAMS\SGCT\examples\depth_buffer_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\depth_buffer_example\depthBuffer.exe" "-config fisheye.xml"
   
+  !if ${INC_SPOUT} == 1
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutExample"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\SpoutExample.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutExample\SpoutExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+	  
+	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutSenderExample"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\SpoutSenderExample.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutSenderExample\SpoutSenderExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  !endif
+  
   !if ${INC_OSG} == 1
 	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example"
-	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example\osgExample.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_example.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example\osgExample.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
 	  
 	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT"
-	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_exampleRTT.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT\osgExampleRTT.exe" "-config $\"%SGCT_ROOT_DIR%\config\single.xml$\""
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\osg_exampleRTT.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_exampleRTT\osgExampleRTT.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
   !endif
   
   CreateDirectory "$SMPROGRAMS\SGCT\examples\remote"
@@ -484,7 +576,7 @@ Section "Start Menu Shortcuts"
 SectionEnd
 
 !if ${INC_OSG} == 1
-Section "OSG ${OSG_VERSION} ${SGCT_COMPILER} ${ARCH}"
+Section /o "OSG ${OSG_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	SetOutPath "$INSTDIR\osg\osg_${OSG_VERSION}_${SGCT_COMPILER}_${ARCH}"
 	File /r "${OSG_BIN_DIR}"
 	
@@ -497,7 +589,7 @@ Section "OSG ${OSG_VERSION} ${SGCT_COMPILER} ${ARCH}"
 	${registerExtension} "$INSTDIR\osg\osg_${OSG_VERSION}_${SGCT_COMPILER}_${ARCH}\bin\osgviewer.exe" ".ive" "OSG bin file"
 SectionEnd
 
-Section "OSG environment variables"
+Section /o "OSG environment variables"
 	;remove if set
 	DeleteRegValue ${env_hklm} OSG_PATH
     DeleteRegValue ${env_hklm} OSG_ROOT
@@ -542,8 +634,8 @@ Section "Uninstall"
   SetShellVarContext all
   
   ; Remove registry keys
-  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT"
-  DeleteRegKey HKLM "SOFTWARE\SGCT"
+  DeleteRegKey HKLM "Software\Microsoft\Windows\CurrentVersion\Uninstall\SGCT_${SGCT_VERSION}"
+  DeleteRegKey HKLM "SOFTWARE\SGCT_${SGCT_VERSION}"
   
   ; delete variable
   DeleteRegValue ${env_hklm} SGCT_ROOT_DIR
@@ -565,10 +657,19 @@ Section "Uninstall"
   ; make sure windows knows about the change
   SendMessage ${HWND_BROADCAST} ${WM_WININICHANGE} 0 "STR:Environment" /TIMEOUT=5000
 	
-  Delete $INSTDIR\uninstall.exe
+  Delete $INSTDIR\C_transparent.ico
+  Delete $INSTDIR\C-Student_wiki.url
+  Delete $INSTDIR\SGCT_tutorials.url
 
   ; Remove directories used
   RMDir /r "$SMPROGRAMS\SGCT"
-  RMDir /r "$INSTDIR"
+  RMDir /r "$INSTDIR\SGCT_${SGCT_VERSION}"
+  !if ${INC_OSG} == 1
+	RMDir /r "$INSTDIR\osg\osg_${OSG_VERSION}_${SGCT_COMPILER}_${ARCH}"
+	RMDir "$INSTDIR\osg"
+  !endif
+  
+  Delete $INSTDIR\uninstall_${SGCT_VERSION}.exe
+  RMDir "$INSTDIR"
 
 SectionEnd

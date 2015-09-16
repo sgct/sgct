@@ -1111,10 +1111,14 @@ void sgct::Engine::render()
 		//     RENDER VIEWPORTS / DRAW
 		//--------------------------------------------------------------
 		mCurrentDrawBufferIndex = 0;
-		mCurrentRenderTarget = NonLinearBuffer;
+		std::size_t firstDrawBufferIndexInWindow = 0;
+
 		for(size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
 		if (mThisNode->getWindowPtr(i)->isVisible() || mThisNode->getWindowPtr(i)->isRenderingWhileHidden())
 		{
+			//store the first buffer index for each window
+			firstDrawBufferIndexInWindow = mCurrentDrawBufferIndex;
+			
 			mThisNode->setCurrentWindowIndex(i);
 			SGCTWindow * win = getCurrentWindowPtr();
 
@@ -1124,8 +1128,9 @@ void sgct::Engine::render()
 			SGCTWindow::StereoMode sm = win->getStereoMode();
 
 			//--------------------------------------------------------------
-			//     RENDER NON LINEAR PROJECTION VIEWPORTS TO CUBEMAP
+			//     RENDER LEFT/MONO NON LINEAR PROJECTION VIEWPORTS TO CUBEMAP
 			//--------------------------------------------------------------
+			mCurrentRenderTarget = NonLinearBuffer;
 			sgct_core::NonLinearProjection * nonLinearProjPtr;
 			for (std::size_t j = 0; j < win->getNumberOfViewports(); j++)
 			{
@@ -1150,17 +1155,15 @@ void sgct::Engine::render()
 					{
 						mCurrentFrustumMode = Frustum::StereoLeftEye;
 						nonLinearProjPtr->renderCubemap();
-
-						mCurrentFrustumMode = Frustum::StereoRightEye;
-						nonLinearProjPtr->renderCubemap();
 					}
 
+					//FBO index, every window and every non-linear projection has it's own FBO
 					mCurrentDrawBufferIndex++;
 				}
 			}
 
 			//--------------------------------------------------------------
-			//     RENDER REGULAR VIEWPORTS TO FBO
+			//     RENDER LEFT/MONO REGULAR VIEWPORTS TO FBO
 			//--------------------------------------------------------------
 			mCurrentRenderTarget = WindowBuffer;
 			mCurrentOffScreenBuffer = win->getFBOPtr();
@@ -1178,14 +1181,61 @@ void sgct::Engine::render()
             {
                 mCurrentFrustumMode = Frustum::StereoLeftEye;
                 renderViewports(LeftEye);
-                    
-                mCurrentFrustumMode = Frustum::StereoRightEye;
-                    
+            }
+
+			//FBO index, every window and every non-linear projection has it's own FBO
+			mCurrentDrawBufferIndex++;
+
+			//if stereo
+			if (sm != static_cast<int>(SGCTWindow::No_Stereo))
+			{
+				//jump back counter to the first buffer index for current window
+				mCurrentDrawBufferIndex = firstDrawBufferIndexInWindow;
+				
+				//--------------------------------------------------------------
+				//     RENDER RIGHT NON LINEAR PROJECTION VIEWPORTS TO CUBEMAP
+				//--------------------------------------------------------------
+				mCurrentRenderTarget = NonLinearBuffer;
+				sgct_core::NonLinearProjection * nonLinearProjPtr;
+				for (std::size_t j = 0; j < win->getNumberOfViewports(); j++)
+				{
+					mCurrentViewportIndex = j;
+
+					if (win->getViewport(j)->hasSubViewports())
+					{
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+						MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering sub-viewports\n");
+#endif
+						nonLinearProjPtr = win->getViewport(j)->getNonLinearProjectionPtr();
+						mCurrentOffScreenBuffer = nonLinearProjPtr->getOffScreenBuffer();
+
+						nonLinearProjPtr->setAlpha(getCurrentWindowPtr()->getAlpha() ? 0.0f : 1.0f);
+						mCurrentFrustumMode = Frustum::StereoRightEye;
+						nonLinearProjPtr->renderCubemap();
+						
+						//FBO index, every window and every non-linear projection has it's own FBO
+						mCurrentDrawBufferIndex++;
+					}
+				}
+
+				//--------------------------------------------------------------
+				//     RENDER RIGHT REGULAR VIEWPORTS TO FBO
+				//--------------------------------------------------------------
+				mCurrentRenderTarget = WindowBuffer;
+				mCurrentOffScreenBuffer = win->getFBOPtr();
+
+#ifdef __SGCT_RENDER_LOOP_DEBUG__
+				MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering\n");
+#endif
+				mCurrentFrustumMode = Frustum::StereoRightEye;
 				//use a single texture for side-by-side and top-bottom stereo modes
 				sm >= SGCTWindow::Side_By_Side_Stereo ?
-                    renderViewports(LeftEye):
-                    renderViewports(RightEye);
-            }
+					renderViewports(LeftEye) :
+					renderViewports(RightEye);
+
+				//FBO index, every window and every non-linear projection has it's own FBO
+				mCurrentDrawBufferIndex++;
+			}
 
             //--------------------------------------------------------------
 			//           DONE RENDERING VIEWPORTS TO FBO
@@ -1194,7 +1244,6 @@ void sgct::Engine::render()
 #ifdef __SGCT_RENDER_LOOP_DEBUG__
             MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: Rendering FBO quad\n");
 #endif
-			mCurrentDrawBufferIndex++;
 		}//end window loop
 
         //--------------------------------------------------------------

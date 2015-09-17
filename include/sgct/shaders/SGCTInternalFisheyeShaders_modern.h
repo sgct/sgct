@@ -31,8 +31,8 @@ namespace sgct_core
                     float x = sin(phi) * sin(theta);\n\
                     float y = -sin(phi) * cos(theta);\n\
                     float z = cos(phi);\n\
-                    **rotVec**;\n\
-                    return texture(map, rotVec);\n\
+					**rotVec**;\n\
+					return texture(map, rotVec);\n\
                 }\n\
                 else\n\
                     return bg;\n\

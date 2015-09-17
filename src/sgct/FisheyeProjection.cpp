@@ -15,6 +15,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h"
 #include "../include/sgct/helpers/SGCTStringFunctions.h"
 #include <sstream>
+#include <algorithm>
+
+//#define DebugFisheye
 
 sgct_core::FisheyeProjection::FisheyeProjection()
 {
@@ -203,7 +206,45 @@ void sgct_core::FisheyeProjection::initViewports()
 	const glm::vec4 upperLeftBase(-radius, radius, radius, 1.0f);
 	const glm::vec4 upperRightBase(radius, radius, radius, 1.0f);
 
-	if (mMethod == FiveFaceCube)
+	//250.5287794 degree FOV covers exactly five sides of a cube, larger FOV needs six sides
+	const float fiveFaceLimit = 2.0f * glm::degrees(acosf(-1.0f / sqrtf(3.0f)));
+	//109.4712206 degree FOV is needed to cover the entire top face
+	const float topFaceLimit = 2.0f * glm::degrees(acosf(1.0f / sqrtf(3.0f)));
+	const float padding = 0.01f; //to compensate for floating point errors without visual artifacts
+
+	float cropLevel = 0.5f; //how much of the side faces that are used
+	float projectionOffset = 0.0f; //the projection offset
+	float normalizedProjectionOffset = 0.0f;
+
+	//four faces doesn't cover more than 180 degrees
+	if (mFOV > 180.0f && mFOV <= fiveFaceLimit)
+		mMethod = FiveFaceCube;
+
+	if (mMethod == FiveFaceCube && mFOV >= topFaceLimit && mFOV <= fiveFaceLimit)
+	{
+		//helper variable
+		float cosAngle = cosf(glm::radians(mFOV / 2.0f));
+		if (mFOV < 180.0f)
+		{
+			normalizedProjectionOffset = -sqrtf((2.0f * cosAngle * cosAngle) / (1.0f - cosAngle * cosAngle));
+			normalizedProjectionOffset = std::max(normalizedProjectionOffset - padding, -1.0f);
+		}
+		else
+		{
+			normalizedProjectionOffset = sqrtf((2.0f * cosAngle * cosAngle) / (1.0f - cosAngle * cosAngle));
+			normalizedProjectionOffset = std::min(normalizedProjectionOffset + padding, 1.0f);
+		}
+		projectionOffset = normalizedProjectionOffset * radius;
+		cropLevel = (1.0f - normalizedProjectionOffset) / 2.0f;
+	}
+	else if (mFOV > fiveFaceLimit)
+	{
+		mMethod = SixFaceCube;
+		cropLevel = 0.0f;
+		projectionOffset = radius;
+	}
+
+	if (mMethod == FiveFaceCube || mMethod == SixFaceCube)
 	{
 		//tilt
 		glm::mat4 tiltMat = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f - mTilt), glm::vec3(1.0f, 0.0f, 0.0f));
@@ -235,36 +276,36 @@ void sgct_core::FisheyeProjection::initViewports()
 			case Pos_X: //+X face
 			{
 				rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-				upperRight.x = 0.0f;
-				mSubViewports[i].setSize(0.5f, 1.0f);
+				upperRight.x = projectionOffset;
+				mSubViewports[i].setSize(1.0f - cropLevel, 1.0f);
 			}
 			break;
 
 			case Neg_X: //-X face
 			{
 				rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-				lowerLeft.x = 0.0f;
-				upperLeft.x = 0.0f;
-				mSubViewports[i].setPos(0.5f, 0.0f);
-				mSubViewports[i].setSize(0.5f, 1.0f);
+				lowerLeft.x = -projectionOffset;
+				upperLeft.x = -projectionOffset;
+				mSubViewports[i].setPos(cropLevel, 0.0f);
+				mSubViewports[i].setSize(1.0f - cropLevel, 1.0f);
 			}
 			break;
 
 			case Pos_Y: //+Y face
 			{
 				rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-				lowerLeft.y = 0.0f;
-				mSubViewports[i].setPos(0.0f, 0.5f);
-				mSubViewports[i].setSize(1.0f, 0.5f);
+				lowerLeft.y = -projectionOffset;
+				mSubViewports[i].setPos(0.0f, cropLevel);
+				mSubViewports[i].setSize(1.0f, 1.0f - cropLevel);
 			}
 			break;
 
 			case Neg_Y: //-Y face
 			{
 				rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-				upperLeft.y = 0.0f;
-				upperRight.y = 0.0f;
-				mSubViewports[i].setSize(1.0f, 0.5f);
+				upperLeft.y = projectionOffset;
+				upperRight.y = projectionOffset;
+				mSubViewports[i].setSize(1.0f, 1.0f - cropLevel);
 			}
 			break;
 
@@ -273,7 +314,8 @@ void sgct_core::FisheyeProjection::initViewports()
 				break;
 
 			case Neg_Z: //-Z face
-				mSubViewports[i].setEnabled(false);
+				if(mMethod == FiveFaceCube)
+					mSubViewports[i].setEnabled(false);
 				rotMat = glm::rotate(rollRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
 				break;
 			}
@@ -704,7 +746,7 @@ void sgct_core::FisheyeProjection::initShaders()
 	//replace add correct transform in the fragment shader
 	if (mMethod == FourFaceCube)
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3( angle45Factor*x + angle45Factor*z, y, -angle45Factor*x + angle45Factor*z)");
-	else
+	else //five or six face
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
 
 	//replace glsl version
@@ -855,44 +897,44 @@ void sgct_core::FisheyeProjection::drawCubeFace(const std::size_t & face)
 	switch (face)
 	{
 	case 0:
-		color[0] = 1.0f;
+		color[0] = 0.5f;
 		color[1] = 0.0f;
 		color[2] = 0.0f;
 		color[3] = 1.0f;
 		break;
 
 	case 1:
-		color[0] = 1.0f;
-		color[1] = 1.0f;
+		color[0] = 0.5f;
+		color[1] = 0.5f;
 		color[2] = 0.0f;
 		color[3] = 1.0f;
 		break;
 
 	case 2:
 		color[0] = 0.0f;
-		color[1] = 1.0f;
+		color[1] = 0.5f;
 		color[2] = 0.0f;
 		color[3] = 1.0f;
 		break;
 
 	case 3:
 		color[0] = 0.0f;
-		color[1] = 1.0f;
-		color[2] = 1.0f;
+		color[1] = 0.5f;
+		color[2] = 0.5f;
 		color[3] = 1.0f;
 		break;
 
 	case 4:
 		color[0] = 0.0f;
 		color[1] = 0.0f;
-		color[2] = 1.0f;
+		color[2] = 0.5f;
 		color[3] = 1.0f;
 		break;
 
 	case 5:
-		color[0] = 1.0f;
+		color[0] = 0.5f;
 		color[1] = 0.0f;
-		color[2] = 1.0f;
+		color[2] = 0.5f;
 		color[3] = 1.0f;
 		break;
 	}

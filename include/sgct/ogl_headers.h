@@ -12,6 +12,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define GLEW_STATIC
 #endif
 
+#ifndef NOMINMAX
+#define NOMINMAX
+#endif
+
 #ifndef SGCT_OGL_HEADERS
 	#define SGCT_OGL_HEADERS
 	#include <GL/glew.h>

@@ -19,7 +19,7 @@ namespace sgct_core
 	class FisheyeProjection : public NonLinearProjection
 	{
 	public:
-		enum FisheyeMethod { FourFaceCube = 0, FiveFaceCube };
+		enum FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
 		enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
 		FisheyeProjection();

@@ -404,14 +404,15 @@ void sgct_core::NonLinearProjection::setupViewport(const std::size_t & face)
 {
 	float cmRes = static_cast<float>(mCubemapResolution);
 
+	//round values instead of just truncate
 	mVpCoords[0] =
-		static_cast<int>(mSubViewports[face].getX() * cmRes);
+		static_cast<int>(mSubViewports[face].getX() * cmRes + 0.5f);
 	mVpCoords[1] =
-		static_cast<int>(mSubViewports[face].getY() * cmRes);
+		static_cast<int>(mSubViewports[face].getY() * cmRes + 0.5f);
 	mVpCoords[2] =
-		static_cast<int>(mSubViewports[face].getXSize() * cmRes);
+		static_cast<int>(mSubViewports[face].getXSize() * cmRes + 0.5f);
 	mVpCoords[3] =
-		static_cast<int>(mSubViewports[face].getYSize() * cmRes);
+		static_cast<int>(mSubViewports[face].getYSize() * cmRes + 0.5f);
 
 	glViewport(mVpCoords[0],
 		mVpCoords[1],

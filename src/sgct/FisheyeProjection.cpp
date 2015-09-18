@@ -210,7 +210,6 @@ void sgct_core::FisheyeProjection::initViewports()
 	const float fiveFaceLimit = 2.0f * glm::degrees(acosf(-1.0f / sqrtf(3.0f)));
 	//109.4712206 degree FOV is needed to cover the entire top face
 	const float topFaceLimit = 2.0f * glm::degrees(acosf(1.0f / sqrtf(3.0f)));
-	const float padding = 0.01f; //to compensate for floating point errors without visual artifacts
 
 	float cropLevel = 0.5f; //how much of the side faces that are used
 	float projectionOffset = 0.0f; //the projection offset
@@ -226,16 +225,18 @@ void sgct_core::FisheyeProjection::initViewports()
 		float cosAngle = cosf(glm::radians(mFOV / 2.0f));
 		if (mFOV < 180.0f)
 		{
-			normalizedProjectionOffset = -sqrtf((2.0f * cosAngle * cosAngle) / (1.0f - cosAngle * cosAngle));
-			normalizedProjectionOffset = std::max(normalizedProjectionOffset - padding, -1.0f);
+			normalizedProjectionOffset = 1.0f-mFOV/180.0f; //[-1, 0]
 		}
 		else
 		{
-			normalizedProjectionOffset = sqrtf((2.0f * cosAngle * cosAngle) / (1.0f - cosAngle * cosAngle));
-			normalizedProjectionOffset = std::min(normalizedProjectionOffset + padding, 1.0f);
+			normalizedProjectionOffset = sqrtf((2.0f * cosAngle * cosAngle) / (1.0f - cosAngle * cosAngle)); //[0, 1]
 		}
+
 		projectionOffset = normalizedProjectionOffset * radius;
 		cropLevel = (1.0f - normalizedProjectionOffset) / 2.0f;
+
+		//cropLevel = 0.0f;
+		//projectionOffset = radius;
 	}
 	else if (mFOV > fiveFaceLimit)
 	{
@@ -732,6 +733,7 @@ void sgct_core::FisheyeProjection::initShaders()
         ssRes << mCubemapResolution << ".0";
         
 		//add functions to shader
+		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**cubic_fun**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::catmull_rom_fun : sgct_core::shaders_modern_fisheye_cubic::catmull_rom_fun);
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolatef**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_f);
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate3f**", sgct_core::shaders_modern_fisheye_cubic::interpolate4_3f);
 		sgct_helpers::findAndReplace(fisheyeFragmentShader, "**interpolate4f**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye_cubic::interpolate4_4f : sgct_core::shaders_modern_fisheye_cubic::interpolate4_4f);
@@ -760,9 +762,9 @@ void sgct_core::FisheyeProjection::initShaders()
 	sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
 	if (!mShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertexShader.c_str());
 	if (!mShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye fragment shader\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye fragment shader\n%s\n", fisheyeFragmentShader.c_str());
 
 	mShader.setName("FisheyeShader");
 	mShader.createAndLinkProgram();

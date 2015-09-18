@@ -4,6 +4,8 @@
 #include "sgct.h"
 #include <glm/gtc/matrix_inverse.hpp>
 
+#define GRID_SIZE 256
+
 sgct::Engine * gEngine;
 
 void myDrawFun();
@@ -122,8 +124,9 @@ void myDrawFun()
 
 	glBindVertexArray(vertexArray);
 
-	// Draw the triangle !
-	glDrawArrays(GL_TRIANGLE_STRIP, 0, mNumberOfVerts);
+	// Draw the triangles !
+	for (unsigned int i = 0; i < GRID_SIZE; i++)
+		glDrawArrays(GL_TRIANGLE_STRIP, i * GRID_SIZE * 2, GRID_SIZE * 2);
 
 	//unbind
 	glBindVertexArray(0);
@@ -194,7 +197,7 @@ void myInitOGLFun()
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	//generate mesh
-	generateTerrainGrid( 1.0f, 1.0f, 256, 256 );
+	generateTerrainGrid(1.0f, 1.0f, GRID_SIZE, GRID_SIZE);
 
 	//generate vertex array
 	glGenVertexArrays(1, &vertexArray);

@@ -25,7 +25,7 @@ namespace sgct_core
 		enum InterpolationMode { Linear, Cubic };
 
 		NonLinearProjection();
-		~NonLinearProjection();
+		virtual ~NonLinearProjection();
 
 		void init(int internalTextureFormat, unsigned int textureFormat, unsigned int textureType, int samples=1);
 

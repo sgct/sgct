@@ -34,11 +34,12 @@ GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
 sgct_core::Image * transImg = NULL;
 
-
 //sync variables
 sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
+sgct::SharedBool wireframe(false);
 sgct::SharedInt32 texIndex(-1);
+sgct::SharedInt32 numSyncedTex(0);
 
 //other mutex variables
 sgct::SharedInt32 currentPackage(-1);
@@ -52,7 +53,7 @@ double sendTimer = 0.0;
 
 enum imageType { IM_JPEG, IM_PNG };
 const int headerSize = 1;
-sgct_utils::SGCTBox * myBox = NULL;
+sgct_utils::SGCTDome * dome = NULL;
 GLint Matrix_Loc = -1;
 
 //variables to share across cluster
@@ -64,11 +65,7 @@ int main( int argc, char* argv[] )
 	
 	gEngine = new sgct::Engine( argc, argv );
     
-    /*imagePaths.addVal( std::pair<std::string, int>("test_00.jpg", IM_JPEG) );
-    imagePaths.addVal( std::pair<std::string, int>("test_01.png", IM_PNG) );
-    imagePaths.addVal( std::pair<std::string, int>("test_02.jpg", IM_JPEG) );*/
-
-	gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setInitOGLFunction( myInitOGLFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
@@ -111,37 +108,28 @@ int main( int argc, char* argv[] )
 }
 
 void myDrawFun()
-{
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
+{	
+	if (texIndex.getVal() != -1)
+	{
+		glEnable(GL_DEPTH_TEST);
+		glEnable(GL_CULL_FACE);
 
-	double speed = 0.44;
+		glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
+		
+		glActiveTexture(GL_TEXTURE0);
+		glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
 
-	//create scene transform (animation)
-	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+		sgct::ShaderManager::instance()->bindShaderProgram("xform");
+		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
-	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+		//draw the box
+		dome->draw();
 
-	glActiveTexture(GL_TEXTURE0);
-	
-    if(texIndex.getVal() != -1)
-        glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
-    else
-		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
+		sgct::ShaderManager::instance()->unBindShaderProgram();
 
-	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
-
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-
-	//draw the box
-	myBox->draw();
-
-	sgct::ShaderManager::instance()->unBindShaderProgram();
-
-	glDisable( GL_CULL_FACE );
-	glDisable( GL_DEPTH_TEST );
+		glDisable(GL_CULL_FACE);
+		glDisable(GL_DEPTH_TEST);
+	}
 }
 
 void myPreSyncFun()
@@ -153,6 +141,7 @@ void myPreSyncFun()
 		//if texture is uploaded then iterate the index
 		if (serverUploadDone.getVal() && clientsUploadDone.getVal())
 		{
+			numSyncedTex++;
 			texIndex++;
 			serverUploadDone = false;
 			clientsUploadDone = false;
@@ -164,21 +153,16 @@ void myPostSyncPreDrawFun()
 {
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
+	gEngine->setWireframe(wireframe.getVal());
 }
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
-
-	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+	dome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
 
 	//Set up backface culling
 	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+	glFrontFace(GL_CW); //our polygon winding is clockwise since we are inside of the dome
 
 	sgct::ShaderManager::instance()->addShaderProgram( "xform",
 			"xform.vert",
@@ -198,6 +182,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeDouble(&curr_time);
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
+	sgct::SharedData::instance()->writeBool(&wireframe);
     sgct::SharedData::instance()->writeInt32(&texIndex);
 }
 
@@ -206,13 +191,14 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readDouble(&curr_time);
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
+	sgct::SharedData::instance()->readBool(&wireframe);
     sgct::SharedData::instance()->readInt32(&texIndex);
 }
 
 void myCleanUpFun()
 {
-	if(myBox != NULL)
-		delete myBox;
+	if (dome != NULL)
+		delete dome;
     
     for(std::size_t i=0; i < texIds.getSize(); i++)
     {
@@ -246,10 +232,20 @@ void keyCallback(int key, int action)
 				info.toggle();
 			break;
                 
-        /*case SGCT_KEY_SPACE:
-            if (action == SGCT_PRESS)
-                transfer.setVal(true);
-            break;*/
+		case SGCT_KEY_W:
+			if (action == SGCT_PRESS)
+				wireframe.toggle();
+			break;
+
+		case SGCT_KEY_LEFT:
+			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
+				texIndex.getVal() > 0 ? texIndex-- : texIndex.setVal( numSyncedTex.getVal()-1 );
+			break;
+
+		case SGCT_KEY_RIGHT:
+			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
+				texIndex.setVal((texIndex.getVal() + 1) % numSyncedTex.getVal());
+			break;
 		}
 	}
 }
@@ -400,85 +396,85 @@ void readImage(unsigned char * data, int len)
 
 void uploadTexture()
 {
-    mutex.lock();
-    
-    if( transImg )
-    {
-        glfwMakeContextCurrent( hiddenWindow );
-        
-        //create texture
-        GLuint tex;
-        glGenTextures(1, &tex);
-        glBindTexture(GL_TEXTURE_2D, tex);
-        glPixelStorei(GL_PACK_ALIGNMENT, 1);
-        glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
-        GLenum internalformat;
-        GLenum type;
+	mutex.lock();
+
+	if (transImg)
+	{
+		glfwMakeContextCurrent(hiddenWindow);
+
+		//create texture
+		GLuint tex;
+		glGenTextures(1, &tex);
+		glBindTexture(GL_TEXTURE_2D, tex);
+		glPixelStorei(GL_PACK_ALIGNMENT, 1);
+		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+		GLenum internalformat;
+		GLenum type;
 		unsigned int bpc = transImg->getBytesPerChannel();
 
-        switch( transImg->getChannels() )
-        {
-            case 1:
-				internalformat = (bpc == 1 ? GL_R8 : GL_R16);
-                type = GL_RED;
-                break;
-                
-            case 2:
-				internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
-                type = GL_RG;
-                break;
-                
-            case 3:
-            default:
-				internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-                type = GL_BGR;
-                break;
-                
-            case 4:
-				internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-                type = GL_BGRA;
-                break;
-        }
-        
-        int mipMapLevels = 8;
+		switch (transImg->getChannels())
+		{
+		case 1:
+			internalformat = (bpc == 1 ? GL_R8 : GL_R16);
+			type = GL_RED;
+			break;
+
+		case 2:
+			internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
+			type = GL_RG;
+			break;
+
+		case 3:
+		default:
+			internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+			type = GL_BGR;
+			break;
+
+		case 4:
+			internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+			type = GL_BGRA;
+			break;
+		}
+
+		int mipMapLevels = 8;
 		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-        glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
+		glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
 		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
-        
-        //glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
-        
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels-1);
-		
-		glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        
-        //unbind
-        glBindTexture(GL_TEXTURE_2D, GL_FALSE);
-        
-        sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImg->getWidth(), transImg->getHeight(), transImg->getChannels());
-        
-        texIds.addVal(tex);
-        
-        delete transImg;
-        transImg = NULL;
-        
-        glFinish();
-        
-        //restore
-        glfwMakeContextCurrent( NULL );
-    }
-    else //if invalid load
-    {
-        texIds.addVal(GL_FALSE);
-    }
-    
-    mutex.unlock();
+
+		//glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
+
+		glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+		//unbind
+		glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+
+		sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImg->getWidth(), transImg->getHeight(), transImg->getChannels());
+
+		texIds.addVal(tex);
+
+		delete transImg;
+		transImg = NULL;
+
+		glFinish();
+
+		//restore
+		glfwMakeContextCurrent(NULL);
+	}
+	else //if invalid load
+	{
+		texIds.addVal(GL_FALSE);
+	}
+
+	mutex.unlock();
 }
 
 void myDropCallback(int count, const char** paths)

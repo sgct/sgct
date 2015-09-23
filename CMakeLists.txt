@@ -364,6 +364,10 @@ target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS}
 #to make sure that everything is build when post_build events runs
 add_dependencies(${LIB_NAME} freetype glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
 
+#including directories with generated config files in this scope
+include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng)
+include_directories(${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
+
 #copy configure files
 add_custom_command(TARGET ${LIB_NAME}
 				PRE_BUILD

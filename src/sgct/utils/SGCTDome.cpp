@@ -14,89 +14,130 @@ For conditions of distribution and use, see copyright notice in sgct.h
 /*!
 	This constructor requires a valid openGL contex
 */
-sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution)
+sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps)
 {
-	init(radius, FOV, segments, rings, tilt, resolution);
+	init(radius, FOV, azimuthSteps, elevationSteps);
 }
 
-/*!
-	This constructor requires a valid openGL contex
-*/
-sgct_utils::SGCTDome::SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution)
+void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps)
 {
-	init(radius, FOV, segments, rings, 0.0f, resolution);
-}
-
-void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution)
-{
-	mVerts = NULL;
-	mResolution = resolution;
-	mRings = rings;
-	mSegments = segments;
-	mVBO = GL_FALSE;
+	float lift = (180.0f - FOV) / 2.0f;
+	mElevationSteps = elevationSteps;
+	mAzimuthSteps = azimuthSteps;
+	mVBO[Vertex] = GL_FALSE;
+	mVBO[Index] = GL_FALSE;
 	mVAO = GL_FALSE;
+	std::vector<sgct_helpers::SGCTVertexData> vertices;
 
 	mInternalDrawFn = &SGCTDome::drawVBO;
 
-	if(mResolution < 4) //must be four or higher
+	if (mAzimuthSteps < 4) //must be four or higher
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Dome geometry resolution must be higher than 4.\n");
-		mResolution = 4;
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Dome geometry azimuth steps must be exceed 4.\n");
+		mAzimuthSteps = 4;
 	}
 
-	mNumberOfVertices = (mSegments * ((mResolution/4)+1) + mRings * mResolution)*6;
-
-	mVerts = new float[mNumberOfVertices];
-	memset(mVerts, 0, mNumberOfVertices * sizeof(float));
-
-	float elevationAngle, theta;
-	glm::vec3 vertex, transformedVertex;
-	unsigned int pos = 0;
-
-	glm::mat3 rotMat = glm::mat3(glm::rotate(glm::mat4(1.0f), glm::radians(-tilt), glm::vec3(1.0f, 0.0f, 0.0f)));
-
-	//create rings
-	for(unsigned int r = 1; r <= mRings; r++)
+	if (mElevationSteps < 4) //must be four or higher
 	{
-		elevationAngle = glm::radians<float>((FOV/2.0f) * (static_cast<float>(r)/static_cast<float>(mRings)));
-		vertex.y = radius * cosf( elevationAngle );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "Warning: Dome geometry elevation steps must be exceed 4.\n");
+		mElevationSteps = 4;
+	}
 
-		for(unsigned int i = 0; i < mResolution; i++)
+	int e, numVerts = 0;
+	float x, y, z;
+	float s, t;
+	float elevation, azimuth;
+	float de; //delta elevation
+	e = 0;
+
+	de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+	elevation = glm::radians(lift + de * (90.0f - lift));
+	y = sinf(elevation);
+
+	for (int a = 0; a < mAzimuthSteps; a++)
+	{
+		azimuth = glm::radians(static_cast<float>(a * 360) / static_cast<float>(mAzimuthSteps));
+
+		x = cosf(elevation) * sinf(azimuth);
+		z = -cosf(elevation) * cosf(azimuth);
+
+		s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
+		t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
+		s = s * 0.5f + 0.5f;
+		t = t * 0.5f + 0.5f;
+
+		sgct_helpers::SGCTVertexData vertex;
+		vertex.setPositionX(x * radius);
+		vertex.setPositionY(y * radius);
+		vertex.setPositionZ(z * radius);
+		vertex.setNormalX(x);
+		vertex.setNormalY(y);
+		vertex.setNormalZ(z);
+		vertex.setTextureS(s);
+		vertex.setTextureT(t);
+		mVerts.push_back(vertex);
+	}
+
+	for (e = 1; e <= mElevationSteps - 1; e++)
+	{
+		de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+		elevation = glm::radians(lift + de * (90.0f - lift));
+
+		y = sinf(elevation);
+
+		for (int a = 0; a < mAzimuthSteps; a++)
 		{
-			theta = glm::pi<float>() * 2.0f * (static_cast<float>(i)/static_cast<float>(mResolution));
+			azimuth = glm::radians(static_cast<float>(a * 360) / static_cast<float>(mAzimuthSteps));
 
-			vertex.x = radius * sinf( elevationAngle ) * cosf(theta);
-			vertex.z = radius * sinf( elevationAngle ) * sinf(theta);
-			transformedVertex = rotMat * vertex;
+			x = cosf(elevation) * sinf(azimuth);
+			z = -cosf(elevation) * cosf(azimuth);
 
-			mVerts[pos] = transformedVertex.x;
-			mVerts[pos + 1] = transformedVertex.y;
-			mVerts[pos + 2] = transformedVertex.z;
+			s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
+			t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
+			s = s * 0.5f + 0.5f;
+			t = t * 0.5f + 0.5f;
 
-			pos += 3;
+			sgct_helpers::SGCTVertexData vertex;
+			vertex.setPositionX(x * radius);
+			vertex.setPositionY(y * radius);
+			vertex.setPositionZ(z * radius);
+			vertex.setNormalX(x);
+			vertex.setNormalY(y);
+			vertex.setNormalZ(z);
+			vertex.setTextureS(s);
+			vertex.setTextureT(t);
+			mVerts.push_back(vertex);
+
+			mIndices.push_back(numVerts);
+			mIndices.push_back(mAzimuthSteps + numVerts++);
 		}
+
+		mIndices.push_back(numVerts - mAzimuthSteps);
+		mIndices.push_back(numVerts);
 	}
 
-	//create segments
-	for(unsigned int s = 0; s < mSegments; s++)
-	{
-		theta = (glm::pi<float>() * 2.0f) * (static_cast<float>(s)/static_cast<float>(mSegments));
+	e = mElevationSteps;
+	de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+	elevation = glm::radians(lift + de * (90.0f - lift));
 
-		for(unsigned int i = 0; i < (mResolution/4)+1; i++)
-		{
-			elevationAngle = glm::radians<float>(FOV/2.0f) * (static_cast<float>(i)/static_cast<float>(mResolution/4));
-			vertex.x = radius * sinf( elevationAngle ) * cosf(theta);
-			vertex.y = radius * cosf( elevationAngle );
-			vertex.z = radius * sinf( elevationAngle ) * sinf(theta);
-			transformedVertex = rotMat * vertex;
+	y = sinf(elevation);
 
-			mVerts[pos] = transformedVertex.x;
-			mVerts[pos + 1] = transformedVertex.y;
-			mVerts[pos + 2] = transformedVertex.z;
+	sgct_helpers::SGCTVertexData vertex;
+	vertex.setPositionX(0.f);
+	vertex.setPositionY(y * radius);
+	vertex.setPositionZ(0.f);
+	vertex.setNormalX(0.0f);
+	vertex.setNormalY(1.0f);
+	vertex.setNormalZ(0.0f);
+	vertex.setTextureS(.5f);
+	vertex.setTextureT(.5f);
+	mVerts.push_back(vertex);
 
-			pos += 3;
-		}
-	}
+	mIndices.push_back(numVerts + mAzimuthSteps);
+
+	for (int a = 1; a <= mAzimuthSteps; a++)
+		mIndices.push_back(numVerts + mAzimuthSteps - a);
+	mIndices.push_back(numVerts + mAzimuthSteps - 1);
 
 	createVBO();
 
@@ -107,11 +148,8 @@ void sgct_utils::SGCTDome::init(float radius, float FOV, unsigned int segments, 
 	}
 
 	//free data
-	if(mVerts != NULL)
-	{
-		delete [] mVerts;
-		mVerts = NULL;
-	}
+	mVerts.clear();
+	mIndices.clear();
 }
 
 sgct_utils::SGCTDome::~SGCTDome()
@@ -124,8 +162,9 @@ void sgct_utils::SGCTDome::cleanup()
 	//cleanup
 	if(mVBO != 0)
 	{
-		glDeleteBuffers(1, &mVBO);
-		mVBO = 0;
+		glDeleteBuffers(2, &mVBO[0]);
+		mVBO[Vertex] = 0;
+		mVBO[Index] = 0;
 	}
 
 	if(mVAO != 0)
@@ -136,7 +175,10 @@ void sgct_utils::SGCTDome::cleanup()
 }
 
 /*!
-	If openGL 3.3+ is used layout 0 contains vertex positions (vec3).
+If openGL 3.3+ is used:
+layout 0 contains texture coordinates (vec2)
+layout 1 contains vertex normals (vec3)
+layout 2 contains vertex positions (vec3).
 */
 void sgct_utils::SGCTDome::draw()
 {
@@ -146,60 +188,91 @@ void sgct_utils::SGCTDome::draw()
 void sgct_utils::SGCTDome::drawVBO()
 {
 	glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
+	glEnableClientState(GL_TEXTURE_COORD_ARRAY);
+	glEnableClientState(GL_NORMAL_ARRAY);
 	glEnableClientState(GL_VERTEX_ARRAY);
 
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
 
-	glVertexPointer(3, GL_FLOAT, 0, NULL);
+	glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
+	
+	unsigned int offset;
+	unsigned int size;
 
-	for(unsigned int r=0; r<mRings; r++)
-		glDrawArrays(GL_LINE_LOOP, r * mResolution, mResolution);
-	for(unsigned int s=0; s<mSegments; s++)
-		glDrawArrays(GL_LINE_STRIP, mRings * mResolution + s * ((mResolution/4)+1), (mResolution/4)+1);
+	for (int n = 0; n < mElevationSteps - 1; n++)
+	{
+		size = (2 * mAzimuthSteps + 2);
+		offset = n * size;
+		glDrawElements(GL_TRIANGLE_STRIP, size, GL_UNSIGNED_INT, (void*)(offset*sizeof(unsigned int)));
+	}
 
-	//unbind
+	size = mAzimuthSteps + 2; //one extra for the cap vertex and one extra for duplication of last index
+	offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+	glDrawElements(GL_TRIANGLE_FAN, size, GL_UNSIGNED_INT, (void*)(offset*sizeof(unsigned int)));
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
+
 	glPopClientAttrib();
 }
 
 void sgct_utils::SGCTDome::drawVAO()
 {
-	glBindVertexArray( mVAO );
+	glBindVertexArray(mVAO);
+	unsigned int offset;
+	unsigned int size;
 
-	for(unsigned int r=0; r<mRings; r++)
-		glDrawArrays(GL_LINE_LOOP, r * mResolution, mResolution);
-	for(unsigned int s=0; s<mSegments; s++)
-		glDrawArrays(GL_LINE_STRIP, mRings * mResolution + s * ((mResolution/4)+1), (mResolution/4)+1);
+	for (int n = 0; n < mElevationSteps - 1; n++)
+	{
+		size = (2 * mAzimuthSteps + 2);
+		offset = n * size;
+		glDrawElements(GL_TRIANGLE_STRIP, size, GL_UNSIGNED_INT, (void*)(offset*sizeof(unsigned int)));
+	}
 
-	//unbind
+	size = mAzimuthSteps + 2; //one extra for the cap vertex and one extra for duplication of last index
+	offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+	glDrawElements(GL_TRIANGLE_FAN, size, GL_UNSIGNED_INT, (void*)(offset*sizeof(unsigned int)));
 	glBindVertexArray(0);
 }
 
 void sgct_utils::SGCTDome::createVBO()
 {
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if (!sgct::Engine::instance()->isOGLPipelineFixed())
 	{
 		mInternalDrawFn = &SGCTDome::drawVAO;
 
 		glGenVertexArrays(1, &mVAO);
-		glBindVertexArray( mVAO );
+		glBindVertexArray(mVAO);
 		glEnableVertexAttribArray(0);
+		glEnableVertexAttribArray(1);
+		glEnableVertexAttribArray(2);
+
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTDome: Generating VAO: %d\n", mVAO);
 	}
 
-	glGenBuffers(1, &mVBO);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTDome: Generating VBO: %d\n", mVBO);
+	glGenBuffers(2, &mVBO[0]);
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTDome: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]);
 
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, mNumberOfVertices * sizeof(float), mVerts, GL_STATIC_DRAW);
+	glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
+	glBufferData(GL_ARRAY_BUFFER, static_cast<int>(mVerts.size()) * sizeof(sgct_helpers::SGCTVertexData), mVerts.data(), GL_STATIC_DRAW);
 
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+	if (!sgct::Engine::instance()->isOGLPipelineFixed())
 	{
-		glVertexAttribPointer( 0, 3, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) ); //vert positions
+		glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(0)); //texcoords
+		glVertexAttribPointer(1, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(8)); //normals
+		glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, sizeof(sgct_helpers::SGCTVertexData), reinterpret_cast<void*>(20)); //vert positions
 	}
 
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
+	glBufferData(GL_ELEMENT_ARRAY_BUFFER, static_cast<int>(mIndices.size()) * sizeof(unsigned int), mIndices.data(), GL_STATIC_DRAW);
+
 	//unbind
-	if( !sgct::Engine::instance()->isOGLPipelineFixed() )
-		glBindVertexArray( 0 );
+	if (!sgct::Engine::instance()->isOGLPipelineFixed())
+	{
+		glBindVertexArray(0);
+	}
+
+	glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, 0);
 	glBindBuffer(GL_ARRAY_BUFFER, 0);
 }

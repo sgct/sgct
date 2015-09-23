@@ -488,6 +488,8 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTDome.h"
 #include "sgct/utils/SGCTPlane.h"
 
+#include "sgct/utils/SGCTDomeGrid.h"
+
 //helpers
 /*!
 Ths namespace contains various help classes and functions.

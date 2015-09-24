@@ -41,7 +41,8 @@ bool loadOBJ(
 	}
 #else
 	FILE * file = fopen(path, "r");
-	if( file == NULL ){
+	if( file == NULL )
+	{
 		printf("Impossible to open the file!\n");
 		return false;
 	}
@@ -56,7 +57,8 @@ bool loadOBJ(
 	char faceCoord1[64];
 	char faceCoord2[64];
 
-	while( 1 ){
+	while( true )
+	{
 
 		// read the first word of the line
 #if (_MSC_VER >= 1400)

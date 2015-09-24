@@ -32,7 +32,7 @@ tthread::thread * loadThread;
 tthread::mutex mutex;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
-sgct_core::Image * transImg = NULL;
+std::vector<sgct_core::Image *> transImages;
 
 //sync variables
 sgct::SharedBool info(false);
@@ -42,7 +42,7 @@ sgct::SharedInt32 texIndex(-1);
 sgct::SharedInt32 numSyncedTex(0);
 
 //other mutex variables
-sgct::SharedInt32 currentPackage(-1);
+sgct::SharedInt32 lastPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfer(false);
 sgct::SharedBool serverUploadDone(false);
@@ -141,8 +141,8 @@ void myPreSyncFun()
 		//if texture is uploaded then iterate the index
 		if (serverUploadDone.getVal() && clientsUploadDone.getVal())
 		{
-			numSyncedTex++;
-			texIndex++;
+			numSyncedTex = static_cast<int32_t>(texIds.getSize());
+			texIndex = numSyncedTex-1;
 			serverUploadDone = false;
 			clientsUploadDone = false;
 		}
@@ -239,12 +239,18 @@ void keyCallback(int key, int action)
 
 		case SGCT_KEY_LEFT:
 			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
-				texIndex.getVal() > 0 ? texIndex-- : texIndex.setVal( numSyncedTex.getVal()-1 );
+			{
+				texIndex.getVal() > 0 ? texIndex-- : texIndex.setVal(numSyncedTex.getVal() - 1);
+				//fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
+			}
 			break;
 
 		case SGCT_KEY_RIGHT:
 			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
+			{
 				texIndex.setVal((texIndex.getVal() + 1) % numSyncedTex.getVal());
+				//fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
+			}
 			break;
 		}
 	}
@@ -273,9 +279,9 @@ void myDataTransferDecoder(void * receivedData, int receivedlength, int packageI
 {
 	sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
-	currentPackage.setVal(packageId);
+	lastPackage.setVal(packageId);
     
-    //read the image on master
+    //read the image on slave
     readImage( reinterpret_cast<unsigned char*>(receivedData), receivedlength);
     uploadTexture();
 }
@@ -290,7 +296,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
 	sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
     
     static int counter = 0;
-    if( packageId == currentPackage.getVal())
+    if( packageId == lastPackage.getVal())
     {
         counter++;
         if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
@@ -313,7 +319,7 @@ void threadWorker(void *arg)
 			startDataTransfer();
             transfer.setVal(false);
             
-            //load texture on master
+            //load textures on master
             uploadTexture();
 			serverUploadDone = true;
             
@@ -330,45 +336,50 @@ void threadWorker(void *arg)
 void startDataTransfer()
 {
     //iterate
-    int id = currentPackage.getVal();
+    int id = lastPackage.getVal();
     id++;
-    currentPackage.setVal(id);
-    
+
     //make sure to keep within bounds
     if(static_cast<int>(imagePaths.getSize()) > id)
     {
-        sendTimer = sgct::Engine::getTime();
-        
-        //load from file
-        std::pair<std::string, int> tmpPair = imagePaths.getValAt(static_cast<std::size_t>(id));
-        
-        std::ifstream file(tmpPair.first.c_str(), std::ios::binary);
-        file.seekg(0, std::ios::end);
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-        
-        std::vector<char> buffer(size + headerSize);
-        char type = tmpPair.second;
-        
-        //write header (single unsigned char)
-        buffer[0] = type;
-        
-        if (file.read(buffer.data()+headerSize, size))
-        {
-            gEngine->transferDataBetweenNodes(buffer.data(), static_cast<int>(buffer.size()), id);
-            
-            //read the image on master
-			readImage(reinterpret_cast<unsigned char *>(buffer.data()), static_cast<int>(buffer.size()));
-        }
+		sendTimer = sgct::Engine::getTime();
+
+		int imageCounter = static_cast<int32_t>(imagePaths.getSize());
+		lastPackage.setVal(imageCounter - 1);
+
+		for (int i = id; i < imageCounter; i++)
+		{
+			//load from file
+			std::pair<std::string, int> tmpPair = imagePaths.getValAt(static_cast<std::size_t>(i));
+
+			std::ifstream file(tmpPair.first.c_str(), std::ios::binary);
+			file.seekg(0, std::ios::end);
+			std::streamsize size = file.tellg();
+			file.seekg(0, std::ios::beg);
+
+			std::vector<char> buffer(size + headerSize);
+			char type = tmpPair.second;
+
+			//write header (single unsigned char)
+			buffer[0] = type;
+
+			if (file.read(buffer.data() + headerSize, size))
+			{
+				//transfer
+				gEngine->transferDataBetweenNodes(buffer.data(), static_cast<int>(buffer.size()), i);
+
+				//read the image on master
+				readImage(reinterpret_cast<unsigned char *>(buffer.data()), static_cast<int>(buffer.size()));
+			}
+		}
     }
-    
 }
 
 void readImage(unsigned char * data, int len)
 {
     mutex.lock();
     
-    transImg = new (std::nothrow) sgct_core::Image();
+	sgct_core::Image * img = new (std::nothrow) sgct_core::Image();
     
     char type = static_cast<char>(data[0]);
     
@@ -376,20 +387,21 @@ void readImage(unsigned char * data, int len)
     switch( type )
     {
         case IM_JPEG:
-            result = transImg->loadJPEG(reinterpret_cast<unsigned char*>(data+headerSize), len-headerSize);
+			result = img->loadJPEG(reinterpret_cast<unsigned char*>(data + headerSize), len - headerSize);
             break;
             
         case IM_PNG:
-            result = transImg->loadPNG(reinterpret_cast<unsigned char*>(data+headerSize), len-headerSize);
+			result = img->loadPNG(reinterpret_cast<unsigned char*>(data + headerSize), len - headerSize);
             break;
     }
     
-    if(!result)
-    {
-        //clear if failed
-        delete transImg;
-        transImg = NULL;
-    }
+	if (!result)
+	{
+		//clear if failed
+		delete img;
+	}
+	else
+		transImages.push_back(img);
 
     mutex.unlock();
 }
@@ -398,81 +410,86 @@ void uploadTexture()
 {
 	mutex.lock();
 
-	if (transImg)
+	if (!transImages.empty())
 	{
 		glfwMakeContextCurrent(hiddenWindow);
 
-		//create texture
-		GLuint tex;
-		glGenTextures(1, &tex);
-		glBindTexture(GL_TEXTURE_2D, tex);
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-		GLenum internalformat;
-		GLenum type;
-		unsigned int bpc = transImg->getBytesPerChannel();
-
-		switch (transImg->getChannels())
+		for (std::size_t i = 0; i < transImages.size(); i++)
 		{
-		case 1:
-			internalformat = (bpc == 1 ? GL_R8 : GL_R16);
-			type = GL_RED;
-			break;
+			if (transImages[i])
+			{
+				//create texture
+				GLuint tex;
+				glGenTextures(1, &tex);
+				glBindTexture(GL_TEXTURE_2D, tex);
+				glPixelStorei(GL_PACK_ALIGNMENT, 1);
+				glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-		case 2:
-			internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
-			type = GL_RG;
-			break;
+				GLenum internalformat;
+				GLenum type;
+				unsigned int bpc = transImages[i]->getBytesPerChannel();
 
-		case 3:
-		default:
-			internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-			type = GL_BGR;
-			break;
+				switch (transImages[i]->getChannels())
+				{
+				case 1:
+					internalformat = (bpc == 1 ? GL_R8 : GL_R16);
+					type = GL_RED;
+					break;
 
-		case 4:
-			internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-			type = GL_BGRA;
-			break;
-		}
+				case 2:
+					internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
+					type = GL_RG;
+					break;
 
-		int mipMapLevels = 8;
-		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+				case 3:
+				default:
+					internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+					type = GL_BGR;
+					break;
 
-		glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
+				case 4:
+					internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+					type = GL_BGRA;
+					break;
+				}
 
-		//glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
+				int mipMapLevels = 8;
+				GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
+				glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImages[i]->getWidth(), transImages[i]->getHeight());
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImages[i]->getWidth(), transImages[i]->getHeight(), type, format, transImages[i]->getData());
 
-		glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels - 1);
 
-		//unbind
-		glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+				glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-		sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImg->getWidth(), transImg->getHeight(), transImg->getChannels());
+				//unbind
+				glBindTexture(GL_TEXTURE_2D, GL_FALSE);
 
-		texIds.addVal(tex);
+				sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImages[i]->getWidth(), transImages[i]->getHeight(), transImages[i]->getChannels());
 
-		delete transImg;
-		transImg = NULL;
+				texIds.addVal(tex);
 
+				delete transImages[i];
+				transImages[i] = NULL;
+			}
+			else //if invalid load
+			{
+				texIds.addVal(GL_FALSE);
+			}
+		}//end for
+
+		transImages.clear();
 		glFinish();
 
 		//restore
 		glfwMakeContextCurrent(NULL);
-	}
-	else //if invalid load
-	{
-		texIds.addVal(GL_FALSE);
-	}
+	}//end if not empty
 
 	mutex.unlock();
 }
@@ -481,36 +498,41 @@ void myDropCallback(int count, const char** paths)
 {
 	if (gEngine->isMaster())
 	{
-		std::size_t found;
-
-		//simpy pick the first path to transmit
-		std::string tmpStr(paths[0]);
-
-		//transform to lowercase
-		std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
-
-		found = tmpStr.find(".jpg");
-		if (found != std::string::npos)
+		//iterate all drop paths
+		for (int i = 0; i < count; i++)
 		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
-			transfer.setVal(true);
-			return;
-		}
+			std::size_t found;
 
-		found = tmpStr.find(".jpeg");
-		if (found != std::string::npos)
-		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
-			transfer.setVal(true);
-			return;
-		}
+			//simpy pick the first path to transmit
+			std::string tmpStr(paths[i]);
 
-		found = tmpStr.find(".png");
-		if (found != std::string::npos)
-		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_PNG));
-			transfer.setVal(true);
-			return;
+			//transform to lowercase
+			std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+
+			found = tmpStr.find(".jpg");
+			if (found != std::string::npos)
+			{
+				imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
+				transfer.setVal(true);
+			}
+			else
+			{
+				found = tmpStr.find(".jpeg");
+				if (found != std::string::npos)
+				{
+					imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
+					transfer.setVal(true);
+				}
+				else
+				{
+					found = tmpStr.find(".png");
+					if (found != std::string::npos)
+					{
+						imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_PNG));
+						transfer.setVal(true);
+					}
+				}
+			}
 		}
 	}
 }

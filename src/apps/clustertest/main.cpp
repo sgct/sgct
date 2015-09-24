@@ -190,7 +190,7 @@ void myDrawFun()
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
 	else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye )
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
-	else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::Mono )
+	else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye)
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Mono");
 
 	if( gEngine->getCurrentWindowPtr()->isUsingSwapGroups() )

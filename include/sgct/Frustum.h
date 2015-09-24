@@ -20,7 +20,7 @@ public:
 	/*! 
 		SGCT stores all view frustums as triplets for easy switching between mono and stereo
 	*/
-	enum FrustumMode { Mono = 0, StereoLeftEye, StereoRightEye };
+	enum FrustumMode { MonoEye = 0, StereoLeftEye, StereoRightEye };
 
 	Frustum()
 	{

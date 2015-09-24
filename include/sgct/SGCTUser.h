@@ -38,15 +38,15 @@ public:
 	void setEyeSeparation(float eyeSeparation);
 
 	std::string getName();
-	const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::Mono);
-	glm::vec3 * getPosPtr() { return &mPos[Frustum::Mono]; }
+	const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::MonoEye);
+	glm::vec3 * getPosPtr() { return &mPos[Frustum::MonoEye]; }
 	glm::vec3 * getPosPtr(Frustum::FrustumMode fm) { return &mPos[fm]; }
 
 	inline const float & getEyeSeparation() { return mEyeSeparation; }
 	inline const float & getHalfEyeSeparation() { return mHalfEyeSeparation; }
-	inline const float & getXPos() { return mPos[Frustum::Mono].x; }
-	inline const float & getYPos() { return mPos[Frustum::Mono].y; }
-	inline const float & getZPos() { return mPos[Frustum::Mono].z; }
+	inline const float & getXPos() { return mPos[Frustum::MonoEye].x; }
+	inline const float & getYPos() { return mPos[Frustum::MonoEye].y; }
+	inline const float & getZPos() { return mPos[Frustum::MonoEye].z; }
 	inline const char * getHeadTrackerName() { return mHeadTrackerName.c_str(); }
 	inline const char * getHeadTrackerDeviceName() { return mHeadTrackerDeviceName.c_str(); }
 

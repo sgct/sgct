@@ -507,13 +507,14 @@ void myDropCallback(int count, const char** paths)
 			std::string tmpStr(paths[i]);
 
 			//transform to lowercase
-			std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+			std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);			
 
+			//find file type
 			found = tmpStr.find(".jpg");
 			if (found != std::string::npos)
 			{
 				imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
-				transfer.setVal(true);
+				transfer.setVal(true); //tell transfer thread to start processing data
 			}
 			else
 			{
@@ -521,7 +522,7 @@ void myDropCallback(int count, const char** paths)
 				if (found != std::string::npos)
 				{
 					imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
-					transfer.setVal(true);
+					transfer.setVal(true); //tell transfer thread to start processing data
 				}
 				else
 				{
@@ -529,7 +530,7 @@ void myDropCallback(int count, const char** paths)
 					if (found != std::string::npos)
 					{
 						imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_PNG));
-						transfer.setVal(true);
+						transfer.setVal(true); //tell transfer thread to start processing data
 					}
 				}
 			}

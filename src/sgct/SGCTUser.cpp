@@ -27,9 +27,9 @@ sgct_core::SGCTUser::SGCTUser(std::string name)
 */
 void sgct_core::SGCTUser::setPos(float x, float y, float z)
 {
-	mPos[Frustum::Mono].x = x;
-	mPos[Frustum::Mono].y = y;
-	mPos[Frustum::Mono].z = z;
+	mPos[Frustum::MonoEye].x = x;
+	mPos[Frustum::MonoEye].y = y;
+	mPos[Frustum::MonoEye].z = z;
 	updateEyeSeparation();
 }
 
@@ -38,7 +38,7 @@ void sgct_core::SGCTUser::setPos(float x, float y, float z)
 */
 void sgct_core::SGCTUser::setPos(glm::vec3 pos)
 {
-	mPos[Frustum::Mono] = pos;
+	mPos[Frustum::MonoEye] = pos;
 	updateEyeSeparation();
 }
 
@@ -47,7 +47,7 @@ void sgct_core::SGCTUser::setPos(glm::vec3 pos)
 */
 void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
 {
-	mPos[Frustum::Mono] = glm::vec3(pos);
+	mPos[Frustum::MonoEye] = glm::vec3(pos);
 	updateEyeSeparation();
 }
 
@@ -57,9 +57,9 @@ void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
 */
 void sgct_core::SGCTUser::setPos(float * pos)
 {
-	mPos[Frustum::Mono].x = pos[0];
-	mPos[Frustum::Mono].y = pos[1];
-	mPos[Frustum::Mono].z = pos[2];
+	mPos[Frustum::MonoEye].x = pos[0];
+	mPos[Frustum::MonoEye].y = pos[1];
+	mPos[Frustum::MonoEye].z = pos[2];
 	updateEyeSeparation();
 }
 
@@ -112,7 +112,7 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 	rotQuat = glm::rotate( rotQuat, glm::radians(zRot), glm::vec3(0.0f, 0.0f, 1.0f) );*/
 
 	//create offset translation matrix
-	glm::mat4 transMat = glm::translate( glm::mat4(1.0f), mPos[Frustum::Mono] );
+	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::MonoEye]);
 	
 	//calculate transform
 	//mTransform = transMat * glm::mat4_cast(rotQuat);
@@ -128,7 +128,7 @@ Set the user's head orientation using a quaternion
 void sgct_core::SGCTUser::setOrientation(glm::quat q)
 {
 	//create offset translation matrix
-	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::Mono]);
+	glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::MonoEye]);
 
 	mTransform = transMat * glm::mat4_cast( q );
 
@@ -151,8 +151,8 @@ void sgct_core::SGCTUser::setEyeSeparation(float eyeSeparation)
 void sgct_core::SGCTUser::updateEyeSeparation()
 {
 	glm::vec3 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f );
-	mPos[Frustum::StereoLeftEye] = mPos[Frustum::Mono] - eyeOffsetVec;
-	mPos[Frustum::StereoRightEye] = mPos[Frustum::Mono] + eyeOffsetVec;
+	mPos[Frustum::StereoLeftEye] = mPos[Frustum::MonoEye] - eyeOffsetVec;
+	mPos[Frustum::StereoRightEye] = mPos[Frustum::MonoEye] + eyeOffsetVec;
 }
 
 /*!
@@ -163,11 +163,11 @@ void sgct_core::SGCTUser::updateEyeTransform()
 	glm::vec4 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f, 0.0f );
 	
 	glm::vec4 pos[3];
-	pos[Frustum::Mono] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-	pos[Frustum::StereoLeftEye] = pos[Frustum::Mono] - eyeOffsetVec;
-	pos[Frustum::StereoRightEye] = pos[Frustum::Mono] + eyeOffsetVec;
+	pos[Frustum::MonoEye] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+	pos[Frustum::StereoLeftEye] = pos[Frustum::MonoEye] - eyeOffsetVec;
+	pos[Frustum::StereoRightEye] = pos[Frustum::MonoEye] + eyeOffsetVec;
 
-	mPos[Frustum::Mono] = glm::vec3( mTransform * pos[Frustum::Mono] );
+	mPos[Frustum::MonoEye] = glm::vec3(mTransform * pos[Frustum::MonoEye]);
 	mPos[Frustum::StereoLeftEye] = glm::vec3( mTransform * pos[Frustum::StereoLeftEye] );
 	mPos[Frustum::StereoRightEye] = glm::vec3( mTransform * pos[Frustum::StereoRightEye] );
 }

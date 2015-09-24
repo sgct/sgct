@@ -16,7 +16,7 @@ sgct_core::BaseViewport::BaseViewport()
 	mXSize = 1.0f;
 	mYSize = 1.0f;
 	mEnabled = true;
-	mEye = Frustum::Mono;
+	mEye = Frustum::MonoEye;
 	mUser = ClusterManager::instance()->getDefaultUserPtr();
 	mName.assign("NoName");
 }

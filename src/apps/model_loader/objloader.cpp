@@ -56,7 +56,11 @@ bool loadOBJ(
 	while( true )
 	{
 		// read the first word of the line
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+		int res = fscanf_s(file, "%s", lineHeader);
+#else
 		int res = fscanf(file, "%s", lineHeader);
+#endif
 		if (res == EOF)
 			break; // EOF = End Of File. Quit the loop.
 
@@ -152,15 +156,28 @@ bool loadOBJ(
 					normalIndices.push_back(normalIndex[1]);
 					normalIndices.push_back(normalIndex[2]);
 				}
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+				else if( sscanf_s( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+#else
 				else if( sscanf( faceCoord0, "%d//%d", &vertexIndex[0], &normalIndex[0] ) == 2 ) //vertex + normal valid
+#endif
 				{
-					if( sscanf( faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1] ) != 2 )
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+					if( sscanf_s( faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1] ) != 2 )
+#else
+					if (sscanf(faceCoord1, "%d//%d", &vertexIndex[1], &normalIndex[1]) != 2)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+					if( sscanf_s( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+#else
 					if( sscanf( faceCoord2, "%d//%d", &vertexIndex[2], &normalIndex[2] ) != 2 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;
@@ -173,15 +190,29 @@ bool loadOBJ(
 					normalIndices.push_back(normalIndex[1]);
 					normalIndices.push_back(normalIndex[2]);
 				}
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+				else if( sscanf_s( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
+#else
 				else if( sscanf( faceCoord0, "%d/%d//", &vertexIndex[0], &uvIndex[0] ) == 2 ) //vertex + uv valid
+#endif
 				{
+					
+#if (_MSC_VER >= 1400) //visual studio 2005 or later	
+					if( sscanf_s( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
+#else
 					if( sscanf( faceCoord1, "%d/%d//", &vertexIndex[1], &uvIndex[1] ) != 2 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+					if( sscanf_s( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
+#else
 					if( sscanf( faceCoord2, "%d/%d//", &vertexIndex[2], &uvIndex[2] ) != 2 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;
@@ -194,15 +225,29 @@ bool loadOBJ(
 					uvIndices    .push_back(uvIndex[1]);
 					uvIndices    .push_back(uvIndex[2]);
 				}
-				else if( sscanf( faceCoord0, "%d///", &vertexIndex[0] ) == 1 ) //vertex only
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+				else if( sscanf_s( faceCoord0, "%d///", &vertexIndex[0] ) == 1 ) //vertex only
+#else
+				else if (sscanf(faceCoord0, "%d///", &vertexIndex[0]) == 1) //vertex only
+#endif
 				{
-					if( sscanf( faceCoord1, "%d///", &vertexIndex[1] ) != 1 )
+					
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+					if( sscanf_s( faceCoord1, "%d///", &vertexIndex[1] ) != 1 )
+#else
+					if (sscanf(faceCoord1, "%d///", &vertexIndex[1]) != 1)
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 2nd face indexes.\n");
 						return false;
 					}
 					
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+					if( sscanf_s( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+#else
 					if( sscanf( faceCoord2, "%d///", &vertexIndex[2] ) != 1 )
+#endif
 					{
 						printf("File can't be read by our simple parser. Can't read 3rd face indexes.\n");
 						return false;

@@ -8,3 +8,4 @@ include/external/pnglibconf.h
 include/external/zconf.h
 include/sgct/SGCTVersion.h
 src/installers/sgct_osg_all_win.nsi
+lib

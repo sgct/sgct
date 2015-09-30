@@ -12,6 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <glm/glm.hpp>
 #include "SGCTWindow.h"
+#ifndef SGCT_DONT_USE_EXTERNAL
+
+#include "../include/external/tinyxml2.h"
+#else
+#include <tinyxml2.h>
+#endif
 
 namespace sgct_core //simple graphics cluster toolkit
 {
@@ -26,7 +32,9 @@ public:
 
 private:
     bool replaceEnvVars( const std::string &filename );
-	bool readAndParseXML();
+    bool readAndParseXMLFile();
+    bool readAndParseXMLString();
+	bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
 	sgct::SGCTWindow::StereoMode getStereoType( std::string type );
 	sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
 

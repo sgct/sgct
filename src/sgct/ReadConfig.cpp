@@ -12,15 +12,33 @@
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ClusterManager.h"
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/tinyxml2.h"
-#else
-#include <tinyxml2.h>
-#endif
 
 #include "../include/sgct/SGCTSettings.h"
 #include <algorithm>
 #include <sstream>
+
+const std::string DefaultSingleConfiguration = "            \
+<?xml version=\"1.0\" ?>                                    \
+<Cluster masterAddress=\"localhost\">                       \
+<Node address=\"localhost\" port=\"20401\">                 \
+<Window fullScreen=\"false\">                               \
+<Size x=\"640\" y=\"480\" />                                \
+<Viewport>                                                  \
+<Pos x=\"0.0\" y=\"0.0\" />                                 \
+<Size x=\"1.0\" y=\"1.0\" />                                \
+<Projectionplane>                                           \
+<Pos x=\"-1.778\" y=\"-1.0\" z=\"0.0\" />                   \
+<Pos x=\"-1.778\" y=\" 1.0\" z=\"0.0\" />                   \
+<Pos x=\" 1.778\" y=\" 1.0\" z=\"0.0\" />                   \
+</Projectionplane>                                          \
+</Viewport>                                                 \
+</Window>                                                   \
+</Node>                                                     \
+<User eyeSeparation=\"0.06\">                               \
+<Pos x=\"0.0\" y=\"0.0\" z=\"4.0\" />                       \
+</User>                                                     \
+</Cluster>                                                  \
+";
 
 sgct_core::ReadConfig::ReadConfig( const std::string filename )
 {
@@ -28,25 +46,25 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
     
 	if( filename.empty() )
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: No XML config file loaded.\n");
-		return;
+        readAndParseXMLString();
+        valid = true;
 	}
 	else
 	{
 	    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Parsing XML config '%s'...\n", filename.c_str());
-	}
     
-    if( !replaceEnvVars(filename) )
-        return;
+        if( !replaceEnvVars(filename) )
+            return;
     
-	if(!readAndParseXML())
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), mErrorMsg.c_str());
-		return;
-	}
-	valid = true;
+        if(!readAndParseXMLFile())
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), mErrorMsg.c_str());
+            return;
+        }
+        valid = true;
     
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str());
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str());
+    }
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Number of nodes in cluster: %d\n",
                                             ClusterManager::instance()->getNumberOfNodes());
     
@@ -127,26 +145,51 @@ bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
     return true;
 }
 
-bool sgct_core::ReadConfig::readAndParseXML()
+bool sgct_core::ReadConfig::readAndParseXMLFile()
 {
-	if (xmlFileName.empty())
-	{
-		mErrorMsg.assign("No XML file set!");
-		return false;
-	}
+    if (xmlFileName.empty())
+    {
+        mErrorMsg.assign("No XML file set!");
+        return false;
+    }
     
-	tinyxml2::XMLDocument xmlDoc;
-	if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
-	{
+    tinyxml2::XMLDocument xmlDoc;
+    if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
+    {
         std::stringstream ss;
-		if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-			ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-		else
-			ss << "File not found";
-		mErrorMsg = ss.str();
-		return false;
-	}
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+            ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        else
+            ss << "File not found";
+        mErrorMsg = ss.str();
+        return false;
+    }
+    else
+        return readAndParseXML(xmlDoc);
+}
+
+bool sgct_core::ReadConfig::readAndParseXMLString()
+{
+    tinyxml2::XMLDocument xmlDoc;
+    bool loadSuccess = xmlDoc.Parse(DefaultSingleConfiguration.c_str(), DefaultSingleConfiguration.size()) == tinyxml2::XML_NO_ERROR;
     
+    if (!loadSuccess)
+    {
+        std::stringstream ss;
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+            ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        else
+            ss << "File not found";
+        mErrorMsg = ss.str();
+        assert(false);
+        return false;
+    }
+    else
+        return readAndParseXML(xmlDoc);
+}
+
+bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
+{
 	tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
 	if( XMLroot == NULL )
 	{

@@ -366,6 +366,12 @@ Load a unmanged texture. Note that this type of textures doesn't auto destruct.
 bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	unsigned int tmpTexID = GL_FALSE;
+
+	if (texID != GL_FALSE)
+	{
+		glDeleteTextures(1, &texID);
+		texID = GL_FALSE;
+	}
 	
 	//load image
 	sgct_core::Image img;

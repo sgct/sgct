@@ -306,7 +306,7 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumbe
 	
 	//use default settings if path is empty
 	bool useDefaultSettings = true;
-	if (!mPath.empty())
+	if (!mPath.empty() || !mBaseName.empty())
 		useDefaultSettings = false;
 
 	std::string tmpPath;
@@ -352,7 +352,12 @@ void sgct_core::ScreenCapture::addFrameNumberToFilename( unsigned int frameNumbe
 			ss << "_" << win->getName();
 	}
 	else
-		ss << mPath << "/" << mBaseName;
+	{
+		if (mPath.empty())
+			ss << mBaseName;
+		else
+			ss << mPath << "/" << mBaseName;
+	}
 
 	ss << eye;
 

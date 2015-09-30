@@ -291,14 +291,11 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
     
     int jpegsubsamp;
     int pixelformat;
+	int colorspace;
 
 	mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
     
-    /*
-     use tjDecompressHeader3 for newer versions of turbo-jpeg.
-     */
-    
-    if( tjDecompressHeader2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), &mSize_x, &mSize_y, &jpegsubsamp) < 0 )
+	if (tjDecompressHeader3(turbo_jpeg_handle, data, static_cast<unsigned long>(len), &mSize_x, &mSize_y, &jpegsubsamp, &colorspace) < 0)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
         tjDestroy(turbo_jpeg_handle);
@@ -345,7 +342,7 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
 
     }
     
-    if( tjDecompress2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), mData, mSize_x, 0, mSize_y, pixelformat, TJFLAG_FASTDCT) < 0 )
+	if (tjDecompress2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), mData, mSize_x, 0, mSize_y, pixelformat, TJFLAG_FASTDCT | TJFLAG_BOTTOMUP) < 0)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
         tjDestroy(turbo_jpeg_handle);
@@ -436,10 +433,9 @@ bool sgct_core::Image::loadPNG(std::string filename)
                 PNG_TRANSFORM_PACKING |
                 PNG_TRANSFORM_EXPAND | 
 				PNG_TRANSFORM_BGR, NULL);
-	png_set_bgr(png_ptr);
-
+	
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
-	png_set_bgr(png_ptr);
+	//png_set_bgr(png_ptr);
 
 	mBytesPerChannel = bpp / 8;
 
@@ -543,17 +539,17 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
     png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
     
     png_read_png( png_ptr, info_ptr,
-                 PNG_TRANSFORM_STRIP_16 |
-                 PNG_TRANSFORM_PACKING |
-                 PNG_TRANSFORM_EXPAND |
-                 PNG_TRANSFORM_BGR, NULL);
-	png_set_bgr(png_ptr);
-    
+                //PNG_TRANSFORM_STRIP_16 | //we want 16-bit support
+				PNG_TRANSFORM_SWAP_ENDIAN | //needed for 16-bit support
+                PNG_TRANSFORM_PACKING |
+                PNG_TRANSFORM_EXPAND | 
+				PNG_TRANSFORM_BGR, NULL);
+	
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
-	png_set_bgr(png_ptr);
+	//png_set_bgr(png_ptr);
 
 	mBytesPerChannel = bpp / 8;
-    
+
 	if(color_type == PNG_COLOR_TYPE_GRAY )
 	{
 		mChannels = 1;
@@ -571,10 +567,10 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		mChannels = 4;
 	else
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unsupported format!\n" );
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unsupported format '%s'\n", mFilename.c_str());
 		return false;
 	}
-    
+
 	if (!allocateOrResizeData())
 	{
 		return false;
@@ -592,7 +588,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		for( c = 0 ; c < rowbytes ; c++ )
 			*(pb)++ = row[c];
 	}
-    
+
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
     
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d %d-bit PNG from memory.\n", mSize_x, mSize_y, mBytesPerChannel*8);

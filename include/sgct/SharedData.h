@@ -15,10 +15,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "SharedDataTypes.h"
 #include "SGCTMutexManager.h"
 
+#ifndef SGCT_DEPRECATED
 #if defined(_MSC_VER) //if visual studio
-	#define SGCT_DEPRICATED __declspec(deprecated)
+	#define SGCT_DEPRECATED __declspec(deprecated)
 #else
-	#define SGCT_DEPRICATED  __attribute__((deprecated))
+	#define SGCT_DEPRECATED __attribute__((deprecated))
+#endif
 #endif
 
 namespace sgct //simple graphics cluster toolkit
@@ -66,8 +68,8 @@ public:
 	void writeObj(SharedObject<T> * sobj);
 	void writeFloat(SharedFloat * sf);
 	void writeDouble(SharedDouble * sd);
-	SGCT_DEPRICATED void writeInt(SharedInt * si); //deprecated
-	SGCT_DEPRICATED void writeShort(SharedShort * si); //deprecated
+	SGCT_DEPRECATED void writeInt(SharedInt * si); //deprecated
+	SGCT_DEPRECATED void writeShort(SharedShort * si); //deprecated
 	
 	void writeInt64(SharedInt64 * si);
 	void writeInt32(SharedInt32 * si);
@@ -89,8 +91,8 @@ public:
 	void readObj(SharedObject<T> * sobj);
 	void readFloat(SharedFloat * f);
 	void readDouble(SharedDouble * d);
-	SGCT_DEPRICATED void readInt(SharedInt * si); //deprecated
-	SGCT_DEPRICATED void readShort(SharedShort * ss); //deprecated
+	SGCT_DEPRECATED void readInt(SharedInt * si); //deprecated
+	SGCT_DEPRECATED void readShort(SharedShort * ss); //deprecated
 	
 	void readInt64(SharedInt64 * si);
 	void readInt32(SharedInt32 * si);

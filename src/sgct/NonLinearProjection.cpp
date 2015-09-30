@@ -37,7 +37,7 @@ sgct_core::NonLinearProjection::NonLinearProjection()
 	mVpCoords[2] = 0;
 	mVpCoords[3] = 0;
 
-	mPreferedMonoFrustumMode = Frustum::Mono;
+	mPreferedMonoFrustumMode = Frustum::MonoEye;
 }
 
 sgct_core::NonLinearProjection::~NonLinearProjection()

@@ -8,6 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_DOME
 #define _SGCT_DOME
 
+#include "../helpers/SGCTVertexData.h"
+#include <vector>
+
 namespace sgct_utils
 {
 
@@ -17,13 +20,12 @@ namespace sgct_utils
 class SGCTDome
 {
 public:
-	SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution = 128);
-	SGCTDome(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution = 128);
+	SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
 	~SGCTDome();
 	void draw();
 
 private:
-	void init(float radius, float FOV, unsigned int segments, unsigned int rings, float tilt, unsigned int resolution);
+	void init(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps);
 	// Don't implement these, should give compile warning if used
 	SGCTDome();
 	SGCTDome( const SGCTDome & dome );
@@ -39,12 +41,13 @@ private:
 	void cleanup();
 
 private:
-	float * mVerts;
-	unsigned int mNumberOfVertices;
-	unsigned int mResolution;
-	unsigned int mRings;
-	unsigned int mSegments;
-	unsigned int mVBO;
+	std::vector<sgct_helpers::SGCTVertexData> mVerts;
+	std::vector<unsigned int> mIndices;
+	int mElevationSteps;
+	int mAzimuthSteps;
+
+	enum bufferType { Vertex = 0, Index };
+	unsigned int mVBO[2];
 	unsigned int mVAO;
 };
 

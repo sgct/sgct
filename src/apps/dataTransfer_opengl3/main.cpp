@@ -217,8 +217,11 @@ void myCleanUpFun()
     for(std::size_t i=0; i < texIds.getSize(); i++)
     {
         GLuint tex = texIds.getValAt(i);
-        glDeleteTextures(1, &tex);
-        texIds.setValAt(i, GL_FALSE);
+		if (tex)
+		{
+			glDeleteTextures(1, &tex);
+			texIds.setValAt(i, GL_FALSE);
+		}
     }
     texIds.clear();
     
@@ -412,33 +415,37 @@ void uploadTexture()
         
         GLenum internalformat;
         GLenum type;
+		unsigned int bpc = transImg->getBytesPerChannel();
+
         switch( transImg->getChannels() )
         {
             case 1:
-                internalformat = GL_R8;
+				internalformat = (bpc == 1 ? GL_R8 : GL_R16);
                 type = GL_RED;
                 break;
                 
             case 2:
-                internalformat = GL_RG8;
+				internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
                 type = GL_RG;
                 break;
                 
             case 3:
             default:
-                internalformat = GL_RGB8;
+				internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
                 type = GL_BGR;
                 break;
                 
             case 4:
-                internalformat = GL_RGBA8;
+				internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
                 type = GL_BGRA;
                 break;
         }
         
         int mipMapLevels = 8;
+		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+
         glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
-        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, GL_UNSIGNED_BYTE, transImg->getData());
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
         
         //glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
         

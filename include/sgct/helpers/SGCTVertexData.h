@@ -17,6 +17,30 @@ namespace sgct_helpers
 class SGCTVertexData
 {	
 public:
+	SGCTVertexData()
+	{
+		mS = 0.0f;
+		mT = 0.0f;
+		mNx = 0.0f;
+		mNy = 0.0f;
+		mNz = 0.0f;
+		mX = 0.0f;
+		mY = 0.0f;
+		mZ = 0.0f;
+	}
+
+	SGCTVertexData(float s, float t, float nx, float ny, float nz, float x, float y, float z)
+	{
+		mS = s;
+		mT = t;
+		mNx = nx;
+		mNy = ny;
+		mNz = nz;
+		mX = x;
+		mY = y;
+		mZ = z;
+	}
+
 	void set(float s, float t, float nx, float ny, float nz, float x, float y, float z)
 	{
 		mS = s;
@@ -28,6 +52,15 @@ public:
 		mY = y;
 		mZ = z;
 	}
+
+	void setPositionX(float x) { mX = x; }
+	void setPositionY(float y) { mY = y; }
+	void setPositionZ(float z) { mZ = z; }
+	void setTextureS(float s) { mS = s; }
+	void setTextureT(float t) { mT = t; }
+	void setNormalX(float nx) { mNx = nx; }
+	void setNormalY(float ny) { mNy = ny; }
+	void setNormalZ(float nz) { mNz = nz; }
 	
 private:
 	float mS, mT;	//Texcoord0 8

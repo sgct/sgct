@@ -72,7 +72,7 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 	{
 		if (strcmp("center", element->Attribute("eye")) == 0)
 		{
-			setEye(Frustum::Mono);
+			setEye(Frustum::MonoEye);
 		}
 		else if (strcmp("left", element->Attribute("eye")) == 0)
 		{
@@ -133,7 +133,7 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 	mY = y;
 	mXSize = xSize;
 	mYSize = ySize;
-	mEye = Frustum::Mono;
+	mEye = Frustum::MonoEye;
 	mCorrectionMesh = false;
 	mOverlayTextureIndex = GL_FALSE;
 	mMaskTextureIndex = GL_FALSE;

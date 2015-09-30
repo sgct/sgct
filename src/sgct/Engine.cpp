@@ -164,7 +164,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mShowGraph = false;
 	mShowWireframe = false;
 	mTakeScreenshot = false;
-	mCurrentFrustumMode = Frustum::Mono;
+	mCurrentFrustumMode = Frustum::MonoEye;
 	mFrameCounter = 0;
     mShotCounter = 0;
     mTimerID = 0;
@@ -1174,7 +1174,7 @@ void sgct::Engine::render()
 			//if any stereo type (except passive) then set frustum mode to left eye
 			if( sm == static_cast<int>(SGCTWindow::No_Stereo))
             {
-                mCurrentFrustumMode = Frustum::Mono;
+				mCurrentFrustumMode = Frustum::MonoEye;
                 renderViewports(LeftEye);
             }
             else
@@ -1730,7 +1730,7 @@ void sgct::Engine::renderFBOTexture()
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //needed for shaders
 
 	//clear buffers
-	mCurrentFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
+	mCurrentFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::MonoEye;
 
     int xSize = static_cast<int>(ceilf(win->getXScale() * static_cast<float>(win->getXResolution())));
     int ySize = static_cast<int>(ceilf(win->getYScale() * static_cast<float>(win->getYResolution())));
@@ -1857,7 +1857,7 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
     win->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
     
     //clear buffers
-    mCurrentFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::Mono;
+	mCurrentFrustumMode = win->getStereoMode() == SGCTWindow::Active_Stereo ? Frustum::StereoLeftEye : Frustum::MonoEye;
     
     int xSize = static_cast<int>(ceilf(win->getXScale() * static_cast<float>(win->getXResolution())));
     int ySize = static_cast<int>(ceilf(win->getYScale() * static_cast<float>(win->getYResolution())));
@@ -2613,7 +2613,7 @@ void sgct::Engine::updateFrustums()
 				if (vp->hasSubViewports())
 				{
 					vp->getNonLinearProjectionPtr()->updateFrustums(
-						Frustum::Mono,
+						Frustum::MonoEye,
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 
@@ -2630,7 +2630,7 @@ void sgct::Engine::updateFrustums()
 				else
 				{
 					vp->calculateFrustum(
-						Frustum::Mono,
+						Frustum::MonoEye,
 						mNearClippingPlaneDist,
 						mFarClippingPlaneDist);
 

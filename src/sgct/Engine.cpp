@@ -4283,9 +4283,8 @@ unsigned int sgct::Engine::getScreenShotNumber()
 
 void sgct::Engine::outputHelpMessage()
 {
-	fprintf( stderr, "\nRequired parameters:\n------------------------------------\n\
+	fprintf( stderr, "\nParameters:\n------------------------------------\n\
 \n-config <filename.xml>           \n\tSet xml confiuration file\n\
-\nOptional parameters:\n------------------------------------\n\
 \n-logPath <filepath>              \n\tSet log file path\n\
 \n--help                           \n\tDisplay help message and exit\n\
 \n-local <integer>                 \n\tForce node in configuration to localhost\n\t(index starts at 0)\n\

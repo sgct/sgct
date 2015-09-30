@@ -365,18 +365,10 @@ target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS}
 add_dependencies(${LIB_NAME} freetype glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
 
 #including directories with generated config files in this scope
+include_directories(${PROJECT_BINARY_DIR}/src/deps/vrpn)
 include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng)
+include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng/zlib)
 include_directories(${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
-
-#copy configure files
-add_custom_command(TARGET ${LIB_NAME}
-				PRE_BUILD
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/vrpn/vrpn_Configure.h ${PROJECT_SOURCE_DIR}/include/vrpn/vrpn_Configure.h
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib/zconf.h ${PROJECT_SOURCE_DIR}/include/external/zconf.h
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/lpng/pnglibconf.h ${PROJECT_SOURCE_DIR}/include/external/pnglibconf.h
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfig.h ${PROJECT_SOURCE_DIR}/include/external/jconfig.h
-				COMMAND ${CMAKE_COMMAND} -E copy ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo/jconfigint.h ${PROJECT_SOURCE_DIR}/include/external/jconfigint.h
-				)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)

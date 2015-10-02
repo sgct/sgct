@@ -20,6 +20,8 @@ void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
 
+bool bindSpout();
+
 sgct_utils::SGCTBox * myBox = NULL;
 //sgct_utils::SGCTPlane * myPlane = NULL;
 GLint Matrix_Loc = -1;
@@ -62,6 +64,34 @@ int main( int argc, char* argv[] )
 	exit( EXIT_SUCCESS );
 }
 
+bool bindSpout()
+{
+	if (!spoutInited && spoutReceiver->CreateReceiver(spoutSenderName, spoutWidth, spoutHeight))
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Initing %ux%u texture from '%s'.\n", spoutWidth, spoutHeight, spoutSenderName);
+		spoutInited = true;
+	}
+
+	if (spoutInited)
+	{
+		if (spoutReceiver->ReceiveTexture(spoutSenderName, spoutWidth, spoutHeight))
+		{
+			//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Receiving %ux%u texture from '%s'.\n", SpoutWidth, SpoutHeight, SpoutSenderName);
+			return spoutReceiver->BindSharedTexture();
+		}
+		else
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout disconnected.\n");
+
+			spoutInited = false; //reset if disconnected
+			spoutSenderName[0] = NULL;
+			spoutReceiver->ReleaseReceiver();
+		}
+	}
+
+	return false;
+}
+
 void myDrawFun()
 {
 	glEnable( GL_DEPTH_TEST );
@@ -79,35 +109,15 @@ void myDrawFun()
 	glActiveTexture(GL_TEXTURE0);
 
 	//spout init
-	if (!spoutInited && spoutReceiver->CreateReceiver(spoutSenderName, spoutWidth, spoutHeight))
-	{	
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Initing %ux%u texture from '%s'.\n", spoutWidth, spoutHeight, spoutSenderName);
-		spoutInited = true;
-	}
-
-	bool spooutError = true;
-	if (spoutInited)
-	{	
-		if (spoutReceiver->ReceiveTexture(spoutSenderName, spoutWidth, spoutHeight))
-		{
-			//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout: Receiving %ux%u texture from '%s'.\n", SpoutWidth, SpoutHeight, SpoutSenderName);
-			spoutReceiver->BindSharedTexture();
-			spooutError = false;
-		}
-		else
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Spout disconnected.\n");
-			
-			spoutInited = false; //reset if disconnected
-			spoutSenderName[0] = NULL;
-			spoutReceiver->ReleaseReceiver();
-		}
-	}
+	bool spoutStatus = false;
+	//check if spout supported (DX11 interop)
+	if( glfwExtensionSupported("WGL_NV_DX_interop2"))
+		spoutStatus = bindSpout();
 
 	sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
 	//DirectX textures are flipped around the Y axis compared to OpenGL
-	if (spooutError)
+	if (!spoutStatus)
 	{
 		glUniform1i(Flip_Loc, 0);
 		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
@@ -123,7 +133,7 @@ void myDrawFun()
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
-	if (!spooutError)
+	if (spoutStatus)
 		spoutReceiver->UnBindSharedTexture();
 
 	glDisable( GL_CULL_FACE );

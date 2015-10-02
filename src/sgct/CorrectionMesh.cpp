@@ -83,11 +83,6 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 {
 	mTempVertices = NULL;
 	mTempIndices = NULL;
-
-	mXSize = 1.0f;
-	mYSize = 1.0f;
-	mXOffset = 0.0f;
-	mYOffset = 0.0f;
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
@@ -95,18 +90,10 @@ sgct_core::CorrectionMesh::~CorrectionMesh()
 	
 }
 
-void sgct_core::CorrectionMesh::setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos)
-{
-	mXSize = vpXSize;
-	mYSize = vpYSize;
-	mXOffset = vpXPos;
-	mYOffset = vpYPos;
-}
-
 bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_core::Viewport * parent)
 {	
 	//generate unwarped mask
-	setupSimpleMesh(&mGeometries[QUAD_MESH]);
+	setupSimpleMesh(&mGeometries[QUAD_MESH], parent);
 	createMesh(&mGeometries[QUAD_MESH]);
 	cleanUp();
 	
@@ -115,14 +102,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Creating mask mesh\n");
         
-        setupMaskMesh();
+		setupMaskMesh(parent);
 		createMesh(&mGeometries[MASK_MESH]);
         cleanUp();
     }
 
 	if (meshPath.empty())
 	{
-		setupSimpleMesh(&mGeometries[WARP_MESH]);
+		setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
 		
@@ -138,7 +125,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	{
 		if (!readAndGenerateScissMesh(meshPath, parent))
 		{
-			setupSimpleMesh(&mGeometries[WARP_MESH]);
+			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 			createMesh(&mGeometries[WARP_MESH]);
 			cleanUp();
 			return false;
@@ -148,7 +135,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	{
 		if( !readAndGenerateScalableMesh(meshPath, parent))
 		{
-			setupSimpleMesh(&mGeometries[WARP_MESH]);
+			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 			createMesh(&mGeometries[WARP_MESH]);
 			cleanUp();
 			return false;
@@ -158,7 +145,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	{
 		if ( !readAndGenerateSkySkanMesh(meshPath, parent))
 		{
-			setupSimpleMesh(&mGeometries[WARP_MESH]);
+			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 			createMesh(&mGeometries[WARP_MESH]);
 			cleanUp();
 			return false;
@@ -167,7 +154,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	else
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Loading failed (bad filename: %s)\n", meshPath.c_str());
-		setupSimpleMesh(&mGeometries[WARP_MESH]);
+		setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
 		return false;
@@ -231,14 +218,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const std::string & 
 				if( mTempVertices != NULL && resolution[0] != 0 && resolution[1] != 0 )
 				{
 					vertexPtr = &mTempVertices[numOfVerticesRead];
-					vertexPtr->x = (x / static_cast<float>(resolution[0])) * mXSize + mXOffset;
-					vertexPtr->y = (y / static_cast<float>(resolution[1])) * mYSize + mYOffset;
+					vertexPtr->x = (x / static_cast<float>(resolution[0])) * parent->getXSize() + parent->getX();
+					vertexPtr->y = (y / static_cast<float>(resolution[1])) * parent->getYSize() + parent->getY();
 					vertexPtr->r = static_cast<float>(intensity)/255.0f;
 					vertexPtr->g = static_cast<float>(intensity)/255.0f;
 					vertexPtr->b = static_cast<float>(intensity)/255.0f;
 					vertexPtr->a = 1.0f;
-					vertexPtr->s = (1.0f - t) * mXSize + mXOffset;
-					vertexPtr->t = (1.0f - s) * mYSize + mYOffset;
+					vertexPtr->s = (1.0f - t) * parent->getXSize() + parent->getX();
+					vertexPtr->t = (1.0f - s) * parent->getYSize() + parent->getY();
 
 					numOfVerticesRead++;
 				}
@@ -591,11 +578,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 		}*/
 
 		//convert to [-1, 1]
-		vertexPtr->x = 2.0f*(scissVertexPtr->x * mXSize + mXOffset) - 1.0f;
-		vertexPtr->y = 2.0f*((1.0f - scissVertexPtr->y) * mYSize + mYOffset) - 1.0f;
+		vertexPtr->x = 2.0f*(scissVertexPtr->x * parent->getXSize() + parent->getX()) - 1.0f;
+		vertexPtr->y = 2.0f*((1.0f - scissVertexPtr->y) * parent->getYSize() + parent->getY()) - 1.0f;
 
-		vertexPtr->s = scissVertexPtr->tx * mXSize + mXOffset;
-		vertexPtr->t = scissVertexPtr->ty * mYSize + mYOffset;
+		vertexPtr->s = scissVertexPtr->tx * parent->getXSize() + parent->getX();
+		vertexPtr->t = scissVertexPtr->ty * parent->getYSize() + parent->getY();
 
 		/*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
 			scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
@@ -903,16 +890,16 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 			mTempVertices[i].t = 0.0f;*/
 
 		//convert to [-1, 1]
-		mTempVertices[i].x = 2.0f*(mTempVertices[i].x * mXSize + mXOffset) - 1.0f;
-		//mTempVertices[i].x = 2.0f*((1.0f - mTempVertices[i].x) * mXSize + mXOffset) - 1.0f;
-		//mTempVertices[i].y = 2.0f*(mTempVertices[i].y * mYSize + mYOffset) - 1.0f;
-		mTempVertices[i].y = 2.0f*((1.0f - mTempVertices[i].y) * mYSize + mYOffset) - 1.0f;
+		mTempVertices[i].x = 2.0f*(mTempVertices[i].x * parent->getXSize() + parent->getX()) - 1.0f;
+		//mTempVertices[i].x = 2.0f*((1.0f - mTempVertices[i].x) * parent->getXSize() + parent->getX()) - 1.0f;
+		//mTempVertices[i].y = 2.0f*(mTempVertices[i].y * parent->getYSize() + parent->getY()) - 1.0f;
+		mTempVertices[i].y = 2.0f*((1.0f - mTempVertices[i].y) * parent->getYSize() + parent->getY()) - 1.0f;
 		//test code
 		//mTempVertices[i].x /= 1.5f;
 		//mTempVertices[i].y /= 1.5f;
 
-		mTempVertices[i].s = mTempVertices[i].s * mXSize + mXOffset;
-		mTempVertices[i].t = mTempVertices[i].t * mYSize + mYOffset;
+		mTempVertices[i].s = mTempVertices[i].s * parent->getXSize() + parent->getX();
+		mTempVertices[i].t = mTempVertices[i].t * parent->getYSize() + parent->getY();
 	}
 
 	//allocate and copy indices
@@ -930,7 +917,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 	return true;
 }
 
-void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr)
+void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent)
 {
 	unsigned int numberOfVertices = 4;
 	unsigned int numberOfIndices = 4;
@@ -954,40 +941,40 @@ void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr
 	mTempVertices[0].g = 1.0f;
 	mTempVertices[0].b = 1.0f;
 	mTempVertices[0].a = 1.0f;
-	mTempVertices[0].s = 0.0f * mXSize + mXOffset;
-	mTempVertices[0].t = 0.0f * mYSize + mYOffset;
-	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) -1.0f;
+	mTempVertices[0].s = 0.0f * parent->getXSize() + parent->getX();
+	mTempVertices[0].t = 0.0f * parent->getYSize() + parent->getY();
+	mTempVertices[0].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[0].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) -1.0f;
 
 	mTempVertices[1].r = 1.0f;
 	mTempVertices[1].g = 1.0f;
 	mTempVertices[1].b = 1.0f;
 	mTempVertices[1].a = 1.0f;
-	mTempVertices[1].s = 1.0f * mXSize + mXOffset;
-	mTempVertices[1].t = 0.0f * mYSize + mYOffset;
-	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[1].s = 1.0f * parent->getXSize() + parent->getX();
+	mTempVertices[1].t = 0.0f * parent->getYSize() + parent->getY();
+	mTempVertices[1].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[1].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
 	mTempVertices[2].r = 1.0f;
 	mTempVertices[2].g = 1.0f;
 	mTempVertices[2].b = 1.0f;
 	mTempVertices[2].a = 1.0f;
-	mTempVertices[2].s = 1.0f * mXSize + mXOffset;
-	mTempVertices[2].t = 1.0f * mYSize + mYOffset;
-	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[2].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[2].s = 1.0f * parent->getXSize() + parent->getX();
+	mTempVertices[2].t = 1.0f * parent->getYSize() + parent->getY();
+	mTempVertices[2].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[2].y = 2.0f*(1.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
 	mTempVertices[3].r = 1.0f;
 	mTempVertices[3].g = 1.0f;
 	mTempVertices[3].b = 1.0f;
 	mTempVertices[3].a = 1.0f;
-	mTempVertices[3].s = 0.0f * mXSize + mXOffset;
-	mTempVertices[3].t = 1.0f * mYSize + mYOffset;
-	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[3].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[3].s = 0.0f * parent->getXSize() + parent->getX();
+	mTempVertices[3].t = 1.0f * parent->getYSize() + parent->getY();
+	mTempVertices[3].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[3].y = 2.0f*(1.0f * parent->getYSize() + parent->getY()) - 1.0f;
 }
 
-void sgct_core::CorrectionMesh::setupMaskMesh()
+void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
 {
 	unsigned int numberOfVertices = 4;
 	unsigned int numberOfIndices = 4;
@@ -1013,8 +1000,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempVertices[0].a = 1.0f;
 	mTempVertices[0].s = 0.0f;
 	mTempVertices[0].t = 0.0f;
-	mTempVertices[0].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[0].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[0].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[0].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
 	mTempVertices[1].r = 1.0f;
 	mTempVertices[1].g = 1.0f;
@@ -1022,8 +1009,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempVertices[1].a = 1.0f;
 	mTempVertices[1].s = 1.0f;
 	mTempVertices[1].t = 0.0f;
-	mTempVertices[1].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[1].y = 2.0f*(0.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[1].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[1].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
 	mTempVertices[2].r = 1.0f;
 	mTempVertices[2].g = 1.0f;
@@ -1031,8 +1018,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempVertices[2].a = 1.0f;
 	mTempVertices[2].s = 1.0f;
 	mTempVertices[2].t = 1.0f;
-	mTempVertices[2].x = 2.0f*(1.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[2].y = 2.0f*(1.0f *mYSize + mYOffset) - 1.0f;
+	mTempVertices[2].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[2].y = 2.0f*(1.0f *parent->getYSize() + parent->getY()) - 1.0f;
 
 	mTempVertices[3].r = 1.0f;
 	mTempVertices[3].g = 1.0f;
@@ -1040,8 +1027,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh()
 	mTempVertices[3].a = 1.0f;
 	mTempVertices[3].s = 0.0f;
 	mTempVertices[3].t = 1.0f;
-	mTempVertices[3].x = 2.0f*(0.0f * mXSize + mXOffset) - 1.0f;
-	mTempVertices[3].y = 2.0f*(1.0f * mYSize + mYOffset) - 1.0f;
+	mTempVertices[3].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
+	mTempVertices[3].y = 2.0f*(1.0f * parent->getYSize() + parent->getY()) - 1.0f;
 }
 
 void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * geomPtr)

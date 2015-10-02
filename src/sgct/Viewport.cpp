@@ -141,7 +141,6 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 	mEnabled = true;
     mName.assign("NoName");
 	mUser = ClusterManager::instance()->getDefaultUserPtr();
-	mCM.setViewportCoords(mXSize, mYSize, mX, mY);
 	mProjectionPlane.reset();
 }
 

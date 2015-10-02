@@ -47,16 +47,15 @@ namespace sgct_core
         
         CorrectionMesh();
         ~CorrectionMesh();
-        void setViewportCoords(float vpXSize, float vpYSize, float vpXPos, float vpYPos);
-		bool readAndGenerateMesh(std::string meshPath, Viewport * parent);
+        bool readAndGenerateMesh(std::string meshPath, Viewport * parent);
         void render(MeshType mt);
         
     private:
 		bool readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateScissMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent);
-        void setupSimpleMesh(CorrectionMeshGeometry * geomPtr);
-        void setupMaskMesh();
+		void setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent);
+		void setupMaskMesh(Viewport * parent);
         void createMesh(CorrectionMeshGeometry * geomPtr);
         void cleanUp();
         
@@ -66,11 +65,6 @@ namespace sgct_core
         unsigned int * mTempIndices;
         
         CorrectionMeshGeometry mGeometries[3];
-        
-        float mXSize;
-        float mYSize;
-        float mXOffset;
-        float mYOffset;
     };
     
 } //sgct_core

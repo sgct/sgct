@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "SGCTWindow.h"
 #ifndef SGCT_DONT_USE_EXTERNAL
 
-#include "../include/external/tinyxml2.h"
+#include <external/tinyxml2.h>
 #else
 #include <tinyxml2.h>
 #endif

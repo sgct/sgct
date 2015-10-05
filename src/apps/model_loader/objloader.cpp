@@ -44,20 +44,23 @@ bool loadOBJ(
 		return false;
 	}
 
-	char lineHeader[128];
+	const int lineheaderStrSize = 128;
+	const int faceCoordStrSize = 64;
+
+	char lineHeader[lineheaderStrSize];
 
 	//holders for face coord data
 	//supports only triangles (3 values)
 	//fix to read 3DsMax obj exported files by Miro
-	char faceCoord0[64];
-	char faceCoord1[64];
-	char faceCoord2[64];
+	char faceCoord0[faceCoordStrSize];
+	char faceCoord1[faceCoordStrSize];
+	char faceCoord2[faceCoordStrSize];
 
 	while( true )
 	{
 		// read the first word of the line
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-		int res = fscanf_s(file, "%s", lineHeader);
+		int res = fscanf_s(file, "%s", lineHeader, lineheaderStrSize);
 #else
 		int res = fscanf(file, "%s", lineHeader);
 #endif
@@ -107,7 +110,7 @@ bool loadOBJ(
 			}*/
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-			int matches = fscanf_s(file, "%s %s %s\n", faceCoord0, faceCoord1, faceCoord2 );
+			int matches = fscanf_s(file, "%s %s %s\n", faceCoord0, faceCoordStrSize, faceCoord1, faceCoordStrSize, faceCoord2, faceCoordStrSize);
 #else
 			int matches = fscanf(file, "%s %s %s\n", faceCoord0, faceCoord1, faceCoord2 );
 #endif

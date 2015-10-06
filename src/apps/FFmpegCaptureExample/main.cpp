@@ -308,6 +308,10 @@ void allocateTexture()
 
 void uploadData(uint8_t ** data, int width, int height)
 {
+	// At least two textures and GLSync objects
+	// should be used to control that the uploaded texture is the same
+	// for all viewports to prevent any tearing and maintain frame sync
+	
 	if (texId)
 	{
 		unsigned char * GPU_ptr = reinterpret_cast<unsigned char*>(glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
@@ -345,6 +349,7 @@ void captureLoop(void *arg)
 	while (workerRunning.getVal())
 	{
 		gCapture->poll();
+		sgct::Engine::sleep(0.05); //pause the thread for a while
 	}
 
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, GL_FALSE);

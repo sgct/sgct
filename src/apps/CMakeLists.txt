@@ -7,6 +7,7 @@ project(SGCT_Examples)
 option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
 option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
 option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
+option(SGCT_EXAMPLES_FFMPEG "Build FFmpeg examples" OFF)
 
 if(WIN32)
 	option(SGCT_EXAMPLES_SPOUT "Build Spout examples" OFF)
@@ -66,6 +67,10 @@ if(SGCT_EXAMPLES_SPOUT)
 	SET(SPOUT_ENABLED "1" PARENT_SCOPE)
 	ADD_SUBDIRECTORY(SpoutExample)
 	ADD_SUBDIRECTORY(SpoutSenderExample)
+endif()
+
+if(SGCT_EXAMPLES_FFMPEG)
+	ADD_SUBDIRECTORY(FFmpegCaptureExample)
 endif()
 
 if( WIN32 )

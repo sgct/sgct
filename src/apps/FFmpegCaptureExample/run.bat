@@ -1,0 +1,1 @@
+FFmpegCaptureExample.exe -config ../../config/single.xml

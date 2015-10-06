@@ -3,7 +3,6 @@
 #include <sgct.h>
 #include "Capture.hpp"
 
-
 sgct::Engine * gEngine;
 Capture * gCapture = NULL;
 
@@ -15,7 +14,8 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
-void keyCallback(int key, int action);
+void myKeyCallback(int key, int action);
+void myContextCreationCallback(GLFWwindow * win);
 
 //other callbacks
 void uploadData(uint8_t ** data, int width, int height);
@@ -23,12 +23,16 @@ void uploadData(uint8_t ** data, int width, int height);
 //functions
 void parseArguments(int& argc, char**& argv);
 void allocateTexture();
+void captureLoop(void *arg);
 
-sgct_utils::SGCTBox * myBox = NULL;
-//sgct_utils::SGCTPlane * myPlane = NULL;
+sgct_utils::SGCTPlane * myPlane = NULL;
+
 GLint Matrix_Loc = -1;
-GLint Flip_Loc = -1;
 GLuint texId = GL_FALSE;
+
+tthread::thread * workerThread;
+GLFWwindow * hiddenWindow;
+GLFWwindow * sharedWindow;
 
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
@@ -36,10 +40,27 @@ sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 
+//variables to share between threads
+sgct::SharedBool workerRunning(true);
+
 int main( int argc, char* argv[] )
 {	
 	gEngine = new sgct::Engine( argc, argv );
 	gCapture = new Capture();
+
+	// arguments:
+	// -video <device name>
+	// -option <key> <val>
+	//
+	// to obtain video device names in windows use:
+	// ffmpeg -list_devices true -f dshow -i dummy
+	// for mac:
+	// ffmpeg -f avfoundation -list_devices true -i ""
+	// 
+	// to obtain device properties in windows use:
+	// ffmpeg -f dshow -list_options true -i video=<device name>
+	//
+	// For options look at: http://ffmpeg.org/ffmpeg-devices.html
 
 	parseArguments(argc, argv);
 
@@ -48,7 +69,8 @@ int main( int argc, char* argv[] )
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
-	gEngine->setKeyboardCallbackFunction(keyCallback);
+	gEngine->setKeyboardCallbackFunction( myKeyCallback );
+	gEngine->setContextCreationCallback( myContextCreationCallback );
 
 	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
 	{
@@ -61,6 +83,14 @@ int main( int argc, char* argv[] )
 
 	// Main loop
 	gEngine->render();
+
+	//kill worker thread
+	workerRunning.setVal(false);
+	if (workerThread)
+	{
+		workerThread->join();
+		delete workerThread;
+	}
 
 	// Clean up
 	delete gCapture;
@@ -75,27 +105,28 @@ void myDrawFun()
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
 
-	double speed = 0.44;
+	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
 
-	//create scene transform (animation)
-	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
-
-	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
-
-	glActiveTexture(GL_TEXTURE0);
 
 	sgct::ShaderManager::instance()->bindShaderProgram("xform");
 
-	glUniform1i(Flip_Loc, 0);
+	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texId);
 
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+	//draw the dome
+	//glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+	//myDome->draw();
 
-	//draw the box
-	myBox->draw();
-	//myPlane->draw();
+	//transform and draw plane
+	glm::mat4 planeTransform = glm::mat4(1.0f);
+	planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //azimuth
+	planeTransform = glm::rotate(planeTransform, glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //elevation
+	planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); //roll
+	planeTransform = glm::translate(planeTransform, glm::vec3(0.0f, 0.0f, -5.0f)); //distance
+
+	planeTransform = MVP * planeTransform;
+	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
+	myPlane->draw();
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -113,8 +144,6 @@ void myPreSyncFun()
 
 void myPostSyncPreDrawFun()
 {
-	gCapture->poll();
-
 	gEngine->setDisplayInfoVisibility(info.getVal());
 	gEngine->setStatsGraphVisibility(stats.getVal());
 	
@@ -132,17 +161,16 @@ void myInitOGLFun()
 	//allocate texture
 	allocateTexture();
 
+	//start capture thread
+	if (gEngine->isMaster())
+		workerThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
+
 	std::function<void(uint8_t ** data, int width, int height)> callback = uploadData;
 	gCapture->setVideoDecoderCallback(callback);
 	
-	//set background
-	sgct::Engine::instance()->setClearColor(0.3f, 0.3f, 0.3f, 0.0f);
-	
-	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
-
-	//myPlane = new sgct_utils::SGCTPlane(2.0f, 2.0f);
+	float planeWidth = 8.0f;
+	float planeHeight = planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
+	myPlane = new sgct_utils::SGCTPlane(planeWidth, planeHeight);
 
 	//Set up backface culling
 	glCullFace(GL_BACK);
@@ -156,9 +184,7 @@ void myInitOGLFun()
 
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
 	GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-	Flip_Loc = sgct::ShaderManager::instance()->getShaderProgram("xform").getUniformLocation("flip");
 	glUniform1i( Tex_Loc, 0 );
-	glUniform1i( Flip_Loc, 0);
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
@@ -183,11 +209,8 @@ void myDecodeFun()
 
 void myCleanUpFun()
 {
-	if(myBox)
-		delete myBox;
-
-	//if (myPlane)
-	//	delete myPlane;
+	if (myPlane)
+		delete myPlane;
 
 	if (texId)
 	{
@@ -196,7 +219,7 @@ void myCleanUpFun()
 	}
 }
 
-void keyCallback(int key, int action)
+void myKeyCallback(int key, int action)
 {
 	if (gEngine->isMaster())
 	{
@@ -219,6 +242,22 @@ void keyCallback(int key, int action)
 			break;
 		}
 	}
+}
+
+void myContextCreationCallback(GLFWwindow * win)
+{
+	glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
+
+	sharedWindow = win;
+	hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", NULL, sharedWindow);
+
+	if (!hiddenWindow)
+	{
+		sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
+	}
+
+	//restore to normal
+	glfwMakeContextCurrent(sharedWindow);
 }
 
 void parseArguments(int& argc, char**& argv)
@@ -269,10 +308,47 @@ void allocateTexture()
 
 void uploadData(uint8_t ** data, int width, int height)
 {
-	/*if (texId)
+	if (texId)
 	{
-		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texId);
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, data[0]);
-	}*/
+		unsigned char * GPU_ptr = reinterpret_cast<unsigned char*>(glMapBuffer(GL_PIXEL_UNPACK_BUFFER, GL_WRITE_ONLY));
+		if (GPU_ptr)
+		{
+			int dataOffset = 0;
+			int stride = width * 3;
+
+			//flip and copy
+			for (int row = height - 1; row > -1; row--)
+			{
+				memcpy(GPU_ptr + dataOffset, data[0] + row * stride, stride);
+				dataOffset += stride;
+			}
+
+			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
+
+			glActiveTexture(GL_TEXTURE0);
+			glBindTexture(GL_TEXTURE_2D, texId);
+			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
+		}
+	}
+}
+
+void captureLoop(void *arg)
+{
+	glfwMakeContextCurrent(hiddenWindow);
+
+	int dataSize = gCapture->getWidth() * gCapture->getHeight() * 3;
+	GLuint PBO;
+	glGenBuffers(1, &PBO);
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, PBO);
+	glBufferData(GL_PIXEL_UNPACK_BUFFER, dataSize, 0, GL_DYNAMIC_DRAW);
+	
+	while (workerRunning.getVal())
+	{
+		gCapture->poll();
+	}
+
+	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, GL_FALSE);
+	glDeleteBuffers(1, &PBO);
+
+	glfwMakeContextCurrent(NULL); //detach context
 }

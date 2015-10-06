@@ -185,7 +185,6 @@ bool Capture::poll()
 void Capture::setupOptions()
 {
 	av_dict_set(&mOptions, "fflags", "nobuffer", 0); //reduce latency
-	av_dict_set(&mOptions, "fflags", "genpts", 0);
 	av_dict_set(&mOptions, "fflags", "flush_packets", 0); //reduce the latency by flushing out packets immediately
 
 	//set user options

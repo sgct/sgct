@@ -1,1 +1,1 @@
-FFmpegCaptureExample.exe -config ../../config/single.xml
+FFmpegCaptureExample.exe -config fisheye.xml

@@ -54,6 +54,11 @@ int Capture::getHeight() const
 	return mHeight;
 }
 
+const char * Capture::getFormat() const
+{
+	return mVideoStrFormat.c_str();
+}
+
 std::size_t Capture::getNumberOfDecodedFrames() const
 {
 	return mDecodedVideoFrames;
@@ -162,7 +167,6 @@ bool Capture::poll()
 
 		do
 		{
-			//parent->encodePacket();
 			ret = decodePacket(&gotVideoFrame);
 			if (ret < 0)
 			{
@@ -200,8 +204,8 @@ void Capture::setupOptions()
 void Capture::initFFmpeg()
 {
 	//set log level
-	av_log_set_level(AV_LOG_INFO);
-	//av_log_set_level(AV_LOG_QUIET);
+	//av_log_set_level(AV_LOG_INFO);
+	av_log_set_level(AV_LOG_QUIET);
 
 	/* register all formats and mCodecs */
 	av_register_all();
@@ -249,7 +253,12 @@ int Capture::openCodeContext(AVFormatContext *fmt_ctx, enum AVMediaType type, in
 
 		/* find decoder for the stream */
 		dec_ctx = st->codec;
+		dec_ctx->thread_count = 0; //auto number of threads
+		dec_ctx->flags |= CODEC_FLAG_LOW_DELAY;
+		dec_ctx->flags2 |= CODEC_FLAG2_FAST;
+
 		dec = avcodec_find_decoder(dec_ctx->codec_id);
+
 		if (!dec)
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Could not find %s codec!\n", av_get_media_type_string(type));
@@ -281,17 +290,17 @@ bool Capture::allocateVideoDecoderData(AVPixelFormat pix_fmt)
 		char buf[256];
 		std::size_t found;
 
-		std::string src(av_get_pix_fmt_string(buf, 256, pix_fmt));
-		found = src.find(' ');
+		mVideoStrFormat = std::string(av_get_pix_fmt_string(buf, 256, pix_fmt));
+		found = mVideoStrFormat.find(' ');
 		if (found != std::string::npos)
-			src = src.substr(0, found); //delate inrelevant data
+			mVideoStrFormat = mVideoStrFormat.substr(0, found); //delate inrelevant data
 
 		mVideoDstFormat.assign(av_get_pix_fmt_string(buf, 256, mDstPixFmt));
 		found = mVideoDstFormat.find(' ');
 		if (found != std::string::npos)
 			mVideoDstFormat = mVideoDstFormat.substr(0, found); //delate inrelevant data
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating video scaling context (%s->%s)\n", src.c_str(), mVideoDstFormat.c_str());
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Creating video scaling context (%s->%s)\n", mVideoStrFormat.c_str(), mVideoDstFormat.c_str());
 
 		//create context for frame convertion
 		mVideoScaleContext = sws_getContext(mWidth, mHeight, pix_fmt,
@@ -346,6 +355,7 @@ int Capture::decodePacket(int * gotVideoPtr)
 	{
 		/* decode video frame */
 		ret = avcodec_decode_video2(mVideoCodecContext, mFrame, gotVideoPtr, &mPkt);
+
 		if (ret < 0)
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Video decoding error: %s!\n", av_err2str(ret));

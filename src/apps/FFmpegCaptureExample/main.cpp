@@ -7,7 +7,8 @@ sgct::Engine * gEngine;
 Capture * gCapture = NULL;
 
 //sgct callbacks
-void myDrawFun();
+void myDraw3DFun();
+void myDraw2DFun();
 void myPreSyncFun();
 void myPostSyncPreDrawFun();
 void myInitOGLFun();
@@ -24,8 +25,10 @@ void uploadData(uint8_t ** data, int width, int height);
 void parseArguments(int& argc, char**& argv);
 void allocateTexture();
 void captureLoop(void *arg);
+void calculateStats();
 
 sgct_utils::SGCTPlane * myPlane = NULL;
+sgct_utils::SGCTDome * myDome = NULL;
 
 GLint Matrix_Loc = -1;
 GLuint texId = GL_FALSE;
@@ -33,6 +36,11 @@ GLuint texId = GL_FALSE;
 tthread::thread * workerThread;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
+bool flipFrame = false;
+bool fulldomeMode = false;
+float planeAzimuth = 0.0f;
+float planeElevation = 33.0f;
+float planeRoll = 0.0f;
 
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
@@ -42,6 +50,8 @@ sgct::SharedBool takeScreenshot(false);
 
 //variables to share between threads
 sgct::SharedBool workerRunning(true);
+sgct::SharedBool renderDome(fulldomeMode);
+sgct::SharedDouble captureRate(0.0);
 
 int main( int argc, char* argv[] )
 {	
@@ -51,6 +61,8 @@ int main( int argc, char* argv[] )
 	// arguments:
 	// -video <device name>
 	// -option <key> <val>
+	// -flip
+	// -plane <azimuth> <elevation> <roll>
 	//
 	// to obtain video device names in windows use:
 	// ffmpeg -list_devices true -f dshow -i dummy
@@ -65,7 +77,8 @@ int main( int argc, char* argv[] )
 	parseArguments(argc, argv);
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
-	gEngine->setDrawFunction( myDrawFun );
+	gEngine->setDrawFunction( myDraw3DFun );
+	gEngine->setDraw2DFunction( myDraw2DFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
 	gEngine->setPostSyncPreDrawFunction( myPostSyncPreDrawFun );
 	gEngine->setCleanUpFunction( myCleanUpFun );
@@ -100,7 +113,7 @@ int main( int argc, char* argv[] )
 	exit( EXIT_SUCCESS );
 }
 
-void myDrawFun()
+void myDraw3DFun()
 {
 	glEnable( GL_DEPTH_TEST );
 	glEnable( GL_CULL_FACE );
@@ -113,25 +126,52 @@ void myDrawFun()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texId);
 
-	//draw the dome
-	//glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
-	//myDome->draw();
+	if (fulldomeMode)
+	{
+		glCullFace(GL_FRONT); //camera on the inside of the dome
+		
+		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+		myDome->draw();
+	}
+	else //plane mode
+	{
+		glCullFace(GL_BACK);
+		
+		//transform and draw plane
+		glm::mat4 planeTransform = glm::mat4(1.0f);
+		planeTransform = glm::rotate(planeTransform, glm::radians(planeAzimuth), glm::vec3(0.0f, -1.0f, 0.0f)); //azimuth
+		planeTransform = glm::rotate(planeTransform, glm::radians(planeElevation), glm::vec3(1.0f, 0.0f, 0.0f)); //elevation
+		planeTransform = glm::rotate(planeTransform, glm::radians(planeRoll), glm::vec3(0.0f, 0.0f, 1.0f)); //roll
+		planeTransform = glm::translate(planeTransform, glm::vec3(0.0f, 0.0f, -5.0f)); //distance
 
-	//transform and draw plane
-	glm::mat4 planeTransform = glm::mat4(1.0f);
-	planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(0.0f, -1.0f, 0.0f)); //azimuth
-	planeTransform = glm::rotate(planeTransform, glm::radians(50.0f), glm::vec3(1.0f, 0.0f, 0.0f)); //elevation
-	planeTransform = glm::rotate(planeTransform, glm::radians(0.0f), glm::vec3(0.0f, 0.0f, 1.0f)); //roll
-	planeTransform = glm::translate(planeTransform, glm::vec3(0.0f, 0.0f, -5.0f)); //distance
-
-	planeTransform = MVP * planeTransform;
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
-	myPlane->draw();
+		planeTransform = MVP * planeTransform;
+		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
+		myPlane->draw();
+	}
 
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 
 	glDisable( GL_CULL_FACE );
 	glDisable( GL_DEPTH_TEST );
+}
+
+void myDraw2DFun()
+{
+	if (info.getVal())
+	{
+		unsigned int font_size = static_cast<unsigned int>(9.0f*gEngine->getCurrentWindowPtr()->getXScale());
+		const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont("SGCTFont", font_size);
+		float padding = 10.0f;
+
+		sgct_text::print(font,
+			padding, static_cast<float>(gEngine->getCurrentWindowPtr()->getYFramebufferResolution() - font_size) - padding, //x and y pos
+			glm::vec4(1.0, 1.0, 1.0, 1.0), //color
+			"Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",
+			gCapture->getFormat(),
+			gCapture->getWidth(),
+			gCapture->getHeight(),
+			captureRate.getVal());
+	}
 }
 
 void myPreSyncFun()
@@ -152,6 +192,8 @@ void myPostSyncPreDrawFun()
 		gEngine->takeScreenshot();
 		takeScreenshot.setVal(false);
 	}
+
+	fulldomeMode = renderDome.getVal(); //set the flag frame synchronized for all viewports
 }
 
 void myInitOGLFun()
@@ -168,9 +210,14 @@ void myInitOGLFun()
 	std::function<void(uint8_t ** data, int width, int height)> callback = uploadData;
 	gCapture->setVideoDecoderCallback(callback);
 	
+	//create plane
 	float planeWidth = 8.0f;
 	float planeHeight = planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
 	myPlane = new sgct_utils::SGCTPlane(planeWidth, planeHeight);
+	fprintf(stderr, "Plane dimensions %dx%d\n", planeWidth, planeHeight);
+
+	//create dome
+	myDome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
 
 	//Set up backface culling
 	glCullFace(GL_BACK);
@@ -212,6 +259,9 @@ void myCleanUpFun()
 	if (myPlane)
 		delete myPlane;
 
+	if (myDome)
+		delete myDome;
+
 	if (texId)
 	{
 		glDeleteTextures(1, &texId);
@@ -225,17 +275,29 @@ void myKeyCallback(int key, int action)
 	{
 		switch (key)
 		{
-		case 'S':
+		//dome mode
+		case SGCT_KEY_D:
+			if (action == SGCT_PRESS)
+				renderDome.setVal(true);
+			break;
+		
+		case SGCT_KEY_S:
 			if (action == SGCT_PRESS)
 				stats.toggle();
 			break;
 
-		case 'I':
+		case SGCT_KEY_I:
 			if (action == SGCT_PRESS)
 				info.toggle();
 			break;
 
-		case 'P':
+		//plane mode
+		case SGCT_KEY_P:
+			if (action == SGCT_PRESS)
+				renderDome.setVal(false);
+			break;
+			
+		case SGCT_KEY_PRINT_SCREEN:
 		case SGCT_KEY_F10:
 			if (action == SGCT_PRESS)
 				takeScreenshot.setVal(true);
@@ -273,6 +335,16 @@ void parseArguments(int& argc, char**& argv)
 		{
 			gCapture->addOption(
 				std::make_pair(std::string(argv[i + 1]), std::string(argv[i + 2])));
+		}
+		else if (strcmp(argv[i], "-flip") == 0)
+		{
+			flipFrame = true;
+		}
+		else if (strcmp(argv[i], "-plane") == 0 && argc >(i + 3))
+		{
+			planeAzimuth = static_cast<float>(atof(argv[i + 1]));
+			planeElevation = static_cast<float>(atof(argv[i + 2]));
+			planeRoll = static_cast<float>(atof(argv[i + 3]));
 		}
 
 		i++; //iterate
@@ -320,11 +392,21 @@ void uploadData(uint8_t ** data, int width, int height)
 			int dataOffset = 0;
 			int stride = width * 3;
 
-			//flip and copy
-			for (int row = height - 1; row > -1; row--)
+			if (flipFrame)
 			{
-				memcpy(GPU_ptr + dataOffset, data[0] + row * stride, stride);
-				dataOffset += stride;
+				for (int row = 0; row < height; row++)
+				{
+					memcpy(GPU_ptr + dataOffset, data[0] + row * stride, stride);
+					dataOffset += stride;
+				}
+			}
+			else
+			{
+				for (int row = height - 1; row > -1; row--)
+				{
+					memcpy(GPU_ptr + dataOffset, data[0] + row * stride, stride);
+					dataOffset += stride;
+				}
 			}
 
 			glUnmapBuffer(GL_PIXEL_UNPACK_BUFFER);
@@ -333,6 +415,8 @@ void uploadData(uint8_t ** data, int width, int height)
 			glBindTexture(GL_TEXTURE_2D, texId);
 			glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, width, height, GL_BGR, GL_UNSIGNED_BYTE, 0);
 		}
+
+		calculateStats();
 	}
 }
 
@@ -349,11 +433,31 @@ void captureLoop(void *arg)
 	while (workerRunning.getVal())
 	{
 		gCapture->poll();
-		sgct::Engine::sleep(0.05); //pause the thread for a while
+		//sgct::Engine::sleep(0.02); //take a short break to offload the cpu
 	}
 
 	glBindBuffer(GL_PIXEL_UNPACK_BUFFER, GL_FALSE);
 	glDeleteBuffers(1, &PBO);
 
 	glfwMakeContextCurrent(NULL); //detach context
+}
+
+void calculateStats()
+{
+	double timeStamp = sgct::Engine::getTime();
+	static double previousTimeStamp = timeStamp;
+	static double numberOfSamples = 0.0;
+	static double duration = 0.0;
+	
+	timeStamp = sgct::Engine::getTime();
+	duration += timeStamp - previousTimeStamp;
+	previousTimeStamp = timeStamp;
+	numberOfSamples++;
+
+	if (duration >= 1.0)
+	{
+		captureRate.setVal(numberOfSamples / duration);
+		duration = 0.0;
+		numberOfSamples = 0.0;
+	}
 }

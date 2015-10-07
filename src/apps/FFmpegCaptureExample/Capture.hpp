@@ -29,6 +29,7 @@ public:
 
 	int getWidth() const;
 	int getHeight() const;
+	const char * getFormat() const;
 	std::size_t getNumberOfDecodedFrames() const;
 
 private:
@@ -60,6 +61,7 @@ private:
 
 	std::string mVideoDevice;
 	std::string mVideoDstFormat;
+	std::string mVideoStrFormat;
 	std::vector< std::pair<std::string, std::string> > mUserOptions;
 
 	//callback function pointer

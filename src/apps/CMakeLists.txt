@@ -8,7 +8,7 @@ option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
 option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
 option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
 option(SGCT_EXAMPLES_FFMPEG "Build FFmpeg examples" OFF)
-
+option(SGCT_EXAMPLES_WEBSOCKETS "Build Websockets examples" OFF)
 if(WIN32)
 	option(SGCT_EXAMPLES_SPOUT "Build Spout examples" OFF)
 endif()
@@ -71,6 +71,10 @@ endif()
 
 if(SGCT_EXAMPLES_FFMPEG)
 	ADD_SUBDIRECTORY(FFmpegCaptureExample)
+endif()
+
+if(SGCT_EXAMPLES_WEBSOCKETS)
+	ADD_SUBDIRECTORY(websocketsExample)
 endif()
 
 if( WIN32 )

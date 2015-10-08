@@ -214,8 +214,7 @@ void myInitOGLFun()
 	float planeWidth = 8.0f;
 	float planeHeight = planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
 	myPlane = new sgct_utils::SGCTPlane(planeWidth, planeHeight);
-	fprintf(stderr, "Plane dimensions %dx%d\n", planeWidth, planeHeight);
-
+	
 	//create dome
 	myDome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
 

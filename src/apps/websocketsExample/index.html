@@ -1,0 +1,375 @@
+<!DOCTYPE html>  
+<html>  
+    <head>
+		<meta name="viewport" content="width=512" initial-scale="1.0" maximum-scale="1.0"> 
+		<style>
+			body
+			{
+				font-family:helvetica;
+				color:white;
+				font-size:10px;
+				background-color:#000000;
+			}
+			
+			canvas
+			{
+				border:0px solid #000000;
+				/*background-image:url('dome.jpg');*/
+				background-color:#000000;
+			}
+			
+			div
+			{
+				font-family:helvetica;
+				color:white;
+				font-size:10px;
+			}
+		</style>
+		<script type="text/javascript">
+		var socket_di;
+		var canvas, inside, mouseIsDown, xPos, yPos, ctx = 0;
+		var clientID = 0;
+		var connected = 0;
+		var grd;
+		var color1 = 'rgb(255,0,0)';
+		var color2 = 'rgba(255,0,0,0.5)';
+		var r = 255;
+		var g = 0;
+		var b = 0;
+		var colorPos = 0;
+		var imageObj = new Image();
+		imageObj.src = 'dome.jpg';
+
+		imageObj.onload = function()
+		{
+			ctx.drawImage(imageObj, 0, 0);
+		};
+		      
+		
+		function init()
+		{
+			canvas = document.getElementById("touch_canvas");
+			ctx = canvas.getContext("2d");
+			
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			
+			grd = ctx.createLinearGradient(10, 0, 480, 0);
+			grd.addColorStop(0, 'rgb(255,0,0)'); 
+			grd.addColorStop(1/6, 'rgb(255,255,0)');
+			grd.addColorStop(2/6, 'rgb(0,255,0)');
+			grd.addColorStop(3/6, 'rgb(0,255,255)');
+			grd.addColorStop(4/6, 'rgb(0,0,255)');
+			grd.addColorStop(5/6, 'rgb(255,0,255)');
+			grd.addColorStop(1, 'rgb(255,0,0)');
+			
+			ctx.drawImage(imageObj, 0, 0);
+			drawColorBar();
+			
+			canvas.addEventListener("mousedown", mouseDown, false);
+			canvas.addEventListener("mousemove", mouseXY, false);
+			canvas.addEventListener("touchstart", touchDown, false);
+			canvas.addEventListener("touchmove", touchXY, true);
+			canvas.addEventListener("touchend", touchUp, false);
+ 
+			document.body.addEventListener("mouseup", mouseUp, false);
+			document.body.addEventListener("touchcancel", touchUp, false);
+			document.getElementById("touch_info").innerHTML = "Tap to interact!";
+		}
+		
+		function mouseUp()
+		{
+			mouseIsDown = 0;
+			mouseXY();
+		}
+ 
+		function touchUp()
+		{
+			mouseIsDown = 0;
+			// no touch to track, so just show state
+			showPos();
+		}
+ 
+		function mouseDown()
+		{
+			mouseIsDown = 1;
+			mouseXY();
+		}
+ 
+		function touchDown()
+		{
+			mouseIsDown = 1;
+		    touchXY();
+		}
+		
+		function touchXY(e)
+		{
+			if (!e)
+				var e = event;
+			
+			e.preventDefault();
+			xPos = e.targetTouches[0].pageX - canvas.offsetLeft;
+			yPos = e.targetTouches[0].pageY - canvas.offsetTop;
+			
+			parsePosition();
+		}
+		
+		function mouseXY(e)
+		{
+			if (!e)
+				var e = event;
+			
+			xPos = e.pageX - canvas.offsetLeft;
+			yPos = e.pageY - canvas.offsetTop;
+			
+			parsePosition();
+		}
+		
+		function parsePosition()
+		{
+			var x = 2.0*(xPos/500) - 1.0;
+			var y = 2.0*(yPos/500) - 1.0;
+			if((x*x + y*y) <= 1.0 )
+				inside = 1;
+			else
+				inside = 0;
+			
+			if( yPos > 520 && yPos <= 600 )
+			{
+				colorPos = xPos;
+				
+				//if red - yellow
+				if( xPos > 10 && xPos <= 90 )
+				{
+					r = 255;
+					g = parseInt((xPos-10)*(255/80));
+					b = 0;
+				}
+				//yellow green
+				else if( xPos > 90 && xPos <= 170 )
+				{
+					r = parseInt(255 - (xPos-90)*(255/80));
+					g = 255;
+					b = 0;
+				}
+				//green - cyan
+				else if( xPos > 170 && xPos <= 250 )
+				{
+					r = 0;
+					g = 255;
+					b = parseInt((xPos-170)*(255/80));
+				}
+				//cyan - blue
+				else if( xPos > 250 && xPos <= 330 )
+				{
+					r = 0;
+					g = parseInt(255 - (xPos-250)*(255/80));
+					b = 255;
+				}
+				//blue - magenta
+				else if( xPos > 330 && xPos <= 410 )
+				{
+					r = parseInt((xPos-330)*(255/80));
+					g = 0;
+					b = 255;
+				}
+				//magenta - red
+				else if( xPos > 410 && xPos <= 490 )
+				{
+					r = 255;
+					g = 0;
+					b = parseInt(255 - (xPos-410)*(255/80));
+				}
+				else //red
+				{
+					r = 255;
+					g = 0;
+					b = 0;
+				}
+				
+				//color1 = 'rgb(255,255,0)';
+				//color2 = 'rgba(255,255,0,0.5)';
+				
+				color1 = "rgb(" + r + "," + g + "," + b + ")";
+				color2 = "rgba(" + r + "," + g + "," + b + ",0.5)";
+				
+				/*for (var i = 0; i < 5; i++)
+				{ 
+					if( xPos > (i * 100) && xPos < ((i+1) * 100) )
+					{
+						colorSelection = i;
+						switch(colorSelection)
+						{
+						case 0:
+							color1 = 'rgb(255,0,0)';
+							color2 = 'rgba(255,0,0,0.5)';
+							break;
+							
+						case 1:
+							color1 = 'rgb(255,255,0)';
+							color2 = 'rgba(255,255,0,0.5)';
+							break;
+							
+						case 2:
+							color1 = 'rgb(0,255,0)';
+							color2 = 'rgba(0,255,0,0.5)';
+							break;
+							
+						case 3:
+							color1 = 'rgb(0,255,255)';
+							color2 = 'rgba(0,255,255,0.5)';
+							break;
+							
+						case 4:
+							color1 = 'rgb(0,0,255)';
+							color2 = 'rgba(0,0,255,0.5)';
+							break;
+							
+						default:
+							color1 = 'rgb(255,0,0)';
+							color2 = 'rgba(255,0,0,0.5)';
+						}
+					}
+				}*/
+			}
+				
+			document.getElementById("touch_info").innerHTML = "x=" + xPos + " y=" + yPos + " RGB(" + r + "," + g + "," + b + ")";
+			showPos();
+		}
+		
+		function drawColorBar()
+		{
+			//ctx.fillStyle = 'rgb(255,0,0)';
+
+			ctx.fillStyle = grd;
+			ctx.rect(0, 520, 500, 80);
+			ctx.fill();
+		}
+		
+		function showPos()
+		{
+			//ctx.fillStyle = "rgb(64,255,64)";
+		    //ctx.fillRect(xPos -5, yPos -5, 10, 10);
+			
+			ctx.clearRect(0,0, canvas.width, canvas.height);
+			
+			if( connected == 1 )
+			{
+				drawColorBar();
+				ctx.drawImage(imageObj, 0, 0);
+			
+				if(inside && mouseIsDown)
+				{
+					var radius = 30;
+				
+					ctx.beginPath();
+					ctx.arc(xPos, yPos, radius, 0, 2 * Math.PI);
+				
+					ctx.fillStyle = color2;
+					ctx.fill();
+				
+					ctx.strokeStyle = color1;
+					ctx.stroke();
+				
+					ctx.closePath();
+				
+					socket_di.send( "pos " + clientID + " " + xPos + " " + yPos + " " + r + " " + g + " " + b + " " + colorPos + "\n" );
+				}
+			}
+		}
+		
+		function get_appropriate_ws_url()
+		{
+			var pcol;
+			var u = document.URL;
+
+			/*
+			 * We open the websocket encrypted if this page came on an
+			 * https:// url itself, otherwise unencrypted
+			 */
+
+			if (u.substring(0, 5) == "https") {
+				pcol = "wss://";
+				u = u.substr(8);
+			} else {
+				pcol = "ws://";
+				if (u.substring(0, 4) == "http")
+					u = u.substr(7);
+			}
+
+			u = u.split('/');
+
+			/* + "/xxx" bit is for IE10 workaround */
+
+			return pcol + u[0] + "/xxx";
+		}
+
+		function connect()
+		{
+			if (typeof MozWebSocket != "undefined")
+			{
+				socket_di = new MozWebSocket(get_appropriate_ws_url(), "sgct");
+			}
+			else 
+			{
+				socket_di = new WebSocket(get_appropriate_ws_url(), "sgct");
+			}
+		
+			try
+			{
+				socket_di.onopen = function()
+				{
+					document.getElementById("conn_status").innerHTML= "Connected!";
+					connected = 1;
+					showPos(); //redraw
+				} 
+
+				socket_di.onclose = function()
+				{
+					document.getElementById("conn_status").innerHTML= "Disconnected!";
+					connected = 0;
+					showPos(); //redraw
+					
+					setTimeout(function ()
+					{
+					    // Connection has closed so try to reconnect every 1 second.
+					    connect(); 
+					},  1000);
+				}
+			
+				socket_di.onmessage =function got_packet(msg)
+				{
+					var div = document.getElementById('messages');
+				
+					var splitArr = msg.data.split("\n"); 
+					if(splitArr.length > 0)
+					{
+						clientID = Number(splitArr[0]); 
+						div.innerHTML = "Client id: " + clientID;
+					}
+				} 
+			}
+			catch(exception)
+			{
+				document.getElementById("conn_status").innerHTML = "Error : " + exception;  
+			}
+		}
+		
+		/*function send_message()
+		{
+			socket_di.send( document.getElementById("textbox_id").value );
+			document.getElementById("textbox_id").value = "";
+		}*/
+		
+		//connect to server
+		connect();
+        </script>
+        </head>
+    <body onLoad="init();">
+		<div id="conn_status"></div>
+        <canvas width="500" height="600" id="touch_canvas">
+			Canvas tag not supported!
+		</canvas>
+		<div id="touch_info"></div>
+		<div id="messages"></div>
+	</body>
+</html> 

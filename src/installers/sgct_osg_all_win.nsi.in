@@ -11,6 +11,7 @@
 !define OSG_VERSION "3.2.0"
 !define INC_OSG 0
 !define INC_SPOUT @SPOUT_ENABLED@
+!define INC_WEBSOCKETS @WEBSOCKETS_ENABLED@
 
 !if "${SGCT_COMPILER}" == "msvc9"
 	!define PRJ_SUFFIX "vcproj"
@@ -427,6 +428,28 @@ Section "SGCT ${SGCT_VERSION} ${SGCT_COMPILER} ${ARCH}"
 		File "@SGCT_WIN_SOURCE_DIR@\src\apps\SpoutSenderExample\user_cmake\CMakeLists.txt"
 	!endif
 	
+	!if ${INC_WEBSOCKETS} == 1
+		#Websockets example
+		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\websocketsExample"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\websocketsExample\websocketsExample.exe"
+		File "@SGCT_WIN_BINARY_DIR@\bin\examples\websocketsExample\run.bat"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\main.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\Quad.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\Quad.hpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\UserData.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\UserData.hpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\Webserver.cpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\Webserver.hpp"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\avatar.vert"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\avatar.frag"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\avatar.png"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\dome.jpg"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\fisheye.xml"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\readme.txt"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\index.html"
+		File "@SGCT_WIN_SOURCE_DIR@\src\apps\websocketsExample\user_cmake\CMakeLists.txt"
+	!endif
+	
 	#osg examples
 	!if ${INC_OSG} == 1
 		SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\osg_example"
@@ -559,6 +582,11 @@ Section "Start Menu Shortcuts"
 	  
 	  SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutSenderExample"
 	  CreateShortCut "$SMPROGRAMS\SGCT\examples\SpoutSenderExample.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\SpoutSenderExample\SpoutSenderExample_opengl3.exe" "-config $\"$INSTDIR\SGCT_${SGCT_VERSION}\config\single.xml$\""
+  !endif
+  
+  !if ${INC_WEBSOCKETS} == 1
+      SetOutPath "$INSTDIR\SGCT_${SGCT_VERSION}\examples\websocketsExample"
+	  CreateShortCut "$SMPROGRAMS\SGCT\examples\websocketsExample.lnk" "$INSTDIR\SGCT_${SGCT_VERSION}\examples\websocketsExample\websocketsExample.exe" "-config fisheye.xml$\""
   !endif
   
   !if ${INC_OSG} == 1

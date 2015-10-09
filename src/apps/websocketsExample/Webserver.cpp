@@ -3,25 +3,20 @@
 #include <stdlib.h>
 #include <libwebsockets.h> // websocket lib
 
-#define SendBufferLength 32
-
-Webserver * Webserver::mInstance = NULL;
 tthread::mutex gSendMutex;
-char gSendBuffer[SendBufferLength];
+Webserver * Webserver::mInstance = NULL;
 
-void mainLoop(void * arg);
+char gBuffer[4096];//may corrupt the stack if too small
 
 const char * get_mimetype(const char *file)
 {
 	int n = strlen(file);
 
-	fprintf(stderr, "File lenght: %d\n", n);
-
 	if (n < 5)
 		return NULL;
 
-	/*if (!strcmp(&file[n - 4], ".ico"))
-		return "image/x-icon";*/
+	if (!strcmp(&file[n - 4], ".ico"))
+		return "image/x-icon";
 
 	if (!strcmp(&file[n - 4], ".png"))
 		return "image/png";
@@ -115,22 +110,25 @@ static int echoCallback(
 	{
 	case LWS_CALLBACK_ESTABLISHED:
         {
+			int n;
+			unsigned int id = Webserver::instance()->generateSessionIndex();
+
 			gSendMutex.lock();
-            int n = sprintf(gSendBuffer, "%u\n", Webserver::instance()->generateSessionIndex());
-			libwebsocket_write(wsi, reinterpret_cast<unsigned char *>(gSendBuffer), n, LWS_WRITE_TEXT);
+#if (_MSC_VER >= 1400)
+			n = sprintf_s(gBuffer, sizeof(gBuffer), "%u\n", id);
+#else
+			n = sprintf(gBuffer, "%u\n", id);
+#endif
+			libwebsocket_write(wsi, reinterpret_cast<unsigned char *>(gBuffer), n, LWS_WRITE_TEXT);
 			gSendMutex.unlock();
 
-            printf("connection established\n");
+            fprintf(stderr, "connection %u established\n", id);
         }
 		break;
 
 	case LWS_CALLBACK_RECEIVE:
 		{
-			//libwebsocket_write(wsi, reinterpret_cast<unsigned char *>(in), len, LWS_WRITE_TEXT);
-
 			// log what we recieved and what we're going to send as a response.
-			//printf("received data: %s\n", (char *)in);
-
 			if (Webserver::instance()->mWebMessageCallbackFn)
 				Webserver::instance()->mWebMessageCallbackFn(reinterpret_cast<const char *>(in), len);
 		}
@@ -160,7 +158,6 @@ static struct libwebsocket_protocols protocols[] =
 
 Webserver::Webserver()
 {
-	mInstance = this;
 	mMainThreadPtr = NULL;
 	mWebMessageCallbackFn = NULL;
 	mRunning = false;
@@ -189,24 +186,7 @@ void Webserver::start(int port, int timeout_ms)
 	mRunning = true;
     mPort = port;
     mTimeout = timeout_ms;
-	mMainThreadPtr = new (std::nothrow) tthread::thread(mainLoop, this);
-	memset(gSendBuffer, 0, SendBufferLength);
-}
-
-bool Webserver::isRunning()
-{
-	bool tmpBool;
-	mMutex.lock();
-	tmpBool = mRunning;
-	mMutex.unlock();
-	return tmpBool;
-}
-
-void Webserver::setRunning(bool state)
-{
-	mMutex.lock();
-	mRunning = state;
-	mMutex.unlock();
+	mMainThreadPtr = new (std::nothrow) tthread::thread(Webserver::worker, NULL);
 }
 
 void Webserver::setCallback(Webserver::WebMessageCallbackFn cb)
@@ -228,10 +208,8 @@ unsigned int Webserver::generateSessionIndex()
     return tmpUi;
 }
 
-void mainLoop(void * arg)
+void Webserver::worker(void *)
 {
-	Webserver * parent = reinterpret_cast<Webserver*>(arg);
-
 	// server url will be ws://localhost:9000
 	const char *interface = NULL;
 	struct libwebsocket_context *context = NULL;
@@ -250,7 +228,7 @@ void mainLoop(void * arg)
 	struct lws_context_creation_info info;
 	memset(&info, 0, sizeof info);
 
-	info.port = parent->getPort();
+	info.port = Webserver::instance()->getPort();
 	info.iface = interface;
 	info.protocols = protocols;
 	info.extensions = NULL;
@@ -266,16 +244,17 @@ void mainLoop(void * arg)
 	// make sure it starts
 	if (context == NULL)
 	{
-		parent->setRunning(false);
+		Webserver::instance()->mRunning = false;
 		fprintf(stderr, "libwebsocket init failed\n");
 		return;
 	}
+	
 	printf("starting server...\n");
-
 	// infinite loop, to end this server send SIGTERM. (CTRL+C)
-	while (parent->isRunning())
+	while (Webserver::instance()->mRunning.load())
 	{
-		libwebsocket_service(context, parent->getTimeout()); //5 ms -> 200 samples / s
+		libwebsocket_service(context, Webserver::instance()->getTimeout()); //5 ms -> 200 samples / s
+		//libwebsocket_service(context, 50);
 	}
 	
 	libwebsocket_context_destroy(context);

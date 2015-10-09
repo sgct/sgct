@@ -18,7 +18,6 @@ void keyCallback(int key, int action);
 
 void renderAvatars();
 
-Webserver webserver;
 UserData webUsers[MAX_WEB_USERS];
 std::vector<UserData> webUsers_copy;
 
@@ -89,15 +88,16 @@ int main( int argc, char* argv[] )
 	webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
     if( gEngine->isMaster() )
     {
-        webserver.setCallback(webDecoder);
-        webserver.start(9000);
-        //webserver.start(80);
+		Webserver::instance()->setCallback(webDecoder);
+		Webserver::instance()->start(9000);
+        //Webserver::instance()->start(80);
     }
 
 	// Main loop
 	gEngine->render();
 
 	// Clean up (de-allocate)
+	Webserver::instance()->destroy();
 	delete gEngine;
 
 	// Exit program

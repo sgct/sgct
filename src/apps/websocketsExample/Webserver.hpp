@@ -2,29 +2,56 @@
 #define _WEB_SERVER_
 
 #include "external/tinythread.h"
+#include <atomic>
 
+//Webserver singleton
 class Webserver
 {
 public:
 	typedef void(*WebMessageCallbackFn)(const char *, size_t);
 
-	Webserver();
-	~Webserver();
+	/*! Get the Webserver instance */
+	static Webserver * instance()
+	{
+		if (mInstance == NULL)
+		{
+			mInstance = new Webserver();
+		}
+		return mInstance;
+	}
+
+	/*! Destroy the Webserver */
+	static void destroy()
+	{
+		if (mInstance != NULL)
+		{
+			delete mInstance;
+			mInstance = NULL;
+		}
+	}
+
 	void start(int port, int timeout_ms = 5);
-	bool isRunning();
-	void setRunning(bool state);
 	void setCallback(WebMessageCallbackFn cb);
-	static Webserver * instance() { return mInstance; }
-    inline int getPort() { return mPort; }
+	inline int getPort() { return mPort; }
     inline int getTimeout() { return mTimeout; }
     unsigned int generateSessionIndex();
 
 	WebMessageCallbackFn mWebMessageCallbackFn;
+	//tthread::atomic<bool> mRunning;
+	std::atomic<bool> mRunning;
 	
 private:
-	static Webserver * mInstance;
+	Webserver();
+	~Webserver();
 
-	bool mRunning;
+	// Don't implement these, should give compile warning if used
+	Webserver(const Webserver & ws);
+	Webserver(Webserver &&rhs);
+	const Webserver & operator=(const Webserver & rhs);
+
+	static void worker(void *);
+
+	static Webserver * mInstance;
     int mPort;
     int mTimeout; //in ms
     unsigned int mSessionIndex;

@@ -111,8 +111,14 @@ set(SGCT_LIBS
 find_library(LIBWEBSOCKETS_LIBRARY
 	NAMES websockets REQUIRED)
 find_path(LIBWEBSOCKETS_INCLUDE_DIRECTORY
-		NAMES libwebsockets
+		NAMES libwebsockets.h
 		REQUIRED)
+
+if(NOT LIBWEBSOCKETS_INCLUDE_DIRECTORY)
+find_path(LIBWEBSOCKETS_INCLUDE_DIRECTORY
+		libwebsockets.h
+		REQUIRED)
+endif()
 
 find_package(OpenGL REQUIRED)
 

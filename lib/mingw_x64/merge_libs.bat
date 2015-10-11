@@ -19,7 +19,7 @@ ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
 ar x libsgct_light.a
-ar r libsgct.a *.obj
+ar r libsgct.a *.obj *.o
 DEL libsgctd.a
 ar x deps/libglewd.a
 ar x deps/libglfw3d.a
@@ -31,7 +31,7 @@ ar x deps/libtinyxml2d.a
 ar x deps/libtinythreadppd.a
 ar x deps/libvrpnd.a
 ar x libsgct_lightd.a
-ar r libsgctd.a *.obj
+ar r libsgctd.a *.obj *.o
 DEL *.o *.obj
 goto END
 
@@ -47,7 +47,7 @@ ar x deps/libtinyxml2d.a
 ar x deps/libtinythreadppd.a
 ar x deps/libvrpnd.a
 ar x libsgct_lightd.a
-ar r libsgctd.a *.obj
+ar r libsgctd.a *.obj *.o
 DEL *.o *.obj
 goto END
 
@@ -63,7 +63,7 @@ ar x deps/libtinyxml2.a
 ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
 ar x libsgct_light.a
-ar r libsgct.a *.obj
+ar r libsgct.a *.obj *.o
 DEL *.o *.obj
 goto END
 

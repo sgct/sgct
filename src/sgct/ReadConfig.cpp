@@ -46,7 +46,8 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
     
 	if( filename.empty() )
 	{
-        readAndParseXMLString();
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: No file specified! Using default configuration...\n");
+		readAndParseXMLString();
         valid = true;
 	}
 	else

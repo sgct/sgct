@@ -122,15 +122,15 @@ if( MSVC )
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
-		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+		ws2_32
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
-		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+		ws2_32
 	)
 elseif( APPLE )
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)

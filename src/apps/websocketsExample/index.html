@@ -46,7 +46,7 @@
 		};
 		      
 		
-		function init()
+		function initCanvas()
 		{
 			canvas = document.getElementById("touch_canvas");
 			ctx = canvas.getContext("2d");
@@ -241,8 +241,7 @@
 			//ctx.fillStyle = 'rgb(255,0,0)';
 
 			ctx.fillStyle = grd;
-			ctx.rect(0, 520, 500, 80);
-			ctx.fill();
+			ctx.fillRect(0, 520, 500, 80);
 		}
 		
 		function showPos()
@@ -360,16 +359,20 @@
 			document.getElementById("textbox_id").value = "";
 		}*/
 		
+		
 		//connect to server
 		connect();
         </script>
         </head>
-    <body onLoad="init();">
+    <body>
 		<div id="conn_status"></div>
         <canvas width="500" height="600" id="touch_canvas">
 			Canvas tag not supported!
 		</canvas>
 		<div id="touch_info"></div>
 		<div id="messages"></div>
+		<script type="text/javascript">
+			initCanvas();
+		</script>
 	</body>
 </html> 

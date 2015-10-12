@@ -9,7 +9,8 @@ option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
 option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
 option(SGCT_EXAMPLES_FFMPEG "Build FFmpeg examples" OFF)
 option(SGCT_EXAMPLES_WEBSOCKETS "Build Websockets examples" OFF)
-if(WIN32)
+#Spout doesn't support MinGW
+if(MSVC)
 	option(SGCT_EXAMPLES_SPOUT "Build Spout examples" OFF)
 endif()
 
@@ -74,6 +75,7 @@ if(SGCT_EXAMPLES_FFMPEG)
 endif()
 
 if(SGCT_EXAMPLES_WEBSOCKETS)
+	SET(WEBSOCKETS_ENABLED "1" PARENT_SCOPE)
 	ADD_SUBDIRECTORY(websocketsExample)
 endif()
 

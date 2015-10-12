@@ -114,6 +114,12 @@ find_path(LIBWEBSOCKETS_INCLUDE_DIRECTORY
 		NAMES libwebsockets
 		REQUIRED)
 
+if(NOT LIBWEBSOCKETS_INCLUDE_DIRECTORY)
+find_path(LIBWEBSOCKETS_INCLUDE_DIRECTORY
+		libwebsockets.h
+		REQUIRED)
+endif()
+
 find_package(OpenGL REQUIRED)
 
 include_directories(${SGCT_INCLUDE_DIRECTORY} ${LIBWEBSOCKETS_INCLUDE_DIRECTORY})
@@ -122,15 +128,15 @@ if( MSVC )
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
-		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+		ws2_32
 	)
 elseif( WIN32 ) #MINGW or similar
 	set(LIBS
 		${SGCT_LIBS}
 		${OPENGL_gl_LIBRARY}
-		ws2_32
 		${LIBWEBSOCKETS_LIBRARY}
+		ws2_32
 	)
 elseif( APPLE )
 	find_library(COCOA_LIBRARY Cocoa REQUIRED)

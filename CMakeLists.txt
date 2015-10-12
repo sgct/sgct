@@ -5,6 +5,10 @@
 #
 cmake_minimum_required(VERSION 2.8)
 
+if(NOT DEFINED CMAKE_BUILD_TYPE)
+	set(CMAKE_BUILD_TYPE Release CACHE STRING "Build type")
+endif()
+
 SET(BUILD_SHARED_LIBS OFF)
 PROJECT("sgct")
 set(SGCT_VERSION_MAJOR "2")
@@ -444,6 +448,7 @@ if(SGCT_EXAMPLES)
 	file(COPY "${SGCT_SOURCE_PATH}/config" DESTINATION "${CMAKE_CURRENT_BINARY_DIR}/bin")
 	
 	set(SGCT_EXAMPLE_OUTPUT_DIR ${CMAKE_CURRENT_BINARY_DIR}/bin/examples)
+	#message(STATUS "Example out directory=${SGCT_EXAMPLE_OUTPUT_DIR}")
 	ADD_SUBDIRECTORY(src/apps)
 endif()
 

@@ -3909,7 +3909,7 @@ void sgct::Engine::invokeScreenShotCallback(Image * imPtr, std::size_t winIndex,
 	\param data a pointer to the data buffer
 	\param length is the number of bytes of data that will be sent
 */
-void sgct::Engine::sendMessageToExternalControl(void * data, int length)
+void sgct::Engine::sendMessageToExternalControl(const void * data, int length)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->sendData( data, length );
@@ -3954,7 +3954,7 @@ void sgct::Engine::transferDataToNode(const void * data, int length, int package
 	This function sends a message to the external control interface.
 	\param msg the message string that will be sent
 */
-void sgct::Engine::sendMessageToExternalControl(const std::string msg)
+void sgct::Engine::sendMessageToExternalControl(const std::string& msg)
 {
 	if( mNetworkConnections->getExternalControlPtr() != NULL )
 		mNetworkConnections->getExternalControlPtr()->sendData( (void *)msg.c_str(), static_cast<int>(msg.size()) );

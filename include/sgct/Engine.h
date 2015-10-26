@@ -223,8 +223,8 @@ public:
 #endif
 
 	//external control network functions
-	void sendMessageToExternalControl(void * data, int length);
-	void sendMessageToExternalControl(const std::string msg);
+	void sendMessageToExternalControl(const void * data, int length);
+	void sendMessageToExternalControl(const std::string& msg);
 	bool isExternalControlConnected();
 	void setExternalControlBufferSize(unsigned int newSize);
 	void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientId);

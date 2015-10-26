@@ -49,6 +49,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	sgct_cppxeleven::function<void(int, int)> gKeyboardCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(int, int, int, int)> gKeyboardCallbackFnPtr2 = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(unsigned int)> gCharCallbackFnPtr = SGCT_NULL_PTR;
+    sgct_cppxeleven::function<void(unsigned int, int)> gCharCallbackFnPtr2 = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(int, int)> gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(double, double)> gMousePosCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(double, double)> gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
@@ -57,6 +58,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	void (*gKeyboardCallbackFnPtr)(int, int) = NULL;
 	void (*gKeyboardCallbackFnPtr2)(int, int, int, int) = NULL;
 	void (*gCharCallbackFnPtr)(unsigned int) = NULL;
+    void (*gCharCallbackFnPtr2)(unsigned int, int) = NULL;
 	void (*gMouseButtonCallbackFnPtr)(int, int) = NULL;
 	void (*gMousePosCallbackFnPtr)(double, double) = NULL;
 	void (*gMouseScrollCallbackFnPtr)(double, double) = NULL;
@@ -259,6 +261,8 @@ bool sgct::Engine::init(RunMode rm)
 			glfwSetCursorPosCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_pos_callback );
 		if (gCharCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetCharCallback( getWindowPtr(i)->getWindowHandle(), internal_key_char_callback );
+        if (gCharCallbackFnPtr2 != SGCT_NULL_PTR)
+            glfwSetCharModsCallback( getWindowPtr(i)->getWindowHandle(), internal_key_char_mods_callback);
 		if (gMouseScrollCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetScrollCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_scroll_callback );
 		if (gDropCallbackFnPtr != SGCT_NULL_PTR)
@@ -3382,12 +3386,22 @@ void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int) )
 	gCharCallbackFnPtr = fnPtr;
 }
 
+void sgct::Engine::setCharCallbackFunction( void(*fnPtr)(unsigned int, int) )
+{
+    gCharCallbackFnPtr2 = fnPtr;
+}
+
 /*!
 All windows are connected to this callback.
 */
-void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn)
+void sgct::Engine::setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn)
 {
 	gCharCallbackFnPtr = fn;
+}
+
+void sgct::Engine::setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int, int)> fn)
+{
+    gCharCallbackFnPtr2 = fn;
 }
 
 /*!
@@ -3497,8 +3511,17 @@ void sgct::Engine::internal_key_callback(GLFWwindow* window, int key, int scanco
 
 void sgct::Engine::internal_key_char_callback(GLFWwindow* window, unsigned int ch)
 {
+    if (gCharCallbackFnPtr != SGCT_NULL_PTR)
+        gCharCallbackFnPtr(ch);
+}
+
+void sgct::Engine::internal_key_char_mods_callback(GLFWwindow* window, unsigned int ch, int mod)
+{
 	if (gCharCallbackFnPtr != SGCT_NULL_PTR)
 		gCharCallbackFnPtr(ch);
+    
+    if (gCharCallbackFnPtr2 != SGCT_NULL_PTR)
+        gCharCallbackFnPtr2(ch, mod);
 }
 
 void sgct::Engine::internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)

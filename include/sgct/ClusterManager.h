@@ -61,6 +61,7 @@ public:
 	SGCTNode * getThisNodePtr();
 	SGCTUser * getDefaultUserPtr();
 	SGCTUser * getUserPtr(std::string name);
+	SGCTUser * getTrackedUserPtr();
 	NetworkManager::NetworkMode getNetworkMode();
 	void setNetworkMode(NetworkManager::NetworkMode nm);
 

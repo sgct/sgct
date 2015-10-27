@@ -50,6 +50,8 @@ public:
 	inline const char * getHeadTrackerName() { return mHeadTrackerName.c_str(); }
 	inline const char * getHeadTrackerDeviceName() { return mHeadTrackerDeviceName.c_str(); }
 
+	bool isTracked() const;
+
 private:
 	void updateEyeSeparation();
 	void updateEyeTransform();

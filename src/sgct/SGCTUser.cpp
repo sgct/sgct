@@ -191,3 +191,11 @@ std::string sgct_core::SGCTUser::getName()
 {
 	return mName;
 }
+
+/*!
+@returns true if user is tracked
+*/
+bool sgct_core::SGCTUser::isTracked() const
+{	
+	return !(mHeadTrackerDeviceName.empty() || mHeadTrackerName.empty());
+}

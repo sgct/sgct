@@ -109,6 +109,9 @@ sgct_core::SGCTUser * sgct_core::ClusterManager::getDefaultUserPtr()
 	return mUsers[0];
 }
 
+/*!
+\returns the pointer to a named user. NULL is returned if no user is found.
+*/
 sgct_core::SGCTUser * sgct_core::ClusterManager::getUserPtr(std::string name)
 {
 	for (std::size_t i=0; i < mUsers.size(); i++)
@@ -118,6 +121,21 @@ sgct_core::SGCTUser * sgct_core::ClusterManager::getUserPtr(std::string name)
 	}
 
 	//if not found
+	return NULL;
+}
+
+/*!
+\returns the pointer to the tracked user. NULL is returned if no user is tracked.
+*/
+sgct_core::SGCTUser * sgct_core::ClusterManager::getTrackedUserPtr()
+{
+	for (std::size_t i = 0; i < mUsers.size(); i++)
+	{
+		if (mUsers[i]->isTracked())
+			return mUsers[i];
+	}
+	
+	//no tracking
 	return NULL;
 }
 

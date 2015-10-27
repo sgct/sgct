@@ -42,6 +42,7 @@ void samplingLoop(void *arg);
 sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
 	mHead = NULL;
+	mHeadUser = NULL;
 	mNumberOfDevices = 0;
 	mSamplingThread = NULL;
 	mSamplingTime = 0.0;
@@ -126,9 +127,16 @@ void sgct::SGCTTrackingManager::startSampling()
 {
 	if( !mTrackers.empty() )
 	{
+		//find user with headtracking
+		mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUserPtr();
+
+		//if tracked user not found
+		if (mHeadUser == NULL)
+			mHeadUser = sgct_core::ClusterManager::instance()->getDefaultUserPtr();
+		
 		//link the head tracker
-		setHeadTracker(sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getHeadTrackerName(),
-			sgct_core::ClusterManager::instance()->getDefaultUserPtr()->getHeadTrackerDeviceName());
+		setHeadTracker(mHeadUser->getHeadTrackerName(),
+			mHeadUser->getHeadTrackerDeviceName());
 
 		mSamplingThread = new tthread::thread( samplingLoop, this );
 	}
@@ -143,12 +151,9 @@ void sgct::SGCTTrackingManager::updateTrackingDevices()
 		for(size_t j=0; j<mTrackers[i]->getNumberOfDevices(); j++)
 		{
 			SGCTTrackingDevice * tdPtr = mTrackers[i]->getDevicePtr(j);
-			if( tdPtr->isEnabled() && tdPtr == mHead )
+			if( tdPtr->isEnabled() && tdPtr == mHead && mHeadUser != NULL)
 			{
-				sgct_core::ClusterManager * cm = sgct_core::ClusterManager::instance();
-
-				//set head rot & pos
-				cm->getDefaultUserPtr()->setTransform(tdPtr->getWorldTransform());
+				mHeadUser->setTransform(tdPtr->getWorldTransform());
 			}
 		}
 }

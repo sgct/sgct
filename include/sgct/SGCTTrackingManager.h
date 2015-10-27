@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <set>
 #include "SGCTTracker.h"
+#include "SGCTUser.h"
 #ifndef SGCT_DONT_USE_EXTERNAL
 	#include "external/tinythread.h"
 #else
@@ -61,6 +62,7 @@ private:
 	double mSamplingTime;
 	bool mRunning;
 
+	sgct_core::SGCTUser * mHeadUser;
 	SGCTTrackingDevice * mHead;
 	size_t mNumberOfDevices;
 };

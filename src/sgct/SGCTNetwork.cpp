@@ -1393,7 +1393,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", mId);
 }
 
-void sgct_core::SGCTNetwork::sendData(void * data, int length)
+void sgct_core::SGCTNetwork::sendData(const void * data, int length)
 {
 	//fprintf(stderr, "Send data size: %d\n", length);
 #ifdef __SGCT_NETWORK_DEBUG__

@@ -179,6 +179,7 @@ public:
 	void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
     void setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) ); //arguments: int key, int scancode, int action, int mods
 	void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
+    void setCharCallbackFunction( void(*fnPtr)(unsigned int, int) ); //arguments: unsigned int unicode character, int mods
 	void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
@@ -206,6 +207,7 @@ public:
 	void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int key, int action
 	void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
 	void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
+    void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int, int)> fn); //arguments: unsigned int unicode character, int mods
 	void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int button, int action
 	void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
 	void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
@@ -221,8 +223,8 @@ public:
 #endif
 
 	//external control network functions
-	void sendMessageToExternalControl(void * data, int length);
-	void sendMessageToExternalControl(const std::string msg);
+	void sendMessageToExternalControl(const void * data, int length);
+	void sendMessageToExternalControl(const std::string& msg);
 	bool isExternalControlConnected();
 	void setExternalControlBufferSize(unsigned int newSize);
 	void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientId);
@@ -405,6 +407,7 @@ private:
 	static void clearBuffer();
 	static void internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);
 	static void internal_key_char_callback(GLFWwindow* window, unsigned int ch);
+    static void internal_key_char_mods_callback(GLFWwindow* window, unsigned int ch, int mods);
 	static void internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods);
 	static void internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos);
 	static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);

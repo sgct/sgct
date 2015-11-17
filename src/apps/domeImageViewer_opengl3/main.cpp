@@ -39,6 +39,7 @@ sgct::SharedBool info(false);
 sgct::SharedBool stats(false);
 sgct::SharedBool wireframe(false);
 sgct::SharedInt32 texIndex(-1);
+sgct::SharedInt32 incrIndex(1);
 sgct::SharedInt32 numSyncedTex(0);
 
 //other mutex variables
@@ -46,6 +47,7 @@ sgct::SharedInt32 lastPackage(-1);
 sgct::SharedBool running(true);
 sgct::SharedBool transfer(false);
 sgct::SharedBool serverUploadDone(false);
+sgct::SharedInt32 serverUploadCount(0);
 sgct::SharedBool clientsUploadDone(false);
 sgct::SharedVector<std::pair<std::string, int>> imagePaths;
 sgct::SharedVector<GLuint> texIds;
@@ -117,7 +119,14 @@ void myDrawFun()
 		glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix();
 		
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
+
+        if ((texIds.getSize() > (texIndex.getVal() + 1))
+            && gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye){
+            glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()+1));
+        }
+        else{
+            glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
+        }
 
 		sgct::ShaderManager::instance()->bindShaderProgram("xform");
 		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
@@ -142,7 +151,10 @@ void myPreSyncFun()
 		if (serverUploadDone.getVal() && clientsUploadDone.getVal())
 		{
 			numSyncedTex = static_cast<int32_t>(texIds.getSize());
-			texIndex = numSyncedTex-1;
+            
+            //only iterate up to the first new image, even if multiple images was added
+            texIndex = numSyncedTex - serverUploadCount.getVal();
+
 			serverUploadDone = false;
 			clientsUploadDone = false;
 		}
@@ -184,6 +196,7 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool(&stats);
 	sgct::SharedData::instance()->writeBool(&wireframe);
     sgct::SharedData::instance()->writeInt32(&texIndex);
+    sgct::SharedData::instance()->writeInt32(&incrIndex);
 }
 
 void myDecodeFun()
@@ -193,6 +206,7 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool(&stats);
 	sgct::SharedData::instance()->readBool(&wireframe);
     sgct::SharedData::instance()->readInt32(&texIndex);
+    sgct::SharedData::instance()->readInt32(&incrIndex);
 }
 
 void myCleanUpFun()
@@ -237,10 +251,25 @@ void keyCallback(int key, int action)
 				wireframe.toggle();
 			break;
 
+        case SGCT_KEY_F:
+            if (action == SGCT_PRESS)
+                wireframe.toggle();
+            break;
+
+        case SGCT_KEY_1:
+            if (action == SGCT_PRESS)
+                incrIndex.setVal(1);
+            break;
+
+        case SGCT_KEY_2:
+            if (action == SGCT_PRESS)
+                incrIndex.setVal(2);
+            break;
+
 		case SGCT_KEY_LEFT:
 			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
 			{
-				texIndex.getVal() > 0 ? texIndex-- : texIndex.setVal(numSyncedTex.getVal() - 1);
+                texIndex.getVal() > incrIndex.getVal() - 1 ? texIndex -= incrIndex.getVal() : texIndex.setVal(numSyncedTex.getVal() - 1);
 				//fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
 			}
 			break;
@@ -248,7 +277,7 @@ void keyCallback(int key, int action)
 		case SGCT_KEY_RIGHT:
 			if (action == SGCT_PRESS && numSyncedTex.getVal() > 0)
 			{
-				texIndex.setVal((texIndex.getVal() + 1) % numSyncedTex.getVal());
+                texIndex.setVal((texIndex.getVal() + incrIndex.getVal()) % numSyncedTex.getVal());
 				//fprintf(stderr, "Index set to: %d\n", texIndex.getVal());
 			}
 			break;
@@ -499,39 +528,55 @@ void myDropCallback(int count, const char** paths)
 {
 	if (gEngine->isMaster())
 	{
+        std::vector<std::string> pathStrings;
+        for (int i = 0; i < count; i++)
+        {
+            //simpy pick the first path to transmit
+            std::string tmpStr(paths[i]);
+
+            //transform to lowercase
+            std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+
+            pathStrings.push_back(tmpStr);
+        }
+
+        //sort in alphabetical order
+        std::sort(pathStrings.begin(), pathStrings.end());
+
+        serverUploadCount.setVal(0);
+
 		//iterate all drop paths
-		for (int i = 0; i < count; i++)
+        for (int i = 0; i < pathStrings.size(); i++)
 		{
 			std::size_t found;
 
-			//simpy pick the first path to transmit
-			std::string tmpStr(paths[i]);
-
-			//transform to lowercase
-			std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);			
+            std::string tmpStr = pathStrings[i];
 
 			//find file type
 			found = tmpStr.find(".jpg");
 			if (found != std::string::npos)
 			{
-				imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
+                imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_JPEG));
 				transfer.setVal(true); //tell transfer thread to start processing data
+                serverUploadCount++;
 			}
 			else
 			{
 				found = tmpStr.find(".jpeg");
 				if (found != std::string::npos)
 				{
-					imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_JPEG));
+                    imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_JPEG));
 					transfer.setVal(true); //tell transfer thread to start processing data
+                    serverUploadCount++;
 				}
 				else
 				{
 					found = tmpStr.find(".png");
 					if (found != std::string::npos)
 					{
-						imagePaths.addVal(std::pair<std::string, int>(paths[i], IM_PNG));
+                        imagePaths.addVal(std::pair<std::string, int>(pathStrings[i], IM_PNG));
 						transfer.setVal(true); //tell transfer thread to start processing data
+                        serverUploadCount++;
 					}
 				}
 			}

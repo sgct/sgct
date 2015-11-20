@@ -130,10 +130,8 @@ void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, 
 	unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].y = dist * tanf(glm::radians<float>(up));
 	unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].z = -dist;
 
-	//mProjectionPlane.setCoordinate(SGCTProjectionPlane::LowerLeft, )
-
 	for (std::size_t i = 0; i < 3; i++)
-		mProjectionPlane.setCoordinate(i, (rot * unTransformedViewPlaneCoords[i]) - mUser->getPos());
+		mProjectionPlane.setCoordinate(i, rot * unTransformedViewPlaneCoords[i]);
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
 		"Viewplane lower left coords: %f %f %f\n",

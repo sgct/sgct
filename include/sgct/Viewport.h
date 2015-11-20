@@ -59,6 +59,7 @@ private:
 	std::string mOverlayFilename;
 	std::string mMaskFilename;
 	std::string mMeshFilename;
+	std::string mMeshHint;
 	bool mCorrectionMesh;
 	bool mTracked;
 	unsigned int mOverlayTextureIndex;

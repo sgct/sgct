@@ -1074,12 +1074,12 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
 
 	if (element->QueryFloatAttribute("yaw", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
-		y = tmpf;
+		y = -tmpf;
 	}
 
 	if (element->QueryFloatAttribute("heading", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
-		y = tmpf;
+		y = -tmpf;
 	}
 
 	if (element->QueryFloatAttribute("azimuth", &tmpf) == tinyxml2::XML_NO_ERROR)
@@ -1110,6 +1110,11 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
 	}
 
 	if (element->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR)
+	{
+		z = -tmpf;
+	}
+
+	if (element->QueryFloatAttribute("bank", &tmpf) == tinyxml2::XML_NO_ERROR)
 	{
 		z = -tmpf;
 	}

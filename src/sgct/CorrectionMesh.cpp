@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#define MAX_LINE_LENGTH 256
+#define MAX_LINE_LENGTH 1024
 
 #include <stdio.h>
 #include <fstream>
@@ -90,7 +90,15 @@ sgct_core::CorrectionMesh::~CorrectionMesh()
 	
 }
 
-bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_core::Viewport * parent)
+/*!
+This function finds a suitible parser for warping meshes and loads them into memory.
+
+@param meshPath the path to the mesh data
+@param meshHint a hint to pass to the parser selector
+@param parent the pointer to parent viewport
+@return true if mesh found and loaded successfully
+*/
+bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_core::Viewport * parent, MeshHint hint)
 {	
 	//generate unwarped mask
 	setupSimpleMesh(&mGeometries[QUAD_MESH], parent);
@@ -121,39 +129,50 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	std::string path(meshPath);
 	std::transform(path.begin(), path.end(), path.begin(), ::tolower);
 
+	MeshFormat meshFmt = NO_FMT;
+	//find a suitible format
 	if (path.find(".sgc") != std::string::npos)
-	{
-		if (!readAndGenerateScissMesh(meshPath, parent))
-		{
-			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-			createMesh(&mGeometries[WARP_MESH]);
-			cleanUp();
-			return false;
-		}
-	}
+		meshFmt = SCISS_FMT;
 	else if (path.find(".ol") != std::string::npos)
+		meshFmt = SCALEABLE_FMT;
+	else if (path.find(".skyskan") != std::string::npos)
+		meshFmt = SKYSKAN_FMT;
+	else if (path.find(".txt") != std::string::npos)
 	{
-		if( !readAndGenerateScalableMesh(meshPath, parent))
-		{
-			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-			createMesh(&mGeometries[WARP_MESH]);
-			cleanUp();
-			return false;
-		}
+		if (hint == NO_HINT || hint == SKYSKAN_HINT)//default for this suffix
+			meshFmt = SKYSKAN_FMT;
 	}
-	else if (path.find(".skyskan") != std::string::npos || path.find(".txt") != std::string::npos)
+	else if (path.find(".csv") != std::string::npos)
 	{
-		if ( !readAndGenerateSkySkanMesh(meshPath, parent))
-		{
-			setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-			createMesh(&mGeometries[WARP_MESH]);
-			cleanUp();
-			return false;
-		}
+		if (hint == NO_HINT || hint == DOMEPROJECTION_HINT)//default for this suffix
+			meshFmt = DOMEPROJECTION_FMT;
 	}
-	else
+
+	//select parser
+	bool loadStatus = false;
+	switch (meshFmt)
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Loading failed (bad filename: %s)\n", meshPath.c_str());
+	case DOMEPROJECTION_FMT:
+		loadStatus = readAndGenerateDomeProjectionMesh(meshPath, parent);
+		break;
+
+	case SCALEABLE_FMT:
+		loadStatus = readAndGenerateScalableMesh(meshPath, parent);
+		break;
+
+	case SCISS_FMT:
+		loadStatus = readAndGenerateScissMesh(meshPath, parent);
+		break;
+
+	case SKYSKAN_FMT:
+		loadStatus = readAndGenerateSkySkanMesh(meshPath, parent);
+		break;
+	}
+
+	if( !loadStatus )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Loading mesh '%s' failed!\n", meshPath.c_str());
+		
 		setupSimpleMesh(&mGeometries[WARP_MESH], parent);
 		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
@@ -161,6 +180,69 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	}
 
 	return true;
+}
+
+/*!
+Parse data from domeprojection's camera based calibration system. Domeprojection.com
+*/
+bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string & meshPath, Viewport * parent)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+		"CorrectionMesh: Reading DomeProjection mesh data from '%s'.\n", meshPath.c_str());
+
+	FILE * meshFile = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#else
+	meshFile = fopen(meshPath.c_str(), "r");
+	if (meshFile == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#endif
+
+	char lineBuffer[MAX_LINE_LENGTH];
+	float x, y, u, v;
+	unsigned int col, row;
+
+	while (!feof(meshFile))
+	{
+		if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
+		{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+			if (sscanf_s(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
+#else
+			if (sscanf(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
+#endif
+			{
+				//fprintf(stderr, "TEST %u %u: x=%f y=%f u=%f v=%f\n", col, row, x, y, u, v);
+			}
+			
+		}
+
+	}
+
+	fclose(meshFile);
+
+	//allocate and copy indices
+	/*mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+	mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
+	memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));*/
+
+	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+
+	createMesh(&mGeometries[WARP_MESH]);
+	cleanUp();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+	
+	//return true;
+	return false;
 }
 
 bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent)
@@ -1185,4 +1267,33 @@ void sgct_core::CorrectionMesh::render(MeshType mt)
 
 	//for test
 	//glEnable(GL_CULL_FACE);
+}
+
+/*!
+Parse hint from string to enum.
+*/
+sgct_core::CorrectionMesh::MeshHint sgct_core::CorrectionMesh::parseHint(const std::string & hintStr)
+{
+	if (hintStr.empty())
+		return NO_HINT;
+	
+	//transform to lowercase
+	std::string str(hintStr);
+	std::transform(str.begin(), str.end(), str.begin(), ::tolower);
+
+	sgct_core::CorrectionMesh::MeshHint hint = NO_HINT;
+	if (str.compare("domeprojection") == 0)
+		hint = DOMEPROJECTION_HINT;
+	else if(str.compare("scalable") == 0)
+		hint = SCALEABLE_HINT;
+	else if (str.compare("sciss") == 0)
+		hint = SCISS_HINT;
+	else if (str.compare("skyskan") == 0)
+		hint = SKYSKAN_HINT;
+	else
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "CorrectionMesh: hint '%s' is invalid!\n", hintStr.c_str());
+	}
+
+	return hint;
 }

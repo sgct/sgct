@@ -64,6 +64,9 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 	if (element->Attribute("mesh") != NULL)
 		setCorrectionMesh(element->Attribute("mesh"));
 
+	if (element->Attribute("hint") != NULL)
+		mMeshHint.assign(element->Attribute("hint"));
+
 	if (element->Attribute("tracked") != NULL)
 		setTracked(strcmp(element->Attribute("tracked"), "true") == 0 ? true : false);
 
@@ -330,8 +333,8 @@ void sgct_core::Viewport::loadData()
     if ( mMaskFilename.size() > 0 )
         sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
 
-    //load default if mMeshFilename is NULL
-    mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename.c_str(), this);
+    //load default if mMeshFilename is empty
+    mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
 }
 
 /*!

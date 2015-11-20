@@ -44,13 +44,18 @@ namespace sgct_core
     {
     public:
         enum MeshType { QUAD_MESH = 0, WARP_MESH, MASK_MESH };
+		enum MeshHint { NO_HINT = 0, DOMEPROJECTION_HINT, SCALEABLE_HINT, SCISS_HINT, SKYSKAN_HINT};
         
         CorrectionMesh();
         ~CorrectionMesh();
-        bool readAndGenerateMesh(std::string meshPath, Viewport * parent);
+        bool readAndGenerateMesh(std::string meshPath, Viewport * parent, MeshHint hint = NO_HINT);
         void render(MeshType mt);
+		static MeshHint parseHint(const std::string & hintStr);
         
     private:
+		enum MeshFormat { NO_FMT = 0, DOMEPROJECTION_FMT, SCALEABLE_FMT, SCISS_FMT, SKYSKAN_FMT};
+
+		bool readAndGenerateDomeProjectionMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateScissMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent);

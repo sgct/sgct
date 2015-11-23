@@ -18,6 +18,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <cstring>
 #include <algorithm>
 
+#define MESH_WIREFRAME 0
+
 struct SCISSTexturedVertex
 {
 	float x, y, z;
@@ -110,7 +112,12 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Creating mask mesh\n");
         
-		setupMaskMesh(parent);
+		bool flip_x = false;
+		bool flip_y = false;
+		//if (hint == DOMEPROJECTION_HINT)
+		//	flip_x = true;
+
+		setupMaskMesh(parent, flip_x, flip_y);
 		createMesh(&mGeometries[MASK_MESH]);
         cleanUp();
     }
@@ -209,6 +216,17 @@ bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::str
 	char lineBuffer[MAX_LINE_LENGTH];
 	float x, y, u, v;
 	unsigned int col, row;
+	unsigned int numberOfCols = 0;
+	unsigned int numberOfRows = 0;
+
+	CorrectionMeshVertex vertex;
+	std::vector<CorrectionMeshVertex> vertices;
+
+	//init to max intencity (opaque white)
+	vertex.r = 1.0f;
+	vertex.g = 1.0f;
+	vertex.b = 1.0f;
+	vertex.a = 1.0f;
 
 	while (!feof(meshFile))
 	{
@@ -220,7 +238,28 @@ bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::str
 			if (sscanf(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
 #endif
 			{
-				//fprintf(stderr, "TEST %u %u: x=%f y=%f u=%f v=%f\n", col, row, x, y, u, v);
+				//find dimensions of meshdata
+				if (col > numberOfCols)
+					numberOfCols = col;
+
+				if (row > numberOfRows)
+					numberOfRows = row;
+
+				//clamp
+				clamp(x, 1.0f, 0.0f);
+				clamp(y, 1.0f, 0.0f);
+				//clamp(u, 1.0f, 0.0f);
+				//clamp(v, 1.0f, 0.0f);
+
+				//convert to [-1, 1]
+				vertex.x = 2.0f * (x * parent->getXSize() + parent->getX()) - 1.0f;
+				vertex.y = 2.0f * ((1.0f-y) * parent->getYSize() + parent->getY()) - 1.0f;
+
+				//scale to viewport coordinates
+				vertex.s = u * parent->getXSize() + parent->getX();
+				vertex.t = (1.0f-v) * parent->getYSize() + parent->getY();
+
+				vertices.push_back(vertex);
 			}
 			
 		}
@@ -229,10 +268,58 @@ bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::str
 
 	fclose(meshFile);
 
+	//add one to actually store the dimensions instread of largest index
+	numberOfCols++;
+	numberOfRows++;
+
+	//copy vertices
+	unsigned int numberOfVertices = numberOfCols * numberOfRows;
+	mTempVertices = new CorrectionMeshVertex[numberOfVertices];
+	memcpy(mTempVertices, vertices.data(), numberOfVertices * sizeof(CorrectionMeshVertex));
+	mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
+	vertices.clear();
+
+	std::vector<unsigned int> indices;
+	unsigned int i0, i1, i2, i3;
+	for (unsigned int c = 0; c < (numberOfCols -1); c++)
+		for (unsigned int r = 0; r < (numberOfRows-1); r++)
+		{
+			i0 = r * numberOfCols + c;
+			i1 = r * numberOfCols + (c + 1);
+			i2 = (r + 1) * numberOfCols + (c + 1);
+			i3 = (r + 1) * numberOfCols + c;
+
+			//fprintf(stderr, "Indexes: %u %u %u %u\n", i0, i1, i2, i3);
+
+			/*
+
+			3      2
+			 x____x
+			 |   /|
+			 |  / |
+			 | /  |
+			 |/   |
+			 x----x
+			0      1
+			
+			*/
+
+			//triangle 1
+			indices.push_back(i0);
+			indices.push_back(i1);
+			indices.push_back(i2);
+
+			//triangle 2
+			indices.push_back(i0);
+			indices.push_back(i2);
+			indices.push_back(i3);
+		}
+
 	//allocate and copy indices
-	/*mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+	mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
 	mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
-	memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));*/
+	memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+	indices.clear();
 
 	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
@@ -241,8 +328,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::str
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 	
-	//return true;
-	return false;
+	return true;
 }
 
 bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent)
@@ -631,33 +717,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 		vertexPtr->a = 1.0f;
 
 		//clamp
-		if (scissVertexPtr->x > 1.0f)
-			scissVertexPtr->x = 1.0f;
-		else if (scissVertexPtr->x < 0.0f)
-			scissVertexPtr->x = 0.0f;
-
-		if (scissVertexPtr->y > 1.0f)
-			scissVertexPtr->y = 1.0f;
-		else if (scissVertexPtr->y < 0.0f)
-			scissVertexPtr->y = 0.0f;
-
-		if (scissVertexPtr->tx > 1.0f)
-			scissVertexPtr->tx = 1.0f;
-		else if (scissVertexPtr->tx < 0.0f)
-			scissVertexPtr->tx = 0.0f;
-
-		if (scissVertexPtr->ty > 1.0f)
-			scissVertexPtr->ty = 1.0f;
-		else if (scissVertexPtr->ty < 0.0f)
-			scissVertexPtr->ty = 0.0f;
-
-		/*if (scissVertexPtr->x > 1.0f || scissVertexPtr->x < 0.0f ||
-			scissVertexPtr->y > 1.0f || scissVertexPtr->y < 0.0f)
-		{
-			fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
-				scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
-				scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);
-		}*/
+		clamp(scissVertexPtr->x, 1.0f, 0.0f);
+		clamp(scissVertexPtr->y, 1.0f, 0.0f);
+		clamp(scissVertexPtr->tx, 1.0f, 0.0f);
+		clamp(scissVertexPtr->ty, 1.0f, 0.0f);
 
 		//convert to [-1, 1]
 		vertexPtr->x = 2.0f*(scissVertexPtr->x * parent->getXSize() + parent->getX()) - 1.0f;
@@ -1056,7 +1119,7 @@ void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr
 	mTempVertices[3].y = 2.0f*(1.0f * parent->getYSize() + parent->getY()) - 1.0f;
 }
 
-void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
+void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y)
 {
 	unsigned int numberOfVertices = 4;
 	unsigned int numberOfIndices = 4;
@@ -1080,8 +1143,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
 	mTempVertices[0].g = 1.0f;
 	mTempVertices[0].b = 1.0f;
 	mTempVertices[0].a = 1.0f;
-	mTempVertices[0].s = 0.0f;
-	mTempVertices[0].t = 0.0f;
+	mTempVertices[0].s = flip_x ? 1.0f : 0.0f;
+	mTempVertices[0].t = flip_y ? 1.0f : 0.0f;
 	mTempVertices[0].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
 	mTempVertices[0].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
@@ -1089,8 +1152,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
 	mTempVertices[1].g = 1.0f;
 	mTempVertices[1].b = 1.0f;
 	mTempVertices[1].a = 1.0f;
-	mTempVertices[1].s = 1.0f;
-	mTempVertices[1].t = 0.0f;
+	mTempVertices[1].s = flip_x ? 0.0f : 1.0f;
+	mTempVertices[1].t = flip_y ? 1.0f : 0.0f;
 	mTempVertices[1].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
 	mTempVertices[1].y = 2.0f*(0.0f * parent->getYSize() + parent->getY()) - 1.0f;
 
@@ -1098,8 +1161,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
 	mTempVertices[2].g = 1.0f;
 	mTempVertices[2].b = 1.0f;
 	mTempVertices[2].a = 1.0f;
-	mTempVertices[2].s = 1.0f;
-	mTempVertices[2].t = 1.0f;
+	mTempVertices[2].s = flip_x ? 0.0f : 1.0f;
+	mTempVertices[2].t = flip_y ? 0.0f : 1.0f;
 	mTempVertices[2].x = 2.0f*(1.0f * parent->getXSize() + parent->getX()) - 1.0f;
 	mTempVertices[2].y = 2.0f*(1.0f *parent->getYSize() + parent->getY()) - 1.0f;
 
@@ -1107,8 +1170,8 @@ void sgct_core::CorrectionMesh::setupMaskMesh(Viewport * parent)
 	mTempVertices[3].g = 1.0f;
 	mTempVertices[3].b = 1.0f;
 	mTempVertices[3].a = 1.0f;
-	mTempVertices[3].s = 0.0f;
-	mTempVertices[3].t = 1.0f;
+	mTempVertices[3].s = flip_x ? 1.0f : 0.0f;
+	mTempVertices[3].t = flip_y ? 0.0f : 1.0f;
 	mTempVertices[3].x = 2.0f*(0.0f * parent->getXSize() + parent->getX()) - 1.0f;
 	mTempVertices[3].y = 2.0f*(1.0f * parent->getYSize() + parent->getY()) - 1.0f;
 }
@@ -1217,6 +1280,14 @@ void sgct_core::CorrectionMesh::cleanUp()
 	}
 }
 
+void sgct_core::CorrectionMesh::clamp(float & val, const float max, const float min)
+{
+	if (val > max)
+		val = max;
+	else if (val < min)
+		val = min;
+}
+
 /*!
 Render the final mesh where for mapping the frame buffer to the screen
 \param mask to enable mask texture mode
@@ -1225,6 +1296,10 @@ void sgct_core::CorrectionMesh::render(MeshType mt)
 {
 	//for test
 	//glDisable(GL_CULL_FACE);
+
+#if MESH_WIREFRAME
+	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+#endif
 
 	CorrectionMeshGeometry * geomPtr = &mGeometries[mt];
 
@@ -1264,6 +1339,10 @@ void sgct_core::CorrectionMesh::render(MeshType mt)
 	{
 		glCallList(geomPtr->mMeshData[Vertex]);
 	}
+
+#if MESH_WIREFRAME
+	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+#endif
 
 	//for test
 	//glEnable(GL_CULL_FACE);

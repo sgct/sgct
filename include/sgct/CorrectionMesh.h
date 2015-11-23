@@ -60,9 +60,10 @@ namespace sgct_core
 		bool readAndGenerateScissMesh(const std::string & meshPath, Viewport * parent);
 		bool readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent);
 		void setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent);
-		void setupMaskMesh(Viewport * parent);
+		void setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y);
         void createMesh(CorrectionMeshGeometry * geomPtr);
         void cleanUp();
+		inline void clamp(float & val, const float max, const float min);
         
         enum buffer { Vertex = 0, Index, Array };
         

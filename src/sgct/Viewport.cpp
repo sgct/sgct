@@ -43,8 +43,11 @@ sgct_core::Viewport::~Viewport()
 	if (mOverlayTextureIndex)
 		glDeleteTextures(1, &mOverlayTextureIndex);
 
-	if (mMaskTextureIndex)
-		glDeleteTextures(1, &mMaskTextureIndex);
+	if (mBlendMaskTextureIndex)
+		glDeleteTextures(1, &mBlendMaskTextureIndex);
+
+	if (mBlackLevelMaskTextureIndex)
+		glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
 }
 
 void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
@@ -58,8 +61,15 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 	if (element->Attribute("overlay") != NULL)
 		setOverlayTexture(element->Attribute("overlay"));
 
+	//for backward compability
 	if (element->Attribute("mask") != NULL)
-		setMaskTexture(element->Attribute("mask"));
+		setBlendMaskTexture(element->Attribute("mask"));
+
+	if (element->Attribute("BlendMask") != NULL)
+		setBlendMaskTexture(element->Attribute("BlendMask"));
+
+	if (element->Attribute("BlackLevelMask") != NULL)
+		setBlackLevelMaskTexture(element->Attribute("BlackLevelMask"));
 
 	if (element->Attribute("mesh") != NULL)
 		setCorrectionMesh(element->Attribute("mesh"));
@@ -139,7 +149,8 @@ void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
 	mEye = Frustum::MonoEye;
 	mCorrectionMesh = false;
 	mOverlayTextureIndex = GL_FALSE;
-	mMaskTextureIndex = GL_FALSE;
+	mBlendMaskTextureIndex = GL_FALSE;
+	mBlackLevelMaskTextureIndex = GL_FALSE;
 	mTracked = false;
 	mEnabled = true;
     mName.assign("NoName");
@@ -308,9 +319,14 @@ void sgct_core::Viewport::setOverlayTexture(const char * texturePath)
 	mOverlayFilename.assign(texturePath);
 }
 
-void sgct_core::Viewport::setMaskTexture(const char * texturePath)
+void sgct_core::Viewport::setBlendMaskTexture(const char * texturePath)
 {
-	mMaskFilename.assign(texturePath);
+	mBlendMaskFilename.assign(texturePath);
+}
+
+void sgct_core::Viewport::setBlackLevelMaskTexture(const char * texturePath)
+{
+	mBlackLevelMaskFilename.assign(texturePath);
 }
 
 void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
@@ -330,8 +346,11 @@ void sgct_core::Viewport::loadData()
     if( mOverlayFilename.size() > 0 )
         sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
 
-    if ( mMaskFilename.size() > 0 )
-        sgct::TextureManager::instance()->loadUnManagedTexture(mMaskTextureIndex, mMaskFilename, true, 1);
+    if ( mBlendMaskFilename.size() > 0 )
+        sgct::TextureManager::instance()->loadUnManagedTexture(mBlendMaskTextureIndex, mBlendMaskFilename, true, 1);
+
+	if ( mBlackLevelMaskFilename.size() > 0)
+		sgct::TextureManager::instance()->loadUnManagedTexture(mBlackLevelMaskTextureIndex, mBlackLevelMaskFilename, true, 1);
 
     //load default if mMeshFilename is empty
     mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));

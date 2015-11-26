@@ -108,7 +108,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	cleanUp();
 	
 	//generate unwarped mesh for mask
-	if(parent->hasMaskTexture())
+	if(parent->hasBlendMaskTexture() || parent->hasBlackLevelMaskTexture())
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Creating mask mesh\n");
         

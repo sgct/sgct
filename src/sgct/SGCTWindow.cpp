@@ -326,7 +326,10 @@ void sgct::SGCTWindow::initContextSpecificOGL()
 	{
 		sgct_core::Viewport * vpPtr = getViewport(j);
 		vpPtr->loadData();
-		if (vpPtr->hasMaskTexture())
+		if (vpPtr->hasBlendMaskTexture())
+			numberOfMasks++;
+
+		if (vpPtr->hasBlackLevelMaskTexture())
 			numberOfMasks++;
 	}
 

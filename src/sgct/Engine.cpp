@@ -1728,6 +1728,8 @@ void sgct::Engine::renderFBOTexture()
 	//unbind framebuffer
 	OffScreenBuffer::unBind();
 
+	bool maskShaderSet = false;
+
     SGCTWindow * win = getCurrentWindowPtr();
     win->makeOpenGLContextCurrent( SGCTWindow::Window_Context );
 
@@ -1764,34 +1766,6 @@ void sgct::Engine::renderFBOTexture()
 
 		for(std::size_t i=0; i<win->getNumberOfViewports(); i++)
 			win->getViewport(i)->renderMesh( mt );
-
-		//render mask (mono)
-		if (win->hasAnyMasks())
-		{
-			glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-			glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-
-			mShaders[FBOQuadShader].bind(); //bind
-			glUniform1i(mShaderLocs[MonoTex], 0);
-
-			glActiveTexture(GL_TEXTURE0);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_DST_COLOR, GL_ZERO);
-			for (std::size_t i = 0; i < numberOfIterations; i++)
-			{
-				Viewport * vpPtr = win->getViewport(i);
-				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
-				{
-					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
-					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
-				}
-			}
-
-			//restore
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-		}
-
-		ShaderProgram::unbind();
 	}
 	else
 	{
@@ -1800,6 +1774,7 @@ void sgct::Engine::renderFBOTexture()
 
 		mShaders[FBOQuadShader].bind(); //bind
 		glUniform1i( mShaderLocs[MonoTex], 0);
+		maskShaderSet = true;
 
 		for (std::size_t i = 0; i < numberOfIterations; i++)
 			win->getViewport(i)->renderMesh( mt );
@@ -1814,36 +1789,64 @@ void sgct::Engine::renderFBOTexture()
 			setAndClearBuffer(BackBufferBlack);
 
 			glBindTexture(GL_TEXTURE_2D, win->getFrameBufferTexture(RightEye));
-			glUniform1i( mShaderLocs[MonoTex], 0);
-
 			for(std::size_t i=0; i<numberOfIterations; i++)
 				win->getViewport(i)->renderMesh( mt );
 		}
+	}
 
-		//render mask (mono)
-		if (win->hasAnyMasks())
+	//render mask (mono)
+	if (win->hasAnyMasks())
+	{
+		if (!maskShaderSet)
 		{
-			glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-			glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
-			glActiveTexture(GL_TEXTURE0);
-			glEnable(GL_BLEND);
-			glBlendFunc(GL_DST_COLOR, GL_ZERO);
-			for (std::size_t i = 0; i < numberOfIterations; i++)
-			{
-				Viewport * vpPtr = win->getViewport(i);
-				if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
-				{
-					glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
-					vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
-				}
-			}
+			mShaders[FBOQuadShader].bind(); //bind
+			glUniform1i(mShaderLocs[MonoTex], 0);
+		}
+		
+		glDrawBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+		glReadBuffer(win->isDoubleBuffered() ? GL_BACK : GL_FRONT);
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_BLEND);
 
-			//restore
-			glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		//------------------------------------------------------------
+		//Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
+		//------------------------------------------------------------
+
+		//render blend masks
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
+		for (std::size_t i = 0; i < numberOfIterations; i++)
+		{
+			Viewport * vpPtr = win->getViewport(i);
+			if (vpPtr->hasBlendMaskTexture() && vpPtr->isEnabled())
+			{
+				glBindTexture(GL_TEXTURE_2D, vpPtr->getBlendMaskTextureIndex());
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+			}
 		}
 
-		ShaderProgram::unbind();
+		//render black level masks
+		for (std::size_t i = 0; i < numberOfIterations; i++)
+		{
+			Viewport * vpPtr = win->getViewport(i);
+			if (vpPtr->hasBlackLevelMaskTexture() && vpPtr->isEnabled())
+			{
+				glBindTexture(GL_TEXTURE_2D, vpPtr->getBlackLevelMaskTextureIndex());
+
+				//inverse multiply
+				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+
+				//add
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+			}
+		}
+
+		//restore
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	}
+
+	ShaderProgram::unbind();
 
 	glDisable(GL_BLEND);
 }
@@ -1951,13 +1954,37 @@ void sgct::Engine::renderFBOTextureFixedPipeline()
 
 		glActiveTexture(GL_TEXTURE0);
 		glEnable(GL_BLEND);
-		glBlendFunc(GL_DST_COLOR, GL_ZERO);
+
+		//------------------------------------------------------------
+		//Result = (Color * BlendMask) * (1-BlackLevel) + BlackLevel
+		//------------------------------------------------------------
+
+		//render blend masks
+		glBlendFunc(GL_ZERO, GL_SRC_COLOR);
 		for (std::size_t i = 0; i < numberOfIterations; i++)
 		{
 			Viewport * vpPtr = win->getViewport(i);
-			if (vpPtr->hasMaskTexture() && vpPtr->isEnabled())
+			if (vpPtr->hasBlendMaskTexture() && vpPtr->isEnabled())
 			{
-				glBindTexture(GL_TEXTURE_2D, vpPtr->getMaskTextureIndex());
+				glBindTexture(GL_TEXTURE_2D, vpPtr->getBlendMaskTextureIndex());
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+			}
+		}
+
+		//render black level masks
+		for (std::size_t i = 0; i < numberOfIterations; i++)
+		{
+			Viewport * vpPtr = win->getViewport(i);
+			if (vpPtr->hasBlackLevelMaskTexture() && vpPtr->isEnabled())
+			{
+				glBindTexture(GL_TEXTURE_2D, vpPtr->getBlackLevelMaskTextureIndex());
+
+				//inverse multiply
+				glBlendFunc(GL_ZERO, GL_ONE_MINUS_SRC_COLOR);
+				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
+
+				//add
+				glBlendFunc(GL_SRC_ALPHA, GL_ONE);
 				vpPtr->renderMesh(sgct_core::CorrectionMesh::MASK_MESH);
 			}
 		}

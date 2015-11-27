@@ -15,10 +15,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/ClusterManager.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/Viewport.h"
+#include "../include/sgct/SGCTSettings.h"
 #include <cstring>
 #include <algorithm>
-
-#define MESH_WIREFRAME 0
 
 struct SCISSTexturedVertex
 {
@@ -1292,14 +1291,13 @@ void sgct_core::CorrectionMesh::clamp(float & val, const float max, const float 
 Render the final mesh where for mapping the frame buffer to the screen
 \param mask to enable mask texture mode
 */
-void sgct_core::CorrectionMesh::render(MeshType mt)
+void sgct_core::CorrectionMesh::render(const MeshType & mt)
 {
 	//for test
 	//glDisable(GL_CULL_FACE);
 
-#if MESH_WIREFRAME
-	glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
-#endif
+	if(sgct::SGCTSettings::instance()->getShowWarpingWireframe())
+		glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
 
 	CorrectionMeshGeometry * geomPtr = &mGeometries[mt];
 
@@ -1340,9 +1338,8 @@ void sgct_core::CorrectionMesh::render(MeshType mt)
 		glCallList(geomPtr->mMeshData[Vertex]);
 	}
 
-#if MESH_WIREFRAME
-	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
-#endif
+	if (sgct::SGCTSettings::instance()->getShowWarpingWireframe())
+		glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 
 	//for test
 	//glEnable(GL_CULL_FACE);

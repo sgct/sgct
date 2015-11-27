@@ -170,6 +170,11 @@ public:
 	//! \returns the aspect ratio of the window 
 	inline const float & getAspectRatio() const { return mAspectRatio; }
 
+	/*!
+	\returns Get the frame buffer bytes per color component (BPCC) count.
+	*/
+	inline const int & getFramebufferBPCC() const { return mBytesPerColor; }
+
 	// -------------- bind functions -------------------//
 	void bindVAO() const;
 	void bindVBO() const;

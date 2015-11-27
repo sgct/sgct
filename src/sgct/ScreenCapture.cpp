@@ -7,7 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "../include/sgct/ScreenCapture.h"
 #include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/Engine.h"
 #include "../include/sgct/SGCTSettings.h"
 #include <sstream>
@@ -37,6 +36,7 @@ sgct_core::ScreenCapture::ScreenCapture()
 	mPreferBGR = true;
 	mDownloadFormat = GL_BGRA;
 	mDownloadType = GL_UNSIGNED_BYTE;
+	mDownloadTypeSetByUser = mDownloadType;
 	mFormat = PNG;
 	mBytesPerColor = 1;
 
@@ -166,6 +166,7 @@ Set the opengl texture properties for glGetTexImage.
 void sgct_core::ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR)
 {
 	mDownloadType = type;
+	mDownloadTypeSetByUser = mDownloadType;
 	mPreferBGR = preferBGR;
 
 	updateDownloadFormat();
@@ -192,9 +193,16 @@ This function saves the images to disc.
 
 @param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering.
 */
-void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
+void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeSrc CapSrc)
 {
 	addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
+
+	checkImageBuffer(CapSrc);
+
+	int threadIndex = getAvailibleCaptureThread();
+	Image * imPtr = prepareImage(threadIndex);
+	if (!imPtr)
+		return;
     
 	glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
 
@@ -208,16 +216,20 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 			glEnable(GL_TEXTURE_2D);
 		}
             
-        glBindTexture(GL_TEXTURE_2D, textureId);
-		glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
+		if (CapSrc == CAPTURE_TEXTURE)
+		{
+			glBindTexture(GL_TEXTURE_2D, textureId);
+			glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
+		}
+		else
+		{
+			// set the target framebuffer to read
+			glReadBuffer(CapSrc);
+			glReadPixels(0, 0, imPtr->getWidth(), imPtr->getHeight(), mDownloadFormat, mDownloadType, 0);
+		}
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
-        
-        int threadIndex = getAvailibleCaptureThread();
-        Image * imPtr = prepareImage(threadIndex);
-        if (!imPtr)
-            return;
         
 		GLubyte * ptr = reinterpret_cast<GLubyte*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
         if (ptr)
@@ -244,19 +256,23 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId)
 	}
 	else //no PBO
 	{
-		int threadIndex = getAvailibleCaptureThread();
-		Image * imPtr = prepareImage(threadIndex);
-		if (!imPtr)
-			return;
-		
 		if (sgct::Engine::instance()->isOGLPipelineFixed())
 		{
 			glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
 			glEnable(GL_TEXTURE_2D);
 		}
 			
-		glBindTexture(GL_TEXTURE_2D, textureId);
-		glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, imPtr->getData());
+		if (CapSrc == CAPTURE_TEXTURE)
+		{
+			glBindTexture(GL_TEXTURE_2D, textureId);
+			glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, imPtr->getData());
+		}
+		else
+		{
+			// set the target framebuffer to read
+			glReadBuffer(CapSrc);
+			glReadPixels(0, 0, imPtr->getWidth(), imPtr->getHeight(), mDownloadFormat, mDownloadType, imPtr->getData());
+		}
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
 			glPopAttrib();
@@ -440,6 +456,29 @@ void sgct_core::ScreenCapture::updateDownloadFormat()
 	case 3:
 		mDownloadFormat = mPreferBGR ? GL_BGR : GL_RGB;
 		break;
+	}
+}
+
+void sgct_core::ScreenCapture::checkImageBuffer(const CaputeSrc & CapSrc)
+{
+	sgct::SGCTWindow * win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+	
+	if (CapSrc == CAPTURE_TEXTURE)
+	{
+		if (mX != win->getXFramebufferResolution() || mY != win->getYFramebufferResolution())
+		{
+			mDownloadType = mDownloadTypeSetByUser;
+			int bytesPerColor = win->getFramebufferBPCC();
+			initOrResize(win->getXFramebufferResolution(), win->getYFramebufferResolution(), mChannels, bytesPerColor);
+		}
+	}
+	else //capture directly from back buffer (no HDR support)
+	{
+		if (mX != win->getXResolution() || mY != win->getYResolution())
+		{
+			mDownloadType = GL_UNSIGNED_BYTE;
+			initOrResize(win->getXResolution(), win->getYResolution(), mChannels, 1);
+		}
 	}
 }
 

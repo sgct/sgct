@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SCREEN_CAPTURE_H_
 #define _SCREEN_CAPTURE_H_
 
+#include "../include/sgct/ogl_headers.h"
 #include "Image.h"
 #include "helpers/SGCTCPPEleven.h"
 #include <string>
@@ -40,6 +41,7 @@ class ScreenCapture
 public:
 	//! The different file formats supported
 	enum CaptureFormat { NOT_SET = -1, PNG = 0, TGA, JPEG };
+	enum CaputeSrc { CAPTURE_TEXTURE = 0, CAPTURE_BACK_BUFFER = GL_BACK, CAPTURE_LEFT_BACK_BUFFER = GL_BACK_LEFT, CAPTURE_RIGHT_BACK_BUFFER = GL_BACK_RIGHT};
     enum EyeIndex { MONO = 0, STEREO_LEFT, STEREO_RIGHT};
 
 	ScreenCapture();
@@ -50,7 +52,7 @@ public:
 	void setTextureTransferProperties(unsigned int type, bool preferBGR);
 	void setCaptureFormat(CaptureFormat cf);
 	CaptureFormat getCaptureFormat();
-	void saveScreenCapture(unsigned int textureId);
+	void saveScreenCapture(unsigned int textureId, CaputeSrc CapSrc = CAPTURE_TEXTURE);
 	void setPathAndFileName(std::string path, std::string filename);
 	void setUsePBO(bool state);
 
@@ -63,6 +65,7 @@ private:
 	void addFrameNumberToFilename( unsigned int frameNumber);
 	int getAvailibleCaptureThread();
 	void updateDownloadFormat();
+	void checkImageBuffer(const CaputeSrc & CapSrc);
 	Image * prepareImage(int index);
 
 	tthread::mutex mMutex;
@@ -72,6 +75,7 @@ private:
 	unsigned int mPBO;
 	unsigned int mDownloadFormat;
 	unsigned int mDownloadType;
+	unsigned int mDownloadTypeSetByUser;
 	int mDataSize;
 	int mX;
 	int mY;

@@ -49,7 +49,7 @@ namespace sgct_core
         CorrectionMesh();
         ~CorrectionMesh();
         bool readAndGenerateMesh(std::string meshPath, Viewport * parent, MeshHint hint = NO_HINT);
-        void render(MeshType mt);
+        void render(const MeshType & mt);
 		static MeshHint parseHint(const std::string & hintStr);
         
     private:

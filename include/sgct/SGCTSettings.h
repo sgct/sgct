@@ -64,6 +64,7 @@ public:
 	void setCapturePath(std::string path, CapturePathIndex cpi = Mono);
 	void appendCapturePath(std::string str, CapturePathIndex cpi = Mono);
 	void setCaptureFormat(const char * format);
+	void setCaptureFromBackBuffer(bool state);
 	void setFXAASubPixTrim(float val);
 	void setFXAASubPixOffset(float val);
 	void setOSDTextXOffset(float val);
@@ -77,26 +78,31 @@ public:
 	void setUsePBO(bool state);
 	void setUseRLE(bool state);
 	void setUseWarping(bool state);
+	void setShowWarpingWireframe(bool state);
 	void setTryMaintainAspectRatio(bool state);
 	
 	// ----------- get functions ---------------- //
-	const char *		getCapturePath(CapturePathIndex cpi = Mono);
-	int					getCaptureFormat();
-	int					getSwapInterval();
-	int					getRefreshRateHint();
-	const unsigned int & getOSDTextFontSize();
-	const std::string &	getOSDTextFontName();
-	const std::string &	getOSDTextFontPath();
-	int					getBufferFloatPrecisionAsGLint();
-	int					getDefaultNumberOfAASamples();
-	bool				getDefaultFXAAState();
-	bool				getForceGlTexImage2D();
-	bool				getUsePBO();
-	bool				getUseRLE();
-	bool				getUseWarping();
+	const char *		getCapturePath(CapturePathIndex cpi = Mono) const;
+	const int			getSwapInterval() const;
+	const int			getRefreshRateHint() const;
+	const unsigned int & getOSDTextFontSize() const;
+	const std::string &	getOSDTextFontName() const;
+	const std::string &	getOSDTextFontPath() const;
+	const int			getBufferFloatPrecisionAsGLint() const;
+	const int			getDefaultNumberOfAASamples() const;
+	const bool			getDefaultFXAAState() const;
+	const bool			getForceGlTexImage2D() const;
+	const bool			getUsePBO() const;
+	const bool			getUseWarping() const;
+	const bool			getShowWarpingWireframe() const;
+	const bool			getCaptureFromBackBuffer() const;
 	const bool			getTryMaintainAspectRatio() const;
-	int					getPNGCompressionLevel();
-	int					getJPEGQuality();
+
+	// -- mutex protected get functions ---------- //
+	const bool			getUseRLE();
+	const int			getCaptureFormat();
+	const int			getPNGCompressionLevel();
+	const int			getJPEGQuality();
 
 	// ----------- inline functions ---------------- //
 	//! Return true if depth buffer is rendered to texture
@@ -150,6 +156,8 @@ private:
 	bool mUsePBO;
 	bool mUseRLE;
 	bool mUseWarping;
+	bool mShowWarpingWireframe;
+	bool mCaptureBackBuffer;
 	bool mTryMaintainAspectRatio;
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;

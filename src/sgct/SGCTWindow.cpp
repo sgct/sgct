@@ -485,10 +485,26 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
         
         if (takeScreenshot)
 		{
-			if (mScreenCapture[0] != NULL)
-                mScreenCapture[0]->saveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
-            if (mScreenCapture[1] != NULL)
-                mScreenCapture[1]->saveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
+			if (sgct::SGCTSettings::instance()->getCaptureFromBackBuffer() && mDoubleBuffered)
+			{
+				if (mScreenCapture[0] != NULL)
+				{
+					mScreenCapture[0]->saveScreenCapture(0,
+						mStereoMode == Active_Stereo ? sgct_core::ScreenCapture::CAPTURE_LEFT_BACK_BUFFER : sgct_core::ScreenCapture::CAPTURE_BACK_BUFFER);
+				}
+
+				if (mScreenCapture[1] != NULL && mStereoMode == Active_Stereo)
+				{
+					mScreenCapture[0]->saveScreenCapture(0, sgct_core::ScreenCapture::CAPTURE_RIGHT_BACK_BUFFER);
+				}
+			}
+			else
+			{
+				if (mScreenCapture[0] != NULL)
+					mScreenCapture[0]->saveScreenCapture(mFrameBufferTextures[Engine::LeftEye]);
+				if (mScreenCapture[1] != NULL && mStereoMode > No_Stereo && mStereoMode < sgct::SGCTWindow::Side_By_Side_Stereo)
+					mScreenCapture[1]->saveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
+			}
         }
 		
         //swap
@@ -536,11 +552,17 @@ bool sgct::SGCTWindow::update()
 		for (int i = 0; i < 2; i++)
 			if (mScreenCapture[i] != NULL)
 			{
-				mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
-
-				mAlpha ?
-					mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 4, mBytesPerColor) :
-					mScreenCapture[i]->initOrResize(mFramebufferResolution[0], mFramebufferResolution[1], 3, mBytesPerColor);
+				int numberOfCaputeChannels = mAlpha ? 4 : 3;
+				if (sgct::SGCTSettings::instance()->getCaptureFromBackBuffer()) //capute from buffer supports only 8-bit per color component capture (unsigned byte)
+				{
+					mScreenCapture[i]->setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
+					mScreenCapture[i]->initOrResize(getXResolution(), getYResolution(), numberOfCaputeChannels, 1);
+				}
+				else //default: capture from texture (supports HDR)
+				{
+					mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
+					mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), numberOfCaputeChannels, mBytesPerColor);
+				}
 			}
 
 		//resize non linear projection buffers
@@ -1059,14 +1081,16 @@ void sgct::SGCTWindow::initScreenCapture()
 			mScreenCapture[i]->setUsePBO(SGCTSettings::instance()->getUsePBO());
 		}
 
-		if (SGCTSettings::instance()->useFBO())
+		int numberOfCaputeChannels = mAlpha ? 4 : 3;
+		if (sgct::SGCTSettings::instance()->getCaptureFromBackBuffer()) //capute from buffer supports only 8-bit per color component capture (unsigned byte)
+		{
+			mScreenCapture[i]->setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
+			mScreenCapture[i]->initOrResize(getXResolution(), getYResolution(), numberOfCaputeChannels, 1);
+		}
+		else //default: capture from texture (supports HDR)
 		{
 			mScreenCapture[i]->setTextureTransferProperties(mColorDataType, mPreferBGR);
-			
-			if (mAlpha)
-				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 4, mBytesPerColor);
-			else
-				mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), 3, mBytesPerColor);
+			mScreenCapture[i]->initOrResize(getXFramebufferResolution(), getYFramebufferResolution(), numberOfCaputeChannels, mBytesPerColor);
 		}
 
 		if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET)

@@ -21,15 +21,17 @@ sgct::SGCTSettings::SGCTSettings()
 
 	mNumberOfCaptureThreads = tthread::thread::hardware_concurrency();
 
-	mUseWarping = true;
-	mUseDepthTexture = false;
-	mUseNormalTexture = false;
-	mUsePositionTexture = false;
-	mUseFBO = true;
-	mForceGlTexImage2D = false;
-	mUsePBO = true;
-	mUseRLE = false;
-	mTryMaintainAspectRatio = true;
+	mCaptureBackBuffer			= false;
+	mUseWarping					= true;
+	mShowWarpingWireframe		= false;
+	mUseDepthTexture			= false;
+	mUseNormalTexture			= false;
+	mUsePositionTexture			= false;
+	mUseFBO						= true;
+	mForceGlTexImage2D			= false;
+	mUsePBO						= true;
+	mUseRLE						= false;
+	mTryMaintainAspectRatio		= true;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -85,7 +87,7 @@ Get swap interval for all windows
 	- 1  = wait for vertical sync
 	- 2  = fix when using swapgroups in xp and running half the framerate
 */
-int sgct::SGCTSettings::getSwapInterval()
+const int sgct::SGCTSettings::getSwapInterval() const
 {
 	return mSwapInterval;
 }
@@ -104,7 +106,7 @@ void sgct::SGCTSettings::setRefreshRateHint(int freq)
 /*!
 	Get the refreshrate hint of the window in fullscreen mode.
 */
-int sgct::SGCTSettings::getRefreshRateHint()
+const int sgct::SGCTSettings::getRefreshRateHint() const
 {
 	return mRefreshRate;
 }
@@ -205,7 +207,7 @@ void sgct::SGCTSettings::setJPEGQuality(int quality)
 /*!
 Get the zlib compression level used in png export.
 */
-int sgct::SGCTSettings::getPNGCompressionLevel()
+const int sgct::SGCTSettings::getPNGCompressionLevel()
 { 
 	int tmpI;
 	mMutex.lock();
@@ -217,7 +219,7 @@ int sgct::SGCTSettings::getPNGCompressionLevel()
 /*!
 Get the JPEG quality settings (0-100)
 */
-int sgct::SGCTSettings::getJPEGQuality()
+const int sgct::SGCTSettings::getJPEGQuality()
 {
 	int tmpI;
 	mMutex.lock();
@@ -284,7 +286,7 @@ void sgct::SGCTSettings::setCaptureFormat(const char * format)
 
 	\param cpi index to which path to get (Mono = default, Left or Right)
 */
-const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndex cpi)
+const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndex cpi) const
 {
 	return mCapturePath[cpi].c_str();
 }
@@ -294,7 +296,7 @@ const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathI
 
 	\return the captureformat if set, otherwise -1 is returned
 */
-int sgct::SGCTSettings::getCaptureFormat()
+const int sgct::SGCTSettings::getCaptureFormat()
 {
 	int tmpI;
 	mMutex.lock();
@@ -395,7 +397,7 @@ void sgct::SGCTSettings::setForceGlTexImage2D(bool state)
 /*!
 Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern). For example gDebugger can't display textures created using glTexStorage2D.
 */
-bool sgct::SGCTSettings::getForceGlTexImage2D()
+const bool sgct::SGCTSettings::getForceGlTexImage2D() const
 {
 	return mForceGlTexImage2D;
 }
@@ -411,7 +413,7 @@ void sgct::SGCTSettings::setUsePBO(bool state)
 /*!
 Get if pixel buffer object transferes should be used
 */
-bool sgct::SGCTSettings::getUsePBO()
+const bool sgct::SGCTSettings::getUsePBO() const
 {
 	return mUsePBO;
 }
@@ -435,9 +437,25 @@ void sgct::SGCTSettings::setUseWarping(bool state)
 }
 
 /*!
+Set if warping mesh wireframe should be rendered
+*/
+void sgct::SGCTSettings::setShowWarpingWireframe(bool state)
+{
+	mShowWarpingWireframe = state;
+}
+
+/*!
+Set if capture should capture warped from backbuffer instead of texture. Backbuffer data includes masks and warping.
+*/
+void sgct::SGCTSettings::setCaptureFromBackBuffer(bool state)
+{
+	mCaptureBackBuffer = state;
+}
+
+/*!
 Get if run length encoding (RLE) is used in PNG and TGA export.
 */
-bool sgct::SGCTSettings::getUseRLE()
+const bool sgct::SGCTSettings::getUseRLE()
 {
 	bool tmpB;
 	mMutex.lock();
@@ -457,9 +475,25 @@ const bool sgct::SGCTSettings::getTryMaintainAspectRatio() const
 /*!
 Get if screen warping is used
 */
-bool sgct::SGCTSettings::getUseWarping()
+const bool sgct::SGCTSettings::getUseWarping() const
 {
 	return mUseWarping;
+}
+
+/*!
+Get if warping wireframe mesh should be rendered
+*/
+const bool sgct::SGCTSettings::getShowWarpingWireframe() const
+{
+	return mShowWarpingWireframe;
+}
+
+/*!
+Get if capture should use backbuffer data or texture. Backbuffer data includes masks and warping.
+*/
+const bool sgct::SGCTSettings::getCaptureFromBackBuffer() const
+{
+	return mCaptureBackBuffer;
 }
 
 /*!
@@ -475,7 +509,7 @@ void sgct::SGCTSettings::setTryMaintainAspectRatio(bool state)
 /*!
 	Get the OSD text font size
 */
-const unsigned int & sgct::SGCTSettings::getOSDTextFontSize()
+const unsigned int & sgct::SGCTSettings::getOSDTextFontSize() const
 {
 	return mFontSize;
 }
@@ -483,7 +517,7 @@ const unsigned int & sgct::SGCTSettings::getOSDTextFontSize()
 /*!
 	Get the OSD text font name
 */
-const std::string & sgct::SGCTSettings::getOSDTextFontName()
+const std::string & sgct::SGCTSettings::getOSDTextFontName() const
 {
 	return mFontName;
 }
@@ -491,7 +525,7 @@ const std::string & sgct::SGCTSettings::getOSDTextFontName()
 /*!
 	Get the OSD text font path
 */
-const std::string & sgct::SGCTSettings::getOSDTextFontPath()
+const std::string & sgct::SGCTSettings::getOSDTextFontPath() const
 {
 	return mFontPath;
 }
@@ -499,7 +533,7 @@ const std::string & sgct::SGCTSettings::getOSDTextFontPath()
 /*!
 	Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
 */
-int	sgct::SGCTSettings::getBufferFloatPrecisionAsGLint()
+const int	sgct::SGCTSettings::getBufferFloatPrecisionAsGLint() const
 {
 	return mCurrentBufferFloatPrecision == Float_16Bit ? GL_RGB16F : GL_RGB32F;
 }
@@ -507,7 +541,7 @@ int	sgct::SGCTSettings::getBufferFloatPrecisionAsGLint()
 /*!
 Get the default MSAA setting
 */
-int sgct::SGCTSettings::getDefaultNumberOfAASamples()
+const int sgct::SGCTSettings::getDefaultNumberOfAASamples() const
 {
 	return mDefaultNumberOfAASamples;
 }
@@ -515,7 +549,7 @@ int sgct::SGCTSettings::getDefaultNumberOfAASamples()
 /*!
 Get the FXAA default state
 */
-bool sgct::SGCTSettings::getDefaultFXAAState()
+const bool sgct::SGCTSettings::getDefaultFXAAState() const
 {
 	return mDefaultFXAA;
 }

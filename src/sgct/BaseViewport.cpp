@@ -99,6 +99,8 @@ void sgct_core::BaseViewport::linkUserName()
 	{
 		mUser = user;
 	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport cannot find user '%s'!\n", mUserName.c_str());
 }
 
 void sgct_core::BaseViewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
@@ -107,6 +109,9 @@ void sgct_core::BaseViewport::calculateFrustum(const sgct_core::Frustum::Frustum
 	mProjections[frustumMode].calculateProjection(eyePos, &mProjectionPlane, near_clipping_plane, far_clipping_plane);
 }
 
+/*!
+   Make projection symmetric relative to user
+*/
 void sgct_core::BaseViewport::calculateNonLinearFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)
 {
 	glm::vec3 eyePos = mUser->getPos();

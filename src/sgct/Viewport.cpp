@@ -166,6 +166,7 @@ void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
 	float down, left, right, up;
 	float distance = 10.0f;
 	glm::quat rotQuat;
+	glm::vec3 offset(0.0f, 0.0f, 0.0f);
 
 	tinyxml2::XMLElement * subElement = element->FirstChildElement();
 	while (subElement != NULL)
@@ -199,6 +200,19 @@ void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
 		{
 			rotQuat = ReadConfig::parseOrientationNode(subElement);
 		}
+		else if (strcmp("Offset", val) == 0)
+		{
+			float x, y, z;
+
+			if (subElement->QueryFloatAttribute("x", &x) == tinyxml2::XML_NO_ERROR)
+				offset.x = x;
+
+			if (subElement->QueryFloatAttribute("y", &y) == tinyxml2::XML_NO_ERROR)
+				offset.y = y;
+
+			if (subElement->QueryFloatAttribute("z", &z) == tinyxml2::XML_NO_ERROR)
+				offset.z = z;
+		}
 
 		//iterate
 		subElement = subElement->NextSiblingElement();
@@ -207,6 +221,7 @@ void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
 	if (validFOV)
 	{
 		setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
+		mProjectionPlane.offset(offset);
 	}
 }
 

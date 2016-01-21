@@ -271,6 +271,11 @@ public:
 	inline sgct::SGCTWindow * getCurrentWindowPtr() { return mThisNode->getCurrentWindowPtr(); }
 
 	/*!
+		Returns an index to the current window that is beeing rendered
+	*/
+	inline std::size_t getCurrentWindowIndex() { return mThisNode->getCurrentWindowIndex(); }
+
+	/*!
 		Returns a pinter to the user (VR observer position) object
 	*/
 	static sgct_core::SGCTUser * getDefaultUserPtr() { return sgct_core::ClusterManager::instance()->getDefaultUserPtr(); }

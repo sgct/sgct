@@ -30,6 +30,7 @@ namespace sgct_core
 		SGCTProjectionPlane();
 		void configure(tinyxml2::XMLElement * element);
 		void reset();
+		void offset(glm::vec3 p);
 
 		void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
 		void setCoordinate(std::size_t corner, glm::vec3 coordinate);

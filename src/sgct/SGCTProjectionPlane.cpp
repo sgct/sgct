@@ -59,6 +59,13 @@ void sgct_core::SGCTProjectionPlane::reset()
 	mProjectionPlaneCoords[UpperRight] = glm::vec3(1.0f, 1.0f, -2.0f);
 }
 
+void sgct_core::SGCTProjectionPlane::offset(glm::vec3 p)
+{
+	mProjectionPlaneCoords[LowerLeft] += p;
+	mProjectionPlaneCoords[UpperLeft] += p;
+	mProjectionPlaneCoords[UpperRight] += p;
+}
+
 void sgct_core::SGCTProjectionPlane::setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate)
 {
 	mProjectionPlaneCoords[corner] = coordinate;

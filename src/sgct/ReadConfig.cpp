@@ -160,6 +160,10 @@ bool sgct_core::ReadConfig::readAndParseXMLFile()
         std::stringstream ss;
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
             ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+		else if(xmlDoc.GetErrorStr1())
+			    ss << "Paring failed after: " << xmlDoc.GetErrorStr1();
+		else if(xmlDoc.GetErrorStr2())
+			ss << "Paring failed after: " << xmlDoc.GetErrorStr2();
         else
             ss << "File not found";
         mErrorMsg = ss.str();
@@ -177,10 +181,14 @@ bool sgct_core::ReadConfig::readAndParseXMLString()
     if (!loadSuccess)
     {
         std::stringstream ss;
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-        else
-            ss << "File not found";
+		if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+			ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+		else if (xmlDoc.GetErrorStr1())
+			ss << "Paring failed after: " << xmlDoc.GetErrorStr1();
+		else if (xmlDoc.GetErrorStr2())
+			ss << "Paring failed after: " << xmlDoc.GetErrorStr2();
+		else
+			ss << "File not found";
         mErrorMsg = ss.str();
         assert(false);
         return false;
@@ -425,89 +433,6 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
 							vpPtr->configure(element[2]);
 							tmpWin.addViewport(vpPtr);
 						}//end viewport
-						/*else if(strcmp("Fisheye", val[2]) == 0)
-						{
-							float fov;
-							if( element[2]->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR )
-								tmpWin.setFisheyeFOV( fov );
-                            
-							if( element[2]->Attribute("quality") != NULL )
-							{
-								int resolution = getFisheyeCubemapRes( std::string(element[2]->Attribute("quality")) );
-								if( resolution > 0 )
-									tmpWin.setCubeMapResolution( resolution );
-							}
-                            
-                            if( element[2]->Attribute("method") != NULL )
-								sgct::SGCTSettings::instance()->setFisheyeMethod(
-                                                                                 strcmp( element[2]->Attribute("method"), "five_face_cube" ) == 0 ?
-                                                                                 sgct::SGCTSettings::FiveFaceCube : sgct::SGCTSettings::FourFaceCube);
-                            
-							if (element[2]->Attribute("interpolation") != NULL)
-								tmpWin.setFisheyeUseCubicInterpolation(
-                                                                       strcmp( element[2]->Attribute("interpolation"), "cubic") == 0 ? true : false);
-                            
-							float tilt;
-							if( element[2]->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR )
-							{
-								tmpWin.setFisheyeTilt( tilt );
-								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt);
-							}
-                            
-							float diameter;
-							if( element[2]->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR )
-							{
-								tmpWin.setDomeDiameter( diameter );
-								sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter);
-							}
-                            
-							element[3] = element[2]->FirstChildElement();
-							while( element[3] != NULL )
-							{
-								val[3] = element[3]->Value();
-                                
-								if( strcmp("Crop", val[3]) == 0 )
-								{
-									float tmpFArr[] = { 0.0f, 0.0f, 0.0f, 0.0f };
-									float ftmp;
-                                    
-									if( element[3]->QueryFloatAttribute("left", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[sgct::SGCTWindow::CropLeft] = ftmp;
-									if( element[3]->QueryFloatAttribute("right", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[sgct::SGCTWindow::CropRight] = ftmp;
-									if( element[3]->QueryFloatAttribute("bottom", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[sgct::SGCTWindow::CropBottom] = ftmp;
-									if( element[3]->QueryFloatAttribute("top", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[sgct::SGCTWindow::CropTop] = ftmp;
-                                    
-									tmpWin.setFisheyeCropValues(
-                                                                tmpFArr[sgct::SGCTWindow::CropLeft],
-                                                                tmpFArr[sgct::SGCTWindow::CropRight],
-                                                                tmpFArr[sgct::SGCTWindow::CropBottom],
-                                                                tmpFArr[sgct::SGCTWindow::CropTop]);
-								}
-								else if( strcmp("Offset", val[3]) == 0 )
-								{
-									float tmpFArr[] = { 0.0f, 0.0f, 0.0f };
-									float ftmp;
-                                    
-									if( element[3]->QueryFloatAttribute("x", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[0] = ftmp;
-									if( element[3]->QueryFloatAttribute("y", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[1] = ftmp;
-									if( element[3]->QueryFloatAttribute("z", &ftmp) == tinyxml2::XML_NO_ERROR )
-										tmpFArr[2] = ftmp;
-                                    
-									tmpWin.setFisheyeBaseOffset(tmpFArr[0], tmpFArr[1], tmpFArr[2]);
-								}
-                                
-								//iterate
-								element[3] = element[3]->NextSiblingElement();
-							}
-                            
-							tmpWin.setFisheyeRendering(true);
-                            
-						}//end fisheye*/
                         
 						//iterate
 						element[2] = element[2]->NextSiblingElement();

@@ -69,11 +69,11 @@ static int nullHttp(
             //fprintf(stderr, "data: %s\n", data);
 			if (strcmp(data, "/"))
 			{
-				strncat_s(buf, data+1, sizeof(buf) - strlen(buf) - 2);
+				strncat(buf, data+1, sizeof(buf) - strlen(buf) - 2);
 			}
 			else /* default file to serve */
 			{
-				strcat_s(buf, "index.html");
+				strcat(buf, "index.html");
 			}
 			buf[sizeof(buf)-1] = '\0';
 

@@ -31,6 +31,8 @@ sgct_utils::SGCTPlane * myPlane = NULL;
 sgct_utils::SGCTDome * myDome = NULL;
 
 GLint Matrix_Loc = -1;
+GLint ScaleUV_Loc = -1;
+GLint OffsetUV_Loc = -1;
 GLuint texId = GL_FALSE;
 
 tthread::thread * workerThread;
@@ -52,6 +54,7 @@ sgct::SharedBool takeScreenshot(false);
 sgct::SharedBool workerRunning(true);
 sgct::SharedBool renderDome(fulldomeMode);
 sgct::SharedDouble captureRate(0.0);
+sgct::SharedInt32 domeCut(2);
 
 int main( int argc, char* argv[] )
 {	
@@ -126,15 +129,30 @@ void myDraw3DFun()
 	glActiveTexture(GL_TEXTURE0);
 	glBindTexture(GL_TEXTURE_2D, texId);
 
+    glm::vec2 texSize = glm::vec2(static_cast<float>(gCapture->getWidth()), static_cast<float>(gCapture->getHeight()));
+
 	if (fulldomeMode)
 	{
+        // TextureCut 2 equals showing only the middle square of a capturing a widescreen input
+        if (domeCut.getVal() == 2){
+            glUniform2f(ScaleUV_Loc, texSize.y / texSize.x, 1.f);
+            glUniform2f(OffsetUV_Loc, ((texSize.x - texSize.y)*0.5f) / texSize.x, 0.f);
+        }
+        else{
+            glUniform2f(ScaleUV_Loc, 1.f, 1.f);
+            glUniform2f(OffsetUV_Loc, 0.f, 0.f);
+        }
+
 		glCullFace(GL_FRONT); //camera on the inside of the dome
-		
+
 		glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 		myDome->draw();
 	}
 	else //plane mode
 	{
+        glUniform2f(ScaleUV_Loc, 1.f, 1.f);
+        glUniform2f(OffsetUV_Loc, 0.f, 0.f);
+
 		glCullFace(GL_BACK);
 		
 		//transform and draw plane
@@ -229,6 +247,8 @@ void myInitOGLFun()
 	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
 	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    ScaleUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("scaleUV");
+    OffsetUV_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation("offsetUV");
 	GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
 	glUniform1i( Tex_Loc, 0 );
 
@@ -243,6 +263,8 @@ void myEncodeFun()
 	sgct::SharedData::instance()->writeBool(&info);
 	sgct::SharedData::instance()->writeBool(&stats);
 	sgct::SharedData::instance()->writeBool(&takeScreenshot);
+    sgct::SharedData::instance()->writeBool(&renderDome);
+    sgct::SharedData::instance()->writeInt32(&domeCut);
 }
 
 void myDecodeFun()
@@ -251,6 +273,8 @@ void myDecodeFun()
 	sgct::SharedData::instance()->readBool(&info);
 	sgct::SharedData::instance()->readBool(&stats);
 	sgct::SharedData::instance()->readBool(&takeScreenshot);
+    sgct::SharedData::instance()->readBool(&renderDome);
+    sgct::SharedData::instance()->readInt32(&domeCut);
 }
 
 void myCleanUpFun()
@@ -289,6 +313,16 @@ void myKeyCallback(int key, int action)
 			if (action == SGCT_PRESS)
 				info.toggle();
 			break;
+
+        case SGCT_KEY_1:
+            if (action == SGCT_PRESS)
+                domeCut.setVal(1);
+            break;
+
+        case SGCT_KEY_2:
+            if (action == SGCT_PRESS)
+                domeCut.setVal(2);
+            break;
 
 		//plane mode
 		case SGCT_KEY_P:

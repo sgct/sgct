@@ -10,7 +10,7 @@ char gBuffer[4096];//may corrupt the stack if too small
 
 const char * get_mimetype(const char *file)
 {
-	int n = strlen(file);
+	size_t n = strlen(file);
 
 	if (n < 5)
 		return NULL;
@@ -32,9 +32,8 @@ const char * get_mimetype(const char *file)
 
 //callbacks
 static int nullHttp(
-	struct libwebsocket_context * context,
-	struct libwebsocket *wsi,
-	enum libwebsocket_callback_reasons reason,
+	struct lws *wsi,
+	enum lws_callback_reasons reason,
 	void *user, void *in, size_t len)
 {
 	char buf[1024];
@@ -47,7 +46,7 @@ static int nullHttp(
 		{
 			if (len < 1)
 			{
-				libwebsockets_return_http_status(context, wsi,
+				lws_return_http_status(wsi,
 					HTTP_STATUS_BAD_REQUEST, NULL);
 				return -1;
 			}
@@ -57,7 +56,7 @@ static int nullHttp(
 			/* this server has no concept of directories */
 			if (strchr(data + 1, '/'))
 			{
-				libwebsockets_return_http_status(context, wsi,
+				lws_return_http_status(wsi,
 					HTTP_STATUS_FORBIDDEN, NULL);
 				return -1;
 			}
@@ -70,11 +69,11 @@ static int nullHttp(
             //fprintf(stderr, "data: %s\n", data);
 			if (strcmp(data, "/"))
 			{
-				strncat(buf, data+1, sizeof(buf) - strlen(buf) - 2);
+				strncat_s(buf, data+1, sizeof(buf) - strlen(buf) - 2);
 			}
 			else /* default file to serve */
 			{
-				strcat(buf, "index.html");
+				strcat_s(buf, "index.html");
 			}
 			buf[sizeof(buf)-1] = '\0';
 
@@ -83,12 +82,12 @@ static int nullHttp(
 			if (!mimetype)
 			{
 				lwsl_err("Unknown mimetype for %s\n", buf);
-				libwebsockets_return_http_status(context, wsi,
+				lws_return_http_status(wsi,
 					HTTP_STATUS_UNSUPPORTED_MEDIA_TYPE, NULL);
 				return -1;
 			}
 
-			if (libwebsockets_serve_http_file(context, wsi, buf,
+			if (lws_serve_http_file(wsi, buf,
 				mimetype, NULL, 0))
 				return -1; /* through completion or error, close the socket */
 		}
@@ -100,9 +99,8 @@ static int nullHttp(
 }
 
 static int echoCallback(
-	struct libwebsocket_context * context,
-	struct libwebsocket *wsi,
-	enum libwebsocket_callback_reasons reason,
+	struct lws *wsi,
+	enum lws_callback_reasons reason,
 	void *user, void *in, size_t len)
 {
 	// reason for callback
@@ -119,7 +117,7 @@ static int echoCallback(
 #else
 			n = sprintf(gBuffer, "%u\n", id);
 #endif
-			libwebsocket_write(wsi, reinterpret_cast<unsigned char *>(gBuffer), n, LWS_WRITE_TEXT);
+			lws_write(wsi, reinterpret_cast<unsigned char *>(gBuffer), n, LWS_WRITE_TEXT);
 			gSendMutex.unlock();
 
             fprintf(stderr, "connection %u established\n", id);
@@ -139,7 +137,7 @@ static int echoCallback(
 }
 
 // protocol types for websockets
-static struct libwebsocket_protocols protocols[] =
+static struct lws_protocols protocols[] =
 {
 	{
 		"http-only",
@@ -212,7 +210,7 @@ void Webserver::worker(void *)
 {
 	// server url will be ws://localhost:9000
 	const char *interface = NULL;
-	struct libwebsocket_context *context = NULL;
+	struct lws_context *context = NULL;
 
 	// we're not using ssl
 	const char *cert_path = NULL;
@@ -239,7 +237,7 @@ void Webserver::worker(void *)
 	info.uid = -1;
 
 	// create libwebsocket context representing this server
-	context = libwebsocket_create_context(&info);
+	context = lws_create_context(&info);
 
 	// make sure it starts
 	if (context == NULL)
@@ -253,10 +251,10 @@ void Webserver::worker(void *)
 	// infinite loop, to end this server send SIGTERM. (CTRL+C)
 	while (Webserver::instance()->mRunning.load())
 	{
-		libwebsocket_service(context, Webserver::instance()->getTimeout()); //5 ms -> 200 samples / s
-		//libwebsocket_service(context, 50);
+		lws_service(context, Webserver::instance()->getTimeout()); //5 ms -> 200 samples / s
+		//lws_service(context, 50);
 	}
 	
-	libwebsocket_context_destroy(context);
+	lws_context_destroy(context);
 	return;
 }

@@ -1,0 +1,1 @@
+OmniStereoTest_opengl3.exe -config test.xml -turnmap turnmap.jpg -sepmap sepmap.png

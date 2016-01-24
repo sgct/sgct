@@ -99,8 +99,8 @@ void sgct_core::BaseViewport::linkUserName()
 	{
 		mUser = user;
 	}
-	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport cannot find user '%s'!\n", mUserName.c_str());
+	//else
+	//	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport cannot find user '%s'!\n", mUserName.c_str());
 }
 
 void sgct_core::BaseViewport::calculateFrustum(const sgct_core::Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane)

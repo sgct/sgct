@@ -85,7 +85,6 @@ void sgct_core::FisheyeProjection::renderCubemap()
 		setOffset(-sgct::Engine::instance()->getDefaultUserPtr()->getEyeSeparation() / mDiameter, 0.0f);
 	else if (sgct::Engine::instance()->getCurrentFrustumMode() == Frustum::StereoRightEye)
 		setOffset(sgct::Engine::instance()->getDefaultUserPtr()->getEyeSeparation() / mDiameter, 0.0f);
-
 	(this->*mInternalRenderCubemapFn)();
 }
 
@@ -152,7 +151,7 @@ void sgct_core::FisheyeProjection::setOffset(const glm::vec3 & offset)
 	mOffset = offset;
 	mTotalOffset = mBaseOffset + mOffset;
 
-	mOffAxis = (mTotalOffset.length() > 0.0f ? true : false);
+	mOffAxis = (glm::length(mTotalOffset) > 0.0f ? true : false);
 }
 
 /*!
@@ -166,8 +165,7 @@ void sgct_core::FisheyeProjection::setOffset(float x, float y, float z)
 	mOffset.z = z;
 
 	mTotalOffset = mBaseOffset + mOffset;
-
-	mOffAxis = (mTotalOffset.length() > 0.0f ? true : false);
+	mOffAxis = (glm::length(mTotalOffset) > 0.0f ? true : false);
 }
 
 /*!
@@ -180,7 +178,7 @@ void sgct_core::FisheyeProjection::setBaseOffset(const glm::vec3 & offset)
 	mBaseOffset = offset;
 	mTotalOffset = mBaseOffset + mOffset;
 
-	mOffAxis = (mTotalOffset.length() > 0.0f ? true : false);
+	mOffAxis = (glm::length(mTotalOffset) > 0.0f ? true : false);
 }
 
 /*!
@@ -321,16 +319,9 @@ void sgct_core::FisheyeProjection::initViewports()
 				break;
 			}
 
-			//Compensate for users pos
-			glm::vec4 userVec = glm::vec4(
-				mSubViewports[i].getUser()->getXPos(),
-				mSubViewports[i].getUser()->getYPos(),
-				mSubViewports[i].getUser()->getZPos(),
-				1.0f);
-
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight));
 		}
 	}
 	else
@@ -386,17 +377,10 @@ void sgct_core::FisheyeProjection::initViewports()
 				break;
 			}//end switch
 
-			//Compensate for users pos
-			glm::vec4 userVec = glm::vec4(
-				mSubViewports[i].getUser()->getXPos(),
-				mSubViewports[i].getUser()->getYPos(),
-				mSubViewports[i].getUser()->getZPos(),
-				1.0f);
-
 			//add viewplane vertices
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft + userVec));
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft + userVec));
-			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight + userVec));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft));
+			mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight));
 		}//end for
 	}//end if
 }

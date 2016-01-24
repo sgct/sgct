@@ -303,6 +303,7 @@ void sgct::SGCTWindow::initOGL()
 	for (std::size_t i = 0; i < mViewports.size(); i++)
 		if (mViewports[i]->hasSubViewports())
 		{
+			mViewports[i]->getNonLinearProjectionPtr()->setStereo(mStereoMode != No_Stereo);
 			mViewports[i]->getNonLinearProjectionPtr()->setPreferedMonoFrustumMode(mViewports[i]->getEye());
 			mViewports[i]->getNonLinearProjectionPtr()->init(mInternalColorFormat, mColorFormat, mColorDataType, mNumberOfAASamples);
 			

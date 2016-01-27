@@ -34,7 +34,6 @@ public:
 		Side_By_Side_Stereo, Side_By_Side_Inverted_Stereo, Top_Bottom_Stereo, Top_Bottom_Inverted_Stereo, Number_Of_Stereo_Items };
 
 	enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
-	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture};
 	enum ColorBitDepth { BufferColorBitDepth8, BufferColorBitDepth16, BufferColorBitDepth16Float, BufferColorBitDepth32Float, BufferColorBitDepth16Int, BufferColorBitDepth32Int, BufferColorBitDepth16UInt, BufferColorBitDepth32UInt };
 
 public:
@@ -199,6 +198,8 @@ public:
 	inline const int & getStereoShaderRightTexLoc() const { return StereoRightTex; }
 
 private:
+	enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture };
+
 	static void windowResizeCallback( GLFWwindow * window, int width, int height );
     static void frameBufferResizeCallback( GLFWwindow * window, int width, int height );
 	static void windowFocusCallback( GLFWwindow * window, int state );

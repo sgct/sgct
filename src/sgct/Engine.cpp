@@ -2634,6 +2634,9 @@ void sgct::Engine::updateFrustums()
 	SGCTWindow * win;
 	Viewport * vp;
 	
+	if (mThisNode == NULL)
+		return;
+
 	for(size_t w=0; w < mThisNode->getNumberOfWindows(); w++)
 	{
 		win = mThisNode->getWindowPtr(w);

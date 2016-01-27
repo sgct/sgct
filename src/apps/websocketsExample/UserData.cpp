@@ -40,7 +40,7 @@ void UserData::setCartesian2d(int x, int y, float r, float g, float b, float tim
     float r2 = s*s + t*t;
     if( r2 <= 1.0f )
     {
-        mPhi = sqrt(r2) * DEG90_TO_RAD;
+        mPhi = sqrtf(r2) * DEG90_TO_RAD;
         mTheta = atan2f(s,t);
     }
     

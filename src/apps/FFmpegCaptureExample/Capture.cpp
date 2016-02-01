@@ -23,6 +23,8 @@ Capture::Capture()
 {
 	mOptions = nullptr;
 	mFMTContext = nullptr;
+    mVideoHost = "";
+    mVideoDevice = "";
 	mVideoStream = nullptr;
 	mVideoCodecContext = nullptr;
 	mVideoScaleContext = nullptr;
@@ -42,6 +44,11 @@ Capture::Capture()
 Capture::~Capture()
 {
 	cleanup();
+}
+
+std::string Capture::getVideoHost() const
+{
+    return mVideoHost;
 }
 
 int Capture::getWidth() const
@@ -134,6 +141,11 @@ bool Capture::init()
 	//success
 	mInited = true;
 	return true;
+}
+
+void Capture::setVideoHost(std::string hostAdress)
+{
+    mVideoHost = hostAdress;
 }
 
 void Capture::setVideoDevice(std::string videoDeviceName)

@@ -62,6 +62,7 @@ int main( int argc, char* argv[] )
 	gCapture = new Capture();
 
 	// arguments:
+    // -host <host which should capture>
 	// -video <device name>
 	// -option <key> <val>
 	// -flip
@@ -222,7 +223,8 @@ void myInitOGLFun()
 	allocateTexture();
 
 	//start capture thread
-	if (gEngine->isMaster())
+    sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+    if (thisNode->getAddress() == gCapture->getVideoHost())
 		workerThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
 
 	std::function<void(uint8_t ** data, int width, int height)> callback = uploadData;
@@ -360,6 +362,10 @@ void parseArguments(int& argc, char**& argv)
 	int i = 0;
 	while (i<argc)
 	{
+        if (strcmp(argv[i], "-host") == 0 && argc > (i + 1))
+        {
+            gCapture->setVideoHost(std::string(argv[i + 1]));
+        }
 		if (strcmp(argv[i], "-video") == 0 && argc >(i + 1))
 		{
 			gCapture->setVideoDevice(std::string(argv[i + 1]));

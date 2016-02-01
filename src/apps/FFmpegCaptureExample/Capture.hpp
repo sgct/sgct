@@ -22,11 +22,13 @@ public:
 	Capture();
 	~Capture();
 	bool init();
+    void setVideoHost(std::string hostAdress);
 	void setVideoDevice(std::string videoDeviceName);
 	void setVideoDecoderCallback(std::function<void(uint8_t ** data, int width, int height)> cb);
 	void addOption(std::pair<std::string, std::string> option);
 	bool poll();
 
+    std::string getVideoHost() const;
 	int getWidth() const;
 	int getHeight() const;
 	const char * getFormat() const;
@@ -59,6 +61,7 @@ private:
 	int mHeight;
 	int mVideo_stream_idx;
 
+    std::string mVideoHost;
 	std::string mVideoDevice;
 	std::string mVideoDstFormat;
 	std::string mVideoStrFormat;

@@ -27,7 +27,7 @@ namespace sgct_core
 
 		void update(float width, float height);
 		void render();
-		void renderCubemap();
+		void renderCubemap(std::size_t * subViewPortIndex);
 
 		void setDomeDiameter(float size);
 		void setTilt(float angle);
@@ -50,12 +50,11 @@ namespace sgct_core
 		void attachTextures(const int & face);
 		void renderInternal();
 		void renderInternalFixedPipeline();
-		void renderCubemapInternal();
-		void renderCubemapInternalFixedPipeline();
+		void renderCubemapInternal(std::size_t * subViewPortIndex);
+		void renderCubemapInternalFixedPipeline(std::size_t * subViewPortIndex);
 
-		typedef void (FisheyeProjection::*InternalCallbackFn)(void);
-		InternalCallbackFn	mInternalRenderFn;
-		InternalCallbackFn	mInternalRenderCubemapFn;
+		void(FisheyeProjection::*mInternalRenderFn)(void);
+		void(FisheyeProjection::*mInternalRenderCubemapFn)(std::size_t *);
 
 		float mFOV;
 		float mTilt;

@@ -30,7 +30,7 @@ namespace sgct_core
 		void init(int internalTextureFormat, unsigned int textureFormat, unsigned int textureType, int samples=1);
 
 		virtual void render() = 0;
-		virtual void renderCubemap() = 0;
+		virtual void renderCubemap(std::size_t * subViewPortIndex) = 0;
 		virtual void update(float width, float height) = 0;
 
 		void updateFrustums(const Frustum::FrustumMode &frustumMode, const float & near_clipping_plane, const float & far_clipping_plane);

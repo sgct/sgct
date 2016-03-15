@@ -147,7 +147,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mCurrentViewportCoords[2] = 640;
 	mCurrentViewportCoords[3] = 480;
 	mCurrentDrawBufferIndex = 0;
-	mCurrentViewportIndex = 0;
+	mCurrentViewportIndex[MainViewport] = 0;
+	mCurrentViewportIndex[SubViewport] = 0;
 	mCurrentRenderTarget = WindowBuffer;
 	mCurrentOffScreenBuffer = NULL;
 
@@ -1138,7 +1139,7 @@ void sgct::Engine::render()
 			sgct_core::NonLinearProjection * nonLinearProjPtr;
 			for (std::size_t j = 0; j < win->getNumberOfViewports(); j++)
 			{
-				mCurrentViewportIndex = j;
+				mCurrentViewportIndex[MainViewport] = j;
 				
 				if (win->getViewport(j)->hasSubViewports())
 				{
@@ -1153,12 +1154,12 @@ void sgct::Engine::render()
 					{
 						//for mono viewports frustum mode can be selected by user or xml
 						mCurrentFrustumMode = win->getViewport(j)->getEye();
-						nonLinearProjPtr->renderCubemap();
+						nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
 					}
 					else
 					{
 						mCurrentFrustumMode = Frustum::StereoLeftEye;
-						nonLinearProjPtr->renderCubemap();
+						nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
 					}
 
 					//FBO index, every window and every non-linear projection has it's own FBO
@@ -1203,7 +1204,7 @@ void sgct::Engine::render()
 				sgct_core::NonLinearProjection * nonLinearProjPtr;
 				for (std::size_t j = 0; j < win->getNumberOfViewports(); j++)
 				{
-					mCurrentViewportIndex = j;
+					mCurrentViewportIndex[MainViewport] = j;
 
 					if (win->getViewport(j)->hasSubViewports())
 					{
@@ -1215,7 +1216,7 @@ void sgct::Engine::render()
 
 						nonLinearProjPtr->setAlpha(getCurrentWindowPtr()->getAlpha() ? 0.0f : 1.0f);
 						mCurrentFrustumMode = Frustum::StereoRightEye;
-						nonLinearProjPtr->renderCubemap();
+						nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
 						
 						//FBO index, every window and every non-linear projection has it's own FBO
 						mCurrentDrawBufferIndex++;
@@ -2011,7 +2012,7 @@ void sgct::Engine::renderViewports(TextureIndexes ti)
 	for(std::size_t i=0; i<getCurrentWindowPtr()->getNumberOfViewports(); i++)
 	{
 		getCurrentWindowPtr()->setCurrentViewport(i);
-		mCurrentViewportIndex = i;
+		mCurrentViewportIndex[MainViewport] = i;
 		vp = getCurrentWindowPtr()->getViewport(i);
 
 		if( vp->isEnabled() )
@@ -2105,7 +2106,7 @@ void sgct::Engine::render2D()
 		for(std::size_t i=0; i < numberOfIterations; i++)
 		{
 			getCurrentWindowPtr()->setCurrentViewport(i);
-			mCurrentViewportIndex = i;
+			mCurrentViewportIndex[MainViewport] = i;
             
             if( getCurrentWindowPtr()->getCurrentViewport()->isEnabled() )
             {
@@ -4228,6 +4229,14 @@ double sgct::Engine::getTime()
 }
 
 /*!
+	Get the current viewportindex for given type: MainViewport or SubViewport
+*/
+const std::size_t sgct::Engine::getCurrentViewportIndex(ViewportTypes vp) const
+{
+	return mCurrentViewportIndex[vp];
+}
+
+/*!
 Get the active viewport size in pixels.
 \param x the horizontal size
 \param y the vertical size
@@ -4303,7 +4312,7 @@ Returns the active viewport in pixels (only valid inside in the draw callback fu
 */
 const int * sgct::Engine::getCurrentViewportPixelCoords()
 {
-	sgct_core::Viewport* vp = getCurrentWindowPtr()->getViewport(mCurrentViewportIndex);
+	sgct_core::Viewport* vp = getCurrentWindowPtr()->getViewport(mCurrentViewportIndex[MainViewport]);
 	if (vp->hasSubViewports())
 		return vp->getNonLinearProjectionPtr()->getViewportCoords();
 	else

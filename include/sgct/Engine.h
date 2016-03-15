@@ -75,6 +75,7 @@ public:
 	//! The different texture indexes in window buffers
 	enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions };
 	enum RenderTarget { WindowBuffer, NonLinearBuffer };
+	enum ViewportTypes { MainViewport, SubViewport };
 
 private:
 	enum SyncStage { PreStage = 0, PostStage };
@@ -361,6 +362,7 @@ public:
 	*/
 	inline std::string getGLSLVersion() { return mGLSLVersion; }
 
+	const std::size_t getCurrentViewportIndex(ViewportTypes vp) const;
 	void getCurrentViewportSize(int & x, int & y);
 	void getCurrentDrawBufferSize(int & x, int & y);
 	void getDrawBufferSize(const std::size_t & index, int &x, int & y);
@@ -479,7 +481,7 @@ private:
 	int mCurrentViewportCoords[4];
 	std::vector<glm::ivec2> mDrawBufferResolutions;
 	std::size_t mCurrentDrawBufferIndex;
-	std::size_t mCurrentViewportIndex;
+	std::size_t mCurrentViewportIndex[2];
 	RenderTarget mCurrentRenderTarget;
 	sgct_core::OffScreenBuffer * mCurrentOffScreenBuffer;
 

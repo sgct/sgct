@@ -79,13 +79,13 @@ void sgct_core::FisheyeProjection::render()
 /*!
 Render the enabled faces of the cubemap
 */
-void sgct_core::FisheyeProjection::renderCubemap()
+void sgct_core::FisheyeProjection::renderCubemap(std::size_t * subViewPortIndex)
 {
 	if (sgct::Engine::instance()->getCurrentFrustumMode() == Frustum::StereoLeftEye)
 		setOffset(-sgct::Engine::instance()->getDefaultUserPtr()->getEyeSeparation() / mDiameter, 0.0f);
 	else if (sgct::Engine::instance()->getCurrentFrustumMode() == Frustum::StereoRightEye)
 		setOffset(sgct::Engine::instance()->getDefaultUserPtr()->getEyeSeparation() / mDiameter, 0.0f);
-	(this->*mInternalRenderCubemapFn)();
+	(this->*mInternalRenderCubemapFn)(subViewPortIndex);
 }
 
 /*!
@@ -1146,13 +1146,14 @@ void sgct_core::FisheyeProjection::renderInternalFixedPipeline()
 	glPopAttrib();
 }
 
-void sgct_core::FisheyeProjection::renderCubemapInternal()
+void sgct_core::FisheyeProjection::renderCubemapInternal(std::size_t * subViewPortIndex)
 {
 	BaseViewport * vp;
 	unsigned int faceIndex;
 	for (std::size_t i = 0; i < 6; i++)
 	{
 		vp = &mSubViewports[i];
+		*subViewPortIndex = i;
 		faceIndex = static_cast<unsigned int>(i);
 
 		if (vp->isEnabled())
@@ -1230,13 +1231,14 @@ void sgct_core::FisheyeProjection::renderCubemapInternal()
 	}//end for
 }
 
-void sgct_core::FisheyeProjection::renderCubemapInternalFixedPipeline()
+void sgct_core::FisheyeProjection::renderCubemapInternalFixedPipeline(std::size_t * subViewPortIndex)
 {
 	BaseViewport * vp;
 	unsigned int faceIndex;
 	for (std::size_t i = 0; i < 6; i++)
 	{
 		vp = &mSubViewports[i];
+		*subViewPortIndex = i;
 		faceIndex = static_cast<unsigned int>(i);
 
 		if (vp->isEnabled())

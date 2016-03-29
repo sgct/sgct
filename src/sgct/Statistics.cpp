@@ -305,7 +305,7 @@ void sgct_core::Statistics::setFrameTime(float t)
 	for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
 	{
 		mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-		if (i < (STATS_AVERAGE_LENGTH + start))
+		if (i < (STATS_AVERAGE_LENGTH + start - 1))
 			mAvgFrameTime += mDynamicVertexList[i].y;
 	}
 	mDynamicVertexList[start].y = t;
@@ -322,7 +322,7 @@ void sgct_core::Statistics::setDrawTime(float t)
 	for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
 	{
 		mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-		if (i < (STATS_AVERAGE_LENGTH + start))
+		if (i < (STATS_AVERAGE_LENGTH + start - 1))
 			mAvgDrawTime += mDynamicVertexList[i].y;
 	}
 	mDynamicVertexList[start].y = t;
@@ -339,7 +339,7 @@ void sgct_core::Statistics::setSyncTime(float t)
 	for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
 	{
 		mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-		if (i < (STATS_AVERAGE_LENGTH + SYNC_TIME * STATS_NUMBER_OF_DYNAMIC_OBJS))
+		if (i < (STATS_AVERAGE_LENGTH + start - 1))
 			mAvgSyncTime += mDynamicVertexList[i].y;
 	}
 	mDynamicVertexList[start].y = t;

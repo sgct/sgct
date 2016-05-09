@@ -30,6 +30,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <setjmp.h>
 
 #define PNG_BYTES_TO_CHECK 8
+#define TGA_BYTES_TO_CHECK 18
+#define READ_ENTIRE_FILE_TO_MEMORY 0
+
 size_t memOffset;
 
 //---------------- JPEG helpers -----------------
@@ -166,24 +169,81 @@ bool sgct_core::Image::load(std::string filename)
 		return false;
 	}
 
+	bool res = false;
+	double t0 = sgct::Engine::getTime();
+
+#if !READ_ENTIRE_FILE_TO_MEMORY
 	switch (getFormatType(filename))
 	{
 	case FORMAT_PNG:
-		loadPNG(filename);
-		return true;
+		res = loadPNG(filename);
+		if(res)
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 		break;
 
 	case FORMAT_JPEG:
-		loadJPEG(filename);
-		return true;
+		res = loadJPEG(filename);
+		if (res)
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+		break;
+
+	case FORMAT_TGA:
+		res = loadTGA(filename);
+		if (res)
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
 		break;
 
 	default:
 		//not found
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown file '%s'\n", filename.c_str());
-		return false;
 		break;
 	}
+	
+	return res;
+
+#else
+
+	if (getFormatType(filename) == UNKNOWN_FORMAT)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown file '%s'\n", filename.c_str());
+		return false;
+	}
+
+	//load enitre file into memory
+	std::ifstream file(filename, std::ios::binary | std::ios::ate);
+	std::streamsize size = file.tellg();
+	file.seekg(0, std::ios::beg);
+
+	std::vector<char> buffer(size);
+	if (file.read(buffer.data(), size))
+	{
+		switch (getFormatType(filename))
+		{
+		case FORMAT_PNG:
+			res = loadPNG( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
+			if (res)
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+			break;
+
+		case FORMAT_JPEG:
+			res = loadJPEG( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
+			if (res)
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+			break;
+
+		case FORMAT_TGA:
+			res = loadTGA( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
+			if (res)
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+			break;
+		}
+
+		buffer.clear();
+		return res;
+	}
+	else
+		return false;
+#endif
 }
 
 bool sgct_core::Image::loadJPEG(std::string filename)
@@ -202,7 +262,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 	int row_stride;
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (fopen_s(&fp, mFilename.c_str(), "rb") != 0 || !fp)
+	if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open JPEG texture file '%s'\n", mFilename.c_str());
 		return false;
@@ -376,7 +436,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
-	if (fopen_s(&fp, mFilename.c_str(), "rb") != 0 || !fp)
+	if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp)
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open PNG texture file '%s'\n", mFilename.c_str());
 		return false;
@@ -594,6 +654,264 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d %d-bit PNG from memory.\n", mSize_x, mSize_y, mBytesPerChannel*8);
     
     return true;
+}
+
+bool sgct_core::Image::loadTGA(std::string filename)
+{
+	if (filename.empty()) //one char + dot and suffix and is 5 char
+	{
+		return false;
+	}
+
+	mFilename.assign(filename);
+
+	unsigned char header[TGA_BYTES_TO_CHECK];
+
+	FILE *fp = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open TGA texture file '%s'\n", mFilename.c_str());
+		return false;
+	}
+#else
+	fp = fopen(mFilename.c_str(), "rb");
+	if (fp == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Can't open TGA texture file '%s'\n", mFilename.c_str());
+		return false;
+	}
+#endif
+
+	size_t result = fread(header, 1, TGA_BYTES_TO_CHECK, fp);
+	if (result != TGA_BYTES_TO_CHECK)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is not in TGA format\n", mFilename.c_str());
+		fclose(fp);
+		return false;
+	}
+
+	unsigned char data_type = header[2];
+	mSize_x = static_cast<int>(header[12]) + (static_cast<int>(header[13]) << 8);
+	mSize_y = static_cast<int>(header[14]) + (static_cast<int>(header[15]) << 8);
+	mChannels = static_cast<int>(header[16]) / 8;
+
+	if (!allocateOrResizeData())
+	{
+		fclose(fp);
+		return false;
+	}
+	
+	if (data_type == 10)//RGB rle
+	{
+		if (!decodeTGARLE(fp))
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is corrupted\n", mFilename.c_str());
+			fclose(fp);
+			return false;
+		}
+	}
+	else
+	{
+		result = fread(mData, 1, mDataSize, fp);
+
+		if (result != mDataSize)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: file '%s' is corrupted\n", mFilename.c_str());
+			fclose(fp);
+			return false;
+		}
+
+	}
+
+	//done with the file
+	fclose(fp);
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %s (%dx%d %d-bit).\n", mFilename.c_str(), mSize_x, mSize_y, mBytesPerChannel * 8);
+	return true;
+}
+
+bool sgct_core::Image::loadTGA(unsigned char * data, int len)
+{
+	if (data == NULL || len <= TGA_BYTES_TO_CHECK)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load TGA from memory. Invalid input data.");
+		return false;
+	}
+
+	unsigned char data_type = data[2];
+	mSize_x = static_cast<int>(data[12]) + (static_cast<int>(data[13]) << 8);
+	mSize_y = static_cast<int>(data[14]) + (static_cast<int>(data[15]) << 8);
+	mChannels = static_cast<int>(data[16]) / 8;
+
+	if (!allocateOrResizeData())
+	{
+		return false;
+	}
+
+	if (data_type == 10)//RGB rle
+	{
+		if (!decodeTGARLE(&data[TGA_BYTES_TO_CHECK], len - TGA_BYTES_TO_CHECK))
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: data is corrupted or insufficent!\n");
+			return false;
+		}
+	}
+	else
+	{
+		if (len < (mDataSize + TGA_BYTES_TO_CHECK))
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: data is corrupted or insufficent!\n");
+			return false;
+		}
+		
+		memcpy(mData, &data[TGA_BYTES_TO_CHECK], mDataSize);
+	}
+	
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Image: Loaded %dx%d TGA from memory.\n", mSize_x, mSize_y);
+
+	return true;
+}
+
+bool sgct_core::Image::decodeTGARLE(FILE * fp)
+{
+	int pixelcount = mSize_x * mSize_y;
+	int currentpixel = 0;
+	int currentbyte = 0;
+	unsigned char chunkheader;
+	unsigned char * chunkPtr;
+	std::size_t res;
+
+	do
+	{
+		chunkheader = 0;
+
+		if (fread(&chunkheader, 1, 1, fp) == 0)
+		{
+			return false;
+		}
+
+		if (chunkheader < 128)
+		{
+			chunkheader++;
+			for (unsigned char counter = 0; counter < chunkheader; counter++)
+			{
+				res = fread(&mData[currentbyte], 1, mChannels, fp);
+				if (res != mChannels)
+					return false;
+
+				currentbyte += mChannels;
+				currentpixel++;
+
+				if (currentpixel > pixelcount)
+					break;
+			}
+		}
+		else
+		{
+			chunkheader -= 127;
+			res = fread(&mData[currentbyte], 1, mChannels, fp);
+			if (res != mChannels)
+				return false;
+
+			chunkPtr = &mData[currentbyte];
+			currentbyte += mChannels;
+			currentpixel++;
+
+			for (short counter = 1; counter < chunkheader; counter++)
+			{
+				memcpy(&mData[currentbyte], chunkPtr, mChannels);
+
+				currentbyte += mChannels;
+				currentpixel++;
+
+				if (currentpixel > pixelcount)
+					break;
+			}
+		}
+
+	} while (currentpixel < pixelcount);
+
+	return true;
+}
+
+bool sgct_core::Image::decodeTGARLE(unsigned char * data, int len)
+{
+	int pixelcount = mSize_x * mSize_y;
+	int currentpixel = 0;
+	int currentbyte = 0;
+	unsigned char chunkheader;
+	unsigned char * chunkPtr;
+
+	int index = 0;
+
+	do
+	{
+		chunkheader = 0;
+
+		if (len > index)
+		{
+			chunkheader = data[index];
+			index++;
+		}
+		else
+			return false;
+
+		if (chunkheader < 128)
+		{
+			chunkheader++;
+			
+			for (unsigned char counter = 0; counter < chunkheader; counter++)
+			{
+				if (len >= (index + mChannels))
+				{
+					memcpy(&mData[currentbyte], &data[index], mChannels);
+					index += mChannels;
+					
+					currentbyte += mChannels;
+					currentpixel++;
+				}
+				else
+					return false;
+
+				if (currentpixel > pixelcount)
+				{
+					return false;
+				}
+			}
+		}
+		else
+		{
+			chunkheader -= 127;
+			if (len >= (index + mChannels))
+			{
+				memcpy(&mData[currentbyte], &data[index], mChannels);
+				index += mChannels;
+				
+				chunkPtr = &mData[currentbyte];
+				currentbyte += mChannels;
+				currentpixel++;
+			}
+			else
+				return false;
+
+			for (short counter = 1; counter < chunkheader; counter++)
+			{
+				memcpy(&mData[currentbyte], chunkPtr, mChannels);
+
+				currentbyte += mChannels;
+				currentpixel++;
+
+				if (currentpixel > pixelcount)
+				{
+					return false;
+				}
+			}
+		}
+
+	} while (currentpixel < pixelcount);
+
+	return true;
 }
 
 /*!
@@ -921,7 +1239,7 @@ bool sgct_core::Image::saveTGA()
 	}
 
 	// The image header
-	unsigned char header[ 18 ] = { 0 };
+	unsigned char header[TGA_BYTES_TO_CHECK] = { 0 };
 	header[  2 ] = data_type; //datatype
 	header[ 12 ] =  mSize_x        & 0xFF;
 	header[ 13 ] = (mSize_x  >> 8) & 0xFF;
@@ -954,8 +1272,10 @@ bool sgct_core::Image::saveTGA()
     //write row-by-row
     if( data_type != 10 ) //Non RLE compression
     {
-        for(int y=0; y<mSize_y; y++)
-			fwrite(&mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);
+		fwrite(mData, 1, mDataSize, fp);
+
+		/*for(int y=0; y<mSize_y; y++)
+			fwrite(&mData[y * mSize_x * mChannels], mChannels, mSize_x, fp);*/
     }
     else //RLE ->only for RBG and minimum size is 3x3
     {
@@ -1187,6 +1507,8 @@ void sgct_core::Image::setBytesPerChannel(int bpc)
 
 bool sgct_core::Image::allocateOrResizeData()
 {
+	double t0 = sgct::Engine::getTime();
+	
 	int dataSize = mChannels * mSize_x * mSize_y * mBytesPerChannel;
 
 	if (dataSize <= 0)
@@ -1220,7 +1542,7 @@ bool sgct_core::Image::allocateOrResizeData()
 		if (!allocateRowPtrs())
 			return false;
 
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: Allocated %d bytes for image data\n", mDataSize);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: Allocated %d bytes for image data (%.2f ms).\n", mDataSize, (sgct::Engine::getTime() - t0)*1000.0);
 	}
 
 	return true;

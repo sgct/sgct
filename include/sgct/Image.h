@@ -34,6 +34,8 @@ public:
     bool loadPNG(unsigned char * data, int len);
 	bool loadJPEG(std::string filename);
     bool loadJPEG(unsigned char * data, int len);
+	bool loadTGA(std::string filename);
+	bool loadTGA(unsigned char * data, int len);
 	bool save();
 	bool savePNG(std::string filename, int compressionLevel = -1);
 	bool savePNG(int compressionLevel = -1);
@@ -62,6 +64,8 @@ private:
 	bool allocateRowPtrs();
 	FormatType getFormatType(const std::string & filename);
     bool isTGAPackageRLE(unsigned char * row, int pos);
+	bool decodeTGARLE(FILE * fp);
+	bool decodeTGARLE(unsigned char * data, int len);
     int getTGAPackageLength(unsigned char * row, int pos, bool rle);
     
 private:

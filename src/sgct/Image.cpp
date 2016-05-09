@@ -33,7 +33,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define TGA_BYTES_TO_CHECK 18
 #define READ_ENTIRE_FILE_TO_MEMORY 0
 
-size_t memOffset;
+struct PNG_IO_DATA
+{
+	size_t memOffset;
+	unsigned char * data;
+};
 
 //---------------- JPEG helpers -----------------
 struct my_error_mgr
@@ -84,21 +88,9 @@ void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length
     }
             
     //copy buffer
-    //faster more optimized copy
-    png_size_t offset = 0;
-    png_size_t stride = 4096;
-    png_bytep src = reinterpret_cast<png_bytep>(png_ptr->io_ptr);
-    
-    while( offset < length )
-    {
-        if((length-offset) < stride)
-            stride = length-offset;
-        
-        memcpy(outData + offset, src + offset + memOffset, stride);
-        offset += stride;
-    }
-    
-    memOffset += offset;
+	PNG_IO_DATA * ioPtr = reinterpret_cast<PNG_IO_DATA*>(png_ptr->io_ptr);
+	memcpy(outData, ioPtr->data + ioPtr->memOffset, length);
+	ioPtr->memOffset += length;
 }
 
 sgct_core::Image::Image()
@@ -586,8 +578,10 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	}
     
     //set the read position in memory
-    memOffset = PNG_BYTES_TO_CHECK;
-    png_set_read_fn(png_ptr, data, readPNGFromBuffer);
+	PNG_IO_DATA io;
+    io.memOffset = PNG_BYTES_TO_CHECK;
+	io.data = data;
+    png_set_read_fn(png_ptr, &io, readPNGFromBuffer);
     
 	if( setjmp(png_jmpbuf(png_ptr)) )
 	{

@@ -91,6 +91,8 @@ void readPNGFromBuffer(png_structp png_ptr, png_bytep outData, png_size_t length
 	PNG_IO_DATA * ioPtr = reinterpret_cast<PNG_IO_DATA*>(png_ptr->io_ptr);
 	memcpy(outData, ioPtr->data + ioPtr->memOffset, length);
 	ioPtr->memOffset += length;
+
+	//fprintf(stderr, "Lenght: %d\n", length);
 }
 
 sgct_core::Image::Image()
@@ -525,11 +527,12 @@ bool sgct_core::Image::loadPNG(std::string filename)
 		return false;
 	}
 
-	int pos = 0;
+	//flip the image
+	int pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
+		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
-		pos += (mSize_x * mChannels);
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -634,11 +637,12 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		return false;
 	}
 
-	int pos = 0;
+	//flip the image
+	int pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
+		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
-		pos += (mSize_x * mChannels);
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);

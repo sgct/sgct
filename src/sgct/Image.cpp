@@ -190,9 +190,6 @@ bool sgct_core::Image::load(std::string filename)
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: Unknown file '%s'\n", filename.c_str());
 		break;
 	}
-	
-	return res;
-
 #else
 
 	if (getFormatType(filename) == UNKNOWN_FORMAT)
@@ -202,40 +199,46 @@ bool sgct_core::Image::load(std::string filename)
 	}
 
 	//load enitre file into memory
-	std::ifstream file(filename, std::ios::binary | std::ios::ate);
-	std::streamsize size = file.tellg();
-	file.seekg(0, std::ios::beg);
-
-	std::vector<char> buffer(size);
-	if (file.read(buffer.data(), size))
-	{
-		switch (getFormatType(filename))
-		{
-		case FORMAT_PNG:
-			res = loadPNG( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
-			if (res)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
-			break;
-
-		case FORMAT_JPEG:
-			res = loadJPEG( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
-			if (res)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
-			break;
-
-		case FORMAT_TGA:
-			res = loadTGA( reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()) );
-			if (res)
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
-			break;
-		}
-
-		buffer.clear();
-		return res;
-	}
+	std::ifstream file;
+	file.rdbuf()->pubsetbuf(0, 0); 
+	file.open(filename, std::ios::binary | std::ios::ate);
+	if (!file)
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image error: File '%s' not found!\n", filename.c_str());
 	else
-		return false;
+	{
+		std::streamsize size = file.tellg();
+		file.seekg(0, std::ios::beg);
+
+		std::vector<char> buffer(size);
+		if (file.read(buffer.data(), size))
+		{
+			switch (getFormatType(filename))
+			{
+			case FORMAT_PNG:
+				res = loadPNG(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()));
+				if (res)
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+				break;
+
+			case FORMAT_JPEG:
+				res = loadJPEG(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()));
+				if (res)
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+				break;
+
+			case FORMAT_TGA:
+				res = loadTGA(reinterpret_cast<unsigned char*>(buffer.data()), static_cast<int>(buffer.size()));
+				if (res)
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Image: '%s' was loaded successfully (%.2f ms)!\n", filename.c_str(), (sgct::Engine::getTime() - t0)*1000.0);
+				break;
+			}
+
+			buffer.clear();
+		}
+	}
 #endif
+
+	return res;
 }
 
 bool sgct_core::Image::loadJPEG(std::string filename)
@@ -423,8 +426,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned char header[PNG_BYTES_TO_CHECK];
-	//int numChannels;
-	int r, color_type, bpp;
+	int color_type, bpp;
 
 	FILE *fp = NULL;
 	#if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -476,18 +478,17 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	}
 
 	png_init_io(png_ptr, fp);
-
 	png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
-
-	png_read_png( png_ptr, info_ptr,
-                //PNG_TRANSFORM_STRIP_16 | //we want 16-bit support
-				PNG_TRANSFORM_SWAP_ENDIAN | //needed for 16-bit support
-                PNG_TRANSFORM_PACKING |
-                PNG_TRANSFORM_EXPAND | 
-				PNG_TRANSFORM_BGR, NULL);
+	png_read_info(png_ptr, info_ptr);
 	
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
-	//png_set_bgr(png_ptr);
+	
+	//set options
+	png_set_bgr(png_ptr);
+	if (bpp < 8)
+		png_set_packing(png_ptr);
+	else if(bpp == 16)
+		png_set_swap(png_ptr); //PNG_TRANSFORM_SWAP_ENDIAN
 
 	mBytesPerChannel = bpp / 8;
 
@@ -502,6 +503,11 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	}
 	else if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 		mChannels = 2;
+	else if (color_type == PNG_COLOR_TYPE_PALETTE)
+	{
+		png_set_expand(png_ptr); //expand to RGB -> PNG_TRANSFORM_EXPAND
+		mChannels = 3;
+	}
 	else if(color_type == PNG_COLOR_TYPE_RGB)
 		mChannels = 3;
 	else if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -519,17 +525,11 @@ bool sgct_core::Image::loadPNG(std::string filename)
 		return false;
 	}
 
-	unsigned char * pb = mData;
-
-	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
-	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
+	int pos = 0;
+	for (int i = 0; i < mSize_y; i++)
 	{
-		//png_bytep row = info_ptr->row_pointers[r];
-        png_bytep row = row_pointers[r];
-		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
-		int c;
-		for( c = 0 ; c < rowbytes ; c++ )
-			*(pb)++ = row[c];
+		png_read_row(png_ptr, &mData[pos], NULL);
+		pos += (mSize_x * mChannels);
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);
@@ -551,8 +551,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
     png_structp png_ptr;
 	png_infop info_ptr;
 	unsigned char header[PNG_BYTES_TO_CHECK];
-	//int numChannels;
-	int r, color_type, bpp;
+	int color_type, bpp;
     
 	//get header
     memcpy( header, data, PNG_BYTES_TO_CHECK);
@@ -591,16 +590,16 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	}
     
     png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
-    
-    png_read_png( png_ptr, info_ptr,
-                //PNG_TRANSFORM_STRIP_16 | //we want 16-bit support
-				PNG_TRANSFORM_SWAP_ENDIAN | //needed for 16-bit support
-                PNG_TRANSFORM_PACKING |
-                PNG_TRANSFORM_EXPAND | 
-				PNG_TRANSFORM_BGR, NULL);
+	png_read_info(png_ptr, info_ptr);
 	
 	png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
-	//png_set_bgr(png_ptr);
+	
+	//set options
+	png_set_bgr(png_ptr);
+	if (bpp < 8)
+		png_set_packing(png_ptr);
+	else if (bpp == 16)
+		png_set_swap(png_ptr); //PNG_TRANSFORM_SWAP_ENDIAN
 
 	mBytesPerChannel = bpp / 8;
 
@@ -615,6 +614,11 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	}
 	else if(color_type == PNG_COLOR_TYPE_GRAY_ALPHA)
 		mChannels = 2;
+	else if (color_type == PNG_COLOR_TYPE_PALETTE)
+	{
+		png_set_expand(png_ptr); //expand to RGB -> PNG_TRANSFORM_EXPAND
+		mChannels = 3;
+	}
 	else if(color_type == PNG_COLOR_TYPE_RGB)
 		mChannels = 3;
 	else if(color_type == PNG_COLOR_TYPE_RGB_ALPHA)
@@ -630,17 +634,11 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 		return false;
 	}
 
-	unsigned char * pb = mData;
-
-	png_bytepp row_pointers = png_get_rows(png_ptr, info_ptr);
-	for( r = (int)png_get_image_height(png_ptr, info_ptr) - 1 ; r >= 0 ; r-- )
+	int pos = 0;
+	for (int i = 0; i < mSize_y; i++)
 	{
-		//png_bytep row = info_ptr->row_pointers[r];
-        png_bytep row = row_pointers[r];
-		int rowbytes = static_cast<int>(png_get_rowbytes(png_ptr, info_ptr));
-		int c;
-		for( c = 0 ; c < rowbytes ; c++ )
-			*(pb)++ = row[c];
+		png_read_row(png_ptr, &mData[pos], NULL);
+		pos += (mSize_x * mChannels);
 	}
 
 	png_destroy_read_struct(&png_ptr, &info_ptr, (png_infopp)NULL);

@@ -7,8 +7,8 @@ include/external/jconfigint.h
 include/external/pnglibconf.h
 include/external/zconf.h
 include/sgct/SGCTVersion.h
+include/sgct/SGCTConfig.h
 src/installers/sgct_osg_all_win.nsi
-lib
 build/
 src/deps/libjpeg-turbo/turbojpeg-static.dir/
 src/deps/lpng/png16_static.dir/

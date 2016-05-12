@@ -83,6 +83,7 @@ int main( int argc, char* argv[] )
 
 void myDraw2DFun()
 {
+#if INCLUDE_SGCT_TEXT
 	sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getCurrentWindowPtr()->isFocused() ? "true" : "false");
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
@@ -98,6 +99,7 @@ void myDraw2DFun()
 	sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 256), 500, 500, glm::vec4(1.0, 1.0, 1.0, 1.0), "%d", counter);
 	gEngine->takeScreenshot();
 	counter++;*/
+#endif
 }
 
 void myDrawFun()
@@ -183,6 +185,7 @@ void myDrawFun()
 
 	glPopMatrix();
 
+#if INCLUDE_SGCT_TEXT
 	float xPos = static_cast<float>( gEngine->getCurrentWindowPtr()->getXFramebufferResolution() ) / 2.0f;
 
 	glColor3f(1.0f,1.0f,0.0f);
@@ -218,6 +221,7 @@ void myDrawFun()
 	{
 		sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
 	}
+#endif
 }
 
 void myPreSyncFun()

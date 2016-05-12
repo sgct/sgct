@@ -226,6 +226,7 @@ void myDrawFun()
 		}
 	}
 
+#if INCLUDE_SGCT_TEXT
 	//draw text
 	float textVerticalPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getYResolution()) - 100.0f;
 	int fontSize = 12;
@@ -234,6 +235,7 @@ void myDrawFun()
 	sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ),
 		120.0f, textVerticalPos,
 		sharedText.getVal().c_str() );
+#endif
 }
 
 void myEncodeFun()

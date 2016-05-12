@@ -26,6 +26,7 @@ SET(CMAKE_RELEASE_POSTFIX "" CACHE STRING "add a postfix, usually empty on windo
 
 option(SGCT_INSTALL "Install SGCT" OFF)
 option(SGCT_EXAMPLES "Build SGCT examples" OFF)
+option(SGCT_TEXT "Build SGCT with Freetype2" ON)
 option(SGCT_DOXYGEN "Build doxygen documentation" OFF)
 option(SGCT_DOXYGEN_QUIET "Suppress warnings" ON)
 
@@ -160,12 +161,43 @@ else()
 	set(SGCT_DOXYGEN_QUIET_STATE "NO")
 endif()
 
+if(SGCT_TEXT)
+	set(USE_SGCT_TEXT "1")
+else()
+	set(USE_SGCT_TEXT "0")
+endif()
+
+#configure settings
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTConfig.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTConfig.h @ONLY)
+
 #update version in files
-configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h)
+configure_file(${CMAKE_CURRENT_SOURCE_DIR}/src/SGCTVersion.h.in ${CMAKE_CURRENT_SOURCE_DIR}/include/sgct/SGCTVersion.h @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile.in ${CMAKE_CURRENT_SOURCE_DIR}/Doxyfile)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode.sh @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_xcode_cpp11.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_xcode_cpp11.sh @ONLY)
 configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_linux.sh.in ${CMAKE_CURRENT_BINARY_DIR}/src/installer/build_release_linux.sh @ONLY)
+
+#setup merge static lib scripts
+if(NOT SGCT_LIGHT_ONLY)
+	if(WIN32)
+		if(MSVC AND SGCT_TEXT)
+			set(SGCT_FREETYPE_RELEASE_LIB_PATH "deps\\freetype.lib")
+			set(SGCT_FREETYPE_DEBUG_LIB_PATH "deps\\freetyped.lib")
+		elseif( MINGW AND SGCT_TEXT)
+			set(SGCT_FREETYPE_RELEASE_LIB_PATH "ar x deps/libfreetype.a")
+			set(SGCT_FREETYPE_DEBUG_LIB_PATH "ar x deps/libfreetyped.a")
+		endif()
+		configure_file(${SGCT_LIB_SRC_PATH}/merge_libs.bat.in ${SGCT_LIB_PATH}/merge_libs.bat @ONLY)
+	else()
+		if(CMAKE_GENERATOR STREQUAL Xcode)
+			set(SGCT_SHELL_NAME merge_libs_xcode.sh)
+		else()
+			set(SGCT_SHELL_NAME merge_libs.sh)
+		endif()
+		
+		configure_file(${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME}.in ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME} @ONLY)
+	endif()
+endif()
 
 #crate directories
 file(MAKE_DIRECTORY ${CMAKE_CURRENT_BINARY_DIR}/bin/installer)
@@ -366,7 +398,13 @@ add_definitions(-DGLEW_NO_GLU)
 target_link_libraries( ${LIB_NAME} debug ${DEBUG_LIBS} optimized ${RELEASE_LIBS})
 
 #to make sure that everything is build when post_build events runs
-add_dependencies(${LIB_NAME} freetype glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
+
+set(SGCT_DEPS glew glfw png16_static turbojpeg-static tinythreadpp tinyxml2static zlibstatic vrpn)
+#prepend freetype
+if(SGCT_TEXT)
+	set(SGCT_DEPS freetype ${SGCT_DEPS})
+endif()
+add_dependencies(${LIB_NAME} ${SGCT_DEPS})
 
 #including directories with generated config files in this scope
 include_directories(${PROJECT_BINARY_DIR}/src/deps/vrpn)
@@ -382,29 +420,11 @@ if(NOT SGCT_LIGHT_ONLY)
 			COMMAND "merge_libs.bat"
 			WORKING_DIRECTORY ${SGCT_LIB_PATH}
 			)
-		
-		#copy script
-		add_custom_command(TARGET ${LIB_NAME}
-			PRE_BUILD
-			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/merge_libs.bat ${SGCT_LIB_PATH}/merge_libs.bat)
 	else()
-		if(CMAKE_GENERATOR STREQUAL Xcode)
-			set(SGCT_SHELL_NAME merge_libs_xcode.sh)
-		else()
-			set(SGCT_SHELL_NAME merge_libs.sh)
-		endif()
-
 		add_custom_command(TARGET ${LIB_NAME}
 			POST_BUILD
 			COMMAND "./${SGCT_SHELL_NAME}"
 			WORKING_DIRECTORY ${SGCT_LIB_PATH})
-			
-		#copy script
-		add_custom_command(TARGET ${LIB_NAME}
-			PRE_BUILD
-			#COMMAND ${CMAKE_COMMAND} -E make_directory ${PROJECT_BINARY_DIR}
-			COMMAND ${CMAKE_COMMAND} -E copy ${SGCT_LIB_SRC_PATH}/${SGCT_SHELL_NAME} ${SGCT_LIB_PATH}/${SGCT_SHELL_NAME})
 	endif()
 endif()
 		

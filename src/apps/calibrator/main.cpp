@@ -155,7 +155,8 @@ void draw()
     
 	if (showChannelZones.getVal())
 		mDome->drawChannelZones();
-    
+
+#if INCLUDE_SGCT_TEXT
 	if (showId.getVal())
 	{
 		sgct::SGCTWindow * win = gEngine->getCurrentWindowPtr();
@@ -171,7 +172,8 @@ void draw()
 		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s1)), offset, h/2.0f - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId());
 		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s2)), offset, h / 2.0f - (s1 + s2) * 1.2f, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str());
 	}
-    
+#endif
+
 	glDepthMask(GL_TRUE);
 }
 

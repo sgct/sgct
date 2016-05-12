@@ -453,13 +453,18 @@ License type: BSD\n
 	#endif
 #endif
 
+#include "sgct/SGCTConfig.h"
 #include "sgct/Engine.h"
 #include "sgct/SharedData.h"
 #include "sgct/TextureManager.h"
-#include "sgct/FontManager.h"
+#if INCLUDE_SGCT_TEXT
+	#include "sgct/FontManager.h"
+	#include "sgct/freetype.h"
+	//for backwards compability
+	namespace Freetype = sgct_text;
+#endif
 #include "sgct/MessageHandler.h"
 #include "sgct/ShaderManager.h"
-#include "sgct/freetype.h"
 #include "sgct/SGCTSettings.h"
 #include "sgct/SGCTVersion.h"
 #include "sgct/ogl_headers.h"
@@ -499,9 +504,6 @@ namespace sgct_helpers{}; //empty for doxygen documentation only
 #include "sgct/helpers/SGCTVertexData.h"
 #include "sgct/helpers/SGCTCPPEleven.h"
 //#include "sgct/helpers/SGCTPortedFunctions.h"
-
-//for backwards compability
-namespace Freetype = sgct_text;
 
 //GLFW wrapping
 #define SGCT_RELEASE		GLFW_RELEASE

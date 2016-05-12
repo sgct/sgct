@@ -42,6 +42,8 @@ sgct::TextureManager::TextureManager()
 	mWarpMode[1] = GL_CLAMP_TO_EDGE;
 
 	mOverWriteMode = true;
+	mInterpolate = true;
+	mMipmapLevels = 8;
 
 	//add empty texture
 	sgct_core::TextureData tmpTexture;
@@ -163,32 +165,14 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 	bool reload = false;
 	sgct_core::TextureData tmpTexture;
 	sgct_core::Image img;
-	
-	//check if texture exits in manager
-	bool exist = mTextures.count(name) > 0;
-	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
-	if (exist)
-	{	
-		//get it
-		textureItem = mTextures.find(name);
-		texID = textureItem->second.mId;
-		
-		if( mOverWriteMode )
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Reloading texture '%s'! [id=%d]\n", filename.c_str(), texID);
-			
-			if( texID != 0 )
-				glDeleteTextures(1, &texID);
-			texID = 0;
-			reload = true;
-		}
-		else
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: '%s' exists already! [id=%d]\n", filename.c_str(), texID);
-			return true;
-		}
-	}
+	mInterpolate = interpolate;
+	mMipmapLevels = mipmapLevels;
+
+	if (!updateTexture(name, &texID, &reload))
+		return true;
+	
+	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
 	//load image
 	if ( !img.load(filename) )
@@ -203,136 +187,8 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 	
 	if (img.getData() != NULL)
 	{
-		glGenTextures( 1, &texID );
-		glBindTexture(GL_TEXTURE_2D, texID);
-
-		int textureType = GL_BGR;
-
-		//if OpenGL 1-2
-		if( Engine::instance()->isOGLPipelineFixed() )
-		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
-			else if (img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
-			else if (img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
-		}
-		else //OpenGL 3+
-		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
-			else if (img.getChannels() == 1)	textureType = GL_RED;
-			else if (img.getChannels() == 2)	textureType = GL_RG;
-		}
-
-		GLint internalFormat;
-		unsigned int bpc = img.getBytesPerChannel();
-
-		if (bpc > 2)
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TextureManager: %d-bit per channel is not supported!\n", bpc * 8);
+		if (!uploadImage(&img, &texID))
 			return false;
-		}
-		else if (bpc == 2) //turn of compression if 16-bit per color
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: Compression is not supported for bit depths higher than 16-bit per channel!\n");
-			mCompression = No_Compression;
-		}
-
-		switch (img.getChannels())
-		{
-		case 4:
-			{
-				if( mCompression == No_Compression)
-					internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-				else if( mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RGBA;
-				else
-					internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-			}
-			break;
-		case 3:
-			{
-				if( mCompression == No_Compression)
-					internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-				else if( mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RGB;
-				else
-					internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-			}
-			break;
-		case 2:
-			if( Engine::instance()->isOGLPipelineFixed() )
-			{
-				if( mCompression == No_Compression)
-					internalFormat = (bpc == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16);
-				else
-					internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
-			}
-			else
-			{
-				if( mCompression == No_Compression)
-					internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
-				else if( mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RG;
-				else
-					internalFormat = GL_COMPRESSED_RG_RGTC2;
-			}
-			break;
-		case 1:
-			if (Engine::instance()->isOGLPipelineFixed())
-			{
-				if (bpc == 1)
-					internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
-				else
-					internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
-			}
-			else
-			{
-				if( mCompression == No_Compression)
-					internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
-				else if( mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RED;
-				else
-					internalFormat = GL_COMPRESSED_RED_RGTC1;
-			}
-			break;
-		}
-		
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
-			img.getWidth(),
-			img.getHeight(),
-			img.getChannels(),
-			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
-
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
-        if(mipmapLevels <= 1)
-            mipmapLevels = 1;
-        
-		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, format, img.getData());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
-		
-		if(mipmapLevels > 1)
-		{
-			glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
-            
-            GLfloat maxAni;
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-			//sgct::MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
-			
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR );
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-			glTexParameterf( GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, mAnisotropicFilterSize > maxAni ? maxAni : mAnisotropicFilterSize);
-		}
-		else
-		{
-			glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-            glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST );
-		}
-
-		glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0] );
-        glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1] );
 
 		tmpTexture.mId = texID;
 		tmpTexture.mPath.assign(filename);
@@ -356,6 +212,60 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 }
 
 /*!
+Load a texture to the TextureManager.
+\param name the name of the texture
+\param imgPtr pointer to image object
+\param interpolate set to true for using interpolation (bi-linear filtering)
+\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+\return true if texture loaded successfully
+*/
+bool sgct::TextureManager::loadTexure(const std::string name, sgct_core::Image * imgPtr, bool interpolate, int mipmapLevels)
+{
+	if (!imgPtr)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Cannot create texture '%s' from invalid image!\n", name.c_str());
+		return false;
+	}
+	
+	GLuint texID = 0;
+	bool reload = false;
+	sgct_core::TextureData tmpTexture;
+
+	mInterpolate = interpolate;
+	mMipmapLevels = mipmapLevels;
+
+	if (!updateTexture(name, &texID, &reload))
+		return true;
+
+	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+
+	if (imgPtr->getData() != NULL)
+	{
+		if (!uploadImage(imgPtr, &texID))
+			return false;
+
+		tmpTexture.mId = texID;
+		tmpTexture.mPath.assign("NOTSET");
+		tmpTexture.mWidth = imgPtr->getWidth();
+		tmpTexture.mHeight = imgPtr->getHeight();
+		tmpTexture.mChannels = imgPtr->getChannels();
+
+		if (!reload)
+		{
+			mTextures[name] = tmpTexture;
+		}
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Texture created from image [id=%d]\n", texID);
+	}
+	else //image data not valid
+	{
+		return false;
+	}
+
+	return true;
+}
+
+/*!
 Load a unmanged texture. Note that this type of textures doesn't auto destruct.
 \param texID the openGL texture id
 \param filename the filename or path to the texture
@@ -366,6 +276,8 @@ Load a unmanged texture. Note that this type of textures doesn't auto destruct.
 bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels)
 {
 	unsigned int tmpTexID = GL_FALSE;
+	mInterpolate = interpolate;
+	mMipmapLevels = mipmapLevels;
 
 	if (texID != GL_FALSE)
 	{
@@ -382,122 +294,8 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 
 	if (img.getData() != NULL)
 	{
-		glGenTextures(1, &tmpTexID);
-		glBindTexture(GL_TEXTURE_2D, tmpTexID);
-
-		int textureType = GL_BGR;
-
-		//if OpenGL 1-2
-		if (Engine::instance()->isOGLPipelineFixed())
-		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
-			else if (img.getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
-			else if (img.getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
-		}
-		else //OpenGL 3+
-		{
-			if (img.getChannels() == 4)	textureType = GL_BGRA;
-			else if (img.getChannels() == 1)	textureType = GL_RED;
-			else if (img.getChannels() == 2)	textureType = GL_RG;
-		}
-
-		GLint internalFormat;
-
-		switch (img.getChannels())
-		{
-		case 4:
-		{
-				  if (mCompression == No_Compression)
-					  internalFormat = GL_RGBA8;
-				  else if (mCompression == Generic)
-					  internalFormat = GL_COMPRESSED_RGBA;
-				  else
-					  internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-		}
-			break;
-		case 3:
-		{
-				  if (mCompression == No_Compression)
-					  internalFormat = GL_RGB8;
-				  else if (mCompression == Generic)
-					  internalFormat = GL_COMPRESSED_RGB;
-				  else
-					  internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
-		}
-			break;
-		case 2:
-			if (Engine::instance()->isOGLPipelineFixed())
-			{
-				if (mCompression == No_Compression)
-					internalFormat = GL_LUMINANCE8_ALPHA8;
-				else
-					internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
-			}
-			else
-			{
-				if (mCompression == No_Compression)
-					internalFormat = GL_RG8;
-				else if (mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RG;
-				else
-					internalFormat = GL_COMPRESSED_RG_RGTC2;
-			}
-			break;
-		case 1:
-			if (Engine::instance()->isOGLPipelineFixed())
-				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
-			else
-			{
-				if (mCompression == No_Compression)
-					internalFormat = GL_RED;
-				else if (mCompression == Generic)
-					internalFormat = GL_COMPRESSED_RED;
-				else
-					internalFormat = GL_COMPRESSED_RED_RGTC1;
-			}
-			break;
-
-		default:
-			internalFormat = GL_RGBA8;
-			break;
-		}
-
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
-			img.getWidth(),
-			img.getHeight(),
-			img.getChannels(),
-			(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
-
-		glPixelStorei(GL_PACK_ALIGNMENT, 1);
-		glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-        
-		if(mipmapLevels <= 1)
-            mipmapLevels = 1;
-        
-        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, img.getWidth(), img.getHeight(), 0, textureType, GL_UNSIGNED_BYTE, img.getData());
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipmapLevels-1);
-
-		if (mipmapLevels > 1)
-		{
-			glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
-            
-            GLfloat maxAni;
-			glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-			//sgct::MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
-
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
-			glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, mAnisotropicFilterSize > maxAni ? maxAni : mAnisotropicFilterSize);
-		}
-		else
-		{
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
-			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, interpolate ? GL_LINEAR : GL_NEAREST);
-		}
-
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0]);
-		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
+		if (!uploadImage(&img, &texID))
+			return false;
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), tmpTexID);
 	}
@@ -507,6 +305,176 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 	}
 
 	texID = tmpTexID;
+	return true;
+}
+
+/*!
+returns true if texture will be uploaded
+*/
+bool sgct::TextureManager::updateTexture(const std::string & name, unsigned int * texPtr, bool * reload)
+{
+	//check if texture exits in manager
+	bool exist = mTextures.count(name) > 0;
+	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+
+	if (exist)
+	{
+		//get it
+		textureItem = mTextures.find(name);
+		(*texPtr) = textureItem->second.mId;
+
+		if (mOverWriteMode)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Reloading texture '%s'! [id=%d]\n", name.c_str(), (*texPtr));
+
+			if ((*texPtr) != 0)
+				glDeleteTextures(1, texPtr);
+			(*texPtr) = 0;
+			(*reload) = true;
+		}
+		else
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: '%s' exists already! [id=%d]\n", name.c_str(), (*texPtr));
+			return false;
+		}
+	}
+
+	return true;
+}
+
+bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int * texPtr)
+{
+	glGenTextures(1, texPtr);
+	glBindTexture(GL_TEXTURE_2D, *texPtr);
+
+	int textureType = GL_BGR;
+
+	//if OpenGL 1-2
+	if (Engine::instance()->isOGLPipelineFixed())
+	{
+		if (imgPtr->getChannels() == 4)	textureType = GL_BGRA;
+		else if (imgPtr->getChannels() == 1)	textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
+		else if (imgPtr->getChannels() == 2)	textureType = GL_LUMINANCE_ALPHA;
+	}
+	else //OpenGL 3+
+	{
+		if (imgPtr->getChannels() == 4)	textureType = GL_BGRA;
+		else if (imgPtr->getChannels() == 1)	textureType = GL_RED;
+		else if (imgPtr->getChannels() == 2)	textureType = GL_RG;
+	}
+
+	GLint internalFormat;
+	unsigned int bpc = imgPtr->getBytesPerChannel();
+
+	if (bpc > 2)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "TextureManager: %d-bit per channel is not supported!\n", bpc * 8);
+		return false;
+	}
+	else if (bpc == 2) //turn of compression if 16-bit per color
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "TextureManager: Compression is not supported for bit depths higher than 16-bit per channel!\n");
+		mCompression = No_Compression;
+	}
+
+	switch (imgPtr->getChannels())
+	{
+	case 4:
+	{
+		if (mCompression == No_Compression)
+			internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+		else if (mCompression == Generic)
+			internalFormat = GL_COMPRESSED_RGBA;
+		else
+			internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
+	}
+	break;
+	case 3:
+	{
+		if (mCompression == No_Compression)
+			internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+		else if (mCompression == Generic)
+			internalFormat = GL_COMPRESSED_RGB;
+		else
+			internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+	}
+	break;
+	case 2:
+		if (Engine::instance()->isOGLPipelineFixed())
+		{
+			if (mCompression == No_Compression)
+				internalFormat = (bpc == 1 ? GL_LUMINANCE8_ALPHA8 : GL_LUMINANCE16_ALPHA16);
+			else
+				internalFormat = GL_COMPRESSED_LUMINANCE_ALPHA;
+		}
+		else
+		{
+			if (mCompression == No_Compression)
+				internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
+			else if (mCompression == Generic)
+				internalFormat = GL_COMPRESSED_RG;
+			else
+				internalFormat = GL_COMPRESSED_RG_RGTC2;
+		}
+		break;
+	case 1:
+		if (Engine::instance()->isOGLPipelineFixed())
+		{
+			if (bpc == 1)
+				internalFormat = (mCompression == No_Compression) ? (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) : (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+			else
+				internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
+		}
+		else
+		{
+			if (mCompression == No_Compression)
+				internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
+			else if (mCompression == Generic)
+				internalFormat = GL_COMPRESSED_RED;
+			else
+				internalFormat = GL_COMPRESSED_RED_RGTC1;
+		}
+		break;
+	}
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
+		imgPtr->getWidth(),
+		imgPtr->getHeight(),
+		imgPtr->getChannels(),
+		(mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
+
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+
+	if (mMipmapLevels <= 1)
+		mMipmapLevels = 1;
+
+	GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imgPtr->getWidth(), imgPtr->getHeight(), 0, textureType, format, imgPtr->getData());
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mMipmapLevels - 1);
+
+	if (mMipmapLevels > 1)
+	{
+		glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+
+		GLfloat maxAni;
+		glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
+		//sgct::MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
+
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mInterpolate ? GL_LINEAR_MIPMAP_LINEAR : GL_NEAREST_MIPMAP_LINEAR);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mInterpolate ? GL_LINEAR : GL_NEAREST);
+		glTexParameterf(GL_TEXTURE_2D, GL_TEXTURE_MAX_ANISOTROPY_EXT, mAnisotropicFilterSize > maxAni ? maxAni : mAnisotropicFilterSize);
+	}
+	else
+	{
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, mInterpolate ? GL_LINEAR : GL_NEAREST);
+		glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, mInterpolate ? GL_LINEAR : GL_NEAREST);
+	}
+
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0]);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
+
 	return true;
 }
 

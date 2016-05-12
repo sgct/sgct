@@ -237,6 +237,8 @@ bool sgct_core::Image::load(std::string filename)
 
 			buffer.clear();
 		}
+
+		file.close();
 	}
 #endif
 

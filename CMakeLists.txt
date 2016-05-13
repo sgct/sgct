@@ -179,18 +179,11 @@ configure_file(${CMAKE_CURRENT_SOURCE_DIR}/release/build_release_linux.sh.in ${C
 
 #setup merge static lib scripts
 if(NOT SGCT_LIGHT_ONLY)
-	if(WIN32)
-		if(MSVC AND SGCT_TEXT)
+	if(MSVC)
+		if(SGCT_TEXT)
 			set(SGCT_FREETYPE_RELEASE_LIB_PATH "deps\\freetype.lib")
 			set(SGCT_FREETYPE_DEBUG_LIB_PATH "deps\\freetyped.lib")
-		elseif( MINGW )
-			if(SGCT_TEXT)
-				set(SGCT_FREETYPE_RELEASE_LIB_PATH "ar x deps/libfreetype.a")
-				set(SGCT_FREETYPE_DEBUG_LIB_PATH "ar x deps/libfreetyped.a")
-			else()
-				set(SGCT_FREETYPE_RELEASE_LIB_PATH "::") #add empty comment
-				set(SGCT_FREETYPE_DEBUG_LIB_PATH "::") #add empty comment
-			endif()
+		
 		endif()
 		configure_file(${SGCT_LIB_SRC_PATH}/merge_libs.bat.in ${SGCT_LIB_PATH}/merge_libs.bat @ONLY)
 	else()
@@ -430,7 +423,7 @@ include_directories(${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)
-	if(WIN32)
+	if(MSVC)
 		add_custom_command(TARGET ${LIB_NAME}
 			POST_BUILD
 			COMMAND "merge_libs.bat"

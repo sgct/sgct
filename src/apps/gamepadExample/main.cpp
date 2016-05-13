@@ -47,6 +47,7 @@ int main( int argc, char* argv[] )
 
 void myDraw2DFun()
 {
+#if INCLUDE_SGCT_TEXT
 	if( joyStick1Name != NULL )
 	{
 		char buffer[32];
@@ -82,4 +83,5 @@ void myDraw2DFun()
 		const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", 12 );
 		sgct_text::print(font, 18, 32, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", joystickInfoStr.c_str());
 	}
+#endif
 }

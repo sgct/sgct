@@ -12,8 +12,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 
 #include "../include/sgct/Engine.h"
-#include "../include/sgct/freetype.h"
-#include "../include/sgct/FontManager.h"
+#include "sgct/SGCTConfig.h"
+#if INCLUDE_SGCT_TEXT
+	#include "../include/sgct/freetype.h"
+	#include "../include/sgct/FontManager.h"
+#endif
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/TextureManager.h"
 #include "../include/sgct/SharedData.h"
@@ -720,6 +723,7 @@ void sgct::Engine::initOGL()
 	//
 	// Add fonts
 	//
+#if INCLUDE_SGCT_TEXT
     if( SGCTSettings::instance()->getOSDTextFontPath().empty() )
 	{
 	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontName() ) )
@@ -731,6 +735,7 @@ void sgct::Engine::initOGL()
 	    if( !sgct_text::FontManager::instance()->addFont( "SGCTFont", tmpPath, sgct_text::FontManager::FontPath_Local ) )
             sgct_text::FontManager::instance()->getFont( "SGCTFont", SGCTSettings::instance()->getOSDTextFontSize() );
     }
+#endif
 
 	//init swap barrier is swap groups are active
 	SGCTWindow::setBarrier(true);
@@ -824,8 +829,10 @@ void sgct::Engine::clean()
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying texture manager...\n");
 	TextureManager::destroy();
 
+#if INCLUDE_SGCT_TEXT
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Destroying font manager...\n");
 	sgct_text::FontManager::destroy();
+#endif
 
 	//Window specific context ------------------------------------------------------------------->
 	if( mThisNode != NULL && mThisNode->getNumberOfWindows() > 0 )
@@ -1392,6 +1399,7 @@ void sgct::Engine::setConfigurationFile(std::string configFilePath)
 */
 void sgct::Engine::renderDisplayInfo()
 {
+#if INCLUDE_SGCT_TEXT
 	unsigned int lFrameNumber = 0;
 	getCurrentWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
@@ -1513,6 +1521,7 @@ void sgct::Engine::renderDisplayInfo()
 	//reset
 	sgct_text::FontManager::instance()->setStrokeColor( strokeColor );
 	sgct_text::FontManager::instance()->setStrokeSize( strokeSize );
+#endif
 }
 
 /*!

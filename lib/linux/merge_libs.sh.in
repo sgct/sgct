@@ -12,7 +12,7 @@ then
 	ar x deps/libz.a
 	ar x deps/libpng16.a
 	ar x deps/libturbojpeg.a
-	ar x deps/libfreetype.a
+	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
 	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
@@ -29,7 +29,7 @@ then
 	ar x deps/libzd.a
 	ar x deps/libpng16d.a
 	ar x deps/libturbojpegd.a
-	ar x deps/libfreetyped.a
+	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
 	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a
@@ -49,7 +49,7 @@ then
 	ar x deps/libz.a
 	ar x deps/libpng16.a
 	ar x deps/libturbojpeg.a
-	ar x deps/libfreetype.a
+	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
 	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
@@ -69,7 +69,7 @@ then
 	ar x deps/libzd.a
 	ar x deps/libpng16d.a
 	ar x deps/libturbojpegd.a
-	ar x deps/libfreetyped.a
+	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
 	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a

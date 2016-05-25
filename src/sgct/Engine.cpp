@@ -3230,7 +3230,7 @@ void sgct::Engine::setContextCreationCallback(sgct_cppxeleven::function<void(GLF
 /*!
  \param fnPtr is the function pointer to a screenshot callback for custom frame capture & export
  This callback must be set before Engine::init is called\n
- Parameters to the callback are: Image pointer for image data, window index, eye index
+ Parameters to the callback are: Image pointer for image data, window index, eye index, download type
  */
 void sgct::Engine::setScreenShotCallback(void(*fnPtr)(Image *, std::size_t, ScreenCapture::EyeIndex, unsigned int type))
 {

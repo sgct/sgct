@@ -1,6 +1,10 @@
-arguments:
+# FFmpegCaptureExample
+FFmpegCaptureExample is a an application example which uses ffmpeg to capture input on the master or a client.
+
+Arguments:
 
 -video <device name>
+-host <ip/name of the node/master which captures input>
 -option <key> <val>
 -flip
 -plane <azimuth> <elevation> <roll>
@@ -17,7 +21,7 @@ ffmpeg -f dshow -list_options true -i video=<device name>
 For options look at: http://ffmpeg.org/ffmpeg-devices.html
 
 Example capturing datapath dual link:
-FFmpegCaptureAndDomeImageViewer.exe -config fisheye.xml -video "Datapath VisionDVI-DL Video 01" -option pixel_format bgr24 -option framerate 60 -flip
+FFmpegCaptureExample.exe -config fisheye.xml  -host localhost -video "Datapath VisionDVI-DL Video 01" -option pixel_format bgr24 -option framerate 60 -flip
 
 Keyboard keys:
 D - Fulldome mode

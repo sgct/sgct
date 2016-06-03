@@ -1,0 +1,1 @@
+FFmpegCaptureAndDomeImageViewer.exe -config fisheye.xml

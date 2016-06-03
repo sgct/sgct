@@ -72,6 +72,7 @@ if(SGCT_EXAMPLES_SPOUT)
 endif()
 
 if(SGCT_EXAMPLES_FFMPEG)
+	ADD_SUBDIRECTORY(FFmpegCaptureAndDomeImageViewer)
 	ADD_SUBDIRECTORY(FFmpegCaptureExample)
 endif()
 

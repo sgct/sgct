@@ -366,7 +366,7 @@ void parseArguments(int& argc, char**& argv)
         {
             gCapture->setVideoHost(std::string(argv[i + 1]));
         }
-		if (strcmp(argv[i], "-video") == 0 && argc >(i + 1))
+		else if (strcmp(argv[i], "-video") == 0 && argc >(i + 1))
 		{
 			gCapture->setVideoDevice(std::string(argv[i + 1]));
 		}

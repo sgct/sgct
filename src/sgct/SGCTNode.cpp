@@ -44,6 +44,9 @@ void sgct_core::SGCTNode::setUseSwapGroups(bool state)
 */
 bool sgct_core::SGCTNode::getKeyPressed( int key )
 {
+    if (key == GLFW_KEY_UNKNOWN)
+        return false;
+
 	for(std::size_t i=0; i<mWindows.size(); i++)
 		if( glfwGetKey( mWindows[i].getWindowHandle(), key) )
 			return true;

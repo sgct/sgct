@@ -103,3 +103,5 @@ src/installer/build_release_xcode.sh
 src/installer/build_release_xcode_cpp11.sh
 src/installer/sgct_osg_all_win.nsi
 src/deps/libjpeg-turbo/simd/MinSizeRel/
+sgct.VC.db
+lib/

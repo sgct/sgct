@@ -40,6 +40,7 @@ if (MSVC)
 endif()
 option(SGCT_BUILD_ALUT "Build ALUT" OFF)
 option(SGCT_LIGHT_ONLY "Don't merge external libs" OFF)
+option(SGCT_NO_EXTERNAL_LIBRARIES "Do not include external libraries" OFF)
 if( MINGW  )
 	option(SGCT_MINGW64 "Use MinGW64" ON)
 endif()
@@ -231,17 +232,17 @@ add_library(${LIB_NAME} STATIC
 	${ALL_SRC}
 	)
 
-if(SGCT_LIGHT_ONLY)	
+if(SGCT_NO_EXTERNAL_LIBRARIES)	
+	INCLUDE_DIRECTORIES(
+	  include
+	)
+else(SGCT_NO_EXTERNAL_LIBRARIES)
 	INCLUDE_DIRECTORIES(
 	  include
 	  include/external
 	)
 	add_definitions(-DSGCT_DONT_USE_EXTERNAL)
-else(SGCT_LIGHT_ONLY)
-	INCLUDE_DIRECTORIES(
-	  include
-	)
-endif(SGCT_LIGHT_ONLY)
+endif(SGCT_NO_EXTERNAL_LIBRARIES)
 
 find_package(OpenGL REQUIRED)
 
@@ -269,7 +270,7 @@ if(MSVC)
         )
 endif(MSVC)
 
-if(NOT SGCT_LIGHT_ONLY)
+if(NOT SGCT_NO_EXTERNAL_LIBRARIES)
 
 	ADD_SUBDIRECTORY(src/deps)
 

@@ -146,6 +146,8 @@ set(ZLIB_SRCS
     zutil.c
 )
 
+set(ZLIB_INCLUDE_DIR ${ZLIB_PUBLIC_HDRS} PARENT_SCOPE)
+
 #if(NOT MINGW)
 #    set(ZLIB_SRCS ${ZLIB_SRCS}
 #        win32/zlib1.rc # If present will override custom build rule below.

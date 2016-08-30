@@ -294,7 +294,7 @@ bool sgct::TextureManager::loadUnManagedTexture(unsigned int & texID, const std:
 
 	if (img.getData() != NULL)
 	{
-		if (!uploadImage(&img, &texID))
+		if (!uploadImage(&img, &tmpTexID))
 			return false;
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Unmanaged texture created from '%s' [id=%d]\n", filename.c_str(), tmpTexID);

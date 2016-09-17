@@ -37,6 +37,7 @@ namespace sgct_core
 		void setOffset(const glm::vec3 & offset);
 		void setOffset(float x, float y, float z = 0.0f);
 		void setBaseOffset(const glm::vec3 & offset);
+		void setIgnoreAspectRatio(bool state);
 
 		glm::vec3 getOffset() const;
 
@@ -62,6 +63,7 @@ namespace sgct_core
 		float mCropFactors[4];
 
 		bool mOffAxis;
+		bool mIgnoreAspectRatio;
 		
 		glm::vec3 mOffset;
 		glm::vec3 mBaseOffset;

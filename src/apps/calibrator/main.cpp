@@ -30,6 +30,7 @@ sgct::SharedBool showId(false);
 sgct::SharedBool takeScreenShot(false);
 sgct::SharedBool wireframe(false);
 sgct::SharedBool warping(true);
+sgct::SharedInt32 textureIndex(0);
 
 const int16_t lastState = 7;
 bool ctrlPressed = false;
@@ -247,6 +248,7 @@ void encode()
 	sgct::SharedData::instance()->writeBool( &wireframe );
 	sgct::SharedData::instance()->writeBool( &warping );
 	sgct::SharedData::instance()->writeBool( &showId );
+	sgct::SharedData::instance()->writeInt32( &textureIndex );
 }
 
 void decode()
@@ -260,6 +262,7 @@ void decode()
 	sgct::SharedData::instance()->readBool( &wireframe );
 	sgct::SharedData::instance()->readBool( &warping );
 	sgct::SharedData::instance()->readBool( &showId );
+	sgct::SharedData::instance()->readInt32( &textureIndex );
 }
 
 void keyCallback(int key, int action)
@@ -352,6 +355,13 @@ void keyCallback(int key, int action)
                         wireframe.toggle();
                 }
                 break;
+
+			case SGCT_KEY_SPACE:
+				if (action == SGCT_PRESS)
+				{
+					textureIndex.setVal((textureIndex.getVal() + 1) % textures.size());
+				}
+				break;
 		}
 	}
 }
@@ -560,10 +570,10 @@ void loadData()
 
 void drawTexturedObject()
 {
-	if (textures.size() > 0)
+	if (textures.size() > textureIndex.getVal())
 	{
 		glActiveTexture(GL_TEXTURE0);
-		glBindTexture(GL_TEXTURE_2D, textures[0].second);
+		glBindTexture(GL_TEXTURE_2D, textures[textureIndex.getVal()].second);
 		glEnable(GL_TEXTURE_2D);
         
 		/*glActiveTexture(GL_TEXTURE1);

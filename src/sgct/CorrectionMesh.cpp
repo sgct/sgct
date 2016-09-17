@@ -19,6 +19,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <cstring>
 #include <algorithm>
 
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	#define _sscanf sscanf_s
+#else
+	#define _sscanf sscanf
+#endif
+
 struct SCISSTexturedVertex
 {
 	float x, y, z;
@@ -153,6 +159,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 		if (hint == NO_HINT || hint == DOMEPROJECTION_HINT)//default for this suffix
 			meshFmt = DOMEPROJECTION_FMT;
 	}
+	else if (path.find(".data") != std::string::npos)
+	{
+		if (hint == NO_HINT || hint == PAULBOURKE_HINT)//default for this suffix
+			meshFmt = PAULBOURKE_FMT;
+	}
 
 	//select parser
 	bool loadStatus = false;
@@ -172,6 +183,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 
 	case SKYSKAN_FMT:
 		loadStatus = readAndGenerateSkySkanMesh(meshPath, parent);
+		break;
+
+	case PAULBOURKE_FMT:
+		loadStatus = readAndGeneratePaulBourkeMesh(meshPath, parent);
 		break;
 	}
 
@@ -1058,6 +1073,161 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 
+	return true;
+}
+
+bool sgct_core::CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string & meshPath, Viewport * parent)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+		"CorrectionMesh: Reading Paul Bourke spherical mirror mesh data from '%s'.\n", meshPath.c_str());
+
+	FILE * meshFile = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#else
+	meshFile = fopen(meshPath.c_str(), "r");
+	if (meshFile == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#endif
+
+	//variables
+	int mappingType = -1;
+	int size[2] = {-1, -1};
+	unsigned int counter = 0;
+	float x, y, s, t, intensity;
+	char lineBuffer[MAX_LINE_LENGTH];
+
+	//get the fist line containing the mapping type id
+	if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
+	{
+		int tmpi;
+		if(_sscanf(lineBuffer, "%d", &tmpi) == 1)
+			mappingType = tmpi;
+	}
+
+	//get the mesh dimensions
+	if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
+	{
+		if (_sscanf(lineBuffer, "%d %d", &size[0], &size[1]) == 2)
+		{
+			mTempVertices = new CorrectionMeshVertex[size[0] * size[1]];
+			mGeometries[WARP_MESH].mNumberOfVertices = static_cast<unsigned int>(size[0] * size[1]);
+		}
+	}
+
+	//check if everyting useful is set
+	if (mappingType == -1 || size[0] == -1 || size[1] == -1)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Invalid data");
+		return false;
+	}
+
+	//get all data
+	while (!feof(meshFile))
+	{
+		if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
+		{
+			if (_sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5)
+			{
+				mTempVertices[counter].x = x;
+				mTempVertices[counter].y = y;
+				mTempVertices[counter].s = s;
+				mTempVertices[counter].t = t;
+
+				mTempVertices[counter].r = intensity;
+				mTempVertices[counter].g = intensity;
+				mTempVertices[counter].b = intensity;
+				mTempVertices[counter].a = 1.0f;
+
+				//if(counter <= 100)
+				//	fprintf(stderr, "Adding vertex: %u %.3f %.3f %.3f %.3f %.3f\n", counter, x, y, s, t, intensity);
+
+				counter++;
+			}
+		}
+	}
+
+	//generate indices
+	std::vector<unsigned int> indices;
+	int i0, i1, i2, i3;
+	for (int c = 0; c < (size[0] - 1); c++)
+		for (int r = 0; r < (size[1] - 1); r++)
+		{
+			i0 = r * size[0] + c;
+			i1 = r * size[0] + (c + 1);
+			i2 = (r + 1) * size[0] + (c + 1);
+			i3 = (r + 1) * size[0] + c;
+
+			//fprintf(stderr, "Indexes: %u %u %u %u\n", i0, i1, i2, i3);
+
+			/*
+
+			3      2
+			x____x
+			|   /|
+			|  / |
+			| /  |
+			|/   |
+			x----x
+			0      1
+
+			*/
+
+			//triangle 1
+			indices.push_back(i0);
+			indices.push_back(i1);
+			indices.push_back(i2);
+
+			//triangle 2
+			indices.push_back(i0);
+			indices.push_back(i2);
+			indices.push_back(i3);
+		}
+
+	float aspect = sgct::Engine::instance()->getCurrentWindowPtr()->getAspectRatio() * 
+		(parent->getXSize() / parent->getYSize());
+	
+	for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
+	{
+		//convert to [0, 1] (normalize)
+		mTempVertices[i].x /= aspect;
+		mTempVertices[i].x = (mTempVertices[i].x + 1.0f) / 2.0f;
+		mTempVertices[i].y = (mTempVertices[i].y + 1.0f) / 2.0f;
+		
+		//scale, re-position and convert to [-1, 1]
+		mTempVertices[i].x = (mTempVertices[i].x * parent->getXSize() + parent->getX()) * 2.0f - 1.0f;
+		mTempVertices[i].y = (mTempVertices[i].y * parent->getYSize() + parent->getY()) * 2.0f - 1.0f;
+
+		//convert to viewport coordinates
+		mTempVertices[i].s = mTempVertices[i].s * parent->getXSize() + parent->getX();
+		mTempVertices[i].t = mTempVertices[i].t * parent->getYSize() + parent->getY();
+	}
+
+	//allocate and copy indices
+	mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+	mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
+	memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+
+	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+	createMesh(&mGeometries[WARP_MESH]);
+
+	//force regeneration of dome render quad
+	if (FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(parent->getNonLinearProjectionPtr()))
+	{
+		fishPrj->setIgnoreAspectRatio(true);
+		fishPrj->update(1.0f, 1.0f);
+	}
+
+	cleanUp();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 	return true;
 }
 

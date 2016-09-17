@@ -41,6 +41,7 @@ sgct_core::FisheyeProjection::FisheyeProjection()
 	mTotalOffset = mBaseOffset + mOffset;
 
 	mOffAxis = false;
+	mIgnoreAspectRatio = false;
 	mMethod = FourFaceCube;
 
 	mCubemapLoc = -1;
@@ -179,6 +180,14 @@ void sgct_core::FisheyeProjection::setBaseOffset(const glm::vec3 & offset)
 	mTotalOffset = mBaseOffset + mOffset;
 
 	mOffAxis = (glm::length(mTotalOffset) > 0.0f ? true : false);
+}
+
+/*!
+Ignore the framebuffer aspect ratio to allow non-circular fisheye. This is usefull for spherical mirror projections.
+*/
+void sgct_core::FisheyeProjection::setIgnoreAspectRatio(bool state)
+{
+	mIgnoreAspectRatio = state;
 }
 
 /*!
@@ -819,7 +828,7 @@ void sgct_core::FisheyeProjection::updateGeomerty(const float & width, const flo
 	float x = 1.0f;
 	float y = 1.0f;
 
-	float frameBufferAspect = width/height;
+	float frameBufferAspect = mIgnoreAspectRatio ? 1.0f : width/height;
 
 	if (sgct::SGCTSettings::instance()->getTryMaintainAspectRatio())
 	{

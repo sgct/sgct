@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/ReadConfig.h"
 #include "../include/sgct/FisheyeProjection.h"
+#include "../include/sgct/SphericalMirrorProjection.h"
 //#include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::Viewport::Viewport()
@@ -129,7 +130,11 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 		else if (strcmp("FisheyeProjection", val) == 0)
 		{
 			parseFisheyeProjection(subElement);
-		}//end if planar projection
+		}
+		else if (strcmp("SphericalMirrorProjection", val) == 0)
+		{
+			parseSphericalMirrorProjection(subElement);
+		}
 		else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
 		{
 			mProjectionPlane.configure(subElement);
@@ -327,6 +332,78 @@ void sgct_core::Viewport::parseFisheyeProjection(tinyxml2::XMLElement * element)
 
 	fishProj->setUseDepthTransformation(true);
 	mNonLinearProjection = fishProj;
+}
+
+void sgct_core::Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement * element)
+{
+	SphericalMirrorProjection * sphericalMirrorProj = new SphericalMirrorProjection();
+	for (std::size_t i = 0; i < 6; i++)
+		sphericalMirrorProj->getSubViewportPtr(i)->setUser(mUser);
+
+	if (element->Attribute("quality") != NULL)
+	{
+		sphericalMirrorProj->setCubemapResolution(std::string(element->Attribute("quality")));
+	}
+
+	float tilt;
+	if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR)
+	{
+		sphericalMirrorProj->setTilt(tilt);
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting spherical mirror tilt to %f degrees.\n", tilt);
+	}
+
+	tinyxml2::XMLElement * subElement = element->FirstChildElement();
+	const char * val;
+
+	while (subElement != NULL)
+	{
+		val = subElement->Value();
+
+		if (strcmp("Background", val) == 0)
+		{
+			glm::vec4 color;
+			float ftmp;
+
+			if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.r = ftmp;
+			if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.g = ftmp;
+			if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.b = ftmp;
+			if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.a = ftmp;
+
+			sphericalMirrorProj->setClearColor(color);
+		}
+		else if (strcmp("Geometry", val) == 0)
+		{
+			if (subElement->Attribute("bottom") != NULL)
+			{
+				sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::BOTTOM_MESH, subElement->Attribute("bottom"));
+			}
+
+			if (subElement->Attribute("left") != NULL)
+			{
+				sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::LEFT_MESH, subElement->Attribute("left"));
+			}
+
+			if (subElement->Attribute("right") != NULL)
+			{
+				sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::RIGHT_MESH, subElement->Attribute("right"));
+			}
+
+			if (subElement->Attribute("top") != NULL)
+			{
+				sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::TOP_MESH, subElement->Attribute("top"));
+			}
+		}
+
+		//iterate
+		subElement = subElement->NextSiblingElement();
+	}
+
+	sphericalMirrorProj->setUseDepthTransformation(false);
+	mNonLinearProjection = sphericalMirrorProj;
 }
 
 void sgct_core::Viewport::setOverlayTexture(const char * texturePath)

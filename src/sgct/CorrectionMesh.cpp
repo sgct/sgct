@@ -133,7 +133,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 		createMesh(&mGeometries[WARP_MESH]);
 		cleanUp();
 		
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Empty mesh path!\n");
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Empty mesh path.\n");
 		return false;
 	}
 	
@@ -164,6 +164,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 		if (hint == NO_HINT || hint == PAULBOURKE_HINT)//default for this suffix
 			meshFmt = PAULBOURKE_FMT;
 	}
+	else if (path.find(".obj") != std::string::npos)
+	{
+		if (hint == NO_HINT || hint == OBJ_HINT)//default for this suffix
+			meshFmt = OBJ_FMT;
+	}
 
 	//select parser
 	bool loadStatus = false;
@@ -187,6 +192,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 
 	case PAULBOURKE_FMT:
 		loadStatus = readAndGeneratePaulBourkeMesh(meshPath, parent);
+		break;
+
+	case OBJ_FMT:
+		loadStatus = readAndGenerateOBJMesh(meshPath, parent);
 		break;
 	}
 
@@ -1225,6 +1234,94 @@ bool sgct_core::CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string 
 		fishPrj->update(1.0f, 1.0f);
 	}
 
+	cleanUp();
+
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+	return true;
+}
+
+bool sgct_core::CorrectionMesh::readAndGenerateOBJMesh(const std::string & meshPath, Viewport * parent)
+{
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+		"CorrectionMesh: Reading Maya Wavefront OBJ mesh data from '%s'.\n", meshPath.c_str());
+
+	FILE * meshFile = NULL;
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+	if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#else
+	meshFile = fopen(meshPath.c_str(), "r");
+	if (meshFile == NULL)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
+		return false;
+	}
+#endif
+
+	//variables
+	int i0, i1, i2;
+	unsigned int counter = 0;
+	char lineBuffer[MAX_LINE_LENGTH];
+	CorrectionMeshVertex tmpVert;
+	std::vector<CorrectionMeshVertex> verts;
+	std::vector<unsigned int> indices;
+
+	//get all data
+	while (!feof(meshFile))
+	{
+		if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
+		{
+			if (_sscanf(lineBuffer, "v %f %f %*f", &tmpVert.x, &tmpVert.y) == 2)
+			{
+				tmpVert.r = 1.0f;
+				tmpVert.g = 1.0f;
+				tmpVert.b = 1.0f;
+				tmpVert.a = 1.0f;
+
+				verts.push_back(tmpVert);
+			}
+			else if (_sscanf(lineBuffer, "vt %f %f %*f", &tmpVert.s, &tmpVert.t) == 2)
+			{
+				if (counter < verts.size())
+				{
+					verts[counter].s = tmpVert.s;
+					verts[counter].t = tmpVert.t;
+				}
+				
+				counter++;
+			}
+			else if (_sscanf(lineBuffer, "f %d/%*d/%*d %d/%*d/%*d %d/%*d/%*d", &i0, &i1, &i2) == 3)
+			{
+				//indexes starts at 1 in OBJ
+				indices.push_back(i0-1);
+				indices.push_back(i1-1);
+				indices.push_back(i2-1);
+			}
+		}
+	}
+
+	//sanity check
+	if (counter != verts.size() || verts.size() == 0)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Vertex count doesn't match number of texture coordinates!\n");
+		return false;
+	}
+
+	//allocate and copy indices
+	mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+	mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
+	memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+
+	mGeometries[WARP_MESH].mNumberOfVertices = static_cast<unsigned int>(verts.size());
+	mTempVertices = new CorrectionMeshVertex[mGeometries[WARP_MESH].mNumberOfVertices];
+	memcpy(mTempVertices, verts.data(), mGeometries[WARP_MESH].mNumberOfVertices * sizeof(CorrectionMeshVertex));
+
+	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+	createMesh(&mGeometries[WARP_MESH]);
+	
 	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);

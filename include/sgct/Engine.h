@@ -15,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ReadConfig.h"
 #include "ShaderProgram.h"
 #include "FisheyeProjection.h"
+#include "SphericalMirrorProjection.h"
 
 #define MAX_UNIFORM_LOCATIONS 16
 #define NUMBER_OF_SHADERS 8
@@ -35,6 +36,7 @@ The figure below illustrates when different callbacks (gray and blue boxes) are 
 class Engine
 {
 	friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
+	friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
 
 //all enums
 public:

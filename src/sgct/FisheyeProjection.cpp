@@ -17,7 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 #include <algorithm>
 
-//#define DebugFisheye
+//#define DebugCubemap
 
 sgct_core::FisheyeProjection::FisheyeProjection()
 {
@@ -887,7 +887,7 @@ void sgct_core::FisheyeProjection::drawCubeFace(const std::size_t & face)
 	glEnable(GL_SCISSOR_TEST);
 	setupViewport(face);
 
-#if defined DebugFisheye
+#if defined DebugCubemap
 	float color[4];
 	switch (face)
 	{

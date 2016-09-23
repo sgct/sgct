@@ -37,6 +37,8 @@ sgct_core::NonLinearProjection::NonLinearProjection()
 	mVpCoords[2] = 0;
 	mVpCoords[3] = 0;
 
+	mVerts = NULL;
+
 	mPreferedMonoFrustumMode = Frustum::MonoEye;
 }
 
@@ -48,6 +50,12 @@ sgct_core::NonLinearProjection::~NonLinearProjection()
 			glDeleteTextures(1, &mTextures[i]);
 			mTextures[i] = GL_FALSE;
 		}
+
+	if (mVerts)
+	{
+		delete[] mVerts;
+		mVerts = NULL;
+	}
 
 	if (mCubeMapFBO_Ptr)
 	{
@@ -80,9 +88,6 @@ void sgct_core::NonLinearProjection::init(int internalTextureFormat, unsigned in
 	mTextureFormat = textureFormat;
 	mTextureType = textureType;
 	mSamples = samples;
-
-	for (std::size_t i = 0; i < 20; i++)
-		mVerts[i] = 0.0f;
 
 	initViewports();
 	initTextures();
@@ -309,6 +314,10 @@ void sgct_core::NonLinearProjection::initFBO()
 
 void sgct_core::NonLinearProjection::initVBO()
 {
+	mVerts = new float[20];
+	for (std::size_t i = 0; i < 20; i++)
+		mVerts[i] = 0.0f;
+	
 	if (!sgct::Engine::instance()->isOGLPipelineFixed())
 	{
 		glGenVertexArrays(1, &mVAO);
@@ -459,8 +468,8 @@ void sgct_core::NonLinearProjection::generateMap(TextureIndex ti, int internalFo
 		glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, mCubemapResolution, mCubemapResolution);
 	}
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_BORDER);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_BORDER);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

@@ -82,6 +82,7 @@ int main( int argc, char* argv[] )
 		sgct_core::ClusterManager::instance()->setMeshImplementation( sgct_core::ClusterManager::BUFFER_OBJECTS );
     
     //sgct::SGCTSettings::instance()->setCaptureFormat("tga");
+	//sgct::SGCTSettings::instance()->setCaptureFromBackBuffer(true);
     
 	// Bind your functions
 	gEngine->setDrawFunction( draw );

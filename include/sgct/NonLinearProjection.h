@@ -55,11 +55,14 @@ namespace sgct_core
 		inline const int * getViewportCoords() { return mVpCoords; }
 
 	protected:
-		enum TextureIndex { CubeMapColor, CubeMapDepth, CubeMapNormals, CubeMapPositions, ColorSwap, DepthSwap, LastIndex };
+		enum TextureIndex { CubeMapColor, CubeMapDepth, CubeMapNormals, CubeMapPositions,
+			ColorSwap, DepthSwap,
+			CubeFaceRight, CubeFaceLeft, CubeFaceBottom, CubeFaceTop, CubeFaceFront, CubeFaceBack,
+			LastIndex };
 
-		void initTextures();
-		void initFBO();
-		void initVBO();
+		virtual void initTextures();
+		virtual void initFBO();
+		virtual void initVBO();
 		virtual void initViewports() = 0;
 		virtual void initShaders() = 0;
 
@@ -85,7 +88,7 @@ namespace sgct_core
 		int mSamples;
 		unsigned int mVBO;
 		unsigned int mVAO;
-		float mVerts[20];
+		float * mVerts;
 		int mVpCoords[4];
 
 		sgct::ShaderProgram mShader, mDepthCorrectionShader;

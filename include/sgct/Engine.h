@@ -103,6 +103,7 @@ public:
 	static Engine * instance() { return mInstance; }
 
 	const double getDt();
+	const double getAvgFPS();
 	const double getAvgDt();
 	const double getDrawTime();
 	const double getSyncTime();

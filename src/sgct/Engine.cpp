@@ -3736,6 +3736,14 @@ const double sgct::Engine::getDt()
 }
 
 /*!
+\returns the average frames per second
+*/
+const double sgct::Engine::getAvgFPS()
+{
+	return mStatistics->getAvgFPS();
+}
+
+/*!
 \returns the average frame time (delta time) in seconds
 */
 const double sgct::Engine::getAvgDt()

@@ -12,11 +12,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <glm/glm.hpp>
 #include "SGCTWindow.h"
-#ifndef SGCT_DONT_USE_EXTERNAL
 
-#include <external/tinyxml2.h>
+#ifndef SGCT_DONT_USE_EXTERNAL
+	#include <external/tinyxml2.h>
 #else
-#include <tinyxml2.h>
+	#include <tinyxml2.h>
 #endif
 
 namespace sgct_core //simple graphics cluster toolkit

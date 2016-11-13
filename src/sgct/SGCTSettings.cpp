@@ -32,6 +32,7 @@ sgct::SGCTSettings::SGCTSettings()
 	mUsePBO						= true;
 	mUseRLE						= false;
 	mTryMaintainAspectRatio		= true;
+	mExportWarpingMeshes		= false;
 
 	mSwapInterval = 1;
 	mRefreshRate = 0;
@@ -66,6 +67,151 @@ sgct::SGCTSettings::SGCTSettings()
 sgct::SGCTSettings::~SGCTSettings()
 {
 	;
+}
+
+void sgct::SGCTSettings::configure(tinyxml2::XMLElement * element)
+{
+	const char * val;
+	tinyxml2::XMLElement * subElement = element->FirstChildElement();
+
+	while (subElement != NULL)
+	{
+		val = subElement->Value();
+
+		if (strcmp("DepthBufferTexture", val) == 0)
+		{
+			if (subElement->Attribute("value") != NULL)
+				sgct::SGCTSettings::instance()->setUseDepthTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
+		}
+		else if (strcmp("NormalTexture", val) == 0)
+		{
+			if (subElement->Attribute("value") != NULL)
+				sgct::SGCTSettings::instance()->setUseNormalTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
+		}
+		else if (strcmp("PositionTexture", val) == 0)
+		{
+			if (subElement->Attribute("value") != NULL)
+				sgct::SGCTSettings::instance()->setUsePositionTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
+		}
+		else if (strcmp("PBO", val) == 0)
+		{
+			if (subElement->Attribute("value") != NULL)
+				sgct::SGCTSettings::instance()->setUsePBO(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
+		}
+		else if (strcmp("Precision", val) == 0)
+		{
+			int fprec = 0;
+			if (subElement->QueryIntAttribute("float", &fprec) == tinyxml2::XML_NO_ERROR)
+			{
+				if (fprec == 16)
+					sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_16Bit);
+				else if (fprec == 32)
+					sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit);
+				else
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value (%d)! Must be 16 or 32.\n", fprec);
+			}
+			else
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value! Must be 16 or 32.\n");
+		}
+		else if (strcmp("Display", val) == 0)
+		{
+			int tmpInterval = 0;
+			if (subElement->QueryIntAttribute("swapInterval", &tmpInterval) == tinyxml2::XML_NO_ERROR)
+			{
+				sgct::SGCTSettings::instance()->setSwapInterval(tmpInterval);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display swap interval is set to %d.\n", tmpInterval);
+			}
+
+			int rate = 0;
+			if (subElement->QueryIntAttribute("refreshRate", &rate) == tinyxml2::XML_NO_ERROR)
+			{
+				sgct::SGCTSettings::instance()->setRefreshRateHint(rate);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate);
+			}
+
+			if (subElement->Attribute("tryMaintainAspectRatio") != NULL)
+				sgct::SGCTSettings::instance()->setTryMaintainAspectRatio(strcmp(subElement->Attribute("tryMaintainAspectRatio"), "true") == 0 ? true : false);
+
+			if (subElement->Attribute("exportWarpingMeshes") != NULL)
+				sgct::SGCTSettings::instance()->setExportWarpingMeshes(strcmp(subElement->Attribute("exportWarpingMeshes"), "true") == 0 ? true : false);
+		}
+		else if (strcmp("OSDText", val) == 0)
+		{
+			float x = 0.0f;
+			float y = 0.0f;
+
+			if (subElement->Attribute("name") != NULL)
+			{
+				sgct::SGCTSettings::instance()->setOSDTextFontName(subElement->Attribute("name"));
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"ReadConfig: Setting font name to %s\n", subElement->Attribute("name"));
+			}
+
+			if (subElement->Attribute("path") != NULL)
+			{
+				sgct::SGCTSettings::instance()->setOSDTextFontPath(subElement->Attribute("path"));
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"ReadConfig: Setting font path to %s\n", subElement->Attribute("path"));
+			}
+
+			if (subElement->Attribute("size") != NULL)
+			{
+				unsigned int tmpi;
+				if (subElement->QueryUnsignedAttribute("size", &tmpi) == tinyxml2::XML_NO_ERROR && tmpi > 0)
+				{
+					sgct::SGCTSettings::instance()->setOSDTextFontSize(tmpi);
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+						"ReadConfig: Setting font size to %u\n", tmpi);
+				}
+				else
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
+			}
+
+			if (subElement->QueryFloatAttribute("xOffset", &x) == tinyxml2::XML_NO_ERROR)
+			{
+				sgct::SGCTSettings::instance()->setOSDTextXOffset(x);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"ReadConfig: Setting font x offset to %f\n", x);
+			}
+
+			if (subElement->QueryFloatAttribute("yOffset", &y) == tinyxml2::XML_NO_ERROR)
+			{
+				sgct::SGCTSettings::instance()->setOSDTextYOffset(y);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"ReadConfig: Setting font y offset to %f\n", y);
+			}
+		}
+		else if (strcmp("FXAA", val) == 0)
+		{
+			float offset = 0.0f;
+			if (subElement->QueryFloatAttribute("offset", &offset) == tinyxml2::XML_NO_ERROR)
+			{
+				sgct::SGCTSettings::instance()->setFXAASubPixOffset(offset);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+					"ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset);
+			}
+
+			float trim = 0.0f;
+			if (subElement->QueryFloatAttribute("trim", &trim) == tinyxml2::XML_NO_ERROR)
+			{
+				if (trim > 0.0f)
+				{
+					sgct::SGCTSettings::instance()->setFXAASubPixTrim(1.0f / trim);
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+						"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f / trim);
+				}
+				else
+				{
+					sgct::SGCTSettings::instance()->setFXAASubPixTrim(0.0f);
+					sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+						"ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f);
+				}
+			}
+		}
+
+		//iterate
+		subElement = subElement->NextSiblingElement();
+	}
 }
 
 /*!
@@ -453,6 +599,14 @@ void sgct::SGCTSettings::setCaptureFromBackBuffer(bool state)
 }
 
 /*!
+Set to true if warping meshes should be exported as OBJ files.
+*/
+void sgct::SGCTSettings::setExportWarpingMeshes(bool state)
+{
+	mExportWarpingMeshes = state;
+}
+
+/*!
 Get if run length encoding (RLE) is used in PNG and TGA export.
 */
 const bool sgct::SGCTSettings::getUseRLE()
@@ -470,6 +624,14 @@ Get if aspect ratio is taken into acount when generation some display geometries
 const bool sgct::SGCTSettings::getTryMaintainAspectRatio() const
 {
 	return mTryMaintainAspectRatio;
+}
+
+/*!
+Get if warping meshes should be exported as obj-files.
+*/
+const bool sgct::SGCTSettings::getExportWarpingMeshes() const
+{
+	return mExportWarpingMeshes;
 }
 
 /*!

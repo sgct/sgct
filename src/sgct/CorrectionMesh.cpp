@@ -9,6 +9,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdio.h>
 #include <fstream>
+#include <iostream>
+#include <iomanip>
 #include "../include/sgct/ogl_headers.h"
 #include "../include/sgct/MessageHandler.h"
 #include "../include/sgct/CorrectionMesh.h"
@@ -90,6 +92,12 @@ sgct_core::CorrectionMesh::CorrectionMesh()
 {
 	mTempVertices = NULL;
 	mTempIndices = NULL;
+
+	for (int i = 0; i < LAST_MESH; i++)
+	{
+		mGeometries[i].mNumberOfVertices = 0;
+		mGeometries[i].mNumberOfIndices = 0;
+	}
 }
 
 sgct_core::CorrectionMesh::~CorrectionMesh()
@@ -127,6 +135,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
         cleanUp();
     }
 
+	//fallback if no mesh is provided
 	if (meshPath.empty())
 	{
 		setupSimpleMesh(&mGeometries[WARP_MESH], parent);
@@ -198,6 +207,18 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 		loadStatus = readAndGenerateOBJMesh(meshPath, parent);
 		break;
 	}
+
+	//export
+	if (loadStatus && sgct::SGCTSettings::instance()->getExportWarpingMeshes())
+	{
+		std::size_t found = meshPath.find_last_of(".");
+		if (found != std::string::npos)
+		{
+			std::string filename = meshPath.substr(0, found) + "_export.obj";
+			exportMesh(filename);
+		}
+	}
+	cleanUp();
 
 	if( !loadStatus )
 	{
@@ -347,7 +368,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::str
 	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
 	createMesh(&mGeometries[WARP_MESH]);
-	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 	
@@ -530,8 +550,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateScalableMesh(const std::string & 
 	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
 	createMesh(&mGeometries[WARP_MESH]);
-
-	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Faces=%u.\n", numOfVerticesRead, numOfFacesRead);
 
@@ -769,7 +787,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 	texturedVertexList = NULL;
 
 	createMesh(&mGeometries[WARP_MESH]);
-	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", numberOfVertices, numberOfIndices);
 	
@@ -1078,7 +1095,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
 	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
 	createMesh(&mGeometries[WARP_MESH]);
-	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 
@@ -1234,8 +1250,6 @@ bool sgct_core::CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string 
 		fishPrj->update(1.0f, 1.0f);
 	}
 
-	cleanUp();
-
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 	return true;
 }
@@ -1321,8 +1335,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateOBJMesh(const std::string & meshP
 
 	mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 	createMesh(&mGeometries[WARP_MESH]);
-	
-	cleanUp();
 
 	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 	return true;
@@ -1530,8 +1542,73 @@ void sgct_core::CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry * g
 	}
 }
 
-void sgct_core::CorrectionMesh::cleanUp()
+void sgct_core::CorrectionMesh::exportMesh(const std::string & exportMeshPath)
 {
+	if (mGeometries[WARP_MESH].mGeometryType != GL_TRIANGLES && mGeometries[WARP_MESH].mGeometryType != GL_TRIANGLE_STRIP)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Failed to export '%s'. Geometry type is not supported!\n", exportMeshPath.c_str());
+		return;
+	}
+	
+	std::ofstream file;
+	file.open(exportMeshPath, std::ios::out);
+	if (file.is_open())
+	{
+		file << std::fixed;
+		file << std::setprecision(6);
+		
+		file << "# SGCT warping mesh\n";
+		file << "# Number of vertices: " << mGeometries[WARP_MESH].mNumberOfVertices << "\n";
+		
+		//export vertices
+		for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
+			file << "v " << mTempVertices[i].x << " " << mTempVertices[i].y << " 0\n";
+
+		//export texture coords
+		for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
+			file << "vt " << mTempVertices[i].s << " " << mTempVertices[i].t << " 0\n";
+
+		//export generated normals
+		for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
+			file << "vn 0 0 1\n";
+
+		file << "# Number of faces: " << mGeometries[WARP_MESH].mNumberOfIndices << "\n";
+
+		//export face indices
+		if (mGeometries[WARP_MESH].mGeometryType == GL_TRIANGLES)
+		{
+			for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfIndices; i += 3)
+			{
+				file << "f " << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << " ";
+				file << mTempIndices[i + 1] + 1 << "/" << mTempIndices[i + 1] + 1 << "/" << mTempIndices[i + 1] + 1 << " ";
+				file << mTempIndices[i + 2] + 1 << "/" << mTempIndices[i + 2] + 1 << "/" << mTempIndices[i + 2] + 1 << "\n";
+			}
+		}
+		else //trangle strip
+		{
+			//first base triangle
+			file << "f " << mTempIndices[0] + 1 << "/" << mTempIndices[0] + 1 << "/" << mTempIndices[0] + 1 << " ";
+			file << mTempIndices[1] + 1 << "/" << mTempIndices[1] + 1 << "/" << mTempIndices[1] + 1 << " ";
+			file << mTempIndices[2] + 1 << "/" << mTempIndices[2] + 1 << "/" << mTempIndices[2] + 1 << "\n";
+
+			for (unsigned int i = 2; i < mGeometries[WARP_MESH].mNumberOfIndices; i++)
+			{
+				file << "f " << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << " ";
+				file << mTempIndices[i - 1] + 1 << "/" << mTempIndices[i - 1] + 1 << "/" << mTempIndices[i - 1] + 1 << " ";
+				file << mTempIndices[i - 2] + 1 << "/" << mTempIndices[i - 2] + 1 << "/" << mTempIndices[i - 2] + 1 << "\n";
+			}
+		}
+
+		file.close();
+
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Mesh '%s' exported successfully.\n", exportMeshPath.c_str());
+	}
+	else
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Failed to export '%s'!\n", exportMeshPath.c_str());
+}
+
+void sgct_core::CorrectionMesh::cleanUp()
+{	
 	//clean up
 	if( mTempVertices != NULL )
 	{

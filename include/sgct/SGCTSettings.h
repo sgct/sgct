@@ -12,8 +12,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
 	#include "external/tinythread.h"
+	#include <external/tinyxml2.h>
 #else
 	#include <tinythread.h>
+	#include <tinyxml2.h>
 #endif
 
 namespace sgct
@@ -50,6 +52,8 @@ public:
 		}
 	}
 
+	void configure(tinyxml2::XMLElement * element);
+
 	// ----------- set functions ---------------- //
 	void setSwapInterval(int val);
 	void setRefreshRateHint(int freq);
@@ -65,6 +69,7 @@ public:
 	void appendCapturePath(std::string str, CapturePathIndex cpi = Mono);
 	void setCaptureFormat(const char * format);
 	void setCaptureFromBackBuffer(bool state);
+	void setExportWarpingMeshes(bool state);
 	void setFXAASubPixTrim(float val);
 	void setFXAASubPixOffset(float val);
 	void setOSDTextXOffset(float val);
@@ -97,6 +102,7 @@ public:
 	const bool			getShowWarpingWireframe() const;
 	const bool			getCaptureFromBackBuffer() const;
 	const bool			getTryMaintainAspectRatio() const;
+	const bool			getExportWarpingMeshes() const;
 
 	// -- mutex protected get functions ---------- //
 	const bool			getUseRLE();
@@ -159,6 +165,8 @@ private:
 	bool mShowWarpingWireframe;
 	bool mCaptureBackBuffer;
 	bool mTryMaintainAspectRatio;
+	bool mExportWarpingMeshes;
+
 	float mOSDTextOffset[2];
 	float mFXAASubPixTrim;
 	float mFXAASubPixOffset;

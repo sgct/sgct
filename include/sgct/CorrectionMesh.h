@@ -43,7 +43,7 @@ namespace sgct_core
     class CorrectionMesh
     {
     public:
-        enum MeshType { QUAD_MESH = 0, WARP_MESH, MASK_MESH };
+        enum MeshType { QUAD_MESH = 0, WARP_MESH, MASK_MESH, LAST_MESH };
 		enum MeshHint { NO_HINT = 0, DOMEPROJECTION_HINT, SCALEABLE_HINT, SCISS_HINT, SKYSKAN_HINT, PAULBOURKE_HINT, OBJ_HINT};
         
         CorrectionMesh();
@@ -64,6 +64,7 @@ namespace sgct_core
 		void setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent);
 		void setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y);
         void createMesh(CorrectionMeshGeometry * geomPtr);
+		void exportMesh(const std::string & exportMeshPath);
         void cleanUp();
 		inline void clamp(float & val, const float max, const float min);
         

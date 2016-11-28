@@ -206,6 +206,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 	case OBJ_FMT:
 		loadStatus = readAndGenerateOBJMesh(meshPath, parent);
 		break;
+            
+    case NO_FMT:
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Loading mesh '%s' failed!\n", meshPath.c_str());
 	}
 
 	//export

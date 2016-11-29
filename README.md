@@ -4,6 +4,7 @@ SGCT is a free static cross-platform C++ library for developing OpenGL applicati
 
 #### How it works
 The most important component in SGCT is the engine. The engine handles all the initiation, rendering, network communication and configuration handling. The user can bind functions (callbacks) to the engine to customize specific tasks. Callbacks for keyboard and mouse input are handled by GLFW. Bonded functions will be called in different stages in the rendering process illustrated below:
+
 ![SGCT Pipeline Diagram](https://c-student.itn.liu.se/wiki/_media/develop:sgct:render_diagram.png "SGCT Pipeline Diagram")
 
 #### Init OpenGL

@@ -17,6 +17,10 @@
 #include <algorithm>
 #include <sstream>
 
+#ifdef OPENVR_ENABLED
+#include "../include/sgct/SGCTOpenVR.h"
+#endif
+
 const std::string DefaultSingleConfiguration = "            \
 <?xml version=\"1.0\" ?>                                    \
 <Cluster masterAddress=\"localhost\">                       \
@@ -432,7 +436,15 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
 							Viewport * vpPtr = new sgct_core::Viewport();
 							vpPtr->configure(element[2]);
 							tmpWin.addViewport(vpPtr);
-						}//end viewport
+						}
+                        else if(strcmp("OpenVR", val[2]) == 0)
+                        {
+#ifdef OPENVR_ENABLED
+                            sgct::SGCTOpenVR::configure(element[2], &tmpWin);
+#else
+                            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: OpenVR element found but OpenVR is not supported in this build.\n");
+#endif
+                        }
                         
 						//iterate
 						element[2] = element[2]->NextSiblingElement();

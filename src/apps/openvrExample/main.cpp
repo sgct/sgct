@@ -1,4 +1,5 @@
 #include "sgct.h"
+#include <stdio.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -167,7 +168,7 @@ void myInitOGLFun()
 		{
 			HMD = NULL;
 			char buf[1024];
-			sprintf_s(buf, sizeof(buf), "Unable to init VR runtime: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+			snprintf(buf, sizeof(buf), "Unable to init VR runtime: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "VR_Init Failed", buf);
 		}
 		else {
@@ -196,7 +197,7 @@ void myInitOGLFun()
 				vr::VR_Shutdown();
 
 				char buf[1024];
-				sprintf_s(buf, sizeof(buf), "Unable to get render model interface: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
+				snprintf(buf, sizeof(buf), "Unable to get render model interface: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
 				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "VR_Init Failed", buf);
 			}
 

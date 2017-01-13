@@ -6,15 +6,16 @@
 #include <SGCTOpenVR.h>
 
 // This is basically the simpleNavgationExample
-// Extended with only a few rows to support OpenVR
+// Extended with only a few lines to support OpenVR
 
 sgct::Engine* gEngine;
 sgct::SGCTWindow* FirstOpenVRWindow = NULL;
 
+void myInitOGLFun();
+void myPreSyncFun();
+void myPreDrawFun();
 void myDrawFun();
 void myPostDrawFun();
-void myPreSyncFun();
-void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
@@ -75,6 +76,7 @@ int main( int argc, char* argv[] )
 	gEngine = new sgct::Engine( argc, argv );
 
 	gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setPostSyncPreDrawFunction( myPreDrawFun );
 	gEngine->setDrawFunction( myDrawFun );
 	gEngine->setPostDrawFunction( myPostDrawFun );
 	gEngine->setPreSyncFunction( myPreSyncFun );
@@ -109,7 +111,8 @@ int main( int argc, char* argv[] )
 
 void myInitOGLFun()
 {
-	//Find if we have OpenVR windows
+	//Find if we have at least one OpenVR window
+    //Save reference to first OpenVR window, which is the one we will copy to the HMD.
 	for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
 		if (gEngine->getWindowPtr(i)->checkIfTagExists("OpenVR")) {
 			FirstOpenVRWindow = gEngine->getWindowPtr(i);
@@ -221,6 +224,14 @@ void myPreSyncFun()
 	}
 }
 
+void myPreDrawFun()
+{
+    if (FirstOpenVRWindow) {
+        //Update pose matrices for all tracked OpenVR devices once per frame
+        sgct::SGCTOpenVR::updatePoses();
+    }
+}
+
 void myDrawFun()
 {
 	glEnable(GL_BLEND);
@@ -321,7 +332,6 @@ void drawXZGrid(glm::mat4& MVP)
 	glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting
 	glDrawArrays(GL_LINES, 0, numberOfVerts[GRID]);
 
-	//unbind
 	glBindVertexArray(0);
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 }
@@ -346,7 +356,6 @@ void drawPyramid(glm::mat4& MVP, int index)
 	glUniform1f(alpha_Loc, 0.3f);
 	glDrawArrays(GL_TRIANGLES, 16, 12);
 
-	//unbind
 	glBindVertexArray(0);
 	sgct::ShaderManager::instance()->unBindShaderProgram();
 }

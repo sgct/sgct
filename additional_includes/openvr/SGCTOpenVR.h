@@ -39,22 +39,21 @@ public:
 
 	static bool isHMDActive();
 
-	static void setupWindow(SGCTWindow* win);
 	static void copyWindowToHMD(SGCTWindow* win);
 
 	static glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::FrustumMode nEye);
 	static glm::mat4 getHMDCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
 
-	static void updateHMDPose();
+	static void updatePoses();
 	static void updateHMDMatrices(float nearClip, float farClip);
 
 	static std::string getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL);
-	static glm::mat4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye, float nearClip, float farClip);
-	static glm::mat4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
+	static glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
+	static glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye);
 
 private:
 	static glm::mat4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);
-	static bool createVRFrameBuffer(int width, int height, FBODesc &fboDesc);
+	static bool createHMDFrameBuffer(int width, int height, FBODesc &fboDesc);
 
 	static bool isHMDconnected;
 	static bool isOpenVRInitalized;
@@ -67,14 +66,14 @@ private:
 	static FBODesc rightEyeFBODesc;
 
 	// Matries updated every rendering cycle
-	static glm::mat4 HMDPose;
+	static glm::mat4 poseHMDMat;
 	static glm::mat4 devicePoseMat[vr::k_unMaxTrackedDeviceCount];
 
 	// Matrices updated on statup
-	static glm::mat4 projectionMatEyeLeft;
-	static glm::mat4 projectionMatEyeRight;
-	static glm::mat4 poseMatEyeLeft;
-	static glm::mat4 poseMatEyeRight;
+	static glm::mat4 eyeLeftProjectionMat;
+    static glm::mat4 eyeLeftToHeadMat;
+	static glm::mat4 eyeRightProjectionMat;
+	static glm::mat4 eyeRightToHeadMat;
 };
 
 } // sgct_core

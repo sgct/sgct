@@ -67,10 +67,10 @@ void sgct::SGCTOpenVR::initialize(float nearClip, float farClip)
 				createVRFrameBuffer(renderWidth, renderHeight, rightEyeFBODesc);
 
 				std::string HMDDevice = getTrackedDeviceString(HMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "OpenVR Device Name : %s\n", HMDDevice);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "OpenVR Device Name : %s\n", HMDDevice.c_str());
 
 				std::string HMDNumber = getTrackedDeviceString(HMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "OpenVR Device Number : %s\n", HMDNumber);
+				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "OpenVR Device Number : %s\n", HMDNumber.c_str());
 
 				renderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
 				if (!renderModels)

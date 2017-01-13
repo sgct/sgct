@@ -7,10 +7,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTTrackingDevice.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/Engine.h>
 
 extern GLFWmutex gTrackingMutex;
 

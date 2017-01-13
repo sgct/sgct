@@ -5,15 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/FisheyeProjection.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_cubic.h"
-#include "../include/sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h"
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include <sgct/FisheyeProjection.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/shaders/SGCTInternalFisheyeShaders.h>
+#include <sgct/shaders/SGCTInternalFisheyeShaders_modern.h>
+#include <sgct/shaders/SGCTInternalFisheyeShaders_cubic.h>
+#include <sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <sstream>
 #include <algorithm>
 

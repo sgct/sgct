@@ -5,13 +5,13 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/SphericalMirrorProjection.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/shaders/SGCTInternalSphericalProjectionShaders.h"
-#include "../include/sgct/shaders/SGCTInternalSphericalProjectionShaders_modern.h"
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include <sgct/SphericalMirrorProjection.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/shaders/SGCTInternalSphericalProjectionShaders.h>
+#include <sgct/shaders/SGCTInternalSphericalProjectionShaders_modern.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <sstream>
 #include <algorithm>
 

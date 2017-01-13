@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/SGCTNode.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/SGCTNode.h>
+#include <sgct/MessageHandler.h>
 #include <algorithm>
 
 sgct_core::SGCTNode::SGCTNode()

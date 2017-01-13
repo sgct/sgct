@@ -15,11 +15,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <GL/glfw3.h>
 
-#include "../include/sgct/Statistics.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include <sgct/Statistics.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>

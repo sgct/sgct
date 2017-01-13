@@ -8,13 +8,7 @@ option(SGCT_EXAMPLES_AL "Build OpenAL examples" OFF)
 option(SGCT_EXAMPLES_FMOD "Build FMOD examples" OFF)
 option(SGCT_EXAMPLES_FFMPEG "Build FFmpeg examples" OFF)
 option(SGCT_EXAMPLES_IMGUI "Build imgui examples" OFF)
-
 option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
-if(SGCT_EXAMPLES_OPENVR AND NOT SGCT_SUPPORT_OPENVR)
-    set(SGCT_SUPPORT_OPENVR ON CACHE BOOL "Build SGCT with OpenVR support" FORCE)
-    message(STATUS "Option SGCT_SUPPORT_OPENVR was enabled as it is required by SGCT_EXAMPLES_OPENVR")
-endif()
-
 option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
 option(SGCT_EXAMPLES_WEBSOCKETS "Build Websockets examples" OFF)
 #Spout doesn't support MinGW

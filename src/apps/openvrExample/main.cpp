@@ -5,9 +5,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 #include <SGCTOpenVR.h>
 
-sgct::Engine * gEngine;
+// This is basically the simpleNavgationExample
+// Extended with only a few rows to support OpenVR
 
-sgct::SGCTWindow* OpenVRWindow = NULL;
+sgct::Engine* gEngine;
+sgct::SGCTWindow* FirstOpenVRWindow = NULL;
 
 void myDrawFun();
 void myPostDrawFun();
@@ -110,12 +112,12 @@ void myInitOGLFun()
 	//Find if we have OpenVR windows
 	for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
 		if (gEngine->getWindowPtr(i)->checkIfTagExists("OpenVR")) {
-			OpenVRWindow = gEngine->getWindowPtr(i);
+			FirstOpenVRWindow = gEngine->getWindowPtr(i);
 			break;
 		}
 	}
 	//If we have an OpenVRWindow, initialize OpenVR.
-	if (OpenVRWindow) {
+	if (FirstOpenVRWindow) {
 		sgct::SGCTOpenVR::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
 	}
 
@@ -224,12 +226,9 @@ void myDrawFun()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	//glEnable(GL_DEPTH_TEST);
-	//glDepthFunc(GL_LESS);
-	//glDisable(GL_DEPTH_TEST);
-
 	glm::mat4 MVP;
-	if (OpenVRWindow == gEngine->getCurrentWindowPtr() && sgct::SGCTOpenVR::isHMDActive()) {
+	if (sgct::SGCTOpenVR::isHMDActive() && 
+		(FirstOpenVRWindow == gEngine->getCurrentWindowPtr() || gEngine->getCurrentWindowPtr()->checkIfTagExists("OpenVR"))) {
 		MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
 	}
 	else {
@@ -242,16 +241,15 @@ void myDrawFun()
 	for (int i = 0; i < numberOfPyramids; i++)
 		drawPyramid(MVP, i);
 
-	//glEnable(GL_DEPTH_TEST);
-	//glDisable(GL_DEPTH_TEST);
-
 	glDisable(GL_BLEND);
 }
 
 void myPostDrawFun()
 {
-	//Copy the first OpenVR window to the HMD
-	sgct::SGCTOpenVR::copyWindowToHMD(OpenVRWindow);
+	if (FirstOpenVRWindow) {
+		//Copy the first OpenVR window to the HMD
+		sgct::SGCTOpenVR::copyWindowToHMD(FirstOpenVRWindow);
+	}
 }
 
 void myEncodeFun()
@@ -317,12 +315,7 @@ void drawXZGrid(glm::mat4& MVP)
 
 	glBindVertexArray(VAOs[GRID]);
 
-	/*if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye)
-		glUniform4f(linecolor_loc, 1.f, 0.f, 0.f, 0.8f);
-	else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye)
-		glUniform4f(linecolor_loc, 0.f, 1.f, 0.f, 0.8f);
-	else*/
-		glUniform4f(linecolor_loc, 1.f, 1.f, 1.f, 0.8f);
+	glUniform4f(linecolor_loc, 1.f, 1.f, 1.f, 0.8f);
 
 	glLineWidth(3.0f);
 	glPolygonOffset(0.0f, 0.0f); //offset to avoid z-buffer fighting

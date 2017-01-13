@@ -1,1 +1,1 @@
-openvrExample.exe -config stereo_sbs.xml
+openvrExample.exe -config openvr_window_same_as_hmd.xml

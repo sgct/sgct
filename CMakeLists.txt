@@ -47,11 +47,6 @@ if( MINGW  )
 	option(SGCT_MINGW64 "Use MinGW64" ON)
 endif()
 
-option(SGCT_SUPPORT_OPENVR "Build SGCT with OpenVR support" OFF)
-if(SGCT_SUPPORT_OPENVR)
-    add_definitions(-DOPENVR_ENABLED)
-endif()
-
 macro (set_xcode_property TARGET XCODE_PROPERTY XCODE_VALUE)
 set_property (TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY}
 	    ${XCODE_VALUE})

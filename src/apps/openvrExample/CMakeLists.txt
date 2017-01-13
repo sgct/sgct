@@ -16,8 +16,27 @@ set_property (TARGET ${TARGET} PROPERTY XCODE_ATTRIBUTE_${XCODE_PROPERTY}
 	    ${XCODE_VALUE})
 endmacro (set_xcode_property)
 
+# OpenVR Specific
+if(NOT SGCT_OPENVR_INCLUDE_DIRECTORY)
+    if( WIN32 )
+        find_path(SGCT_OPENVR_INCLUDE_DIRECTORY
+            NAMES SGCTOpenVR.h
+            PATHS $ENV{SGCT_ROOT_DIR}/additional_includes/openvr ${CMAKE_SOURCE_DIR}/additional_includes/openvr NO_DEFAULT_PATH
+            REQUIRED)
+    else()
+        find_path(SGCT_OPENVR_INCLUDE_DIRECTORY
+            NAMES SGCTOpenVR.h
+            PATH_SUFFIXES SGCTOpenVR
+            PATHS $ENV{SGCT_ROOT_DIR}/additional_includes/openvr ${CMAKE_SOURCE_DIR}/additional_includes/openvr
+            REQUIRED)
+    endif()
+endif()
+
 add_executable(${APP_NAME}
-	main.cpp)
+	main.cpp
+	${SGCT_OPENVR_INCLUDE_DIRECTORY}/SGCTOpenVR.h
+	${SGCT_OPENVR_INCLUDE_DIRECTORY}/SGCTOpenVR.cpp
+)
 	
 option(SGCT_PLACE_TARGETS_IN_SOURCE_TREE "Place targets in source tree" OFF)
 option(SGCT_COPY_EXAMPLE_RESOURCES "Copy example resources" ON)
@@ -103,9 +122,11 @@ set(SGCT_LIBS
 )
 
 find_package(OpenGL REQUIRED)
+
+# OpenVR Specific
 find_package(OpenVR REQUIRED)
 
-include_directories(${SGCT_INCLUDE_DIRECTORY} ${OPENVR_INCLUDE_DIRS})
+include_directories(${SGCT_INCLUDE_DIRECTORY} ${OPENVR_INCLUDE_DIRS} ${SGCT_OPENVR_INCLUDE_DIRECTORY})
 
 if( MSVC )
 	set(LIBS

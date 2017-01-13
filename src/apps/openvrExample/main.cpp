@@ -3,15 +3,11 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <openvr.h>
-
-struct FBODesc
-{
-	GLuint fboID;
-	GLuint texID;
-};
+#include <SGCTOpenVR.h>
 
 sgct::Engine * gEngine;
+
+sgct::SGCTWindow* OpenVRWindow = NULL;
 
 void myDrawFun();
 void myPostDrawFun();
@@ -20,16 +16,6 @@ void myInitOGLFun();
 void myEncodeFun();
 void myDecodeFun();
 void myCleanUpFun();
-
-// OpenVR
-bool isHMDActive();
-std::string getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL);
-void updateHMDPose();
-glm::mat4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye);
-glm::mat4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye);
-glm::mat4 getHMDCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
-glm::mat4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);
-bool createVRFrameBuffer(int width, int height, FBODesc &fboDesc);
 
 //input callbacks
 void keyCallback(int key, int action);
@@ -45,27 +31,6 @@ float walkingSpeed = 2.5f;
 
 const int landscapeSize = 50;
 const int numberOfPyramids = 150;
-
-//OpenVR
-bool isHMDconnected = false;
-bool isOpenVRInitalized = false;
-vr::IVRSystem *HMD;
-vr::IVRRenderModels *renderModels;
-vr::TrackedDevicePose_t trackedDevicePose[vr::k_unMaxTrackedDeviceCount];
-char deviceClassChar[vr::k_unMaxTrackedDeviceCount]; // for each device, a character representing its class
-
-FBODesc leftEyeFBODesc;
-FBODesc rightEyeFBODesc;
-
-// Matries updated every frame
-glm::mat4 HMDPose;
-glm::mat4 devicePoseMat[vr::k_unMaxTrackedDeviceCount];
-
-// Matrices updated on statup
-glm::mat4 projectionMatEyeLeft;
-glm::mat4 projectionMatEyeRight;
-glm::mat4 poseMatEyeLeft;
-glm::mat4 poseMatEyeRight;
 
 bool arrowButtons[4];
 enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
@@ -131,16 +96,8 @@ int main( int argc, char* argv[] )
 	// Main loop
 	gEngine->render();
 
-	// Clean up
-	if (isOpenVRInitalized) {
-		vr::VR_Shutdown();
-
-		glDeleteTextures(1, &leftEyeFBODesc.texID);
-		glDeleteFramebuffers(1, &leftEyeFBODesc.fboID);
-
-		glDeleteTextures(1, &rightEyeFBODesc.texID);
-		glDeleteFramebuffers(1, &rightEyeFBODesc.fboID);
-	}
+	// Clean up OpenVR
+	sgct::SGCTOpenVR::shutdown();
 
 	delete gEngine;
 
@@ -150,66 +107,16 @@ int main( int argc, char* argv[] )
 
 void myInitOGLFun()
 {
-	isHMDconnected = vr::VR_IsHmdPresent();
-
-	sgct::SGCTWindow* win = gEngine->getWindowPtr(0);
-
-	//MSAA 4 samples
-	win->setNumberOfAASamples(4);
-
-	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Testing if HMD is connected...\n");
-	
-	if (isHMDconnected) {
-		// Loading the SteamVR Runtime
-		vr::EVRInitError eError = vr::VRInitError_None;
-		HMD = vr::VR_Init(&eError, vr::VRApplication_Scene);
-
-		if (eError != vr::VRInitError_None)
-		{
-			HMD = NULL;
-			char buf[1024];
-			snprintf(buf, sizeof(buf), "Unable to init VR runtime: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "VR_Init Failed", buf);
-		}
-		else {
-			isOpenVRInitalized = true;
-
-			unsigned int renderWidth;
-			unsigned int renderHeight;
-			HMD->GetRecommendedRenderTargetSize(&renderWidth, &renderHeight);
-			//win->setWindowResolution(renderWidth * 2, renderHeight);
-			//win->setFramebufferResolution(renderWidth, renderHeight);
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Render dimensions: %d x %d\n", renderWidth, renderHeight);
-
-			// Create FBO and Texture used for sending data top HMD
-			createVRFrameBuffer(renderWidth, renderHeight, leftEyeFBODesc);
-			createVRFrameBuffer(renderWidth, renderHeight, rightEyeFBODesc);
-
-			std::string HMDDriver = getTrackedDeviceString(HMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_TrackingSystemName_String);
-			std::string HMDDisplay = getTrackedDeviceString(HMD, vr::k_unTrackedDeviceIndex_Hmd, vr::Prop_SerialNumber_String);
-			std::string windowTitle = "OpenVR Example - " + HMDDriver + " " + HMDDisplay;
-			win->setWindowTitle(windowTitle.c_str());
-
-			renderModels = (vr::IVRRenderModels *)vr::VR_GetGenericInterface(vr::IVRRenderModels_Version, &eError);
-			if (!renderModels)
-			{
-				HMD = NULL;
-				vr::VR_Shutdown();
-
-				char buf[1024];
-				snprintf(buf, sizeof(buf), "Unable to get render model interface: %s", vr::VR_GetVRInitErrorAsEnglishDescription(eError));
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "VR_Init Failed", buf);
-			}
-
-			projectionMatEyeLeft = getHMDMatrixProjectionEye(vr::Eye_Left);
-			projectionMatEyeRight = getHMDMatrixProjectionEye(vr::Eye_Right);
-			poseMatEyeLeft = getHMDMatrixPoseEye(vr::Eye_Left);
-			poseMatEyeRight = getHMDMatrixPoseEye(vr::Eye_Right);
+	//Find if we have OpenVR windows
+	for (size_t i = 0; i < gEngine->getNumberOfWindows(); i++) {
+		if (gEngine->getWindowPtr(i)->checkIfTagExists("OpenVR")) {
+			OpenVRWindow = gEngine->getWindowPtr(i);
+			break;
 		}
 	}
-	else {
-		std::string windowTitle = "OpenVR Example - No HMD Connected";
-		win->setWindowTitle(windowTitle.c_str());
+	//If we have an OpenVRWindow, initialize OpenVR.
+	if (OpenVRWindow) {
+		sgct::SGCTOpenVR::initialize(gEngine->getNearClippingPlane(), gEngine->getFarClippingPlane());
 	}
 
 	//generate the VAOs
@@ -317,23 +224,18 @@ void myDrawFun()
 	glEnable(GL_BLEND);
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-	glEnable(GL_MULTISAMPLE);
-
 	//glEnable(GL_DEPTH_TEST);
 	//glDepthFunc(GL_LESS);
 	//glDisable(GL_DEPTH_TEST);
 
 	glm::mat4 MVP;
-	if (isHMDActive()) {
-		//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Eye: %d\n", gEngine->getCurrentFrustumMode());
-		if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye)
-			MVP = getHMDCurrentViewProjectionMatrix(vr::Eye_Right);
-		else
-			MVP = getHMDCurrentViewProjectionMatrix(vr::Eye_Left);
+	if (OpenVRWindow == gEngine->getCurrentWindowPtr() && sgct::SGCTOpenVR::isHMDActive()) {
+		MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
 	}
 	else {
-		MVP = gEngine->getCurrentModelViewProjectionMatrix() * xform.getVal();
+		MVP = gEngine->getCurrentModelViewProjectionMatrix();
 	}
+	MVP *= xform.getVal();
 
 	drawXZGrid(MVP);
 
@@ -343,52 +245,13 @@ void myDrawFun()
 	//glEnable(GL_DEPTH_TEST);
 	//glDisable(GL_DEPTH_TEST);
 
-	glDisable(GL_MULTISAMPLE);
-
 	glDisable(GL_BLEND);
 }
 
 void myPostDrawFun()
 {
-	if (isHMDActive()) {
-		sgct::SGCTWindow* win = gEngine->getWindowPtr(0);
-		int windowWidth = win->getXFramebufferResolution();
-		int windowHeight = win->getYFramebufferResolution();
-		// Assuming side-by-side stereo
-		int renderWidth = windowWidth / 2;
-		int renderHeight = windowHeight;
-		//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Render dimensions: %d x %d\n", renderWidth, renderHeight);
-
-		// HMD Left Eye
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, win->getFrameBufferTexture(0));
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, leftEyeFBODesc.texID);
-
-		glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight,
-			GL_COLOR_BUFFER_BIT,
-			GL_LINEAR);
-
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-		vr::Texture_t leftEyeTexture = { (void *)(size_t)leftEyeFBODesc.texID, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
-
-		// HMD Right Eye
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, win->getFrameBufferTexture(sgct::Engine::RightEye));
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rightEyeFBODesc.texID);
-
-		glBlitFramebuffer(renderWidth, 0, windowWidth, renderHeight, 0, 0, renderWidth, renderHeight,
-			GL_COLOR_BUFFER_BIT,
-			GL_LINEAR);
-
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
-		vr::Texture_t rightEyeTexture = { (void *)(size_t)rightEyeFBODesc.texID, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
-		vr::VRCompositor()->Submit(vr::Eye_Right, &rightEyeTexture);
-
-		updateHMDPose();
-	}
+	//Copy the first OpenVR window to the HMD
+	sgct::SGCTOpenVR::copyWindowToHMD(OpenVRWindow);
 }
 
 void myEncodeFun()
@@ -399,148 +262,6 @@ void myEncodeFun()
 void myDecodeFun()
 {
 	sgct::SharedData::instance()->readObj( &xform );
-}
-
-bool isHMDActive() {
-	return (vr::VR_IsHmdPresent() && isOpenVRInitalized);
-}
-
-std::string getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError)
-{
-	uint32_t unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, NULL, 0, peError);
-	if (unRequiredBufferLen == 0)
-		return "";
-
-	char *pchBuffer = new char[unRequiredBufferLen];
-	unRequiredBufferLen = pHmd->GetStringTrackedDeviceProperty(unDevice, prop, pchBuffer, unRequiredBufferLen, peError);
-	std::string sResult = pchBuffer;
-	delete[] pchBuffer;
-	return sResult;
-}
-
-void updateHMDPose()
-{
-	if (!HMD)
-		return;
-
-	vr::VRCompositor()->WaitGetPoses(trackedDevicePose, vr::k_unMaxTrackedDeviceCount, NULL, 0);
-
-	//int iValidPoseCount = 0;
-	//std::string strPoseClasses = "";
-	for (int nDevice = 0; nDevice < vr::k_unMaxTrackedDeviceCount; ++nDevice)
-	{
-		if (trackedDevicePose[nDevice].bPoseIsValid)
-		{
-			//iValidPoseCount++;
-			devicePoseMat[nDevice] = convertSteamVRMatrixToMatrix4(trackedDevicePose[nDevice].mDeviceToAbsoluteTracking);
-			if (deviceClassChar[nDevice] == 0)
-			{
-				switch (HMD->GetTrackedDeviceClass(nDevice))
-				{
-				case vr::TrackedDeviceClass_Controller:        deviceClassChar[nDevice] = 'C'; break;
-				case vr::TrackedDeviceClass_HMD:               deviceClassChar[nDevice] = 'H'; break;
-				case vr::TrackedDeviceClass_Invalid:           deviceClassChar[nDevice] = 'I'; break;
-				case vr::TrackedDeviceClass_GenericTracker:    deviceClassChar[nDevice] = 'G'; break;
-				case vr::TrackedDeviceClass_TrackingReference: deviceClassChar[nDevice] = 'T'; break;
-				default:                                       deviceClassChar[nDevice] = '?'; break;
-				}
-			}
-			//strPoseClasses += m_rDevClassChar[nDevice];
-		}
-	}
-
-	if (trackedDevicePose[vr::k_unTrackedDeviceIndex_Hmd].bPoseIsValid)
-	{
-		HMDPose = devicePoseMat[vr::k_unTrackedDeviceIndex_Hmd];
-		glm::inverse(HMDPose);
-	}
-
-	// Update user transform
-	sgct_core::ClusterManager::instance()->getDefaultUserPtr()->setTransform(HMDPose);
-}
-
-glm::mat4 getHMDMatrixProjectionEye(vr::Hmd_Eye nEye)
-{
-	if (!HMD)
-		return glm::mat4();
-
-	float nearClip = 0.1f;
-	float farClip = 30.0f;
-	vr::HmdMatrix44_t mat = HMD->GetProjectionMatrix(nEye, nearClip, farClip);
-
-	return glm::mat4(
-		mat.m[0][0], mat.m[1][0], mat.m[2][0], mat.m[3][0],
-		mat.m[0][1], mat.m[1][1], mat.m[2][1], mat.m[3][1],
-		mat.m[0][2], mat.m[1][2], mat.m[2][2], mat.m[3][2],
-		mat.m[0][3], mat.m[1][3], mat.m[2][3], mat.m[3][3]
-	);
-}
-
-
-glm::mat4 getHMDMatrixPoseEye(vr::Hmd_Eye nEye)
-{
-	if (!HMD)
-		return glm::mat4();
-
-	vr::HmdMatrix34_t matEyeRight = HMD->GetEyeToHeadTransform(nEye);
-	glm::mat4 matrixObj(
-		matEyeRight.m[0][0], matEyeRight.m[1][0], matEyeRight.m[2][0], 0.0,
-		matEyeRight.m[0][1], matEyeRight.m[1][1], matEyeRight.m[2][1], 0.0,
-		matEyeRight.m[0][2], matEyeRight.m[1][2], matEyeRight.m[2][2], 0.0,
-		matEyeRight.m[0][3], matEyeRight.m[1][3], matEyeRight.m[2][3], 1.0f
-	);
-
-	return glm::inverse(matrixObj);
-}
-
-
-glm::mat4 getHMDCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
-{
-	glm::mat4 matMVP;
-	if (nEye == vr::Eye_Left)
-	{
-		matMVP = projectionMatEyeLeft * poseMatEyeLeft * HMDPose;
-	}
-	else if (nEye == vr::Eye_Right)
-	{
-		matMVP = projectionMatEyeRight * poseMatEyeRight *  HMDPose;
-	}
-
-	return matMVP;
-}
-
-glm::mat4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose)
-{
-	glm::mat4 matrixObj(
-		matPose.m[0][0], matPose.m[1][0], matPose.m[2][0], 0.0,
-		matPose.m[0][1], matPose.m[1][1], matPose.m[2][1], 0.0,
-		matPose.m[0][2], matPose.m[1][2], matPose.m[2][2], 0.0,
-		matPose.m[0][3], matPose.m[1][3], matPose.m[2][3], 1.0f
-	);
-	return glm::inverse(matrixObj);
-}
-
-bool createVRFrameBuffer(int width, int height, FBODesc &fboDesc) {
-	glGenFramebuffers(1, &fboDesc.fboID);
-	glBindFramebuffer(GL_FRAMEBUFFER, fboDesc.fboID);
-
-	glGenTextures(1, &fboDesc.texID);
-	glBindTexture(GL_TEXTURE_2D, fboDesc.texID);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA8, width, height, 0, GL_RGBA, GL_UNSIGNED_BYTE, nullptr);
-	glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, fboDesc.texID, 0);
-
-	// check FBO status
-	GLenum status = glCheckFramebufferStatus(GL_FRAMEBUFFER);
-	if (status != GL_FRAMEBUFFER_COMPLETE)
-	{
-		return false;
-	}
-
-	glBindFramebuffer( GL_FRAMEBUFFER, 0 );
-
-	return true;
 }
 
 void keyCallback(int key, int action)

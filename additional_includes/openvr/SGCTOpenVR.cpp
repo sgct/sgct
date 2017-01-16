@@ -154,33 +154,18 @@ void sgct::SGCTOpenVR::copyWindowToHMD(SGCTWindow* win){
 
 glm::mat4 sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::FrustumMode nEye)
 {
-	if (nEye == sgct_core::Frustum::StereoRightEye)
+	if (nEye == sgct_core::Frustum::StereoLeftEye)
 	{
-		return getHMDCurrentViewProjectionMatrix(vr::Eye_Right);
+		return eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
 	}
-	else if (nEye == sgct_core::Frustum::StereoLeftEye)
+	else if (nEye == sgct_core::Frustum::StereoRightEye)
 	{
-		return getHMDCurrentViewProjectionMatrix(vr::Eye_Left);
+		return eyeRightProjectionMat * eyeRightToHeadMat *  poseHMDMat;
 	}
-    else
+    else // Mono
     {
-        return getHMDCurrentViewProjectionMatrix(vr::Eye_Left);
+		return eyeLeftProjectionMat * poseHMDMat;
     }
-}
-
-glm::mat4 sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(vr::Hmd_Eye nEye)
-{
-	glm::mat4 matMVP;
-	if (nEye == vr::Eye_Left)
-	{
-		matMVP = eyeLeftProjectionMat * eyeLeftToHeadMat * poseHMDMat;
-	}
-	else if (nEye == vr::Eye_Right)
-	{
-		matMVP = eyeRightProjectionMat * eyeRightToHeadMat *  poseHMDMat;
-	}
-
-	return matMVP;
 }
 
 std::string sgct::SGCTOpenVR::getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError)
@@ -273,6 +258,22 @@ glm::mat4 sgct::SGCTOpenVR::getHMDEyeToHeadTransform(vr::Hmd_Eye nEye)
 	);
 
 	return glm::inverse(matrixObj);
+}
+
+glm::mat4 sgct::SGCTOpenVR::getHMDPoseMatrix() {
+	return poseHMDMat;
+}
+
+glm::quat sgct::SGCTOpenVR::getInverseRotation(glm::mat4 matPose) {
+	glm::quat q;
+	q.w = sqrt(fmaxf(0, 1 + matPose[0][0] + matPose[1][1] + matPose[2][2])) / 2;
+	q.x = sqrt(fmaxf(0, 1 + matPose[0][0] - matPose[1][1] - matPose[2][2])) / 2;
+	q.y = sqrt(fmaxf(0, 1 - matPose[0][0] + matPose[1][1] - matPose[2][2])) / 2;
+	q.z = sqrt(fmaxf(0, 1 - matPose[0][0] - matPose[1][1] + matPose[2][2])) / 2;
+	q.x = copysign(q.x, matPose[2][1] - matPose[1][2]);
+	q.y = copysign(q.y, matPose[0][2] - matPose[2][0]);
+	q.z = copysign(q.z, matPose[1][0] - matPose[0][1]);
+	return q;
 }
 
 glm::mat4 sgct::SGCTOpenVR::convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose)

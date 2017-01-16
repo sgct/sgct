@@ -42,7 +42,6 @@ public:
 	static void copyWindowToHMD(SGCTWindow* win);
 
 	static glm::mat4 getHMDCurrentViewProjectionMatrix(sgct_core::Frustum::FrustumMode nEye);
-	static glm::mat4 getHMDCurrentViewProjectionMatrix(vr::Hmd_Eye nEye);
 
 	static void updatePoses();
 	static void updateHMDMatrices(float nearClip, float farClip);
@@ -50,6 +49,9 @@ public:
 	static std::string getTrackedDeviceString(vr::IVRSystem *pHmd, vr::TrackedDeviceIndex_t unDevice, vr::TrackedDeviceProperty prop, vr::TrackedPropertyError *peError = NULL);
 	static glm::mat4 getHMDEyeProjectionMatrix(vr::Hmd_Eye nEye, float nearClip, float farClip);
 	static glm::mat4 getHMDEyeToHeadTransform(vr::Hmd_Eye nEye);
+	
+	static glm::mat4 getHMDPoseMatrix();
+	static glm::quat getInverseRotation(glm::mat4 poseMat);
 
 private:
 	static glm::mat4 convertSteamVRMatrixToMatrix4(const vr::HmdMatrix34_t &matPose);

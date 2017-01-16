@@ -3,6 +3,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <SGCTOpenVR.h>
 
 // This is basically the simpleNavgationExample
@@ -241,6 +242,13 @@ void myDrawFun()
 	if (sgct::SGCTOpenVR::isHMDActive() && 
 		(FirstOpenVRWindow == gEngine->getCurrentWindowPtr() || gEngine->getCurrentWindowPtr()->checkIfTagExists("OpenVR"))) {
 		MVP = sgct::SGCTOpenVR::getHMDCurrentViewProjectionMatrix(gEngine->getCurrentFrustumMode());
+
+		if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye) {
+			//Reversing rotation around z axis (so desktop view is more pleasent to look at).
+			glm::quat inverserotation = sgct::SGCTOpenVR::getInverseRotation(sgct::SGCTOpenVR::getHMDPoseMatrix());
+			inverserotation.x = inverserotation.y = 0.f;
+			MVP *= glm::mat4_cast(inverserotation);
+		}
 	}
 	else {
 		MVP = gEngine->getCurrentModelViewProjectionMatrix();

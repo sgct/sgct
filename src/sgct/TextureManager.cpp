@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <GL/glew.h>
 
-#include "../include/sgct/TextureManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/TextureManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 

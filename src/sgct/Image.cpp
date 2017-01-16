@@ -22,10 +22,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <stdlib.h>
 
-#include "../include/sgct/Image.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/Image.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/Engine.h>
 
 #include <setjmp.h>
 

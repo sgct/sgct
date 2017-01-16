@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/SGCTTracker.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/SGCTTracker.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
 
 extern GLFWmutex gTrackingMutex;
 

@@ -8,12 +8,12 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #define MAX_XML_DEPTH 16
 
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/ReadConfig.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/ReadConfig.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
 
-#include "../include/sgct/SGCTSettings.h"
+#include <sgct/SGCTSettings.h>
 #include <algorithm>
 #include <sstream>
 
@@ -324,6 +324,9 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
 					if( element[1]->Attribute("name") != NULL )
 						tmpWin.setName( element[1]->Attribute("name") );
 
+					if (element[1]->Attribute("tags") != NULL)
+						tmpWin.setTags(element[1]->Attribute("tags"));
+
 					if (element[1]->Attribute("bufferBitDepth") != NULL)
 						tmpWin.setColorBitDepth(getBufferColorBitDepth(element[1]->Attribute("bufferBitDepth")));
 
@@ -432,7 +435,7 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
 							Viewport * vpPtr = new sgct_core::Viewport();
 							vpPtr->configure(element[2]);
 							tmpWin.addViewport(vpPtr);
-						}//end viewport
+						}
                         
 						//iterate
 						element[2] = element[2]->NextSiblingElement();

@@ -5,15 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/Engine.h"
+#include <sgct/Engine.h>
 
 #include "../include/vrpn/vrpn_Tracker.h"
 #include "../include/vrpn/vrpn_Button.h"
 #include "../include/vrpn/vrpn_Analog.h"
 
-#include "../include/sgct/SGCTTracker.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/SGCTTracker.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/ScreenCapture.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/SGCTSettings.h"
+#include <sgct/ScreenCapture.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
+#include <sgct/SGCTSettings.h>
 #include <sstream>
 #include <string>
 

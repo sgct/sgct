@@ -34,11 +34,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#define SGCT_ERRNO errno
 #endif
 
-#include "../include/sgct/NetworkManager.h"
-#include "../include/sgct/SharedData.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/NetworkManager.h>
+#include <sgct/SharedData.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"

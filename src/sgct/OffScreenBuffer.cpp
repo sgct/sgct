@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/OffScreenBuffer.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTSettings.h"
+#include <sgct/OffScreenBuffer.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
 
 #ifndef GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS
     #define GL_FRAMEBUFFER_INCOMPLETE_DIMENSIONS 0x8CD9

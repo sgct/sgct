@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/ClusterManager.h"
+#include <sgct/ClusterManager.h>
 #include <glm/gtx/euler_angles.hpp>
 #include <algorithm>
 

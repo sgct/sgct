@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/BaseViewport.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/BaseViewport.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
 
 sgct_core::BaseViewport::BaseViewport()
 {

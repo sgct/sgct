@@ -5,15 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/SGCTWindow.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/TextureManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/shaders/SGCTInternalShaders.h"
-#include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include <sgct/SGCTWindow.h>
+#include <sgct/Engine.h>
+#include <sgct/TextureManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/shaders/SGCTInternalShaders.h>
+#include <sgct/shaders/SGCTInternalShaders_modern.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stdio.h>
 #include <algorithm>
@@ -143,11 +143,50 @@ void sgct::SGCTWindow::setName(const std::string & name)
 }
 
 /*!
+Tag this window
+Tags are seperated by comma
+*/
+void sgct::SGCTWindow::setTags(const std::string & tags)
+{
+	std::stringstream ss(tags);
+	while (ss.good())
+	{
+		std::string substr;
+		getline(ss, substr, ',');
+		mTags.push_back(substr);
+	}
+}
+
+/*!
 \returns the name of this window
 */
 const std::string & sgct::SGCTWindow::getName() const
 {
 	return mName;
+}
+
+/*!
+\returns the tags of this window
+*/
+const std::vector<std::string> & sgct::SGCTWindow::getTags() const
+{
+	return mTags;
+}
+
+/*!
+\returns true if a specific tag exists
+\tags are seperated by comma
+*/
+bool sgct::SGCTWindow::checkIfTagExists(std::string tag) const
+{
+	if (std::find(mTags.begin(), mTags.end(), tag) != mTags.end())
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
 }
 
 /*!

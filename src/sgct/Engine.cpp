@@ -11,22 +11,22 @@ For conditions of distribution and use, see copyright notice in sgct.h
 	#define NOMINMAX
 #endif
 
-#include "../include/sgct/Engine.h"
-#include "sgct/SGCTConfig.h"
+#include <sgct/Engine.h>
+#include <sgct/SGCTConfig.h>
 #if INCLUDE_SGCT_TEXT
-	#include "../include/sgct/freetype.h"
-	#include "../include/sgct/FontManager.h"
+	#include <sgct/freetype.h>
+	#include <sgct/FontManager.h>
 #endif
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/TextureManager.h"
-#include "../include/sgct/SharedData.h"
-#include "../include/sgct/shaders/SGCTInternalShaders.h"
-#include "../include/sgct/shaders/SGCTInternalShaders_modern.h"
-#include "../include/sgct/SGCTVersion.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/ShaderManager.h"
-#include "../include/sgct/helpers/SGCTStringFunctions.h"
+#include <sgct/MessageHandler.h>
+#include <sgct/TextureManager.h>
+#include <sgct/SharedData.h>
+#include <sgct/shaders/SGCTInternalShaders.h>
+#include <sgct/shaders/SGCTInternalShaders_modern.h>
+#include <sgct/SGCTVersion.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/ShaderManager.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/tinythread.h"

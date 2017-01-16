@@ -6,7 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sstream>
-#include "../include/sgct/SGCTVersion.h"
+#include <sgct/SGCTVersion.h>
 
 /*!
 	This function returns the version string of SGCT.

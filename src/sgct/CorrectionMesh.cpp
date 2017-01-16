@@ -11,13 +11,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <fstream>
 #include <iostream>
 #include <iomanip>
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/CorrectionMesh.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/Viewport.h"
-#include "../include/sgct/SGCTSettings.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/CorrectionMesh.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/Viewport.h>
+#include <sgct/SGCTSettings.h>
 #include <cstring>
 #include <algorithm>
 

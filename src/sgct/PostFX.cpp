@@ -5,12 +5,12 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/ShaderProgram.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/SGCTWindow.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/PostFX.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/ShaderProgram.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTWindow.h>
+#include <sgct/Engine.h>
+#include <sgct/PostFX.h>
 
 bool sgct::PostFX::mDeleted = false;
 

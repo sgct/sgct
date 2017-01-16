@@ -21,7 +21,7 @@ SOFTWARE PRODUCT LICENSE
 Copyright (c) 2012-2015 Miroslav Andel, Linköping University
 All rights reserved.
 
-Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson, Erik Sundén
 
 For any questions or information about the SGCT project please contact: miroslav.andel@liu.se
 

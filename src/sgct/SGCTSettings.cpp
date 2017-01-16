@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ScreenCapture.h"
-#include "../include/sgct/ogl_headers.h"
+#include <sgct/SGCTSettings.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ScreenCapture.h>
+#include <sgct/ogl_headers.h>
 #include "external/tinythread.h"
 #include <string.h>
 

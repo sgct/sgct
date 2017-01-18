@@ -116,29 +116,25 @@ bool sgct::SGCTOpenVR::isHMDActive()
 // Assuming side-by-side stereo, i.e. one FBO, one texture for both eyes
 void sgct::SGCTOpenVR::copyWindowToHMD(SGCTWindow* win){
 	if (isHMDActive()) {
-		int windowWidth = win->getXFramebufferResolution();
-		int windowHeight = win->getYFramebufferResolution();
+		int windowWidth, windowHeight;
+		win->getFinalFBODimensions(windowWidth, windowHeight);
 		int renderWidth = windowWidth / 2;
 		int renderHeight = windowHeight;
 		//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Render dimensions: %d x %d\n", renderWidth, renderHeight);
 
 		// HMD Left Eye
-		glBindFramebuffer(GL_READ_FRAMEBUFFER, win->getFrameBufferTexture(0));
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, leftEyeFBODesc.texID);
+		glBindFramebuffer(GL_READ_FRAMEBUFFER, win->mFinalFBO_Ptr->getBufferID());
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, leftEyeFBODesc.fboID);
 
 		glBlitFramebuffer(0, 0, renderWidth, renderHeight, 0, 0, renderWidth, renderHeight,
 			GL_COLOR_BUFFER_BIT,
 			GL_LINEAR);
 
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, 0);
-		//glBindFramebuffer(GL_DRAW_FRAMEBUFFER, 0);
-
 		vr::Texture_t leftEyeTexture = { (void *)(size_t)leftEyeFBODesc.texID, vr::TextureType_OpenGL, vr::ColorSpace_Gamma };
 		vr::VRCompositor()->Submit(vr::Eye_Left, &leftEyeTexture);
 
 		// HMD Right Eye
-		//glBindFramebuffer(GL_READ_FRAMEBUFFER, win->getFrameBufferTexture(sgct::Engine::RightEye));
-		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rightEyeFBODesc.texID);
+		glBindFramebuffer(GL_DRAW_FRAMEBUFFER, rightEyeFBODesc.fboID);
 
 		glBlitFramebuffer(renderWidth, 0, windowWidth, renderHeight, 0, 0, renderWidth, renderHeight,
 			GL_COLOR_BUFFER_BIT,

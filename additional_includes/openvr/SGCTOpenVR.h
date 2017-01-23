@@ -13,7 +13,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <sgct/ogl_headers.h>
 #include <sgct/Frustum.h>
 #include <openvr.h>
 
@@ -30,8 +29,8 @@ class SGCTOpenVR
 public:
 	struct FBODesc
 	{
-		GLuint fboID;
-		GLuint texID;
+		unsigned int fboID;
+		unsigned int texID;
 	};
 
 	static void initialize(float nearClip, float farClip);

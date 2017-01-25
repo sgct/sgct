@@ -6,6 +6,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include "SGCTOpenVR.h"
+#ifdef __APPLE__
+#define GL_DO_NOT_WARN_IF_MULTI_GL_VERSION_HEADERS_INCLUDED
+#undef __gl_h_
+#endif
 #include <sgct/SGCTWindow.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>

@@ -225,7 +225,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
 		{
 			// set the target framebuffer to read
 			glReadBuffer(CapSrc);
-			glReadPixels(0, 0, imPtr->getWidth(), imPtr->getHeight(), mDownloadFormat, mDownloadType, 0);
+			glReadPixels(0, 0, static_cast<GLsizei>(imPtr->getWidth()), static_cast<GLsizei>(imPtr->getHeight()), mDownloadFormat, mDownloadType, 0);
 		}
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())
@@ -235,8 +235,8 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
         if (ptr)
         {
             //memcpy(imPtr->getData(), ptr, mDataSize);
-			int stride = imPtr->getWidth() * imPtr->getChannels() * imPtr->getBytesPerChannel();
-			for (int r = 0; r < imPtr->getHeight(); r++)
+			std::size_t stride = imPtr->getWidth() * imPtr->getChannels() * imPtr->getBytesPerChannel();
+			for (std::size_t r = 0; r < imPtr->getHeight(); r++)
 				memcpy(imPtr->getData()+stride*r, ptr+stride*r, stride);
 			glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         }
@@ -271,7 +271,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
 		{
 			// set the target framebuffer to read
 			glReadBuffer(CapSrc);
-			glReadPixels(0, 0, imPtr->getWidth(), imPtr->getHeight(), mDownloadFormat, mDownloadType, imPtr->getData());
+			glReadPixels(0, 0, static_cast<GLsizei>(imPtr->getWidth()), static_cast<GLsizei>(imPtr->getHeight()), mDownloadFormat, mDownloadType, imPtr->getData());
 		}
             
         if (sgct::Engine::instance()->isOGLPipelineFixed())

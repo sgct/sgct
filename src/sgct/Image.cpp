@@ -258,7 +258,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 	struct jpeg_decompress_struct cinfo;
 	FILE * fp = NULL;
 	JSAMPARRAY buffer;
-	int row_stride;
+	std::size_t row_stride;
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	if (fopen_s(&fp, mFilename.c_str(), "rbS") != 0 || !fp)
@@ -315,9 +315,9 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 
 	/* Make a one-row-high sample array that will go away when done with image */
 	buffer = (*cinfo.mem->alloc_sarray)
-		((j_common_ptr)&cinfo, JPOOL_IMAGE, row_stride, 1);
+		((j_common_ptr)&cinfo, JPOOL_IMAGE, static_cast<JDIMENSION>(row_stride), 1);
 
-	int r = mSize_y-1;
+	std::size_t r = mSize_y-1;
 	while (cinfo.output_scanline < cinfo.output_height)
 	{
 		jpeg_read_scanlines(&cinfo, buffer, 1);
@@ -354,7 +354,7 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
 
 	mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
     
-	if (tjDecompressHeader3(turbo_jpeg_handle, data, static_cast<unsigned long>(len), &mSize_x, &mSize_y, &jpegsubsamp, &colorspace) < 0)
+	if (tjDecompressHeader3(turbo_jpeg_handle, data, static_cast<unsigned long>(len), reinterpret_cast<int*>(&mSize_x), reinterpret_cast<int*>(&mSize_y), &jpegsubsamp, &colorspace) < 0)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
         tjDestroy(turbo_jpeg_handle);
@@ -401,7 +401,7 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
 
     }
     
-	if (tjDecompress2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), mData, mSize_x, 0, mSize_y, pixelformat, TJFLAG_FASTDCT | TJFLAG_BOTTOMUP) < 0)
+	if (tjDecompress2(turbo_jpeg_handle, data, static_cast<unsigned long>(len), mData, static_cast<int>(mSize_x), 0, static_cast<int>(mSize_y), pixelformat, TJFLAG_FASTDCT | TJFLAG_BOTTOMUP) < 0)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Image: failed to load JPEG from memory. Error: %s!\n", tjGetErrorStr());
         tjDestroy(turbo_jpeg_handle);
@@ -533,7 +533,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	std::size_t pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
-		pos -= static_cast<std::size_t>(mSize_x * mChannels);
+		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
 	}
 
@@ -643,7 +643,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	std::size_t pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
-		pos -= static_cast<std::size_t>(mSize_x * mChannels);
+		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
 	}
 
@@ -773,9 +773,9 @@ bool sgct_core::Image::loadTGA(unsigned char * data, int len)
 
 bool sgct_core::Image::decodeTGARLE(FILE * fp)
 {
-	int pixelcount = mSize_x * mSize_y;
-	int currentpixel = 0;
-	int currentbyte = 0;
+	std::size_t pixelcount = mSize_x * mSize_y;
+	std::size_t currentpixel = 0;
+	std::size_t currentbyte = 0;
 	unsigned char chunkheader;
 	unsigned char * chunkPtr;
 	std::size_t res;
@@ -835,13 +835,13 @@ bool sgct_core::Image::decodeTGARLE(FILE * fp)
 
 bool sgct_core::Image::decodeTGARLE(unsigned char * data, int len)
 {
-	int pixelcount = mSize_x * mSize_y;
-	int currentpixel = 0;
-	int currentbyte = 0;
+	std::size_t pixelcount = mSize_x * mSize_y;
+	std::size_t currentpixel = 0;
+	std::size_t currentbyte = 0;
 	unsigned char chunkheader;
 	unsigned char * chunkPtr;
 
-	int index = 0;
+	std::size_t index = 0;
 
 	do
 	{
@@ -1046,8 +1046,9 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 		return false;
 
 	/* write header */
-    png_set_IHDR(png_ptr, info_ptr, mSize_x, mSize_y,
-		mBytesPerChannel*8, color_type, PNG_INTERLACE_NONE,
+    png_set_IHDR(png_ptr, info_ptr,
+		static_cast<int>(mSize_x), static_cast<int>(mSize_y),
+		static_cast<int>(mBytesPerChannel)*8, color_type, PNG_INTERLACE_NONE,
         PNG_COMPRESSION_TYPE_BASE, PNG_FILTER_TYPE_BASE);
 	
 	if (mPreferBGRForExport && (color_type == PNG_COLOR_TYPE_RGB || color_type == PNG_COLOR_TYPE_RGB_ALPHA))
@@ -1062,7 +1063,7 @@ bool sgct_core::Image::savePNG(int compressionLevel)
 	if (mBytesPerChannel == 2)
 		png_set_swap(png_ptr);
 
-	for (int y = (mSize_y-1);  y >= 0;  y--)
+	for (std::size_t y = 0; y<mSize_y; y++)
 		mRowPtrs[(mSize_y - 1) - y] = (png_bytep)&mData[y * mSize_x * mChannels * mBytesPerChannel];
     png_write_image(png_ptr, mRowPtrs);
 
@@ -1114,15 +1115,15 @@ bool sgct_core::Image::saveJPEG(int quality)
 	struct jpeg_error_mgr jerr;
 	
 	JSAMPROW row_pointer[1]; /* pointer to JSAMPLE row[s] */
-	int row_stride;	/* physical row width in image buffer */
+	std::size_t row_stride;	/* physical row width in image buffer */
 
 	cinfo.err = jpeg_std_error(&jerr);
 	jpeg_create_compress(&cinfo);
 	jpeg_stdio_dest(&cinfo, fp);
 
-	cinfo.image_width = mSize_x;
-	cinfo.image_height = mSize_y;
-	cinfo.input_components = mChannels;
+	cinfo.image_width = static_cast<JDIMENSION>(mSize_x);
+	cinfo.image_height = static_cast<JDIMENSION>(mSize_y);
+	cinfo.input_components = static_cast<int>(mChannels);
 
 	switch (mChannels)
 	{
@@ -1243,7 +1244,7 @@ bool sgct_core::Image::saveTGA()
 	header[ 13 ] = (mSize_x  >> 8) & 0xFF;
 	header[ 14 ] =  mSize_y       & 0xFF;
 	header[ 15 ] = (mSize_y >> 8) & 0xFF;
-	header[ 16 ] = mChannels * 8;  // bits per pixel
+	header[ 16 ] = static_cast<unsigned char>(mChannels * 8);  // bits per pixel
 
 	fwrite(header, sizeof(unsigned char), sizeof(header), fp);
 
@@ -1259,7 +1260,7 @@ bool sgct_core::Image::saveTGA()
 	{
 		unsigned char tmp;
 		if (mChannels >= 3)
-			for (int i = 0; i < mDataSize; i += mChannels)
+			for (std::size_t i = 0; i < mDataSize; i += mChannels)
 			{
 				tmp = mData[i];
 				mData[i] = mData[i + 2];
@@ -1277,16 +1278,16 @@ bool sgct_core::Image::saveTGA()
     }
     else //RLE ->only for RBG and minimum size is 3x3
     {
-        for(int y=0; y<mSize_y; y++)
+        for(std::size_t y=0; y<mSize_y; y++)
         {
-            int pos = 0;
+			std::size_t pos = 0;
             unsigned char * row;
             
             while (pos < mSize_y)
             {
                 row = &mData[y * mSize_x * mChannels];
                 bool rle = isTGAPackageRLE(row, pos);
-                int len = getTGAPackageLength(row, pos, rle);
+				std::size_t len = getTGAPackageLength(row, pos, rle);
                 
                 unsigned char packetHeader = static_cast<unsigned char>(len) - 1;
                 
@@ -1314,7 +1315,7 @@ bool sgct_core::Image::saveTGA()
 	return true;
 }
 
-bool sgct_core::Image::isTGAPackageRLE(unsigned char * row, int pos)
+bool sgct_core::Image::isTGAPackageRLE(unsigned char * row, std::size_t pos)
 {
     if (pos == mSize_x - 1)
         return false;
@@ -1326,7 +1327,7 @@ bool sgct_core::Image::isTGAPackageRLE(unsigned char * row, int pos)
     return ((pos < mSize_x - 2) && memcmp(p0, p1, mChannels) == 0 && memcmp(p1, p1 + mChannels, mChannels) == 0);
 }
 
-int sgct_core::Image::getTGAPackageLength(unsigned char * row, int pos, bool rle)
+std::size_t sgct_core::Image::getTGAPackageLength(unsigned char * row, std::size_t pos, bool rle)
 {
     if (mSize_x - pos < 3)
         return mSize_x - pos;
@@ -1407,17 +1408,18 @@ unsigned char * sgct_core::Image::getData()
 {
 	return mData;
 }
-int sgct_core::Image::getChannels() const
+
+std::size_t sgct_core::Image::getChannels() const
 {
 	return mChannels;
 }
 
-int sgct_core::Image::getWidth() const
+std::size_t sgct_core::Image::getWidth() const
 {
 	return mSize_x;
 }
 
-int sgct_core::Image::getHeight() const
+std::size_t sgct_core::Image::getHeight() const
 {
 	return mSize_y;
 }
@@ -1427,7 +1429,7 @@ std::size_t sgct_core::Image::getDataSize() const
 	return mDataSize;
 }
 
-int sgct_core::Image::getBytesPerChannel() const
+std::size_t sgct_core::Image::getBytesPerChannel() const
 {
 	return mBytesPerChannel;
 }
@@ -1435,9 +1437,17 @@ int sgct_core::Image::getBytesPerChannel() const
 /*!
 Get sample from image data
 */
-unsigned char sgct_core::Image::getSampleAt(int x, int y, sgct_core::Image::ChannelType c)
+unsigned char sgct_core::Image::getSampleAt(std::size_t x, std::size_t y, sgct_core::Image::ChannelType c)
 {
     return mData[(y * mSize_x + x) * mChannels + c];
+}
+
+/*!
+Set sample to image data
+*/
+void sgct_core::Image::setSampleAt(std::size_t x, std::size_t y, sgct_core::Image::ChannelType c, unsigned char val)
+{
+	mData[(y * mSize_x + x) * mChannels + c] = val;
 }
 
 /*!
@@ -1507,8 +1517,7 @@ bool sgct_core::Image::allocateOrResizeData()
 {
 	double t0 = sgct::Engine::getTime();
 	
-	std::size_t dataSize = 
-		static_cast<std::size_t>(mChannels) * static_cast<std::size_t>(mSize_x) * static_cast<std::size_t>(mSize_y) * static_cast<std::size_t>(mBytesPerChannel);
+	std::size_t dataSize = mChannels * mSize_x * mSize_y * mBytesPerChannel;
 
 	if (dataSize <= 0)
 	{

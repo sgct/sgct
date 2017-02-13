@@ -45,13 +45,17 @@ public:
 	void setPreferBGRExport(bool state);
 
 	unsigned char * getData();
-	int getChannels() const;
-	int getWidth() const;
-	int getHeight() const;
+	std::size_t getChannels() const;
+	std::size_t getWidth() const;
+	std::size_t getHeight() const;
 	std::size_t getDataSize() const;
-	int getBytesPerChannel() const;
-    unsigned char getSampleAt(int x, int y, ChannelType c);
+	std::size_t getBytesPerChannel() const;
+
+	//only valid for 8-bit images
+    unsigned char getSampleAt(std::size_t x, std::size_t y, ChannelType c);
+	void setSampleAt(std::size_t x, std::size_t y, ChannelType c, unsigned char val);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
+	
 
 	void setDataPtr(unsigned char * dPtr);
 	void setSize(int width, int height);
@@ -63,18 +67,18 @@ private:
 	void cleanup();
 	bool allocateRowPtrs();
 	FormatType getFormatType(const std::string & filename);
-    bool isTGAPackageRLE(unsigned char * row, int pos);
+    bool isTGAPackageRLE(unsigned char * row, std::size_t pos);
 	bool decodeTGARLE(FILE * fp);
 	bool decodeTGARLE(unsigned char * data, int len);
-    int getTGAPackageLength(unsigned char * row, int pos, bool rle);
+    std::size_t getTGAPackageLength(unsigned char * row, std::size_t pos, bool rle);
     
 private:
 	bool mExternalData;
-	int mChannels;
-	int mSize_x;
-	int mSize_y;
+	std::size_t mChannels;
+	std::size_t mSize_x;
+	std::size_t mSize_y;
 	std::size_t mDataSize;
-	int mBytesPerChannel;
+	std::size_t mBytesPerChannel;
 	std::string mFilename;
 	unsigned char * mData;
 	png_bytep * mRowPtrs;

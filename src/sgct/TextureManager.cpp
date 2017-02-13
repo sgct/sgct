@@ -192,9 +192,9 @@ bool sgct::TextureManager::loadTexure(const std::string name, const std::string 
 
 		tmpTexture.mId = texID;
 		tmpTexture.mPath.assign(filename);
-		tmpTexture.mWidth = img.getWidth();
-		tmpTexture.mHeight = img.getHeight();
-		tmpTexture.mChannels = img.getChannels();
+		tmpTexture.mWidth = static_cast<int>(img.getWidth());
+		tmpTexture.mHeight = static_cast<int>(img.getHeight());
+		tmpTexture.mChannels = static_cast<int>(img.getChannels());
 
 		if(!reload)
 		{
@@ -246,9 +246,9 @@ bool sgct::TextureManager::loadTexure(const std::string name, sgct_core::Image *
 
 		tmpTexture.mId = texID;
 		tmpTexture.mPath.assign("NOTSET");
-		tmpTexture.mWidth = imgPtr->getWidth();
-		tmpTexture.mHeight = imgPtr->getHeight();
-		tmpTexture.mChannels = imgPtr->getChannels();
+		tmpTexture.mWidth = static_cast<int>(imgPtr->getWidth());
+		tmpTexture.mHeight = static_cast<int>(imgPtr->getHeight());
+		tmpTexture.mChannels = static_cast<int>(imgPtr->getChannels());
 
 		if (!reload)
 		{
@@ -364,7 +364,7 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
 	}
 
 	GLint internalFormat;
-	unsigned int bpc = imgPtr->getBytesPerChannel();
+	unsigned int bpc = static_cast<unsigned int>(imgPtr->getBytesPerChannel());
 
 	if (bpc > 2)
 	{
@@ -450,7 +450,7 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
 		mMipmapLevels = 1;
 
 	GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
-	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, imgPtr->getWidth(), imgPtr->getHeight(), 0, textureType, format, imgPtr->getData());
+	glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, static_cast<GLsizei>(imgPtr->getWidth()), static_cast<GLsizei>(imgPtr->getHeight()), 0, textureType, format, imgPtr->getData());
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mMipmapLevels - 1);
 

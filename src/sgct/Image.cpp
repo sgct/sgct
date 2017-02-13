@@ -530,10 +530,10 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	}
 
 	//flip the image
-	int pos = mDataSize;
+	std::size_t pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
-		pos -= mSize_x * mChannels;
+		pos -= static_cast<std::size_t>(mSize_x * mChannels);
 		png_read_row(png_ptr, &mData[pos], NULL);
 	}
 
@@ -640,10 +640,10 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 	}
 
 	//flip the image
-	int pos = mDataSize;
+	std::size_t pos = mDataSize;
 	for (int i = 0; i < mSize_y; i++)
 	{
-		pos -= mSize_x * mChannels;
+		pos -= static_cast<std::size_t>(mSize_x * mChannels);
 		png_read_row(png_ptr, &mData[pos], NULL);
 	}
 
@@ -1422,7 +1422,7 @@ int sgct_core::Image::getHeight() const
 	return mSize_y;
 }
 
-int sgct_core::Image::getDataSize() const
+std::size_t sgct_core::Image::getDataSize() const
 {
 	return mDataSize;
 }
@@ -1507,7 +1507,8 @@ bool sgct_core::Image::allocateOrResizeData()
 {
 	double t0 = sgct::Engine::getTime();
 	
-	int dataSize = mChannels * mSize_x * mSize_y * mBytesPerChannel;
+	std::size_t dataSize = 
+		static_cast<std::size_t>(mChannels) * static_cast<std::size_t>(mSize_x) * static_cast<std::size_t>(mSize_y) * static_cast<std::size_t>(mBytesPerChannel);
 
 	if (dataSize <= 0)
 	{

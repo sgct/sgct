@@ -48,7 +48,7 @@ public:
 	int getChannels() const;
 	int getWidth() const;
 	int getHeight() const;
-	int getDataSize() const;
+	std::size_t getDataSize() const;
 	int getBytesPerChannel() const;
     unsigned char getSampleAt(int x, int y, ChannelType c);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
@@ -73,7 +73,7 @@ private:
 	int mChannels;
 	int mSize_x;
 	int mSize_y;
-	int mDataSize;
+	std::size_t mDataSize;
 	int mBytesPerChannel;
 	std::string mFilename;
 	unsigned char * mData;

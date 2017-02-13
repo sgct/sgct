@@ -4,8 +4,18 @@
 cmake_minimum_required(VERSION 2.8 FATAL_ERROR)
 project(SGCT_Deps)
 
+function(disable_external_warnings library_name)
+    if (MSVC)
+        target_compile_options(${library_name} PUBLIC "/W0")
+    else ()
+        target_compile_options(${library_name} PUBLIC "-w")
+    endif ()    
+endfunction ()
+
+
 ADD_SUBDIRECTORY(glew)
 ADD_SUBDIRECTORY(glfw)
+disable_external_warnings(glfw)
 #ADD_SUBDIRECTORY(zlib)
 ADD_SUBDIRECTORY(lpng)
 if(SGCT_TEXT)

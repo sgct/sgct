@@ -160,18 +160,12 @@ sgct_utils::SGCTDome::~SGCTDome()
 void sgct_utils::SGCTDome::cleanup()
 {
 	//cleanup
-	if(mVBO != 0)
-	{
-		glDeleteBuffers(2, &mVBO[0]);
-		mVBO[Vertex] = 0;
-		mVBO[Index] = 0;
-	}
+    glDeleteBuffers(2, &mVBO[0]);
+    mVBO[Vertex] = 0;
+    mVBO[Index] = 0;
 
-	if(mVAO != 0)
-	{
-		glDeleteVertexArrays(1, &mVAO);
-		mVAO = 0;
-	}
+    glDeleteVertexArrays(1, &mVAO);
+    mVAO = 0;
 }
 
 /*!

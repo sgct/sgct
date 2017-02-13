@@ -237,7 +237,7 @@ bool sgct::TextureManager::loadTexure(const std::string name, sgct_core::Image *
 	if (!updateTexture(name, &texID, &reload))
 		return true;
 
-	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+//	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
 	if (imgPtr->getData() != NULL)
 	{

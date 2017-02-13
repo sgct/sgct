@@ -5,11 +5,11 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/NonLinearProjection.h"
-#include "../include/sgct/SGCTSettings.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/NonLinearProjection.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
 #include <algorithm>
 
 sgct_core::NonLinearProjection::NonLinearProjection()

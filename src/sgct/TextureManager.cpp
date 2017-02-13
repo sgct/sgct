@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdio.h>
 #include <GL/glew.h>
 
-#include "../include/sgct/TextureManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/TextureManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
 
 sgct::TextureManager * sgct::TextureManager::mInstance = NULL;
 
@@ -237,7 +237,7 @@ bool sgct::TextureManager::loadTexure(const std::string name, sgct_core::Image *
 	if (!updateTexture(name, &texID, &reload))
 		return true;
 
-	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+//	sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
 	if (imgPtr->getData() != NULL)
 	{

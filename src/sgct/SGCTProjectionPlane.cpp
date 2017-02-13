@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/SGCTProjectionPlane.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/SGCTProjectionPlane.h>
+#include <sgct/MessageHandler.h>
 
 sgct_core::SGCTProjectionPlane::SGCTProjectionPlane()
 {

@@ -53,6 +53,7 @@ public:
 
 	// ------------- set functions ----------------- //
 	void setName(const std::string & name);
+	void setTags(const std::string & tags);
 	void setVisibility(bool state);
 	void setRenderWhileHidden(bool state);
 	void setFocused(bool state);
@@ -102,6 +103,8 @@ public:
 		
 	// -------------- get functions ----------------- //
 	const std::string &				getName() const;
+	const std::vector<std::string>&	getTags() const;
+	bool							checkIfTagExists(std::string tag) const;
 	const int &						getId() const;
 	unsigned int					getFrameBufferTexture(unsigned int index);
 	sgct_core::ScreenCapture *		getScreenCapturePointer(unsigned int eye) const;
@@ -220,6 +223,7 @@ public:
 
 private:
 	std::string mName;
+	std::vector<std::string> mTags;
 
 	bool mVisible;
 	bool mRenderWhileHidden;

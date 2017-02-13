@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/utils/SGCTBox.h"
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/utils/SGCTBox.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
 
 /*!
 	This constructor requires a valid openGL contex 

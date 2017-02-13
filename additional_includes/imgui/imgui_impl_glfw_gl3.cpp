@@ -345,6 +345,13 @@ void ImGui_ImplGlfwGL3_Shutdown()
 
 void ImGui_ImplGlfwGL3_NewFrame()
 {
+	int fboW, fboH;
+	glfwGetFramebufferSize(g_Window, &fboW, &fboH);
+	ImGui_ImplGlfwGL3_NewFrame(fboW, fboH);
+}
+
+void ImGui_ImplGlfwGL3_NewFrame(int fboW, int fboH)
+{
     if (!g_FontTexture)
         ImGui_ImplGlfwGL3_CreateDeviceObjects();
 
@@ -352,11 +359,9 @@ void ImGui_ImplGlfwGL3_NewFrame()
 
     // Setup display size (every frame to accommodate for window resizing)
     int w, h;
-    int display_w, display_h;
     glfwGetWindowSize(g_Window, &w, &h);
-    glfwGetFramebufferSize(g_Window, &display_w, &display_h);
     io.DisplaySize = ImVec2((float)w, (float)h);
-    io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)display_w / w) : 0, h > 0 ? ((float)display_h / h) : 0);
+    io.DisplayFramebufferScale = ImVec2(w > 0 ? ((float)fboW / w) : 0, h > 0 ? ((float)fboH / h) : 0);
 
     // Setup time step
     double current_time =  glfwGetTime();

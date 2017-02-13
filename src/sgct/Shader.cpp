@@ -5,9 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/Shader.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/Shader.h>
+#include <sgct/MessageHandler.h>
 
 #include <fstream>
 #include <sstream>

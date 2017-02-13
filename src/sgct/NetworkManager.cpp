@@ -5,11 +5,11 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/NetworkManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/SharedData.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/NetworkManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/SharedData.h>
+#include <sgct/Engine.h>
 #include <algorithm>
 
 #ifndef SGCT_DONT_USE_EXTERNAL

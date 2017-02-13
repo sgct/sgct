@@ -26,7 +26,7 @@ GLint Matrix_Loc = -1;
 //variables to share across cluster
 sgct::SharedDouble curr_time(0.0);
 sgct::SharedFloat sharedSpeed(0.44f);
-sgct::SharedBool sharedTextureOnOff(0.44f);
+sgct::SharedBool sharedTextureOnOff(true);
 sgct::SharedObject<glm::vec3> sharedClearColor(glm::vec3(60.0f));
 
 //ImGUI variables
@@ -102,8 +102,8 @@ void myDrawFun()
     
     if( gEngine->isMaster() )
     {
-        ImGui_ImplGlfwGL3_NewFrame();
-        
+		ImGui_ImplGlfwGL3_NewFrame(gEngine->getCurrentWindowPtr()->getXFramebufferResolution(), gEngine->getCurrentWindowPtr()->getYFramebufferResolution());
+
         // Show a settings window custom made for this application
         // Toggle this windows with the 'W' key.
         if(show_settings_window)

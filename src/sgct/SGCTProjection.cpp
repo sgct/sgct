@@ -5,7 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/SGCTProjection.h"
+#include <sgct/SGCTProjection.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::SGCTProjection::SGCTProjection()

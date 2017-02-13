@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/utils/SGCTDome.h"
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/Engine.h"
+#include <sgct/utils/SGCTDome.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/Engine.h>
 #include <glm/gtc/constants.hpp>
 
 /*!
@@ -160,18 +160,12 @@ sgct_utils::SGCTDome::~SGCTDome()
 void sgct_utils::SGCTDome::cleanup()
 {
 	//cleanup
-	if(mVBO != 0)
-	{
-		glDeleteBuffers(2, &mVBO[0]);
-		mVBO[Vertex] = 0;
-		mVBO[Index] = 0;
-	}
+    glDeleteBuffers(2, &mVBO[0]);
+    mVBO[Vertex] = 0;
+    mVBO[Index] = 0;
 
-	if(mVAO != 0)
-	{
-		glDeleteVertexArrays(1, &mVAO);
-		mVAO = 0;
-	}
+    glDeleteVertexArrays(1, &mVAO);
+    mVAO = 0;
 }
 
 /*!

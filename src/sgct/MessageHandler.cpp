@@ -5,11 +5,11 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#include "../include/sgct/NetworkManager.h"
-#include "../include/sgct/MessageHandler.h"
-#include "../include/sgct/ClusterManager.h"
-#include "../include/sgct/SGCTMutexManager.h"
-#include "../include/sgct/helpers/SGCTPortedFunctions.h"
+#include <sgct/NetworkManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/helpers/SGCTPortedFunctions.h>
 #include <stdlib.h>
 #include <stdio.h>
 #include <iostream>

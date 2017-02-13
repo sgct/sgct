@@ -2,7 +2,7 @@
 Copyright (c) 2012-2015 Miroslav Andel, Linköping University
 All rights reserved.
 
-Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel Jönsson, Erik SundŽn
 
 For any questions or information about the SGCT project please contact: miroslav.andel@liu.se
 
@@ -111,6 +111,19 @@ Web: http://www.libjpeg-turbo.org/
 
 *************************************************************************/
 
+/*************************************************************************
+ SGCT is optionally using the following libraries:
+
+ 
+OpenVR
+=========================================================
+OpenVR provides a way to interact with Virtual Reality displays without relying on a specific hardware vendor's SDK.
+Copyright (c) 2015, Valve Corporation
+Web: https://github.com/ValveSoftware/openvr
+License: BSD-3-Clause
+https://github.com/ValveSoftware/openvr/blob/master/LICENSE
+---------------------------------------------------------
+*************************************************************************/
 /*!
 
 \mainpage SGCT - Simple Graphics Cluster Toolkit
@@ -127,7 +140,7 @@ SGCT does also support running cluster applications on a single computer for tes
 Copyright (c) 2012-2015 Miroslav Andel, Link&ouml;ping University\n
 All rights reserved.\n
 \n
-Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel J&ouml;nsson\n
+Contributors: Alexander Fridlund, Alexander Bock, Joel Kronander, Daniel J&ouml;nsson, Erik SundŽn\n
 For any questions or information about the SGCT project please contact: miroslav.andel@liu.se\n
 \n
 Redistribution and use in source and binary forms, with or without modification,\n

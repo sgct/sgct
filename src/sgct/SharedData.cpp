@@ -5,10 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include "../include/sgct/NetworkManager.h"
-#include "../include/sgct/SharedData.h"
-#include "../include/sgct/Engine.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/NetworkManager.h>
+#include <sgct/SharedData.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"
 #else
@@ -265,24 +265,6 @@ void SharedData::writeDouble(SharedDouble * sd)
 	SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::DataSyncMutex );
 }
 
-/*!
-Backwards compability for older SGCT versions. Please use writeInt32 instead.
-*/
-void SharedData::writeInt(SharedInt * si)
-{
-	#pragma message("WARNING: SharedData::writeInt is deprecated, use SharedData::writeInt32 instead.")
-	writeInt32(si);
-}
-
-/*!
-Backwards compability for older SGCT versions. Please use writeInt16 instead.
-*/
-void SharedData::writeShort(SharedShort * si)
-{
-	#pragma message("WARNING: SharedData::writeShort is deprecated, use SharedData::writeInt16 instead.")
-	writeInt16(si);
-}
-
 void SharedData::writeInt64(SharedInt64 * si)
 {
 #ifdef __SGCT_NETWORK_DEBUG__ 
@@ -486,24 +468,6 @@ void SharedData::readDouble(SharedDouble * sd)
 #endif
 
 	sd->setVal( val );
-}
-
-/*!
-Backwards compability for older SGCT versions. Please use writeInt16 instead.
-*/
-void SharedData::readInt(SharedInt * si)
-{
-	#pragma message("WARNING: SharedData::readInt is deprecated, use SharedData::readInt32 instead.")
-	readInt32(si);
-}
-
-/*!
-Backwards compability for older SGCT versions. Please use writeInt16 instead.
-*/
-void SharedData::readShort(SharedShort * ss)
-{
-	#pragma message("WARNING: SharedData::readShort is deprecated, use SharedData::readInt16 instead.")
-	readInt16(ss);
 }
 
 void SharedData::readInt64(SharedInt64 * si)

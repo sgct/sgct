@@ -7,9 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <stdlib.h>
 #include <stdio.h>
-#include "../include/sgct/ogl_headers.h"
-#include "../include/sgct/ShaderProgram.h"
-#include "../include/sgct/MessageHandler.h"
+#include <sgct/ogl_headers.h>
+#include <sgct/ShaderProgram.h>
+#include <sgct/MessageHandler.h>
 
 /*!
 	Creates a dummy ShaderProgram

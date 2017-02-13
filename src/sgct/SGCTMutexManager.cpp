@@ -6,7 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <stdio.h>
-#include "../include/sgct/SGCTMutexManager.h"
+#include <sgct/SGCTMutexManager.h>
 
 //#define __SGCT_MUTEX_DEBUG__
 

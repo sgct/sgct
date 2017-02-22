@@ -20,6 +20,7 @@ set(GLFW_BUILD_TESTS OFF CACHE BOOL "Build the GLFW test programs")
 set(GLFW_BUILD_DOCS OFF CACHE BOOL "Build the GLFW documentation")
 set(GLFW_INSTALL OFF CACHE BOOL "Generate installation target")
 add_subdirectory(glfw)
+set_property(TARGET glfw PROPERTY FOLDER "Dependencies")
 disable_external_warnings(glfw)
 
 #add_subdirectory(zlib)

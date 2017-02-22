@@ -14,7 +14,7 @@ void myCleanUpFun();
 //input callbacks
 void keyCallback(int key, int action);
 void mouseButtonCallback(int button, int action);
-void touchCallback(GLFWtouch* touchPoints, int count);
+void touchCallback(const sgct_core::Touch* touchPoints);
 
 void drawXZGrid();
 void drawPyramid(int index);
@@ -272,13 +272,14 @@ void mouseButtonCallback(int button, int action)
 	}
 }
 
-void touchCallback(GLFWtouch* touchPoints, int count)
+void touchCallback(const sgct_core::Touch* touchPoints)
 {
 	if (gEngine->isMaster())
 	{
-		for (int i = 0; i < count; ++i) {
-			sgct::MessageHandler::instance()->print("Touch: %i , Action: %i , Pos (XY): (%d,%d)\n", 
-				touchPoints[i].id, touchPoints[i].action, touchPoints[i].x, touchPoints[i].y);
+		sgct::MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
+		const std::vector<sgct_core::Touch::TouchPoint>& latestTouchPoints = touchPoints->getLatestTouchPoints();
+		for (int i = 0; i < latestTouchPoints.size(); ++i) {
+			sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]));
 		}
 	}
 }

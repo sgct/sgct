@@ -188,7 +188,7 @@ public:
 	void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
 	void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
 	void setDropCallbackFunction(void(*fnPtr)(int, const char**) ); //arguments: int count, const char ** list of path strings
-	void setTouchCallbackFunction(void(*fnPtr)(int, int, double, double)); //arguments: int touch, int action, double x, double y
+	void setTouchCallbackFunction(void(*fnPtr)(GLFWtouch*, int)); //arguments: GLFWtouch* touchPoints, int count
 
 	void setExternalControlCallback(void(*fnPtr)(const char *, int)); //arguments: const char * buffer, int buffer length
 	void setExternalControlStatusCallback(void(*fnPtr)(bool)); //arguments: const bool & connected
@@ -217,7 +217,7 @@ public:
 	void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
 	void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
 	void setDropCallbackFunction(sgct_cppxeleven::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings
-	void setTouchCallbackFunction(sgct_cppxeleven::function<void(int, int, double, double)> fn); //arguments: int touch, int action, double x, double y
+	void setTouchCallbackFunction(sgct_cppxeleven::function<void(GLFWtouch*, int)> fn); //arguments: GLFWtouch* touchPoints, int count
 
 	void setExternalControlCallback(sgct_cppxeleven::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
 	void setExternalControlStatusCallback(sgct_cppxeleven::function<void(bool)> fn); //arguments: const bool & connected
@@ -425,7 +425,7 @@ private:
 	static void internal_mouse_scroll_callback(GLFWwindow* window, double xOffset, double yOffset);
 	static void internal_glfw_error_callback(int error, const char* description);
 	static void internal_drop_callback(GLFWwindow* window, int count, const char** paths);
-	static void internal_touch_callback(GLFWwindow* window, int touch, int action, double x, double y);
+	static void internal_touch_callback(GLFWwindow* window, GLFWtouch* touchPoints, int count);
 	static void outputHelpMessage();
 
 private:

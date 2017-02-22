@@ -14,7 +14,7 @@ void myCleanUpFun();
 //input callbacks
 void keyCallback(int key, int action);
 void mouseButtonCallback(int button, int action);
-void touchCallback(int touch, int action, double x, double y);
+void touchCallback(GLFWtouch* touchPoints, int count);
 
 void drawXZGrid();
 void drawPyramid(int index);
@@ -272,11 +272,14 @@ void mouseButtonCallback(int button, int action)
 	}
 }
 
-void touchCallback(int touch, int action, double x, double y)
+void touchCallback(GLFWtouch* touchPoints, int count)
 {
 	if (gEngine->isMaster())
 	{
-		sgct::MessageHandler::instance()->print("Touch: %i , Action: %i , Pos (XY): (%d,%d)\n", touch, action, x, y);
+		for (int i = 0; i < count; ++i) {
+			sgct::MessageHandler::instance()->print("Touch: %i , Action: %i , Pos (XY): (%d,%d)\n", 
+				touchPoints[i].id, touchPoints[i].action, touchPoints[i].x, touchPoints[i].y);
+		}
 	}
 }
 

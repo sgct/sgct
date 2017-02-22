@@ -279,7 +279,7 @@ void touchCallback(const sgct_core::Touch* touchPoints)
 		sgct::MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
 		const std::vector<sgct_core::Touch::TouchPoint>& latestTouchPoints = touchPoints->getLatestTouchPoints();
 		for (int i = 0; i < latestTouchPoints.size(); ++i) {
-			sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]));
+			sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]).c_str());
 		}
 	}
 }

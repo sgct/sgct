@@ -105,3 +105,4 @@ src/installer/sgct_osg_all_win.nsi
 src/deps/libjpeg-turbo/simd/MinSizeRel/
 sgct.VC.db
 lib/
+*.csproj

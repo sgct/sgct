@@ -57,6 +57,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	sgct_cppxeleven::function<void(double, double)> gMousePosCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(double, double)> gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
 	sgct_cppxeleven::function<void(int, const char**)> gDropCallbackFnPtr = SGCT_NULL_PTR;
+	sgct_cppxeleven::function<void(int, int, double, double)> gTouchCallbackFnPtr = SGCT_NULL_PTR;
 #else
 	void (*gKeyboardCallbackFnPtr)(int, int) = NULL;
 	void (*gKeyboardCallbackFnPtr2)(int, int, int, int) = NULL;
@@ -66,6 +67,7 @@ sgct::Engine * sgct::Engine::mInstance = NULL;
 	void (*gMousePosCallbackFnPtr)(double, double) = NULL;
 	void (*gMouseScrollCallbackFnPtr)(double, double) = NULL;
 	void (*gDropCallbackFnPtr)(int, const char**) = NULL;
+	void(*gTouchCallbackFnPtr)(int, int, double, double) = NULL;
 #endif
 
 void updateFrameLockLoop(void * arg);
@@ -271,6 +273,8 @@ bool sgct::Engine::init(RunMode rm)
 			glfwSetScrollCallback( getWindowPtr(i)->getWindowHandle(), internal_mouse_scroll_callback );
 		if (gDropCallbackFnPtr != SGCT_NULL_PTR)
 			glfwSetDropCallback( getWindowPtr(i)->getWindowHandle(), internal_drop_callback );
+		if (gTouchCallbackFnPtr != SGCT_NULL_PTR)
+			glfwSetTouchCallback(getWindowPtr(i)->getWindowHandle(), internal_touch_callback);
 	}
 
 	initOGL();
@@ -894,6 +898,7 @@ void sgct::Engine::clearAllCallbacks()
 	gMousePosCallbackFnPtr = SGCT_NULL_PTR;
 	gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
 	gDropCallbackFnPtr = SGCT_NULL_PTR;
+	gTouchCallbackFnPtr = SGCT_NULL_PTR;
 
 	for(unsigned int i=0; i < mTimers.size(); i++)
 	{
@@ -3529,6 +3534,22 @@ void sgct::Engine::setDropCallbackFunction(sgct_cppxeleven::function<void(int, c
 	gDropCallbackFnPtr = fn;
 }
 
+/*!
+fnPtr is the function pointer to a touch callback function
+*/
+void sgct::Engine::setTouchCallbackFunction(void(*fnPtr)(int, int, double, double))
+{
+	gTouchCallbackFnPtr = fnPtr;
+}
+
+/*!
+fnPtr is the function pointer to a touch callback function
+*/
+void sgct::Engine::setTouchCallbackFunction(sgct_cppxeleven::function<void(int, int, double, double)> fn)
+{
+	gTouchCallbackFnPtr = fn;
+}
+
 void sgct::Engine::clearBuffer()
 {
 	const float * colorPtr = Engine::instance()->getClearColor();
@@ -3591,6 +3612,12 @@ void sgct::Engine::internal_drop_callback(GLFWwindow* window, int count, const c
 {
 	if (gDropCallbackFnPtr != SGCT_NULL_PTR)
 		gDropCallbackFnPtr(count, paths);
+}
+
+void sgct::Engine::internal_touch_callback(GLFWwindow* window, int touch, int action, double x, double y)
+{
+	if (gTouchCallbackFnPtr != SGCT_NULL_PTR)
+		gTouchCallbackFnPtr(touch, action, x, y);
 }
 
 /*!

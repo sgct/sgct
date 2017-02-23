@@ -2,6 +2,7 @@
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <sstream>
 
 sgct::Engine * gEngine;
 
@@ -32,6 +33,8 @@ enum directions { FORWARD = 0, BACKWARD, LEFT, RIGHT };
 
 //to check if left mouse button is pressed
 bool mouseLeftButton = false;
+//to check if one touch point is down
+bool oneTouchDown = false;
 /* Holds the difference in position between when the left mouse button
     is pressed and when the mouse button is held. */
 double mouseDx = 0.0;
@@ -144,7 +147,7 @@ void myPreSyncFun()
 			sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[0], &tmpYPos );
 			mouseDx = mouseXPos[0] - mouseXPos[1];
 		}
-		else
+		else if(!oneTouchDown)
 		{
 			mouseDx = 0.0;
 		}
@@ -267,6 +270,7 @@ void mouseButtonCallback(int button, int action)
 			double tmpYPos;
 			//set refPos
 			sgct::Engine::getMousePos( gEngine->getFocusedWindowIndex(), &mouseXPos[1], &tmpYPos );
+			mouseDx = mouseXPos[0] - mouseXPos[1];
 			break;
 		}
 	}
@@ -274,12 +278,48 @@ void mouseButtonCallback(int button, int action)
 
 void touchCallback(const sgct_core::Touch* touchPoints)
 {
-	if (gEngine->isMaster())
-	{
+	std::vector<sgct_core::Touch::TouchPoint> latestTouchPoints = touchPoints->getLatestTouchPoints();
+	// Do not print info if only stationary touch points
+#ifdef _DEBUG
+	if (!touchPoints->isAllPointsStationary()) {
 		sgct::MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
-		const std::vector<sgct_core::Touch::TouchPoint>& latestTouchPoints = touchPoints->getLatestTouchPoints();
+		sgct::MessageHandler::instance()->print("TouchPoints %i\n", latestTouchPoints.size());
 		for (int i = 0; i < latestTouchPoints.size(); ++i) {
 			sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]).c_str());
+		}
+	}
+#endif
+
+	if (gEngine->isMaster())
+	{
+		if (latestTouchPoints.size() == 1) {
+			if (latestTouchPoints[0].action != sgct_core::Touch::TouchPoint::Released) {
+				oneTouchDown = true;
+			}
+			else {
+				oneTouchDown = false;
+			}
+
+			if (latestTouchPoints[0].action == sgct_core::Touch::TouchPoint::Pressed) {
+				mouseXPos[0] = mouseXPos[1] = latestTouchPoints[0].pixelCoords.x;
+			}
+			else {
+				mouseXPos[0] = latestTouchPoints[0].pixelCoords.x;
+			}
+
+			mouseDx = mouseXPos[0] - mouseXPos[1];
+
+			/*std::stringstream ss;
+			ss << mouseDx;
+			sgct::MessageHandler::instance()->print("MouseDx %s\n", ss.str().c_str());*/
+		}
+		else if (latestTouchPoints.size() > 1) {
+			//Using distance between two first touch points
+			float oldDist = glm::distance(latestTouchPoints[0].normPixelCoords + latestTouchPoints[0].normPixelDiff, 
+				latestTouchPoints[1].normPixelCoords + latestTouchPoints[1].normPixelDiff);
+			float newDist = glm::distance(latestTouchPoints[0].normPixelCoords,
+				latestTouchPoints[1].normPixelCoords);
+			pos += (oldDist-newDist) * 100 * (walkingSpeed * static_cast<float>(gEngine->getDt()) * view);
 		}
 	}
 }

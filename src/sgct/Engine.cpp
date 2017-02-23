@@ -3617,8 +3617,15 @@ void sgct::Engine::internal_drop_callback(GLFWwindow* window, int count, const c
 
 void sgct::Engine::internal_touch_callback(GLFWwindow* window, GLFWtouch* touchPoints, int count)
 {
-	if (gTouchCallbackFnPtr != SGCT_NULL_PTR)
+	int x, y, xSize, ySize;
+	mInstance->getCurrentWindowPtr()->getCurrentViewportPixelCoords(x, y, xSize, ySize);
+
+	mCurrentTouchPoints.processPoints(touchPoints, count, xSize, ySize);
+
+	if (!mCurrentTouchPoints.getLatestTouchPoints().empty() && gTouchCallbackFnPtr != SGCT_NULL_PTR)
 		gTouchCallbackFnPtr(&mCurrentTouchPoints);
+
+	mCurrentTouchPoints.latestPointsHandled();
 }
 
 /*!

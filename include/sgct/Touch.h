@@ -29,17 +29,28 @@ public:
 		enum TouchAction { NoAction, Released, Pressed, Stationary, Moved };
 		int id;
 		TouchAction action;
-		glm::vec2 pos;
-		TouchPoint(int i, TouchAction a, glm::vec2 p) : id(i), action(a), pos(p) {}
+		glm::vec2 pixelCoords;
+		glm::vec2 normPixelCoords;
+		glm::vec2 normPixelDiff;
+		TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(0.f, 0.f) {}
+		TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np, glm::vec2 nd) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(nd) {}
 	};
 
 	Touch();
 	~Touch();
 
-	const std::vector<TouchPoint>& getLatestTouchPoints() const;
+	// Retrieve the lastest touch points to process them in an event
+	std::vector<TouchPoint> getLatestTouchPoints() const;
 
-	void addPoint(int id, int action, double xpos, double ypos);
-	void addPoints(GLFWtouch* touchPoints, int count);
+	// Need to call this function after the latest touch points have been processed, to clear them
+	void latestPointsHandled();
+
+	// Adding touch points to the touch class
+	// As an id is constant over the touch point, the order will be preserved
+	void processPoint(int id, int action, double xpos, double ypos, int windowWidth, int windowHeight);
+	void processPoints(GLFWtouch* touchPoints, int count, int windowWidth, int windowHeight);
+
+	bool isAllPointsStationary() const;
 
 	static std::string getTouchPointInfo(const TouchPoint*);
 
@@ -49,6 +60,7 @@ private:
 	std::vector<TouchPoint> mPreviousTouchPoints;
 	std::unordered_map<int, glm::vec2> mPreviousTouchPositions;
 	std::vector<int> mPrevTouchIds;
+	bool mAllPointsStationary;
 };
 
 }

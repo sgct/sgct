@@ -17,12 +17,18 @@ sgct_core::Touch::~Touch()
 {
 }
 
-const std::vector<sgct_core::Touch::TouchPoint>& sgct_core::Touch::getLatestTouchPoints() const {
+std::vector<sgct_core::Touch::TouchPoint> sgct_core::Touch::getLatestTouchPoints() const {
 	return mTouchPoints;
 }
 
-void sgct_core::Touch::addPoint(int id, int action, double xpos, double ypos) {
+void sgct_core::Touch::latestPointsHandled() {
+	mTouchPoints.clear();
+}
+
+void sgct_core::Touch::processPoint(int id, int action, double xpos, double ypos, int windowWidth, int windowHeight) {
+	glm::vec2 windowSize = glm::vec2(static_cast<float>(windowWidth), static_cast<float>(windowHeight));
 	glm::vec2 pos = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
+	glm::vec2 normpos = pos / windowSize;
 
 	TouchPoint::TouchAction touchAction;
 	switch (action)
@@ -48,13 +54,15 @@ void sgct_core::Touch::addPoint(int id, int action, double xpos, double ypos) {
 	std::unordered_map<int, glm::vec2>::iterator prevPosMapIt = mPreviousTouchPositions.find(id);
 	if (prevPosMapIt != mPreviousTouchPositions.end()) {
 		prevPos = prevPosMapIt->second;
-		if (touchAction == TouchPoint::Released)
+		if (touchAction == TouchPoint::Released) {
 			mPreviousTouchPositions.erase(prevPosMapIt);
-		else
+		}
+		else {
 			prevPosMapIt->second = pos;
+		}
 	}
 	else {
-		mPreviousTouchPositions.insert(std::pair<int, glm::vec2>(id, pos));
+		mPreviousTouchPositions.insert(std::pair<int, glm::ivec2>(id, pos));
 	}
 
 	// Add to end of corrected ordered vector if new touch point
@@ -63,12 +71,16 @@ void sgct_core::Touch::addPoint(int id, int action, double xpos, double ypos) {
 		mPrevTouchIds.push_back(id);
 	}
 
-	mTouchPoints.push_back(TouchPoint(id, touchAction, pos));
+	// Check if position has not changed and make the point stationary then
+	if(touchAction == TouchPoint::Moved && glm::distance(pos, prevPos) == 0)
+		touchAction = TouchPoint::Stationary;
+
+	mTouchPoints.push_back(TouchPoint(id, touchAction, pos, normpos, ((pos-prevPos)/ windowSize)));
 }
 
-void sgct_core::Touch::addPoints(GLFWtouch* touchPoints, int count) {
+void sgct_core::Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth, int windowHeight) {
 	for (int i = 0; i < count; ++i) {
-		addPoint(touchPoints[i].id, touchPoints[i].action, touchPoints[i].x, touchPoints[i].y);
+		processPoint(touchPoints[i].id, touchPoints[i].action, touchPoints[i].x, touchPoints[i].y, windowWidth, windowHeight);
 	}
 
 	// Ensure that the order to the touch points are the same as last touch event.
@@ -97,12 +109,12 @@ void sgct_core::Touch::addPoints(GLFWtouch* touchPoints, int count) {
 	}
 
 	//Ignore stationary state and count none ended points
-	bool allPointsStationary = true;
+	mAllPointsStationary = true;
 	int livePoints = 0;
 	std::vector<int> endedTouchIds;
 	for (auto touchPoint : mTouchPoints) {
 		if (touchPoint.action != TouchPoint::Stationary)
-			allPointsStationary = false;
+			mAllPointsStationary = false;
 
 		if (touchPoint.action != TouchPoint::Released)
 			livePoints++;
@@ -115,10 +127,10 @@ void sgct_core::Touch::addPoints(GLFWtouch* touchPoints, int count) {
 		if (foundIdx != mPrevTouchIds.end())
 			mPrevTouchIds.erase(foundIdx);
 	}
+}
 
-	if (allPointsStationary) {
-		mTouchPoints.clear();
-	}
+bool sgct_core::Touch::isAllPointsStationary() const {
+	return mAllPointsStationary;
 }
 
 std::string sgct_core::Touch::getTouchPointInfo(const TouchPoint* touchPoint) {
@@ -144,7 +156,9 @@ std::string sgct_core::Touch::getTouchPointInfo(const TouchPoint* touchPoint) {
 		ss << "NoAction";
 	}
 	ss << "),";
-	ss << "pos(" << touchPoint->pos.x << "," << touchPoint->pos.y << ")";
+	ss << "pixelCoords(" << touchPoint->pixelCoords.x << "," << touchPoint->pixelCoords.y << "),";
+	ss << "normPixelCoords(" << touchPoint->normPixelCoords.x << "," << touchPoint->normPixelCoords.y << "),";
+	ss << "normPixelDiff(" << touchPoint->normPixelDiff.x << "," << touchPoint->normPixelDiff.y << ")";
 
 	return ss.str();
 }

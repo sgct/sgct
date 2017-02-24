@@ -15,6 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <unordered_map>
 #include <stddef.h> //get definition for NULL
 
+struct GLFWtouch;
+
 namespace sgct_core
 {
 

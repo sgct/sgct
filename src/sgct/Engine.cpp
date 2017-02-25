@@ -145,6 +145,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
 	mRenderingOffScreen = false;
 	mFixedOGLPipeline = true;
 	mHelpMode = false;
+    mInitialized = false;
 
 	mCurrentViewportCoords[0] = 0;
 	mCurrentViewportCoords[1] = 0;
@@ -282,6 +283,7 @@ bool sgct::Engine::init(RunMode rm)
 	if(isMaster())
 		getTrackingManager()->startSampling();
 
+    mInitialized = true;
 	return true;
 }
 
@@ -1043,6 +1045,13 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
 */
 void sgct::Engine::render()
 {
+    if (!mInitialized)
+    {
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR,
+            "Render function called before initialization.");
+        return;
+    }
+    
 	mRunning = GL_TRUE;
 
 	//create openGL query objects for opengl 3.3+

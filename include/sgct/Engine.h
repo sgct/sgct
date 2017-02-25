@@ -520,6 +520,7 @@ private:
 	std::string configFilename;
     std::string mLogfilePath;
 	int mRunning;
+    bool mInitialized;
 	std::string mAAInfo;
 
 	unsigned int mFrameCounter;

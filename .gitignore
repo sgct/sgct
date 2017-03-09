@@ -17,7 +17,6 @@ src/deps/libjpeg-turbo/simd/Debug/
 src/deps/libjpeg-turbo/simd/CMakeFiles/
 src/deps/libjpeg-turbo/simd/RelWithDebInfo/
 src/deps/libjpeg-turbo/simd/Release/
-src/deps/glfw/src/glfw.dir/
 src/deps/libjpeg-turbo/simd/x64/Debug/
 src/deps/libjpeg-turbo/simd/x64/RelWithDebInfo/
 src/deps/libjpeg-turbo/simd/x64/
@@ -65,13 +64,6 @@ src/deps/freetype/freetype.vcxproj.filters
 src/deps/glew/glew.sln
 src/deps/glew/glew.vcxproj
 src/deps/glew/glew.vcxproj.filters
-src/deps/glfw/GLFW.sln
-src/deps/glfw/src/glfw.vcxproj
-src/deps/glfw/src/glfw.vcxproj.filters
-src/deps/glfw/src/glfw3.pc
-src/deps/glfw/src/glfw3Config.cmake
-src/deps/glfw/src/glfw3ConfigVersion.cmake
-src/deps/glfw/src/glfw_config.h
 src/deps/libjpeg-turbo/jconfig.h
 src/deps/libjpeg-turbo/jconfigint.h
 src/deps/libjpeg-turbo/libjpeg-turbo.sln
@@ -105,3 +97,4 @@ src/installer/sgct_osg_all_win.nsi
 src/deps/libjpeg-turbo/simd/MinSizeRel/
 sgct.VC.db
 lib/
+*.csproj

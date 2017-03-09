@@ -425,6 +425,9 @@ if(SGCT_TEXT)
 endif()
 add_dependencies(${LIB_NAME} ${SGCT_DEPS})
 
+#including deps
+include_directories(${PROJECT_SOURCE_DIR}/src/deps/glfw/include)
+
 #including directories with generated config files in this scope
 include_directories(${PROJECT_BINARY_DIR}/src/deps/vrpn)
 include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng)
@@ -531,6 +534,7 @@ if(SGCT_INSTALL)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/src/deps/glfw/include/GLFW DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 	endif()
 		
 	INSTALL(FILES ${PROJECT_SOURCE_DIR}/include/sgct.h DESTINATION include COMPONENT headers)

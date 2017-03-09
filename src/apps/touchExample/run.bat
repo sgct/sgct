@@ -1,0 +1,1 @@
+touchExample.exe -config ../../config/single.xml

@@ -45,22 +45,26 @@ public:
 	void setPreferBGRExport(bool state);
 
 	unsigned char * getData();
+	unsigned char * getDataAt(std::size_t x, std::size_t y);
 	std::size_t getChannels() const;
 	std::size_t getWidth() const;
 	std::size_t getHeight() const;
 	std::size_t getDataSize() const;
 	std::size_t getBytesPerChannel() const;
 
+	unsigned char * getSampleAt(std::size_t x, std::size_t y);
+	void setSampleAt(unsigned char * val, std::size_t x, std::size_t y);
+
 	//only valid for 8-bit images
     unsigned char getSampleAt(std::size_t x, std::size_t y, ChannelType c);
-	void setSampleAt(std::size_t x, std::size_t y, ChannelType c, unsigned char val);
+	void setSampleAt(unsigned char val, std::size_t x, std::size_t y, ChannelType c);
     float getInterpolatedSampleAt(float x, float y, ChannelType c);
 	
 
 	void setDataPtr(unsigned char * dPtr);
-	void setSize(int width, int height);
-	void setChannels(int channels);
-	void setBytesPerChannel(int bpc);
+	void setSize(std::size_t width, std::size_t height);
+	void setChannels(std::size_t channels);
+	void setBytesPerChannel(std::size_t bpc);
 	inline const char * getFilename() { return mFilename.c_str(); }
 
 private:

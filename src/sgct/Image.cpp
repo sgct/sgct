@@ -1409,6 +1409,11 @@ unsigned char * sgct_core::Image::getData()
 	return mData;
 }
 
+unsigned char * sgct_core::Image::getDataAt(std::size_t x, std::size_t y)
+{
+	return &mData[(y * mSize_x + x) * mChannels];
+}
+
 std::size_t sgct_core::Image::getChannels() const
 {
 	return mChannels;
@@ -1435,6 +1440,22 @@ std::size_t sgct_core::Image::getBytesPerChannel() const
 }
 
 /*!
+Get sample from image data (all pixel values)
+*/
+unsigned char * sgct_core::Image::getSampleAt(std::size_t x, std::size_t y)
+{
+	return &mData[(y * mSize_x + x) * mChannels * mBytesPerChannel];
+}
+
+/*!
+Set sample to image data (all pixel values)
+*/
+void sgct_core::Image::setSampleAt(unsigned char * val, std::size_t x, std::size_t y)
+{
+	memcpy(&mData[(y * mSize_x + x) * mChannels * mBytesPerChannel], val, mChannels * mBytesPerChannel);
+}
+
+/*!
 Get sample from image data
 */
 unsigned char sgct_core::Image::getSampleAt(std::size_t x, std::size_t y, sgct_core::Image::ChannelType c)
@@ -1445,7 +1466,7 @@ unsigned char sgct_core::Image::getSampleAt(std::size_t x, std::size_t y, sgct_c
 /*!
 Set sample to image data
 */
-void sgct_core::Image::setSampleAt(std::size_t x, std::size_t y, sgct_core::Image::ChannelType c, unsigned char val)
+void sgct_core::Image::setSampleAt(unsigned char val, std::size_t x, std::size_t y, sgct_core::Image::ChannelType c)
 {
 	mData[(y * mSize_x + x) * mChannels + c] = val;
 }
@@ -1497,18 +1518,18 @@ void sgct_core::Image::setDataPtr(unsigned char * dPtr)
 	mExternalData = true;
 }
 
-void sgct_core::Image::setSize(int width, int height)
+void sgct_core::Image::setSize(std::size_t width, std::size_t height)
 {
 	mSize_x = width;
 	mSize_y = height;
 }
 
-void sgct_core::Image::setChannels(int channels)
+void sgct_core::Image::setChannels(std::size_t channels)
 {
 	mChannels = channels;
 }
 
-void sgct_core::Image::setBytesPerChannel(int bpc)
+void sgct_core::Image::setBytesPerChannel(std::size_t bpc)
 {
 	mBytesPerChannel = bpc;
 }

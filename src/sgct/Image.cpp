@@ -338,7 +338,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
 /*!
  Load a jpeg compressed image from memory.
  */
-bool sgct_core::Image::loadJPEG(unsigned char * data, int len)
+bool sgct_core::Image::loadJPEG(unsigned char * data, std::size_t len)
 {
     if(data == NULL || len <= 0)
     {
@@ -531,7 +531,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 
 	//flip the image
 	std::size_t pos = mDataSize;
-	for (int i = 0; i < mSize_y; i++)
+	for (std::size_t i = 0; i < mSize_y; i++)
 	{
 		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
@@ -545,7 +545,7 @@ bool sgct_core::Image::loadPNG(std::string filename)
 	return true;
 }
 
-bool sgct_core::Image::loadPNG(unsigned char * data, int len)
+bool sgct_core::Image::loadPNG(unsigned char * data, std::size_t len)
 {
     if(data == NULL || len <= PNG_BYTES_TO_CHECK)
     {
@@ -641,7 +641,7 @@ bool sgct_core::Image::loadPNG(unsigned char * data, int len)
 
 	//flip the image
 	std::size_t pos = mDataSize;
-	for (int i = 0; i < mSize_y; i++)
+	for (std::size_t i = 0; i < mSize_y; i++)
 	{
 		pos -= mSize_x * mChannels;
 		png_read_row(png_ptr, &mData[pos], NULL);
@@ -729,7 +729,7 @@ bool sgct_core::Image::loadTGA(std::string filename)
 	return true;
 }
 
-bool sgct_core::Image::loadTGA(unsigned char * data, int len)
+bool sgct_core::Image::loadTGA(unsigned char * data, std::size_t len)
 {
 	if (data == NULL || len <= TGA_BYTES_TO_CHECK)
 	{
@@ -833,7 +833,7 @@ bool sgct_core::Image::decodeTGARLE(FILE * fp)
 	return true;
 }
 
-bool sgct_core::Image::decodeTGARLE(unsigned char * data, int len)
+bool sgct_core::Image::decodeTGARLE(unsigned char * data, std::size_t len)
 {
 	std::size_t pixelcount = mSize_x * mSize_y;
 	std::size_t currentpixel = 0;

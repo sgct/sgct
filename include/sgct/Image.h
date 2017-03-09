@@ -31,11 +31,11 @@ public:
 	bool allocateOrResizeData();
 	bool load(std::string filename);
 	bool loadPNG(std::string filename);
-    bool loadPNG(unsigned char * data, int len);
+    bool loadPNG(unsigned char * data, std::size_t len);
 	bool loadJPEG(std::string filename);
-    bool loadJPEG(unsigned char * data, int len);
+    bool loadJPEG(unsigned char * data, std::size_t len);
 	bool loadTGA(std::string filename);
-	bool loadTGA(unsigned char * data, int len);
+	bool loadTGA(unsigned char * data, std::size_t len);
 	bool save();
 	bool savePNG(std::string filename, int compressionLevel = -1);
 	bool savePNG(int compressionLevel = -1);
@@ -73,7 +73,7 @@ private:
 	FormatType getFormatType(const std::string & filename);
     bool isTGAPackageRLE(unsigned char * row, std::size_t pos);
 	bool decodeTGARLE(FILE * fp);
-	bool decodeTGARLE(unsigned char * data, int len);
+	bool decodeTGARLE(unsigned char * data, std::size_t len);
     std::size_t getTGAPackageLength(unsigned char * row, std::size_t pos, bool rle);
     
 private:

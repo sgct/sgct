@@ -571,7 +571,7 @@ void loadData()
 
 void drawTexturedObject()
 {
-	if (textures.size() > textureIndex.getVal())
+	if (static_cast<int32_t>(textures.size()) > textureIndex.getVal())
 	{
 		glActiveTexture(GL_TEXTURE0);
 		glBindTexture(GL_TEXTURE_2D, textures[textureIndex.getVal()].second);

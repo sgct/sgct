@@ -6,6 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #define MAX_LINE_LENGTH 1024
+#define CONVERT_SCISS_TO_DOMEPROJECTION 0
 
 #include <stdio.h>
 #include <fstream>
@@ -633,6 +634,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 
 	//read viewdata
 	SCISSViewData viewData;
+	double yaw, pitch, roll;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	retval = fread_s(&viewData, sizeof(SCISSViewData), sizeof(SCISSViewData), 1, meshFile);
 #else
@@ -646,8 +648,20 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 	}
 	else
 	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Rotation quat = [%f %f %f %f]\n",
-			viewData.qx, viewData.qy, viewData.qz, viewData.qw);
+		double x, y, z, w;
+		x = static_cast<double>(viewData.qx);
+		y = static_cast<double>(viewData.qy);
+		z = static_cast<double>(viewData.qz);
+		w = static_cast<double>(viewData.qw);
+
+		glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
+		yaw = -angles.x;
+		pitch = angles.y;
+		roll = -angles.z;
+		
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Rotation quat = [%f %f %f %f]\nyaw = %lf, pitch = %lf, roll = %lf\n",
+			viewData.qx, viewData.qy, viewData.qz, viewData.qw,
+			yaw, pitch, roll);
 
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Position = [%f %f %f]\n",
 			viewData.x, viewData.y, viewData.z);
@@ -777,6 +791,56 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
 			scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
 			scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);*/
 	}
+
+#if CONVERT_SCISS_TO_DOMEPROJECTION
+	//test export to dome projection
+	std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".sgc") - 3);
+	
+	//test export frustum
+	std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
+	std::ofstream outFrustumFile;
+	outFrustumFile.open(outFrustumFilename, std::ios::out);
+	outFrustumFile << "x;y;z;heading;pitch;bank;left;right;bottom;top;tanLeft;tanRight;tanBottom;tanTop;width;height" << std::endl;
+	outFrustumFile << std::fixed;
+	outFrustumFile << std::setprecision(8);
+	outFrustumFile << viewData.x << ";" << viewData.y << ";" << viewData.z << ";"; //x y z
+	outFrustumFile << yaw << ";" << pitch << ";" << roll << ";";
+	outFrustumFile << viewData.fovLeft << ";" << viewData.fovRight << ";" << viewData.fovDown << ";" << viewData.fovUp << ";";
+	float tanLeft = tan(glm::radians(viewData.fovLeft));
+	float tanRight = tan(glm::radians(viewData.fovRight));
+	float tanBottom = tan(glm::radians(viewData.fovDown));
+	float tanTop = tan(glm::radians(viewData.fovUp));
+	outFrustumFile << tanLeft << ";" << tanRight << ";" << tanBottom << ";" << tanTop << ";";
+	outFrustumFile << tanRight - tanLeft << ";";
+	outFrustumFile << tanTop - tanBottom << std::endl;
+	outFrustumFile.close();
+
+	//test export mesh
+	std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+		"CorrectionMesh: Exporting dome projection mesh file \"%s\"\n", outMeshFilename.c_str());
+	std::ofstream outMeshFile;
+	outMeshFile.open(outMeshFilename, std::ios::out);
+	outMeshFile << "x;y;u;v;column;row" << std::endl;
+	outMeshFile << std::fixed;
+	outMeshFile << std::setprecision(6);
+
+	unsigned int i = 0;
+	for (unsigned int y = 0; y < size[1]; ++y)
+		for (unsigned int x = 0; x < size[0]; ++x)
+		{
+			outMeshFile << texturedVertexList[i].x << ";";
+			outMeshFile << texturedVertexList[i].y << ";";
+			outMeshFile << texturedVertexList[i].tx << ";";
+			outMeshFile << (1.0f - texturedVertexList[i].ty) << ";"; //flip v-coord
+			outMeshFile << x << ";";
+			outMeshFile << y << std::endl;
+			++i;
+		}
+	outMeshFile.close();
+#endif
 
 	mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
 	mGeometries[WARP_MESH].mNumberOfIndices = numberOfIndices;

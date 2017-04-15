@@ -60,168 +60,168 @@ sgct::SharedDouble curr_time(0.0);
 
 int main( int argc, char* argv[] )
 {
-	//sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
-	
-	gEngine = new sgct::Engine( argc, argv );
+    //sgct::MessageHandler::instance()->setNotifyLevel(sgct::MessageHandler::NOTIFY_ALL);
+    
+    gEngine = new sgct::Engine( argc, argv );
     
     /*imagePaths.addVal( std::pair<std::string, int>("test_00.jpg", IM_JPEG) );
     imagePaths.addVal( std::pair<std::string, int>("test_01.png", IM_PNG) );
     imagePaths.addVal( std::pair<std::string, int>("test_02.jpg", IM_JPEG) );*/
 
-	gEngine->setInitOGLFunction( myInitOGLFun );
-	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreSyncFunction( myPreSyncFun );
-	gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
-	gEngine->setCleanUpFunction( myCleanUpFun );
-	gEngine->setKeyboardCallbackFunction(keyCallback);
+    gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setPreSyncFunction( myPreSyncFun );
+    gEngine->setPostSyncPreDrawFunction(myPostSyncPreDrawFun);
+    gEngine->setCleanUpFunction( myCleanUpFun );
+    gEngine->setKeyboardCallbackFunction(keyCallback);
     gEngine->setContextCreationCallback( contextCreationCallback );
-	gEngine->setDropCallbackFunction(myDropCallback);
+    gEngine->setDropCallbackFunction(myDropCallback);
 
-	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-	{
-		delete gEngine;
-		return EXIT_FAILURE;
-	}
+    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
     
     gEngine->setDataTransferCallback(myDataTransferDecoder);
-	gEngine->setDataTransferStatusCallback(myDataTransferStatus);
-	gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
+    gEngine->setDataTransferStatusCallback(myDataTransferStatus);
+    gEngine->setDataAcknowledgeCallback(myDataTransferAcknowledge);
     //gEngine->setDataTransferCompression(true, 6);
 
     //sgct::SharedData::instance()->setCompression(true);
-	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
-	// Main loop
-	gEngine->render();
+    // Main loop
+    gEngine->render();
 
-	running.setVal(false);
+    running.setVal(false);
 
-	if (loadThread)
-	{
-		loadThread->join();
-		delete loadThread;
-	}
+    if (loadThread)
+    {
+        loadThread->join();
+        delete loadThread;
+    }
 
-	// Clean up
-	delete gEngine;
+    // Clean up
+    delete gEngine;
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }
 
 void myDrawFun()
 {
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE );
 
-	double speed = 0.44;
+    double speed = 0.44;
 
-	//create scene transform (animation)
-	glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
-	scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
+    //create scene transform (animation)
+    glm::mat4 scene_mat = glm::translate( glm::mat4(1.0f), glm::vec3( 0.0f, 0.0f, -3.0f) );
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * speed ), glm::vec3(0.0f, -1.0f, 0.0f));
+    scene_mat = glm::rotate( scene_mat, static_cast<float>( curr_time.getVal() * (speed/2.0) ), glm::vec3(1.0f, 0.0f, 0.0f));
 
-	glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
+    glm::mat4 MVP = gEngine->getCurrentModelViewProjectionMatrix() * scene_mat;
 
-	glActiveTexture(GL_TEXTURE0);
-	
+    glActiveTexture(GL_TEXTURE0);
+    
     if(texIndex.getVal() != -1)
         glBindTexture(GL_TEXTURE_2D, texIds.getValAt(texIndex.getVal()));
     else
-		glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
+        glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("box"));
 
-	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-	glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
+    glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 
-	//draw the box
-	myBox->draw();
+    //draw the box
+    myBox->draw();
 
-	sgct::ShaderManager::instance()->unBindShaderProgram();
+    sgct::ShaderManager::instance()->unBindShaderProgram();
 
-	glDisable( GL_CULL_FACE );
-	glDisable( GL_DEPTH_TEST );
+    glDisable( GL_CULL_FACE );
+    glDisable( GL_DEPTH_TEST );
 }
 
 void myPreSyncFun()
 {
-	if( gEngine->isMaster() )
-	{
-		curr_time.setVal( sgct::Engine::getTime() );
-		
-		//if texture is uploaded then iterate the index
-		if (serverUploadDone.getVal() && clientsUploadDone.getVal())
-		{
-			texIndex++;
-			serverUploadDone = false;
-			clientsUploadDone = false;
-		}
-	}
+    if( gEngine->isMaster() )
+    {
+        curr_time.setVal( sgct::Engine::getTime() );
+        
+        //if texture is uploaded then iterate the index
+        if (serverUploadDone.getVal() && clientsUploadDone.getVal())
+        {
+            texIndex++;
+            serverUploadDone = false;
+            clientsUploadDone = false;
+        }
+    }
 }
 
 void myPostSyncPreDrawFun()
 {
-	gEngine->setDisplayInfoVisibility(info.getVal());
-	gEngine->setStatsGraphVisibility(stats.getVal());
+    gEngine->setDisplayInfoVisibility(info.getVal());
+    gEngine->setStatsGraphVisibility(stats.getVal());
 }
 
 void myInitOGLFun()
 {
-	sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
+    sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
+    sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+    sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
 
-	myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
-	//myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
+    myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
+    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
+    //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::SkyBox);
 
-	//Set up backface culling
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    //Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 
-	sgct::ShaderManager::instance()->addShaderProgram( "xform",
-			"xform.vert",
-			"xform.frag" );
+    sgct::ShaderManager::instance()->addShaderProgram( "xform",
+            "xform.vert",
+            "xform.frag" );
 
-	sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
+    sgct::ShaderManager::instance()->bindShaderProgram( "xform" );
 
-	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
-	GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
-	glUniform1i( Tex_Loc, 0 );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "MVP" );
+    GLint Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "xform").getUniformLocation( "Tex" );
+    glUniform1i( Tex_Loc, 0 );
 
-	sgct::ShaderManager::instance()->unBindShaderProgram();
+    sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::instance()->writeDouble(&curr_time);
-	sgct::SharedData::instance()->writeBool(&info);
-	sgct::SharedData::instance()->writeBool(&stats);
+    sgct::SharedData::instance()->writeDouble(&curr_time);
+    sgct::SharedData::instance()->writeBool(&info);
+    sgct::SharedData::instance()->writeBool(&stats);
     sgct::SharedData::instance()->writeInt32(&texIndex);
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::instance()->readDouble(&curr_time);
-	sgct::SharedData::instance()->readBool(&info);
-	sgct::SharedData::instance()->readBool(&stats);
+    sgct::SharedData::instance()->readDouble(&curr_time);
+    sgct::SharedData::instance()->readBool(&info);
+    sgct::SharedData::instance()->readBool(&stats);
     sgct::SharedData::instance()->readInt32(&texIndex);
 }
 
 void myCleanUpFun()
 {
-	if(myBox != NULL)
-		delete myBox;
+    if(myBox != NULL)
+        delete myBox;
     
     for(std::size_t i=0; i < texIds.getSize(); i++)
     {
         GLuint tex = texIds.getValAt(i);
-		if (tex)
-		{
-			glDeleteTextures(1, &tex);
-			texIds.setValAt(i, GL_FALSE);
-		}
+        if (tex)
+        {
+            glDeleteTextures(1, &tex);
+            texIds.setValAt(i, GL_FALSE);
+        }
     }
     texIds.clear();
     
@@ -232,26 +232,26 @@ void myCleanUpFun()
 
 void keyCallback(int key, int action)
 {
-	if (gEngine->isMaster())
-	{
-		switch (key)
-		{
-		case SGCT_KEY_S:
-			if (action == SGCT_PRESS)
-				stats.toggle();
-			break;
+    if (gEngine->isMaster())
+    {
+        switch (key)
+        {
+        case SGCT_KEY_S:
+            if (action == SGCT_PRESS)
+                stats.toggle();
+            break;
 
-		case SGCT_KEY_I:
-			if (action == SGCT_PRESS)
-				info.toggle();
-			break;
+        case SGCT_KEY_I:
+            if (action == SGCT_PRESS)
+                info.toggle();
+            break;
                 
         /*case SGCT_KEY_SPACE:
             if (action == SGCT_PRESS)
                 transfer.setVal(true);
             break;*/
-		}
-	}
+        }
+    }
 }
 
 void contextCreationCallback(GLFWwindow * win)
@@ -275,9 +275,9 @@ void contextCreationCallback(GLFWwindow * win)
 
 void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
 {
-	sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
+    sgct::MessageHandler::instance()->print("Decoding %d bytes in transfer id: %d on node %d\n", receivedlength, packageId, clientIndex);
 
-	currentPackage.setVal(packageId);
+    currentPackage.setVal(packageId);
     
     //read the image on master
     readImage( reinterpret_cast<unsigned char*>(receivedData), receivedlength);
@@ -286,12 +286,12 @@ void myDataTransferDecoder(void * receivedData, int receivedlength, int packageI
 
 void myDataTransferStatus(bool connected, int clientIndex)
 {
-	sgct::MessageHandler::instance()->print("Transfer node %d is %s.\n", clientIndex, connected ? "connected" : "disconnected");
+    sgct::MessageHandler::instance()->print("Transfer node %d is %s.\n", clientIndex, connected ? "connected" : "disconnected");
 }
 
 void myDataTransferAcknowledge(int packageId, int clientIndex)
 {
-	sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
+    sgct::MessageHandler::instance()->print("Transfer id: %d is completed on node %d.\n", packageId, clientIndex);
     
     static int counter = 0;
     if( packageId == currentPackage.getVal())
@@ -299,7 +299,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
         counter++;
         if( counter == (sgct_core::ClusterManager::instance()->getNumberOfNodes()-1) )
         {
-			clientsUploadDone = true;
+            clientsUploadDone = true;
             counter = 0;
             
             sgct::MessageHandler::instance()->print("Time to distribute and upload textures on cluster: %f ms\n", (sgct::Engine::getTime() - sendTimer)*1000.0);
@@ -310,25 +310,25 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
 void threadWorker(void *arg)
 {
     while (running.getVal())
-	{
-		//runs only on master
-		if (transfer.getVal() && !serverUploadDone.getVal() && !clientsUploadDone.getVal())
+    {
+        //runs only on master
+        if (transfer.getVal() && !serverUploadDone.getVal() && !clientsUploadDone.getVal())
         {
-			startDataTransfer();
+            startDataTransfer();
             transfer.setVal(false);
             
             //load texture on master
             uploadTexture();
-			serverUploadDone = true;
+            serverUploadDone = true;
             
             if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1) //no cluster
             {
-				clientsUploadDone = true;
+                clientsUploadDone = true;
             }
         }
 
-		sgct::Engine::sleep(0.1); //ten iteration per second
-	}
+        sgct::Engine::sleep(0.1); //ten iteration per second
+    }
 }
 
 void startDataTransfer()
@@ -362,7 +362,7 @@ void startDataTransfer()
             gEngine->transferDataBetweenNodes(buffer.data(), static_cast<int>(buffer.size()), id);
             
             //read the image on master
-			readImage(reinterpret_cast<unsigned char *>(buffer.data()), static_cast<int>(buffer.size()));
+            readImage(reinterpret_cast<unsigned char *>(buffer.data()), static_cast<int>(buffer.size()));
         }
     }
     
@@ -415,44 +415,44 @@ void uploadTexture()
         
         GLenum internalformat;
         GLenum type;
-		unsigned int bpc = transImg->getBytesPerChannel();
+        unsigned int bpc = transImg->getBytesPerChannel();
 
         switch( transImg->getChannels() )
         {
             case 1:
-				internalformat = (bpc == 1 ? GL_R8 : GL_R16);
+                internalformat = (bpc == 1 ? GL_R8 : GL_R16);
                 type = GL_RED;
                 break;
                 
             case 2:
-				internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
+                internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
                 type = GL_RG;
                 break;
                 
             case 3:
             default:
-				internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+                internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
                 type = GL_BGR;
                 break;
                 
             case 4:
-				internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+                internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
                 type = GL_BGRA;
                 break;
         }
         
         int mipMapLevels = 8;
-		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
+        GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
         glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
+        glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
         
         //glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
         
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mipMapLevels-1);
-		
-		glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
+        
+        glGenerateMipmap( GL_TEXTURE_2D ); //allocate the mipmaps
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR_MIPMAP_LINEAR );
         glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
         glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
@@ -483,38 +483,38 @@ void uploadTexture()
 
 void myDropCallback(int count, const char** paths)
 {
-	if (gEngine->isMaster())
-	{
-		std::size_t found;
+    if (gEngine->isMaster())
+    {
+        std::size_t found;
 
-		//simpy pick the first path to transmit
-		std::string tmpStr(paths[0]);
+        //simpy pick the first path to transmit
+        std::string tmpStr(paths[0]);
 
-		//transform to lowercase
-		std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
+        //transform to lowercase
+        std::transform(tmpStr.begin(), tmpStr.end(), tmpStr.begin(), ::tolower);
 
-		found = tmpStr.find(".jpg");
-		if (found != std::string::npos)
-		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
-			transfer.setVal(true);
-			return;
-		}
+        found = tmpStr.find(".jpg");
+        if (found != std::string::npos)
+        {
+            imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
+            transfer.setVal(true);
+            return;
+        }
 
-		found = tmpStr.find(".jpeg");
-		if (found != std::string::npos)
-		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
-			transfer.setVal(true);
-			return;
-		}
+        found = tmpStr.find(".jpeg");
+        if (found != std::string::npos)
+        {
+            imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_JPEG));
+            transfer.setVal(true);
+            return;
+        }
 
-		found = tmpStr.find(".png");
-		if (found != std::string::npos)
-		{
-			imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_PNG));
-			transfer.setVal(true);
-			return;
-		}
-	}
+        found = tmpStr.find(".png");
+        if (found != std::string::npos)
+        {
+            imagePaths.addVal(std::pair<std::string, int>(paths[0], IM_PNG));
+            transfer.setVal(true);
+            return;
+        }
+    }
 }

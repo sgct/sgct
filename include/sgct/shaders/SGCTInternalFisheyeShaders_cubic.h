@@ -12,13 +12,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
-	/*
-		All shaders are in GLSL 1.2 for compability with Mac OS X
-	*/
+    /*
+        All shaders are in GLSL 1.2 for compability with Mac OS X
+    */
 
-	namespace shaders_fisheye_cubic
-	{
-		const std::string B_spline_fun = "\
+    namespace shaders_fisheye_cubic
+    {
+        const std::string B_spline_fun = "\
             vec4 cubic(float x)\n\
             {\n\
                 float x2 = x * x;\n\
@@ -31,7 +31,7 @@ namespace sgct_core
                 return w / 6.0;\n\
             }\n";
 
-		const std::string catmull_rom_fun = "\
+        const std::string catmull_rom_fun = "\
             vec4 cubic(float x)\n\
             {\n\
                 float x2 = x * x;\n\
@@ -68,7 +68,7 @@ namespace sgct_core
                 return (4.0*sample0 + sample1 + sample2 + sample3 + sample4)/8.0;\n\
             }\n";
 
-		const std::string interpolate4_f = "\
+        const std::string interpolate4_f = "\
             float filterf(vec2 texcoord, samplerCube map, vec4 bg)\n\
             {\n\
                 vec2 transTex = texcoord * vec2(**size**, **size**);\n\
@@ -97,7 +97,7 @@ namespace sgct_core
                        mix(sample1, sample0, sx), sy);\n\
             }\n";
 
-		const std::string interpolate4_4f = "\
+        const std::string interpolate4_4f = "\
             vec4 filter4f(vec2 texcoord, samplerCube map, vec4 bg)\n\
             {\n\
                 vec2 transTex = texcoord * vec2(**size**, **size**);\n\
@@ -126,7 +126,7 @@ namespace sgct_core
                        mix(sample1, sample0, sx), sy);\n\
             }\n";
 
-		const std::string interpolate16_f = "\
+        const std::string interpolate16_f = "\
             float filterf(vec2 texcoord, samplerCube map, vec4 bg)\n\
             {\n\
                 vec2 transTex = texcoord * vec2(**size**, **size**);\n\
@@ -165,7 +165,7 @@ namespace sgct_core
                 return 0.25 * ((st0.t * row0) + (st1.t * row1) + (st2.t * row2) + (st3.t * row3));\n\
             }\n";
 
-		const std::string interpolate16_4f = "\
+        const std::string interpolate16_4f = "\
             vec4 filter4f(vec2 texcoord, samplerCube map, vec4 bg)\n\
             {\n\
                 vec2 transTex = texcoord * vec2(**size**, **size**);\n\
@@ -203,24 +203,24 @@ namespace sgct_core
                 \n\
                 return 0.25 * ((st0.t * row0) + (st1.t * row1) + (st2.t * row2) + (st3.t * row3));\n\
             }\n";
-		
-		const std::string Fisheye_Vert_Shader = "\
-			**glsl_version**\n\
-			\n\
-			void main()\n\
-			{\n\
-				gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_Position = gl_Vertex;\n\
-			}\n";
+        
+        const std::string Fisheye_Vert_Shader = "\
+            **glsl_version**\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_TexCoord[0] = gl_MultiTexCoord0;\n\
+                gl_Position = gl_Vertex;\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader = "\
+        const std::string Fisheye_Frag_Shader = "\
             **glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
             uniform float halfFov;\n\
             float angle45Factor = 0.7071067812;\n\
             \n\
-			**sample_fun**\n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
             \n\
@@ -229,155 +229,155 @@ namespace sgct_core
                 gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
             }\n";
 
-		const std::string Fisheye_Frag_Shader_Normal = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Normal = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Normal_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Normal_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Depth = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Depth = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
+            **interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n";
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Depth_Normal = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Depth_Normal = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
+            **interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Depth_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Depth_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
+            **interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_Depth_Normal_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
+            **interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_OffAxis = "\
-			**glsl_version**\n\
+        const std::string Fisheye_Frag_Shader_OffAxis = "\
+            **glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
             uniform float halfFov;\n\
-			uniform vec3 offset;\n\
+            uniform vec3 offset;\n\
             float angle45Factor = 0.7071067812;\n\
             \n\
-			**sample_fun**\n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
             \n\
@@ -386,152 +386,152 @@ namespace sgct_core
                 gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
             }\n";
 
-		const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
-            **cubic_fun**\n\
-            **interpolate4f**\n\
-            \n\
-			void main()\n\
-			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n"; 
-
-		const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
-            **cubic_fun**\n\
-            **interpolate4f**\n\
-            \n\
-			void main()\n\
-			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n";
-
-		const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
-            **cubic_fun**\n\
-            **interpolate4f**\n\
-            \n\
-			void main()\n\
-			{\n\
-                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-			}\n";
-
-		const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
-			**glsl_version**\n\
+        const std::string Fisheye_Frag_Shader_OffAxis_Normal = "\
+            **glsl_version**\n\
             \n\
             uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
+            uniform samplerCube normalmap;\n\
             uniform float halfFov;\n\
-			uniform vec3 offset;\n\
+            uniform vec3 offset;\n\
             float angle45Factor = 0.7071067812;\n\
             \n\
-			**sample_fun**\n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
             \n\
             void main()\n\
             {\n\
-                gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
             }\n"; 
 
-		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_OffAxis_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n"; 
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_OffAxis_Normal_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n";
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+            }\n";
 
-		const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
-			**glsl_version**\n\
-			\n\
-			uniform samplerCube cubemap;\n\
-			uniform samplerCube depthmap;\n\
-			uniform samplerCube normalmap;\n\
-			uniform samplerCube positionmap;\n\
-			uniform float halfFov;\n\
-			uniform vec3 offset;\n\
-			float angle45Factor = 0.7071067812;\n\
-			\n\
-			**sample_fun**\n\
+        const std::string Fisheye_Frag_Shader_OffAxis_Depth = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
             **cubic_fun**\n\
             **interpolate4f**\n\
-			**interpolatef**\n\
+            **interpolatef**\n\
             \n\
-			void main()\n\
-			{\n\
+            void main()\n\
+            {\n\
+                gl_FragColor = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n"; 
+
+        const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+            **interpolatef**\n\
+            \n\
+            void main()\n\
+            {\n\
                 gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
-				gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
-				gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
-			}\n"; 
-	}//end shaders
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n"; 
+
+        const std::string Fisheye_Frag_Shader_OffAxis_Depth_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+            **interpolatef**\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n";
+
+        const std::string Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = "\
+            **glsl_version**\n\
+            \n\
+            uniform samplerCube cubemap;\n\
+            uniform samplerCube depthmap;\n\
+            uniform samplerCube normalmap;\n\
+            uniform samplerCube positionmap;\n\
+            uniform float halfFov;\n\
+            uniform vec3 offset;\n\
+            float angle45Factor = 0.7071067812;\n\
+            \n\
+            **sample_fun**\n\
+            **cubic_fun**\n\
+            **interpolate4f**\n\
+            **interpolatef**\n\
+            \n\
+            void main()\n\
+            {\n\
+                gl_FragData[0] = filter4f(gl_TexCoord[0].st, cubemap, **bgColor**);\n\
+                gl_FragData[1] = filter4f(gl_TexCoord[0].st, normalmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragData[2] = filter4f(gl_TexCoord[0].st, positionmap, vec4(0.0, 0.0, 0.0, 0.0));\n\
+                gl_FragDepth = filterf(gl_TexCoord[0].st, depthmap, vec4(1.0, 1.0, 1.0, 1.0));\n\
+            }\n"; 
+    }//end shaders
 }
 #endif

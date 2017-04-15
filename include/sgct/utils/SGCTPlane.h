@@ -17,34 +17,34 @@ namespace sgct_utils
 {
 
 /*!
-	This class creates and renders a textured box.
+    This class creates and renders a textured box.
 */
 class SGCTPlane
 {
 public:
-	SGCTPlane(float width, float height);
-	~SGCTPlane();
-	void draw();
+    SGCTPlane(float width, float height);
+    ~SGCTPlane();
+    void draw();
 
 private:
-	// Don't implement these, should give compile warning if used
-	SGCTPlane();
-	SGCTPlane(const SGCTPlane & box);
-	const SGCTPlane & operator=(const SGCTPlane & box);
+    // Don't implement these, should give compile warning if used
+    SGCTPlane();
+    SGCTPlane(const SGCTPlane & box);
+    const SGCTPlane & operator=(const SGCTPlane & box);
 
-	void drawVBO();
-	void drawVAO();
+    void drawVBO();
+    void drawVAO();
 
-	typedef void (SGCTPlane::*InternalCallbackFn)(void);
-	InternalCallbackFn	mInternalDrawFn;
+    typedef void (SGCTPlane::*InternalCallbackFn)(void);
+    InternalCallbackFn    mInternalDrawFn;
 
-	void cleanUp();
-	void createVBO();
+    void cleanUp();
+    void createVBO();
 
-private:	
-	unsigned int mVBO;
-	unsigned int mVAO;
-	sgct_helpers::SGCTVertexData * mVerts;
+private:    
+    unsigned int mVBO;
+    unsigned int mVAO;
+    sgct_helpers::SGCTVertexData * mVerts;
 };
 }
 

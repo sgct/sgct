@@ -21,14 +21,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 struct VRPNPointer
 {
-	vrpn_Tracker_Remote * mSensorDevice;
-	vrpn_Analog_Remote * mAnalogDevice;
-	vrpn_Button_Remote * mButtonDevice;
+    vrpn_Tracker_Remote * mSensorDevice;
+    vrpn_Analog_Remote * mAnalogDevice;
+    vrpn_Button_Remote * mButtonDevice;
 };
 
 struct VRPNTracker
 {
-	std::vector<VRPNPointer> mDevices;
+    std::vector<VRPNPointer> mDevices;
 };
 
 std::vector<VRPNTracker> gTrackers;
@@ -41,330 +41,330 @@ void samplingLoop(void *arg);
 
 sgct::SGCTTrackingManager::SGCTTrackingManager()
 {
-	mHead = NULL;
-	mHeadUser = NULL;
-	mNumberOfDevices = 0;
-	mSamplingThread = NULL;
-	mSamplingTime = 0.0;
-	mRunning = true;
+    mHead = NULL;
+    mHeadUser = NULL;
+    mNumberOfDevices = 0;
+    mSamplingThread = NULL;
+    mSamplingTime = 0.0;
+    mRunning = true;
 }
 
 bool sgct::SGCTTrackingManager::isRunning()
 {
-	bool tmpVal;
+    bool tmpVal;
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
-		tmpVal = mRunning;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+        tmpVal = mRunning;
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
-	return tmpVal;
+    return tmpVal;
 }
 
 sgct::SGCTTrackingManager::~SGCTTrackingManager()
 {
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...\n");
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Disconnecting VRPN...\n");
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-	fprintf(stderr, "Destructing, setting running to false...\n");
+    fprintf(stderr, "Destructing, setting running to false...\n");
 #endif
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
-		mRunning = false;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+        mRunning = false;
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
-	//destroy thread
-	if( mSamplingThread != NULL )
-	{
-		mSamplingThread->join();
-		delete mSamplingThread;
-		mSamplingThread = NULL;
-	}
+    //destroy thread
+    if( mSamplingThread != NULL )
+    {
+        mSamplingThread->join();
+        delete mSamplingThread;
+        mSamplingThread = NULL;
+    }
 
-	//delete all instances
-	for(size_t i=0; i<mTrackers.size(); i++)
-	{
-		if( mTrackers[i] != NULL )
-		{
-			delete mTrackers[i];
-			mTrackers[i] = NULL;
-		}
+    //delete all instances
+    for(size_t i=0; i<mTrackers.size(); i++)
+    {
+        if( mTrackers[i] != NULL )
+        {
+            delete mTrackers[i];
+            mTrackers[i] = NULL;
+        }
 
-		//clear vrpn pointers
-		for(size_t j=0; j<gTrackers[i].mDevices.size(); j++)
-		{
-			//clear sensor pointers
-			if( gTrackers[i].mDevices[j].mSensorDevice != NULL )
-			{
-				delete gTrackers[i].mDevices[j].mSensorDevice;
-				gTrackers[i].mDevices[j].mSensorDevice = NULL;
-			}
+        //clear vrpn pointers
+        for(size_t j=0; j<gTrackers[i].mDevices.size(); j++)
+        {
+            //clear sensor pointers
+            if( gTrackers[i].mDevices[j].mSensorDevice != NULL )
+            {
+                delete gTrackers[i].mDevices[j].mSensorDevice;
+                gTrackers[i].mDevices[j].mSensorDevice = NULL;
+            }
 
-			//clear analog pointers
-			if( gTrackers[i].mDevices[j].mAnalogDevice != NULL )
-			{
-				delete gTrackers[i].mDevices[j].mAnalogDevice;
-				gTrackers[i].mDevices[j].mAnalogDevice = NULL;
-			}
+            //clear analog pointers
+            if( gTrackers[i].mDevices[j].mAnalogDevice != NULL )
+            {
+                delete gTrackers[i].mDevices[j].mAnalogDevice;
+                gTrackers[i].mDevices[j].mAnalogDevice = NULL;
+            }
 
-			//clear button pointers
-			if( gTrackers[i].mDevices[j].mButtonDevice != NULL )
-			{
-				delete gTrackers[i].mDevices[j].mButtonDevice;
-				gTrackers[i].mDevices[j].mButtonDevice = NULL;
-			}
-		}
-		gTrackers[i].mDevices.clear();
-	}
+            //clear button pointers
+            if( gTrackers[i].mDevices[j].mButtonDevice != NULL )
+            {
+                delete gTrackers[i].mDevices[j].mButtonDevice;
+                gTrackers[i].mDevices[j].mButtonDevice = NULL;
+            }
+        }
+        gTrackers[i].mDevices.clear();
+    }
 
-	mTrackers.clear();
-	gTrackers.clear();
+    mTrackers.clear();
+    gTrackers.clear();
 
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Done.\n");
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Done.\n");
 }
 
 void sgct::SGCTTrackingManager::startSampling()
 {
-	if( !mTrackers.empty() )
-	{
-		//find user with headtracking
-		mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUserPtr();
+    if( !mTrackers.empty() )
+    {
+        //find user with headtracking
+        mHeadUser = sgct_core::ClusterManager::instance()->getTrackedUserPtr();
 
-		//if tracked user not found
-		if (mHeadUser == NULL)
-			mHeadUser = sgct_core::ClusterManager::instance()->getDefaultUserPtr();
-		
-		//link the head tracker
-		setHeadTracker(mHeadUser->getHeadTrackerName(),
-			mHeadUser->getHeadTrackerDeviceName());
+        //if tracked user not found
+        if (mHeadUser == NULL)
+            mHeadUser = sgct_core::ClusterManager::instance()->getDefaultUserPtr();
+        
+        //link the head tracker
+        setHeadTracker(mHeadUser->getHeadTrackerName(),
+            mHeadUser->getHeadTrackerDeviceName());
 
-		mSamplingThread = new tthread::thread( samplingLoop, this );
-	}
+        mSamplingThread = new tthread::thread( samplingLoop, this );
+    }
 }
 
 /*
-	Update the user position if headtracking is used. This function is called from the engine.
+    Update the user position if headtracking is used. This function is called from the engine.
 */
 void sgct::SGCTTrackingManager::updateTrackingDevices()
 {
-	for(size_t i=0; i<mTrackers.size(); i++)
-		for(size_t j=0; j<mTrackers[i]->getNumberOfDevices(); j++)
-		{
-			SGCTTrackingDevice * tdPtr = mTrackers[i]->getDevicePtr(j);
-			if( tdPtr->isEnabled() && tdPtr == mHead && mHeadUser != NULL)
-			{
-				mHeadUser->setTransform(tdPtr->getWorldTransform());
-			}
-		}
+    for(size_t i=0; i<mTrackers.size(); i++)
+        for(size_t j=0; j<mTrackers[i]->getNumberOfDevices(); j++)
+        {
+            SGCTTrackingDevice * tdPtr = mTrackers[i]->getDevicePtr(j);
+            if( tdPtr->isEnabled() && tdPtr == mHead && mHeadUser != NULL)
+            {
+                mHeadUser->setTransform(tdPtr->getWorldTransform());
+            }
+        }
 }
 
 void sgct::SGCTTrackingManager::addTracker(std::string name)
 {
-	if (!getTrackerPtr(name.c_str()))
-	{
-		mTrackers.push_back(new SGCTTracker(name));
+    if (!getTrackerPtr(name.c_str()))
+    {
+        mTrackers.push_back(new SGCTTracker(name));
 
-		VRPNTracker tmpVRPNTracker;
-		gTrackers.push_back(tmpVRPNTracker);
+        VRPNTracker tmpVRPNTracker;
+        gTrackers.push_back(tmpVRPNTracker);
 
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Tracker '%s' added succesfully.\n", name.c_str());
-	}
-	else
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Tracking: Tracker '%s' already exists!\n", name.c_str());
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Tracker '%s' added succesfully.\n", name.c_str());
+    }
+    else
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_WARNING, "Tracking: Tracker '%s' already exists!\n", name.c_str());
 }
 
 void sgct::SGCTTrackingManager::addDeviceToCurrentTracker(std::string name)
 {
-	mNumberOfDevices++;
+    mNumberOfDevices++;
 
-	mTrackers.back()->addDevice(name, mTrackers.size() - 1);
+    mTrackers.back()->addDevice(name, mTrackers.size() - 1);
 
-	VRPNPointer tmpPtr;
-	tmpPtr.mSensorDevice = NULL;
-	tmpPtr.mAnalogDevice = NULL;
-	tmpPtr.mButtonDevice = NULL;
+    VRPNPointer tmpPtr;
+    tmpPtr.mSensorDevice = NULL;
+    tmpPtr.mAnalogDevice = NULL;
+    tmpPtr.mButtonDevice = NULL;
 
-	gTrackers.back().mDevices.push_back( tmpPtr );
+    gTrackers.back().mDevices.push_back( tmpPtr );
 }
 
 void sgct::SGCTTrackingManager::addSensorToCurrentDevice(const char * address, int id)
 {
-	if(gTrackers.empty() || gTrackers.back().mDevices.empty())
-		return;
+    if(gTrackers.empty() || gTrackers.back().mDevices.empty())
+        return;
 
-	std::pair<std::set<std::string>::iterator, bool> retVal =
-		mAddresses.insert( std::string(address) );
+    std::pair<std::set<std::string>::iterator, bool> retVal =
+        mAddresses.insert( std::string(address) );
 
-	VRPNPointer * ptr = &gTrackers.back().mDevices.back();
-	SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
+    VRPNPointer * ptr = &gTrackers.back().mDevices.back();
+    SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
 
-	if( devicePtr != NULL)
-	{
-		devicePtr->setSensorId( id );
+    if( devicePtr != NULL)
+    {
+        devicePtr->setSensorId( id );
 
-		if( retVal.second && (*ptr).mSensorDevice == NULL)
-		{
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to sensor '%s'...\n", address);
-			(*ptr).mSensorDevice = new vrpn_Tracker_Remote( address );
+        if( retVal.second && (*ptr).mSensorDevice == NULL)
+        {
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to sensor '%s'...\n", address);
+            (*ptr).mSensorDevice = new vrpn_Tracker_Remote( address );
 
-			if( (*ptr).mSensorDevice != NULL )
-			{
-				(*ptr).mSensorDevice->register_change_handler( mTrackers.back(), update_tracker_cb);
-			}
-			else
-				MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s' on device %s!\n",
-					address, devicePtr->getName().c_str());
-		}
-	}
-	else
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s'!\n",
-			address);
+            if( (*ptr).mSensorDevice != NULL )
+            {
+                (*ptr).mSensorDevice->register_change_handler( mTrackers.back(), update_tracker_cb);
+            }
+            else
+                MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s' on device %s!\n",
+                    address, devicePtr->getName().c_str());
+        }
+    }
+    else
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to sensor '%s'!\n",
+            address);
 }
 
 void sgct::SGCTTrackingManager::addButtonsToCurrentDevice(const char * address, size_t numOfButtons)
 {
-	if(gTrackers.empty() || gTrackers.back().mDevices.empty())
-		return;
+    if(gTrackers.empty() || gTrackers.back().mDevices.empty())
+        return;
 
-	VRPNPointer * ptr = &gTrackers.back().mDevices.back();
-	SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
+    VRPNPointer * ptr = &gTrackers.back().mDevices.back();
+    SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
 
-	if( (*ptr).mButtonDevice == NULL && devicePtr != NULL)
-	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to buttons '%s' on device %s...\n",
-					address, devicePtr->getName().c_str());
+    if( (*ptr).mButtonDevice == NULL && devicePtr != NULL)
+    {
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to buttons '%s' on device %s...\n",
+                    address, devicePtr->getName().c_str());
 
-		(*ptr).mButtonDevice = new vrpn_Button_Remote( address );
+        (*ptr).mButtonDevice = new vrpn_Button_Remote( address );
 
-		if( (*ptr).mButtonDevice != NULL ) //connected
-		{
-			(*ptr).mButtonDevice->register_change_handler(devicePtr, update_button_cb);
-			devicePtr->setNumberOfButtons( numOfButtons );
-		}
-		else
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s' on device %s!\n",
-				address, devicePtr->getName().c_str());
-	}
-	else
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s'!\n",
-			address);
+        if( (*ptr).mButtonDevice != NULL ) //connected
+        {
+            (*ptr).mButtonDevice->register_change_handler(devicePtr, update_button_cb);
+            devicePtr->setNumberOfButtons( numOfButtons );
+        }
+        else
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s' on device %s!\n",
+                address, devicePtr->getName().c_str());
+    }
+    else
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to buttons '%s'!\n",
+            address);
 }
 
 void sgct::SGCTTrackingManager::addAnalogsToCurrentDevice(const char * address, size_t numOfAxes)
 {
-	if(gTrackers.empty() || gTrackers.back().mDevices.empty())
-		return;
+    if(gTrackers.empty() || gTrackers.back().mDevices.empty())
+        return;
 
-	VRPNPointer * ptr = &gTrackers.back().mDevices.back();
-	SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
+    VRPNPointer * ptr = &gTrackers.back().mDevices.back();
+    SGCTTrackingDevice * devicePtr = mTrackers.back()->getLastDevicePtr();
 
-	if( (*ptr).mAnalogDevice == NULL && devicePtr != NULL)
-	{
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to analogs '%s' on device %s...\n",
-				address, devicePtr->getName().c_str());
+    if( (*ptr).mAnalogDevice == NULL && devicePtr != NULL)
+    {
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Tracking: Connecting to analogs '%s' on device %s...\n",
+                address, devicePtr->getName().c_str());
 
-		(*ptr).mAnalogDevice = new vrpn_Analog_Remote( address );
+        (*ptr).mAnalogDevice = new vrpn_Analog_Remote( address );
 
-		if( (*ptr).mAnalogDevice != NULL )
-		{
-			(*ptr).mAnalogDevice->register_change_handler(devicePtr, update_analog_cb);
-			devicePtr->setNumberOfAxes( numOfAxes );
-		}
-		else
-			MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s' on device %s!\n",
-				address, devicePtr->getName().c_str());
-	}
-	else
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s'!\n",
-				address);
+        if( (*ptr).mAnalogDevice != NULL )
+        {
+            (*ptr).mAnalogDevice->register_change_handler(devicePtr, update_analog_cb);
+            devicePtr->setNumberOfAxes( numOfAxes );
+        }
+        else
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s' on device %s!\n",
+                address, devicePtr->getName().c_str());
+    }
+    else
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to connect to analogs '%s'!\n",
+                address);
 }
 
 void sgct::SGCTTrackingManager::setHeadTracker(const char * trackerName, const char * deviceName)
 {
-	SGCTTracker * trackerPtr = getTrackerPtr( trackerName );
+    SGCTTracker * trackerPtr = getTrackerPtr( trackerName );
 
-	if( trackerPtr != NULL )
-		mHead = trackerPtr->getDevicePtr( deviceName );
-	//else no head tracker found
+    if( trackerPtr != NULL )
+        mHead = trackerPtr->getDevicePtr( deviceName );
+    //else no head tracker found
 
-	if( mHead == NULL && strlen(trackerName) > 0 && strlen(deviceName) > 0 )
-		MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to set head tracker to %s@%s!\n",
-				deviceName, trackerName);
+    if( mHead == NULL && strlen(trackerName) > 0 && strlen(deviceName) > 0 )
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Tracking: Failed to set head tracker to %s@%s!\n",
+                deviceName, trackerName);
 }
 
 void samplingLoop(void *arg)
 {
-	sgct::SGCTTrackingManager * tmPtr =
-		reinterpret_cast<sgct::SGCTTrackingManager *>(arg);
+    sgct::SGCTTrackingManager * tmPtr =
+        reinterpret_cast<sgct::SGCTTrackingManager *>(arg);
 
-	double t;
-	bool running = true;
+    double t;
+    bool running = true;
 
-	while(running)
-	{
-		t = sgct::Engine::getTime();
-		for(size_t i=0; i<tmPtr->getNumberOfTrackers(); i++)
-		{
-			sgct::SGCTTracker * trackerPtr = tmPtr->getTrackerPtr(i);
+    while(running)
+    {
+        t = sgct::Engine::getTime();
+        for(size_t i=0; i<tmPtr->getNumberOfTrackers(); i++)
+        {
+            sgct::SGCTTracker * trackerPtr = tmPtr->getTrackerPtr(i);
 
-			if( trackerPtr != NULL )
-			{
-				for(size_t j=0; j<trackerPtr->getNumberOfDevices(); j++)
-				{
-					if( trackerPtr->getDevicePtr(j)->isEnabled() )
-					{
-						if( gTrackers[i].mDevices[j].mSensorDevice != NULL )
-							gTrackers[i].mDevices[j].mSensorDevice->mainloop();
+            if( trackerPtr != NULL )
+            {
+                for(size_t j=0; j<trackerPtr->getNumberOfDevices(); j++)
+                {
+                    if( trackerPtr->getDevicePtr(j)->isEnabled() )
+                    {
+                        if( gTrackers[i].mDevices[j].mSensorDevice != NULL )
+                            gTrackers[i].mDevices[j].mSensorDevice->mainloop();
 
-						if( gTrackers[i].mDevices[j].mAnalogDevice != NULL )
-							gTrackers[i].mDevices[j].mAnalogDevice->mainloop();
+                        if( gTrackers[i].mDevices[j].mAnalogDevice != NULL )
+                            gTrackers[i].mDevices[j].mAnalogDevice->mainloop();
 
-						if( gTrackers[i].mDevices[j].mButtonDevice != NULL )
-							gTrackers[i].mDevices[j].mButtonDevice->mainloop();
-					}
-				}
-			}
-		}
+                        if( gTrackers[i].mDevices[j].mButtonDevice != NULL )
+                            gTrackers[i].mDevices[j].mButtonDevice->mainloop();
+                    }
+                }
+            }
+        }
 
-		running = tmPtr->isRunning();
+        running = tmPtr->isRunning();
 
-		tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
+        tmPtr->setSamplingTime(sgct::Engine::getTime() - t);
 
-		// Sleep for 1ms so we don't eat the CPU
-		vrpn_SleepMsecs(1);
-	}
+        // Sleep for 1ms so we don't eat the CPU
+        vrpn_SleepMsecs(1);
+    }
 }
 
 sgct::SGCTTracker * sgct::SGCTTrackingManager::getLastTrackerPtr()
 {
-	return mTrackers.size() > 0 ? mTrackers.back() : NULL;
+    return mTrackers.size() > 0 ? mTrackers.back() : NULL;
 }
 
 sgct::SGCTTracker * sgct::SGCTTrackingManager::getTrackerPtr(size_t index)
 {
-	return index < mTrackers.size() ? mTrackers[index] : NULL;
+    return index < mTrackers.size() ? mTrackers[index] : NULL;
 }
 
 sgct::SGCTTracker * sgct::SGCTTrackingManager::getTrackerPtr(const char * name)
 {
-	for(size_t i=0; i<mTrackers.size(); i++)
-	{
-		if( strcmp(name, mTrackers[i]->getName().c_str()) == 0 )
-			return mTrackers[i];
-	}
+    for(size_t i=0; i<mTrackers.size(); i++)
+    {
+        if( strcmp(name, mTrackers[i]->getName().c_str()) == 0 )
+            return mTrackers[i];
+    }
 
-	//MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
+    //MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
 
-	//if not found
-	return NULL;
+    //if not found
+    return NULL;
 }
 
 void sgct::SGCTTrackingManager::setEnabled(bool state)
 {
-	for(size_t i=0; i<mTrackers.size(); i++)
-	{
-		mTrackers[i]->setEnabled( state );
-	}
+    for(size_t i=0; i<mTrackers.size(); i++)
+    {
+        mTrackers[i]->setEnabled( state );
+    }
 }
 
 void sgct::SGCTTrackingManager::setSamplingTime(double t)
@@ -372,9 +372,9 @@ void sgct::SGCTTrackingManager::setSamplingTime(double t)
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop...\n");
 #endif
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
-		mSamplingTime = t;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+        mSamplingTime = t;
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 }
 
 double sgct::SGCTTrackingManager::getSamplingTime()
@@ -382,49 +382,49 @@ double sgct::SGCTTrackingManager::getSamplingTime()
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sampling time for vrpn loop...\n");
 #endif
-	double tmpVal;
-	SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
-		tmpVal = mSamplingTime;
-	SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    double tmpVal;
+    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+        tmpVal = mSamplingTime;
+    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
 
-	return tmpVal;
+    return tmpVal;
 }
 
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
     sgct::SGCTTracker * trackerPtr =
-		reinterpret_cast<sgct::SGCTTracker *>(userdata);
-	if( trackerPtr == NULL )
-		return;
+        reinterpret_cast<sgct::SGCTTracker *>(userdata);
+    if( trackerPtr == NULL )
+        return;
 
-	sgct::SGCTTrackingDevice * devicePtr = trackerPtr->getDevicePtrBySensorId( info.sensor );
+    sgct::SGCTTrackingDevice * devicePtr = trackerPtr->getDevicePtrBySensorId( info.sensor );
 
-	if(devicePtr == NULL)
-		return;
+    if(devicePtr == NULL)
+        return;
 
-	glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
-	posVec *= trackerPtr->getScale();
+    glm::dvec3 posVec = glm::dvec3( info.pos[0], info.pos[1], info.pos[2] );
+    posVec *= trackerPtr->getScale();
 
-	glm::dquat rotation(info.quat[3], info.quat[0], info.quat[1], info.quat[2]);
+    glm::dquat rotation(info.quat[3], info.quat[0], info.quat[1], info.quat[2]);
 
-	devicePtr->setSensorTransform(posVec, rotation);
+    devicePtr->setSensorTransform(posVec, rotation);
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 {
-	sgct::SGCTTrackingDevice * devicePtr =
-		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
+    sgct::SGCTTrackingDevice * devicePtr =
+        reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
 
-	//fprintf(stderr, "Button: %d, state: %d\n", b.button, b.state);
+    //fprintf(stderr, "Button: %d, state: %d\n", b.button, b.state);
 
-	b.state == 0 ?
-		devicePtr->setButtonVal( false, b.button) :
-		devicePtr->setButtonVal( true, b.button);
+    b.state == 0 ?
+        devicePtr->setButtonVal( false, b.button) :
+        devicePtr->setButtonVal( true, b.button);
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
-	sgct::SGCTTrackingDevice * tdPtr =
-		reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
-	tdPtr->setAnalogVal( a.channel, static_cast<size_t>(a.num_channel));
+    sgct::SGCTTrackingDevice * tdPtr =
+        reinterpret_cast<sgct::SGCTTrackingDevice *>(userdata);
+    tdPtr->setAnalogVal( a.channel, static_cast<size_t>(a.num_channel));
 }

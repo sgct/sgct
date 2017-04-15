@@ -21,102 +21,102 @@ bool error = false;
 int main( int argc, char* argv[] )
 {
 
-	// Allocate
-	gEngine = new sgct::Engine( argc, argv );
+    // Allocate
+    gEngine = new sgct::Engine( argc, argv );
 
-	// Bind your functions
-	gEngine->setInitOGLFunction( myInitOGLFun );
-	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreSyncFunction( myPreSyncFun );
-	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    // Bind your functions
+    gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setPreSyncFunction( myPreSyncFun );
+    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
-	// Init the engine
-	if( !gEngine->init() )
-	{
-		delete gEngine;
-		return EXIT_FAILURE;
-	}
+    // Init the engine
+    if( !gEngine->init() )
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
 
-	// Main loop
-	gEngine->render();
+    // Main loop
+    gEngine->render();
 
-	// Clean up (de-allocate)
-	delete gEngine;
+    // Clean up (de-allocate)
+    delete gEngine;
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }
 
 void myInitOGLFun()
 {
-	glEnable(GL_DEPTH_TEST);
+    glEnable(GL_DEPTH_TEST);
  
-	//connect only to VRPN on the master
-	if( gEngine->isMaster() )
-	{
-		//get the tracking pointers
-		sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
-		if(tracker != NULL)
-		{
-			leftHand	= tracker->getDevicePtr("Left Hand");
-			rightHand	= tracker->getDevicePtr("Right Hand");
-		}
+    //connect only to VRPN on the master
+    if( gEngine->isMaster() )
+    {
+        //get the tracking pointers
+        sgct::SGCTTracker * tracker = sgct::Engine::getTrackingManager()->getTrackerPtr("Kinect0");
+        if(tracker != NULL)
+        {
+            leftHand    = tracker->getDevicePtr("Left Hand");
+            rightHand    = tracker->getDevicePtr("Right Hand");
+        }
 
-		if(leftHand == NULL || rightHand == NULL)
-		{
-			error = true;
-			sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
-		}
-	}
+        if(leftHand == NULL || rightHand == NULL)
+        {
+            error = true;
+            sgct::MessageHandler::instance()->print("Failed to get pointers to hand trackers!\n");
+        }
+    }
 }
 
 void myDrawFun()
 {
-	float speed = 50.0f;
-	glRotatef(static_cast<float>( curr_time.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
+    float speed = 50.0f;
+    glRotatef(static_cast<float>( curr_time.getVal() ) * speed, 0.0f, 1.0f, 0.0f);
 
-	float size = size_factor.getVal();
+    float size = size_factor.getVal();
 
-	//render a single triangle
-	glBegin(GL_TRIANGLES);
-		glColor3f(1.0f, 0.0f, 0.0f); //Red
-		glVertex3f(-0.5f * size, -0.5f * size, 0.0f);
+    //render a single triangle
+    glBegin(GL_TRIANGLES);
+        glColor3f(1.0f, 0.0f, 0.0f); //Red
+        glVertex3f(-0.5f * size, -0.5f * size, 0.0f);
  
-		glColor3f(0.0f, 1.0f, 0.0f); //Green
-		glVertex3f(0.0f, 0.5f * size, 0.0f);
+        glColor3f(0.0f, 1.0f, 0.0f); //Green
+        glVertex3f(0.0f, 0.5f * size, 0.0f);
  
-		glColor3f(0.0f, 0.0f, 1.0f); //Blue
-		glVertex3f(0.5f * size, -0.5f * size, 0.0f);
-	glEnd();
+        glColor3f(0.0f, 0.0f, 1.0f); //Blue
+        glVertex3f(0.5f * size, -0.5f * size, 0.0f);
+    glEnd();
 }
 
 void myPreSyncFun()
 {
-	//set the time only on the master
-	if( gEngine->isMaster() )
-	{
-		//get the time in seconds
-		curr_time.setVal(sgct::Engine::getTime());
+    //set the time only on the master
+    if( gEngine->isMaster() )
+    {
+        //get the time in seconds
+        curr_time.setVal(sgct::Engine::getTime());
 
-		if(!error)
-		{
-			glm::vec3 leftPos = leftHand->getPosition();
-			glm::vec3 rightPos = rightHand->getPosition();
-			float dist = glm::length(leftPos - rightPos);
-			size_factor.setVal( (dist < 2.0f && dist > 0.2f) ? dist : 0.5f );
-		}
-	}
+        if(!error)
+        {
+            glm::vec3 leftPos = leftHand->getPosition();
+            glm::vec3 rightPos = rightHand->getPosition();
+            float dist = glm::length(leftPos - rightPos);
+            size_factor.setVal( (dist < 2.0f && dist > 0.2f) ? dist : 0.5f );
+        }
+    }
 }
 
 void myEncodeFun()
 {
-	sgct::SharedData::instance()->writeDouble( &curr_time );
-	sgct::SharedData::instance()->writeFloat( &size_factor );
+    sgct::SharedData::instance()->writeDouble( &curr_time );
+    sgct::SharedData::instance()->writeFloat( &size_factor );
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::instance()->readDouble( &curr_time );
-	sgct::SharedData::instance()->readFloat( &size_factor );
+    sgct::SharedData::instance()->readDouble( &curr_time );
+    sgct::SharedData::instance()->readFloat( &size_factor );
 }

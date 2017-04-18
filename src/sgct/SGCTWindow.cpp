@@ -494,6 +494,10 @@ void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 	mAspectRatio = static_cast<float>( x ) /
 			static_cast<float>( y );
 
+	//redraw window
+	if (mWindowHandle)
+		glfwSetWindowSize(mWindowHandle, x, y);
+
 	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Resolution changed to %dx%d for window %d...\n", mWindowRes[0], mWindowRes[1], mId);
 }
 

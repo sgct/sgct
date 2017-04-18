@@ -1,4 +1,9 @@
 #include "Dome.h"
+#include <fstream>
+#include <iostream>
+#include <iomanip>
+
+#define EXPORT_DOME_MODEL 0
 
 Dome::Dome(float radius, float tilt)
 {
@@ -487,97 +492,180 @@ void Dome::generateDisplayList()
 	glNewList( mTexDisplayList, GL_COMPILE );
 	glColor4f( 1.0f, 1.0f, 1.0f, 1.0f );
 
-	float x0, y0, z0;
-	float x1, y1, z1;
-	float s0, t0, s1, t1;
+	DomeVertex dv0, dv1;
 
 	float elevation0, elevation1;
 	int e;
-	float fill = 1.0f;
+	float de0, de1;
+	float lift = 7.5f;
 
 	const int elevationSteps = 64;
 	const int azimuthSteps = 256;
+
+	//const int elevationSteps = 8;
+	//const int azimuthSteps = 32;
+	std::vector<DomeVertex> mRingVertices;
 	for(e=0; e<(elevationSteps-1); e++)
 	{
-		elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
-		elevation1 = glm::radians( static_cast<float>((e+1) * 90)/static_cast<float>(elevationSteps) );
+		mRingVertices.clear();
+		
+		de0 = static_cast<float>(e) / static_cast<float>(elevationSteps);
+		elevation0 = glm::radians(lift + de0 * (90.0f - lift));
+		
+		de1 = static_cast<float>(e+1) / static_cast<float>(elevationSteps);
+		elevation1 = glm::radians(lift + de1 * (90.0f - lift));
 			
 		glBegin( GL_TRIANGLE_STRIP );
 
-		y0 = sinf( elevation0 );
-		y1 = sinf( elevation1 );
+		dv0.y = sinf( elevation0 );
+		dv1.y = sinf( elevation1 );
+
 		for(int a=0; a<=azimuthSteps; a++)
 		{
 			azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
 				
-			x0 = cosf( elevation0 ) * sinf( azimuth );
-			z0 = -cosf( elevation0 ) * cosf( azimuth );
+			dv0.x = cosf( elevation0 ) * sinf( azimuth );
+			dv0.z = -cosf( elevation0 ) * cosf( azimuth );
 
-			x1 = cosf( elevation1 ) * sinf( azimuth );
-			z1 = -cosf( elevation1 ) * cosf( azimuth );
+			dv1.x = cosf( elevation1 ) * sinf( azimuth );
+			dv1.z = -cosf( elevation1 ) * cosf( azimuth );
 
-			s0 = (static_cast<float>(elevationSteps -e ) / static_cast<float>(elevationSteps)) * sinf(azimuth);
-			s1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * sinf(azimuth);
-			t0 = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
-			t1 = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+			dv0.s = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+			dv1.s = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+			dv0.t = (static_cast<float>(elevationSteps - e ) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+			dv1.t = (static_cast<float>(elevationSteps - (e + 1)) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
 
-			s0 = (s0 * 0.5f) + 0.5f;
-			s1 = (s1 * 0.5f) + 0.5f;
-			t0 = (t0 * 0.5f) + 0.5f;
-			t1 = (t1 * 0.5f) + 0.5f;
+			dv0.s = (dv0.s * 0.5f) + 0.5f;
+			dv1.s = (dv1.s * 0.5f) + 0.5f;
+			dv0.t = (dv0.t * 0.5f) + 0.5f;
+			dv1.t = (dv1.t * 0.5f) + 0.5f;
 
-			/*s0 = fill*(x0/2.0f) + 0.5f;
-			s1 = fill*(x1/2.0f) + 0.5f;
-			t0 = fill*(z0/2.0f) + 0.5f;
-			t1 = fill*(z1/2.0f) + 0.5f;*/
+			glMultiTexCoord2f( GL_TEXTURE0, dv0.s, dv0.t);
+			glMultiTexCoord2f( GL_TEXTURE1, dv0.s, dv0.t);
+			glVertex3f(dv0.x*mRadius, dv0.y*mRadius, dv0.z*mRadius);
 
-			//if (a == 0)
-			//	fprintf(stderr, "Tex %f %f\n", s0, t0);
+			glMultiTexCoord2f( GL_TEXTURE0, dv1.s, dv1.t);
+			glMultiTexCoord2f( GL_TEXTURE1, dv1.s, dv1.t);
+			glVertex3f(dv1.x*mRadius, dv1.y*mRadius, dv1.z*mRadius);
 
-
-			glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
-			glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
-			glVertex3f(x0*mRadius, y0*mRadius, z0*mRadius);
-
-			glMultiTexCoord2f( GL_TEXTURE0, s1, t1 );
-			glMultiTexCoord2f( GL_TEXTURE1, s1, t1 );
-			glVertex3f(x1*mRadius, y1*mRadius, z1*mRadius);
+			mRingVertices.push_back(dv0);
+			//mRingVertices.push_back(dv1);
 		}
 
 		glEnd();
+		mVertices.push_back(mRingVertices);
 	}
 		
 	//CAP
+	DomeVertex pole;
+	mRingVertices.clear();
+
 	e = elevationSteps - 1;
-	elevation0 = glm::radians( static_cast<float>(e * 90)/static_cast<float>(elevationSteps) );
-	elevation1 = glm::radians( static_cast<float>((e+1) * 90)/static_cast<float>(elevationSteps) );
+	de0 = static_cast<float>(e) / static_cast<float>(elevationSteps);
+	elevation0 = glm::radians(lift + de0 * (90.0f - lift));
+
+	de1 = static_cast<float>(e + 1) / static_cast<float>(elevationSteps);
+	elevation1 = glm::radians(lift + de1 * (90.0f - lift));
 
 	glBegin( GL_TRIANGLE_FAN );
 
-	y0 = mRadius * sinf( elevation0 );
-	y1 = mRadius * sinf( elevation1 );
+	dv1.x = 0.0f;
+	dv1.z = 0.0f;
 
-	glMultiTexCoord2f( GL_TEXTURE0, 0.5f, 0.5f );
-	glMultiTexCoord2f( GL_TEXTURE1, 0.5f, 0.5f );
-	glVertex3f( 0.0f, y1, 0.0f );
-			
+	dv0.y = sinf( elevation0 );
+	dv1.y = sinf( elevation1 );
+
+	dv1.s = 0.5f;
+	dv1.t = 0.5f;
+
+	glMultiTexCoord2f( GL_TEXTURE0, dv1.s, dv1.t);
+	glMultiTexCoord2f( GL_TEXTURE1, dv1.s, dv1.t);
+	glVertex3f(dv1.x * mRadius, dv1.y * mRadius, dv1.z * mRadius);
+
 	for(int a=0; a<=azimuthSteps; a++)
 	{
 		azimuth = glm::radians( static_cast<float>(a * 360)/static_cast<float>(azimuthSteps) );
 			
-		x0 = mRadius * cosf( elevation0 ) * sinf( azimuth );
-		z0 = -mRadius * cosf( elevation0 ) * cosf( azimuth );
+		dv0.x =  cosf( elevation0 ) * sinf( azimuth );
+		dv0.z = -cosf( elevation0 ) * cosf( azimuth );
 
-		s0 = fill*((x0/mRadius)/2.0f) + 0.5f;
-		t0 = fill*((z0/mRadius)/2.0f) + 0.5f;
+		dv0.s = (static_cast<float>(elevationSteps - e) / static_cast<float>(elevationSteps)) * sinf(azimuth);
+		dv0.t = (static_cast<float>(elevationSteps - e) / static_cast<float>(elevationSteps)) * -cosf(azimuth);
+		dv0.s = (dv0.s * 0.5f) + 0.5f;
+		dv0.t = (dv0.t * 0.5f) + 0.5f;
 			
-		glMultiTexCoord2f( GL_TEXTURE0, s0, t0 );
-		glMultiTexCoord2f( GL_TEXTURE1, s0, t0 );
-		glVertex3f( x0, y0, z0 );
+		glMultiTexCoord2f( GL_TEXTURE0, dv0.s, dv0.t);
+		glMultiTexCoord2f( GL_TEXTURE1, dv0.s, dv0.t);
+		glVertex3f(dv0.x * mRadius, dv0.y * mRadius, dv0.z * mRadius);
+
+		mRingVertices.push_back(dv0);
 	}
+
+	mVertices.push_back(mRingVertices);
+	pole = dv1;
 
 	glEnd();
 	glEndList();
+
+#if EXPORT_DOME_MODEL
+	std::ofstream file;
+	std::string outputPath = "dome.obj";
+	file.open(outputPath, std::ios::out);
+	if (file.is_open())
+	{
+		file << std::fixed;
+		file << std::setprecision(8);
+
+		file << "# SGCT dome mesh\n";
+
+		//export vertices
+		for (std::size_t i = 0; i < mVertices.size(); i++)
+			for (std::size_t j = 0; j <= azimuthSteps; j++)
+				file << "v " << mVertices[i][j].x << " " << mVertices[i][j].y << " " << mVertices[i][j].z << std::endl;
+		file << "v " << pole.x << " " << pole.y << " " << pole.z << std::endl;
+
+		//export texture coords
+		for (std::size_t i = 0; i < mVertices.size(); i++)
+			for (std::size_t j = 0; j <= azimuthSteps; j++)
+				file << "vt " << mVertices[i][j].s << " " << mVertices[i][j].t << " " << 0.0f << std::endl;
+		file << "vt " << pole.s << " " << pole.t << " " << 0.0f << std::endl;
+
+		//export faces
+		std::size_t index;
+		for (std::size_t i = 0; i < (mVertices.size() - 1); i++)
+		{
+			index = i*(azimuthSteps + 1) + 1;
+			
+			for (std::size_t j = 0; j < azimuthSteps; j++)
+			{
+				file << "f ";
+				file << index << "/" << index << " ";
+				file << index + 1 << "/" << index + 1 << " ";
+				file << index + azimuthSteps + 1 << "/" << index + azimuthSteps + 1;
+				file << std::endl;
+
+				file << "f ";
+				file << index + 1 << "/" << index + 1 << " ";
+				file << index + azimuthSteps + 2 << "/" << index + azimuthSteps + 2 << " ";
+				file << index + azimuthSteps + 1 << "/" << index + azimuthSteps + 1;
+				file << std::endl;
+
+				index++;
+			}
+		}
+		//cap
+		index = (mVertices.size()-1)*(azimuthSteps+1) + 1;
+		std::size_t last = mVertices.size()*(azimuthSteps+1) + 1;
+		for (std::size_t i = 0; i < azimuthSteps; i++)
+		{
+			file << "f " << last << "/" << last << " ";
+			file << index + i << "/" << index + i << " ";
+			file << index + i + 1 << "/" << index + i + 1  << std::endl;
+		}
+
+		file.close();
+	}
+#endif
 }
 
 void Dome::drawLatitudeLines(float latitude, float minLongitude, float maxLongitude, int segments)

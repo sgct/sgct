@@ -5,6 +5,11 @@
 
 enum{ STEP = 0, STEP_INVERTED, SOLID, GRADIENT, GRADIENT_INVERTED };
 
+struct DomeVertex
+{
+	float x, y, z, s, t;
+};
+
 class Dome
 {
 public:
@@ -33,6 +38,9 @@ private:
 	unsigned int mBlendZonesDisplayList;
 	unsigned int mChannelZonesDisplayList;
 	unsigned int mTexDisplayList;
+
+	std::vector<std::vector<DomeVertex>> mVertices;
+	//std::vector<DomeVertex> mCapVertices;
 };
 
 #endif

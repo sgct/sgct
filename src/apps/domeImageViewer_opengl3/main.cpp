@@ -456,7 +456,7 @@ void uploadTexture()
 
 				GLenum internalformat;
 				GLenum type;
-				unsigned int bpc = transImages[i]->getBytesPerChannel();
+				std::size_t bpc = transImages[i]->getBytesPerChannel();
 
 				switch (transImages[i]->getChannels())
 				{
@@ -484,8 +484,8 @@ void uploadTexture()
 
 				GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-				glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, transImages[i]->getWidth(), transImages[i]->getHeight());
-				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImages[i]->getWidth(), transImages[i]->getHeight(), type, format, transImages[i]->getData());
+				glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, static_cast<GLsizei>(transImages[i]->getWidth()), static_cast<GLsizei>(transImages[i]->getHeight()));
+				glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(transImages[i]->getWidth()), static_cast<GLsizei>(transImages[i]->getHeight()), type, format, transImages[i]->getData());
 
 				//---------------------
 				// Disable mipmaps

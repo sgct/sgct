@@ -391,8 +391,8 @@ void screenShot(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::Scree
                                             imPtr->getChannels() * 8,
                                             winIndex, eye.c_str()
                                             );
-    static int lastAllocSize = 0;
-	int dataSize = imPtr->getWidth() * imPtr->getChannels() * imPtr->getChannels();
+    std::size_t lastAllocSize = 0;
+	std::size_t dataSize = imPtr->getWidth() * imPtr->getChannels() * imPtr->getChannels();
     if( mData == NULL )
     {
         mData = new (std::nothrow) unsigned char[dataSize];

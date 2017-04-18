@@ -1639,7 +1639,7 @@ void sgct_core::CorrectionMesh::exportMesh(const std::string & exportMeshPath)
 		for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
 			file << "vn 0 0 1\n";
 
-		file << "# Number of faces: " << mGeometries[WARP_MESH].mNumberOfIndices << "\n";
+		file << "# Number of faces: " << mGeometries[WARP_MESH].mNumberOfIndices/3 << "\n";
 
 		//export face indices
 		if (mGeometries[WARP_MESH].mGeometryType == GL_TRIANGLES)

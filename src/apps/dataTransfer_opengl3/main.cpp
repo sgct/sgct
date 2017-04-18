@@ -415,7 +415,7 @@ void uploadTexture()
         
         GLenum internalformat;
         GLenum type;
-		unsigned int bpc = transImg->getBytesPerChannel();
+		std::size_t bpc = transImg->getBytesPerChannel();
 
         switch( transImg->getChannels() )
         {
@@ -444,8 +444,8 @@ void uploadTexture()
         int mipMapLevels = 8;
 		GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
 
-        glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, transImg->getWidth(), transImg->getHeight());
-		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImg->getWidth(), transImg->getHeight(), type, format, transImg->getData());
+        glTexStorage2D(GL_TEXTURE_2D, mipMapLevels, internalformat, static_cast<GLsizei>(transImg->getWidth()), static_cast<GLsizei>(transImg->getHeight()));
+		glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, static_cast<GLsizei>(transImg->getWidth()), static_cast<GLsizei>(transImg->getHeight()), type, format, transImg->getData());
         
         //glTexImage2D(GL_TEXTURE_2D, 0, internalformat, transImg->getWidth(), transImg->getHeight(), 0, type, GL_UNSIGNED_BYTE, transImg->getData());
         

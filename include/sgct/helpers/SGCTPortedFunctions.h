@@ -23,8 +23,19 @@ static int vscprintf (const char * format, va_list pargs)
     va_end(argcopy);
     return retval;
 }
+
+static int vswcprintf(const wchar_t * format, va_list pargs)
+{
+	int retval;
+	va_list argcopy;
+	va_copy(argcopy, pargs);
+	retval = vsnwprintf(NULL, 0, format, argcopy);
+	va_end(argcopy);
+	return retval;
+}
 #else
 #define vscprintf(f,a) _vscprintf(f,a)
+#define vscwprintf(f,a) _vscwprintf(f,a)
 #endif
 
 #endif

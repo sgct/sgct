@@ -9,6 +9,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _SGCT_STRING_FUNCTIONS
 
 #include <string>
+#include <vector>
+#include <sstream>
 
 namespace sgct_helpers
 {
@@ -27,6 +29,33 @@ static void findAndReplace(std::string & src, std::string pattern, std::string r
 			break;
 	}
 }
+
+static std::vector<std::string> split(std::string str, char delimiter)
+{
+	std::vector<std::string> tmpVec;
+	std::stringstream ss(str);
+	std::string part;
+
+	while (getline(ss, part, delimiter)) {
+		tmpVec.push_back(part);
+	}
+
+	return tmpVec;
+}
+
+static std::vector<std::wstring> split(std::wstring str, wchar_t delimiter)
+{
+	std::vector<std::wstring> tmpVec;
+	std::wstringstream ss(str);
+	std::wstring part;
+
+	while (getline(ss, part, delimiter)) {
+		tmpVec.push_back(part);
+	}
+
+	return tmpVec;
+}
+
 }
 
 #endif

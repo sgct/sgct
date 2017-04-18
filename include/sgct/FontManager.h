@@ -122,7 +122,7 @@ private:
 
 	/// Helper functions
 	std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
-	bool makeDisplayList( FT_Face face, char ch, Font & font );
+	bool makeDisplayList( FT_Face face, FT_ULong ch, Font & font );
 	bool makeVBO( FT_Face face, Font & font );
 	bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
 

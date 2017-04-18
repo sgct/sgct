@@ -8,6 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _FREETYPE_FONT_H_
 #define _FREETYPE_FONT_H_
 
+//#define NUM_OF_GLYPHS_TO_LOAD 128 //ASCII
+#define NUM_OF_GLYPHS_TO_LOAD 256 //UNICODE-8
+
 #ifndef SGCT_DONT_USE_EXTERNAL
 	#include <external/freetype/ftglyph.h>
 #else
@@ -39,7 +42,8 @@ public:
 	~Font();
 
 	void init( const std::string & fontName, unsigned int h );
-	void generateTexture(char c, int width, int height, unsigned char * data, bool generateMipMaps);
+	void generateTexture(std::size_t c, int width, int height, unsigned char * data, bool generateMipMaps);
+	std::size_t getNumberOfTextures();
 	void clean();
 
 	/*! Get the list base index */
@@ -55,15 +59,15 @@ public:
 	inline float getHeight() const { return mHeight; }
 
 	/*! Get the texture id's */
-	inline const unsigned int getTexture( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mTexId; }
+	inline const unsigned int getTexture( std::size_t c ) const { return mFontFaceData[c].mTexId; }
 
 	/*! Adds a glyph to the font */
 	inline void AddGlyph( const FT_Glyph & glyph ){ mGlyphs.push_back( glyph ); }
 
 	/*! Set the width of a character in the font */
-	inline void setCharWidth( char c, float width ){ mFontFaceData[static_cast<size_t>(c)].mCharWidth = width; }
+	inline void setCharWidth(std::size_t c, float width ){ mFontFaceData[c].mCharWidth = width; }
 	/*! Get the width of a character in the font */
-	inline float getCharWidth( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mCharWidth; }
+	inline float getCharWidth(std::size_t c) const { return mFontFaceData[c].mCharWidth; }
 
 
 public:

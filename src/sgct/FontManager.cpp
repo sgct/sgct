@@ -352,7 +352,7 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 	//This is where we actually create each of the fonts display lists.
 	if(sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
-		for( unsigned char i = 0;i < 128; ++i )
+		for(FT_ULong i = 0; i < NUM_OF_GLYPHS_TO_LOAD; ++i )
 			if(!makeDisplayList( face, i, newFont ))
 			{
 				newFont.clean();
@@ -368,6 +368,8 @@ std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const st
 		}
 	}
 
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of textures loaded: %u\n", newFont.getNumberOfTextures());
+
 	FT_Done_Face(face);
 
 	return mFonts.insert( newFont ).first;
@@ -382,7 +384,7 @@ Create a display list for the passed character
 @param	texBase		Texture base
 @return If display list character created successfully
 */
-bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & font )
+bool sgct_text::FontManager::makeDisplayList ( FT_Face face, FT_ULong ch, Font & font )
 {
 
 	//The first thing we do is get FreeType to render our character
@@ -480,16 +482,14 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, char ch, Font & fon
 /*!
 Create vertex buffer objects for the passed character
 @param	face		Font face to create glyph from
-@param	ch			Character to create glyph for
 @param	font		Font to create for
-@param	texBase		Texture base
 @return If display list character created successfully
 */
 bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 {
 	std::vector<float> coords;
 
-	for( unsigned char ch = 0; ch < 128; ++ch )
+	for(FT_ULong ch = 0; ch < NUM_OF_GLYPHS_TO_LOAD; ++ch )
 	{
 		FT_UInt char_index = FT_Get_Char_Index(face, ch);
 		if (char_index == 0)

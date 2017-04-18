@@ -53,12 +53,12 @@ void sgct_text::Font::init( const std::string & name, unsigned int height )
 {
 	//Allocate some memory to store the texture ids.
 	mName = name;
-	mFontFaceData = new FontFaceData[128];
+	mFontFaceData = new FontFaceData[NUM_OF_GLYPHS_TO_LOAD];
 	mHeight = static_cast<float>( height );
 
 	if( sgct::Engine::instance()->isOGLPipelineFixed() )
 	{
-		mListBase = glGenLists(128);
+		mListBase = glGenLists(NUM_OF_GLYPHS_TO_LOAD);
 	}
 	else
 	{
@@ -70,9 +70,9 @@ void sgct_text::Font::init( const std::string & name, unsigned int height )
 	}
 }
 
-void sgct_text::Font::generateTexture(char c, int width, int height, unsigned char * data, bool generateMipMaps)
+void sgct_text::Font::generateTexture(std::size_t c, int width, int height, unsigned char * data, bool generateMipMaps)
 {
-	unsigned int tex = mFontFaceData[static_cast<size_t>(c)].mTexId;
+	unsigned int tex = mFontFaceData[c].mTexId;
 	if (tex == GL_FALSE)
 	{
 		glGenTextures(1, &tex);
@@ -115,6 +115,18 @@ void sgct_text::Font::generateTexture(char c, int width, int height, unsigned ch
 }
 
 /*!
+Counts the number of textures used by this font.
+*/
+std::size_t sgct_text::Font::getNumberOfTextures()
+{
+	std::size_t counter = 0;
+	for (std::size_t i = 0; i < NUM_OF_GLYPHS_TO_LOAD; ++i)
+		if (mFontFaceData[i].mTexId != GL_FALSE)
+			counter++;
+	return counter;
+}
+
+/*!
 Cleans up memory used by the Font
 */
 void sgct_text::Font::clean()
@@ -122,7 +134,7 @@ void sgct_text::Font::clean()
 	if(mFontFaceData)	// Check if init has been called
 	{
 		if( sgct::Engine::instance()->isOGLPipelineFixed() && mListBase != 0)
-			glDeleteLists( mListBase, 128 );
+			glDeleteLists( mListBase, NUM_OF_GLYPHS_TO_LOAD);
 		else
 		{
 			if(mVAO != 0)
@@ -131,7 +143,7 @@ void sgct_text::Font::clean()
 				glDeleteBuffers(1, &mVBO);
 		}
 
-		for (std::size_t i = 0; i < 128; i++)
+		for (std::size_t i = 0; i < NUM_OF_GLYPHS_TO_LOAD; i++)
 			glDeleteTextures( 1, &(mFontFaceData[i].mTexId) );
 		delete [] mFontFaceData;
 		mFontFaceData = NULL;

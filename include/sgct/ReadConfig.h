@@ -14,9 +14,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "SGCTWindow.h"
 
 #ifndef SGCT_DONT_USE_EXTERNAL
-	#include <external/tinyxml2.h>
+    #include <external/tinyxml2.h>
 #else
-	#include <tinyxml2.h>
+    #include <tinyxml2.h>
 #endif
 
 namespace sgct_core //simple graphics cluster toolkit
@@ -25,22 +25,22 @@ namespace sgct_core //simple graphics cluster toolkit
 class ReadConfig
 {
 public:
-	ReadConfig( const std::string filename );
+    ReadConfig( const std::string filename );
 
-	bool isValid() { return valid; }
-	static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
+    bool isValid() { return valid; }
+    static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
 
 private:
     bool replaceEnvVars( const std::string &filename );
     bool readAndParseXMLFile();
     bool readAndParseXMLString();
-	bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
-	sgct::SGCTWindow::StereoMode getStereoType( std::string type );
-	sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
+    bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
+    sgct::SGCTWindow::StereoMode getStereoType( std::string type );
+    sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
 
-	bool valid;
-	std::string xmlFileName;
-	std::string mErrorMsg;
+    bool valid;
+    std::string xmlFileName;
+    std::string mErrorMsg;
 };
 
 }

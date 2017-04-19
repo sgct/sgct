@@ -16,18 +16,18 @@ namespace sgct_helpers
 {
 
 /*!
-	This function finds a pattern and replaces it.
+    This function finds a pattern and replaces it.
 */
 static void findAndReplace(std::string & src, std::string pattern, std::string replaceStr)
 {
-	while (true)
-	{
-		std::size_t found = src.find(pattern);
-		if (found != std::string::npos)
-			src.replace(found, pattern.length(), replaceStr);
-		else
-			break;
-	}
+    while (true)
+    {
+        std::size_t found = src.find(pattern);
+        if (found != std::string::npos)
+            src.replace(found, pattern.length(), replaceStr);
+        else
+            break;
+    }
 }
 
 static std::vector<std::string> split(std::string str, char delimiter)

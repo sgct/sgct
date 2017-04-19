@@ -49,25 +49,25 @@ int main( int argc, char* argv[] )
         vrpn_SleepMsecs(1);
     }
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }
 
 
 void VRPN_CALLBACK update_tracker_cb(void *userdata, const vrpn_TRACKERCB info)
 {
-	fprintf(stderr, "Sensor: %d, Pos: x=%lf\ty=%lf\tz=%lf\n", info.sensor, info.pos[0], info.pos[1], info.pos[2]);
+    fprintf(stderr, "Sensor: %d, Pos: x=%lf\ty=%lf\tz=%lf\n", info.sensor, info.pos[0], info.pos[1], info.pos[2]);
 }
 
 void VRPN_CALLBACK update_button_cb(void *userdata, const vrpn_BUTTONCB b )
 {
-	fprintf(stderr, "Button: %d, state: %d\n", b.button, b.state);
+    fprintf(stderr, "Button: %d, state: %d\n", b.button, b.state);
 }
 
 void VRPN_CALLBACK update_analog_cb(void* userdata, const vrpn_ANALOGCB a )
 {
-	for( int i=0; i < a.num_channel; i++ )
-	{
-		fprintf(stderr, "Analog: %d, value: %lf\n", i, a.channel[i]);
-	}
+    for( int i=0; i < a.num_channel; i++ )
+    {
+        fprintf(stderr, "Analog: %d, value: %lf\n", i, a.channel[i]);
+    }
 }

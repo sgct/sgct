@@ -38,7 +38,7 @@ Quad avatar;
 
 void webDecoder(const char * msg, size_t len)
 {
-	//fprintf(stderr, "Message: '%s'\n", msg);
+    //fprintf(stderr, "Message: '%s'\n", msg);
     
     unsigned int id = 0;
     int posX = 0;
@@ -65,43 +65,43 @@ void webDecoder(const char * msg, size_t len)
 
 int main( int argc, char* argv[] )
 {
-	// Allocate
-	gEngine = new sgct::Engine( argc, argv );
+    // Allocate
+    gEngine = new sgct::Engine( argc, argv );
 
-	// Bind your functions
-	gEngine->setInitOGLFunction( myInitFun );
-	gEngine->setDrawFunction( myDrawFun );
-	gEngine->setPreSyncFunction( myPreSyncFun );
-	gEngine->setPostSyncPreDrawFunction( myPostSyncFun );
-	gEngine->setCleanUpFunction( myCleanUpFun );
+    // Bind your functions
+    gEngine->setInitOGLFunction( myInitFun );
+    gEngine->setDrawFunction( myDrawFun );
+    gEngine->setPreSyncFunction( myPreSyncFun );
+    gEngine->setPostSyncPreDrawFunction( myPostSyncFun );
+    gEngine->setCleanUpFunction( myCleanUpFun );
     gEngine->setKeyboardCallbackFunction( keyCallback );
-	sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
-	sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
+    sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
+    sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
 
-	// Init the engine
-	if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
-	{
-		delete gEngine;
-		return EXIT_FAILURE;
-	}
+    // Init the engine
+    if( !gEngine->init( sgct::Engine::OpenGL_3_3_Core_Profile ) )
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
 
-	webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
+    webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
     if( gEngine->isMaster() )
     {
-		Webserver::instance()->setCallback(webDecoder);
-		Webserver::instance()->start(9000);
+        Webserver::instance()->setCallback(webDecoder);
+        Webserver::instance()->start(9000);
         //Webserver::instance()->start(80);
     }
 
-	// Main loop
-	gEngine->render();
+    // Main loop
+    gEngine->render();
 
-	// Clean up (de-allocate)
-	Webserver::instance()->destroy();
-	delete gEngine;
+    // Clean up (de-allocate)
+    Webserver::instance()->destroy();
+    delete gEngine;
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }
 
 void myInitFun()
@@ -109,26 +109,26 @@ void myInitFun()
     avatar.create(0.8f, 0.8f);
     
     //sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
-	//sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-	sgct::TextureManager::instance()->loadTexure("avatar", "avatar.png", true);
+    //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
+    sgct::TextureManager::instance()->loadTexure("avatar", "avatar.png", true);
 
-	sgct::ShaderManager::instance()->addShaderProgram( "avatar",
-			"avatar.vert",
-			"avatar.frag" );
+    sgct::ShaderManager::instance()->addShaderProgram( "avatar",
+            "avatar.vert",
+            "avatar.frag" );
 
-	sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
+    sgct::ShaderManager::instance()->bindShaderProgram( "avatar" );
  
-	Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
+    Matrix_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "MVP" );
     Color_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "FaceColor" );
     Avatar_Tex_Loc = sgct::ShaderManager::instance()->getShaderProgram( "avatar").getUniformLocation( "Tex" );
  
-	sgct::ShaderManager::instance()->unBindShaderProgram();
+    sgct::ShaderManager::instance()->unBindShaderProgram();
 }
 
 void myDrawFun()
 {
-	glEnable(GL_BLEND);
-	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+    glEnable(GL_BLEND);
+    glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
     
     MVP = gEngine->getCurrentModelViewProjectionMatrix();
     
@@ -142,28 +142,28 @@ void myDrawFun()
 
 void myPreSyncFun()
 {
-	//set the time only on the master
-	if( gEngine->isMaster() )
-	{
-		//get the time in seconds
-		curr_time.setVal( static_cast<float>(sgct::Engine::getTime()) );
+    //set the time only on the master
+    if( gEngine->isMaster() )
+    {
+        //get the time in seconds
+        curr_time.setVal( static_cast<float>(sgct::Engine::getTime()) );
         
         //copy webusers to rendering copy
         mWebMutex.lock();
         webUsers_copy.assign(webUsers, webUsers + MAX_WEB_USERS);
-		mWebMutex.unlock();
-		
+        mWebMutex.unlock();
+        
         //Set the data that will be synced to the clients this frame
-		sharedUserData.setVal(webUsers_copy);
-	}
+        sharedUserData.setVal(webUsers_copy);
+    }
 }
 
 void myPostSyncFun()
 {
-	if (!gEngine->isMaster())
-	{
-		webUsers_copy = sharedUserData.getVal();
-	}
+    if (!gEngine->isMaster())
+    {
+        webUsers_copy = sharedUserData.getVal();
+    }
     else
     {
         if(takeScreenShot)
@@ -176,34 +176,34 @@ void myPostSyncFun()
 
 void myEncodeFun()
 {
-	sgct::SharedData::instance()->writeFloat( &curr_time );
+    sgct::SharedData::instance()->writeFloat( &curr_time );
     sgct::SharedData::instance()->writeVector(&sharedUserData);
 }
 
 void myDecodeFun()
 {
-	sgct::SharedData::instance()->readFloat( &curr_time );
+    sgct::SharedData::instance()->readFloat( &curr_time );
     sgct::SharedData::instance()->readVector(&sharedUserData);
 }
 
 void myCleanUpFun()
 {
-	avatar.clear();
+    avatar.clear();
 }
 
 void keyCallback(int key, int action)
 {
-	if( gEngine->isMaster() )
-	{
-		switch( key )
-		{
+    if( gEngine->isMaster() )
+    {
+        switch( key )
+        {
             case SGCT_KEY_P:
             case SGCT_KEY_F10:
                 if(action == SGCT_PRESS)
                     takeScreenShot = true;
                 break;
         }
-	}
+    }
 }
 
 void renderAvatars()
@@ -219,7 +219,7 @@ void renderAvatars()
     avatar.bind();
     
     glActiveTexture(GL_TEXTURE0);
-	glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("avatar"));
+    glBindTexture(GL_TEXTURE_2D, sgct::TextureManager::instance()->getTextureId("avatar"));
     
     for(unsigned int i=1; i<MAX_WEB_USERS; i++)
         if( curr_time.getVal() - webUsers_copy[i].getTimeStamp() < time_visible )
@@ -244,5 +244,5 @@ void renderAvatars()
             avatar.draw();
         }
     
-	avatar.unbind();
+    avatar.unbind();
 }

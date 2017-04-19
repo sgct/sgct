@@ -12,32 +12,32 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
-	/*
-		All shaders are in GLSL 1.2 for compability with Mac OS X
-	*/
+    /*
+        All shaders are in GLSL 1.2 for compability with Mac OS X
+    */
 
-	namespace shaders
-	{
-		const std::string Spherical_Projection_Vert_Shader = "\
-			**glsl_version**\n\
-			\n\
-			void main()\n\
+    namespace shaders
+    {
+        const std::string Spherical_Projection_Vert_Shader = "\
+            **glsl_version**\n\
+            \n\
+            void main()\n\
             {\n\
                 gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-				gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
-				gl_FrontColor = gl_Color;\n\
+                gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
+                gl_FrontColor = gl_Color;\n\
             }\n";
 
-		const std::string Spherical_Projection_Frag_Shader = "\
-			**glsl_version**\n\
-			\n\
-			uniform sampler2D Tex;\n\
+        const std::string Spherical_Projection_Frag_Shader = "\
+            **glsl_version**\n\
+            \n\
+            uniform sampler2D Tex;\n\
             \n\
             void main()\n\
             {\n\
                 gl_FragColor = gl_Color * texture2D(Tex, gl_TexCoord[0].st);\n\
             }\n";
 
-	}//end shaders
+    }//end shaders
 }
 #endif

@@ -19,7 +19,7 @@ sgct::SGCTMutexManager::SGCTMutexManager()
 
 sgct::SGCTMutexManager::~SGCTMutexManager()
 {
-	
+    
 }
 
 void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
@@ -38,7 +38,7 @@ void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Unlocking mutex %u...\n", mi);
 #endif
-	mInternalMutexes[mi].unlock();
+    mInternalMutexes[mi].unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Done [%d]\n", mi);
 #endif
@@ -46,5 +46,5 @@ void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi
 
 tthread::mutex * sgct::SGCTMutexManager::getMutexPtr(sgct::SGCTMutexManager::MutexIndexes mi)
 {
-	return &mInternalMutexes[mi];
+    return &mInternalMutexes[mi];
 }

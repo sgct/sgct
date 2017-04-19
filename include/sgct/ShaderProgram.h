@@ -24,61 +24,61 @@ Shader program for uniform and attribute locations.
 class ShaderProgram
 {
 public:
-	/*! If shader source should be loaded from file or read as is */
-	enum ShaderSourceType{ SHADER_SRC_FILE, SHADER_SRC_STRING };
+    /*! If shader source should be loaded from file or read as is */
+    enum ShaderSourceType{ SHADER_SRC_FILE, SHADER_SRC_STRING };
 
-	ShaderProgram();
-	ShaderProgram( const std::string & name );
-	~ShaderProgram( void );
+    ShaderProgram();
+    ShaderProgram( const std::string & name );
+    ~ShaderProgram( void );
 
-	void deleteProgram();
+    void deleteProgram();
 
-	void setName( const std::string & name );
-	bool addShaderSrc( const std::string & src, sgct_core::Shader::ShaderType type, ShaderSourceType sSrcType = SHADER_SRC_FILE );
+    void setName( const std::string & name );
+    bool addShaderSrc( const std::string & src, sgct_core::Shader::ShaderType type, ShaderSourceType sSrcType = SHADER_SRC_FILE );
 
-	bool createAndLinkProgram();
-	bool reload();
+    bool createAndLinkProgram();
+    bool reload();
 
-	bool bind() const;
-	static void unbind();
+    bool bind() const;
+    static void unbind();
 
-	int getAttribLocation( const std::string & name ) const;
-	int getUniformLocation( const std::string & name ) const;
-	void bindFragDataLocation( unsigned int colorNumber, const std::string & name ) const;
+    int getAttribLocation( const std::string & name ) const;
+    int getUniformLocation( const std::string & name ) const;
+    void bindFragDataLocation( unsigned int colorNumber, const std::string & name ) const;
 
-	/*! Less than ShaderProgram operator */
-	inline bool operator<( const ShaderProgram & rhs ) const { return mName < rhs.mName; }
+    /*! Less than ShaderProgram operator */
+    inline bool operator<( const ShaderProgram & rhs ) const { return mName < rhs.mName; }
 
-	/*! Equal to ShaderProgram operator */
-	inline bool operator==( const ShaderProgram & rhs ) const { return mName == rhs.mName; }
+    /*! Equal to ShaderProgram operator */
+    inline bool operator==( const ShaderProgram & rhs ) const { return mName == rhs.mName; }
 
-	/*! Not equal to ShaderProgram operator */
-	inline bool operator!=( const ShaderProgram & rhs ) const { return mName != rhs.mName; }
+    /*! Not equal to ShaderProgram operator */
+    inline bool operator!=( const ShaderProgram & rhs ) const { return mName != rhs.mName; }
 
-	/*! Equal to string operator */
-	inline bool operator==( const std::string & rhs ) const { return mName == rhs; }
+    /*! Equal to string operator */
+    inline bool operator==( const std::string & rhs ) const { return mName == rhs; }
 
-	/*! Get the name of the program */
-	inline std::string getName() { return mName; }
+    /*! Get the name of the program */
+    inline std::string getName() { return mName; }
 
-	/*! Check if the program is linked */
-	inline bool isLinked() { return mIsLinked; }
+    /*! Check if the program is linked */
+    inline bool isLinked() { return mIsLinked; }
 
-	/*! Get the program ID */
-	inline int getId() { return mProgramId; }
-
-private:
-
-	bool createProgram();
-	bool checkLinkStatus() const;
+    /*! Get the program ID */
+    inline int getId() { return mProgramId; }
 
 private:
 
-	std::string mName;					// Name of the program, has to be unique
-	bool mIsLinked;						// If this program has been linked
-	int mProgramId;						// Unique program id
+    bool createProgram();
+    bool checkLinkStatus() const;
 
-	std::vector<sgct_core::ShaderData> mShaders;
+private:
+
+    std::string mName;                    // Name of the program, has to be unique
+    bool mIsLinked;                        // If this program has been linked
+    int mProgramId;                        // Unique program id
+
+    std::vector<sgct_core::ShaderData> mShaders;
 };
 
 } // sgct

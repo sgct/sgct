@@ -17,9 +17,9 @@ namespace sgct_core
 class ShaderData
 {
 public:
-	Shader mShader;
-	std::string mShaderSrc;
-	bool mIsSrcFile;
+    Shader mShader;
+    std::string mShaderSrc;
+    bool mIsSrcFile;
 };
 
 }

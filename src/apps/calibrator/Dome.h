@@ -34,7 +34,6 @@ private:
     float mTilt;
     float mTiltOffset;
 
-<<<<<<< HEAD
     unsigned int mGeoDisplayList;
     unsigned int mBlendZonesDisplayList;
     unsigned int mChannelZonesDisplayList;
@@ -42,12 +41,6 @@ private:
 
     std::vector<std::vector<DomeVertex>> mVertices;
     //std::vector<DomeVertex> mCapVertices;
-=======
-    unsigned int mGeoDisplayList;
-    unsigned int mBlendZonesDisplayList;
-    unsigned int mChannelZonesDisplayList;
-    unsigned int mTexDisplayList;
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
 };
 
 #endif

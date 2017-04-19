@@ -41,16 +41,10 @@ public:
     Font( const std::string & fontName = std::string(), float height = 0.0f );
     ~Font();
 
-<<<<<<< HEAD
-    void init( const std::string & fontName, unsigned int h );
-    void generateTexture(std::size_t c, int width, int height, unsigned char * data, bool generateMipMaps);
-    std::size_t getNumberOfTextures();
-    void clean();
-=======
-    void init( const std::string & fontName, unsigned int h );
-    void generateTexture(char c, int width, int height, unsigned char * data, bool generateMipMaps);
-    void clean();
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	void init( const std::string & fontName, unsigned int h );
+	void generateTexture(std::size_t c, int width, int height, unsigned char * data, bool generateMipMaps);
+	std::size_t getNumberOfTextures();
+	void clean();
 
     /*! Get the list base index */
     inline unsigned int getListBase() const { return mListBase; }
@@ -64,29 +58,16 @@ public:
     /*! Get height of the font */
     inline float getHeight() const { return mHeight; }
 
-<<<<<<< HEAD
-    /*! Get the texture id's */
-    inline const unsigned int getTexture( std::size_t c ) const { return mFontFaceData[c].mTexId; }
-=======
-    /*! Get the texture id's */
-    inline const unsigned int getTexture( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mTexId; }
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	/*! Get the texture id's */
+	inline const unsigned int getTexture( std::size_t c ) const { return mFontFaceData[c].mTexId; }
 
     /*! Adds a glyph to the font */
     inline void AddGlyph( const FT_Glyph & glyph ){ mGlyphs.push_back( glyph ); }
 
-<<<<<<< HEAD
-    /*! Set the width of a character in the font */
-    inline void setCharWidth(std::size_t c, float width ){ mFontFaceData[c].mCharWidth = width; }
-    /*! Get the width of a character in the font */
-    inline float getCharWidth(std::size_t c) const { return mFontFaceData[c].mCharWidth; }
-=======
-    /*! Set the width of a character in the font */
-    inline void setCharWidth( char c, float width ){ mFontFaceData[static_cast<size_t>(c)].mCharWidth = width; }
-    /*! Get the width of a character in the font */
-    inline float getCharWidth( char c ) const { return mFontFaceData[static_cast<size_t>(c)].mCharWidth; }
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
-
+	/*! Set the width of a character in the font */
+	inline void setCharWidth(std::size_t c, float width ){ mFontFaceData[c].mCharWidth = width; }
+	/*! Get the width of a character in the font */
+	inline float getCharWidth(std::size_t c) const { return mFontFaceData[c].mCharWidth; }
 
 public:
 

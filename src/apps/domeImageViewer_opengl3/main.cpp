@@ -437,7 +437,6 @@ void readImage(unsigned char * data, int len)
 
 void uploadTexture()
 {
-<<<<<<< HEAD
     mutex.lock();
 
     if (!transImages.empty())
@@ -523,93 +522,6 @@ void uploadTexture()
     }//end if not empty
 
     mutex.unlock();
-=======
-    mutex.lock();
-
-    if (!transImages.empty())
-    {
-        glfwMakeContextCurrent(hiddenWindow);
-
-        for (std::size_t i = 0; i < transImages.size(); i++)
-        {
-            if (transImages[i])
-            {
-                //create texture
-                GLuint tex;
-                glGenTextures(1, &tex);
-                glBindTexture(GL_TEXTURE_2D, tex);
-                glPixelStorei(GL_PACK_ALIGNMENT, 1);
-                glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
-
-                GLenum internalformat;
-                GLenum type;
-                unsigned int bpc = transImages[i]->getBytesPerChannel();
-
-                switch (transImages[i]->getChannels())
-                {
-                case 1:
-                    internalformat = (bpc == 1 ? GL_R8 : GL_R16);
-                    type = GL_RED;
-                    break;
-
-                case 2:
-                    internalformat = (bpc == 1 ? GL_RG8 : GL_RG16);
-                    type = GL_RG;
-                    break;
-
-                case 3:
-                default:
-                    internalformat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-                    type = GL_BGR;
-                    break;
-
-                case 4:
-                    internalformat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-                    type = GL_BGRA;
-                    break;
-                }
-
-                GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
-
-                glTexStorage2D(GL_TEXTURE_2D, 1, internalformat, transImages[i]->getWidth(), transImages[i]->getHeight());
-                glTexSubImage2D(GL_TEXTURE_2D, 0, 0, 0, transImages[i]->getWidth(), transImages[i]->getHeight(), type, format, transImages[i]->getData());
-
-                //---------------------
-                // Disable mipmaps
-                //---------------------
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-
-                //unbind
-                glBindTexture(GL_TEXTURE_2D, GL_FALSE);
-
-                sgct::MessageHandler::instance()->print("Texture id %d loaded (%dx%dx%d).\n", tex, transImages[i]->getWidth(), transImages[i]->getHeight(), transImages[i]->getChannels());
-
-                texIds.addVal(tex);
-
-                delete transImages[i];
-                transImages[i] = NULL;
-            }
-            else //if invalid load
-            {
-                texIds.addVal(GL_FALSE);
-            }
-        }//end for
-
-        transImages.clear();
-        glFinish();
-
-        //restore
-        glfwMakeContextCurrent(NULL);
-    }//end if not empty
-
-    mutex.unlock();
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
 }
 
 void myDropCallback(int count, const char** paths)

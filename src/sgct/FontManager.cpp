@@ -271,211 +271,108 @@ Creates font textures with a specific height if a path to the font exists
 */
 std::set<sgct_text::Font>::iterator sgct_text::FontManager::createFont( const std::string & fontName, unsigned int height )
 {
-<<<<<<< HEAD
-    std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
+	std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
 
-    if( it == mFontPaths.end() )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: No font file specified for font [%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
+	if( it == mFontPaths.end() )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: No font file specified for font [%s].\n", fontName.c_str() );
+		return mFonts.end();
+	}
 
-    if( mFTLibrary == NULL )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
+	if( mFTLibrary == NULL )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
+		return mFonts.end();
+	}
 
-    FT_Face face;
-    FT_Error error = FT_New_Face( mFTLibrary, it->second.c_str(), 0, &face );
+	FT_Face face;
+	FT_Error error = FT_New_Face( mFTLibrary, it->second.c_str(), 0, &face );
 
-    if ( error == FT_Err_Unknown_File_Format )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
-        return mFonts.end();
-    }
-    else if( error != 0 || face == NULL )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str());
-        return mFonts.end();
-    }
+	if ( error == FT_Err_Unknown_File_Format )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
+		return mFonts.end();
+	}
+	else if( error != 0 || face == NULL )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str());
+		return mFonts.end();
+	}
 
-    if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
+	if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str() );
+		return mFonts.end();
+	}
 
-    // Create the font when all error tests are done
-    Font newFont = Font();
-    newFont.init( fontName, height );
+	// Create the font when all error tests are done
+	Font newFont = Font();
+	newFont.init( fontName, height );
 
-    static bool shaderCreated = false;
+	static bool shaderCreated = false;
 
-    if( !shaderCreated )
-    {
-        std::string vert_shader;
-        std::string frag_shader;
-        
-        mShader.setName("FontShader");
-        if( sgct::Engine::instance()->isOGLPipelineFixed() )
-        {
-            vert_shader = Font_Vert_Shader_Legacy;
-            frag_shader = Font_Frag_Shader_Legacy;
-        }
-        else
-        {
-            vert_shader = Font_Vert_Shader;
-            frag_shader = Font_Frag_Shader;
-        }
+	if( !shaderCreated )
+	{
+		std::string vert_shader;
+		std::string frag_shader;
+		
+		mShader.setName("FontShader");
+		if( sgct::Engine::instance()->isOGLPipelineFixed() )
+		{
+			vert_shader = Font_Vert_Shader_Legacy;
+			frag_shader = Font_Frag_Shader_Legacy;
+		}
+		else
+		{
+			vert_shader = Font_Vert_Shader;
+			frag_shader = Font_Frag_Shader;
+		}
 
-        //replace glsl version
-        sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-        sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+		//replace glsl version
+		sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+		sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
 
-        if(!mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font vertex shader\n");
-        if(!mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font fragment shader\n");
-        mShader.createAndLinkProgram();
-        mShader.bind();
+		if(!mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font vertex shader\n");
+		if(!mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font fragment shader\n");
+		mShader.createAndLinkProgram();
+		mShader.bind();
 
-        if( !sgct::Engine::instance()->isOGLPipelineFixed() )
-            mMVPLoc = mShader.getUniformLocation( "MVP" );
-        mColLoc = mShader.getUniformLocation( "Col" );
-        mStkLoc = mShader.getUniformLocation( "StrokeCol" );
-        mTexLoc = mShader.getUniformLocation( "Tex" );
-        mShader.unbind();
+		if( !sgct::Engine::instance()->isOGLPipelineFixed() )
+			mMVPLoc = mShader.getUniformLocation( "MVP" );
+		mColLoc = mShader.getUniformLocation( "Col" );
+		mStkLoc = mShader.getUniformLocation( "StrokeCol" );
+		mTexLoc = mShader.getUniformLocation( "Tex" );
+		mShader.unbind();
 
-        shaderCreated = true;
-    }
+		shaderCreated = true;
+	}
 
-    //This is where we actually create each of the fonts display lists.
-    if(sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        for(FT_ULong i = 0; i < NUM_OF_GLYPHS_TO_LOAD; ++i )
-            if(!makeDisplayList( face, i, newFont ))
-            {
-                newFont.clean();
-                return mFonts.end();
-            }
-    }
-    else
-    {
-        if( !makeVBO( face, newFont ) )
-        {
-            newFont.clean();
-            return mFonts.end();
-        }
-    }
+	//This is where we actually create each of the fonts display lists.
+	if(sgct::Engine::instance()->isOGLPipelineFixed() )
+	{
+		for(FT_ULong i = 0; i < NUM_OF_GLYPHS_TO_LOAD; ++i )
+			if(!makeDisplayList( face, i, newFont ))
+			{
+				newFont.clean();
+				return mFonts.end();
+			}
+	}
+	else
+	{
+		if( !makeVBO( face, newFont ) )
+		{
+			newFont.clean();
+			return mFonts.end();
+		}
+	}
 
-    //sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of textures loaded: %u\n", newFont.getNumberOfTextures());
+	//sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Number of textures loaded: %u\n", newFont.getNumberOfTextures());
 
-    FT_Done_Face(face);
+	FT_Done_Face(face);
 
-    return mFonts.insert( newFont ).first;
-=======
-    std::map<std::string, std::string>::iterator it = mFontPaths.find( fontName );
-
-    if( it == mFontPaths.end() )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: No font file specified for font [%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
-
-    if( mFTLibrary == NULL )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Freetype library is not initialized, can't create font [%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
-
-    FT_Face face;
-    FT_Error error = FT_New_Face( mFTLibrary, it->second.c_str(), 0, &face );
-
-    if ( error == FT_Err_Unknown_File_Format )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Unsopperted file format [%s] for font [%s].\n", it->second.c_str(), fontName.c_str() );
-        return mFonts.end();
-    }
-    else if( error != 0 || face == NULL )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Font '%s' not found!\n", it->second.c_str());
-        return mFonts.end();
-    }
-
-    if( FT_Set_Char_Size( face, height << 6, height << 6, 96, 96) != 0 )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str() );
-        return mFonts.end();
-    }
-
-    // Create the font when all error tests are done
-    Font newFont = Font();
-    newFont.init( fontName, height );
-
-    static bool shaderCreated = false;
-
-    if( !shaderCreated )
-    {
-        std::string vert_shader;
-        std::string frag_shader;
-        
-        mShader.setName("FontShader");
-        if( sgct::Engine::instance()->isOGLPipelineFixed() )
-        {
-            vert_shader = Font_Vert_Shader_Legacy;
-            frag_shader = Font_Frag_Shader_Legacy;
-        }
-        else
-        {
-            vert_shader = Font_Vert_Shader;
-            frag_shader = Font_Frag_Shader;
-        }
-
-        //replace glsl version
-        sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-        sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-
-        if(!mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font vertex shader\n");
-        if(!mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load font fragment shader\n");
-        mShader.createAndLinkProgram();
-        mShader.bind();
-
-        if( !sgct::Engine::instance()->isOGLPipelineFixed() )
-            mMVPLoc = mShader.getUniformLocation( "MVP" );
-        mColLoc = mShader.getUniformLocation( "Col" );
-        mStkLoc = mShader.getUniformLocation( "StrokeCol" );
-        mTexLoc = mShader.getUniformLocation( "Tex" );
-        mShader.unbind();
-
-        shaderCreated = true;
-    }
-
-    //This is where we actually create each of the fonts display lists.
-    if(sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        for( unsigned char i = 0;i < 128; ++i )
-            if(!makeDisplayList( face, i, newFont ))
-            {
-                newFont.clean();
-                return mFonts.end();
-            }
-    }
-    else
-    {
-        if( !makeVBO( face, newFont ) )
-        {
-            newFont.clean();
-            return mFonts.end();
-        }
-    }
-
-    FT_Done_Face(face);
-
-    return mFonts.insert( newFont ).first;
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	return mFonts.insert( newFont ).first;
 }
 
 
@@ -585,8 +482,8 @@ bool sgct_text::FontManager::makeDisplayList ( FT_Face face, FT_ULong ch, Font &
 /*!
 Create vertex buffer objects for the passed character
 <<<<<<< HEAD
-@param    face        Font face to create glyph from
-@param    font        Font to create for
+@param	face		Font face to create glyph from
+@param	font		Font to create for
 =======
 @param    face        Font face to create glyph from
 @param    ch            Character to create glyph for
@@ -597,197 +494,100 @@ Create vertex buffer objects for the passed character
 */
 bool sgct_text::FontManager::makeVBO( FT_Face face, Font & font )
 {
-<<<<<<< HEAD
-    std::vector<float> coords;
+	std::vector<float> coords;
 
-    for(FT_ULong ch = 0; ch < NUM_OF_GLYPHS_TO_LOAD; ++ch )
-    {
-        FT_UInt char_index = FT_Get_Char_Index(face, ch);
-        if (char_index == 0)
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "FontManager: Missing face for char %u!\n", static_cast<unsigned int>(ch));
+	for(FT_ULong ch = 0; ch < NUM_OF_GLYPHS_TO_LOAD; ++ch )
+	{
+		FT_UInt char_index = FT_Get_Char_Index(face, ch);
+		if (char_index == 0)
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "FontManager: Missing face for char %u!\n", static_cast<unsigned int>(ch));
 
-        if( FT_Load_Glyph( face, char_index, FT_LOAD_FORCE_AUTOHINT ) )
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
-            return false;
-        }
+		if( FT_Load_Glyph( face, char_index, FT_LOAD_FORCE_AUTOHINT ) )
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
+			return false;
+		}
 
-        int width;
-        int height;
-        unsigned char * pixels = NULL;
+		int width;
+		int height;
+		unsigned char * pixels = NULL;
 
-        //load pixel data
-        GlyphData gd;
-        if (!getPixelData(face, width, height, &pixels, &gd))
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch);
-        }
+		//load pixel data
+		GlyphData gd;
+		if (!getPixelData(face, width, height, &pixels, &gd))
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch);
+		}
 
-        //create texture
-        if (char_index > 0)
-            font.generateTexture(ch, width, height, pixels, mUseMipMaps);
+		//create texture
+		if (char_index > 0)
+			font.generateTexture(ch, width, height, pixels, mUseMipMaps);
 
-        //With the texture created, we don't need to expanded data anymore
-        delete[] pixels;
+		//With the texture created, we don't need to expanded data anymore
+		delete[] pixels;
 
-        glm::vec2 offset( static_cast<float>(gd.mBitmapGlyph->left),
-            static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows));
+		glm::vec2 offset( static_cast<float>(gd.mBitmapGlyph->left),
+			static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows));
 
-        coords.push_back( 0.0f );
-        coords.push_back( 1.0f );
-        coords.push_back( offset.x );
-        coords.push_back( offset.y );
+		coords.push_back( 0.0f );
+		coords.push_back( 1.0f );
+		coords.push_back( offset.x );
+		coords.push_back( offset.y );
 
-        coords.push_back( 1.0f );
-        coords.push_back( 1.0f );
-        coords.push_back( static_cast<float>(width) + offset.x );
-        coords.push_back( offset.y );
+		coords.push_back( 1.0f );
+		coords.push_back( 1.0f );
+		coords.push_back( static_cast<float>(width) + offset.x );
+		coords.push_back( offset.y );
 
-        coords.push_back( 0.0f ); //s
-        coords.push_back( 0.0f ); //t
-        coords.push_back( offset.x ); //x
-        coords.push_back( static_cast<float>(height) + offset.y ); //y
+		coords.push_back( 0.0f ); //s
+		coords.push_back( 0.0f ); //t
+		coords.push_back( offset.x ); //x
+		coords.push_back( static_cast<float>(height) + offset.y ); //y
 
-        coords.push_back( 1.0f );
-        coords.push_back( 0.0f );
-        coords.push_back( static_cast<float>(width) + offset.x );
-        coords.push_back( static_cast<float>(height) + offset.y );
+		coords.push_back( 1.0f );
+		coords.push_back( 0.0f );
+		coords.push_back( static_cast<float>(width) + offset.x );
+		coords.push_back( static_cast<float>(height) + offset.y );
 
-        //delete the stroke glyph
-        FT_Stroker_Done( gd.mStroker );
-        FT_Done_Glyph( gd.mStrokeGlyph );
+		//delete the stroke glyph
+		FT_Stroker_Done( gd.mStroker );
+		FT_Done_Glyph( gd.mStrokeGlyph );
 
-        // Can't delete them while they are used, delete when font is cleaned
-        font.AddGlyph( gd.mGlyph );
-        font.setCharWidth( ch, static_cast<float>( face->glyph->advance.x >> 6 ) );
-    }
+		// Can't delete them while they are used, delete when font is cleaned
+		font.AddGlyph( gd.mGlyph );
+		font.setCharWidth( ch, static_cast<float>( face->glyph->advance.x >> 6 ) );
+	}
 
-    glBindVertexArray(font.getVAO());
-    glBindBuffer(GL_ARRAY_BUFFER, font.getVBO());
-    glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(float), &coords[0], GL_STATIC_DRAW );
+	glBindVertexArray(font.getVAO());
+	glBindBuffer(GL_ARRAY_BUFFER, font.getVBO());
+	glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(float), &coords[0], GL_STATIC_DRAW );
 
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
+	glEnableVertexAttribArray(0);
+	glEnableVertexAttribArray(1);
 
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        4*sizeof(float),    // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-    );
+	glVertexAttribPointer(
+		0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		4*sizeof(float),    // stride
+		reinterpret_cast<void*>(0) // array buffer offset
+	);
 
-    glVertexAttribPointer(
-        1,                  // attribute 1
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        4*sizeof(float),    // stride
-        reinterpret_cast<void*>(8) // array buffer offset
-    );
+	glVertexAttribPointer(
+		1,                  // attribute 1
+		2,                  // size
+		GL_FLOAT,           // type
+		GL_FALSE,           // normalized?
+		4*sizeof(float),    // stride
+		reinterpret_cast<void*>(8) // array buffer offset
+	);
 
-    //unbind
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
+	//unbind
+	glBindVertexArray(0);
+	glBindBuffer(GL_ARRAY_BUFFER, 0);
 
-    return true;
-=======
-    std::vector<float> coords;
-
-    for( unsigned char ch = 0; ch < 128; ++ch )
-    {
-        FT_UInt char_index = FT_Get_Char_Index(face, ch);
-        if (char_index == 0)
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "FontManager: Missing face for char %u!\n", static_cast<unsigned int>(ch));
-
-        if( FT_Load_Glyph( face, char_index, FT_LOAD_FORCE_AUTOHINT ) )
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Load_Glyph failed for char [%c].\n", ch );
-            return false;
-        }
-
-        int width;
-        int height;
-        unsigned char * pixels = NULL;
-
-        //load pixel data
-        GlyphData gd;
-        if (!getPixelData(face, width, height, &pixels, &gd))
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "FT_Get_Glyph failed for char [%c].\n", ch);
-        }
-
-        //create texture
-        if (char_index > 0)
-            font.generateTexture(ch, width, height, pixels, mUseMipMaps);
-
-        //With the texture created, we don't need to expanded data anymore
-        delete[] pixels;
-
-        glm::vec2 offset( static_cast<float>(gd.mBitmapGlyph->left),
-            static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows));
-
-        coords.push_back( 0.0f );
-        coords.push_back( 1.0f );
-        coords.push_back( offset.x );
-        coords.push_back( offset.y );
-
-        coords.push_back( 1.0f );
-        coords.push_back( 1.0f );
-        coords.push_back( static_cast<float>(width) + offset.x );
-        coords.push_back( offset.y );
-
-        coords.push_back( 0.0f ); //s
-        coords.push_back( 0.0f ); //t
-        coords.push_back( offset.x ); //x
-        coords.push_back( static_cast<float>(height) + offset.y ); //y
-
-        coords.push_back( 1.0f );
-        coords.push_back( 0.0f );
-        coords.push_back( static_cast<float>(width) + offset.x );
-        coords.push_back( static_cast<float>(height) + offset.y );
-
-        //delete the stroke glyph
-        FT_Stroker_Done( gd.mStroker );
-        FT_Done_Glyph( gd.mStrokeGlyph );
-
-        // Can't delete them while they are used, delete when font is cleaned
-        font.AddGlyph( gd.mGlyph );
-        font.setCharWidth( ch, static_cast<float>( face->glyph->advance.x >> 6 ) );
-    }
-
-    glBindVertexArray(font.getVAO());
-    glBindBuffer(GL_ARRAY_BUFFER, font.getVBO());
-    glBufferData(GL_ARRAY_BUFFER, coords.size() * sizeof(float), &coords[0], GL_STATIC_DRAW );
-
-    glEnableVertexAttribArray(0);
-    glEnableVertexAttribArray(1);
-
-    glVertexAttribPointer(
-        0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        4*sizeof(float),    // stride
-        reinterpret_cast<void*>(0) // array buffer offset
-    );
-
-    glVertexAttribPointer(
-        1,                  // attribute 1
-        2,                  // size
-        GL_FLOAT,           // type
-        GL_FALSE,           // normalized?
-        4*sizeof(float),    // stride
-        reinterpret_cast<void*>(8) // array buffer offset
-    );
-
-    //unbind
-    glBindVertexArray(0);
-    glBindBuffer(GL_ARRAY_BUFFER, 0);
-
-    return true;
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	return true;
 }
 
 bool sgct_text::FontManager::getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd)

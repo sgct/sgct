@@ -120,19 +120,11 @@ public:
 private:
     FontManager(void);
 
-<<<<<<< HEAD
-    /// Helper functions
-    std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
-    bool makeDisplayList( FT_Face face, FT_ULong ch, Font & font );
-    bool makeVBO( FT_Face face, Font & font );
-    bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
-=======
-    /// Helper functions
-    std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
-    bool makeDisplayList( FT_Face face, char ch, Font & font );
-    bool makeVBO( FT_Face face, Font & font );
-    bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	/// Helper functions
+	std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
+	bool makeDisplayList( FT_Face face, FT_ULong ch, Font & font );
+	bool makeVBO( FT_Face face, Font & font );
+	bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
 
     // Don't implement these, should give compile warning if used
     FontManager( const FontManager & fm );

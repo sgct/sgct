@@ -129,38 +129,38 @@ inline void pop_projection_matrix()
 
 char * parseArgList(va_list args, const char *format)
 {
-    int size = 1 + vscprintf(format, args);
-    char * buffer = new (std::nothrow) char[size];
-    if (buffer == NULL)
-        return NULL;
+	int size = 1 + vscprintf(format, args);
+	char * buffer = new (std::nothrow) char[size];
+	if (buffer == NULL)
+		return NULL;
 
-    memset(buffer, 0, size);
+	memset(buffer, 0, size);
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
+	vsprintf_s(buffer, size, format, args);
 #else
-    vsprintf(buffer, format, args);
+	vsprintf(buffer, format, args);
 #endif
 
-    return buffer;
+	return buffer;
 }
 
 wchar_t * parseArgList(va_list args, const wchar_t *format)
 {
-    int size = 1 + vscwprintf(format, args);
-    wchar_t * buffer = new (std::nothrow) wchar_t[size];
-    if (buffer == NULL)
-        return NULL;
+	int size = 1 + vscwprintf(format, args);
+	wchar_t * buffer = new (std::nothrow) wchar_t[size];
+	if (buffer == NULL)
+		return NULL;
 
-    memset(buffer, 0, size * sizeof(wchar_t));
+	memset(buffer, 0, size * sizeof(wchar_t));
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vswprintf_s(buffer, size, format, args);
+	vswprintf_s(buffer, size, format, args);
 #else
-    vswprintf(buffer, format, args);
+	vswprintf(buffer, format, args);
 #endif
 
-    return buffer;
+	return buffer;
 }
 
 ///Much like Nehe's glPrint function, but modified to work
@@ -172,248 +172,110 @@ void print(const sgct_text::Font * ft_font, float x, float y, const char *format
 
     float h = ft_font->getHeight() * 1.59f;
 
-<<<<<<< HEAD
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+	va_list		args;	 // Pointer To List Of Arguments
+	va_start(args, format); // Parses The String For Variables
+	char * buffer = parseArgList(args, format);
+	va_end(args); // Results Are Stored In Text
 
-    std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
+	std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
 
-    glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        GLuint font = ft_font->getListBase();
+	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
+	{
+		GLuint font = ft_font->getListBase();
 
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		pushScreenCoordinateMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		FontManager::instance()->getShader().bind();
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
-                    glPushMatrix();
-                    glLoadIdentity();
-                    glTranslatef(trans.x, trans.y, trans.z);
-                    trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
+					glPushMatrix();
+					glLoadIdentity();
+					glTranslatef(trans.x, trans.y, trans.z);
+					trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
 
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glCallList(font + c);
-                    glPopMatrix();
-                }
-            }
-        }
+					glCallList(font + c);
+					glPopMatrix();
+				}
+			}
+		}
 
-        sgct::ShaderProgram::unbind();
+		sgct::ShaderProgram::unbind();
 
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else
-    {
-        setupViewport();
-        glm::mat4 projectionMat( setupOrthoMat() );
+		pop_projection_matrix();
+		glPopAttrib();
+	}
+	else
+	{
+		setupViewport();
+		glm::mat4 projectionMat( setupOrthoMat() );
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
+		FontManager::instance()->getShader().bind();
 
-        glBindVertexArray( ft_font->getVAO() );
+		glBindVertexArray( ft_font->getVAO() );
 
-        glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
 
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                    trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
+					glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+					trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
 
-                    glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
-                }
-            }//end for chars
-        }//end for lines
+					glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
+				}
+			}//end for chars
+		}//end for lines
 
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
+		//unbind
+		glBindVertexArray(0);
+		sgct::ShaderProgram::unbind();
+	}
 
-    if(buffer)
-        delete[] buffer;
-=======
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    
-    int size = 1 + vscprintf(format, args);
-    char * buffer = new (std::nothrow) char[size];
-    if (buffer == NULL)
-        return;
-
-    memset(buffer, 0, size);
-    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
-#else
-    vsprintf(buffer, format, args);
-#endif
-    va_end(args);                                        // Results Are Stored In Text
-
-    //Here is some code to split the text that we have been
-    //given into a set of lines.
-    //This could be made much neater by using
-    //a regular expression library such as the one avliable from
-    //boost.org (I've only done it out by hand to avoid complicating
-    //this tutorial with unnecessary library dependencies).
-    const char *start_line = buffer;
-    std::vector<std::string> lines;
-    char *c;
-    for (c = buffer; *c; c++)
-    {
-        if(*c=='\n')
-        {
-            std::string line;
-            for(const char *n=start_line;n<c;n++) line.append(1,*n);
-            lines.push_back(line);
-            start_line=c+1;
-        }
-    }
-    if(start_line)
-    {
-        std::string line;
-        for(const char *n=start_line;n<c;n++) line.append(1,*n);
-        lines.push_back(line);
-    }
-
-    glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        GLuint font = ft_font->getListBase();
-
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glPushMatrix();
-                glLoadIdentity();
-                glTranslatef( trans.x, trans.y, trans.z );
-                trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glCallList( font + c );
-                glPopMatrix();
-            }
-        }
-
-        sgct::ShaderProgram::unbind();
-
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else
-    {
-        setupViewport();
-        glm::mat4 projectionMat( setupOrthoMat() );
-
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        FontManager::instance()->getShader().bind();
-
-        glBindVertexArray( ft_font->getVAO() );
-
-        glActiveTexture(GL_TEXTURE0);
-
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( projectionMat, glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
-
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
-
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
-
-    delete[] buffer;
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+	if(buffer)
+		delete[] buffer;
 }
 
 ///Much like Nehe's glPrint function, but modified to work
@@ -425,276 +287,181 @@ void print(const sgct_text::Font * ft_font, float x, float y, const wchar_t *for
 
     float h = ft_font->getHeight() * 1.59f;
 
-<<<<<<< HEAD
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    wchar_t * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+	va_list		args;	 // Pointer To List Of Arguments
+	va_start(args, format); // Parses The String For Variables
+	wchar_t * buffer = parseArgList(args, format);
+	va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, '\n');
+	std::vector<std::wstring> lines = sgct_helpers::split(buffer, '\n');
 
-    glm::vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
-    if (sgct::Engine::instance()->isOGLPipelineFixed())
-    {
-        GLuint font = ft_font->getListBase();
+	glm::vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
+	if (sgct::Engine::instance()->isOGLPipelineFixed())
+	{
+		GLuint font = ft_font->getListBase();
 
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		pushScreenCoordinateMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
-        glUniform4f(FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a);
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a);
+		FontManager::instance()->getShader().bind();
+		glUniform4f(FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a);
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f(FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a);
 
-        for (size_t i = 0; i<lines.size(); i++)
-        {
-            glm::vec3 trans(x, y - h*static_cast<float>(i), 0.0f);
-            for (size_t j = 0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
-                    glPushMatrix();
-                    glLoadIdentity();
-                    glTranslatef(trans.x, trans.y, trans.z);
-                    trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
+		for (size_t i = 0; i<lines.size(); i++)
+		{
+			glm::vec3 trans(x, y - h*static_cast<float>(i), 0.0f);
+			for (size_t j = 0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
+					glPushMatrix();
+					glLoadIdentity();
+					glTranslatef(trans.x, trans.y, trans.z);
+					trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
 
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glCallList(font + c);
-                    glPopMatrix();
-                }
-            }
-        }
+					glCallList(font + c);
+					glPopMatrix();
+				}
+			}
+		}
 
-        sgct::ShaderProgram::unbind();
+		sgct::ShaderProgram::unbind();
 
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else
-    {
-        setupViewport();
-        glm::mat4 projectionMat(setupOrthoMat());
+		pop_projection_matrix();
+		glPopAttrib();
+	}
+	else
+	{
+		setupViewport();
+		glm::mat4 projectionMat(setupOrthoMat());
 
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
+		FontManager::instance()->getShader().bind();
 
-        glBindVertexArray(ft_font->getVAO());
+		glBindVertexArray(ft_font->getVAO());
 
-        glActiveTexture(GL_TEXTURE0);
+		glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f(FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a);
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f(FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a);
+		glUniform4f(FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a);
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f(FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a);
 
-        for (size_t i = 0; i<lines.size(); i++)
-        {
-            glm::mat4 trans = glm::translate(projectionMat, glm::vec3(x, y - h*static_cast<float>(i), 0.0f));
+		for (size_t i = 0; i<lines.size(); i++)
+		{
+			glm::mat4 trans = glm::translate(projectionMat, glm::vec3(x, y - h*static_cast<float>(i), 0.0f));
 
-            for (size_t j = 0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
+			for (size_t j = 0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
 
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                    trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
+					glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+					trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
 
-                    glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
-                }
-            }//end for chars
-        }//end for lines
+					glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
+				}
+			}//end for chars
+		}//end for lines
 
-         //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
+		 //unbind
+		glBindVertexArray(0);
+		sgct::ShaderProgram::unbind();
+	}
 
-    if (buffer)
-        delete[] buffer;
+	if (buffer)
+		delete[] buffer;
 }
 
 ///Much like Nehe's glPrint function, but modified to work
 ///with freetype fonts.
 void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, const char *format, ...)
 {
-    if (ft_font == NULL || format == NULL)
-        return;
+	if (ft_font == NULL || format == NULL)
+		return;
 
-    float h = ft_font->getHeight() * 1.59f;
+	float h = ft_font->getHeight() * 1.59f;
 
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+	va_list		args;	 // Pointer To List Of Arguments
+	va_start(args, format); // Parses The String For Variables
+	char * buffer = parseArgList(args, format);
+	va_end(args); // Results Are Stored In Text
 
-    std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
+	std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
 
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        GLuint font = ft_font->getListBase();
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
+	{
+		GLuint font = ft_font->getListBase();
 
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+		pushScreenCoordinateMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+		glEnable(GL_TEXTURE_2D);
+		glDisable(GL_DEPTH_TEST);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		FontManager::instance()->getShader().bind();
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
-                    glPushMatrix();
-                    glLoadIdentity();
-                    glTranslatef(trans.x, trans.y, trans.z);
-                    trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
+					glPushMatrix();
+					glLoadIdentity();
+					glTranslatef(trans.x, trans.y, trans.z);
+					trans += glm::vec3(ft_font->getCharWidth(c), 0.0f, 0.0f);
 
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glCallList(font + c);
-                    glPopMatrix();
-                }
-            }
-        }
+					glCallList(font + c);
+					glPopMatrix();
+				}
+			}
+		}
 
-        sgct::ShaderProgram::unbind();
+		sgct::ShaderProgram::unbind();
 
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else
-    {
-        setupViewport();
-=======
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    
-    int size = 1 + vscprintf(format, args);
-    char * buffer = new (std::nothrow) char[size];
-    if (buffer == NULL)
-        return;
+		pop_projection_matrix();
+		glPopAttrib();
+	}
+	else
+	{
+		setupViewport();
 
-    memset(buffer, 0, size);
-    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
-#else
-    vsprintf(buffer, format, args);
-#endif
-    va_end(args);
-
-
-    //Here is some code to split the text that we have been
-    //given into a set of lines.
-    //This could be made much neater by using
-    //a regular expression library such as the one avliable from
-    //boost.org (I've only done it out by hand to avoid complicating
-    //this tutorial with unnecessary library dependencies).
-    const char *start_line = buffer;
-    std::vector<std::string> lines;
-    char *c;
-    for (c = buffer; *c; c++)
-    {
-        if(*c=='\n')
-        {
-            std::string line;
-            for(const char *n=start_line;n<c;n++) line.append(1,*n);
-            lines.push_back(line);
-            start_line=c+1;
-        }
-    }
-    if(start_line)
-    {
-        std::string line;
-        for(const char *n=start_line;n<c;n++) line.append(1,*n);
-        lines.push_back(line);
-    }
-
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        GLuint font = ft_font->getListBase();
-
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-        pushScreenCoordinateMatrix();
-        glMatrixMode(GL_MODELVIEW);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
-        glEnable(GL_TEXTURE_2D);
-        glDisable(GL_DEPTH_TEST);
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::vec3 trans(x, y-h*static_cast<float>(i), 0.0f);
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glPushMatrix();
-                glLoadIdentity();
-                glTranslatef( trans.x, trans.y, trans.z );
-                trans += glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f );
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glCallList( font + c );
-                glPopMatrix();
-            }
-        }
-
-        sgct::ShaderProgram::unbind();
-
-        pop_projection_matrix();
-        glPopAttrib();
-    }
-    else
-    {
-        setupViewport();
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
         glDisable(GL_DEPTH_TEST);
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -713,49 +480,31 @@ void print(const sgct_text::Font * ft_font, float x, float y, glm::vec4 color, c
         {
             glm::mat4 trans = glm::translate( setupOrthoMat(), glm::vec3(x, y-h*static_cast<float>(i), 0.0f));
 
-<<<<<<< HEAD
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                auto c = lines[i].c_str()[j];
-                if (c <= NUM_OF_GLYPHS_TO_LOAD)
-                {
-                    glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-                    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-                    glUniform1i(FontManager::instance()->getTexLoc(), 0);
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				auto c = lines[i].c_str()[j];
+				if (c <= NUM_OF_GLYPHS_TO_LOAD)
+				{
+					glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
-                    glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                    trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
+					glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+					trans = glm::translate(trans, glm::vec3(ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f));
 
-                    glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
-                }
-            }//end for chars
-        }//end for lines
-=======
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
+					glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c) * 4, 4);
+				}
+			}//end for chars
+		}//end for lines
 
         //unbind
         glBindVertexArray(0);
         sgct::ShaderProgram::unbind();
     }
 
-    if (buffer)
-        delete[] buffer;
+	if (buffer)
+		delete[] buffer;
 }
 
 void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format, ...)
@@ -766,229 +515,101 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, const char *format,
     GLuint font = ft_font->getListBase();
     float h = ft_font->getHeight() * 1.59f;
 
-<<<<<<< HEAD
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+	va_list		args;	 // Pointer To List Of Arguments
+	va_start(args, format); // Parses The String For Variables
+	char * buffer = parseArgList(args, format);
+	va_end(args); // Results Are Stored In Text
 
-    std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
+	std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
 
-    glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
+	{
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
 
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
 
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		FontManager::instance()->getShader().bind();
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
 
-                glLoadMatrixf( glm::value_ptr( trans ) );
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
+				glLoadMatrixf( glm::value_ptr( trans ) );
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
 
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-                glCallList( font + c );
-            }
-        }
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glUniform1i( FontManager::instance()->getTexLoc(), 0);
+				glCallList( font + c );
+			}
+		}
 
-        sgct::ShaderProgram::unbind();
-        glPopMatrix();
-        glPopAttrib();
-    }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		sgct::ShaderProgram::unbind();
+		glPopMatrix();
+		glPopAttrib();
+	}
+	else
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
+		FontManager::instance()->getShader().bind();
 
-        glBindVertexArray( ft_font->getVAO() );
-        glActiveTexture(GL_TEXTURE0);
+		glBindVertexArray( ft_font->getVAO() );
+		glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
 
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
 
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glUniform1i( FontManager::instance()->getTexLoc(), 0);
 
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+				glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
 
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
 
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
-=======
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    
-    int size = 1 + vscprintf(format, args);
-    char * buffer = new (std::nothrow) char[size];
-    if (buffer == NULL)
-        return;
+		//unbind
+		glBindVertexArray(0);
+		sgct::ShaderProgram::unbind();
+	}
 
-    memset(buffer, 0, size);
-    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
-#else
-    vsprintf(buffer, format, args);
-#endif
-    va_end(args);
-
-    //Here is some code to split the text that we have been
-    //given into a set of lines.
-    //This could be made much neater by using
-    //a regular expression library such as the one avliable from
-    //boost.org (I've only done it out by hand to avoid complicating
-    //this tutorial with unnecessary library dependencies).
-    const char *start_line = buffer;
-    char *c;
-    std::vector<std::string> lines;
-    for (c = buffer; *c; c++) {
-        if(*c=='\n') {
-            std::string line;
-            for(const char *n=start_line;n<c;n++) line.append(1,*n);
-            lines.push_back(line);
-            start_line=c+1;
-        }
-    }
-    if(start_line) {
-        std::string line;
-        for(const char *n=start_line;n<c;n++) line.append(1,*n);
-        lines.push_back(line);
-    }
-
-    glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
-
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glLoadMatrixf( glm::value_ptr( trans ) );
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-                glCallList( font + c );
-            }
-        }
-
-        sgct::ShaderProgram::unbind();
-        glPopMatrix();
-        glPopAttrib();
-    }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        FontManager::instance()->getShader().bind();
-
-        glBindVertexArray( ft_font->getVAO() );
-        glActiveTexture(GL_TEXTURE0);
-
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
-
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
-
-    if(buffer)
-        delete[] buffer;
+	if(buffer)
+		delete[] buffer;
 }
 
 void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, const char *format, ...)
@@ -999,226 +620,100 @@ void print3d(const sgct_text::Font * ft_font, glm::mat4 mvp, glm::vec4 color, co
     GLuint font = ft_font->getListBase();
     float h = ft_font->getHeight() * 1.59f;
 
-<<<<<<< HEAD
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    char * buffer = parseArgList(args, format);
-    va_end(args); // Results Are Stored In Text
+	va_list		args;	 // Pointer To List Of Arguments
+	va_start(args, format); // Parses The String For Variables
+	char * buffer = parseArgList(args, format);
+	va_end(args); // Results Are Stored In Text
 
-    std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
+	std::vector<std::string> lines = sgct_helpers::split(buffer, '\n');
 
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
+	if( sgct::Engine::instance()->isOGLPipelineFixed() )
+	{
+		glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
 
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		glDisable(GL_LIGHTING);
+		glActiveTexture(GL_TEXTURE0);
+		glEnable(GL_TEXTURE_2D);
 
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
+		glMatrixMode(GL_MODELVIEW);
+		glPushMatrix();
 
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		FontManager::instance()->getShader().bind();
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
 
-                glLoadMatrixf( glm::value_ptr( trans ) );
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
+				glLoadMatrixf( glm::value_ptr( trans ) );
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
 
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-                glCallList( font + c );
-            }
-        }
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glUniform1i( FontManager::instance()->getTexLoc(), 0);
+				glCallList( font + c );
+			}
+		}
 
-        sgct::ShaderProgram::unbind();
-        glPopMatrix();
-        glPopAttrib();
-    }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
+		sgct::ShaderProgram::unbind();
+		glPopMatrix();
+		glPopAttrib();
+	}
+	else
+	{
+		glEnable(GL_BLEND);
+		glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 
-        FontManager::instance()->getShader().bind();
+		FontManager::instance()->getShader().bind();
 
-        glBindVertexArray( ft_font->getVAO() );
-        glActiveTexture(GL_TEXTURE0);
+		glBindVertexArray( ft_font->getVAO() );
+		glActiveTexture(GL_TEXTURE0);
 
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
+		glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
+		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
+		glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
 
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
+		float textScale = 1.0f / ft_font->getHeight();
+		glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
 
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
+		for(size_t i=0;i<lines.size();i++)
+		{
+			glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
 
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
+			for(size_t j=0; j < lines[i].length(); j++)
+			{
+				char c = lines[i].c_str()[j];
 
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
+				glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
+				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				glUniform1i( FontManager::instance()->getTexLoc(), 0);
 
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
+				glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
+				trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
 
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
+				glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
+			}//end for chars
+		}//end for lines
 
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
-=======
-    va_list        args;     // Pointer To List Of Arguments
-    va_start(args, format); // Parses The String For Variables
-    
-    int size = 1 + vscprintf(format, args);
-    char * buffer = new (std::nothrow) char[size];
-    if (buffer == NULL)
-        return;
+		//unbind
+		glBindVertexArray(0);
+		sgct::ShaderProgram::unbind();
+	}
 
-    memset(buffer, 0, size);
-    
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-    vsprintf_s(buffer, size, format, args);
-#else
-    vsprintf(buffer, format, args);
-#endif
-
-    //Here is some code to split the text that we have been
-    //given into a set of lines.
-    //This could be made much neater by using
-    //a regular expression library such as the one avliable from
-    //boost.org (I've only done it out by hand to avoid complicating
-    //this tutorial with unnecessary library dependencies).
-    const char *start_line = buffer;
-    char *c;
-    std::vector<std::string> lines;
-    for (c = buffer; *c; c++) {
-        if(*c=='\n') {
-            std::string line;
-            for(const char *n=start_line;n<c;n++) line.append(1,*n);
-            lines.push_back(line);
-            start_line=c+1;
-        }
-    }
-    if(start_line) {
-        std::string line;
-        for(const char *n=start_line;n<c;n++) line.append(1,*n);
-        lines.push_back(line);
-    }
-
-    if( sgct::Engine::instance()->isOGLPipelineFixed() )
-    {
-        glPushAttrib(GL_LIST_BIT | GL_CURRENT_BIT  | GL_ENABLE_BIT | GL_TRANSFORM_BIT);
-
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-        glDisable(GL_LIGHTING);
-        glActiveTexture(GL_TEXTURE0);
-        glEnable(GL_TEXTURE_2D);
-
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-
-        glMatrixMode(GL_MODELVIEW);
-        glPushMatrix();
-
-        FontManager::instance()->getShader().bind();
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glLoadMatrixf( glm::value_ptr( trans ) );
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(c), 0.0f, 0.0f ));
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c));
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-                glCallList( font + c );
-            }
-        }
-
-        sgct::ShaderProgram::unbind();
-        glPopMatrix();
-        glPopAttrib();
-    }
-    else
-    {
-        glEnable(GL_BLEND);
-        glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
-
-        FontManager::instance()->getShader().bind();
-
-        glBindVertexArray( ft_font->getVAO() );
-        glActiveTexture(GL_TEXTURE0);
-
-        glUniform4f( FontManager::instance()->getColLoc(), color.r, color.g, color.b, color.a );
-        glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
-        glUniform4f( FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a );
-
-        float textScale = 1.0f / ft_font->getHeight();
-        glm::mat4 scaleMat = glm::scale( mvp, glm::vec3(textScale) );
-
-        for(size_t i=0;i<lines.size();i++)
-        {
-            glm::mat4 trans = glm::translate( scaleMat, glm::vec3(0.0f, -h*static_cast<float>(i), 0.0f));
-
-            for(size_t j=0; j < lines[i].length(); j++)
-            {
-                char c = lines[i].c_str()[j];
-
-                glBindTexture(GL_TEXTURE_2D, ft_font->getTexture(c) );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-                glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
-                glUniform1i( FontManager::instance()->getTexLoc(), 0);
-
-                glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &trans[0][0]);
-                trans = glm::translate( trans, glm::vec3( ft_font->getCharWidth(lines[i].c_str()[j]), 0.0f, 0.0f ));
-
-                glDrawArrays(GL_TRIANGLE_STRIP, static_cast<GLint>(c)*4, 4);
-            }//end for chars
-        }//end for lines
-
-        //unbind
-        glBindVertexArray(0);
-        sgct::ShaderProgram::unbind();
-    }
->>>>>>> 0f98b3d87c3585d55ed6eecdc149fe1f20dcfcd3
-
-    if(buffer)
-        delete[] buffer;
+	if(buffer)
+		delete[] buffer;
 }
 
 }

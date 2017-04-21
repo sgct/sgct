@@ -32,6 +32,7 @@ public:
 	glm::vec2 mPos;
 	glm::vec2 mSize;
 	FT_Glyph mGlyph;
+	bool mInterpolated;
 };
 
 class GlyphData

@@ -226,8 +226,12 @@ void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 
 				glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
 				//disable interpolation for 2D rendering
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				if (ffdPtr->mInterpolated)
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					ffdPtr->mInterpolated = false;
+				}
 				glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
 				glCallList(ft_font->getDisplayList());
@@ -283,8 +287,12 @@ void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 
 				glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
 				//disable interpolation for 2D rendering
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-				glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+				if (ffdPtr->mInterpolated)
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+					ffdPtr->mInterpolated = false;
+				}
 				glUniform1i(FontManager::instance()->getTexLoc(), 0);
 
 				glUniformMatrix4fv(FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &scale[0][0]);
@@ -356,8 +364,13 @@ void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 
 				glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
 				//use linear interpolation in 3D
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				if (!ffdPtr->mInterpolated)
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					ffdPtr->mInterpolated = true;
+				}
+
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
 				glCallList(ft_font->getDisplayList());
 
@@ -409,8 +422,14 @@ void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 				scale = glm::scale(trans, glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.0f));
 
 				glBindTexture(GL_TEXTURE_2D, ffdPtr->mTexId);
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR );
-				glTexParameteri( GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR );
+				//use linear interpolation in 3D
+				if (!ffdPtr->mInterpolated)
+				{
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+					glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+					ffdPtr->mInterpolated = true;
+				}
+
 				glUniform1i( FontManager::instance()->getTexLoc(), 0);
 				glUniformMatrix4fv( FontManager::instance()->getMVPLoc(), 1, GL_FALSE, &scale[0][0]);
 				

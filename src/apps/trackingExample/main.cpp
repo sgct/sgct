@@ -233,6 +233,7 @@ void myDrawFun()
     
     glColor3f(1.0f, 1.0f, 1.0f);
     sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", fontSize ),
+		sgct_text::TOP_LEFT,
         120.0f, textVerticalPos,
         sharedText.getVal().c_str() );
 #endif

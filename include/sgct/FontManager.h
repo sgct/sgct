@@ -39,12 +39,17 @@ if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", sgct
 \n
 Then in the draw or draw2d callback the font can be rendered:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), 50, 50, "Hello World!");
+sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), sgct_text::TOP_LEFT, 50, 50, "Hello World!");
 \endcode
 \n
 SGCT has an internal font that can be used as well:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), 50, 50, "Hello World!");
+sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TOP_LEFT, 50, 50, "Hello World!");
+\endcode
+\n
+Non ASCII characters are supported as well:
+\code{.cpp}
+sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TOP_LEFT, 50, 50, L"Hallå Världen!");
 \endcode
 */
 class FontManager

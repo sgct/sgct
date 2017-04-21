@@ -163,8 +163,29 @@ wchar_t * parseArgList(va_list args, const wchar_t *format)
 	return buffer;
 }
 
-void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font, const float & x, const float & y, const glm::vec4 & color)
+float getLineWidth(sgct_text::Font * ft_font, const std::wstring & line)
 {
+	FontFaceData * ffdPtr;
+	
+	//figure out width
+	float lineWidth = 0.0f;
+	for (size_t j = 0; j < line.length() - 1; ++j)
+	{
+		auto c = line.c_str()[j];
+		ffdPtr = ft_font->getFontFaceData(c);
+		lineWidth += ffdPtr->mDistToNextChar;
+	}
+	//add last char width
+	auto c = line.c_str()[line.length() - 1];
+	ffdPtr = ft_font->getFontFaceData(c);
+	lineWidth += ffdPtr->mSize.x;
+
+	return lineWidth;
+}
+
+void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font, const TextAlignMode & mode, const float & x, const float & y, const glm::vec4 & color)
+{
+	FontFaceData * ffdPtr;
 	float h = ft_font->getHeight() * 1.59f;
 	
 	if (sgct::Engine::instance()->isOGLPipelineFixed())
@@ -184,13 +205,19 @@ void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 		glm::vec4 strokeColor = FontManager::instance()->getStrokeColor();
 		glUniform4f(FontManager::instance()->getStkLoc(), strokeColor.r, strokeColor.g, strokeColor.b, strokeColor.a);
 
-		for (size_t i = 0; i<lines.size(); i++)
+		for (size_t i = 0; i<lines.size(); ++i)
 		{
 			glm::vec3 offset(x, y - h*static_cast<float>(i), 0.0f);
-			for (size_t j = 0; j < lines[i].length(); j++)
+			
+			if (mode == TOP_CENTER)
+				offset.x -= getLineWidth(ft_font, lines[i]) / 2.0f;
+			else if(mode == TOP_RIGHT)
+				offset.x -= getLineWidth(ft_font, lines[i]);
+
+			for (size_t j = 0; j < lines[i].length(); ++j)
 			{
 				auto c = lines[i].c_str()[j];
-				FontFaceData * ffdPtr = ft_font->getFontFaceData(c);
+				ffdPtr = ft_font->getFontFaceData(c);
 
 				glPushMatrix();
 				glLoadIdentity();
@@ -241,10 +268,15 @@ void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 			glm::mat4 trans;
 			glm::mat4 scale;
 
+			if (mode == TOP_CENTER)
+				offset.x -= getLineWidth(ft_font, lines[i]) / 2.0f;
+			else if (mode == TOP_RIGHT)
+				offset.x -= getLineWidth(ft_font, lines[i]);
+
 			for (size_t j = 0; j < lines[i].length(); j++)
 			{
 				auto c = lines[i].c_str()[j];
-				FontFaceData * ffdPtr = ft_font->getFontFaceData(c);
+				ffdPtr = ft_font->getFontFaceData(c);
 
 				trans = glm::translate(projectionMat, glm::vec3(offset.x + ffdPtr->mPos.x, offset.y + ffdPtr->mPos.y, offset.z));
 				scale = glm::scale(trans, glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.0f));
@@ -270,8 +302,9 @@ void render2d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 	}
 }
 
-void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font, const glm::mat4 & mvp, const glm::vec4 & color)
+void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font, const TextAlignMode & mode, const glm::mat4 & mvp, const glm::vec4 & color)
 {
+	FontFaceData * ffdPtr;
 	float h = ft_font->getHeight() * 1.59f;
 	
 	if (sgct::Engine::instance()->isOGLPipelineFixed())
@@ -305,11 +338,16 @@ void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 			glm::vec3 offset(0.0f, -h*static_cast<float>(i), 0.0f);
 			glm::mat4 trans;
 			glm::mat4 scale;
+
+			if (mode == TOP_CENTER)
+				offset.x -= getLineWidth(ft_font, lines[i]) / 2.0f;
+			else if (mode == TOP_RIGHT)
+				offset.x -= getLineWidth(ft_font, lines[i]);
 			
 			for (size_t j = 0; j < lines[i].length(); j++)
 			{
 				auto c = lines[i].c_str()[j];
-				FontFaceData * ffdPtr = ft_font->getFontFaceData(c);
+				ffdPtr = ft_font->getFontFaceData(c);
 
 				trans = glm::translate(textScaleMat, glm::vec3(offset.x + ffdPtr->mPos.x, offset.y + ffdPtr->mPos.y, offset.z));
 				scale = glm::scale(trans, glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.0f));
@@ -357,10 +395,15 @@ void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 			glm::mat4 trans;
 			glm::mat4 scale;
 
+			if (mode == TOP_CENTER)
+				offset.x -= getLineWidth(ft_font, lines[i]) / 2.0f;
+			else if (mode == TOP_RIGHT)
+				offset.x -= getLineWidth(ft_font, lines[i]);
+
 			for (size_t j = 0; j < lines[i].length(); j++)
 			{
 				auto c = lines[i].c_str()[j];
-				FontFaceData * ffdPtr = ft_font->getFontFaceData(c);
+				ffdPtr = ft_font->getFontFaceData(c);
 
 				trans = glm::translate(textScaleMat, glm::vec3(offset.x + ffdPtr->mPos.x, offset.y + ffdPtr->mPos.y, offset.z));
 				scale = glm::scale(trans, glm::vec3(ffdPtr->mSize.x, ffdPtr->mSize.y, 1.0f));
@@ -384,7 +427,7 @@ void render3d(const std::vector<std::wstring> & lines, sgct_text::Font * ft_font
 	}
 }
 
-void print(sgct_text::Font * ft_font, float x, float y, const char *format, ...)
+void print(sgct_text::Font * ft_font, TextAlignMode mode, float x, float y, const char *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -396,13 +439,13 @@ void print(sgct_text::Font * ft_font, float x, float y, const char *format, ...)
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render2d(lines, ft_font, x, y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	render2d(lines, ft_font, mode, x, y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print(sgct_text::Font * ft_font, float x, float y, const wchar_t *format, ...)
+void print(sgct_text::Font * ft_font, TextAlignMode mode, float x, float y, const wchar_t *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -414,13 +457,13 @@ void print(sgct_text::Font * ft_font, float x, float y, const wchar_t *format, .
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render2d(lines, ft_font, x, y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
+	render2d(lines, ft_font, mode, x, y, glm::vec4(1.0f, 1.0f, 1.0f, 1.0f));
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print(sgct_text::Font * ft_font, float x, float y, const glm::vec4 & color, const char *format, ...)
+void print(sgct_text::Font * ft_font, TextAlignMode mode, float x, float y, const glm::vec4 & color, const char *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -432,13 +475,13 @@ void print(sgct_text::Font * ft_font, float x, float y, const glm::vec4 & color,
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render2d(lines, ft_font, x, y, color);
+	render2d(lines, ft_font, mode, x, y, color);
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print(sgct_text::Font * ft_font, float x, float y, const glm::vec4 & color, const wchar_t *format, ...)
+void print(sgct_text::Font * ft_font, TextAlignMode mode, float x, float y, const glm::vec4 & color, const wchar_t *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -450,13 +493,13 @@ void print(sgct_text::Font * ft_font, float x, float y, const glm::vec4 & color,
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render2d(lines, ft_font, x, y, color);
+	render2d(lines, ft_font, mode, x, y, color);
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const char *format, ...)
+void print3d(sgct_text::Font * ft_font, TextAlignMode mode, glm::mat4 mvp, const char *format, ...)
 {
     if (ft_font == NULL || format == NULL)
         return;
@@ -469,13 +512,13 @@ void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const char *format, ...)
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
 	glm::vec4 color( 1.0f, 1.0f, 1.0f, 1.0f );
-	render3d(lines, ft_font, mvp, color);
+	render3d(lines, ft_font, mode, mvp, color);
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const wchar_t *format, ...)
+void print3d(sgct_text::Font * ft_font, TextAlignMode mode, glm::mat4 mvp, const wchar_t *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -488,13 +531,13 @@ void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const wchar_t *format, ..
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
 	glm::vec4 color(1.0f, 1.0f, 1.0f, 1.0f);
-	render3d(lines, ft_font, mvp, color);
+	render3d(lines, ft_font, mode, mvp, color);
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const glm::vec4 & color, const char *format, ...)
+void print3d(sgct_text::Font * ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4 & color, const char *format, ...)
 {
     if (ft_font == NULL || format == NULL)
         return;
@@ -506,13 +549,13 @@ void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const glm::vec4 & color, 
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render3d(lines, ft_font, mvp, color);
+	render3d(lines, ft_font, mode, mvp, color);
 
 	if (buffer)
 		delete[] buffer;
 }
 
-void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const glm::vec4 & color, const wchar_t *format, ...)
+void print3d(sgct_text::Font * ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4 & color, const wchar_t *format, ...)
 {
 	if (ft_font == NULL || format == NULL)
 		return;
@@ -524,7 +567,7 @@ void print3d(sgct_text::Font * ft_font, glm::mat4 mvp, const glm::vec4 & color, 
 
 	std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
 
-	render3d(lines, ft_font, mvp, color);
+	render3d(lines, ft_font, mode, mvp, color);
 
 	if (buffer)
 		delete[] buffer;

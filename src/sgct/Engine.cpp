@@ -1431,6 +1431,7 @@ void sgct::Engine::renderDisplayInfo()
         float yPos = static_cast<float>(getCurrentWindowPtr()->getYResolution()) * SGCTSettings::instance()->getOSDTextYOffset();
 		
 		sgct_text::print(font,
+			sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 6.0f + yPos,
             glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1439,6 +1440,7 @@ void sgct::Engine::renderDisplayInfo()
             mNetworkConnections->isComputerServer() ? "master" : "slave");
 
         sgct_text::print(font,
+			sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 5.0f + yPos,
             glm::vec4(0.8f,0.8f,0.0f,1.0f),
@@ -1447,6 +1449,7 @@ void sgct::Engine::renderDisplayInfo()
             mFrameCounter);
 
         sgct_text::print(font,
+			sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 4.0f + yPos,
             glm::vec4(0.8f,0.0f,0.8f,1.0f),
@@ -1456,6 +1459,7 @@ void sgct::Engine::renderDisplayInfo()
         if(isMaster())
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 3.0f + yPos,
                 glm::vec4(0.0f,0.8f,0.8f,1.0f),
@@ -1467,6 +1471,7 @@ void sgct::Engine::renderDisplayInfo()
         else
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 3.0f + yPos,
                 glm::vec4(0.0f,0.8f,0.8f,1.0f),
@@ -1478,6 +1483,7 @@ void sgct::Engine::renderDisplayInfo()
         if(usingSwapGroups)
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 2.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1490,6 +1496,7 @@ void sgct::Engine::renderDisplayInfo()
         else
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 2.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1497,6 +1504,7 @@ void sgct::Engine::renderDisplayInfo()
         }
 
         sgct_text::print(font,
+			sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 1.0f + yPos,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -1504,6 +1512,7 @@ void sgct::Engine::renderDisplayInfo()
             getCurrentWindowPtr()->getXFramebufferResolution(), getCurrentWindowPtr()->getYFramebufferResolution());
 
         sgct_text::print(font,
+			sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 0.0f + yPos,
             glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1514,6 +1523,7 @@ void sgct::Engine::renderDisplayInfo()
         if( mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye )
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 8.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1522,6 +1532,7 @@ void sgct::Engine::renderDisplayInfo()
         else if( mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye )
         {
             sgct_text::print(font,
+				sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 8.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),

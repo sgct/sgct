@@ -171,8 +171,10 @@ void draw()
         
         float offset = w / 2.0f - w/7.0f;
         
-        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s1)), offset, h/2.0f - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId());
-        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s2)), offset, h / 2.0f - (s1 + s2) * 1.2f, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str());
+        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s1)),
+			sgct_text::TOP_LEFT, offset, h/2.0f - s1, glm::vec4(0.0, 0.0, 1.0, 1.0), "%d", sgct_core::ClusterManager::instance()->getThisNodeId());
+        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", static_cast<unsigned int>(s2)),
+			sgct_text::TOP_LEFT, offset, h / 2.0f - (s1 + s2) * 1.2f, glm::vec4(0.0, 0.0, 1.0, 1.0), "%s", sgct_core::ClusterManager::instance()->getThisNodePtr()->getAddress().c_str());
     }
 #endif
 

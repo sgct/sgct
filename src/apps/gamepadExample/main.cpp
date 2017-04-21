@@ -81,7 +81,7 @@ void myDraw2DFun()
         }
 
         sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", 12 );
-        sgct_text::print(font, 18, 32, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", joystickInfoStr.c_str());
+        sgct_text::print(font, sgct_text::TOP_LEFT, 18, 32, glm::vec4(1.0f, 0.5f, 0.0f, 1.0f), "%s", joystickInfoStr.c_str());
     }
 #endif
 }

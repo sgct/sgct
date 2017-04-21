@@ -85,12 +85,12 @@ void myDraw2DFun()
 {
 #if INCLUDE_SGCT_TEXT
     //sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
-    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getCurrentWindowPtr()->isFocused() ? "true" : "false");
-    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), L"Time: %ls", sTimeOfDay.getVal().c_str() );
+    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), sgct_text::TOP_LEFT, 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getCurrentWindowPtr()->isFocused() ? "true" : "false");
+    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), sgct_text::TOP_LEFT, 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), L"Time: %ls", sTimeOfDay.getVal().c_str() );
     if (extraPackages.getVal() && extraData.getSize() == EXTENDED_SIZE)
     {
         float xPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
-        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 16), xPos, 150.0f, glm::vec4(0.0, 1.0, 0.5, 1.0), "Vector val: %f, size: %u", extraData.getValAt(EXTENDED_SIZE / 2), extraData.getSize());
+        sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 16), sgct_text::TOP_LEFT, xPos, 150.0f, glm::vec4(0.0, 1.0, 0.5, 1.0), "Vector val: %f, size: %u", extraData.getValAt(EXTENDED_SIZE / 2), extraData.getSize());
     }
 
     /*static int counter = 0;
@@ -190,11 +190,11 @@ void myDrawFun()
 
 	glColor3f(1.0f,1.0f,0.0f);
     if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye )
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), sgct_text::TOP_LEFT, xPos, 200, "Left");
     else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye )
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), sgct_text::TOP_LEFT, xPos, 150, "Right");
     else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye)
-		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), xPos, 200, "Mono");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), sgct_text::TOP_LEFT, xPos, 200, "Mono");
 
 	wchar_t str0[] = L"åäö"; ///Swedish string
 	wchar_t str1[] = L"лдощдффыкйцн"; ///Russian string
@@ -212,8 +212,8 @@ void myDrawFun()
 	texMVP = glm::scale(texMVP, glm::vec3(0.1f));
 	texMVP = glm::rotate(texMVP, static_cast<float>(curr_time.getVal()), glm::vec3(0.0f, 1.0f, 0.0f));
 
-	//sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), 500, 500, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
-	sgct_text::print3d(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), texMVP, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
+	sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), sgct_text::TOP_RIGHT, 500, 500, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
+	//sgct_text::print3d(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), sgct_text::TOP_CENTER, texMVP, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
 		str0,
 		str1,
 		str2,
@@ -224,28 +224,28 @@ void myDrawFun()
 
     if( gEngine->getCurrentWindowPtr()->isUsingSwapGroups() )
     {
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Active");
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 450, "Swap group: Active");
 
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 500, "Press B to toggle barrier and R to reset counter");
 
         if( gEngine->getCurrentWindowPtr()->isBarrierActive() )
-            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Active");
+            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 400, "Swap barrier: Active");
         else
-            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
+            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 400, "Swap barrier: Inactive");
 
         if( gEngine->getCurrentWindowPtr()->isSwapGroupMaster() )
-            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: True");
+            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 350, "Swap group master: True");
         else
-            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 350, "Swap group master: False");
+            sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 350, "Swap group master: False");
 
         unsigned int fr_number;
         gEngine->getCurrentWindowPtr()->getSwapGroupFrameNumber(fr_number);
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 300, "Nvidia frame counter: %u", fr_number );
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 250, "Framerate: %.3lf", 1.0/gEngine->getDt() );
     }
     else
     {
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
+        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), sgct_text::TOP_LEFT, xPos - xPos/2.0f, 450, "Swap group: Inactive");
     }
 
 	//fprintf(stderr, "Total number of faces: %u\n", sgct_text::FontManager::instance()->getTotalNumberOfLoadedChars());

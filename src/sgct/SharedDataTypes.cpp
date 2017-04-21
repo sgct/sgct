@@ -1952,6 +1952,61 @@ void sgct::SharedString::operator=(const SharedString & ss)
     mMutex.unlock();
 }
 
+//Shared wide string
+sgct::SharedWString::SharedWString()
+{
+	;
+}
+
+sgct::SharedWString::SharedWString(const std::wstring & str)
+{
+	mStr.assign(str);
+}
+
+sgct::SharedWString::SharedWString(const SharedWString & ss)
+{
+	mStr = ss.mStr;
+}
+
+std::wstring sgct::SharedWString::getVal()
+{
+	std::wstring tmpStr;
+
+	mMutex.lock();
+	tmpStr.assign(mStr);
+	mMutex.unlock();
+
+	return tmpStr;
+}
+
+void sgct::SharedWString::setVal(const std::wstring & str)
+{
+	mMutex.lock();
+	mStr.assign(str);
+	mMutex.unlock();
+}
+
+void sgct::SharedWString::clear()
+{
+	mMutex.lock();
+	mStr.clear();
+	mMutex.unlock();
+}
+
+void sgct::SharedWString::operator=(const std::wstring & str)
+{
+	mMutex.lock();
+	mStr = str;
+	mMutex.unlock();
+}
+
+void sgct::SharedWString::operator=(const SharedWString & ss)
+{
+	mMutex.lock();
+	mStr = ss.mStr;
+	mMutex.unlock();
+}
+
 /*
 template <class T>
 sgct::SharedObject<T>::SharedObject()

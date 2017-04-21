@@ -1417,22 +1417,20 @@ void sgct::Engine::renderDisplayInfo()
     getCurrentWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
 
     glm::vec4 strokeColor = sgct_text::FontManager::instance()->getStrokeColor();
-    signed long strokeSize = sgct_text::FontManager::instance()->getStrokeSize();
     sgct_text::FontManager::instance()->setStrokeColor( glm::vec4( 0.0f, 0.0f, 0.0f, 0.8f ) );
-    sgct_text::FontManager::instance()->setStrokeSize( 1 );
 
     unsigned int font_size = SGCTSettings::instance()->getOSDTextFontSize();
     font_size = static_cast<unsigned int>(static_cast<float>(font_size)*getCurrentWindowPtr()->getXScale());
     
-    const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", font_size );
+    sgct_text::Font * font = sgct_text::FontManager::instance()->getFont( "SGCTFont", font_size );
 
     if( font != NULL )
     {
         float lineHeight = font->getHeight() * 1.59f;
         float xPos = static_cast<float>(getCurrentWindowPtr()->getXResolution()) * SGCTSettings::instance()->getOSDTextXOffset();
         float yPos = static_cast<float>(getCurrentWindowPtr()->getYResolution()) * SGCTSettings::instance()->getOSDTextYOffset();
-
-        sgct_text::print(font,
+		
+		sgct_text::print(font,
             xPos,
             lineHeight * 6.0f + yPos,
             glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1533,7 +1531,6 @@ void sgct::Engine::renderDisplayInfo()
 
     //reset
     sgct_text::FontManager::instance()->setStrokeColor( strokeColor );
-    sgct_text::FontManager::instance()->setStrokeSize( strokeSize );
 #endif
 }
 

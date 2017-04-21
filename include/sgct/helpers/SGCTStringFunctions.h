@@ -56,6 +56,29 @@ static std::vector<std::wstring> split(std::wstring str, wchar_t delimiter)
 	return tmpVec;
 }
 
+static std::vector<std::wstring> split(std::string str, wchar_t delimiter)
+{
+	std::vector<std::wstring> tmpVec;
+	std::wstring ws;
+	ws.assign(str.begin(), str.end());
+
+	std::wstringstream ss(ws);
+	std::wstring part;
+
+	while (getline(ss, part, delimiter)) {
+		tmpVec.push_back(part);
+	}
+
+	return tmpVec;
+}
+
+static std::wstring makeWideString(const std::string & str)
+{
+	std::wstring ws;
+	ws.assign(str.begin(), str.end());
+	return ws;
+}
+
 }
 
 #endif

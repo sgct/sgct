@@ -82,6 +82,7 @@ public:
     void writeUChar(SharedUChar * suc);
     void writeBool(SharedBool * sb);
     void writeString(SharedString * ss);
+	void writeWString(SharedWString * ss);
     template<class T>
     void writeVector(SharedVector<T> * vector);
 
@@ -103,6 +104,7 @@ public:
     void readUChar(SharedUChar * suc);
     void readBool(SharedBool * sb);
     void readString(SharedString * ss);
+	void readWString(SharedWString * ss);
     template<class T>
     void readVector(SharedVector<T> * vector);
 

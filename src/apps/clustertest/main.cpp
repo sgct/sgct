@@ -1,4 +1,4 @@
-#include <stdlib.h>
+﻿#include <stdlib.h>
 #include <stdio.h>
 #include "sgct.h"
 //#include "sgct/PLYReader.h"
@@ -21,7 +21,7 @@ void externalControlCallback(const char * receivedChars, int size);
 //variables to share across cluster
 sgct::SharedDouble dt(0.0);
 sgct::SharedDouble curr_time(0.0);
-sgct::SharedString sTimeOfDay;
+sgct::SharedWString sTimeOfDay;
 sgct::SharedBool showFPS(false);
 sgct::SharedBool extraPackages(false);
 sgct::SharedBool barrier(false);
@@ -84,9 +84,9 @@ int main( int argc, char* argv[] )
 void myDraw2DFun()
 {
 #if INCLUDE_SGCT_TEXT
-    sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
+    //sgct_text::FontManager::instance()->setStrokeColor( glm::vec4(0.0, 1.0, 0.0, 0.5) );
     sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 50, 700, glm::vec4(1.0, 0.0, 0.0, 1.0), "Focused: %s", gEngine->getCurrentWindowPtr()->isFocused() ? "true" : "false");
-    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), "Time: %s", sTimeOfDay.getVal().c_str() );
+    sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 24 ), 100, 500, glm::vec4(0.0, 1.0, 0.0, 1.0), L"Time: %ls", sTimeOfDay.getVal().c_str() );
     if (extraPackages.getVal() && extraData.getSize() == EXTENDED_SIZE)
     {
         float xPos = static_cast<float>(gEngine->getCurrentWindowPtr()->getXFramebufferResolution()) / 2.0f - 150.0f;
@@ -188,13 +188,39 @@ void myDrawFun()
 #if INCLUDE_SGCT_TEXT
     float xPos = static_cast<float>( gEngine->getCurrentWindowPtr()->getXFramebufferResolution() ) / 2.0f;
 
-    glColor3f(1.0f,1.0f,0.0f);
+	glColor3f(1.0f,1.0f,0.0f);
     if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoLeftEye )
         sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Left");
     else if( gEngine->getCurrentFrustumMode() == sgct_core::Frustum::StereoRightEye )
         sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 150, "Right");
     else if (gEngine->getCurrentFrustumMode() == sgct_core::Frustum::MonoEye)
-        sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 32 ), xPos, 200, "Mono");
+		sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), xPos, 200, "Mono");
+
+	wchar_t str0[] = L"åäö"; ///Swedish string
+	wchar_t str1[] = L"лдощдффыкйцн"; ///Russian string
+	wchar_t str2[] = L"かんじ"; ///Japan string
+	wchar_t str3[] = L"汉字"; ///china
+	wchar_t str4[] = L"mương"; ///viet string
+	wchar_t str5[] = L"한자"; ///korea
+	wchar_t str6[] = L"बईबईसई"; ///hindi string
+
+	sgct_text::FontManager::instance()->getFont("SGCTFont", 32)->setStrokeSize(2);
+	sgct_text::FontManager::instance()->setStrokeColor(glm::vec4(1.0f, 0.0f, 0.0f, 0.5f));
+	
+	//test
+	glm::mat4 texMVP = glm::ortho(-1.0f, 1.0f, -1.0f, 1.0f);
+	texMVP = glm::scale(texMVP, glm::vec3(0.1f));
+	texMVP = glm::rotate(texMVP, static_cast<float>(curr_time.getVal()), glm::vec3(0.0f, 1.0f, 0.0f));
+
+	//sgct_text::print(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), 500, 500, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
+	sgct_text::print3d(sgct_text::FontManager::instance()->getFont("SGCTFont", 32), texMVP, L"%ls\n%ls\n%ls\n%ls\n%ls\n%ls\n%ls",
+		str0,
+		str1,
+		str2,
+		str3,
+		str4,
+		str5,
+		str6);
 
     if( gEngine->getCurrentWindowPtr()->isUsingSwapGroups() )
     {
@@ -221,6 +247,8 @@ void myDrawFun()
     {
         sgct_text::print(sgct_text::FontManager::instance()->getFont( "SGCTFont", 18 ), xPos - xPos/2.0f, 450, "Swap group: Inactive");
     }
+
+	//fprintf(stderr, "Total number of faces: %u\n", sgct_text::FontManager::instance()->getTotalNumberOfLoadedChars());
 #endif
 }
 
@@ -230,7 +258,7 @@ void myPreSyncFun()
     {
         dt.setVal( gEngine->getDt() );
         curr_time.setVal( gEngine->getTime() );
-        sTimeOfDay.setVal( sgct::MessageHandler::instance()->getTimeOfDayStr() );
+		sTimeOfDay.setVal( sgct_helpers::makeWideString(sgct::MessageHandler::instance()->getTimeOfDayStr()) );
     }
 }
 
@@ -304,7 +332,7 @@ void myEncodeFun()
     sgct::SharedData::instance()->writeDouble( &curr_time);
     sgct::SharedData::instance()->writeFloat( &speed );
     sgct::SharedData::instance()->writeUChar( &sf );
-    sgct::SharedData::instance()->writeString( &sTimeOfDay );
+    sgct::SharedData::instance()->writeWString( &sTimeOfDay );
 
     if(extraPackages.getVal())
         sgct::SharedData::instance()->writeVector( &extraData );
@@ -319,7 +347,7 @@ void myDecodeFun()
     sgct::SharedData::instance()->readDouble( &curr_time );
     sgct::SharedData::instance()->readFloat( &speed );
     sgct::SharedData::instance()->readUChar( &sf );
-    sgct::SharedData::instance()->readString( &sTimeOfDay );
+    sgct::SharedData::instance()->readWString( &sTimeOfDay );
 
     unsigned char flags = sf.getVal();
     showFPS.setVal(flags & 0x0001);

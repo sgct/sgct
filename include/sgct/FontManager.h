@@ -9,38 +9,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _FONT_MANAGER_H_
 
 #include <string>
-#include <set>
 #include <map>
 
 #include "Font.h"
 #include "ShaderProgram.h"
 #include <glm/glm.hpp>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include <external/freetype/ftglyph.h>
-#include <external/freetype/ftstroke.h>
-#else
-#include <freetype/ftglyph.h>
-#include <freetype/ftstroke.h>
-#endif
-
 /*! \namespace sgct_text
 \brief SGCT text namespace is used for text rendering and font management
 */
 namespace sgct_text
 {
-
-class GlyphData
-{
-public:
-    FT_Glyph mGlyph;
-    FT_Glyph mStrokeGlyph;
-    FT_Stroker mStroker;
-    FT_BitmapGlyph mBitmapGlyph;
-    FT_BitmapGlyph mBitmapStrokeGlyph;
-    FT_Bitmap * mBitmapPtr;
-    FT_Bitmap * mStrokeBitmapPtr;
-};
 
 /*!
 Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehes tutorials for freetype</a>
@@ -77,19 +56,16 @@ public:
     ~FontManager(void);
 
     bool addFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
-    const Font * getFont( const std::string & name, unsigned int height = mDefaultHeight );
-    const Font * getDefaultFont( unsigned int height = mDefaultHeight );
-
-    void setDefaultFontPath( const std::string & path );
-    void setStrokeSize( signed long size );
+    Font * getFont( const std::string & name, unsigned int height = mDefaultHeight );
+    Font * getDefaultFont( unsigned int height = mDefaultHeight );
+	
+	void setDefaultFontPath( const std::string & path );
     void setStrokeColor( glm::vec4 color );
     void setDrawInScreenSpace( bool state );
-    void setUseMipMaps( bool state );
 
+	std::size_t getTotalNumberOfLoadedChars();
     inline glm::vec4 getStrokeColor() { return mStrokeColor; }
-    inline signed long getStrokeSize() { return mStrokeSize; }
     inline bool getDrawInScreenSpace() { return mDrawInScreenSpace; }
-    inline bool getUseMipMaps() { return mUseMipMaps; }
 
     sgct::ShaderProgram getShader() { return mShader; }
     inline unsigned int getMVPLoc() { return mMVPLoc; }
@@ -121,10 +97,7 @@ private:
     FontManager(void);
 
 	/// Helper functions
-	std::set<Font>::iterator createFont( const std::string & fontName, unsigned int height );
-	bool makeDisplayList( FT_Face face, FT_ULong ch, Font & font );
-	bool makeVBO( FT_Face face, Font & font );
-	bool getPixelData(FT_Face face, int & width, int & height, unsigned char ** pixels, GlyphData * gd);
+	Font * createFont( const std::string & fontName, unsigned int height );
 
     // Don't implement these, should give compile warning if used
     FontManager( const FontManager & fm );
@@ -138,14 +111,13 @@ private:
     std::string mDefaultFontPath;            // The default font path from where to look for font files
 
     FT_Library  mFTLibrary;                    // Freetype library
-    FT_Fixed mStrokeSize;
+	FT_Face mFace;
     glm::vec4 mStrokeColor;
 
     bool mDrawInScreenSpace;
-    bool mUseMipMaps;
 
-    std::map<std::string, std::string> mFontPaths;    // Holds all predefined font paths for generating font glyphs
-    std::set<Font> mFonts;                // All generated fonts
+    std::map<std::string, std::string> mFontPaths; // Holds all predefined font paths for generating font glyphs
+	sgct_cppxeleven::unordered_map<std::string, sgct_cppxeleven::unordered_map<unsigned int, Font*>> mFontMap; // All generated fonts
 
     sgct::ShaderProgram mShader;
     int mMVPLoc, mColLoc, mStkLoc, mTexLoc;

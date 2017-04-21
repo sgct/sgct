@@ -284,7 +284,7 @@ void touchCallback(const sgct_core::Touch* touchPoints)
     if (!touchPoints->isAllPointsStationary()) {
         sgct::MessageHandler::instance()->print("=========NEW TOUCH POINTS==========\n");
         sgct::MessageHandler::instance()->print("TouchPoints %i\n", latestTouchPoints.size());
-        for (int i = 0; i < latestTouchPoints.size(); ++i) {
+        for (std::size_t i = 0; i < latestTouchPoints.size(); ++i) {
             sgct::MessageHandler::instance()->print("TouchPoint: %s\n", sgct_core::Touch::getTouchPointInfo(&latestTouchPoints[i]).c_str());
         }
     }

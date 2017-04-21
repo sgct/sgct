@@ -546,7 +546,7 @@ void myDropCallback(int count, const char** paths)
         serverUploadCount.setVal(0);
 
         //iterate all drop paths
-        for (int i = 0; i < pathStrings.size(); i++)
+        for (std::size_t i = 0; i < pathStrings.size(); i++)
         {
             std::size_t found;
 

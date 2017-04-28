@@ -24,7 +24,8 @@ sgct_core::ScreenCaptureThreadInfo::ScreenCaptureThreadInfo()
 
 sgct_core::ScreenCapture::ScreenCapture()
 {
-    mCaptureCallbackFn = SGCT_NULL_PTR;
+    mCaptureCallbackFn1 = SGCT_NULL_PTR;
+	mCaptureCallbackFn2 = SGCT_NULL_PTR;
     
     mEyeIndex = MONO;
     mNumberOfThreads = sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
@@ -47,7 +48,8 @@ sgct_core::ScreenCapture::~ScreenCapture()
 {
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Clearing screen capture buffers...\n");
 
-    mCaptureCallbackFn = SGCT_NULL_PTR;
+    mCaptureCallbackFn1 = SGCT_NULL_PTR;
+	mCaptureCallbackFn2 = SGCT_NULL_PTR;
     
     if( mSCTIPtrs != NULL )
     {
@@ -161,7 +163,8 @@ void sgct_core::ScreenCapture::initOrResize(int x, int y, int channels, int byte
 }
 
 /*!
-Set the opengl texture properties for glGetTexImage.  
+Set the opengl texture properties for glGetTexImage.
+Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
 */
 void sgct_core::ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR)
 {
@@ -234,25 +237,27 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
         GLubyte * ptr = reinterpret_cast<GLubyte*>(glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY));
         if (ptr)
         {
-            //memcpy(imPtr->getData(), ptr, mDataSize);
-            std::size_t stride = imPtr->getWidth() * imPtr->getChannels() * imPtr->getBytesPerChannel();
-            for (std::size_t r = 0; r < imPtr->getHeight(); r++)
-                memcpy(imPtr->getData()+stride*r, ptr+stride*r, stride);
+			if (mCaptureCallbackFn2 != SGCT_NULL_PTR)
+				mCaptureCallbackFn2(ptr, mWindowIndex, mEyeIndex, mDownloadType);
+			else
+			{
+				memcpy(imPtr->getData(), ptr, mDataSize);
+				
+				if (mCaptureCallbackFn1 != SGCT_NULL_PTR)
+					mCaptureCallbackFn1(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+				else if (mBytesPerColor <= 2)
+				{
+					//save the image
+					mSCTIPtrs[threadIndex].mRunning = true;
+					mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+				}
+			}
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         }
         else
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Error: Can't map data (0) from GPU in frame capture!\n");
         
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
-
-        if (mCaptureCallbackFn != SGCT_NULL_PTR)
-            mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
-        else if (mBytesPerColor <= 2)
-        {
-            //save the image
-            mSCTIPtrs[threadIndex].mRunning = true;
-            mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
-        }
     }
     else //no PBO
     {
@@ -277,8 +282,8 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
         if (sgct::Engine::instance()->isOGLPipelineFixed())
             glPopAttrib();
         
-        if (mCaptureCallbackFn != SGCT_NULL_PTR)
-            mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+        if (mCaptureCallbackFn1 != SGCT_NULL_PTR)
+            mCaptureCallbackFn1(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
         else if (mBytesPerColor <= 2)
         {
             //save the image
@@ -534,9 +539,20 @@ void screenCaptureHandler(void *arg)
 
 /*!
 Set the screen capture callback\n
-Parameters are: image pointer to captured image, window index and eye index
+Parameters are: image pointer to captured image, window index, eye index and OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
 */
 void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> callback)
 {
-    mCaptureCallbackFn = callback;
+    mCaptureCallbackFn1 = callback;
+	mCaptureCallbackFn2 = SGCT_NULL_PTR; //only allow one callback
+}
+
+/*!
+Set the screen capture callback\n
+Parameters are: raw buffer, window index, eye index and OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
+*/
+void sgct_core::ScreenCapture::setCaptureCallback(sgct_cppxeleven::function<void(unsigned char*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> callback)
+{
+	mCaptureCallbackFn2 = callback;
+	mCaptureCallbackFn1 = SGCT_NULL_PTR; //only allow one callback
 }

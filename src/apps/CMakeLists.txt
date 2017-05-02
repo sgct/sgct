@@ -17,6 +17,10 @@ if(MSVC)
 	option(SGCT_EXAMPLES_SPOUT "Build Spout examples" OFF)
 endif()
 
+if (MSVC)
+	option(USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
+endif()
+
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")

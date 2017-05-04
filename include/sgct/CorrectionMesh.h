@@ -44,16 +44,16 @@ namespace sgct_core
     {
     public:
         enum MeshType { QUAD_MESH = 0, WARP_MESH, MASK_MESH, LAST_MESH };
-        enum MeshHint { NO_HINT = 0, DOMEPROJECTION_HINT, SCALEABLE_HINT, SCISS_HINT, SKYSKAN_HINT, PAULBOURKE_HINT, OBJ_HINT};
+        enum MeshHint { NO_HINT = 0, DOMEPROJECTION_HINT, SCALEABLE_HINT, SCISS_HINT, SKYSKAN_HINT, PAULBOURKE_HINT, OBJ_HINT, MPCDI_HINT};
         
         CorrectionMesh();
         ~CorrectionMesh();
-        bool readAndGenerateMesh(std::string meshPath, Viewport * parent, MeshHint hint = NO_HINT);
+        bool readAndGenerateMesh(std::string meshPath, Viewport * parent, MeshHint hint = NO_HINT, bool loadFromFile);
         void render(const MeshType & mt);
         static MeshHint parseHint(const std::string & hintStr);
         
     private:
-        enum MeshFormat { NO_FMT = 0, DOMEPROJECTION_FMT, SCALEABLE_FMT, SCISS_FMT, SKYSKAN_FMT, PAULBOURKE_FMT, OBJ_FMT};
+        enum MeshFormat { NO_FMT = 0, DOMEPROJECTION_FMT, SCALEABLE_FMT, SCISS_FMT, SKYSKAN_FMT, PAULBOURKE_FMT, OBJ_FMT, MPCDI_FMT};
 
         bool readAndGenerateDomeProjectionMesh(const std::string & meshPath, Viewport * parent);
         bool readAndGenerateScalableMesh(const std::string & meshPath, Viewport * parent);
@@ -61,6 +61,7 @@ namespace sgct_core
         bool readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent);
         bool readAndGeneratePaulBourkeMesh(const std::string & meshPath, Viewport * parent);
         bool readAndGenerateOBJMesh(const std::string & meshPath, Viewport * parent);
+        bool readAndGenerateMpcdiMesh(const std::string & meshPath, Viewport* parent);
         void setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent);
         void setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y);
         void createMesh(CorrectionMeshGeometry * geomPtr);

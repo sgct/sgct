@@ -57,6 +57,7 @@ private:
     void parsePlanarProjection(tinyxml2::XMLElement * element);
     void parseFisheyeProjection(tinyxml2::XMLElement * element);
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
+    void parseMpcdiConfiguration(tinyxml2::XMLElement * element);
     
 private:
     CorrectionMesh mCM;
@@ -67,6 +68,7 @@ private:
     std::string mMeshHint;
     bool mCorrectionMesh;
     bool mTracked;
+    bool mIsMeshStoredInFile = false;
     unsigned int mOverlayTextureIndex;
     unsigned int mBlendMaskTextureIndex;
     unsigned int mBlackLevelMaskTextureIndex;

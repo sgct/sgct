@@ -113,7 +113,7 @@ void sgct_core::SphericalMirrorProjection::initVBO()
         for (int i = 0; i < LAST_MESH; i++)
             mMeshes[i].readAndGenerateMesh(
                 mMeshPaths[i],
-                vp);
+                vp, true);
     }
 }
 

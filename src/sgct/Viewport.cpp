@@ -14,6 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/FisheyeProjection.h>
 #include <sgct/SphericalMirrorProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
+#include <zip.h>
 
 sgct_core::Viewport::Viewport()
 {
@@ -73,7 +74,7 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
         setBlackLevelMaskTexture(element->Attribute("BlackLevelMask"));
 
     if (element->Attribute("mesh") != NULL)
-        setCorrectionMesh(element->Attribute("mesh"));
+        setCorrectionMesh(element->Attribute("mesh"), true);
 
     if (element->Attribute("hint") != NULL)
         mMeshHint.assign(element->Attribute("hint"));
@@ -134,6 +135,10 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
         else if (strcmp("SphericalMirrorProjection", val) == 0)
         {
             parseSphericalMirrorProjection(subElement);
+        }
+        else if (strcmp("MpcdiProjection", val) == 0)
+        {
+            parseMpcdiConfiguration(subElement);
         }
         else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
         {
@@ -421,9 +426,12 @@ void sgct_core::Viewport::setBlackLevelMaskTexture(const char * texturePath)
     mBlackLevelMaskFilename.assign(texturePath);
 }
 
-void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
+void sgct_core::Viewport::setCorrectionMesh(const char * meshPath, bool storedInFile)
 {
-    mMeshFilename.assign(meshPath);
+    if (storedInFile) {
+        mMeshFilename.assign(meshPath);
+        mIsMeshStoredInFile = true;
+    }
 }
 
 void sgct_core::Viewport::setTracked(bool state)
@@ -445,7 +453,12 @@ void sgct_core::Viewport::loadData()
         sgct::TextureManager::instance()->loadUnManagedTexture(mBlackLevelMaskTextureIndex, mBlackLevelMaskFilename, true, 1);
 
     //load default if mMeshFilename is empty
-    mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
+    if (mIsMeshStoredInFile) {
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint), true);
+    } else {
+    	//TODO: extract meshHint for MPCDI here
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint), false);
+    }
 }
 
 /*!
@@ -456,4 +469,59 @@ void sgct_core::Viewport::renderMesh(sgct_core::CorrectionMesh::MeshType mt)
 {
     if( mEnabled )
         mCM.render(mt);
+}
+
+bool sgct_core::Viewport::parseMpcdiConfiguration(tinyxml2::XMLElement * element)
+{
+    if (element->Attribute("file") != NULL) {
+        std::string cfgFilePath = element->Attribute("file");
+        FILE * cfgFile = NULL;
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+        if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
+#else
+        cfgFile = fopen(cfgFilePath.c_str(), "r");
+        if (cfgFile == NULL)
+#endif
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: Failed to open config file!\n");
+            return false;
+        }
+
+        //Open MPCDI file (zip compressed format)
+        int err = 0;
+        zip *z = zip_open(cfgFilePath, 0, &err);
+
+        const int nRequiredFiles = 2;
+        const char* fileTypes[nRequiredFiles] = {"*.xml", "*.pfm"};
+        struct zip_stat st[nRequiredFiles];
+
+        //Search for required files inside mpcdi archive file
+        for (int i = 0; i < nRequiredFiles; ++i) {
+            zip_stat_init(&st[i]);
+            result = zip_stat(z, fileTypes[i], 0, &st[i]);
+            if (result != 0) {
+            	std::string errorMsg = "parseMpcdiConfiguration: Problem finding MPCDI's "
+            	                        + fileTypes[i].c_str() + " config file.\n");
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    errorMsg);
+                return false;
+            }
+        }
+
+        //TODO: Get file sizes from zip_stat and allocate memory for both files
+
+        //Alloc memory for its uncompressed contents
+        char *contents = new char[st.size];
+
+
+    } else {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Empty config file specified!\n");
+        return false;
+    }
+
+
+    return true;
 }

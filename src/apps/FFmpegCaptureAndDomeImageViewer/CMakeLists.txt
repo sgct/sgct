@@ -55,6 +55,10 @@ if(SGCT_COPY_EXAMPLE_RESOURCES AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 	endif()
 endif()		
 	
+if (MSVC)
+	option(USE_MSVC_RUNTIMES "To use MSVC DLLs or to create a static build" ON)
+endif()
+
 if( APPLE )
 	option(SGCT_CPP11 "Use libc++ instead of libstdc++" ON)
 	set(CMAKE_OSX_ARCHITECTURES "x86_64")
@@ -172,7 +176,21 @@ endif()
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	
-		if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
+		
+	if (NOT USE_MSVC_RUNTIMES)
+		foreach (flag ${CompilerFlags})
+			if (${flag} MATCHES "/MD")
+				string(REGEX REPLACE "/MD" "/MT" ${flag} "${${flag}}")
+			endif()
+			if (${flag} MATCHES "/MDd")
+				string(REGEX REPLACE "/MDd" "/MTd" ${flag} "${${flag}}")
+			endif()
+
+		endforeach()
+
+	endif()
+
+	if( "${MSVC_VERSION}" LESS 1600 ) #less than visual studio 2010
 		STRING(REPLACE "INCREMENTAL:YES" "INCREMENTAL:NO" replacementFlags
 			${CMAKE_EXE_LINKER_FLAGS_DEBUG})
 		SET(CMAKE_EXE_LINKER_FLAGS_DEBUG "${replacementFlags}" )

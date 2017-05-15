@@ -15,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SphericalMirrorProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
 #include <zip.h>
+#include "unzip.h"
 
 sgct_core::Viewport::Viewport()
 {
@@ -471,6 +472,12 @@ void sgct_core::Viewport::renderMesh(sgct_core::CorrectionMesh::MeshType mt)
         mCM.render(mt);
 }
 
+bool sgct_core::doesStringHaveSuffix(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
 bool sgct_core::Viewport::parseMpcdiConfiguration(tinyxml2::XMLElement * element)
 {
     if (element->Attribute("file") != NULL) {
@@ -485,38 +492,76 @@ bool sgct_core::Viewport::parseMpcdiConfiguration(tinyxml2::XMLElement * element
 #endif
         {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiConfiguration: Failed to open config file!\n");
+                "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath);
             return false;
         }
 
         //Open MPCDI file (zip compressed format)
-        int err = 0;
-        zip *z = zip_open(cfgFilePath, 0, &err);
+        unzFile *zipfile = unzOpen(cfgFilePath);
+        if (zipfile == NULL)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath);
+            return false;
+        }
+
+        // Get info about the zip file
+        unz_global_info global_info;
+        if ( unzGetGlobalInfo( zipfile, &global_info ) != UNZ_OK )
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: Unable to get zip archive info from %s\n", cfgFilePath);
+            unzClose( zipfile );
+            return false;
+        }
 
         const int nRequiredFiles = 2;
-        const char* fileTypes[nRequiredFiles] = {"*.xml", "*.pfm"};
-        struct zip_stat st[nRequiredFiles];
+        bool hasFoundFile_xml = false;
+        bool hasFoundFile_pfm = false;
+        int  fileSize_xml, fileSize_pfm;
 
         //Search for required files inside mpcdi archive file
-        for (int i = 0; i < nRequiredFiles; ++i) {
-            zip_stat_init(&st[i]);
-            result = zip_stat(z, fileTypes[i], 0, &st[i]);
-            if (result != 0) {
-            	std::string errorMsg = "parseMpcdiConfiguration: Problem finding MPCDI's "
-            	                        + fileTypes[i].c_str() + " config file.\n");
+        for (int i = 0; i < nRequiredFiles; ++i)
+        {
+            unz_file_info file_info;
+            char filename[ MAX_FILENAME ];
+            if ( unzGetCurrentFileInfo(
+                zipfile,
+                &file_info,
+                filename,
+                MAX_FILENAME,
+                NULL, 0, NULL, 0 ) != UNZ_OK )
+            {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    errorMsg);
+                    "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
+                unzClose( zipfile );
                 return false;
+            }
+
+            std::string containedFile(filename);
+            if (doesStringHaveSuffix(filename, ".xml"))
+            {
+                hasFoundFile_xml = true;
+                fileSize_xml = file_info.uncompressed_size;
+            }
+            else if (doesStringHaveSuffix(filename, ".pfm"))
+            {
+                hasFoundFile_pfm = true;
+                fileSize_pfm = file_info.uncompressed_size;
             }
         }
 
-        //TODO: Get file sizes from zip_stat and allocate memory for both files
-
-        //Alloc memory for its uncompressed contents
-        char *contents = new char[st.size];
-
-
-    } else {
+        if (!hasFoundFile_xml || !hasFoundFile_pfm)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
+                cfgFilePath);
+            unzClose( zipfile );
+            return false;
+        }
+    }
+    else
+    {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: Empty config file specified!\n");
         return false;

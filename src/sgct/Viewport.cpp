@@ -14,8 +14,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/FisheyeProjection.h>
 #include <sgct/SphericalMirrorProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
-#include <zip.h>
 #include "unzip.h"
+#include <zip.h>
 
 sgct_core::Viewport::Viewport()
 {
@@ -51,6 +51,11 @@ sgct_core::Viewport::~Viewport()
 
     if (mBlackLevelMaskTextureIndex)
         glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
+
+    if (mMpcdiSubFileContents.subFileBuffer[mMpcdiSubFileContents.mpcdiXml])
+        delete mMpcdiSubFileContents.subFileBuffer[mMpcdiSubFileContents.mpcdiXml];
+    if (mMpcdiSubFileContents.subFileBuffer[mMpcdiSubFileContents.mpcdiPfm])
+        delete mMpcdiSubFileContents.subFileBuffer[mMpcdiSubFileContents.mpcdiPfm];
 }
 
 void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
@@ -75,7 +80,7 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
         setBlackLevelMaskTexture(element->Attribute("BlackLevelMask"));
 
     if (element->Attribute("mesh") != NULL)
-        setCorrectionMesh(element->Attribute("mesh"), true);
+        setCorrectionMesh(element->Attribute("mesh"));
 
     if (element->Attribute("hint") != NULL)
         mMeshHint.assign(element->Attribute("hint"));
@@ -139,6 +144,7 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
         }
         else if (strcmp("MpcdiProjection", val) == 0)
         {
+            mMeshHint.assign(element->Attribute("mpcdi"));
             parseMpcdiConfiguration(subElement);
         }
         else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
@@ -427,12 +433,10 @@ void sgct_core::Viewport::setBlackLevelMaskTexture(const char * texturePath)
     mBlackLevelMaskFilename.assign(texturePath);
 }
 
-void sgct_core::Viewport::setCorrectionMesh(const char * meshPath, bool storedInFile)
+void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 {
-    if (storedInFile) {
-        mMeshFilename.assign(meshPath);
-        mIsMeshStoredInFile = true;
-    }
+    mMeshFilename.assign(meshPath);
+    mIsMeshStoredInFile = true;
 }
 
 void sgct_core::Viewport::setTracked(bool state)
@@ -457,8 +461,7 @@ void sgct_core::Viewport::loadData()
     if (mIsMeshStoredInFile) {
         mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint), true);
     } else {
-    	//TODO: extract meshHint for MPCDI here
-        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint), false);
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint("mpcdi"), false);
     }
 }
 
@@ -472,7 +475,7 @@ void sgct_core::Viewport::renderMesh(sgct_core::CorrectionMesh::MeshType mt)
         mCM.render(mt);
 }
 
-bool sgct_core::doesStringHaveSuffix(const std::string &str, const std::string &suffix)
+bool sgct_core::Viewport::doesStringHaveSuffix(const std::string &str, const std::string &suffix)
 {
     return str.size() >= suffix.size() &&
            str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
@@ -482,81 +485,45 @@ bool sgct_core::Viewport::parseMpcdiConfiguration(tinyxml2::XMLElement * element
 {
     if (element->Attribute("file") != NULL) {
         std::string cfgFilePath = element->Attribute("file");
-        FILE * cfgFile = NULL;
+        FILE * cfgFile = nullptr;
+        unzFile *zipfile = nullptr;
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
-        if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
-#else
-        cfgFile = fopen(cfgFilePath.c_str(), "r");
-        if (cfgFile == NULL)
-#endif
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath);
+        if (! openZipFile(cfgFile, cfgFilePath, zipfile))
             return false;
-        }
 
-        //Open MPCDI file (zip compressed format)
-        unzFile *zipfile = unzOpen(cfgFilePath);
-        if (zipfile == NULL)
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath);
-            return false;
-        }
 
         // Get info about the zip file
         unz_global_info global_info;
-        if ( unzGetGlobalInfo( zipfile, &global_info ) != UNZ_OK )
+        if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
         {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "parseMpcdiConfiguration: Unable to get zip archive info from %s\n", cfgFilePath);
-            unzClose( zipfile );
+            unzClose(zipfile);
             return false;
         }
 
-        const int nRequiredFiles = 2;
-        bool hasFoundFile_xml = false;
-        bool hasFoundFile_pfm = false;
-        int  fileSize_xml, fileSize_pfm;
-
         //Search for required files inside mpcdi archive file
-        for (int i = 0; i < nRequiredFiles; ++i)
+        for (int i = 0; i < global_info.number_entry; ++i)
         {
             unz_file_info file_info;
             char filename[ MAX_FILENAME ];
-            if ( unzGetCurrentFileInfo(
-                zipfile,
-                &file_info,
-                filename,
-                MAX_FILENAME,
-                NULL, 0, NULL, 0 ) != UNZ_OK )
+            if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MAX_FILENAME,
+                NULL, 0, NULL, 0) != UNZ_OK)
             {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                     "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
-                unzClose( zipfile );
+                unzClose(zipfile);
                 return false;
             }
-
-            std::string containedFile(filename);
-            if (doesStringHaveSuffix(filename, ".xml"))
-            {
-                hasFoundFile_xml = true;
-                fileSize_xml = file_info.uncompressed_size;
-            }
-            else if (doesStringHaveSuffix(filename, ".pfm"))
-            {
-                hasFoundFile_pfm = true;
-                fileSize_pfm = file_info.uncompressed_size;
-            }
+            if (! processMpcdiSubFile(filename, zipfile, file_info))
+                return false;
         }
-
+        unzClose(zipfile);
         if (!hasFoundFile_xml || !hasFoundFile_pfm)
         {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
                 cfgFilePath);
-            unzClose( zipfile );
             return false;
         }
     }
@@ -567,6 +534,240 @@ bool sgct_core::Viewport::parseMpcdiConfiguration(tinyxml2::XMLElement * element
         return false;
     }
 
+    return true;
+}
+
+bool sgct_core::Viewport::openZipFile(FILE* cfgFile, const std::string cfgFilePath,
+                                      unzFile* zipfile)
+{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
+#else
+    cfgFile = fopen(cfgFilePath.c_str(), "r");
+    if (cfgFile == nullptr)
+#endif
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath);
+        return false;
+    }
+    //Open MPCDI file (zip compressed format)
+    zipfile = unzOpen(cfgFilePath);
+    if (zipfile == nullptr)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath);
+        return false;
+    }
+    return true;
+}
+
+bool sgct_core::Viewport::processMpcdiSubFile(std::string filename, unzFile* zipfile,
+                                              unz_global_info& file_info)
+{
+    for (int i = 0; i < mMpcdiSubFileContents.mpcdi_nRequiredFiles; ++i)
+    {
+        if (doesStringHaveSuffix(filename, mMpcdiSubFileContents.subFileExtension[i]))
+        {
+            mMpcdiSubFileContents.hasFoundFile[i] = true;
+            mMpcdiSubFileContents.subFileSize[i] = file_info.uncompressed_size;
+            if (unzOpenCurrentFile(zipfile) != UNZ_OK)
+            {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiConfiguration: Unable to open %s\n", filename);
+                unzClose(zipfile);
+                return false;
+            }
+            mMpcdiSubFileContents.subFileBuffer[i] = new char(file_info.uncompressed_size);
+            if (mMpcdiSubFileContents.subFileBuffer[i]) {
+                error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.subFileBuffer[i],
+                		                   file_info.uncompressed_size);
+                unzCloseCurrentFile(zipfile);
+                if (error < 0)
+                {
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                        "parseMpcdiConfiguration: %s read from %s failed.\n",
+                        mMpcdiSubFileContents.subFileExtension[i], filename);
+                    unzClose(zipfile);
+                    return false;
+                }
+            } else {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiConfiguration: Unable to allocate memory for %s\n", filename);
+                unzClose(zipfile);
+                return false;
+            }
+        }
+	}
+	return true;
+}
+
+bool sgct_core::Viewport::readAndParseXMLString()
+{
+    if (mMpcdiSubFileContents.subFileBuffer[mpcdiXml] == nullptr)
+    	return false;
+
+    tinyxml2::XMLDocument xmlDoc;
+    XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.subFileBuffer[mpcdiXml],
+                                   mMpcdiSubFileContents.subFileSize[mpcdiXml]);
+
+    if (result != tinyxml2::XML_NO_ERROR)
+    {
+        std::stringstream ss;
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        else if (xmlDoc.GetErrorStr1())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+        else if (xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+        else
+            ss << "File not found";
+        mErrorMsg = ss.str();
+        assert(false);
+        return false;
+    }
+    else
+        return readAndParseXML(xmlDoc);
+}
+
+bool sgct_core::Viewport::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
+{
+    tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "MPCDI" );
+    if( XMLroot == NULL )
+    {
+        mErrorMsg.assign("Cannot find XML root!");
+        return false;
+    }
+
+    tinyxml2::XMLElement* element[MAX_XML_DEPTH];
+    for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
+        element[i] = NULL;
+    const char * val[MAX_XML_DEPTH];
+    element[0] = XMLroot->FirstChildElement();
+    while( element[0] != NULL )
+    {
+        val[0] = element[0]->Value();
+
+        if( strcmp("display", val[0]) == 0 )
+        {
+            element[1] = element[0]->FirstChildElement();
+            while( element[1] != NULL )
+            {
+                val[1] = element[1]->Value();
+                if( strcmp("buffer", val[1]) == 0 )
+                {
+                    if( element[1]->Attribute("id") != NULL )
+                        //TODO
+
+                    if (element[1]->Attribute("xResolution") != NULL)
+                        //TODO
+
+                    if (element[1]->Attribute("yResolution") != NULL)
+                        //TODO
+
+                    element[2] = element[1]->FirstChildElement();
+                    while( element[2] != NULL )
+                    {
+                        val[2] = element[2]->Value();
+
+                        if( strcmp("region", val[2]) == 0 )
+                        {
+                            if( element[2]->Attribute("id") != NULL )
+                                //TODO
+
+                            if (element[2]->Attribute("x") != NULL)
+                                //TODO
+
+                            if (element[2]->Attribute("y") != NULL)
+                                //TODO
+
+                            if (element[2]->Attribute("xSize") != NULL)
+                                //TODO
+
+                            if (element[2]->Attribute("ySize") != NULL)
+                                //TODO
+
+                            if (element[2]->Attribute("xResolution") != NULL)
+                                //TODO
+
+                            if (element[2]->Attribute("yResolution") != NULL)
+                                //TODO
+
+                            element[3] = element[2]->FirstChildElement();
+                            while( element[3] != NULL )
+                            {
+                                val[3] = element[3]->Value();
+                                if( strcmp("frustum", val[3]) == 0 )
+                                {
+                                    element[4] = element[3]->FirstChildElement();
+                                    while( element[4] != NULL )
+                                    {
+                                        val[4] = element[4]->Value();
+                                        if( strcmp("yaw", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("pitch", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("roll", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("rightAngle", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("leftAngle", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("upAngle", val[4]) == 0 )
+                                            //TODO
+                                        if( strcmp("downAngle", val[4]) == 0 )
+                                            //TODO
+                                    }
+                                }
+                            }
+                        }
+                        //iterate
+                        element[2] = element[2]->NextSiblingElement();
+                    }
+                    tmpNode.addWindow( tmpWin );
+                }//end window
+                //iterate
+                element[1] = element[1]->NextSiblingElement();
+            }//end while
+            ClusterManager::instance()->addNode(tmpNode);
+        }//end display
+        else if( strcmp("files", val[0]) == 0 )
+        {
+            element[1] = element[0]->FirstChildElement();
+            while( element[1] != NULL )
+            {
+                val[1] = element[1]->Value();
+                if( strcmp("fileset", val[1]) == 0 )
+                {
+                    if (element[1]->Attribute("region") != NULL)
+                        //TODO
+                    val[2] = element[1]->Value();
+                    element[2] = element[1]->FirstChildElement();
+                    while( element [2] != NULL )
+                    {
+                        if( strcmp("geometryWarpFile", val[1]) == 0 )
+                        {
+                            element[4] = element[3]->FirstChildElement();
+                            while( element[4] != NULL )
+                            {
+                                val[4] = element[4]->Value();
+                                if( strcmp("path", val[4]) == 0 )
+                                    //TODO
+                                if( strcmp("interpolation", val[4]) == 0 )
+                                    //TODO
+                            }
+                            element[1] = element[1]->NextSiblingElement();
+                        }
+                    element[1] = element[1]->NextSiblingElement();
+                    }
+                }
+            }
+            element[1] = element[1]->NextSiblingElement();
+        }//end 'files'
+
+        //iterate
+        element[0] = element[0]->NextSiblingElement();
+    }
 
     return true;
 }

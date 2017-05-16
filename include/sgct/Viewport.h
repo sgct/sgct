@@ -15,10 +15,35 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include "CorrectionMesh.h"
 #include <stddef.h> //get definition for NULL
+#include "unzip.h"
+#include <zip.h>
+#ifndef SGCT_DONT_USE_EXTERNAL
+    #include <external/tinyxml2.h>
+#else
+    #include <tinyxml2.h>
+#endif
 
 namespace sgct_core
 {
 
+struct mpcdiSubFiles {
+    enum mpcdiSubFileTypes {
+        mpcdiXml = 0,
+        mpcdiPfm,
+        mpcdi_nRequiredFiles //Leave at end
+    };
+    bool hasFoundFile[mpcdi_nRequiredFiles];
+    string subFileExtension[mpcdi_nRequiredFiles];
+    int subFileSize[mpcdi_nRequiredFiles];
+    char* subFileBuffer[mpcdi_nRequiredFiles];
+
+    mpcdiSubFiles() {
+        for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
+            hasFoundFile[i] = false;
+            subFileBuffer[i] = nullptr;
+        }
+    }
+};
 /*!
     This class holds and manages viewportdata and calculates frustums
 */
@@ -58,7 +83,10 @@ private:
     void parseFisheyeProjection(tinyxml2::XMLElement * element);
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
     void parseMpcdiConfiguration(tinyxml2::XMLElement * element);
-    
+    bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
+    bool processMpcdiSubFile(std::string filename, unzFile* zipfile, unz_global_info& file_info);
+    bool doesStringHaveSuffix(const std::string &str, const std::string &suffix);
+
 private:
     CorrectionMesh mCM;
     std::string mOverlayFilename;
@@ -74,6 +102,7 @@ private:
     unsigned int mBlackLevelMaskTextureIndex;
 
     NonLinearProjection * mNonLinearProjection;
+    mpcdiSubFiles mMpcdiSubFileContents;
 };
 
 }

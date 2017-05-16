@@ -1969,6 +1969,8 @@ sgct_core::CorrectionMesh::MeshHint sgct_core::CorrectionMesh::parseHint(const s
         hint = SCISS_HINT;
     else if (str.compare("skyskan") == 0)
         hint = SKYSKAN_HINT;
+    else if (str.compare("mpcdi") == 0)
+        hint = MPCDI_HINT;
     else
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "CorrectionMesh: hint '%s' is invalid!\n", hintStr.c_str());

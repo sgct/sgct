@@ -259,6 +259,23 @@ else(SGCT_NO_EXTERNAL_LIBRARIES)
 	add_definitions(-DSGCT_DONT_USE_EXTERNAL)
 endif(SGCT_NO_EXTERNAL_LIBRARIES)
 
+########################
+# Spout section  start #
+########################
+if (WIN32)
+    option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+endif ()
+
+set(SPOUT_DEFINITIONS "")
+if (SGCT_SPOUT_SUPPORT)
+    set(SPOUT_DEFINITIONS "-DSGCT_HAS_SPOUT")
+endif ()
+add_definitions(${SPOUT_DEFINITIONS})
+
+########################
+#  Spout section  end  #
+########################
+
 find_package(OpenGL REQUIRED)
 
 set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}/deps" )

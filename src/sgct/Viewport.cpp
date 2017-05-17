@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ReadConfig.h>
 #include <sgct/FisheyeProjection.h>
 #include <sgct/SphericalMirrorProjection.h>
+#include <sgct/SpoutOutputProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
 
 sgct_core::Viewport::Viewport()
@@ -135,7 +136,11 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
         {
             parseSphericalMirrorProjection(subElement);
         }
-        else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
+		else if (strcmp("SpoutOutputProjection", val) == 0)
+		{
+			parseSpoutOutputProjection(subElement);
+		}
+		else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
         {
             mProjectionPlane.configure(subElement);
         }
@@ -333,6 +338,56 @@ void sgct_core::Viewport::parseFisheyeProjection(tinyxml2::XMLElement * element)
     fishProj->setUseDepthTransformation(true);
     mNonLinearProjection = fishProj;
 }
+
+
+
+void sgct_core::Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement * element)
+{
+#ifndef SGCT_HAS_SPOUT
+	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Spout library not added to SGCT.\n");
+	return;
+#endif
+	SpoutOutputProjection * spoutProj = new SpoutOutputProjection();
+	for (std::size_t i = 0; i < 6; i++)
+		spoutProj->getSubViewportPtr(i)->setUser(mUser);
+
+	if (element->Attribute("quality") != NULL)
+	{
+		spoutProj->setCubemapResolution(std::string(element->Attribute("quality")));
+	}
+
+	tinyxml2::XMLElement * subElement = element->FirstChildElement();
+	const char * val;
+
+	while (subElement != NULL)
+	{
+		val = subElement->Value();
+
+		if (strcmp("Background", val) == 0)
+		{
+			glm::vec4 color;
+			float ftmp;
+
+			if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.r = ftmp;
+			if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.g = ftmp;
+			if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.b = ftmp;
+			if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR)
+				color.a = ftmp;
+
+			spoutProj->setClearColor(color);
+		}
+
+		//iterate
+		subElement = subElement->NextSiblingElement();
+	}
+
+	spoutProj->setUseDepthTransformation(true);
+	mNonLinearProjection = spoutProj;
+}
+
 
 void sgct_core::Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement * element)
 {

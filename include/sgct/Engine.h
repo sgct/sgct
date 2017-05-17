@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "ShaderProgram.h"
 #include "FisheyeProjection.h"
 #include "SphericalMirrorProjection.h"
+#include "SpoutOutputProjection.h"
 #include "Touch.h"
 
 #define MAX_UNIFORM_LOCATIONS 16
@@ -36,8 +37,9 @@ The figure below illustrates when different callbacks (gray and blue boxes) are 
 */
 class Engine
 {
-    friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
-    friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
+	friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
+	friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
+	friend class sgct_core::SpoutOutputProjection; //needs to access draw callbacks
 
 //all enums
 public:

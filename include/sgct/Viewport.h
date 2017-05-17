@@ -17,11 +17,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stddef.h> //get definition for NULL
 #include "unzip.h"
 #include <zip.h>
+#define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>
 #else
     #include <tinyxml2.h>
 #endif
+#define MAX_XML_DEPTH 16
+
 
 namespace sgct_core
 {

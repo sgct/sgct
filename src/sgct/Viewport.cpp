@@ -647,7 +647,6 @@ bool sgct_core::Viewport::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
     while( element[0] != NULL )
     {
         val[0] = element[0]->Value();
-
         if( strcmp("display", val[0]) == 0 )
         {
             element[1] = element[0]->FirstChildElement();
@@ -669,7 +668,6 @@ bool sgct_core::Viewport::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     while( element[2] != NULL )
                     {
                         val[2] = element[2]->Value();
-
                         if( strcmp("region", val[2]) == 0 )
                         {
                             if( element[2]->Attribute("id") != NULL )
@@ -705,20 +703,22 @@ bool sgct_core::Viewport::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                                         val[4] = element[4]->Value();
                                         if( strcmp("yaw", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("pitch", val[4]) == 0 )
+                                        else if( strcmp("pitch", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("roll", val[4]) == 0 )
+                                        else if( strcmp("roll", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("rightAngle", val[4]) == 0 )
+                                        else if( strcmp("rightAngle", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("leftAngle", val[4]) == 0 )
+                                        else if( strcmp("leftAngle", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("upAngle", val[4]) == 0 )
+                                        else if( strcmp("upAngle", val[4]) == 0 )
                                             //TODO
-                                        if( strcmp("downAngle", val[4]) == 0 )
+                                        else if( strcmp("downAngle", val[4]) == 0 )
                                             //TODO
+                                        element[4] = element[4]->NextSiblingElement();
                                     }
                                 }
+                                element[3] = element[3]->NextSiblingElement();
                             }
                         }
                         //iterate
@@ -745,24 +745,24 @@ bool sgct_core::Viewport::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     element[2] = element[1]->FirstChildElement();
                     while( element [2] != NULL )
                     {
-                        if( strcmp("geometryWarpFile", val[1]) == 0 )
+                        if( strcmp("geometryWarpFile", val[2]) == 0 )
                         {
-                            element[4] = element[3]->FirstChildElement();
-                            while( element[4] != NULL )
+                            element[3] = element[2]->FirstChildElement();
+                            while( element[3] != NULL )
                             {
-                                val[4] = element[4]->Value();
-                                if( strcmp("path", val[4]) == 0 )
+                                val[3] = element[3]->Value();
+                                if( strcmp("path", val[3]) == 0 )
                                     //TODO
-                                if( strcmp("interpolation", val[4]) == 0 )
+                                if( strcmp("interpolation", val[3]) == 0 )
                                     //TODO
+                                element[3] = element[3]->NextSiblingElement();
                             }
-                            element[1] = element[1]->NextSiblingElement();
                         }
-                    element[1] = element[1]->NextSiblingElement();
+                        element[2] = element[2]->NextSiblingElement();
                     }
                 }
+                element[1] = element[1]->NextSiblingElement();
             }
-            element[1] = element[1]->NextSiblingElement();
         }//end 'files'
 
         //iterate

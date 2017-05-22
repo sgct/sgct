@@ -392,6 +392,9 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == tinyxml2::XML_NO_ERROR)
                         tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
                     
+                    if( element[1]->Attribute("mpcdi") != NULL )
+                        parseMpcdiConfiguration(element[1]->Attribute("mpcdi"), tmpWin)
+
                     element[2] = element[1]->FirstChildElement();
                     while( element[2] != NULL )
                     {
@@ -935,4 +938,385 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
     }
 
     return quat;
+}
+
+glm::quat sgct_core::ReadConfig::parseMpcdiOrientationNode(const float yaw,
+                                                           const float pitch,
+                                                           const float roll)
+{
+    float x = pitch;
+    float y = -yaw;
+    float z = -roll;
+
+    glm::quat quat;
+    quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+    quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+    quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    return quat;
+}
+
+bool sgct_core::ReadConfig::doesStringHaveSuffix(const std::string &str, const std::string &suffix)
+{
+    return str.size() >= suffix.size() &&
+           str.compare(str.size() - suffix.size(), suffix.size(), suffix) == 0;
+}
+
+void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMpcdi,
+                                                    sgct::SGCTWindow& tmpWin)
+{
+    FILE * cfgFile = nullptr;
+    unzFile *zipfile = nullptr;
+
+    if (! openZipFile(cfgFile, filenameMpcdi, zipfile))
+        return;
+
+    // Get info about the zip file
+    unz_global_info global_info;
+    if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n", cfgFilePath);
+        unzClose(zipfile);
+        return;
+    }
+
+    //Search for required files inside mpcdi archive file
+    for (int i = 0; i < global_info.number_entry; ++i)
+    {
+        unz_file_info file_info;
+        char filename[ MAX_FILENAME ];
+        if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MAX_FILENAME,
+            NULL, 0, NULL, 0) != UNZ_OK)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
+            unzClose(zipfile);
+            return;
+        }
+        if (! processMpcdiSubFile(filename, zipfile, file_info))
+        {
+            unzClose(zipfile);
+            return;
+        }
+    }
+    unzClose(zipfile);
+    if(   !mMpcdiSubFileContents.hasFoundFile[mpcdiXml]
+       || !mMpcdiSubFileContents.hasFoundFile[mpcdiPfm])
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
+            cfgFilePath);
+        return;
+    }
+    readAndParseMpcdiXMLString(tmpWin);
+}
+
+bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFilePath,
+                                      unzFile* zipfile)
+{
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+    if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
+#else
+    cfgFile = fopen(cfgFilePath.c_str(), "r");
+    if (cfgFile == nullptr)
+#endif
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath);
+        return false;
+    }
+    //Open MPCDI file (zip compressed format)
+    zipfile = unzOpen(cfgFilePath);
+    if (zipfile == nullptr)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath);
+        return false;
+    }
+    return true;
+}
+
+bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* zipfile,
+                                                unz_global_info& file_info)
+{
+    for (int i = 0; i < mMpcdiSubFileContents.mpcdi_nRequiredFiles; ++i)
+    {
+        if (doesStringHaveSuffix(filename, mMpcdiSubFileContents.subFileExtension[i]))
+        {
+            mMpcdiSubFileContents.hasFoundFile[i] = true;
+            mMpcdiSubFileContents.subFileSize[i] = file_info.uncompressed_size;
+            if (unzOpenCurrentFile(zipfile) != UNZ_OK)
+            {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiConfiguration: Unable to open %s\n", filename);
+                unzClose(zipfile);
+                return false;
+            }
+            mMpcdiSubFileContents.subFileBuffer[i] = new char(file_info.uncompressed_size);
+            if (mMpcdiSubFileContents.subFileBuffer[i]) {
+                error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.subFileBuffer[i],
+                                           file_info.uncompressed_size);
+                unzCloseCurrentFile(zipfile);
+                if (error < 0)
+                {
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                        "parseMpcdiConfiguration: %s read from %s failed.\n",
+                        mMpcdiSubFileContents.subFileExtension[i], filename);
+                    unzClose(zipfile);
+                    return false;
+                }
+            } else {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiConfiguration: Unable to allocate memory for %s\n", filename);
+                unzClose(zipfile);
+                return false;
+            }
+        }
+    }
+    return true;
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(sgct::SGCTWindow& tmpWin)
+{
+    if (mMpcdiSubFileContents.subFileBuffer[mpcdiXml] == nullptr)
+        return false;
+
+    tinyxml2::XMLDocument xmlDoc;
+    XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.subFileBuffer[mpcdiXml],
+                                   mMpcdiSubFileContents.subFileSize[mpcdiXml]);
+
+    if (result != tinyxml2::XML_NO_ERROR)
+    {
+        std::stringstream ss;
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        else if (xmlDoc.GetErrorStr1())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+        else if (xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+        else
+            ss << "File not found";
+        mErrorMsg = ss.str();
+        assert(false);
+        return false;
+    }
+    else
+    {
+        return readAndParseMpcdiXML(xmlDoc, tmpWin);
+    }
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
+                                                 sgct::SGCTWindow& tmpWin)
+{
+    tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "MPCDI" );
+    if( XMLroot == NULL )
+    {
+        mErrorMsg.assign("Cannot find XML root!");
+        return false;
+    }
+    tinyxml2::XMLElement* element[MAX_XML_DEPTH];
+    for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
+        element[i] = NULL;
+    const char * val[MAX_XML_DEPTH];
+
+    std::vector<mpcdiRegion*> bufferRegions;
+    std::vector<mpcdiWarp*> warpMembers;
+    bool haveFoundDisplayElement = false;
+    bool haveFoundBufferElement = false;
+    int foundResolutionX = -1;
+    int foundResolutionY = -1;
+    std::string filesetRegionId;
+
+    element[0] = XMLroot->FirstChildElement();
+    while( element[0] != NULL )
+    {
+        if( element[0]->Attribute("profile") != NULL ) {
+            if( element[0]->Attribute("profile").compare("3d") != 0 ) {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiXml: Only MPCDI '3d' profile is supported.\n");
+                return false;
+            }
+        } else {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiXml: No 'profile' attribute in MPCDI entry.\n");
+            return false;
+        }
+
+        if( element[0]->Attribute("geometry") != NULL ) {
+            if( element[0]->Attribute("geometry").compare("1") != 0 ) {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiXml: Only MPCDI geometry level 1 is supported.\n");
+                return false;
+            }
+        } else {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiXml: No 'geometry' attribute in MPCDI entry.\n");
+            return false;
+        }
+
+        if( element[0]->Attribute("version") != NULL ) {
+            if( element[0]->Attribute("version").compare("2.0") != 0 ) {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiXml: Only MPCDI version 2.0 is supported.\n");
+                return false;
+            }
+        } else {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiXml: No 'version' attribute in MPCDI entry.\n");
+            return false;
+        }
+
+        val[0] = element[0]->Value();
+        if( strcmp("display", val[0]) == 0 )
+        {
+            if( haveFoundDisplayElement ) {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "parseMpcdiXml: Multiple 'display' elements unsupported.\n");
+                return false;
+            } else {
+                haveFoundDisplayElement = true;
+            }
+            element[1] = element[0]->FirstChildElement();
+            while( element[1] != NULL )
+            {
+                val[1] = element[1]->Value();
+                if( strcmp("buffer", val[1]) == 0 )
+                {
+                    if( haveFoundBufferElement ) {
+                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                            "parseMpcdiXml: Multiple 'buffer' elements unsupported.\n");
+                        return false;
+                    } else {
+                        haveFoundBufferElement = true;
+                    }
+                    if (element[1]->Attribute("xResolution") != NULL)
+                        element[1]->QueryAttribute("xResolution", foundResolutionX);
+                    if (element[1]->Attribute("yResolution") != NULL)
+                        element[1]->QueryAttribute("yResolution", foundResolutionY);
+                    if( foundResolutionX >= 0 && foundResolutionY >= 0 )
+                    {
+                        tmpWin.initWindowResolution(foundResolutionX, foundResolutionY);
+                    }
+                    else
+                    {
+                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                            "parseMpcdiXml: Require both xResolution and yResolution values.\n");
+                        return false;
+                    }
+                    //Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
+                    tmpWin.setWindowPosition(0, 0);
+
+                    element[2] = element[1]->FirstChildElement();
+                    while( element[2] != NULL )
+                    {
+                        val[2] = element[2]->Value();
+                        if( strcmp("region", val[2]) == 0 )
+                        {
+                            //Require an 'id' attribute for each region. These will be
+                            // compared later to the fileset, in which there must be
+                            // a matching 'id'
+                            if( element[2]->Attribute("id") != NULL )
+                            {
+                                bufferRegions.push_back(new mpcdiRegion);
+                                bufferRegions.back()->id = element[2]->Attribute("id");
+                            }
+                            else
+                            {
+                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                                    "parseMpcdiXml: No 'id' attribute provided for region.\n");
+                                return false;
+                            }
+
+                            Viewport * vpPtr = new sgct_core::Viewport();
+                            vpPtr->configureMpcdi(&element[2], foundResolutionX, foundResolutionY);
+                            tmpWin.addViewport(vpPtr);
+                        }
+                        unsupportedFeatureCheck(val[2], "coordinateFrame");
+                        unsupportedFeatureCheck(val[2], "color");
+                        //iterate
+                        element[2] = element[2]->NextSiblingElement();
+                    }
+                    tmpNode.addWindow( tmpWin );
+                }//end window
+                //iterate
+                element[1] = element[1]->NextSiblingElement();
+            }//end while
+            ClusterManager::instance()->addNode(tmpNode);
+        }//end display
+
+        else if( strcmp("files", val[0]) == 0 )
+        {
+            element[1] = element[0]->FirstChildElement();
+            while( element[1] != NULL )
+            {
+                val[1] = element[1]->Value();
+                if( strcmp("fileset", val[1]) == 0 )
+                {
+                    if (element[1]->Attribute("region") != NULL)
+                    {
+                        filesetRegionId = element[2]->Attribute("region");
+                    }
+                    val[2] = element[1]->Value();
+                    element[2] = element[1]->FirstChildElement();
+                    while( element [2] != NULL )
+                    {
+                        if( strcmp("geometryWarpFile", val[2]) == 0 )
+                        {
+                            warpMembers.push_back(new mpcdiWarp);
+                            warpMembers.back()->id = filesetRegionId;
+                            element[3] = element[2]->FirstChildElement();
+                            while( element[3] != NULL )
+                            {
+                                val[3] = element[3]->Value();
+                                if( strcmp("path", val[3]) == 0 )
+                                {
+                                    warpMembers.back()->pathWarpFile = std::stof(val[3]->Text(), nullptr);
+                                    warpMembers.back()->haveFoundPath = true;
+                                }
+                                else if( strcmp("interpolation", val[3]) == 0 )
+                                {
+                                    interpolation = std::stof(val[3]->Text(), nullptr);
+                                    warpMembers.back()->haveFoundInterpolation = true;
+                                }
+                                element[3] = element[3]->NextSiblingElement();
+                            }
+                            if(   !warpMembers.back()->haveFoundPath
+                               || !warpMembers.back()->haveFoundInterpolation )
+                            {
+                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                                    "parseMpcdiXml: geometryWarpFile requires both path and interpolation.\n");
+                                return false;
+                            }
+                        }
+                        unsupportedFeatureCheck(val[2], "alphaMap");
+                        unsupportedFeatureCheck(val[2], "betaMap");
+                        unsupportedFeatureCheck(val[2], "distortionMap");
+                        unsupportedFeatureCheck(val[2], "decodeLUT");
+                        unsupportedFeatureCheck(val[2], "correctLUT");
+                        unsupportedFeatureCheck(val[2], "encodeLUT");
+                        element[2] = element[2]->NextSiblingElement();
+                    }
+                }
+                element[1] = element[1]->NextSiblingElement();
+            }
+        }//end 'files'
+        unsupportedFeatureCheck(val[0], "extensionSet");
+
+        //iterate
+        element[0] = element[0]->NextSiblingElement();
+    }
+
+    return true;
+}
+
+void sgct_core::ReadConfig::unsupportedFeatureCheck(std::string tag, std::string featureName)
+{
+    if( strcmp(featureName, tag) == 0 )
+    {
+        std::string warn = "ReadConfigMpcdi: Unsupported feature: ";
+        warn.append(featureName);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, warn);
+    }
 }

@@ -29,24 +29,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core
 {
 
-struct mpcdiSubFiles {
-    enum mpcdiSubFileTypes {
-        mpcdiXml = 0,
-        mpcdiPfm,
-        mpcdi_nRequiredFiles //Leave at end
-    };
-    bool hasFoundFile[mpcdi_nRequiredFiles];
-    string subFileExtension[mpcdi_nRequiredFiles];
-    int subFileSize[mpcdi_nRequiredFiles];
-    char* subFileBuffer[mpcdi_nRequiredFiles];
 
-    mpcdiSubFiles() {
-        for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
-            hasFoundFile[i] = false;
-            subFileBuffer[i] = nullptr;
-        }
-    }
-};
 /*!
     This class holds and manages viewportdata and calculates frustums
 */
@@ -58,6 +41,7 @@ public:
     ~Viewport();
 
     void configure(tinyxml2::XMLElement * element);
+    void configureMpcdi(tinyxml2::XMLElement * element, int winResX, int winResY);
     void setOverlayTexture(const char * texturePath);
     void setBlendMaskTexture(const char * texturePath);
     void setBlackLevelMaskTexture(const char * texturePath);
@@ -85,10 +69,6 @@ private:
     void parsePlanarProjection(tinyxml2::XMLElement * element);
     void parseFisheyeProjection(tinyxml2::XMLElement * element);
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
-    void parseMpcdiConfiguration(tinyxml2::XMLElement * element);
-    bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
-    bool processMpcdiSubFile(std::string filename, unzFile* zipfile, unz_global_info& file_info);
-    bool doesStringHaveSuffix(const std::string &str, const std::string &suffix);
 
 private:
     CorrectionMesh mCM;
@@ -105,7 +85,6 @@ private:
     unsigned int mBlackLevelMaskTextureIndex;
 
     NonLinearProjection * mNonLinearProjection;
-    mpcdiSubFiles mMpcdiSubFileContents;
 };
 
 }

@@ -393,7 +393,7 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                         tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
                     
                     if( element[1]->Attribute("mpcdi") != NULL )
-                        parseMpcdiConfiguration(element[1]->Attribute("mpcdi"), tmpWin)
+                        parseMpcdiConfiguration(element[1]->Attribute("mpcdi"), tmpNode, tmpWin);
 
                     element[2] = element[1]->FirstChildElement();
                     while( element[2] != NULL )
@@ -963,10 +963,12 @@ bool sgct_core::ReadConfig::doesStringHaveSuffix(const std::string &str, const s
 }
 
 void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMpcdi,
+                                                    SGCTNode& tmpNode,
                                                     sgct::SGCTWindow& tmpWin)
 {
     FILE * cfgFile = nullptr;
     unzFile *zipfile = nullptr;
+    const int MaxFilenameSize_bytes = 500;
 
     if (! openZipFile(cfgFile, filenameMpcdi, zipfile))
         return;
@@ -976,7 +978,8 @@ void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMp
     if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n", cfgFilePath);
+            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
+            filenameMpcdi);
         unzClose(zipfile);
         return;
     }
@@ -985,8 +988,8 @@ void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMp
     for (int i = 0; i < global_info.number_entry; ++i)
     {
         unz_file_info file_info;
-        char filename[ MAX_FILENAME ];
-        if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MAX_FILENAME,
+        char filename[MaxFilenameSize_bytes];
+        if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MaxFilenameSize_bytes,
             NULL, 0, NULL, 0) != UNZ_OK)
         {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1001,19 +1004,19 @@ void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMp
         }
     }
     unzClose(zipfile);
-    if(   !mMpcdiSubFileContents.hasFoundFile[mpcdiXml]
-       || !mMpcdiSubFileContents.hasFoundFile[mpcdiPfm])
+    if(   !mMpcdiSubFileContents.hasFound[mpcdiSubFiles::mpcdiXml]
+       || !mMpcdiSubFileContents.hasFound[mpcdiSubFiles::mpcdiPfm])
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
-            cfgFilePath);
+            filenameMpcdi);
         return;
     }
-    readAndParseMpcdiXMLString(tmpWin);
+    readAndParseMpcdiXMLString(tmpNode, tmpWin);
 }
 
 bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFilePath,
-                                      unzFile* zipfile)
+                                        unzFile* zipfile)
 {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
@@ -1027,7 +1030,7 @@ bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFile
         return false;
     }
     //Open MPCDI file (zip compressed format)
-    zipfile = unzOpen(cfgFilePath);
+    zipfile = unzOpen(cfgFilePath.c_str());
     if (zipfile == nullptr)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1038,14 +1041,15 @@ bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFile
 }
 
 bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* zipfile,
-                                                unz_global_info& file_info)
+                                                unz_file_info& file_info)
 {
     for (int i = 0; i < mMpcdiSubFileContents.mpcdi_nRequiredFiles; ++i)
     {
-        if (doesStringHaveSuffix(filename, mMpcdiSubFileContents.subFileExtension[i]))
+        if (doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
         {
-            mMpcdiSubFileContents.hasFoundFile[i] = true;
-            mMpcdiSubFileContents.subFileSize[i] = file_info.uncompressed_size;
+            mMpcdiSubFileContents.hasFound[i] = true;
+            mMpcdiSubFileContents.size[i] = file_info.uncompressed_size;
+            mMpcdiSubFileContents.filename[i] = filename;
             if (unzOpenCurrentFile(zipfile) != UNZ_OK)
             {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1053,16 +1057,16 @@ bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* z
                 unzClose(zipfile);
                 return false;
             }
-            mMpcdiSubFileContents.subFileBuffer[i] = new char(file_info.uncompressed_size);
-            if (mMpcdiSubFileContents.subFileBuffer[i]) {
-                error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.subFileBuffer[i],
+            mMpcdiSubFileContents.buffer[i] = new char(file_info.uncompressed_size);
+            if (mMpcdiSubFileContents.buffer[i]) {
+                error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.buffer[i],
                                            file_info.uncompressed_size);
                 unzCloseCurrentFile(zipfile);
                 if (error < 0)
                 {
                     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                         "parseMpcdiConfiguration: %s read from %s failed.\n",
-                        mMpcdiSubFileContents.subFileExtension[i], filename);
+                        mMpcdiSubFileContents.extension[i], filename);
                     unzClose(zipfile);
                     return false;
                 }
@@ -1077,14 +1081,14 @@ bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* z
     return true;
 }
 
-bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(sgct::SGCTWindow& tmpWin)
+bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin)
 {
-    if (mMpcdiSubFileContents.subFileBuffer[mpcdiXml] == nullptr)
+    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml] == nullptr)
         return false;
 
     tinyxml2::XMLDocument xmlDoc;
-    XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.subFileBuffer[mpcdiXml],
-                                   mMpcdiSubFileContents.subFileSize[mpcdiXml]);
+    tinyxml2::XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml],
+                                             mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiXml]);
 
     if (result != tinyxml2::XML_NO_ERROR)
     {
@@ -1103,11 +1107,12 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(sgct::SGCTWindow& tmpWin)
     }
     else
     {
-        return readAndParseMpcdiXML(xmlDoc, tmpWin);
+        return readAndParseMpcdiXML(xmlDoc, tmpNode, tmpWin);
     }
 }
 
 bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
+                                                 SGCTNode tmpNode,
                                                  sgct::SGCTWindow& tmpWin)
 {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "MPCDI" );
@@ -1121,189 +1126,31 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
         element[i] = NULL;
     const char * val[MAX_XML_DEPTH];
 
-    std::vector<mpcdiRegion*> bufferRegions;
-    std::vector<mpcdiWarp*> warpMembers;
-    bool haveFoundDisplayElement = false;
-    bool haveFoundBufferElement = false;
-    int foundResolutionX = -1;
-    int foundResolutionY = -1;
-    std::string filesetRegionId;
+    mpcdiFoundItems parsedItems;
 
     element[0] = XMLroot->FirstChildElement();
     while( element[0] != NULL )
     {
-        if( element[0]->Attribute("profile") != NULL ) {
-            if( element[0]->Attribute("profile").compare("3d") != 0 ) {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiXml: Only MPCDI '3d' profile is supported.\n");
-                return false;
-            }
-        } else {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiXml: No 'profile' attribute in MPCDI entry.\n");
+        if( !checkAttributeForExpectedValue(element[0], "profile", "MPCDI profile", "3d") )
             return false;
-        }
-
-        if( element[0]->Attribute("geometry") != NULL ) {
-            if( element[0]->Attribute("geometry").compare("1") != 0 ) {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiXml: Only MPCDI geometry level 1 is supported.\n");
-                return false;
-            }
-        } else {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiXml: No 'geometry' attribute in MPCDI entry.\n");
+        if( !checkAttributeForExpectedValue(element[0], "geometry", "MPCDI geometry level", "1") )
             return false;
-        }
-
-        if( element[0]->Attribute("version") != NULL ) {
-            if( element[0]->Attribute("version").compare("2.0") != 0 ) {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiXml: Only MPCDI version 2.0 is supported.\n");
-                return false;
-            }
-        } else {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiXml: No 'version' attribute in MPCDI entry.\n");
+        if( !checkAttributeForExpectedValue(element[0], "version", "MPCDI version", "2.0") )
             return false;
-        }
 
         val[0] = element[0]->Value();
         if( strcmp("display", val[0]) == 0 )
         {
-            if( haveFoundDisplayElement ) {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiXml: Multiple 'display' elements unsupported.\n");
+            if(! readAndParseMpcdiXML_display(element, val, tmpNode, tmpWin, parsedItems) )
                 return false;
-            } else {
-                haveFoundDisplayElement = true;
-            }
-            element[1] = element[0]->FirstChildElement();
-            while( element[1] != NULL )
-            {
-                val[1] = element[1]->Value();
-                if( strcmp("buffer", val[1]) == 0 )
-                {
-                    if( haveFoundBufferElement ) {
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                            "parseMpcdiXml: Multiple 'buffer' elements unsupported.\n");
-                        return false;
-                    } else {
-                        haveFoundBufferElement = true;
-                    }
-                    if (element[1]->Attribute("xResolution") != NULL)
-                        element[1]->QueryAttribute("xResolution", foundResolutionX);
-                    if (element[1]->Attribute("yResolution") != NULL)
-                        element[1]->QueryAttribute("yResolution", foundResolutionY);
-                    if( foundResolutionX >= 0 && foundResolutionY >= 0 )
-                    {
-                        tmpWin.initWindowResolution(foundResolutionX, foundResolutionY);
-                    }
-                    else
-                    {
-                        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                            "parseMpcdiXml: Require both xResolution and yResolution values.\n");
-                        return false;
-                    }
-                    //Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
-                    tmpWin.setWindowPosition(0, 0);
-
-                    element[2] = element[1]->FirstChildElement();
-                    while( element[2] != NULL )
-                    {
-                        val[2] = element[2]->Value();
-                        if( strcmp("region", val[2]) == 0 )
-                        {
-                            //Require an 'id' attribute for each region. These will be
-                            // compared later to the fileset, in which there must be
-                            // a matching 'id'
-                            if( element[2]->Attribute("id") != NULL )
-                            {
-                                bufferRegions.push_back(new mpcdiRegion);
-                                bufferRegions.back()->id = element[2]->Attribute("id");
-                            }
-                            else
-                            {
-                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                                    "parseMpcdiXml: No 'id' attribute provided for region.\n");
-                                return false;
-                            }
-
-                            Viewport * vpPtr = new sgct_core::Viewport();
-                            vpPtr->configureMpcdi(&element[2], foundResolutionX, foundResolutionY);
-                            tmpWin.addViewport(vpPtr);
-                        }
-                        unsupportedFeatureCheck(val[2], "coordinateFrame");
-                        unsupportedFeatureCheck(val[2], "color");
-                        //iterate
-                        element[2] = element[2]->NextSiblingElement();
-                    }
-                    tmpNode.addWindow( tmpWin );
-                }//end window
-                //iterate
-                element[1] = element[1]->NextSiblingElement();
-            }//end while
-            ClusterManager::instance()->addNode(tmpNode);
-        }//end display
+        }
 
         else if( strcmp("files", val[0]) == 0 )
         {
-            element[1] = element[0]->FirstChildElement();
-            while( element[1] != NULL )
-            {
-                val[1] = element[1]->Value();
-                if( strcmp("fileset", val[1]) == 0 )
-                {
-                    if (element[1]->Attribute("region") != NULL)
-                    {
-                        filesetRegionId = element[2]->Attribute("region");
-                    }
-                    val[2] = element[1]->Value();
-                    element[2] = element[1]->FirstChildElement();
-                    while( element [2] != NULL )
-                    {
-                        if( strcmp("geometryWarpFile", val[2]) == 0 )
-                        {
-                            warpMembers.push_back(new mpcdiWarp);
-                            warpMembers.back()->id = filesetRegionId;
-                            element[3] = element[2]->FirstChildElement();
-                            while( element[3] != NULL )
-                            {
-                                val[3] = element[3]->Value();
-                                if( strcmp("path", val[3]) == 0 )
-                                {
-                                    warpMembers.back()->pathWarpFile = std::stof(val[3]->Text(), nullptr);
-                                    warpMembers.back()->haveFoundPath = true;
-                                }
-                                else if( strcmp("interpolation", val[3]) == 0 )
-                                {
-                                    interpolation = std::stof(val[3]->Text(), nullptr);
-                                    warpMembers.back()->haveFoundInterpolation = true;
-                                }
-                                element[3] = element[3]->NextSiblingElement();
-                            }
-                            if(   !warpMembers.back()->haveFoundPath
-                               || !warpMembers.back()->haveFoundInterpolation )
-                            {
-                                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                                    "parseMpcdiXml: geometryWarpFile requires both path and interpolation.\n");
-                                return false;
-                            }
-                        }
-                        unsupportedFeatureCheck(val[2], "alphaMap");
-                        unsupportedFeatureCheck(val[2], "betaMap");
-                        unsupportedFeatureCheck(val[2], "distortionMap");
-                        unsupportedFeatureCheck(val[2], "decodeLUT");
-                        unsupportedFeatureCheck(val[2], "correctLUT");
-                        unsupportedFeatureCheck(val[2], "encodeLUT");
-                        element[2] = element[2]->NextSiblingElement();
-                    }
-                }
-                element[1] = element[1]->NextSiblingElement();
-            }
-        }//end 'files'
+            if(! readAndParseMpcdiXML_files(element, val, tmpWin, parsedItems) )
+                return false;
+        }
         unsupportedFeatureCheck(val[0], "extensionSet");
-
         //iterate
         element[0] = element[0]->NextSiblingElement();
     }
@@ -1311,12 +1158,253 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
     return true;
 }
 
+bool sgct_core::ReadConfig::readAndParseMpcdiXML_display(tinyxml2::XMLElement* element[],
+                                                         const char* val[],
+                                                         SGCTNode tmpNode,
+                                                         sgct::SGCTWindow& tmpWin,
+                                                         mpcdiFoundItems& parsedItems)
+{
+    if( parsedItems.haveDisplayElem ) {
+         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+             "parseMpcdiXml: Multiple 'display' elements not supported.\n");
+         return false;
+     } else {
+         parsedItems.haveDisplayElem = true;
+     }
+     element[1] = element[0]->FirstChildElement();
+     while( element[1] != NULL )
+     {
+         val[1] = element[1]->Value();
+         if( strcmp("buffer", val[1]) == 0 )
+         {
+             if(! readAndParseMpcdiXML_buffer(element, val, tmpWin, parsedItems) )
+                 return false;
+             tmpNode.addWindow(tmpWin);
+         }
+         //iterate
+         element[1] = element[1]->NextSiblingElement();
+     }
+     ClusterManager::instance()->addNode(tmpNode);
+     return true;
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXML_buffer(tinyxml2::XMLElement* element[],
+                                                        const char* val[],
+                                                        sgct::SGCTWindow& tmpWin,
+                                                        mpcdiFoundItems& parsedItems)
+{
+    if( parsedItems.haveBufferElem ) {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiXml: Multiple 'buffer' elements unsupported.\n");
+        return false;
+    } else {
+        parsedItems.haveBufferElem = true;
+    }
+    if (element[1]->Attribute("xResolution") != NULL)
+        element[1]->QueryAttribute("xResolution", &parsedItems.resolutionX);
+    if (element[1]->Attribute("yResolution") != NULL)
+        element[1]->QueryAttribute("yResolution", &parsedItems.resolutionY);
+    if( parsedItems.resolutionX >= 0 && parsedItems.resolutionY >= 0 )
+    {
+        tmpWin.initWindowResolution(parsedItems.resolutionX, parsedItems.resolutionY);
+    }
+    else
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiXml: Require both xResolution and yResolution values.\n");
+        return false;
+    }
+    //Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
+    tmpWin.setWindowPosition(0, 0);
+
+    element[2] = element[1]->FirstChildElement();
+    while( element[2] != NULL )
+    {
+        val[2] = element[2]->Value();
+        if( strcmp("region", val[2]) == 0 )
+        {
+            if(! readAndParseMpcdiXML_region(element, val, tmpWin, parsedItems) )
+                return false;
+        }
+        unsupportedFeatureCheck(val[2], "coordinateFrame");
+        unsupportedFeatureCheck(val[2], "color");
+        //iterate
+        element[2] = element[2]->NextSiblingElement();
+    }
+    return true;
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXML_region(tinyxml2::XMLElement* element[],
+                                                        const char* val[],
+                                                        sgct::SGCTWindow& tmpWin,
+                                                        mpcdiFoundItems& parsedItems)
+{
+    //Require an 'id' attribute for each region. These will be
+     // compared later to the fileset, in which there must be
+     // a matching 'id'
+     if( element[2]->Attribute("id") != NULL )
+     {
+         mBufferRegions.push_back(new mpcdiRegion);
+         mBufferRegions.back()->id = element[2]->Attribute("id");
+     }
+     else
+     {
+         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+             "parseMpcdiXml: No 'id' attribute provided for region.\n");
+         return false;
+     }
+
+     Viewport * vpPtr = new sgct_core::Viewport();
+     vpPtr->configureMpcdi(element, parsedItems.resolutionX, parsedItems.resolutionY);
+     tmpWin.addViewport(vpPtr);
+     return true;
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXML_files(tinyxml2::XMLElement* element[],
+                                                       const char* val[],
+                                                       sgct::SGCTWindow& tmpWin,
+                                                       mpcdiFoundItems& parsedItems)
+{
+    std::string filesetRegionId;
+
+    element[1] = element[0]->FirstChildElement();
+    while( element[1] != NULL )
+    {
+        val[1] = element[1]->Value();
+        if( strcmp("fileset", val[1]) == 0 )
+        {
+            if (element[1]->Attribute("region") != NULL)
+            {
+                filesetRegionId = element[2]->Attribute("region");
+            }
+            val[2] = element[1]->Value();
+            element[2] = element[1]->FirstChildElement();
+            while( element [2] != NULL )
+            {
+                if( strcmp("geometryWarpFile", val[2]) == 0 )
+                {
+                    if(! readAndParseMpcdiXML_geoWarpFile(element, val, tmpWin,
+                                                          parsedItems, filesetRegionId) )
+                        return false;
+                }
+                unsupportedFeatureCheck(val[2], "alphaMap");
+                unsupportedFeatureCheck(val[2], "betaMap");
+                unsupportedFeatureCheck(val[2], "distortionMap");
+                unsupportedFeatureCheck(val[2], "decodeLUT");
+                unsupportedFeatureCheck(val[2], "correctLUT");
+                unsupportedFeatureCheck(val[2], "encodeLUT");
+
+                element[2] = element[2]->NextSiblingElement();
+            }
+        }
+        element[1] = element[1]->NextSiblingElement();
+    }
+    return true;
+}
+
+bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElement* element[],
+                                                             const char* val[],
+                                                             sgct::SGCTWindow& tmpWin,
+                                                             mpcdiFoundItems& parsedItems,
+                                                             std::string filesetRegionId)
+{
+    mWarp.push_back(new mpcdiWarp);
+    mWarp.back()->id = filesetRegionId;
+    element[3] = element[2]->FirstChildElement();
+    while( element[3] != NULL )
+    {
+        val[3] = element[3]->Value();
+        if( strcmp("path", val[3]) == 0 )
+        {
+            mWarp.back()->pathWarpFile = std::stof(element[3]->GetText(), nullptr);
+            mWarp.back()->haveFoundPath = true;
+        }
+        else if( strcmp("interpolation", val[3]) == 0 )
+        {
+            std::string interpolation = std::stof(element[3]->GetText(), nullptr);
+            if( interpolation.compare("linear") != 0 )
+            {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_WARNING,
+                    "parseMpcdiXml: only linear interpolation is supported.\n");
+            }
+            mWarp.back()->haveFoundInterpolation = true;
+        }
+        element[3] = element[3]->NextSiblingElement();
+    }
+    if(   mWarp.back()->haveFoundPath
+       && mWarp.back()->haveFoundInterpolation )
+    {
+        //Look for matching MPCDI region (SGCT viewport) to pass
+        // the warp field data to
+        bool foundMatchingPfmBuffer = false;
+        for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r)
+        {
+            std::string tmpWindowName = tmpWin.getViewport(r)->getName;
+            std::string currRegion_warpName = mWarp.back()->id;
+            if( tmpWindowName.compare(currRegion_warpName) == 0 )
+            {
+                std::string currRegion_warpFilename = mWarp.back()->pathWarpFile;
+                std::string matchingMpcdiDataFile
+                    = mMpcdiSubFileContents.filename[mpcdiSubFiles::mpcdiPfm];
+                if( currRegion_warpFilename.compare(matchingMpcdiDataFile) == 0 )
+                {
+                    tmpWin.getViewport(r)->setMpcdiWarpMesh(
+                        mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm],
+                        mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiPfm]);
+                    foundMatchingPfmBuffer = true;
+                }
+            }
+        }
+        if( !foundMatchingPfmBuffer )
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiXml: matching geometryWarpFile not found.\n");
+            return false;
+        }
+    }
+    else
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiXml: geometryWarpFile requires both path and interpolation.\n");
+        return false;
+    }
+    return true;
+}
+
+bool sgct_core::ReadConfig::checkAttributeForExpectedValue(tinyxml2::XMLElement* elem,
+                                                           const std::string attrRequired,
+                                                           const std::string tagDescription,
+                                                           const std::string expectedTag)
+{
+    std::string errorMsg;
+    char* attr = elem->Attribute(attrRequired.c_str());
+    if( attr != nullptr )
+    {
+        if( expectedTag.compare(attr) != 0 )
+            errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
+                expectedTag + "' is supported.\n";
+    }
+    else
+        errorMsg = "parseMpcdiXml: No " + tagDescription + " attribute found \n";
+
+    if( errorMsg.length() > 0 )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            (const char*)errorMsg);
+        return false;
+    }
+    else
+        return true;
+}
+
 void sgct_core::ReadConfig::unsupportedFeatureCheck(std::string tag, std::string featureName)
 {
-    if( strcmp(featureName, tag) == 0 )
+    if( featureName.compare(tag) != 0 )
     {
         std::string warn = "ReadConfigMpcdi: Unsupported feature: ";
         warn.append(featureName);
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, warn);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
+            (const char*)warn);
     }
 }

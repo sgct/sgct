@@ -147,18 +147,19 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
     }
 }
 
-void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
+void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
+                                         const char* val[],
                                          int winResX, int winResY)
 {
     float vpPosition[2] = {0.0, 0.0};
     float vpSize[2] = {0.0, 0.0};
     float vpResolution[2] = {0.0, 0.0};
 
-    if (element->Attribute("id") != NULL)
-        setName(element->Attribute("name"));
+    if (element[2]->Attribute("id") != NULL)
+        setName(element[2]->Attribute("name"));
 
     if (element[2]->Attribute("x") != NULL) {
-        if (subElement->QueryFloatAttribute("x", &vpPosition[0]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("x", &vpPosition[0]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse X position from MPCDI XML!\n");
         }
@@ -168,7 +169,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
     }
 
     if (element[2]->Attribute("y") != NULL) {
-        if (subElement->QueryFloatAttribute("y", &vpPosition[1]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("y", &vpPosition[1]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse Y position from MPCDI XML!\n");
         }
@@ -179,7 +180,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
     setPos(vpPosition[0], vpPosition[1]);
 
     if (element[2]->Attribute("xSize") != NULL) {
-        if (subElement->QueryFloatAttribute("xSize", &vpSize[0]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("xSize", &vpSize[0]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse X size from MPCDI XML!\n");
         }
@@ -189,7 +190,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
     }
 
     if (element[2]->Attribute("ySize") != NULL) {
-        if (subElement->QueryFloatAttribute("ySize", &vpSize[1]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("ySize", &vpSize[1]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse Y size from MPCDI XML!\n");
         }
@@ -200,7 +201,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
     setSize(vpSize[0], vpSize[1]);
 
     if (element[2]->Attribute("xResolution") != NULL) {
-        if (subElement->QueryFloatAttribute("xResolution", &vpResolution[0]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("xResolution", &vpResolution[0]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse X resolution from MPCDI XML!\n");
         }
@@ -210,7 +211,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
     }
 
     if (element[2]->Attribute("yResolution") != NULL) {
-        if (subElement->QueryFloatAttribute("yResolution", &vpResolution[1]) == tinyxml2::XML_NO_ERROR ) {
+        if (element[2]->QueryFloatAttribute("yResolution", &vpResolution[1]) == tinyxml2::XML_NO_ERROR ) {
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "Viewport: Failed to parse Y resolution from MPCDI XML!\n");
         }
@@ -240,6 +241,9 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
             bool foundUp = false;
             bool foundLeft = false;
             bool foundRight = false;
+            bool foundYaw = false;
+            bool foundPitch = false;
+            bool foundRoll = false;
             float down, left, right, up, yaw, pitch, roll;
             float distance = 10.0f;
             glm::quat rotQuat;
@@ -251,37 +255,37 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement * element,
                 val[4] = element[4]->Value();
                 if( strcmp("rightAngle", val[4]) == 0 )
                 {
-                    right = std::stof(val[4]->Text(), nullptr);
+                    right = std::stof(element[4]->GetText(), nullptr);
                     foundRight = true;
                 }
                 else if( strcmp("leftAngle", val[4]) == 0 )
                 {
-                    left = std::stof(val[4]->Text(), nullptr);
+                    left = std::stof(element[4]->GetText(), nullptr);
                     foundLeft = true;
                 }
                 else if( strcmp("upAngle", val[4]) == 0 )
                 {
-                    up = std::stof(val[4]->Text(), nullptr);
+                    up = std::stof(element[4]->GetText(), nullptr);
                     foundUp = true;
                 }
                 else if( strcmp("downAngle", val[4]) == 0 )
                 {
-                    down = std::stof(val[4]->Text(), nullptr);
+                    down = std::stof(element[4]->GetText(), nullptr);
                     foundDown = true;
                 }
                 else if( strcmp("yaw", val[4]) == 0 )
                 {
-                    down = std::stof(val[4]->Text(), nullptr);
+                    down = std::stof(element[4]->GetText(), nullptr);
                     foundYaw = true;
                 }
                 else if( strcmp("pitch", val[4]) == 0 )
                 {
-                    down = std::stof(val[4]->Text(), nullptr);
+                    down = std::stof(element[4]->GetText(), nullptr);
                     foundPitch = true;
                 }
                 else if( strcmp("roll", val[4]) == 0 )
                 {
-                    down = std::stof(val[4]->Text(), nullptr);
+                    down = std::stof(element[4]->GetText(), nullptr);
                     foundRoll = true;
                 }
 
@@ -587,7 +591,13 @@ void sgct_core::Viewport::setBlackLevelMaskTexture(const char * texturePath)
 void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 {
     mMeshFilename.assign(meshPath);
-    mIsMeshStoredInFile = true;
+}
+
+void sgct_core::Viewport::setMpcdiWarpMesh(const char* meshData, size_t size)
+{
+    mMpcdiWarpMeshData = new char(size);
+    memcpy(mMpcdiWarpMeshData, meshData, size);
+    mMpcdiWarpMeshSize = size;
 }
 
 void sgct_core::Viewport::setTracked(bool state)
@@ -608,11 +618,14 @@ void sgct_core::Viewport::loadData()
     if ( mBlackLevelMaskFilename.size() > 0)
         sgct::TextureManager::instance()->loadUnManagedTexture(mBlackLevelMaskTextureIndex, mBlackLevelMaskFilename, true, 1);
 
-    //load default if mMeshFilename is empty
-    if (mIsMeshStoredInFile) {
-        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint), true);
-    } else {
-        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint("mpcdi"), false);
+    if ( mMpcdiWarpMeshData != nullptr )
+    {
+        mCorrectionMesh = mCM.readAndGenerateMesh("mesh.mpcdi", this, CorrectionMesh::parseHint(mMeshHint));
+    }
+    else
+    {
+        //load default if mMeshFilename is empty
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
     }
 }
 

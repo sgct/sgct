@@ -41,11 +41,12 @@ public:
     ~Viewport();
 
     void configure(tinyxml2::XMLElement * element);
-    void configureMpcdi(tinyxml2::XMLElement * element, int winResX, int winResY);
+    void configureMpcdi(tinyxml2::XMLElement * element[], const char* val[], int winResX, int winResY);
     void setOverlayTexture(const char * texturePath);
     void setBlendMaskTexture(const char * texturePath);
     void setBlackLevelMaskTexture(const char * texturePath);
     void setCorrectionMesh(const char * meshPath);
+    void setMpcdiWarpMesh(const char* meshData, size_t size);
     void setTracked(bool state);
     void loadData();
 
@@ -85,6 +86,9 @@ private:
     unsigned int mBlackLevelMaskTextureIndex;
 
     NonLinearProjection * mNonLinearProjection;
+
+    unsigned char* mMpcdiWarpMeshData;
+    size_t mMpcdiWarpMeshSize = 0;
 };
 
 }

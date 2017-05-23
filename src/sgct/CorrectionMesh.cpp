@@ -112,11 +112,10 @@ This function finds a suitible parser for warping meshes and loads them into mem
 @param meshPath the path to the mesh data
 @param meshHint a hint to pass to the parser selector
 @param parent the pointer to parent viewport
-@param loadFromFile true if loading from file at meshPath, otherwise from viewport
 @return true if mesh found and loaded successfully
 */
 bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_core::Viewport * parent,
-		                                            MeshHint hint, bool loadFromFile)
+		                                            MeshHint hint)
 {    
     //generate unwarped mask
     setupSimpleMesh(&mGeometries[QUAD_MESH], parent);
@@ -139,50 +138,50 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
     }
 
     //fallback if no mesh is provided
-    if (loadFromFile) {
-    	if ( meshPath.empty())
-        {
-            setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-            createMesh(&mGeometries[WARP_MESH]);
-            cleanUp();
-        
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Empty mesh path.\n");
-            return false;
-        }
-    
-        //transform to lowercase
-        std::string path(meshPath);
-        std::transform(path.begin(), path.end(), path.begin(), ::tolower);
+    if ( meshPath.empty())
+    {
+        setupSimpleMesh(&mGeometries[WARP_MESH], parent);
+        createMesh(&mGeometries[WARP_MESH]);
+        cleanUp();
 
-        MeshFormat meshFmt = NO_FMT;
-        //find a suitible format
-        if (path.find(".sgc") != std::string::npos)
-            meshFmt = SCISS_FMT;
-        else if (path.find(".ol") != std::string::npos)
-            meshFmt = SCALEABLE_FMT;
-        else if (path.find(".skyskan") != std::string::npos)
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Empty mesh path.\n");
+        return false;
+    }
+    
+    //transform to lowercase
+    std::string path(meshPath);
+    std::transform(path.begin(), path.end(), path.begin(), ::tolower);
+
+    MeshFormat meshFmt = NO_FMT;
+    //find a suitible format
+    if (path.find(".sgc") != std::string::npos)
+        meshFmt = SCISS_FMT;
+    else if (path.find(".ol") != std::string::npos)
+        meshFmt = SCALEABLE_FMT;
+    else if (path.find(".skyskan") != std::string::npos)
+        meshFmt = SKYSKAN_FMT;
+    else if (path.find(".txt") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == SKYSKAN_HINT)//default for this suffix
             meshFmt = SKYSKAN_FMT;
-        else if (path.find(".txt") != std::string::npos)
-        {
-            if (hint == NO_HINT || hint == SKYSKAN_HINT)//default for this suffix
-                meshFmt = SKYSKAN_FMT;
-        }
-        else if (path.find(".csv") != std::string::npos)
-        {
-            if (hint == NO_HINT || hint == DOMEPROJECTION_HINT)//default for this suffix
-                meshFmt = DOMEPROJECTION_FMT;
-        }
-        else if (path.find(".data") != std::string::npos)
-        {
-            if (hint == NO_HINT || hint == PAULBOURKE_HINT)//default for this suffix
-                meshFmt = PAULBOURKE_FMT;
-        }
-        else if (path.find(".obj") != std::string::npos)
-        {
-            if (hint == NO_HINT || hint == OBJ_HINT)//default for this suffix
-                meshFmt = OBJ_FMT;
-        }
-    } else {
+    }
+    else if (path.find(".csv") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == DOMEPROJECTION_HINT)//default for this suffix
+            meshFmt = DOMEPROJECTION_FMT;
+    }
+    else if (path.find(".data") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == PAULBOURKE_HINT)//default for this suffix
+            meshFmt = PAULBOURKE_FMT;
+    }
+    else if (path.find(".obj") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == OBJ_HINT)//default for this suffix
+            meshFmt = OBJ_FMT;
+    }
+    else if (path.find(".mpcdi") != std::string::npos)
+    {
         if (hint == MPCDI_HINT)
             meshFmt = MPCDI_FMT;
     }
@@ -1426,35 +1425,65 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
         "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'.\n", meshPath.c_str());
 
-    FILE * meshFile = NULL;
+    bool isReadingFile = ( meshPath.length() > 0 ) ? true : false;
+    unsigned int srcIdx = 0;
+    char* srcBuff;
+    size_t srcSize_bytes;
+    const int MaxHeaderLineLength = 100;
+    FILE * meshFile = nullptr;
+
+    if( isReadingFile )
+    {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
-        return false;
-    }
+        if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "CorrectionMesh: Failed to open warping mesh file!\n");
+            return false;
+        }
 #else
-    meshFile = fopen(meshPath.c_str(), "rb");
-    if (meshFile == NULL)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Failed to open warping mesh file!\n");
-        return false;
-    }
+        meshFile = fopen(meshPath.c_str(), "rb");
+        if (meshFile == NULL)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "CorrectionMesh: Failed to open warping mesh file!\n");
+            return false;
+        }
 #endif
+    }
+    else
+    {
+        srcBuff = parent->mMpcdiWarpMeshData;
+        srcSize_bytes = parent->mMpcdiWarpMeshSize;
+    }
 
     size_t retval;
     char headerChar;
-    char headerBuffer[MAX_HEADER_LINE_LENGTH];
+    char headerBuffer[MaxHeaderLineLength];
     int index = 0;
 
     do {
+        if( isReadingFile )
+        {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-        retval = fread_s(headerChar, sizeof(char)*1, sizeof(char), 1, meshFile);
+            retval = fread_s(&headerChar, sizeof(char)*1, sizeof(char), 1, meshFile);
 #else
-        retval = fread(headerChar, sizeof(char), 1, meshFile);
+            retval = fread(&headerChar, sizeof(char), 1, meshFile);
 #endif
+        }
+        else
+        {
+            if( srcIdx == srcSize_bytes )
+                retval = -1;
+            else
+            {
+                headerChar = srcBuff[srcIdx++];
+                retval = 0;
+            }
+        }
         if (retval != 1) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Error reading from file.\n");
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                                                    "CorrectionMesh: Error reading from file.\n");
             fclose(meshFile);
             return false;
         }
@@ -1476,7 +1505,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                                                 "CorrectionMesh: Invalid header syntax.\n");
-        fclose(meshFile);
+        if( isReadingFile )
+            fclose(meshFile);
         return false;
     }
 
@@ -1490,29 +1520,45 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     int numCorrectionValues = numberOfCols * numberOfRows;
     float* correctionGridX = new float(numCorrectionValues);
     float* correctionGridY = new float(numCorrectionValues);
-    float* errorPosition;
+    float  errorPosition;
     const int value32bit = 4;
 
+    if( isReadingFile )
+    {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
  #define FREAD fread_s
 #else
  #define FREAD fread
 #endif
-    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        retval = FREAD(correctionGridX + i, value32bit, 1, meshFile);
-        retval = FREAD(correctionGridY + i, value32bit, 1, meshFile);
-        //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
-        // values. However MPCDI substitutes Red for X correction, Green for Y
-        // correction, and Blue for correction error. This will be NaN for no error value
-        retval = FREAD(errorPosition, value32bit, 1, meshFile);
+        for (unsigned int i = 0; i < numCorrectionValues; ++i)
+        {
+            retval = FREAD(correctionGridX + i, value32bit, 1, meshFile);
+            retval = FREAD(correctionGridY + i, value32bit, 1, meshFile);
+            //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
+            // values. However MPCDI substitutes Red for X correction, Green for Y
+            // correction, and Blue for correction error. This will be NaN for no error value
+            retval = FREAD(errorPosition, value32bit, 1, meshFile);
+        }
+        fclose(meshFile);
+        if (retval != value32bit)
+        {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "CorrectionMesh: Error reading all correction values!\n");
+            return false;
+        }
     }
-    fclose(meshFile);
-    if (retval != value32bit)
+    else
     {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
-            "CorrectionMesh: Error reading all correction values!\n");
-        return false;
+        for (unsigned int i = 0; i < numCorrectionValues; ++i)
+        {
+            if( !readMeshBuffer(&correctionGridX[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
+                return false;
+            if( !readMeshBuffer(&correctionGridY[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
+                return false;
+            if( !readMeshBuffer(&errorPosition, srcIdx, srcBuff, srcSize_bytes, value32bit) )
+                return false;
+        }
     }
 
     float maxX = max_element(correctionGridX, correctionGridX + numCorrectionValues);
@@ -1598,6 +1644,21 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     return true;
 }
 
+bool sgct_core::CorrectionMesh::readMeshBuffer(float* dest, unsigned int& idx,
+                                               const char* src,
+                                               const size_t srcSize_bytes,
+                                               const int readSize_bytes)
+{
+    if( (idx + readSize_bytes) >= srcSize_bytes )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "CorrectionMesh: Reached EOF in mesh buffer!\n");
+        return false;
+    }
+    dest = static_cast<float>(src[idx]);
+    idx += readSize_bytes;
+    return true;
+}
 
 void sgct_core::CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent)
 {

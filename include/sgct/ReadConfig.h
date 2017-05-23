@@ -27,15 +27,16 @@ struct mpcdiSubFiles {
         mpcdiPfm,
         mpcdi_nRequiredFiles //Leave at end
     };
-    bool hasFoundFile[mpcdi_nRequiredFiles];
-    string subFileExtension[mpcdi_nRequiredFiles];
-    int subFileSize[mpcdi_nRequiredFiles];
-    char* subFileBuffer[mpcdi_nRequiredFiles];
+    bool hasFound[mpcdi_nRequiredFiles];
+    std::string extension[mpcdi_nRequiredFiles];
+    std::string filename[mpcdi_nRequiredFiles];
+    int size[mpcdi_nRequiredFiles];
+    char* buffer[mpcdi_nRequiredFiles];
 
     mpcdiSubFiles() {
         for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
-            hasFoundFile[i] = false;
-            subFileBuffer[i] = nullptr;
+            hasFound[i] = false;
+            buffer[i] = nullptr;
         }
     }
 };
@@ -49,6 +50,13 @@ struct mpcdiWarp {
     std::string pathWarpFile;
     bool haveFoundPath = false;
     bool haveFoundInterpolation = false;
+};
+
+struct mpcdiFoundItems {
+    bool haveDisplayElem = false;
+    bool haveBufferElem = false;
+    int resolutionX = -1;
+    int resolutionY = -1;
 };
 
 class ReadConfig
@@ -67,16 +75,37 @@ private:
     bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
     sgct::SGCTWindow::StereoMode getStereoType( std::string type );
     sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
-    void parseMpcdiConfiguration(const std::string filenameMpcdi, sgct::SGCTWindow& tmpWin);
+    void parseMpcdiConfiguration(const std::string filenameMpcdi, SGCTNode& tmpNode,
+             sgct::SGCTWindow& tmpWin);
+    bool readAndParseMpcdiXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin);
+    bool readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc, SGCTNode tmpNode,
+             sgct::SGCTWindow& tmpWin);
+    bool readAndParseMpcdiXML_display(tinyxml2::XMLElement* element[], const char* val[],
+             SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+    bool readAndParseMpcdiXML_files(tinyxml2::XMLElement* element[], const char* val[],
+             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+    bool readAndParseMpcdiXML_buffer(tinyxml2::XMLElement* element[], const char* val[],
+             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+    bool readAndParseMpcdiXML_region(tinyxml2::XMLElement* element[], const char* val[],
+             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+    bool readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElement* element[],
+             const char* val[], sgct::SGCTWindow& tmpWin,
+             mpcdiFoundItems& parsedItems, std::string filesetRegionId);
     bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
-    bool processMpcdiSubFile(std::string filename, unzFile* zipfile, unz_global_info& file_info);
+    bool processMpcdiSubFile(std::string filename, unzFile* zipfile,
+             unz_file_info& file_info);
     bool doesStringHaveSuffix(const std::string &str, const std::string &suffix);
+    bool checkAttributeForExpectedValue(tinyxml2::XMLElement* elem,
+             const std::string attrRequired, const std::string tagDescription,
+             const std::string expectedTag);
     void unsupportedFeatureCheck(std::string tag, std::string featureName);
 
     bool valid;
     std::string xmlFileName;
     std::string mErrorMsg;
     mpcdiSubFiles mMpcdiSubFileContents;
+    std::vector<mpcdiRegion*> mBufferRegions;
+    std::vector<mpcdiWarp*> mWarp;
 };
 
 }

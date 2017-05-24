@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <glm/glm.hpp>
 #include "SGCTWindow.h"
+#include "SGCTNode.h"
 
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>

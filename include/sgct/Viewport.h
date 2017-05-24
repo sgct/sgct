@@ -65,6 +65,9 @@ public:
     inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
     inline NonLinearProjection * getNonLinearProjectionPtr() { return mNonLinearProjection; }
 
+    char* mMpcdiWarpMeshData;
+    size_t mMpcdiWarpMeshSize = 0;
+
 private:
     void reset(float x, float y, float xSize, float ySize);
     void parsePlanarProjection(tinyxml2::XMLElement * element);
@@ -86,9 +89,6 @@ private:
     unsigned int mBlackLevelMaskTextureIndex;
 
     NonLinearProjection * mNonLinearProjection;
-
-    unsigned char* mMpcdiWarpMeshData;
-    size_t mMpcdiWarpMeshSize = 0;
 };
 
 }

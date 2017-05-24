@@ -1500,7 +1500,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 #else
  #define SSCANF sscanf
 #endif
-    if (SSCANF(headerBuffer, "%2c %d %d %f", &fileFormatHeader,
+    if (SSCANF(headerBuffer, "%2c %d %d %f", fileFormatHeader,
                &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1537,7 +1537,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
             //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
             // values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for no error value
-            retval = FREAD(errorPosition, value32bit, 1, meshFile);
+            retval = FREAD(&errorPosition, value32bit, 1, meshFile);
         }
         fclose(meshFile);
         if (retval != value32bit)
@@ -1561,11 +1561,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         }
     }
 
-    float maxX = max_element(correctionGridX, correctionGridX + numCorrectionValues);
-    float minX = min_element(correctionGridX, correctionGridX + numCorrectionValues);
+    float maxX = *std::max_element(correctionGridX, correctionGridX + numCorrectionValues);
+    float minX = *std::min_element(correctionGridX, correctionGridX + numCorrectionValues);
     float scaleRangeX = maxX - minX;
-    float maxY = max_element(correctionGridY, correctionGridY + numCorrectionValues);
-    float minY = min_element(correctionGridY, correctionGridY + numCorrectionValues);
+    float maxY = *std::max_element(correctionGridY, correctionGridY + numCorrectionValues);
+    float minY = *std::min_element(correctionGridY, correctionGridY + numCorrectionValues);
     float scaleRangeY = maxY - minY;
 
     float x, y, u, v;
@@ -1655,7 +1655,7 @@ bool sgct_core::CorrectionMesh::readMeshBuffer(float* dest, unsigned int& idx,
             "CorrectionMesh: Reached EOF in mesh buffer!\n");
         return false;
     }
-    dest = static_cast<float>(src[idx]);
+    *dest = static_cast<float>(src[idx]);
     idx += readSize_bytes;
     return true;
 }

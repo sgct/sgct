@@ -1030,7 +1030,7 @@ bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFile
         return false;
     }
     //Open MPCDI file (zip compressed format)
-    zipfile = unzOpen(cfgFilePath.c_str());
+    *zipfile = unzOpen(cfgFilePath.c_str());
     if (zipfile == nullptr)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1059,8 +1059,8 @@ bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* z
             }
             mMpcdiSubFileContents.buffer[i] = new char(file_info.uncompressed_size);
             if (mMpcdiSubFileContents.buffer[i]) {
-                error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.buffer[i],
-                                           file_info.uncompressed_size);
+                int error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.buffer[i],
+                                               file_info.uncompressed_size);
                 unzCloseCurrentFile(zipfile);
                 if (error < 0)
                 {
@@ -1255,7 +1255,7 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_region(tinyxml2::XMLElement* el
      }
 
      Viewport * vpPtr = new sgct_core::Viewport();
-     vpPtr->configureMpcdi(element, parsedItems.resolutionX, parsedItems.resolutionY);
+     vpPtr->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
      tmpWin.addViewport(vpPtr);
      return true;
 }
@@ -1316,12 +1316,12 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElemen
         val[3] = element[3]->Value();
         if( strcmp("path", val[3]) == 0 )
         {
-            mWarp.back()->pathWarpFile = std::stof(element[3]->GetText(), nullptr);
+            mWarp.back()->pathWarpFile = element[3]->GetText();
             mWarp.back()->haveFoundPath = true;
         }
         else if( strcmp("interpolation", val[3]) == 0 )
         {
-            std::string interpolation = std::stof(element[3]->GetText(), nullptr);
+            std::string interpolation = element[3]->GetText();
             if( interpolation.compare("linear") != 0 )
             {
                 sgct::MessageHandler::instance()->print(
@@ -1340,7 +1340,7 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElemen
         bool foundMatchingPfmBuffer = false;
         for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r)
         {
-            std::string tmpWindowName = tmpWin.getViewport(r)->getName;
+            std::string tmpWindowName = tmpWin.getViewport(r)->getName();
             std::string currRegion_warpName = mWarp.back()->id;
             if( tmpWindowName.compare(currRegion_warpName) == 0 )
             {
@@ -1378,7 +1378,7 @@ bool sgct_core::ReadConfig::checkAttributeForExpectedValue(tinyxml2::XMLElement*
                                                            const std::string expectedTag)
 {
     std::string errorMsg;
-    char* attr = elem->Attribute(attrRequired.c_str());
+    const char* attr = elem->Attribute(attrRequired.c_str());
     if( attr != nullptr )
     {
         if( expectedTag.compare(attr) != 0 )
@@ -1391,7 +1391,7 @@ bool sgct_core::ReadConfig::checkAttributeForExpectedValue(tinyxml2::XMLElement*
     if( errorMsg.length() > 0 )
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            (const char*)errorMsg);
+            (const char*)errorMsg.c_str());
         return false;
     }
     else
@@ -1405,6 +1405,6 @@ void sgct_core::ReadConfig::unsupportedFeatureCheck(std::string tag, std::string
         std::string warn = "ReadConfigMpcdi: Unsupported feature: ";
         warn.append(featureName);
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
-            (const char*)warn);
+            (const char*)warn.c_str());
     }
 }

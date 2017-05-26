@@ -1532,12 +1532,12 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 #endif
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
-            retval = FREAD(correctionGridX + i, value32bit, 1, meshFile);
-            retval = FREAD(correctionGridY + i, value32bit, 1, meshFile);
+            retval = FREAD(correctionGridX + i, numCorrectionValues, value32bit, 1, meshFile);
+            retval = FREAD(correctionGridY + i, numCorrectionValues, value32bit, 1, meshFile);
             //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
             // values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for no error value
-            retval = FREAD(&errorPosition, value32bit, 1, meshFile);
+            retval = FREAD(&errorPosition, numCorrectionValues, value32bit, 1, meshFile);
         }
         fclose(meshFile);
         if (retval != value32bit)

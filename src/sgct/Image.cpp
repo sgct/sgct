@@ -107,6 +107,7 @@ sgct_core::Image::Image()
     mDataSize = 0;
     mExternalData = false;
     mPreferBGRForExport = true;
+	mPreferBGRForImport = true;
 }
 
 sgct_core::Image::~Image()
@@ -299,7 +300,7 @@ bool sgct_core::Image::loadJPEG(std::string filename)
     row_stride = cinfo.output_width * cinfo.output_components;
 
     //SGCT uses BGR so convert to that
-    cinfo.out_color_space = JCS_EXT_BGR;
+    cinfo.out_color_space = mPreferBGRForImport ? JCS_EXT_BGR : JCS_EXT_RGB;
 
     mBytesPerChannel = 1; //only support 8-bit per color depth for jpeg even if the format supports up to 12-bit
     mChannels = cinfo.output_components;
@@ -368,7 +369,7 @@ bool sgct_core::Image::loadJPEG(unsigned char * data, std::size_t len)
         case TJSAMP_420:
         case TJSAMP_440:
             mChannels = 3;
-            pixelformat = TJPF_BGR;
+            pixelformat = mPreferBGRForImport ? TJPF_BGR : TJPF_RGB;
             break;
             
         case TJSAMP_GRAY:
@@ -488,7 +489,8 @@ bool sgct_core::Image::loadPNG(std::string filename)
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
     
     //set options
-    png_set_bgr(png_ptr);
+	if(mPreferBGRForImport)
+		png_set_bgr(png_ptr);
     if (bpp < 8)
         png_set_packing(png_ptr);
     else if(bpp == 16)
@@ -600,7 +602,8 @@ bool sgct_core::Image::loadPNG(unsigned char * data, std::size_t len)
     png_get_IHDR(png_ptr, info_ptr, (png_uint_32 *)&mSize_x, (png_uint_32 *)&mSize_y, &bpp, &color_type, NULL, NULL, NULL);
     
     //set options
-    png_set_bgr(png_ptr);
+	if(mPreferBGRForImport)
+		png_set_bgr(png_ptr);
     if (bpp < 8)
         png_set_packing(png_ptr);
     else if (bpp == 16)
@@ -1258,7 +1261,9 @@ bool sgct_core::Image::saveTGA()
     // convert the image data from RGB(a) to BGR(A)
     if (!mPreferBGRForExport)
     {
-        unsigned char tmp;
+		mPreferBGRForImport = true;//reset BGR flag for texture manager
+		
+		unsigned char tmp;
         if (mChannels >= 3)
             for (std::size_t i = 0; i < mDataSize; i += mChannels)
             {
@@ -1386,6 +1391,24 @@ Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native f
 void sgct_core::Image::setPreferBGRExport(bool state)
 {
     mPreferBGRForExport = state;
+}
+
+/*!
+Set if color pixel data should be stored as BGR(A) or RGB(A). BGR(A) is native for most GPU hardware and is used as default.
+*/
+void sgct_core::Image::setPreferBGRImport(bool state)
+{
+	mPreferBGRForImport = state;
+}
+
+bool sgct_core::Image::getPreferBGRExport() const
+{
+	return mPreferBGRForExport;
+}
+
+bool sgct_core::Image::getPreferBGRImport() const
+{
+	return mPreferBGRForImport;
 }
 
 void sgct_core::Image::cleanup()

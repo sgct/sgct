@@ -347,18 +347,21 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
     glGenTextures(1, texPtr);
     glBindTexture(GL_TEXTURE_2D, *texPtr);
 
-    int textureType = GL_BGR;
+	bool isBGR = imgPtr->getPreferBGRImport();
+
+	//if three channels
+    int textureType = isBGR ? GL_BGR : GL_RGB;
 
     //if OpenGL 1-2
     if (Engine::instance()->isOGLPipelineFixed())
     {
-        if (imgPtr->getChannels() == 4)    textureType = GL_BGRA;
+        if (imgPtr->getChannels() == 4)    textureType = isBGR ? GL_BGRA : GL_RGBA;
         else if (imgPtr->getChannels() == 1)    textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
         else if (imgPtr->getChannels() == 2)    textureType = GL_LUMINANCE_ALPHA;
     }
     else //OpenGL 3+
     {
-        if (imgPtr->getChannels() == 4)    textureType = GL_BGRA;
+        if (imgPtr->getChannels() == 4)    textureType = isBGR ? GL_BGRA : GL_RGBA;
         else if (imgPtr->getChannels() == 1)    textureType = GL_RED;
         else if (imgPtr->getChannels() == 2)    textureType = GL_RG;
     }
@@ -437,11 +440,13 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
         break;
     }
 
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels compression: %s\n",
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, Type: %#04x, Format: %#04x\n",
         imgPtr->getWidth(),
         imgPtr->getHeight(),
         imgPtr->getChannels(),
-        (mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"));
+        (mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"),
+		textureType,
+		internalFormat);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

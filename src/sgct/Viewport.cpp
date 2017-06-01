@@ -156,7 +156,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
     float vpResolution[2] = {0.0, 0.0};
 
     if (element[2]->Attribute("id") != NULL)
-        setName(element[2]->Attribute("name"));
+        setName(element[2]->Attribute("id"));
 
     if (element[2]->Attribute("x") != NULL) {
         if (element[2]->QueryFloatAttribute("x", &vpPosition[0]) == tinyxml2::XML_NO_ERROR ) {

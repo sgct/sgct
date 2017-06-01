@@ -963,44 +963,53 @@ bool sgct_core::ReadConfig::doesStringHaveSuffix(const std::string &str, const s
 }
 
 void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMpcdi,
-                                                    SGCTNode& tmpNode,
-                                                    sgct::SGCTWindow& tmpWin)
+	SGCTNode& tmpNode,
+	sgct::SGCTWindow& tmpWin)
 {
-    FILE * cfgFile = nullptr;
-    unzFile *zipfile = nullptr;
-    const int MaxFilenameSize_bytes = 500;
+	FILE * cfgFile = nullptr;
+	unzFile zipfile;
+	const int MaxFilenameSize_bytes = 500;
 
-    if (! openZipFile(cfgFile, filenameMpcdi, zipfile))
-        return;
+	if (!openZipFile(cfgFile, filenameMpcdi, &zipfile))
+		return;
 
-    // Get info about the zip file
-    unz_global_info global_info;
-    if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
-            filenameMpcdi);
-        unzClose(zipfile);
-        return;
-    }
+	// Get info about the zip file
+	unz_global_info global_info;
+	if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
+	{
+		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+			"parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
+			filenameMpcdi);
+		unzClose(zipfile);
+		return;
+	}
 
-    //Search for required files inside mpcdi archive file
+	//Search for required files inside mpcdi archive file
     for (int i = 0; i < global_info.number_entry; ++i)
     {
-        unz_file_info file_info;
-        char filename[MaxFilenameSize_bytes];
-        if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MaxFilenameSize_bytes,
-            NULL, 0, NULL, 0) != UNZ_OK)
+		unz_file_info file_info;
+		char filename[MaxFilenameSize_bytes];
+		if (unzGetCurrentFileInfo(zipfile, &file_info, filename, MaxFilenameSize_bytes,
+			NULL, 0, NULL, 0) != UNZ_OK)
+		{
+			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+				"parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
+			unzClose(zipfile);
+			return;
+		}
+
+        if (!processMpcdiSubFiles(filename, &zipfile, file_info))
         {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
             unzClose(zipfile);
             return;
         }
-        if (! processMpcdiSubFile(filename, zipfile, file_info))
+        if ((i + 1) < global_info.number_entry)
         {
-            unzClose(zipfile);
-            return;
+            if (unzGoToNextFile(zipfile) != UNZ_OK)
+            {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
+                    "parseMpcdiConfiguration: Unable to get next file in archive\n");
+            }
         }
     }
     unzClose(zipfile);
@@ -1040,43 +1049,48 @@ bool sgct_core::ReadConfig::openZipFile(FILE* cfgFile, const std::string cfgFile
     return true;
 }
 
-bool sgct_core::ReadConfig::processMpcdiSubFile(std::string filename, unzFile* zipfile,
-                                                unz_file_info& file_info)
+bool sgct_core::ReadConfig::processMpcdiSubFiles(std::string filename, unzFile* zipfile,
+                                                 unz_file_info& file_info)
 {
     for (int i = 0; i < mMpcdiSubFileContents.mpcdi_nRequiredFiles; ++i)
     {
-        if (doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
+        if( !mMpcdiSubFileContents.hasFound[i]
+			&& doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
         {
             mMpcdiSubFileContents.hasFound[i] = true;
             mMpcdiSubFileContents.size[i] = file_info.uncompressed_size;
             mMpcdiSubFileContents.filename[i] = filename;
-            if (unzOpenCurrentFile(zipfile) != UNZ_OK)
+            if( unzOpenCurrentFile(*zipfile) != UNZ_OK )
             {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                     "parseMpcdiConfiguration: Unable to open %s\n", filename);
-                unzClose(zipfile);
+                unzClose(*zipfile);
                 return false;
             }
-            mMpcdiSubFileContents.buffer[i] = new char(file_info.uncompressed_size);
-            if (mMpcdiSubFileContents.buffer[i]) {
-                int error = unzReadCurrentFile(zipfile, mMpcdiSubFileContents.buffer[i],
+            mMpcdiSubFileContents.buffer[i] = new char[file_info.uncompressed_size];
+            if( mMpcdiSubFileContents.buffer[i] != nullptr)
+            {
+                int error = unzReadCurrentFile(*zipfile, mMpcdiSubFileContents.buffer[i],
                                                file_info.uncompressed_size);
-                unzCloseCurrentFile(zipfile);
+                //unzCloseCurrentFile(*zipfile);
                 if (error < 0)
                 {
                     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                         "parseMpcdiConfiguration: %s read from %s failed.\n",
                         mMpcdiSubFileContents.extension[i], filename);
-                    unzClose(zipfile);
+                    unzClose(*zipfile);
                     return false;
                 }
-            } else {
+            }
+            else
+            {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                     "parseMpcdiConfiguration: Unable to allocate memory for %s\n", filename);
-                unzClose(zipfile);
+                unzClose(*zipfile);
                 return false;
             }
         }
+
     }
     return true;
 }
@@ -1126,18 +1140,17 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
         element[i] = NULL;
     const char * val[MAX_XML_DEPTH];
 
-    mpcdiFoundItems parsedItems;
+    if (!checkAttributeForExpectedValue(XMLroot, "profile", "MPCDI profile", "3d"))
+        return false;
+    if (!checkAttributeForExpectedValue(XMLroot, "geometry", "MPCDI geometry level", "1"))
+        return false;
+    if (!checkAttributeForExpectedValue(XMLroot, "version", "MPCDI version", "2.0"))
+        return false;
 
+    mpcdiFoundItems parsedItems;
     element[0] = XMLroot->FirstChildElement();
     while( element[0] != NULL )
     {
-        if( !checkAttributeForExpectedValue(element[0], "profile", "MPCDI profile", "3d") )
-            return false;
-        if( !checkAttributeForExpectedValue(element[0], "geometry", "MPCDI geometry level", "1") )
-            return false;
-        if( !checkAttributeForExpectedValue(element[0], "version", "MPCDI version", "2.0") )
-            return false;
-
         val[0] = element[0]->Value();
         if( strcmp("display", val[0]) == 0 )
         {

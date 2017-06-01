@@ -39,6 +39,8 @@ struct mpcdiSubFiles {
             hasFound[i] = false;
             buffer[i] = nullptr;
         }
+		extension[mpcdiXml] = "xml";
+		extension[mpcdiPfm] = "pfm";
     }
 };
 
@@ -93,7 +95,7 @@ private:
              const char* val[], sgct::SGCTWindow& tmpWin,
              mpcdiFoundItems& parsedItems, std::string filesetRegionId);
     bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
-    bool processMpcdiSubFile(std::string filename, unzFile* zipfile,
+    bool processMpcdiSubFiles(std::string filename, unzFile* zipfile,
              unz_file_info& file_info);
     bool doesStringHaveSuffix(const std::string &str, const std::string &suffix);
     bool checkAttributeForExpectedValue(tinyxml2::XMLElement* elem,

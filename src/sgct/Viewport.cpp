@@ -147,85 +147,77 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
     }
 }
 
-void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
-                                         const char* val[],
-                                         int winResX, int winResY)
+void sgct_core::Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
+                                                  const std::string tag,
+                                                  float& target)
 {
+    if (element->Attribute(tag.c_str()) != NULL)
+    {
+        try {
+            target = std::stof(element->Attribute(tag.c_str()));
+        }
+        catch (const std::invalid_argument& ia) {
+            std::string fullErrorMessage = "Viewport: Failed to parse " + tag
+                + " from MPCDI XML!\n";
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str());
+        }
+    }
+    else
+    {
+        std::string fullErrorMessage = "Viewport: No " + tag
+            + " provided in MPCDI XML!\n";
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            fullErrorMessage.c_str());
+    }
+}
+
+bool sgct_core::Viewport::parseFrustumElement(frustumData& frustum, frustumData::elemIdx elemIndex,
+                                              tinyxml2::XMLElement* elem, const char* frustumTag)
+{
+    if (strcmp(frustumTag, elem->Value()) == 0)
+    {
+        try {
+            frustum.value[elemIndex] = std::stof(elem->GetText());
+            frustum.foundElem[elemIndex] = true;
+            return true;
+        }
+        catch (const std::invalid_argument& ia) {
+            std::string fullErrorMessage = "Viewport: Failed to parse frustum element "
+                + std::string(frustumTag) + " from MPCDI XML!\n";
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str());
+        }
+    }
+    return false;
+}
+
+void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
+                                         const char* val[], int winResX, int winResY)
+{
+    const int idx_x = 0, idx_y = 1;
     float vpPosition[2] = {0.0, 0.0};
     float vpSize[2] = {0.0, 0.0};
     float vpResolution[2] = {0.0, 0.0};
+    float expectedResolution[2];
+    frustumData frustumElements;
 
     if (element[2]->Attribute("id") != NULL)
         setName(element[2]->Attribute("id"));
 
-    if (element[2]->Attribute("x") != NULL) {
-        if (element[2]->QueryFloatAttribute("x", &vpPosition[0]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse X position from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No X position provided in MPCDI XML!\n");
-    }
+    parseFloatFromAttribute(element[2], "x", vpPosition[idx_x]);
+    parseFloatFromAttribute(element[2], "y", vpPosition[idx_y]);
+    setPos(vpPosition[idx_x], vpPosition[idx_y]);
+    parseFloatFromAttribute(element[2], "xSize", vpSize[idx_x]);
+    parseFloatFromAttribute(element[2], "ySize", vpSize[idx_y]);
+    setSize(vpSize[idx_x], vpSize[idx_y]);
+    parseFloatFromAttribute(element[2], "xResolution", vpResolution[idx_x]);
+    parseFloatFromAttribute(element[2], "yResolution", vpResolution[idx_y]);
+    expectedResolution[idx_x] = int(vpSize[idx_x] * (float)winResX);
+    expectedResolution[idx_y] = int(vpSize[idx_y] * (float)winResY);
 
-    if (element[2]->Attribute("y") != NULL) {
-        if (element[2]->QueryFloatAttribute("y", &vpPosition[1]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse Y position from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No Y position provided in MPCDI XML!\n");
-    }
-    setPos(vpPosition[0], vpPosition[1]);
-
-    if (element[2]->Attribute("xSize") != NULL) {
-        if (element[2]->QueryFloatAttribute("xSize", &vpSize[0]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse X size from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No X size provided in MPCDI XML!\n");
-    }
-
-    if (element[2]->Attribute("ySize") != NULL) {
-        if (element[2]->QueryFloatAttribute("ySize", &vpSize[1]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse Y size from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No Y size provided in MPCDI XML!\n");
-    }
-    setSize(vpSize[0], vpSize[1]);
-
-    if (element[2]->Attribute("xResolution") != NULL) {
-        if (element[2]->QueryFloatAttribute("xResolution", &vpResolution[0]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse X resolution from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No X resolution provided in MPCDI XML!\n");
-    }
-
-    if (element[2]->Attribute("yResolution") != NULL) {
-        if (element[2]->QueryFloatAttribute("yResolution", &vpResolution[1]) == tinyxml2::XML_NO_ERROR ) {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                "Viewport: Failed to parse Y resolution from MPCDI XML!\n");
-        }
-    } else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "Viewport: No Y resolution provided in MPCDI XML!\n");
-    }
-
-    float expectedResolution[2];
-    expectedResolution[0] = int(vpSize[0] * (float)winResX);
-    expectedResolution[1] = int(vpSize[1] * (float)winResY);
-
-    if(   expectedResolution[0] != vpResolution[0]
-       || expectedResolution[1] != vpResolution[1] )
+    if(   expectedResolution[idx_x] != vpResolution[idx_x]
+       || expectedResolution[idx_y] != vpResolution[idx_y] )
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
             "Viewport: MPCDI region expected resolution does not match portion of window.\n");
@@ -237,14 +229,6 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
         val[3] = element[3]->Value();
         if( strcmp("frustum", val[3]) == 0 )
         {
-            bool foundDown = false;
-            bool foundUp = false;
-            bool foundLeft = false;
-            bool foundRight = false;
-            bool foundYaw = false;
-            bool foundPitch = false;
-            bool foundRoll = false;
-            float down, left, right, up, yaw, pitch, roll;
             float distance = 10.0f;
             glm::quat rotQuat;
             glm::vec3 offset(0.0f, 0.0f, 0.0f);
@@ -252,61 +236,46 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
             element[4] = element[3]->FirstChildElement();
             while( element[4] != NULL )
             {
-                val[4] = element[4]->Value();
-                if( strcmp("rightAngle", val[4]) == 0 )
-                {
-                    right = std::stof(element[4]->GetText(), nullptr);
-                    foundRight = true;
-                }
-                else if( strcmp("leftAngle", val[4]) == 0 )
-                {
-                    left = std::stof(element[4]->GetText(), nullptr);
-                    foundLeft = true;
-                }
-                else if( strcmp("upAngle", val[4]) == 0 )
-                {
-                    up = std::stof(element[4]->GetText(), nullptr);
-                    foundUp = true;
-                }
-                else if( strcmp("downAngle", val[4]) == 0 )
-                {
-                    down = std::stof(element[4]->GetText(), nullptr);
-                    foundDown = true;
-                }
-                else if( strcmp("yaw", val[4]) == 0 )
-                {
-                    down = std::stof(element[4]->GetText(), nullptr);
-                    foundYaw = true;
-                }
-                else if( strcmp("pitch", val[4]) == 0 )
-                {
-                    down = std::stof(element[4]->GetText(), nullptr);
-                    foundPitch = true;
-                }
-                else if( strcmp("roll", val[4]) == 0 )
-                {
-                    down = std::stof(element[4]->GetText(), nullptr);
-                    foundRoll = true;
-                }
-
+                //val[4] = element[4]->Value();
+                if (parseFrustumElement(frustumElements, frustumData::elemIdx::right, element[4], "rightAngle"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::left, element[4], "leftAngle"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::up, element[4], "upAngle"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::down, element[4], "downAngle"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::yaw, element[4], "yaw"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::pitch, element[4], "pitch"))  ;
+                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::roll, element[4], "roll"))  ;
                 element[4] = element[4]->NextSiblingElement();
             }
 
-            if(   foundRight && foundLeft && foundUp && foundDown
-               && foundYaw && foundPitch && foundRoll )
+            for (bool& hasFoundSpecificField : frustumElements.foundElem)
             {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
-                    down, left, right, up, yaw, pitch, roll);
-                rotQuat = ReadConfig::parseMpcdiOrientationNode(yaw, pitch, roll);
-                setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
-                mProjectionPlane.offset(offset);
+                if (!hasFoundSpecificField)
+                {
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                        "Viewport: Failed to parse mpcdi projection FOV from XML!\n");
+                    return;
+                }
             }
-            else
-            {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "Viewport: Failed to parse mpcdi projection FOV from XML!\n");
-            }
+
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+                "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
+                frustumElements.value[frustumData::elemIdx::down],
+                frustumElements.value[frustumData::elemIdx::left],
+                frustumElements.value[frustumData::elemIdx::right],
+                frustumElements.value[frustumData::elemIdx::up],
+                frustumElements.value[frustumData::elemIdx::yaw],
+                frustumElements.value[frustumData::elemIdx::pitch],
+                frustumElements.value[frustumData::elemIdx::roll]);
+            rotQuat = ReadConfig::parseMpcdiOrientationNode(frustumElements.value[frustumData::elemIdx::yaw],
+                frustumElements.value[frustumData::elemIdx::pitch],
+                frustumElements.value[frustumData::elemIdx::roll]);
+            setViewPlaneCoordsUsingFOVs(frustumElements.value[frustumData::elemIdx::up],
+                -frustumElements.value[frustumData::elemIdx::down],
+                -frustumElements.value[frustumData::elemIdx::left],
+                frustumElements.value[frustumData::elemIdx::right],
+                rotQuat,
+                distance);
+            mProjectionPlane.offset(offset);
         }
         element[3] = element[3]->NextSiblingElement();
     }

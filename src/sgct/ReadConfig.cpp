@@ -1288,12 +1288,12 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_files(tinyxml2::XMLElement* ele
         {
             if (element[1]->Attribute("region") != NULL)
             {
-                filesetRegionId = element[2]->Attribute("region");
+                filesetRegionId = element[1]->Attribute("region");
             }
-            val[2] = element[1]->Value();
             element[2] = element[1]->FirstChildElement();
             while( element [2] != NULL )
             {
+                val[2] = element[2]->Value();
                 if( strcmp("geometryWarpFile", val[2]) == 0 )
                 {
                     if(! readAndParseMpcdiXML_geoWarpFile(element, val, tmpWin,
@@ -1413,11 +1413,10 @@ bool sgct_core::ReadConfig::checkAttributeForExpectedValue(tinyxml2::XMLElement*
 
 void sgct_core::ReadConfig::unsupportedFeatureCheck(std::string tag, std::string featureName)
 {
-    if( featureName.compare(tag) != 0 )
+    if( featureName.compare(tag) == 0 )
     {
-        std::string warn = "ReadConfigMpcdi: Unsupported feature: ";
-        warn.append(featureName);
+        std::string warn = "ReadConfigMpcdi: Unsupported feature: " + featureName + " \n";
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
-            (const char*)warn.c_str());
+            warn.c_str());
     }
 }

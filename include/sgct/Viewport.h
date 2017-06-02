@@ -28,8 +28,27 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
+struct frustumData {
+    enum elemIdx {
+        down = 0,
+        up,
+        left,
+        right,
+        yaw,
+        pitch,
+        roll,
+        numElements //This must be last entry
+    };
+    bool foundElem[numElements];
+    float value[numElements];
 
-
+    frustumData() {
+        for (bool& i : foundElem)
+            i = false;
+        for (float& i : value)
+            i = 0.0;
+    };
+};
 /*!
     This class holds and manages viewportdata and calculates frustums
 */
@@ -73,6 +92,10 @@ private:
     void parsePlanarProjection(tinyxml2::XMLElement * element);
     void parseFisheyeProjection(tinyxml2::XMLElement * element);
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
+    void parseFloatFromAttribute(tinyxml2::XMLElement* element, const std::string tag,
+                                 float& target);
+    bool parseFrustumElement(frustumData& frustum, frustumData::elemIdx elemIndex,
+        tinyxml2::XMLElement* elem, const char* frustumTag);
 
 private:
     CorrectionMesh mCM;

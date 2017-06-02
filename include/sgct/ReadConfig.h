@@ -42,6 +42,13 @@ struct mpcdiSubFiles {
 		extension[mpcdiXml] = "xml";
 		extension[mpcdiPfm] = "pfm";
     }
+
+    ~mpcdiSubFiles() {
+        for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
+            if( buffer[i] != nullptr )
+                delete buffer[i];
+        }
+    }
 };
 
 struct mpcdiRegion {
@@ -66,6 +73,7 @@ class ReadConfig
 {
 public:
     ReadConfig( const std::string filename );
+    ~ReadConfig();
 
     bool isValid() { return valid; }
     static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
@@ -86,14 +94,14 @@ private:
     bool readAndParseMpcdiXML_display(tinyxml2::XMLElement* element[], const char* val[],
              SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
     bool readAndParseMpcdiXML_files(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+             sgct::SGCTWindow& tmpWin);
     bool readAndParseMpcdiXML_buffer(tinyxml2::XMLElement* element[], const char* val[],
              sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
     bool readAndParseMpcdiXML_region(tinyxml2::XMLElement* element[], const char* val[],
              sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
     bool readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElement* element[],
              const char* val[], sgct::SGCTWindow& tmpWin,
-             mpcdiFoundItems& parsedItems, std::string filesetRegionId);
+             std::string filesetRegionId);
     bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
     bool processMpcdiSubFiles(std::string filename, unzFile* zipfile,
              unz_file_info& file_info);

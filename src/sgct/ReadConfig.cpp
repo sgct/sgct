@@ -75,6 +75,20 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
                                                 ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
 }
 
+sgct_core::ReadConfig::~ReadConfig()
+{
+    for (mpcdiWarp* ptr : mWarp)
+    {
+        if (ptr)
+            delete ptr;
+    }
+    for (mpcdiRegion* ptr : mBufferRegions)
+    {
+        if (ptr)
+            delete ptr;
+    }
+}
+
 bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
 {
     size_t foundIndex = filename.find('%');
@@ -970,9 +984,13 @@ void sgct_core::ReadConfig::parseMpcdiConfiguration(const std::string filenameMp
 	unzFile zipfile;
 	const int MaxFilenameSize_bytes = 500;
 
-	if (!openZipFile(cfgFile, filenameMpcdi, &zipfile))
-		return;
-
+    if (!openZipFile(cfgFile, filenameMpcdi, &zipfile))
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Unable to open zip archive file %s\n",
+            filenameMpcdi);
+        return;
+    }
 	// Get info about the zip file
 	unz_global_info global_info;
 	if (unzGetGlobalInfo(zipfile, &global_info) != UNZ_OK)
@@ -1072,7 +1090,6 @@ bool sgct_core::ReadConfig::processMpcdiSubFiles(std::string filename, unzFile* 
             {
                 int error = unzReadCurrentFile(*zipfile, mMpcdiSubFileContents.buffer[i],
                                                file_info.uncompressed_size);
-                //unzCloseCurrentFile(*zipfile);
                 if (error < 0)
                 {
                     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -1090,39 +1107,41 @@ bool sgct_core::ReadConfig::processMpcdiSubFiles(std::string filename, unzFile* 
                 return false;
             }
         }
-
     }
     return true;
 }
 
 bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin)
 {
-    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml] == nullptr)
-        return false;
-
-    tinyxml2::XMLDocument xmlDoc;
-    tinyxml2::XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml],
-                                             mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiXml]);
-
-    if (result != tinyxml2::XML_NO_ERROR)
+    bool mpcdiParseResult = false;
+    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml] != nullptr)
     {
-        std::stringstream ss;
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-        else if (xmlDoc.GetErrorStr1())
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
-        else if (xmlDoc.GetErrorStr2())
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+        tinyxml2::XMLDocument xmlDoc;
+        tinyxml2::XMLError result = xmlDoc.Parse(mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml],
+            mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiXml]);
+
+        if (result != tinyxml2::XML_NO_ERROR)
+        {
+            std::stringstream ss;
+            if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+            else if (xmlDoc.GetErrorStr1())
+                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+            else if (xmlDoc.GetErrorStr2())
+                ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+            else
+                ss << "File not found";
+            mErrorMsg = ss.str();
+            assert(false);
+        }
         else
-            ss << "File not found";
-        mErrorMsg = ss.str();
-        assert(false);
-        return false;
+        {
+            mpcdiParseResult = readAndParseMpcdiXML(xmlDoc, tmpNode, tmpWin);
+        }
     }
-    else
-    {
-        return readAndParseMpcdiXML(xmlDoc, tmpNode, tmpWin);
-    }
+    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml])
+        delete mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml];
+    return mpcdiParseResult;
 }
 
 bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
@@ -1160,7 +1179,7 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML(tinyxml2::XMLDocument& xmlDoc,
 
         else if( strcmp("files", val[0]) == 0 )
         {
-            if(! readAndParseMpcdiXML_files(element, val, tmpWin, parsedItems) )
+            if(! readAndParseMpcdiXML_files(element, val, tmpWin) )
                 return false;
         }
         unsupportedFeatureCheck(val[0], "extensionSet");
@@ -1252,31 +1271,30 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_region(tinyxml2::XMLElement* el
                                                         sgct::SGCTWindow& tmpWin,
                                                         mpcdiFoundItems& parsedItems)
 {
-    //Require an 'id' attribute for each region. These will be
-     // compared later to the fileset, in which there must be
-     // a matching 'id'
-     if( element[2]->Attribute("id") != NULL )
-     {
-         mBufferRegions.push_back(new mpcdiRegion);
-         mBufferRegions.back()->id = element[2]->Attribute("id");
-     }
-     else
-     {
-         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-             "parseMpcdiXml: No 'id' attribute provided for region.\n");
-         return false;
-     }
-
-     Viewport * vpPtr = new sgct_core::Viewport();
-     vpPtr->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
-     tmpWin.addViewport(vpPtr);
-     return true;
+    //Require an 'id' attribute for each region. These will be compared later to the
+    // fileset, in which there must be a matching 'id'. The mBufferRegions vector is
+    // intended for use with MPCDI files containing multiple regions, but currently
+    // only is tested with single region files.
+    if( element[2]->Attribute("id") != NULL )
+    {
+        mBufferRegions.push_back(new mpcdiRegion);
+        mBufferRegions.back()->id = element[2]->Attribute("id");
+    }
+    else
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiXml: No 'id' attribute provided for region.\n");
+        return false;
+    }
+    Viewport * vpPtr = new sgct_core::Viewport();
+    vpPtr->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
+    tmpWin.addViewport(vpPtr);
+    return true;
 }
 
 bool sgct_core::ReadConfig::readAndParseMpcdiXML_files(tinyxml2::XMLElement* element[],
                                                        const char* val[],
-                                                       sgct::SGCTWindow& tmpWin,
-                                                       mpcdiFoundItems& parsedItems)
+                                                       sgct::SGCTWindow& tmpWin)
 {
     std::string filesetRegionId;
 
@@ -1297,7 +1315,7 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_files(tinyxml2::XMLElement* ele
                 if( strcmp("geometryWarpFile", val[2]) == 0 )
                 {
                     if(! readAndParseMpcdiXML_geoWarpFile(element, val, tmpWin,
-                                                          parsedItems, filesetRegionId) )
+                                                          filesetRegionId) )
                         return false;
                 }
                 unsupportedFeatureCheck(val[2], "alphaMap");
@@ -1318,7 +1336,6 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_files(tinyxml2::XMLElement* ele
 bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElement* element[],
                                                              const char* val[],
                                                              sgct::SGCTWindow& tmpWin,
-                                                             mpcdiFoundItems& parsedItems,
                                                              std::string filesetRegionId)
 {
     mWarp.push_back(new mpcdiWarp);
@@ -1366,6 +1383,8 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElemen
                         mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm],
                         mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiPfm]);
                     foundMatchingPfmBuffer = true;
+                    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm])
+                        delete  mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm];
                 }
             }
         }

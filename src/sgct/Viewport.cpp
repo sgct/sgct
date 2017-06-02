@@ -51,6 +51,9 @@ sgct_core::Viewport::~Viewport()
 
     if (mBlackLevelMaskTextureIndex)
         glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
+
+    if (mMpcdiWarpMeshData)
+        delete mMpcdiWarpMeshData;
 }
 
 void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
@@ -564,7 +567,7 @@ void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
 
 void sgct_core::Viewport::setMpcdiWarpMesh(const char* meshData, size_t size)
 {
-    mMpcdiWarpMeshData = new char(size);
+    mMpcdiWarpMeshData = new char[size];
     memcpy(mMpcdiWarpMeshData, meshData, size);
     mMpcdiWarpMeshSize = size;
 }

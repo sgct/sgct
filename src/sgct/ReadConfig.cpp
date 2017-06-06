@@ -1139,8 +1139,6 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXMLString(SGCTNode& tmpNode, sgct::
             mpcdiParseResult = readAndParseMpcdiXML(xmlDoc, tmpNode, tmpWin);
         }
     }
-    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml])
-        delete mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiXml];
     return mpcdiParseResult;
 }
 
@@ -1383,8 +1381,6 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_geoWarpFile(tinyxml2::XMLElemen
                         mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm],
                         mMpcdiSubFileContents.size[mpcdiSubFiles::mpcdiPfm]);
                     foundMatchingPfmBuffer = true;
-                    if (mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm])
-                        delete  mMpcdiSubFileContents.buffer[mpcdiSubFiles::mpcdiPfm];
                 }
             }
         }

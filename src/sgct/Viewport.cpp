@@ -592,7 +592,7 @@ void sgct_core::Viewport::loadData()
 
     if ( mMpcdiWarpMeshData != nullptr )
     {
-        mCorrectionMesh = mCM.readAndGenerateMesh("mesh.mpcdi", this, CorrectionMesh::parseHint(mMeshHint));
+        mCorrectionMesh = mCM.readAndGenerateMesh("mesh.mpcdi", this, CorrectionMesh::parseHint("mpcdi"));
     }
     else
     {

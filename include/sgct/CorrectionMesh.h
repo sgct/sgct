@@ -62,7 +62,7 @@ namespace sgct_core
         bool readAndGeneratePaulBourkeMesh(const std::string & meshPath, Viewport * parent);
         bool readAndGenerateOBJMesh(const std::string & meshPath, Viewport * parent);
         bool readAndGenerateMpcdiMesh(const std::string & meshPath, Viewport* parent);
-        bool readMeshBuffer(float* dest, unsigned int& idx, const char* src,
+        bool readMeshBuffer(float* dest, unsigned int& idx, char* src,
                             const size_t srcSize_bytes, const int readSize_bytes);
         void setupSimpleMesh(CorrectionMeshGeometry * geomPtr, Viewport * parent);
         void setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y);

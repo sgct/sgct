@@ -182,8 +182,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
     }
     else if (path.find(".mpcdi") != std::string::npos)
     {
-        if (hint == MPCDI_HINT)
-            meshFmt = MPCDI_FMT;
+        //if (hint == MPCDI_HINT)
+        meshFmt = MPCDI_FMT;
     }
 
     //select parser
@@ -215,7 +215,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
         break;
 
     case MPCDI_FMT:
-        loadStatus = readAndGenerateMpcdiMesh(meshPath, parent);
+        loadStatus = readAndGenerateMpcdiMesh("", parent);
         break;
             
     case NO_FMT:
@@ -1461,6 +1461,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     char headerChar;
     char headerBuffer[MaxHeaderLineLength];
     int index = 0;
+    int nNewlines = 0;
+    const int read3lines = 3;
 
     do {
         if( isReadingFile )
@@ -1478,7 +1480,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
             else
             {
                 headerChar = srcBuff[srcIdx++];
-                retval = 0;
+                retval = 1;
             }
         }
         if (retval != 1) {
@@ -1488,20 +1490,17 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
             return false;
         }
         headerBuffer[index++] = headerChar;
-    } while (headerChar != '\0' && headerChar != EOF);
+        if( headerChar == '\n' )
+            nNewlines++;
+    } while (nNewlines < read3lines);
 
     char fileFormatHeader[2];
     unsigned int numberOfCols = 0;
     unsigned int numberOfRows = 0;
     float endiannessIndicator = 0;
 
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
- #define SSCANF sscanf_s
-#else
- #define SSCANF sscanf
-#endif
-    if (SSCANF(headerBuffer, "%2c %d %d %f", fileFormatHeader,
-               &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
+    if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
+                &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                                                 "CorrectionMesh: Invalid header syntax.\n");
@@ -1518,8 +1517,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     bool littleEndian = (endiannessIndicator < 0.0) ? true : false;
 
     int numCorrectionValues = numberOfCols * numberOfRows;
-    float* correctionGridX = new float(numCorrectionValues);
-    float* correctionGridY = new float(numCorrectionValues);
+    float* correctionGridX = new float[numCorrectionValues];
+    float* correctionGridY = new float[numCorrectionValues];
     float  errorPosition;
     const int value32bit = 4;
 
@@ -1532,12 +1531,18 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 #endif
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
+#ifdef __WIN32__
             retval = FREAD(correctionGridX + i, numCorrectionValues, value32bit, 1, meshFile);
             retval = FREAD(correctionGridY + i, numCorrectionValues, value32bit, 1, meshFile);
             //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
             // values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for no error value
             retval = FREAD(&errorPosition, numCorrectionValues, value32bit, 1, meshFile);
+#else
+            retval = FREAD(correctionGridX + i, value32bit, 1, meshFile);
+            retval = FREAD(correctionGridY + i, value32bit, 1, meshFile);
+            retval = FREAD(&errorPosition,      value32bit, 1, meshFile);
+#endif
         }
         fclose(meshFile);
         if (retval != value32bit)
@@ -1645,17 +1650,19 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 }
 
 bool sgct_core::CorrectionMesh::readMeshBuffer(float* dest, unsigned int& idx,
-                                               const char* src,
+                                               char* src,
                                                const size_t srcSize_bytes,
                                                const int readSize_bytes)
 {
-    if( (idx + readSize_bytes) >= srcSize_bytes )
+    float val;
+    if( (idx + readSize_bytes) > srcSize_bytes )
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "CorrectionMesh: Reached EOF in mesh buffer!\n");
         return false;
     }
-    *dest = static_cast<float>(src[idx]);
+    memcpy(&val, &src[idx], readSize_bytes);
+    *dest = val;
     idx += readSize_bytes;
     return true;
 }

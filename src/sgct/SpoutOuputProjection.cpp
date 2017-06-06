@@ -15,7 +15,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sstream>
 #include <algorithm>
 
+#ifdef SGCT_HAS_SPOUT
 #include <spout/SpoutLibrary.h>
+#endif
 
 //#define DebugCubemap
 

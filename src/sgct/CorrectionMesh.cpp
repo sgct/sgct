@@ -1499,15 +1499,22 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     unsigned int numberOfRows = 0;
     float endiannessIndicator = 0;
 
+#ifdef __WIN32__
+    _sscanf(&headerBuffer[0], "%2c\n", &fileFormatHeader);
+    _sscanf(&headerBuffer[3], "%d %d\n", &numberOfCols, &numberOfRows);
+    _sscanf(&headerBuffer[8], "%f\n", &endiannessIndicator);
+#else
     if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
                 &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                                                "CorrectionMesh: Invalid header syntax.\n");
-        if( isReadingFile )
+            "CorrectionMesh: Invalid header syntax.\n");
+        if (isReadingFile)
             fclose(meshFile);
         return false;
     }
+#endif
+
 
     if (strcmp(fileFormatHeader, "PF") != 0) {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.

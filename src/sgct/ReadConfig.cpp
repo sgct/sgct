@@ -1237,6 +1237,8 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_buffer(tinyxml2::XMLElement* el
     if( parsedItems.resolutionX >= 0 && parsedItems.resolutionY >= 0 )
     {
         tmpWin.initWindowResolution(parsedItems.resolutionX, parsedItems.resolutionY);
+        tmpWin.setFramebufferResolution(parsedItems.resolutionX, parsedItems.resolutionY);
+        tmpWin.setFixResolution(true);
     }
     else
     {

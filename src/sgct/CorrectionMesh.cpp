@@ -1417,6 +1417,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateOBJMesh(const std::string & meshP
     return true;
 }
 
+int numberOfDigitsInInt(int number)
+{
+    int i = 0;
+    while (number > pow(10, i))
+        i++;
+    return i;
+}
+
 /*!
 Parse data from domeprojection's camera based calibration system. Domeprojection.com
 */
@@ -1501,8 +1509,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 
 #ifdef __WIN32__
     _sscanf(&headerBuffer[0], "%2c\n", &fileFormatHeader);
+    //Read header past the 2 character start
     _sscanf(&headerBuffer[3], "%d %d\n", &numberOfCols, &numberOfRows);
-    _sscanf(&headerBuffer[8], "%f\n", &endiannessIndicator);
+    int indexForEndianness = 3 + numberOfDigitsInInt(numberOfCols)
+        + numberOfDigitsInInt(numberOfRows) + 2;
+    _sscanf(&headerBuffer[indexForEndianness], "%f\n", &endiannessIndicator);
 #else
     if (_sscanf(headerBuffer, "%2c %d %d %f", fileFormatHeader,
                 &numberOfCols, &numberOfRows, &endiannessIndicator) != 4)
@@ -1514,7 +1525,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         return false;
     }
 #endif
-
 
     if (strcmp(fileFormatHeader, "PF") != 0) {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.

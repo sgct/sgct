@@ -84,7 +84,7 @@ public:
     inline CorrectionMesh * getCorrectionMeshPtr() { return &mCM; }
     inline NonLinearProjection * getNonLinearProjectionPtr() { return mNonLinearProjection; }
 
-    char* mMpcdiWarpMeshData;
+    char* mMpcdiWarpMeshData = nullptr;
     size_t mMpcdiWarpMeshSize = 0;
 
 private:

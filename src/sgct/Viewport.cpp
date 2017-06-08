@@ -273,8 +273,8 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
                 frustumElements.value[frustumData::elemIdx::pitch],
                 frustumElements.value[frustumData::elemIdx::roll]);
             setViewPlaneCoordsUsingFOVs(frustumElements.value[frustumData::elemIdx::up],
-                -frustumElements.value[frustumData::elemIdx::down],
-                -frustumElements.value[frustumData::elemIdx::left],
+                frustumElements.value[frustumData::elemIdx::down],
+                frustumElements.value[frustumData::elemIdx::left],
                 frustumElements.value[frustumData::elemIdx::right],
                 rotQuat,
                 distance);

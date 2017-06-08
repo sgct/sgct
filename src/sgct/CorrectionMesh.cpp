@@ -1599,9 +1599,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.b = 1.0f;
     vertex.a = 1.0f;
 
-    for (unsigned int i = 0; i < numCorrectionValues; i += 2) {
-        vertex.x = 2.0f * ((correctionGridX[i    ] - minX) / scaleRangeX) - 1.0f;
-        vertex.y = 2.0f * ((correctionGridY[i + 1] - minY) / scaleRangeY) - 1.0f;
+    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+        vertex.x = 2.0f * ((correctionGridX[i] - minX) / scaleRangeX) - 1.0f;
+        vertex.y = 2.0f * ((correctionGridY[i] - minY) / scaleRangeY) - 1.0f;
         //scale to viewport coordinates
         vertex.s = vertex.x;
         vertex.t = vertex.y;

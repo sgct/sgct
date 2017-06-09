@@ -1574,12 +1574,19 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     {
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
+#define TEST_FLAT_MESH
+
+#ifdef TEST_FLAT_MESH
+            correctionGridX[i] = (float)(i%32) / 32.0;
+            correctionGridY[i] = 1.0 - (float)i * 32.0 / 32.0;
+#else
             if( !readMeshBuffer(&correctionGridX[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
                 return false;
             if( !readMeshBuffer(&correctionGridY[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
                 return false;
             if( !readMeshBuffer(&errorPosition, srcIdx, srcBuff, srcSize_bytes, value32bit) )
                 return false;
+#endif
         }
     }
 

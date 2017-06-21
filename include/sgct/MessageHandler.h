@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stddef.h> //get definition for NULL
 #include <stdarg.h>
 #include <vector>
+#include <string>
 #include "helpers/SGCTCPPEleven.h"
 
 #include <atomic>

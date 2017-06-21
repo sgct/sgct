@@ -7,8 +7,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/NetworkManager.h>
 
+#ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN
 #include <windows.h>
+#endif
 
 #include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>

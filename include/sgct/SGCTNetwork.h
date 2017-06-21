@@ -24,6 +24,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 typedef int _ssize_t;
 
 #include <atomic>
+#include <condition_variable>
 #include <mutex>
 #include <thread>
 

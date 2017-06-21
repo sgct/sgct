@@ -955,9 +955,11 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
-                    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
-                    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
+                    std::unique_lock<std::mutex> lk(*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::FrameSyncMutex));
+                    sgct_core::NetworkManager::gCond.wait(lk);
+                    //SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+                    //sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>() );
+                    //SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
                 
                 //for debuging
@@ -1016,9 +1018,12 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
-                    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
-                    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
+                    std::unique_lock<std::mutex> lk(*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::FrameSyncMutex));
+                    sgct_core::NetworkManager::gCond.wait(lk);
+
+                    //SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+                    //sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+                    //SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
 
                 //for debuging

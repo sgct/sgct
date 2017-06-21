@@ -19,7 +19,7 @@ sgct::SGCTSettings::SGCTSettings()
     mPNGCompressionLevel = 1;
     mJPEGQuality = 100;
 
-    mNumberOfCaptureThreads = tthread::thread::hardware_concurrency();
+    mNumberOfCaptureThreads = std::thread::hardware_concurrency();
 
     mCaptureBackBuffer            = false;
     mUseWarping                    = true;

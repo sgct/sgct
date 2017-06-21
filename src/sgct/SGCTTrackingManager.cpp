@@ -138,7 +138,7 @@ void sgct::SGCTTrackingManager::startSampling()
         setHeadTracker(mHeadUser->getHeadTrackerName(),
             mHeadUser->getHeadTrackerDeviceName());
 
-        mSamplingThread = new tthread::thread( samplingLoop, this );
+        mSamplingThread = new std::thread( samplingLoop, this );
     }
 }
 

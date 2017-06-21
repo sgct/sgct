@@ -249,7 +249,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
 				{
 					//save the image
 					mSCTIPtrs[threadIndex].mRunning = true;
-					mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+					mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
 				}
 			}
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -288,7 +288,7 @@ void sgct_core::ScreenCapture::saveScreenCapture(unsigned int textureId, CaputeS
         {
             //save the image
             mSCTIPtrs[threadIndex].mRunning = true;
-            mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new tthread::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
+            mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(screenCaptureHandler, &mSCTIPtrs[threadIndex]);
         }
     }
 }
@@ -436,7 +436,7 @@ int sgct_core::ScreenCapture::getAvailibleCaptureThread()
             }
         }
 
-        tthread::this_thread::sleep_for(tthread::chrono::milliseconds(10));
+        std::this_thread::sleep_for(std::chrono::milliseconds(10));
     }
 
     return -1;

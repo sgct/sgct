@@ -201,12 +201,12 @@ void sgct_core::SGCTNetwork::init(const std::string port, const std::string addr
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Connect error code: %d\n", SGCT_ERRNO);
             }
 
-            tthread::this_thread::sleep_for(tthread::chrono::seconds(1)); //wait for next attempt
+            std::this_thread::sleep_for(std::chrono::seconds(1)); //wait for next attempt
         }
     }
 
     freeaddrinfo(result);
-    mMainThread = new tthread::thread(connectionHandlerStarter, this);
+    mMainThread = new std::thread(connectionHandlerStarter, this);
 }
 
 void sgct_core::SGCTNetwork::connectionHandlerStarter(void *arg)
@@ -233,7 +233,7 @@ void sgct_core::SGCTNetwork::connectionHandler()
                 }
 
                 //start a new connection enabling the client to reconnect
-                mCommThread = new tthread::thread( communicationHandlerStarter, this );
+                mCommThread = new std::thread( communicationHandlerStarter, this );
             }
             //wait for signal until next iteration in loop
             if( !isTerminated() )
@@ -241,9 +241,9 @@ void sgct_core::SGCTNetwork::connectionHandler()
                 #ifdef __SGCT_MUTEX_DEBUG__
                     fprintf(stderr, "Locking mutex for connection %d...\n", mId);
                 #endif
-                mConnectionMutex.lock();
-                mStartConnectionCond.wait( mConnectionMutex );
-                mConnectionMutex.unlock();
+
+                std::unique_lock<std::mutex> lk(mConnectionMutex);
+                mStartConnectionCond.wait(lk);
                 #ifdef __SGCT_MUTEX_DEBUG__
                     fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
                 #endif
@@ -252,7 +252,7 @@ void sgct_core::SGCTNetwork::connectionHandler()
     }
     else //if client
     {
-        mCommThread = new tthread::thread( communicationHandlerStarter, this );
+        mCommThread = new std::thread( communicationHandlerStarter, this );
     }
 
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Exiting connection handler for connection %d... \n", mId);

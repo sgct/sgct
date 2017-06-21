@@ -600,7 +600,7 @@ bool sgct::Engine::initWindows()
     if( RUN_FRAME_LOCK_CHECK_THREAD )
     {
         if(sgct_core::ClusterManager::instance()->getNumberOfNodes() > 1)
-            mThreadPtr = new (std::nothrow) tthread::thread( updateFrameLockLoop, 0 );
+            mThreadPtr = new (std::nothrow) std::thread( updateFrameLockLoop, nullptr );
     }
 
     //init swap group if enabled
@@ -952,11 +952,11 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                         break;
 
                 if(USE_SLEEP_TO_WAIT_FOR_NODES)
-                    tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
                     SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+                    sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
                     SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
                 
@@ -1013,11 +1013,11 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                         break;
 
                 if(USE_SLEEP_TO_WAIT_FOR_NODES)
-                    tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
                     SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+                    sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
                     SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
 
@@ -2668,7 +2668,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
             
             MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
 
-            tthread::this_thread::sleep_for(tthread::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "\n");
@@ -4272,7 +4272,7 @@ This function puts the current thread to sleep during a specified time
 */
 void sgct::Engine::sleep(double secs)
 {
-    tthread::this_thread::sleep_for(tthread::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));
+    std::this_thread::sleep_for(std::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));
 }
 
 /*!
@@ -4491,6 +4491,6 @@ void updateFrameLockLoop(void * arg)
 
         sgct_core::NetworkManager::gCond.notify_all();
 
-        tthread::this_thread::sleep_for(tthread::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
+        std::this_thread::sleep_for(std::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
     }
 }

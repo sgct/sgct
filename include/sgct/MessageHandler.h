@@ -13,11 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include "helpers/SGCTCPPEleven.h"
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
+#include <atomic>
 
 #define TIME_BUFFER_SIZE 9
 #define LOG_FILENAME_BUFFER_SIZE 1024 //include path
@@ -105,12 +101,12 @@ private:
     std::vector<char> mRecBuffer;
     unsigned char  * headerSpace;
 
-    tthread::atomic<int> mLevel;
-    tthread::atomic<bool> mLocal;
-    tthread::atomic<bool> mShowTime;
-    tthread::atomic<bool> mLogToConsole;
-    tthread::atomic<bool> mLogToFile;
-    tthread::atomic<bool> mLogToCallback;
+    std::atomic<int> mLevel;
+    std::atomic<bool> mLocal;
+    std::atomic<bool> mShowTime;
+    std::atomic<bool> mLogToConsole;
+    std::atomic<bool> mLogToFile;
+    std::atomic<bool> mLogToCallback;
 
     MessageCallbackFn mMessageCallback;
     char mTimeBuffer[TIME_BUFFER_SIZE];

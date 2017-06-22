@@ -1574,7 +1574,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     {
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
-#define TEST_FLAT_MESH
+//#define TEST_FLAT_MESH
 
 #ifdef TEST_FLAT_MESH
             correctionGridX[i] = (float)(i%32) / 32.0;
@@ -1668,7 +1668,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 
     createMesh(&mGeometries[WARP_MESH]);
 
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Mpcdi Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
 
     return true;
 }

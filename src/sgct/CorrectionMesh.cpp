@@ -1597,7 +1597,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float minY = *std::min_element(correctionGridY, correctionGridY + numCorrectionValues);
     float scaleRangeY = maxY - minY;
 
-    float x, y, u, v;
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
     //init to max intensity (opaque white)
@@ -1607,11 +1606,12 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.a = 1.0f;
 
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        vertex.x = 2.0f * ((correctionGridX[i] - minX) / scaleRangeX) - 1.0f;
-        vertex.y = 2.0f * ((correctionGridY[i] - minY) / scaleRangeY) - 1.0f;
+        vertex.s = (correctionGridX[i] - minX) / scaleRangeX;
+        vertex.t = (correctionGridY[i] - minY) / scaleRangeY;
         //scale to viewport coordinates
-        vertex.s = vertex.x;
-        vertex.t = vertex.y;
+        vertex.x = 2.0f * (vertex.s) - 1.0f;
+        vertex.y = 2.0f * (vertex.t) - 1.0f;
+
         vertices.push_back(vertex);
     }
 

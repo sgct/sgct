@@ -179,10 +179,10 @@ void myDraw2DFun()
     if (info.getVal())
     {
         unsigned int font_size = static_cast<unsigned int>(9.0f*gEngine->getCurrentWindowPtr()->getXScale());
-        const sgct_text::Font * font = sgct_text::FontManager::instance()->getFont("SGCTFont", font_size);
+        sgct_text::Font * font = sgct_text::FontManager::instance()->getFont("SGCTFont", font_size);
         float padding = 10.0f;
 
-        sgct_text::print(font,
+        sgct_text::print(font, sgct_text::TOP_LEFT,
             padding, static_cast<float>(gEngine->getCurrentWindowPtr()->getYFramebufferResolution() - font_size) - padding, //x and y pos
             glm::vec4(1.0, 1.0, 1.0, 1.0), //color
             "Format: %s\nResolution: %d x %d\nRate: %.2lf Hz",

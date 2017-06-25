@@ -158,7 +158,7 @@ wchar_t * parseArgList(va_list args, const wchar_t *format)
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
 	vswprintf_s(buffer, size, format, args);
 #else
-	vswprintf(buffer, format, args);
+	vswprintf(buffer, size, format, args);
 #endif
 #else
 	vswprintf(buffer, 1024, format, args);

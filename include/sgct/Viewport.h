@@ -91,12 +91,12 @@ private:
     void reset(float x, float y, float xSize, float ySize);
     void parsePlanarProjection(tinyxml2::XMLElement * element);
     void parseFisheyeProjection(tinyxml2::XMLElement * element);
+    void parseSpoutOutputProjection(tinyxml2::XMLElement * element);
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
     void parseFloatFromAttribute(tinyxml2::XMLElement* element, const std::string tag,
                                  float& target);
     bool parseFrustumElement(frustumData& frustum, frustumData::elemIdx elemIndex,
         tinyxml2::XMLElement* elem, const char* frustumTag);
-
 private:
     CorrectionMesh mCM;
     std::string mOverlayFilename;

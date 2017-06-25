@@ -134,7 +134,8 @@ sgct::Engine::Engine( int& argc, char**& argv )
     mDataTransferStatusCallbackFnPtr = SGCT_NULL_PTR;
     mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
     mContextCreationFnPtr = SGCT_NULL_PTR;
-    mScreenShotFnPtr = SGCT_NULL_PTR;
+    mScreenShotFnPtr1 = SGCT_NULL_PTR;
+	mScreenShotFnPtr2 = SGCT_NULL_PTR;
 
     mInternalDrawFn = NULL;
     mInternalRenderFBOFn = NULL;
@@ -696,11 +697,11 @@ void sgct::Engine::initOGL()
         mThisNode->setCurrentWindowIndex(i);
         getCurrentWindowPtr()->initOGL(); //sets context to shared
         
-        if (mScreenShotFnPtr != SGCT_NULL_PTR)
+        if (mScreenShotFnPtr1 != SGCT_NULL_PTR)
         {
             //set callback
             sgct_cppxeleven::function< void(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type) > callback;
-            callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback, this,
+            callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback1, this,
                                              sgct_cppxeleven::placeholders::_1,
                                              sgct_cppxeleven::placeholders::_2,
                                              sgct_cppxeleven::placeholders::_3,
@@ -713,6 +714,23 @@ void sgct::Engine::initOGL()
             if( getCurrentWindowPtr()->getScreenCapturePointer(1) != NULL )
                 getCurrentWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
         }
+		else if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
+		{
+			//set callback
+			sgct_cppxeleven::function< void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type) > callback;
+			callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback2, this,
+				sgct_cppxeleven::placeholders::_1,
+				sgct_cppxeleven::placeholders::_2,
+				sgct_cppxeleven::placeholders::_3,
+				sgct_cppxeleven::placeholders::_4);
+
+			//left channel (Mono and Stereo_Left)
+			if (getCurrentWindowPtr()->getScreenCapturePointer(0) != NULL)
+				getCurrentWindowPtr()->getScreenCapturePointer(0)->setCaptureCallback(callback);
+			//right channel (Stereo_Right)
+			if (getCurrentWindowPtr()->getScreenCapturePointer(1) != NULL)
+				getCurrentWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
+		}
     }
 
     //link all users to their viewports
@@ -884,7 +902,8 @@ void sgct::Engine::clearAllCallbacks()
     mDataTransferStatusCallbackFnPtr = SGCT_NULL_PTR;
     mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
     mContextCreationFnPtr = SGCT_NULL_PTR;
-    mScreenShotFnPtr = SGCT_NULL_PTR;
+    mScreenShotFnPtr1 = SGCT_NULL_PTR;
+	mScreenShotFnPtr2 = SGCT_NULL_PTR;
 
     mInternalDrawFn = NULL;
     mInternalRenderFBOFn = NULL;
@@ -3255,7 +3274,19 @@ void sgct::Engine::setContextCreationCallback(sgct_cppxeleven::function<void(GLF
  */
 void sgct::Engine::setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
 {
-    mScreenShotFnPtr = fnPtr;
+    mScreenShotFnPtr1 = fnPtr;
+	mScreenShotFnPtr2 = SGCT_NULL_PTR; //allow only one callback
+}
+
+/*!
+\param fnPtr is the function pointer to a screenshot callback for custom frame capture & export
+This callback must be set before Engine::init is called\n
+Parameters to the callback are: raw data pointer for image data, window index, eye index, download type
+*/
+void sgct::Engine::setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
+{
+	mScreenShotFnPtr2 = fnPtr;
+	mScreenShotFnPtr1 = SGCT_NULL_PTR; //allow only one callback
 }
 
 /*!
@@ -3996,10 +4027,19 @@ void sgct::Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int c
 /*!
     Don't use this. This function is called internally in SGCT.
 */
-void sgct::Engine::invokeScreenShotCallback(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type)
+void sgct::Engine::invokeScreenShotCallback1(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type)
 {
-    if (mScreenShotFnPtr != SGCT_NULL_PTR)
-        mScreenShotFnPtr(imPtr, winIndex, ei, type);
+    if (mScreenShotFnPtr1 != SGCT_NULL_PTR)
+        mScreenShotFnPtr1(imPtr, winIndex, ei, type);
+}
+
+/*!
+Don't use this. This function is called internally in SGCT.
+*/
+void sgct::Engine::invokeScreenShotCallback2(unsigned char * data, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type)
+{
+	if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
+		mScreenShotFnPtr2(data, winIndex, ei, type);
 }
 
 /*!

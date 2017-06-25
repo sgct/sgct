@@ -58,7 +58,9 @@ public:
 
 #ifdef __LOAD_CPP11_FUN__
     void setCaptureCallback(sgct_cppxeleven::function<void(Image*, std::size_t, EyeIndex, unsigned int type)> callback);
-    sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn;
+	void setCaptureCallback(sgct_cppxeleven::function<void(unsigned char*, std::size_t, EyeIndex, unsigned int type)> callback);
+    sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn1;
+	sgct_cppxeleven::function< void(unsigned char *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn2;
 #endif
 
 private:

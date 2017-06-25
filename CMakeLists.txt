@@ -259,6 +259,23 @@ else(SGCT_NO_EXTERNAL_LIBRARIES)
 	add_definitions(-DSGCT_DONT_USE_EXTERNAL)
 endif(SGCT_NO_EXTERNAL_LIBRARIES)
 
+########################
+# Spout section  start #
+########################
+if (WIN32)
+    option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+endif ()
+
+set(SPOUT_DEFINITIONS "")
+if (SGCT_SPOUT_SUPPORT)
+    set(SPOUT_DEFINITIONS "-DSGCT_HAS_SPOUT")
+endif ()
+add_definitions(${SPOUT_DEFINITIONS})
+
+########################
+#  Spout section  end  #
+########################
+
 find_package(OpenGL REQUIRED)
 
 set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}/deps" )
@@ -367,8 +384,6 @@ endif()
 
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
-	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD.lib")
-	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 	
 	if (NOT SGCT_USE_MSVC_RUNTIMES)
         foreach (flag ${SGCTCompilerFlags})

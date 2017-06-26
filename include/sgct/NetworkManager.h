@@ -12,12 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "Statistics.h"
 #include <vector>
 #include <string>
-
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
+#include <atomic>
+#include <condition_variable>
 
 namespace sgct_core
 {
@@ -75,7 +71,7 @@ private:
     bool prepareTransferData(const void * data, char ** bufferPtr, int & length, int packageId);
 
 public:
-    static tthread::condition_variable gCond;
+    static std::condition_variable gCond;
 
 private:
     static NetworkManager * mInstance;
@@ -91,8 +87,8 @@ private:
     bool mIsServer;
     bool mIsRunning;
     bool mAllNodesConnected;
-    tthread::atomic<bool> mCompress;
-    tthread::atomic<int> mCompressionLevel;
+    std::atomic<bool> mCompress;
+    std::atomic<int> mCompressionLevel;
     int mMode;
     unsigned int mNumberOfActiveConnections;
     unsigned int mNumberOfActiveSyncConnections;

@@ -44,7 +44,7 @@ void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi
 #endif
 }
 
-tthread::mutex * sgct::SGCTMutexManager::getMutexPtr(sgct::SGCTMutexManager::MutexIndexes mi)
+std::mutex * sgct::SGCTMutexManager::getMutexPtr(sgct::SGCTMutexManager::MutexIndexes mi)
 {
     return &mInternalMutexes[mi];
 }

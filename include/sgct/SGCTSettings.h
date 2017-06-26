@@ -8,13 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SGCT_SETTINGS
 #define _SGCT_SETTINGS
 
+#include <mutex>
 #include <stdio.h>
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
-    #include "external/tinythread.h"
     #include <external/tinyxml2.h>
 #else
-    #include <tinythread.h>
     #include <tinyxml2.h>
 #endif
 
@@ -182,7 +181,7 @@ private:
     BufferFloatPrecision mCurrentBufferFloatPrecision;
 
     //mutex
-    tthread::mutex mMutex;
+    std::mutex mMutex;
 };
 }
 

@@ -1214,7 +1214,6 @@ bool sgct_core::ReadConfig::readAndParseMpcdiXML_display(tinyxml2::XMLElement* e
          //iterate
          element[1] = element[1]->NextSiblingElement();
      }
-     ClusterManager::instance()->addNode(tmpNode);
      return true;
 }
 

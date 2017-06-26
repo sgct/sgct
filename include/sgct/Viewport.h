@@ -15,8 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include "CorrectionMesh.h"
 #include <stddef.h> //get definition for NULL
-#include "unzip.h"
-#include <zip.h>
+#include "external/unzip.h"
+#include "external/zip.h"
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>

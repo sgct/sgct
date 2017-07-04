@@ -15,8 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
-#include "unzip.h"
-#include <zip.h>
+
 
 sgct_core::Viewport::Viewport()
 {

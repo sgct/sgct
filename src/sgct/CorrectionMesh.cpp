@@ -1596,6 +1596,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float maxY = *std::max_element(correctionGridY, correctionGridY + numCorrectionValues);
     float minY = *std::min_element(correctionGridY, correctionGridY + numCorrectionValues);
     float scaleRangeY = maxY - minY;
+    float scaleFactor = (scaleRangeX >= scaleRangeY) ? scaleRangeX : scaleRangeY;
+    float aspectRatioViewport = parent->getXSize() / parent->getYSize();
+    int   gridIndex_column, gridIndex_row;
+    float xPos, yPos;
 
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
@@ -1606,11 +1610,20 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.a = 1.0f;
 
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        vertex.s = (correctionGridX[i] - minX) / scaleRangeX;
-        vertex.t = (correctionGridY[i] - minY) / scaleRangeY;
+        gridIndex_column = i % numberOfCols;
+        gridIndex_row = i / numberOfCols;
+        //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid
+        xPos = (float)(gridIndex_column / (numberOfCols - 1)) * aspectRatioViewport;
+        yPos = (float)(gridIndex_row / (numberOfRows - 1)) / aspectRatioViewport;
+        //Add the correction offsets to each warp point
+        xPos += (correctionGridX[i] * aspectRatioViewport);
+        yPos += (correctionGridY[i] / aspectRatioViewport);
+
+        vertex.s = xPos;
+        vertex.t = yPos;
         //scale to viewport coordinates
-        vertex.x = 2.0f * (vertex.s) - 1.0f;
-        vertex.y = 2.0f * (vertex.t) - 1.0f;
+        vertex.x = 2.0f * xPos - 1.0f;
+        vertex.y = 2.0f * yPos - 1.0f;
 
         vertices.push_back(vertex);
     }

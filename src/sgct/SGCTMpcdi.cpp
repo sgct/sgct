@@ -35,7 +35,7 @@ sgct_core::SGCTMpcdi::~SGCTMpcdi()
     }
 }
 
-void sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
+bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
 	SGCTNode& tmpNode,
 	sgct::SGCTWindow& tmpWin)
 {
@@ -48,7 +48,7 @@ void sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: Unable to open zip archive file %s\n",
             filenameMpcdi);
-        return;
+        return false;
     }
 	// Get info about the zip file
 	unz_global_info global_info;
@@ -58,7 +58,7 @@ void sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
 			"parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
 			filenameMpcdi);
 		unzClose(zipfile);
-		return;
+		return false;
 	}
 
 	//Search for required files inside mpcdi archive file
@@ -72,13 +72,13 @@ void sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
 				"parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
 			unzClose(zipfile);
-			return;
+			return false;
 		}
 
         if (!processSubFiles(filename, &zipfile, file_info))
         {
             unzClose(zipfile);
-            return;
+            return false;
         }
         if ((i + 1) < global_info.number_entry)
         {
@@ -96,9 +96,12 @@ void sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
             filenameMpcdi);
-        return;
+        return false;
     }
-    readAndParseXMLString(tmpNode, tmpWin);
+    if( !readAndParseXMLString(tmpNode, tmpWin) )
+        return false;
+    else
+        return true;
 }
 
 bool sgct_core::SGCTMpcdi::openZipFile(FILE* cfgFile, const std::string cfgFilePath,
@@ -191,7 +194,7 @@ bool sgct_core::SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWi
             else
                 ss << "File not found";
             mErrorMsg = ss.str();
-            assert(false);
+            mpcdiParseResult = false;
         }
         else
         {
@@ -216,12 +219,21 @@ bool sgct_core::SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc,
         element[i] = NULL;
     const char * val[MAX_XML_DEPTH];
 
-    if (!checkAttributeForExpectedValue(XMLroot, "profile", "MPCDI profile", "3d"))
+    if (!checkAttributeForExpectedValue(XMLroot, "profile", "MPCDI profile", "3d")) {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "readAndParseXML_mpcdi: Problem with 'MPCDI' attribute in XML\n");
         return false;
-    if (!checkAttributeForExpectedValue(XMLroot, "geometry", "MPCDI geometry level", "1"))
+    }
+    if (!checkAttributeForExpectedValue(XMLroot, "geometry", "MPCDI geometry level", "1")) {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "readAndParseXML_mpcdi: Problem with 'geometry' attribute in XML\n");
         return false;
-    if (!checkAttributeForExpectedValue(XMLroot, "version", "MPCDI version", "2.0"))
+    }
+    if (!checkAttributeForExpectedValue(XMLroot, "version", "MPCDI version", "2.0")) {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "readAndParseXML_mpcdi: Problem with 'version' attribute in XML\n");
         return false;
+    }
 
     mpcdiFoundItems parsedItems;
     element[0] = XMLroot->FirstChildElement();

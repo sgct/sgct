@@ -399,7 +399,9 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     
                     if( element[1]->Attribute("mpcdi") != NULL ) {
                     	sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
-                        mpcdiHandler.parseConfiguration(element[1]->Attribute("mpcdi"), tmpNode, tmpWin);
+                        if( !mpcdiHandler.parseConfiguration(element[1]->Attribute("mpcdi"), tmpNode, tmpWin) ) {
+                            return false;
+                        }
                     }
 
                     element[2] = element[1]->FirstChildElement();

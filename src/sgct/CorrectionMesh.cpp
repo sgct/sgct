@@ -19,6 +19,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/Viewport.h>
 #include <sgct/SGCTSettings.h>
+#include <string>
 #include <cstring>
 #include <algorithm>
 
@@ -1430,9 +1431,6 @@ Parse data from domeprojection's camera based calibration system. Domeprojection
 */
 bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & meshPath, Viewport* parent)
 {
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
-        "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'.\n", meshPath.c_str());
-
     bool isReadingFile = ( meshPath.length() > 0 ) ? true : false;
     unsigned int srcIdx = 0;
     char* srcBuff;
@@ -1442,6 +1440,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 
     if( isReadingFile )
     {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+            "CorrectionMesh: Reading MPCDI mesh (PFM format) data from '%s'.\n", meshPath.c_str());
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
         if (fopen_s(&meshFile, meshPath.c_str(), "r") != 0 || !meshFile)
         {
@@ -1461,6 +1461,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     }
     else
     {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+            "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer.\n", meshPath.c_str());
         srcBuff = parent->mMpcdiWarpMeshData;
         srcSize_bytes = parent->mMpcdiWarpMeshSize;
     }
@@ -1526,7 +1528,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     }
 #endif
 
-    if (strcmp(fileFormatHeader, "PF") != 0) {
+    if (fileFormatHeader[0] != 'P' || fileFormatHeader[1] != 'F') {
         //The 'Pf' header is invalid because PFM grayscale type is not supported.
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                                                 "CorrectionMesh: Incorrect file type.\n");
@@ -1564,14 +1566,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         fclose(meshFile);
         if (retval != value32bit)
         {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                 "CorrectionMesh: Error reading all correction values!\n");
             return false;
         }
     }
     else
     {
+        bool readErr = false;
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
 //#define TEST_FLAT_MESH
@@ -1581,25 +1583,45 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
             correctionGridY[i] = 1.0 - (float)i * 32.0 / 32.0;
 #else
             if( !readMeshBuffer(&correctionGridX[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
-                return false;
-            if( !readMeshBuffer(&correctionGridY[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
-                return false;
-            if( !readMeshBuffer(&errorPosition, srcIdx, srcBuff, srcSize_bytes, value32bit) )
-                return false;
+                readErr = true;
+            else if( !readMeshBuffer(&correctionGridY[i], srcIdx, srcBuff, srcSize_bytes, value32bit) )
+                readErr = true;
+            else if( !readMeshBuffer(&errorPosition, srcIdx, srcBuff, srcSize_bytes, value32bit) )
+                readErr = true;
+
+            if( readErr ) {
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    "CorrectionMesh: Error reading mpcdi correction value at index %d\n", i);
+            }
 #endif
         }
     }
 
-    float maxX = *std::max_element(correctionGridX, correctionGridX + numCorrectionValues);
-    float minX = *std::min_element(correctionGridX, correctionGridX + numCorrectionValues);
+    int   gridIndex_column, gridIndex_row;
+    float* xPos = new float[numCorrectionValues];
+    float* yPos = new float[numCorrectionValues];
+
+    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+        gridIndex_column = i % numberOfCols;
+        gridIndex_row = i / numberOfCols;
+        //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
+        // add the correction offsets to each warp point
+        xPos[i] = (float)(gridIndex_column / (numberOfCols - 1)) + correctionGridX[i];
+        yPos[i] = (float)(gridIndex_row    / (numberOfRows - 1)) + correctionGridY[i];
+    }
+
+    float maxX = *std::max_element(xPos, xPos + numCorrectionValues);
+    float minX = *std::min_element(xPos, xPos + numCorrectionValues);
     float scaleRangeX = maxX - minX;
-    float maxY = *std::max_element(correctionGridY, correctionGridY + numCorrectionValues);
-    float minY = *std::min_element(correctionGridY, correctionGridY + numCorrectionValues);
+    float maxY = *std::max_element(yPos, yPos + numCorrectionValues);
+    float minY = *std::min_element(yPos, yPos + numCorrectionValues);
     float scaleRangeY = maxY - minY;
     float scaleFactor = (scaleRangeX >= scaleRangeY) ? scaleRangeX : scaleRangeY;
-    float aspectRatioViewport = parent->getXSize() / parent->getYSize();
-    int   gridIndex_column, gridIndex_row;
-    float xPos, yPos;
+    //Scale all positions to fit within 0,0 to 1,1
+    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+        xPos[i] /= scaleFactor;
+        yPos[i] /= scaleFactor;
+    }
 
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
@@ -1608,25 +1630,16 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.g = 1.0f;
     vertex.b = 1.0f;
     vertex.a = 1.0f;
-
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        gridIndex_column = i % numberOfCols;
-        gridIndex_row = i / numberOfCols;
-        //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid
-        xPos = (float)(gridIndex_column / (numberOfCols - 1)) * aspectRatioViewport;
-        yPos = (float)(gridIndex_row / (numberOfRows - 1)) / aspectRatioViewport;
-        //Add the correction offsets to each warp point
-        xPos += (correctionGridX[i] * aspectRatioViewport);
-        yPos += (correctionGridY[i] / aspectRatioViewport);
-
-        vertex.s = xPos;
-        vertex.t = yPos;
+        vertex.s = xPos[i];
+        vertex.t = yPos[i];
         //scale to viewport coordinates
-        vertex.x = 2.0f * xPos - 1.0f;
-        vertex.y = 2.0f * yPos - 1.0f;
-
+        vertex.x = 2.0f * xPos[i] - 1.0f;
+        vertex.y = 2.0f * yPos[i] - 1.0f;
         vertices.push_back(vertex);
     }
+    delete xPos;
+    delete yPos;
 
     //copy vertices
     unsigned int numberOfVertices = numberOfCols * numberOfRows;

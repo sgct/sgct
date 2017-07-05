@@ -76,7 +76,7 @@ class SGCTMpcdi
 public:
     SGCTMpcdi(std::string& parentErrorMessage);
     virtual ~SGCTMpcdi();
-    void parseConfiguration(const std::string filenameMpcdi, SGCTNode& tmpNode,
+    bool parseConfiguration(const std::string filenameMpcdi, SGCTNode& tmpNode,
              sgct::SGCTWindow& tmpWin);
 
 private:

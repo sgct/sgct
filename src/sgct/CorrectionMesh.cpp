@@ -1606,8 +1606,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         gridIndex_row = i / numberOfCols;
         //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
         // add the correction offsets to each warp point
-        xPos[i] = (float)(gridIndex_column / (numberOfCols - 1)) + correctionGridX[i];
-        yPos[i] = (float)(gridIndex_row    / (numberOfRows - 1)) + correctionGridY[i];
+        xPos[i] = ((float)gridIndex_column / (float)(numberOfCols - 1)) + correctionGridX[i];
+        yPos[i] = ((float)gridIndex_row    / (float)(numberOfRows - 1)) + correctionGridY[i];
     }
 
     float maxX = *std::max_element(xPos, xPos + numCorrectionValues);
@@ -1619,8 +1619,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float scaleFactor = (scaleRangeX >= scaleRangeY) ? scaleRangeX : scaleRangeY;
     //Scale all positions to fit within 0,0 to 1,1
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        xPos[i] /= scaleFactor;
-        yPos[i] /= scaleFactor;
+        xPos[i] = (xPos[i] - minX) / scaleFactor;
+        yPos[i] = (yPos[i] - minY) / scaleFactor;
     }
 
     CorrectionMeshVertex vertex;

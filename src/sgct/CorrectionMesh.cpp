@@ -1598,29 +1598,33 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     }
 
     int   gridIndex_column, gridIndex_row;
-    float* xPos = new float[numCorrectionValues];
-    float* yPos = new float[numCorrectionValues];
+    float* smoothPos_x = new float[numCorrectionValues];
+    float* smoothPos_y = new float[numCorrectionValues];
+    float* warpedPos_x = new float[numCorrectionValues];
+    float* warpedPos_y = new float[numCorrectionValues];
 
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
         gridIndex_column = i % numberOfCols;
         gridIndex_row = i / numberOfCols;
         //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
         // add the correction offsets to each warp point
-        xPos[i] = ((float)gridIndex_column / (float)(numberOfCols - 1)) + correctionGridX[i];
-        yPos[i] = ((float)gridIndex_row    / (float)(numberOfRows - 1)) + correctionGridY[i];
+        smoothPos_x[i] = (float)gridIndex_column / (float)(numberOfCols - 1);
+        smoothPos_y[i] = (float)gridIndex_row    / (float)(numberOfRows - 1);
+        warpedPos_x[i] = smoothPos_x[i] + correctionGridX[i];
+        warpedPos_y[i] = smoothPos_y[i] + correctionGridY[i];
     }
 
-    float maxX = *std::max_element(xPos, xPos + numCorrectionValues);
-    float minX = *std::min_element(xPos, xPos + numCorrectionValues);
+    float maxX = *std::max_element(warpedPos_x, warpedPos_x + numCorrectionValues);
+    float minX = *std::min_element(warpedPos_x, warpedPos_x + numCorrectionValues);
     float scaleRangeX = maxX - minX;
-    float maxY = *std::max_element(yPos, yPos + numCorrectionValues);
-    float minY = *std::min_element(yPos, yPos + numCorrectionValues);
+    float maxY = *std::max_element(warpedPos_y, warpedPos_y + numCorrectionValues);
+    float minY = *std::min_element(warpedPos_y, warpedPos_y + numCorrectionValues);
     float scaleRangeY = maxY - minY;
     float scaleFactor = (scaleRangeX >= scaleRangeY) ? scaleRangeX : scaleRangeY;
     //Scale all positions to fit within 0,0 to 1,1
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        xPos[i] = (xPos[i] - minX) / scaleFactor;
-        yPos[i] = (yPos[i] - minY) / scaleFactor;
+        warpedPos_x[i] = (warpedPos_x[i] - minX) / scaleFactor;
+        warpedPos_y[i] = (warpedPos_y[i] - minY) / scaleFactor;
     }
 
     CorrectionMeshVertex vertex;
@@ -1631,15 +1635,17 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.b = 1.0f;
     vertex.a = 1.0f;
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        vertex.s = xPos[i];
-        vertex.t = yPos[i];
+        vertex.s = warpedPos_x[i];
+        vertex.t = warpedPos_y[i];
         //scale to viewport coordinates
-        vertex.x = 2.0f * xPos[i] - 1.0f;
-        vertex.y = 2.0f * yPos[i] - 1.0f;
+        vertex.x = 2.0f * smoothPos_x[i] - 1.0f;
+        vertex.y = 2.0f * smoothPos_y[i] - 1.0f;
         vertices.push_back(vertex);
     }
-    delete xPos;
-    delete yPos;
+    delete warpedPos_x;
+    delete warpedPos_y;
+    delete smoothPos_x;
+    delete smoothPos_y;
 
     //copy vertices
     unsigned int numberOfVertices = numberOfCols * numberOfRows;

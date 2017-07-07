@@ -1609,7 +1609,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
         // add the correction offsets to each warp point
         smoothPos_x[i] = (float)gridIndex_column / (float)(numberOfCols - 1);
-        smoothPos_y[i] = (float)gridIndex_row    / (float)(numberOfRows - 1);
+        //Reverse the y position because the values from pfm file are given in raster-scan
+        // order, which is left to right but starts at upper-left rather than lower-left.
+        smoothPos_y[i] = 1.0 - ((float)gridIndex_row    / (float)(numberOfRows - 1));
         warpedPos_x[i] = smoothPos_x[i] + correctionGridX[i];
         warpedPos_y[i] = smoothPos_y[i] + correctionGridY[i];
     }

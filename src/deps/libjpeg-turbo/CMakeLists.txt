@@ -160,6 +160,8 @@ if( MSVC )
 	endforeach()
 	
 	add_definitions(-W3 -wd4996)
+
+  set_source_files_properties("jcdctmgr.c" PROPERTIES COMPILE_FLAGS "/W0")
 endif()
   
 if(JPEG_TURBO_WITH_ARITH_ENC OR JPEG_TURBO_WITH_ARITH_DEC)

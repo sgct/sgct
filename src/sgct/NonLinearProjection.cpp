@@ -14,69 +14,69 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::NonLinearProjection::NonLinearProjection()
 {
-	mCubemapResolution = 512;
-	mInterpolationMode = Linear;
-	mUseDepthTransformation = false;
-	mStereo = false;
+    mCubemapResolution = 512;
+    mInterpolationMode = Linear;
+    mUseDepthTransformation = false;
+    mStereo = false;
 
-	for (int i = 0; i < LastIndex; i++)
-		mTextures[i] = GL_FALSE;
+    for (int i = 0; i < LastIndex; i++)
+        mTextures[i] = GL_FALSE;
 
-	mCubeMapFBO_Ptr = NULL;
-	mVBO = GL_FALSE;
-	mVAO = GL_FALSE;
-	mSamples = 1;
+    mCubeMapFBO_Ptr = NULL;
+    mVBO = GL_FALSE;
+    mVAO = GL_FALSE;
+    mSamples = 1;
 
-	mClearColor.r = 0.3f;
-	mClearColor.g = 0.3f;
-	mClearColor.b = 0.3f;
-	mClearColor.a = 1.0f;
+    mClearColor.r = 0.3f;
+    mClearColor.g = 0.3f;
+    mClearColor.b = 0.3f;
+    mClearColor.a = 1.0f;
 
-	mVpCoords[0] = 0;
-	mVpCoords[1] = 0;
-	mVpCoords[2] = 0;
-	mVpCoords[3] = 0;
+    mVpCoords[0] = 0;
+    mVpCoords[1] = 0;
+    mVpCoords[2] = 0;
+    mVpCoords[3] = 0;
 
-	mVerts = NULL;
+    mVerts = NULL;
 
-	mPreferedMonoFrustumMode = Frustum::MonoEye;
+    mPreferedMonoFrustumMode = Frustum::MonoEye;
 }
 
 sgct_core::NonLinearProjection::~NonLinearProjection()
 {
-	for (int i = 0; i < LastIndex; i++)
-		if (mTextures[i] != GL_FALSE)
-		{
-			glDeleteTextures(1, &mTextures[i]);
-			mTextures[i] = GL_FALSE;
-		}
+    for (int i = 0; i < LastIndex; i++)
+        if (mTextures[i] != GL_FALSE)
+        {
+            glDeleteTextures(1, &mTextures[i]);
+            mTextures[i] = GL_FALSE;
+        }
 
-	if (mVerts)
-	{
-		delete[] mVerts;
-		mVerts = NULL;
-	}
+    if (mVerts)
+    {
+        delete[] mVerts;
+        mVerts = NULL;
+    }
 
-	if (mCubeMapFBO_Ptr)
-	{
-		mCubeMapFBO_Ptr->destroy();
-		delete mCubeMapFBO_Ptr;
-	}
+    if (mCubeMapFBO_Ptr)
+    {
+        mCubeMapFBO_Ptr->destroy();
+        delete mCubeMapFBO_Ptr;
+    }
 
-	if (mVBO)
-	{
-		glDeleteBuffers(1, &mVBO);
-		mVBO = GL_FALSE;
-	}
+    if (mVBO)
+    {
+        glDeleteBuffers(1, &mVBO);
+        mVBO = GL_FALSE;
+    }
 
-	if (mVAO)
-	{
-		glDeleteVertexArrays(1, &mVAO);
-		mVAO = GL_FALSE;
-	}
+    if (mVAO)
+    {
+        glDeleteVertexArrays(1, &mVAO);
+        mVAO = GL_FALSE;
+    }
 
-	mShader.deleteProgram();
-	mDepthCorrectionShader.deleteProgram();
+    mShader.deleteProgram();
+    mDepthCorrectionShader.deleteProgram();
 }
 
 /*!
@@ -84,25 +84,25 @@ Init the non linear projection. The arguments should match the texture settings 
 */
 void sgct_core::NonLinearProjection::init(int internalTextureFormat, unsigned int textureFormat, unsigned int textureType, int samples)
 {
-	mTextureInternalFormat = internalTextureFormat;
-	mTextureFormat = textureFormat;
-	mTextureType = textureType;
-	mSamples = samples;
+    mTextureInternalFormat = internalTextureFormat;
+    mTextureFormat = textureFormat;
+    mTextureType = textureType;
+    mSamples = samples;
 
-	initViewports();
-	initTextures();
-	initFBO();
-	initVBO();
-	initShaders();
+    initViewports();
+    initTextures();
+    initFBO();
+    initVBO();
+    initShaders();
 }
 
 void sgct_core::NonLinearProjection::updateFrustums(const sgct_core::Frustum::FrustumMode &frustumMode, const float & near_clipping_plane, const float & far_clipping_plane)
 {
-	for (int side = 0; side < 6; side++)
-		if(mSubViewports[side].isEnabled())
-			mSubViewports[side].calculateNonLinearFrustum(frustumMode,
-				near_clipping_plane,
-				far_clipping_plane);
+    for (int side = 0; side < 6; side++)
+        if(mSubViewports[side].isEnabled())
+            mSubViewports[side].calculateNonLinearFrustum(frustumMode,
+                near_clipping_plane,
+                far_clipping_plane);
 }
 
 /*!
@@ -112,7 +112,7 @@ Set the resolution of the cubemap faces.
 */
 void sgct_core::NonLinearProjection::setCubemapResolution(int res)
 {
-	mCubemapResolution = res;
+    mCubemapResolution = res;
 }
 
 /*!
@@ -130,9 +130,9 @@ Set the resolution of the cubemap faces.
 */
 void sgct_core::NonLinearProjection::setCubemapResolution(std::string quality)
 {
-	int res = getCubemapRes(quality);
-	if (res > 0)
-		setCubemapResolution(res);
+    int res = getCubemapRes(quality);
+    if (res > 0)
+        setCubemapResolution(res);
 }
 
 /*!
@@ -142,7 +142,7 @@ Set the interpolation mode
 */
 void sgct_core::NonLinearProjection::setInterpolationMode(InterpolationMode im)
 {
-	mInterpolationMode = im;
+    mInterpolationMode = im;
 }
 
 /*!
@@ -150,7 +150,7 @@ Set if depth should be re-calculated to match the non linear projection.
 */
 void sgct_core::NonLinearProjection::setUseDepthTransformation(bool state)
 {
-	mUseDepthTransformation = state;
+    mUseDepthTransformation = state;
 }
 
 /*!
@@ -158,7 +158,7 @@ Set if stereoscopic rendering will be enabled.
 */
 void sgct_core::NonLinearProjection::setStereo(bool state)
 {
-	mStereo = state;
+    mStereo = state;
 }
 
 /*!
@@ -171,10 +171,10 @@ Set the clear color (background color) for the non linear projection renderer.
 */
 void sgct_core::NonLinearProjection::setClearColor(float red, float green, float blue, float alpha)
 {
-	mClearColor.r = red;
-	mClearColor.g = green;
-	mClearColor.b = blue;
-	mClearColor.a = alpha;
+    mClearColor.r = red;
+    mClearColor.g = green;
+    mClearColor.b = blue;
+    mClearColor.a = alpha;
 }
 
 /*!
@@ -184,7 +184,7 @@ Set the clear color (background color) for the non linear projection renderer.
 */
 void sgct_core::NonLinearProjection::setClearColor(glm::vec4 color)
 {
-	mClearColor = color;
+    mClearColor = color;
 }
 
 /*!
@@ -194,7 +194,7 @@ Set the alpha clear color value for the non linear projection renderer.
 */
 void sgct_core::NonLinearProjection::setAlpha(float alpha)
 {
-	mClearColor.a = alpha;
+    mClearColor.a = alpha;
 }
 
 /*!
@@ -204,7 +204,7 @@ Set which projection frustum to use for mono projections (can be used for custom
 */
 void sgct_core::NonLinearProjection::setPreferedMonoFrustumMode(sgct_core::Frustum::FrustumMode fm)
 {
-	mPreferedMonoFrustumMode = fm;
+    mPreferedMonoFrustumMode = fm;
 }
 
 /*!
@@ -212,7 +212,7 @@ void sgct_core::NonLinearProjection::setPreferedMonoFrustumMode(sgct_core::Frust
 */
 const int & sgct_core::NonLinearProjection::getCubemapResolution() const
 {
-	return mCubemapResolution;
+    return mCubemapResolution;
 }
 
 /*!
@@ -220,282 +220,282 @@ const int & sgct_core::NonLinearProjection::getCubemapResolution() const
 */
 const sgct_core::NonLinearProjection::InterpolationMode & sgct_core::NonLinearProjection::getInterpolationMode() const
 {
-	return mInterpolationMode;
+    return mInterpolationMode;
 }
 
 void sgct_core::NonLinearProjection::initTextures()
-{	
-	if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
-	{
-		glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
-		glEnable(GL_TEXTURE_2D);
-	}
-	
-	generateCubeMap(CubeMapColor, mTextureInternalFormat, mTextureFormat, mTextureType);
-	if (sgct::Engine::checkForOGLErrors())
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d color cube map texture (id: %d) generated!\n",
-			mCubemapResolution, mCubemapResolution, mTextures[CubeMapColor]);
-	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d color cube texture (id: %d)!\n",
-			mCubemapResolution, mCubemapResolution, mTextures[CubeMapColor]);
-	
-	if (sgct::SGCTSettings::instance()->useDepthTexture())
-	{
-		generateCubeMap(CubeMapDepth, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
-		if (sgct::Engine::checkForOGLErrors())
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapDepth]);
-		else
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d depth cube texture (id: %d)!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapDepth]);
+{    
+    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
+    {
+        glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
+        glEnable(GL_TEXTURE_2D);
+    }
+    
+    generateCubeMap(CubeMapColor, mTextureInternalFormat, mTextureFormat, mTextureType);
+    if (sgct::Engine::checkForOGLErrors())
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d color cube map texture (id: %d) generated!\n",
+            mCubemapResolution, mCubemapResolution, mTextures[CubeMapColor]);
+    else
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d color cube texture (id: %d)!\n",
+            mCubemapResolution, mCubemapResolution, mTextures[CubeMapColor]);
+    
+    if (sgct::SGCTSettings::instance()->useDepthTexture())
+    {
+        generateCubeMap(CubeMapDepth, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
+        if (sgct::Engine::checkForOGLErrors())
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapDepth]);
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d depth cube texture (id: %d)!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapDepth]);
 
-		if (mUseDepthTransformation)
-		{
-			//generate swap textures
-			generateMap(DepthSwap, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
-			if (sgct::Engine::checkForOGLErrors())
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated!\n",
-					mCubemapResolution, mCubemapResolution, mTextures[DepthSwap]);
-			else
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d depth swap texture (id: %d)!\n",
-					mCubemapResolution, mCubemapResolution, mTextures[DepthSwap]);
+        if (mUseDepthTransformation)
+        {
+            //generate swap textures
+            generateMap(DepthSwap, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
+            if (sgct::Engine::checkForOGLErrors())
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated!\n",
+                    mCubemapResolution, mCubemapResolution, mTextures[DepthSwap]);
+            else
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d depth swap texture (id: %d)!\n",
+                    mCubemapResolution, mCubemapResolution, mTextures[DepthSwap]);
 
-			generateMap(ColorSwap, mTextureInternalFormat, mTextureFormat, mTextureType);
-			if (sgct::Engine::checkForOGLErrors())
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d color swap map texture (id: %d) generated!\n",
-					mCubemapResolution, mCubemapResolution, mTextures[ColorSwap]);
-			else
-				sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d color swap texture (id: %d)!\n",
-					mCubemapResolution, mCubemapResolution, mTextures[ColorSwap]);
-		}
-	}
+            generateMap(ColorSwap, mTextureInternalFormat, mTextureFormat, mTextureType);
+            if (sgct::Engine::checkForOGLErrors())
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d color swap map texture (id: %d) generated!\n",
+                    mCubemapResolution, mCubemapResolution, mTextures[ColorSwap]);
+            else
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d color swap texture (id: %d)!\n",
+                    mCubemapResolution, mCubemapResolution, mTextures[ColorSwap]);
+        }
+    }
 
-	if (sgct::SGCTSettings::instance()->useNormalTexture())
-	{
-		generateCubeMap(CubeMapNormals, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), GL_BGR, GL_FLOAT);
-		if (sgct::Engine::checkForOGLErrors())
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapNormals]);
-		else
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d normal cube texture (id: %d)!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapNormals]);
-	}
+    if (sgct::SGCTSettings::instance()->useNormalTexture())
+    {
+        generateCubeMap(CubeMapNormals, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), GL_BGR, GL_FLOAT);
+        if (sgct::Engine::checkForOGLErrors())
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapNormals]);
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d normal cube texture (id: %d)!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapNormals]);
+    }
 
-	if (sgct::SGCTSettings::instance()->usePositionTexture())
-	{
-		generateCubeMap(CubeMapPositions, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), GL_BGR, GL_FLOAT);
-		if (sgct::Engine::checkForOGLErrors())
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d position cube map texture (id: %d) generated!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapPositions]);
-		else
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d position cube texture (id: %d)!\n",
-				mCubemapResolution, mCubemapResolution, mTextures[CubeMapPositions]);
-	}
+    if (sgct::SGCTSettings::instance()->usePositionTexture())
+    {
+        generateCubeMap(CubeMapPositions, sgct::SGCTSettings::instance()->getBufferFloatPrecisionAsGLint(), GL_BGR, GL_FLOAT);
+        if (sgct::Engine::checkForOGLErrors())
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: %dx%d position cube map texture (id: %d) generated!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapPositions]);
+        else
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Error occured while generating %dx%d position cube texture (id: %d)!\n",
+                mCubemapResolution, mCubemapResolution, mTextures[CubeMapPositions]);
+    }
 
-	if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
-		glPopAttrib();
+    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
+        glPopAttrib();
 }
 
 void sgct_core::NonLinearProjection::initFBO()
 {
-	mCubeMapFBO_Ptr = new sgct_core::OffScreenBuffer();
-	mCubeMapFBO_Ptr->setInternalColorFormat(mTextureInternalFormat);
-	mCubeMapFBO_Ptr->createFBO(mCubemapResolution,
-		mCubemapResolution,
-		mSamples);
+    mCubeMapFBO_Ptr = new sgct_core::OffScreenBuffer();
+    mCubeMapFBO_Ptr->setInternalColorFormat(mTextureInternalFormat);
+    mCubeMapFBO_Ptr->createFBO(mCubemapResolution,
+        mCubemapResolution,
+        mSamples);
 
-	if (mCubeMapFBO_Ptr->checkForErrors())
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Cube map FBO created.\n");
-	else
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Cube map FBO created with errors!\n");
+    if (mCubeMapFBO_Ptr->checkForErrors())
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Cube map FBO created.\n");
+    else
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Cube map FBO created with errors!\n");
 
-	sgct_core::OffScreenBuffer::unBind();
+    sgct_core::OffScreenBuffer::unBind();
 }
 
 void sgct_core::NonLinearProjection::initVBO()
 {
-	mVerts = new float[20];
-	for (std::size_t i = 0; i < 20; i++)
-		mVerts[i] = 0.0f;
-	
-	if (!sgct::Engine::instance()->isOGLPipelineFixed())
-	{
-		glGenVertexArrays(1, &mVAO);
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Generating VAO: %d\n", mVAO);
-	}
+    mVerts = new float[20];
+    for (std::size_t i = 0; i < 20; i++)
+        mVerts[i] = 0.0f;
+    
+    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+    {
+        glGenVertexArrays(1, &mVAO);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Generating VAO: %d\n", mVAO);
+    }
 
-	glGenBuffers(1, &mVBO);
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Generating VBO: %d\n", mVBO);
-	
-	if (!sgct::Engine::instance()->isOGLPipelineFixed())
-		glBindVertexArray(mVAO);
-	glBindBuffer(GL_ARRAY_BUFFER, mVBO);
-	glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
-	if (!sgct::Engine::instance()->isOGLPipelineFixed())
-	{
-		glEnableVertexAttribArray(0);
-		glVertexAttribPointer(
-			0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			2,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			5 * sizeof(float),    // stride
-			reinterpret_cast<void*>(0) // array buffer offset
-			);
+    glGenBuffers(1, &mVBO);
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Generating VBO: %d\n", mVBO);
+    
+    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+        glBindVertexArray(mVAO);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBufferData(GL_ARRAY_BUFFER, 20 * sizeof(float), mVerts, GL_STREAM_DRAW); //2TF + 3VF = 2*4 + 3*4 = 20
+    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+    {
+        glEnableVertexAttribArray(0);
+        glVertexAttribPointer(
+            0,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+            2,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            5 * sizeof(float),    // stride
+            reinterpret_cast<void*>(0) // array buffer offset
+            );
 
-		glEnableVertexAttribArray(1);
-		glVertexAttribPointer(
-			1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
-			3,                  // size
-			GL_FLOAT,           // type
-			GL_FALSE,           // normalized?
-			5 * sizeof(float),    // stride
-			reinterpret_cast<void*>(8) // array buffer offset
-			);
-	}
+        glEnableVertexAttribArray(1);
+        glVertexAttribPointer(
+            1,                  // attribute 0. No particular reason for 0, but must match the layout in the shader.
+            3,                  // size
+            GL_FLOAT,           // type
+            GL_FALSE,           // normalized?
+            5 * sizeof(float),    // stride
+            reinterpret_cast<void*>(8) // array buffer offset
+            );
+    }
 
-	//unbind
-	if (!sgct::Engine::instance()->isOGLPipelineFixed())
-		glBindVertexArray(0);
-	glBindBuffer(GL_ARRAY_BUFFER, 0);
+    //unbind
+    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+        glBindVertexArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
 void sgct_core::NonLinearProjection::generateCubeMap(TextureIndex ti, int internalFormat, unsigned int format, unsigned int type)
 {
-	if (mTextures[ti] != GL_FALSE)
-	{
-		glDeleteTextures(1, &mTextures[ti]);
-		mTextures[ti] = GL_FALSE;
-	}
+    if (mTextures[ti] != GL_FALSE)
+    {
+        glDeleteTextures(1, &mTextures[ti]);
+        mTextures[ti] = GL_FALSE;
+    }
 
-	glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
-	GLint MaxCubeMapRes;
-	glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
-	if (mCubemapResolution > MaxCubeMapRes)
-	{
-		mCubemapResolution = MaxCubeMapRes;
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Cubemap size set to max size: %d\n", MaxCubeMapRes);
-	}
+    GLint MaxCubeMapRes;
+    glGetIntegerv(GL_MAX_CUBE_MAP_TEXTURE_SIZE, &MaxCubeMapRes);
+    if (mCubemapResolution > MaxCubeMapRes)
+    {
+        mCubemapResolution = MaxCubeMapRes;
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "NonLinearProjection: Cubemap size set to max size: %d\n", MaxCubeMapRes);
+    }
 
-	//set up texture target
-	glGenTextures(1, &mTextures[ti]);
-	glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures[ti]);
+    //set up texture target
+    glGenTextures(1, &mTextures[ti]);
+    glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures[ti]);
 
-	//---------------------
-	// Disable mipmaps
-	//---------------------
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    //---------------------
+    // Disable mipmaps
+    //---------------------
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	if(sgct::Engine::instance()->isOGLPipelineFixed() || sgct::SGCTSettings::instance()->getForceGlTexImage2D())
-	{
-		for (int side = 0; side < 6; ++side)
-			glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, internalFormat, mCubemapResolution, mCubemapResolution, 0, format, type, NULL);
-	}
-	else
-	{
-		glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, internalFormat, mCubemapResolution, mCubemapResolution);
-	}
+    if(sgct::Engine::instance()->isOGLPipelineFixed() || sgct::SGCTSettings::instance()->getForceGlTexImage2D())
+    {
+        for (int side = 0; side < 6; ++side)
+            glTexImage2D(GL_TEXTURE_CUBE_MAP_POSITIVE_X + side, 0, internalFormat, mCubemapResolution, mCubemapResolution, 0, format, type, NULL);
+    }
+    else
+    {
+        glTexStorage2D(GL_TEXTURE_CUBE_MAP, 1, internalFormat, mCubemapResolution, mCubemapResolution);
+    }
 
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_CUBE_MAP, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 
-	glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
+    glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 }
 
 void sgct_core::NonLinearProjection::setupViewport(const std::size_t & face)
 {
-	float cmRes = static_cast<float>(mCubemapResolution);
+    float cmRes = static_cast<float>(mCubemapResolution);
 
-	//round values instead of just truncate
-	mVpCoords[0] =
-		static_cast<int>(mSubViewports[face].getX() * cmRes + 0.5f);
-	mVpCoords[1] =
-		static_cast<int>(mSubViewports[face].getY() * cmRes + 0.5f);
-	mVpCoords[2] =
-		static_cast<int>(mSubViewports[face].getXSize() * cmRes + 0.5f);
-	mVpCoords[3] =
-		static_cast<int>(mSubViewports[face].getYSize() * cmRes + 0.5f);
+    //round values instead of just truncate
+    mVpCoords[0] =
+        static_cast<int>(mSubViewports[face].getX() * cmRes + 0.5f);
+    mVpCoords[1] =
+        static_cast<int>(mSubViewports[face].getY() * cmRes + 0.5f);
+    mVpCoords[2] =
+        static_cast<int>(mSubViewports[face].getXSize() * cmRes + 0.5f);
+    mVpCoords[3] =
+        static_cast<int>(mSubViewports[face].getYSize() * cmRes + 0.5f);
 
-	glViewport(mVpCoords[0],
-		mVpCoords[1],
-		mVpCoords[2],
-		mVpCoords[3]);
+    glViewport(mVpCoords[0],
+        mVpCoords[1],
+        mVpCoords[2],
+        mVpCoords[3]);
 
-	glScissor(mVpCoords[0],
-		mVpCoords[1],
-		mVpCoords[2],
-		mVpCoords[3]);
+    glScissor(mVpCoords[0],
+        mVpCoords[1],
+        mVpCoords[2],
+        mVpCoords[3]);
 }
 
 void sgct_core::NonLinearProjection::generateMap(TextureIndex ti, int internalFormat, unsigned int format, unsigned int type)
 {
-	if (mTextures[ti] != GL_FALSE)
-	{
-		glDeleteTextures(1, &mTextures[ti]);
-		mTextures[ti] = GL_FALSE;
-	}
+    if (mTextures[ti] != GL_FALSE)
+    {
+        glDeleteTextures(1, &mTextures[ti]);
+        mTextures[ti] = GL_FALSE;
+    }
 
-	GLint MaxMapRes;
-	glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
-	if (mCubemapResolution > MaxMapRes)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Requested map size is too big (%d > %d)!\n", mCubemapResolution, MaxMapRes);
-	}
+    GLint MaxMapRes;
+    glGetIntegerv(GL_MAX_TEXTURE_SIZE, &MaxMapRes);
+    if (mCubemapResolution > MaxMapRes)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "NonLinearProjection: Requested map size is too big (%d > %d)!\n", mCubemapResolution, MaxMapRes);
+    }
 
-	//set up texture target
-	glGenTextures(1, &mTextures[ti]);
-	glBindTexture(GL_TEXTURE_2D, mTextures[ti]);
+    //set up texture target
+    glGenTextures(1, &mTextures[ti]);
+    glBindTexture(GL_TEXTURE_2D, mTextures[ti]);
 
-	//---------------------
-	// Disable mipmaps
-	//---------------------
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+    //---------------------
+    // Disable mipmaps
+    //---------------------
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-	if (sgct::Engine::instance()->isOGLPipelineFixed() || sgct::SGCTSettings::instance()->getForceGlTexImage2D())
-	{
-		glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mCubemapResolution, mCubemapResolution, 0, format, type, NULL);
-	}
-	else
-	{
-		glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, mCubemapResolution, mCubemapResolution);
-	}
+    if (sgct::Engine::instance()->isOGLPipelineFixed() || sgct::SGCTSettings::instance()->getForceGlTexImage2D())
+    {
+        glTexImage2D(GL_TEXTURE_2D, 0, internalFormat, mCubemapResolution, mCubemapResolution, 0, format, type, NULL);
+    }
+    else
+    {
+        glTexStorage2D(GL_TEXTURE_2D, 1, internalFormat, mCubemapResolution, mCubemapResolution);
+    }
 
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
 
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-	//glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    //glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
 int sgct_core::NonLinearProjection::getCubemapRes(std::string & quality)
 {
-	std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
+    std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
 
-	if (strcmp(quality.c_str(), "low") == 0)
-		return 256;
-	else if (strcmp(quality.c_str(), "medium") == 0)
-		return 512;
-	else if (strcmp(quality.c_str(), "high") == 0 || strcmp(quality.c_str(), "1k") == 0)
-		return 1024;
-	else if (strcmp(quality.c_str(), "2k") == 0)
-		return 2048;
-	else if (strcmp(quality.c_str(), "4k") == 0)
-		return 4096;
-	else if (strcmp(quality.c_str(), "8k") == 0)
-		return 8192;
-	else if (strcmp(quality.c_str(), "16k") == 0)
-		return 16384;
+    if (strcmp(quality.c_str(), "low") == 0)
+        return 256;
+    else if (strcmp(quality.c_str(), "medium") == 0)
+        return 512;
+    else if (strcmp(quality.c_str(), "high") == 0 || strcmp(quality.c_str(), "1k") == 0)
+        return 1024;
+    else if (strcmp(quality.c_str(), "2k") == 0)
+        return 2048;
+    else if (strcmp(quality.c_str(), "4k") == 0)
+        return 4096;
+    else if (strcmp(quality.c_str(), "8k") == 0)
+        return 8192;
+    else if (strcmp(quality.c_str(), "16k") == 0)
+        return 16384;
 
-	//if match not found
-	return -1;
+    //if match not found
+    return -1;
 }

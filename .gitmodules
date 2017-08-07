@@ -1,0 +1,3 @@
+[submodule "src/deps/glfw"]
+	path = src/deps/glfw
+	url = https://github.com/opensgct/glfw

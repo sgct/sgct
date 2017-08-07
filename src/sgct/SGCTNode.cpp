@@ -11,95 +11,95 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::SGCTNode::SGCTNode()
 {
-	mCurrentWindowIndex = 0;
-	mUseSwapGroups = false;
+    mCurrentWindowIndex = 0;
+    mUseSwapGroups = false;
 }
 
 /*!
-	Add a window to the window vector. Note that a window must be opened to become visible.
+    Add a window to the window vector. Note that a window must be opened to become visible.
 */
 void sgct_core::SGCTNode::addWindow(sgct::SGCTWindow window)
 {
-	mWindows.push_back(window);
+    mWindows.push_back(window);
 }
 
 /*!
-	Set which window that will render the draw calls.
+    Set which window that will render the draw calls.
 */
 void sgct_core::SGCTNode::setCurrentWindowIndex(std::size_t index)
 {
-	mCurrentWindowIndex = index;
+    mCurrentWindowIndex = index;
 }
 
 /*!
-	Set to true if this node's windows should belong to a nvida swap group. Only valid before window opens.
+    Set to true if this node's windows should belong to a nvida swap group. Only valid before window opens.
 */
 void sgct_core::SGCTNode::setUseSwapGroups(bool state)
 {
-	mUseSwapGroups = state;
+    mUseSwapGroups = state;
 }
 
 /*!
-	Check if a key is pressed for all windows.
+    Check if a key is pressed for all windows.
 */
 bool sgct_core::SGCTNode::getKeyPressed( int key )
 {
     if (key == GLFW_KEY_UNKNOWN)
         return false;
 
-	for(std::size_t i=0; i<mWindows.size(); i++)
-		if( glfwGetKey( mWindows[i].getWindowHandle(), key) )
-			return true;
-	return false;
+    for(std::size_t i=0; i<mWindows.size(); i++)
+        if( glfwGetKey( mWindows[i].getWindowHandle(), key) )
+            return true;
+    return false;
 }
 
 /*!
-	Check if all windows are set to close and close them.
+    Check if all windows are set to close and close them.
 */
 bool sgct_core::SGCTNode::shouldAllWindowsClose()
 {
-	std::size_t counter = 0;
-	for(std::size_t i=0; i<mWindows.size(); i++)
-		if( glfwWindowShouldClose( mWindows[i].getWindowHandle() ) )
-		{
-			mWindows[i].setVisibility( false );
-			glfwSetWindowShouldClose( mWindows[i].getWindowHandle(), GL_FALSE );
-		}
+    std::size_t counter = 0;
+    for(std::size_t i=0; i<mWindows.size(); i++)
+        if( glfwWindowShouldClose( mWindows[i].getWindowHandle() ) )
+        {
+            mWindows[i].setVisibility( false );
+            glfwSetWindowShouldClose( mWindows[i].getWindowHandle(), GL_FALSE );
+        }
 
-	for(std::size_t i=0; i<mWindows.size(); i++)
-	if (!(mWindows[i].isVisible() || mWindows[i].isRenderingWhileHidden()))
-	//if (!mWindows[i].isVisible())
-		{
-			counter++;
-		}
+    for(std::size_t i=0; i<mWindows.size(); i++)
+    if (!(mWindows[i].isVisible() || mWindows[i].isRenderingWhileHidden()))
+    //if (!mWindows[i].isVisible())
+        {
+            counter++;
+        }
 
-	return (counter == mWindows.size()) ? true : false;
+    return (counter == mWindows.size()) ? true : false;
 }
 
 /*!
-	Show all hidden windows.
+    Show all hidden windows.
 */
 void sgct_core::SGCTNode::showAllWindows()
 {
-	for(std::size_t i=0; i<mWindows.size(); i++)
-		mWindows[i].setVisibility( true );
+    for(std::size_t i=0; i<mWindows.size(); i++)
+        mWindows[i].setVisibility( true );
 }
 
 /*!
-	Is this node using nvidia swap groups for it's windows?
+    Is this node using nvidia swap groups for it's windows?
 */
 bool sgct_core::SGCTNode::isUsingSwapGroups()
 {
-	return mUseSwapGroups;
+    return mUseSwapGroups;
 }
 
 /*!
-	Hide all windows.
+    Hide all windows.
 */
 void sgct_core::SGCTNode::hideAllWindows()
 {
-	for(std::size_t i=0; i<mWindows.size(); i++)
-		mWindows[i].setVisibility( false );
+    for(std::size_t i=0; i<mWindows.size(); i++)
+        mWindows[i].setVisibility( false );
 }
 
 /*!
@@ -107,11 +107,11 @@ void sgct_core::SGCTNode::hideAllWindows()
 */
 void sgct_core::SGCTNode::setAddress(std::string address)
 {
-	std::transform(address.begin(), address.end(), address.begin(), ::tolower);
-	mAddress.assign( address );
+    std::transform(address.begin(), address.end(), address.begin(), ::tolower);
+    mAddress.assign( address );
 
-	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-		"SGCTNode: Setting address to %s\n", mAddress.c_str() );
+    sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+        "SGCTNode: Setting address to %s\n", mAddress.c_str() );
 }
 
 /*!
@@ -119,10 +119,10 @@ void sgct_core::SGCTNode::setAddress(std::string address)
 */
 void sgct_core::SGCTNode::setSyncPort(std::string port)
 {
-	mSyncPort.assign( port );
-	
-	sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
-		"SGCTNode: Setting sync port to %s\n", mSyncPort.c_str());
+    mSyncPort.assign( port );
+    
+    sgct::MessageHandler::instance()->print( sgct::MessageHandler::NOTIFY_DEBUG,
+        "SGCTNode: Setting sync port to %s\n", mSyncPort.c_str());
 }
 
 /*!
@@ -130,10 +130,10 @@ void sgct_core::SGCTNode::setSyncPort(std::string port)
 */
 void sgct_core::SGCTNode::setDataTransferPort(std::string port)
 {
-	mDataTransferPort.assign(port);
+    mDataTransferPort.assign(port);
 
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-		"SGCTNode: Setting data transfer port to %s\n", mDataTransferPort.c_str());
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+        "SGCTNode: Setting data transfer port to %s\n", mDataTransferPort.c_str());
 }
 
 /*!
@@ -141,7 +141,7 @@ void sgct_core::SGCTNode::setDataTransferPort(std::string port)
 */
 void sgct_core::SGCTNode::setName(std::string name)
 {
-	mName = name;
+    mName = name;
 }
 
 /*!
@@ -149,7 +149,7 @@ void sgct_core::SGCTNode::setName(std::string name)
 */
 std::string sgct_core::SGCTNode::getAddress()
 {
-	return mAddress;
+    return mAddress;
 }
 
 /*!
@@ -157,7 +157,7 @@ std::string sgct_core::SGCTNode::getAddress()
 */
 std::string sgct_core::SGCTNode::getSyncPort()
 {
-	return mSyncPort;
+    return mSyncPort;
 }
 
 /*!
@@ -165,7 +165,7 @@ std::string sgct_core::SGCTNode::getSyncPort()
 */
 std::string sgct_core::SGCTNode::getDataTransferPort()
 {
-	return mDataTransferPort;
+    return mDataTransferPort;
 }
 
 /*!
@@ -173,5 +173,5 @@ std::string sgct_core::SGCTNode::getDataTransferPort()
 */
 std::string sgct_core::SGCTNode::getName()
 {
-	return mName;
+    return mName;
 }

@@ -22,58 +22,58 @@ sgct_utils::SGCTSphere * mySphere = NULL;
 
 int main( int argc, char* argv[] )
 {
-	gEngine = new sgct::Engine( argc, argv );
+    gEngine = new sgct::Engine( argc, argv );
 
-	gEngine->setInitOGLFunction( myInitOGLFun );
-	gEngine->setDrawFunction( myDrawFun );
+    gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setDrawFunction( myDrawFun );
 
-	if( !gEngine->init() )
-	{
-		delete gEngine;
-		return EXIT_FAILURE;
-	}
+    if( !gEngine->init() )
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
 
-	// Main loop
-	gEngine->render();
+    // Main loop
+    gEngine->render();
 
-	// Clean up
-	if(mySphere != NULL) delete mySphere;
-	delete gEngine;
+    // Clean up
+    if(mySphere != NULL) delete mySphere;
+    delete gEngine;
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }
 
 void myDrawFun()
 {
-	glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
-	glTranslatef(0.0f, 0.0f, -3.0f);
-	
-	mySphere->draw();
+    glLightfv(GL_LIGHT0, GL_POSITION, lightPosition);
+    glTranslatef(0.0f, 0.0f, -3.0f);
+    
+    mySphere->draw();
 }
 
 void myInitOGLFun()
 {
-	mySphere = new sgct_utils::SGCTSphere(1.0f, 32);
-	
-	glEnable( GL_DEPTH_TEST );
-	glEnable( GL_CULL_FACE );
-	glEnable( GL_NORMALIZE );
-	glShadeModel( GL_SMOOTH );
-	glEnable( GL_LIGHTING );
+    mySphere = new sgct_utils::SGCTSphere(1.0f, 32);
+    
+    glEnable( GL_DEPTH_TEST );
+    glEnable( GL_CULL_FACE );
+    glEnable( GL_NORMALIZE );
+    glShadeModel( GL_SMOOTH );
+    glEnable( GL_LIGHTING );
 
-	//Set up light 0
-	glEnable(GL_LIGHT0);
-	glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
-	glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
-	glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
-	//Set up material
-	glMaterialfv(GL_FRONT, GL_AMBIENT, materialAmbient);
+    //Set up light 0
+    glEnable(GL_LIGHT0);
+    glLightfv(GL_LIGHT0, GL_AMBIENT, lightAmbient);
+    glLightfv(GL_LIGHT0, GL_DIFFUSE, lightDiffuse);
+    glLightfv(GL_LIGHT0, GL_SPECULAR, lightSpecular);
+    //Set up material
+    glMaterialfv(GL_FRONT, GL_AMBIENT, materialAmbient);
     glMaterialfv(GL_FRONT, GL_DIFFUSE, materialDiffuse);
     glMaterialfv(GL_FRONT, GL_SPECULAR, materialSpecular);
     glMaterialf( GL_FRONT, GL_SHININESS, materialShininess);
 
-	//Set up backface culling
-	glCullFace(GL_BACK);
-	glFrontFace(GL_CCW); //our polygon winding is counter clockwise
+    //Set up backface culling
+    glCullFace(GL_BACK);
+    glFrontFace(GL_CCW); //our polygon winding is counter clockwise
 }

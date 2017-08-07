@@ -33,7 +33,7 @@ The macros below set the propper c++ includes and namespaces
 #endif
 
 #if __USE_CPP11__
-	#if defined(__APPLE__) && defined(__GLIBCXX__)
+    #if defined(__APPLE__) && defined(__GLIBCXX__)
         #pragma message("libstdc++ doesn't fully support c++11 in OS X, SGCT will revert to c++0x")
         #include <tr1/functional>
         #include <tr1/unordered_map>

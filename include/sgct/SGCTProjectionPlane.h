@@ -19,27 +19,27 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core
 {
 
-	/*!
-	This class holds and manages the 3D projection plane
-	*/
-	class SGCTProjectionPlane
-	{
-	public:
-		enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
+    /*!
+    This class holds and manages the 3D projection plane
+    */
+    class SGCTProjectionPlane
+    {
+    public:
+        enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
-		SGCTProjectionPlane();
-		void configure(tinyxml2::XMLElement * element);
-		void reset();
-		void offset(glm::vec3 p);
+        SGCTProjectionPlane();
+        void configure(tinyxml2::XMLElement * element);
+        void reset();
+        void offset(glm::vec3 p);
 
-		void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
-		void setCoordinate(std::size_t corner, glm::vec3 coordinate);
-		const glm::vec3 * getCoordinatePtr(ProjectionPlaneCorner corner) const;
-		glm::vec3 getCoordinate(ProjectionPlaneCorner corner) const;
+        void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
+        void setCoordinate(std::size_t corner, glm::vec3 coordinate);
+        const glm::vec3 * getCoordinatePtr(ProjectionPlaneCorner corner) const;
+        glm::vec3 getCoordinate(ProjectionPlaneCorner corner) const;
 
-	protected:
-		glm::vec3 mProjectionPlaneCoords[3];
-	};
+    protected:
+        glm::vec3 mProjectionPlaneCoords[3];
+    };
 
 }
 

@@ -12,8 +12,8 @@ endif()
 SET(BUILD_SHARED_LIBS OFF)
 PROJECT("sgct")
 set(SGCT_VERSION_MAJOR "2")
-set(SGCT_VERSION_MINOR "7")
-set(SGCT_VERSION_REVISION "3")
+set(SGCT_VERSION_MINOR "8")
+set(SGCT_VERSION_REVISION "0")
 set(SGCT_VERSION "${SGCT_VERSION_MAJOR}_${SGCT_VERSION_MINOR}_${SGCT_VERSION_REVISION}")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
@@ -117,6 +117,12 @@ elseif( MSVC )
 		set(SGCT_ARCHITECTURE "x86")
 	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 14 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 14 2015 Win64")
 		set(SGCT_COMPILER "msvc14")
+		set(SGCT_ARCHITECTURE "x64")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 15" OR CMAKE_GENERATOR STREQUAL "Visual Studio 15 2017")
+		set(SGCT_COMPILER "msvc15")
+		set(SGCT_ARCHITECTURE "x86")
+	elseif( CMAKE_GENERATOR STREQUAL "Visual Studio 15 Win64" OR CMAKE_GENERATOR STREQUAL "Visual Studio 15 2017 Win64")
+		set(SGCT_COMPILER "msvc15")
 		set(SGCT_ARCHITECTURE "x64")
 	else()
 		#use mingw as template
@@ -253,6 +259,23 @@ else(SGCT_NO_EXTERNAL_LIBRARIES)
 	add_definitions(-DSGCT_DONT_USE_EXTERNAL)
 endif(SGCT_NO_EXTERNAL_LIBRARIES)
 
+########################
+# Spout section  start #
+########################
+if (WIN32)
+    option(SGCT_SPOUT_SUPPORT "SGCT Spout support" OFF)
+endif ()
+
+set(SPOUT_DEFINITIONS "")
+if (SGCT_SPOUT_SUPPORT)
+    set(SPOUT_DEFINITIONS "-DSGCT_HAS_SPOUT")
+endif ()
+add_definitions(${SPOUT_DEFINITIONS})
+
+########################
+#  Spout section  end  #
+########################
+
 find_package(OpenGL REQUIRED)
 
 set( PDB_OUTPUT_DIRECTORY "${SGCT_LIB_PATH}/deps" )
@@ -361,8 +384,6 @@ endif()
 
 if( MSVC )
 	#set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
-	set(CMAKE_EXE_LINKER_FLAGS_DEBUG "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMTD.lib")
-	set(CMAKE_EXE_LINKER_FLAGS_RELEASE "${CMAKE_EXE_LINKER_FLAGS} /NODEFAULTLIB:LIBCMT.lib")
 	
 	if (NOT SGCT_USE_MSVC_RUNTIMES)
         foreach (flag ${SGCTCompilerFlags})
@@ -424,6 +445,9 @@ if(SGCT_TEXT)
 	set(SGCT_DEPS freetype ${SGCT_DEPS})
 endif()
 add_dependencies(${LIB_NAME} ${SGCT_DEPS})
+
+#including deps
+include_directories(${PROJECT_SOURCE_DIR}/src/deps/glfw/include)
 
 #including directories with generated config files in this scope
 include_directories(${PROJECT_BINARY_DIR}/src/deps/vrpn)
@@ -531,6 +555,7 @@ if(SGCT_INSTALL)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/GL DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/glm DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/include/vrpn DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
+		INSTALL(DIRECTORY ${PROJECT_SOURCE_DIR}/src/deps/glfw/include/GLFW DESTINATION include COMPONENT headers PATTERN ".svn" EXCLUDE)
 	endif()
 		
 	INSTALL(FILES ${PROJECT_SOURCE_DIR}/include/sgct.h DESTINATION include COMPONENT headers)

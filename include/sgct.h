@@ -513,7 +513,7 @@ namespace sgct_utils{}; //empty for doxygen documentation only
 Ths namespace contains various help classes and functions.
 */
 namespace sgct_helpers{}; //empty for doxygen documentation only
-//#include "sgct/helpers/SGCTStringFunctions.h"
+#include "sgct/helpers/SGCTStringFunctions.h"
 #include "sgct/helpers/SGCTVertexData.h"
 #include "sgct/helpers/SGCTCPPEleven.h"
 //#include "sgct/helpers/SGCTPortedFunctions.h"

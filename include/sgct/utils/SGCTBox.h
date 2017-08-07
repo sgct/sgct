@@ -17,36 +17,36 @@ namespace sgct_utils
 {
 
 /*!
-	This class creates and renders a textured box.
+    This class creates and renders a textured box.
 */
 class SGCTBox
 {
 public:
-	enum TextureMappingMode { Regular = 0, CubeMap, SkyBox };
+    enum TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
-	SGCTBox(float size, TextureMappingMode tmm = Regular);
-	~SGCTBox();
-	void draw();
+    SGCTBox(float size, TextureMappingMode tmm = Regular);
+    ~SGCTBox();
+    void draw();
 
 private:
-	// Don't implement these, should give compile warning if used
-	SGCTBox();
-	SGCTBox( const SGCTBox & box );
-	const SGCTBox & operator=(const SGCTBox & box );
+    // Don't implement these, should give compile warning if used
+    SGCTBox();
+    SGCTBox( const SGCTBox & box );
+    const SGCTBox & operator=(const SGCTBox & box );
 
-	void drawVBO();
-	void drawVAO();
+    void drawVBO();
+    void drawVAO();
 
-	typedef void (SGCTBox::*InternalCallbackFn)(void);
-	InternalCallbackFn	mInternalDrawFn;
+    typedef void (SGCTBox::*InternalCallbackFn)(void);
+    InternalCallbackFn    mInternalDrawFn;
 
-	void cleanUp();
-	void createVBO();
+    void cleanUp();
+    void createVBO();
 
-private:	
-	unsigned int mVBO;
-	unsigned int mVAO;
-	sgct_helpers::SGCTVertexData * mVerts;
+private:    
+    unsigned int mVBO;
+    unsigned int mVAO;
+    sgct_helpers::SGCTVertexData * mVerts;
 };
 }
 

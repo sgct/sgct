@@ -4,20 +4,20 @@ sgct::Engine * gEngine;
 
 int main( int argc, char* argv[] )
 {
-	gEngine = new sgct::Engine( argc, argv );
+    gEngine = new sgct::Engine( argc, argv );
 
-	if( !gEngine->init() )
-	{
-		delete gEngine;
-		return EXIT_FAILURE;
-	}
+    if( !gEngine->init() )
+    {
+        delete gEngine;
+        return EXIT_FAILURE;
+    }
 
-	// Main loop
-	gEngine->render();
+    // Main loop
+    gEngine->render();
 
-	// Clean up
-	delete gEngine;
+    // Clean up
+    delete gEngine;
 
-	// Exit program
-	exit( EXIT_SUCCESS );
+    // Exit program
+    exit( EXIT_SUCCESS );
 }

@@ -100,6 +100,7 @@ if(NOT DEFINED SGCT_INCLUDE_DIRECTORY)
 			REQUIRED)
 	endif()
 endif()
+set(GLFW_INCLUDE_DIRECTORY $ENV{SGCT_ROOT_DIR}/src/deps/glfw/include)
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
@@ -109,6 +110,7 @@ set(SGCT_LIBS
 find_package(OpenGL REQUIRED)
 
 include_directories(${SGCT_INCLUDE_DIRECTORY})
+include_directories(${GLFW_INCLUDE_DIRECTORY})
 
 if( MSVC )
 	set(LIBS

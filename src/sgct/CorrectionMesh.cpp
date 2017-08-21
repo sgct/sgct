@@ -1616,6 +1616,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         warpedPos_y[i] = smoothPos_y[i] + correctionGridY[i];
     }
 
+#ifdef NORMALIZE_CORRECTION_MESH
     float maxX = *std::max_element(warpedPos_x, warpedPos_x + numCorrectionValues);
     float minX = *std::min_element(warpedPos_x, warpedPos_x + numCorrectionValues);
     float scaleRangeX = maxX - minX;
@@ -1628,6 +1629,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         warpedPos_x[i] = (warpedPos_x[i] - minX) / scaleFactor;
         warpedPos_y[i] = (warpedPos_y[i] - minY) / scaleFactor;
     }
+#endif //NORMALIZE_CORRECTION_MESH
 
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;

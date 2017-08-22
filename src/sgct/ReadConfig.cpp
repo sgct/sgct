@@ -399,7 +399,14 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     
                     if( element[1]->Attribute("mpcdi") != NULL ) {
                     	sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
-                        if( !mpcdiHandler.parseConfiguration(element[1]->Attribute("mpcdi"), tmpNode, tmpWin) ) {
+						std::string pathToMpcdiFile;
+						size_t lastSlashPos = xmlFileName.find_last_of("/");
+						if (lastSlashPos != std::string::npos)
+						    pathToMpcdiFile = xmlFileName.substr(0, lastSlashPos) + "/";
+						pathToMpcdiFile += element[1]->Attribute("mpcdi");
+						//replace all backslashes with slashes
+						std::replace(pathToMpcdiFile.begin(), pathToMpcdiFile.end(), '\\', '/');
+                        if( !mpcdiHandler.parseConfiguration(pathToMpcdiFile, tmpNode, tmpWin) ) {
                             return false;
                         }
                     }

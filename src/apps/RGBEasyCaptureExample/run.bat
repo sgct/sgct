@@ -1,0 +1,1 @@
+RGBEasyCaptureExample.exe -config single.xml

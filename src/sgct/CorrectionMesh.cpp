@@ -1639,11 +1639,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.b = 1.0f;
     vertex.a = 1.0f;
     for (unsigned int i = 0; i < numCorrectionValues; ++i) {
-        vertex.s = warpedPos_x[i];
-        vertex.t = warpedPos_y[i];
+        vertex.s = smoothPos_x[i];
+        vertex.t = smoothPos_y[i];
         //scale to viewport coordinates
-        vertex.x = 2.0f * smoothPos_x[i] - 1.0f;
-        vertex.y = 2.0f * smoothPos_y[i] - 1.0f;
+        vertex.x = 2.0f * warpedPos_x[i] - 1.0f;
+        vertex.y = 2.0f * warpedPos_y[i] - 1.0f;
         vertices.push_back(vertex);
     }
     delete warpedPos_x;

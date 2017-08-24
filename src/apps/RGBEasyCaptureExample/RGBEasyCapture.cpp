@@ -52,8 +52,6 @@ History:
 #define ONE_SECOND   1000 * 1000 * 1000L
 #define NO_BUFFER    0xFF
 
-#define TOP_BOTTOM	 1
-
 
 /* Static Constants ***********************************************************/
 
@@ -792,29 +790,34 @@ bool RGBEasyCapture::prepareForRendering() {
 }
 
 void RGBEasyCapture::renderingCompleted() {
-	glBindTexture(GL_TEXTURE_2D, 0);
-
-	if (glIsSync(currentFence))
+	if (currentBufferIndex != NO_BUFFER)
 	{
-		glClientWaitSync(currentFence, GL_SYNC_FLUSH_COMMANDS_BIT, ONE_SECOND);
-		glDeleteSync(currentFence);
-	}
+		glBindTexture(GL_TEXTURE_2D, 0);
 
-	if (Global.Hardware == GPU_NVIDIA)
-	{
-		RGBDirectGPUNVIDIAOp(Global.HRGB, currentBufferIndex, NVIDIA_GPU_END);
-	}
+		if (glIsSync(currentFence))
+		{
+			glClientWaitSync(currentFence, GL_SYNC_FLUSH_COMMANDS_BIT, ONE_SECOND);
+			glDeleteSync(currentFence);
+		}
 
-	/* Now that the buffer has been rendered give it back to RGBEasy. */
-	Global.Error = RGBChainOutputBufferEx(Global.HRGB,
-		Global.PBitmapInfo[currentBufferIndex], (void*)Global.PDataBuffer[currentBufferIndex],
-		RGB_BUFFERTYPE_DIRECTGMA);
+		if (Global.Hardware == GPU_NVIDIA)
+		{
+			RGBDirectGPUNVIDIAOp(Global.HRGB, currentBufferIndex, NVIDIA_GPU_END);
+		}
+
+		/* Now that the buffer has been rendered give it back to RGBEasy. */
+		Global.Error = RGBChainOutputBufferEx(Global.HRGB,
+			Global.PBitmapInfo[currentBufferIndex], (void*)Global.PDataBuffer[currentBufferIndex],
+			RGB_BUFFERTYPE_DIRECTGMA);
 #ifdef _DEBUG
-	/* Buffer is in RGBEasy. */
-	Global.BufferTrack[currentBufferIndex].State = TEXT('C');
+		/* Buffer is in RGBEasy. */
+		Global.BufferTrack[currentBufferIndex].State = TEXT('C');
 #endif
-	/* Reset the event as rendering has finished. */
-	ResetEvent(Global.HCapturedBuffer);
+		/* Reset the event as rendering has finished. */
+		ResetEvent(Global.HCapturedBuffer);
+	}
+
+	WaitForSingleObject(Global.HCapturedBuffer, INFINITE);
 }
 
 std::string RGBEasyCapture::getCaptureHost() const

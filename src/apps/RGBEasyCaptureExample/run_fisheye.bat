@@ -1,1 +1,1 @@
-RGBEasyCaptureExample.exe -config fisheye.xml -host localhost
+RGBEasyCaptureExample.exe -config fisheye.xml -host localhost -ganging -fulldome

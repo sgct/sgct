@@ -40,7 +40,6 @@ public:
 
 private:
     std::string mCaptureHost;
-	int mCaptureInput;
 	bool mCaptureGanging;
 };
 

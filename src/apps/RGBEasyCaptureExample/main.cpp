@@ -20,19 +20,30 @@ void myContextCreationCallback(GLFWwindow * win);
 
 //functions
 void parseArguments(int& argc, char**& argv);
-void captureLoop(void *arg);
+void renderToTextureSetup();
 void calculateStats();
 
 sgct_utils::SGCTPlane * myPlane = NULL;
+sgct_utils::SGCTPlane * mySquare = NULL;
 sgct_utils::SGCTDome * myDome = NULL;
 
 GLint Matrix_Loc = -1;
+GLint Matrix_Loc_RT = -1;
 GLint ScaleUV_Loc = -1;
 GLint OffsetUV_Loc = -1;
 GLuint texId = GL_FALSE;
 
-tthread::thread * workerThread;
-GLFWwindow * hiddenWindow;
+//RRender to texture struct
+struct RT
+{
+	unsigned int texture;
+	unsigned int fbo;
+	unsigned int renderBuffer;
+	unsigned long width;
+	unsigned long height;
+};
+RT captureGangingRT;
+
 GLFWwindow * sharedWindow;
 bool flipFrame = false;
 bool fulldomeMode = false;
@@ -47,15 +58,15 @@ sgct::SharedBool stats(false);
 sgct::SharedBool takeScreenshot(false);
 
 //variables to share between threads
-sgct::SharedBool workerRunning(false);
+sgct::SharedBool captureRunning(false);
 sgct::SharedBool renderDome(fulldomeMode);
 sgct::SharedDouble captureRate(0.0);
-sgct::SharedInt32 domeCut(2);
+sgct::SharedInt32 domeCut(1);
 
 int main( int argc, char* argv[] )
 {    
     gEngine = new sgct::Engine( argc, argv );
-    gCapture = new RGBEasyCapture();
+	gCapture = new RGBEasyCapture();
 
     // arguments:
     // -host <host which should capture>
@@ -75,7 +86,6 @@ int main( int argc, char* argv[] )
     // For options look at: http://ffmpeg.org/ffmpeg-devices.html
 
     parseArguments(argc, argv);
-
     gEngine->setInitOGLFunction( myInitOGLFun );
     gEngine->setDrawFunction( myDraw3DFun );
     gEngine->setDraw2DFunction( myDraw2DFun );
@@ -97,16 +107,13 @@ int main( int argc, char* argv[] )
     // Main loop
     gEngine->render();
 
-    //kill worker thread
-    workerRunning.setVal(false);
-    if (workerThread)
-    {
-        workerThread->join();
-        delete workerThread;
-    }
-
     // Clean up
-    delete gCapture;
+	sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
+	if (thisNode->getAddress() == gCapture->getCaptureHost()) {
+		gCapture->deinitializeGL();
+		gCapture->deinitialize();
+		delete gCapture;
+	}
     delete gEngine;
 
     // Exit program
@@ -124,13 +131,59 @@ void myDraw3DFun()
 
     glActiveTexture(GL_TEXTURE0);
 
-	if (workerRunning.getVal() && gCapture->prepareForRendering()) {
-		glm::vec2 texSize = glm::vec2(static_cast<float>(gCapture->getWidth()), static_cast<float>(gCapture->getHeight()));
-
+	if (captureRunning.getVal() && gCapture->prepareForRendering()) {
 		if (fulldomeMode)
 		{
+			//Rendering to square texture when assumig ganing (i.e. from 2x1 to 1x2) as 1x2 does not seem to function properly
+			if(gCapture->getGanging()) {
+				sgct::ShaderManager::instance()->bindShaderProgram("sbs2tb");
+
+				sgct_core::OffScreenBuffer * fbo = gEngine->getCurrentFBO();
+
+				//get viewport data and set the viewport
+				glViewport(0, 0, captureGangingRT.width, captureGangingRT.height);
+
+				//bind fbo
+				glBindFramebuffer(GL_FRAMEBUFFER, captureGangingRT.fbo);
+				glFramebufferTexture2D(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_TEXTURE_2D, captureGangingRT.texture, 0);
+
+				//transform
+				glm::mat4 planeTransform = glm::mat4(1.0f);
+				glUniformMatrix4fv(Matrix_Loc_RT, 1, GL_FALSE, &planeTransform[0][0]);
+
+				glCullFace(GL_BACK);
+
+				//draw square
+				mySquare->draw();
+
+				sgct::ShaderManager::instance()->unBindShaderProgram();
+
+				//restore
+				if (fbo)
+					fbo->bind();
+				sgct::ShaderManager::instance()->bindShaderProgram("xform");
+				const int * coords = gEngine->getCurrentViewportPixelCoords();
+				glViewport(coords[0], coords[1], coords[2], coords[3]);
+
+				//bind our RT such that we can use it for rendering
+				glBindTexture(GL_TEXTURE_2D, captureGangingRT.texture);
+			}
+
+			/* Test to see what we would get back
+			glUniform2f(ScaleUV_Loc, 1.f, 1.f);
+			glUniform2f(OffsetUV_Loc, 0.f, 0.f);
+
+			glm::mat4 planeTransform = glm::mat4(1.0f);
+			glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
+
+			glCullFace(GL_BACK);
+
+			//draw square
+			mySquare->draw();*/
+
 			// TextureCut 2 equals showing only the middle square of a capturing a widescreen input
-			if (domeCut.getVal() == 2) {
+			if (!gCapture->getGanging() && domeCut.getVal() == 2) {
+				glm::vec2 texSize = glm::vec2(static_cast<float>(gCapture->getWidth()), static_cast<float>(gCapture->getHeight()));
 				glUniform2f(ScaleUV_Loc, texSize.y / texSize.x, 1.f);
 				glUniform2f(OffsetUV_Loc, ((texSize.x - texSize.y)*0.5f) / texSize.x, 0.f);
 			}
@@ -139,34 +192,49 @@ void myDraw3DFun()
 				glUniform2f(OffsetUV_Loc, 0.f, 0.f);
 			}
 
-			glCullFace(GL_FRONT); //camera on the inside of the dome
+			glFrontFace(GL_CW);
+			//glCullFace(GL_BACK); //camera on the inside of the dome
 
 			glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &MVP[0][0]);
 			myDome->draw();
 		}
 		else //plane mode
 		{
-			glUniform2f(ScaleUV_Loc, 1.f, 1.f);
-			glUniform2f(OffsetUV_Loc, 0.f, 0.f);
-
 			glCullFace(GL_BACK);
 
-			//transform and draw plane
-			glm::mat4 planeTransform = glm::mat4(1.0f);
-			/*planeTransform = glm::rotate(planeTransform, glm::radians(planeAzimuth), glm::vec3(0.0f, -1.0f, 0.0f)); //azimuth
-			planeTransform = glm::rotate(planeTransform, glm::radians(planeElevation), glm::vec3(1.0f, 0.0f, 0.0f)); //elevation
-			planeTransform = glm::rotate(planeTransform, glm::radians(planeRoll), glm::vec3(0.0f, 0.0f, 1.0f)); //roll*/
-			planeTransform = glm::translate(planeTransform, glm::vec3(0.0f, 0.0f, -5.0f)); //distance
+			//Rendering to square texture when assumig ganing (i.e. from 2x1 to 1x2) as 1x2 does not seem to function properly
+			if (gCapture->getGanging() && domeCut.getVal() == 2) {
+				sgct::ShaderManager::instance()->bindShaderProgram("sbs2tb");
 
-			planeTransform = MVP * planeTransform;
-			glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
-			myPlane->draw();
+				glm::mat4 planeTransform = glm::mat4(1.0f);
+				glUniformMatrix4fv(Matrix_Loc_RT, 1, GL_FALSE, &planeTransform[0][0]);
+
+				//draw square
+				mySquare->draw();
+			}
+			else
+			{
+				glUniform2f(ScaleUV_Loc, 1.f, 1.f);
+				glUniform2f(OffsetUV_Loc, 0.f, 0.f);
+
+				//transform and draw plane
+				glm::mat4 planeTransform = glm::mat4(1.0f);
+				planeTransform = glm::rotate(planeTransform, glm::radians(planeAzimuth), glm::vec3(0.0f, -1.0f, 0.0f)); //azimuth
+				planeTransform = glm::rotate(planeTransform, glm::radians(planeElevation), glm::vec3(1.0f, 0.0f, 0.0f)); //elevation
+				planeTransform = glm::rotate(planeTransform, glm::radians(planeRoll), glm::vec3(0.0f, 0.0f, 1.0f)); //roll
+				planeTransform = glm::translate(planeTransform, glm::vec3(0.0f, 0.0f, -5.0f)); //distance
+
+				planeTransform = MVP * planeTransform;
+				glUniformMatrix4fv(Matrix_Loc, 1, GL_FALSE, &planeTransform[0][0]);
+				myPlane->draw();
+			}
 		}
 
 		gCapture->renderingCompleted();
 	}
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
+	glFrontFace(GL_CCW);
 
     glDisable( GL_CULL_FACE );
     glDisable( GL_DEPTH_TEST );
@@ -217,10 +285,9 @@ void myInitOGLFun()
     //start capture thread (which will intialize RGBEasy things)
     sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
 	if (thisNode->getAddress() == gCapture->getCaptureHost()) {
-		workerRunning.setVal(true);
+		captureRunning.setVal(true);
 
 		// start capture thread
-		//workerThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
 		if (gCapture->initialize()) {
 			// initalize capture OpenGL (running on this thread)
 			gCapture->initializeGL();
@@ -228,12 +295,21 @@ void myInitOGLFun()
 			// Start capture
 			gCapture->runCapture();
 		}
+
+		// check if we are ganing inputs
+		// thus we assume 2x1 (sbs) which we want to change to 1x2 (tb)
+		if (gCapture->getGanging()) {
+			renderToTextureSetup();
+		}
 	}
     
     //create plane
     float planeWidth = 8.0f;
-	float planeHeight = 8.0f;//planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
+	float planeHeight = planeWidth * (static_cast<float>(gCapture->getHeight()) / static_cast<float>(gCapture->getWidth()));
     myPlane = new sgct_utils::SGCTPlane(planeWidth, planeHeight);
+
+	//create square
+	mySquare = new sgct_utils::SGCTPlane(2.0f, 2.0f);
     
     //create dome
     myDome = new sgct_utils::SGCTDome(7.4f, 180.0f, 256, 128);
@@ -255,6 +331,18 @@ void myInitOGLFun()
     glUniform1i( Tex_Loc, 0 );
 
     sgct::ShaderManager::instance()->unBindShaderProgram();
+
+	sgct::ShaderManager::instance()->addShaderProgram("sbs2tb",
+		"xform.vert",
+		"sbs2tb.frag");
+
+	sgct::ShaderManager::instance()->bindShaderProgram("sbs2tb");
+
+	Matrix_Loc_RT = sgct::ShaderManager::instance()->getShaderProgram("sbs2tb").getUniformLocation("MVP");
+	GLint Tex_Loc_RT = sgct::ShaderManager::instance()->getShaderProgram("sbs2tb").getUniformLocation("Tex");
+	glUniform1i(Tex_Loc_RT, 0);
+
+	sgct::ShaderManager::instance()->unBindShaderProgram();
 
     sgct::Engine::checkForOGLErrors();
 }
@@ -283,6 +371,9 @@ void myCleanUpFun()
 {
     if (myPlane)
         delete myPlane;
+
+	if (mySquare)
+		delete mySquare;
 
     if (myDome)
         delete myDome;
@@ -344,17 +435,7 @@ void myKeyCallback(int key, int action)
 void myContextCreationCallback(GLFWwindow * win)
 {
     glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
-
     sharedWindow = win;
-    hiddenWindow = glfwCreateWindow(1, 1, "Thread Window", NULL, sharedWindow);
-
-    if (!hiddenWindow)
-    {
-        sgct::MessageHandler::instance()->print("Failed to create loader context!\n");
-    }
-
-    //restore to normal
-    glfwMakeContextCurrent(sharedWindow);
 }
 
 void parseArguments(int& argc, char**& argv)
@@ -384,29 +465,67 @@ void parseArguments(int& argc, char**& argv)
             planeElevation = static_cast<float>(atof(argv[i + 2]));
             planeRoll = static_cast<float>(atof(argv[i + 3]));
         }
+		else if (strcmp(argv[i], "-fulldome") == 0)
+		{
+			renderDome.setVal(true);
+		}
 
         i++; //iterate
     }
 }
 
-void captureLoop(void *arg)
+void renderToTextureSetup()
 {
-    //glfwMakeContextCurrent(hiddenWindow);
+	captureGangingRT.width = gCapture->getWidth() / 2;
+	captureGangingRT.height = gCapture->getHeight() * 2;
+	captureGangingRT.fbo = GL_FALSE;
+	captureGangingRT.renderBuffer = GL_FALSE;
+	captureGangingRT.texture = GL_FALSE;
 
-	if (gCapture->initialize()) {
-		gCapture->runCapture();
+	//create targets
+	glEnable(GL_TEXTURE_2D);
 
+	glGenTextures(1, &(captureGangingRT.texture));
+	glBindTexture(GL_TEXTURE_2D, captureGangingRT.texture);
 
-		while (workerRunning.getVal())
-		{
-			//gCapture->poll();
-			//sgct::Engine::sleep(0.02); //take a short break to offload the cpu
-		}
+	glPixelStorei(GL_PACK_ALIGNMENT, 1);
+	glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+	glTexStorage2D(GL_TEXTURE_2D, 1, GL_RGB8, captureGangingRT.width, captureGangingRT.height);
 
-		gCapture->deinitialize();
-	}
+	//---------------------
+	// Disable mipmaps
+	//---------------------
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
 
-    //glfwMakeContextCurrent(NULL); //detach context
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB8, captureGangingRT.width, captureGangingRT.height, 0, GL_BGR, GL_UNSIGNED_BYTE, NULL);
+
+	gEngine->checkForOGLErrors();
+
+	glBindTexture(GL_TEXTURE_2D, GL_FALSE);
+
+	glGenFramebuffers(1, &(captureGangingRT.fbo));
+	glGenRenderbuffers(1, &(captureGangingRT.renderBuffer));
+
+	//setup color buffer
+	glBindFramebuffer(GL_FRAMEBUFFER, captureGangingRT.fbo);
+	glBindRenderbuffer(GL_RENDERBUFFER, captureGangingRT.renderBuffer);
+	glRenderbufferStorage(GL_RENDERBUFFER, GL_RGB, captureGangingRT.width, captureGangingRT.height);
+	glFramebufferRenderbuffer(GL_FRAMEBUFFER, GL_COLOR_ATTACHMENT0, GL_RENDERBUFFER, captureGangingRT.renderBuffer);
+
+	//Does the GPU support current FBO configuration?
+	if (glCheckFramebufferStatus(GL_FRAMEBUFFER) != GL_FRAMEBUFFER_COMPLETE)
+		sgct::MessageHandler::instance()->print("Something went wrong creating FBO!\n");
+
+	gEngine->checkForOGLErrors();
+
+	//unbind
+	glBindFramebuffer(GL_FRAMEBUFFER, 0);
 }
 
 void calculateStats()

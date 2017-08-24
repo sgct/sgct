@@ -173,7 +173,7 @@ DoGanging(unsigned long input)
 	if ((error == 0) && bSupported)
 	{
 		// attempt to support a 4-input card, and a 2-input card
-		RGBGANG_TYPE type[] = { RGBGANG_TYPE_2x1 };
+		RGBGANG_TYPE type[] = { RGBGANG_TYPE_2x2, RGBGANG_TYPE_2x1 };
 		long i;
 
 		for (i = 0; i < _countof(type); i++)
@@ -477,11 +477,11 @@ SetupDirectGPU()
 
 	if (error == 0)
 	{
-		if (!sgct::Engine::checkForOGLErrors()) //if error occured
+		/*if (!sgct::Engine::checkForOGLErrors()) //if error occured
 		{
 			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "RGBEasyCapture : Init Direct GPU Transfer failed\n");
 			void cleanup();
-		}
+		}*/
 
 		/* The size of the buffer allocated is stored in
 		the field bufferSize. The size of the buffer is re-assigned to the
@@ -605,16 +605,12 @@ CloseRGBEasy()
 
 RGBEasyCapture::RGBEasyCapture()
 {
-	mCaptureHost = "localhost";
-	mCaptureInput = 0;
-	mCaptureGanging = true;
+	mCaptureHost = "";
+	mCaptureGanging = false;
 }
 
 RGBEasyCapture::~RGBEasyCapture()
 {
-	deinitializeGL();
-	StopCapture();
-	CloseRGBEasy();
 }
 
 bool RGBEasyCapture::initialize()
@@ -833,7 +829,7 @@ void RGBEasyCapture::setCaptureHost(std::string hostAdress)
 
 void RGBEasyCapture::setCaptureInput(int input)
 {
-    mCaptureInput = input;
+	Global.Input = input;
 }
 
 void RGBEasyCapture::setCaptureGanging(bool doGanging) {

@@ -11,6 +11,7 @@ option(SGCT_EXAMPLES_NDI "Build NDI examples" OFF)
 option(SGCT_EXAMPLES_IMGUI "Build imgui examples" OFF)
 option(SGCT_EXAMPLES_OPENVR "Build OpenVR examples" OFF)
 option(SGCT_EXAMPLES_OSG "Build OSG examples" OFF)
+option(SGCT_EXAMPLES_RGBEASY "Build RGBEasy examples" OFF)
 option(SGCT_EXAMPLES_WEBSOCKETS "Build Websockets examples" OFF)
 #Spout doesn't support MinGW
 if(MSVC)
@@ -89,6 +90,10 @@ endif()
 if(SGCT_EXAMPLES_FFMPEG)
 	add_subdirectory(FFmpegCaptureAndDomeImageViewer)
 	add_subdirectory(FFmpegCaptureExample)
+endif()
+
+if(SGCT_EXAMPLES_RGBEASY)
+	add_subdirectory(RGBEasyCaptureExample)
 endif()
 
 if(SGCT_EXAMPLES_NDI)

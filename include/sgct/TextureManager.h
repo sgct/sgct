@@ -83,8 +83,8 @@ public:
     void setCompression(CompressionMode cm);
     void setWarpingMode(int warp_s, int warp_t);
     CompressionMode getCompression();
-    bool loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
-    bool loadTexure(const std::string name, sgct_core::Image * imgPtr, bool interpolate, int mipmapLevels = 8);
+    bool loadTexture(const std::string name, const std::string filename, bool interpolate, int mipmapLevels = 8);
+    bool loadTexture(const std::string name, sgct_core::Image * imgPtr, bool interpolate, int mipmapLevels = 8);
     bool loadUnManagedTexture(unsigned int & texID, const std::string filename, bool interpolate, int mipmapLevels = 8);
 
 private:

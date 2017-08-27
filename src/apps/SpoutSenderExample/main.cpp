@@ -1,5 +1,6 @@
 //tell Spout to use GLEW
 #define USE_GLEW
+#include "spoutGLextensions.h" // include before spout.h to avoid gl before glew issue
 #include "spout.h"
 
 //avoid include conflicts between spout and sgct

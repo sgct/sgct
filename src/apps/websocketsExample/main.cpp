@@ -110,7 +110,7 @@ void myInitFun()
     
     //sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure("avatar", "avatar.png", true);
+    sgct::TextureManager::instance()->loadTexture("avatar", "avatar.png", true);
 
     sgct::ShaderManager::instance()->addShaderProgram( "avatar",
             "avatar.vert",

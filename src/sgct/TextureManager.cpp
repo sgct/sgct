@@ -159,7 +159,7 @@ sgct::TextureManager::CompressionMode sgct::TextureManager::getCompression()
     \param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
     \return true if texture loaded successfully
 */
-bool sgct::TextureManager::loadTexure(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
+bool sgct::TextureManager::loadTexture(const std::string name, const std::string filename, bool interpolate, int mipmapLevels)
 {
     GLuint texID = 0;
     bool reload = false;
@@ -219,7 +219,7 @@ Load a texture to the TextureManager.
 \param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
 \return true if texture loaded successfully
 */
-bool sgct::TextureManager::loadTexure(const std::string name, sgct_core::Image * imgPtr, bool interpolate, int mipmapLevels)
+bool sgct::TextureManager::loadTexture(const std::string name, sgct_core::Image * imgPtr, bool interpolate, int mipmapLevels)
 {
     if (!imgPtr)
     {

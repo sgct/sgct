@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # merge libs
 if [ -f libsgct_light.a ] && [ -f libsgct_lightd.a ];
 then

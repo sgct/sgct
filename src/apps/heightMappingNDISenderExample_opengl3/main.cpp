@@ -183,8 +183,8 @@ void myInitOGLFun()
     glDepthFunc(GL_LESS);
 
     //setup textures
-    sgct::TextureManager::instance()->loadTexure("heightmap", "../SharedResources/heightmap.png", true, 0);
-    sgct::TextureManager::instance()->loadTexure("normalmap", "../SharedResources/normalmap.png", true, 0);
+    sgct::TextureManager::instance()->loadTexture("heightmap", "../SharedResources/heightmap.png", true, 0);
+    sgct::TextureManager::instance()->loadTexture("normalmap", "../SharedResources/normalmap.png", true, 0);
 
     //setup shader
     sgct::ShaderManager::instance()->addShaderProgram( mSp, "Heightmap", "heightmap.vert", "heightmap.frag" );

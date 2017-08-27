@@ -547,7 +547,7 @@ void loadData()
 {
     /*//todo: fixa kompression från xml
      for(unsigned int i=0;i<texFilenames.size();i++)
-     tex.loadTexure(texFilenames[i].c_str(), true, false);
+     tex.loadTexture(texFilenames[i].c_str(), true, false);
      
      blender = Shader::create();
      const char * shaderName = "textureblend";

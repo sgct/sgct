@@ -28,12 +28,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ShaderManager.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
-
 #include <glm/gtc/constants.hpp>
 #include <math.h>
 #include <algorithm>

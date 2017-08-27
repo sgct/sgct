@@ -5,6 +5,11 @@ project(glew)
 
 include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 
+if( NOT WIN32 AND NOT APPLE )
+  find_package(X11)
+  include_directories(${X11_X11_INCLUDE_PATH})
+endif()
+
 if( MSVC )
 	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} /LTCG")
 	

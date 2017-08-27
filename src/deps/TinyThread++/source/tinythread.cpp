@@ -31,6 +31,10 @@ freely, subject to the following restrictions:
   #include <process.h>
 #endif
 
+#if defined(__FreeBSD__)
+  #include <pthread_np.h>
+#endif
+
 
 namespace tthread {
 
@@ -329,7 +333,7 @@ void thread::set_low_priority()
     pthread_attr_getschedpolicy(&thread_attr, &policy);
     priority = sched_get_priority_min(policy);
 
-#if __APPLE__
+#if __APPLE__ || __FreeBSD__
     struct sched_param param;
     memset(&param, 0, sizeof(param));
     param.sched_priority = priority;

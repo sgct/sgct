@@ -73,7 +73,7 @@ void myInitOGLFun()
     glEnable( GL_DEPTH_TEST );
 
     sphere = new sgct_utils::SGCTSphere(0.5f, 8);
-    dome   = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10, domeTilt );
+	dome = new sgct_utils::SGCTDome(7.4f, 165.0f, 36, 10);
 
     alutInit(NULL, 0);
 

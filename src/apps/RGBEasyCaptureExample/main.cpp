@@ -20,8 +20,8 @@ void myContextCreationCallback(GLFWwindow * win);
 
 //functions
 void captureGLDraw();
-void captureLoop(void *arg);
-void captureGLLoop(void *arg);
+void captureLoop();
+void captureGLLoop();
 void parseArguments(int& argc, char**& argv);
 void renderToTextureSetup();
 void calculateStats();
@@ -47,8 +47,8 @@ struct RT
 };
 RT captureRT;
 
-tthread::thread * captureThread;
-tthread::thread * captureGLThread;
+std::thread * captureThread;
+std::thread * captureGLThread;
 
 GLFWwindow * sharedWindow;
 GLFWwindow * hiddenWindow;
@@ -318,7 +318,7 @@ void captureGLDraw() {
 	}
 }
 
-void captureGLLoop(void *arg) {
+void captureGLLoop() {
 	glfwMakeContextCurrent(hiddenWindow);
 
 	gCapture->initializeGL();
@@ -332,7 +332,7 @@ void captureGLLoop(void *arg) {
 	glfwMakeContextCurrent(NULL); //detach context
 }
 
-void captureLoop(void *arg) {
+void captureLoop() {
 	gCapture->runCapture();
 	while (captureThreadRunning.getVal()) {
 		// Frame capture running...
@@ -351,7 +351,7 @@ void myInitOGLFun()
 			captureGLThreadRunning.setVal(false);
 			if (captureGLThreadRunning.getVal()) {
 				// initalize capture OpenGL (running on background thread)
-				captureGLThread = new (std::nothrow) tthread::thread(captureGLLoop, NULL);
+				captureGLThread = new (std::nothrow) std::thread(captureGLLoop);
 			}
 			else {
 				// initalize capture OpenGL (running on this thread)
@@ -363,7 +363,7 @@ void myInitOGLFun()
 			captureThreadRunning.setVal(true);
 			if (captureThreadRunning.getVal()) {
 				// run capture on background thread
-				captureThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
+				captureThread = new (std::nothrow) std::thread(captureLoop);
 			}
 			else {
 				// run capture on main thread

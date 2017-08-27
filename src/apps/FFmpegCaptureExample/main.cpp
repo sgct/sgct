@@ -24,7 +24,7 @@ void uploadData(uint8_t ** data, int width, int height);
 //functions
 void parseArguments(int& argc, char**& argv);
 void allocateTexture();
-void captureLoop(void *arg);
+void captureLoop();
 void calculateStats();
 
 sgct_utils::SGCTPlane * myPlane = NULL;
@@ -35,7 +35,7 @@ GLint ScaleUV_Loc = -1;
 GLint OffsetUV_Loc = -1;
 GLuint texId = GL_FALSE;
 
-tthread::thread * workerThread;
+std::thread * workerThread;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
 bool flipFrame = false;
@@ -225,7 +225,7 @@ void myInitOGLFun()
     //start capture thread
     sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
     if (thisNode->getAddress() == gCapture->getVideoHost())
-        workerThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
+        workerThread = new (std::nothrow) std::thread(captureLoop);
 
     std::function<void(uint8_t ** data, int width, int height)> callback = uploadData;
     gCapture->setVideoDecoderCallback(callback);
@@ -459,7 +459,7 @@ void uploadData(uint8_t ** data, int width, int height)
     }
 }
 
-void captureLoop(void *arg)
+void captureLoop()
 {
     glfwMakeContextCurrent(hiddenWindow);
 

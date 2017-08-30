@@ -14,7 +14,6 @@ then
 	ar x deps/libturbojpeg.a
 	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
-	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
 	ar x libsgct_light_cpp11.a
 	ar r libsgct_cpp11.a *.o
@@ -31,7 +30,6 @@ then
 	ar x deps/libturbojpegd.a
 	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
-	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a
 	ar x libsgct_light_cpp11d.a
 	ar r libsgct_cpp11d.a *.o
@@ -51,7 +49,6 @@ then
 	ar x deps/libturbojpeg.a
 	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
-	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
 	ar x libsgct_light_cpp11.a
 	ar r libsgct_cpp11.a *.o
@@ -71,7 +68,6 @@ then
 	ar x deps/libturbojpegd.a
 	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
-	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a
 	ar x libsgct_light_cpp11d.a
 	ar r libsgct_cpp11d.a *.o

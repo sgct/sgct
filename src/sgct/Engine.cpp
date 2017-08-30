@@ -1147,7 +1147,7 @@ void sgct::Engine::render()
         double startFrameTime = glfwGetTime();
         calculateFPS(startFrameTime); //measures time between calls
 
-        if (!mFixedOGLPipeline)
+        if (!mFixedOGLPipeline && mShowGraph)
             glQueryCounter(time_queries[0], GL_TIMESTAMP);
 
         //--------------------------------------------------------------
@@ -1325,7 +1325,7 @@ void sgct::Engine::render()
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: swap and update data\n");
 #endif
         
-        if (!mFixedOGLPipeline)
+        if (!mFixedOGLPipeline && mShowGraph)
             glQueryCounter(time_queries[1], GL_TIMESTAMP);
 
         double endFrameTime = glfwGetTime();
@@ -1340,30 +1340,32 @@ void sgct::Engine::render()
             mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
         else
         {
-            //double t = glfwGetTime();
-            //int counter = 0;
+            if (mShowGraph) {
+                //double t = glfwGetTime();
+                //int counter = 0;
 
-            // wait until the query results are available
-            GLint done = GL_FALSE;
-            while (!done)
-            {
-                glGetQueryObjectiv(time_queries[1],
-                    GL_QUERY_RESULT_AVAILABLE, 
-                    &done);
+                // wait until the query results are available
+                GLint done = GL_FALSE;
+                while (!done)
+                {
+                    glGetQueryObjectiv(time_queries[1],
+                        GL_QUERY_RESULT_AVAILABLE,
+                        &done);
 
-                //counter++;
+                    //counter++;
+                }
+
+                //fprintf(stderr, "Wait: %d %lf\n", counter, (glfwGetTime() - t) * 1000.0);
+
+                GLuint64 timerStart;
+                GLuint64 timerEnd;
+                // get the query results
+                glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
+                glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
+
+                double elapsedTime = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
+                mStatistics->setDrawTime(static_cast<float>(elapsedTime));
             }
-
-            //fprintf(stderr, "Wait: %d %lf\n", counter, (glfwGetTime() - t) * 1000.0);
-
-            GLuint64 timerStart;
-            GLuint64 timerEnd;
-            // get the query results
-            glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
-            glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
-
-            double elapsedTime = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            mStatistics->setDrawTime(static_cast<float>(elapsedTime));
         }
 
         if (mShowGraph)

@@ -23,11 +23,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 typedef int _ssize_t;
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include "external/tinythread.h"
-#else
-    #include <tinythread.h>
-#endif
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
+#include <thread>
 
 namespace sgct_core //small graphics cluster toolkit
 {
@@ -108,7 +107,7 @@ private:
 
 public:
     static const std::size_t mHeaderSize = 13;
-    tthread::condition_variable mStartConnectionCond;
+    std::condition_variable mStartConnectionCond;
 
 private:
     enum timeStampIndex { Send = 0, Total };
@@ -117,17 +116,17 @@ private:
     SGCT_SOCKET mListenSocket;
 
     ConnectionTypes mConnectionType;
-    tthread::atomic<bool> mServer;
-    tthread::atomic<bool> mConnected;
-    tthread::atomic<bool> mUpdated;
-    tthread::atomic<int32_t> mSendFrame[2];
-    tthread::atomic<int32_t> mRecvFrame[2];
-    tthread::atomic<bool> mTerminate; //set to true upon exit
-    tthread::atomic<uint32_t> mRequestedSize;
+    std::atomic<bool> mServer;
+    std::atomic<bool> mConnected;
+    std::atomic<bool> mUpdated;
+    std::atomic<int32_t> mSendFrame[2];
+    std::atomic<int32_t> mRecvFrame[2];
+    std::atomic<bool> mTerminate; //set to true upon exit
+    std::atomic<uint32_t> mRequestedSize;
 
-    tthread::mutex mConnectionMutex;
-    tthread::thread * mCommThread;
-    tthread::thread * mMainThread;
+    std::mutex mConnectionMutex;
+    std::thread * mCommThread;
+    std::thread * mMainThread;
 
     double mTimeStamp[2];
     int mId;

@@ -522,7 +522,7 @@ private:
     sgct_core::Statistics        * mStatistics;
     sgct_core::SGCTNode            * mThisNode;
 
-    tthread::thread * mThreadPtr;
+    std::thread * mThreadPtr;
 
     std::string configFilename;
     std::string mLogfilePath;

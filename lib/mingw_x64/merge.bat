@@ -6,7 +6,6 @@ ar x deps/libpng16.a
 ar x deps/libturbojpeg.a
 ar x deps/libfreetype.a
 ar x deps/libtinyxml2.a
-ar x deps/libtinythreadpp.a
 ar x deps/libvrpn.a
 ar x libsgct_light.a
 ar r libsgct.a *.obj

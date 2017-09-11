@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
 struct VRPNPointer
@@ -138,7 +139,7 @@ void sgct::SGCTTrackingManager::startSampling()
         setHeadTracker(mHeadUser->getHeadTrackerName(),
             mHeadUser->getHeadTrackerDeviceName());
 
-        mSamplingThread = new tthread::thread( samplingLoop, this );
+        mSamplingThread = new std::thread( samplingLoop, this );
     }
 }
 

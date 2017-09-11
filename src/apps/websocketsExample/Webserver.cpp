@@ -3,7 +3,7 @@
 #include <stdlib.h>
 #include <libwebsockets.h> // websocket lib
 
-tthread::mutex gSendMutex;
+std::mutex gSendMutex;
 Webserver * Webserver::mInstance = NULL;
 
 char gBuffer[4096];//may corrupt the stack if too small
@@ -184,7 +184,7 @@ void Webserver::start(int port, int timeout_ms)
     mRunning = true;
     mPort = port;
     mTimeout = timeout_ms;
-    mMainThreadPtr = new (std::nothrow) tthread::thread(Webserver::worker, NULL);
+    mMainThreadPtr = new (std::nothrow) std::thread(Webserver::worker);
 }
 
 void Webserver::setCallback(Webserver::WebMessageCallbackFn cb)
@@ -206,7 +206,7 @@ unsigned int Webserver::generateSessionIndex()
     return tmpUi;
 }
 
-void Webserver::worker(void *)
+void Webserver::worker()
 {
     // server url will be ws://localhost:9000
     const char *interface = NULL;

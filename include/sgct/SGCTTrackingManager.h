@@ -10,13 +10,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <vector>
 #include <set>
+#include <thread>
 #include "SGCTTracker.h"
 #include "SGCTUser.h"
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include "external/tinythread.h"
-#else
-    #include <tinythread.h>
-#endif
 
 namespace sgct
 {
@@ -56,7 +52,7 @@ private:
     void setHeadTracker(const char * trackerName, const char * deviceName);
 
 private:
-    tthread::thread * mSamplingThread;
+    std::thread * mSamplingThread;
     std::vector<SGCTTracker *> mTrackers;
     std::set< std::string > mAddresses;
     double mSamplingTime;

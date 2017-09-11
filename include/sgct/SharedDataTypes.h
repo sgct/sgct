@@ -8,14 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _SHARED_DATA_TYPES
 #define _SHARED_DATA_TYPES
 
+#include <mutex>
 #include <stdint.h>
 #include <string>
 #include <vector>
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
 
 namespace sgct //simple graphics cluster toolkit
 {    
@@ -55,7 +51,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         float mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -94,7 +90,7 @@ namespace sgct //simple graphics cluster toolkit
         
     private:
         double mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -133,7 +129,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         int64_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -172,7 +168,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         int32_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -211,7 +207,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         int16_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -250,7 +246,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         int8_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -289,7 +285,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         uint64_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -328,7 +324,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         uint32_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -367,7 +363,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         uint16_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -406,7 +402,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         uint8_t mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     //backwards compability
@@ -428,7 +424,7 @@ namespace sgct //simple graphics cluster toolkit
         SharedUChar( const SharedUChar & suc );
         const SharedUChar & operator=(const SharedUChar & suc );
         unsigned char mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -452,7 +448,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         bool mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -474,7 +470,7 @@ namespace sgct //simple graphics cluster toolkit
 
     private:
         std::string mStr;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
 	/*!
@@ -496,7 +492,7 @@ namespace sgct //simple graphics cluster toolkit
 
 	private:
 		std::wstring mStr;
-		tthread::mutex mMutex;
+		std::mutex mMutex;
 	};
 
     /*!
@@ -529,7 +525,7 @@ namespace sgct //simple graphics cluster toolkit
         SharedObject( const SharedObject & so );
         const SharedObject & operator=(const SharedObject & so );
         T mVal;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 
     /*!
@@ -601,7 +597,7 @@ namespace sgct //simple graphics cluster toolkit
         SharedVector( const SharedVector & sv );
         const SharedVector & operator=(const SharedVector & sv );
         std::vector<T> mVector;
-        tthread::mutex mMutex;
+        std::mutex mMutex;
     };
 }
 

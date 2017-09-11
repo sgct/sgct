@@ -93,12 +93,6 @@ Copyright (C) 1995-2010 Jean-loup Gailly and Mark Adler
 Web: http://www.zlib.net/
 ---------------------------------------------------------
 
-TinyThread++
-=========================================================
-Copyright (c) 2010-2012 Marcus Geelnard
-Web: http://tinythreadpp.bitsnbites.eu/
----------------------------------------------------------
-
 libjpeg-turbo
 =========================================================
 Copyright (c) 1991-1998, Thomas G. Lane.
@@ -172,7 +166,6 @@ SGCT is using the following libraries.
 - <a href="http://www.glfw.org">GLFW 3</a>
 - <a href="http://glew.sourceforge.net/">GLEW - The OpenGL Extension Wrangler Library</a>
 - <a href="http://glm.g-truc.net/">GLM - OpenGL Mathematics</a>
-- <a href="http://tinythreadpp.bitsnbites.eu/">TinyThread++</a>
 - <a href="http://www.grinninglizard.com/tinyxml2/index.html">TinyXML-2</a>
 - <a href="http://www.cs.unc.edu/Research/vrpn/">VRPN - Virtual Reality Peripheral Network</a>
 - <a href="http://www.freetype.org">Freetype 2</a>
@@ -220,28 +213,6 @@ License type: MIT
 Copyright &copy; 2005 - 2013 G-Truc Creation (www.g-truc.net)\n
 License: <a href="http://glm.g-truc.net/copying.txt">http://glm.g-truc.net/copying.txt</a>\n
 License type: MIT\n
-
-\subsubsection tinythread TinyThread++
-Copyright &copy; 2010-2012 Marcus Geelnard\n
-\n
-This software is provided 'as-is', without any express or implied\n
-warranty. In no event will the authors be held liable for any damages\n
-arising from the use of this software.\n
-\n
-Permission is granted to anyone to use this software for any purpose,\n
-including commercial applications, and to alter it and redistribute it\n
-freely, subject to the following restrictions:\n
-\n
-   -# The origin of this software must not be misrepresented; you must not\n
-   claim that you wrote the original software. If you use this software\n
-   in a product, an acknowledgment in the product documentation would be\n
-   appreciated but is not required.
-
-   -# Altered source versions must be plainly marked as such, and must not be\n
-   misrepresented as being the original software.
-
-   -# This notice may not be removed or altered from any source distribution.
-
 
 License type: zlib/libpng
 
@@ -488,12 +459,6 @@ License type: BSD\n
 	#else
 		#define TINYXML_H "tinyxml2.h"
 	#endif
-#endif
-
-#ifndef SGCT_DONT_USE_EXTERNAL
-	#include "external/tinythread.h"
-#else
-	#include <tinythread.h>
 #endif
 
 //utilities

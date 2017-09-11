@@ -28,12 +28,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ShaderManager.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "../include/external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
-
 #include <glm/gtc/constants.hpp>
 #include <math.h>
 #include <algorithm>
@@ -600,7 +594,7 @@ bool sgct::Engine::initWindows()
     if( RUN_FRAME_LOCK_CHECK_THREAD )
     {
         if(sgct_core::ClusterManager::instance()->getNumberOfNodes() > 1)
-            mThreadPtr = new (std::nothrow) tthread::thread( updateFrameLockLoop, 0 );
+            mThreadPtr = new (std::nothrow) std::thread( updateFrameLockLoop, nullptr );
     }
 
     //init swap group if enabled
@@ -952,12 +946,14 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                         break;
 
                 if(USE_SLEEP_TO_WAIT_FOR_NODES)
-                    tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
-                    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
-                    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
+                    std::unique_lock<std::mutex> lk(*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::FrameSyncMutex));
+                    sgct_core::NetworkManager::gCond.wait(lk);
+                    //SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+                    //sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>() );
+                    //SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
                 
                 //for debuging
@@ -1013,12 +1009,15 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                         break;
 
                 if(USE_SLEEP_TO_WAIT_FOR_NODES)
-                    tthread::this_thread::sleep_for(tthread::chrono::milliseconds(1));
+                    std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 else
                 {
-                    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
-                    sgct_core::NetworkManager::gCond.wait( (*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
-                    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
+                    std::unique_lock<std::mutex> lk(*SGCTMutexManager::instance()->getMutexPtr(SGCTMutexManager::FrameSyncMutex));
+                    sgct_core::NetworkManager::gCond.wait(lk);
+
+                    //SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
+                    //sgct_core::NetworkManager::gCond.wait(std::unique_lock<std::mutex>(*SGCTMutexManager::instance()->getMutexPtr( SGCTMutexManager::FrameSyncMutex )) );
+                    //SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
 
                 //for debuging
@@ -1148,7 +1147,7 @@ void sgct::Engine::render()
         double startFrameTime = glfwGetTime();
         calculateFPS(startFrameTime); //measures time between calls
 
-        if (!mFixedOGLPipeline)
+        if (!mFixedOGLPipeline && mShowGraph)
             glQueryCounter(time_queries[0], GL_TIMESTAMP);
 
         //--------------------------------------------------------------
@@ -1326,7 +1325,7 @@ void sgct::Engine::render()
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Render-Loop: swap and update data\n");
 #endif
         
-        if (!mFixedOGLPipeline)
+        if (!mFixedOGLPipeline && mShowGraph)
             glQueryCounter(time_queries[1], GL_TIMESTAMP);
 
         double endFrameTime = glfwGetTime();
@@ -1341,30 +1340,32 @@ void sgct::Engine::render()
             mStatistics->setDrawTime(static_cast<float>(endFrameTime - startFrameTime));
         else
         {
-            //double t = glfwGetTime();
-            //int counter = 0;
+            if (mShowGraph) {
+                //double t = glfwGetTime();
+                //int counter = 0;
 
-            // wait until the query results are available
-            GLint done = GL_FALSE;
-            while (!done)
-            {
-                glGetQueryObjectiv(time_queries[1],
-                    GL_QUERY_RESULT_AVAILABLE, 
-                    &done);
+                // wait until the query results are available
+                GLint done = GL_FALSE;
+                while (!done)
+                {
+                    glGetQueryObjectiv(time_queries[1],
+                        GL_QUERY_RESULT_AVAILABLE,
+                        &done);
 
-                //counter++;
+                    //counter++;
+                }
+
+                //fprintf(stderr, "Wait: %d %lf\n", counter, (glfwGetTime() - t) * 1000.0);
+
+                GLuint64 timerStart;
+                GLuint64 timerEnd;
+                // get the query results
+                glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
+                glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
+
+                double elapsedTime = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
+                mStatistics->setDrawTime(static_cast<float>(elapsedTime));
             }
-
-            //fprintf(stderr, "Wait: %d %lf\n", counter, (glfwGetTime() - t) * 1000.0);
-
-            GLuint64 timerStart;
-            GLuint64 timerEnd;
-            // get the query results
-            glGetQueryObjectui64v(time_queries[0], GL_QUERY_RESULT, &timerStart);
-            glGetQueryObjectui64v(time_queries[1], GL_QUERY_RESULT, &timerEnd);
-
-            double elapsedTime = static_cast<double>(timerEnd - timerStart) / 1000000000.0;
-            mStatistics->setDrawTime(static_cast<float>(elapsedTime));
         }
 
         if (mShowGraph)
@@ -2668,7 +2669,7 @@ void sgct::Engine::waitForAllWindowsInSwapGroupToOpen()
             
             MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, ".");
 
-            tthread::this_thread::sleep_for(tthread::chrono::milliseconds(50));
+            std::this_thread::sleep_for(std::chrono::milliseconds(50));
         }
 
         MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "\n");
@@ -4272,7 +4273,7 @@ This function puts the current thread to sleep during a specified time
 */
 void sgct::Engine::sleep(double secs)
 {
-    tthread::this_thread::sleep_for(tthread::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));
+    std::this_thread::sleep_for(std::chrono::milliseconds( static_cast<int>(secs * 1000.0) ));
 }
 
 /*!
@@ -4491,6 +4492,6 @@ void updateFrameLockLoop(void * arg)
 
         sgct_core::NetworkManager::gCond.notify_all();
 
-        tthread::this_thread::sleep_for(tthread::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
+        std::this_thread::sleep_for(std::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
     }
 }

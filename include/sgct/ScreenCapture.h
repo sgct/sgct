@@ -13,11 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "helpers/SGCTCPPEleven.h"
 #include <string>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinythread.h"
-#else
-#include <tinythread.h>
-#endif
+#include <mutex>
+#include <thread>
 
 namespace sgct_core
 {
@@ -27,8 +24,8 @@ class ScreenCaptureThreadInfo
 public:
     ScreenCaptureThreadInfo();
     sgct_core::Image * mframeBufferImagePtr;
-    tthread::thread * mFrameCaptureThreadPtr;
-    tthread::mutex * mMutexPtr;
+    std::thread * mFrameCaptureThreadPtr;
+    std::mutex * mMutexPtr;
     bool mRunning; //needed for test if running without join
 };
 
@@ -70,7 +67,7 @@ private:
     void checkImageBuffer(const CaputeSrc & CapSrc);
     Image * prepareImage(int index);
 
-    tthread::mutex mMutex;
+    std::mutex mMutex;
     ScreenCaptureThreadInfo * mSCTIPtrs;
 
     unsigned int mNumberOfThreads;

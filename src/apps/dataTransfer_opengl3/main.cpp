@@ -26,10 +26,10 @@ void myDataTransferAcknowledge(int packageId, int clientIndex);
 void startDataTransfer();
 void readImage(unsigned char * data, int len);
 void uploadTexture();
-void threadWorker(void *arg);
+void threadWorker();
 
-tthread::thread * loadThread;
-tthread::mutex mutex;
+std::thread * loadThread;
+std::mutex mutex;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
 sgct_core::Image * transImg = NULL;
@@ -270,7 +270,7 @@ void contextCreationCallback(GLFWwindow * win)
     glfwMakeContextCurrent( sharedWindow );
     
     if( gEngine->isMaster() )
-        loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
+        loadThread = new (std::nothrow) std::thread(threadWorker);
 }
 
 void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
@@ -307,7 +307,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
     }
 }
 
-void threadWorker(void *arg)
+void threadWorker()
 {
     while (running.getVal())
     {

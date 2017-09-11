@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 #include <sgct/ScreenCapture.h>
 #include <sgct/ogl_headers.h>
-#include "external/tinythread.h"
 #include <string.h>
 
 sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
@@ -19,7 +18,7 @@ sgct::SGCTSettings::SGCTSettings()
     mPNGCompressionLevel = 1;
     mJPEGQuality = 100;
 
-    mNumberOfCaptureThreads = tthread::thread::hardware_concurrency();
+    mNumberOfCaptureThreads = std::thread::hardware_concurrency();
 
     mCaptureBackBuffer            = false;
     mUseWarping                    = true;

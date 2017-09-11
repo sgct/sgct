@@ -10,12 +10,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define SGCT_NUMBER_OF_MUTEXES 6
 
+#include <mutex>
 #include <stddef.h>
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include "external/tinythread.h"
-#else
-    #include <tinythread.h>
-#endif
 
 namespace sgct
 {
@@ -51,7 +47,7 @@ public:
 
     void lockMutex(MutexIndexes mi);
     void unlockMutex(MutexIndexes mi);
-    tthread::mutex * getMutexPtr(MutexIndexes mi);
+    std::mutex * getMutexPtr(MutexIndexes mi);
 
 private:
     SGCTMutexManager();
@@ -63,7 +59,7 @@ private:
 
 private:
     static SGCTMutexManager * mInstance;
-    tthread::mutex mInternalMutexes[SGCT_NUMBER_OF_MUTEXES];
+    std::mutex mInternalMutexes[SGCT_NUMBER_OF_MUTEXES];
 };
 }
 

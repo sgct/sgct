@@ -6,6 +6,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/NetworkManager.h>
+
+#ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN
+#include <windows.h>
+#endif
+
 #include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/SharedData.h>
@@ -54,7 +60,7 @@ const char* inet_ntop(int af, const void* src, char* dst, int cnt)
 
 //#define __SGCT_NETWORK_DEBUG__
 
-tthread::condition_variable sgct_core::NetworkManager::gCond;
+std::condition_variable sgct_core::NetworkManager::gCond;
 
 sgct_core::NetworkManager * sgct_core::NetworkManager::mInstance = NULL;
 
@@ -746,7 +752,7 @@ void sgct_core::NetworkManager::close()
         }
 
     //wait for all nodes callbacks to run
-    tthread::this_thread::sleep_for(tthread::chrono::milliseconds( 250 ) );
+    std::this_thread::sleep_for(std::chrono::milliseconds( 250 ) );
 
     //wait for threads to die
     for(unsigned int i=0; i < mNetworkConnections.size(); i++)

@@ -6,5 +6,4 @@ freetype 2.5.2
 glfw 3.1.1
 glm 0.9.6.3
 vrpn 07.33
-TinyThread++ 1.2
 libjpeg-turbo-1.4.1

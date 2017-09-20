@@ -357,8 +357,14 @@ elseif( APPLE )
 		${IOKIT_LIBRARY}
 		${COREVIDEO_LIBRARY}
 	)
-else() #linux
-	find_package(X11 REQUIRED)
+else() # Linux or FreeBSD
+	if (CMAKE_SYSTEM_NAME STREQUAL "FreeBSD")
+		include(FindPkgConfig)
+		pkg_check_modules(X11 REQUIRED x11)
+		include_directories(${X11_X11_INCLUDE_PATH})
+	else ()
+		find_package(X11 REQUIRED)
+	endif ()
 	find_package(Threads REQUIRED)
 
 	set(LINUX_LIBS
@@ -447,13 +453,13 @@ endif()
 add_dependencies(${LIB_NAME} ${SGCT_DEPS})
 
 #including deps
-include_directories(${PROJECT_SOURCE_DIR}/src/deps/glfw/include)
+include_directories(BEFORE ${PROJECT_SOURCE_DIR}/src/deps/glfw/include)
 
 #including directories with generated config files in this scope
-include_directories(${PROJECT_BINARY_DIR}/src/deps/vrpn)
-include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng)
-include_directories(${PROJECT_BINARY_DIR}/src/deps/lpng/zlib)
-include_directories(${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/vrpn)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/lpng)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/lpng/zlib)
+include_directories(BEFORE ${PROJECT_BINARY_DIR}/src/deps/libjpeg-turbo)
 
 #merge libs
 if(NOT SGCT_LIGHT_ONLY)

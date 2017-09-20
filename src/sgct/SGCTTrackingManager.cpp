@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
 struct VRPNPointer

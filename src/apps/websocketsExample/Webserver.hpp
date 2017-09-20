@@ -1,7 +1,8 @@
 #ifndef _WEB_SERVER_
 #define _WEB_SERVER_
 
-#include "external/tinythread.h"
+#include <thread>
+#include <mutex>
 #include <atomic>
 
 //Webserver singleton
@@ -37,7 +38,7 @@ public:
     unsigned int generateSessionIndex();
 
 	WebMessageCallbackFn mWebMessageCallbackFn;
-	//tthread::atomic<bool> mRunning;
+	//std::atomic<bool> mRunning;
 	std::atomic<bool> mRunning;
 	
 private:
@@ -49,14 +50,14 @@ private:
 	Webserver(Webserver &&rhs);
 	const Webserver & operator=(const Webserver & rhs);
 
-	static void worker(void *);
+	static void worker();
 
 	static Webserver * mInstance;
     int mPort;
     int mTimeout; //in ms
     unsigned int mSessionIndex;
-	tthread::mutex mMutex;
-	tthread::thread * mMainThreadPtr;
+	std::mutex mMutex;
+	std::thread * mMainThreadPtr;
 };
 
 #endif

@@ -21,7 +21,7 @@ void renderAvatars();
 UserData webUsers[MAX_WEB_USERS];
 std::vector<UserData> webUsers_copy;
 
-tthread::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
+std::mutex mWebMutex; //used for thread exclusive data access (prevent corruption)
 
 sgct::SharedFloat curr_time(0.0f);
 sgct::SharedVector<UserData> sharedUserData;
@@ -110,7 +110,7 @@ void myInitFun()
     
     //sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     //sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure("avatar", "avatar.png", true);
+    sgct::TextureManager::instance()->loadTexture("avatar", "avatar.png", true);
 
     sgct::ShaderManager::instance()->addShaderProgram( "avatar",
             "avatar.vert",

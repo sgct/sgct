@@ -26,10 +26,10 @@ void myDataTransferAcknowledge(int packageId, int clientIndex);
 void startDataTransfer();
 void readImage(unsigned char * data, int len);
 void uploadTexture();
-void threadWorker(void *arg);
+void threadWorker();
 
-tthread::thread * loadThread;
-tthread::mutex mutex;
+std::thread * loadThread;
+std::mutex mutex;
 GLFWwindow * hiddenWindow;
 GLFWwindow * sharedWindow;
 sgct_core::Image * transImg = NULL;
@@ -170,7 +170,7 @@ void myInitOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
+    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
     myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
     //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
@@ -270,7 +270,7 @@ void contextCreationCallback(GLFWwindow * win)
     glfwMakeContextCurrent( sharedWindow );
     
     if( gEngine->isMaster() )
-        loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
+        loadThread = new (std::nothrow) std::thread(threadWorker);
 }
 
 void myDataTransferDecoder(void * receivedData, int receivedlength, int packageId, int clientIndex)
@@ -307,7 +307,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
     }
 }
 
-void threadWorker(void *arg)
+void threadWorker()
 {
     while (running.getVal())
     {

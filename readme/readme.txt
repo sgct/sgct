@@ -180,14 +180,6 @@ License type: zlib
 ---------------------------------------------------------
 
 
-TinyThread++
-=========================================================
-Copyright (c) 2010-2012 Marcus Geelnard
-Web: http://tinythreadpp.bitsnbites.eu/
-License type: zlib/libpng
----------------------------------------------------------
-
-
 libjpeg-turbo
 =========================================================
 Copyright (c) 1991-2012, Thomas G. Lane, Guido Vollbeding

@@ -17,11 +17,11 @@ void connect();
 void disconnect();
 void sendData(const void * data, int length, int packageId);
 void sendTestMessage();
-void networkLoop(void * arg);
+void networkLoop();
 
-tthread::thread * connectionThread = NULL;
-tthread::atomic<bool> connected;
-tthread::atomic<bool> running;
+std::thread * connectionThread = NULL;
+std::atomic<bool> connected;
+std::atomic<bool> running;
 
 //network callbacks
 void networkConnectionUpdated(sgct_core::SGCTNetwork * conn);
@@ -62,7 +62,7 @@ int main( int argc, char* argv[] )
         return EXIT_FAILURE;
     }
 
-    connectionThread = new tthread::thread(networkLoop, NULL);
+    connectionThread = new std::thread(networkLoop);
 
     sgct::SharedData::instance()->setEncodeFunction(myEncodeFun);
     sgct::SharedData::instance()->setDecodeFunction(myDecodeFun);
@@ -141,7 +141,7 @@ void myInitOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::S3TC_DXT);
-    sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
+    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
     myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::Regular);
     //myBox = new sgct_utils::SGCTBox(2.0f, sgct_utils::SGCTBox::CubeMap);
@@ -229,7 +229,7 @@ void networkDecode(void * receivedData, int receivedlength, int packageId, int c
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Message: \"%s\"\n", test.c_str());
 }
 
-void networkLoop(void * arg)
+void networkLoop()
 {
     connect();
 
@@ -245,7 +245,7 @@ void networkLoop(void * arg)
             else
             {
                 //just check if connected once per second
-                tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
+                std::this_thread::sleep_for(std::chrono::seconds(1));
             }
         }
     }
@@ -305,7 +305,7 @@ void connect()
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Network error: %s\n", err);
         networkPtr->initShutdown();
-        tthread::this_thread::sleep_for(tthread::chrono::seconds(1));
+        std::this_thread::sleep_for(std::chrono::seconds(1));
         networkPtr->closeNetwork(true);
         return;
     }
@@ -320,7 +320,7 @@ void disconnect()
         networkPtr->initShutdown();
 
         //wait for all nodes callbacks to run
-        tthread::this_thread::sleep_for(tthread::chrono::milliseconds(250));
+        std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
         //wait for threads to die
         networkPtr->closeNetwork(false);

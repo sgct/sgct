@@ -41,10 +41,10 @@ void myDataTransferAcknowledge(int packageId, int clientIndex);
 void startDataTransfer();
 void readImage(unsigned char * data, int len);
 void uploadTexture();
-void threadWorker(void *arg);
+void threadWorker();
 
-tthread::thread * loadThread;
-tthread::mutex mutex;
+std::thread * loadThread;
+std::mutex mutex;
 std::vector<sgct_core::Image *> transImages;
 
 sgct::SharedInt32 texIndex(-1);
@@ -68,7 +68,7 @@ const int headerSize = 1;
 void uploadData(uint8_t ** data, int width, int height);
 void parseArguments(int& argc, char**& argv);
 void allocateTexture();
-void captureLoop(void *arg);
+void captureLoop();
 void calculateStats();
 
 GLint Matrix_Loc = -1;
@@ -80,7 +80,7 @@ GLint OffsetUV_Loc_CK = -1;
 GLint ChromaKeyColor_Loc_CK = -1;
 GLuint texId = GL_FALSE;
 
-tthread::thread * captureThread;
+std::thread * captureThread;
 bool flipFrame = false;
 bool fulldomeMode = false;
 float planeAzimuth = 0.0f;
@@ -330,9 +330,9 @@ void myInitOGLFun()
     //start capture thread if host or load thread if master and not host
     sgct_core::SGCTNode * thisNode = sgct_core::ClusterManager::instance()->getThisNodePtr();
     if (thisNode->getAddress() == gCapture->getVideoHost())
-        captureThread = new (std::nothrow) tthread::thread(captureLoop, NULL);
+        captureThread = new (std::nothrow) std::thread(captureLoop);
     else if (gEngine->isMaster())
-        loadThread = new (std::nothrow) tthread::thread(threadWorker, NULL);
+        loadThread = new (std::nothrow) std::thread(threadWorker);
 
     std::function<void(uint8_t ** data, int width, int height)> callback = uploadData;
     gCapture->setVideoDecoderCallback(callback);
@@ -576,7 +576,7 @@ void myDataTransferAcknowledge(int packageId, int clientIndex)
     }
 }
 
-void threadWorker(void *arg)
+void threadWorker()
 {
     while (running.getVal())
     {
@@ -924,7 +924,7 @@ void uploadData(uint8_t ** data, int width, int height)
     }
 }
 
-void captureLoop(void *arg)
+void captureLoop()
 {
     glfwMakeContextCurrent(hiddenWindow);
 

@@ -42,7 +42,6 @@ src/deps/lpng/png16_static.dir/
 src/deps/lpng/zlib/zlib.pc
 src/deps/lpng/zlib/zconf.h
 src/deps/lpng/zlib/zlibstatic.dir/
-src/deps/TinyThread++/source/tinythreadpp.dir/
 src/deps/tinyxml2/cmake_install.cmake
 src/deps/tinyxml2/tinyxml2.pc
 src/deps/tinyxml2/tinyxml2static.dir/

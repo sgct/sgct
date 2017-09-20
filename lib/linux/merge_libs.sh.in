@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/bin/sh
 # merge libs
 if [ -f libsgct_light.a ] && [ -f libsgct_lightd.a ];
 then
@@ -15,7 +15,6 @@ then
 	ar x deps/libturbojpeg.a
 	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
-	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
 	ar x libsgct_light.a
 	ar r libsgct.a *.o
@@ -33,7 +32,6 @@ then
 	ar x deps/libturbojpegd.a
 	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
-	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a
 	ar x libsgct_lightd.a
 	ar r libsgctd.a *.o
@@ -54,7 +52,6 @@ then
 	ar x deps/libturbojpeg.a
 	@SGCT_FREETYPE_RELEASE_LIB_PATH@
 	ar x deps/libtinyxml2.a
-	ar x deps/libtinythreadpp.a
 	ar x deps/libvrpn.a
 	ar x libsgct_light.a
 	ar r libsgct.a *.o
@@ -75,7 +72,6 @@ then
 	ar x deps/libturbojpegd.a
 	@SGCT_FREETYPE_DEBUG_LIB_PATH@
 	ar x deps/libtinyxml2d.a
-	ar x deps/libtinythreadppd.a
 	ar x deps/libvrpnd.a
 	ar x libsgct_lightd.a
 	ar r libsgctd.a *.o

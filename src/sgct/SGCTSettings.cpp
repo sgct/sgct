@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 #include <sgct/ScreenCapture.h>
 #include <sgct/ogl_headers.h>
-#include "external/tinythread.h"
 #include <string.h>
 
 sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;

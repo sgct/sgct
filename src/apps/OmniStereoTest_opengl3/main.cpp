@@ -149,7 +149,7 @@ void myInitOGLFun()
 {
     sgct::TextureManager::instance()->setAnisotropicFilterSize(8.0f);
     sgct::TextureManager::instance()->setCompression(sgct::TextureManager::No_Compression);
-    sgct::TextureManager::instance()->loadTexure("box", "../SharedResources/box.png", true);
+    sgct::TextureManager::instance()->loadTexture("box", "../SharedResources/box.png", true);
 
     myBox = new sgct_utils::SGCTBox(0.5f, sgct_utils::SGCTBox::Regular);
     myGrid = new sgct_utils::SGCTDomeGrid(domeDiameter/2.0f, 180.0f, 64, 32, 256);

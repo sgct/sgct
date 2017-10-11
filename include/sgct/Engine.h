@@ -65,7 +65,9 @@ public:
         OpenGL_4_4_Core_Profile,
         /// This option is using a programmable OpenGL 4.5 pipeline using a core profile
         OpenGL_4_5_Core_Profile,
-        
+        /// This option is using a programmable OpenGL 4.6 pipeline using a core profile
+        OpenGL_4_6_Core_Profile,
+
         /// This option is using a programmable OpenGL 4.1 pipeline using a core profile and debug feedback
         OpenGL_4_1_Debug_Core_Profile,
         /// This option is using a programmable OpenGL 4.2 pipeline using a core profile and debug feedback
@@ -75,7 +77,10 @@ public:
         /// This option is using a programmable OpenGL 4.4 pipeline using a core profile and debug feedback
         OpenGL_4_4_Debug_Core_Profile,
         /// This option is using a programmable OpenGL 4.5 pipeline using a core profile and debug feedback
-        OpenGL_4_5_Debug_Core_Profile
+        OpenGL_4_5_Debug_Core_Profile,
+        /// This option is using a programmable OpenGL 4.6 pipeline using a core profile and debug feedback
+        OpenGL_4_6_Debug_Core_Profile
+
     };
     //! The different texture indexes in window buffers
     enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions };

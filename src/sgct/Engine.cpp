@@ -129,7 +129,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
     mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
     mContextCreationFnPtr = SGCT_NULL_PTR;
     mScreenShotFnPtr1 = SGCT_NULL_PTR;
-	mScreenShotFnPtr2 = SGCT_NULL_PTR;
+    mScreenShotFnPtr2 = SGCT_NULL_PTR;
 
     mInternalDrawFn = NULL;
     mInternalRenderFBOFn = NULL;
@@ -457,6 +457,19 @@ bool sgct::Engine::initWindows()
     }
     break;
 
+    case OpenGL_4_6_Core_Profile:
+    {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+#if __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glewExperimental = true; // Needed for core profile
+        mGLSLVersion.assign("#version 460 core");
+    }
+    break;
+
     case OpenGL_4_1_Debug_Core_Profile:
     {
         glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
@@ -524,6 +537,20 @@ bool sgct::Engine::initWindows()
         glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
         glewExperimental = true; // Needed for core profile
         mGLSLVersion.assign("#version 450 core");
+    }
+    break;
+
+    case OpenGL_4_6_Debug_Core_Profile:
+    {
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 4);
+        glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 6);
+#if __APPLE__
+        glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE);
+#endif
+        glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE);
+        glfwWindowHint(GLFW_OPENGL_DEBUG_CONTEXT, GL_TRUE);
+        glewExperimental = true; // Needed for core profile
+        mGLSLVersion.assign("#version 460 core");
     }
     break;
 
@@ -708,23 +735,23 @@ void sgct::Engine::initOGL()
             if( getCurrentWindowPtr()->getScreenCapturePointer(1) != NULL )
                 getCurrentWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
         }
-		else if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
-		{
-			//set callback
-			sgct_cppxeleven::function< void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type) > callback;
-			callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback2, this,
-				sgct_cppxeleven::placeholders::_1,
-				sgct_cppxeleven::placeholders::_2,
-				sgct_cppxeleven::placeholders::_3,
-				sgct_cppxeleven::placeholders::_4);
+        else if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
+        {
+            //set callback
+            sgct_cppxeleven::function< void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type) > callback;
+            callback = sgct_cppxeleven::bind(&Engine::invokeScreenShotCallback2, this,
+                sgct_cppxeleven::placeholders::_1,
+                sgct_cppxeleven::placeholders::_2,
+                sgct_cppxeleven::placeholders::_3,
+                sgct_cppxeleven::placeholders::_4);
 
-			//left channel (Mono and Stereo_Left)
-			if (getCurrentWindowPtr()->getScreenCapturePointer(0) != NULL)
-				getCurrentWindowPtr()->getScreenCapturePointer(0)->setCaptureCallback(callback);
-			//right channel (Stereo_Right)
-			if (getCurrentWindowPtr()->getScreenCapturePointer(1) != NULL)
-				getCurrentWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
-		}
+            //left channel (Mono and Stereo_Left)
+            if (getCurrentWindowPtr()->getScreenCapturePointer(0) != NULL)
+                getCurrentWindowPtr()->getScreenCapturePointer(0)->setCaptureCallback(callback);
+            //right channel (Stereo_Right)
+            if (getCurrentWindowPtr()->getScreenCapturePointer(1) != NULL)
+                getCurrentWindowPtr()->getScreenCapturePointer(1)->setCaptureCallback(callback);
+        }
     }
 
     //link all users to their viewports
@@ -897,7 +924,7 @@ void sgct::Engine::clearAllCallbacks()
     mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
     mContextCreationFnPtr = SGCT_NULL_PTR;
     mScreenShotFnPtr1 = SGCT_NULL_PTR;
-	mScreenShotFnPtr2 = SGCT_NULL_PTR;
+    mScreenShotFnPtr2 = SGCT_NULL_PTR;
 
     mInternalDrawFn = NULL;
     mInternalRenderFBOFn = NULL;
@@ -1449,9 +1476,9 @@ void sgct::Engine::renderDisplayInfo()
         float lineHeight = font->getHeight() * 1.59f;
         float xPos = static_cast<float>(getCurrentWindowPtr()->getXResolution()) * SGCTSettings::instance()->getOSDTextXOffset();
         float yPos = static_cast<float>(getCurrentWindowPtr()->getYResolution()) * SGCTSettings::instance()->getOSDTextYOffset();
-		
-		sgct_text::print(font,
-			sgct_text::TOP_LEFT,
+        
+        sgct_text::print(font,
+            sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 6.0f + yPos,
             glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1460,7 +1487,7 @@ void sgct::Engine::renderDisplayInfo()
             mNetworkConnections->isComputerServer() ? "master" : "slave");
 
         sgct_text::print(font,
-			sgct_text::TOP_LEFT,
+            sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 5.0f + yPos,
             glm::vec4(0.8f,0.8f,0.0f,1.0f),
@@ -1469,7 +1496,7 @@ void sgct::Engine::renderDisplayInfo()
             mFrameCounter);
 
         sgct_text::print(font,
-			sgct_text::TOP_LEFT,
+            sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 4.0f + yPos,
             glm::vec4(0.8f,0.0f,0.8f,1.0f),
@@ -1479,7 +1506,7 @@ void sgct::Engine::renderDisplayInfo()
         if(isMaster())
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 3.0f + yPos,
                 glm::vec4(0.0f,0.8f,0.8f,1.0f),
@@ -1491,7 +1518,7 @@ void sgct::Engine::renderDisplayInfo()
         else
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 3.0f + yPos,
                 glm::vec4(0.0f,0.8f,0.8f,1.0f),
@@ -1503,7 +1530,7 @@ void sgct::Engine::renderDisplayInfo()
         if(usingSwapGroups)
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 2.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1516,7 +1543,7 @@ void sgct::Engine::renderDisplayInfo()
         else
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 2.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1524,7 +1551,7 @@ void sgct::Engine::renderDisplayInfo()
         }
 
         sgct_text::print(font,
-			sgct_text::TOP_LEFT,
+            sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 1.0f + yPos,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.0f),
@@ -1532,7 +1559,7 @@ void sgct::Engine::renderDisplayInfo()
             getCurrentWindowPtr()->getXFramebufferResolution(), getCurrentWindowPtr()->getYFramebufferResolution());
 
         sgct_text::print(font,
-			sgct_text::TOP_LEFT,
+            sgct_text::TOP_LEFT,
             xPos,
             lineHeight * 0.0f + yPos,
             glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1543,7 +1570,7 @@ void sgct::Engine::renderDisplayInfo()
         if( mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye )
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 8.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -1552,7 +1579,7 @@ void sgct::Engine::renderDisplayInfo()
         else if( mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye )
         {
             sgct_text::print(font,
-				sgct_text::TOP_LEFT,
+                sgct_text::TOP_LEFT,
                 xPos,
                 lineHeight * 8.0f + yPos,
                 glm::vec4(0.8f,0.8f,0.8f,1.0f),
@@ -3276,7 +3303,7 @@ void sgct::Engine::setContextCreationCallback(sgct_cppxeleven::function<void(GLF
 void sgct::Engine::setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
 {
     mScreenShotFnPtr1 = fnPtr;
-	mScreenShotFnPtr2 = SGCT_NULL_PTR; //allow only one callback
+    mScreenShotFnPtr2 = SGCT_NULL_PTR; //allow only one callback
 }
 
 /*!
@@ -3286,8 +3313,8 @@ Parameters to the callback are: raw data pointer for image data, window index, e
 */
 void sgct::Engine::setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
 {
-	mScreenShotFnPtr2 = fnPtr;
-	mScreenShotFnPtr1 = SGCT_NULL_PTR; //allow only one callback
+    mScreenShotFnPtr2 = fnPtr;
+    mScreenShotFnPtr1 = SGCT_NULL_PTR; //allow only one callback
 }
 
 /*!
@@ -4039,8 +4066,8 @@ Don't use this. This function is called internally in SGCT.
 */
 void sgct::Engine::invokeScreenShotCallback2(unsigned char * data, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type)
 {
-	if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
-		mScreenShotFnPtr2(data, winIndex, ei, type);
+    if (mScreenShotFnPtr2 != SGCT_NULL_PTR)
+        mScreenShotFnPtr2(data, winIndex, ei, type);
 }
 
 /*!

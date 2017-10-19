@@ -141,7 +141,7 @@ void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, 
 void sgct_core::BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose)
 {
     for (std::size_t i = 0; i < 3; i++)
-        mProjectionPlane.setCoordinate(i, rot * unTransformedViewPlaneCoords[i]);
+        mProjectionPlane.setCoordinate(i, rot * untransformedCoords[i]);
 
     if (verbose) {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,

@@ -13,7 +13,8 @@ sgct_core::SGCTProjectionPlane::SGCTProjectionPlane()
     reset();
 }
 
-void sgct_core::SGCTProjectionPlane::configure(tinyxml2::XMLElement * element)
+void sgct_core::SGCTProjectionPlane::configure(tinyxml2::XMLElement * element,
+                                               glm::vec3* initializedCornerPoints)
 {
     const char * val;
     std::size_t i = 0;
@@ -41,6 +42,10 @@ void sgct_core::SGCTProjectionPlane::configure(tinyxml2::XMLElement * element)
                     tmpVec.x, tmpVec.y, tmpVec.z, i % 3);
 
                 setCoordinate(i % 3, tmpVec);
+                //Write this to initializedCornerPoints so caller knows initial corner values
+                initializedCornerPoints[i].x = tmpVec.x;
+                initializedCornerPoints[i].y = tmpVec.y;
+                initializedCornerPoints[i].z = tmpVec.z;
                 i++;
             }
             else

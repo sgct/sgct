@@ -28,7 +28,7 @@ namespace sgct_core
         enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
         SGCTProjectionPlane();
-        void configure(tinyxml2::XMLElement * element);
+        void configure(tinyxml2::XMLElement * element, glm::vec3* initializedCornerPoints);
         void reset();
         void offset(glm::vec3 p);
 

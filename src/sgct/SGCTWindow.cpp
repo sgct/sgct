@@ -491,8 +491,14 @@ void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 {
     mWindowRes[0] = x;
     mWindowRes[1] = y;
-    mAspectRatio = static_cast<float>( x ) /
-            static_cast<float>( y );
+    float newAspectRatio = static_cast<float>( x ) / static_cast<float>( y );
+
+    //Set field of view of each of this window's viewports to match new aspect ratio, adjusting only the horizontal (x) values
+    for (std::size_t j = 0; j < getNumberOfViewports(); ++j)
+    {
+        sgct_core::Viewport* vpPtr = getViewport(j);
+        vpPtr->updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
+    }
 
 	//redraw window
 	if (mWindowHandle)

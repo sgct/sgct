@@ -27,7 +27,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core
 {
-struct frustumData {
+struct FrustumData {
     enum elemIdx {
         down = 0,
         up,
@@ -41,7 +41,7 @@ struct frustumData {
     bool foundElem[numElements];
     float value[numElements];
 
-    frustumData() {
+    FrustumData() {
         for (bool& i : foundElem)
             i = false;
         for (float& i : value)
@@ -94,7 +94,7 @@ private:
     void parseSphericalMirrorProjection(tinyxml2::XMLElement * element);
     void parseFloatFromAttribute(tinyxml2::XMLElement* element, const std::string tag,
                                  float& target);
-    bool parseFrustumElement(frustumData& frustum, frustumData::elemIdx elemIndex,
+    bool parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
         tinyxml2::XMLElement* elem, const char* frustumTag);
 private:
     CorrectionMesh mCM;

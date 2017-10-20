@@ -52,8 +52,7 @@ sgct_core::Viewport::~Viewport()
     if (mBlackLevelMaskTextureIndex)
         glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
 
-    if (mMpcdiWarpMeshData)
-        delete mMpcdiWarpMeshData;
+    delete mMpcdiWarpMeshData;
 }
 
 void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
@@ -179,7 +178,7 @@ void sgct_core::Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
     }
 }
 
-bool sgct_core::Viewport::parseFrustumElement(frustumData& frustum, frustumData::elemIdx elemIndex,
+bool sgct_core::Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
                                               tinyxml2::XMLElement* elem, const char* frustumTag)
 {
     if (strcmp(frustumTag, elem->Value()) == 0)
@@ -207,7 +206,7 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
     float vpSize[2] = {0.0, 0.0};
     float vpResolution[2] = {0.0, 0.0};
     float expectedResolution[2];
-    frustumData frustumElements;
+    FrustumData frustumElements;
 
     if (element[2]->Attribute("id") != NULL)
         setName(element[2]->Attribute("id"));
@@ -244,13 +243,13 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
             while( element[4] != NULL )
             {
                 //val[4] = element[4]->Value();
-                if (parseFrustumElement(frustumElements, frustumData::elemIdx::right, element[4], "rightAngle"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::left, element[4], "leftAngle"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::up, element[4], "upAngle"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::down, element[4], "downAngle"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::yaw, element[4], "yaw"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::pitch, element[4], "pitch"))  ;
-                else if (parseFrustumElement(frustumElements, frustumData::elemIdx::roll, element[4], "roll"))  ;
+                if (parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll"))  ;
                 element[4] = element[4]->NextSiblingElement();
             }
 
@@ -266,20 +265,20 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
 
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
-                frustumElements.value[frustumData::elemIdx::down],
-                frustumElements.value[frustumData::elemIdx::left],
-                frustumElements.value[frustumData::elemIdx::right],
-                frustumElements.value[frustumData::elemIdx::up],
-                frustumElements.value[frustumData::elemIdx::yaw],
-                frustumElements.value[frustumData::elemIdx::pitch],
-                frustumElements.value[frustumData::elemIdx::roll]);
-            rotQuat = ReadConfig::parseMpcdiOrientationNode(frustumElements.value[frustumData::elemIdx::yaw],
-                frustumElements.value[frustumData::elemIdx::pitch],
-                frustumElements.value[frustumData::elemIdx::roll]);
-            setViewPlaneCoordsUsingFOVs(frustumElements.value[frustumData::elemIdx::up],
-                frustumElements.value[frustumData::elemIdx::down],
-                frustumElements.value[frustumData::elemIdx::left],
-                frustumElements.value[frustumData::elemIdx::right],
+                frustumElements.value[FrustumData::elemIdx::down],
+                frustumElements.value[FrustumData::elemIdx::left],
+                frustumElements.value[FrustumData::elemIdx::right],
+                frustumElements.value[FrustumData::elemIdx::up],
+                frustumElements.value[FrustumData::elemIdx::yaw],
+                frustumElements.value[FrustumData::elemIdx::pitch],
+                frustumElements.value[FrustumData::elemIdx::roll]);
+            rotQuat = ReadConfig::parseMpcdiOrientationNode(frustumElements.value[FrustumData::elemIdx::yaw],
+                frustumElements.value[FrustumData::elemIdx::pitch],
+                frustumElements.value[FrustumData::elemIdx::roll]);
+            setViewPlaneCoordsUsingFOVs(frustumElements.value[FrustumData::elemIdx::up],
+                frustumElements.value[FrustumData::elemIdx::down],
+                frustumElements.value[FrustumData::elemIdx::left],
+                frustumElements.value[FrustumData::elemIdx::right],
                 rotQuat,
                 distance);
             mProjectionPlane.offset(offset);

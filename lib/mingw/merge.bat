@@ -11,4 +11,3 @@ ar x deps/libvrpn.a
 ar x libsgct_light.a
 ar r libsgct.a *.obj
 DEL *.o *.obj
-pause

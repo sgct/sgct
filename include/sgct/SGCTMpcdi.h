@@ -2,7 +2,7 @@
  * SGCTMpcdi.h
  *
  *  Created on: Jul 3, 2017
- *      Author: openspace
+ *      Author: Gene Payne
  */
 
 #ifndef _SGCT_MPCDI
@@ -24,7 +24,7 @@
 namespace sgct_core //simple graphics cluster toolkit
 {
 
-struct mpcdiSubFiles {
+struct MpcdiSubFiles {
     enum mpcdiSubFileTypes {
         mpcdiXml = 0,
         mpcdiPfm,
@@ -36,7 +36,7 @@ struct mpcdiSubFiles {
     int size[mpcdi_nRequiredFiles];
     char* buffer[mpcdi_nRequiredFiles];
 
-    mpcdiSubFiles() {
+    MpcdiSubFiles() {
         for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
             hasFound[i] = false;
             buffer[i] = nullptr;
@@ -45,7 +45,7 @@ struct mpcdiSubFiles {
 		extension[mpcdiPfm] = "pfm";
     }
 
-    ~mpcdiSubFiles() {
+    ~MpcdiSubFiles() {
         for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
             if( buffer[i] != nullptr )
                 delete buffer[i];
@@ -53,18 +53,18 @@ struct mpcdiSubFiles {
     }
 };
 
-struct mpcdiRegion {
+struct MpcdiRegion {
     std::string id;
 };
 
-struct mpcdiWarp {
+struct MpcdiWarp {
     std::string id;
     std::string pathWarpFile;
     bool haveFoundPath = false;
     bool haveFoundInterpolation = false;
 };
 
-struct mpcdiFoundItems {
+struct MpcdiFoundItems {
     bool haveDisplayElem = false;
     bool haveBufferElem = false;
     int resolutionX = -1;
@@ -84,13 +84,13 @@ private:
     bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tmpNode,
              sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_display(tinyxml2::XMLElement* element[], const char* val[],
-             SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+             SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_files(tinyxml2::XMLElement* element[], const char* val[],
              sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_buffer(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+             sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_region(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin, mpcdiFoundItems& parsedItems);
+             sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
              const char* val[], sgct::SGCTWindow& tmpWin,
              std::string filesetRegionId);
@@ -103,9 +103,9 @@ private:
              const std::string expectedTag);
     void unsupportedFeatureCheck(std::string tag, std::string featureName);
 
-    mpcdiSubFiles mMpcdiSubFileContents;
-    std::vector<mpcdiRegion*> mBufferRegions;
-    std::vector<mpcdiWarp*> mWarp;
+    MpcdiSubFiles mMpcdiSubFileContents;
+    std::vector<MpcdiRegion*> mBufferRegions;
+    std::vector<MpcdiWarp*> mWarp;
     std::string mErrorMsg;
 };
 

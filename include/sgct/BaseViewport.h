@@ -50,6 +50,8 @@ public:
     void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
     void calculateNonLinearFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
+    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose);
+    void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     
 protected:
     SGCTProjection mProjections[3];
@@ -64,6 +66,9 @@ protected:
     float mY;
     float mXSize;
     float mYSize;
+
+    glm::vec3 mUnTransformedViewPlaneCoords[3];
+    glm::quat  mRot;
 };
 
 }

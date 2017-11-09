@@ -121,38 +121,57 @@ void sgct_core::BaseViewport::calculateNonLinearFrustum(const sgct_core::Frustum
 
 void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist)
 {
-    glm::vec3 unTransformedViewPlaneCoords[3];
+    mRot = rot;
 
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].x = dist * tanf(glm::radians<float>(left));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].y = dist * tanf(glm::radians<float>(down));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].z = -dist;
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].x = dist * tanf(glm::radians<float>(left));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].y = dist * tanf(glm::radians<float>(down));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].z = -dist;
 
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].x = dist * tanf(glm::radians<float>(left));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].y = dist * tanf(glm::radians<float>(up));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].z = -dist;
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].x = dist * tanf(glm::radians<float>(left));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].y = dist * tanf(glm::radians<float>(up));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].z = -dist;
 
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].x = dist * tanf(glm::radians<float>(right));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].y = dist * tanf(glm::radians<float>(up));
-    unTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].z = -dist;
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].x = dist * tanf(glm::radians<float>(right));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].y = dist * tanf(glm::radians<float>(up));
+    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].z = -dist;
 
+    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, rot, true);
+}
+
+void sgct_core::BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose)
+{
     for (std::size_t i = 0; i < 3; i++)
-        mProjectionPlane.setCoordinate(i, rot * unTransformedViewPlaneCoords[i]);
+        mProjectionPlane.setCoordinate(i, rot * untransformedCoords[i]);
 
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-        "Viewplane lower left coords: %f %f %f\n",
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->x,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->y,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->z);
+    if (verbose) {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "Viewplane lower left coords: %f %f %f\n",
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->x,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->y,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->z);
 
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-        "Viewplane upper left coords: %f %f %f\n",
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->x,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->y,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->z);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "Viewplane upper left coords: %f %f %f\n",
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->x,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->y,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->z);
 
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-        "Viewplane upper right coords: %f %f %f\n\n",
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->x,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->y,
-        mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->z);
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            "Viewplane upper right coords: %f %f %f\n\n",
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->x,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->y,
+            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->z);
+    }
+}
+
+void sgct_core::BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio)
+{
+    glm::vec3 cornerPts[3];
+    for (unsigned int cornerNum = (unsigned int)SGCTProjectionPlane::LowerLeft; cornerNum <= (unsigned int)SGCTProjectionPlane::UpperRight; ++cornerNum)
+    {
+        cornerPts[cornerNum].x = mUnTransformedViewPlaneCoords[cornerNum].x * newRatio / oldRatio;
+        cornerPts[cornerNum].y = mUnTransformedViewPlaneCoords[cornerNum].y;
+        cornerPts[cornerNum].z = mUnTransformedViewPlaneCoords[cornerNum].z;
+    }
+    setViewPlaneCoordsFromUnTransformedCoords(cornerPts, mRot, false);
 }

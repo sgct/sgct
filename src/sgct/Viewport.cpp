@@ -145,7 +145,7 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 		}
 		else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
         {
-            mProjectionPlane.configure(subElement);
+            mProjectionPlane.configure(subElement, mUnTransformedViewPlaneCoords);	
         }
 
         //iterate

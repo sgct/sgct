@@ -1,0 +1,21 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="127.0.0.1">
+	<Node ip="127.0.0.1" port="20400">
+		<Window fullscreen="false" numberOfSamples="1" fxaa="false" msaa="1">
+			<Stereo type="none" />
+			<Pos x="0" y="0" />
+			<Size x="640" y="360" />
+			<Viewport tracked="true">
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<PlanarProjection>
+                                        <FOV down="25.0" left="35.0" right="35.0" up="25.0" />
+					<Orientation heading="0.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0.0" y="0.0" z="0.0" />
+	</User>
+</Cluster>

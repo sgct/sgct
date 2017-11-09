@@ -7,13 +7,13 @@ then
 	then
 		rm libsgct_cpp11.a
 	fi
-	libtool -static -o libsgct_cpp11.a deps/libglew.a deps/libglfw3.a deps/libz.a deps/libpng16.a deps/libturbojpeg.a @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps/libtinyxml2.a deps/libvrpn.a libsgct_light.a
+	libtool -static -o libsgct_cpp11.a deps/libglew.a deps/libglfw3.a deps/libz.a deps/libminizip.a deps/libpng16.a deps/libturbojpeg.a @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps/libtinyxml2.a deps/libvrpn.a libsgct_light.a
 	echo "Merging debug libs... "
 	if [ -f libsgct_cpp11d.a ];
 	then
 		rm libsgct_cpp11d.a
 	fi
-	libtool -static -o libsgct_cpp11d.a deps/libglewd.a deps/libglfw3d.a deps/libzd.a deps/libpng16d.a deps/libturbojpegd.a @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps/libtinyxml2d.a deps/libvrpnd.a libsgct_lightd.a
+	libtool -static -o libsgct_cpp11d.a deps/libglewd.a deps/libglfw3d.a deps/libzd.a deps/libminizipd.a deps/libpng16d.a deps/libturbojpegd.a @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps/libtinyxml2d.a deps/libvrpnd.a libsgct_lightd.a
 	echo "Done."
 elif [ -f libsgct_light.a ];
 then
@@ -22,7 +22,7 @@ then
 	then
 		rm libsgct_cpp11.a
 	fi
-	libtool -static -o libsgct_cpp11.a deps/libglew.a deps/libglfw3.a deps/libz.a deps/libpng16.a deps/libturbojpeg.a @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps/libtinyxml2.a deps/libvrpn.a libsgct_light.a
+	libtool -static -o libsgct_cpp11.a deps/libglew.a deps/libglfw3.a deps/libz.a deps/libminizip.a deps/libpng16.a deps/libturbojpeg.a @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps/libtinyxml2.a deps/libvrpn.a libsgct_light.a
 	echo "Done."
 elif [ -f libsgct_lightd.a ];
 then
@@ -31,6 +31,6 @@ then
 	then
 		rm libsgct_cpp11d.a
 	fi
-	libtool -static -o libsgct_cpp11d.a deps/libglewd.a deps/libglfw3d.a deps/libzd.a deps/libpng16d.a deps/libturbojpegd.a @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps/libtinyxml2d.a deps/libvrpnd.a libsgct_lightd.a
+	libtool -static -o libsgct_cpp11d.a deps/libglewd.a deps/libglfw3d.a deps/libzd.a deps/libminizipd.a deps/libpng16d.a deps/libturbojpegd.a @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps/libtinyxml2d.a deps/libvrpnd.a libsgct_lightd.a
 	echo "Done."
 fi

@@ -68,8 +68,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
         #define GLFW_EXPOSE_NATIVE_NSGL
     #endif
 
-    #include <GLFW/glfw3.h>
-    #include <GLFW/glfw3native.h>
+    #include <../src/deps/glfw/include/GLFW/glfw3.h>
+    #include <../src/deps/glfw/include/GLFW/glfw3native.h>
 #endif
 
 #endif

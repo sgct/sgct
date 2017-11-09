@@ -42,6 +42,7 @@ if(SGCT_COPY_EXAMPLE_RESOURCES AND NOT SGCT_PLACE_TARGETS_IN_SOURCE_TREE )
 		"${PROJECT_SOURCE_DIR}/*.png"
 		"${PROJECT_SOURCE_DIR}/*.jpg"
 		"${PROJECT_SOURCE_DIR}/*.xml"
+		"${PROJECT_SOURCE_DIR}/*.mpcdi"
 		"${PROJECT_SOURCE_DIR}/*.vert*"
 		"${PROJECT_SOURCE_DIR}/*.frag*")
 	file(COPY ${files} DESTINATION ${EXAMPE_TARGET_PATH})
@@ -100,6 +101,7 @@ if(NOT DEFINED SGCT_INCLUDE_DIRECTORY)
 			REQUIRED)
 	endif()
 endif()
+set(GLFW_INCLUDE_DIRECTORY $ENV{SGCT_ROOT_DIR}/src/deps/glfw/include)
 	
 set(SGCT_LIBS
 	debug ${SGCT_DEBUG_LIBRARY}
@@ -109,6 +111,7 @@ set(SGCT_LIBS
 find_package(OpenGL REQUIRED)
 
 include_directories(${SGCT_INCLUDE_DIRECTORY})
+include_directories(${GLFW_INCLUDE_DIRECTORY})
 
 if( MSVC )
 	set(LIBS
@@ -217,5 +220,8 @@ endif()
 #if( CMAKE_COMPILER_IS_GNUCXX )
 #	set(CMAKE_EXE_LINKER_FLAGS "${CMAKE_EXE_LINKER_FLAGS} -static-libgcc -static-libstdc++ -static")
 #endif()
-
-target_link_libraries(${APP_NAME} ${LIBS})
+if( WIN32 )
+  target_link_libraries(${APP_NAME} ${LIBS})
+else()
+  target_link_libraries(${APP_NAME} ${LIBS} ${CMAKE_DL_LIBS})
+endif()

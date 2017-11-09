@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <glm/glm.hpp>
 #include "SGCTWindow.h"
+#include "SGCTNode.h"
 
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>
@@ -26,9 +27,11 @@ class ReadConfig
 {
 public:
     ReadConfig( const std::string filename );
+    ~ReadConfig();
 
     bool isValid() { return valid; }
     static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
+    static glm::quat parseMpcdiOrientationNode(const float yaw, const float pitch, const float roll);
 
 private:
     bool replaceEnvVars( const std::string &filename );

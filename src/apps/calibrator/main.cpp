@@ -39,6 +39,8 @@ bool useShader = true;
 bool isTiltSet = false;
 bool useDisplayLists = false;
 double tilt = 0.0;
+double radius = 7.4;
+
 std::vector<glm::vec3> colors;
 std::vector<std::pair<std::string, unsigned int> > textures;
 
@@ -68,6 +70,13 @@ int main( int argc, char* argv[] )
             isTiltSet = true;
             
             sgct::MessageHandler::instance()->print("Setting tilt to: %f\n", tilt);
+        }
+        else if (strcmp(argv[i], "-radius") == 0 && argc > (i + 1))
+        {
+            radius = atof(argv[i + 1]);
+            isTiltSet = true;
+
+            sgct::MessageHandler::instance()->print("Setting radius to: %f\n", radius);
         }
         else if (strcmp(argv[i], "--use-display-lists") == 0)
         {
@@ -202,9 +211,9 @@ void initGL()
     colors.push_back( glm::vec3(1.00f, 0.00f, 0.00f) ); //red
     
     if (isTiltSet)
-        mDome = new Dome(7.4f, static_cast<float>(tilt));
+        mDome = new Dome(radius, static_cast<float>(tilt));
     else
-        mDome = new Dome(7.4f, 26.7f);
+        mDome = new Dome(radius, 26.7f);
     mDome->generateDisplayList();
     
     sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);

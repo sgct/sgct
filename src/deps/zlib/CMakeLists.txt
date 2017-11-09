@@ -175,16 +175,37 @@ string(REGEX REPLACE ".*#define[ \t]+ZLIB_VERSION[ \t]+\"([-0-9A-Za-z.]+)\".*"
 
 add_library(zlibstatic STATIC ${ZLIB_SRCS} ${ZLIB_PUBLIC_HDRS} ${ZLIB_PRIVATE_HDRS})
 
+set(MINIZIP_PATH contrib/minizip)
+set(MINIZIP_PUBLIC_HDRS
+    ${MINIZIP_PATH}/zip.h
+    ${MINIZIP_PATH}/unzip.h
+    ${MINIZIP_PATH}/ioapi.h
+    ${MINIZIP_PATH}/iowin32.h
+)
+set(MINIZIP_SRCS
+    ${MINIZIP_PATH}/miniunz.c
+    ${MINIZIP_PATH}/unzip.c
+    ${MINIZIP_PATH}/ioapi.c
+)
+
+add_library(miniziplibstatic STATIC ${MINIZIP_SRCS} ${MINIZIP_PUBLIC_HDRS})
+
 #set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 if(UNIX)
 	# On unix-like platforms the library is almost always called libz
 	set_target_properties(zlibstatic PROPERTIES OUTPUT_NAME z FOLDER "Dependencies")
+	set_target_properties(miniziplibstatic PROPERTIES OUTPUT_NAME minizip FOLDER "Dependencies")
 else()
 	set_target_properties(zlibstatic PROPERTIES FOLDER "Dependencies")
+	set_target_properties(miniziplibstatic PROPERTIES FOLDER "Dependencies")
 endif()
 
 if(NOT SKIP_INSTALL_LIBRARIES AND NOT SKIP_INSTALL_ALL )
     install(TARGETS zlibstatic
+        RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
+        ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
+        LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )
+    install(TARGETS miniziplibstatic
         RUNTIME DESTINATION "${INSTALL_BIN_DIR}"
         ARCHIVE DESTINATION "${INSTALL_LIB_DIR}"
         LIBRARY DESTINATION "${INSTALL_LIB_DIR}" )

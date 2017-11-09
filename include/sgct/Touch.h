@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef _TOUCH_H
 #define _TOUCH_H
 
-#include <GLFW/glfw3.h>
+#include <../src/deps/glfw/include/GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>

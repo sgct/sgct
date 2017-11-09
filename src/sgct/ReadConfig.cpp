@@ -14,6 +14,7 @@
 #include <sgct/ClusterManager.h>
 
 #include <sgct/SGCTSettings.h>
+#include <sgct/SGCTMpcdi.h>
 #include <algorithm>
 #include <sstream>
 
@@ -73,6 +74,10 @@ sgct_core::ReadConfig::ReadConfig( const std::string filename )
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) address: %s [%s]\n", i,
                                                 ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
                                                 ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
+}
+
+sgct_core::ReadConfig::~ReadConfig()
+{
 }
 
 bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
@@ -392,6 +397,20 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == tinyxml2::XML_NO_ERROR)
                         tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
                     
+                    if( element[1]->Attribute("mpcdi") != NULL ) {
+                    	sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
+						std::string pathToMpcdiFile;
+						size_t lastSlashPos = xmlFileName.find_last_of("/");
+						if (lastSlashPos != std::string::npos)
+						    pathToMpcdiFile = xmlFileName.substr(0, lastSlashPos) + "/";
+						pathToMpcdiFile += element[1]->Attribute("mpcdi");
+						//replace all backslashes with slashes
+						std::replace(pathToMpcdiFile.begin(), pathToMpcdiFile.end(), '\\', '/');
+                        if( !mpcdiHandler.parseConfiguration(pathToMpcdiFile, tmpNode, tmpWin) ) {
+                            return false;
+                        }
+                    }
+
                     element[2] = element[1]->FirstChildElement();
                     while( element[2] != NULL )
                     {
@@ -936,3 +955,20 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
 
     return quat;
 }
+
+glm::quat sgct_core::ReadConfig::parseMpcdiOrientationNode(const float yaw,
+                                                           const float pitch,
+                                                           const float roll)
+{
+    float x = pitch;
+    float y = -yaw;
+    float z = -roll;
+
+    glm::quat quat;
+    quat = glm::rotate(quat, glm::radians(y), glm::vec3(0.0f, 1.0f, 0.0f));
+    quat = glm::rotate(quat, glm::radians(x), glm::vec3(1.0f, 0.0f, 0.0f));
+    quat = glm::rotate(quat, glm::radians(z), glm::vec3(0.0f, 0.0f, 1.0f));
+
+    return quat;
+}
+

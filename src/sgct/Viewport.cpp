@@ -16,6 +16,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SpoutOutputProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
 
+
 sgct_core::Viewport::Viewport()
 {
     mNonLinearProjection = NULL;
@@ -50,6 +51,8 @@ sgct_core::Viewport::~Viewport()
 
     if (mBlackLevelMaskTextureIndex)
         glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
+
+    delete mMpcdiWarpMeshData;
 }
 
 void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
@@ -147,6 +150,140 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
 
         //iterate
         subElement = subElement->NextSiblingElement();
+    }
+}
+
+void sgct_core::Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
+                                                  const std::string tag,
+                                                  float& target)
+{
+    if (element->Attribute(tag.c_str()) != NULL)
+    {
+        try {
+            target = std::stof(element->Attribute(tag.c_str()));
+        }
+        catch (const std::invalid_argument& ia) {
+            std::string fullErrorMessage = "Viewport: Failed to parse " + tag
+                + " from MPCDI XML!\n";
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str());
+        }
+    }
+    else
+    {
+        std::string fullErrorMessage = "Viewport: No " + tag
+            + " provided in MPCDI XML!\n";
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            fullErrorMessage.c_str());
+    }
+}
+
+bool sgct_core::Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
+                                              tinyxml2::XMLElement* elem, const char* frustumTag)
+{
+    if (strcmp(frustumTag, elem->Value()) == 0)
+    {
+        try {
+            frustum.value[elemIndex] = std::stof(elem->GetText());
+            frustum.foundElem[elemIndex] = true;
+            return true;
+        }
+        catch (const std::invalid_argument& ia) {
+            std::string fullErrorMessage = "Viewport: Failed to parse frustum element "
+                + std::string(frustumTag) + " from MPCDI XML!\n";
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str());
+        }
+    }
+    return false;
+}
+
+void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
+                                         const char* val[], int winResX, int winResY)
+{
+    const int idx_x = 0, idx_y = 1;
+    float vpPosition[2] = {0.0, 0.0};
+    float vpSize[2] = {0.0, 0.0};
+    float vpResolution[2] = {0.0, 0.0};
+    float expectedResolution[2];
+    FrustumData frustumElements;
+
+    if (element[2]->Attribute("id") != NULL)
+        setName(element[2]->Attribute("id"));
+
+    parseFloatFromAttribute(element[2], "x", vpPosition[idx_x]);
+    parseFloatFromAttribute(element[2], "y", vpPosition[idx_y]);
+    setPos(vpPosition[idx_x], vpPosition[idx_y]);
+    parseFloatFromAttribute(element[2], "xSize", vpSize[idx_x]);
+    parseFloatFromAttribute(element[2], "ySize", vpSize[idx_y]);
+    setSize(vpSize[idx_x], vpSize[idx_y]);
+    parseFloatFromAttribute(element[2], "xResolution", vpResolution[idx_x]);
+    parseFloatFromAttribute(element[2], "yResolution", vpResolution[idx_y]);
+    expectedResolution[idx_x] = int(vpSize[idx_x] * (float)winResX);
+    expectedResolution[idx_y] = int(vpSize[idx_y] * (float)winResY);
+
+    if(   expectedResolution[idx_x] != vpResolution[idx_x]
+       || expectedResolution[idx_y] != vpResolution[idx_y] )
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
+            "Viewport: MPCDI region expected resolution does not match portion of window.\n");
+    }
+
+    element[3] = element[2]->FirstChildElement();
+    while( element[3] != NULL )
+    {
+        val[3] = element[3]->Value();
+        if( strcmp("frustum", val[3]) == 0 )
+        {
+            float distance = 10.0f;
+            glm::quat rotQuat;
+            glm::vec3 offset(0.0f, 0.0f, 0.0f);
+
+            element[4] = element[3]->FirstChildElement();
+            while( element[4] != NULL )
+            {
+                //val[4] = element[4]->Value();
+                if (parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch"))  ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll"))  ;
+                element[4] = element[4]->NextSiblingElement();
+            }
+
+            for (bool& hasFoundSpecificField : frustumElements.foundElem)
+            {
+                if (!hasFoundSpecificField)
+                {
+                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                        "Viewport: Failed to parse mpcdi projection FOV from XML!\n");
+                    return;
+                }
+            }
+
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+                "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
+                frustumElements.value[FrustumData::elemIdx::down],
+                frustumElements.value[FrustumData::elemIdx::left],
+                frustumElements.value[FrustumData::elemIdx::right],
+                frustumElements.value[FrustumData::elemIdx::up],
+                frustumElements.value[FrustumData::elemIdx::yaw],
+                frustumElements.value[FrustumData::elemIdx::pitch],
+                frustumElements.value[FrustumData::elemIdx::roll]);
+            rotQuat = ReadConfig::parseMpcdiOrientationNode(frustumElements.value[FrustumData::elemIdx::yaw],
+                frustumElements.value[FrustumData::elemIdx::pitch],
+                frustumElements.value[FrustumData::elemIdx::roll]);
+            setViewPlaneCoordsUsingFOVs(frustumElements.value[FrustumData::elemIdx::up],
+                frustumElements.value[FrustumData::elemIdx::down],
+                frustumElements.value[FrustumData::elemIdx::left],
+                frustumElements.value[FrustumData::elemIdx::right],
+                rotQuat,
+                distance);
+            mProjectionPlane.offset(offset);
+        }
+        element[3] = element[3]->NextSiblingElement();
     }
 }
 
@@ -481,6 +618,13 @@ void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
     mMeshFilename.assign(meshPath);
 }
 
+void sgct_core::Viewport::setMpcdiWarpMesh(const char* meshData, size_t size)
+{
+    mMpcdiWarpMeshData = new char[size];
+    memcpy(mMpcdiWarpMeshData, meshData, size);
+    mMpcdiWarpMeshSize = size;
+}
+
 void sgct_core::Viewport::setTracked(bool state)
 {
     mTracked = state;
@@ -499,8 +643,15 @@ void sgct_core::Viewport::loadData()
     if ( mBlackLevelMaskFilename.size() > 0)
         sgct::TextureManager::instance()->loadUnManagedTexture(mBlackLevelMaskTextureIndex, mBlackLevelMaskFilename, true, 1);
 
-    //load default if mMeshFilename is empty
-    mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
+    if ( mMpcdiWarpMeshData != nullptr )
+    {
+        mCorrectionMesh = mCM.readAndGenerateMesh("mesh.mpcdi", this, CorrectionMesh::parseHint("mpcdi"));
+    }
+    else
+    {
+        //load default if mMeshFilename is empty
+        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
+    }
 }
 
 /*!

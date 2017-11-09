@@ -11,20 +11,20 @@ if exist sgct_lightd.lib goto CREATE_DEBUG
 DEL sgct.lib
 DEL sgctd.lib
 call "%VS110COMNTOOLS%"\vsvars32.bat
-lib /LTCG /OUT:sgct.lib sgct_light.lib @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps\glew.lib deps\glfw3.lib deps\libpng16_static.lib deps\turbojpeg-static.lib deps\tinyxml2.lib deps\vrpn.lib deps\zlibstatic.lib
-lib /LTCG /OUT:sgctd.lib sgct_lightd.lib @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps\glewd.lib deps\glfw3d.lib deps\libpng16_staticd.lib deps\turbojpeg-staticd.lib deps\tinyxml2d.lib deps\vrpnd.lib deps\zlibstaticd.lib
+lib /LTCG /OUT:sgct.lib sgct_light.lib @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps\glew.lib deps\glfw3.lib deps\libpng16_static.lib deps\turbojpeg-static.lib deps\tinyxml2.lib deps\vrpn.lib deps\zlibstatic.lib deps\miniziplibstatic.lib
+lib /LTCG /OUT:sgctd.lib sgct_lightd.lib @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps\glewd.lib deps\glfw3d.lib deps\libpng16_staticd.lib deps\turbojpeg-staticd.lib deps\tinyxml2d.lib deps\vrpnd.lib deps\zlibstaticd.lib deps\miniziplibstaticd.lib
 goto END
 
 :CREATE_DEBUG
 DEL sgctd.lib
 call "%VS110COMNTOOLS%"\vsvars32.bat
-lib /LTCG /OUT:sgctd.lib sgct_lightd.lib @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps\glewd.lib deps\glfw3d.lib deps\libpng16_staticd.lib deps\turbojpeg-staticd.lib deps\tinyxml2d.lib deps\vrpnd.lib deps\zlibstaticd.lib
+lib /LTCG /OUT:sgctd.lib sgct_lightd.lib @SGCT_FREETYPE_DEBUG_LIB_PATH@ deps\glewd.lib deps\glfw3d.lib deps\libpng16_staticd.lib deps\turbojpeg-staticd.lib deps\tinyxml2d.lib deps\vrpnd.lib deps\zlibstaticd.lib deps\miniziplibstaticd.lib
 goto END
 
 :CREATE_RELEASE
 DEL sgct.lib
 call "%VS110COMNTOOLS%"\vsvars32.bat
-lib /LTCG /OUT:sgct.lib sgct_light.lib @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps\glew.lib deps\glfw3.lib deps\libpng16_static.lib deps\turbojpeg-static.lib deps\tinyxml2.lib deps\vrpn.lib deps\zlibstatic.lib
+lib /LTCG /OUT:sgct.lib sgct_light.lib @SGCT_FREETYPE_RELEASE_LIB_PATH@ deps\glew.lib deps\glfw3.lib deps\libpng16_static.lib deps\turbojpeg-static.lib deps\tinyxml2.lib deps\vrpn.lib deps\zlibstatic.lib deps\miniziplibstatic.lib
 goto END
 
 :END

@@ -46,7 +46,7 @@ bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: Unable to open zip archive file %s\n",
-            filenameMpcdi);
+            filenameMpcdi.c_str());
         return false;
     }
 	// Get info about the zip file
@@ -56,7 +56,7 @@ bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
 	{
 		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
 			"parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
-			filenameMpcdi);
+			filenameMpcdi.c_str());
 		unzClose(zipfile);
 		return false;
 	}
@@ -99,7 +99,7 @@ bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
             "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
-            filenameMpcdi);
+            filenameMpcdi.c_str());
         return false;
     }
     if( !readAndParseXMLString(tmpNode, tmpWin) )
@@ -119,7 +119,7 @@ bool sgct_core::SGCTMpcdi::openZipFile(FILE* cfgFile, const std::string cfgFileP
 #endif
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath);
+            "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath.c_str());
         return false;
     }
     //Open MPCDI file (zip compressed format)
@@ -127,7 +127,7 @@ bool sgct_core::SGCTMpcdi::openZipFile(FILE* cfgFile, const std::string cfgFileP
     if (zipfile == nullptr)
     {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath);
+            "parseMpcdiConfiguration: Failed to open compressed mpcdi file %s\n", cfgFilePath.c_str());
         return false;
     }
     return true;
@@ -148,7 +148,7 @@ bool sgct_core::SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfil
             if( openCurrentFile != UNZ_OK )
             {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiConfiguration: Unable to open %s\n", filename);
+                    "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str());
                 unzClose(*zipfile);
                 return false;
             }
@@ -161,7 +161,7 @@ bool sgct_core::SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfil
                 {
                     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                         "parseMpcdiConfiguration: %s read from %s failed.\n",
-                        mMpcdiSubFileContents.extension[i], filename);
+                        mMpcdiSubFileContents.extension[i].c_str(), filename.c_str());
                     unzClose(*zipfile);
                     return false;
                 }
@@ -169,7 +169,7 @@ bool sgct_core::SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfil
             else
             {
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                    "parseMpcdiConfiguration: Unable to allocate memory for %s\n", filename);
+                    "parseMpcdiConfiguration: Unable to allocate memory for %s\n", filename.c_str());
                 unzClose(*zipfile);
                 return false;
             }

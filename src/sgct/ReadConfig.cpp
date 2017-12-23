@@ -164,11 +164,11 @@ bool sgct_core::ReadConfig::readAndParseXMLFile()
     {
         std::stringstream ss;
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
         else if(xmlDoc.GetErrorStr1())
-                ss << "Paring failed after: " << xmlDoc.GetErrorStr1();
+                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
         else if(xmlDoc.GetErrorStr2())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr2();
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
         else
             ss << "File not found";
         mErrorMsg = ss.str();
@@ -187,11 +187,11 @@ bool sgct_core::ReadConfig::readAndParseXMLString()
     {
         std::stringstream ss;
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
         else if (xmlDoc.GetErrorStr1())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr1();
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
         else if (xmlDoc.GetErrorStr2())
-            ss << "Paring failed after: " << xmlDoc.GetErrorStr2();
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
         else
             ss << "File not found";
         mErrorMsg = ss.str();

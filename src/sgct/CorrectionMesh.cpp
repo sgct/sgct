@@ -1544,23 +1544,23 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     if( isReadingFile )
     {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
- #define FREAD fread_s
+ #define SGCT_READ fread_s
 #else
- #define FREAD fread
+ #define SGCT_READ fread
 #endif
         for (unsigned int i = 0; i < numCorrectionValues; ++i)
         {
 #ifdef __WIN32__
-            retval = FREAD(correctionGridX + i, numCorrectionValues, value32bit, 1, meshFile);
-            retval = FREAD(correctionGridY + i, numCorrectionValues, value32bit, 1, meshFile);
+            retval = SGCT_READ(correctionGridX + i, numCorrectionValues, value32bit, 1, meshFile);
+            retval = SGCT_READ(correctionGridY + i, numCorrectionValues, value32bit, 1, meshFile);
             //MPCDI uses the PFM format for correction grid. PFM format is designed for 3 RGB
             // values. However MPCDI substitutes Red for X correction, Green for Y
             // correction, and Blue for correction error. This will be NaN for no error value
-            retval = FREAD(&errorPosition, numCorrectionValues, value32bit, 1, meshFile);
+            retval = SGCT_READ(&errorPosition, numCorrectionValues, value32bit, 1, meshFile);
 #else
-            retval = FREAD(correctionGridX + i, value32bit, 1, meshFile);
-            retval = FREAD(correctionGridY + i, value32bit, 1, meshFile);
-            retval = FREAD(&errorPosition,      value32bit, 1, meshFile);
+            retval = SGCT_READ(correctionGridX + i, value32bit, 1, meshFile);
+            retval = SGCT_READ(correctionGridY + i, value32bit, 1, meshFile);
+            retval = SGCT_READ(&errorPosition,      value32bit, 1, meshFile);
 #endif
         }
         fclose(meshFile);
@@ -1646,10 +1646,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         vertex.y = 2.0f * warpedPos_y[i] - 1.0f;
         vertices.push_back(vertex);
     }
-    delete warpedPos_x;
-    delete warpedPos_y;
-    delete smoothPos_x;
-    delete smoothPos_y;
+    delete[] warpedPos_x;
+    delete[] warpedPos_y;
+    delete[] smoothPos_x;
+    delete[] smoothPos_y;
 
     //copy vertices
     unsigned int numberOfVertices = numberOfCols * numberOfRows;
@@ -1995,19 +1995,11 @@ void sgct_core::CorrectionMesh::exportMesh(const std::string & exportMeshPath)
 }
 
 void sgct_core::CorrectionMesh::cleanUp()
-{    
-    //clean up
-    if( mTempVertices != NULL )
-    {
-        delete[] mTempVertices;
-        mTempVertices = NULL;
-    }
-
-    if( mTempIndices != NULL )
-    {
-        delete[] mTempIndices;
-        mTempIndices = NULL;
-    }
+{
+    delete[] mTempVertices;
+    mTempVertices = NULL;
+    delete[] mTempIndices;
+    mTempIndices = NULL;
 }
 
 void sgct_core::CorrectionMesh::clamp(float & val, const float max, const float min)

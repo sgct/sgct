@@ -243,13 +243,21 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
             while( element[4] != NULL )
             {
                 //val[4] = element[4]->Value();
-                if (parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch"))  ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll"))  ;
+                if (parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch"))
+                    ;
+                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll"))
+                    ;
+
                 element[4] = element[4]->NextSiblingElement();
             }
 

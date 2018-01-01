@@ -406,6 +406,14 @@ void sgct_core::SpoutOutputProjection::renderInternal()
 	}
 #endif
 	glBindTexture(GL_TEXTURE_2D, 0);
+
+    glEnable(GL_SCISSOR_TEST);
+    sgct::Engine::mInstance->enterCurrentViewport();
+    glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
+    glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
+    glDisable(GL_SCISSOR_TEST);
+    glDisable(GL_CULL_FACE);
+
 }
 
 

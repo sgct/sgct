@@ -51,6 +51,7 @@ set(SOURCE_FILES
 	ShaderManager.cpp
 	ShaderProgram.cpp
 	SharedData.cpp
+	SpoutOutputProjection.cpp
 	Statistics.cpp
 	TextureManager.cpp
 	Viewport.cpp

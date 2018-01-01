@@ -360,6 +360,11 @@ void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
 	//render
 	sgct::Engine::mInstance->mDrawFnPtr();
 
+#ifdef SGCT_HAS_SPOUT
+    glBindTexture(GL_TEXTURE_2D, spoutTexture[face]);
+    ((SPOUTHANDLE)handle[face])->SendTexture(spoutTexture[face], GL_TEXTURE_2D, mCubemapResolution, mCubemapResolution);
+#endif
+
 	//restore polygon mode
 	glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
@@ -396,24 +401,11 @@ void sgct_core::SpoutOutputProjection::attachTextures(const int & face)
 
 void sgct_core::SpoutOutputProjection::renderInternal()
 {
-	glActiveTexture(GL_TEXTURE0);
-
-#ifdef SGCT_HAS_SPOUT
-	for (std::size_t i = 0; i < 6; i++)
-	{
-		glBindTexture(GL_TEXTURE_2D, spoutTexture[i]);
-		((SPOUTHANDLE)handle[i])->SendTexture(spoutTexture[i], GL_TEXTURE_2D, mCubemapResolution, mCubemapResolution);
-	}
-#endif
-	glBindTexture(GL_TEXTURE_2D, 0);
-
     glEnable(GL_SCISSOR_TEST);
     sgct::Engine::mInstance->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
-    glDisable(GL_CULL_FACE);
-
 }
 
 

@@ -477,25 +477,35 @@ void sgct_core::NonLinearProjection::generateMap(TextureIndex ti, int internalFo
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
 }
 
-int sgct_core::NonLinearProjection::getCubemapRes(std::string & quality)
+int sgct_core::NonLinearProjection::getCubemapRes(std::string& quality)
 {
     std::transform(quality.begin(), quality.end(), quality.begin(), ::tolower);
 
-    if (strcmp(quality.c_str(), "low") == 0)
-        return 256;
-    else if (strcmp(quality.c_str(), "medium") == 0)
-        return 512;
-    else if (strcmp(quality.c_str(), "high") == 0 || strcmp(quality.c_str(), "1k") == 0)
-        return 1024;
-    else if (strcmp(quality.c_str(), "2k") == 0)
-        return 2048;
-    else if (strcmp(quality.c_str(), "4k") == 0)
-        return 4096;
-    else if (strcmp(quality.c_str(), "8k") == 0)
-        return 8192;
-    else if (strcmp(quality.c_str(), "16k") == 0)
-        return 16384;
+    static const std::unordered_map<std::string, int> Map = {
+        { "low",     256 },
+        { "256",     256 },
+        { "medium",  512 },
+        { "512",     512 },
+        { "high",   1024 },
+        { "1k",     1024 },
+        { "1024",   1024 },
+        { "1.5k",   1536 },
+        { "1536",   1536 },
+        { "2k",     2048 },
+        { "2048",   2048 },
+        { "4k",     4096 },
+        { "4096",   4096 },
+        { "8k",     8192 },
+        { "8192",   8192 },
+        { "16k",   16384 },
+        { "16384", 16384 },
+    };
 
-    //if match not found
-    return -1;
+    auto it = Map.find(quality);
+    if (it != Map.end()) {
+        return it->second;
+    }
+    else {
+        return -1;
+    }
 }

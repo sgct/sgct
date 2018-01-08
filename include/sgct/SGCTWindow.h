@@ -72,6 +72,9 @@ public:
     void setUsePostFX(bool state);
     void setUseFXAA(bool state);
     void setUseQuadbuffer(const bool state);
+    void setCallDraw2DFunction(const bool state);
+    void setCallDraw3DFunction(const bool state);
+    void setCopyPreviousWindowToCurrentWindow(const bool state);
     void setNumberOfAASamples(int samples);
     void setStereoMode( StereoMode sm );
     void setCurrentViewport(std::size_t index);
@@ -200,6 +203,9 @@ public:
     inline const int & getStereoShaderLeftTexLoc() const { return StereoLeftTex; }
     inline const int & getStereoShaderRightTexLoc() const { return StereoRightTex; }
 
+    inline const bool & getCallDraw2DFunction() const { return mCallDraw2DFunction; }
+    inline const bool & getCallDraw3DFunction() const { return mCallDraw3DFunction; }
+    inline const bool & getCopyPreviousWindowToCurrentWindow() const { return mCopyPreviousWindowToCurrentWindow; }
 private:
     enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture };
 
@@ -234,6 +240,9 @@ private:
     static bool mUseSwapGroups;
     static bool mBarrier;
     static bool mSwapGroupMaster;
+    bool mCallDraw2DFunction;
+    bool mCallDraw3DFunction;
+    bool mCopyPreviousWindowToCurrentWindow;
     bool mUseQuadBuffer;
     bool mFullScreen;
     bool mFloating;

@@ -425,6 +425,7 @@ private:
     void loadShaders();
     void setAndClearBuffer(BufferMode mode);
     void waitForAllWindowsInSwapGroupToOpen();
+    void copyPreviousWindowViewportToCurrentWindowViewport(sgct_core::Frustum::FrustumMode frustumMode);
 
     static void clearBuffer();
     static void internal_key_callback(GLFWwindow* window, int key, int scancode, int action, int mods);

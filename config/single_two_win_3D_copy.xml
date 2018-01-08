@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<!-- This config can be considered useful in a scenario where you have a primary and secondary monitor  -->
+<!-- And on your primary monitor you want to render your application in a floating window with a GUI  -->
+<!-- While on you secondary monitor you want to render your application without a GUI, such that an audience can look at just the 3D rendering  -->
+<!-- Also, to save significant performance, you only want to render ones, preferably with the resolution an aspect ration of the secondary monitor (the one that the audience see) -->
+<Cluster masterAddress="localhost">
+	<Node address="localhost" port="20401">
+		<!-- This window would render most content, but not text/GUI.  -->
+		<!-- Practically, it does not call the draw2D function, even if such function pointer was specified in your application  -->
+		<Window fullScreen="false" msaa="1" draw2D="false">
+			<Pos x="10" y="100" />
+			<Size x="320" y="480" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<Projectionplane>
+					<!-- Lower left -->
+					<Pos x="-1.778" y="-1.0" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-1.778" y="1.0" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="0.0" y="1.0" z="0.0" />
+				</Projectionplane>
+			</Viewport>
+		</Window>
+		<!-- This window would then copy the the complete rendering from the previous window.  -->
+		<!-- The copy happens before the draw3D, thus we want to not call our 3D draw function after that, hence "draw3D" is set to false -->
+		<!-- This window also renders the overlay/GUI (which is standard), such that this window is considered the control window which only the "pilot" sees  -->
+		<Window fullScreen="false" msaa="1" draw3D="false" copyPreviousWindowToCurrentWindow="true">
+			<!-- Let's say we have a different aspect ratio then the previous window, the one we copy from. -->
+			<!-- That is OK, SGCT will render it based on 0-1, and you will have black where there is not data -->
+			<!-- But you might want to set Pos/Size such that it takes a middle piece of the other texture instead, something we have done in this example -->
+			<!-- This is thus an example of having an secondary monitor on a very wide screen, while you primary screen is a regular less wide monitor -->
+			<!-- But if you want to see all, you better have the same aspect ration and cover the window with a full viewport -->
+			<Pos x="340" y="100" />
+			<Size x="320" y="480" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<Projectionplane>
+					<!-- Lower left -->
+					<Pos x="0.0" y="-1.0" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="0.0" y="1.0" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.778" y="1.0" z="0.0" />
+				</Projectionplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0.0" y="0.0" z="4.0" />
+	</User>
+</Cluster>

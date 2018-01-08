@@ -8,6 +8,7 @@
 sgct::Engine * gEngine;
 
 void myDrawFun();
+void myDraw2DFun();
 void myPreSyncFun();
 void myInitOGLFun();
 void myEncodeFun();
@@ -41,6 +42,7 @@ int main( int argc, char* argv[] )
     gEngine = new sgct::Engine( argc, argv );
 
     gEngine->setInitOGLFunction( myInitOGLFun );
+    gEngine->setDraw2DFunction(myDraw2DFun);
     gEngine->setDrawFunction( myDrawFun );
     gEngine->setPreSyncFunction( myPreSyncFun );
     gEngine->setCleanUpFunction( myCleanUpFun );
@@ -99,14 +101,17 @@ void myDrawFun()
 
     glDisable( GL_CULL_FACE );
     glDisable( GL_DEPTH_TEST );
-    
-    if( gEngine->isMaster() )
+}
+
+void myDraw2DFun()
+{
+    if (gEngine->isMaster())
     {
         ImGui_ImplGlfwGL3_NewFrame(gEngine->getCurrentWindowPtr()->getXFramebufferResolution(), gEngine->getCurrentWindowPtr()->getYFramebufferResolution());
 
         // Show a settings window custom made for this application
         // Toggle this windows with the 'W' key.
-        if(show_settings_window)
+        if (show_settings_window)
         {
             ImGui::SetNextWindowSize(ImVec2(300, 200), ImGuiSetCond_FirstUseEver);
             ImGui::Begin("Settings");
@@ -116,14 +121,14 @@ void myDrawFun()
             if (ImGui::Button("Toggle Test Window")) show_test_window ^= 1;
             ImGui::End();
         }
-        
+
         // Show the ImGui test window. Most of the sample code is in ImGui::ShowTestWindow()
         if (show_test_window)
         {
             ImGui::SetNextWindowPos(ImVec2(100, 20), ImGuiSetCond_FirstUseEver);
             ImGui::ShowTestWindow(&show_test_window);
         }
-        
+
         ImGui::Render();
     }
 }

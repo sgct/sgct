@@ -392,6 +392,15 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                     
                     if( element[1]->Attribute("border") != NULL )
                         tmpWin.setWindowDecoration( strcmp( element[1]->Attribute("border"), "true" ) == 0 ? true : false);
+
+                    if (element[1]->Attribute("draw2D") != NULL)
+                        tmpWin.setCallDraw2DFunction(strcmp(element[1]->Attribute("draw2D"), "true") == 0 ? true : false);
+
+                    if (element[1]->Attribute("draw3D") != NULL)
+                        tmpWin.setCallDraw3DFunction(strcmp(element[1]->Attribute("draw3D"), "true") == 0 ? true : false);
+
+                    if (element[1]->Attribute("copyPreviousWindowToCurrentWindow") != NULL)
+                        tmpWin.setCopyPreviousWindowToCurrentWindow(strcmp(element[1]->Attribute("copyPreviousWindowToCurrentWindow"), "true") == 0 ? true : false);
                     
                     int tmpMonitorIndex = 0;
                     if( element[1]->QueryIntAttribute("monitor", &tmpMonitorIndex ) == tinyxml2::XML_NO_ERROR)

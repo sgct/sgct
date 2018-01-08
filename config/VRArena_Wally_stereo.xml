@@ -1,0 +1,54 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="localhost">
+	<Node address="localhost" port="20401">
+		<!-- 1st window renders only the 3D content  -->
+		<Window fullScreen="false" msaa="4" border="false" draw2D="false">
+			<Pos x="1920" y="0" />
+			<Size x="3640" y="2100" />
+			<Viewport eye="Left">
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="0.5" />
+				<Projectionplane>
+					<!-- Lower left -->
+					<Pos x="-1.778" y="-1.0" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-1.778" y="1.0" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.778" y="1.0" z="0.0" />
+				</Projectionplane>
+			</Viewport>
+			<Viewport eye="Right">
+				<Pos x="0.0" y="0.5" />
+				<Size x="1.0" y="0.5" />
+				<Projectionplane>
+					<!-- Lower left -->
+					<Pos x="-1.778" y="-1.0" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="-1.778" y="1.0" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.778" y="1.0" z="0.0" />
+				</Projectionplane>
+			</Viewport>
+		</Window>
+		<!-- 2nd window copy the 1st windows rendering, does not render 3D content over this, but does render 2D content over it -->
+		<Window fullScreen="false" msaa="1" draw3D="false" copyPreviousWindowToCurrentWindow="true">
+			<Pos x="50" y="250" />
+			<Size x="1820" y="525" />
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<Projectionplane>
+					<!-- Lower left -->
+					<Pos x="0.0" y="-1.0" z="0.0" />
+					<!-- Upper left -->
+					<Pos x="0.0" y="1.0" z="0.0" />
+					<!-- Upper right -->
+					<Pos x="1.778" y="1.0" z="0.0" />
+				</Projectionplane>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0.0" y="0.0" z="4.0" />
+	</User>
+</Cluster>

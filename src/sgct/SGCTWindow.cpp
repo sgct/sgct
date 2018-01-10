@@ -983,7 +983,13 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
             1  = wait for vertical sync
             2  = fix when using swapgroups in xp and running half the framerate
         */
-        glfwSwapInterval( SGCTSettings::instance()->getSwapInterval() );
+
+        // If we would set multiple windows to use vsync, with would get a framerate of (monitor refreshrate)/(number of windows),
+        // which is something that might really slow down a multi-monitor application.
+        if(getId() == 0)
+            glfwSwapInterval(SGCTSettings::instance()->getSwapInterval());
+        else
+            glfwSwapInterval(0);
 
         updateTransferCurve();
 

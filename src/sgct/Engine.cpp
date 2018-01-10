@@ -564,12 +564,13 @@ bool sgct::Engine::initWindows()
 
     mStatistics = new sgct_core::Statistics();
     GLFWwindow* share = NULL;
+    size_t lastWindowIdx = mThisNode->getNumberOfWindows()-1;
     for(std::size_t i=0; i < mThisNode->getNumberOfWindows(); i++)
     {
         if( i > 0 )
             share = mThisNode->getWindowPtr(0)->getWindowHandle();
         
-        if( !mThisNode->getWindowPtr(i)->openWindow( share ) )
+        if( !mThisNode->getWindowPtr(i)->openWindow( share, lastWindowIdx) )
         {
             MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Failed to open window %d!\n", i);
             return false;

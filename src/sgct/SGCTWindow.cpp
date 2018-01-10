@@ -882,7 +882,7 @@ void sgct::SGCTWindow::setCopyPreviousWindowToCurrentWindow(const bool state)
 
     /returns True if window was created successfully.
 */
-bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
+bool sgct::SGCTWindow::openWindow(GLFWwindow* share, size_t lastWindowIdx)
 {
     glfwWindowHint(GLFW_DEPTH_BITS, 32);
     glfwWindowHint(GLFW_DECORATED, mDecorated ? GL_TRUE : GL_FALSE);
@@ -986,7 +986,8 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share)
 
         // If we would set multiple windows to use vsync, with would get a framerate of (monitor refreshrate)/(number of windows),
         // which is something that might really slow down a multi-monitor application.
-        if(getId() == 0)
+        // Setting last window to the requested interval, which does mean all other windows will respect the last window in the pipeline.
+        if(getId() == lastWindowIdx)
             glfwSwapInterval(SGCTSettings::instance()->getSwapInterval());
         else
             glfwSwapInterval(0);

@@ -46,7 +46,7 @@ public:
     void initWindowResolution(const int x, const int y);
     void swap(bool takeScreenshot);
     bool update();
-    bool openWindow(GLFWwindow* share);
+    bool openWindow(GLFWwindow* share, size_t lastWindowIdx);
     void makeOpenGLContextCurrent( OGL_Context context );
     static void restoreSharedContext();
     static void resetSwapGroupFrameNumber();

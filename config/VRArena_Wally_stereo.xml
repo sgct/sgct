@@ -10,11 +10,11 @@
 				<Size x="1.0" y="0.5" />
 				<Projectionplane>
 					<!-- Lower left -->
-					<Pos x="-1.778" y="-1.0" z="0.0" />
+					<Pos x="-3.467" y="-1.0" z="0.0" />
 					<!-- Upper left -->
-					<Pos x="-1.778" y="1.0" z="0.0" />
+					<Pos x="-3.467" y="1.0" z="0.0" />
 					<!-- Upper right -->
-					<Pos x="1.778" y="1.0" z="0.0" />
+					<Pos x="3.467" y="1.0" z="0.0" />
 				</Projectionplane>
 			</Viewport>
 			<Viewport eye="Right">
@@ -22,28 +22,29 @@
 				<Size x="1.0" y="0.5" />
 				<Projectionplane>
 					<!-- Lower left -->
-					<Pos x="-1.778" y="-1.0" z="0.0" />
+					<Pos x="-3.467" y="-1.0" z="0.0" />
 					<!-- Upper left -->
-					<Pos x="-1.778" y="1.0" z="0.0" />
+					<Pos x="-3.467" y="1.0" z="0.0" />
 					<!-- Upper right -->
-					<Pos x="1.778" y="1.0" z="0.0" />
+					<Pos x="3.467" y="1.0" z="0.0" />
 				</Projectionplane>
 			</Viewport>
 		</Window>
 		<!-- 2nd window copy the 1st windows rendering, does not render 3D content over this, but does render 2D content over it -->
 		<Window fullScreen="false" msaa="1" draw3D="false" copyPreviousWindowToCurrentWindow="true">
-			<Pos x="50" y="250" />
-			<Size x="1820" y="525" />
+			<Pos x="50" y="30" />
+			<Size x="1820" y="1050" />
+			<Res x="3640" y="2100" />
 			<Viewport>
 				<Pos x="0.0" y="0.0" />
 				<Size x="1.0" y="1.0" />
 				<Projectionplane>
 					<!-- Lower left -->
-					<Pos x="0.0" y="-1.0" z="0.0" />
+					<Pos x="-3.467" y="-1.0" z="0.0" />
 					<!-- Upper left -->
-					<Pos x="0.0" y="1.0" z="0.0" />
+					<Pos x="-3.467" y="1.0" z="0.0" />
 					<!-- Upper right -->
-					<Pos x="1.778" y="1.0" z="0.0" />
+					<Pos x="3.467" y="1.0" z="0.0" />
 				</Projectionplane>
 			</Viewport>
 		</Window>

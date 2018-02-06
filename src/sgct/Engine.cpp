@@ -173,6 +173,10 @@ sgct::Engine::Engine( int& argc, char**& argv )
     mTimerID = 0;
     mExitKey = GLFW_KEY_ESCAPE;
 
+    mPrintSyncMessage = true;
+    mSyncTimeout = 60.f;
+
+
     //parse needs to be before read config since the path to the XML is parsed here
     parseArguments( argc, argv );
 
@@ -986,10 +990,10 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                 
                 //for debuging
                 sgct_core::SGCTNetwork * conn;
-                if( glfwGetTime() - t0 > 1.0 ) //more than a second
+                if(glfwGetTime() - t0 > 1.0 ) //more than a second
                 {
                     conn = mNetworkConnections->getSyncConnectionByIndex(0);
-                    if( !conn->isUpdated() )
+                    if(mPrintSyncMessage && !conn->isUpdated() )
                     {
                         unsigned int lFrameNumber = 0;
                         getCurrentWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
@@ -1003,9 +1007,9 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                             mFrameCounter);
                     }
                     
-                    if( glfwGetTime() - t0 > 60.0 ) //more than a minute
+                    if( glfwGetTime() - t0 > mSyncTimeout ) //more than a minute
                     {
-                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Slave: no sync signal from master after 60 seconds! Exiting...");
+                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Slave: no sync signal from master after %.1f seconds! Exiting...", mSyncTimeout);
                         
                         return false;
                     }
@@ -1055,7 +1059,7 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                     for(unsigned int i=0; i<mNetworkConnections->getSyncConnectionsCount(); i++)
                     {
                         conn = mNetworkConnections->getConnectionByIndex(i);
-                        if( !conn->isUpdated() )
+                        if( mPrintSyncMessage && !conn->isUpdated() )
                         {
                             unsigned int lFrameNumber = 0;
                             getCurrentWindowPtr()->getSwapGroupFrameNumber(lFrameNumber);
@@ -1071,9 +1075,9 @@ bool sgct::Engine::frameLock(sgct::Engine::SyncStage stage)
                         }
                     }
                     
-                    if( glfwGetTime() - t0 > 60.0 ) //more than a minute
+                    if( glfwGetTime() - t0 > mSyncTimeout ) //more than a minute
                     {
-                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Master: no sync signal from all slaves after 60 seconds! Exiting...");
+                        MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "Master: no sync signal from all slaves after %.1f seconds! Exiting...", mSyncTimeout);
                         
                         return false;
                     }
@@ -4516,6 +4520,13 @@ const bool & sgct::Engine::getWireframe() const
 {
     return mShowWireframe;
 }
+
+void sgct::Engine::setSyncParameters(bool printMessage, float timeout)
+{
+    mPrintSyncMessage = printMessage;
+    mSyncTimeout = timeout;
+}
+
 
 /*!
  Set the screenshot number (file index)

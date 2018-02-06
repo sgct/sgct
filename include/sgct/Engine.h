@@ -389,6 +389,13 @@ public:
 
     const bool & getWireframe() const;
 
+    /// Specifies the sync parameters to be used in the rendering loop
+    /// @param printMessage If <code>true</code> a message is print waiting for a frame
+    ///                     every second
+    /// @param timeout      The timeout that a master and slaves will wait for each other
+    ///                     in seconds
+    void setSyncParameters(bool printMessage = true, float timeout = 60.f);
+
 private:
     Engine() {;} //to prevent users to start without requred parameters
 
@@ -515,6 +522,9 @@ private:
     bool mRenderingOffScreen;
     bool mFixedOGLPipeline;
     bool mHelpMode;
+
+    bool mPrintSyncMessage;
+    float mSyncTimeout;
 
     //objects
     ShaderProgram mShaders[NUMBER_OF_SHADERS];

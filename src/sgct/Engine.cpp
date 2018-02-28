@@ -2790,7 +2790,6 @@ void sgct::Engine::copyPreviousWindowViewportToCurrentWindowViewport(sgct_core::
         return;
     }
 
-    SGCTWindow * currentWindow = getCurrentWindowPtr();
     SGCTWindow * previousWindow = getWindowPtr(getCurrentWindowIndex() - 1);
 
     //run scissor test to prevent clearing of entire buffer

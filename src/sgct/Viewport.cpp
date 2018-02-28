@@ -162,7 +162,7 @@ void sgct_core::Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
         try {
             target = std::stof(element->Attribute(tag.c_str()));
         }
-        catch (const std::invalid_argument& ia) {
+        catch (const std::invalid_argument&) {
             std::string fullErrorMessage = "Viewport: Failed to parse " + tag
                 + " from MPCDI XML!\n";
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
@@ -188,7 +188,7 @@ bool sgct_core::Viewport::parseFrustumElement(FrustumData& frustum, FrustumData:
             frustum.foundElem[elemIndex] = true;
             return true;
         }
-        catch (const std::invalid_argument& ia) {
+        catch (const std::invalid_argument&) {
             std::string fullErrorMessage = "Viewport: Failed to parse frustum element "
                 + std::string(frustumTag) + " from MPCDI XML!\n";
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,

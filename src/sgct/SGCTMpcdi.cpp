@@ -34,12 +34,12 @@ sgct_core::SGCTMpcdi::~SGCTMpcdi()
 }
 
 bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
-	SGCTNode& tmpNode,
-	sgct::SGCTWindow& tmpWin)
+    SGCTNode& tmpNode,
+    sgct::SGCTWindow& tmpWin)
 {
-	FILE * cfgFile = nullptr;
-	unzFile zipfile;
-	const int MaxFilenameSize_bytes = 500;
+    FILE * cfgFile = nullptr;
+    unzFile zipfile;
+    const int MaxFilenameSize_bytes = 500;
 
     bool fileOpenSuccess = openZipFile(cfgFile, filenameMpcdi, &zipfile);
     if (!fileOpenSuccess)
@@ -49,34 +49,34 @@ bool sgct_core::SGCTMpcdi::parseConfiguration(const std::string filenameMpcdi,
             filenameMpcdi.c_str());
         return false;
     }
-	// Get info about the zip file
-	unz_global_info global_info;
-	int globalInfoRet = unzGetGlobalInfo(zipfile, &global_info);
+    // Get info about the zip file
+    unz_global_info global_info;
+    int globalInfoRet = unzGetGlobalInfo(zipfile, &global_info);
     if (globalInfoRet != UNZ_OK)
-	{
-		sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-			"parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
-			filenameMpcdi.c_str());
-		unzClose(zipfile);
-		return false;
-	}
-
-	//Search for required files inside mpcdi archive file
-    for (int i = 0; i < global_info.number_entry; ++i)
     {
-		unz_file_info file_info;
-		char filename[MaxFilenameSize_bytes];
-		int getCurrentFileInfo = unzGetCurrentFileInfo(zipfile, &file_info, filename,
-		        MaxFilenameSize_bytes, NULL, 0, NULL, 0);
-		if (getCurrentFileInfo != UNZ_OK)
-		{
-			sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-				"parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
-			unzClose(zipfile);
-			return false;
-		}
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+            "parseMpcdiConfiguration: Unable to get zip archive info from %s\n",
+            filenameMpcdi.c_str());
+        unzClose(zipfile);
+        return false;
+    }
 
-		bool isSubFileValid =  processSubFiles(filename, &zipfile, file_info);
+    //Search for required files inside mpcdi archive file
+    for (unsigned int i = 0; i < global_info.number_entry; ++i)
+    {
+        unz_file_info file_info;
+        char filename[MaxFilenameSize_bytes];
+        int getCurrentFileInfo = unzGetCurrentFileInfo(zipfile, &file_info, filename,
+                MaxFilenameSize_bytes, NULL, 0, NULL, 0);
+        if (getCurrentFileInfo != UNZ_OK)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                "parseMpcdiConfiguration: Unable to get info on compressed file #%d\n", i);
+            unzClose(zipfile);
+            return false;
+        }
+
+        bool isSubFileValid =  processSubFiles(filename, &zipfile, file_info);
         if (!isSubFileValid)
         {
             unzClose(zipfile);
@@ -139,7 +139,7 @@ bool sgct_core::SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfil
     for (int i = 0; i < mMpcdiSubFileContents.mpcdi_nRequiredFiles; ++i)
     {
         if( !mMpcdiSubFileContents.hasFound[i]
-			&& doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
+            && doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
         {
             mMpcdiSubFileContents.hasFound[i] = true;
             mMpcdiSubFileContents.size[i] = file_info.uncompressed_size;

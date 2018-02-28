@@ -1533,8 +1533,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
                                                 "CorrectionMesh: Incorrect file type.\n");
     }
-    bool littleEndian = (endiannessIndicator < 0.0) ? true : false;
-
     int numCorrectionValues = numberOfCols * numberOfRows;
     float* correctionGridX = new float[numCorrectionValues];
     float* correctionGridY = new float[numCorrectionValues];
@@ -1548,7 +1546,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
 #else
  #define SGCT_READ fread
 #endif
-        for (unsigned int i = 0; i < numCorrectionValues; ++i)
+        for (int i = 0; i < numCorrectionValues; ++i)
         {
 #ifdef __WIN32__
             retval = SGCT_READ(correctionGridX + i, numCorrectionValues, value32bit, 1, meshFile);
@@ -1574,7 +1572,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     else
     {
         bool readErr = false;
-        for (unsigned int i = 0; i < numCorrectionValues; ++i)
+        for (int i = 0; i < numCorrectionValues; ++i)
         {
 //#define TEST_FLAT_MESH
 
@@ -1603,7 +1601,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float* warpedPos_x = new float[numCorrectionValues];
     float* warpedPos_y = new float[numCorrectionValues];
 
-    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+    for (int i = 0; i < numCorrectionValues; ++i) {
         gridIndex_column = i % numberOfCols;
         gridIndex_row = i / numberOfCols;
         //Compute XY positions for each point based on a normalized 0,0 to 1,1 grid,
@@ -1611,7 +1609,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
         smoothPos_x[i] = (float)gridIndex_column / (float)(numberOfCols - 1);
         //Reverse the y position because the values from pfm file are given in raster-scan
         // order, which is left to right but starts at upper-left rather than lower-left.
-        smoothPos_y[i] = 1.0 - ((float)gridIndex_row    / (float)(numberOfRows - 1));
+        smoothPos_y[i] = 1.0f - ((float)gridIndex_row    / (float)(numberOfRows - 1));
         warpedPos_x[i] = smoothPos_x[i] + correctionGridX[i];
         warpedPos_y[i] = smoothPos_y[i] + correctionGridY[i];
     }
@@ -1625,7 +1623,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float scaleRangeY = maxY - minY;
     float scaleFactor = (scaleRangeX >= scaleRangeY) ? scaleRangeX : scaleRangeY;
     //Scale all positions to fit within 0,0 to 1,1
-    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+    for (int i = 0; i < numCorrectionValues; ++i) {
         warpedPos_x[i] = (warpedPos_x[i] - minX) / scaleFactor;
         warpedPos_y[i] = (warpedPos_y[i] - minY) / scaleFactor;
     }
@@ -1638,7 +1636,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     vertex.g = 1.0f;
     vertex.b = 1.0f;
     vertex.a = 1.0f;
-    for (unsigned int i = 0; i < numCorrectionValues; ++i) {
+    for (int i = 0; i < numCorrectionValues; ++i) {
         vertex.s = smoothPos_x[i];
         vertex.t = smoothPos_y[i];
         //scale to viewport coordinates

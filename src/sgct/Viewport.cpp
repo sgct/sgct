@@ -219,8 +219,8 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
     setSize(vpSize[idx_x], vpSize[idx_y]);
     parseFloatFromAttribute(element[2], "xResolution", vpResolution[idx_x]);
     parseFloatFromAttribute(element[2], "yResolution", vpResolution[idx_y]);
-    expectedResolution[idx_x] = int(vpSize[idx_x] * (float)winResX);
-    expectedResolution[idx_y] = int(vpSize[idx_y] * (float)winResY);
+    expectedResolution[idx_x] = std::floor(vpSize[idx_x] * (float)winResX);
+    expectedResolution[idx_y] = std::floor(vpSize[idx_y] * (float)winResY);
 
     if(   expectedResolution[idx_x] != vpResolution[idx_x]
        || expectedResolution[idx_y] != vpResolution[idx_y] )
@@ -242,21 +242,22 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
             element[4] = element[3]->FirstChildElement();
             while( element[4] != NULL )
             {
-                //val[4] = element[4]->Value();
-                if (parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch"))
-                    ;
-                else if (parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll"))
-                    ;
+                bool frustumTagFound = false;
+
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch");
+                if (!frustumTagFound)
+                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll");
 
                 element[4] = element[4]->NextSiblingElement();
             }

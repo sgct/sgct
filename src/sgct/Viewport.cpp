@@ -338,10 +338,18 @@ void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
             {
                 validFOV = true;
 
+                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+                    "Viewport: Adding planar projection FOV left=%f right=%f up=%f down=%f\n",
+                    left, right, up, down);
+
+                float tanLeft = tan(glm::radians(left));
+                float tanRight = tan(glm::radians(right));
+                float tanBottom = tan(glm::radians(down));
+                float tanTop = tan(glm::radians(up));
 
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "Viewport: Adding planar projection FOV down=%f left=%f right=%f up=%f\n",
-                    down, left, right, up);
+                    "Tan angles: tanLeft=%f tanRight=%f tanBottom=%f tanTop=%f\n width=%f\n height=%f\n",
+                    tanLeft, tanRight, tanBottom, tanTop, tanRight + tanLeft, tanTop + tanBottom);
             }
             else
                 sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport: Failed to parse planar projection FOV from XML!\n");

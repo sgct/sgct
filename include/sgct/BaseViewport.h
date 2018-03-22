@@ -37,13 +37,15 @@ public:
     float getY();
     float getXSize();
     float getYSize();
-
+    
     inline SGCTUser * getUser() { return mUser; }
     inline Frustum::FrustumMode getEye() { return mEye; }
     inline SGCTProjection * getProjection(Frustum::FrustumMode frustumMode) { return &mProjections[frustumMode]; }
     inline SGCTProjection * getProjection() { return &mProjections[mEye]; }
     inline SGCTProjectionPlane * getProjectionPlane() { return &mProjectionPlane; }
-
+    inline glm::quat getRotation() { return mRot; }
+    inline glm::vec4 getFOV() { return mFOV; }
+    
     bool isEnabled();
     void linkUserName();
 
@@ -68,7 +70,8 @@ protected:
     float mYSize;
 
     glm::vec3 mUnTransformedViewPlaneCoords[3];
-    glm::quat  mRot;
+    glm::quat mRot;
+    glm::vec4 mFOV;
 };
 
 }

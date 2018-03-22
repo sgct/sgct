@@ -123,6 +123,8 @@ void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, 
 {
     mRot = rot;
 
+    mFOV = glm::vec4(up, down, left, right);
+
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].x = dist * tanf(glm::radians<float>(left));
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].y = dist * tanf(glm::radians<float>(down));
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].z = -dist;

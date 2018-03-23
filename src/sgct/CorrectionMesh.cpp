@@ -973,8 +973,8 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
         return false;
     }
 
-    float numberOfColsf = sqrtf(xcorrections.size());
-    float numberOfRowsf = sqrtf(ycorrections.size());
+    float numberOfColsf = sqrtf(static_cast<float>(xcorrections.size()));
+    float numberOfRowsf = sqrtf(static_cast<float>(ycorrections.size()));
 
     if (ceilf(numberOfColsf) != numberOfColsf || ceilf(numberOfRowsf) != numberOfRowsf)
     {
@@ -1080,7 +1080,6 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
 
     float x, y, u, v;
     size_t i = 0;
-    size_t xi, yi;
 
     for (unsigned int r = 0; r < numberOfRows; r++)
     {
@@ -1815,7 +1814,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & mes
     float endiannessIndicator = 0;
 
 #ifdef __WIN32__
-    _sscanf(&headerBuffer[0], "%2c\n", &fileFormatHeader);
+    _sscanf(&headerBuffer[0], "%2c\n", &fileFormatHeader, static_cast<unsigned int>(sizeof(fileFormatHeader)));
     //Read header past the 2 character start
     _sscanf(&headerBuffer[3], "%d %d\n", &numberOfCols, &numberOfRows);
     int indexForEndianness = 3 + numberOfDigitsInInt(numberOfCols)

@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define MAX_LINE_LENGTH 1024
 #define CONVERT_SCISS_TO_DOMEPROJECTION 0
+#define CONVERT_SIMCAD_TO_DOMEPROJECTION 1
 
 #include <stdio.h>
 #include <fstream>
@@ -19,9 +20,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/Viewport.h>
 #include <sgct/SGCTSettings.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <string>
 #include <cstring>
 #include <algorithm>
+#include <sstream>
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     #define _sscanf sscanf_s
@@ -186,6 +189,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
         //if (hint == MPCDI_HINT)
         meshFmt = MPCDI_FMT;
     }
+    else if (path.find(".simcad") != std::string::npos)
+    {
+        if (hint == NO_HINT || hint == SIMCAD_HINT)//default for this suffix
+            meshFmt = SIMCAD_FMT;
+    }
 
     //select parser
     bool loadStatus = false;
@@ -201,6 +209,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateMesh(std::string meshPath, sgct_c
 
     case SCISS_FMT:
         loadStatus = readAndGenerateScissMesh(meshPath, parent);
+        break;
+
+    case SIMCAD_FMT:
+        loadStatus = readAndGenerateSimCADMesh(meshPath, parent);
         break;
 
     case SKYSKAN_FMT:
@@ -871,6 +883,302 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     return true;
 }
 
+bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & meshPath, sgct_core::Viewport * parent)
+{
+    /*During projector alignment, a 33x33 matrix is used.
+     This means 33x33 points can be set to define geometry correction.
+     So(x, y) coordinates are defined by the 33x33 matrix and the resolution used, defined by the tag.
+     And the corrections to be applied for every point in that 33x33 matrix, are stored in the warp file.
+     This explains why this file only contains zero’s when no warp is applied.*/
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
+        "CorrectionMesh: Reading simcad warp data from '%s'.\n", meshPath.c_str());
+
+    float xrange = 1.0f;
+    float yrange = 1.0f;
+    std::vector<float> xcorrections, ycorrections;
+
+    tinyxml2::XMLDocument xmlDoc;
+    if (xmlDoc.LoadFile(meshPath.c_str()) != tinyxml2::XML_NO_ERROR)
+    {
+        std::stringstream ss;
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
+        else if (xmlDoc.GetErrorStr1())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+        else if (xmlDoc.GetErrorStr2())
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+        else
+            ss << "File not found";
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", meshPath.c_str(), ss.str());
+        return false;
+    }
+    else {
+        tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("GeometryFile");
+        if (XMLroot == NULL)
+        {
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", meshPath.c_str(), "Cannot find XML root!");
+            return false;
+        }
+
+        tinyxml2::XMLElement* element[MAX_XML_DEPTH];
+        const char * val[MAX_XML_DEPTH];
+        element[0] = XMLroot->FirstChildElement();
+        if (element[0] != NULL)
+        {
+            val[0] = element[0]->Value();
+
+            if (strcmp("GeometryDefinition", val[0]) == 0)
+            {
+                element[1] = element[0]->FirstChildElement();
+                while (element[1] != NULL)
+                {
+                    val[1] = element[1]->Value();
+                    
+                    if (strcmp("X-FlatParameters", val[1]) == 0)
+                    { 
+                        if (element[1]->QueryFloatAttribute("range", &xrange) == tinyxml2::XML_NO_ERROR)
+                        {
+                            std::string xcoordstr(element[1]->GetText());
+                            std::vector<std::string> xcoords = sgct_helpers::split(xcoordstr, ' ');
+                            for (auto &x : xcoords)
+                            {
+                                xcorrections.push_back(std::stof(x)/xrange);
+                            } 
+                        }
+                    }
+                    else if (strcmp("Y-FlatParameters", val[1]) == 0)
+                    {
+                        if (element[1]->QueryFloatAttribute("range", &yrange) == tinyxml2::XML_NO_ERROR)
+                        {
+                            std::string ycoordstr(element[1]->GetText());
+                            std::vector<std::string> ycoords = sgct_helpers::split(ycoordstr, ' ');
+                            for (auto &y : ycoords)
+                            {
+                                ycorrections.push_back(std::stof(y)/yrange);
+                            }
+                        }
+                    }
+
+                    //iterate
+                    element[1] = element[1]->NextSiblingElement();
+                }
+            }
+        }
+    }
+
+    if (xcorrections.size() != ycorrections.size())
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Not the same x coords as y coords!\n");
+        return false;
+    }
+
+    float numberOfColsf = sqrtf(xcorrections.size());
+    float numberOfRowsf = sqrtf(ycorrections.size());
+
+    if (ceilf(numberOfColsf) != numberOfColsf || ceilf(numberOfRowsf) != numberOfRowsf)
+    {
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh: Not a valid squared matrix read from SimCAD file!\n");
+        return false;
+    }
+
+    unsigned int numberOfCols = static_cast<unsigned int>(numberOfColsf);
+    unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
+
+
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION
+    //export to dome projection
+    std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".simcad") - 6);
+
+    //export frustum
+    std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+        "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
+    std::ofstream outFrustumFile;
+    outFrustumFile.open(outFrustumFilename, std::ios::out);
+    outFrustumFile << "x;y;z;heading;pitch;bank;left;right;bottom;top;tanLeft;tanRight;tanBottom;tanTop;width;height" << std::endl;
+    outFrustumFile << std::fixed;
+    outFrustumFile << std::setprecision(8);
+
+    //write viewdata
+    SCISSViewData viewData;
+
+    glm::quat rotation = parent->getRotation();
+    viewData.qw = rotation.w;
+    viewData.qx = rotation.x;
+    viewData.qy = rotation.y;
+    viewData.qz = rotation.z;
+
+    glm::vec3 position = parent->getUser()->getPos();
+    viewData.x = position.x;
+    viewData.y = position.y;
+    viewData.z = position.z;
+
+    glm::vec4 fov = parent->getFOV();
+    viewData.fovUp = fov.x;
+    viewData.fovDown = -fov.y;
+    viewData.fovLeft = -fov.z;
+    viewData.fovRight = fov.w;
+
+    double yaw, pitch, roll;
+    glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(static_cast<double>(viewData.qw), static_cast<double>(viewData.qy), static_cast<double>(viewData.qx), static_cast<double>(viewData.qz))));
+    yaw = -angles.x;
+    pitch = angles.y;
+    roll = -angles.z;
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Rotation quat = [%f %f %f %f]\nyaw = %lf, pitch = %lf, roll = %lf\n",
+        viewData.qx, viewData.qy, viewData.qz, viewData.qw,
+        yaw, pitch, roll);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Position = [%f %f %f]\n",
+        viewData.x, viewData.y, viewData.z);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV up = %f\n",
+        viewData.fovUp);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV down = %f\n",
+        viewData.fovDown);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV left = %f\n",
+        viewData.fovLeft);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV right = %f\n",
+        viewData.fovRight);
+
+
+    outFrustumFile << viewData.x << ";" << viewData.y << ";" << viewData.z << ";"; //x y z
+    outFrustumFile << yaw << ";" << pitch << ";" << roll << ";";
+    outFrustumFile << viewData.fovLeft << ";" << viewData.fovRight << ";" << viewData.fovDown << ";" << viewData.fovUp << ";";
+    float tanLeft = tan(glm::radians(viewData.fovLeft));
+    float tanRight = tan(glm::radians(viewData.fovRight));
+    float tanBottom = tan(glm::radians(viewData.fovDown));
+    float tanTop = tan(glm::radians(viewData.fovUp));
+    outFrustumFile << tanLeft << ";" << tanRight << ";" << tanBottom << ";" << tanTop << ";";
+    outFrustumFile << tanRight - tanLeft << ";";
+    outFrustumFile << tanTop - tanBottom << std::endl;
+    outFrustumFile.close();
+
+    //test export mesh
+    std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+        "CorrectionMesh: Exporting dome projection mesh file \"%s\"\n", outMeshFilename.c_str());
+    std::ofstream outMeshFile;
+    outMeshFile.open(outMeshFilename, std::ios::out);
+    outMeshFile << "x;y;u;v;column;row" << std::endl;
+    outMeshFile << std::fixed;
+    outMeshFile << std::setprecision(6);
+#endif
+
+    CorrectionMeshVertex vertex;
+    std::vector<CorrectionMeshVertex> vertices;
+
+    //init to max intensity (opaque white)
+    vertex.r = 1.0f;
+    vertex.g = 1.0f;
+    vertex.b = 1.0f;
+    vertex.a = 1.0f;
+
+    float x, y, u, v;
+    size_t i = 0;
+    size_t xi, yi;
+
+    for (unsigned int r = 0; r < numberOfRows; r++)
+    {
+        for (unsigned int c = 0; c < numberOfCols; c++)
+        {
+            //vertex-mapping
+            u = (static_cast<float>(c) / (static_cast<float>(numberOfCols) - 1.f));
+            v = 1.f - (static_cast<float>(r) / (static_cast<float>(numberOfRows) - 1.f));
+
+            x = u + xcorrections[i];
+            y = v - ycorrections[i];
+
+            //convert to [-1, 1]
+            vertex.x = 2.0f * (x * parent->getXSize() + parent->getX()) - 1.0f;
+            vertex.y = 2.0f * (y * parent->getYSize() + parent->getY()) - 1.0f;
+
+            //scale to viewport coordinates
+            vertex.s = u * parent->getXSize() + parent->getX();
+            vertex.t = v * parent->getYSize() + parent->getY();
+
+            vertices.push_back(vertex);
+
+            i++;
+
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION
+            outMeshFile << x << ";";
+            outMeshFile << 1.0f - y << ";";
+            outMeshFile << u << ";";
+            outMeshFile << 1.0f - v << ";";
+            outMeshFile << c << ";";
+            outMeshFile << r << std::endl;
+#endif
+        }
+
+    }
+
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION
+    outMeshFile.close();
+#endif
+
+    //copy vertices
+    unsigned int numberOfVertices = numberOfCols * numberOfRows;
+    mTempVertices = new CorrectionMeshVertex[numberOfVertices];
+    memcpy(mTempVertices, vertices.data(), numberOfVertices * sizeof(CorrectionMeshVertex));
+    mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
+    vertices.clear();
+
+    std::vector<unsigned int> indices;
+    unsigned int i0, i1, i2, i3;
+    for (unsigned int c = 0; c < (numberOfCols - 1); c++)
+        for (unsigned int r = 0; r < (numberOfRows - 1); r++)
+        {
+            i0 = r * numberOfCols + c;
+            i1 = r * numberOfCols + (c + 1);
+            i2 = (r + 1) * numberOfCols + (c + 1);
+            i3 = (r + 1) * numberOfCols + c;
+
+            //fprintf(stderr, "Indexes: %u %u %u %u\n", i0, i1, i2, i3);
+
+            /*
+
+            3      2
+            x____x
+            |   /|
+            |  / |
+            | /  |
+            |/   |
+            x----x
+            0      1
+
+            */
+
+            //triangle 1
+            indices.push_back(i0);
+            indices.push_back(i1);
+            indices.push_back(i2);
+
+            //triangle 2
+            indices.push_back(i0);
+            indices.push_back(i2);
+            indices.push_back(i3);
+        }
+
+    //allocate and copy indices
+    mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+    mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
+    memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+    indices.clear();
+
+    mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+
+    createMesh(&mGeometries[WARP_MESH]);
+
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Correction mesh read successfully! Vertices=%u, Indices=%u.\n", mGeometries[WARP_MESH].mNumberOfVertices, mGeometries[WARP_MESH].mNumberOfIndices);
+
+    return true;
+}
+
 bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & meshPath, Viewport * parent)
 {
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO,
@@ -1426,9 +1734,6 @@ int numberOfDigitsInInt(int number)
     return i;
 }
 
-/*!
-Parse data from domeprojection's camera based calibration system. Domeprojection.com
-*/
 bool sgct_core::CorrectionMesh::readAndGenerateMpcdiMesh(const std::string & meshPath, Viewport* parent)
 {
     bool isReadingFile = ( meshPath.length() > 0 ) ? true : false;
@@ -2214,6 +2519,8 @@ sgct_core::CorrectionMesh::MeshHint sgct_core::CorrectionMesh::parseHint(const s
         hint = SCALEABLE_HINT;
     else if (str.compare("sciss") == 0)
         hint = SCISS_HINT;
+    else if (str.compare("simcad") == 0)
+        hint = SIMCAD_HINT;
     else if (str.compare("skyskan") == 0)
         hint = SKYSKAN_HINT;
     else if (str.compare("mpcdi") == 0)

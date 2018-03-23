@@ -1,0 +1,89 @@
+<?xml version="1.0" ?>
+<Cluster masterAddress="172.19.1.10" externalControlPort="20600">
+	<Settings>
+		<Display swapInterval="1" refreshRate="60" />
+	</Settings>
+	<Scene>
+		<Orientation yaw="0.0" pitch="180.0" roll="0.0" />
+		<Offset x="0.0" y="-0.2" z="-3.2" />
+		<Scale value="1.0" />
+	</Scene>
+	<Node address="172.19.1.10" port="20400" swapLock="false" dataTransferPort="20500">
+		<Window fullScreen="false" numberOfSamples="4">
+			<Stereo type="none" />
+			<Size x="1024" y="1024" />
+			<!-- Frame buffer resolution -->
+            <Res x="4096" y="4096" />
+			<Viewport name="fisheye">
+				<Pos x="0.0" y="0.0" />
+				<Size x="1.0" y="1.0" />
+				<FisheyeProjection fov="180" quality="4k" tilt="0.0">
+					<Background r="0.1" g="0.1" b="0.1" a="1.0" />
+				</FisheyeProjection>
+			</Viewport>
+		</Window>
+	</Node>
+	<Node ip="172.19.2.17" port="20600" swapLock="true" dataTransferPort="20501">
+		<Window fullScreen="true" numberOfSamples="4">
+			<Stereo type="none" />
+			<!--<Size x="7680" y="3200" />-->
+			<Viewport>
+				<Pos x="0.0" y="0.5" />
+				<Size x="0.33333" y="0.5" />
+				<!-- Proj 1 -->
+				<PlanarProjection>
+                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <Orientation heading="-45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.33333" y="0.5" />
+				<Size x="0.33333" y="0.5" />
+				<!-- Proj 2 -->
+				<PlanarProjection>
+                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <Orientation heading="45.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.66666" y="0.5" />
+				<Size x="0.33334" y="0.5" />
+				<!-- Proj 3 -->
+				<PlanarProjection>
+                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <Orientation heading="135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.0" y="0.0" />
+				<Size x="0.33333" y="0.5" />
+				<!-- Proj 4 -->
+				<PlanarProjection>
+                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <Orientation heading="-135.0" pitch="0.0" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.33333" y="0.0" />
+				<Size x="0.33333" y="0.5" />
+				<!-- Proj 5 -->
+				<PlanarProjection>
+                    <FOV left="57.05" right="57.05" up="65.31" down="6.50" />
+                    <Orientation heading="57.0" pitch="49.5" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+			<Viewport>
+				<Pos x="0.66666" y="0.0" />
+				<Size x="0.33334" y="0.5" />
+				<!-- Proj 6 -->
+				<PlanarProjection>
+                    <FOV left="57.05" right="57.05" up="65.31" down="6.50" />
+                    <Orientation heading="-123.0" pitch="49.5" roll="0.0" />
+				</PlanarProjection>
+			</Viewport>
+		</Window>
+	</Node>
+	<User eyeSeparation="0.06">
+		<Pos x="0.0" y="0.0" z="0.0" />
+	</User>
+</Cluster>

@@ -69,7 +69,6 @@ namespace sgct_core
         void setupMaskMesh(Viewport * parent, bool flip_x, bool flip_y);
         void createMesh(CorrectionMeshGeometry * geomPtr);
         void exportMesh(const std::string & exportMeshPath);
-        void exportScissMesh(const std::string & exportMeshPath, Viewport * parent);
         void cleanUp();
         inline void clamp(float & val, const float max, const float min);
         

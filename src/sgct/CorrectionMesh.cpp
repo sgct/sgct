@@ -7,7 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define MAX_LINE_LENGTH 1024
 #define CONVERT_SCISS_TO_DOMEPROJECTION 0
-#define CONVERT_SIMCAD_TO_DOMEPROJECTION 1
+#define CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC 0
 
 #include <stdio.h>
 #include <fstream>
@@ -717,8 +717,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     }
     else
     {
-        numberOfVertices = size[0]*size[1];
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Number of vertices = %u (%ux%u)\n", numberOfVertices, size[0], size[1]);
+        if (fileVersion == '2') {
+            numberOfVertices =  size[1];
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Number of vertices = %u\n", numberOfVertices);
+        }
+        else {
+            numberOfVertices = size[0] * size[1];
+            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Number of vertices = %u (%ux%u)\n", numberOfVertices, size[0], size[1]);
+        }
     }
     //read vertices
     SCISSTexturedVertex * texturedVertexList = new SCISSTexturedVertex[numberOfVertices];
@@ -868,9 +874,14 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
     mGeometries[WARP_MESH].mNumberOfIndices = numberOfIndices;
     
-    //GL_QUAD_STRIP removed in OpenGL 3.3+
-    //mGeometries[WARP_MESH].mGeometryType = GL_QUAD_STRIP;
-    mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
+    if (fileVersion == '2' && size[0] == 4) {
+        mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+    }
+    else {
+        //GL_QUAD_STRIP removed in OpenGL 3.3+
+        //mGeometries[WARP_MESH].mGeometryType = GL_QUAD_STRIP;
+        mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
+    }
 
     //clean up
     delete [] texturedVertexList;
@@ -986,11 +997,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
 
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
     //export to dome projection
     std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".simcad") - 6);
 
-    //export frustum
+    //export domeprojection frustum
     std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
         "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
@@ -1058,6 +1069,23 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     outFrustumFile << tanTop - tanBottom << std::endl;
     outFrustumFile.close();
 
+    //start sgc export
+    std::string outSGCFilename = baseOutFilename + std::string(".sgc");
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+        "CorrectionMesh: Exporting sgc file \"%s\"\n", outSGCFilename.c_str());
+    std::ofstream outSGCFile;
+    outSGCFile.open(outSGCFilename, std::ios::out | std::ios::binary);
+
+    outSGCFile << "SGC" << '2';
+    SCISSDistortionType dT = MESHTYPE_PLANAR;
+    unsigned int vertexCount = numberOfCols*numberOfRows;
+    unsigned int primType = 4; //Triangles
+    viewData.fovLeft = -viewData.fovLeft;
+    outSGCFile.write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
+    outSGCFile.write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
+    outSGCFile.write(reinterpret_cast<const char *>(&primType), sizeof(unsigned int));
+    outSGCFile.write(reinterpret_cast<const char *>(&vertexCount), sizeof(unsigned int));
+
     //test export mesh
     std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
@@ -1071,6 +1099,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
 
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
+    SCISSTexturedVertex scissVertex;
 
     //init to max intensity (opaque white)
     vertex.r = 1.0f;
@@ -1104,21 +1133,23 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
 
             i++;
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
             outMeshFile << x << ";";
             outMeshFile << 1.0f - y << ";";
             outMeshFile << u << ";";
             outMeshFile << 1.0f - v << ";";
             outMeshFile << c << ";";
             outMeshFile << r << std::endl;
+
+            scissVertex.x = x;
+            scissVertex.y = 1.f - y;
+            scissVertex.tx = u;
+            scissVertex.ty = v;
+            outSGCFile.write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
 #endif
         }
 
     }
-
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION
-    outMeshFile.close();
-#endif
 
     //copy vertices
     unsigned int numberOfVertices = numberOfCols * numberOfRows;
@@ -1162,6 +1193,18 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
             indices.push_back(i2);
             indices.push_back(i3);
         }
+
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+    outMeshFile.close();
+
+    unsigned int indicesCount = static_cast<unsigned int>(indices.size());
+    outSGCFile.write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+
+    for (size_t i = 0; i < indices.size(); i++)
+        outSGCFile.write(reinterpret_cast<const char *>(&indices[i]), sizeof(unsigned int));
+
+    outSGCFile.close();
+#endif
 
     //allocate and copy indices
     mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
@@ -2262,135 +2305,6 @@ void sgct_core::CorrectionMesh::exportMesh(const std::string & exportMeshPath)
             file << "vn 0 0 1\n";
 
         file << "# Number of faces: " << mGeometries[WARP_MESH].mNumberOfIndices/3 << "\n";
-
-        //export face indices
-        if (mGeometries[WARP_MESH].mGeometryType == GL_TRIANGLES)
-        {
-            for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfIndices; i += 3)
-            {
-                file << "f " << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << " ";
-                file << mTempIndices[i + 1] + 1 << "/" << mTempIndices[i + 1] + 1 << "/" << mTempIndices[i + 1] + 1 << " ";
-                file << mTempIndices[i + 2] + 1 << "/" << mTempIndices[i + 2] + 1 << "/" << mTempIndices[i + 2] + 1 << "\n";
-            }
-        }
-        else //trangle strip
-        {
-            //first base triangle
-            file << "f " << mTempIndices[0] + 1 << "/" << mTempIndices[0] + 1 << "/" << mTempIndices[0] + 1 << " ";
-            file << mTempIndices[1] + 1 << "/" << mTempIndices[1] + 1 << "/" << mTempIndices[1] + 1 << " ";
-            file << mTempIndices[2] + 1 << "/" << mTempIndices[2] + 1 << "/" << mTempIndices[2] + 1 << "\n";
-
-            for (unsigned int i = 2; i < mGeometries[WARP_MESH].mNumberOfIndices; i++)
-            {
-                file << "f " << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << "/" << mTempIndices[i] + 1 << " ";
-                file << mTempIndices[i - 1] + 1 << "/" << mTempIndices[i - 1] + 1 << "/" << mTempIndices[i - 1] + 1 << " ";
-                file << mTempIndices[i - 2] + 1 << "/" << mTempIndices[i - 2] + 1 << "/" << mTempIndices[i - 2] + 1 << "\n";
-            }
-        }
-
-        file.close();
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "CorrectionMesh: Mesh '%s' exported successfully.\n", exportMeshPath.c_str());
-    }
-    else
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Failed to export '%s'!\n", exportMeshPath.c_str());
-}
-
-// Functions primary purpose is exporting a planar FOV representation to *.sgc files.
-void sgct_core::CorrectionMesh::exportScissMesh(const std::string & exportMeshPath, sgct_core::Viewport * parent)
-{
-    /*if (mGeometries[WARP_MESH].mGeometryType != GL_TRIANGLES && mGeometries[WARP_MESH].mGeometryType != GL_TRIANGLE_STRIP)
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "CorrectionMesh error: Failed to export '%s'. Geometry type is not supported!\n", exportMeshPath.c_str());
-        return;
-    }*/
-
-    std::ofstream file;
-    file.open(exportMeshPath, std::ios::out | std::ios::binary);
-    if (file.is_open())
-    {
-        file << std::fixed;
-        file << std::setprecision(6);
-
-        //write File Version
-        unsigned char fileVersion = '?';
-        file << fileVersion;
-
-        //write Mapping Type (0 = Planar)
-        unsigned int mappingType = 0;
-        file << mappingType;
-
-        //write viewdata
-        SCISSViewData viewData;
-
-        glm::quat rotation = parent->getRotation();
-        viewData.qw = rotation.w;
-        viewData.qx = rotation.x;
-        viewData.qy = rotation.y;
-        viewData.qz = rotation.z;
-
-        glm::vec3 position = parent->getUser()->getPos();
-        viewData.x = position.x;
-        viewData.y = position.y;
-        viewData.z = position.z;
-
-        glm::vec4 fov = parent->getFOV();
-        viewData.fovUp = fov.x;
-        viewData.fovDown = -fov.y;
-        viewData.fovLeft = -fov.z;
-        viewData.fovRight = fov.w;
-
-        file << viewData.qx << viewData.qy << viewData.qz << viewData.qw;
-        file << viewData.x << viewData.y << viewData.z;
-        file << viewData.fovUp << viewData.fovDown << viewData.fovLeft << viewData.fovRight;
-
-        double x, y, z, w;
-        x = static_cast<double>(viewData.qx);
-        y = static_cast<double>(viewData.qy);
-        z = static_cast<double>(viewData.qz);
-        w = static_cast<double>(viewData.qw);
-
-        double yaw, pitch, roll;
-        glm::dvec3 angles = glm::degrees(glm::eulerAngles(glm::dquat(w, y, x, z)));
-        yaw = -angles.x;
-        pitch = angles.y;
-        roll = -angles.z;
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Rotation quat = [%f %f %f %f]\nyaw = %lf, pitch = %lf, roll = %lf\n",
-            viewData.qx, viewData.qy, viewData.qz, viewData.qw,
-            yaw, pitch, roll);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Position = [%f %f %f]\n",
-            viewData.x, viewData.y, viewData.z);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV up = %f\n",
-            viewData.fovUp);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV down = %f\n",
-            viewData.fovDown);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV left = %f\n",
-            viewData.fovLeft);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: FOV right = %f\n",
-            viewData.fovRight);
-
-        file << "# SGCT warping mesh\n";
-        file << "# Number of vertices: " << mGeometries[WARP_MESH].mNumberOfVertices << "\n";
-
-        //export vertices
-        for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
-            file << "v " << mTempVertices[i].x << " " << mTempVertices[i].y << " 0\n";
-
-        //export texture coords
-        for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
-            file << "vt " << mTempVertices[i].s << " " << mTempVertices[i].t << " 0\n";
-
-        //export generated normals
-        for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++)
-            file << "vn 0 0 1\n";
-
-        file << "# Number of faces: " << mGeometries[WARP_MESH].mNumberOfIndices / 3 << "\n";
 
         //export face indices
         if (mGeometries[WARP_MESH].mGeometryType == GL_TRIANGLES)

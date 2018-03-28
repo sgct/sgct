@@ -877,7 +877,10 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     if (fileVersion == '2' && size[0] == 4) {
         mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
     }
-    else {
+    else if (fileVersion == '2' && size[0] == 5) {
+        mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
+    }
+    else { // assume v1
         //GL_QUAD_STRIP removed in OpenGL 3.3+
         //mGeometries[WARP_MESH].mGeometryType = GL_QUAD_STRIP;
         mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
@@ -1070,21 +1073,31 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     outFrustumFile.close();
 
     //start sgc export
-    std::string outSGCFilename = baseOutFilename + std::string(".sgc");
+    std::string outSGCFilenames[2] = { baseOutFilename + std::string("_u2.sgc"), baseOutFilename + std::string("_u3.sgc") };
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-        "CorrectionMesh: Exporting sgc file \"%s\"\n", outSGCFilename.c_str());
-    std::ofstream outSGCFile;
-    outSGCFile.open(outSGCFilename, std::ios::out | std::ios::binary);
+        "CorrectionMesh: Exporting sgc v1(u2) file \"%s\" and v2(u3) file \"%s\"\n", outSGCFilenames[0].c_str(), outSGCFilenames[1].c_str());
+    std::ofstream outSGCFiles[2];
+    outSGCFiles[0].open(outSGCFilenames[0], std::ios::out | std::ios::binary);
+    outSGCFiles[1].open(outSGCFilenames[1], std::ios::out | std::ios::binary);
 
-    outSGCFile << "SGC" << '2';
+    outSGCFiles[0] << 'S' << 'G' << 'C' << '2';
+    outSGCFiles[1] << 'S' << 'G' << 'C' << '2';
     SCISSDistortionType dT = MESHTYPE_PLANAR;
     unsigned int vertexCount = numberOfCols*numberOfRows;
-    unsigned int primType = 4; //Triangles
+    unsigned int primType = 5; //Triangle list
+
     viewData.fovLeft = -viewData.fovLeft;
-    outSGCFile.write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
-    outSGCFile.write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
-    outSGCFile.write(reinterpret_cast<const char *>(&primType), sizeof(unsigned int));
-    outSGCFile.write(reinterpret_cast<const char *>(&vertexCount), sizeof(unsigned int));
+    viewData.fovDown = -viewData.fovDown;
+    
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfCols), sizeof(unsigned int));
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfRows), sizeof(unsigned int));
+
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&primType), sizeof(unsigned int));
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&vertexCount), sizeof(unsigned int));
 
     //test export mesh
     std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
@@ -1145,7 +1158,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
             scissVertex.y = 1.f - y;
             scissVertex.tx = u;
             scissVertex.ty = v;
-            outSGCFile.write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
+
+            outSGCFiles[0].write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
+            outSGCFiles[1].write(reinterpret_cast<const char *>(&scissVertex), sizeof(SCISSTexturedVertex));
 #endif
         }
 
@@ -1158,9 +1173,29 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     mGeometries[WARP_MESH].mNumberOfVertices = numberOfVertices;
     vertices.clear();
 
-    std::vector<unsigned int> indices;
+    // Make a triangle strip index list
+    std::vector<unsigned int> indices_trilist;
+    for (unsigned int r = 0; r<numberOfRows - 1; r++) {
+        if ((r & 1) == 0) { // even rows
+            for (unsigned int c = 0; c < numberOfCols; c++) {
+                indices_trilist.push_back(c + r * numberOfCols);
+                indices_trilist.push_back(c + (r + 1) * numberOfCols);
+            }
+        }
+        else { // odd rows
+            for (unsigned int c = numberOfCols - 1; c>0; c--) {
+                indices_trilist.push_back(c + (r + 1) * numberOfCols);
+                indices_trilist.push_back(c - 1 + r * numberOfCols);
+            }
+        }
+    }
+
+#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+    // Implementation of individual triangle index list
+    /*std::vector<unsigned int> indices_tris;
     unsigned int i0, i1, i2, i3;
     for (unsigned int c = 0; c < (numberOfCols - 1); c++)
+    {
         for (unsigned int r = 0; r < (numberOfRows - 1); r++)
         {
             i0 = r * numberOfCols + c;
@@ -1168,51 +1203,46 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
             i2 = (r + 1) * numberOfCols + (c + 1);
             i3 = (r + 1) * numberOfCols + c;
 
-            //fprintf(stderr, "Indexes: %u %u %u %u\n", i0, i1, i2, i3);
-
-            /*
-
-            3      2
-            x____x
-            |   /|
-            |  / |
-            | /  |
-            |/   |
-            x----x
-            0      1
-
-            */
-
             //triangle 1
-            indices.push_back(i0);
-            indices.push_back(i1);
-            indices.push_back(i2);
+            indices_tris.push_back(i0);
+            indices_tris.push_back(i1);
+            indices_tris.push_back(i2);
 
             //triangle 2
-            indices.push_back(i0);
-            indices.push_back(i2);
-            indices.push_back(i3);
+            indices_tris.push_back(i0);
+            indices_tris.push_back(i2);
+            indices_tris.push_back(i3);
         }
+    }*/
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
     outMeshFile.close();
 
-    unsigned int indicesCount = static_cast<unsigned int>(indices.size());
-    outSGCFile.write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+    unsigned int indicesCount = static_cast<unsigned int>(indices_trilist.size());
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+    for (size_t i = 0; i < indices_trilist.size(); i++) {
+        outSGCFiles[0].write(reinterpret_cast<const char *>(&indices_trilist[i]), sizeof(unsigned int));
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&indices_trilist[i]), sizeof(unsigned int));
+    }
 
-    for (size_t i = 0; i < indices.size(); i++)
-        outSGCFile.write(reinterpret_cast<const char *>(&indices[i]), sizeof(unsigned int));
+    /*indicesCount = static_cast<unsigned int>(indices_tris.size());
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&indicesCount), sizeof(unsigned int));
+    for (size_t i = 0; i < indices_tris.size(); i++) {
+        outSGCFiles[1].write(reinterpret_cast<const char *>(&indices_tris[i]), sizeof(unsigned int));
+    }
+    indices_tris.clear();*/
 
-    outSGCFile.close();
+    outSGCFiles[0].close();
+    outSGCFiles[1].close();
 #endif
 
     //allocate and copy indices
-    mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices.size());
+    mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices_trilist.size());
     mTempIndices = new unsigned int[mGeometries[WARP_MESH].mNumberOfIndices];
-    memcpy(mTempIndices, indices.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
-    indices.clear();
+    memcpy(mTempIndices, indices_trilist.data(), mGeometries[WARP_MESH].mNumberOfIndices * sizeof(unsigned int));
+    indices_trilist.clear();
 
-    mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
+    mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
 
     createMesh(&mGeometries[WARP_MESH]);
 

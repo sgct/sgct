@@ -4,7 +4,7 @@
 		<Window fullScreen="false" msaa="4" border="true">
 			<Stereo type="none" />
 			<Size x="1920" y="800" />
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel1_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel1_warp_u2.sgc">
 				<Pos x="0.0" y="0.5" />
 				<Size x="0.33333" y="0.5" />
 				<!-- Proj 1 -->
@@ -13,7 +13,7 @@
                     <Orientation heading="-45.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel2_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel2_warp_u2.sgc">
 				<Pos x="0.33333" y="0.5" />
 				<Size x="0.33333" y="0.5" />
 				<!-- Proj 2 -->
@@ -22,7 +22,7 @@
                     <Orientation heading="45.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel3_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel3_warp_u2.sgc">
 				<Pos x="0.66666" y="0.5" />
 				<Size x="0.33334" y="0.5" />
 				<!-- Proj 3 -->
@@ -31,7 +31,7 @@
 					<Orientation heading="135.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel4_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel4_warp_u2.sgc">
 				<Pos x="0.0" y="0.0" />
 				<Size x="0.33333" y="0.5" />
 				<!-- Proj 4 -->
@@ -40,7 +40,7 @@
                     <Orientation heading="-135.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel5_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel5_warp_u2.sgc">
 				<Pos x="0.33333" y="0.0" />
 				<Size x="0.33333" y="0.5" />
 				<!-- Proj 5 -->
@@ -49,7 +49,7 @@
                     <Orientation heading="57.0" pitch="49.5" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
-			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel6_warp.sgc">
+			<Viewport mesh="C:/SGCT/sgct/config/dome/simcad/channel6_warp_u2.sgc">
 				<Pos x="0.66666" y="0.0" />
 				<Size x="0.33334" y="0.5" />
 				<!-- Proj 6 -->

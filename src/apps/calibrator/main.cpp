@@ -93,6 +93,8 @@ int main( int argc, char* argv[] )
     //sgct::SGCTSettings::instance()->setCaptureFormat("tga");
     //sgct::SGCTSettings::instance()->setCaptureFromBackBuffer(true);
     
+    sgct::SGCTSettings::instance()->setCaptureFromBackBuffer(true);
+
     // Bind your functions
     gEngine->setDrawFunction( draw );
     gEngine->setInitOGLFunction( initGL );
@@ -235,14 +237,10 @@ void preSync()
 
 void postSync()
 {
-    //set the time only on the master
-    if (gEngine->isMaster())
+    if (takeScreenShot.getVal())
     {
-        if (takeScreenShot.getVal())
-        {
-            takeScreenShot.setVal(false);
-            gEngine->takeScreenshot();
-        }
+        takeScreenShot.setVal(false);
+        gEngine->takeScreenshot();
     }
     
     gEngine->setWireframe(wireframe.getVal());

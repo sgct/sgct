@@ -624,11 +624,11 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     }
 
     //read file version
-    unsigned char fileVersion;
+    uint8_t fileVersion;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-    retval = fread_s(&fileVersion, sizeof(unsigned char), sizeof(unsigned char), 1, meshFile);
+    retval = fread_s(&fileVersion, sizeof(uint8_t), sizeof(uint8_t), 1, meshFile);
 #else
-    retval = fread(&fileVersion, sizeof(unsigned char), 1, meshFile);
+    retval = fread(&fileVersion, sizeof(uint8_t), 1, meshFile);
 #endif
     if (retval != 1)
     {
@@ -717,7 +717,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateScissMesh(const std::string & mes
     }
     else
     {
-        if (fileVersion == '2') {
+        if (fileVersion == 2) {
             numberOfVertices =  size[1];
             sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "CorrectionMesh: Number of vertices = %u\n", numberOfVertices);
         }
@@ -1080,8 +1080,12 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     outSGCFiles[0].open(outSGCFilenames[0], std::ios::out | std::ios::binary);
     outSGCFiles[1].open(outSGCFilenames[1], std::ios::out | std::ios::binary);
 
-    outSGCFiles[0] << 'S' << 'G' << 'C' << '2';
-    outSGCFiles[1] << 'S' << 'G' << 'C' << '2';
+    outSGCFiles[0] << 'S' << 'G' << 'C';
+    outSGCFiles[1] << 'S' << 'G' << 'C';
+
+    uint8_t SGCversion1 = 1;
+    uint8_t SGCversion2 = 2;
+
     SCISSDistortionType dT = MESHTYPE_PLANAR;
     unsigned int vertexCount = numberOfCols*numberOfRows;
     unsigned int primType = 5; //Triangle list
@@ -1089,11 +1093,13 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
     viewData.fovLeft = -viewData.fovLeft;
     viewData.fovDown = -viewData.fovDown;
     
+    outSGCFiles[0].write(reinterpret_cast<const char *>(&SGCversion1), sizeof(uint8_t));
     outSGCFiles[0].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
     outSGCFiles[0].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
     outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfCols), sizeof(unsigned int));
     outSGCFiles[0].write(reinterpret_cast<const char *>(&numberOfRows), sizeof(unsigned int));
 
+    outSGCFiles[1].write(reinterpret_cast<const char *>(&SGCversion2), sizeof(uint8_t));
     outSGCFiles[1].write(reinterpret_cast<const char *>(&dT), sizeof(SCISSDistortionType));
     outSGCFiles[1].write(reinterpret_cast<const char *>(&viewData), sizeof(SCISSViewData));
     outSGCFiles[1].write(reinterpret_cast<const char *>(&primType), sizeof(unsigned int));

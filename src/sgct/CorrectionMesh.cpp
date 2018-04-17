@@ -924,7 +924,7 @@ bool sgct_core::CorrectionMesh::readAndGenerateSimCADMesh(const std::string & me
             ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
         else
             ss << "File not found";
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", meshPath.c_str(), ss.str());
+        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", meshPath.c_str(), ss.str().c_str());
         return false;
     }
     else {

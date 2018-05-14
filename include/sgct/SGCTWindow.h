@@ -96,6 +96,8 @@ public:
     const bool &        isVisible() const;
     const bool &        isRenderingWhileHidden() const;
     const bool &        isFixResolution() const;
+    const bool &        isWindowResolutionSet() const;
+
     bool                isStereo() const;
     bool                isWindowResized() const;
     static inline bool    isBarrierActive() { return mBarrier; }
@@ -236,6 +238,7 @@ private:
     bool mFocused;
     bool mIconified;
     bool mUseFixResolution;
+    bool mIsWindowResSet;
     bool mAllowCapture;
     static bool mUseSwapGroups;
     static bool mBarrier;

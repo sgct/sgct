@@ -47,6 +47,7 @@ sgct::SGCTWindow::SGCTWindow(int id)
     mCallDraw3DFunction = true;
     mCopyPreviousWindowToCurrentWindow = false;
     mUseFixResolution = false;
+    mIsWindowResSet = false;
     mUseQuadBuffer = false;
     mFullScreen = false;
     mFloating = false;
@@ -583,6 +584,8 @@ void sgct::SGCTWindow::initWindowResolution(const int x, const int y)
     mAspectRatio = static_cast<float>( x ) /
             static_cast<float>( y );
 
+    mIsWindowResSet = true;
+
     if( !mUseFixResolution )
     {
         mFramebufferResolution[0] = x;
@@ -713,6 +716,14 @@ const bool & sgct::SGCTWindow::isRenderingWhileHidden() const
 const bool & sgct::SGCTWindow::isFixResolution() const
 {
     return mUseFixResolution;
+}
+
+/*!
+\returns If the window resolution was set in configuration file this function returns true.
+*/
+const bool & sgct::SGCTWindow::isWindowResolutionSet() const
+{
+    return mIsWindowResSet;
 }
 
 /*!
@@ -940,9 +951,11 @@ bool sgct::SGCTWindow::openWindow(GLFWwindow* share, size_t lastWindowIdx)
                     mId, mMonitorIndex, count);
         }
 
-        const GLFWvidmode* currentMode = glfwGetVideoMode(mMonitor);
-        mWindowRes[0] = currentMode->width;
-        mWindowRes[1] = currentMode->height;
+        if( !mIsWindowResSet ) {
+            const GLFWvidmode* currentMode = glfwGetVideoMode(mMonitor);
+            mWindowRes[0] = currentMode->width;
+            mWindowRes[1] = currentMode->height;
+        }
     }
 
     mWindowHandle = glfwCreateWindow(mWindowRes[0], mWindowRes[1], "SGCT", mMonitor, share);

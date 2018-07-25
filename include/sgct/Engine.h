@@ -98,6 +98,7 @@ private:
 
 public:
     Engine( int& argc, char**& argv );
+    Engine( std::vector<std::string>& arg );
     ~Engine();
 
     bool init(RunMode rm = Default_Mode);
@@ -407,7 +408,7 @@ private:
 
     bool frameLock(SyncStage stage);
     void calculateFPS(double timestamp);
-    void parseArguments( int& argc, char**& argv );
+    void parseArguments( std::vector<std::string>& arg );
     void renderDisplayInfo();
     void printNodeInfo(unsigned int nodeId);
     void enterCurrentViewport();

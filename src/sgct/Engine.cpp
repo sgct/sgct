@@ -178,7 +178,29 @@ sgct::Engine::Engine( int& argc, char**& argv )
 
 
     //parse needs to be before read config since the path to the XML is parsed here
-    parseArguments( argc, argv );
+    std::vector<std::string> arg(argc);
+    for (int i = 0; i < argc; ++i) {
+        arg[i] = std::string(argv[i]);
+    }
+    std::vector<std::string> oldArg = arg;
+    parseArguments(arg);
+
+    // remove the arguments that have been processed
+    if (oldArg != arg)
+    {
+        char** newArgv = new char*[arg.size()];
+        for (int i = 0; i < arg.size(); ++i)
+        {
+            char* ar = new char[arg[i].size() + 1];
+            std::strcpy(ar, arg[i].c_str());
+            newArgv[i] = ar;
+        }
+
+        argc = arg.size();
+        argv = newArgv;
+    }
+
+
 
     if(!mHelpMode)
     {
@@ -190,6 +212,96 @@ sgct::Engine::Engine( int& argc, char**& argv )
         }
     }
 }
+
+sgct::Engine::Engine(std::vector<std::string>& arg) {
+    //init pointers
+    mInstance = this;
+    mNetworkConnections = NULL;
+    mConfig = NULL;
+    mRunMode = Default_Mode;
+    mStatistics = NULL;
+    mThisNode = NULL;
+    mThreadPtr = NULL;
+
+    //init function pointers
+    mDrawFnPtr = SGCT_NULL_PTR;
+    mDraw2DFnPtr = SGCT_NULL_PTR;
+    mPreSyncFnPtr = SGCT_NULL_PTR;
+    mPostSyncPreDrawFnPtr = SGCT_NULL_PTR;
+    mPostDrawFnPtr = SGCT_NULL_PTR;
+    mInitOGLFnPtr = SGCT_NULL_PTR;
+    mPreWindowFnPtr = SGCT_NULL_PTR;
+    mClearBufferFnPtr = SGCT_NULL_PTR;
+    mCleanUpFnPtr = SGCT_NULL_PTR;
+    mExternalDecodeCallbackFnPtr = SGCT_NULL_PTR;
+    mExternalStatusCallbackFnPtr = SGCT_NULL_PTR;
+    mDataTransferDecodeCallbackFnPtr = SGCT_NULL_PTR;
+    mDataTransferStatusCallbackFnPtr = SGCT_NULL_PTR;
+    mDataTransferAcknowledgeCallbackFnPtr = SGCT_NULL_PTR;
+    mContextCreationFnPtr = SGCT_NULL_PTR;
+    mScreenShotFnPtr1 = SGCT_NULL_PTR;
+    mScreenShotFnPtr2 = SGCT_NULL_PTR;
+
+    mInternalDrawFn = NULL;
+    mInternalRenderFBOFn = NULL;
+    mInternalDrawOverlaysFn = NULL;
+    mInternalRenderPostFXFn = NULL;
+
+    mTerminate = false;
+    mRenderingOffScreen = false;
+    mFixedOGLPipeline = true;
+    mHelpMode = false;
+    mInitialized = false;
+
+    mCurrentViewportCoords[0] = 0;
+    mCurrentViewportCoords[1] = 0;
+    mCurrentViewportCoords[2] = 640;
+    mCurrentViewportCoords[3] = 480;
+    mCurrentDrawBufferIndex = 0;
+    mCurrentViewportIndex[MainViewport] = 0;
+    mCurrentViewportIndex[SubViewport] = 0;
+    mCurrentRenderTarget = WindowBuffer;
+    mCurrentOffScreenBuffer = NULL;
+
+    for (unsigned int i = 0; i<MAX_UNIFORM_LOCATIONS; i++)
+        mShaderLocs[i] = -1;
+
+    setClearBufferFunction(clearBuffer);
+    mNearClippingPlaneDist = 0.1f;
+    mFarClippingPlaneDist = 100.0f;
+    mClearColor[0] = 0.0f;
+    mClearColor[1] = 0.0f;
+    mClearColor[2] = 0.0f;
+    mClearColor[3] = 1.0f;
+
+    mShowInfo = false;
+    mShowGraph = false;
+    mShowWireframe = false;
+    mTakeScreenshot = false;
+    mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
+    mFrameCounter = 0;
+    mShotCounter = 0;
+    mTimerID = 0;
+    mExitKey = GLFW_KEY_ESCAPE;
+
+    mPrintSyncMessage = true;
+    mSyncTimeout = 60.f;
+
+
+    //parse needs to be before read config since the path to the XML is parsed here
+    parseArguments(arg);
+
+    if (!mHelpMode)
+    {
+        // Initialize GLFW
+        glfwSetErrorCallback(internal_glfw_error_callback);
+        if (!glfwInit())
+        {
+            mTerminate = true;
+        }
+    }
+}
+
 
 /*!
 Engine destructor destructs GLFW and releases resources/memory.
@@ -2820,66 +2932,58 @@ void sgct::Engine::copyPreviousWindowViewportToCurrentWindowViewport(sgct_core::
 }
 
 /*!
-    \param argc is the number of arguments separated by whitespace
-    \param argv is the string array of arguments
+    \param arg is the list of arguments
 
     This function parses all SGCT arguments and removes them from the argument list.
 */
-void sgct::Engine::parseArguments( int& argc, char**& argv )
+void sgct::Engine::parseArguments( std::vector<std::string>& arg )
 {
     //parse arguments
     MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Parsing arguments...\n");
     int i=0;
-    std::deque<int> argumentsToRemove;
-    while( i<argc )
+    while( i<arg.size() )
     {
-        if( strcmp(argv[i],"-config") == 0 && argc > (i+1))
+        if( arg[i] == "-config" && arg.size() > (i+1))
         {
-            configFilename.assign(argv[i+1]);
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i+1);
-            i+=2;
+            configFilename = arg[i+1];
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--client") == 0 )
+        else if( arg[i] == "--client" )
         {
             sgct_core::ClusterManager::instance()->setNetworkMode( sgct_core::NetworkManager::LocalClient );
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--slave") == 0 )
+        else if( arg[i] == "--slave" )
         {
             sgct_core::ClusterManager::instance()->setNetworkMode(sgct_core::NetworkManager::LocalClient );
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--debug") == 0 )
+        else if( arg[i] == "--debug" )
         {
             MessageHandler::instance()->setNotifyLevel( MessageHandler::NOTIFY_DEBUG );
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--help") == 0 )
+        else if( arg[i] == "--help" )
         {
             mHelpMode = true;
             outputHelpMessage();
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"-local") == 0 && argc > (i+1) )
+        else if( arg[i] == "-local" && arg.size() > (i+1) )
         {
             sgct_core::ClusterManager::instance()->setNetworkMode( sgct_core::NetworkManager::LocalServer );
             int tmpi = -1;
-            std::stringstream ss( argv[i+1] );
+            std::stringstream ss( arg[i+1] );
             ss >> tmpi;
             sgct_core::ClusterManager::instance()->setThisNodeId(tmpi);
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i+1);
-            i+=2;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"-logPath") == 0 )
+        else if( arg[i] == "-logPath" )
         {
             //Remove unwanted chars
-            std::string tmpStr( argv[i+1] );
+            std::string tmpStr = arg[i+1];
             tmpStr.erase( remove( tmpStr.begin(), tmpStr.end(), '\"' ), tmpStr.end() );
             std::size_t lastPos = tmpStr.length() - 1;
             
@@ -2889,129 +2993,95 @@ void sgct::Engine::parseArguments( int& argc, char**& argv )
 
             mLogfilePath.assign( tmpStr );
 
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i+1);
-            i+=2;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"-notify") == 0 && argc > (i+1) )
+        else if( arg[i] == "-notify" && arg.size() > (i+1) )
         {
             int tmpi = -1;
-            std::stringstream ss( argv[i+1] );
+            std::stringstream ss( arg[i+1] );
             ss >> tmpi;
             if( tmpi != -1 )
                 MessageHandler::instance()->setNotifyLevel( static_cast<MessageHandler::NotifyLevel>( tmpi ) );
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i+1);
-            i+=2;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--Firm-Sync") == 0 )
+        else if( arg[i] == "--Firm-Sync" )
         {
             sgct_core::ClusterManager::instance()->setFirmFrameLockSyncStatus(true);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--Loose-Sync") == 0 )
+        else if( arg[i] == "--Loose-Sync" )
         {
             sgct_core::ClusterManager::instance()->setFirmFrameLockSyncStatus(false);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--Ignore-Sync") == 0 )
+        else if( arg[i] == "--Ignore-Sync" )
         {
             sgct_core::ClusterManager::instance()->setUseIgnoreSync(true);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--No-Sync") == 0 )
+        else if( arg[i] == "--No-Sync" )
         {
             sgct_core::ClusterManager::instance()->setUseIgnoreSync(true);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if (strcmp(argv[i], "--gDebugger") == 0)
+        else if (arg[i] == "--gDebugger")
         {
             SGCTSettings::instance()->setForceGlTexImage2D(true);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if (strcmp(argv[i], "--FXAA") == 0)
+        else if (arg[i] == "--FXAA")
         {
             SGCTSettings::instance()->setDefaultFXAAState(true);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if (strcmp(argv[i], "-MSAA") == 0 && argc > (i + 1))
+        else if (arg[i] == "-MSAA" && arg.size() > (i + 1))
         {
             int tmpi = -1;
-            std::stringstream ss(argv[i + 1]);
+            std::stringstream ss(arg[i + 1]);
             ss >> tmpi;
             SGCTSettings::instance()->setDefaultNumberOfAASamples(tmpi);
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i + 1);
-            i += 2;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--No-FBO") == 0 )
+        else if( arg[i] == "--No-FBO" )
         {
             SGCTSettings::instance()->setUseFBO(false);
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--Capture-TGA") == 0 )
+        else if( arg[i] == "--Capture-TGA" )
         {
             SGCTSettings::instance()->setCaptureFormat("TGA");
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"--Capture-PNG") == 0 )
+        else if( arg[i] == "--Capture-PNG" )
         {
             SGCTSettings::instance()->setCaptureFormat("PNG");
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if (strcmp(argv[i], "--Capture-JPG") == 0)
+        else if (arg[i] == "--Capture-JPG")
         {
             SGCTSettings::instance()->setCaptureFormat("JPG");
-            argumentsToRemove.push_back(i);
-            i++;
+            arg.erase(arg.begin() + i);
         }
-        else if( strcmp(argv[i],"-numberOfCaptureThreads") == 0 && argc > (i+1) )
+        else if( arg[i] == "-numberOfCaptureThreads" && arg.size() > (i+1) )
         {
             int tmpi = -1;
-            std::stringstream ss( argv[i+1] );
+            std::stringstream ss( arg[i+1] );
             ss >> tmpi;
 
             if(tmpi > 0)
                 SGCTSettings::instance()->setNumberOfCaptureThreads( tmpi );
 
-            argumentsToRemove.push_back(i);
-            argumentsToRemove.push_back(i+1);
-            i+=2;
+            arg.erase(arg.begin() + i);
+            arg.erase(arg.begin() + i);
         }
         else
             i++; //iterate
     }
 
-    // remove the arguments that have been processed
-    if( argumentsToRemove.size() > 0 )
-    {
-        int newArgc = argc - static_cast<int>(argumentsToRemove.size());
-        char** newArgv = new char*[newArgc];
-        int newIterator = 0;
-        for( int oldIterator = 0; oldIterator < argc; ++oldIterator )
-        {
-            if( !argumentsToRemove.empty() && oldIterator == argumentsToRemove.front())
-            {
-                argumentsToRemove.pop_front();
-            }
-            else
-            {
-                newArgv[newIterator] = argv[oldIterator];
-                newIterator++;
-            }
-        }
-        argv = newArgv;
-        argc = newArgc;
-    }
+
 
     MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "Done\n");
 }

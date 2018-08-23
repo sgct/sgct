@@ -1295,88 +1295,87 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
     unsigned int counter = 0;
 
     char lineBuffer[MAX_LINE_LENGTH];
-    float dummy[2];
     while (!feof(meshFile))
     {
         if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL)
         {
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            if (sscanf_s(lineBuffer, "Azimuth=%f", &azimuth) == 1)
+            if (sscanf_s(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1)
 #else
-            if (sscanf(lineBuffer, "Azimuth=%f", &azimuth) == 1)
+            if (sscanf(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1)
 #endif
             {
                 azimuthSet = true;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "Elevation=%f", &elevation) == 1)
+            else if (sscanf_s(lineBuffer, "Dome Elevation=%f", &elevation) == 1)
 #else
-            else if (sscanf(lineBuffer, "Elevation=%f", &elevation) == 1)
+            else if (sscanf(lineBuffer, "Dome Elevation=%f", &elevation) == 1)
 #endif
             {
                 elevationSet = true;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "FOV=%f", &horizontal_fov) == 1)
+            else if (sscanf_s(lineBuffer, "Horizontal FOV=%f", &horizontal_fov) == 1)
 #else
-            else if (sscanf(lineBuffer, "FOV=%f", &horizontal_fov) == 1)
+            else if (sscanf(lineBuffer, "Horizontal FOV=%f", &horizontal_fov) == 1)
 #endif
             {
                 hFovSet = true;
             }
 
-//#if (_MSC_VER >= 1400) //visual studio 2005 or later
-//            else if (sscanf_s(lineBuffer, "Vertical FOV=%f", &vertical_fov) == 1)
-//#else
-//            else if (sscanf(lineBuffer, "Vertical FOV=%f", &vertical_fov) == 1)
-//#endif
-//            {
-//                vFovSet = true;
-//            }
-//
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1)
+            else if (sscanf_s(lineBuffer, "Vertical FOV=%f", &vertical_fov) == 1)
 #else
-            else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1)
+            else if (sscanf(lineBuffer, "Vertical FOV=%f", &vertical_fov) == 1)
+#endif
+            {
+                vFovSet = true;
+            }
+
+#if (_MSC_VER >= 1400) //visual studio 2005 or later
+            else if (sscanf_s(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
+#else
+            else if (sscanf(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1)
+            else if (sscanf_s(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
 #else
-            else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1)
+            else if (sscanf(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "U Tweak=%f", &UVTweaks[0]) == 1)
+            else if (sscanf_s(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
 #else
-            else if (sscanf(lineBuffer, "U Tweak=%f", &UVTweaks[0]) == 1)
+            else if (sscanf(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "V Tweak=%f", &UVTweaks[1]) == 1)
+            else if (sscanf_s(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
 #else
-            else if (sscanf(lineBuffer, "V Tweak=%f", &UVTweaks[1]) == 1)
+            else if (sscanf(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (!dimensionsSet && sscanf_s(lineBuffer, "Mesh=RGB %u %u", &size[0], &size[1]) == 2)
+            else if (!dimensionsSet && sscanf_s(lineBuffer, "%u %u", &size[0], &size[1]) == 2)
 #else
-            else if (!dimensionsSet && sscanf(lineBuffer, "Mesh=RGB %u %u", &size[0], &size[1]) == 2)
+            else if (!dimensionsSet && sscanf(lineBuffer, "%u %u", &size[0], &size[1]) == 2)
 #endif
             {
                 dimensionsSet = true;

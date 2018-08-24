@@ -1337,36 +1337,36 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
+            else if (sscanf_s(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1)
 #else
-            else if (sscanf(lineBuffer, "Horizontal Tweek=%f", &fovTweeks[0]) == 1)
+            else if (sscanf(lineBuffer, "Horizontal Tweak=%f", &fovTweaks[0]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
+            else if (sscanf_s(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1)
 #else
-            else if (sscanf(lineBuffer, "Vertical Tweek=%f", &fovTweeks[1]) == 1)
+            else if (sscanf(lineBuffer, "Vertical Tweak=%f", &fovTweaks[1]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
+            else if (sscanf_s(lineBuffer, "U Tweak=%f", &UVTweaks[0]) == 1)
 #else
-            else if (sscanf(lineBuffer, "U Tweek=%f", &UVTweeks[0]) == 1)
+            else if (sscanf(lineBuffer, "U Tweak=%f", &UVTweaks[0]) == 1)
 #endif
             {
                 ;
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (sscanf_s(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
+            else if (sscanf_s(lineBuffer, "V Tweak=%f", &UVTweaks[1]) == 1)
 #else
-            else if (sscanf(lineBuffer, "V Tweek=%f", &UVTweeks[1]) == 1)
+            else if (sscanf(lineBuffer, "V Tweak=%f", &UVTweaks[1]) == 1)
 #endif
             {
                 ;
@@ -1384,9 +1384,9 @@ bool sgct_core::CorrectionMesh::readAndGenerateSkySkanMesh(const std::string & m
             }
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-            else if (dimensionsSet && sscanf_s(lineBuffer, "%f %f %f %f %f %f", &x, &y, &dummy[0], &dummy[1], &u, &v) == 4)
+            else if (dimensionsSet && sscanf_s(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
 #else
-            else if (dimensionsSet && sscanf(lineBuffer, "%f %f %f %f %f %f", &x, &y, &dummy[0], &dummy[1], &u, &v) == 4)
+            else if (dimensionsSet && sscanf(lineBuffer, "%f %f %f %f", &x, &y, &u, &v) == 4)
 #endif
             {
                 if (UVTweaks[0] > -1.0f)

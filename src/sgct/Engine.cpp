@@ -196,7 +196,7 @@ sgct::Engine::Engine( int& argc, char**& argv )
             newArgv[i] = ar;
         }
 
-        argc = arg.size();
+        argc = static_cast<int>(arg.size());
         argv = newArgv;
     }
 

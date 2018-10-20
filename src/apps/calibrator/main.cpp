@@ -215,7 +215,7 @@ void initGL()
     if (isTiltSet)
         mDome = new Dome(radius, static_cast<float>(tilt));
     else
-        mDome = new Dome(radius, 26.7f);
+        mDome = new Dome(radius, 0.f);
     mDome->generateDisplayList();
     
     sgct::TextureManager::instance()->setAnisotropicFilterSize(4.0f);

@@ -494,7 +494,11 @@ bool sgct_core::Image::loadPNG(std::string filename)
     if (bpp < 8)
         png_set_packing(png_ptr);
     else if(bpp == 16)
-        png_set_swap(png_ptr); //PNG_TRANSFORM_SWAP_ENDIAN
+    {
+        // Load 16-bit as 8-bit
+        png_set_strip_16(png_ptr);
+        bpp = 8;
+    }
 
     mBytesPerChannel = bpp / 8;
 

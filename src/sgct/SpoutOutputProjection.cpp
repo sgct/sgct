@@ -269,8 +269,6 @@ void sgct_core::SpoutOutputProjection::initViewports()
     glm::mat4 pitchRot = glm::rotate(glm::mat4(1.0f), glm::radians(-spoutRigOrientation.x), glm::vec3(0.0f, 1.0f, 0.0f));
     glm::mat4 yawRot = glm::rotate(pitchRot, glm::radians(spoutRigOrientation.y), glm::vec3(1.0f, 0.0f, 0.0f));
     glm::mat4 rollRot = glm::rotate(yawRot, glm::radians(-spoutRigOrientation.z), glm::vec3(0.0f, 0.0f, 1.0f));
-    //glm::mat4 rollRot = glm::rotate(tiltRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-    //glm::mat4 rollRot = glm::mat4(1.0f);
 
 	//add viewports
 	for (unsigned int i = 0; i<6; i++)
@@ -502,12 +500,15 @@ void sgct_core::SpoutOutputProjection::initShaders()
 //    yawRot[1][0] * x + yawRot[1][1] * y + yawRot[1][2] * z;
 //    yawRot[2][0] * x + yawRot[2][1] * y + yawRot[2][2] * z;
 
-    char str[400];
-    sprintf(str, "vec3 rotVec = vec3(%0.5ff*x + %0.5ff*y + %0.5ff*z, %0.5ff*x + %0.5ff*y + %0.5ff*z, %0.5ff*x + %0.5ff*y + %0.5ff*z)", rollRot[0][0], rollRot[0][1], rollRot[0][2], rollRot[1][0], rollRot[1][1], rollRot[1][2], rollRot[2][0], rollRot[2][1], rollRot[2][2]);
+	std::stringstream ssRot;
+	ssRot.precision(5);
+	ssRot << "vec3 rotVec = vec3(" <<
+		rollRot[0][0] << "f*x + " << rollRot[0][1] << "f*y + " << rollRot[0][2] << "f*z, " <<
+		rollRot[1][0] << "f*x + " << rollRot[1][1] << "f*y + " << rollRot[1][2] << "f*z, " <<
+		rollRot[2][0] << "f*x + " << rollRot[2][1] << "f*y + " << rollRot[2][2] << "f*z)";
 
     //replace add correct transform in the fragment shader
-    //sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", "vec3 rotVec = vec3(angle45Factor*x - angle45Factor*y, angle45Factor*x + angle45Factor*y, z)");
-    sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", str);
+    sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", ssRot.str());
 
     //replace glsl version
     sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());

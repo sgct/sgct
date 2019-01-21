@@ -2486,7 +2486,7 @@ static int vrpn_start_server(const char *machine, char *server_name, char *args,
         for (waitloop = 0; waitloop < (SERVCOUNT); waitloop++) {
             int ret;
             pid_t deadkid;
-#if defined(sparc) || defined(FreeBSD) || defined(_AIX) || defined(__ANDROID__)
+#if defined(sparc) || defined(FreeBSD) || defined(_AIX) || defined(__ANDROID__) || defined(__linux__)
             int status; // doesn't exist on sparc_solaris or FreeBSD
 #else
             union wait status;

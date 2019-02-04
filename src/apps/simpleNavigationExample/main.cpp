@@ -12,7 +12,7 @@ void myEncodeFun();
 void myDecodeFun();
 //input callbacks
 void keyCallback(int key, int action);
-void mouseButtonCallback(int button, int action);
+void mouseButtonCallback(int button, int action, int mods);
 
 void drawXZGrid(int size, float yPos);
 void drawPyramid(float width);
@@ -216,7 +216,7 @@ void keyCallback(int key, int action)
     }
 }
 
-void mouseButtonCallback(int button, int action)
+void mouseButtonCallback(int button, int action, int)
 {
     if( gEngine->isMaster() )
     {

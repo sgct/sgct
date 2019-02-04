@@ -14,7 +14,7 @@ void myDecodeFun();
 void myCleanUpFun();
 //input callbacks
 void keyCallback(int key, int action);
-void mouseButtonCallback(int button, int action);
+void mouseButtonCallback(int button, int action, int mods);
 void touchCallback(const sgct_core::Touch* touchPoints);
 
 void drawXZGrid();
@@ -259,7 +259,7 @@ void keyCallback(int key, int action)
     }
 }
 
-void mouseButtonCallback(int button, int action)
+void mouseButtonCallback(int button, int action, int)
 {
     if( gEngine->isMaster() )
     {

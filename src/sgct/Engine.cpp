@@ -46,7 +46,7 @@ sgct_core::Touch sgct::Engine::mCurrentTouchPoints = sgct_core::Touch();
     sgct_cppxeleven::function<void(int, int, int, int)> gKeyboardCallbackFnPtr2 = SGCT_NULL_PTR;
     sgct_cppxeleven::function<void(unsigned int)> gCharCallbackFnPtr = SGCT_NULL_PTR;
     sgct_cppxeleven::function<void(unsigned int, int)> gCharCallbackFnPtr2 = SGCT_NULL_PTR;
-    sgct_cppxeleven::function<void(int, int)> gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
+    sgct_cppxeleven::function<void(int, int, int)> gMouseButtonCallbackFnPtr = SGCT_NULL_PTR;
     sgct_cppxeleven::function<void(double, double)> gMousePosCallbackFnPtr = SGCT_NULL_PTR;
     sgct_cppxeleven::function<void(double, double)> gMouseScrollCallbackFnPtr = SGCT_NULL_PTR;
     sgct_cppxeleven::function<void(int, const char**)> gDropCallbackFnPtr = SGCT_NULL_PTR;
@@ -56,7 +56,7 @@ sgct_core::Touch sgct::Engine::mCurrentTouchPoints = sgct_core::Touch();
     void (*gKeyboardCallbackFnPtr2)(int, int, int, int) = NULL;
     void (*gCharCallbackFnPtr)(unsigned int) = NULL;
     void (*gCharCallbackFnPtr2)(unsigned int, int) = NULL;
-    void (*gMouseButtonCallbackFnPtr)(int, int) = NULL;
+    void (*gMouseButtonCallbackFnPtr)(int, int, int) = NULL;
     void (*gMousePosCallbackFnPtr)(double, double) = NULL;
     void (*gMouseScrollCallbackFnPtr)(double, double) = NULL;
     void (*gDropCallbackFnPtr)(int, const char**) = NULL;
@@ -3673,7 +3673,7 @@ void sgct::Engine::setCharCallbackFunction(sgct_cppxeleven::function<void(unsign
     SGCT_MOUSE_BUTTON_LAST | Last mouse button index
 
 */
-void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
+void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int, int) )
 {
     gMouseButtonCallbackFnPtr = fnPtr;
 }
@@ -3683,7 +3683,7 @@ void sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 
 @see sgct::Engine::setMouseButtonCallbackFunction( void(*fnPtr)(int, int) )
 */
-void sgct::Engine::setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn)
+void sgct::Engine::setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int, int)> fn)
 {
     gMouseButtonCallbackFnPtr = fn;
 }
@@ -3790,7 +3790,7 @@ void sgct::Engine::internal_key_char_mods_callback(GLFWwindow* window, unsigned 
 void sgct::Engine::internal_mouse_button_callback(GLFWwindow* window, int button, int action, int mods)
 {
     if (gMouseButtonCallbackFnPtr != SGCT_NULL_PTR)
-        gMouseButtonCallbackFnPtr(button, action);
+        gMouseButtonCallbackFnPtr(button, action, mods);
 }
 
 void sgct::Engine::internal_mouse_pos_callback(GLFWwindow* window, double xPos, double yPos)

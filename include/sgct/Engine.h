@@ -195,7 +195,7 @@ public:
     void setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) ); //arguments: int key, int scancode, int action, int mods
     void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
     void setCharCallbackFunction( void(*fnPtr)(unsigned int, int) ); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int button, int action
+    void setMouseButtonCallbackFunction( void(*fnPtr)(int, int, int) ); //arguments: int button, int action, int mods
     void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
     void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
     void setDropCallbackFunction(void(*fnPtr)(int, const char**) ); //arguments: int count, const char ** list of path strings
@@ -224,7 +224,7 @@ public:
     void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
     void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
     void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int, int)> fn); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int button, int action
+    void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int, int)> fn); //arguments: int button, int action, int mods
     void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
     void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
     void setDropCallbackFunction(sgct_cppxeleven::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings

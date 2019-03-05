@@ -74,6 +74,12 @@ sgct::SGCTWindow::SGCTWindow(int id)
     mWindowResOld[1] = mWindowRes[1];
     mWindowInitialRes[0] = mWindowRes[0];
     mWindowInitialRes[1] = mWindowRes[1];
+    mHasPendingWindowRes = false;
+    mHasPendingFramebufferRes = false;
+    mPendingWindowRes[0] = 0;
+    mPendingWindowRes[1] = 0;
+    mPendingFramebufferRes[0] = 0;
+    mPendingFramebufferRes[1] = 0;
     mWindowPos[0] = 0;
     mWindowPos[1] = 0;
     mScale[0] = 0.0f;
@@ -493,22 +499,18 @@ void sgct::SGCTWindow::setWindowTitle(const char * title)
 */
 void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 {
-    mWindowRes[0] = x;
-    mWindowRes[1] = y;
-    float newAspectRatio = static_cast<float>( x ) / static_cast<float>( y );
+    // In case this callback gets triggered from elsewhere than sgct's glfwPollEvents,
+    // we want to make sure the actual resizing is deferred to the end of the frame.
+    // This can happen if some other library pulls events from the operating system
+    // for example by calling nextEventMatchingMask (MacOS) or PeekMessageW (Windows).
+    // If we were to set the actual mWindowRes directly, we may render half a frame with
+    // resolution a and the other half with resolution b, which is undefined behaviour.
+    // mHasNewPendingWindowRes is checked in SGCTWindow::updateResolution,
+    // which is called from SGCTEngine's render loop after glfwPollEvents.
 
-    //Set field of view of each of this window's viewports to match new aspect ratio, adjusting only the horizontal (x) values
-    for (std::size_t j = 0; j < getNumberOfViewports(); ++j)
-    {
-        sgct_core::Viewport* vpPtr = getViewport(j);
-        vpPtr->updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
-    }
-
-	//redraw window
-	if (mWindowHandle)
-		glfwSetWindowSize(mWindowHandle, x, y);
-
-	MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Resolution changed to %dx%d for window %d...\n", mWindowRes[0], mWindowRes[1], mId);
+    mHasPendingWindowRes = true;
+    mPendingWindowRes[0] = x;
+    mPendingWindowRes[1] = y;
 }
 
 /*!
@@ -520,12 +522,13 @@ void sgct::SGCTWindow::setWindowResolution(const int x, const int y)
 */
 void sgct::SGCTWindow::setFramebufferResolution(const int x, const int y)
 {
+    // Defer actual update of framebuffer resolution until next call to updateResolutions.
+    // (Same reason as described for setWindowResolution above.)
     if( !mUseFixResolution )
     {
-        mFramebufferResolution[0] = x;
-        mFramebufferResolution[1] = y;
-
-        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "SGCTWindow: Framebuffer resolution changed to %dx%d for window %d...\n", mFramebufferResolution[0], mFramebufferResolution[1], mId);
+        mHasPendingFramebufferRes = true;
+        mPendingFramebufferRes[0] = x;
+        mPendingFramebufferRes[1] = y;
     }
 }
 
@@ -561,12 +564,54 @@ void sgct::SGCTWindow::swap(bool takeScreenshot)
                     mScreenCapture[1]->saveScreenCapture(mFrameBufferTextures[Engine::RightEye]);
             }
         }
-        
+
         //swap
         mWindowResOld[0] = mWindowRes[0];
         mWindowResOld[1] = mWindowRes[1];
 
         mDoubleBuffered ? glfwSwapBuffers(mWindowHandle): glFinish();
+    }
+}
+
+void sgct::SGCTWindow::updateResolutions() {
+    if (mHasPendingWindowRes) {
+        mWindowRes[0] = mPendingWindowRes[0];
+        mWindowRes[1] = mPendingWindowRes[1];
+        float newAspectRatio =
+            static_cast<float>(mWindowRes[0]) / static_cast<float>(mWindowRes[1]);
+
+        // Set field of view of each of this window's viewports to match new
+        // aspect ratio, adjusting only the horizontal (x) values.
+        for (std::size_t j = 0; j < getNumberOfViewports(); ++j)
+        {
+            sgct_core::Viewport* vpPtr = getViewport(j);
+            vpPtr->updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
+        }
+
+        // Redraw window
+        if (mWindowHandle) {
+            glfwSetWindowSize(mWindowHandle, mWindowRes[0], mWindowRes[1]);
+        }
+
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+            "SGCTWindow: Resolution changed to %dx%d for window %d...\n",
+            mWindowRes[0],
+            mWindowRes[1],
+            mId);
+
+        mHasPendingWindowRes = false;
+    }
+    if (mHasPendingFramebufferRes) {
+        mFramebufferResolution[0] = mPendingFramebufferRes[0];
+        mFramebufferResolution[1] = mPendingFramebufferRes[1];
+
+        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+            "SGCTWindow: Framebuffer resolution changed to %dx%d for window %d...\n",
+            mFramebufferResolution[0],
+            mFramebufferResolution[1],
+            mId);
+
+        mHasPendingFramebufferRes = false;
     }
 }
 

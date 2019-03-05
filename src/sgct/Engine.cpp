@@ -1538,6 +1538,11 @@ void sgct::Engine::render()
         }
 
         glfwPollEvents();
+        for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++)
+        {
+            mThisNode->setCurrentWindowIndex(i);
+            getCurrentWindowPtr()->updateResolutions();
+        }
 
         // Check if ESC key was pressed or window was closed
         mRunning = !(mThisNode->getKeyPressed( mExitKey ) ||

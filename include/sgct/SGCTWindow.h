@@ -45,6 +45,7 @@ public:
     static void initNvidiaSwapGroups();
     void initWindowResolution(const int x, const int y);
     void swap(bool takeScreenshot);
+    void updateResolutions();
     bool update();
     bool openWindow(GLFWwindow* share, size_t lastWindowIdx);
     void makeOpenGLContextCurrent( OGL_Context context );
@@ -255,6 +256,10 @@ private:
     bool mAlpha;
     int mFramebufferResolution[2];
     int mWindowInitialRes[2];
+    bool mHasPendingWindowRes;
+    int mPendingWindowRes[2];
+    bool mHasPendingFramebufferRes;
+    int mPendingFramebufferRes[2];
     int mWindowRes[2];
     int mWindowPos[2];
     int mWindowResOld[2];

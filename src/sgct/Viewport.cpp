@@ -505,10 +505,28 @@ void sgct_core::Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement * elem
 	for (std::size_t i = 0; i < 6; i++)
 		spoutProj->getSubViewportPtr(i)->setUser(mUser);
 
-	if (element->Attribute("quality") != NULL)
-	{
-		spoutProj->setCubemapResolution(std::string(element->Attribute("quality")));
-	}
+    if (element->Attribute("quality") != NULL)
+    {
+        spoutProj->setCubemapResolution(std::string(element->Attribute("quality")));
+    }
+    if (element->Attribute("mapping") != NULL) {
+        if (std::string(element->Attribute("mapping")) == "fisheye") {
+            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Fisheye);
+        }
+        else if (std::string(element->Attribute("mapping")) == "equirectangular") {
+            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Equirectangular);
+        }
+        else if (std::string(element->Attribute("mapping")) == "cubemap") {
+            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Cubemap);
+        }
+        else {
+            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Cubemap);
+        }
+    }
+    if (element->Attribute("mappingSpoutName") != NULL)
+    {
+        spoutProj->setSpoutMappingName(std::string(element->Attribute("mappingSpoutName")));
+    }
 
 	tinyxml2::XMLElement * subElement = element->FirstChildElement();
 	const char * val;
@@ -534,7 +552,37 @@ void sgct_core::Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement * elem
 			spoutProj->setClearColor(color);
 		}
 
-		//iterate
+        if (strcmp("Channels", val) == 0)
+        {
+            bool channel[SpoutOutputProjection::spoutTotalFaces] = {false};
+            bool btmp;
+
+            for (size_t i = 0; i < SpoutOutputProjection::spoutTotalFaces; i++) {
+                if (subElement->QueryBoolAttribute(SpoutOutputProjection::spoutCubeMapFaceName[i].c_str(), &btmp) == tinyxml2::XML_NO_ERROR)
+                    channel[i] = btmp;
+                else
+                    channel[i] = true;
+            }
+
+            spoutProj->setSpoutChannels(channel);
+        }
+
+        if (strcmp("RigOrientation", val) == 0)
+        {
+            glm::vec3 orientation;
+            float ftmp;
+
+            if (subElement->QueryFloatAttribute("pitch", &ftmp) == tinyxml2::XML_NO_ERROR)
+                orientation.x = ftmp;
+            if (subElement->QueryFloatAttribute("yaw", &ftmp) == tinyxml2::XML_NO_ERROR)
+                orientation.y = ftmp;
+            if (subElement->QueryFloatAttribute("roll", &ftmp) == tinyxml2::XML_NO_ERROR)
+                orientation.z = ftmp;
+
+            spoutProj->setSpoutRigOrientation(orientation);
+        }
+
+        //iterate
 		subElement = subElement->NextSiblingElement();
 	}
 

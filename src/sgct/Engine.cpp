@@ -3993,6 +3993,30 @@ const double sgct::Engine::getAvgDt()
 }
 
 /*!
+ \returns the minimum frame time (delta time) in the averaging window (seconds)
+ */
+const double sgct::Engine::getMinDt()
+{
+    return mStatistics->getMinFrameTime();
+}
+
+/*!
+ \returns the maximum frame time (delta time) in the averaging window (seconds)
+ */
+const double sgct::Engine::getMaxDt()
+{
+    return mStatistics->getMaxFrameTime();
+}
+
+/*!
+ \returns the standard devitation of the delta time in seconds
+ */
+const double sgct::Engine::getDtStandardDeviation()
+{
+    return mStatistics->getFrameTimeStandardDeviation();
+}
+
+/*!
 \returns the draw time in seconds
 */
 const double sgct::Engine::getDrawTime()

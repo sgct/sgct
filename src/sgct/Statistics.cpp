@@ -24,6 +24,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
 #include <memory.h>
+#include <limits>
 
 const static std::string Stats_Vert_Shader = "\
 **glsl_version**\n\
@@ -302,16 +303,34 @@ void sgct_core::Statistics::setFrameTime(float t)
     mAvgFrameTime = 0.0;
     int start = FRAME_TIME * STATS_HISTORY_LENGTH;
 
+    mMaxFrameTime = 0.0;
+    mMinFrameTime = std::numeric_limits<float>::max();
     for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
     {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-        if (i < (STATS_AVERAGE_LENGTH + start - 1))
+        if (i < (STATS_AVERAGE_LENGTH + start - 1)) {
             mAvgFrameTime += mDynamicVertexList[i].y;
+            mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList[i].y);
+            mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList[i].y);
+        }
     }
     mDynamicVertexList[start].y = t;
     
     mAvgFrameTime += mDynamicVertexList[start].y;
+    mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList[start].y);
+    mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList[start].y);
+
     mAvgFrameTime /= static_cast<float>(STATS_AVERAGE_LENGTH);
+
+    float sumSquaredDeviation = 0.f;
+    for (int i = start; i < start + STATS_AVERAGE_LENGTH; ++i)
+    {
+        sumSquaredDeviation += std::pow(mDynamicVertexList[i].y - mAvgFrameTime, 2.f);
+    }
+
+    mStdDevFrameTime = glm::sqrt(
+        sumSquaredDeviation / static_cast<float>(STATS_AVERAGE_LENGTH)
+    );
 }
 
 void sgct_core::Statistics::setDrawTime(float t)

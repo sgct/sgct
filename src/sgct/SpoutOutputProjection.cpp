@@ -810,7 +810,9 @@ void sgct_core::SpoutOutputProjection::renderInternal()
         mSpoutFBO_Ptr->unBind();
 
         glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
+#ifdef SGCT_HAS_SPOUT
         ((SPOUTHANDLE)spoutMappingHandle)->SendTexture(spoutMappingTexture, GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+#endif
         glBindTexture(GL_TEXTURE_2D, 0);
 
         buffers[0] = saveBuffer;
@@ -903,7 +905,9 @@ void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
         mSpoutFBO_Ptr->unBind();
 
         glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
+#ifdef SGCT_HAS_SPOUT
         ((SPOUTHANDLE)spoutMappingHandle)->SendTexture(spoutMappingTexture, GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+#endif
         glBindTexture(GL_TEXTURE_2D, 0);
 
         glPopClientAttrib();

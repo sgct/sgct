@@ -1,8 +1,8 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="172.19.2.10" externalControlPort="20500">
 	<Scene>
-		<Orientation yaw="0.0" pitch="90.0" roll="0.0" />
-		<Offset x="0.0" y="-0.2" z="-3.2" />
+		<Orientation yaw="0.0" pitch="27.0" roll="0.0" />
+		<Offset x="0.0" y="0.0" z="0.0" />
 		<Scale value="1.0" />
 	</Scene>
 	<Node address="172.19.2.10" port="20400" swapLock="false">
@@ -22,8 +22,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.11" port="20401" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 1 -->
@@ -35,8 +36,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.12" port="20402" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 2 -->
@@ -48,8 +50,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.13" port="20403" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 3 -->
@@ -61,8 +64,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.14" port="20404" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 4 -->
@@ -74,8 +78,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.15" port="20405" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 5 -->
@@ -87,8 +92,9 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.16" port="20406" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+		<Window fullScreen="false" numberOfSamples="4" border="false">
+			<Stereo type="active" />
+			<Pos x="0" y="0" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 6 -->

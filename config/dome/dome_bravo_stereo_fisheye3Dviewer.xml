@@ -1,29 +1,33 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="172.19.2.10" externalControlPort="20500">
 	<Scene>
-		<Orientation yaw="0.0" pitch="90.0" roll="0.0" />
-		<Offset x="0.0" y="-0.2" z="-3.2" />
+		<Orientation yaw="0.0" pitch="7.50" roll="0.0" />
+		<Offset x="0.0" y="0.0" z="0.0" />
 		<Scale value="1.0" />
 	</Scene>
-	<Node address="172.19.2.10" port="20400" swapLock="false">
+	<Node address="172.19.2.10" port="20400" swapLock="false" dataTransferPort="20500">
 		<Window fullScreen="false" numberOfSamples="4">
-			<Stereo type="none" />
-			<Size x="2560" y="1440" />
-			<Viewport>
-				<Viewplane>
-					<!-- Lower left -->
-					<Pos x="-5.187650" y="-1.880789" z="-5.637431" />
-					<!-- Upper left -->
-					<Pos x="-5.187650" y="4.301180" z="-4.666044" />
-					<!-- Upper right -->
-					<Pos x="5.187650" y="4.301180" z="-4.666044" />
-				</Viewplane>
+			<Pos x="100" y="100" />
+			<Size x="1024" y="512" />
+			<Viewport eye="left">
+				<Pos x="0.0" y="0.0" />
+				<Size x="0.5" y="1.0" />
+				<FisheyeProjection fov="180" quality="medium">
+					<Background r="0.1" g="0.1" b="0.1" a="1.0" />
+				</FisheyeProjection>
+			</Viewport>
+            <Viewport eye="right">
+				<Pos x="0.5" y="0.0" />
+				<Size x="0.5" y="1.0" />
+				<FisheyeProjection fov="180" quality="medium">
+					<Background r="0.1" g="0.1" b="0.1" a="1.0" />
+				</FisheyeProjection>
 			</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.11" port="20401" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.11" port="20401" swapLock="true" dataTransferPort="20501">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 1 -->
@@ -34,9 +38,9 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.12" port="20402" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.12" port="20402" swapLock="true" dataTransferPort="20502">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 2 -->
@@ -47,9 +51,9 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.13" port="20403" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.13" port="20403" swapLock="true" dataTransferPort="20503">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 3 -->
@@ -60,9 +64,9 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.14" port="20404" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.14" port="20404" swapLock="true" dataTransferPort="20504">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 4 -->
@@ -73,9 +77,9 @@
 			</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.15" port="20405" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.15" port="20405" swapLock="true" dataTransferPort="20505">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 5 -->
@@ -86,9 +90,9 @@
 		</Viewport>
 		</Window>
 	</Node>
-	<Node address="172.19.2.16" port="20406" swapLock="true">
-		<Window fullScreen="true" numberOfSamples="4">
-			<Stereo type="none" />
+	<Node address="172.19.2.16" port="20406" swapLock="true" dataTransferPort="20506">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
+			<Stereo type="active" />
 			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 6 -->

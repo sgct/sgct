@@ -1,7 +1,7 @@
 <?xml version="1.0" ?>
 <Cluster masterAddress="172.19.2.10" externalControlPort="20500">
 	<Scene>
-		<Orientation yaw="0.0" pitch="90.0" roll="0.0" />
+		<Orientation yaw="0.0" pitch="180.0" roll="0.0" />
 		<Offset x="0.0" y="-0.2" z="-3.2" />
 		<Scale value="1.0" />
 	</Scene>

@@ -6,9 +6,9 @@
 		<Scale value="1.0" />
 	</Scene>
 	<Node address="172.19.2.10" port="20400" swapLock="false">
-		<Window fullScreen="false" msaa="4">
+		<Window fullScreen="false" numberOfSamples="4">
 			<Stereo type="none" />
-			<Size x="1920" y="1200" />
+			<Size x="2560" y="1440" />
 			<Viewport>
 				<Viewplane>
 					<!-- Lower left -->
@@ -22,79 +22,79 @@
 		</Window>
 	</Node>
 	<Node address="172.19.2.11" port="20401" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 1 -->
 				<PlanarProjection>
-                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <FOV left="58.865" right="58.865" up="70.238" down="-7.701" />
                     <Orientation heading="-45.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
 		</Window>
 	</Node>
 	<Node address="172.19.2.12" port="20402" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 2 -->
 				<PlanarProjection>
-                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <FOV left="58.865" right="58.865" up="70.238" down="-7.701" />
                     <Orientation heading="45.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
 		</Window>
 	</Node>
 	<Node address="172.19.2.13" port="20403" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 3 -->
 				<PlanarProjection>
-                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <FOV left="58.865" right="58.865" up="70.238" down="-7.701" />
                     <Orientation heading="135.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
 		</Window>
 	</Node>
 	<Node address="172.19.2.14" port="20404" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 4 -->
 				<PlanarProjection>
-                    <FOV left="55.82" right="55.82" up="74.10" down="-7.70" />
+                    <FOV left="58.865" right="58.865" up="70.238" down="-7.701" />
                     <Orientation heading="-135.0" pitch="0.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
 		</Window>
 	</Node>
 	<Node address="172.19.2.15" port="20405" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 5 -->
 				<PlanarProjection>
-                    <FOV left="57.05" right="57.05" up="65.31" down="6.50" />
-                    <Orientation heading="57.0" pitch="49.5" roll="0.0" />
+                    <FOV left="58.992" right="58.992" up="55.336" down="11.608" />
+                    <Orientation heading="57.0" pitch="48.0" roll="0.0" />
 				</PlanarProjection>
 		</Viewport>
 		</Window>
 	</Node>
 	<Node address="172.19.2.16" port="20406" swapLock="true">
-		<Window fullScreen="true" msaa="4">
+		<Window fullScreen="true" numberOfSamples="4" draw2D="false">
 			<Stereo type="active" />
-			<Size x="2560" y="1600" />
+			<Size x="4096" y="2160" />
 			<Viewport>
 				<!-- Proj 6 -->
 				<PlanarProjection>
-                    <FOV left="57.05" right="57.05" up="65.31" down="6.50" />
-                    <Orientation heading="-123.0" pitch="49.5" roll="0.0" />
+                    <FOV left="58.992" right="58.992" up="55.336" down="11.608" />
+                    <Orientation heading="-123.0" pitch="48.0" roll="0.0" />
 				</PlanarProjection>
 			</Viewport>
 		</Window>

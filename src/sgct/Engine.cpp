@@ -364,6 +364,15 @@ bool sgct::Engine::init(RunMode rm)
         return false;
     }
 
+    // Window resolution may have been set when reading config.
+    // However, it only sets a pending resolution, so it needs to apply it
+    // using the same routine as in the end of a frame.
+    for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++)
+    {
+        mThisNode->setCurrentWindowIndex(i);
+        getCurrentWindowPtr()->updateResolutions();
+    }
+
     //if a single node, skip syncing
     if(sgct_core::ClusterManager::instance()->getNumberOfNodes() == 1)
         sgct_core::ClusterManager::instance()->setUseIgnoreSync(true);

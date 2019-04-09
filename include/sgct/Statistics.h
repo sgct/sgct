@@ -52,6 +52,9 @@ public:
     const float getAvgDrawTime() { return mAvgDrawTime; }
     const float getAvgSyncTime() { return mAvgSyncTime; }
     const float getAvgFrameTime() { return mAvgFrameTime; }
+    const float getMinFrameTime() { return mMinFrameTime; }
+    const float getMaxFrameTime() { return mMaxFrameTime; }
+    const float getFrameTimeStandardDeviation() { return mStdDevFrameTime; }
     const float getFrameTime() { return mDynamicVertexList[FRAME_TIME * STATS_HISTORY_LENGTH].y; }
     const float getDrawTime() { return mDynamicVertexList[DRAW_TIME * STATS_HISTORY_LENGTH].y; }
     const float getSyncTime() { return mDynamicVertexList[SYNC_TIME * STATS_HISTORY_LENGTH].y; }
@@ -61,6 +64,9 @@ private:
     float mAvgDrawTime;
     float mAvgSyncTime;
     float mAvgFrameTime;
+    float mMinFrameTime;
+    float mMaxFrameTime;
+    float mStdDevFrameTime;
     StatsVertex mDynamicVertexList[STATS_HISTORY_LENGTH * STATS_NUMBER_OF_DYNAMIC_OBJS];
     glm::vec4 mDynamicColors[STATS_NUMBER_OF_DYNAMIC_OBJS];
     glm::vec4 mStaticColors[STATS_NUMBER_OF_STATIC_OBJS];

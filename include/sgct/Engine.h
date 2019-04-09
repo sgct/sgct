@@ -114,6 +114,9 @@ public:
     const double getDt();
     const double getAvgFPS();
     const double getAvgDt();
+    const double getMinDt();
+    const double getMaxDt();
+    const double getDtStandardDeviation();
     const double getDrawTime();
     const double getSyncTime();
 

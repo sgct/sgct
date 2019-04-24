@@ -49,4 +49,4 @@ void setDecodeFunction( void(*fnPtr)(void) );
 ```
 #### Getting Started
 
-More information, guides etc can be found on the [C-Student Wiki](https://c-student.itn.liu.se/wiki/) and we suggest beginners start reading the [Getting Started](https://c-student.itn.liu.se/wiki/develop:sgct:gettingstarted:gettingstarted) section.
+More information, guides etc can be found on the [SGCT Wiki](http://sgct.itn.liu.se) and we suggest beginners start reading the [Getting Started](http://sgct.itn.liu.se/getting-started) section.

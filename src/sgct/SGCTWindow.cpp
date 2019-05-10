@@ -615,6 +615,19 @@ void sgct::SGCTWindow::updateResolutions() {
     }
 }
 
+void sgct::SGCTWindow::setFieldOfViewAspectRatio(float ratio) {
+    // Set field of view of each of this window's viewports to match new horiz/vert
+    // aspect ratio, adjusting only the horizontal (x) values.
+    for (std::size_t j = 0; j < getNumberOfViewports(); ++j) {
+        sgct_core::Viewport* vpPtr = getViewport(j);
+        vpPtr->updateFovToMatchAspectRatio(mAspectRatio, ratio);
+    }
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+        "SGCTWindow: FOV aspect ratio changed to %d for window %d...\n",
+        ratio,
+        mId);
+}
+
 /*!
     Don't use this function if you want to set the window resolution. Use setWindowResolution(const int x, const int y) instead.
     This function is called within sgct when the window is created.

@@ -70,6 +70,7 @@ public:
     void setFullScreenMonitorIndex( int index );
     static void setBarrier(const bool state);
     void setFixResolution(const bool state);
+    void setFieldOfViewAspectRatio(float ratio);
     void setUsePostFX(bool state);
     void setUseFXAA(bool state);
     void setUseQuadbuffer(const bool state);

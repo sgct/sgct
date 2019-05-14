@@ -45,6 +45,7 @@ public:
     inline SGCTProjectionPlane * getProjectionPlane() { return &mProjectionPlane; }
     inline glm::quat getRotation() { return mRot; }
     inline glm::vec4 getFOV() { return mFOV; }
+    inline float getDistance() { return mDistance; }
     
     bool isEnabled();
     void linkUserName();
@@ -71,6 +72,7 @@ protected:
 
     glm::vec3 mUnTransformedViewPlaneCoords[3];
     glm::quat mRot;
+    float mDistance;
     glm::vec4 mFOV;
 };
 

@@ -124,6 +124,7 @@ void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, 
     mRot = rot;
 
     mFOV = glm::vec4(up, down, left, right);
+    mDistance = dist;
 
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].x = dist * tanf(glm::radians<float>(left));
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].y = dist * tanf(glm::radians<float>(down));
@@ -168,12 +169,38 @@ void sgct_core::BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec
 
 void sgct_core::BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio)
 {
-    glm::vec3 cornerPts[3];
-    for (unsigned int cornerNum = (unsigned int)SGCTProjectionPlane::LowerLeft; cornerNum <= (unsigned int)SGCTProjectionPlane::UpperRight; ++cornerNum)
+    for (unsigned int cornerNum = (unsigned int)SGCTProjectionPlane::LowerLeft;
+         cornerNum <= (unsigned int)SGCTProjectionPlane::UpperRight;
+         ++cornerNum)
     {
-        cornerPts[cornerNum].x = mUnTransformedViewPlaneCoords[cornerNum].x * newRatio / oldRatio;
-        cornerPts[cornerNum].y = mUnTransformedViewPlaneCoords[cornerNum].y;
-        cornerPts[cornerNum].z = mUnTransformedViewPlaneCoords[cornerNum].z;
+        mUnTransformedViewPlaneCoords[cornerNum].x *= newRatio / oldRatio;
     }
-    setViewPlaneCoordsFromUnTransformedCoords(cornerPts, mRot, false);
+    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, mRot, true);
+}
+
+float sgct_core::BaseViewport::getHorizontalFieldOfViewDegrees()
+{
+    float xDist = (mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).x -
+        mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).x) / 2;
+    float zDist = mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
+    return (glm::degrees(atanf(fabs(xDist / zDist)))) * 2;
+}
+
+void sgct_core::BaseViewport::setHorizontalFieldOfView(float horizFovDeg,
+                                                       float aspectRatio)
+{
+    glm::vec2 projPlaneDims;
+    float zDist = mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
+    projPlaneDims.x = fabs(zDist) * tanf(glm::radians<float>(horizFovDeg) / 2);
+    projPlaneDims.y = projPlaneDims.x / aspectRatio;
+    float verticalAngle = glm::degrees(atanf(projPlaneDims.y / fabs(zDist)));
+
+    setViewPlaneCoordsUsingFOVs(
+         verticalAngle,
+        -verticalAngle,
+        -horizFovDeg / 2,
+         horizFovDeg / 2,
+         mRot,
+         fabs(zDist)
+    );
 }

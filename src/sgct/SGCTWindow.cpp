@@ -586,7 +586,13 @@ void sgct::SGCTWindow::updateResolutions() {
         {
             sgct_core::Viewport* vpPtr = getViewport(j);
             vpPtr->updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
+            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+                "SGCTWindow: update aspect ratio in viewport# %d (%f --> %f)...\n",
+                j,
+                mAspectRatio,
+                newAspectRatio);
         }
+        mAspectRatio = newAspectRatio;
 
         // Redraw window
         if (mWindowHandle) {
@@ -594,7 +600,7 @@ void sgct::SGCTWindow::updateResolutions() {
         }
 
         MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
-            "SGCTWindow: Resolution changed to %dx%d for window %d...\n",
+            "SGCTWindow: Resolution changed to %dx%d in window %d...\n",
             mWindowRes[0],
             mWindowRes[1],
             mId);
@@ -613,6 +619,21 @@ void sgct::SGCTWindow::updateResolutions() {
 
         mHasPendingFramebufferRes = false;
     }
+}
+
+void sgct::SGCTWindow::setHorizFieldOfView(float hFovDeg) {
+    // Set field of view of each of this window's viewports to match new horiz/vert
+    // aspect ratio, adjusting only the horizontal (x) values.
+    for (std::size_t j = 0; j < getNumberOfViewports(); ++j) {
+        sgct_core::Viewport* vpPtr = getViewport(j);
+        vpPtr->setHorizontalFieldOfView(hFovDeg, mAspectRatio);
+    }
+    MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+        "SGCTWindow: Horiz FOV changed to %f deg. in %d viewports for window %d using aspect ratio %f...\n",
+        hFovDeg,
+        getNumberOfViewports(),
+        mId,
+        mAspectRatio);
 }
 
 /*!
@@ -2153,4 +2174,15 @@ Get monitor brightness value (works only if fullscreen)
 const float & sgct::SGCTWindow::getBrightness() const
 {
     return mBrightness;
+}
+
+/*!
+Get FOV of viewport[0]
+*/
+const float & sgct::SGCTWindow::getHorizFieldOfViewDegrees()
+{
+    if (mViewports[0]) {
+        mHorizontalFovDegrees = mViewports[0]->getHorizontalFieldOfViewDegrees();
+    }
+    return mHorizontalFovDegrees;
 }

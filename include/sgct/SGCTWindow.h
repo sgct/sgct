@@ -70,6 +70,7 @@ public:
     void setFullScreenMonitorIndex( int index );
     static void setBarrier(const bool state);
     void setFixResolution(const bool state);
+    void setHorizFieldOfView(float hFovDeg);
     void setUsePostFX(bool state);
     void setUseFXAA(bool state);
     void setUseQuadbuffer(const bool state);
@@ -131,6 +132,7 @@ public:
     const float &                    getContrast() const;
     const float &                    getBrightness() const;
     ColorBitDepth                    getColorBitDepth() const;
+    const float &                    getHorizFieldOfViewDegrees();
     
     // ------------------ Inline functions ----------------------- //
     /*!
@@ -273,6 +275,7 @@ private:
     float mContrast;
     float mBrightness;
     float mScale[2];
+    float mHorizontalFovDegrees = 90.f;
 
     bool mUseFXAA;
     bool mUsePostFX;

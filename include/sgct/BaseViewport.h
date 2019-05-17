@@ -37,6 +37,7 @@ public:
     float getY();
     float getXSize();
     float getYSize();
+    float getHorizontalFieldOfViewDegrees();
     
     inline SGCTUser * getUser() { return mUser; }
     inline Frustum::FrustumMode getEye() { return mEye; }
@@ -45,6 +46,7 @@ public:
     inline SGCTProjectionPlane * getProjectionPlane() { return &mProjectionPlane; }
     inline glm::quat getRotation() { return mRot; }
     inline glm::vec4 getFOV() { return mFOV; }
+    inline float getDistance() { return mDistance; }
     
     bool isEnabled();
     void linkUserName();
@@ -54,6 +56,8 @@ public:
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
     void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
+    void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
+
     
 protected:
     SGCTProjection mProjections[3];
@@ -71,6 +75,7 @@ protected:
 
     glm::vec3 mUnTransformedViewPlaneCoords[3];
     glm::quat mRot;
+    float mDistance;
     glm::vec4 mFOV;
 };
 

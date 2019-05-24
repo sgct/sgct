@@ -55,8 +55,8 @@ static int vscwprintf(const wchar_t * format, va_list pargs)
 #define vscwprintf(f,a) _vscwprintf(f,a)
 #endif
 #else
-  //Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
-  int vscprintf (const char * format, va_list pargs)
+  // Workaround for calling vscprintf() or vscwprintf() in a non-windows OS
+  static int vscprintf (const char * format, va_list pargs)
   {
       int retval;
       va_list argcopy;
@@ -66,7 +66,7 @@ static int vscwprintf(const wchar_t * format, va_list pargs)
       return retval;
   }
 
-  int vscwprintf(const wchar_t *format, va_list argptr)
+  static int vscwprintf(const wchar_t *format, va_list argptr)
   {
      return(vswprintf(0, 0, format, argptr));
   }

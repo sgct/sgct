@@ -54,7 +54,7 @@ public:
     void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
     void calculateNonLinearFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
-    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose);
+    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
 

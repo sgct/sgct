@@ -629,7 +629,7 @@ void sgct::SGCTWindow::setHorizFieldOfView(float hFovDeg) {
         vpPtr->setHorizontalFieldOfView(hFovDeg, mAspectRatio);
     }
     MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
-        "SGCTWindow: Horiz FOV changed to %f deg. in %d viewports for window %d using aspect ratio %f...\n",
+        "SGCTWindow: Horizontal FOV changed to %f deg. in %d viewports for window %d using aspect ratio %f...\n",
         hFovDeg,
         getNumberOfViewports(),
         mId,

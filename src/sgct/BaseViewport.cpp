@@ -138,33 +138,13 @@ void sgct_core::BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, 
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].y = dist * tanf(glm::radians<float>(up));
     mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].z = -dist;
 
-    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, rot, true);
+    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, rot);
 }
 
-void sgct_core::BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot, bool verbose)
+void sgct_core::BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot)
 {
     for (std::size_t i = 0; i < 3; i++)
         mProjectionPlane.setCoordinate(i, rot * untransformedCoords[i]);
-
-    if (verbose) {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-            "Viewplane lower left coords: %f %f %f\n",
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->x,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->y,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::LowerLeft)->z);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-            "Viewplane upper left coords: %f %f %f\n",
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->x,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->y,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperLeft)->z);
-
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-            "Viewplane upper right coords: %f %f %f\n\n",
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->x,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->y,
-            mProjectionPlane.getCoordinatePtr(SGCTProjectionPlane::UpperRight)->z);
-    }
 }
 
 void sgct_core::BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio)
@@ -175,7 +155,7 @@ void sgct_core::BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float 
     {
         mUnTransformedViewPlaneCoords[cornerNum].x *= newRatio / oldRatio;
     }
-    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, mRot, true);
+    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, mRot);
 }
 
 float sgct_core::BaseViewport::getHorizontalFieldOfViewDegrees()

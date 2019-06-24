@@ -247,7 +247,7 @@ void myDrawFun()
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glPushMatrix();
-        gluOrtho2D(0.0, 1.0, 0.0, 1.0);
+        glOrtho(-1.0, 1.0, -1.0, 1.0, -1.0, 1.0);
         glMatrixMode(GL_MODELVIEW);
         glLoadIdentity();
 
@@ -335,7 +335,7 @@ void myPreSyncFun()
             }
 
             //load the texture
-            if( !sgct::TextureManager::instance()->loadTexure(texturePaths[i], std::string(tmpStr), true, 1) )
+            if( !sgct::TextureManager::instance()->loadTexture(texturePaths[i], std::string(tmpStr), true, 1) )
             {
                 std::cout << "Error: texture: " << textureIndices[i] <<
                     " file: " << std::string(tmpStr) << " count: " << numberOfTextures << std::endl;
@@ -355,7 +355,7 @@ void myPreSyncFun()
     {
         for (size_t i = 0; i < numberOfTextures; i++)
         {
-            if( sgct::TextureManager::instance()->loadTexure(texturePaths[i], texturePaths[i], true, 1) )
+            if( sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1) )
                 textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
         }
 
@@ -415,7 +415,7 @@ void myInitOGLFun()
     if(!sequence)
     {
         for( size_t i=0; i<numberOfTextures; i++)
-        if (sgct::TextureManager::instance()->loadTexure(texturePaths[i], texturePaths[i], true, 1))
+        if (sgct::TextureManager::instance()->loadTexture(texturePaths[i], texturePaths[i], true, 1))
             textureIndices[i] = sgct::TextureManager::instance()->getTextureId(texturePaths[i]);
     }
 

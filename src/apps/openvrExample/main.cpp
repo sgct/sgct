@@ -23,7 +23,7 @@ void myCleanUpFun();
 
 //input callbacks
 void keyCallback(int key, int action);
-void mouseButtonCallback(int button, int action);
+void mouseButtonCallback(int button, int action, int mods);
 
 void drawXZGrid(glm::mat4& MVP);
 void drawPyramid(glm::mat4& MVP, int index);
@@ -310,7 +310,7 @@ void keyCallback(int key, int action)
     }
 }
 
-void mouseButtonCallback(int button, int action)
+void mouseButtonCallback(int button, int action, int mods)
 {
     if( gEngine->isMaster() )
     {

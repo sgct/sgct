@@ -33,7 +33,7 @@ namespace Stitcher_GUI
             right_transform_comboBox.SelectedIndex = 0;
             top_transform_comboBox.SelectedIndex = 0;
             bottom_transform_comboBox.SelectedIndex = 0;
-            resolution_comboBox.SelectedIndex = 2;
+            resolution_comboBox.SelectedIndex = 3;
             cubemapComboBox.SelectedIndex = resolution_comboBox.SelectedIndex;
             format_comboBox.SelectedIndex = 0;
 

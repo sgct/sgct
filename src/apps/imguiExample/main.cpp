@@ -18,7 +18,7 @@ void myCleanUpFun();
 //input callbacks
 void keyCallback(int key, int action);
 void charCallback(unsigned int c);
-void mouseButtonCallback(int button, int action);
+void mouseButtonCallback(int button, int action, int mods);
 void mouseScrollCallback(double xoffset, double yoffset);
 
 sgct_utils::SGCTBox * myBox = NULL;
@@ -218,7 +218,7 @@ void charCallback(unsigned int c)
     }
 }
 
-void mouseButtonCallback(int button, int action)
+void mouseButtonCallback(int button, int action, int mods)
 {
     if( gEngine->isMaster() )
     {

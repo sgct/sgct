@@ -54,3 +54,4 @@ src/installer/build_release_xcode_cpp11.sh
 src/installer/sgct_osg_all_win.nsi
 src/installers/sgct_osg_all_win.nsi
 src/**/x64/
+obj

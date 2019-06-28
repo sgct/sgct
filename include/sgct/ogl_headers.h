@@ -51,7 +51,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
         */
         //#include <GL/glxew.h>
     #else  //linux
-        #include <GL/glext.h>
         #include <GL/glxew.h>
     #endif
 

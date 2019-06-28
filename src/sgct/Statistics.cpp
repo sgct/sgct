@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #if __WIN32__
 #include <GL/wglew.h>
 #elif __LINUX__
-#include <GL/glext.h>
 #else
 #include <OpenGL/glext.h>
 #endif

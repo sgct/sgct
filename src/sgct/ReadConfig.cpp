@@ -367,7 +367,7 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
 
                     float brightness = -1.0f;
                     if (element[1]->QueryFloatAttribute("brightness", &brightness) == tinyxml2::XML_NO_ERROR && brightness > 0.0f)
-                        tmpWin.setContrast(brightness);
+                        tmpWin.setBrightness(brightness);
                     
                     int tmpSamples = 0;
                     //compability with older versions

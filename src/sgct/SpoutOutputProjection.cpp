@@ -688,7 +688,7 @@ void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (sgct::Engine::mInstance->mClearBufferFnPtr != SGCT_NULL_PTR)
+    if (sgct::Engine::mInstance->mClearBufferFnPtr != nullptr)
         sgct::Engine::mInstance->mClearBufferFnPtr();
     else
     {

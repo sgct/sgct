@@ -5,73 +5,78 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _BASE_VIEWPORT_H
-#define _BASE_VIEWPORT_H
+#ifndef __SGCT__BASE_VIEWPORT__H__
+#define __SGCT__BASE_VIEWPORT__H__
 
+#include <sgct/Frustum.h>
+#include <sgct/SGCTProjection.h>
+#include <glm/glm.hpp>
+#include <glm/gtc/quaternion.hpp>
 #include <string>
-#include "SGCTUser.h"
-#include "SGCTProjection.h"
 
-namespace sgct_core
-{
+namespace sgct_core {
+
+class SGCTUser;
 
 /*!
     This class holds and manages viewportdata and calculates frustums
 */
-class BaseViewport
-{
+class BaseViewport {
 public:
     BaseViewport();
-    virtual ~BaseViewport() {;}
+    virtual ~BaseViewport() = default;
 
-    void setName(const std::string & name);
+    void setName(std::string name);
     void setPos(float x, float y);
     void setSize(float x, float y);
     void setEnabled(bool state);
-    void setUser(SGCTUser * user);
+    void setUser(SGCTUser* user);
     void setUserName(std::string userName);
     void setEye(Frustum::FrustumMode eye);
     
-    std::string getName();
-    float getX();
-    float getY();
-    float getXSize();
-    float getYSize();
-    float getHorizontalFieldOfViewDegrees();
+    const std::string& getName() const;
+    float getX() const;
+    float getY() const;
+    float getXSize() const;
+    float getYSize() const;
+    float getHorizontalFieldOfViewDegrees() const;
     
-    inline SGCTUser * getUser() { return mUser; }
-    inline Frustum::FrustumMode getEye() { return mEye; }
-    inline SGCTProjection * getProjection(Frustum::FrustumMode frustumMode) { return &mProjections[frustumMode]; }
-    inline SGCTProjection * getProjection() { return &mProjections[mEye]; }
-    inline SGCTProjectionPlane * getProjectionPlane() { return &mProjectionPlane; }
-    inline glm::quat getRotation() { return mRot; }
-    inline glm::vec4 getFOV() { return mFOV; }
-    inline float getDistance() { return mDistance; }
+    SGCTUser* getUser() const;
+    Frustum::FrustumMode getEye() const;
+    SGCTProjection* getProjection(Frustum::FrustumMode frustumMode);
+    SGCTProjection* getProjection();
+    SGCTProjectionPlane * getProjectionPlane();
+    glm::quat getRotation() const;
+    glm::vec4 getFOV() const;
+    float getDistance() const;
     
-    bool isEnabled();
+    bool isEnabled() const;
     void linkUserName();
 
-    void calculateFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
-    void calculateNonLinearFrustum(const Frustum::FrustumMode &frustumMode, float near_clipping_plane, float far_clipping_plane);
-    void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right, glm::quat rot, float dist = 10.0f);
-    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3], glm::quat rot);
+    void calculateFrustum(const Frustum::FrustumMode& frustumMode,
+        float near_clipping_plane, float far_clipping_plane);
+    void calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
+        float near_clipping_plane, float far_clipping_plane);
+    void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
+        glm::quat rot, float dist = 10.f);
+    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3],
+        const glm::quat& rot);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
 
-    
 protected:
     SGCTProjection mProjections[3];
     SGCTProjectionPlane mProjectionPlane;
-    Frustum::FrustumMode mEye;
+    Frustum::FrustumMode mEye = Frustum::MonoEye;
 
-    SGCTUser * mUser;
+    SGCTUser* mUser;
     std::string mName;
     std::string mUserName;
-    bool mEnabled;
-    float mX;
-    float mY;
-    float mXSize;
-    float mYSize;
+    bool mEnabled = true;
+    float mX = 0.f;
+    float mY = 0.f;
+    float mXSize = 1.f;
+    float mYSize = 1.f;
 
     glm::vec3 mUnTransformedViewPlaneCoords[3];
     glm::quat mRot;
@@ -79,6 +84,6 @@ protected:
     glm::vec4 mFOV;
 };
 
-}
+} // namespace sgct_core
 
-#endif
+#endif // __SGCT__BASE_VIEWPORT__H__

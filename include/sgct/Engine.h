@@ -5,19 +5,19 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _RENDER_ENGINE_H_
-#define _RENDER_ENGINE_H_
+#ifndef __SGCT__ENGINE__H__
+#define __SGCT__ENGINE__H__
 
-#include "NetworkManager.h"
-#include "ClusterManager.h"
-#include "SGCTMutexManager.h"
-#include "Statistics.h"
-#include "ReadConfig.h"
-#include "ShaderProgram.h"
-#include "FisheyeProjection.h"
-#include "SphericalMirrorProjection.h"
-#include "SpoutOutputProjection.h"
-#include "Touch.h"
+#include <sgct/NetworkManager.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/Statistics.h>
+#include <sgct/ReadConfig.h>
+#include <sgct/ShaderProgram.h>
+#include <sgct/FisheyeProjection.h>
+#include <sgct/SphericalMirrorProjection.h>
+#include <sgct/SpoutOutputProjection.h>
+#include <sgct/Touch.h>
 
 #define MAX_UNIFORM_LOCATIONS 16
 #define NUMBER_OF_SHADERS 8
@@ -25,8 +25,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 /*! \namespace sgct
 \brief SGCT namespace contains the most basic functionality of the toolkit
 */
-namespace sgct
-{
+namespace sgct {
 /*!
 The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
 
@@ -35,18 +34,16 @@ The figure below illustrates when different callbacks (gray and blue boxes) are 
 \image html render_diagram.jpg
 \image latex render_diagram.eps "Render diagram" width=7cm
 */
-class Engine
-{
-	friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
-	friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
-	friend class sgct_core::SpoutOutputProjection; //needs to access draw callbacks
+class Engine {
+    friend class sgct_core::FisheyeProjection; //needs to access draw callbacks
+    friend class sgct_core::SphericalMirrorProjection; //needs to access draw callbacks
+    friend class sgct_core::SpoutOutputProjection; //needs to access draw callbacks
 
 //all enums
 public:
     
     //! The different run modes used by the init function
-    enum RunMode
-    { 
+    enum RunMode { 
         /// The default mode using fixed OpenGL pipeline (compability mode)
         Default_Mode = 0,
         /// This option is using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
@@ -87,18 +84,11 @@ public:
     enum RenderTarget { WindowBuffer, NonLinearBuffer };
     enum ViewportTypes { MainViewport, SubViewport };
 
-private:
-    enum SyncStage { PreStage = 0, PostStage };
-    enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-    enum ViewportSpace { ScreenSpace = 0, FBOSpace };
-    enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
-    enum ShaderLocIndexes { MonoTex = 0,
-            OverlayTex,
-            SizeX, SizeY, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture };
-
 public:
-    Engine( int& argc, char**& argv );
-    Engine( std::vector<std::string>& arg );
+    static Engine* instance();
+
+    Engine(int& argc, char**& argv);
+    Engine(std::vector<std::string>& arg);
     ~Engine();
 
     bool init(RunMode rm = Default_Mode);
@@ -109,16 +99,15 @@ public:
     /*!
         \returns the static pointer to the engine instance
     */
-    static Engine * instance() { return mInstance; }
 
-    const double getDt();
-    const double getAvgFPS();
-    const double getAvgDt();
-    const double getMinDt();
-    const double getMaxDt();
-    const double getDtStandardDeviation();
-    const double getDrawTime();
-    const double getSyncTime();
+    double getDt();
+    double getAvgFPS();
+    double getAvgDt();
+    double getMinDt();
+    double getMaxDt();
+    double getDtStandardDeviation();
+    double getDrawTime();
+    double getSyncTime();
 
     /*!
         \returns the clear color as 4 floats (RGBA)
@@ -176,9 +165,9 @@ public:
     void setScreenShotNumber(unsigned int number);
     unsigned int getScreenShotNumber();
     void invokeScreenShotCallback1(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
-	void invokeScreenShotCallback2(unsigned char * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void invokeScreenShotCallback2(unsigned char * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
     void setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
-	void setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
+    void setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
 
     std::size_t createTimer( double millisec, void(*fnPtr)(std::size_t) );
     void stopTimer(std::size_t id);
@@ -212,35 +201,33 @@ public:
     void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
     void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
 
-#ifdef __LOAD_CPP11_FUN__
-    void setInitOGLFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setPreWindowFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setPreSyncFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setPostSyncPreDrawFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setClearBufferFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setDrawFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setDraw2DFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setPostDrawFunction(sgct_cppxeleven::function<void(void)> fn);
-    void setCleanUpFunction(sgct_cppxeleven::function<void(void)> fn);
+    void setInitOGLFunction(std::function<void(void)> fn);
+    void setPreWindowFunction(std::function<void(void)> fn);
+    void setPreSyncFunction(std::function<void(void)> fn);
+    void setPostSyncPreDrawFunction(std::function<void(void)> fn);
+    void setClearBufferFunction(std::function<void(void)> fn);
+    void setDrawFunction(std::function<void(void)> fn);
+    void setDraw2DFunction(std::function<void(void)> fn);
+    void setPostDrawFunction(std::function<void(void)> fn);
+    void setCleanUpFunction(std::function<void(void)> fn);
     
-    void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int key, int action
-    void setKeyboardCallbackFunction(sgct_cppxeleven::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
-    void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
-    void setCharCallbackFunction(sgct_cppxeleven::function<void(unsigned int, int)> fn); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction(sgct_cppxeleven::function<void(int, int, int)> fn); //arguments: int button, int action, int mods
-    void setMousePosCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double x, double y
-    void setMouseScrollCallbackFunction(sgct_cppxeleven::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
-    void setDropCallbackFunction(sgct_cppxeleven::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings
-    void setTouchCallbackFunction(sgct_cppxeleven::function<void(const sgct_core::Touch*)> fn); //arguments: current touch points
+    void setKeyboardCallbackFunction(std::function<void(int, int)> fn); //arguments: int key, int action
+    void setKeyboardCallbackFunction(std::function<void(int, int, int, int)> fn); //arguments: int key, int scancode, int action, int mods
+    void setCharCallbackFunction(std::function<void(unsigned int)> fn); //arguments: unsigned int unicode character
+    void setCharCallbackFunction(std::function<void(unsigned int, int)> fn); //arguments: unsigned int unicode character, int mods
+    void setMouseButtonCallbackFunction(std::function<void(int, int, int)> fn); //arguments: int button, int action, int mods
+    void setMousePosCallbackFunction(std::function<void(double, double)> fn); //arguments: double x, double y
+    void setMouseScrollCallbackFunction(std::function<void(double, double)> fn); //arguments: double xoffset, double yoffset
+    void setDropCallbackFunction(std::function<void(int, const char**)> fn); //arguments: int count, const char ** list of path strings
+    void setTouchCallbackFunction(std::function<void(const sgct_core::Touch*)> fn); //arguments: current touch points
 
-    void setExternalControlCallback(sgct_cppxeleven::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
-    void setExternalControlStatusCallback(sgct_cppxeleven::function<void(bool)> fn); //arguments: const bool & connected
-    void setContextCreationCallback(sgct_cppxeleven::function<void(GLFWwindow*)> fn); //arguments: glfw window share
+    void setExternalControlCallback(std::function<void(const char *, int)> fn); //arguments: const char * buffer, int buffer length
+    void setExternalControlStatusCallback(std::function<void(bool)> fn); //arguments: const bool & connected
+    void setContextCreationCallback(std::function<void(GLFWwindow*)> fn); //arguments: glfw window share
 
-    void setDataTransferCallback(sgct_cppxeleven::function<void(void *, int, int, int)> fn); //arguments: const char * buffer, int buffer length, int package id, int client
-    void setDataTransferStatusCallback(sgct_cppxeleven::function<void(bool, int)> fn); //arguments: const bool & connected, int client
-    void setDataAcknowledgeCallback(sgct_cppxeleven::function<void(int, int)> fn); //arguments: int package id, int client
-#endif
+    void setDataTransferCallback(std::function<void(void *, int, int, int)> fn); //arguments: const char * buffer, int buffer length, int package id, int client
+    void setDataTransferStatusCallback(std::function<void(bool, int)> fn); //arguments: const bool & connected, int client
+    void setDataAcknowledgeCallback(std::function<void(int, int)> fn); //arguments: int package id, int client
 
     //external control network functions
     void sendMessageToExternalControl(const void * data, int length);
@@ -273,7 +260,7 @@ public:
     /*!
         Returns a pointer to this node (running on this computer).
     */
-    inline sgct_core::SGCTNode * getThisNodePtr(std::size_t index) { return mThisNode; }
+    inline const sgct_core::SGCTNode * getThisNodePtr(std::size_t index) const { return mThisNode; }
 
     /*!
         Returns a pointer to a specified window by index on this node.
@@ -391,7 +378,7 @@ public:
     sgct_core::OffScreenBuffer * getCurrentFBO();
     const int * getCurrentViewportPixelCoords();
 
-    const bool & getWireframe() const;
+    bool getWireframe() const;
 
     /// Specifies the sync parameters to be used in the rendering loop
     /// @param printMessage If <code>true</code> a message is print waiting for a frame
@@ -401,7 +388,15 @@ public:
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
 private:
-    Engine() {;} //to prevent users to start without requred parameters
+    enum SyncStage { PreStage = 0, PostStage };
+    enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
+    enum ViewportSpace { ScreenSpace = 0, FBOSpace };
+    enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
+    enum ShaderLocIndexes {
+        MonoTex = 0,
+        OverlayTex,
+        SizeX, SizeY, FXAA_SUBPIX_TRIM, FXAA_SUBPIX_OFFSET, FXAA_Texture
+    };
 
     bool initNetwork();
     bool initWindows();
@@ -451,84 +446,58 @@ private:
     static void outputHelpMessage();
 
 private:
-    static Engine * mInstance;
+    static Engine* mInstance;
 
-    // Convinience typedef
-#ifdef __LOAD_CPP11_FUN__
-    typedef sgct_cppxeleven::function<void()> CallbackFn;
-    typedef sgct_cppxeleven::function<void(void *, int, int, int)> DataTransferDecodeCallbackFn;
-    typedef sgct_cppxeleven::function<void(bool, int)> DataTransferStatusCallbackFn;
-    typedef sgct_cppxeleven::function<void(int, int)> DataTransferAcknowledgeCallbackFn;
-    typedef sgct_cppxeleven::function<void(const char *, int)> ExternalDecodeCallbackFn;
-    typedef sgct_cppxeleven::function<void(bool)> ExternalStatusCallbackFn;
-    typedef sgct_cppxeleven::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> ScreenShotFn1;
-	typedef sgct_cppxeleven::function<void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> ScreenShotFn2;
-	typedef sgct_cppxeleven::function<void(GLFWwindow*)> ContextCreationFn;
-#else
-    typedef void(*CallbackFn)(void);
-    typedef void(*DataTransferDecodeCallbackFn)(void *, int, int, int);
-    typedef void(*DataTransferStatusCallbackFn)(bool, int);
-    typedef void(*DataTransferAcknowledgeCallbackFn)(int, int);
-    typedef void(*ExternalDecodeCallbackFn)(const char *, int);
-    typedef void(*ExternalStatusCallbackFn)(bool);
-    typedef void(*ScreenShotFn1)(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type);
-	typedef void(*ScreenShotFn2)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type);
-	typedef void(*ContextCreationFn)(GLFWwindow*);
-#endif
-
-    typedef void (Engine::*InternalCallbackFn)(void);
-    typedef void (Engine::*InternalCallbackTexArgFn)(TextureIndexes);
-    typedef void (*timerCallbackFn)(std::size_t);
 
     //function pointers
-    CallbackFn mDrawFnPtr;
-    CallbackFn mPreSyncFnPtr;
-    CallbackFn mPostSyncPreDrawFnPtr;
-    CallbackFn mPostDrawFnPtr;
-    CallbackFn mPreWindowFnPtr;
-    CallbackFn mInitOGLFnPtr;
-    CallbackFn mClearBufferFnPtr;
-    CallbackFn mCleanUpFnPtr;
-    CallbackFn mDraw2DFnPtr;
-    ExternalDecodeCallbackFn            mExternalDecodeCallbackFnPtr;
-    ExternalStatusCallbackFn            mExternalStatusCallbackFnPtr;
-    DataTransferDecodeCallbackFn        mDataTransferDecodeCallbackFnPtr;
-    DataTransferStatusCallbackFn        mDataTransferStatusCallbackFnPtr;
-    DataTransferAcknowledgeCallbackFn    mDataTransferAcknowledgeCallbackFnPtr;
-    ScreenShotFn1                        mScreenShotFnPtr1;
-	ScreenShotFn2                        mScreenShotFnPtr2; //less latency, more advanced
-    ContextCreationFn                    mContextCreationFnPtr;
+    std::function<void()> mDrawFnPtr;
+    std::function<void()> mPreSyncFnPtr;
+    std::function<void()> mPostSyncPreDrawFnPtr;
+    std::function<void()> mPostDrawFnPtr;
+    std::function<void()> mPreWindowFnPtr;
+    std::function<void()> mInitOGLFnPtr;
+    std::function<void()> mClearBufferFnPtr;
+    std::function<void()> mCleanUpFnPtr;
+    std::function<void()> mDraw2DFnPtr;
+    std::function<void(const char *, int)> mExternalDecodeCallbackFnPtr;
+    std::function<void(bool)> mExternalStatusCallbackFnPtr;
+    std::function<void(void *, int, int, int)> mDataTransferDecodeCallbackFnPtr;
+    std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
+    std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
+    std::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr1;
+    std::function<void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr2; //less latency, more advanced
+    std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
-    InternalCallbackFn                    mInternalDrawFn;
-    InternalCallbackFn                    mInternalRenderFBOFn;
-    InternalCallbackFn                    mInternalDrawOverlaysFn;
-    InternalCallbackTexArgFn            mInternalRenderPostFXFn;
+    std::function<void()> mInternalDrawFn;
+    std::function<void()> mInternalRenderFBOFn;
+    std::function<void()> mInternalDrawOverlaysFn;
+    std::function<void(TextureIndexes)> mInternalRenderPostFXFn;
 
-    float mNearClippingPlaneDist;
-    float mFarClippingPlaneDist;
-    float mClearColor[4];
+    float mNearClippingPlaneDist = 0.1f;
+    float mFarClippingPlaneDist = 100.f;
+    float mClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
 
-    sgct_core::Frustum::FrustumMode mCurrentFrustumMode;
-    int mCurrentViewportCoords[4];
+    sgct_core::Frustum::FrustumMode mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
+    int mCurrentViewportCoords[4] = { 0, 0, 640, 480 };
     std::vector<glm::ivec2> mDrawBufferResolutions;
-    std::size_t mCurrentDrawBufferIndex;
-    std::size_t mCurrentViewportIndex[2];
-    RenderTarget mCurrentRenderTarget;
-    sgct_core::OffScreenBuffer * mCurrentOffScreenBuffer;
+    size_t mCurrentDrawBufferIndex = 0;
+    size_t mCurrentViewportIndex[2] = { 0, 0 };
+    RenderTarget mCurrentRenderTarget = WindowBuffer;
+    sgct_core::OffScreenBuffer* mCurrentOffScreenBuffer = nullptr;
 
     static sgct_core::Touch mCurrentTouchPoints; //< stores all touch points (oldest to newest) from last callback
 
-    bool mShowInfo;
-    bool mShowGraph;
-    bool mShowWireframe;
-    bool mTakeScreenshot;
-    bool mTerminate;
-    bool mRenderingOffScreen;
-    bool mFixedOGLPipeline;
-    bool mHelpMode;
+    bool mShowInfo = false;
+    bool mShowGraph = false;
+    bool mShowWireframe = false;
+    bool mTakeScreenshot = false;
+    bool mTerminate = false;
+    bool mRenderingOffScreen = false;
+    bool mFixedOGLPipeline = true;
+    bool mHelpMode = false;
 
-    bool mPrintSyncMessage;
-    float mSyncTimeout;
+    bool mPrintSyncMessage = true;
+    float mSyncTimeout = 60.f;
 
     //objects
     ShaderProgram mShaders[NUMBER_OF_SHADERS];
@@ -537,37 +506,37 @@ private:
     int mShaderLocs[MAX_UNIFORM_LOCATIONS];
 
     //pointers
-    sgct_core::NetworkManager    * mNetworkConnections;
-    sgct_core::ReadConfig        * mConfig;
-    sgct_core::Statistics        * mStatistics;
-    sgct_core::SGCTNode            * mThisNode;
+    sgct_core::NetworkManager* mNetworkConnections = nullptr;
+    sgct_core::ReadConfig* mConfig = nullptr;
+    sgct_core::Statistics* mStatistics = nullptr;
+    sgct_core::SGCTNode* mThisNode = nullptr;
 
-    std::thread * mThreadPtr;
+    std::thread* mThreadPtr = nullptr;
 
     std::string configFilename;
     std::string mLogfilePath;
     int mRunning;
-    bool mInitialized;
+    bool mInitialized = false;
     std::string mAAInfo;
 
-    unsigned int mFrameCounter;
-    unsigned int mShotCounter;
+    unsigned int mFrameCounter = 0;
+    unsigned int mShotCounter = 0;
 
     typedef struct  {
-        std::size_t mId;
+        size_t mId;
         double mLastFired;
         double mInterval;
-        timerCallbackFn mCallback;
+        std::function<void(size_t)> mCallback;
     } TimerInformation;
 
     std::vector<TimerInformation> mTimers; //< stores all active timers
-    std::size_t mTimerID; //< the timer created next will use this ID
+    size_t mTimerID = 0; //< the timer created next will use this ID
 
-    RunMode mRunMode;
+    RunMode mRunMode = Default_Mode;
     std::string mGLSLVersion;
-    int mExitKey;
+    int mExitKey = GLFW_KEY_ESCAPE;
 };
 
-}
+} // namespace sgct
 
-#endif
+#endif // __SGCT__ENGINE__H__

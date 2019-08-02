@@ -10,7 +10,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #include <vector>
 #include <stdint.h>
-#include "helpers/SGCTCPPEleven.h"
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
@@ -47,13 +46,12 @@ public:
     void closeNetwork(bool forced);
     void initShutdown();
 
-#ifdef __LOAD_CPP11_FUN__
-    void setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback);
-    void setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback);
-    void setUpdateFunction(sgct_cppxeleven::function<void (SGCTNetwork *)> callback);
-    void setConnectedFunction(sgct_cppxeleven::function<void (void)> callback);
-    void setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback);
-#endif
+    void setDecodeFunction(std::function<void (const char*, int, int)> callback);
+    void setPackageDecodeFunction(std::function<void(void*, int, int, int)> callback);
+    void setUpdateFunction(std::function<void (SGCTNetwork *)> callback);
+    void setConnectedFunction(std::function<void (void)> callback);
+    void setAcknowledgeFunction(std::function<void(int, int)> callback);
+    
     void setBufferSize(uint32_t newSize);
     void setConnectedStatus(bool state);
     void setOptions(SGCT_SOCKET * socketPtr);
@@ -84,13 +82,11 @@ public:
     std::string getTypeStr();
     static std::string getTypeStr(ConnectionTypes ct);
 
-#ifdef __LOAD_CPP11_FUN__
-    sgct_cppxeleven::function< void(const char*, int, int) > mDecoderCallbackFn;
-    sgct_cppxeleven::function< void(void*, int, int, int) > mPackageDecoderCallbackFn;
-    sgct_cppxeleven::function< void(SGCTNetwork *) > mUpdateCallbackFn;
-    sgct_cppxeleven::function< void(void) > mConnectedCallbackFn;
-    sgct_cppxeleven::function< void(int, int) > mAcknowledgeCallbackFn;
-#endif
+    std::function<void(const char*, int, int) > mDecoderCallbackFn;
+    std::function<void(void*, int, int, int) > mPackageDecoderCallbackFn;
+    std::function<void(SGCTNetwork *) > mUpdateCallbackFn;
+    std::function<void(void) > mConnectedCallbackFn;
+    std::function<void(int, int) > mAcknowledgeCallbackFn;
 
 private:
     void updateBuffer(char ** buffer, uint32_t requested_size, uint32_t & current_size);

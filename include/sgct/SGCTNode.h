@@ -53,10 +53,10 @@ public:
     void setSyncPort(std::string port);
     void setDataTransferPort(std::string port);
     void setName(std::string name);
-    std::string getAddress();
-    std::string getSyncPort();
-    std::string getDataTransferPort();
-    std::string getName();
+    std::string getAddress() const;
+    std::string getSyncPort() const;
+    std::string getDataTransferPort() const;
+    std::string getName() const;
 
 private:
     std::string mName;

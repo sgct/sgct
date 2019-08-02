@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _FONT_MANAGER_H_
-#define _FONT_MANAGER_H_
+#ifndef __SGCT__FONT_MANAGER__H__
+#define __SGCT__FONT_MANAGER__H__
 
 #include <string>
 #include <map>
@@ -14,12 +14,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include "Font.h"
 #include "ShaderProgram.h"
 #include <glm/glm.hpp>
+#include <unordered_map>
 
 /*! \namespace sgct_text
 \brief SGCT text namespace is used for text rendering and font management
 */
-namespace sgct_text
-{
+namespace sgct_text {
 
 /*!
 Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehes tutorials for freetype</a>
@@ -52,82 +52,67 @@ Non ASCII characters are supported as well:
 sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TOP_LEFT, 50, 50, L"Hallå Världen!");
 \endcode
 */
-class FontManager
-{
+class FontManager {
 public:
-    // Convinience enum from where to load font files
-    enum FontPath{ FontPath_Local, FontPath_Default };
+    // Convenience enum from where to load font files
+    enum FontPath { FontPath_Local, FontPath_Default };
 
-    ~FontManager(void);
+    ~FontManager();
 
-    bool addFont( const std::string & fontName, std::string path, FontPath fontPath = FontPath_Default );
-    Font * getFont( const std::string & name, unsigned int height = mDefaultHeight );
-    Font * getDefaultFont( unsigned int height = mDefaultHeight );
-	
-	void setDefaultFontPath( const std::string & path );
-    void setStrokeColor( glm::vec4 color );
-    void setDrawInScreenSpace( bool state );
+    bool addFont(std::string fontName, std::string path, FontPath fontPath = FontPath_Default);
+    Font* getFont(const std::string& name, unsigned int height = mDefaultHeight);
+    Font* getDefaultFont(unsigned int height = mDefaultHeight);
+    
+    void setDefaultFontPath(std::string path);
+    void setStrokeColor(glm::vec4 color);
+    void setDrawInScreenSpace(bool state);
 
-	std::size_t getTotalNumberOfLoadedChars();
-    inline glm::vec4 getStrokeColor() { return mStrokeColor; }
-    inline bool getDrawInScreenSpace() { return mDrawInScreenSpace; }
+    std::size_t getTotalNumberOfLoadedChars();
+    glm::vec4 getStrokeColor();
+    bool getDrawInScreenSpace();
 
-    sgct::ShaderProgram getShader() { return mShader; }
-    inline unsigned int getMVPLoc() { return mMVPLoc; }
-    inline unsigned int getColLoc() { return mColLoc; }
-    inline unsigned int getStkLoc() { return mStkLoc; }
-    inline unsigned int getTexLoc() { return mTexLoc; }
+    sgct::ShaderProgram getShader();
+    unsigned int getMVPLoc();
+    unsigned int getColLoc();
+    unsigned int getStkLoc();
+    unsigned int getTexLoc();
 
-    static FontManager * instance()
-    {
-        if( mInstance == NULL )
-        {
-            mInstance = new FontManager();
-        }
-
-        return mInstance;
-    }
-
-    /*! Destroy the FontManager */
-    static void destroy()
-    {
-        if( mInstance != NULL )
-        {
-            delete mInstance;
-            mInstance = NULL;
-        }
-    }
+    static FontManager* instance();
+    static void destroy();
 
 private:
-    FontManager(void);
+    FontManager();
 
-	/// Helper functions
-	Font * createFont( const std::string & fontName, unsigned int height );
+    /// Helper functions
+    Font* createFont(const std::string& fontName, unsigned int height);
 
-    // Don't implement these, should give compile warning if used
-    FontManager( const FontManager & fm );
-    const FontManager & operator=(const FontManager & rhs );
+    FontManager(const FontManager & fm) = delete;
+    const FontManager& operator=(const FontManager& rhs) = delete;
 
-private:
+    static FontManager* mInstance; // Singleton instance of the LogManager
+    static const FT_Short mDefaultHeight = 10; // Default height of font faces in pixels
 
-    static FontManager * mInstance;            // Singleton instance of the LogManager
-    static const FT_Short mDefaultHeight;    // Default height of font faces in pixels
+    // The default font path from where to look for font files
+    std::string mDefaultFontPath;
 
-    std::string mDefaultFontPath;            // The default font path from where to look for font files
+    FT_Library  mFTLibrary; // Freetype library
+    FT_Face mFace = nullptr;
+    glm::vec4 mStrokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
 
-    FT_Library  mFTLibrary;                    // Freetype library
-	FT_Face mFace;
-    glm::vec4 mStrokeColor;
+    bool mDrawInScreenSpace = true;
 
-    bool mDrawInScreenSpace;
-
-    std::map<std::string, std::string> mFontPaths; // Holds all predefined font paths for generating font glyphs
-	sgct_cppxeleven::unordered_map<std::string, sgct_cppxeleven::unordered_map<unsigned int, Font*>> mFontMap; // All generated fonts
+    // Holds all predefined font paths for generating font glyphs
+    std::map<std::string, std::string> mFontPaths; 
+    // All generated fonts
+    std::unordered_map<std::string, std::unordered_map<unsigned int, Font*>> mFontMap;
 
     sgct::ShaderProgram mShader;
-    int mMVPLoc, mColLoc, mStkLoc, mTexLoc;
+    int mMVPLoc = -1;
+    int mColLoc = -1;
+    int mStkLoc = -1;
+    int mTexLoc = -1;
 };
 
 } // sgct
 
-#endif
+#endif // __SGCT__FONT_MANAGER__H__

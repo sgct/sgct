@@ -172,7 +172,7 @@ bool sgct::TextureManager::loadTexture(const std::string name, const std::string
     if (!updateTexture(name, &texID, &reload))
         return true;
     
-    sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+    std::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
     //load image
     if ( !img.load(filename) )
@@ -237,7 +237,7 @@ bool sgct::TextureManager::loadTexture(const std::string name, sgct_core::Image 
     if (!updateTexture(name, &texID, &reload))
         return true;
 
-//    sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+//    std::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
     if (imgPtr->getData() != NULL)
     {
@@ -315,7 +315,7 @@ bool sgct::TextureManager::updateTexture(const std::string & name, unsigned int 
 {
     //check if texture exits in manager
     bool exist = mTextures.count(name) > 0;
-    sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
+    std::unordered_map<std::string, sgct_core::TextureData>::iterator textureItem = mTextures.end();
 
     if (exist)
     {
@@ -347,9 +347,9 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
     glGenTextures(1, texPtr);
     glBindTexture(GL_TEXTURE_2D, *texPtr);
 
-	bool isBGR = imgPtr->getPreferBGRImport();
+    bool isBGR = imgPtr->getPreferBGRImport();
 
-	//if three channels
+    //if three channels
     int textureType = isBGR ? GL_BGR : GL_RGB;
 
     //if OpenGL 1-2
@@ -445,8 +445,8 @@ bool sgct::TextureManager::uploadImage(sgct_core::Image * imgPtr, unsigned int *
         imgPtr->getHeight(),
         imgPtr->getChannels(),
         (mCompression == No_Compression) ? "none" : ((mCompression == Generic) ? "generic" : "S3TC/DXT"),
-		textureType,
-		internalFormat);
+        textureType,
+        internalFormat);
 
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);

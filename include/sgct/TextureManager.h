@@ -9,9 +9,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define _TEXTURE_MANAGER_H_
 
 #include <string>
+#include <unordered_map>
 
 #include "Image.h"
-#include "helpers/SGCTCPPEleven.h"
 
 namespace sgct_core
 {
@@ -107,7 +107,7 @@ private:
     bool mAlphaMode;
     bool mOverWriteMode;
     bool mInterpolate;
-    sgct_cppxeleven::unordered_map<std::string, sgct_core::TextureData> mTextures;
+    std::unordered_map<std::string, sgct_core::TextureData> mTextures;
     int mMipmapLevels;
     int mWarpMode[2];
 };

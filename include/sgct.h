@@ -140,11 +140,11 @@ For any questions or information about the SGCT project please contact: miroslav
 Redistribution and use in source and binary forms, with or without modification,\n
 are permitted provided that the following conditions are met:
     -# Redistributions of source code must retain the above copyright\n
-	notice, this list of conditions and the following disclaimer.
+    notice, this list of conditions and the following disclaimer.
 
     -# Redistributions in binary form must reproduce the above copyright\n
-	notice, this list of conditions and the following disclaimer in the\n
-	documentation and/or other materials provided with the distribution.
+    notice, this list of conditions and the following disclaimer in the\n
+    documentation and/or other materials provided with the distribution.
 
     -# Neither the name of the copyright holder nor the names of its contributors
     may be used to endorse or promote products derived from this software
@@ -419,22 +419,22 @@ License type: BSD\n
 #endif
 
 #ifdef __WIN32__
-	#ifndef WIN32_LEAN_AND_MEAN
-		#define WIN32_LEAN_AND_MEAN
-	#endif
+    #ifndef WIN32_LEAN_AND_MEAN
+        #define WIN32_LEAN_AND_MEAN
+    #endif
 
-	//#define _CRT_SECURE_NO_DEPRECATE 1
-	//#define _CRT_NONSTDC_NO_DEPRECATE 1
+    //#define _CRT_SECURE_NO_DEPRECATE 1
+    //#define _CRT_NONSTDC_NO_DEPRECATE 1
 
-	#ifndef SGCT_WINDOWS_INCLUDE
-		#define SGCT_WINDOWS_INCLUDE
-		#include <windows.h> //must be declared before glfw
+    #ifndef SGCT_WINDOWS_INCLUDE
+        #define SGCT_WINDOWS_INCLUDE
+        #include <windows.h> //must be declared before glfw
     #endif
 
     #ifndef SGCT_WINSOCK_INCLUDE
         #define SGCT_WINSOCK_INCLUDE
-		#include <winsock2.h>
-	#endif
+        #include <winsock2.h>
+    #endif
 #endif
 
 #include "sgct/SGCTConfig.h"
@@ -442,10 +442,10 @@ License type: BSD\n
 #include "sgct/SharedData.h"
 #include "sgct/TextureManager.h"
 #if INCLUDE_SGCT_TEXT
-	#include "sgct/FontManager.h"
-	#include "sgct/freetype.h"
-	//for backwards compability
-	namespace Freetype = sgct_text;
+    #include "sgct/FontManager.h"
+    #include "sgct/freetype.h"
+    //for backwards compability
+    namespace Freetype = sgct_text;
 #endif
 #include "sgct/MessageHandler.h"
 #include "sgct/ShaderManager.h"
@@ -454,16 +454,16 @@ License type: BSD\n
 #include "sgct/ogl_headers.h"
 
 #ifndef TINYXML_H
-	#ifndef SGCT_DONT_USE_EXTERNAL
-		#define TINYXML_H "external/tinyxml2.h"
-	#else
-		#define TINYXML_H "tinyxml2.h"
-	#endif
+    #ifndef SGCT_DONT_USE_EXTERNAL
+        #define TINYXML_H "external/tinyxml2.h"
+    #else
+        #define TINYXML_H "tinyxml2.h"
+    #endif
 #endif
 
 //utilities
 /*!
-	Ths namespace contains helper classes to draw simple geometry.
+    Ths namespace contains helper classes to draw simple geometry.
 */
 namespace sgct_utils{}; //empty for doxygen documentation only
 #include "sgct/utils/SGCTSphere.h"
@@ -480,7 +480,6 @@ Ths namespace contains various help classes and functions.
 namespace sgct_helpers{}; //empty for doxygen documentation only
 #include "sgct/helpers/SGCTStringFunctions.h"
 #include "sgct/helpers/SGCTVertexData.h"
-#include "sgct/helpers/SGCTCPPEleven.h"
 //#include "sgct/helpers/SGCTPortedFunctions.h"
 
 //GLFW wrapping

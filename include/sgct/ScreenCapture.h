@@ -10,7 +10,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include "ogl_headers.h"
 #include "Image.h"
-#include "helpers/SGCTCPPEleven.h"
 #include <string>
 
 #include <mutex>
@@ -53,12 +52,10 @@ public:
     void setPathAndFileName(std::string path, std::string filename);
     void setUsePBO(bool state);
 
-#ifdef __LOAD_CPP11_FUN__
-    void setCaptureCallback(sgct_cppxeleven::function<void(Image*, std::size_t, EyeIndex, unsigned int type)> callback);
-	void setCaptureCallback(sgct_cppxeleven::function<void(unsigned char*, std::size_t, EyeIndex, unsigned int type)> callback);
-    sgct_cppxeleven::function< void(Image *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn1;
-	sgct_cppxeleven::function< void(unsigned char *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn2;
-#endif
+    void setCaptureCallback(std::function<void(Image*, std::size_t, EyeIndex, unsigned int type)> callback);
+    void setCaptureCallback(std::function<void(unsigned char*, std::size_t, EyeIndex, unsigned int type)> callback);
+    std::function< void(Image *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn1;
+    std::function< void(unsigned char *, std::size_t, EyeIndex, unsigned int type) > mCaptureCallbackFn2;
 
 private:
     void addFrameNumberToFilename( unsigned int frameNumber);

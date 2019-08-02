@@ -54,18 +54,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 sgct_core::SGCTNetwork::SGCTNetwork()
 {
-    mCommThread        = NULL;
-    mMainThread        = NULL;
-    mRecvBuf        = NULL;
-    mUncompressBuf    = NULL;
+    mCommThread        = nullptr;
+    mMainThread        = nullptr;
+    mRecvBuf        = nullptr;
+    mUncompressBuf    = nullptr;
     mSocket            = INVALID_SOCKET;
     mListenSocket    = INVALID_SOCKET;
     
-    mDecoderCallbackFn            = SGCT_NULL_PTR;
-    mUpdateCallbackFn            = SGCT_NULL_PTR;
-    mConnectedCallbackFn        = SGCT_NULL_PTR;
-    mAcknowledgeCallbackFn        = SGCT_NULL_PTR;
-    mPackageDecoderCallbackFn    = SGCT_NULL_PTR;
+    mDecoderCallbackFn            = nullptr;
+    mUpdateCallbackFn            = nullptr;
+    mConnectedCallbackFn        = nullptr;
+    mAcknowledgeCallbackFn        = nullptr;
+    mPackageDecoderCallbackFn    = nullptr;
 
     mConnectionType        = SyncConnection;
     mBufferSize            = 1024;
@@ -590,27 +590,27 @@ bool sgct_core::SGCTNetwork::isUpdated()
     return (state && mConnected);
 }
 
-void sgct_core::SGCTNetwork::setDecodeFunction(sgct_cppxeleven::function<void (const char*, int, int)> callback)
+void sgct_core::SGCTNetwork::setDecodeFunction(std::function<void (const char*, int, int)> callback)
 {
     mDecoderCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setPackageDecodeFunction(sgct_cppxeleven::function<void(void*, int, int, int)> callback)
+void sgct_core::SGCTNetwork::setPackageDecodeFunction(std::function<void(void*, int, int, int)> callback)
 {
     mPackageDecoderCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setUpdateFunction(sgct_cppxeleven::function<void(SGCTNetwork *)> callback)
+void sgct_core::SGCTNetwork::setUpdateFunction(std::function<void(SGCTNetwork *)> callback)
 {
     mUpdateCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setConnectedFunction(sgct_cppxeleven::function<void (void)> callback)
+void sgct_core::SGCTNetwork::setConnectedFunction(std::function<void (void)> callback)
 {
     mConnectedCallbackFn = callback;
 }
 
-void sgct_core::SGCTNetwork::setAcknowledgeFunction(sgct_cppxeleven::function<void(int, int)> callback)
+void sgct_core::SGCTNetwork::setAcknowledgeFunction(std::function<void(int, int)> callback)
 {
     mAcknowledgeCallbackFn = callback;
 }
@@ -871,7 +871,7 @@ int sgct_core::SGCTNetwork::readDataTransferMessage(char * _header, int32_t & _p
 #endif
         }
         else if (mHeaderId == sgct_core::SGCTNetwork::Ack &&
-            mAcknowledgeCallbackFn != SGCT_NULL_PTR)
+            mAcknowledgeCallbackFn != nullptr)
         {
             //parse the package id
             _packageId = sgct_core::SGCTNetwork::parseInt32(&_header[1]);
@@ -966,7 +966,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
         {
             sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_ERROR, "Accept connection %d failed! Error: %d\n", mId, accErr);
 
-            if (mUpdateCallbackFn != SGCT_NULL_PTR)
+            if (mUpdateCallbackFn != nullptr)
                 mUpdateCallbackFn(this);
             return;
         }
@@ -975,7 +975,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
     setConnectedStatus(true);
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d established!\n", mId);
 
-    if (mUpdateCallbackFn != SGCT_NULL_PTR)
+    if (mUpdateCallbackFn != nullptr)
         mUpdateCallbackFn(this);
 
     //init buffers
@@ -1065,7 +1065,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
                 else
                 {
                 if( mHeaderId == sgct_core::SGCTNetwork::DataId &&
-                    mDecoderCallbackFn != SGCT_NULL_PTR)
+                    mDecoderCallbackFn != nullptr)
                     {
                         //decode callback
                         if(dataSize > 0)
@@ -1082,7 +1082,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 #endif
                     }
                     else if( mHeaderId == sgct_core::SGCTNetwork::CompressedDataId &&
-                        mDecoderCallbackFn != SGCT_NULL_PTR)
+                        mDecoderCallbackFn != nullptr)
                     {
                         //decode callback
                         if(dataSize > 0)
@@ -1114,7 +1114,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
                         sgct_core::NetworkManager::gCond.notify_all();
                     }
                     else if (mHeaderId == sgct_core::SGCTNetwork::ConnectedId &&
-                        mConnectedCallbackFn != SGCT_NULL_PTR)
+                        mConnectedCallbackFn != nullptr)
                     {
 #ifdef __SGCT_NETWORK_DEBUG__
                         sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
@@ -1195,7 +1195,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 
                     extBuffer = extBuffer.substr(found+2);//jump over \r\n
 
-                    if (mDecoderCallbackFn != SGCT_NULL_PTR)
+                    if (mDecoderCallbackFn != nullptr)
                     {
                         (mDecoderCallbackFn)(extMessage.c_str(), static_cast<int>(extMessage.size()), mId);
                     }
@@ -1218,7 +1218,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Parsing external TCP raw data... ");
 #endif
-                if (mDecoderCallbackFn != SGCT_NULL_PTR)
+                if (mDecoderCallbackFn != nullptr)
                 {
                     (mDecoderCallbackFn)(mRecvBuf, iResult, mId);
                 }
@@ -1248,7 +1248,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
                 else
                 {
                     if ((mHeaderId == sgct_core::SGCTNetwork::DataId || mHeaderId == sgct_core::SGCTNetwork::CompressedDataId) &&
-                        mPackageDecoderCallbackFn != SGCT_NULL_PTR && dataSize > 0)
+                        mPackageDecoderCallbackFn != nullptr && dataSize > 0)
                     {
                         bool recvOk = false;
                         
@@ -1321,7 +1321,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
                         mConnectionMutex.unlock();
                     }
                     else if (mHeaderId == sgct_core::SGCTNetwork::ConnectedId &&
-                        mConnectedCallbackFn != SGCT_NULL_PTR)
+                        mConnectedCallbackFn != nullptr)
                     {
 #ifdef __SGCT_NETWORK_DEBUG__
                         sgct::MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "Signaling slave is connected... ");
@@ -1387,7 +1387,7 @@ void sgct_core::SGCTNetwork::communicationHandler()
     //contains mutex
     closeSocket( mSocket );
 
-    if (mUpdateCallbackFn != SGCT_NULL_PTR)
+    if (mUpdateCallbackFn != nullptr)
         mUpdateCallbackFn( this );
 
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Node %d disconnected!\n", mId);
@@ -1427,32 +1427,32 @@ void sgct_core::SGCTNetwork::sendStr(std::string msg)
 void sgct_core::SGCTNetwork::closeNetwork(bool forced)
 {
     //clear callbacks
-    mDecoderCallbackFn            = SGCT_NULL_PTR;
-    mUpdateCallbackFn            = SGCT_NULL_PTR;
-    mConnectedCallbackFn        = SGCT_NULL_PTR;
-    mAcknowledgeCallbackFn        = SGCT_NULL_PTR;
-    mPackageDecoderCallbackFn    = SGCT_NULL_PTR;
+    mDecoderCallbackFn            = nullptr;
+    mUpdateCallbackFn            = nullptr;
+    mConnectedCallbackFn        = nullptr;
+    mAcknowledgeCallbackFn        = nullptr;
+    mPackageDecoderCallbackFn    = nullptr;
 
     //release conditions
     NetworkManager::gCond.notify_all();
     mStartConnectionCond.notify_all();
 
-    if( mCommThread != NULL )
+    if( mCommThread != nullptr)
     {
         if( !forced )
             mCommThread->join();
 
         delete mCommThread; //blocking sockets -> cannot wait for thread so just kill it brutally
-        mCommThread = NULL;
+        mCommThread = nullptr;
     }
 
-    if( mMainThread != NULL )
+    if( mMainThread != nullptr)
     {
         if( !forced )
             mMainThread->join();
 
         delete mMainThread;
-        mMainThread = NULL;
+        mMainThread = nullptr;
     }
 
     sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "Connection %d successfully terminated.\n", mId);
@@ -1482,7 +1482,7 @@ void sgct_core::SGCTNetwork::initShutdown()
 #endif
 
     mConnectionMutex.lock();
-        mDecoderCallbackFn = SGCT_NULL_PTR;
+        mDecoderCallbackFn = nullptr;
     mConnectionMutex.unlock();
 
 #ifdef __SGCT_MUTEX_DEBUG__

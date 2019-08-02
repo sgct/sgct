@@ -147,7 +147,7 @@ void sgct_core::SGCTNode::setName(std::string name)
 /*!
 \returns the address of this node
 */
-std::string sgct_core::SGCTNode::getAddress()
+std::string sgct_core::SGCTNode::getAddress() const
 {
     return mAddress;
 }
@@ -155,7 +155,7 @@ std::string sgct_core::SGCTNode::getAddress()
 /*!
 \returns the sync port of this node
 */
-std::string sgct_core::SGCTNode::getSyncPort()
+std::string sgct_core::SGCTNode::getSyncPort() const
 {
     return mSyncPort;
 }
@@ -163,7 +163,7 @@ std::string sgct_core::SGCTNode::getSyncPort()
 /*!
 \returns the data transfer port of this node
 */
-std::string sgct_core::SGCTNode::getDataTransferPort()
+std::string sgct_core::SGCTNode::getDataTransferPort() const
 {
     return mDataTransferPort;
 }
@@ -171,7 +171,7 @@ std::string sgct_core::SGCTNode::getDataTransferPort()
 /*!
 \returns the name if this node
 */
-std::string sgct_core::SGCTNode::getName()
+std::string sgct_core::SGCTNode::getName() const
 {
     return mName;
 }

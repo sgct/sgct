@@ -18,231 +18,274 @@
 #include <algorithm>
 #include <sstream>
 
-const std::string DefaultSingleConfiguration = "            \
-<?xml version=\"1.0\" ?>                                    \
-<Cluster masterAddress=\"localhost\">                       \
-<Node address=\"localhost\" port=\"20401\">                 \
-<Window fullScreen=\"false\">                               \
-<Size x=\"640\" y=\"480\" />                                \
-<Viewport>                                                  \
-<Pos x=\"0.0\" y=\"0.0\" />                                 \
-<Size x=\"1.0\" y=\"1.0\" />                                \
-<Projectionplane>                                           \
-<Pos x=\"-1.778\" y=\"-1.0\" z=\"0.0\" />                   \
-<Pos x=\"-1.778\" y=\" 1.0\" z=\"0.0\" />                   \
-<Pos x=\" 1.778\" y=\" 1.0\" z=\"0.0\" />                   \
-</Projectionplane>                                          \
-</Viewport>                                                 \
-</Window>                                                   \
-</Node>                                                     \
-<User eyeSeparation=\"0.06\">                               \
-<Pos x=\"0.0\" y=\"0.0\" z=\"4.0\" />                       \
-</User>                                                     \
-</Cluster>                                                  \
-";
+namespace {
 
-sgct_core::ReadConfig::ReadConfig( const std::string filename )
-{
+constexpr const char* DefaultSingleConfiguration = R"(
+<?xml version="1.0" ?>
+  <Cluster masterAddress="localhost">
+    <Node address="localhost" port="20401">
+      <Window fullScreen="false">
+        <Size x="640" y="480" />
+        <Viewport>
+          <Pos x="0.0" y="0.0" />
+          <Size x="1.0" y="1.0" />
+          <Projectionplane>
+            <Pos x="-1.778" y="-1.0" z="0.0" />
+            <Pos x="-1.778" y=" 1.0" z="0.0" />
+            <Pos x=" 1.778" y=" 1.0" z="0.0" />
+          </Projectionplane>
+        </Viewport>
+      </Window>
+    </Node>
+    <User eyeSeparation="0.06\>
+    <Pos x="0.0" y="0.0" z="4.0" />
+  </User>
+</Cluster>
+)";
+
+} // namespace
+
+namespace sgct_core {
+
+ReadConfig::ReadConfig(std::string filename) {
     valid = false;
     
-    if( filename.empty() )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: No file specified! Using default configuration...\n");
+    if (filename.empty()) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_WARNING,
+            "ReadConfig: No file specified! Using default configuration...\n"
+        );
         readAndParseXMLString();
         valid = true;
     }
-    else
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Parsing XML config '%s'...\n", filename.c_str());
+    else {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "ReadConfig: Parsing XML config '%s'...\n", filename.c_str()
+        );
     
-        if( !replaceEnvVars(filename) )
+        if (!replaceEnvVars(filename)) {
             return;
+        }
     
-        if(!readAndParseXMLFile())
-        {
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error occured while reading config file '%s'\nError: %s\n", xmlFileName.c_str(), mErrorMsg.c_str());
+        if (!readAndParseXMLFile()) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "ReadConfig: Error occured while reading config file '%s'\nError: %s\n",
+                xmlFileName.c_str(), mErrorMsg.c_str()
+            );
             return;
         }
         valid = true;
     
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str());
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "ReadConfig: Config file '%s' read successfully!\n",
+            xmlFileName.c_str()
+        );
     }
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Number of nodes in cluster: %d\n",
-                                            ClusterManager::instance()->getNumberOfNodes());
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::NOTIFY_INFO,
+        "ReadConfig: Number of nodes in cluster: %d\n",
+        ClusterManager::instance()->getNumberOfNodes()
+    );
     
-    for(unsigned int i = 0; i<ClusterManager::instance()->getNumberOfNodes(); i++)
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "\tNode(%d) address: %s [%s]\n", i,
-                                                ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
-                                                ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str());
+    for (unsigned int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_INFO,
+            "\tNode(%d) address: %s [%s]\n", i,
+            ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
+            ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str()
+        );
+    }
 }
 
-sgct_core::ReadConfig::~ReadConfig()
-{
-}
-
-bool sgct_core::ReadConfig::replaceEnvVars( const std::string &filename )
-{
+bool ReadConfig::replaceEnvVars(const std::string& filename) {
     size_t foundIndex = filename.find('%');
-    if( foundIndex != std::string::npos )
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: SGCT doesn't support the usage of '%%' characters in path or file name.\n");
+    if (foundIndex != std::string::npos) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_ERROR,
+            "ReadConfig: Error: SGCT doesn't support the usage of '%%' characters "
+            "in path or file name.\n"
+        );
         return false;
     }
     
-    std::vector< size_t > beginEnvVar;
-    std::vector< size_t > endEnvVar;
+    std::vector<size_t> beginEnvVar;
+    std::vector<size_t> endEnvVar;
     
     foundIndex = 0;
-    while( foundIndex != std::string::npos )
-    {
+    while (foundIndex != std::string::npos) {
         foundIndex = filename.find("$(", foundIndex);
-        if(foundIndex != std::string::npos)
-        {
+        if (foundIndex != std::string::npos) {
             beginEnvVar.push_back(foundIndex);
             foundIndex = filename.find(')', foundIndex);
-            if(foundIndex != std::string::npos)
+            if (foundIndex != std::string::npos) {
                 endEnvVar.push_back(foundIndex);
+            }
         }
     }
     
-    if(beginEnvVar.size() != endEnvVar.size())
-    {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: Bad configuration path string!\n");
+    if (beginEnvVar.size() != endEnvVar.size()) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_ERROR,
+            "ReadConfig: Error: Bad configuration path string!\n"
+        );
         return false;
     }
-    else
-    {
+    else {
         size_t appendPos = 0;
-        for(unsigned int i=0; i<beginEnvVar.size(); i++)
-        {
+        for (unsigned int i = 0; i < beginEnvVar.size(); i++) {
             xmlFileName.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
-            std::string envVar = filename.substr(beginEnvVar[i] + 2, endEnvVar[i] - (beginEnvVar[i] + 2) );
-            char * fetchedEnvVar = NULL;
+            std::string envVar = filename.substr(
+                beginEnvVar[i] + 2,
+                endEnvVar[i] - (beginEnvVar[i] + 2)
+            );
+            char* fetchedEnvVar = nullptr;
             
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
             size_t len;
-            errno_t err = _dupenv_s( &fetchedEnvVar, &len, envVar.c_str() );
-            if ( err )
-            {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
+            errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
+            if (err) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
+                    envVar.c_str()
+                );
                 return false;
             }
 #else
             fetchedEnvVar = getenv(envVar.c_str());
-            if( fetchedEnvVar == NULL )
-            {
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "ReadConfig: Error: Cannot fetch environment variable '%s'.\n", envVar.c_str());
+            if (fetchedEnvVar == nullptr) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
+                    envVar.c_str()
+                );
                 return false;
             }
 #endif
             
-            xmlFileName.append( fetchedEnvVar );
-            appendPos = endEnvVar[i]+1;
+            xmlFileName.append(fetchedEnvVar);
+            appendPos = endEnvVar[i] + 1;
         }
         
-        xmlFileName.append( filename.substr( appendPos ) );
+        xmlFileName.append(filename.substr(appendPos));
         
         //replace all backslashes with slashes
-        for(unsigned int i=0; i<xmlFileName.size(); i++)
-            if(xmlFileName[i] == 92) //backslash
+        for (unsigned int i = 0; i < xmlFileName.size(); i++) {
+            if (xmlFileName[i] == 92) {
+                //backslash
                 xmlFileName[i] = '/';
+            }
+        }
     }
     
     return true;
 }
 
-bool sgct_core::ReadConfig::readAndParseXMLFile()
-{
-    if (xmlFileName.empty())
-    {
-        mErrorMsg.assign("No XML file set!");
+bool ReadConfig::readAndParseXMLFile() {
+    if (xmlFileName.empty()) {
+        mErrorMsg = "No XML file set!";
         return false;
     }
     
     tinyxml2::XMLDocument xmlDoc;
-    if( xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR )
-    {
+    if (xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR) {
         std::stringstream ss;
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-        else if(xmlDoc.GetErrorStr1())
-                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
-        else if(xmlDoc.GetErrorStr2())
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1()
+               << " " << xmlDoc.GetErrorStr2();
+        }
+        else if (xmlDoc.GetErrorStr1()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+        }
+        else if (xmlDoc.GetErrorStr2()) {
             ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
-        else
+        }
+        else {
             ss << "File not found";
+        }
         mErrorMsg = ss.str();
         return false;
     }
-    else
+    else {
         return readAndParseXML(xmlDoc);
+    }
 }
 
-bool sgct_core::ReadConfig::readAndParseXMLString()
-{
+bool ReadConfig::readAndParseXMLString() {
     tinyxml2::XMLDocument xmlDoc;
-    bool loadSuccess = xmlDoc.Parse(DefaultSingleConfiguration.c_str(), DefaultSingleConfiguration.size()) == tinyxml2::XML_NO_ERROR;
+    bool loadSuccess = xmlDoc.Parse(
+        DefaultSingleConfiguration,
+        strlen(DefaultSingleConfiguration)
+    ) == tinyxml2::XML_NO_ERROR;
     
-    if (!loadSuccess)
-    {
+    if (!loadSuccess) {
         std::stringstream ss;
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2())
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " " << xmlDoc.GetErrorStr2();
-        else if (xmlDoc.GetErrorStr1())
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1()
+               << " " << xmlDoc.GetErrorStr2();
+        }
+        else if (xmlDoc.GetErrorStr1()) {
             ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
-        else if (xmlDoc.GetErrorStr2())
+        }
+        else if (xmlDoc.GetErrorStr2()) {
             ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
-        else
+        }
+        else {
             ss << "File not found";
+        }
         mErrorMsg = ss.str();
         assert(false);
         return false;
     }
-    else
+    else {
         return readAndParseXML(xmlDoc);
+    }
 }
 
-bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
-{
-    tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement( "Cluster" );
-    if( XMLroot == NULL )
-    {
-        mErrorMsg.assign("Cannot find XML root!");
+bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
+    tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
+    if (XMLroot == nullptr) {
+        mErrorMsg = "Cannot find XML root!";
         return false;
     }
     
-    const char * masterAddress = XMLroot->Attribute( "masterAddress" );
-    if( masterAddress )
-        ClusterManager::instance()->setMasterAddress( masterAddress );
-    else
-    {
-        mErrorMsg.assign("Cannot find master address or DNS name in XML!");
+    const char* masterAddress = XMLroot->Attribute("masterAddress");
+    if (masterAddress) {
+        ClusterManager::instance()->setMasterAddress(masterAddress);
+    }
+    else {
+        mErrorMsg = "Cannot find master address or DNS name in XML!";
         return false;
     }
     
-    const char * debugMode = XMLroot->Attribute( "debug" );
-    if( debugMode != NULL )
-    {
-        sgct::MessageHandler::instance()->setNotifyLevel( strcmp( debugMode, "true" ) == 0 ?
-                                                         sgct::MessageHandler::NOTIFY_DEBUG : sgct::MessageHandler::NOTIFY_WARNING );
+    const char* debugMode = XMLroot->Attribute("debug");
+    if (debugMode != nullptr) {
+        sgct::MessageHandler::instance()->setNotifyLevel(
+            strcmp(debugMode, "true") == 0 ?
+                sgct::MessageHandler::NOTIFY_DEBUG :
+                sgct::MessageHandler::NOTIFY_WARNING
+        );
     }
     
-    if( XMLroot->Attribute( "externalControlPort" ) != NULL )
-    {
-        std::string tmpStr( XMLroot->Attribute( "externalControlPort" ) );
+    if (XMLroot->Attribute("externalControlPort") != nullptr) {
+        std::string tmpStr(XMLroot->Attribute("externalControlPort"));
         ClusterManager::instance()->setExternalControlPort(tmpStr);
     }
     
-    if( XMLroot->Attribute( "firmSync" ) != NULL )
-    {
+    if (XMLroot->Attribute("firmSync") != nullptr) {
         ClusterManager::instance()->setFirmFrameLockSyncStatus(
-                                                               strcmp( XMLroot->Attribute( "firmSync" ), "true" ) == 0 ? true : false );
+            strcmp(XMLroot->Attribute("firmSync"), "true") == 0
+        );
     }
     
     tinyxml2::XMLElement* element[MAX_XML_DEPTH];
-    for(unsigned int i=0; i < MAX_XML_DEPTH; i++)
-        element[i] = NULL;
-    const char * val[MAX_XML_DEPTH];
+    for (unsigned int i = 0; i < MAX_XML_DEPTH; i++) {
+        element[i] = nullptr;
+    }
+    const char* val[MAX_XML_DEPTH];
     element[0] = XMLroot->FirstChildElement();
     while( element[0] != NULL )
     {
@@ -407,14 +450,14 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
                         tmpWin.setFullScreenMonitorIndex( tmpMonitorIndex );
                     
                     if( element[1]->Attribute("mpcdi") != NULL ) {
-                    	sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
-						std::string pathToMpcdiFile;
-						size_t lastSlashPos = xmlFileName.find_last_of("/");
-						if (lastSlashPos != std::string::npos)
-						    pathToMpcdiFile = xmlFileName.substr(0, lastSlashPos) + "/";
-						pathToMpcdiFile += element[1]->Attribute("mpcdi");
-						//replace all backslashes with slashes
-						std::replace(pathToMpcdiFile.begin(), pathToMpcdiFile.end(), '\\', '/');
+                        sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
+                        std::string pathToMpcdiFile;
+                        size_t lastSlashPos = xmlFileName.find_last_of("/");
+                        if (lastSlashPos != std::string::npos)
+                            pathToMpcdiFile = xmlFileName.substr(0, lastSlashPos) + "/";
+                        pathToMpcdiFile += element[1]->Attribute("mpcdi");
+                        //replace all backslashes with slashes
+                        std::replace(pathToMpcdiFile.begin(), pathToMpcdiFile.end(), '\\', '/');
                         if( !mpcdiHandler.parseConfiguration(pathToMpcdiFile, tmpNode, tmpWin) ) {
                             return false;
                         }
@@ -804,7 +847,7 @@ bool sgct_core::ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc)
     return true;
 }
 
-sgct::SGCTWindow::StereoMode sgct_core::ReadConfig::getStereoType( std::string type )
+sgct::SGCTWindow::StereoMode ReadConfig::getStereoType( std::string type )
 {
     std::transform(type.begin(), type.end(), type.begin(), ::tolower);
     
@@ -869,7 +912,11 @@ sgct::SGCTWindow::ColorBitDepth sgct_core::ReadConfig::getBufferColorBitDepth(st
     return sgct::SGCTWindow::BufferColorBitDepth8;
 }
 
-glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* element)
+bool ReadConfig::isValid() {
+    return valid;
+}
+
+glm::quat ReadConfig::parseOrientationNode(tinyxml2::XMLElement* element)
 {
     float x = 0.0f;
     float y = 0.0f;
@@ -965,9 +1012,8 @@ glm::quat sgct_core::ReadConfig::parseOrientationNode(tinyxml2::XMLElement* elem
     return quat;
 }
 
-glm::quat sgct_core::ReadConfig::parseMpcdiOrientationNode(const float yaw,
-                                                           const float pitch,
-                                                           const float roll)
+glm::quat ReadConfig::parseMpcdiOrientationNode(float yaw, float pitch,
+                                                           float roll)
 {
     float x = pitch;
     float y = -yaw;
@@ -981,3 +1027,4 @@ glm::quat sgct_core::ReadConfig::parseMpcdiOrientationNode(const float yaw,
     return quat;
 }
 
+} // namespace sgct_config

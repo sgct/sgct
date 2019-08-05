@@ -5,61 +5,62 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _POST_FX_H_
-#define _POST_FX_H_
+#ifndef __SGCT__POST_FX__H__
+#define __SGCT__POST_FX__H__
 
-#include "ShaderProgram.h"
+#include <sgct/ShaderProgram.h>
 
-namespace sgct
-{
+namespace sgct {
 
 /*!
     Class that holds a post effect pass
 */
-class PostFX
-{
+class PostFX {
 public:
-    PostFX();
-    bool init( const std::string & name, const std::string & vertShaderSrc, const std::string & fragShaderSrc, ShaderProgram::ShaderSourceType srcType = ShaderProgram::SHADER_SRC_FILE);
+    bool init(std::string name, const std::string& vertShaderSrc,
+        const std::string& fragShaderSrc,
+        ShaderProgram::ShaderSourceType srcType = ShaderProgram::SHADER_SRC_FILE);
     void destroy();
     void render();
-    void setUpdateUniformsFunction( void(*fnPtr)() );
-    void setInputTexture( unsigned int inputTex );
-    void setOutputTexture( unsigned int outputTex );
+    void setUpdateUniformsFunction(void(*fnPtr)());
+    void setInputTexture(unsigned int inputTex);
+    void setOutputTexture(unsigned int outputTex);
     
     /*!
         \returns the output texture
     */
-    inline unsigned int getOutputTexture() { return mOutputTexture; }
+    unsigned int getOutputTexture();
     /*!
         \returns the input texture
     */
-    inline unsigned int getInputTexture() { return mInputTexture; }
+    unsigned int getInputTexture();
     /*!
         \returns the shader pointer
     */
-    inline ShaderProgram * getShaderProgram() { return &mShaderProgram; }
+    ShaderProgram * getShaderProgram();
     /*!
         \returns name of this post effect pass
     */
-    inline const std::string & getName() { return mName; }
+    const std::string& getName();
 
 private:
     void internalRender();
     void internalRenderFixedPipeline();
 
 private:
-    void (*mUpdateFn)();
-    void (PostFX::*mRenderFn)(void);
+    void (*mUpdateFn)() = nullptr;
+    void (PostFX::*mRenderFn)(void) = nullptr;
 
     ShaderProgram mShaderProgram;
-    unsigned int mInputTexture;
-    unsigned int mOutputTexture;
+    unsigned int mInputTexture = 0;
+    unsigned int mOutputTexture = 0;
     
-    int mXSize, mYSize;
+    int mXSize = 1;
+    int mYSize = 1;
     std::string mName;
     static bool mDeleted;
 };
-}
 
-#endif
+} // namespace sgct
+
+#endif // __SGCT__POST_FX__H__

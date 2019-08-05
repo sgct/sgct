@@ -5,14 +5,14 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_READ_CONFIG
-#define _SGCT_READ_CONFIG
+#ifndef __SGCT__READ_CONFIG__H__
+#define __SGCT__READ_CONFIG__H__
 
 #include <string>
 #include <vector>
 #include <glm/glm.hpp>
-#include "SGCTWindow.h"
-#include "SGCTNode.h"
+#include <sgct/SGCTWindow.h>
+#include <sgct/SGCTNode.h>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>
@@ -20,18 +20,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <tinyxml2.h>
 #endif
 
-namespace sgct_core //simple graphics cluster toolkit
-{
+namespace sgct_core {
 
-class ReadConfig
-{
+class ReadConfig {
 public:
-    ReadConfig( const std::string filename );
-    ~ReadConfig();
+    explicit ReadConfig(std::string filename);
 
-    bool isValid() { return valid; }
+    bool isValid();
     static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
-    static glm::quat parseMpcdiOrientationNode(const float yaw, const float pitch, const float roll);
+    static glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll);
 
 private:
     bool replaceEnvVars( const std::string &filename );
@@ -46,6 +43,6 @@ private:
     std::string mErrorMsg;
 };
 
-}
+} // namespace sgct_config
 
-#endif
+#endif // __SGCT__READ_CONFIG__H__

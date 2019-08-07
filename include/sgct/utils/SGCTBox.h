@@ -5,22 +5,20 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_BOX
-#define _SGCT_BOX
+#ifndef __SGCT__BOX__H__
+#define __SGCT__BOX__H__
 
 #include "../helpers/SGCTVertexData.h"
 
 /*! \namespace sgct_utils
 \brief SGCT utils namespace contains basic utilities for geometry rendering
 */
-namespace sgct_utils
-{
+namespace sgct_utils {
 
 /*!
     This class creates and renders a textured box.
 */
-class SGCTBox
-{
+class SGCTBox {
 public:
     enum TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
@@ -29,25 +27,18 @@ public:
     void draw();
 
 private:
-    // Don't implement these, should give compile warning if used
-    SGCTBox();
-    SGCTBox( const SGCTBox & box );
-    const SGCTBox & operator=(const SGCTBox & box );
-
     void drawVBO();
     void drawVAO();
-
-    typedef void (SGCTBox::*InternalCallbackFn)(void);
-    InternalCallbackFn    mInternalDrawFn;
 
     void cleanUp();
     void createVBO();
 
 private:    
-    unsigned int mVBO;
-    unsigned int mVAO;
-    sgct_helpers::SGCTVertexData * mVerts;
+    unsigned int mVBO = 0;
+    unsigned int mVAO = 0;
+    sgct_helpers::SGCTVertexData* mVerts = nullptr;
 };
-}
 
-#endif
+} // sgct_utils
+
+#endif // __SGCT__BOX__H__

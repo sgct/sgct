@@ -5,8 +5,8 @@
  *      Author: Gene Payne
  */
 
-#ifndef _SGCT_MPCDI
-#define _SGCT_MPCDI
+#ifndef __SGCT__MPCDI__H__
+#define __SGCT__MPCDI__H__
 
 #include <string>
 #include <vector>
@@ -21,36 +21,22 @@
     #include <tinyxml2.h>
 #endif
 
-namespace sgct_core //simple graphics cluster toolkit
-{
+namespace sgct_core {
 
 struct MpcdiSubFiles {
-    enum mpcdiSubFileTypes {
-        mpcdiXml = 0,
-        mpcdiPfm,
-        mpcdi_nRequiredFiles //Leave at end
+    enum MpcdiSubFileTypes {
+        MpcdiXml = 0,
+        MpcdiPfm,
+        Mpcdi_nRequiredFiles //Leave at end
     };
-    bool hasFound[mpcdi_nRequiredFiles];
-    std::string extension[mpcdi_nRequiredFiles];
-    std::string filename[mpcdi_nRequiredFiles];
-    int size[mpcdi_nRequiredFiles];
-    char* buffer[mpcdi_nRequiredFiles];
+    bool hasFound[Mpcdi_nRequiredFiles];
+    std::string extension[Mpcdi_nRequiredFiles];
+    std::string filename[Mpcdi_nRequiredFiles];
+    int size[Mpcdi_nRequiredFiles];
+    char* buffer[Mpcdi_nRequiredFiles];
 
-    MpcdiSubFiles() {
-        for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
-            hasFound[i] = false;
-            buffer[i] = nullptr;
-        }
-		extension[mpcdiXml] = "xml";
-		extension[mpcdiPfm] = "pfm";
-    }
-
-    ~MpcdiSubFiles() {
-        for (int i = 0; i < mpcdi_nRequiredFiles; ++i) {
-            if( buffer[i] != nullptr )
-                delete buffer[i];
-        }
-    }
+    MpcdiSubFiles();
+    ~MpcdiSubFiles();
 };
 
 struct MpcdiRegion {
@@ -71,12 +57,11 @@ struct MpcdiFoundItems {
     int resolutionY = -1;
 };
 
-class SGCTMpcdi
-{
+class SGCTMpcdi {
 public:
-    SGCTMpcdi(std::string& parentErrorMessage);
-    virtual ~SGCTMpcdi();
-    bool parseConfiguration(const std::string filenameMpcdi, SGCTNode& tmpNode,
+    explicit SGCTMpcdi(std::string parentErrorMessage);
+    ~SGCTMpcdi();
+    bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& tmpNode,
              sgct::SGCTWindow& tmpWin);
 
 private:
@@ -94,14 +79,8 @@ private:
     bool readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
              const char* val[], sgct::SGCTWindow& tmpWin,
              std::string filesetRegionId);
-    bool openZipFile(FILE* cfgFile, const std::string cfgFilePath, unzFile* zipfile);
     bool processSubFiles(std::string filename, unzFile* zipfile,
              unz_file_info& file_info);
-    bool doesStringHaveSuffix(const std::string &str, const std::string &suffix);
-    bool checkAttributeForExpectedValue(tinyxml2::XMLElement* elem,
-             const std::string attrRequired, const std::string tagDescription,
-             const std::string expectedTag);
-    void unsupportedFeatureCheck(std::string tag, std::string featureName);
 
     MpcdiSubFiles mMpcdiSubFileContents;
     std::vector<MpcdiRegion*> mBufferRegions;
@@ -111,4 +90,4 @@ private:
 
 } //namespace sgct_core
 
-#endif //#ifdef SGCT_MPCDI
+#endif // __SGCT__MPCDI__H__

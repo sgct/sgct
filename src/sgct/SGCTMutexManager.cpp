@@ -5,25 +5,33 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <stdio.h>
 #include <sgct/SGCTMutexManager.h>
+
+#include <stdio.h>
 
 //#define __SGCT_MUTEX_DEBUG__
 
-sgct::SGCTMutexManager * sgct::SGCTMutexManager::mInstance = NULL;
+namespace sgct {
 
-sgct::SGCTMutexManager::SGCTMutexManager()
-{
+SGCTMutexManager * SGCTMutexManager::mInstance = NULL;
 
+SGCTMutexManager* SGCTMutexManager::instance() {
+    if (mInstance == nullptr) {
+        mInstance = new SGCTMutexManager();
+    }
+
+    return mInstance;
 }
 
-sgct::SGCTMutexManager::~SGCTMutexManager()
-{
-    
+/*! Destroy the SGCTSettings instance */
+void SGCTMutexManager::destroy() {
+    if (mInstance != nullptr) {
+        delete mInstance;
+        mInstance = nullptr;
+    }
 }
 
-void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
-{
+void SGCTMutexManager::lockMutex(MutexIndexes mi) {
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Locking mutex %d...\n", mi);
 #endif
@@ -33,8 +41,7 @@ void sgct::SGCTMutexManager::lockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
 #endif
 }
 
-void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi)
-{
+void SGCTMutexManager::unlockMutex(MutexIndexes mi) {
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Unlocking mutex %u...\n", mi);
 #endif
@@ -44,7 +51,8 @@ void sgct::SGCTMutexManager::unlockMutex(sgct::SGCTMutexManager::MutexIndexes mi
 #endif
 }
 
-std::mutex * sgct::SGCTMutexManager::getMutexPtr(sgct::SGCTMutexManager::MutexIndexes mi)
-{
+std::mutex* SGCTMutexManager::getMutexPtr(MutexIndexes mi) {
     return &mInternalMutexes[mi];
 }
+
+} // namespace sgct

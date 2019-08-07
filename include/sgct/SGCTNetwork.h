@@ -5,8 +5,9 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SGCT_NETWORK
-#define _SGCT_NETWORK
+#ifndef __SGCT__NETWORK__H__
+#define __SGCT__NETWORK__H__
+
 #include <string>
 #include <vector>
 #include <stdint.h>
@@ -27,34 +28,47 @@ typedef int _ssize_t;
 #include <mutex>
 #include <thread>
 
-namespace sgct_core //small graphics cluster toolkit
-{
+namespace sgct_core  {
 
 /*!
 SGCTNetwork manages peer-to-peer tcp connections.
 */
-class SGCTNetwork
-{
+class SGCTNetwork {
 public:
     //ASCII device control chars = 17, 18, 19 & 20
-    enum PackageHeaderId { DefaultId = 0, Ack = 6, DataId = 17, ConnectedId = 18, DisconnectId = 19, CompressedDataId = 21 };
-    enum ConnectionTypes { SyncConnection = 0, ExternalASCIIConnection, ExternalRawConnection, DataTransfer };
+    enum PackageHeaderId {
+        DefaultId = 0,
+        Ack = 6,
+        DataId = 17,
+        ConnectedId = 18,
+        DisconnectId = 19,
+        CompressedDataId = 21
+    };
+
+    enum ConnectionTypes {
+        SyncConnection = 0,
+        ExternalASCIIConnection,
+        ExternalRawConnection,
+        DataTransfer
+    };
+
     enum ReceivedIndex { Current = 0, Previous };
 
     SGCTNetwork();
-    void init(const std::string port, const std::string address, bool _isServer, ConnectionTypes serverType);
+    void init(std::string port, std::string address, bool isServer,
+        ConnectionTypes serverType);
     void closeNetwork(bool forced);
     void initShutdown();
 
-    void setDecodeFunction(std::function<void (const char*, int, int)> callback);
+    void setDecodeFunction(std::function<void(const char*, int, int)> callback);
     void setPackageDecodeFunction(std::function<void(void*, int, int, int)> callback);
-    void setUpdateFunction(std::function<void (SGCTNetwork *)> callback);
+    void setUpdateFunction(std::function<void(SGCTNetwork *)> callback);
     void setConnectedFunction(std::function<void (void)> callback);
     void setAcknowledgeFunction(std::function<void(int, int)> callback);
     
     void setBufferSize(uint32_t newSize);
     void setConnectedStatus(bool state);
-    void setOptions(SGCT_SOCKET * socketPtr);
+    void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
 
     ConnectionTypes getType();
@@ -68,12 +82,12 @@ public:
     double getLoopTime();
     bool isUpdated();
     void setRecvFrame(int i);
-    void sendData(const void * data, int length);
-    void sendStr(std::string msg);
+    void sendData(const void* data, int length);
+    void sendStr(const std::string& msg);
     static int getLastError();
-    static _ssize_t receiveData(SGCT_SOCKET & lsocket, char * buffer, int length, int flags);
-    static int32_t parseInt32(char * str);
-    static uint32_t parseUInt32(char * str);
+    static _ssize_t receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
+    static int32_t parseInt32(char* str);
+    static uint32_t parseUInt32(char* str);
     int iterateFrameCounter();
     void pushClientMessage();
     void enableNaglesAlgorithmInDataTransfer();
@@ -82,27 +96,29 @@ public:
     std::string getTypeStr();
     static std::string getTypeStr(ConnectionTypes ct);
 
-    std::function<void(const char*, int, int) > mDecoderCallbackFn;
-    std::function<void(void*, int, int, int) > mPackageDecoderCallbackFn;
-    std::function<void(SGCTNetwork *) > mUpdateCallbackFn;
-    std::function<void(void) > mConnectedCallbackFn;
-    std::function<void(int, int) > mAcknowledgeCallbackFn;
+    std::function<void(const char*, int, int)> mDecoderCallbackFn;
+    std::function<void(void*, int, int, int)> mPackageDecoderCallbackFn;
+    std::function<void(SGCTNetwork *)> mUpdateCallbackFn;
+    std::function<void(void)> mConnectedCallbackFn;
+    std::function<void(int, int)> mAcknowledgeCallbackFn;
 
 private:
-    void updateBuffer(char ** buffer, uint32_t requested_size, uint32_t & current_size);
-    int readSyncMessage(char * _header, int32_t & _syncFrameNumber, uint32_t & _dataSize, uint32_t & _uncompressedDataSize);
-    int readDataTransferMessage(char * _header, int32_t & _packageId, uint32_t & _dataSize, uint32_t & _uncompressedDataSize);
+    void updateBuffer(char** buffer, uint32_t requested_size, uint32_t& current_size);
+    int readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
+        uint32_t& uncompressedDataSize);
+    int readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
+        uint32_t& uncompressedDataSize);
     int readExternalMessage();
 
-    static void communicationHandlerStarter(void *arg);
-    static void connectionHandlerStarter(void *arg);
+    static void communicationHandlerStarter(void* arg);
+    static void connectionHandlerStarter(void* arg);
     void communicationHandler();
     void connectionHandler();
-    static bool parseDisconnectPackage(char * headerPtr);
+    static bool parseDisconnectPackage(char* headerPtr);
     static std::string getUncompressionErrorAsStr(int err);
 
 public:
-    static const std::size_t mHeaderSize = 13;
+    static const size_t mHeaderSize = 13;
     std::condition_variable mStartConnectionCond;
 
 private:
@@ -111,32 +127,33 @@ private:
     SGCT_SOCKET mSocket;
     SGCT_SOCKET mListenSocket;
 
-    ConnectionTypes mConnectionType;
+    ConnectionTypes mConnectionType = SyncConnection;
     std::atomic<bool> mServer;
-    std::atomic<bool> mConnected;
-    std::atomic<bool> mUpdated;
-    std::atomic<int32_t> mSendFrame[2];
-    std::atomic<int32_t> mRecvFrame[2];
-    std::atomic<bool> mTerminate; //set to true upon exit
-    std::atomic<uint32_t> mRequestedSize;
+    std::atomic<bool> mConnected = false;
+    std::atomic<bool> mUpdated = false;
+    std::atomic<int32_t> mSendFrame[2] = { 0, 0 };
+    std::atomic<int32_t> mRecvFrame[2] = { 0, -1 };
+    std::atomic<bool> mTerminate = false; //set to true upon exit
 
     std::mutex mConnectionMutex;
-    std::thread * mCommThread;
-    std::thread * mMainThread;
+    std::thread* mCommThread = nullptr;
+    std::thread* mMainThread = nullptr;
 
-    double mTimeStamp[2];
+    double mTimeStamp[2] = { 0.0, 0.0 };
     int mId;
-    uint32_t mBufferSize;
-    uint32_t mUncompressedBufferSize;
+    uint32_t mBufferSize = 1024;
+    uint32_t mUncompressedBufferSize = mBufferSize;
+    std::atomic<uint32_t> mRequestedSize = mBufferSize;
     std::string mPort;
     std::string mAddress;
 
-    char * mRecvBuf;
-    char * mUncompressBuf;
+    char* mRecvBuf = nullptr;
+    char* mUncompressBuf = nullptr;
     char mHeaderId;
 
-    bool mUseNaglesAlgorithmInDataTransfer;
+    bool mUseNaglesAlgorithmInDataTransfer = false;
 };
-}
 
-#endif
+} // namespace sgct_core
+
+#endif // __SGCT__NETWORK__H__

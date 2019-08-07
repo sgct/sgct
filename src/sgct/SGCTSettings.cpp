@@ -6,204 +6,210 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/SGCTSettings.h>
+
 #include <sgct/MessageHandler.h>
 #include <sgct/ScreenCapture.h>
 #include <sgct/ogl_headers.h>
 #include <string.h>
 
-sgct::SGCTSettings * sgct::SGCTSettings::mInstance = NULL;
+namespace sgct {
 
-sgct::SGCTSettings::SGCTSettings()
-{
-    mPNGCompressionLevel = 1;
-    mJPEGQuality = 100;
+SGCTSettings* SGCTSettings::mInstance = nullptr;
 
-    mNumberOfCaptureThreads = std::thread::hardware_concurrency();
+SGCTSettings* SGCTSettings::instance() {
+    if (mInstance == nullptr) {
+        mInstance = new SGCTSettings();
+    }
 
-    mCaptureBackBuffer            = false;
-    mUseWarping                    = true;
-    mShowWarpingWireframe        = false;
-    mUseDepthTexture            = false;
-    mUseNormalTexture            = false;
-    mUsePositionTexture            = false;
-    mUseFBO                        = true;
-    mForceGlTexImage2D            = false;
-    mUsePBO                        = true;
-    mUseRLE                        = false;
-    mTryMaintainAspectRatio        = true;
-    mExportWarpingMeshes        = false;
-
-    mSwapInterval = 1;
-    mRefreshRate = 0;
-    mOSDTextOffset[0] = 0.05f;
-    mOSDTextOffset[1] = 0.05f;
-
-    //FXAA parameters
-    mFXAASubPixTrim = 1.0f/4.0f;
-    mFXAASubPixOffset = 1.0f/2.0f;
-    mDefaultFXAA = false;
-
-    mDefaultNumberOfAASamples = 1;
-
-    for(size_t i=0; i<3; i++)
-        mCapturePath[i].assign("SGCT");
-    mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
-
-    mCurrentDrawBuffer = Diffuse;
-    mCurrentBufferFloatPrecision = Float_16Bit;
-
-    //font stuff
-    mFontSize = 10;
-    #if __WIN32__
-    mFontName = "verdanab.ttf";
-    #elif __APPLE__
-    mFontName = "Tahoma Bold.ttf";
-    #else
-    mFontName = "FreeSansBold.ttf";
-    #endif
+    return mInstance;
 }
 
-sgct::SGCTSettings::~SGCTSettings()
-{
-    ;
+/*! Destroy the SGCTSettings instance */
+void SGCTSettings::destroy() {
+    if (mInstance != nullptr) {
+        delete mInstance;
+        mInstance = nullptr;
+    }
 }
 
-void sgct::SGCTSettings::configure(tinyxml2::XMLElement * element)
-{
-    const char * val;
-    tinyxml2::XMLElement * subElement = element->FirstChildElement();
+void SGCTSettings::configure(tinyxml2::XMLElement* element) {
+    using namespace tinyxml2;
 
-    while (subElement != NULL)
-    {
+    const char* val;
+    XMLElement* subElement = element->FirstChildElement();
+
+    while (subElement != nullptr) {
         val = subElement->Value();
 
-        if (strcmp("DepthBufferTexture", val) == 0)
-        {
-            if (subElement->Attribute("value") != NULL)
-                sgct::SGCTSettings::instance()->setUseDepthTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
-        }
-        else if (strcmp("NormalTexture", val) == 0)
-        {
-            if (subElement->Attribute("value") != NULL)
-                sgct::SGCTSettings::instance()->setUseNormalTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
-        }
-        else if (strcmp("PositionTexture", val) == 0)
-        {
-            if (subElement->Attribute("value") != NULL)
-                sgct::SGCTSettings::instance()->setUsePositionTexture(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
-        }
-        else if (strcmp("PBO", val) == 0)
-        {
-            if (subElement->Attribute("value") != NULL)
-                sgct::SGCTSettings::instance()->setUsePBO(strcmp(subElement->Attribute("value"), "true") == 0 ? true : false);
-        }
-        else if (strcmp("Precision", val) == 0)
-        {
-            int fprec = 0;
-            if (subElement->QueryIntAttribute("float", &fprec) == tinyxml2::XML_NO_ERROR)
-            {
-                if (fprec == 16)
-                    sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_16Bit);
-                else if (fprec == 32)
-                    sgct::SGCTSettings::instance()->setBufferFloatPrecision(sgct::SGCTSettings::Float_32Bit);
-                else
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value (%d)! Must be 16 or 32.\n", fprec);
+        if (strcmp("DepthBufferTexture", val) == 0) {
+            if (subElement->Attribute("value") != nullptr) {
+                instance()->setUseDepthTexture(
+                    strcmp(subElement->Attribute("value"), "true") == 0 ? true : false
+                );
             }
-            else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Invalid float precition value! Must be 16 or 32.\n");
         }
-        else if (strcmp("Display", val) == 0)
-        {
-            int tmpInterval = 0;
-            if (subElement->QueryIntAttribute("swapInterval", &tmpInterval) == tinyxml2::XML_NO_ERROR)
-            {
-                sgct::SGCTSettings::instance()->setSwapInterval(tmpInterval);
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display swap interval is set to %d.\n", tmpInterval);
+        else if (strcmp("NormalTexture", val) == 0) {
+            if (subElement->Attribute("value") != nullptr) {
+                instance()->setUseNormalTexture(
+                    strcmp(subElement->Attribute("value"), "true") == 0 ? true : false
+                );
+            }
+        }
+        else if (strcmp("PositionTexture", val) == 0) {
+            if (subElement->Attribute("value") != nullptr) {
+                instance()->setUsePositionTexture(
+                    strcmp(subElement->Attribute("value"), "true") == 0 ? true : false
+                );
+            }
+        }
+        else if (strcmp("PBO", val) == 0) {
+            if (subElement->Attribute("value") != nullptr) {
+                instance()->setUsePBO(
+                    strcmp(subElement->Attribute("value"), "true") == 0 ? true : false
+                );
+            }
+        }
+        else if (strcmp("Precision", val) == 0) {
+            int fprec = 0;
+            if (subElement->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
+                if (fprec == 16) {
+                    instance()->setBufferFloatPrecision(Float_16Bit);
+                }
+                else if (fprec == 32) {
+                    instance()->setBufferFloatPrecision(Float_32Bit);
+                }
+                else {
+                    MessageHandler::instance()->print(
+                        MessageHandler::NOTIFY_WARNING,
+                        "ReadConfig: Invalid float precition value (%d)! Must be 16 or 32.\n",
+                        fprec
+                    );
+                }
+            }
+            else {
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_WARNING,
+                    "ReadConfig: Invalid float precition value! Must be 16 or 32.\n"
+                );
+            }
+        }
+        else if (strcmp("Display", val) == 0) {
+            int interval = 0;
+            if (subElement->QueryIntAttribute("swapInterval", &interval) == XML_NO_ERROR) {
+                instance()->setSwapInterval(interval);
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_INFO,
+                    "ReadConfig: Display swap interval is set to %d.\n",
+                    interval
+                );
             }
 
             int rate = 0;
-            if (subElement->QueryIntAttribute("refreshRate", &rate) == tinyxml2::XML_NO_ERROR)
-            {
-                sgct::SGCTSettings::instance()->setRefreshRateHint(rate);
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_INFO, "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate);
+            if (subElement->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR) {
+                instance()->setRefreshRateHint(rate);
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_INFO,
+                    "ReadConfig: Display refresh rate hint is set to %d Hz.\n",
+                    rate
+                );
             }
 
-            if (subElement->Attribute("tryMaintainAspectRatio") != NULL)
-                sgct::SGCTSettings::instance()->setTryMaintainAspectRatio(strcmp(subElement->Attribute("tryMaintainAspectRatio"), "true") == 0 ? true : false);
+            const char* maintainAspect = subElement->Attribute("tryMaintainAspectRatio");
+            if (maintainAspect != nullptr) {
+                instance()->setTryMaintainAspectRatio(
+                    strcmp(maintainAspect, "true") == 0 ? true : false
+                );
+            }
 
-            if (subElement->Attribute("exportWarpingMeshes") != NULL)
-                sgct::SGCTSettings::instance()->setExportWarpingMeshes(strcmp(subElement->Attribute("exportWarpingMeshes"), "true") == 0 ? true : false);
+            const char* exportMeshes = subElement->Attribute("exportWarpingMeshes");
+            if (exportMeshes != nullptr) {
+                instance()->setExportWarpingMeshes(
+                    strcmp(exportMeshes, "true") == 0 ? true : false
+                );
+            }
         }
-        else if (strcmp("OSDText", val) == 0)
-        {
-            float x = 0.0f;
-            float y = 0.0f;
+        else if (strcmp("OSDText", val) == 0) {
+            float x = 0.f;
+            float y = 0.f;
 
-            if (subElement->Attribute("name") != NULL)
-            {
-                sgct::SGCTSettings::instance()->setOSDTextFontName(subElement->Attribute("name"));
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "ReadConfig: Setting font name to %s\n", subElement->Attribute("name"));
+            if (subElement->Attribute("name") != nullptr) {
+                instance()->setOSDTextFontName(subElement->Attribute("name"));
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_DEBUG,
+                    "ReadConfig: Setting font name to %s\n",
+                    subElement->Attribute("name")
+                );
             }
 
-            if (subElement->Attribute("path") != NULL)
-            {
-                sgct::SGCTSettings::instance()->setOSDTextFontPath(subElement->Attribute("path"));
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "ReadConfig: Setting font path to %s\n", subElement->Attribute("path"));
+            if (subElement->Attribute("path") != nullptr) {
+                instance()->setOSDTextFontPath(subElement->Attribute("path"));
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_DEBUG,
+                    "ReadConfig: Setting font path to %s\n",
+                    subElement->Attribute("path")
+                );
             }
 
-            if (subElement->Attribute("size") != NULL)
-            {
+            if (subElement->Attribute("size") != nullptr) {
                 unsigned int tmpi;
-                if (subElement->QueryUnsignedAttribute("size", &tmpi) == tinyxml2::XML_NO_ERROR && tmpi > 0)
-                {
-                    sgct::SGCTSettings::instance()->setOSDTextFontSize(tmpi);
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                        "ReadConfig: Setting font size to %u\n", tmpi);
+                XMLError err = subElement->QueryUnsignedAttribute("size", &tmpi);
+                if (err == tinyxml2::XML_NO_ERROR && tmpi > 0) {
+                    instance()->setOSDTextFontSize(tmpi);
+                    MessageHandler::instance()->print(
+                        MessageHandler::NOTIFY_DEBUG,
+                        "ReadConfig: Setting font size to %u\n",
+                        tmpi
+                    );
                 }
-                else
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Font size not specified. Setting to default size=10!\n");
+                else {
+                    MessageHandler::instance()->print(
+                        MessageHandler::NOTIFY_WARNING,
+                        "ReadConfig: Font size not specified. Setting to default size=10!\n"
+                    );
+                }
             }
 
-            if (subElement->QueryFloatAttribute("xOffset", &x) == tinyxml2::XML_NO_ERROR)
-            {
-                sgct::SGCTSettings::instance()->setOSDTextXOffset(x);
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "ReadConfig: Setting font x offset to %f\n", x);
+            if (subElement->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR) {
+                instance()->setOSDTextXOffset(x);
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_DEBUG,
+                    "ReadConfig: Setting font x offset to %f\n", x
+                );
             }
 
-            if (subElement->QueryFloatAttribute("yOffset", &y) == tinyxml2::XML_NO_ERROR)
-            {
-                sgct::SGCTSettings::instance()->setOSDTextYOffset(y);
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "ReadConfig: Setting font y offset to %f\n", y);
+            if (subElement->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR) {
+                instance()->setOSDTextYOffset(y);
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_DEBUG,
+                    "ReadConfig: Setting font y offset to %f\n", y
+                );
             }
         }
-        else if (strcmp("FXAA", val) == 0)
-        {
-            float offset = 0.0f;
-            if (subElement->QueryFloatAttribute("offset", &offset) == tinyxml2::XML_NO_ERROR)
-            {
-                sgct::SGCTSettings::instance()->setFXAASubPixOffset(offset);
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset);
+        else if (strcmp("FXAA", val) == 0) {
+            float offset = 0.f;
+            if (subElement->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR) {
+                instance()->setFXAASubPixOffset(offset);
+                MessageHandler::instance()->print(
+                    MessageHandler::NOTIFY_DEBUG,
+                    "ReadConfig: Setting FXAA sub-pixel offset to %f\n", offset
+                );
             }
 
-            float trim = 0.0f;
-            if (subElement->QueryFloatAttribute("trim", &trim) == tinyxml2::XML_NO_ERROR)
-            {
-                if (trim > 0.0f)
-                {
-                    sgct::SGCTSettings::instance()->setFXAASubPixTrim(1.0f / trim);
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f / trim);
+            float trim = 0.f;
+            if (subElement->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR) {
+                if (trim > 0.f) {
+                    instance()->setFXAASubPixTrim(1.f / trim);
+                    MessageHandler::instance()->print(
+                        sgct::MessageHandler::NOTIFY_DEBUG,
+                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 1.0f / trim
+                    );
                 }
-                else
-                {
-                    sgct::SGCTSettings::instance()->setFXAASubPixTrim(0.0f);
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.0f);
+                else {
+                    instance()->setFXAASubPixTrim(0.f);
+                    MessageHandler::instance()->print(
+                        MessageHandler::NOTIFY_DEBUG,
+                        "ReadConfig: Setting FXAA sub-pixel trim to %f\n", 0.f
+                    );
                 }
             }
         }
@@ -220,8 +226,7 @@ Set swap interval for all windows
     - 1  = wait for vertical sync
     - 2  = fix when using swapgroups in xp and running half the framerate
 */
-void sgct::SGCTSettings::setSwapInterval(int val)
-{
+void SGCTSettings::setSwapInterval(int val) {
     mSwapInterval = val;
 }
 
@@ -232,8 +237,7 @@ Get swap interval for all windows
     - 1  = wait for vertical sync
     - 2  = fix when using swapgroups in xp and running half the framerate
 */
-const int sgct::SGCTSettings::getSwapInterval() const
-{
+int SGCTSettings::getSwapInterval() const {
     return mSwapInterval;
 }
 
@@ -243,33 +247,28 @@ const int sgct::SGCTSettings::getSwapInterval() const
 
     \param freq the refresh frequency/rate
 */
-void sgct::SGCTSettings::setRefreshRateHint(int freq)
-{
+void SGCTSettings::setRefreshRateHint(int freq) {
     mRefreshRate = freq;
 }
 
 /*!
     Get the refreshrate hint of the window in fullscreen mode.
 */
-const int sgct::SGCTSettings::getRefreshRateHint() const
-{
+int SGCTSettings::getRefreshRateHint() const {
     return mRefreshRate;
 }
-
 
 /*!
 Set to true if depth buffer textures should be allocated and used.
 */
-void sgct::SGCTSettings::setUseDepthTexture(bool state)
-{
+void SGCTSettings::setUseDepthTexture(bool state) {
     mUseDepthTexture = state;
 }
 
 /*!
 Set to true if normal textures should be allocated and used.
 */
-void sgct::SGCTSettings::setUseNormalTexture(bool state)
-{
+void SGCTSettings::setUseNormalTexture(bool state) {
     mUseNormalTexture = state;
     updateDrawBufferFlag();
 }
@@ -277,8 +276,7 @@ void sgct::SGCTSettings::setUseNormalTexture(bool state)
 /*!
 Set to true if position buffer textures should be allocated and used.
 */
-void sgct::SGCTSettings::setUsePositionTexture(bool state)
-{
+void SGCTSettings::setUsePositionTexture(bool state) {
     mUsePositionTexture = state;
     updateDrawBufferFlag();
 }
@@ -287,39 +285,39 @@ void sgct::SGCTSettings::setUsePositionTexture(bool state)
 Set the float precision of the float buffers (normal and position buffer)
 @param bfp is the float precition that will be used in next buffer resize or creation
 */
-void sgct::SGCTSettings::setBufferFloatPrecision(BufferFloatPrecision bfp)
-{
+void SGCTSettings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
     mCurrentBufferFloatPrecision = bfp;
 }
 
 /*!
 Update the draw buffer flags
 */
-void sgct::SGCTSettings::updateDrawBufferFlag()
-{
-    if (mUseNormalTexture && mUsePositionTexture)
+void SGCTSettings::updateDrawBufferFlag() {
+    if (mUseNormalTexture && mUsePositionTexture) {
         mCurrentDrawBuffer = Diffuse_Normal_Position;
-    else if (!mUseNormalTexture && !mUsePositionTexture)
+    }
+    else if (!mUseNormalTexture && !mUsePositionTexture) {
         mCurrentDrawBuffer = Diffuse;
-    else if (mUseNormalTexture && !mUsePositionTexture)
+    }
+    else if (mUseNormalTexture && !mUsePositionTexture) {
         mCurrentDrawBuffer = Diffuse_Normal;
-    else
+    }
+    else {
         mCurrentDrawBuffer = Diffuse_Position;
+    }
 }
 
 /*!
 Set the FBO mode. This is done internally using SGCT config file.
 */
-void sgct::SGCTSettings::setUseFBO(bool state)
-{
+void SGCTSettings::setUseFBO(bool state) {
     mUseFBO = state;
 }
 
 /*!
 Set the number of capture threads used by SGCT (multi-threaded screenshots)
 */
-void sgct::SGCTSettings::setNumberOfCaptureThreads(int count)
-{
+void SGCTSettings::setNumberOfCaptureThreads(int count) {
     mNumberOfCaptureThreads = count;
 }
 
@@ -332,8 +330,7 @@ Compression levels 1-9.
     1 = Best speed\n
     9 = Best compression\n
 */
-void sgct::SGCTSettings::setPNGCompressionLevel(int level)
-{
+void SGCTSettings::setPNGCompressionLevel(int level) {
     mMutex.lock();
     mPNGCompressionLevel = level;
     mMutex.unlock();
@@ -342,8 +339,7 @@ void sgct::SGCTSettings::setPNGCompressionLevel(int level)
 /*!
 Set the JPEG quality in range [0-100].
 */
-void sgct::SGCTSettings::setJPEGQuality(int quality)
-{
+void SGCTSettings::setJPEGQuality(int quality) {
     mMutex.lock();
     mJPEGQuality = quality;
     mMutex.unlock();
@@ -352,11 +348,9 @@ void sgct::SGCTSettings::setJPEGQuality(int quality)
 /*!
 Get the zlib compression level used in png export.
 */
-const int sgct::SGCTSettings::getPNGCompressionLevel()
-{ 
-    int tmpI;
+int SGCTSettings::getPNGCompressionLevel() { 
     mMutex.lock();
-    tmpI = mPNGCompressionLevel;
+    int tmpI = mPNGCompressionLevel;
     mMutex.unlock();
     return tmpI;
 }
@@ -364,13 +358,51 @@ const int sgct::SGCTSettings::getPNGCompressionLevel()
 /*!
 Get the JPEG quality settings (0-100)
 */
-const int sgct::SGCTSettings::getJPEGQuality()
-{
-    int tmpI;
+int SGCTSettings::getJPEGQuality() {
     mMutex.lock();
-    tmpI = mJPEGQuality;
+    int tmpI = mJPEGQuality;
     mMutex.unlock();
     return tmpI;
+}
+
+bool SGCTSettings::useDepthTexture() {
+    return mUseDepthTexture;
+}
+
+bool SGCTSettings::useNormalTexture() {
+    return mUseNormalTexture;
+}
+
+bool SGCTSettings::usePositionTexture() {
+    return mUsePositionTexture;
+}
+
+bool SGCTSettings::useFBO() {
+    return mUseFBO;
+}
+
+int SGCTSettings::getNumberOfCaptureThreads() {
+    return mNumberOfCaptureThreads;
+}
+
+float SGCTSettings::getOSDTextXOffset() {
+    return mOSDTextOffset[0];
+}
+
+float SGCTSettings::getOSDTextYOffset() {
+    return mOSDTextOffset[1];
+}
+
+float SGCTSettings::getFXAASubPixTrim() {
+    return mFXAASubPixTrim;
+}
+
+float SGCTSettings::getFXAASubPixOffset() {
+    return mFXAASubPixOffset;
+}
+
+SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() {
+    return mCurrentDrawBuffer;
 }
 
 /*!
@@ -379,15 +411,16 @@ Set capture/screenshot path used by SGCT
 \param path the path including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct::SGCTSettings::setCapturePath(std::string path, sgct::SGCTSettings::CapturePathIndex cpi)
-{
-    if( path.empty() ) //invalid filename
-    {
-        MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "SGCTSettings: Empty screen capture path!\n");
+void SGCTSettings::setCapturePath(std::string path, CapturePathIndex cpi) {
+    if (path.empty()) {
+        MessageHandler::instance()->print(
+            MessageHandler::NOTIFY_ERROR,
+            "SGCTSettings: Empty screen capture path!\n"
+        );
         return;
     }
 
-    mCapturePath[cpi].assign(path);
+    mCapturePath[cpi] = std::move(path);
 }
 
 /*!
@@ -396,9 +429,8 @@ Append capture/screenshot path used by SGCT
 \param str the string to append including filename without suffix
 \param cpi index to which path to set (Mono = default, Left or Right)
 */
-void sgct::SGCTSettings::appendCapturePath(std::string str, sgct::SGCTSettings::CapturePathIndex cpi)
-{
-    mCapturePath[cpi].append( str );
+void SGCTSettings::appendCapturePath(std::string str, CapturePathIndex cpi) {
+    mCapturePath[cpi].append(std::move(str));
 }
 
 /*!
@@ -406,20 +438,16 @@ Set the capture format which can be one of the following:
 -PNG
 -TGA
 */
-void sgct::SGCTSettings::setCaptureFormat(const char * format)
-{
+void SGCTSettings::setCaptureFormat(const char* format) {
     mMutex.lock();
     
-    if( strcmp("png", format) == 0 || strcmp("PNG", format) == 0 )
-    {
+    if (strcmp("png", format) == 0 || strcmp("PNG", format) == 0) {
         mCaptureFormat = sgct_core::ScreenCapture::PNG;
     }
-    else if( strcmp("tga", format) == 0 || strcmp("TGA", format) == 0 )
-    {
+    else if (strcmp("tga", format) == 0 || strcmp("TGA", format) == 0) {
         mCaptureFormat = sgct_core::ScreenCapture::TGA;
     }
-    else if (strcmp("jpg", format) == 0 || strcmp("JPG", format) == 0)
-    {
+    else if (strcmp("jpg", format) == 0 || strcmp("JPG", format) == 0) {
         mCaptureFormat = sgct_core::ScreenCapture::JPEG;
     }
 
@@ -431,8 +459,7 @@ void sgct::SGCTSettings::setCaptureFormat(const char * format)
 
     \param cpi index to which path to get (Mono = default, Left or Right)
 */
-const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathIndex cpi) const
-{
+const char* SGCTSettings::getCapturePath(CapturePathIndex cpi) const {
     return mCapturePath[cpi].c_str();
 }
 
@@ -441,11 +468,9 @@ const char * sgct::SGCTSettings::getCapturePath(sgct::SGCTSettings::CapturePathI
 
     \return the captureformat if set, otherwise -1 is returned
 */
-const int sgct::SGCTSettings::getCaptureFormat()
-{
-    int tmpI;
+int SGCTSettings::getCaptureFormat() {
     mMutex.lock();
-    tmpI = mCaptureFormat;
+    int tmpI = mCaptureFormat;
     mMutex.unlock();
     return tmpI;
 }
@@ -458,16 +483,14 @@ const int sgct::SGCTSettings::getCaptureFormat()
     - 1/8 - high removal
     - 0 - complete removal
 */
-void sgct::SGCTSettings::setFXAASubPixTrim(float val)
-{
+void SGCTSettings::setFXAASubPixTrim(float val) {
     mFXAASubPixTrim = val;
 }
 
 /*!
     Set the pixel offset for contrast/edge detection. Values should be in the range [1.0f/8.0f, 1.0f]. Default is 0.5f.
 */
-void sgct::SGCTSettings::setFXAASubPixOffset(float val)
-{
+void SGCTSettings::setFXAASubPixOffset(float val) {
     mFXAASubPixOffset = val;
 }
 
@@ -475,99 +498,94 @@ void sgct::SGCTSettings::setFXAASubPixOffset(float val)
 /*!
     Set the horizontal OSD text Offset between 0.0 and 1.0
 */
-void sgct::SGCTSettings::setOSDTextXOffset(float val)
-{
-    mOSDTextOffset[ 0 ] = val;
+void SGCTSettings::setOSDTextXOffset(float val) {
+    mOSDTextOffset[0] = val;
 }
 
 /*!
     Set the vertical OSD text Offset between 0.0 and 1.0
 */
-void sgct::SGCTSettings::setOSDTextYOffset(float val)
-{
-    mOSDTextOffset[ 1 ] = val;
+void SGCTSettings::setOSDTextYOffset(float val) {
+    mOSDTextOffset[1] = val;
 }
 
 /*!
     Set the OSD text font size
 */
-void sgct::SGCTSettings::setOSDTextFontSize( unsigned int size )
-{
+void SGCTSettings::setOSDTextFontSize(unsigned int size) {
     mFontSize = size;
 }
 
 /*!
     Set the OSD text font name
 */
-void sgct::SGCTSettings::setOSDTextFontName( std::string name )
-{
-    mFontName.assign( name );
+void SGCTSettings::setOSDTextFontName(std::string name) {
+    mFontName = std::move(name);
 }
 
 /*!
     Set the OSD text font path
 */
-void sgct::SGCTSettings::setOSDTextFontPath( std::string path )
-{
-    mFontPath.assign( path );
+void SGCTSettings::setOSDTextFontPath(std::string path) {
+    mFontPath = std::move(path);
 }
 
 /*!
 Set the default number of AA samples (MSAA) for all windows
 */
-void sgct::SGCTSettings::setDefaultNumberOfAASamples(int samples)
-{
-    if ((samples != 0) && ((samples & (samples - 1)) == 0)) //if power of two
+void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
+    if ((samples != 0) && ((samples & (samples - 1)) == 0)) {
+        //if power of two
         mDefaultNumberOfAASamples = samples;
-    else
-        MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "SGCTSettings: Number of default MSAA samples must be a power of two (not %d)!\n", samples);
+    }
+    else {
+        MessageHandler::instance()->print(
+            MessageHandler::NOTIFY_WARNING,
+            "SGCTSettings: Number of default MSAA samples must be a power of two (not %d)!\n",
+            samples
+        );
+    }
 }
 
 /*!
 Set the default FXAA state for all windows (enabled or disabled)
 */
-void sgct::SGCTSettings::setDefaultFXAAState(bool state)
-{
+void SGCTSettings::setDefaultFXAAState(bool state) {
     mDefaultFXAA = state;
 }
 
 /*!
 Set the glTexImage2D (legacy) should be used instead of glTexStorage2D (modern). For example gDebugger can't display textures created using glTexStorage2D.
 */
-void sgct::SGCTSettings::setForceGlTexImage2D(bool state)
-{
+void SGCTSettings::setForceGlTexImage2D(bool state) {
     mForceGlTexImage2D = state;
 }
 
 /*!
 Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern). For example gDebugger can't display textures created using glTexStorage2D.
 */
-const bool sgct::SGCTSettings::getForceGlTexImage2D() const
-{
+bool SGCTSettings::getForceGlTexImage2D() const {
     return mForceGlTexImage2D;
 }
 
 /*!
 Set if pixel buffer object transferes should be used
 */
-void sgct::SGCTSettings::setUsePBO(bool state)
-{
+void SGCTSettings::setUsePBO(bool state) {
     mUsePBO = state;
 }
 
 /*!
 Get if pixel buffer object transferes should be used
 */
-const bool sgct::SGCTSettings::getUsePBO() const
-{
+bool SGCTSettings::getUsePBO() const {
     return mUsePBO;
 }
 
 /*!
 Set if run length encoding (RLE) should be used in PNG and TGA export.
 */
-void sgct::SGCTSettings::setUseRLE(bool state)
-{
+void SGCTSettings::setUseRLE(bool state) {
     mMutex.lock();
     mUseRLE = state;
     mMutex.unlock();
@@ -576,43 +594,37 @@ void sgct::SGCTSettings::setUseRLE(bool state)
 /*!
 Set if screen warping should be used or not
 */
-void sgct::SGCTSettings::setUseWarping(bool state)
-{
+void SGCTSettings::setUseWarping(bool state) {
     mUseWarping = state;
 }
 
 /*!
 Set if warping mesh wireframe should be rendered
 */
-void sgct::SGCTSettings::setShowWarpingWireframe(bool state)
-{
+void SGCTSettings::setShowWarpingWireframe(bool state) {
     mShowWarpingWireframe = state;
 }
 
 /*!
 Set if capture should capture warped from backbuffer instead of texture. Backbuffer data includes masks and warping.
 */
-void sgct::SGCTSettings::setCaptureFromBackBuffer(bool state)
-{
+void SGCTSettings::setCaptureFromBackBuffer(bool state) {
     mCaptureBackBuffer = state;
 }
 
 /*!
 Set to true if warping meshes should be exported as OBJ files.
 */
-void sgct::SGCTSettings::setExportWarpingMeshes(bool state)
-{
+void SGCTSettings::setExportWarpingMeshes(bool state) {
     mExportWarpingMeshes = state;
 }
 
 /*!
 Get if run length encoding (RLE) is used in PNG and TGA export.
 */
-const bool sgct::SGCTSettings::getUseRLE()
-{
-    bool tmpB;
+bool SGCTSettings::getUseRLE() {
     mMutex.lock();
-    tmpB = mUseRLE;
+    bool tmpB = mUseRLE;
     mMutex.unlock();
     return tmpB;
 }
@@ -620,97 +632,90 @@ const bool sgct::SGCTSettings::getUseRLE()
 /*!
 Get if aspect ratio is taken into acount when generation some display geometries.
 */
-const bool sgct::SGCTSettings::getTryMaintainAspectRatio() const
-{
+bool SGCTSettings::getTryMaintainAspectRatio() const {
     return mTryMaintainAspectRatio;
 }
 
 /*!
 Get if warping meshes should be exported as obj-files.
 */
-const bool sgct::SGCTSettings::getExportWarpingMeshes() const
-{
+bool SGCTSettings::getExportWarpingMeshes() const {
     return mExportWarpingMeshes;
 }
 
 /*!
 Get if screen warping is used
 */
-const bool sgct::SGCTSettings::getUseWarping() const
-{
+bool SGCTSettings::getUseWarping() const {
     return mUseWarping;
 }
 
 /*!
 Get if warping wireframe mesh should be rendered
 */
-const bool sgct::SGCTSettings::getShowWarpingWireframe() const
-{
+bool SGCTSettings::getShowWarpingWireframe() const {
     return mShowWarpingWireframe;
 }
 
 /*!
 Get if capture should use backbuffer data or texture. Backbuffer data includes masks and warping.
 */
-const bool sgct::SGCTSettings::getCaptureFromBackBuffer() const
-{
+bool SGCTSettings::getCaptureFromBackBuffer() const {
     return mCaptureBackBuffer;
 }
 
 /*!
 Set if geometry should try to adapt after framebuffer dimensions. This is valid for multi-viewport renderings like fisheye projections.
 */
-void sgct::SGCTSettings::setTryMaintainAspectRatio(bool state)
-{
+void SGCTSettings::setTryMaintainAspectRatio(bool state) {
     mTryMaintainAspectRatio = state;
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "SGCTSettings: Set try maintain aspect ratio to: %s.\n", 
-        mTryMaintainAspectRatio ? "true" : "false");
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::NOTIFY_DEBUG,
+        "SGCTSettings: Set try maintain aspect ratio to: %s.\n", 
+        mTryMaintainAspectRatio ? "true" : "false"
+    );
 }
 
 /*!
     Get the OSD text font size
 */
-const unsigned int & sgct::SGCTSettings::getOSDTextFontSize() const
-{
+unsigned int SGCTSettings::getOSDTextFontSize() const {
     return mFontSize;
 }
 
 /*!
     Get the OSD text font name
 */
-const std::string & sgct::SGCTSettings::getOSDTextFontName() const
-{
+const std::string& SGCTSettings::getOSDTextFontName() const {
     return mFontName;
 }
 
 /*!
     Get the OSD text font path
 */
-const std::string & sgct::SGCTSettings::getOSDTextFontPath() const
-{
+const std::string& SGCTSettings::getOSDTextFontPath() const {
     return mFontPath;
 }
 
 /*!
     Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
 */
-const int    sgct::SGCTSettings::getBufferFloatPrecisionAsGLint() const
-{
+int SGCTSettings::getBufferFloatPrecisionAsGLint() const {
     return mCurrentBufferFloatPrecision == Float_16Bit ? GL_RGB16F : GL_RGB32F;
 }
 
 /*!
 Get the default MSAA setting
 */
-const int sgct::SGCTSettings::getDefaultNumberOfAASamples() const
-{
+int SGCTSettings::getDefaultNumberOfAASamples() const {
     return mDefaultNumberOfAASamples;
 }
 
 /*!
 Get the FXAA default state
 */
-const bool sgct::SGCTSettings::getDefaultFXAAState() const
-{
+bool SGCTSettings::getDefaultFXAAState() const {
     return mDefaultFXAA;
 }
+
+} // namespace sgct

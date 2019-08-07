@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _PROJECTION_PLANE_H
-#define _PROJECTION_PLANE_H
+#ifndef __SGCT__PROJECTION_PLANE__H__
+#define __SGCT__PROJECTION_PLANE__H__
 
 #include <glm/glm.hpp>
 
@@ -16,31 +16,29 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <tinyxml2.h>
 #endif
 
-namespace sgct_core
-{
+namespace sgct_core {
 
-    /*!
-    This class holds and manages the 3D projection plane
-    */
-    class SGCTProjectionPlane
-    {
-    public:
-        enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
+/*!
+This class holds and manages the 3D projection plane
+*/
+class SGCTProjectionPlane {
+public:
+    enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
-        SGCTProjectionPlane();
-        void configure(tinyxml2::XMLElement * element, glm::vec3* initializedCornerPoints);
-        void reset();
-        void offset(glm::vec3 p);
+    SGCTProjectionPlane();
+    void configure(tinyxml2::XMLElement* element, glm::vec3* initializedCornerPoints);
+    void reset();
+    void offset(const glm::vec3& p);
 
-        void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
-        void setCoordinate(std::size_t corner, glm::vec3 coordinate);
-        const glm::vec3 * getCoordinatePtr(ProjectionPlaneCorner corner) const;
-        glm::vec3 getCoordinate(ProjectionPlaneCorner corner) const;
+    void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
+    void setCoordinate(size_t corner, glm::vec3 coordinate);
+    const glm::vec3* getCoordinatePtr(ProjectionPlaneCorner corner) const;
+    glm::vec3 getCoordinate(ProjectionPlaneCorner corner) const;
 
-    protected:
-        glm::vec3 mProjectionPlaneCoords[3];
-    };
+protected:
+    glm::vec3 mProjectionPlaneCoords[3];
+};
 
-}
+} // namespace sgct_core
 
-#endif
+#endif // __SGCT__PROJECTION_PLANE__H__

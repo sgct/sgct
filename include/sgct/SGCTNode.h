@@ -5,43 +5,39 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_NODE
-#define _SGCT_NODE
+#ifndef __SGCT__NODE__H__
+#define __SGCT__NODE__H__
 
-#include "SGCTWindow.h"
+#include <sgct/SGCTWindow.h>
 #include <string>
 #include <vector>
 
-namespace sgct_core
-{
-class SGCTNode
-{
+namespace sgct_core {
+
+class SGCTNode {
 public:
-    SGCTNode();
-    
-    
-    bool getKeyPressed( int key );
+    bool getKeyPressed(int key);
 
     /*!
         Get the number of windows in the window vector
     */
-    inline std::size_t        getNumberOfWindows() { return mWindows.size(); }
+    size_t getNumberOfWindows();
 
     /*!
         Get the window pointer at index in window vector.
     */
-    inline sgct::SGCTWindow *    getWindowPtr(std::size_t index) { return &mWindows[index]; }
+    sgct::SGCTWindow *    getWindowPtr(std::size_t index);
     
     /*!
         Get the active window pointer.
     */
-    inline sgct::SGCTWindow *        getCurrentWindowPtr() { return &mWindows[mCurrentWindowIndex]; }
+    sgct::SGCTWindow *        getCurrentWindowPtr();
 
     /*! Get the current window index */
-    inline std::size_t        getCurrentWindowIndex() { return mCurrentWindowIndex; }
+    size_t getCurrentWindowIndex();
 
     void addWindow(sgct::SGCTWindow window);
-    void setCurrentWindowIndex(std::size_t index);
+    void setCurrentWindowIndex(size_t index);
     void setUseSwapGroups(bool state);
 
     bool shouldAllWindowsClose();
@@ -64,10 +60,11 @@ private:
     std::string mSyncPort;
     std::string mDataTransferPort;
 
-    std::size_t mCurrentWindowIndex;
+    size_t mCurrentWindowIndex = 0;
     std::vector<sgct::SGCTWindow> mWindows;
-    bool mUseSwapGroups;
+    bool mUseSwapGroups = false;
 };
-}
 
-#endif
+} // namespace sgct_core
+
+#endif // __SGCT__NODE__H__

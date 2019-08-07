@@ -5,47 +5,38 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_PLANE
-#define _SGCT_PLANE
+#ifndef __SGCT__PLANE__H__
+#define __SGCT__PLANE__H__
 
 #include "../helpers/SGCTVertexData.h"
 
 /*! \namespace sgct_utils
 \brief SGCT utils namespace contains basic utilities for geometry rendering
 */
-namespace sgct_utils
-{
+namespace sgct_utils {
 
 /*!
     This class creates and renders a textured box.
 */
-class SGCTPlane
-{
+class SGCTPlane {
 public:
     SGCTPlane(float width, float height);
     ~SGCTPlane();
     void draw();
 
 private:
-    // Don't implement these, should give compile warning if used
-    SGCTPlane();
-    SGCTPlane(const SGCTPlane & box);
-    const SGCTPlane & operator=(const SGCTPlane & box);
-
     void drawVBO();
     void drawVAO();
-
-    typedef void (SGCTPlane::*InternalCallbackFn)(void);
-    InternalCallbackFn    mInternalDrawFn;
 
     void cleanUp();
     void createVBO();
 
 private:    
-    unsigned int mVBO;
-    unsigned int mVAO;
-    sgct_helpers::SGCTVertexData * mVerts;
+    unsigned int mVBO = 0;
+    unsigned int mVAO = 0;
+    sgct_helpers::SGCTVertexData* mVerts = nullptr;
 };
-}
 
-#endif
+} // namespace sgct_utils
+
+#endif // __SGCT__PLANE__H__

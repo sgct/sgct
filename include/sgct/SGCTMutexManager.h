@@ -5,62 +5,48 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_MUTEX_MANAGER
-#define _SGCT_MUTEX_MANAGER
+#ifndef __SGCT__MUTEX_MANAGER__H__
+#define __SGCT__MUTEX_MANAGER__H__
 
 #define SGCT_NUMBER_OF_MUTEXES 6
 
 #include <mutex>
 #include <stddef.h>
 
-namespace sgct
-{
+namespace sgct {
 
 /*!
     This singleton class manages SGCTs mutexes
 */
-class SGCTMutexManager
-{
+class SGCTMutexManager {
 public:
-    enum MutexIndexes { DataSyncMutex = 0, FrameSyncMutex, TrackingMutex, ConsoleMutex, TransferMutex };
+    enum MutexIndexes {
+        DataSyncMutex = 0,
+        FrameSyncMutex,
+        TrackingMutex,
+        ConsoleMutex,
+        TransferMutex
+    };
 
     /*! Get the SGCTSettings instance */
-    static SGCTMutexManager * instance()
-    {
-        if( mInstance == NULL )
-        {
-            mInstance = new SGCTMutexManager();
-        }
-
-        return mInstance;
-    }
+    static SGCTMutexManager* instance();
 
     /*! Destroy the SGCTSettings instance */
-    static void destroy()
-    {
-        if( mInstance != NULL )
-        {
-            delete mInstance;
-            mInstance = NULL;
-        }
-    }
+    static void destroy();
 
     void lockMutex(MutexIndexes mi);
     void unlockMutex(MutexIndexes mi);
     std::mutex * getMutexPtr(MutexIndexes mi);
 
 private:
-    SGCTMutexManager();
-    ~SGCTMutexManager();
-
-    // Don't implement these, should give compile warning if used
-    SGCTMutexManager( const SGCTMutexManager & settings );
-    const SGCTMutexManager & operator=(const SGCTMutexManager & settings );
+    SGCTMutexManager() = default;
+    ~SGCTMutexManager() = default;
 
 private:
-    static SGCTMutexManager * mInstance;
+    static SGCTMutexManager* mInstance;
     std::mutex mInternalMutexes[SGCT_NUMBER_OF_MUTEXES];
 };
-}
 
-#endif
+} // namespace sgct
+
+#endif // __SGCT__MUTEX_MANAGER__H__

@@ -416,19 +416,19 @@ void SharedData::writeString(SharedString * ss)
 void SharedData::writeWString(SharedWString * ss)
 {
 #ifdef __SGCT_NETWORK_DEBUG__     
-	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::writeWString\n");
+    MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::writeWString\n");
 #endif
 
-	std::wstring tmpStr(ss->getVal());
-	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
-	uint32_t length = static_cast<uint32_t>(tmpStr.size());
-	unsigned char *p = reinterpret_cast<unsigned char *>(&length);
-	unsigned char *ws = reinterpret_cast<unsigned char *>(&tmpStr[0]);
+    std::wstring tmpStr(ss->getVal());
+    SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    uint32_t length = static_cast<uint32_t>(tmpStr.size());
+    unsigned char *p = reinterpret_cast<unsigned char *>(&length);
+    unsigned char *ws = reinterpret_cast<unsigned char *>(&tmpStr[0]);
 
-	(*currentStorage).insert((*currentStorage).end(), p, p + 4);
-	(*currentStorage).insert((*currentStorage).end(), ws, ws + length*sizeof(wchar_t));
+    (*currentStorage).insert((*currentStorage).end(), p, p + 4);
+    (*currentStorage).insert((*currentStorage).end(), ws, ws + length*sizeof(wchar_t));
 
-	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 }
 
 void SharedData::writeUCharArray(unsigned char * c, uint32_t length)
@@ -698,34 +698,34 @@ void SharedData::readString(SharedString * ss)
 void SharedData::readWString(SharedWString * ss)
 {
 #ifdef __SGCT_NETWORK_DEBUG__     
-	MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::readWString\n");
+    MessageHandler::instance()->printDebug(sgct::MessageHandler::NOTIFY_INFO, "SharedData::readWString\n");
 #endif
-	SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 
-	uint32_t length = (*(reinterpret_cast<uint32_t*>(&dataBlock[pos])));
-	pos += sizeof(uint32_t);
+    uint32_t length = (*(reinterpret_cast<uint32_t*>(&dataBlock[pos])));
+    pos += sizeof(uint32_t);
 
-	if (length == 0)
-	{
-		ss->clear();
-		return;
-	}
+    if (length == 0)
+    {
+        ss->clear();
+        return;
+    }
 
-	wchar_t * stringData = new (std::nothrow) wchar_t[length + 1];
-	if (stringData)
-	{
-		memcpy(stringData, &dataBlock[pos], length*sizeof(wchar_t));
-		//add string terminator
-		stringData[length] = L'\0';
-	}
+    wchar_t * stringData = new (std::nothrow) wchar_t[length + 1];
+    if (stringData)
+    {
+        memcpy(stringData, &dataBlock[pos], length*sizeof(wchar_t));
+        //add string terminator
+        stringData[length] = L'\0';
+    }
 
-	pos += length*sizeof(wchar_t);
-	SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    pos += length*sizeof(wchar_t);
+    SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 
-	ss->setVal(stringData);
+    ss->setVal(stringData);
 
-	delete[] stringData;
-	stringData = NULL;
+    delete[] stringData;
+    stringData = NULL;
 }
 
 unsigned char * SharedData::readUCharArray(uint32_t length)

@@ -5,30 +5,30 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_TRACKER_H_
-#define _SGCT_TRACKER_H_
+#ifndef __SGCT__TRACKER__H__
+#define __SGCT__TRACKER__H__
 
 #include <vector>
 #include "SGCTTrackingDevice.h"
 
-namespace sgct
-{
+namespace sgct {
+
+    class SGCTTrackingDevice;
 
 /*!
 Class that manages a tracking system's properties and devices/sensors
 */
-class SGCTTracker
-{
+class SGCTTracker {
 public:
-    SGCTTracker(std::string name);
+    explicit SGCTTracker(std::string name);
     ~SGCTTracker();
     void setEnabled(bool state);
     void addDevice(std::string name, size_t index);
 
-    SGCTTrackingDevice * getLastDevicePtr();
-    SGCTTrackingDevice * getDevicePtr(size_t index);
-    SGCTTrackingDevice * getDevicePtr(const char * name);
-    SGCTTrackingDevice * getDevicePtrBySensorId(int id);
+    SGCTTrackingDevice* getLastDevicePtr();
+    SGCTTrackingDevice* getDevicePtr(size_t index);
+    SGCTTrackingDevice* getDevicePtr(const char* name);
+    SGCTTrackingDevice* getDevicePtrBySensorId(int id);
 
     void setOrientation(glm::quat q);
     void setOrientation(float xRot, float yRot, float zRot);
@@ -40,22 +40,22 @@ public:
     glm::mat4 getTransform();
     double getScale();
 
-    inline size_t getNumberOfDevices() { return mTrackingDevices.size(); }
-    inline const std::string & getName() { return mName; }
+    size_t getNumberOfDevices();
+    const std::string& getName();
 
 private:
     void calculateTransform();
 
 private:
-    std::vector<SGCTTrackingDevice *> mTrackingDevices;
+    std::vector<SGCTTrackingDevice*> mTrackingDevices;
     std::string mName;
 
-    double mScale;
-    glm::mat4 mXform;
+    double mScale = 1.0;
+    glm::mat4 mXform = glm::mat4(1.f);
     glm::mat4 mOrientation;
-    glm::vec3 mOffset;
+    glm::vec3 mOffset = glm::vec3(0.f);
 };
 
-}
+} // namespace sgct
 
-#endif
+#endif // __SGCT__TRACKER__H__

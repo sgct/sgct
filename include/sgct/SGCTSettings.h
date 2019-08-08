@@ -42,7 +42,7 @@ public:
     };
 
     /*! Get the SGCTSettings instance */
-    static SGCTSettings * instance();
+    static SGCTSettings* instance();
 
     /*! Destroy the SGCTSettings instance */
     static void destroy();
@@ -128,15 +128,14 @@ public:
     DrawBufferType getCurrentDrawBufferType();
 
 private:
-    SGCTSettings() = default;
-    ~SGCTSettings();
+    SGCTSettings();
 
     void updateDrawBufferFlag();
 
 private:
     static SGCTSettings* mInstance;
 
-    int mCaptureFormat = sgct_core::ScreenCapture::NOT_SET;
+    int mCaptureFormat;
     int mSwapInterval = 1;
     int mRefreshRate = 0;
     int mNumberOfCaptureThreads = std::thread::hardware_concurrency();

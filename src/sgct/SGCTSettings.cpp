@@ -32,6 +32,11 @@ void SGCTSettings::destroy() {
     }
 }
 
+SGCTSettings::SGCTSettings()
+    : mCaptureFormat(sgct_core::ScreenCapture::NOT_SET)
+{}
+
+
 void SGCTSettings::configure(tinyxml2::XMLElement* element) {
     using namespace tinyxml2;
 

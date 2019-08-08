@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_WINDOW_H_
-#define _SGCT_WINDOW_H_
+#ifndef __SGCT__WINDOW__H__
+#define __SGCT__WINDOW__H__
 
 #include "ogl_headers.h"
 #include "OffScreenBuffer.h"
@@ -17,69 +17,89 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define NUMBER_OF_TEXTURES 8
 
-namespace sgct
-{
+namespace sgct {
 
 /*!
 Helper class for window data. 
 */
-class SGCTWindow
-{
+class SGCTWindow {
 public:    
     /*!
         Different stereo modes used for rendering
     */
-    enum StereoMode { No_Stereo = 0, Active_Stereo, Anaglyph_Red_Cyan_Stereo, Anaglyph_Amber_Blue_Stereo, Anaglyph_Red_Cyan_Wimmer_Stereo,
-        Checkerboard_Stereo, Checkerboard_Inverted_Stereo, Vertical_Interlaced_Stereo, Vertical_Interlaced_Inverted_Stereo, Dummy_Stereo,
-        Side_By_Side_Stereo, Side_By_Side_Inverted_Stereo, Top_Bottom_Stereo, Top_Bottom_Inverted_Stereo, Number_Of_Stereo_Items };
+    enum StereoMode {
+        No_Stereo = 0,
+        Active_Stereo,
+        Anaglyph_Red_Cyan_Stereo,
+        Anaglyph_Amber_Blue_Stereo,
+        Anaglyph_Red_Cyan_Wimmer_Stereo,
+        Checkerboard_Stereo,
+        Checkerboard_Inverted_Stereo,
+        Vertical_Interlaced_Stereo,
+        Vertical_Interlaced_Inverted_Stereo,
+        Dummy_Stereo,
+        Side_By_Side_Stereo,
+        Side_By_Side_Inverted_Stereo,
+        Top_Bottom_Stereo,
+        Top_Bottom_Inverted_Stereo,
+        Number_Of_Stereo_Items
+    };
 
     enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
-    enum ColorBitDepth { BufferColorBitDepth8, BufferColorBitDepth16, BufferColorBitDepth16Float, BufferColorBitDepth32Float, BufferColorBitDepth16Int, BufferColorBitDepth32Int, BufferColorBitDepth16UInt, BufferColorBitDepth32UInt };
+    enum ColorBitDepth {
+        BufferColorBitDepth8,
+        BufferColorBitDepth16,
+        BufferColorBitDepth16Float,
+        BufferColorBitDepth32Float,
+        BufferColorBitDepth16Int,
+        BufferColorBitDepth32Int,
+        BufferColorBitDepth16UInt,
+        BufferColorBitDepth32UInt
+    };
 
-public:
     SGCTWindow(int id);
     void close();
     void init();
     void initOGL();
     void initContextSpecificOGL();
     static void initNvidiaSwapGroups();
-    void initWindowResolution(const int x, const int y);
+    void initWindowResolution(int x, int y);
     void swap(bool takeScreenshot);
     void updateResolutions();
     bool update();
     bool openWindow(GLFWwindow* share, size_t lastWindowIdx);
-    void makeOpenGLContextCurrent( OGL_Context context );
+    void makeOpenGLContextCurrent(OGL_Context context);
     static void restoreSharedContext();
     static void resetSwapGroupFrameNumber();
 
     // ------------- set functions ----------------- //
-    void setName(const std::string & name);
-    void setTags(const std::string & tags);
+    void setName(std::string name);
+    void setTags(std::string tags);
     void setVisibility(bool state);
     void setRenderWhileHidden(bool state);
     void setFocused(bool state);
     void setIconified(bool state);
-    void setWindowTitle(const char * title);
-    void setWindowResolution(const int x, const int y);
-    void setFramebufferResolution(const int x, const int y);
-    void setWindowPosition(const int x, const int y);
+    void setWindowTitle(const char* title);
+    void setWindowResolution(int x, int y);
+    void setFramebufferResolution(int x, int y);
+    void setWindowPosition(int x, int y);
     void setWindowMode(bool fullscreen);
     void setFloating(bool floating);
     void setDoubleBuffered(bool doubleBuffered);
     void setWindowDecoration(bool state);
-    void setFullScreenMonitorIndex( int index );
-    static void setBarrier(const bool state);
-    void setFixResolution(const bool state);
+    void setFullScreenMonitorIndex(int index);
+    static void setBarrier(bool state);
+    void setFixResolution(bool state);
     void setHorizFieldOfView(float hFovDeg);
     void setUsePostFX(bool state);
     void setUseFXAA(bool state);
-    void setUseQuadbuffer(const bool state);
-    void setCallDraw2DFunction(const bool state);
-    void setCallDraw3DFunction(const bool state);
-    void setCopyPreviousWindowToCurrentWindow(const bool state);
+    void setUseQuadbuffer(bool state);
+    void setCallDraw2DFunction(bool state);
+    void setCallDraw3DFunction(bool state);
+    void setCopyPreviousWindowToCurrentWindow(bool state);
     void setNumberOfAASamples(int samples);
-    void setStereoMode( StereoMode sm );
-    void setCurrentViewport(std::size_t index);
+    void setStereoMode(StereoMode sm);
+    void setCurrentViewport(size_t index);
     void setCurrentViewport(sgct_core::BaseViewport * vp);
     void setAlpha(bool state);
     void setGamma(float gamma);
@@ -90,100 +110,100 @@ public:
     void setAllowCapture(bool state);
 
     // -------------- is functions --------------- //
-    const bool &        isFullScreen() const;
-    const bool &        isFloating() const;
-    const bool &        isDoubleBuffered() const;
-    const bool &        isFocused() const;
-    const bool &        isIconified() const;
-    const bool &        isVisible() const;
-    const bool &        isRenderingWhileHidden() const;
-    const bool &        isFixResolution() const;
-    const bool &        isWindowResolutionSet() const;
+    bool isFullScreen() const;
+    bool isFloating() const;
+    bool isDoubleBuffered() const;
+    bool isFocused() const;
+    bool isIconified() const;
+    bool isVisible() const;
+    bool isRenderingWhileHidden() const;
+    bool isFixResolution() const;
+    bool isWindowResolutionSet() const;
 
-    bool                isStereo() const;
-    bool                isWindowResized() const;
-    static inline bool    isBarrierActive() { return mBarrier; }
-    static inline bool    isUsingSwapGroups() { return mUseSwapGroups; }
-    static inline bool    isSwapGroupMaster() { return mSwapGroupMaster; }
-    bool                isBGRPrefered() const;
-    bool                isCapturingAllowed() const;
+    bool isStereo() const;
+    bool isWindowResized() const;
+    static bool isBarrierActive();
+    static bool isUsingSwapGroups();
+    static bool isSwapGroupMaster();
+    bool isBGRPrefered() const;
+    bool isCapturingAllowed() const;
         
     // -------------- get functions ----------------- //
-    const std::string &                getName() const;
-    const std::vector<std::string>&    getTags() const;
-    bool                            checkIfTagExists(std::string tag) const;
-    const int &                        getId() const;
-    unsigned int                    getFrameBufferTexture(unsigned int index);
-    sgct_core::ScreenCapture *        getScreenCapturePointer(unsigned int eye) const;
-    const int &                        getNumberOfAASamples() const;
-    const StereoMode &                getStereoMode() const;
-    static void                        getSwapGroupFrameNumber(unsigned int & frameNumber);
-    void                            getFinalFBODimensions(int & width, int & height) const;
-    sgct_core::OffScreenBuffer *    getFBOPtr() const;
-    GLFWmonitor *                    getMonitor() const;
-    GLFWwindow *                    getWindowHandle() const;
-    sgct_core::BaseViewport *        getCurrentViewport() const;
-    sgct_core::Viewport *            getViewport(std::size_t index) const;
-    void                            getCurrentViewportPixelCoords(int &x, int &y, int &xSize, int &ySize) const;
-    std::size_t                        getNumberOfViewports() const;
-    std::string                        getStereoModeStr() const;
-    const bool &                    getAlpha() const;
-    const float &                    getGamma() const;
-    const float &                    getContrast() const;
-    const float &                    getBrightness() const;
-    ColorBitDepth                    getColorBitDepth() const;
-    const float &                    getHorizFieldOfViewDegrees();
+    const std::string& getName() const;
+    const std::vector<std::string>& getTags() const;
+    bool checkIfTagExists(const std::string& tag) const;
+    int getId() const;
+    unsigned int getFrameBufferTexture(unsigned int index);
+    sgct_core::ScreenCapture* getScreenCapturePointer(unsigned int eye) const;
+    int getNumberOfAASamples() const;
+    StereoMode getStereoMode() const;
+    static void getSwapGroupFrameNumber(unsigned int & frameNumber);
+    void getFinalFBODimensions(int& width, int& height) const;
+    sgct_core::OffScreenBuffer* getFBOPtr() const;
+    GLFWmonitor* getMonitor() const;
+    GLFWwindow* getWindowHandle() const;
+    sgct_core::BaseViewport* getCurrentViewport() const;
+    sgct_core::Viewport* getViewport(std::size_t index) const;
+    void getCurrentViewportPixelCoords(int& x, int& y, int& xSize, int& ySize) const;
+    size_t getNumberOfViewports() const;
+    std::string getStereoModeStr() const;
+    bool getAlpha() const;
+    float getGamma() const;
+    float getContrast() const;
+    float getBrightness() const;
+    ColorBitDepth getColorBitDepth() const;
+    float getHorizFieldOfViewDegrees();
     
     // ------------------ Inline functions ----------------------- //
     /*!
         \returns the pointer to a specific post effect
     */
-    inline sgct::PostFX * getPostFXPtr(std::size_t index) { return &mPostFXPasses[index]; }
+    sgct::PostFX* getPostFXPtr(size_t index);
     /*!
         \returns the number of post effects
     */
-    inline std::size_t getNumberOfPostFXs() const { return mPostFXPasses.size(); }
+    size_t getNumberOfPostFXs() const;
 
     /*!
         \returns Get the horizontal window resolution.
     */
-    inline const int & getXResolution() const { return mWindowRes[0]; }
+    int getXResolution() const;
     /*!
         \returns Get the vertical window resolution.
     */
-    inline const int & getYResolution() const { return mWindowRes[1]; }
+    int getYResolution() const;
     /*!
         \returns Get the horizontal frame buffer resolution.
     */
-    inline const int & getXFramebufferResolution() const { return mFramebufferResolution[0]; }
+    int getXFramebufferResolution() const;
     /*!
         \returns Get the vertical frame buffer resolution.
     */
-    inline const int & getYFramebufferResolution() const { return mFramebufferResolution[1]; }
+    int getYFramebufferResolution() const;
     /*!
         \returns Get the initial horizontal window resolution.
     */
-    inline const int & getXInitialResolution() const { return mWindowInitialRes[0]; }
+    int getXInitialResolution() const;
     /*!
         \returns Get the initial vertical window resolution.
     */
-    inline const int & getYInitialResolution() const { return mWindowInitialRes[1]; }
+    int getYInitialResolution() const;
     /*!
      \returns Get the horizontal scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
      */
-    inline const float & getXScale() const { return mScale[0]; }
+    float getXScale() const;
     /*!
      \returns Get the vertical scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
      */
-    inline const float & getYScale() const { return mScale[1]; }
+    float getYScale() const;
 
     //! \returns the aspect ratio of the window 
-    inline const float & getAspectRatio() const { return mAspectRatio; }
+    float getAspectRatio() const;
 
     /*!
     \returns Get the frame buffer bytes per color component (BPCC) count.
     */
-    inline const int & getFramebufferBPCC() const { return mBytesPerColor; }
+    int getFramebufferBPCC() const;
 
     // -------------- bind functions -------------------//
     void bindVAO() const;
@@ -192,36 +212,40 @@ public:
     void unbindVAO() const;
 
     //------------- Other ------------------------- //
-    void addPostFX( sgct::PostFX & fx );
+    void addPostFX(PostFX& fx);
     void addViewport(float left, float right, float bottom, float top);
-    void addViewport(sgct_core::Viewport * vpPtr);
+    void addViewport(sgct_core::Viewport* vpPtr);
 
     /*! \return true if any masks are used */
-    inline const bool & hasAnyMasks() const { return mHasAnyMasks; }
+    bool hasAnyMasks() const;
     /*! \returns true if FXAA should be used */
-    inline const bool & useFXAA() const { return mUseFXAA; }
+    bool useFXAA() const;
     /*! \returns true if PostFX pass should be used */
-    inline const bool & usePostFX() const { return mUsePostFX; }
+    bool usePostFX() const;
 
-    inline void bindStereoShaderProgram() const { mStereoShader.bind(); }
-    inline const int & getStereoShaderMVPLoc() const { return StereoMVP; }
-    inline const int & getStereoShaderLeftTexLoc() const { return StereoLeftTex; }
-    inline const int & getStereoShaderRightTexLoc() const { return StereoRightTex; }
+    void bindStereoShaderProgram() const;
+    int getStereoShaderMVPLoc() const;
+    int getStereoShaderLeftTexLoc() const;
+    int getStereoShaderRightTexLoc() const;
 
-    inline const bool & getCallDraw2DFunction() const { return mCallDraw2DFunction; }
-    inline const bool & getCallDraw3DFunction() const { return mCallDraw3DFunction; }
-    inline const bool & getCopyPreviousWindowToCurrentWindow() const { return mCopyPreviousWindowToCurrentWindow; }
+    bool getCallDraw2DFunction() const;
+    bool getCallDraw3DFunction() const;
+    bool getCopyPreviousWindowToCurrentWindow() const;
+
+    sgct_core::OffScreenBuffer* mFinalFBO_Ptr = nullptr;
+
 private:
     enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture };
 
-    static void windowResizeCallback( GLFWwindow * window, int width, int height );
-    static void frameBufferResizeCallback( GLFWwindow * window, int width, int height );
-    static void windowFocusCallback( GLFWwindow * window, int state );
-    static void windowIconifyCallback( GLFWwindow * window, int state );
+    static void windowResizeCallback(GLFWwindow * window, int width, int height);
+    static void frameBufferResizeCallback(GLFWwindow * window, int width, int height);
+    static void windowFocusCallback(GLFWwindow * window, int state);
+    static void windowIconifyCallback(GLFWwindow * window, int state);
     void initScreenCapture();
     void deleteAllViewports();
     void createTextures();
-    void generateTexture(unsigned int id, const int xSize, const int ySize, const TextureType type, const bool interpolate);
+    void generateTexture(unsigned int id, int xSize, int ySize, TextureType type,
+        bool interpolate);
     void createFBOs();
     void resizeFBOs();
     void createVBOs();
@@ -229,91 +253,96 @@ private:
     void updateTransferCurve();
     void updateColorBufferData();
 
-public:
-    sgct_core::OffScreenBuffer * mFinalFBO_Ptr;
-
 private:
     std::string mName;
     std::vector<std::string> mTags;
 
-    bool mVisible;
-    bool mRenderWhileHidden;
-    bool mFocused;
-    bool mIconified;
-    bool mUseFixResolution;
-    bool mIsWindowResSet;
-    bool mAllowCapture;
+    bool mVisible = true;
+    bool mRenderWhileHidden = false;
+    bool mFocused = false;
+    bool mIconified = false;
+    bool mUseFixResolution = false;
+    bool mIsWindowResSet = false;
+    bool mAllowCapture = true;
     static bool mUseSwapGroups;
     static bool mBarrier;
     static bool mSwapGroupMaster;
-    bool mCallDraw2DFunction;
-    bool mCallDraw3DFunction;
-    bool mCopyPreviousWindowToCurrentWindow;
-    bool mUseQuadBuffer;
-    bool mFullScreen;
-    bool mFloating;
-    bool mDoubleBuffered;
-    bool mSetWindowPos;
-    bool mDecorated;
-    bool mAlpha;
-    int mFramebufferResolution[2];
-    int mWindowInitialRes[2];
-    bool mHasPendingWindowRes;
-    int mPendingWindowRes[2];
-    bool mHasPendingFramebufferRes;
-    int mPendingFramebufferRes[2];
-    int mWindowRes[2];
-    int mWindowPos[2];
-    int mWindowResOld[2];
-    int mMonitorIndex;
-    GLFWmonitor * mMonitor;
-    GLFWwindow * mWindowHandle;
-    static GLFWwindow * mSharedHandle;
-    static GLFWwindow * mCurrentContextOwner;
-    float mAspectRatio;
-    float mGamma;
-    float mContrast;
-    float mBrightness;
-    float mScale[2];
+    bool mCallDraw2DFunction = true;
+    bool mCallDraw3DFunction = true;
+    bool mCopyPreviousWindowToCurrentWindow = false;
+    bool mUseQuadBuffer = false;
+    bool mFullScreen = false;
+    bool mFloating = false;
+    bool mDoubleBuffered = true;
+    bool mSetWindowPos = false;
+    bool mDecorated = true;
+    bool mAlpha = false;
+    int mFramebufferResolution[2] = { 512, 256 };
+    int mWindowInitialRes[2] = { 640, 480 };
+    bool mHasPendingWindowRes = false;
+    int mPendingWindowRes[2] = { 0, 0 };
+    bool mHasPendingFramebufferRes = false;
+    int mPendingFramebufferRes[2] = { 0, 0 };
+    int mWindowRes[2] = { 640, 480 };
+    int mWindowPos[2] = { 0, 0 };
+    int mWindowResOld[2] = { 640, 480 };
+    int mMonitorIndex = 0;
+    GLFWmonitor* mMonitor = nullptr;
+    GLFWwindow* mWindowHandle = nullptr;
+    static GLFWwindow* mSharedHandle;
+    static GLFWwindow* mCurrentContextOwner;
+    float mAspectRatio = 1.f;
+    float mGamma = 1.f;
+    float mContrast = 1.f;
+    float mBrightness = 1.f;
+    float mScale[2] = { 0.f, 0.f };
     float mHorizontalFovDegrees = 90.f;
 
     bool mUseFXAA;
-    bool mUsePostFX;
+    bool mUsePostFX = false;
 
-    ColorBitDepth mBufferColorBitDepth;
+    ColorBitDepth mBufferColorBitDepth = BufferColorBitDepth8;
     int mInternalColorFormat;
     unsigned int mColorFormat;
     unsigned int mColorDataType;
-    bool mPreferBGR;
+    bool mPreferBGR = true;
     int mBytesPerColor;
 
     //FBO stuff
     unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];
 
-    sgct_core::ScreenCapture * mScreenCapture[2];
+    sgct_core::ScreenCapture* mScreenCapture[2] = { nullptr, nullptr };
 
-    StereoMode mStereoMode;
+    StereoMode mStereoMode = No_Stereo;
     int mNumberOfAASamples;
     int mId;
 
-    float mQuadVerts[20];
+    float mQuadVerts[20] = {
+        0.f, 0.f, -1.f, -1.f, -1.f,
+        1.f, 0.f,  1.f, -1.f, -1.f,
+        0.f, 1.f, -1.f,  1.f, -1.f,
+        1.f, 1.f,  1.f,  1.f, -1.f
+    };
 
     //VBO:s
-    unsigned int mVBO;
+    unsigned int mVBO = 0;
     //VAO:s
-    unsigned int mVAO;
+    unsigned int mVAO = 0;
 
     //Shaders
-    sgct::ShaderProgram mStereoShader;
-    int StereoMVP, StereoLeftTex, StereoRightTex;
+    ShaderProgram mStereoShader;
+    int StereoMVP = -1;
+    int StereoLeftTex = -1;
+    int StereoRightTex = -1;
 
-    bool mUseRightEyeTexture;
-    bool mHasAnyMasks;
+    bool mUseRightEyeTexture = false;
+    bool mHasAnyMasks = false;
 
-    sgct_core::BaseViewport * mCurrentViewport;
-    std::vector<sgct_core::Viewport *> mViewports;
+    sgct_core::BaseViewport* mCurrentViewport = nullptr;
+    std::vector<sgct_core::Viewport*> mViewports;
     std::vector<sgct::PostFX> mPostFXPasses;
 };
-}
 
-#endif
+} // namespace sgct
+
+#endif // __SGCT__WINDOW__H__

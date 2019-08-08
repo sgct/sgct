@@ -5,56 +5,43 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SGCT_SPHERE
-#define _SGCT_SPHERE
+#ifndef __SGCT__SPHERE__H__
+#define __SGCT__SPHERE__H__
 
 #include "../helpers/SGCTVertexData.h"
 
-namespace sgct_utils
-{
+namespace sgct_utils {
 
 /*!
     This class creates and renders a textured sphere.
 */
-class SGCTSphere
-{
+class SGCTSphere {
 public:
     SGCTSphere(float radius, unsigned int segments);
     ~SGCTSphere();
     void draw();
 
 private:
-    void addVertexData(unsigned int pos,
-        const float &t, const float &s,
-        const float &nx, const float &ny, const float &nz,
-        const float &x, const float &y, const float &z);
+    void addVertexData(unsigned int pos, float t, float s, float nx, float ny, float nz,
+        float x, float y, float z);
 
     void drawVBO();
     void drawVAO();
 
-    typedef void (SGCTSphere::*InternalCallbackFn)(void);
-    InternalCallbackFn    mInternalDrawFn;
-
     void createVBO();
     void cleanUp();
 
-private:
-    // Don't implement these, should give compile warning if used
-    SGCTSphere();
-    SGCTSphere( const SGCTSphere & sphere );
-    const SGCTSphere & operator=(const SGCTSphere & sphere );
-    
-    sgct_helpers::SGCTVertexData * mVerts;
-    unsigned int * mIndices;
+    sgct_helpers::SGCTVertexData* mVerts = nullptr;
+    unsigned int* mIndices = nullptr;
 
     unsigned int mNumberOfVertices;
     unsigned int mNumberOfFaces;
 
     enum bufferType { Vertex = 0, Index };
-    unsigned int mVBO[2];
-    unsigned int mVAO;
+    unsigned int mVBO[2] = { 0, 0 };
+    unsigned int mVAO = 0;
 };
 
-}
+} // namespace sgct_utils
 
-#endif
+#endif // __SGCT__SPHERE__H__

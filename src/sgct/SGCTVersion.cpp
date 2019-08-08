@@ -5,16 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sstream>
 #include <sgct/SGCTVersion.h>
 
+namespace sgct {
 /*!
     This function returns the version string of SGCT.
 */
-std::string sgct::getSGCTVersion()
-{
-    std::stringstream ss;
-    ss << "SGCT ver " << SGCT_VERSION_MAJOR << "." << SGCT_VERSION_MINOR << "." << SGCT_VERSION_REVISION;
-
-    return ss.str();
+std::string getSGCTVersion() {
+    return "SGCT ver " + std::to_string(SGCT_VERSION_MAJOR) + "." +
+        std::to_string(SGCT_VERSION_MINOR) + "." + std::to_string(SGCT_VERSION_REVISION);
 }
+
+} // namespace sgct

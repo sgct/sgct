@@ -6,48 +6,39 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/SGCTUser.h>
+
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
+
+namespace sgct_core {
 
 /*!
     Default contructor
 */
-sgct_core::SGCTUser::SGCTUser(std::string name)
-{
-    mName = name;
-    
-    for(unsigned int i=0; i<3; i++)
-        mPos[i] = glm::vec3(0.0f);
-    mEyeSeparation = 0.06f;
-    mHalfEyeSeparation = mEyeSeparation / 2.0f;
-    mTransform = glm::dmat4(1.0);
-}
+SGCTUser::SGCTUser(std::string name)
+    : mName(std::move(name))
+{}
 
 /*!
     Sets user's head position
 */
-void sgct_core::SGCTUser::setPos(float x, float y, float z)
-{
-    mPos[Frustum::MonoEye].x = x;
-    mPos[Frustum::MonoEye].y = y;
-    mPos[Frustum::MonoEye].z = z;
+void SGCTUser::setPos(float x, float y, float z) {
+    mPos[Frustum::MonoEye] = glm::vec3(x, y, z);
     updateEyeSeparation();
 }
 
 /*!
     Sets user's head position
 */
-void sgct_core::SGCTUser::setPos(glm::vec3 pos)
-{
-    mPos[Frustum::MonoEye] = pos;
+void SGCTUser::setPos(glm::vec3 pos) {
+    mPos[Frustum::MonoEye] = std::move(pos);
     updateEyeSeparation();
 }
 
 /*!
     Sets user's head position
 */
-void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
-{
+void SGCTUser::setPos(glm::dvec4 pos) {
     mPos[Frustum::MonoEye] = glm::vec3(pos);
     updateEyeSeparation();
 }
@@ -56,11 +47,8 @@ void sgct_core::SGCTUser::setPos(glm::dvec4 pos)
     Sets user's head position
     @param pos double array with 3 slots for x, y & z
 */
-void sgct_core::SGCTUser::setPos(float * pos)
-{
-    mPos[Frustum::MonoEye].x = pos[0];
-    mPos[Frustum::MonoEye].y = pos[1];
-    mPos[Frustum::MonoEye].z = pos[2];
+void SGCTUser::setPos(float* pos) {
+    mPos[Frustum::MonoEye] = glm::vec3(pos[0], pos[1], pos[2]);
     updateEyeSeparation();
 }
 
@@ -71,19 +59,17 @@ void sgct_core::SGCTUser::setPos(float * pos)
     @param trackerName the pointer to the tracker
     @param deviceName the name of the device which is mapped to the tracker
 */
-void sgct_core::SGCTUser::setHeadTracker(const char * trackerName, const char * deviceName)
-{
-    mHeadTrackerDeviceName.assign(deviceName);
-    mHeadTrackerName.assign(trackerName);
+void SGCTUser::setHeadTracker(const char* trackerName, const char* deviceName) {
+    mHeadTrackerDeviceName = deviceName;
+    mHeadTrackerName = trackerName;
 }
 
 /*!
     Set the user's head transform matrix.
     @param transform the transform matrix
 */
-void sgct_core::SGCTUser::setTransform(const glm::dmat4 & transform)
-{
-    mTransform = glm::mat4( transform );
+void SGCTUser::setTransform(glm::dmat4 transform) {
+    mTransform = glm::mat4(std::move(transform));
     updateEyeTransform();
 }
 
@@ -91,9 +77,8 @@ void sgct_core::SGCTUser::setTransform(const glm::dmat4 & transform)
     Set the user's head transform matrix.
     @param transform the transform matrix
 */
-void sgct_core::SGCTUser::setTransform(const glm::mat4 & transform)
-{
-    mTransform = transform;
+void SGCTUser::setTransform(glm::mat4 transform) {
+    mTransform = std::move(transform);
     updateEyeTransform();
 }
 
@@ -104,8 +89,7 @@ void sgct_core::SGCTUser::setTransform(const glm::mat4 & transform)
     @param yRot the rotation around the y-azis
     @param zRot the rotation around the z-azis
 */
-void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
-{
+void SGCTUser::setOrientation(float xRot, float yRot, float zRot) {
     //create rotation quaternion based on x, y, z rotations
     /*glm::quat rotQuat;
     rotQuat = glm::rotate( rotQuat, glm::radians(xRot), glm::vec3(1.0f, 0.0f, 0.0f) );
@@ -113,12 +97,13 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
     rotQuat = glm::rotate( rotQuat, glm::radians(zRot), glm::vec3(0.0f, 0.0f, 1.0f) );*/
 
     //create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::MonoEye]);
+    glm::mat4 transMat = glm::translate(glm::mat4(1.f), mPos[Frustum::MonoEye]);
     
     //calculate transform
     //mTransform = transMat * glm::mat4_cast(rotQuat);
 
-    mTransform = transMat * glm::eulerAngleX( xRot ) * glm::eulerAngleY( yRot ) * glm::eulerAngleZ( zRot );
+    mTransform = transMat *
+        glm::eulerAngleX(xRot) * glm::eulerAngleY(yRot) * glm::eulerAngleZ(zRot);
 
     updateEyeTransform();
 }
@@ -126,12 +111,11 @@ void sgct_core::SGCTUser::setOrientation(float xRot, float yRot, float zRot)
 /*!
 Set the user's head orientation using a quaternion
 */
-void sgct_core::SGCTUser::setOrientation(glm::quat q)
-{
+void SGCTUser::setOrientation(glm::quat q) {
     //create offset translation matrix
-    glm::mat4 transMat = glm::translate(glm::mat4(1.0f), mPos[Frustum::MonoEye]);
+    glm::mat4 transMat = glm::translate(glm::mat4(1.f), mPos[Frustum::MonoEye]);
 
-    mTransform = transMat * glm::mat4_cast( q );
+    mTransform = transMat * glm::mat4_cast(q);
 
     updateEyeTransform();
 }
@@ -139,38 +123,36 @@ void sgct_core::SGCTUser::setOrientation(glm::quat q)
 /*!
     Changes the interocular distance and recalculates the user's eye positions.
 */
-void sgct_core::SGCTUser::setEyeSeparation(float eyeSeparation)
-{
+void SGCTUser::setEyeSeparation(float eyeSeparation) {
     mEyeSeparation = eyeSeparation;
-    mHalfEyeSeparation = mEyeSeparation / 2.0f;
     updateEyeSeparation();
 }
 
 /*!
-    Recalculates the user's eye positions based on head position and eye separation (interocular distance).
+    Recalculates the user's eye positions based on head position and eye separation
+    (interocular distance).
 */
-void sgct_core::SGCTUser::updateEyeSeparation()
-{
-    glm::vec3 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f );
+void SGCTUser::updateEyeSeparation() {
+    glm::vec3 eyeOffsetVec(mEyeSeparation / 2.f, 0.f, 0.f );
     mPos[Frustum::StereoLeftEye] = mPos[Frustum::MonoEye] - eyeOffsetVec;
     mPos[Frustum::StereoRightEye] = mPos[Frustum::MonoEye] + eyeOffsetVec;
 }
 
 /*!
-    Recalculates the user's eye orientations based on head position and eye separation (interocular distance).
+    Recalculates the user's eye orientations based on head position and eye
+    separation (interocular distance).
 */
-void sgct_core::SGCTUser::updateEyeTransform()
-{
-    glm::vec4 eyeOffsetVec( mHalfEyeSeparation, 0.0f, 0.0f, 0.0f );
+void SGCTUser::updateEyeTransform() {
+    glm::vec4 eyeOffsetVec(mEyeSeparation / 2.f, 0.f, 0.f, 0.f );
     
     glm::vec4 pos[3];
-    pos[Frustum::MonoEye] = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
+    pos[Frustum::MonoEye] = glm::vec4(0.f, 0.f, 0.f, 1.f);
     pos[Frustum::StereoLeftEye] = pos[Frustum::MonoEye] - eyeOffsetVec;
     pos[Frustum::StereoRightEye] = pos[Frustum::MonoEye] + eyeOffsetVec;
 
     mPos[Frustum::MonoEye] = glm::vec3(mTransform * pos[Frustum::MonoEye]);
-    mPos[Frustum::StereoLeftEye] = glm::vec3( mTransform * pos[Frustum::StereoLeftEye] );
-    mPos[Frustum::StereoRightEye] = glm::vec3( mTransform * pos[Frustum::StereoRightEye] );
+    mPos[Frustum::StereoLeftEye] = glm::vec3(mTransform * pos[Frustum::StereoLeftEye]);
+    mPos[Frustum::StereoRightEye] = glm::vec3(mTransform * pos[Frustum::StereoRightEye]);
 }
 
 /*!
@@ -178,25 +160,59 @@ void sgct_core::SGCTUser::updateEyeTransform()
     @param fm which eye/projection
     @returns position vector
 */
-const glm::vec3 & sgct_core::SGCTUser::getPos(Frustum::FrustumMode fm)
-{
+const glm::vec3& SGCTUser::getPos(Frustum::FrustumMode fm) {
     return mPos[fm];
 }
 
+glm::vec3* SGCTUser::getPosPtr() {
+    return &mPos[Frustum::MonoEye];
+}
+
+glm::vec3* SGCTUser::getPosPtr(Frustum::FrustumMode fm) {
+    return &mPos[fm];
+}
+
+float SGCTUser::getEyeSeparation() {
+    return mEyeSeparation;
+}
+
+float SGCTUser::getHalfEyeSeparation() {
+    return mEyeSeparation / 2.f;
+}
+
+float SGCTUser::getXPos() {
+    return mPos[Frustum::MonoEye].x;
+}
+
+float SGCTUser::getYPos() {
+    return mPos[Frustum::MonoEye].y;
+}
+
+float SGCTUser::getZPos() {
+    return mPos[Frustum::MonoEye].z;
+}
+
+const char* SGCTUser::getHeadTrackerName() {
+    return mHeadTrackerName.c_str();
+}
+
+const char* SGCTUser::getHeadTrackerDeviceName() {
+    return mHeadTrackerDeviceName.c_str();
+}
 
 /*!
 Get the users name
 @returns users name
 */
-std::string sgct_core::SGCTUser::getName()
-{
+std::string SGCTUser::getName() {
     return mName;
 }
 
 /*!
 @returns true if user is tracked
 */
-bool sgct_core::SGCTUser::isTracked() const
-{    
+bool SGCTUser::isTracked() const {    
     return !(mHeadTrackerDeviceName.empty() || mHeadTrackerName.empty());
 }
+
+} // namespace sgct_core

@@ -35,7 +35,7 @@ public:
     befor the id can be used. The shader won't be created until it has the source set
     @return Shader id that can be used for program linking
     */
-    inline int getId() const;
+    int getId() const;
 
     void deleteShader();
 

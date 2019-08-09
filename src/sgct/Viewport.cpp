@@ -16,135 +16,146 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SpoutOutputProjection.h>
 //#include <glm/gtc/matrix_transform.hpp>
 
-
-sgct_core::Viewport::Viewport()
-{
-    mNonLinearProjection = NULL;
-    reset(0.0f, 0.0f, 1.0f, 1.0f);
-}
+namespace sgct_core {
 
 /*!
     Create a viewport coordinates are relative to the window size [0, 1]
 */
-sgct_core::Viewport::Viewport(float x, float y, float xSize, float ySize)
-{
-    mNonLinearProjection = NULL;
-    reset(x, y, xSize, ySize);
+Viewport::Viewport(float x, float y, float xSize, float ySize) {
+    mX = x;
+    mY = y;
+    mXSize = xSize;
+    mYSize = ySize;
+    mEye = Frustum::MonoEye;
+    mEnabled = true;
+    mName = "NoName";
+    mUser = ClusterManager::instance()->getDefaultUserPtr();
+    mProjectionPlane.reset();
 }
 
 /*!
 Destructor that deletes any overlay or mask textures
 */
-sgct_core::Viewport::~Viewport()
-{
-    if (mNonLinearProjection)
-    {
+Viewport::~Viewport() {
+    if (mNonLinearProjection) {
         delete mNonLinearProjection;
-        mNonLinearProjection = NULL;
+        mNonLinearProjection = nullptr;
     }
     
-    if (mOverlayTextureIndex)
+    if (mOverlayTextureIndex) {
         glDeleteTextures(1, &mOverlayTextureIndex);
+    }
 
-    if (mBlendMaskTextureIndex)
+    if (mBlendMaskTextureIndex) {
         glDeleteTextures(1, &mBlendMaskTextureIndex);
+    }
 
-    if (mBlackLevelMaskTextureIndex)
+    if (mBlackLevelMaskTextureIndex) {
         glDeleteTextures(1, &mBlackLevelMaskTextureIndex);
+    }
 
     delete mMpcdiWarpMeshData;
 }
 
-void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
-{
-    if (element->Attribute("user") != NULL)
+void Viewport::configure(tinyxml2::XMLElement* element) {
+    if (element->Attribute("user") != nullptr) {
         setUserName(element->Attribute("user"));
+    }
 
-    if (element->Attribute("name") != NULL)
+    if (element->Attribute("name") != nullptr) {
         setName(element->Attribute("name"));
+    }
 
-    if (element->Attribute("overlay") != NULL)
+    if (element->Attribute("overlay") != nullptr) {
         setOverlayTexture(element->Attribute("overlay"));
+    }
 
     //for backward compability
-    if (element->Attribute("mask") != NULL)
+    if (element->Attribute("mask") != nullptr) {
         setBlendMaskTexture(element->Attribute("mask"));
+    }
 
-    if (element->Attribute("BlendMask") != NULL)
+    if (element->Attribute("BlendMask") != nullptr) {
         setBlendMaskTexture(element->Attribute("BlendMask"));
+    }
 
-    if (element->Attribute("BlackLevelMask") != NULL)
+    if (element->Attribute("BlackLevelMask") != nullptr) {
         setBlackLevelMaskTexture(element->Attribute("BlackLevelMask"));
+    }
 
-    if (element->Attribute("mesh") != NULL)
+    if (element->Attribute("mesh") != nullptr) {
         setCorrectionMesh(element->Attribute("mesh"));
+    }
 
-    if (element->Attribute("hint") != NULL)
+    if (element->Attribute("hint") != nullptr) {
         mMeshHint.assign(element->Attribute("hint"));
+    }
 
-    if (element->Attribute("tracked") != NULL)
-        setTracked(strcmp(element->Attribute("tracked"), "true") == 0 ? true : false);
+    if (element->Attribute("tracked") != nullptr) {
+        setTracked(strcmp(element->Attribute("tracked"), "true") == 0);
+    }
 
     //get eye if set
-    if (element->Attribute("eye") != NULL)
-    {
-        if (strcmp("center", element->Attribute("eye")) == 0)
-        {
+    if (element->Attribute("eye") != nullptr) {
+        if (strcmp("center", element->Attribute("eye")) == 0) {
             setEye(Frustum::MonoEye);
         }
-        else if (strcmp("left", element->Attribute("eye")) == 0)
-        {
+        else if (strcmp("left", element->Attribute("eye")) == 0) {
             setEye(Frustum::StereoLeftEye);
         }
-        else if (strcmp("right", element->Attribute("eye")) == 0)
-        {
+        else if (strcmp("right", element->Attribute("eye")) == 0) {
             setEye(Frustum::StereoRightEye);
         }
     }
 
-    const char * val;
-    tinyxml2::XMLElement * subElement = element->FirstChildElement();
-    while (subElement != NULL)
-    {
+    using namespace tinyxml2;
+    const char* val;
+    XMLElement* subElement = element->FirstChildElement();
+    while (subElement != nullptr) {
         val = subElement->Value();
         float fTmp[2];
-        fTmp[0] = 0.0f;
-        fTmp[1] = 0.0f;
+        fTmp[0] = 0.f;
+        fTmp[1] = 0.f;
 
-        if (strcmp("Pos", val) == 0)
-        {
-            if (subElement->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
+        if (strcmp("Pos", val) == 0) {
+            if (subElement->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+            {
                 setPos(fTmp[0], fTmp[1]);
-            else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport: Failed to parse position from XML!\n");
+            }
+            else {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Viewport: Failed to parse position from XML!\n"
+                );
+            }
         }
-        else if (strcmp("Size", val) == 0)
-        {
-            if (subElement->QueryFloatAttribute("x", &fTmp[0]) == tinyxml2::XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &fTmp[1]) == tinyxml2::XML_NO_ERROR)
+        else if (strcmp("Size", val) == 0) {
+            if (subElement->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR)
+            {
                 setSize(fTmp[0], fTmp[1]);
-            else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport: Failed to parse size from XML!\n");
+            }
+            else {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Viewport: Failed to parse size from XML!\n"
+                );
+            }
         }
-        else if (strcmp("PlanarProjection", val) == 0)
-        {
+        else if (strcmp("PlanarProjection", val) == 0) {
             parsePlanarProjection(subElement);
-        }//end if planar projection
-        else if (strcmp("FisheyeProjection", val) == 0)
-        {
+        }
+        else if (strcmp("FisheyeProjection", val) == 0) {
             parseFisheyeProjection(subElement);
         }
-        else if (strcmp("SphericalMirrorProjection", val) == 0)
-        {
+        else if (strcmp("SphericalMirrorProjection", val) == 0) {
             parseSphericalMirrorProjection(subElement);
         }
-		else if (strcmp("SpoutOutputProjection", val) == 0)
-		{
-			parseSpoutOutputProjection(subElement);
-		}
-		else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0)
-        {
+        else if (strcmp("SpoutOutputProjection", val) == 0) {
+            parseSpoutOutputProjection(subElement);
+        }
+        else if (strcmp("Viewplane", val) == 0 || strcmp("Projectionplane", val) == 0) {
             mProjectionPlane.configure(subElement, mUnTransformedViewPlaneCoords);	
         }
 
@@ -153,36 +164,35 @@ void sgct_core::Viewport::configure(tinyxml2::XMLElement * element)
     }
 }
 
-void sgct_core::Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
-                                                  const std::string tag,
-                                                  float& target)
+void Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
+                                       const std::string& tag, float& target)
 {
-    if (element->Attribute(tag.c_str()) != NULL)
-    {
+    if (element->Attribute(tag.c_str()) != nullptr) {
         try {
             target = std::stof(element->Attribute(tag.c_str()));
         }
         catch (const std::invalid_argument&) {
             std::string fullErrorMessage = "Viewport: Failed to parse " + tag
                 + " from MPCDI XML!\n";
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                fullErrorMessage.c_str());
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str()
+            );
         }
     }
-    else
-    {
-        std::string fullErrorMessage = "Viewport: No " + tag
-            + " provided in MPCDI XML!\n";
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-            fullErrorMessage.c_str());
+    else {
+        std::string msg = "Viewport: No " + tag + " provided in MPCDI XML!\n";
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_ERROR,
+            msg.c_str()
+        );
     }
 }
 
-bool sgct_core::Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
-                                              tinyxml2::XMLElement* elem, const char* frustumTag)
+bool Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
+                                   tinyxml2::XMLElement* elem, const char* frustumTag)
 {
-    if (strcmp(frustumTag, elem->Value()) == 0)
-    {
+    if (strcmp(frustumTag, elem->Value()) == 0) {
         try {
             frustum.value[elemIndex] = std::stof(elem->GetText());
             frustum.foundElem[elemIndex] = true;
@@ -191,88 +201,136 @@ bool sgct_core::Viewport::parseFrustumElement(FrustumData& frustum, FrustumData:
         catch (const std::invalid_argument&) {
             std::string fullErrorMessage = "Viewport: Failed to parse frustum element "
                 + std::string(frustumTag) + " from MPCDI XML!\n";
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                fullErrorMessage.c_str());
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                fullErrorMessage.c_str()
+            );
         }
     }
     return false;
 }
 
-void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
-                                         const char* val[], int winResX, int winResY)
+void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[],
+                              int winResX, int winResY)
 {
-    const int idx_x = 0, idx_y = 1;
-    float vpPosition[2] = {0.0, 0.0};
-    float vpSize[2] = {0.0, 0.0};
-    float vpResolution[2] = {0.0, 0.0};
+    const int idx_x = 0;
+    const int idx_y = 1;
     float expectedResolution[2];
     FrustumData frustumElements;
 
-    if (element[2]->Attribute("id") != NULL)
+    if (element[2]->Attribute("id") != nullptr) {
         setName(element[2]->Attribute("id"));
+    }
 
+    float vpPosition[2] = { 0.0, 0.0 };
     parseFloatFromAttribute(element[2], "x", vpPosition[idx_x]);
     parseFloatFromAttribute(element[2], "y", vpPosition[idx_y]);
     setPos(vpPosition[idx_x], vpPosition[idx_y]);
+
+    float vpSize[2] = { 0.0, 0.0 };
     parseFloatFromAttribute(element[2], "xSize", vpSize[idx_x]);
     parseFloatFromAttribute(element[2], "ySize", vpSize[idx_y]);
     setSize(vpSize[idx_x], vpSize[idx_y]);
+
+    float vpResolution[2] = { 0.0, 0.0 };
     parseFloatFromAttribute(element[2], "xResolution", vpResolution[idx_x]);
     parseFloatFromAttribute(element[2], "yResolution", vpResolution[idx_y]);
     expectedResolution[idx_x] = std::floor(vpSize[idx_x] * (float)winResX);
     expectedResolution[idx_y] = std::floor(vpSize[idx_y] * (float)winResY);
 
-    if(   expectedResolution[idx_x] != vpResolution[idx_x]
-       || expectedResolution[idx_y] != vpResolution[idx_y] )
+    if (expectedResolution[idx_x] != vpResolution[idx_x] ||
+        expectedResolution[idx_y] != vpResolution[idx_y])
     {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING,
-            "Viewport: MPCDI region expected resolution does not match portion of window.\n");
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_WARNING,
+            "Viewport: MPCDI region expected resolution does not match portion of window.\n"
+        );
     }
 
     element[3] = element[2]->FirstChildElement();
-    while( element[3] != NULL )
-    {
+    while (element[3] != nullptr) {
         val[3] = element[3]->Value();
-        if( strcmp("frustum", val[3]) == 0 )
-        {
-            float distance = 10.0f;
+        if (strcmp("frustum", val[3]) == 0) {
+            float distance = 10.f;
             glm::quat rotQuat;
-            glm::vec3 offset(0.0f, 0.0f, 0.0f);
+            glm::vec3 offset(0.f, 0.f, 0.f);
 
             element[4] = element[3]->FirstChildElement();
-            while( element[4] != NULL )
-            {
+            while (element[4] != nullptr) {
                 bool frustumTagFound = false;
 
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::right, element[4], "rightAngle");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::left, element[4], "leftAngle");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::up, element[4], "upAngle");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::down, element[4], "downAngle");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::yaw, element[4], "yaw");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::pitch, element[4], "pitch");
-                if (!frustumTagFound)
-                    frustumTagFound = parseFrustumElement(frustumElements, FrustumData::elemIdx::roll, element[4], "roll");
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::right,
+                        element[4],
+                        "rightAngle"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::left,
+                        element[4],
+                        "leftAngle"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::up,
+                        element[4],
+                        "upAngle"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::down,
+                        element[4],
+                        "downAngle"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::yaw,
+                        element[4],
+                        "yaw"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::pitch,
+                        element[4],
+                        "pitch"
+                    );
+                }
+                if (!frustumTagFound) {
+                    frustumTagFound = parseFrustumElement(
+                        frustumElements,
+                        FrustumData::elemIdx::roll,
+                        element[4],
+                        "roll"
+                    );
+                }
 
                 element[4] = element[4]->NextSiblingElement();
             }
 
-            for (bool& hasFoundSpecificField : frustumElements.foundElem)
-            {
-                if (!hasFoundSpecificField)
-                {
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
-                        "Viewport: Failed to parse mpcdi projection FOV from XML!\n");
+            for (bool hasFoundSpecificField : frustumElements.foundElem) {
+                if (!hasFoundSpecificField) {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::NOTIFY_ERROR,
+                        "Viewport: Failed to parse mpcdi projection FOV from XML!\n"
+                    );
                     return;
                 }
             }
 
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_DEBUG,
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
                 frustumElements.value[FrustumData::elemIdx::down],
                 frustumElements.value[FrustumData::elemIdx::left],
@@ -280,207 +338,223 @@ void sgct_core::Viewport::configureMpcdi(tinyxml2::XMLElement* element[],
                 frustumElements.value[FrustumData::elemIdx::up],
                 frustumElements.value[FrustumData::elemIdx::yaw],
                 frustumElements.value[FrustumData::elemIdx::pitch],
-                frustumElements.value[FrustumData::elemIdx::roll]);
-            rotQuat = ReadConfig::parseMpcdiOrientationNode(frustumElements.value[FrustumData::elemIdx::yaw],
+                frustumElements.value[FrustumData::elemIdx::roll]
+            );
+            rotQuat = ReadConfig::parseMpcdiOrientationNode(
+                frustumElements.value[FrustumData::elemIdx::yaw],
                 frustumElements.value[FrustumData::elemIdx::pitch],
-                frustumElements.value[FrustumData::elemIdx::roll]);
-            setViewPlaneCoordsUsingFOVs(frustumElements.value[FrustumData::elemIdx::up],
+                frustumElements.value[FrustumData::elemIdx::roll]
+            );
+            setViewPlaneCoordsUsingFOVs(
+                frustumElements.value[FrustumData::elemIdx::up],
                 frustumElements.value[FrustumData::elemIdx::down],
                 frustumElements.value[FrustumData::elemIdx::left],
                 frustumElements.value[FrustumData::elemIdx::right],
                 rotQuat,
-                distance);
+                distance
+            );
             mProjectionPlane.offset(offset);
         }
         element[3] = element[3]->NextSiblingElement();
     }
 }
 
-void sgct_core::Viewport::reset(float x, float y, float xSize, float ySize)
-{    
-    mX = x;
-    mY = y;
-    mXSize = xSize;
-    mYSize = ySize;
-    mEye = Frustum::MonoEye;
-    mCorrectionMesh = false;
-    mOverlayTextureIndex = GL_FALSE;
-    mBlendMaskTextureIndex = GL_FALSE;
-    mBlackLevelMaskTextureIndex = GL_FALSE;
-    mTracked = false;
-    mEnabled = true;
-    mName.assign("NoName");
-    mUser = ClusterManager::instance()->getDefaultUserPtr();
-    mProjectionPlane.reset();
-}
+void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
+    using namespace tinyxml2;
 
-void sgct_core::Viewport::parsePlanarProjection(tinyxml2::XMLElement * element)
-{
-    const char * val;
+    const char* val;
     
     bool validFOV = false;
-    float down, left, right, up;
-    float distance = 10.0f;
+    float down;
+    float left;
+    float right;
+    float up;
+    float distance = 10.f;
     glm::quat rotQuat;
-    glm::vec3 offset(0.0f, 0.0f, 0.0f);
+    glm::vec3 offset(0.f, 0.f, 0.f);
 
-    tinyxml2::XMLElement * subElement = element->FirstChildElement();
-    while (subElement != NULL)
-    {
+    XMLElement* subElement = element->FirstChildElement();
+    while (subElement != nullptr) {
         val = subElement->Value();
 
-        if (strcmp("FOV", val) == 0)
-        {
-            if (subElement->QueryFloatAttribute("down", &down) == tinyxml2::XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("left", &left) == tinyxml2::XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("right", &right) == tinyxml2::XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("up", &up) == tinyxml2::XML_NO_ERROR)
+        if (strcmp("FOV", val) == 0) {
+            if (subElement->QueryFloatAttribute("down", &down) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("left", &left) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("right", &right) == XML_NO_ERROR &&
+                subElement->QueryFloatAttribute("up", &up) == XML_NO_ERROR)
             {
                 validFOV = true;
 
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_DEBUG,
                     "Viewport: Adding planar projection FOV left=%f right=%f up=%f down=%f\n",
-                    left, right, up, down);
+                    left, right, up, down
+                );
 
                 float tanLeft = tan(glm::radians(left));
                 float tanRight = tan(glm::radians(right));
                 float tanBottom = tan(glm::radians(down));
                 float tanTop = tan(glm::radians(up));
 
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG,
-                    "Tan angles: tanLeft=%f tanRight=%f tanBottom=%f tanTop=%f\n width=%f\n height=%f\n",
-                    tanLeft, tanRight, tanBottom, tanTop, tanRight + tanLeft, tanTop + tanBottom);
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    "Tan angles: tanLeft=%f tanRight=%f tanBottom=%f tanTop=%f\n "
+                    "width=%f\n height=%f\n",
+                    tanLeft, tanRight, tanBottom, tanTop, tanRight + tanLeft,
+                    tanTop + tanBottom
+                );
             }
-            else
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Viewport: Failed to parse planar projection FOV from XML!\n");
+            else {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Viewport: Failed to parse planar projection FOV from XML!\n"
+                );
+            }
 
             float tmpf;
-            if (subElement->QueryFloatAttribute("distance", &tmpf) == tinyxml2::XML_NO_ERROR)
-            {
+            if (subElement->QueryFloatAttribute("distance", &tmpf) == XML_NO_ERROR) {
                 distance = tmpf;
             }
         }
-        else if (strcmp("Orientation", val) == 0)
-        {
+        else if (strcmp("Orientation", val) == 0) {
             rotQuat = ReadConfig::parseOrientationNode(subElement);
         }
-        else if (strcmp("Offset", val) == 0)
-        {
-            float x, y, z;
+        else if (strcmp("Offset", val) == 0) {
+            float v;
 
-            if (subElement->QueryFloatAttribute("x", &x) == tinyxml2::XML_NO_ERROR)
-                offset.x = x;
+            if (subElement->QueryFloatAttribute("x", &v) == XML_NO_ERROR)
+                offset.x = v;
 
-            if (subElement->QueryFloatAttribute("y", &y) == tinyxml2::XML_NO_ERROR)
-                offset.y = y;
+            if (subElement->QueryFloatAttribute("y", &v) == XML_NO_ERROR)
+                offset.y = v;
 
-            if (subElement->QueryFloatAttribute("z", &z) == tinyxml2::XML_NO_ERROR)
-                offset.z = z;
+            if (subElement->QueryFloatAttribute("z", &v) == XML_NO_ERROR)
+                offset.z = v;
         }
 
         //iterate
         subElement = subElement->NextSiblingElement();
     }//end while level 3
 
-    if (validFOV)
-    {
+    if (validFOV) {
         setViewPlaneCoordsUsingFOVs(up, -down, -left, right, rotQuat, distance);
         mProjectionPlane.offset(offset);
     }
 }
 
-void sgct_core::Viewport::parseFisheyeProjection(tinyxml2::XMLElement * element)
-{
-    FisheyeProjection * fishProj = new FisheyeProjection();
-    for (std::size_t i = 0; i < 6; i++)
+void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
+    FisheyeProjection* fishProj = new FisheyeProjection();
+    for (std::size_t i = 0; i < 6; i++) {
         fishProj->getSubViewportPtr(i)->setUser(mUser);
+    }
     
     float fov;
-    if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR)
+    if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR) {
         fishProj->setFOV(fov);
+    }
 
-    if (element->Attribute("quality") != NULL)
-    {
+    if (element->Attribute("quality") != nullptr) {
         fishProj->setCubemapResolution(std::string(element->Attribute("quality")));
     }
 
-    if (element->Attribute("method") != NULL)
-        fishProj->setRenderingMethod( 
+    if (element->Attribute("method") != nullptr) {
+        fishProj->setRenderingMethod(
             strcmp(element->Attribute("method"), "five_face_cube") == 0 ?
-            FisheyeProjection::FiveFaceCube : FisheyeProjection::FourFaceCube);
+                FisheyeProjection::FiveFaceCube :
+                FisheyeProjection::FourFaceCube
+        );
+    }
 
-    if (element->Attribute("interpolation") != NULL)
+    if (element->Attribute("interpolation") != nullptr) {
         fishProj->setInterpolationMode(
-            strcmp(element->Attribute("interpolation"), "cubic") == 0 ? NonLinearProjection::Cubic : NonLinearProjection::Linear);
+            strcmp(element->Attribute("interpolation"), "cubic") == 0 ?
+                NonLinearProjection::Cubic :
+                NonLinearProjection::Linear
+        );
+    }
 
     float tilt;
-    if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR)
-    {
+    if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         fishProj->setTilt(tilt);
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt);
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt
+        );
     }
 
     float diameter;
-    if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR)
-    {
+    if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
         fishProj->setDomeDiameter(diameter);
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter);
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter
+        );
     }
 
-    tinyxml2::XMLElement * subElement = element->FirstChildElement();
-    const char * val;
+    using namespace tinyxml2;
 
-    while (subElement != NULL)
-    {
+    XMLElement * subElement = element->FirstChildElement();
+    const char* val;
+
+    while (subElement != nullptr) {
         val = subElement->Value();
 
-        if (strcmp("Crop", val) == 0)
-        {
-            float tmpFArr[] = { 0.0f, 0.0f, 0.0f, 0.0f };
+        if (strcmp("Crop", val) == 0) {
+            float tmpFArr[] = { 0.f, 0.f, 0.f, 0.f };
             float ftmp;
 
-            if (subElement->QueryFloatAttribute("left", &ftmp) == tinyxml2::XML_NO_ERROR)
+            if (subElement->QueryFloatAttribute("left", &ftmp) == XML_NO_ERROR) {
                 tmpFArr[FisheyeProjection::CropLeft] = ftmp;
-            if (subElement->QueryFloatAttribute("right", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("right", &ftmp) == XML_NO_ERROR) {
                 tmpFArr[FisheyeProjection::CropRight] = ftmp;
-            if (subElement->QueryFloatAttribute("bottom", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("bottom", &ftmp) == XML_NO_ERROR) {
                 tmpFArr[FisheyeProjection::CropBottom] = ftmp;
-            if (subElement->QueryFloatAttribute("top", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("top", &ftmp) == XML_NO_ERROR) {
                 tmpFArr[FisheyeProjection::CropTop] = ftmp;
+            }
 
             fishProj->setCropFactors(
                 tmpFArr[FisheyeProjection::CropLeft],
                 tmpFArr[FisheyeProjection::CropRight],
                 tmpFArr[FisheyeProjection::CropBottom],
-                tmpFArr[FisheyeProjection::CropTop]);
+                tmpFArr[FisheyeProjection::CropTop]
+            );
         }
-        else if (strcmp("Offset", val) == 0)
-        {
-            glm::vec3 offset = glm::vec3(0.0f);
+        else if (strcmp("Offset", val) == 0) {
+            glm::vec3 offset = glm::vec3(0.f);
             float ftmp;
 
-            if (subElement->QueryFloatAttribute("x", &ftmp) == tinyxml2::XML_NO_ERROR)
+            if (subElement->QueryFloatAttribute("x", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 offset.x = ftmp;
-            if (subElement->QueryFloatAttribute("y", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("y", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 offset.y = ftmp;
-            if (subElement->QueryFloatAttribute("z", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("z", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 offset.z = ftmp;
+            }
 
             fishProj->setBaseOffset(offset);
         }
-        if (strcmp("Background", val) == 0)
-        {
+        if (strcmp("Background", val) == 0) {
             glm::vec4 color;
             float ftmp;
 
-            if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
+            if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.r = ftmp;
-            if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.g = ftmp;
-            if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.b = ftmp;
-            if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.a = ftmp;
+            }
 
             fishProj->setClearColor(color);
         }
@@ -493,165 +567,187 @@ void sgct_core::Viewport::parseFisheyeProjection(tinyxml2::XMLElement * element)
     mNonLinearProjection = fishProj;
 }
 
-
-
-void sgct_core::Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement * element)
-{
+void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 #ifndef SGCT_HAS_SPOUT
-	sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_WARNING, "ReadConfig: Spout library not added to SGCT.\n");
-	return;
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::NOTIFY_WARNING,
+        "ReadConfig: Spout library not added to SGCT.\n"
+    );
+    return;
 #endif
-	SpoutOutputProjection * spoutProj = new SpoutOutputProjection();
-	for (std::size_t i = 0; i < 6; i++)
-		spoutProj->getSubViewportPtr(i)->setUser(mUser);
+    SpoutOutputProjection* spoutProj = new SpoutOutputProjection();
+    for (std::size_t i = 0; i < 6; i++) {
+        spoutProj->getSubViewportPtr(i)->setUser(mUser);
+    }
 
-    if (element->Attribute("quality") != NULL)
-    {
+    if (element->Attribute("quality") != nullptr) {
         spoutProj->setCubemapResolution(std::string(element->Attribute("quality")));
     }
-    if (element->Attribute("mapping") != NULL) {
+    if (element->Attribute("mapping") != nullptr) {
         if (std::string(element->Attribute("mapping")) == "fisheye") {
-            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Fisheye);
+            spoutProj->setSpoutMapping(SpoutOutputProjection::Mapping::Fisheye);
         }
         else if (std::string(element->Attribute("mapping")) == "equirectangular") {
-            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Equirectangular);
+            spoutProj->setSpoutMapping(SpoutOutputProjection::Mapping::Equirectangular);
         }
         else if (std::string(element->Attribute("mapping")) == "cubemap") {
-            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Cubemap);
+            spoutProj->setSpoutMapping(SpoutOutputProjection::Mapping::Cubemap);
         }
         else {
-            spoutProj->setSpoutMapping(sgct_core::SpoutOutputProjection::Mapping::Cubemap);
+            spoutProj->setSpoutMapping(SpoutOutputProjection::Mapping::Cubemap);
         }
     }
-    if (element->Attribute("mappingSpoutName") != NULL)
-    {
-        spoutProj->setSpoutMappingName(std::string(element->Attribute("mappingSpoutName")));
+    if (element->Attribute("mappingSpoutName") != nullptr) {
+        spoutProj->setSpoutMappingName(
+            std::string(element->Attribute("mappingSpoutName"))
+        );
     }
 
-	tinyxml2::XMLElement * subElement = element->FirstChildElement();
-	const char * val;
+    tinyxml2::XMLElement* subElement = element->FirstChildElement();
+    const char* val;
 
-	while (subElement != NULL)
-	{
-		val = subElement->Value();
+    while (subElement != nullptr) {
+        val = subElement->Value();
 
-		if (strcmp("Background", val) == 0)
-		{
-			glm::vec4 color;
-			float ftmp;
+        if (strcmp("Background", val) == 0) {
+            glm::vec4 color;
+            float ftmp;
 
-			if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
-				color.r = ftmp;
-			if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR)
-				color.g = ftmp;
-			if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR)
-				color.b = ftmp;
-			if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR)
-				color.a = ftmp;
+            if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR) {
+                color.r = ftmp;
+            }
+            if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR) {
+                color.g = ftmp;
+            }
+            if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR) {
+                color.b = ftmp;
+            }
+            if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR) {
+                color.a = ftmp;
+            }
 
-			spoutProj->setClearColor(color);
-		}
+            spoutProj->setClearColor(color);
+        }
 
-        if (strcmp("Channels", val) == 0)
-        {
-            bool channel[SpoutOutputProjection::spoutTotalFaces] = {false};
+        if (strcmp("Channels", val) == 0) {
+            bool channel[SpoutOutputProjection::spoutTotalFaces] = { false };
             bool btmp;
 
             for (size_t i = 0; i < SpoutOutputProjection::spoutTotalFaces; i++) {
-                if (subElement->QueryBoolAttribute(SpoutOutputProjection::spoutCubeMapFaceName[i].c_str(), &btmp) == tinyxml2::XML_NO_ERROR)
+                tinyxml2::XMLError err = subElement->QueryBoolAttribute(
+                    SpoutOutputProjection::spoutCubeMapFaceName[i].c_str(),
+                    &btmp
+                );
+                if (err == tinyxml2::XML_NO_ERROR) {
                     channel[i] = btmp;
-                else
+                }
+                else {
                     channel[i] = true;
+                }
             }
 
             spoutProj->setSpoutChannels(channel);
         }
 
-        if (strcmp("RigOrientation", val) == 0)
-        {
+        if (strcmp("RigOrientation", val) == 0) {
             glm::vec3 orientation;
             float ftmp;
 
             if (subElement->QueryFloatAttribute("pitch", &ftmp) == tinyxml2::XML_NO_ERROR)
+            {
                 orientation.x = ftmp;
-            if (subElement->QueryFloatAttribute("yaw", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("yaw", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 orientation.y = ftmp;
-            if (subElement->QueryFloatAttribute("roll", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("roll", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 orientation.z = ftmp;
+            }
 
             spoutProj->setSpoutRigOrientation(orientation);
         }
 
         //iterate
-		subElement = subElement->NextSiblingElement();
-	}
+        subElement = subElement->NextSiblingElement();
+    }
 
-	spoutProj->setUseDepthTransformation(true);
-	mNonLinearProjection = spoutProj;
+    spoutProj->setUseDepthTransformation(true);
+    mNonLinearProjection = spoutProj;
 }
 
-
-void sgct_core::Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement * element)
-{
-    SphericalMirrorProjection * sphericalMirrorProj = new SphericalMirrorProjection();
-    for (std::size_t i = 0; i < 6; i++)
+void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
+    SphericalMirrorProjection* sphericalMirrorProj = new SphericalMirrorProjection();
+    for (std::size_t i = 0; i < 6; i++) {
         sphericalMirrorProj->getSubViewportPtr(i)->setUser(mUser);
+    }
 
-    if (element->Attribute("quality") != NULL)
-    {
-        sphericalMirrorProj->setCubemapResolution(std::string(element->Attribute("quality")));
+    if (element->Attribute("quality") != nullptr) {
+        sphericalMirrorProj->setCubemapResolution(
+            std::string(element->Attribute("quality"))
+        );
     }
 
     float tilt;
-    if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR)
-    {
+    if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         sphericalMirrorProj->setTilt(tilt);
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "ReadConfig: Setting spherical mirror tilt to %f degrees.\n", tilt);
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "ReadConfig: Setting spherical mirror tilt to %f degrees.\n", tilt
+        );
     }
 
-    tinyxml2::XMLElement * subElement = element->FirstChildElement();
-    const char * val;
+    tinyxml2::XMLElement* subElement = element->FirstChildElement();
+    const char* val;
 
-    while (subElement != NULL)
-    {
+    while (subElement != nullptr) {
         val = subElement->Value();
 
-        if (strcmp("Background", val) == 0)
-        {
+        if (strcmp("Background", val) == 0) {
             glm::vec4 color;
             float ftmp;
 
-            if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR)
+            if (subElement->QueryFloatAttribute("r", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.r = ftmp;
-            if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("g", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.g = ftmp;
-            if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("b", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.b = ftmp;
-            if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR)
+            }
+            if (subElement->QueryFloatAttribute("a", &ftmp) == tinyxml2::XML_NO_ERROR) {
                 color.a = ftmp;
+            }
 
             sphericalMirrorProj->setClearColor(color);
         }
-        else if (strcmp("Geometry", val) == 0)
-        {
-            if (subElement->Attribute("bottom") != NULL)
-            {
-                sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::BOTTOM_MESH, subElement->Attribute("bottom"));
+        else if (strcmp("Geometry", val) == 0) {
+            if (subElement->Attribute("bottom") != nullptr) {
+                sphericalMirrorProj->setMeshPath(
+                    SphericalMirrorProjection::BOTTOM_MESH,
+                    subElement->Attribute("bottom")
+                );
             }
 
-            if (subElement->Attribute("left") != NULL)
-            {
-                sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::LEFT_MESH, subElement->Attribute("left"));
+            if (subElement->Attribute("left") != nullptr) {
+                sphericalMirrorProj->setMeshPath(
+                    SphericalMirrorProjection::LEFT_MESH,
+                    subElement->Attribute("left")
+                );
             }
 
-            if (subElement->Attribute("right") != NULL)
-            {
-                sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::RIGHT_MESH, subElement->Attribute("right"));
+            if (subElement->Attribute("right") != nullptr) {
+                sphericalMirrorProj->setMeshPath(
+                    SphericalMirrorProjection::RIGHT_MESH,
+                    subElement->Attribute("right")
+                );
             }
 
-            if (subElement->Attribute("top") != NULL)
-            {
-                sphericalMirrorProj->setMeshPath(SphericalMirrorProjection::TOP_MESH, subElement->Attribute("top"));
+            if (subElement->Attribute("top") != nullptr) {
+                sphericalMirrorProj->setMeshPath(
+                    SphericalMirrorProjection::TOP_MESH,
+                    subElement->Attribute("top")
+                );
             }
         }
 
@@ -663,59 +759,79 @@ void sgct_core::Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement * 
     mNonLinearProjection = sphericalMirrorProj;
 }
 
-void sgct_core::Viewport::setOverlayTexture(const char * texturePath)
-{
-    mOverlayFilename.assign(texturePath);
+void Viewport::setOverlayTexture(const char* texturePath) {
+    mOverlayFilename = texturePath;
 }
 
-void sgct_core::Viewport::setBlendMaskTexture(const char * texturePath)
-{
-    mBlendMaskFilename.assign(texturePath);
+void Viewport::setBlendMaskTexture(const char* texturePath) {
+    mBlendMaskFilename = texturePath;
 }
 
-void sgct_core::Viewport::setBlackLevelMaskTexture(const char * texturePath)
-{
-    mBlackLevelMaskFilename.assign(texturePath);
+void Viewport::setBlackLevelMaskTexture(const char* texturePath) {
+    mBlackLevelMaskFilename = texturePath;
 }
 
-void sgct_core::Viewport::setCorrectionMesh(const char * meshPath)
-{
-    mMeshFilename.assign(meshPath);
+void Viewport::setCorrectionMesh(const char* meshPath) {
+    mMeshFilename = meshPath;
 }
 
-void sgct_core::Viewport::setMpcdiWarpMesh(const char* meshData, size_t size)
-{
+void Viewport::setMpcdiWarpMesh(const char* meshData, size_t size) {
     mMpcdiWarpMeshData = new char[size];
     memcpy(mMpcdiWarpMeshData, meshData, size);
     mMpcdiWarpMeshSize = size;
 }
 
-void sgct_core::Viewport::setTracked(bool state)
-{
+void Viewport::setTracked(bool state) {
     mTracked = state;
 }
 
-void sgct_core::Viewport::loadData()
-{
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Viewport: loading GPU data for '%s'\n", mName.c_str());
+void Viewport::loadData() {
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::NOTIFY_DEBUG,
+        "Viewport: loading GPU data for '%s'\n", mName.c_str()
+    );
         
-    if( mOverlayFilename.size() > 0 )
-        sgct::TextureManager::instance()->loadUnManagedTexture(mOverlayTextureIndex, mOverlayFilename, true, 1);
-
-    if ( mBlendMaskFilename.size() > 0 )
-        sgct::TextureManager::instance()->loadUnManagedTexture(mBlendMaskTextureIndex, mBlendMaskFilename, true, 1);
-
-    if ( mBlackLevelMaskFilename.size() > 0)
-        sgct::TextureManager::instance()->loadUnManagedTexture(mBlackLevelMaskTextureIndex, mBlackLevelMaskFilename, true, 1);
-
-    if ( mMpcdiWarpMeshData != nullptr )
-    {
-        mCorrectionMesh = mCM.readAndGenerateMesh("mesh.mpcdi", this, CorrectionMesh::parseHint("mpcdi"));
+    if (!mOverlayFilename.empty()) {
+        sgct::TextureManager::instance()->loadUnManagedTexture(
+            mOverlayTextureIndex,
+            mOverlayFilename,
+            true,
+            1
+        );
     }
-    else
-    {
+
+    if (!mBlendMaskFilename.empty()) {
+        sgct::TextureManager::instance()->loadUnManagedTexture(
+            mBlendMaskTextureIndex,
+            mBlendMaskFilename,
+            true,
+            1
+        );
+    }
+
+    if (!mBlackLevelMaskFilename.empty()) {
+        sgct::TextureManager::instance()->loadUnManagedTexture(
+            mBlackLevelMaskTextureIndex,
+            mBlackLevelMaskFilename,
+            true,
+            1
+        );
+    }
+
+    if ( mMpcdiWarpMeshData != nullptr ) {
+        mCorrectionMesh = mCM.readAndGenerateMesh(
+            "mesh.mpcdi",
+            this,
+            CorrectionMesh::parseHint("mpcdi")
+        );
+    }
+    else {
         //load default if mMeshFilename is empty
-        mCorrectionMesh = mCM.readAndGenerateMesh(mMeshFilename, this, CorrectionMesh::parseHint(mMeshHint));
+        mCorrectionMesh = mCM.readAndGenerateMesh(
+            mMeshFilename,
+            this,
+            CorrectionMesh::parseHint(mMeshHint)
+        );
     }
 }
 
@@ -723,8 +839,54 @@ void sgct_core::Viewport::loadData()
 Render the viewport mesh which the framebuffer texture is attached to
 \param type of mesh; quad, warped or mask
 */
-void sgct_core::Viewport::renderMesh(sgct_core::CorrectionMesh::MeshType mt)
-{
-    if( mEnabled )
+void Viewport::renderMesh(CorrectionMesh::MeshType mt) {
+    if (mEnabled) {
         mCM.render(mt);
+    }
 }
+
+bool Viewport::hasOverlayTexture() {
+    return mOverlayTextureIndex != 0;
+}
+
+bool Viewport::hasBlendMaskTexture() {
+    return mBlendMaskTextureIndex != 0;
+}
+
+bool Viewport::hasBlackLevelMaskTexture() {
+    return mBlackLevelMaskTextureIndex != 0;
+}
+
+bool Viewport::hasSubViewports() {
+    return mNonLinearProjection != nullptr;
+}
+
+bool Viewport::hasCorrectionMesh() {
+    return mCorrectionMesh;
+}
+
+bool Viewport::isTracked() {
+    return mTracked;
+}
+
+unsigned int Viewport::getOverlayTextureIndex() {
+    return mOverlayTextureIndex;
+}
+
+unsigned int Viewport::getBlendMaskTextureIndex() {
+    return mBlendMaskTextureIndex;
+}
+
+unsigned int Viewport::getBlackLevelMaskTextureIndex() {
+    return mBlackLevelMaskTextureIndex;
+}
+
+CorrectionMesh* Viewport::getCorrectionMeshPtr() {
+    return &mCM;
+}
+
+NonLinearProjection* Viewport::getNonLinearProjectionPtr() {
+    return mNonLinearProjection;
+}
+
+} // namespace sgct_core

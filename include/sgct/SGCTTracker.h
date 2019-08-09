@@ -9,11 +9,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__TRACKER__H__
 
 #include <vector>
-#include "SGCTTrackingDevice.h"
+#include <sgct/SGCTTrackingDevice.h>
+#include <glm/glm.hpp>
 
 namespace sgct {
-
-    class SGCTTrackingDevice;
 
 /*!
 Class that manages a tracking system's properties and devices/sensors

@@ -13,6 +13,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/NetworkManager.h>
 #include <string>
 
+
 /*! \namespace sgct_core
 \brief SGCT core namespace is used internally within sgct.
 */

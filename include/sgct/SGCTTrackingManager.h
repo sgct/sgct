@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef __SGCT__TRACKING_DEVICE__H__
-#define __SGCT__TRACKING_DEVICE__H__
+#ifndef __SGCT__TRACKING_MANAGER__H__
+#define __SGCT__TRACKING_MANAGER__H__
 
 #include <vector>
 #include <set>
@@ -62,4 +62,4 @@ private:
 
 } // namespace sgct
 
-#endif // __SGCT__TRACKING_DEVICE__H__
+#endif // __SGCT__TRACKING_MANAGER__H__

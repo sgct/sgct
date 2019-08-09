@@ -12,6 +12,7 @@
 #include <sgct/ReadConfig.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
+#include <sgct/SGCTTrackingDevice.h>
 
 #include <sgct/SGCTSettings.h>
 #include <sgct/SGCTMpcdi.h>

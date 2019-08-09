@@ -5,35 +5,32 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _STATISTICS_H_
-#define _STATISTICS_H_
+#ifndef __SGCT__STATISTICS__H__
+#define __SGCT__STATISTICS__H__
 
-#define STATS_HISTORY_LENGTH 512
-#define STATS_AVERAGE_LENGTH 32
-#define VERT_SCALE 5000.0f
-#define STATS_NUMBER_OF_DYNAMIC_OBJS 5
-#define STATS_NUMBER_OF_STATIC_OBJS 3
-
-#include "ShaderProgram.h"
+#include <sgct/ShaderProgram.h>
 #include <glm/glm.hpp>
 #include <vector>
 
-struct StatsVertex
-{
-    float x, y;
-};
-
-namespace sgct_core
-{
+namespace sgct_core {
 
 /*!
 Helper class for measuring application statistics
 */
-class Statistics
-{
+class Statistics {
 private:
-    enum mStatsDynamicType { FRAME_TIME = 0, DRAW_TIME = 1, SYNC_TIME = 2, LOOP_TIME_MAX = 3, LOOP_TIME_MIN = 4 };
-    enum mStatsStaticType { GRID = 0, FREQ, BG };
+    enum mStatsDynamicType {
+        FRAME_TIME = 0,
+        DRAW_TIME = 1,
+        SYNC_TIME = 2,
+        LOOP_TIME_MAX = 3,
+        LOOP_TIME_MIN = 4
+    };
+    enum mStatsStaticType {
+        GRID = 0,
+        FREQ,
+        BG
+    };
 
 public:
     Statistics();
@@ -48,45 +45,58 @@ public:
     void update();
     void draw(float lineWidth);
 
-    const float getAvgFPS() { return mAvgFPS; }
-    const float getAvgDrawTime() { return mAvgDrawTime; }
-    const float getAvgSyncTime() { return mAvgSyncTime; }
-    const float getAvgFrameTime() { return mAvgFrameTime; }
-    const float getMinFrameTime() { return mMinFrameTime; }
-    const float getMaxFrameTime() { return mMaxFrameTime; }
-    const float getFrameTimeStandardDeviation() { return mStdDevFrameTime; }
-    const float getFrameTime() { return mDynamicVertexList[FRAME_TIME * STATS_HISTORY_LENGTH].y; }
-    const float getDrawTime() { return mDynamicVertexList[DRAW_TIME * STATS_HISTORY_LENGTH].y; }
-    const float getSyncTime() { return mDynamicVertexList[SYNC_TIME * STATS_HISTORY_LENGTH].y; }
+    float getAvgFPS();
+    float getAvgDrawTime();
+    float getAvgSyncTime();
+    float getAvgFrameTime();
+    float getMinFrameTime();
+    float getMaxFrameTime();
+    float getFrameTimeStandardDeviation();
+    float getFrameTime();
+    float getDrawTime();
+    float getSyncTime();
 
 private:
-    float mAvgFPS;
-    float mAvgDrawTime;
-    float mAvgSyncTime;
-    float mAvgFrameTime;
+    struct StatsVertex {
+        float x;
+        float y;
+    };
+
+    static inline const int StatsHistoryLength = 512;
+    static inline const int StatsAverageLength = 32;
+    static inline const float VertScale = 5000.f;
+    static inline const int StatsNumberOfDynamicObjs = 5;
+    static inline const int StatsNumberOfStaticObjs = 3;
+
+    float mAvgFPS = 0.f;
+    float mAvgDrawTime = 0.f;
+    float mAvgSyncTime = 0.f;
+    float mAvgFrameTime = 0.f;
     float mMinFrameTime;
     float mMaxFrameTime;
     float mStdDevFrameTime;
-    StatsVertex mDynamicVertexList[STATS_HISTORY_LENGTH * STATS_NUMBER_OF_DYNAMIC_OBJS];
-    glm::vec4 mDynamicColors[STATS_NUMBER_OF_DYNAMIC_OBJS];
-    glm::vec4 mStaticColors[STATS_NUMBER_OF_STATIC_OBJS];
+    StatsVertex mDynamicVertexList[StatsHistoryLength * StatsNumberOfDynamicObjs];
+    glm::vec4 mDynamicColors[StatsNumberOfDynamicObjs];
+    glm::vec4 mStaticColors[StatsNumberOfStaticObjs];
 
     //VBOs
-    unsigned int mVBOIndex;
-    unsigned int mDynamicVBO[2]; //double buffered for ping-pong
-    unsigned int mDynamicVAO[2]; //double buffered for ping-pong
-    unsigned int mStaticVBO;
-    unsigned int mStaticVAO;
+    unsigned int mVBOIndex = 0;
+    // double buffered for ping-pong
+    unsigned int mDynamicVBO[2] = { 0, 0 };
+    unsigned int mDynamicVAO[2] = { 0, 0 };
+    unsigned int mStaticVBO = 0;
+    unsigned int mStaticVAO = 0;
 
-    int mNumberOfLines;
-    bool mFixedPipeline;
+    int mNumberOfLines = 0;
+    bool mFixedPipeline = true;
 
     sgct::ShaderProgram mShader;
-    int mMVPLoc, mColLoc;
+    int mMVPLoc = -1;
+    int mColLoc = -1;
 
     std::vector<float> mStaticVerts;
 };
 
 } //sgct_core
 
-#endif
+#endif // __SGCT__STATISTICS__H__

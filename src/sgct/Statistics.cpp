@@ -5,6 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
+#include <sgct/Statistics.h>
+
 #include <GL/glew.h>
 #if __WIN32__
 #include <GL/wglew.h>
@@ -14,7 +16,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <GLFW/glfw3.h>
 
-#include <sgct/Statistics.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/Engine.h>
@@ -25,289 +26,331 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <memory.h>
 #include <limits>
 
-const static std::string Stats_Vert_Shader = "\
-**glsl_version**\n\
-\n\
-layout (location = 0) in vec2 Position;\n\
-\n\
-uniform mat4 MVP;\n\
-\n\
-void main()\n\
-{\n\
-    gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
-}\n";
+#undef min
+#undef max
 
-const static std::string Stats_Frag_Shader = "\
-**glsl_version**\n\
-\n\
-uniform vec4 Col;\n\
-out vec4 Color;\n\
-\n\
-void main()\n\
-{\n\
-    Color = Col;\n\
-}\n";
+namespace {
+    constexpr const char* Stats_Vert_Shader = R"(
+**glsl_version**
 
-const static std::string Stats_Vert_Shader_Legacy = "\
-**glsl_version**\n\
-\n\
-void main()\n\
-{\n\
-    gl_TexCoord[0] = gl_MultiTexCoord0;\n\
-    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;\n\
-}\n";
+layout (location = 0) in vec2 Position;
 
-const static std::string Stats_Frag_Shader_Legacy = "\
-**glsl_version**\n\
-\n\
-uniform vec4 Col;\n\
-\n\
-void main()\n\
-{\n\
-    gl_FragColor = Col;\n\
-}\n";
+uniform mat4 MVP;
 
-sgct_core::Statistics::Statistics()
-{
-    mAvgFPS = 0.0f;
-    mAvgDrawTime = 0.0f;
-    mAvgSyncTime = 0.0f;
-    mAvgFrameTime = 0.0f;
+void main() {
+    gl_Position = MVP * vec4(Position, 0.0, 1.0);
+};
+)";
 
-    mFixedPipeline = true;
-    mMVPLoc = -1;
-    mColLoc = -1;
-    mNumberOfLines = 0;
+    constexpr const char* Stats_Frag_Shader = R"(
+**glsl_version**
 
-    mDynamicColors[ FRAME_TIME ]    = glm::vec4( 1.0f,1.0f,0.0f,0.8f );
-    mDynamicColors[ DRAW_TIME ]        = glm::vec4( 1.0f,0.0f,1.0f,0.8f );
-    mDynamicColors[ SYNC_TIME ]        = glm::vec4( 0.0f,1.0f,1.0f,0.8f );
-    mDynamicColors[ LOOP_TIME_MAX ] = glm::vec4( 0.4f,0.4f,1.0f,0.8f );
-    mDynamicColors[ LOOP_TIME_MIN ] = glm::vec4( 0.0f,0.0f,0.8f,0.8f );
+uniform vec4 Col;
+out vec4 Color;
 
-    mStaticColors[ GRID ]    = glm::vec4( 1.0f,1.0f,1.0f,0.2f );
-    mStaticColors[ FREQ ]    = glm::vec4( 1.0f,0.0f,0.0f,1.0f );
-    mStaticColors[ BG ]        = glm::vec4( 0.0f,0.0f,0.0f,0.5f );
+void main() {
+    Color = Col;
+}
+)";
 
-    mVBOIndex = 0;
-    mDynamicVBO[0]    = GL_FALSE;
-    mDynamicVAO[0]    = GL_FALSE;
-    mDynamicVBO[1]    = GL_FALSE;
-    mDynamicVAO[1]    = GL_FALSE;
-    mStaticVBO        = GL_FALSE;
-    mStaticVAO        = GL_FALSE;
+    constexpr const char* Stats_Vert_Shader_Legacy = R"(
+**glsl_version**
 
-    for(unsigned int i=0; i<STATS_HISTORY_LENGTH; i++)
-    {
-        mDynamicVertexList[i + FRAME_TIME * STATS_HISTORY_LENGTH].x = static_cast<float>(i);
-        mDynamicVertexList[i + DRAW_TIME * STATS_HISTORY_LENGTH].x = static_cast<float>(i);
-        mDynamicVertexList[i + SYNC_TIME * STATS_HISTORY_LENGTH].x = static_cast<float>(i);
-        mDynamicVertexList[i + LOOP_TIME_MAX * STATS_HISTORY_LENGTH].x = static_cast<float>(i);
-        mDynamicVertexList[i + LOOP_TIME_MIN * STATS_HISTORY_LENGTH].x = static_cast<float>(i);
+void main() {
+    gl_TexCoord[0] = gl_MultiTexCoord0;
+    gl_Position = gl_ModelViewProjectionMatrix * gl_Vertex;
+}
+)";
 
-        mDynamicVertexList[i + FRAME_TIME * STATS_HISTORY_LENGTH].y = 0.0f;
-        mDynamicVertexList[i + DRAW_TIME * STATS_HISTORY_LENGTH].y = 0.0f;
-        mDynamicVertexList[i + SYNC_TIME * STATS_HISTORY_LENGTH].y = 0.0f;
-        mDynamicVertexList[i + LOOP_TIME_MAX * STATS_HISTORY_LENGTH].y = 0.0f;
-        mDynamicVertexList[i + LOOP_TIME_MIN * STATS_HISTORY_LENGTH].y = 0.0f;
+    constexpr const char* Stats_Frag_Shader_Legacy = R"(
+**glsl_version**
+
+uniform vec4 Col;
+
+void main() {
+    gl_FragColor = Col;
+}
+)";
+
+} // namespace
+
+namespace sgct_core {
+
+Statistics::Statistics() {
+    mDynamicColors[FRAME_TIME] = glm::vec4(1.f, 1.f, 0.f, 0.8f);
+    mDynamicColors[DRAW_TIME] = glm::vec4(1.f, 0.f, 1.f, 0.8f);
+    mDynamicColors[SYNC_TIME] = glm::vec4(0.f, 1.f, 1.f, 0.8f);
+    mDynamicColors[LOOP_TIME_MAX] = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
+    mDynamicColors[LOOP_TIME_MIN] = glm::vec4(0.f, 0.f, 0.8f, 0.8f);
+
+    mStaticColors[GRID] = glm::vec4(1.f, 1.f, 1.f, 0.2f);
+    mStaticColors[FREQ] = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    mStaticColors[BG] = glm::vec4(0.f, 0.f, 0.f, 0.5f);
+
+    for (unsigned int i = 0; i < StatsHistoryLength; i++) {
+        mDynamicVertexList[i + FRAME_TIME * StatsHistoryLength].x = static_cast<float>(i);
+        mDynamicVertexList[i + DRAW_TIME * StatsHistoryLength].x = static_cast<float>(i);
+        mDynamicVertexList[i + SYNC_TIME * StatsHistoryLength].x = static_cast<float>(i);
+        mDynamicVertexList[i + LOOP_TIME_MAX * StatsHistoryLength].x = static_cast<float>(i);
+        mDynamicVertexList[i + LOOP_TIME_MIN * StatsHistoryLength].x = static_cast<float>(i);
+
+        mDynamicVertexList[i + FRAME_TIME * StatsHistoryLength].y = 0.f;
+        mDynamicVertexList[i + DRAW_TIME * StatsHistoryLength].y = 0.f;
+        mDynamicVertexList[i + SYNC_TIME * StatsHistoryLength].y = 0.f;
+        mDynamicVertexList[i + LOOP_TIME_MAX * StatsHistoryLength].y = 0.f;
+        mDynamicVertexList[i + LOOP_TIME_MIN * StatsHistoryLength].y = 0.f;
     }
 }
 
-sgct_core::Statistics::~Statistics()
-{
+Statistics::~Statistics() {
     mShader.deleteProgram();
     
-    if(mDynamicVBO[0])
+    if (mDynamicVBO[0]) {
         glDeleteBuffers(2, &mDynamicVBO[0]);
-    if(mDynamicVAO[0])
+    }
+    if (mDynamicVAO[0]) {
         glDeleteVertexArrays(2, &mDynamicVAO[0]);
-    if(mStaticVBO)
+    }
+    if (mStaticVBO) {
         glDeleteBuffers(1, &mStaticVBO);
-    if(mStaticVAO)
+    }
+    if (mStaticVAO) {
         glDeleteBuffers(1, &mStaticVAO);
-
-    mStaticVerts.clear();
+    }
 }
 
-void sgct_core::Statistics::initVBO(bool fixedPipeline)
-{
+void Statistics::initVBO(bool fixedPipeline) {
     mFixedPipeline = fixedPipeline;
 
-    /*
-        ============================================
-                    STATIC BACKGROUND QUAD
-        ============================================
-    */
-    mStaticVerts.push_back( 0.0f ); //x0
-    mStaticVerts.push_back( 0.0f ); //y0
-    mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //x1
-    mStaticVerts.push_back( 0.0f ); //y1
-    mStaticVerts.push_back( 0.0f ); //x2
-    mStaticVerts.push_back( 1.0f/30.0f ); //y2
-    mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //x3
-    mStaticVerts.push_back( 1.0f/30.0f ); //y3;
+    // STATIC BACKGROUND QUAD
+    mStaticVerts.push_back(0.f); //x0
+    mStaticVerts.push_back(0.f); //y0
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
+    mStaticVerts.push_back(0.f); //y1
+    mStaticVerts.push_back(0.f); //x2
+    mStaticVerts.push_back(1.f / 30.f); //y2
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x3
+    mStaticVerts.push_back(1.f / 30.f); //y3;
     
-    /*
-        ============================================
-                        STATIC 1 ms LINES
-        ============================================
-    */
+    // STATIC 1 ms LINES
     mNumberOfLines = 0;
-    for(float f = 0.001f; f < (1.0f/30.0f); f += 0.001f )
-    {
-        mStaticVerts.push_back( 0.0f ); //x0
-        mStaticVerts.push_back( f ); //y0
-        mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //x1
-        mStaticVerts.push_back( f ); //y1
+    for (float f = 0.001f; f < (1.f / 30.f); f += 0.001f) {
+        mStaticVerts.push_back(0.f); //x0
+        mStaticVerts.push_back(f); //y0
+        mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
+        mStaticVerts.push_back(f); //y1
 
         mNumberOfLines++;
     }
 
-    /*
-        ============================================
-                    STATIC 0, 30 & 60 FPS LINES
-        ============================================
-    */
-    mStaticVerts.push_back( 0.0f ); //x0
-    mStaticVerts.push_back( 0.0f ); //y0
-    mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //0x1
-    mStaticVerts.push_back( 0.0f ); //y1
+    // STATIC 0, 30 & 60 FPS LINES
+    mStaticVerts.push_back(0.f); //x0
+    mStaticVerts.push_back(0.f); //y0
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //0x1
+    mStaticVerts.push_back(0.f); //y1
 
-    mStaticVerts.push_back( 0.0f ); //x0
-    mStaticVerts.push_back( 1.0f/30.0f ); //y0
-    mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //x1
-    mStaticVerts.push_back( 1.0f/30.0f ); //y1
+    mStaticVerts.push_back(0.f); //x0
+    mStaticVerts.push_back(1.f / 30.f); //y0
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
+    mStaticVerts.push_back(1.f / 30.f ); //y1
 
-    mStaticVerts.push_back( 0.0f ); //x0
-    mStaticVerts.push_back( 1.0f/60.0f ); //y0
-    mStaticVerts.push_back( static_cast<float>(STATS_HISTORY_LENGTH*2) ); //x1
-    mStaticVerts.push_back( 1.0f/60.0f ); //y1
+    mStaticVerts.push_back(0.f); //x0
+    mStaticVerts.push_back(1.f / 60.f); //y0
+    mStaticVerts.push_back(static_cast<float>(StatsHistoryLength * 2)); //x1
+    mStaticVerts.push_back(1.f / 60.f); //y1
 
-    if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS)
+    if (ClusterManager::instance()->getMeshImplementation() ==
+        ClusterManager::BUFFER_OBJECTS)
     {
-
-        if(!mFixedPipeline)
-        {
+        if (!mFixedPipeline) {
             glGenVertexArrays(2, &mDynamicVAO[0]);
             glGenVertexArrays(1, &mStaticVAO);
 
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VAOs:\n");
-            for(unsigned int i=0; i<2; i++)
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mDynamicVAO[i]);
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n\n", mStaticVAO);
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_DEBUG,
+                "Statistics: Generating VAOs:\n"
+            );
+            for (unsigned int i = 0; i < 2; i++) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    "\t%d\n", mDynamicVAO[i]
+                );
+            }
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_DEBUG,
+                "\t%d\n\n", mStaticVAO
+            );
         }
 
         glGenBuffers(2, &mDynamicVBO[0]);
         glGenBuffers(1, &mStaticVBO);
 
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Statistics: Generating VBOs:\n");
-        for(unsigned int i=0; i<2; i++)
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n", mDynamicVBO[i]);
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "\t%d\n\n", mStaticVBO);
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "Statistics: Generating VBOs:\n"
+        );
+        for (unsigned int i = 0; i < 2; i++) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_DEBUG,
+                "\t%d\n", mDynamicVBO[i]
+            );
+        }
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_DEBUG,
+            "\t%d\n\n", mStaticVBO
+        );
     
         //double buffered VBOs
-        for(unsigned int i=0; i<2; i++)
-        {
-            if(!mFixedPipeline)
-            {
+        for (unsigned int i = 0; i < 2; i++) {
+            if (!mFixedPipeline) {
                 glBindVertexArray(mDynamicVAO[i]);
                 glEnableVertexAttribArray(0);
             }
             glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[i]);
-            glBufferData(GL_ARRAY_BUFFER, STATS_HISTORY_LENGTH * sizeof(StatsVertex) * STATS_NUMBER_OF_DYNAMIC_OBJS, &mDynamicVertexList[0], GL_STREAM_DRAW);
+            glBufferData(
+                GL_ARRAY_BUFFER,
+                StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs,
+                &mDynamicVertexList[0],
+                GL_STREAM_DRAW
+            );
     
-            if(!mFixedPipeline)
-                glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, NULL );
+            if (!mFixedPipeline) {
+                glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, NULL);
+            }
         }
 
-        if(!mFixedPipeline)
-        {
+        if (!mFixedPipeline) {
             glBindVertexArray(mStaticVAO);
             glEnableVertexAttribArray(0);
         }
         glBindBuffer(GL_ARRAY_BUFFER, mStaticVBO);
-        glBufferData(GL_ARRAY_BUFFER, mStaticVerts.size() * sizeof(float), &mStaticVerts[0], GL_STATIC_DRAW );
-        if(!mFixedPipeline)
-            glVertexAttribPointer( 0, 2, GL_FLOAT, GL_FALSE, 0, reinterpret_cast<void*>(0) );
+        glBufferData(
+            GL_ARRAY_BUFFER,
+            mStaticVerts.size() * sizeof(float),
+            mStaticVerts.data(),
+            GL_STATIC_DRAW
+        );
+        if (!mFixedPipeline) {
+            glVertexAttribPointer(0, 2, GL_FLOAT, GL_FALSE, 0, nullptr);
+        }
     }
     
-    /*
-        ============================================
-                      SETUP SHADERS
-        ============================================
-    */
-    if(mFixedPipeline)
-    {
+    // SETUP SHADERS
+    if (mFixedPipeline) {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         mShader.setName("StatsShader");
         
-        std::string vert_shader;
-        std::string frag_shader;
-        vert_shader = Stats_Vert_Shader_Legacy;
-        frag_shader = Stats_Frag_Shader_Legacy;
+        std::string vert_shader = Stats_Vert_Shader_Legacy;
+        std::string frag_shader = Stats_Frag_Shader_Legacy;
 
         //replace glsl version
-        sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-        sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+        sgct_helpers::findAndReplace(
+            vert_shader,
+            "**glsl_version**",
+            sgct::Engine::instance()->getGLSLVersion()
+        );
+        sgct_helpers::findAndReplace(
+            frag_shader,
+            "**glsl_version**",
+            sgct::Engine::instance()->getGLSLVersion()
+        );
         
-        if(!mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load statistics vertex shader\n");
-        if(!mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load statistics fragment shader\n");
+        bool vert = mShader.addShaderSrc(
+            vert_shader,
+            GL_VERTEX_SHADER,
+            sgct::ShaderProgram::SHADER_SRC_STRING
+        );
+        if (!vert) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "Failed to load statistics vertex shader\n"
+            );
+        }
+        bool frag = mShader.addShaderSrc(
+            frag_shader,
+            GL_FRAGMENT_SHADER,
+            sgct::ShaderProgram::SHADER_SRC_STRING
+        );
+        if (!frag) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "Failed to load statistics fragment shader\n"
+            );
+        }
         mShader.createAndLinkProgram();
         mShader.bind();
 
-        mColLoc = mShader.getUniformLocation( "Col" );
+        mColLoc = mShader.getUniformLocation("Col");
 
         mShader.unbind();
     }
-    else
-    {
+    else {
         glBindVertexArray(0);
         glBindBuffer(GL_ARRAY_BUFFER, 0);
 
         mShader.setName("StatsShader");
 
-        std::string vert_shader;
-        std::string frag_shader;
-        vert_shader = Stats_Vert_Shader;
-        frag_shader = Stats_Frag_Shader;
+        std::string vert_shader = Stats_Vert_Shader;
+        std::string frag_shader = Stats_Frag_Shader;
 
         //replace glsl version
-        sgct_helpers::findAndReplace(vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-        sgct_helpers::findAndReplace(frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+        sgct_helpers::findAndReplace(
+            vert_shader,
+            "**glsl_version**",
+            sgct::Engine::instance()->getGLSLVersion()
+        );
+        sgct_helpers::findAndReplace(
+            frag_shader,
+            "**glsl_version**",
+            sgct::Engine::instance()->getGLSLVersion()
+        );
 
-        if(!mShader.addShaderSrc(vert_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load statistics vertex shader\n");
-        if(!mShader.addShaderSrc(frag_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-            sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load statistics fragment shader\n");
+        bool vert = mShader.addShaderSrc(
+            vert_shader,
+            GL_VERTEX_SHADER,
+            sgct::ShaderProgram::SHADER_SRC_STRING
+        );
+        if (!vert) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "Failed to load statistics vertex shader\n"
+            );
+        }
+        bool frag = mShader.addShaderSrc(
+            frag_shader,
+            GL_FRAGMENT_SHADER,
+            sgct::ShaderProgram::SHADER_SRC_STRING
+        );
+        if (!frag) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::NOTIFY_ERROR,
+                "Failed to load statistics fragment shader\n"
+            );
+        }
         mShader.createAndLinkProgram();
         mShader.bind();
 
-        mMVPLoc = mShader.getUniformLocation( "MVP" );
-        mColLoc = mShader.getUniformLocation( "Col" );
+        mMVPLoc = mShader.getUniformLocation("MVP");
+        mColLoc = mShader.getUniformLocation("Col");
 
         mShader.unbind();
     }
 }
 
-void sgct_core::Statistics::setAvgFPS(float afps)
-{
+void Statistics::setAvgFPS(float afps) {
     mAvgFPS = afps;
 }
 
-void sgct_core::Statistics::setFrameTime(float t)
-{
-    mAvgFrameTime = 0.0;
-    int start = FRAME_TIME * STATS_HISTORY_LENGTH;
+void Statistics::setFrameTime(float t) {
+    mAvgFrameTime = 0.f;
+    int start = FRAME_TIME * StatsHistoryLength;
 
-    mMaxFrameTime = 0.0;
+    mMaxFrameTime = 0.f;
     mMinFrameTime = std::numeric_limits<float>::max();
-    for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
-    {
+    for (int i = start + StatsHistoryLength - 2; i >= start; i--) {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-        if (i < (STATS_AVERAGE_LENGTH + start - 1)) {
+        if (i < (StatsAverageLength + start - 1)) {
             mAvgFrameTime += mDynamicVertexList[i].y;
             mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList[i].y);
             mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList[i].y);
@@ -319,112 +362,108 @@ void sgct_core::Statistics::setFrameTime(float t)
     mMaxFrameTime = glm::max(mMaxFrameTime, mDynamicVertexList[start].y);
     mMinFrameTime = glm::min(mMinFrameTime, mDynamicVertexList[start].y);
 
-    mAvgFrameTime /= static_cast<float>(STATS_AVERAGE_LENGTH);
+    mAvgFrameTime /= static_cast<float>(StatsAverageLength);
 
     float sumSquaredDeviation = 0.f;
-    for (int i = start; i < start + STATS_AVERAGE_LENGTH; ++i)
-    {
+    for (int i = start; i < start + StatsAverageLength; ++i) {
         sumSquaredDeviation += std::pow(mDynamicVertexList[i].y - mAvgFrameTime, 2.f);
     }
 
     mStdDevFrameTime = glm::sqrt(
-        sumSquaredDeviation / static_cast<float>(STATS_AVERAGE_LENGTH)
+        sumSquaredDeviation / static_cast<float>(StatsAverageLength)
     );
 }
 
-void sgct_core::Statistics::setDrawTime(float t)
-{
-    mAvgDrawTime = 0.0;
-    int start = DRAW_TIME * STATS_HISTORY_LENGTH;
+void Statistics::setDrawTime(float t) {
+    mAvgDrawTime = 0.f;
+    int start = DRAW_TIME * StatsHistoryLength;
 
-    for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
-    {
+    for (int i = start + StatsHistoryLength - 2; i >= start; i--) {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-        if (i < (STATS_AVERAGE_LENGTH + start - 1))
+        if (i < (StatsAverageLength + start - 1)) {
             mAvgDrawTime += mDynamicVertexList[i].y;
+        }
     }
     mDynamicVertexList[start].y = t;
     
     mAvgDrawTime += mDynamicVertexList[start].y;
-    mAvgDrawTime /= static_cast<float>(STATS_AVERAGE_LENGTH);
+    mAvgDrawTime /= static_cast<float>(StatsAverageLength);
 }
 
-void sgct_core::Statistics::setSyncTime(float t)
-{
-    mAvgSyncTime = 0.0;
-    int start = SYNC_TIME * STATS_HISTORY_LENGTH;
+void Statistics::setSyncTime(float t) {
+    mAvgSyncTime = 0.f;
+    int start = SYNC_TIME * StatsHistoryLength;
     
-    for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
-    {
+    for (int i = start + StatsHistoryLength - 2; i >= start; i--) {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
-        if (i < (STATS_AVERAGE_LENGTH + start - 1))
+        if (i < (StatsAverageLength + start - 1)) {
             mAvgSyncTime += mDynamicVertexList[i].y;
+        }
     }
     mDynamicVertexList[start].y = t;
     
     mAvgSyncTime += mDynamicVertexList[start].y;
-    mAvgSyncTime /= static_cast<float>(STATS_AVERAGE_LENGTH);
+    mAvgSyncTime /= static_cast<float>(StatsAverageLength);
 }
 
 /*!
     Set the minimum and maximum time it takes for a sync message from send to receive
 */
-void sgct_core::Statistics::setLoopTime(float min, float max)
-{
-    int start = LOOP_TIME_MAX * STATS_HISTORY_LENGTH;
-    for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
+void Statistics::setLoopTime(float min, float max) {
+    int start = LOOP_TIME_MAX * StatsHistoryLength;
+    for (int i = start + StatsHistoryLength - 2; i >= start; i--) {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
+    }
     mDynamicVertexList[start].y = max;
     
-    start = LOOP_TIME_MIN * STATS_HISTORY_LENGTH;
-    for (int i = start + STATS_HISTORY_LENGTH - 2; i >= start; i--)
+    start = LOOP_TIME_MIN * StatsHistoryLength;
+    for (int i = start + StatsHistoryLength - 2; i >= start; i--) {
         mDynamicVertexList[i + 1].y = mDynamicVertexList[i].y;
+    }
     mDynamicVertexList[start].y = min;
 }
 
 
-void sgct_core::Statistics::addSyncTime(float t)
-{
-    mDynamicVertexList[SYNC_TIME * STATS_HISTORY_LENGTH].y += t;
-    mAvgSyncTime += (t/static_cast<float>(STATS_AVERAGE_LENGTH));
+void Statistics::addSyncTime(float t) {
+    mDynamicVertexList[SYNC_TIME * StatsHistoryLength].y += t;
+    mAvgSyncTime += (t / static_cast<float>(StatsAverageLength));
 }
 
-void sgct_core::Statistics::update()
-{
-    if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS)
+void Statistics::update() {
+    if (ClusterManager::instance()->getMeshImplementation() !=
+        ClusterManager::BUFFER_OBJECTS)
     {
-        GLvoid* PositionBuffer;
-
-        mVBOIndex = 1 - mVBOIndex; //ping-pong
-        glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
-        size_t size = STATS_HISTORY_LENGTH * sizeof(StatsVertex) * STATS_NUMBER_OF_DYNAMIC_OBJS;
-
-        //glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
-    
-        PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    
-        if (PositionBuffer)
-        {
-            memcpy(PositionBuffer, &mDynamicVertexList[0], size);
-            glUnmapBuffer(GL_ARRAY_BUFFER);
-        }
-
-        glBindBuffer(GL_ARRAY_BUFFER, 0);
+        return;
     }
+
+    GLvoid* PositionBuffer;
+
+    mVBOIndex = 1 - mVBOIndex; //ping-pong
+    glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
+    size_t size = StatsHistoryLength * sizeof(StatsVertex) * StatsNumberOfDynamicObjs;
+
+    //glBufferData(GL_ARRAY_BUFFER, size, NULL, GL_STREAM_DRAW);
+    
+    PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
+    
+    if (PositionBuffer) {
+        memcpy(PositionBuffer, &mDynamicVertexList[0], size);
+        glUnmapBuffer(GL_ARRAY_BUFFER);
+    }
+
+    glBindBuffer(GL_ARRAY_BUFFER, 0);
 }
 
-void sgct_core::Statistics::draw(float lineWidth)
-{
+void Statistics::draw(float lineWidth) {
     mShader.bind();
 
-    if(mFixedPipeline)
-    {
+    if (mFixedPipeline) {
         //enter ortho mode
         glMatrixMode(GL_PROJECTION);
         glLoadIdentity();
         glPushMatrix();
         
-        double size = static_cast<double>(STATS_HISTORY_LENGTH);
+        double size = static_cast<double>(StatsHistoryLength);
         glOrtho(0.0, size, 0.0, size, -1.0, 1.0);
 
         glMatrixMode(GL_MODELVIEW);
@@ -434,12 +473,13 @@ void sgct_core::Statistics::draw(float lineWidth)
 
         glLoadIdentity();
 
-        glTranslatef(0.0f, static_cast<float>(size)/4.0f, 0.0f);
-        glScalef(1.0f, VERT_SCALE, 1.0f);
+        glTranslatef(0.f, static_cast<float>(size) / 4.f, 0.f);
+        glScalef(1.f, VertScale, 1.f);
 
-        glLineWidth( lineWidth );
+        glLineWidth(lineWidth);
 
-        if(ClusterManager::instance()->getMeshImplementation() == ClusterManager::BUFFER_OBJECTS)
+        if (ClusterManager::instance()->getMeshImplementation() ==
+            ClusterManager::BUFFER_OBJECTS)
         {
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             glEnableClientState(GL_VERTEX_ARRAY);
@@ -449,70 +489,71 @@ void sgct_core::Statistics::draw(float lineWidth)
             glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
 
             //draw background (1024x1024 canvas)
-            glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]) );
+            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]));
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
             //1 ms lines
-            glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
-            glDrawArrays( GL_LINES, 4, mNumberOfLines*2);
+            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]));
+            glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
 
             //zero line, 60hz & 30hz
-            glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
-            glDrawArrays( GL_LINES, 4+mNumberOfLines*2, 6 );
+            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]));
+            glDrawArrays(GL_LINES, 4+mNumberOfLines * 2, 6);
 
             glBindBuffer(GL_ARRAY_BUFFER, mDynamicVBO[mVBOIndex]);
             glVertexPointer(2, GL_FLOAT, 0, reinterpret_cast<void*>(0));
-            for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
-            {
-                glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[ i ]) );
-                glDrawArrays(GL_LINE_STRIP, i * STATS_HISTORY_LENGTH, STATS_HISTORY_LENGTH);
+            for (unsigned int i = 0; i < StatsNumberOfDynamicObjs; i++) {
+                glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors[i]));
+                glDrawArrays(GL_LINE_STRIP, i * StatsHistoryLength, StatsHistoryLength);
             }
 
             //unbind
             glBindBuffer(GL_ARRAY_BUFFER, 0);
             glPopClientAttrib();
         }
-        else //old-school rendering for OSG compability
-        {
+        else {
+            //old-school rendering for OSG compability
             //draw background (1024x1024 canvas)
-            glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]) );
+            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]));
             glBegin(GL_TRIANGLE_STRIP);
-                glVertex2f( mStaticVerts[0], mStaticVerts[1]);
-                glVertex2f( mStaticVerts[2], mStaticVerts[3]);
-                glVertex2f( mStaticVerts[4], mStaticVerts[5]);
-                glVertex2f( mStaticVerts[6], mStaticVerts[7]);
+            glVertex2f(mStaticVerts[0], mStaticVerts[1]);
+            glVertex2f(mStaticVerts[2], mStaticVerts[3]);
+            glVertex2f(mStaticVerts[4], mStaticVerts[5]);
+            glVertex2f(mStaticVerts[6], mStaticVerts[7]);
             glEnd();
 
             //1 ms lines
             glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
             glBegin(GL_LINES);
-            for(int i=0; i<mNumberOfLines*4;i+=4)
-            {
-                glVertex2f( mStaticVerts[i+8], mStaticVerts[i+9]);
-                glVertex2f( mStaticVerts[i+10], mStaticVerts[i+11]);
+            for (int i = 0; i < mNumberOfLines * 4; i += 4) {
+                glVertex2f(mStaticVerts[i + 8], mStaticVerts[i + 9]);
+                glVertex2f(mStaticVerts[i + 10], mStaticVerts[i + 11]);
             }
             glEnd();
 
             //zero line, 60hz & 30hz
-            int offset = mNumberOfLines*4 + 8;
-            glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
+            int offset = mNumberOfLines * 4 + 8;
+            glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[FREQ]));
             glBegin(GL_LINES);
-                glVertex2f( mStaticVerts[offset], mStaticVerts[offset+1] );
-                glVertex2f( mStaticVerts[offset+2], mStaticVerts[offset+3] );
+            glVertex2f(mStaticVerts[offset], mStaticVerts[offset + 1]);
+            glVertex2f(mStaticVerts[offset + 2], mStaticVerts[offset + 3]);
 
-                glVertex2f( mStaticVerts[offset+4], mStaticVerts[offset+5] );
-                glVertex2f( mStaticVerts[offset+6], mStaticVerts[offset+7] );
+            glVertex2f(mStaticVerts[offset+4], mStaticVerts[offset+5]);
+            glVertex2f(mStaticVerts[offset+6], mStaticVerts[offset+7]);
 
-                glVertex2f( mStaticVerts[offset+8], mStaticVerts[offset+9] );
-                glVertex2f( mStaticVerts[offset+10], mStaticVerts[offset+11] );
+            glVertex2f(mStaticVerts[offset+8], mStaticVerts[offset+9]);
+            glVertex2f(mStaticVerts[offset+10], mStaticVerts[offset+11]);
             glEnd();
 
-            for(unsigned int i=0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
-            {
-                glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[ i ]) );
+            for (unsigned int i = 0; i < StatsNumberOfDynamicObjs; i++) {
+                glUniform4fv(mColLoc, 1, glm::value_ptr(mDynamicColors[i]));
                 glBegin(GL_LINE_STRIP);
-                for( unsigned int j=0; j<STATS_HISTORY_LENGTH; j++ )
-                    glVertex2f( mDynamicVertexList[i*STATS_HISTORY_LENGTH + j].x, mDynamicVertexList[i*STATS_HISTORY_LENGTH + j].y );
+                for (unsigned int j = 0; j < StatsHistoryLength; j++) {
+                    glVertex2f(
+                        mDynamicVertexList[i * StatsHistoryLength + j].x,
+                        mDynamicVertexList[i * StatsHistoryLength + j].y
+                    );
+                }
                 glEnd();
             }
         }
@@ -523,38 +564,37 @@ void sgct_core::Statistics::draw(float lineWidth)
         glMatrixMode(GL_PROJECTION);
         glPopMatrix();
     }
-    else //programmable pipeline
-    {
+    else {
+        //programmable pipeline
         //gives an opengl error in mac os x (intel iris)
-        glLineWidth( lineWidth );
+        glLineWidth(lineWidth);
         
-        float size = static_cast<float>(STATS_HISTORY_LENGTH);
+        float size = static_cast<float>(StatsHistoryLength);
         
-        glm::mat4 orthoMat = glm::ortho( 0.0f, size, 0.0f, size );
-        orthoMat = glm::translate( orthoMat, glm::vec3(0.0f, size/4.0f, 0.0f) );
-        orthoMat = glm::scale( orthoMat, glm::vec3(1.0f, VERT_SCALE, 1.0f) );
+        glm::mat4 orthoMat = glm::ortho(0.f, size, 0.f, size);
+        orthoMat = glm::translate(orthoMat, glm::vec3(0.f, size / 4.f, 0.f));
+        orthoMat = glm::scale(orthoMat, glm::vec3(1.f, VertScale, 1.f));
         
-        glUniformMatrix4fv( mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
+        glUniformMatrix4fv(mMVPLoc, 1, GL_FALSE, &orthoMat[0][0]);
         
-        glBindVertexArray( mStaticVAO );
+        glBindVertexArray(mStaticVAO);
 
         //draw background (1024x1024 canvas)
-        glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ BG ]) );
-        glDrawArrays( GL_TRIANGLE_STRIP, 0, 4);
+        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[BG]));
+        glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
         //1 ms lines
-        glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ GRID ]) );
-        glDrawArrays( GL_LINES, 4, mNumberOfLines*2);
+        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[GRID]));
+        glDrawArrays(GL_LINES, 4, mNumberOfLines * 2);
         
         //zero line, 60hz & 30hz
-        glUniform4fv( mColLoc, 1, glm::value_ptr(mStaticColors[ FREQ ]) );
-        glDrawArrays( GL_LINES, 4+mNumberOfLines*2, 6 );
+        glUniform4fv(mColLoc, 1, glm::value_ptr(mStaticColors[FREQ]));
+        glDrawArrays(GL_LINES, 4 + mNumberOfLines * 2, 6);
         
         glBindVertexArray(mDynamicVAO[mVBOIndex]);
-        for (unsigned int i = 0; i<STATS_NUMBER_OF_DYNAMIC_OBJS; i++)
-        {
+        for (unsigned int i = 0; i< StatsNumberOfDynamicObjs; i++) {
             glUniform4fv( mColLoc, 1, glm::value_ptr(mDynamicColors[i]) );
-            glDrawArrays(GL_LINE_STRIP, i * STATS_HISTORY_LENGTH, STATS_HISTORY_LENGTH);
+            glDrawArrays(GL_LINE_STRIP, i * StatsHistoryLength, StatsHistoryLength);
         }
         
         //unbind
@@ -563,3 +603,45 @@ void sgct_core::Statistics::draw(float lineWidth)
 
     mShader.unbind();
 }
+
+float Statistics::getAvgFPS() {
+    return mAvgFPS;
+}
+
+float Statistics::getAvgDrawTime() {
+    return mAvgDrawTime;
+}
+
+float Statistics::getAvgSyncTime() {
+    return mAvgSyncTime;
+}
+
+float Statistics::getAvgFrameTime() {
+    return mAvgFrameTime;
+}
+
+float Statistics::getMinFrameTime() {
+    return mMinFrameTime;
+}
+
+float Statistics::getMaxFrameTime() {
+    return mMaxFrameTime;
+}
+
+float Statistics::getFrameTimeStandardDeviation() {
+    return mStdDevFrameTime;
+}
+
+float Statistics::getFrameTime() {
+    return mDynamicVertexList[FRAME_TIME * StatsHistoryLength].y;
+}
+
+float Statistics::getDrawTime() {
+    return mDynamicVertexList[DRAW_TIME * StatsHistoryLength].y;
+}
+
+float Statistics::getSyncTime() {
+    return mDynamicVertexList[SYNC_TIME * StatsHistoryLength].y;
+}
+
+} // namespace sgct_core

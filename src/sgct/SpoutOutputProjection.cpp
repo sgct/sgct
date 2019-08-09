@@ -6,6 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/SpoutOutputProjection.h>
+
 #include <sgct/SGCTSettings.h>
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
@@ -21,10 +22,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <spout/SpoutLibrary.h>
 #endif
 
+namespace sgct_core {
 
 //#define DebugCubemap
 
-const std::string sgct_core::SpoutOutputProjection::spoutCubeMapFaceName[spoutTotalFaces] = {
+const std::string SpoutOutputProjection::spoutCubeMapFaceName[spoutTotalFaces] = {
     "Right",
     "zLeft",
     "Bottom",
@@ -33,70 +35,31 @@ const std::string sgct_core::SpoutOutputProjection::spoutCubeMapFaceName[spoutTo
     "zRight",
 };
 
-sgct_core::SpoutOutputProjection::SpoutOutputProjection()
-{
-    mInternalRenderFn = &SpoutOutputProjection::renderInternalFixedPipeline;
-    mInternalRenderCubemapFn = &SpoutOutputProjection::renderCubemapInternalFixedPipeline;
-
-    for (size_t i = 0; i < spoutTotalFaces; i++)
-    {
-        spoutEnabled[i] = true;
-        handle[i] = nullptr;
-        spoutTexture[i] = -1;
-    }
-
-    mSpoutFBO_Ptr = NULL;
-    spoutMappingHandle = nullptr;
-    spoutMappingTexture = -1;
-    spoutMappingType = Mapping::Cubemap;
-    spoutRigOrientation = glm::vec3(0.0f);
-
-    spoutMappingName = "SPOUT_OS_MAPPING";
-
-    mCubemapLoc = -1;
-    mHalfFovLoc = -1;
-    mSwapColorLoc = -1;
-    mSwapDepthLoc = -1;
-    mSwapNearLoc = -1;
-    mSwapFarLoc = -1;
-}
-
-sgct_core::SpoutOutputProjection::~SpoutOutputProjection()
-{
-    for (size_t i = 0; i < spoutTotalFaces; i++)
-    {
-        if (handle[i])
-        {
+SpoutOutputProjection::~SpoutOutputProjection() {
+    for (size_t i = 0; i < spoutTotalFaces; i++) {
+        if (mSpout[i].handle) {
 #ifdef SGCT_HAS_SPOUT
-            ((SPOUTHANDLE)handle[i])->ReleaseSender();
-            ((SPOUTHANDLE)handle[i])->Release();
+            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->ReleaseSender();
+            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->Release();
 #endif
-            handle[i] = nullptr;
         }
-        if (spoutTexture[i] != -1)
-        {
+        if (mSpout[i].texture != -1) {
             glDeleteTextures(1, &mTextures[i]);
-            spoutTexture[i] = -1;
         }
     }
 
-    if (spoutMappingHandle)
-    {
+    if (spoutMappingHandle) {
 #ifdef SGCT_HAS_SPOUT
-        ((SPOUTHANDLE)spoutMappingHandle)->ReleaseSender();
-        ((SPOUTHANDLE)spoutMappingHandle)->Release();
+        reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->ReleaseSender();
+        reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->Release();
 #endif
-        spoutMappingHandle = nullptr;
     }
 
-    if (spoutMappingTexture != -1)
-    {
+    if (spoutMappingTexture != -1) {
         glDeleteTextures(1, &spoutMappingTexture);
-        spoutMappingTexture = -1;
     }
 
-    if (mSpoutFBO_Ptr)
-    {
+    if (mSpoutFBO_Ptr) {
         mSpoutFBO_Ptr->destroy();
         delete mSpoutFBO_Ptr;
     }
@@ -105,76 +68,131 @@ sgct_core::SpoutOutputProjection::~SpoutOutputProjection()
 /*!
 Update projection when aspect ratio changes for the viewport.
 */
-void sgct_core::SpoutOutputProjection::update(float width, float height)
-{
-    updateGeomerty(width, height);
+void SpoutOutputProjection::update(float width, float height) {
+    updateGeometry(width, height);
 }
 
 /*!
 Render the non linear projection to currently bounded FBO
 */
-void sgct_core::SpoutOutputProjection::render()
-{
-    (this->*mInternalRenderFn)();
+void SpoutOutputProjection::render() {
+    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        renderInternalFixedPipeline();
+    }
+    else {
+        renderInternal();
+    }
 }
 
 /*!
 Render the enabled faces of the cubemap
 */
-void sgct_core::SpoutOutputProjection::renderCubemap(std::size_t * subViewPortIndex)
-{
-    (this->*mInternalRenderCubemapFn)(subViewPortIndex);
-}
-
-
-void sgct_core::SpoutOutputProjection::setSpoutChannels(bool channels[spoutTotalFaces]) {
-    for (size_t i = 0; i < spoutTotalFaces; i++) {
-        spoutEnabled[i] = channels[i];
+void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
+    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
+        renderCubemapInternalFixedPipeline(subViewPortIndex);
+    }
+    else {
+        renderCubemapInternal(subViewPortIndex);
     }
 }
 
 
-void sgct_core::SpoutOutputProjection::setSpoutMappingName(std::string name) {
-    spoutMappingName = name;
+void SpoutOutputProjection::setSpoutChannels(bool channels[spoutTotalFaces]) {
+    for (size_t i = 0; i < spoutTotalFaces; i++) {
+        mSpout[i].enabled = channels[i];
+    }
 }
 
 
-void sgct_core::SpoutOutputProjection::setSpoutMapping(Mapping type) {
+void SpoutOutputProjection::setSpoutMappingName(std::string name) {
+    spoutMappingName = std::move(name);
+}
+
+
+void SpoutOutputProjection::setSpoutMapping(Mapping type) {
     spoutMappingType = type;
 }
 
-void sgct_core::SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
-    spoutRigOrientation = orientation;
+void SpoutOutputProjection::setSpoutRigOrientation(glm::vec3 orientation) {
+    spoutRigOrientation = std::move(orientation);
 }
 
-
-
-void sgct_core::SpoutOutputProjection::initTextures() {
-    sgct_core::NonLinearProjection::initTextures();
+void SpoutOutputProjection::initTextures() {
+    NonLinearProjection::initTextures();
 
     sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures");
 
-    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
-    {
+    bool compat = sgct::Engine::instance()->getRunMode() <=
+                  sgct::Engine::OpenGL_Compablity_Profile;
+    if (compat) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
     }
 
     switch (spoutMappingType) {
-    case Mapping::Cubemap:
-        spoutMappingWidth = mCubemapResolution;
-        spoutMappingHeight = mCubemapResolution;
+        case Mapping::Cubemap:
+            spoutMappingWidth = mCubemapResolution;
+            spoutMappingHeight = mCubemapResolution;
 
-        for (size_t i = 0; i < spoutTotalFaces; ++i) {
+            for (size_t i = 0; i < spoutTotalFaces; ++i) {
 #ifdef SGCT_HAS_SPOUT
-            sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures %d", i);
-            if (!spoutEnabled[i]) continue;
-            handle[i] = GetSpout();
-            if (handle[i]) ((SPOUTHANDLE)handle[i])->CreateSender(spoutCubeMapFaceName[i].c_str(), spoutMappingWidth, spoutMappingHeight);
+                sgct::MessageHandler::instance()->print(
+                    "SpoutOutputProjection initTextures %d", i
+                );
+                if (!mSpout[i].enabled) {
+                    continue;
+                }
+                mSpout[i].handle = GetSpout();
+                if (mSpout[i].handle) {
+                    SPOUTHANDLE h = reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle);
+                    h->CreateSender(
+                        spoutCubeMapFaceName[i].c_str(),
+                        spoutMappingWidth,
+                        spoutMappingHeight
+                    );
+                }
 #endif
+                glGenTextures(1, &mSpout[i].texture);
+                glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
 
-            glGenTextures(1, &spoutTexture[i]);
-            glBindTexture(GL_TEXTURE_2D, spoutTexture[i]);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+                glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+                glTexImage2D(
+                    GL_TEXTURE_2D,
+                    0,
+                    mTextureInternalFormat,
+                    spoutMappingWidth,
+                    spoutMappingHeight,
+                    0,
+                    mTextureFormat,
+                    mTextureType,
+                    nullptr
+                );
+            }
+            break;
+        case Mapping::Equirectangular:
+            spoutMappingWidth = mCubemapResolution * 4;
+            spoutMappingHeight = mCubemapResolution * 2;
+#ifdef SGCT_HAS_SPOUT
+            sgct::MessageHandler::instance()->print(
+                "SpoutOutputProjection initTextures Equirectangular"
+            );
+            spoutMappingHandle = GetSpout();
+            if (spoutMappingHandle) {
+                reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->CreateSender(
+                    spoutMappingName.c_str(),
+                    spoutMappingWidth,
+                    spoutMappingHeight
+                );
+            }
+#endif
+            glGenTextures(1, &spoutMappingTexture);
+            glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
 
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
@@ -183,359 +201,479 @@ void sgct_core::SpoutOutputProjection::initTextures() {
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
             glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-            glTexImage2D(GL_TEXTURE_2D, 0, mTextureInternalFormat, spoutMappingWidth, spoutMappingHeight, 0, mTextureFormat, mTextureType, NULL);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                mTextureInternalFormat,
+                spoutMappingWidth,
+                spoutMappingHeight,
+                0,
+                mTextureFormat,
+                mTextureType,
+                nullptr
+            );
+            break;
+        case Mapping::Fisheye:
+            spoutMappingWidth = mCubemapResolution * 2;
+            spoutMappingHeight = mCubemapResolution * 2;
+#ifdef SGCT_HAS_SPOUT
+            sgct::MessageHandler::instance()->print(
+                "SpoutOutputProjection initTextures Fisheye"
+            );
+            spoutMappingHandle = GetSpout();
+            if (spoutMappingHandle) {
+                reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->CreateSender(
+                    spoutMappingName.c_str(),
+                    spoutMappingWidth,
+                    spoutMappingHeight
+                );
+            }
+#endif
+            glGenTextures(1, &spoutMappingTexture);
+            glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
+
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
+            glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
+            glTexImage2D(
+                GL_TEXTURE_2D,
+                0,
+                mTextureInternalFormat,
+                spoutMappingWidth,
+                spoutMappingHeight,
+                0,
+                mTextureFormat,
+                mTextureType,
+                nullptr
+            );
+            break;
         }
-        break;
 
-    case Mapping::Equirectangular:
-        spoutMappingWidth = mCubemapResolution * 4;
-        spoutMappingHeight = mCubemapResolution * 2;
-
-#ifdef SGCT_HAS_SPOUT
-        sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures Equirectangular");
-        spoutMappingHandle = GetSpout();
-        if (spoutMappingHandle) ((SPOUTHANDLE)spoutMappingHandle)->CreateSender(spoutMappingName.c_str(), spoutMappingWidth, spoutMappingHeight);
-#endif
-
-        glGenTextures(1, &spoutMappingTexture);
-        glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, mTextureInternalFormat, spoutMappingWidth, spoutMappingHeight, 0, mTextureFormat, mTextureType, NULL);
-        break;
-
-    case Mapping::Fisheye:
-        spoutMappingWidth = mCubemapResolution * 2;
-        spoutMappingHeight = mCubemapResolution * 2;
-
-#ifdef SGCT_HAS_SPOUT
-        sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures Fisheye");
-        spoutMappingHandle = GetSpout();
-        if (spoutMappingHandle) ((SPOUTHANDLE)spoutMappingHandle)->CreateSender(spoutMappingName.c_str(), spoutMappingWidth, spoutMappingHeight);
-#endif
-
-        glGenTextures(1, &spoutMappingTexture);
-        glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
-
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, 0);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_R, GL_CLAMP_TO_EDGE);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);
-        glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_LINEAR);
-        glTexImage2D(GL_TEXTURE_2D, 0, mTextureInternalFormat, spoutMappingWidth, spoutMappingHeight, 0, mTextureFormat, mTextureType, NULL);
-        break;
-    }
-
-
-    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compablity_Profile)
+    if (compat) {
         glPopAttrib();
-
-    if (sgct::Engine::instance()->isOGLPipelineFixed())
-    {
-        mInternalRenderFn = &SpoutOutputProjection::renderInternalFixedPipeline;
-        mInternalRenderCubemapFn = &SpoutOutputProjection::renderCubemapInternalFixedPipeline;
-    }
-    else
-    {
-        mInternalRenderFn = &SpoutOutputProjection::renderInternal;
-        mInternalRenderCubemapFn = &SpoutOutputProjection::renderCubemapInternal;
     }
 }
 
+void SpoutOutputProjection::initViewports() {
+    enum cubeFaces { Pos_X = 0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
 
+    //radius is needed to calculate the distance to all view planes
+    float radius = 1.f;
 
+    //setup base viewport that will be rotated to create the other cubemap views
+    //+Z face
+    const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
+    const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
+    const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
-void sgct_core::SpoutOutputProjection::initViewports()
-{
-	enum cubeFaces { Pos_X = 0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
+    glm::mat4 pitchRot = glm::rotate(
+        glm::mat4(1.f),
+        glm::radians(-spoutRigOrientation.x),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+    glm::mat4 yawRot = glm::rotate(
+        pitchRot,
+        glm::radians(spoutRigOrientation.y),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
+    glm::mat4 rollRot = glm::rotate(
+        yawRot,
+        glm::radians(-spoutRigOrientation.z),
+        glm::vec3(0.f, 0.f, 1.f)
+    );
 
-	//radius is needed to calculate the distance to all view planes
-	float radius = 1.0f;
+    //add viewports
+    for (unsigned int i = 0; i < 6; i++) {
+        mSubViewports[i].setName("SpoutOutput " + std::to_string(i));
 
-	//setup base viewport that will be rotated to create the other cubemap views
-	//+Z face
-	const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.0f);
-	const glm::vec4 upperLeftBase(-radius, radius, radius, 1.0f);
-	const glm::vec4 upperRightBase(radius, radius, radius, 1.0f);
+        glm::vec4 lowerLeft = lowerLeftBase;
+        glm::vec4 upperLeft = upperLeftBase;
+        glm::vec4 upperRight = upperRightBase;
 
-    glm::mat4 pitchRot = glm::rotate(glm::mat4(1.0f), glm::radians(-spoutRigOrientation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 yawRot = glm::rotate(pitchRot, glm::radians(spoutRigOrientation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rollRot = glm::rotate(yawRot, glm::radians(-spoutRigOrientation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+        glm::mat4 rotMat(1.f);
 
-	//add viewports
-	for (unsigned int i = 0; i<6; i++)
-	{
-		std::stringstream ss;
-		ss << "SpoutOutput " << i;
-		mSubViewports[i].setName(ss.str());
+        /*
+        Rotate and clamp the halv height viewports
+        */
+        switch (i) {
+            case Pos_X: //+X face
+                rotMat = glm::rotate(
+                    rollRot,
+                    glm::radians(-90.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
+                upperRight.x = radius;
+                mSubViewports[i].setSize(1.f, 1.f);
+                break;
+            case Neg_X: //-X face
+                rotMat = glm::rotate(
+                    rollRot,
+                    glm::radians(90.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
+                lowerLeft.x = -radius;
+                upperLeft.x = -radius;
+                mSubViewports[i].setPos(0.f, 0.f);
+                mSubViewports[i].setSize(1.f, 1.f);
+                break;
+            case Pos_Y: //+Y face
+                rotMat = glm::rotate(
+                    rollRot,
+                    glm::radians(-90.f),
+                    glm::vec3(1.f, 0.f, 0.f)
+                );
+                lowerLeft.y = -radius;
+                mSubViewports[i].setPos(0.f, 0.f);
+                mSubViewports[i].setSize(1.f, 1.f);
+                break;
+            case Neg_Y: //-Y face
+                rotMat = glm::rotate(
+                    rollRot,
+                    glm::radians(90.f),
+                    glm::vec3(1.f, 0.f, 0.f)
+                );
+                upperLeft.y = radius;
+                upperRight.y = radius;
+                mSubViewports[i].setSize(1.f, 1.f);
+                break;
+            case Pos_Z: //+Z face
+                rotMat = rollRot;
+                break;
+            case Neg_Z: //-Z face
+                rotMat = glm::rotate(
+                    rollRot,
+                    glm::radians(180.f),
+                    glm::vec3(0.f, 1.f, 0.f)
+                );
+                break;
+        }
 
-		glm::vec4 lowerLeft = lowerLeftBase;
-		glm::vec4 upperLeft = upperLeftBase;
-		glm::vec4 upperRight = upperRightBase;
-
-		glm::mat4 rotMat(1.0f);
-
-		/*
-		Rotate and clamp the halv height viewports
-		*/
-		switch (i)
-		{
-		case Pos_X: //+X face
-		{
-			rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			upperRight.x = radius;
-			mSubViewports[i].setSize(1.0f, 1.0f);
-		}
-		break;
-
-		case Neg_X: //-X face
-		{
-			rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			lowerLeft.x = -radius;
-			upperLeft.x = -radius;
-			mSubViewports[i].setPos(0.0f, 0.0f);
-			mSubViewports[i].setSize(1.0f, 1.0f);
-		}
-		break;
-
-		case Pos_Y: //+Y face
-		{
-			rotMat = glm::rotate(rollRot, glm::radians(-90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			lowerLeft.y = -radius;
-			mSubViewports[i].setPos(0.0f, 0.0f);
-			mSubViewports[i].setSize(1.0f, 1.0f);
-		}
-		break;
-
-		case Neg_Y: //-Y face
-		{
-			rotMat = glm::rotate(rollRot, glm::radians(90.0f), glm::vec3(1.0f, 0.0f, 0.0f));
-			upperLeft.y = radius;
-			upperRight.y = radius;
-			mSubViewports[i].setSize(1.0f, 1.0f);
-		}
-		break;
-
-		case Pos_Z: //+Z face
-			rotMat = rollRot;
-			break;
-
-		case Neg_Z: //-Z face
-			rotMat = glm::rotate(rollRot, glm::radians(180.0f), glm::vec3(0.0f, 1.0f, 0.0f));
-			break;
-		}
-
-		mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::LowerLeft, glm::vec3(rotMat * lowerLeft));
-		mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperLeft, glm::vec3(rotMat * upperLeft));
-		mSubViewports[i].getProjectionPlane()->setCoordinate(sgct_core::SGCTProjectionPlane::UpperRight, glm::vec3(rotMat * upperRight));
-	}
+        mSubViewports[i].getProjectionPlane()->setCoordinate(
+            SGCTProjectionPlane::LowerLeft,
+            glm::vec3(rotMat * lowerLeft)
+        );
+        mSubViewports[i].getProjectionPlane()->setCoordinate(
+            SGCTProjectionPlane::UpperLeft,
+            glm::vec3(rotMat * upperLeft)
+        );
+        mSubViewports[i].getProjectionPlane()->setCoordinate(
+            SGCTProjectionPlane::UpperRight,
+            glm::vec3(rotMat * upperRight)
+        );
+    }
 }
 
-void sgct_core::SpoutOutputProjection::initShaders()
-{
+void SpoutOutputProjection::initShaders() {
     //reload shader program if it exists
-    if (mShader.isLinked())
+    if (mShader.isLinked()) {
         mShader.deleteProgram();
+    }
 
     std::string fisheyeFragmentShader;
     std::string fisheyeVertexShader;
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed())
-    {
+    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         fisheyeVertexShader = sgct_core::shaders_fisheye::Fisheye_Vert_Shader;
 
-        if (sgct::SGCTSettings::instance()->useDepthTexture())
-        {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType())
-            {
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
             case sgct::SGCTSettings::Diffuse:
-            default:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Position:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal_Position:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
-                break;
+                case sgct::SGCTSettings::Diffuse_Normal:
+                    fisheyeFragmentShader = 
+                        shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Position:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Depth_Position;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
+                    break;
+                default:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Depth;
+                    break;
             }
         }
-        else //no depth
-        {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType())
-            {
-            case sgct::SGCTSettings::Diffuse:
-            default:
-                fisheyeFragmentShader =  sgct_core::shaders_fisheye::Fisheye_Frag_Shader;
-                break;
+        else  {
+            //n o depth
+            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                case sgct::SGCTSettings::Diffuse:
+                default:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader;
+                    break;
 
-            case sgct::SGCTSettings::Diffuse_Normal:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal;
-                break;
+                case sgct::SGCTSettings::Diffuse_Normal:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Normal;
+                    break;
 
-            case sgct::SGCTSettings::Diffuse_Position:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Position;
-                break;
+                case sgct::SGCTSettings::Diffuse_Position:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Position;
+                    break;
 
-            case sgct::SGCTSettings::Diffuse_Normal_Position:
-                fisheyeFragmentShader = sgct_core::shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
-                break;
+                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                    fisheyeFragmentShader =
+                        shaders_fisheye::Fisheye_Frag_Shader_Normal_Position;
+                    break;
             }
         }
 
         //depth correction shader only
-        if (sgct::SGCTSettings::instance()->useDepthTexture())
-        {
-            std::string depth_corr_frag_shader = sgct_core::shaders_fisheye::Base_Vert_Shader;
-            std::string depth_corr_vert_shader = sgct_core::shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader;
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            std::string depth_corr_frag_shader = shaders_fisheye::Base_Vert_Shader;
+            std::string depth_corr_vert_shader =
+                shaders_fisheye::Fisheye_Depth_Correction_Frag_Shader;
 
             //replace glsl version
-            sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-            sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+            sgct_helpers::findAndReplace(
+                depth_corr_frag_shader,
+                "**glsl_version**",
+                sgct::Engine::instance()->getGLSLVersion()
+            );
+            sgct_helpers::findAndReplace(
+                depth_corr_vert_shader,
+                "**glsl_version**",
+                sgct::Engine::instance()->getGLSLVersion()
+            );
 
-            if (!mDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
-            if (!mDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
+            bool fragShader = mDepthCorrectionShader.addShaderSrc(
+                depth_corr_frag_shader,
+                GL_VERTEX_SHADER,
+                sgct::ShaderProgram::SHADER_SRC_STRING
+            );
+            if (!fragShader) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Failed to load fisheye depth correction vertex shader\n"
+                );
+            }
+            bool vertShader = mDepthCorrectionShader.addShaderSrc(
+                depth_corr_vert_shader,
+                GL_FRAGMENT_SHADER,
+                sgct::ShaderProgram::SHADER_SRC_STRING
+            );
+            if (!vertShader) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Failed to load fisheye depth correction fragment shader\n"
+                );
+            }
         }
     }
-    else //modern pipeline
-    {
-        fisheyeVertexShader = sgct_core::shaders_modern_fisheye::Fisheye_Vert_Shader;
+    else {
+        // modern pipeline
+        fisheyeVertexShader = shaders_modern_fisheye::Fisheye_Vert_Shader;
 
-        if (sgct::SGCTSettings::instance()->useDepthTexture())
-        {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType())
-            {
-            case sgct::SGCTSettings::Diffuse:
-            default:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Position:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal_Position:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
-                break;
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                case sgct::SGCTSettings::Diffuse:
+                default:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Depth;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Normal:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Position:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Position;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Depth_Normal_Position;
+                    break;
             }
         }
-        else //no depth
-        {
-            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType())
-            {
-            case sgct::SGCTSettings::Diffuse:
-            default:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Position:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Position;
-                break;
-
-            case sgct::SGCTSettings::Diffuse_Normal_Position:
-                fisheyeFragmentShader = sgct_core::shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position;
-                break;
+        else {
+            //no depth
+            switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
+                case sgct::SGCTSettings::Diffuse:
+                default:
+                    fisheyeFragmentShader = shaders_modern_fisheye::Fisheye_Frag_Shader;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Normal:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Normal;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Position:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Position;
+                    break;
+                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                    fisheyeFragmentShader =
+                        shaders_modern_fisheye::Fisheye_Frag_Shader_Normal_Position;
+                    break;
             }
         }
 
         //depth correction shader only
-        if (sgct::SGCTSettings::instance()->useDepthTexture())
-        {
-            std::string depth_corr_frag_shader = sgct_core::shaders_modern_fisheye::Base_Vert_Shader;
-            std::string depth_corr_vert_shader = sgct_core::shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader;
+        if (sgct::SGCTSettings::instance()->useDepthTexture()) {
+            std::string depth_corr_frag_shader = shaders_modern_fisheye::Base_Vert_Shader;
+            std::string depth_corr_vert_shader =
+                shaders_modern_fisheye::Fisheye_Depth_Correction_Frag_Shader;
 
             //replace glsl version
-            sgct_helpers::findAndReplace(depth_corr_frag_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-            sgct_helpers::findAndReplace(depth_corr_vert_shader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+            sgct_helpers::findAndReplace(
+                depth_corr_frag_shader,
+                "**glsl_version**",
+                sgct::Engine::instance()->getGLSLVersion()
+            );
+            sgct_helpers::findAndReplace(
+                depth_corr_vert_shader,
+                "**glsl_version**",
+                sgct::Engine::instance()->getGLSLVersion()
+            );
 
-            if (!mDepthCorrectionShader.addShaderSrc(depth_corr_frag_shader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction vertex shader\n");
-            if (!mDepthCorrectionShader.addShaderSrc(depth_corr_vert_shader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-                sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye depth correction fragment shader\n");
+            bool fragShader = mDepthCorrectionShader.addShaderSrc(
+                depth_corr_frag_shader,
+                GL_VERTEX_SHADER,
+                sgct::ShaderProgram::SHADER_SRC_STRING
+            );
+            if (!fragShader) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Failed to load fisheye depth correction vertex shader\n"
+                );
+            }
+            bool vertShader = mDepthCorrectionShader.addShaderSrc(
+                depth_corr_vert_shader,
+                GL_FRAGMENT_SHADER,
+                sgct::ShaderProgram::SHADER_SRC_STRING
+            );
+            if (!vertShader) {
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::NOTIFY_ERROR,
+                    "Failed to load fisheye depth correction fragment shader\n"
+                );
+            }
         }
     }
 
     //add functions to shader
     switch (spoutMappingType) {
-    case Mapping::Fisheye:
-        sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_fun : sgct_core::shaders_modern_fisheye::sample_fun);
-        break;
-    case Mapping::Equirectangular:
-        sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_latlon_fun : sgct_core::shaders_modern_fisheye::sample_latlon_fun);
-        break;
-    default:
-        sgct_helpers::findAndReplace(fisheyeFragmentShader, "**sample_fun**", sgct::Engine::instance()->isOGLPipelineFixed() ? sgct_core::shaders_fisheye::sample_fun : sgct_core::shaders_modern_fisheye::sample_fun);
-        break;
+        case Mapping::Fisheye:
+            sgct_helpers::findAndReplace(
+                fisheyeFragmentShader,
+                "**sample_fun**",
+                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                    shaders_fisheye::sample_fun :
+                    shaders_modern_fisheye::sample_fun
+            );
+            break;
+        case Mapping::Equirectangular:
+            sgct_helpers::findAndReplace(
+                fisheyeFragmentShader,
+                "**sample_fun**",
+                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                    shaders_fisheye::sample_latlon_fun :
+                    shaders_modern_fisheye::sample_latlon_fun
+            );
+            break;
+        default:
+            sgct_helpers::findAndReplace(
+                fisheyeFragmentShader,
+                "**sample_fun**",
+                sgct::Engine::instance()->isOGLPipelineFixed() ?
+                    shaders_fisheye::sample_fun :
+                    shaders_modern_fisheye::sample_fun
+            );
+            break;
     }
 
-    glm::mat4 pitchRot = glm::rotate(glm::mat4(1.0f), glm::radians(spoutRigOrientation.x), glm::vec3(0.0f, 1.0f, 0.0f));
-    glm::mat4 yawRot = glm::rotate(pitchRot, glm::radians(spoutRigOrientation.y), glm::vec3(1.0f, 0.0f, 0.0f));
-    glm::mat4 rollRot = glm::rotate(yawRot, glm::radians(spoutRigOrientation.z), glm::vec3(0.0f, 0.0f, 1.0f));
+    glm::mat4 pitchRot = glm::rotate(
+        glm::mat4(1.f),
+        glm::radians(spoutRigOrientation.x),
+        glm::vec3(0.f, 1.f, 0.f)
+    );
+    glm::mat4 yawRot = glm::rotate(
+        pitchRot,
+        glm::radians(spoutRigOrientation.y),
+        glm::vec3(1.f, 0.f, 0.f)
+    );
+    glm::mat4 rollRot = glm::rotate(
+        yawRot,
+        glm::radians(spoutRigOrientation.z),
+        glm::vec3(0.f, 0.f, 1.f)
+    );
 
 //    yawRot[0][0] * x + yawRot[0][1] * y + yawRot[0][2] * z;
 //    yawRot[1][0] * x + yawRot[1][1] * y + yawRot[1][2] * z;
 //    yawRot[2][0] * x + yawRot[2][1] * y + yawRot[2][2] * z;
 
-	std::stringstream ssRot;
-	ssRot.precision(5);
-	ssRot << "vec3 rotVec = vec3(" <<
-		rollRot[0][0] << "f*x + " << rollRot[0][1] << "f*y + " << rollRot[0][2] << "f*z, " <<
-		rollRot[1][0] << "f*x + " << rollRot[1][1] << "f*y + " << rollRot[1][2] << "f*z, " <<
-		rollRot[2][0] << "f*x + " << rollRot[2][1] << "f*y + " << rollRot[2][2] << "f*z)";
+    std::stringstream ssRot;
+    ssRot.precision(5);
+    ssRot << "vec3 rotVec = vec3(" <<
+        rollRot[0].x << "f*x + " << rollRot[0].y << "f*y + " << rollRot[0].z << "f*z, " <<
+        rollRot[1].x << "f*x + " << rollRot[1].y << "f*y + " << rollRot[1].z << "f*z, " <<
+        rollRot[2].x << "f*x + " << rollRot[2].y << "f*y + " << rollRot[2].z << "f*z)";
 
     //replace add correct transform in the fragment shader
     sgct_helpers::findAndReplace(fisheyeFragmentShader, "**rotVec**", ssRot.str());
 
     //replace glsl version
-    sgct_helpers::findAndReplace(fisheyeVertexShader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
-    sgct_helpers::findAndReplace(fisheyeFragmentShader, "**glsl_version**", sgct::Engine::instance()->getGLSLVersion());
+    sgct_helpers::findAndReplace(
+        fisheyeVertexShader,
+        "**glsl_version**",
+        sgct::Engine::instance()->getGLSLVersion()
+    );
+    sgct_helpers::findAndReplace(
+        fisheyeFragmentShader,
+        "**glsl_version**",
+        sgct::Engine::instance()->getGLSLVersion()
+    );
 
     //replace color
     std::stringstream ssColor;
     ssColor.precision(2);
-    ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g << ", " << mClearColor.b << ", " << mClearColor.a << ")";
+    ssColor << std::fixed << "vec4(" << mClearColor.r << ", " << mClearColor.g
+            << ", " << mClearColor.b << ", " << mClearColor.a << ")";
     sgct_helpers::findAndReplace(fisheyeFragmentShader, "**bgColor**", ssColor.str());
 
-    if (!mShader.addShaderSrc(fisheyeVertexShader, GL_VERTEX_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye vertex shader:\n%s\n", fisheyeVertexShader.c_str());
-    if (!mShader.addShaderSrc(fisheyeFragmentShader, GL_FRAGMENT_SHADER, sgct::ShaderProgram::SHADER_SRC_STRING))
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Failed to load fisheye fragment shader\n%s\n", fisheyeFragmentShader.c_str());
+    bool vertShader = mShader.addShaderSrc(
+        fisheyeVertexShader,
+        GL_VERTEX_SHADER,
+        sgct::ShaderProgram::SHADER_SRC_STRING
+    );
+    if (!vertShader) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_ERROR,
+            "Failed to load fisheye vertex shader:\n%s\n",
+            fisheyeVertexShader.c_str()
+        );
+    }
+    bool fragShader = mShader.addShaderSrc(
+        fisheyeFragmentShader,
+        GL_FRAGMENT_SHADER,
+        sgct::ShaderProgram::SHADER_SRC_STRING
+    );
+    if (!fragShader) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::NOTIFY_ERROR,
+            "Failed to load fisheye fragment shader\n%s\n",
+            fisheyeFragmentShader.c_str()
+        );
+    }
 
 
     switch (spoutMappingType) {
-    case Mapping::Fisheye:
-        mShader.setName("FisheyeShader");
-        break;
-    case Mapping::Equirectangular:
-        mShader.setName("EquirectangularShader");
-        break;
-    case Mapping::Cubemap:
-        mShader.setName("None");
-        break;
+        case Mapping::Fisheye:
+            mShader.setName("FisheyeShader");
+            break;
+        case Mapping::Equirectangular:
+            mShader.setName("EquirectangularShader");
+            break;
+        case Mapping::Cubemap:
+            mShader.setName("None");
+            break;
     }
     mShader.createAndLinkProgram();
     mShader.bind();
@@ -548,8 +686,7 @@ void sgct_core::SpoutOutputProjection::initShaders()
 
     sgct::ShaderProgram::unbind();
 
-    if (sgct::SGCTSettings::instance()->useDepthTexture())
-    {
+    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
         mDepthCorrectionShader.setName("FisheyeDepthCorrectionShader");
         mDepthCorrectionShader.createAndLinkProgram();
         mDepthCorrectionShader.bind();
@@ -565,72 +702,77 @@ void sgct_core::SpoutOutputProjection::initShaders()
     }
 }
 
-
-void sgct_core::SpoutOutputProjection::initFBO() {
+void SpoutOutputProjection::initFBO() {
     NonLinearProjection::initFBO();
 
     mSpoutFBO_Ptr = new sgct_core::OffScreenBuffer();
     mSpoutFBO_Ptr->setInternalColorFormat(mTextureInternalFormat);
     mSpoutFBO_Ptr->createFBO(spoutMappingWidth, spoutMappingHeight, 1);
 
-    if (mSpoutFBO_Ptr->checkForErrors())
+    if (mSpoutFBO_Ptr->checkForErrors()) {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Spout FBO created.\n");
-    else
+    }
+    else {
         sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Spout FBO created with errors!\n");
+    }
 
-    sgct_core::OffScreenBuffer::unBind();
+    OffScreenBuffer::unBind();
 }
 
+void SpoutOutputProjection::updateGeometry(float width, float height) {
+    float x = 1.f;
+    float y = 1.f;
 
-
-void sgct_core::SpoutOutputProjection::updateGeomerty(const float & width, const float & height)
-{
-    float x = 1.0f;
-    float y = 1.0f;
-
-    mVerts[0] = 0.0f;
-    mVerts[1] = 0.0f;
+    mVerts[0] = 0.f;
+    mVerts[1] = 0.f;
     mVerts[2] = -x;
     mVerts[3] = -y;
-    mVerts[4] = -1.0f;
+    mVerts[4] = -1.f;
 
-    mVerts[5] = 0.0f;
-    mVerts[6] = 1.0f;
+    mVerts[5] = 0.f;
+    mVerts[6] = 1.f;
     mVerts[7] = -x;
     mVerts[8] = y;
-    mVerts[9] = -1.0f;
+    mVerts[9] = -1.f;
 
-    mVerts[10] = 1.0f;
-    mVerts[11] = 0.0f;
+    mVerts[10] = 1.f;
+    mVerts[11] = 0.f;
     mVerts[12] = x;
     mVerts[13] = -y;
-    mVerts[14] = -1.0f;
+    mVerts[14] = -1.f;
 
-    mVerts[15] = 1.0f;
-    mVerts[16] = 1.0f;
+    mVerts[15] = 1.f;
+    mVerts[16] = 1.f;
     mVerts[17] = x;
     mVerts[18] = y;
-    mVerts[19] = -1.0f;
+    mVerts[19] = -1.f;
 
     //update VBO
-    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(mVAO);
+    }
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
     GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
     memcpy(PositionBuffer, mVerts, 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
-    if (!sgct::Engine::instance()->isOGLPipelineFixed())
+    if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
-    else
+    }
+    else {
         glBindBuffer(GL_ARRAY_BUFFER, 0);
+    }
 }
 
-void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
-{
+void SpoutOutputProjection::drawCubeFace(size_t face) {
     glLineWidth(1.0);
-    sgct::Engine::instance()->getWireframe() ? glPolygonMode(GL_FRONT_AND_BACK, GL_LINE) : glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    if (sgct::Engine::instance()->getWireframe()) {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
+    }
+    else {
+        glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
+    }
 
     //reset depth function (to opengl default)
     glDepthFunc(GL_LESS);
@@ -641,58 +783,52 @@ void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
 
 #if defined DebugCubemap
     float color[4];
-    switch (face)
-    {
-    case 0:
-        color[0] = 0.5f;
-        color[1] = 0.0f;
-        color[2] = 0.0f;
-        color[3] = 1.0f;
-        break;
-
-    case 1:
-        color[0] = 0.5f;
-        color[1] = 0.5f;
-        color[2] = 0.0f;
-        color[3] = 1.0f;
-        break;
-
-    case 2:
-        color[0] = 0.0f;
-        color[1] = 0.5f;
-        color[2] = 0.0f;
-        color[3] = 1.0f;
-        break;
-
-    case 3:
-        color[0] = 0.0f;
-        color[1] = 0.5f;
-        color[2] = 0.5f;
-        color[3] = 1.0f;
-        break;
-
-    case 4:
-        color[0] = 0.0f;
-        color[1] = 0.0f;
-        color[2] = 0.5f;
-        color[3] = 1.0f;
-        break;
-
-    case 5:
-        color[0] = 0.5f;
-        color[1] = 0.0f;
-        color[2] = 0.5f;
-        color[3] = 1.0f;
-        break;
+    switch (face) {
+        case 0:
+            color[0] = 0.5f;
+            color[1] = 0.0f;
+            color[2] = 0.0f;
+            color[3] = 1.0f;
+            break;
+        case 1:
+            color[0] = 0.5f;
+            color[1] = 0.5f;
+            color[2] = 0.0f;
+            color[3] = 1.0f;
+            break;
+        case 2:
+            color[0] = 0.0f;
+            color[1] = 0.5f;
+            color[2] = 0.0f;
+            color[3] = 1.0f;
+            break;
+        case 3:
+            color[0] = 0.0f;
+            color[1] = 0.5f;
+            color[2] = 0.5f;
+            color[3] = 1.0f;
+            break;
+        case 4:
+            color[0] = 0.0f;
+            color[1] = 0.0f;
+            color[2] = 0.5f;
+            color[3] = 1.0f;
+            break;
+        case 5:
+            color[0] = 0.5f;
+            color[1] = 0.0f;
+            color[2] = 0.5f;
+            color[3] = 1.0f;
+            break;
     }
     glClearColor(color[0], color[1], color[2], color[3]);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 #else
-    if (sgct::Engine::mInstance->mClearBufferFnPtr != nullptr)
+    if (sgct::Engine::mInstance->mClearBufferFnPtr != nullptr) {
         sgct::Engine::mInstance->mClearBufferFnPtr();
-    else
-    {
-        const float * colorPtr = sgct::Engine::instance()->getClearColor();
+    }
+    else {
+        const float* colorPtr = sgct::Engine::instance()->getClearColor();
         glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
@@ -700,13 +836,16 @@ void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
 
     glDisable(GL_SCISSOR_TEST);
 
-    if (sgct::Engine::instance()->isOGLPipelineFixed())
-    {
+    if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
-        SGCTProjection * proj = mSubViewports[face].getProjection(sgct::Engine::instance()->getCurrentFrustumMode());
+        SGCTProjection* proj = mSubViewports[face].getProjection(
+            sgct::Engine::instance()->getCurrentFrustumMode()
+        );
         glLoadMatrixf(glm::value_ptr(proj->getProjectionMatrix()));
         glMatrixMode(GL_MODELVIEW);
-        glLoadMatrixf(glm::value_ptr(proj->getViewMatrix() * sgct::Engine::instance()->getModelMatrix()));
+        glLoadMatrixf(glm::value_ptr(
+            proj->getViewMatrix() * sgct::Engine::instance()->getModelMatrix()
+        ));
     }
 
     //render
@@ -716,33 +855,42 @@ void sgct_core::SpoutOutputProjection::drawCubeFace(const std::size_t & face)
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void sgct_core::SpoutOutputProjection::blitCubeFace(const int & face)
-{
+void SpoutOutputProjection::blitCubeFace(int face) {
     //copy AA-buffer to "regular"/non-AA buffer
-    mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+
+    //bind separate read and draw buffers to prepare blit operation
+    mCubeMapFBO_Ptr->bindBlit();
     attachTextures(face);
     mCubeMapFBO_Ptr->blit();
 }
 
-void sgct_core::SpoutOutputProjection::attachTextures(const int & face)
-{
-    if (sgct::SGCTSettings::instance()->useDepthTexture())
-    {
+void SpoutOutputProjection::attachTextures(int face) {
+    if (sgct::SGCTSettings::instance()->useDepthTexture()) {
         mCubeMapFBO_Ptr->attachDepthTexture(mTextures[DepthSwap]);
         mCubeMapFBO_Ptr->attachColorTexture(mTextures[ColorSwap]);
     }
-    else
+    else {
         mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], face);
+    }
 
-    if (sgct::SGCTSettings::instance()->useNormalTexture())
-        mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapNormals], face, GL_COLOR_ATTACHMENT1);
+    if (sgct::SGCTSettings::instance()->useNormalTexture()) {
+        mCubeMapFBO_Ptr->attachCubeMapTexture(
+            mTextures[CubeMapNormals],
+            face,
+            GL_COLOR_ATTACHMENT1
+        );
+    }
 
-    if (sgct::SGCTSettings::instance()->usePositionTexture())
-        mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapPositions], face, GL_COLOR_ATTACHMENT2);
+    if (sgct::SGCTSettings::instance()->usePositionTexture()) {
+        mCubeMapFBO_Ptr->attachCubeMapTexture(
+            mTextures[CubeMapPositions],
+            face,
+            GL_COLOR_ATTACHMENT2
+        );
+    }
 }
 
-void sgct_core::SpoutOutputProjection::renderInternal()
-{
+void SpoutOutputProjection::renderInternal() {
     glEnable(GL_SCISSOR_TEST);
     sgct::Engine::mInstance->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
@@ -774,22 +922,22 @@ void sgct_core::SpoutOutputProjection::renderInternal()
 
         glDisable(GL_CULL_FACE);
         bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr()->getAlpha();
-        if (alpha)
-        {
+        if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
-        else
+        else {
             glDisable(GL_BLEND);
+        }
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
         glUniform1i(mCubemapLoc, 0);
         if (spoutMappingType == Mapping::Fisheye) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(180.0f / 2.0f));
+            glUniform1f(mHalfFovLoc, glm::radians<float>(180.f / 2.f));
         }
         else if (spoutMappingType == Mapping::Equirectangular) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(360.0f / 2.0f));
+            glUniform1f(mHalfFovLoc, glm::radians<float>(360.f / 2.f));
         }
 
         glBindVertexArray(mVAO);
@@ -801,8 +949,9 @@ void sgct_core::SpoutOutputProjection::renderInternal()
         glDisable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
         glDisable(GL_DEPTH_TEST);
 
-        if (alpha)
+        if (alpha) {
             glDisable(GL_BLEND);
+        }
 
         //restore depth func
         glDepthFunc(GL_LESS);
@@ -811,7 +960,12 @@ void sgct_core::SpoutOutputProjection::renderInternal()
 
         glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
 #ifdef SGCT_HAS_SPOUT
-        ((SPOUTHANDLE)spoutMappingHandle)->SendTexture(spoutMappingTexture, GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+        reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->SendTexture(
+            spoutMappingTexture,
+            GL_TEXTURE_2D,
+            spoutMappingWidth,
+            spoutMappingHeight
+        );
 #endif
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -827,11 +981,17 @@ void sgct_core::SpoutOutputProjection::renderInternal()
         glGetIntegerv(GL_FRAMEBUFFER_BINDING_EXT, &saveFrameBuffer);
 
 #ifdef SGCT_HAS_SPOUT
-        for (std::size_t i = 0; i < spoutTotalFaces; i++)
-        {
-            if (!spoutEnabled[i]) continue;
-            glBindTexture(GL_TEXTURE_2D, spoutTexture[i]);
-            ((SPOUTHANDLE)handle[i])->SendTexture(spoutTexture[i], GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+        for (size_t i = 0; i < spoutTotalFaces; i++) {
+            if (!mSpout[i].enabled) {
+                continue;
+            }
+            glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
+            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
+                mSpout[i].texture,
+                GL_TEXTURE_2D,
+                spoutMappingWidth,
+                spoutMappingHeight
+            );
         }
 #endif
 
@@ -840,8 +1000,7 @@ void sgct_core::SpoutOutputProjection::renderInternal()
     }
 }
 
-void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
-{
+void SpoutOutputProjection::renderInternalFixedPipeline() {
     glEnable(GL_SCISSOR_TEST);
     sgct::Engine::mInstance->enterCurrentViewport();
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
@@ -870,21 +1029,21 @@ void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
 
         glDisable(GL_CULL_FACE);
         bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr()->getAlpha();
-        if (alpha)
-        {
+        if (alpha) {
             glEnable(GL_BLEND);
             glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
         }
-        else
+        else {
             glDisable(GL_BLEND);
+        }
         glEnable(GL_DEPTH_TEST);
         glDepthFunc(GL_ALWAYS);
 
         glUniform1i(mCubemapLoc, 0);
         if (spoutMappingType == Mapping::Fisheye) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(180.0f / 2.0f));
+            glUniform1f(mHalfFovLoc, glm::radians<float>(180.f / 2.f));
         } else if (spoutMappingType == Mapping::Equirectangular) {
-            glUniform1f(mHalfFovLoc, glm::radians<float>(360.0f / 2.0f));
+            glUniform1f(mHalfFovLoc, glm::radians<float>(360.f / 2.f));
         }
 
         glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -906,7 +1065,12 @@ void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
 
         glBindTexture(GL_TEXTURE_2D, spoutMappingTexture);
 #ifdef SGCT_HAS_SPOUT
-        ((SPOUTHANDLE)spoutMappingHandle)->SendTexture(spoutMappingTexture, GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+        reinterpret_cast<SPOUTHANDLE>(spoutMappingHandle)->SendTexture(
+            spoutMappingTexture,
+            GL_TEXTURE_2D,
+            spoutMappingWidth,
+            spoutMappingHeight
+        );
 #endif
         glBindTexture(GL_TEXTURE_2D, 0);
 
@@ -915,11 +1079,17 @@ void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
     }
     else {
 #ifdef SGCT_HAS_SPOUT
-        for (std::size_t i = 0; i < spoutTotalFaces; i++)
-        {
-            if (!spoutEnabled[i]) continue;
-            glBindTexture(GL_TEXTURE_2D, spoutTexture[i]);
-            ((SPOUTHANDLE)handle[i])->SendTexture(spoutTexture[i], GL_TEXTURE_2D, spoutMappingWidth, spoutMappingHeight);
+        for (size_t i = 0; i < spoutTotalFaces; i++) {
+            if (!mSpout[i].enabled) {
+                continue;
+            }
+            glBindTexture(GL_TEXTURE_2D, mSpout[i].texture);
+            reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->SendTexture(
+                mSpout[i].texture,
+                GL_TEXTURE_2D,
+                spoutMappingWidth,
+                spoutMappingHeight
+            );
         }
 #endif
 
@@ -927,40 +1097,46 @@ void sgct_core::SpoutOutputProjection::renderInternalFixedPipeline()
     }
 }
 
-void sgct_core::SpoutOutputProjection::renderCubemapInternal(std::size_t * subViewPortIndex)
-{
-    BaseViewport * vp;
+void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
+    BaseViewport* vp;
     unsigned int faceIndex;
-    for (std::size_t i = 0; i < 6; i++)
-    {
+    for (size_t i = 0; i < 6; i++) {
         vp = &mSubViewports[i];
         *subViewPortIndex = i;
         faceIndex = static_cast<unsigned int>(i);
 
-        if (!spoutEnabled[i]) continue;
+        if (!mSpout[i].enabled) {
+            continue;
+        }
 
-        if (vp->isEnabled())
-        {
+        if (vp->isEnabled()) {
             //bind & attach buffer
-            mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-            if (!mCubeMapFBO_Ptr->isMultiSampled())
+            mCubeMapFBO_Ptr->bind();
+            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
                 attachTextures(faceIndex);
+            }
 
             sgct::Engine::mInstance->getCurrentWindowPtr()->setCurrentViewport(vp);
             drawCubeFace(i);
 
             //blit MSAA fbo to texture
-            if (mCubeMapFBO_Ptr->isMultiSampled())
+            if (mCubeMapFBO_Ptr->isMultiSampled()) {
                 blitCubeFace(faceIndex);
+            }
 
             //re-calculate depth values from a cube to spherical model
-            if (sgct::SGCTSettings::instance()->useDepthTexture())
-            {
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
                 mCubeMapFBO_Ptr->bind(false, 1, buffers); //bind no multi-sampled
 
-                mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], faceIndex);
-                mCubeMapFBO_Ptr->attachCubeMapDepthTexture(mTextures[CubeMapDepth], faceIndex);
+                mCubeMapFBO_Ptr->attachCubeMapTexture(
+                    mTextures[CubeMapColor],
+                    faceIndex
+                );
+                mCubeMapFBO_Ptr->attachCubeMapDepthTexture(
+                    mTextures[CubeMapDepth],
+                    faceIndex
+                );
 
                 glViewport(0, 0, spoutMappingWidth, spoutMappingHeight);
                 glScissor(0, 0, spoutMappingWidth, spoutMappingHeight);
@@ -970,13 +1146,13 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternal(std::size_t * subVi
 
                 glDisable(GL_CULL_FACE);
                 bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr()->getAlpha();
-                if (alpha)
-                {
+                if (alpha) {
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }
-                else
+                else {
                     glDisable(GL_BLEND);
+                }
 
                 glEnable(GL_DEPTH_TEST);
                 glDepthFunc(GL_ALWAYS);
@@ -1003,8 +1179,9 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternal(std::size_t * subVi
 
                 glDisable(GL_DEPTH_TEST);
 
-                if (alpha)
+                if (alpha) {
                     glDisable(GL_BLEND);
+                }
 
                 //restore depth func
                 glDepthFunc(GL_LESS);
@@ -1014,49 +1191,71 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternal(std::size_t * subVi
             if (spoutMappingType == Mapping::Cubemap) {
                 mCubeMapFBO_Ptr->unBind();
 
-                if (handle[i]) {
+                if (mSpout[i].handle) {
                     glBindTexture(GL_TEXTURE_2D, 0);
-                    glCopyImageSubData(mTextures[CubeMapColor], GL_TEXTURE_CUBE_MAP, 0, 0, 0, faceIndex, spoutTexture[i], GL_TEXTURE_2D, 0, 0, 0, 0, spoutMappingWidth, spoutMappingHeight, 1);
+                    glCopyImageSubData(
+                        mTextures[CubeMapColor],
+                        GL_TEXTURE_CUBE_MAP,
+                        0,
+                        0,
+                        0,
+                        faceIndex,
+                        mSpout[i].texture,
+                        GL_TEXTURE_2D,
+                        0,
+                        0,
+                        0,
+                        0,
+                        spoutMappingWidth,
+                        spoutMappingHeight,
+                        1
+                    );
                 }
             }
         }//end if viewport is enabled
     }//end for
 }
 
-void sgct_core::SpoutOutputProjection::renderCubemapInternalFixedPipeline(std::size_t * subViewPortIndex)
-{
-    BaseViewport * vp;
+void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex) {
+    BaseViewport* vp;
     unsigned int faceIndex;
-    for (std::size_t i = 0; i < 6; i++)
-    {
+    for (std::size_t i = 0; i < 6; i++) {
         vp = &mSubViewports[i];
         *subViewPortIndex = i;
         faceIndex = static_cast<unsigned int>(i);
 
-        if (!spoutEnabled[i]) continue;
+        if (!mSpout[i].enabled) {
+            continue;
+        }
 
-        if (vp->isEnabled())
-        {
+        if (vp->isEnabled()) {
             //bind & attach buffer
-            mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-            if (!mCubeMapFBO_Ptr->isMultiSampled())
+            mCubeMapFBO_Ptr->bind();
+            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
                 attachTextures(faceIndex);
+            }
 
             sgct::Engine::mInstance->getCurrentWindowPtr()->setCurrentViewport(vp);
             drawCubeFace(i);
 
             //blit MSAA fbo to texture
-            if (mCubeMapFBO_Ptr->isMultiSampled())
+            if (mCubeMapFBO_Ptr->isMultiSampled()) {
                 blitCubeFace(faceIndex);
+            }
 
             //re-calculate depth values from a cube to spherical model
-            if (sgct::SGCTSettings::instance()->useDepthTexture())
-            {
+            if (sgct::SGCTSettings::instance()->useDepthTexture()) {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
                 mCubeMapFBO_Ptr->bind(false, 1, buffers); //bind no multi-sampled
 
-                mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], faceIndex);
-                mCubeMapFBO_Ptr->attachCubeMapDepthTexture(mTextures[CubeMapDepth], faceIndex);
+                mCubeMapFBO_Ptr->attachCubeMapTexture(
+                    mTextures[CubeMapColor],
+                    faceIndex
+                );
+                mCubeMapFBO_Ptr->attachCubeMapDepthTexture(
+                    mTextures[CubeMapDepth],
+                    faceIndex
+                );
 
                 glViewport(0, 0, spoutMappingWidth, spoutMappingHeight);
                 glScissor(0, 0, spoutMappingWidth, spoutMappingHeight);
@@ -1066,7 +1265,7 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternalFixedPipeline(std::s
 
                 sgct::Engine::mInstance->mClearBufferFnPtr();
 
-                glActiveTexture(GL_TEXTURE0); //Open Scene Graph or the user may have changed the active texture
+                glActiveTexture(GL_TEXTURE0);
                 glMatrixMode(GL_TEXTURE);
                 glLoadIdentity();
 
@@ -1081,13 +1280,13 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternalFixedPipeline(std::s
 
                 glDisable(GL_CULL_FACE);
                 bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr()->getAlpha();
-                if (alpha)
-                {
+                if (alpha) {
                     glEnable(GL_BLEND);
                     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
                 }
-                else
+                else {
                     glDisable(GL_BLEND);
+                }
 
                 glEnable(GL_DEPTH_TEST);
                 glDepthFunc(GL_ALWAYS);
@@ -1104,10 +1303,20 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternalFixedPipeline(std::s
                 glClientActiveTexture(GL_TEXTURE0);
 
                 glEnableClientState(GL_TEXTURE_COORD_ARRAY);
-                glTexCoordPointer(2, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(0));
+                glTexCoordPointer(
+                    2,
+                    GL_FLOAT,
+                    5 * sizeof(float),
+                    reinterpret_cast<void*>(0)
+                );
 
                 glEnableClientState(GL_VERTEX_ARRAY);
-                glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
+                glVertexPointer(
+                    3,
+                    GL_FLOAT,
+                    5 * sizeof(float),
+                    reinterpret_cast<void*>(8)
+                );
                 glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
                 sgct::Engine::mInstance->getCurrentWindowPtr()->unbindVBO();
                 glPopClientAttrib();
@@ -1115,16 +1324,34 @@ void sgct_core::SpoutOutputProjection::renderCubemapInternalFixedPipeline(std::s
                 //unbind shader
                 sgct::ShaderProgram::unbind();
                 glPopAttrib();
-            }//end if depthmap
+            } //end if depthmap
 
             if (spoutMappingType == Mapping::Cubemap) {
                 mCubeMapFBO_Ptr->unBind();
 
-                if (handle[i]) {
+                if (mSpout[i].handle) {
                     glBindTexture(GL_TEXTURE_2D, 0);
-                    glCopyImageSubData(mTextures[CubeMapColor], GL_TEXTURE_CUBE_MAP, 0, 0, 0, faceIndex, spoutTexture[i], GL_TEXTURE_2D, 0, 0, 0, 0, spoutMappingWidth, spoutMappingHeight, 1);
+                    glCopyImageSubData(
+                        mTextures[CubeMapColor],
+                        GL_TEXTURE_CUBE_MAP,
+                        0,
+                        0,
+                        0,
+                        faceIndex,
+                        mSpout[i].texture,
+                        GL_TEXTURE_2D,
+                        0,
+                        0,
+                        0,
+                        0,
+                        spoutMappingWidth,
+                        spoutMappingHeight,
+                        1
+                    );
                 }
             }
-        }//end if viewport is enabled
-    }//end for
+        } //end if viewport is enabled
+    } //end for
 }
+
+} // namespace sgct_core

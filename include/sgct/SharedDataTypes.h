@@ -5,600 +5,568 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SHARED_DATA_TYPES
-#define _SHARED_DATA_TYPES
+#ifndef __SGCT__SHARED_DATA_TYPES__H__
+#define __SGCT__SHARED_DATA_TYPES__H__
 
 #include <mutex>
 #include <stdint.h>
 #include <string>
 #include <vector>
 
-namespace sgct //simple graphics cluster toolkit
-{    
-    /*!
-    Mutex protected float for multi-thread data sharing
-    */
-    class SharedFloat
-    {
-    public:
-        SharedFloat();
-        SharedFloat(float val);
-        SharedFloat(const SharedFloat & sf);
+namespace sgct {    
 
-        float getVal();
-        void setVal(float val);
+/*!
+Mutex protected float for multi-thread data sharing
+*/
+class SharedFloat {
+public:
+    SharedFloat() = default;
+    explicit SharedFloat(float val);
+    SharedFloat(const SharedFloat& sf);
 
-        void operator=(const SharedFloat & sf);
-        void operator=(const float & val);
-        void operator+=(const float & val);
-        void operator-=(const float & val);
-        void operator*=(const float & val);
-        void operator/=(const float & val);
-        void operator++(int);
-        void operator--(int);
+    float getVal();
+    void setVal(float val);
 
-        bool operator<(const float & val);
-        bool operator<=(const float & val);
-        bool operator>(const float & val);
-        bool operator>=(const float & val);
-        bool operator==(const float & val);
-        bool operator!=(const float & val);
+    void operator=(const SharedFloat& sf);
+    void operator=(float val);
+    void operator+=(float val);
+    void operator-=(float val);
+    void operator*=(float val);
+    void operator/=(float val);
+    void operator++(int);
+    void operator--(int);
 
-        float operator+(const float & val);
-        float operator-(const float & val);
-        float operator*(const float & val);
-        float operator/(const float & val);
+    bool operator<(float val);
+    bool operator<=(float val);
+    bool operator>(float val);
+    bool operator>=(float val);
+    bool operator==(float val);
+    bool operator!=(float val);
 
-    private:
-        float mVal;
-        std::mutex mMutex;
-    };
+    float operator+(float val);
+    float operator-(float val);
+    float operator*(float val);
+    float operator/(float val);
 
-    /*!
-    Mutex protected double for multi-thread data sharing
-    */
-    class SharedDouble
-    {
-    public:
-        SharedDouble();
-        SharedDouble( double val );
-        SharedDouble( const SharedDouble & sd );
+private:
+    float mVal = 0.f;
+    std::mutex mMutex;
+};
+
+/*!
+Mutex protected double for multi-thread data sharing
+*/
+class SharedDouble {
+public:
+    SharedDouble() = default;
+    explicit SharedDouble(double val );
+    SharedDouble(const SharedDouble& sd );
         
-        double getVal();
-        void setVal(double val);
+    double getVal();
+    void setVal(double val);
         
-        void operator=(const SharedDouble & sd);
-        void operator=( const double & val );
-        void operator+=( const double & val );
-        void operator-=( const double & val );
-        void operator*=( const double & val );
-        void operator/=( const double & val );
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedDouble& sd);
+    void operator=(double val);
+    void operator+=(double val);
+    void operator-=(double val);
+    void operator*=(double val);
+    void operator/=(double val);
+    void operator++(int);
+    void operator--(int);
         
-        bool operator<( const double & val );
-        bool operator<=( const double & val );
-        bool operator>( const double & val );
-        bool operator>=( const double & val );
-        bool operator==( const double & val );
-        bool operator!=( const double & val );
+    bool operator<(double val);
+    bool operator<=(double val);
+    bool operator>(double val);
+    bool operator>=(double val);
+    bool operator==(double val);
+    bool operator!=(double val);
         
-        double operator+( const double & val );
-        double operator-( const double & val );
-        double operator*( const double & val );
-        double operator/( const double & val );
+    double operator+(double val);
+    double operator-(double val);
+    double operator*(double val);
+    double operator/(double val);
         
-    private:
-        double mVal;
-        std::mutex mMutex;
-    };
+private:
+    double mVal = 0.0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected long for multi-thread data sharing
-    */
-    class SharedInt64
-    {
-    public:
-        SharedInt64();
-        SharedInt64(int64_t val);
-        SharedInt64(const SharedInt64 & si);
+/*!
+Mutex protected long for multi-thread data sharing
+*/
+class SharedInt64 {
+public:
+    SharedInt64() = default;
+    explicit SharedInt64(int64_t val);
+    SharedInt64(const SharedInt64& si);
 
-        int64_t getVal();
-        void setVal(int64_t val);
+    int64_t getVal();
+    void setVal(int64_t val);
 
-        void operator=(const SharedInt64 & si);
-        void operator=(const int64_t & val);
-        void operator+=(const int64_t & val);
-        void operator-=(const int64_t & val);
-        void operator*=(const int64_t & val);
-        void operator/=(const int64_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedInt64& si);
+    void operator=(int64_t val);
+    void operator+=(int64_t val);
+    void operator-=(int64_t val);
+    void operator*=(int64_t val);
+    void operator/=(int64_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const int64_t & val);
-        bool operator<=(const int64_t & val);
-        bool operator>(const int64_t & val);
-        bool operator>=(const int64_t & val);
-        bool operator==(const int64_t & val);
-        bool operator!=(const int64_t & val);
+    bool operator<(int64_t val);
+    bool operator<=(int64_t val);
+    bool operator>(int64_t val);
+    bool operator>=(int64_t val);
+    bool operator==(int64_t val);
+    bool operator!=(int64_t val);
 
-        int64_t operator+(const int64_t & val);
-        int64_t operator-(const int64_t & val);
-        int64_t operator*(const int64_t & val);
-        int64_t operator/(const int64_t & val);
+    int64_t operator+(int64_t val);
+    int64_t operator-(int64_t val);
+    int64_t operator*(int64_t val);
+    int64_t operator/(int64_t val);
 
-    private:
-        int64_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    int64_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected int for multi-thread data sharing
-    */
-    class SharedInt32
-    {
-    public:
-        SharedInt32();
-        SharedInt32(int32_t val);
-        SharedInt32(const SharedInt32 & si);
+/*!
+Mutex protected int for multi-thread data sharing
+*/
+class SharedInt32 {
+public:
+    SharedInt32() = default;
+    explicit SharedInt32(int32_t val);
+    SharedInt32(const SharedInt32& si);
 
-        int32_t getVal();
-        void setVal(int32_t val);
+    int32_t getVal();
+    void setVal(int32_t val);
 
-        void operator=(const SharedInt32 & si);
-        void operator=(const int32_t & val);
-        void operator+=(const int32_t & val);
-        void operator-=(const int32_t & val);
-        void operator*=(const int32_t & val);
-        void operator/=(const int32_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedInt32& si);
+    void operator=(int32_t val);
+    void operator+=(int32_t val);
+    void operator-=(int32_t val);
+    void operator*=(int32_t val);
+    void operator/=(int32_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const int32_t & val);
-        bool operator<=(const int32_t & val);
-        bool operator>(const int32_t & val);
-        bool operator>=(const int32_t & val);
-        bool operator==(const int32_t & val);
-        bool operator!=(const int32_t & val);
+    bool operator<(int32_t val);
+    bool operator<=(int32_t val);
+    bool operator>(int32_t val);
+    bool operator>=(int32_t val);
+    bool operator==(int32_t val);
+    bool operator!=(int32_t val);
 
-        int32_t operator+(const int32_t & val);
-        int32_t operator-(const int32_t & val);
-        int32_t operator*(const int32_t & val);
-        int32_t operator/(const int32_t & val);
+    int32_t operator+(int32_t val);
+    int32_t operator-(int32_t val);
+    int32_t operator*(int32_t val);
+    int32_t operator/(int32_t val);
 
-    private:
-        int32_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    int32_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected short/int16 for multi-thread data sharing
-    */
-    class SharedInt16
-    {
-    public:
-        SharedInt16();
-        SharedInt16(int16_t val);
-        SharedInt16(const SharedInt16 & si);
+/*!
+Mutex protected short/int16 for multi-thread data sharing
+*/
+class SharedInt16 {
+public:
+    SharedInt16() = default;
+    explicit SharedInt16(int16_t val);
+    SharedInt16(const SharedInt16& si);
 
-        int16_t getVal();
-        void setVal(int16_t val);
+    int16_t getVal();
+    void setVal(int16_t val);
 
-        void operator=(const SharedInt16 & si);
-        void operator=(const int16_t & val);
-        void operator+=(const int16_t & val);
-        void operator-=(const int16_t & val);
-        void operator*=(const int16_t & val);
-        void operator/=(const int16_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedInt16& si);
+    void operator=(int16_t val);
+    void operator+=(int16_t val);
+    void operator-=(int16_t val);
+    void operator*=(int16_t val);
+    void operator/=(int16_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const int16_t & val);
-        bool operator<=(const int16_t & val);
-        bool operator>(const int16_t & val);
-        bool operator>=(const int16_t & val);
-        bool operator==(const int16_t & val);
-        bool operator!=(const int16_t & val);
+    bool operator<(int16_t val);
+    bool operator<=(int16_t val);
+    bool operator>(int16_t val);
+    bool operator>=(int16_t val);
+    bool operator==(int16_t val);
+    bool operator!=(int16_t val);
 
-        int16_t operator+(const int16_t & val);
-        int16_t operator-(const int16_t & val);
-        int16_t operator*(const int16_t & val);
-        int16_t operator/(const int16_t & val);
+    int16_t operator+(int16_t val);
+    int16_t operator-(int16_t val);
+    int16_t operator*(int16_t val);
+    int16_t operator/(int16_t val);
 
-    private:
-        int16_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    int16_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected int8 for multi-thread data sharing
-    */
-    class SharedInt8
-    {
-    public:
-        SharedInt8();
-        SharedInt8(int8_t val);
-        SharedInt8(const SharedInt8 & si);
+/*!
+Mutex protected int8 for multi-thread data sharing
+*/
+class SharedInt8 {
+public:
+    SharedInt8() = default;
+    explicit SharedInt8(int8_t val);
+    SharedInt8(const SharedInt8& si);
 
-        int8_t getVal();
-        void setVal(int8_t val);
+    int8_t getVal();
+    void setVal(int8_t val);
 
-        void operator=(const SharedInt8 & si);
-        void operator=(const int8_t & val);
-        void operator+=(const int8_t & val);
-        void operator-=(const int8_t & val);
-        void operator*=(const int8_t & val);
-        void operator/=(const int8_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedInt8& si);
+    void operator=(int8_t val);
+    void operator+=(int8_t val);
+    void operator-=(int8_t val);
+    void operator*=(int8_t val);
+    void operator/=(int8_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const int8_t & val);
-        bool operator<=(const int8_t & val);
-        bool operator>(const int8_t & val);
-        bool operator>=(const int8_t & val);
-        bool operator==(const int8_t & val);
-        bool operator!=(const int8_t & val);
+    bool operator<(int8_t val);
+    bool operator<=(int8_t val);
+    bool operator>(int8_t val);
+    bool operator>=(int8_t val);
+    bool operator==(int8_t val);
+    bool operator!=(int8_t val);
 
-        int8_t operator+(const int8_t & val);
-        int8_t operator-(const int8_t & val);
-        int8_t operator*(const int8_t & val);
-        int8_t operator/(const int8_t & val);
+    int8_t operator+(int8_t val);
+    int8_t operator-(int8_t val);
+    int8_t operator*(int8_t val);
+    int8_t operator/(int8_t val);
 
-    private:
-        int8_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    int8_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected unsigned long for multi-thread data sharing
-    */
-    class SharedUInt64
-    {
-    public:
-        SharedUInt64();
-        SharedUInt64(uint64_t val);
-        SharedUInt64(const SharedUInt64 & si);
+/*!
+Mutex protected unsigned long for multi-thread data sharing
+*/
+class SharedUInt64 {
+public:
+    SharedUInt64() = default;
+    explicit SharedUInt64(uint64_t val);
+    SharedUInt64(const SharedUInt64& si);
 
-        uint64_t getVal();
-        void setVal(uint64_t val);
+    uint64_t getVal();
+    void setVal(uint64_t val);
 
-        void operator=(const SharedUInt64 & si);
-        void operator=(const uint64_t & val);
-        void operator+=(const uint64_t & val);
-        void operator-=(const uint64_t & val);
-        void operator*=(const uint64_t & val);
-        void operator/=(const uint64_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedUInt64& si);
+    void operator=(uint64_t val);
+    void operator+=(uint64_t val);
+    void operator-=(uint64_t val);
+    void operator*=(uint64_t val);
+    void operator/=(uint64_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const uint64_t & val);
-        bool operator<=(const uint64_t & val);
-        bool operator>(const uint64_t & val);
-        bool operator>=(const uint64_t & val);
-        bool operator==(const uint64_t & val);
-        bool operator!=(const uint64_t & val);
+    bool operator<(uint64_t val);
+    bool operator<=(uint64_t val);
+    bool operator>(uint64_t val);
+    bool operator>=(uint64_t val);
+    bool operator==(uint64_t val);
+    bool operator!=(uint64_t val);
 
-        uint64_t operator+(const uint64_t & val);
-        uint64_t operator-(const uint64_t & val);
-        uint64_t operator*(const uint64_t & val);
-        uint64_t operator/(const uint64_t & val);
+    uint64_t operator+(uint64_t val);
+    uint64_t operator-(uint64_t val);
+    uint64_t operator*(uint64_t val);
+    uint64_t operator/(uint64_t val);
 
-    private:
-        uint64_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    uint64_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected unsigned int for multi-thread data sharing
-    */
-    class SharedUInt32
-    {
-    public:
-        SharedUInt32();
-        SharedUInt32(uint32_t val);
-        SharedUInt32(const SharedUInt32 & si);
+/*!
+Mutex protected unsigned int for multi-thread data sharing
+*/
+class SharedUInt32 {
+public:
+    SharedUInt32() = default;
+    explicit SharedUInt32(uint32_t val);
+    SharedUInt32(const SharedUInt32& si);
 
-        uint32_t getVal();
-        void setVal(uint32_t val);
+    uint32_t getVal();
+    void setVal(uint32_t val);
 
-        void operator=(const SharedUInt32 & si);
-        void operator=(const uint32_t & val);
-        void operator+=(const uint32_t & val);
-        void operator-=(const uint32_t & val);
-        void operator*=(const uint32_t & val);
-        void operator/=(const uint32_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedUInt32& si);
+    void operator=(uint32_t val);
+    void operator+=(uint32_t val);
+    void operator-=(uint32_t val);
+    void operator*=(uint32_t val);
+    void operator/=(uint32_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const uint32_t & val);
-        bool operator<=(const uint32_t & val);
-        bool operator>(const uint32_t & val);
-        bool operator>=(const uint32_t & val);
-        bool operator==(const uint32_t & val);
-        bool operator!=(const uint32_t & val);
+    bool operator<(uint32_t val);
+    bool operator<=(uint32_t val);
+    bool operator>(uint32_t val);
+    bool operator>=(uint32_t val);
+    bool operator==(uint32_t val);
+    bool operator!=(uint32_t val);
 
-        uint32_t operator+(const uint32_t & val);
-        uint32_t operator-(const uint32_t & val);
-        uint32_t operator*(const uint32_t & val);
-        uint32_t operator/(const uint32_t & val);
+    uint32_t operator+(uint32_t val);
+    uint32_t operator-(uint32_t val);
+    uint32_t operator*(uint32_t val);
+    uint32_t operator/(uint32_t val);
 
-    private:
-        uint32_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    uint32_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected unsigned short/uint16 for multi-thread data sharing
-    */
-    class SharedUInt16
-    {
-    public:
-        SharedUInt16();
-        SharedUInt16(uint16_t val);
-        SharedUInt16(const SharedUInt16 & si);
+/*!
+Mutex protected unsigned short/uint16 for multi-thread data sharing
+*/
+class SharedUInt16 {
+public:
+    SharedUInt16() = default;
+    explicit SharedUInt16(uint16_t val);
+    SharedUInt16(const SharedUInt16& si);
 
-        uint16_t getVal();
-        void setVal(uint16_t val);
+    uint16_t getVal();
+    void setVal(uint16_t val);
 
-        void operator=(const SharedUInt16 & si);
-        void operator=(const uint16_t & val);
-        void operator+=(const uint16_t & val);
-        void operator-=(const uint16_t & val);
-        void operator*=(const uint16_t & val);
-        void operator/=(const uint16_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedUInt16& si);
+    void operator=(uint16_t val);
+    void operator+=(uint16_t val);
+    void operator-=(uint16_t val);
+    void operator*=(uint16_t val);
+    void operator/=(uint16_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const uint16_t & val);
-        bool operator<=(const uint16_t & val);
-        bool operator>(const uint16_t & val);
-        bool operator>=(const uint16_t & val);
-        bool operator==(const uint16_t & val);
-        bool operator!=(const uint16_t & val);
+    bool operator<(uint16_t val);
+    bool operator<=(uint16_t val);
+    bool operator>(uint16_t val);
+    bool operator>=(uint16_t val);
+    bool operator==(uint16_t val);
+    bool operator!=(uint16_t val);
 
-        uint16_t operator+(const uint16_t & val);
-        uint16_t operator-(const uint16_t & val);
-        uint16_t operator*(const uint16_t & val);
-        uint16_t operator/(const uint16_t & val);
+    uint16_t operator+(uint16_t val);
+    uint16_t operator-(uint16_t val);
+    uint16_t operator*(uint16_t val);
+    uint16_t operator/(uint16_t val);
 
-    private:
-        uint16_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    uint16_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected unsigned uint8 for multi-thread data sharing
-    */
-    class SharedUInt8
-    {
-    public:
-        SharedUInt8();
-        SharedUInt8(uint8_t val);
-        SharedUInt8(const SharedUInt8 & si);
+/*!
+Mutex protected unsigned uint8 for multi-thread data sharing
+*/
+class SharedUInt8 {
+public:
+    SharedUInt8() = default;
+    explicit SharedUInt8(uint8_t val);
+    SharedUInt8(const SharedUInt8& si);
 
-        uint8_t getVal();
-        void setVal(uint8_t val);
+    uint8_t getVal();
+    void setVal(uint8_t val);
 
-        void operator=(const SharedUInt8 & si);
-        void operator=(const uint8_t & val);
-        void operator+=(const uint8_t & val);
-        void operator-=(const uint8_t & val);
-        void operator*=(const uint8_t & val);
-        void operator/=(const uint8_t & val);
-        void operator++(int);
-        void operator--(int);
+    void operator=(const SharedUInt8& si);
+    void operator=(uint8_t val);
+    void operator+=(uint8_t val);
+    void operator-=(uint8_t val);
+    void operator*=(uint8_t val);
+    void operator/=(uint8_t val);
+    void operator++(int);
+    void operator--(int);
 
-        bool operator<(const uint8_t & val);
-        bool operator<=(const uint8_t & val);
-        bool operator>(const uint8_t & val);
-        bool operator>=(const uint8_t & val);
-        bool operator==(const uint8_t & val);
-        bool operator!=(const uint8_t & val);
+    bool operator<(uint8_t val);
+    bool operator<=(uint8_t val);
+    bool operator>(uint8_t val);
+    bool operator>=(uint8_t val);
+    bool operator==(uint8_t val);
+    bool operator!=(uint8_t val);
 
-        uint8_t operator+(const uint8_t & val);
-        uint8_t operator-(const uint8_t & val);
-        uint8_t operator*(const uint8_t & val);
-        uint8_t operator/(const uint8_t & val);
+    uint8_t operator+(uint8_t val);
+    uint8_t operator-(uint8_t val);
+    uint8_t operator*(uint8_t val);
+    uint8_t operator/(uint8_t val);
 
-    private:
-        uint8_t mVal;
-        std::mutex mMutex;
-    };
+private:
+    uint8_t mVal = 0;
+    std::mutex mMutex;
+};
 
-    //backwards compability
-    typedef SharedInt16 SharedShort;
-    typedef SharedInt32 SharedInt;
+//backwards compability
+using SharedShort = SharedInt16;
+using SharedInt = SharedInt32;
 
-    /*!
-    Mutex protected unsigned char for multi-thread data sharing
-    */
-    class SharedUChar
-    {
-    public:
-        SharedUChar();
-        SharedUChar(unsigned char val);
-        unsigned char getVal();
-        void setVal(unsigned char val);
+/*!
+Mutex protected unsigned char for multi-thread data sharing
+*/
+class SharedUChar {
+public:
+    SharedUChar() = default;
+    explicit SharedUChar(unsigned char val);
+    unsigned char getVal();
+    void setVal(unsigned char val);
 
-    private:
-        SharedUChar( const SharedUChar & suc );
-        const SharedUChar & operator=(const SharedUChar & suc );
-        unsigned char mVal;
-        std::mutex mMutex;
-    };
+private:
+    unsigned char mVal = 0;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected bool for multi-thread data sharing
-    */
-    class SharedBool
-    {
-    public:
-        SharedBool();
-        SharedBool(bool val);
-        SharedBool( const SharedBool & sb );
+/*!
+Mutex protected bool for multi-thread data sharing
+*/
+class SharedBool {
+public:
+    SharedBool() = default;
+    explicit SharedBool(bool val);
+    SharedBool(const SharedBool& sb);
         
-        bool getVal();
-        void setVal(bool val);
-        void toggle();
+    bool getVal();
+    void setVal(bool val);
+    void toggle();
         
-        void operator=( const bool & val );
-        void operator=(const SharedBool & sb);
-        bool operator==( const bool & val );
-        bool operator!=( const bool & val );
+    void operator=(const SharedBool& sb);
+    void operator=(bool val);
+    bool operator==(bool val);
+    bool operator!=(bool val);
 
-    private:
-        bool mVal;
-        std::mutex mMutex;
-    };
+private:
+    bool mVal = false;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected std::string for multi-thread data sharing
-    */
-    class SharedString
-    {
-    public:
-        SharedString();
-        SharedString(const std::string & str);
-        SharedString(const SharedString & ss);
+/*!
+Mutex protected std::string for multi-thread data sharing
+*/
+class SharedString {
+public:
+    SharedString() = default;
+    explicit SharedString(std::string str);
+    SharedString(const SharedString& ss);
 
-        std::string getVal();
-        void setVal(const std::string & str);
-        void clear();
+    std::string getVal();
+    void setVal(std::string str);
+    void clear();
 
-        void operator=(const std::string & str);
-        void operator=(const SharedString & ss);
+    void operator=(const std::string& str);
+    void operator=(const SharedString& ss);
 
-    private:
-        std::string mStr;
-        std::mutex mMutex;
-    };
+private:
+    std::string mStr;
+    std::mutex mMutex;
+};
 
-	/*!
-	Mutex protected std::wstring for multi-thread data sharing
-	*/
-	class SharedWString
-	{
-	public:
-		SharedWString();
-		SharedWString(const std::wstring & str);
-		SharedWString(const SharedWString & ss);
+/*!
+Mutex protected std::wstring for multi-thread data sharing
+*/
+class SharedWString {
+public:
+    SharedWString() = default;
+    explicit SharedWString(std::wstring str);
+    SharedWString(const SharedWString& ss);
 
-		std::wstring getVal();
-		void setVal(const std::wstring & str);
-		void clear();
+    std::wstring getVal();
+    void setVal(std::wstring str);
+    void clear();
 
-		void operator=(const std::wstring & str);
-		void operator=(const SharedWString & ss);
+    void operator=(const std::wstring& str);
+    void operator=(const SharedWString& ss);
 
-	private:
-		std::wstring mStr;
-		std::mutex mMutex;
-	};
+private:
+    std::wstring mStr;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected template for multi-thread data sharing
-    */
-    template <class T>
-    class SharedObject
-    {
-    public:
-        SharedObject() {;}
-        SharedObject(T val) { mVal = val; }
+/*!
+Mutex protected template for multi-thread data sharing
+*/
+template <class T>
+class SharedObject {
+public:
+    SharedObject() = default;
+    explicit SharedObject(T val) : mVal(val) {}
 
-        T getVal()
-        {
-            T tmpT;
-            mMutex.lock();
-            tmpT = mVal;
-            mMutex.unlock();
-            return tmpT;
-        }
+    T getVal() {
+        mMutex.lock();
+        T tmpT = mVal;
+        mMutex.unlock();
+        return tmpT;
+    }
 
-        void setVal(T val)
-        {
-            mMutex.lock();
-            mVal = val;
-            mMutex.unlock();
-        }
+    void setVal(T val) {
+        mMutex.lock();
+        mVal = std::move(val);
+        mMutex.unlock();
+    }
 
-    private:
-        SharedObject( const SharedObject & so );
-        const SharedObject & operator=(const SharedObject & so );
-        T mVal;
-        std::mutex mMutex;
-    };
+private:
+    T mVal;
+    std::mutex mMutex;
+};
 
-    /*!
-    Mutex protected std::vector template for multi-thread data sharing
-    */
-    template <class T>
-    class SharedVector
-    {
-    public:
-        SharedVector() {;}
-        SharedVector(std::size_t size) { mVector.reserve(size); }
+/*!
+Mutex protected std::vector template for multi-thread data sharing
+*/
+template <class T>
+class SharedVector {
+public:
+    SharedVector() = default;
+    explicit SharedVector(size_t size) {
+        mVector.reserve(size);
+    }
 
-        T getValAt(std::size_t index)
-        {
-            T tmpT;
-            mMutex.lock();
-            tmpT = mVector[ index ];
-            mMutex.unlock();
-            return tmpT;
-        }
+    T getValAt(size_t index) {
+        mMutex.lock();
+        T tmpT = mVector[index];
+        mMutex.unlock();
+        return tmpT;
+    }
 
-        std::vector<T> getVal()
-        {
-            std::vector<T> mCopy;
-            mMutex.lock();
-            mCopy = mVector;
-            mMutex.unlock();
-            return mCopy;
-        }
+    std::vector<T> getVal() {
+        mMutex.lock();
+        std::vector<T> mCopy = mVector;
+        mMutex.unlock();
+        return mCopy;
+    }
 
-        void setValAt(std::size_t index, T val)
-        {
-            mMutex.lock();
-            mVector[ index ] = val;
-            mMutex.unlock();
-        }
+    void setValAt(size_t index, T val) {
+        mMutex.lock();
+        mVector[index] = val;
+        mMutex.unlock();
+    }
 
-        void addVal(T val)
-        {
-            mMutex.lock();
-            mVector.push_back(val);
-            mMutex.unlock();
-        }
+    void addVal(T val) {
+        mMutex.lock();
+        mVector.push_back(val);
+        mMutex.unlock();
+    }
 
-        void setVal( std::vector<T> mCopy )
-        {
-            mMutex.lock();
-            mVector.assign(mCopy.begin(), mCopy.end());
-            mMutex.unlock();
-        }
+    void setVal(std::vector<T> mCopy) {
+        mMutex.lock();
+        mVector = std::move(mCopy);
+        mMutex.unlock();
+    }
 
-        void clear()
-        {
-            mMutex.lock();
-            mVector.clear();
-            mMutex.unlock();
-        }
+    void clear() {
+        mMutex.lock();
+        mVector.clear();
+        mMutex.unlock();
+    }
 
-        std::size_t getSize()
-        {
-            std::size_t size = 0;
-            mMutex.lock();
-            size = mVector.size();
-            mMutex.unlock();
-            return size;
-        }
+    size_t getSize() {
+        mMutex.lock();
+        size_t size = mVector.size();
+        mMutex.unlock();
+        return size;
+    }
 
-    private:
-        SharedVector( const SharedVector & sv );
-        const SharedVector & operator=(const SharedVector & sv );
-        std::vector<T> mVector;
-        std::mutex mMutex;
-    };
-}
+private:
+    std::vector<T> mVector;
+    std::mutex mMutex;
+};
 
-#endif
+} // namespace sgct
+
+#endif // __SGCT__SHARED_DATA_TYPES__H__

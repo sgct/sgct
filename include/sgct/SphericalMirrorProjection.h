@@ -5,62 +5,59 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SPHERICAL_MIRROR_PROJECTION_H
-#define _SPHERICAL_MIRROR_PROJECTION_H
+#ifndef __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
+#define __SGCT__SPHERICAL_MIRROR_PROJECTION__H__
 
 #include "NonLinearProjection.h"
 #include "CorrectionMesh.h"
 #include <glm/glm.hpp>
 
-namespace sgct_core
-{
-    /*!
-    This class manages and renders non linear fisheye projections
-    */
-    class SphericalMirrorProjection : public NonLinearProjection
-    {
-    public:
-        enum MeshFace { BOTTOM_MESH = 0, LEFT_MESH, RIGHT_MESH, TOP_MESH, LAST_MESH };
+namespace sgct_core {
+/*!
+This class manages and renders non linear fisheye projections
+*/
+class SphericalMirrorProjection : public NonLinearProjection {
+public:
+    enum MeshFace { BOTTOM_MESH = 0, LEFT_MESH, RIGHT_MESH, TOP_MESH, LAST_MESH };
 
-        SphericalMirrorProjection();
-        ~SphericalMirrorProjection();
+    SphericalMirrorProjection() = default;
+    virtual ~SphericalMirrorProjection() = default;
 
-        void update(float width, float height);
-        void render();
-        void renderCubemap(std::size_t * subViewPortIndex);
+    virtual void update(float width, float height) override;
+    virtual void render() override;
+    virtual void renderCubemap(size_t* subViewPortIndex) override;
 
-        void setTilt(float angle);
-        void setMeshPath(MeshFace mf, const char * str);
+    void setTilt(float angle);
+    void setMeshPath(MeshFace mf, const char* str);
 
-    private:
-        void initTextures();
-        void initVBO();
-        void initViewports();
-        void initShaders();
+private:
+    virtual void initTextures() override;
+    virtual void initVBO() override;
+    virtual void initViewports() override;
+    virtual void initShaders() override;
         
-        void drawCubeFace(const std::size_t & face);
-        void blitCubeFace(TextureIndex &ti);
-        void attachTextures(TextureIndex &ti);
-        void renderInternal();
-        void renderInternalFixedPipeline();
-        void renderCubemapInternal(std::size_t * subViewPortIndex);
-        void renderCubemapInternalFixedPipeline(std::size_t * subViewPortIndex);
+    void drawCubeFace(size_t face);
+    void blitCubeFace(TextureIndex ti);
+    void attachTextures(TextureIndex ti);
+    void renderInternal();
+    void renderInternalFixedPipeline();
+    void renderCubemapInternal(size_t* subViewPortIndex);
+    void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
-        void(SphericalMirrorProjection::*mInternalRenderFn)(void);
-        void(SphericalMirrorProjection::*mInternalRenderCubemapFn)(std::size_t *);
+    void(SphericalMirrorProjection::*mInternalRenderCubemapFn)(size_t*);
 
-        float mTilt;
-        float mDiameter;
+    float mTilt = 0.f;
+    float mDiameter = 2.4f;
         
-        //mesh data
-        CorrectionMesh mMeshes[4];
-        std::string mMeshPaths[4];
+    //mesh data
+    CorrectionMesh mMeshes[4];
+    std::string mMeshPaths[4];
 
-        //shader locations
-        int mTexLoc;
-        int mMatrixLoc;
-    };
+    //shader locations
+    int mTexLoc = -1;
+    int mMatrixLoc = -1;
+};
 
-}
+} // namespace sgct_core
 
-#endif
+#endif // __SGCT__SPHERICAL_MIRROR_PROJECTION__H__

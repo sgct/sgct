@@ -47,12 +47,12 @@ public:
     int getCubemapResolution() const;
     const InterpolationMode& getInterpolationMode() const;
 
-    inline void bindShaderProgram() const;
-    inline void bindDepthCorrectionShaderProgram() const;
+    void bindShaderProgram() const;
+    void bindDepthCorrectionShaderProgram() const;
 
-    inline BaseViewport* getSubViewportPtr(size_t index);
-    inline OffScreenBuffer* getOffScreenBuffer();
-    inline const int* getViewportCoords();
+    BaseViewport* getSubViewportPtr(size_t index);
+    OffScreenBuffer* getOffScreenBuffer();
+    const int* getViewportCoords();
 
 protected:
     enum TextureIndex { CubeMapColor, CubeMapDepth, CubeMapNormals, CubeMapPositions,

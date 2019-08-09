@@ -5,41 +5,43 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _TOUCH_H
-#define _TOUCH_H
+#ifndef __SGCT__TOUCH__H__
+#define __SGCT__TOUCH__H__
 
 #include <GLFW/glfw3.h>
 #include <glm/glm.hpp>
 #include <string>
 #include <vector>
 #include <unordered_map>
-#include <stddef.h> //get definition for NULL
+#include <stddef.h>
 
 struct GLFWtouch;
 
-namespace sgct_core
-{
+namespace sgct_core {
 
 /*!
     This class holds and manages touch points
 */
-class Touch
-{
+class Touch {
 public:
     //! Touch point information
     struct TouchPoint {
-        enum TouchAction { NoAction, Released, Pressed, Stationary, Moved };
+        enum TouchAction {
+            NoAction,
+            Released,
+            Pressed,
+            Stationary,
+            Moved
+        };
+        TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np,
+            glm::vec2 nd = glm::vec2(0.f, 0.f));
+
         int id;
         TouchAction action;
         glm::vec2 pixelCoords;
         glm::vec2 normPixelCoords;
         glm::vec2 normPixelDiff;
-        TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(0.f, 0.f) {}
-        TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np, glm::vec2 nd) : id(i), action(a), pixelCoords(p), normPixelCoords(np), normPixelDiff(nd) {}
     };
-
-    Touch();
-    ~Touch();
 
     // Retrieve the lastest touch points to process them in an event
     std::vector<TouchPoint> getLatestTouchPoints() const;
@@ -49,7 +51,8 @@ public:
 
     // Adding touch points to the touch class
     // As an id is constant over the touch point, the order will be preserved
-    void processPoint(int id, int action, double xpos, double ypos, int windowWidth, int windowHeight);
+    void processPoint(int id, int action, double xpos, double ypos, int windowWidth,
+        int windowHeight);
     void processPoints(GLFWtouch* touchPoints, int count, int windowWidth, int windowHeight);
 
     bool isAllPointsStationary() const;
@@ -57,7 +60,6 @@ public:
     static std::string getTouchPointInfo(const TouchPoint*);
 
 private:
-
     std::vector<TouchPoint> mTouchPoints;
     std::vector<TouchPoint> mPreviousTouchPoints;
     std::unordered_map<int, glm::vec2> mPreviousTouchPositions;
@@ -65,6 +67,6 @@ private:
     bool mAllPointsStationary;
 };
 
-}
+} // sgct_core
 
-#endif
+#endif // __SGCT__TOUCH__H__

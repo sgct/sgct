@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHADER_PROGRAM__H__
 #define __SGCT__SHADER_PROGRAM__H__
 
-#include <sgct/Shader.h>"
+#include <sgct/Shader.h>
 #include <sgct/ShaderData.h>
 #include <vector>
 

@@ -834,7 +834,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                  element[0]->Attribute("name") != nullptr)
         {
         ClusterManager& cm = *ClusterManager::instance();
-            cm.getTrackingManagerPtr()->addTracker(
+            cm.getTrackingManagerPtr().addTracker(
                 std::string(element[0]->Attribute("name"))
             );
             
@@ -845,7 +845,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 if (strcmp("Device", val[1]) == 0 &&
                     element[1]->Attribute("name") != nullptr)
                 {
-                    cm.getTrackingManagerPtr()->addDeviceToCurrentTracker(
+                    cm.getTrackingManagerPtr().addDeviceToCurrentTracker(
                         std::string(element[1]->Attribute("name"))
                     );
                     
@@ -861,7 +861,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             if (element[2]->Attribute("vrpnAddress") != nullptr &&
                                 err == XML_NO_ERROR )
                             {
-                                cm.getTrackingManagerPtr()->addSensorToCurrentDevice(
+                                cm.getTrackingManagerPtr().addSensorToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"),
                                     tmpi
                                 );
@@ -875,7 +875,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             if (element[2]->Attribute("vrpnAddress") != nullptr &&
                                err == XML_NO_ERROR)
                             {
-                                cm.getTrackingManagerPtr()->addButtonsToCurrentDevice(
+                                cm.getTrackingManagerPtr().addButtonsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"),
                                     tmpUI
                                 );
@@ -890,7 +890,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             if (element[2]->Attribute("vrpnAddress") != nullptr &&
                                err == tinyxml2::XML_NO_ERROR)
                             {
-                                cm.getTrackingManagerPtr()->addAnalogsToCurrentDevice(
+                                cm.getTrackingManagerPtr().addAnalogsToCurrentDevice(
                                     element[2]->Attribute("vrpnAddress"),
                                     tmpUI
                                 );
@@ -908,7 +908,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 err[2] == XML_NO_ERROR)
                             {
                                 using namespace sgct;
-                                SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                                SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -923,7 +923,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         }
                         else if (strcmp("Orientation", val[2]) == 0) {
                             using namespace sgct;
-                            SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                            SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                             SGCTTracker& tr = *m.getLastTrackerPtr();
                             SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -941,7 +941,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR)
                             {
                                 using namespace sgct;
-                                SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                                SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -999,7 +999,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                     mat = glm::transpose(mat);
                                 }
                                 using namespace sgct;
-                                SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                                SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -1029,7 +1029,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         err[2] == XML_NO_ERROR)
                     {
                         using namespace sgct;
-                        SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                        SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
                         SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -1044,7 +1044,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 }
                 else if (strcmp("Orientation", val[1]) == 0) {
                     using namespace sgct;
-                    SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                    SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                     SGCTTracker& tr = *m.getLastTrackerPtr();
                     SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -1062,7 +1062,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR)
                     {
                         using namespace sgct;
-                        SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                        SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
                         SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
@@ -1080,7 +1080,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     XMLError err = element[1]->QueryDoubleAttribute("value", &scaleVal);
                     if (err == tinyxml2::XML_NO_ERROR) {
                         using namespace sgct;
-                        SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                        SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
 
                         tr.setScale(scaleVal);
@@ -1134,7 +1134,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             mat = glm::transpose(mat);
                         }
                         using namespace sgct;
-                        SGCTTrackingManager& m = *cm.getTrackingManagerPtr();
+                        SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
 
                         tr.setTransform(mat);
@@ -1244,7 +1244,7 @@ sgct::SGCTWindow::ColorBitDepth ReadConfig::getBufferColorBitDepth(std::string t
     return sgct::SGCTWindow::BufferColorBitDepth8;
 }
 
-bool ReadConfig::isValid() {
+bool ReadConfig::isValid() const {
     return valid;
 }
 

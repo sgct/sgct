@@ -80,7 +80,16 @@ public:
 
     };
     //! The different texture indexes in window buffers
-    enum TextureIndexes { LeftEye = 0, RightEye, Intermediate, FX1, FX2, Depth, Normals, Positions };
+    enum TextureIndexes {
+        LeftEye = 0,
+        RightEye,
+        Intermediate,
+        FX1,
+        FX2,
+        Depth,
+        Normals,
+        Positions
+    };
     enum RenderTarget { WindowBuffer, NonLinearBuffer };
     enum ViewportTypes { MainViewport, SubViewport };
 
@@ -112,16 +121,16 @@ public:
     /*!
         \returns the clear color as 4 floats (RGBA)
     */
-    const float * getClearColor() { return mClearColor; }
+    glm::vec4 getClearColor() const;
     
     /*!
         \returns the near clipping plane distance in meters
     */
-    const float& getNearClippingPlane() const { return mNearClippingPlaneDist; }
+    float getNearClippingPlane() const;
     /*!
         \returns the far clipping plane distance in meters
     */
-    const float& getFarClippingPlane() const { return mFarClippingPlaneDist; }
+    float getFarClippingPlane() const;
 
     void setNearAndFarClippingPlanes(float nearClippingPlane, float farClippingPlane);
     void setEyeSeparation(float eyeSeparation);
@@ -129,75 +138,75 @@ public:
     void setExitKey(int key);
     void setExitWaitTime(double time);
     void updateFrustums();
-    void addPostFX( PostFX & fx );
-    unsigned int getCurrentDrawTexture();
-    unsigned int getCurrentDepthTexture();
-    unsigned int getCurrentNormalTexture();
-    unsigned int getCurrentPositionTexture();
-    int getCurrentXResolution();
-    int getCurrentYResolution();
-    std::size_t getFocusedWindowIndex();
+    void addPostFX(PostFX& fx);
+    unsigned int getCurrentDrawTexture() const;
+    unsigned int getCurrentDepthTexture() const;
+    unsigned int getCurrentNormalTexture() const;
+    unsigned int getCurrentPositionTexture() const;
+    int getCurrentXResolution() const;
+    int getCurrentYResolution() const;
+    size_t getFocusedWindowIndex() const;
 
     /*!
         \param state of the wireframe rendering
     */
-    void setWireframe(bool state) { mShowWireframe = state; }
+    void setWireframe(bool state);
     /*!
         Set if the info text should be visible or not
 
         \param state of the info text rendering
     */
-    void setDisplayInfoVisibility(bool state) { mShowInfo = state; }
+    void setDisplayInfoVisibility(bool state);
 
     /*!
         Set if the statistics graph should be visible or not
 
         \param state of the statistics graph rendering
     */
-    void setStatsGraphVisibility(bool state) { mShowGraph = state; }
+    void setStatsGraphVisibility(bool state);
 
     /*!
         Take a RGBA screenshot and save it as a PNG file. If stereo rendering is enabled then two screenshots will be saved per frame, one for the left eye and one for the right eye.
         To record frames for a movie simply call this function every frame you wish to record. The read to disk is multi-threaded and maximum number of threads can be set using:
         -numberOfCaptureThreads command line argument.
     */
-    void takeScreenshot() { mTakeScreenshot = true; }
+    void takeScreenshot();
     void setScreenShotNumber(unsigned int number);
-    unsigned int getScreenShotNumber();
-    void invokeScreenShotCallback1(sgct_core::Image * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
-    void invokeScreenShotCallback2(unsigned char * imPtr, std::size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
-    void setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
-    void setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
+    unsigned int getScreenShotNumber() const;
+    void invokeScreenShotCallback1(sgct_core::Image* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void invokeScreenShotCallback2(unsigned char* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void setScreenShotCallback(void(*fnPtr)(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
+    void setScreenShotCallback(void(*fnPtr)(unsigned char*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
 
-    std::size_t createTimer( double millisec, void(*fnPtr)(std::size_t) );
+    size_t createTimer(double millisec, void(*fnPtr)(size_t));
     void stopTimer(std::size_t id);
 
     //set callback functions
-    void setInitOGLFunction( void(*fnPtr)(void) );
-    void setPreWindowFunction( void(*fnPtr)(void) );
-    void setPreSyncFunction( void(*fnPtr)(void) );
-    void setPostSyncPreDrawFunction( void(*fnPtr)(void) );
-    void setClearBufferFunction( void(*fnPtr)(void) );
-    void setDrawFunction( void(*fnPtr)(void) );
-    void setDraw2DFunction( void(*fnPtr)(void) );
-    void setPostDrawFunction( void(*fnPtr)(void) );
-    void setCleanUpFunction( void(*fnPtr)(void) );
+    void setInitOGLFunction(void(*fnPtr)(void));
+    void setPreWindowFunction(void(*fnPtr)(void));
+    void setPreSyncFunction(void(*fnPtr)(void));
+    void setPostSyncPreDrawFunction(void(*fnPtr)(void));
+    void setClearBufferFunction(void(*fnPtr)(void));
+    void setDrawFunction(void(*fnPtr)(void));
+    void setDraw2DFunction(void(*fnPtr)(void));
+    void setPostDrawFunction(void(*fnPtr)(void));
+    void setCleanUpFunction(void(*fnPtr)(void));
     
-    void setKeyboardCallbackFunction( void(*fnPtr)(int, int) ); //arguments: int key, int action
-    void setKeyboardCallbackFunction( void(*fnPtr)(int, int, int, int) ); //arguments: int key, int scancode, int action, int mods
-    void setCharCallbackFunction( void(*fnPtr)(unsigned int) ); //arguments: unsigned int unicode character
-    void setCharCallbackFunction( void(*fnPtr)(unsigned int, int) ); //arguments: unsigned int unicode character, int mods
-    void setMouseButtonCallbackFunction( void(*fnPtr)(int, int, int) ); //arguments: int button, int action, int mods
-    void setMousePosCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double x, double y
-    void setMouseScrollCallbackFunction( void(*fnPtr)(double, double) ); //arguments: double xoffset, double yoffset
-    void setDropCallbackFunction(void(*fnPtr)(int, const char**) ); //arguments: int count, const char ** list of path strings
+    void setKeyboardCallbackFunction(void(*fnPtr)(int, int)); //arguments: int key, int action
+    void setKeyboardCallbackFunction(void(*fnPtr)(int, int, int, int)); //arguments: int key, int scancode, int action, int mods
+    void setCharCallbackFunction(void(*fnPtr)(unsigned int)); //arguments: unsigned int unicode character
+    void setCharCallbackFunction(void(*fnPtr)(unsigned int, int)); //arguments: unsigned int unicode character, int mods
+    void setMouseButtonCallbackFunction(void(*fnPtr)(int, int, int)); //arguments: int button, int action, int mods
+    void setMousePosCallbackFunction(void(*fnPtr)(double, double)); //arguments: double x, double y
+    void setMouseScrollCallbackFunction(void(*fnPtr)(double, double)); //arguments: double xoffset, double yoffset
+    void setDropCallbackFunction(void(*fnPtr)(int, const char**)); //arguments: int count, const char ** list of path strings
     void setTouchCallbackFunction(void(*fnPtr)(const sgct_core::Touch*)); //arguments: current touch points
 
-    void setExternalControlCallback(void(*fnPtr)(const char *, int)); //arguments: const char * buffer, int buffer length
+    void setExternalControlCallback(void(*fnPtr)(const char*, int)); //arguments: const char * buffer, int buffer length
     void setExternalControlStatusCallback(void(*fnPtr)(bool)); //arguments: const bool & connected
     void setContextCreationCallback(void(*fnPtr)(GLFWwindow*)); //arguments: glfw window share
 
-    void setDataTransferCallback(void(*fnPtr)(void *, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
+    void setDataTransferCallback(void(*fnPtr)(void*, int, int, int)); //arguments: const char * buffer, int buffer length, int package id, int client
     void setDataTransferStatusCallback(void(*fnPtr)(bool, int)); //arguments: const bool & connected, int client
     void setDataAcknowledgeCallback(void(*fnPtr)(int, int)); //arguments: int package id, int client
 
@@ -230,83 +239,83 @@ public:
     void setDataAcknowledgeCallback(std::function<void(int, int)> fn); //arguments: int package id, int client
 
     //external control network functions
-    void sendMessageToExternalControl(const void * data, int length);
+    void sendMessageToExternalControl(const void* data, int length);
     void sendMessageToExternalControl(const std::string& msg);
-    bool isExternalControlConnected();
+    bool isExternalControlConnected() const;
     void setExternalControlBufferSize(unsigned int newSize);
-    void invokeDecodeCallbackForExternalControl(const char * receivedData, int receivedlength, int clientId);
+    void invokeDecodeCallbackForExternalControl(const char* receivedData, int receivedlength, int clientId);
     void invokeUpdateCallbackForExternalControl(bool connected);
 
     //data transfer functions
     void setDataTransferCompression(bool state, int level = 1);
-    void transferDataBetweenNodes(const void * data, int length, int packageId);
-    void transferDataToNode(const void * data, int length, int packageId, std::size_t nodeIndex);
-    void invokeDecodeCallbackForDataTransfer(void * receivedData, int receivedlength, int packageId, int clientd);
+    void transferDataBetweenNodes(const void* data, int length, int packageId);
+    void transferDataToNode(const void* data, int length, int packageId, std::size_t nodeIndex);
+    void invokeDecodeCallbackForDataTransfer(void* receivedData, int receivedlength, int packageId, int clientd);
     void invokeUpdateCallbackForDataTransfer(bool connected, int clientId);
     void invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientId);
 
     //GLFW wrapped functions
     static double getTime();
-    static int getKey( std::size_t winIndex, int key );
-    static int getMouseButton( std::size_t winIndex, int button );
-    static void getMousePos( std::size_t winIndex, double * xPos, double * yPos );
-    static void setMousePos( std::size_t winIndex, double xPos, double yPos );
-    static void setMouseCursorVisibility( std::size_t winIndex, bool state );
-    static const char * getJoystickName( int joystick );
-    static const float * getJoystickAxes( int joystick, int * numOfValues);
-    static const unsigned char * getJoystickButtons( int joystick, int * numOfValues);
+    static int getKey(size_t winIndex, int key);
+    static int getMouseButton(size_t winIndex, int button);
+    static void getMousePos(size_t winIndex, double* xPos, double* yPos);
+    static void setMousePos(size_t winIndex, double xPos, double yPos);
+    static void setMouseCursorVisibility(size_t winIndex, bool state);
+    static const char* getJoystickName(int joystick);
+    static const float* getJoystickAxes(int joystick, int* numOfValues);
+    static const unsigned char* getJoystickButtons(int joystick, int * numOfValues);
     static void sleep(double secs);
 
-    /*!
+    /*!//
         Returns a pointer to this node (running on this computer).
     */
-    inline const sgct_core::SGCTNode * getThisNodePtr(std::size_t index) const { return mThisNode; }
+    const sgct_core::SGCTNode* getThisNodePtr(size_t index) const;
 
     /*!
         Returns a pointer to a specified window by index on this node.
     */
-    inline sgct::SGCTWindow * getWindowPtr(std::size_t index) { return mThisNode->getWindowPtr(index); }
+    SGCTWindow& getWindowPtr(size_t index) const;
 
     /*!
         Returns the number of windows for this node.
     */
-    inline std::size_t getNumberOfWindows() { return mThisNode->getNumberOfWindows(); }
+    size_t getNumberOfWindows() const;
 
     /*!
         Returns a pointer to the current window that is beeing rendered
     */
-    inline sgct::SGCTWindow * getCurrentWindowPtr() { return mThisNode->getCurrentWindowPtr(); }
+    SGCTWindow& getCurrentWindowPtr() const;
 
     /*!
         Returns an index to the current window that is beeing rendered
     */
-    inline std::size_t getCurrentWindowIndex() { return mThisNode->getCurrentWindowIndex(); }
+    size_t getCurrentWindowIndex() const;
 
     /*!
         Returns a pinter to the user (VR observer position) object
     */
-    static sgct_core::SGCTUser * getDefaultUserPtr() { return sgct_core::ClusterManager::instance()->getDefaultUserPtr(); }
+    static sgct_core::SGCTUser* getDefaultUserPtr();
 
     /*!
         Returns a pointer to the tracking manager pointer
     */
-    static sgct::SGCTTrackingManager * getTrackingManager() { return sgct_core::ClusterManager::instance()->getTrackingManagerPtr(); }
+    static SGCTTrackingManager& getTrackingManager();
     static bool checkForOGLErrors();
 
     /*!
         Returns true if this node is the master
     */
-    inline bool isMaster() { return mNetworkConnections->isComputerServer(); }
+    bool isMaster() const;
 
     /*!
         Returns true if on-screen info is rendered.
     */
-    inline bool isDisplayInfoRendered() { return mShowInfo; }
+    bool isDisplayInfoRendered() const;
 
     /*!
         Returns true if render target is off screen (FBO) or false if render target is the frame buffer.
     */
-    inline bool isRenderingOffScreen() { return mRenderingOffScreen; }
+    bool isRenderingOffScreen() const;
 
     /*!
         Returns the active frustum mode which can be one of the following:
@@ -314,69 +323,67 @@ public:
         - Stereo Left
         - Stereo Right
     */
-    inline const sgct_core::Frustum::FrustumMode & getCurrentFrustumMode() { return mCurrentFrustumMode; }
+    const sgct_core::Frustum::FrustumMode& getCurrentFrustumMode() const;
 
     /*!
         Returns the active projection matrix (only valid inside in the draw callback function)
     */
-    inline const glm::mat4 & getCurrentProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getProjectionMatrix(); }
+    const glm::mat4& getCurrentProjectionMatrix() const;
 
     /*!
         Returns the active view matrix (only valid inside in the draw callback function)
     */
-    inline const glm::mat4 & getCurrentViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewMatrix(); }
+    const glm::mat4& getCurrentViewMatrix() const;
 
     /*!
         Returns the scene transform specified in the XML configuration, default is a identity matrix
     */
-    inline const glm::mat4 & getModelMatrix() { return sgct_core::ClusterManager::instance()->getSceneTransform(); }
+    const glm::mat4& getModelMatrix() const;
 
     /*!
         Returns the active VP = Projection * View matrix (only valid inside in the draw callback function)
     */
-    inline const glm::mat4 & getCurrentViewProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewProjectionMatrix(); }
+    const glm::mat4& getCurrentViewProjectionMatrix() const;
 
     /*!
         Returns the active MVP = Projection * View * Model matrix (only valid inside in the draw callback function)
     */
-    inline glm::mat4 getCurrentModelViewProjectionMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewProjectionMatrix()
-        * sgct_core::ClusterManager::instance()->getSceneTransform(); }
+    glm::mat4 getCurrentModelViewProjectionMatrix() const;
     
     /*!
         Returns the active MV = View * Model matrix (only valid inside in the draw callback function)
     */
-    inline glm::mat4 getCurrentModelViewMatrix() { return getCurrentWindowPtr()->getCurrentViewport()->getProjection(mCurrentFrustumMode)->getViewMatrix()
-        * sgct_core::ClusterManager::instance()->getSceneTransform(); }
+    glm::mat4 getCurrentModelViewMatrix() const;
 
     /*!
         Returns the current frame number
     */
-    inline unsigned int getCurrentFrameNumber() { return mFrameCounter; }
+    unsigned int getCurrentFrameNumber() const;
 
     /*!
         Return true if OpenGL pipeline is fixed (openGL 1-2) or false if OpenGL pipeline is programmable (openGL 3-4)
     */
-    inline bool isOGLPipelineFixed() { return mFixedOGLPipeline; }
+    bool isOGLPipelineFixed() const;
 
     /*!
         Get the run mode setting (context version and compability modes)
     */
-    inline RunMode getRunMode() { return mRunMode; }
+    RunMode getRunMode() const;
 
     /*!
     Get the GLSL version string that matches the run mode setting
     */
-    inline std::string getGLSLVersion() { return mGLSLVersion; }
+    std::string getGLSLVersion() const;
 
-    const std::size_t getCurrentViewportIndex(ViewportTypes vp) const;
-    void getCurrentViewportSize(int & x, int & y);
-    void getCurrentDrawBufferSize(int & x, int & y);
-    void getDrawBufferSize(const std::size_t & index, int &x, int & y);
-    std::size_t getNumberOfDrawBuffers();
-    const std::size_t & getCurrentDrawBufferIndex();
-    const RenderTarget & getCurrentRenderTarget();
-    sgct_core::OffScreenBuffer * getCurrentFBO();
-    const int * getCurrentViewportPixelCoords();
+    size_t getCurrentViewportIndex(ViewportTypes vp) const;
+    void getCurrentViewportSize(int& x, int& y) const;
+    void getCurrentDrawBufferSize(int& x, int& y) const;
+    void getDrawBufferSize(const size_t& index, int& x, int& y) const;
+    size_t getNumberOfDrawBuffers() const;
+    size_t getCurrentDrawBufferIndex() const;
+    const RenderTarget& getCurrentRenderTarget() const;
+    sgct_core::OffScreenBuffer* getCurrentFBO() const;
+    glm::ivec4 getCurrentViewportPixelCoords() const;
 
     bool getWireframe() const;
 
@@ -448,7 +455,6 @@ private:
 private:
     static Engine* mInstance;
 
-
     //function pointers
     std::function<void()> mDrawFnPtr;
     std::function<void()> mPreSyncFnPtr;
@@ -459,13 +465,13 @@ private:
     std::function<void()> mClearBufferFnPtr;
     std::function<void()> mCleanUpFnPtr;
     std::function<void()> mDraw2DFnPtr;
-    std::function<void(const char *, int)> mExternalDecodeCallbackFnPtr;
+    std::function<void(const char*, int)> mExternalDecodeCallbackFnPtr;
     std::function<void(bool)> mExternalStatusCallbackFnPtr;
-    std::function<void(void *, int, int, int)> mDataTransferDecodeCallbackFnPtr;
+    std::function<void(void*, int, int, int)> mDataTransferDecodeCallbackFnPtr;
     std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
     std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
-    std::function<void(sgct_core::Image*, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr1;
-    std::function<void(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr2; //less latency, more advanced
+    std::function<void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr1;
+    std::function<void(unsigned char*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr2; //less latency, more advanced
     std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
     std::function<void()> mInternalDrawFn;
@@ -475,10 +481,10 @@ private:
 
     float mNearClippingPlaneDist = 0.1f;
     float mFarClippingPlaneDist = 100.f;
-    float mClearColor[4] = { 0.f, 0.f, 0.f, 1.f };
+    glm::vec4 mClearColor = glm::vec4(0.f, 0.f, 0.f, 1.f);
 
     sgct_core::Frustum::FrustumMode mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
-    int mCurrentViewportCoords[4] = { 0, 0, 640, 480 };
+    glm::ivec4 mCurrentViewportCoords = glm::ivec4(0, 0, 640, 480);
     std::vector<glm::ivec2> mDrawBufferResolutions;
     size_t mCurrentDrawBufferIndex = 0;
     size_t mCurrentViewportIndex[2] = { 0, 0 };

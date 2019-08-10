@@ -46,21 +46,21 @@ public:
     };
 
     /*! Get the TextureManager instance */
-    static TextureManager * instance();
+    static TextureManager* instance();
 
     /*! Destroy the TextureManager */
     static void destroy();
 
     unsigned int getTextureId(const std::string& name);
     std::string getTexturePath(const std::string& name);
-    void getDimensions(const std::string& name, int& width, int& height, int& channels);
+    void getDimensions(const std::string& name, int& width, int& height, int& channels) const;
 
     void setAlphaModeForSingleChannelTextures(bool alpha);
     void setOverWriteMode(bool mode);
     void setAnisotropicFilterSize(float fval);
     void setCompression(CompressionMode cm);
     void setWarpingMode(int warp_s, int warp_t);
-    CompressionMode getCompression();
+    CompressionMode getCompression() const;
     bool loadTexture(const std::string& name, const std::string& filename,
         bool interpolate, int mipmapLevels = 8);
     bool loadTexture(const std::string& name, sgct_core::Image* imgPtr, bool interpolate,

@@ -50,9 +50,9 @@ public:
     void bindShaderProgram() const;
     void bindDepthCorrectionShaderProgram() const;
 
-    BaseViewport* getSubViewportPtr(size_t index);
+    BaseViewport& getSubViewportPtr(size_t index);
     OffScreenBuffer* getOffScreenBuffer();
-    const int* getViewportCoords();
+    glm::ivec4 getViewportCoords();
 
 protected:
     enum TextureIndex { CubeMapColor, CubeMapDepth, CubeMapNormals, CubeMapPositions,
@@ -88,7 +88,7 @@ protected:
     unsigned int mVBO = 0;
     unsigned int mVAO = 0;
     float* mVerts = nullptr;
-    int mVpCoords[4] = { 0, 0, 0, 0 };
+    glm::ivec4 mVpCoords = glm::ivec4(0);
 
     sgct::ShaderProgram mShader;
     sgct::ShaderProgram mDepthCorrectionShader;

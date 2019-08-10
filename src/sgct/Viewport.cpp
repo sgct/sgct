@@ -445,7 +445,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
 void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     FisheyeProjection* fishProj = new FisheyeProjection();
     for (std::size_t i = 0; i < 6; i++) {
-        fishProj->getSubViewportPtr(i)->setUser(mUser);
+        fishProj->getSubViewportPtr(i).setUser(mUser);
     }
     
     float fov;
@@ -577,7 +577,7 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 #endif
     SpoutOutputProjection* spoutProj = new SpoutOutputProjection();
     for (std::size_t i = 0; i < 6; i++) {
-        spoutProj->getSubViewportPtr(i)->setUser(mUser);
+        spoutProj->getSubViewportPtr(i).setUser(mUser);
     }
 
     if (element->Attribute("quality") != nullptr) {
@@ -678,7 +678,7 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     SphericalMirrorProjection* sphericalMirrorProj = new SphericalMirrorProjection();
     for (std::size_t i = 0; i < 6; i++) {
-        sphericalMirrorProj->getSubViewportPtr(i)->setUser(mUser);
+        sphericalMirrorProj->getSubViewportPtr(i).setUser(mUser);
     }
 
     if (element->Attribute("quality") != nullptr) {
@@ -845,47 +845,47 @@ void Viewport::renderMesh(CorrectionMesh::MeshType mt) {
     }
 }
 
-bool Viewport::hasOverlayTexture() {
+bool Viewport::hasOverlayTexture() const {
     return mOverlayTextureIndex != 0;
 }
 
-bool Viewport::hasBlendMaskTexture() {
+bool Viewport::hasBlendMaskTexture() const {
     return mBlendMaskTextureIndex != 0;
 }
 
-bool Viewport::hasBlackLevelMaskTexture() {
+bool Viewport::hasBlackLevelMaskTexture() const {
     return mBlackLevelMaskTextureIndex != 0;
 }
 
-bool Viewport::hasSubViewports() {
+bool Viewport::hasSubViewports() const {
     return mNonLinearProjection != nullptr;
 }
 
-bool Viewport::hasCorrectionMesh() {
+bool Viewport::hasCorrectionMesh() const {
     return mCorrectionMesh;
 }
 
-bool Viewport::isTracked() {
+bool Viewport::isTracked() const {
     return mTracked;
 }
 
-unsigned int Viewport::getOverlayTextureIndex() {
+unsigned int Viewport::getOverlayTextureIndex() const {
     return mOverlayTextureIndex;
 }
 
-unsigned int Viewport::getBlendMaskTextureIndex() {
+unsigned int Viewport::getBlendMaskTextureIndex() const {
     return mBlendMaskTextureIndex;
 }
 
-unsigned int Viewport::getBlackLevelMaskTextureIndex() {
+unsigned int Viewport::getBlackLevelMaskTextureIndex() const {
     return mBlackLevelMaskTextureIndex;
 }
 
-CorrectionMesh* Viewport::getCorrectionMeshPtr() {
-    return &mCM;
+CorrectionMesh& Viewport::getCorrectionMeshPtr() {
+    return mCM;
 }
 
-NonLinearProjection* Viewport::getNonLinearProjectionPtr() {
+NonLinearProjection* Viewport::getNonLinearProjectionPtr() const {
     return mNonLinearProjection;
 }
 

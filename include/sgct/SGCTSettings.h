@@ -82,7 +82,7 @@ public:
     void setTryMaintainAspectRatio(bool state);
     
     // ----------- get functions ---------------- //
-    const char *        getCapturePath(CapturePathIndex cpi = Mono) const;
+    const char* getCapturePath(CapturePathIndex cpi = Mono) const;
     int getSwapInterval() const;
     int getRefreshRateHint() const;
     unsigned int getOSDTextFontSize() const;
@@ -107,25 +107,25 @@ public:
 
     // ----------- inline functions ---------------- //
     //! Return true if depth buffer is rendered to texture
-    bool useDepthTexture();
+    bool useDepthTexture() const;
     //! Return true if normals are rendered to texture
-    bool useNormalTexture();
+    bool useNormalTexture() const;
     //! Return true if positions are rendered to texture
-    bool usePositionTexture();
+    bool usePositionTexture() const;
     //! Returns true if FBOs are used
-    bool useFBO();
+    bool useFBO() const;
     //! Get the number of capture threads (for screenshot recording)
-    int getNumberOfCaptureThreads();
+    int getNumberOfCaptureThreads() const;
     //! The relative On-Screen-Display text x-offset in range [0, 1]
-    float getOSDTextXOffset();
+    float getOSDTextXOffset() const;
     //! The relative On-Screen-Display text y-offset in range [0, 1]
-    float getOSDTextYOffset();
+    float getOSDTextYOffset() const;
     /*! \returns the FXAA removal of sub-pixel aliasing */
-    float getFXAASubPixTrim();
+    float getFXAASubPixTrim() const;
     /*! \returns the FXAA sub-pixel offset */
-    float getFXAASubPixOffset();
+    float getFXAASubPixOffset() const;
     /*! \returns the current drawBufferType */
-    DrawBufferType getCurrentDrawBufferType();
+    DrawBufferType getCurrentDrawBufferType() const;
 
 private:
     SGCTSettings();

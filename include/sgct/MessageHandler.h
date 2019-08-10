@@ -66,8 +66,6 @@ private:
     MessageHandler();
     ~MessageHandler();
 
-    MessageHandler(const MessageHandler & tm) = delete;
-    const MessageHandler& operator=(const MessageHandler & rhs) = delete;
     void printv(const char* fmt, va_list ap);
     void logToFile(const char* buffer);
 

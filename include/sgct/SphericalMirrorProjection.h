@@ -44,8 +44,6 @@ private:
     void renderCubemapInternal(size_t* subViewPortIndex);
     void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
-    void(SphericalMirrorProjection::*mInternalRenderCubemapFn)(size_t*);
-
     float mTilt = 0.f;
     float mDiameter = 2.4f;
         

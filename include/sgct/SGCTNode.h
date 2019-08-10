@@ -26,12 +26,12 @@ public:
     /*!
         Get the window pointer at index in window vector.
     */
-    sgct::SGCTWindow *    getWindowPtr(std::size_t index);
+    sgct::SGCTWindow& getWindowPtr(size_t index);
     
     /*!
         Get the active window pointer.
     */
-    sgct::SGCTWindow *        getCurrentWindowPtr();
+    sgct::SGCTWindow& getCurrentWindowPtr();
 
     /*! Get the current window index */
     size_t getCurrentWindowIndex();

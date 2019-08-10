@@ -370,43 +370,43 @@ int SGCTSettings::getJPEGQuality() {
     return tmpI;
 }
 
-bool SGCTSettings::useDepthTexture() {
+bool SGCTSettings::useDepthTexture() const {
     return mUseDepthTexture;
 }
 
-bool SGCTSettings::useNormalTexture() {
+bool SGCTSettings::useNormalTexture() const {
     return mUseNormalTexture;
 }
 
-bool SGCTSettings::usePositionTexture() {
+bool SGCTSettings::usePositionTexture() const {
     return mUsePositionTexture;
 }
 
-bool SGCTSettings::useFBO() {
+bool SGCTSettings::useFBO() const {
     return mUseFBO;
 }
 
-int SGCTSettings::getNumberOfCaptureThreads() {
+int SGCTSettings::getNumberOfCaptureThreads() const {
     return mNumberOfCaptureThreads;
 }
 
-float SGCTSettings::getOSDTextXOffset() {
+float SGCTSettings::getOSDTextXOffset() const {
     return mOSDTextOffset[0];
 }
 
-float SGCTSettings::getOSDTextYOffset() {
+float SGCTSettings::getOSDTextYOffset() const {
     return mOSDTextOffset[1];
 }
 
-float SGCTSettings::getFXAASubPixTrim() {
+float SGCTSettings::getFXAASubPixTrim() const {
     return mFXAASubPixTrim;
 }
 
-float SGCTSettings::getFXAASubPixOffset() {
+float SGCTSettings::getFXAASubPixOffset() const {
     return mFXAASubPixOffset;
 }
 
-SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() {
+SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() const {
     return mCurrentDrawBuffer;
 }
 

@@ -51,8 +51,8 @@ void SGCTMutexManager::unlockMutex(MutexIndexes mi) {
 #endif
 }
 
-std::mutex* SGCTMutexManager::getMutexPtr(MutexIndexes mi) {
-    return &mInternalMutexes[mi];
+std::mutex& SGCTMutexManager::getMutexPtr(MutexIndexes mi) {
+    return mInternalMutexes[mi];
 }
 
 } // namespace sgct

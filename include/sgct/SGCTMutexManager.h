@@ -36,7 +36,7 @@ public:
 
     void lockMutex(MutexIndexes mi);
     void unlockMutex(MutexIndexes mi);
-    std::mutex * getMutexPtr(MutexIndexes mi);
+    std::mutex& getMutexPtr(MutexIndexes mi);
 
 private:
     SGCTMutexManager() = default;

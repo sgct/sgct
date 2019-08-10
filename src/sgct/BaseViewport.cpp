@@ -78,15 +78,17 @@ Frustum::FrustumMode BaseViewport::getEye() const {
     return mEye;
 }
 
-SGCTProjection* BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
-    return &mProjections[frustumMode];
+SGCTProjection& BaseViewport::getProjection(Frustum::FrustumMode frustumMode) {
+    return mProjections[frustumMode];
 }
 
-SGCTProjection* BaseViewport::getProjection() {
-    return &mProjections[mEye];
+SGCTProjection& BaseViewport::getProjection() {
+    return mProjections[mEye];
 }
 
-SGCTProjectionPlane* BaseViewport::getProjectionPlane() { return &mProjectionPlane; }
+SGCTProjectionPlane& BaseViewport::getProjectionPlane() {
+    return mProjectionPlane;
+}
 
 glm::quat BaseViewport::getRotation() const {
     return mRot;
@@ -113,15 +115,15 @@ void BaseViewport::linkUserName() {
 }
 
 void BaseViewport::calculateFrustum(const Frustum::FrustumMode& frustumMode,
-                                    float near_clipping_plane,
-                                    float far_clipping_plane)
+                                    float nearClippingPlane,
+                                    float farClippingPlane)
 {
     glm::vec3 eyePos = mUser->getPos(frustumMode);
     mProjections[frustumMode].calculateProjection(
         eyePos,
         &mProjectionPlane,
-        near_clipping_plane,
-        far_clipping_plane
+        nearClippingPlane,
+        farClippingPlane
     );
 }
 
@@ -129,16 +131,16 @@ void BaseViewport::calculateFrustum(const Frustum::FrustumMode& frustumMode,
    Make projection symmetric relative to user
 */
 void BaseViewport::calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
-                                             float near_clipping_plane,
-                                             float far_clipping_plane)
+                                             float nearClippingPlane,
+                                             float farClippingPlane)
 {
     glm::vec3 eyePos = mUser->getPos();
     glm::vec3 offset = mUser->getPos(frustumMode) - eyePos;
     mProjections[frustumMode].calculateProjection(
         eyePos,
         &mProjectionPlane,
-        near_clipping_plane,
-        far_clipping_plane,
+        nearClippingPlane,
+        farClippingPlane,
         offset
     );
 }

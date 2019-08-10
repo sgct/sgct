@@ -29,15 +29,15 @@ public:
     /*!
         \returns the output texture
     */
-    unsigned int getOutputTexture();
+    unsigned int getOutputTexture() const;
     /*!
         \returns the input texture
     */
-    unsigned int getInputTexture();
+    unsigned int getInputTexture() const;
     /*!
         \returns the shader pointer
     */
-    ShaderProgram * getShaderProgram();
+    ShaderProgram& getShaderProgram();
     /*!
         \returns name of this post effect pass
     */

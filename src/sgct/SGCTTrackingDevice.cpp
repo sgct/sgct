@@ -107,7 +107,7 @@ void SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes) {
 
 void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     sgct_core::ClusterManager& cm = *sgct_core::ClusterManager::instance();
-    SGCTTracker* parent = cm.getTrackingManagerPtr()->getTrackerPtr(mParentIndex);
+    SGCTTracker* parent = cm.getTrackingManagerPtr().getTrackerPtr(mParentIndex);
 
     if (parent == nullptr) {
         MessageHandler::instance()->print(
@@ -248,15 +248,15 @@ void SGCTTrackingDevice::setTransform(glm::mat4 mat) {
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
-const std::string& SGCTTrackingDevice::getName() {
+const std::string& SGCTTrackingDevice::getName() const {
     return mName;
 }
 
-size_t SGCTTrackingDevice::getNumberOfButtons() {
+size_t SGCTTrackingDevice::getNumberOfButtons() const {
     return mNumberOfButtons;
 }
 
-size_t SGCTTrackingDevice::getNumberOfAxes() {
+size_t SGCTTrackingDevice::getNumberOfAxes() const {
     return mNumberOfAxes;
 }
 

@@ -21,6 +21,7 @@ class SGCTTracker {
 public:
     explicit SGCTTracker(std::string name);
     ~SGCTTracker();
+
     void setEnabled(bool state);
     void addDevice(std::string name, size_t index);
 

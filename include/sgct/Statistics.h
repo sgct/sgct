@@ -45,16 +45,16 @@ public:
     void update();
     void draw(float lineWidth);
 
-    float getAvgFPS();
-    float getAvgDrawTime();
-    float getAvgSyncTime();
-    float getAvgFrameTime();
-    float getMinFrameTime();
-    float getMaxFrameTime();
-    float getFrameTimeStandardDeviation();
-    float getFrameTime();
-    float getDrawTime();
-    float getSyncTime();
+    float getAvgFPS() const;
+    float getAvgDrawTime() const;
+    float getAvgSyncTime() const;
+    float getAvgFrameTime() const;
+    float getMinFrameTime() const;
+    float getMaxFrameTime() const;
+    float getFrameTimeStandardDeviation() const;
+    float getFrameTime() const;
+    float getDrawTime() const;
+    float getSyncTime() const;
 
 private:
     struct StatsVertex {

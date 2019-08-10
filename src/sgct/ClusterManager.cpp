@@ -287,8 +287,8 @@ ClusterManager::MeshImplementation ClusterManager::getMeshImplementation() const
     return mMeshImpl;
 }
 
-sgct::SGCTTrackingManager* ClusterManager::getTrackingManagerPtr() {
-    return &mTrackingManager;
+sgct::SGCTTrackingManager& ClusterManager::getTrackingManagerPtr() {
+    return mTrackingManager;
 }
 
 } // namespace sgct_core

@@ -34,9 +34,9 @@ public:
     void blit();
     static void unBind();
     void destroy();
-    bool isMultiSampled();
+    bool isMultiSampled() const;
 
-    unsigned int getBufferID();
+    unsigned int getBufferID() const;
     
     int getInternalColorFormat() const;
     bool checkForErrors();

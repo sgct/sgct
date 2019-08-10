@@ -132,17 +132,17 @@ bool ShaderProgram::operator==(const std::string & rhs) const {
 }
 
 /*! Get the name of the program */
-std::string ShaderProgram::getName() {
+std::string ShaderProgram::getName() const {
     return mName;
 }
 
 /*! Check if the program is linked */
-bool ShaderProgram::isLinked() {
+bool ShaderProgram::isLinked() const {
     return mIsLinked;
 }
 
 /*! Get the program ID */
-int ShaderProgram::getId() {
+int ShaderProgram::getId() const {
     return mProgramId;
 }
 

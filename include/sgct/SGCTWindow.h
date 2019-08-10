@@ -158,7 +158,7 @@ public:
     /*!
         \returns the pointer to a specific post effect
     */
-    sgct::PostFX* getPostFXPtr(size_t index);
+    sgct::PostFX& getPostFX(size_t index);
     /*!
         \returns the number of post effects
     */
@@ -237,10 +237,10 @@ public:
 private:
     enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture };
 
-    static void windowResizeCallback(GLFWwindow * window, int width, int height);
-    static void frameBufferResizeCallback(GLFWwindow * window, int width, int height);
-    static void windowFocusCallback(GLFWwindow * window, int state);
-    static void windowIconifyCallback(GLFWwindow * window, int state);
+    static void windowResizeCallback(GLFWwindow* window, int width, int height);
+    static void frameBufferResizeCallback(GLFWwindow* window, int width, int height);
+    static void windowFocusCallback(GLFWwindow* window, int state);
+    static void windowIconifyCallback(GLFWwindow* window, int state);
     void initScreenCapture();
     void deleteAllViewports();
     void createTextures();

@@ -99,16 +99,16 @@ void PostFX::setOutputTexture(unsigned int outputTex) {
     mOutputTexture = outputTex;
 }
 
-unsigned int PostFX::getOutputTexture() {
+unsigned int PostFX::getOutputTexture() const {
     return mOutputTexture;
 }
 
-unsigned int PostFX::getInputTexture() {
+unsigned int PostFX::getInputTexture() const {
     return mInputTexture;
 }
 
-ShaderProgram* PostFX::getShaderProgram() {
-    return &mShaderProgram;
+ShaderProgram& PostFX::getShaderProgram() {
+    return mShaderProgram;
 }
 
 const std::string& PostFX::getName() {
@@ -116,14 +116,14 @@ const std::string& PostFX::getName() {
 }
 
 void PostFX::internalRender() {
-    SGCTWindow* win =
+    SGCTWindow& win =
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
     //bind target FBO
-    win->mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
+    win.mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
 
-    mXSize = win->getXFramebufferResolution();
-    mYSize = win->getYFramebufferResolution();
+    mXSize = win.getXFramebufferResolution();
+    mYSize = win.getYFramebufferResolution();
 
     //if for some reson the active texture has been reset
     glViewport(0, 0, mXSize, mYSize);
@@ -140,22 +140,22 @@ void PostFX::internalRender() {
         mUpdateFn();
     }
 
-    win->bindVAO();
+    win.bindVAO();
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-    win->unbindVAO();
+    win.unbindVAO();
 
     ShaderProgram::unbind();
 }
 
 void PostFX::internalRenderFixedPipeline() {
-    SGCTWindow* win =
+    SGCTWindow& win =
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
     //bind target FBO
-    win->mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
+    win.mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
 
-    mXSize = win->getXFramebufferResolution();
-    mYSize = win->getYFramebufferResolution();
+    mXSize = win.getXFramebufferResolution();
+    mYSize = win.getYFramebufferResolution();
 
     //if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
@@ -180,7 +180,7 @@ void PostFX::internalRenderFixedPipeline() {
 
     glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
 
-    win->bindVBO();
+    win.bindVBO();
     glClientActiveTexture(GL_TEXTURE0);
 
     glEnableClientState(GL_TEXTURE_COORD_ARRAY);
@@ -190,7 +190,7 @@ void PostFX::internalRenderFixedPipeline() {
     glVertexPointer(3, GL_FLOAT, 5 * sizeof(float), reinterpret_cast<void*>(8));
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
 
-    win->unbindVBO();
+    win.unbindVBO();
 
     ShaderProgram::unbind();
 

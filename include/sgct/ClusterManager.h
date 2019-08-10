@@ -117,7 +117,7 @@ public:
     /*!
         \returns the pointer to the tracking manager
     */
-    sgct::SGCTTrackingManager* getTrackingManagerPtr();
+    sgct::SGCTTrackingManager& getTrackingManagerPtr();
 
 private:
     ClusterManager();

@@ -50,8 +50,7 @@ struct FrustumData {
 /*!
     This class holds and manages viewportdata and calculates frustums
 */
-class Viewport : public BaseViewport
-{
+class Viewport : public BaseViewport {
 public:
     Viewport(float x = 0.f, float y = 0.f, float xSize = 1.f, float ySize = 1.f);
     ~Viewport();
@@ -69,17 +68,17 @@ public:
 
     void renderMesh(CorrectionMesh::MeshType mt);
 
-    bool hasOverlayTexture();
-    bool hasBlendMaskTexture();
-    bool hasBlackLevelMaskTexture();
-    bool hasSubViewports();
-    bool hasCorrectionMesh();
-    bool isTracked();
-    unsigned int getOverlayTextureIndex();
-    unsigned int getBlendMaskTextureIndex();
-    unsigned int getBlackLevelMaskTextureIndex();
-    CorrectionMesh* getCorrectionMeshPtr();
-    NonLinearProjection* getNonLinearProjectionPtr();
+    bool hasOverlayTexture() const;
+    bool hasBlendMaskTexture() const;
+    bool hasBlackLevelMaskTexture() const;
+    bool hasSubViewports() const;
+    bool hasCorrectionMesh() const;
+    bool isTracked() const;
+    unsigned int getOverlayTextureIndex() const;
+    unsigned int getBlendMaskTextureIndex() const;
+    unsigned int getBlackLevelMaskTextureIndex() const;
+    CorrectionMesh& getCorrectionMeshPtr();
+    NonLinearProjection* getNonLinearProjectionPtr() const;
 
     char* mMpcdiWarpMeshData = nullptr;
     size_t mMpcdiWarpMeshSize = 0;

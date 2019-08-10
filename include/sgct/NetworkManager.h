@@ -46,7 +46,7 @@ public:
     bool isComputerServer();
     bool isRunning();
     bool areAllNodesConnected();
-    SGCTNetwork * getExternalControlPtr();
+    SGCTNetwork* getExternalControlPtr();
     void transferData(const void* data, int length, int packageId);
     void transferData(const void* data, int length, int packageId, std::size_t nodeIndex);
     void transferData(const void* data, int length, int packageId, SGCTNetwork* connection);
@@ -67,12 +67,12 @@ private:
         SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
     void initAPI();
     void getHostInfo();
-    void updateConnectionStatus(SGCTNetwork * connection);
+    void updateConnectionStatus(SGCTNetwork* connection);
     void setAllNodesConnected();
     bool prepareTransferData(const void* data, char** bufferPtr, int& length,
         int packageId);
 
-    static NetworkManager * mInstance;
+    static NetworkManager* mInstance;
     std::vector<SGCTNetwork*> mNetworkConnections;
     std::vector<SGCTNetwork*> mSyncConnections;
     std::vector<SGCTNetwork*> mDataTransferConnections;

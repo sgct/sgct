@@ -604,43 +604,43 @@ void Statistics::draw(float lineWidth) {
     mShader.unbind();
 }
 
-float Statistics::getAvgFPS() {
+float Statistics::getAvgFPS() const {
     return mAvgFPS;
 }
 
-float Statistics::getAvgDrawTime() {
+float Statistics::getAvgDrawTime() const {
     return mAvgDrawTime;
 }
 
-float Statistics::getAvgSyncTime() {
+float Statistics::getAvgSyncTime() const {
     return mAvgSyncTime;
 }
 
-float Statistics::getAvgFrameTime() {
+float Statistics::getAvgFrameTime() const {
     return mAvgFrameTime;
 }
 
-float Statistics::getMinFrameTime() {
+float Statistics::getMinFrameTime() const {
     return mMinFrameTime;
 }
 
-float Statistics::getMaxFrameTime() {
+float Statistics::getMaxFrameTime() const {
     return mMaxFrameTime;
 }
 
-float Statistics::getFrameTimeStandardDeviation() {
+float Statistics::getFrameTimeStandardDeviation() const {
     return mStdDevFrameTime;
 }
 
-float Statistics::getFrameTime() {
+float Statistics::getFrameTime() const {
     return mDynamicVertexList[FRAME_TIME * StatsHistoryLength].y;
 }
 
-float Statistics::getDrawTime() {
+float Statistics::getDrawTime() const {
     return mDynamicVertexList[DRAW_TIME * StatsHistoryLength].y;
 }
 
-float Statistics::getSyncTime() {
+float Statistics::getSyncTime() const {
     return mDynamicVertexList[SYNC_TIME * StatsHistoryLength].y;
 }
 

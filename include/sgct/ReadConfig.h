@@ -26,16 +26,16 @@ class ReadConfig {
 public:
     explicit ReadConfig(std::string filename);
 
-    bool isValid();
+    bool isValid() const;
     static glm::quat parseOrientationNode(tinyxml2::XMLElement* element);
     static glm::quat parseMpcdiOrientationNode(float yaw, float pitch, float roll);
 
 private:
-    bool replaceEnvVars( const std::string &filename );
+    bool replaceEnvVars(const std::string& filename);
     bool readAndParseXMLFile();
     bool readAndParseXMLString();
     bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
-    sgct::SGCTWindow::StereoMode getStereoType( std::string type );
+    sgct::SGCTWindow::StereoMode getStereoType(std::string type);
     sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
 
     bool valid;

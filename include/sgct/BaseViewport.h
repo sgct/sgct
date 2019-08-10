@@ -43,9 +43,9 @@ public:
     
     SGCTUser* getUser() const;
     Frustum::FrustumMode getEye() const;
-    SGCTProjection* getProjection(Frustum::FrustumMode frustumMode);
-    SGCTProjection* getProjection();
-    SGCTProjectionPlane * getProjectionPlane();
+    SGCTProjection& getProjection(Frustum::FrustumMode frustumMode);
+    SGCTProjection& getProjection();
+    SGCTProjectionPlane& getProjectionPlane();
     glm::quat getRotation() const;
     glm::vec4 getFOV() const;
     float getDistance() const;
@@ -54,9 +54,9 @@ public:
     void linkUserName();
 
     void calculateFrustum(const Frustum::FrustumMode& frustumMode,
-        float near_clipping_plane, float far_clipping_plane);
+        float nearClippingPlane, float farClippingPlane);
     void calculateNonLinearFrustum(const Frustum::FrustumMode& frustumMode,
-        float near_clipping_plane, float far_clipping_plane);
+        float nearClippingPlane, float farClippingPlane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
     void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3],

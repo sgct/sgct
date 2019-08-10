@@ -21,9 +21,11 @@ namespace sgct_core {
 */
 class SGCTProjection {
 public:
-    void calculateProjection(glm::vec3 base, SGCTProjectionPlane* projectionPlanePtr, float near_clipping_plane, float far_clipping_plane, glm::vec3 viewOffset = glm::vec3(0.0f, 0.0f, 0.0f));
+    void calculateProjection(glm::vec3 base, SGCTProjectionPlane* projectionPlanePtr,
+        float nearClippingPlane, float farClippingPlane,
+        glm::vec3 viewOffset = glm::vec3(0.f));
 
-    Frustum* getFrustum();
+    Frustum& getFrustum();
     const glm::mat4& getViewProjectionMatrix();
     const glm::mat4& getViewMatrix();
     const glm::mat4& getProjectionMatrix();

@@ -110,7 +110,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
 
 void SphericalMirrorProjection::initVBO() {
     Viewport* vp = dynamic_cast<Viewport*>(
-        sgct::Engine::instance()->getCurrentWindowPtr()->getCurrentViewport()
+        sgct::Engine::instance()->getCurrentWindowPtr().getCurrentViewport()
     );
     if (vp) {
         for (int i = 0; i < LAST_MESH; i++) {
@@ -172,15 +172,15 @@ void SphericalMirrorProjection::initViewports() {
         }// end switch
 
         // add viewplane vertices
-        mSubViewports[i].getProjectionPlane()->setCoordinate(
+        mSubViewports[i].getProjectionPlane().setCoordinate(
             SGCTProjectionPlane::LowerLeft,
             glm::vec3(rotMat * lowerLeft)
         );
-        mSubViewports[i].getProjectionPlane()->setCoordinate(
+        mSubViewports[i].getProjectionPlane().setCoordinate(
             SGCTProjectionPlane::UpperLeft,
             glm::vec3(rotMat * upperLeft)
         );
-        mSubViewports[i].getProjectionPlane()->setCoordinate(
+        mSubViewports[i].getProjectionPlane().setCoordinate(
             SGCTProjectionPlane::UpperRight,
             glm::vec3(rotMat * upperRight)
         );
@@ -322,21 +322,21 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
         sgct::Engine::mInstance->mClearBufferFnPtr();
     }
     else {
-        const float* colorPtr = sgct::Engine::instance()->getClearColor();
-        glClearColor(colorPtr[0], colorPtr[1], colorPtr[2], colorPtr[3]);
+        glm::vec4 color = sgct::Engine::instance()->getClearColor();
+        glClearColor(color.r, color.g, color.b, color.a);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     }
 #endif
 
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         glMatrixMode(GL_PROJECTION);
-        SGCTProjection* proj = mSubViewports[face].getProjection(
+        SGCTProjection& proj = mSubViewports[face].getProjection(
             sgct::Engine::instance()->getCurrentFrustumMode()
         );
-        glLoadMatrixf(glm::value_ptr(proj->getProjectionMatrix()));
+        glLoadMatrixf(glm::value_ptr(proj.getProjectionMatrix()));
         glMatrixMode(GL_MODELVIEW);
         glLoadMatrixf(glm::value_ptr(
-            proj->getViewMatrix() * sgct::Engine::instance()->getModelMatrix()
+            proj.getViewMatrix() * sgct::Engine::instance()->getModelMatrix()
         ));
     }
 
@@ -361,10 +361,10 @@ void SphericalMirrorProjection::attachTextures(TextureIndex ti) {
 void SphericalMirrorProjection::renderInternal() {
     sgct::Engine::mInstance->enterCurrentViewport();
 
-    sgct::SGCTWindow* winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
-    BaseViewport* vpPtr = winPtr->getCurrentViewport();
+    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
+    BaseViewport* vpPtr = winPtr.getCurrentViewport();
 
-    float aspect = winPtr->getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
+    float aspect = winPtr.getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
 
     glm::mat4 MVP = glm::ortho(-aspect, aspect, -1.f, 1.f, -1.f, 1.f);
 
@@ -377,7 +377,7 @@ void SphericalMirrorProjection::renderInternal() {
     glActiveTexture(GL_TEXTURE0);
     
     glDisable(GL_CULL_FACE);
-    bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr()->getAlpha();
+    bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -418,10 +418,10 @@ void SphericalMirrorProjection::renderInternal() {
 void SphericalMirrorProjection::renderInternalFixedPipeline() {
     sgct::Engine::mInstance->enterCurrentViewport();
 
-    sgct::SGCTWindow* winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
-    BaseViewport* vpPtr = winPtr->getCurrentViewport();
+    sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
+    BaseViewport* vpPtr = winPtr.getCurrentViewport();
     
-    float aspect = winPtr->getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
+    float aspect = winPtr.getAspectRatio() * (vpPtr->getXSize() / vpPtr->getYSize());
     
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -442,7 +442,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glLoadIdentity();
 
     glDisable(GL_CULL_FACE);
-    bool alpha = winPtr->getAlpha();
+    bool alpha = winPtr.getAlpha();
     if (alpha) {
         glEnable(GL_BLEND);
         glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
@@ -494,7 +494,7 @@ void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) 
                 attachTextures(ti);
             }
 
-            sgct::Engine::mInstance->getCurrentWindowPtr()->setCurrentViewport(vp);
+            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
             drawCubeFace(i);
 
             //blit MSAA fbo to texture
@@ -522,7 +522,7 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
                 attachTextures(ti);
             }
 
-            sgct::Engine::mInstance->getCurrentWindowPtr()->setCurrentViewport(vp);
+            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
             drawCubeFace(i);
 
             //blit MSAA fbo to texture

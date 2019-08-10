@@ -404,11 +404,11 @@ void OffScreenBuffer::destroy() {
     mPositionBuffer = 0;
 }
 
-bool OffScreenBuffer::isMultiSampled() {
+bool OffScreenBuffer::isMultiSampled() const {
     return mMultiSampled;
 }
 
-unsigned int OffScreenBuffer::getBufferID() {
+unsigned int OffScreenBuffer::getBufferID() const {
     return mMultiSampled ? mMultiSampledFrameBuffer : mFrameBuffer;
 }
 

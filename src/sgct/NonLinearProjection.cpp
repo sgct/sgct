@@ -205,15 +205,15 @@ void NonLinearProjection::bindDepthCorrectionShaderProgram() const {
     mDepthCorrectionShader.bind();
 }
 
-BaseViewport* NonLinearProjection::getSubViewportPtr(std::size_t index) {
-    return &mSubViewports[index];
+BaseViewport& NonLinearProjection::getSubViewportPtr(size_t index) {
+    return mSubViewports[index];
 }
 
 OffScreenBuffer* NonLinearProjection::getOffScreenBuffer() {
     return mCubeMapFBO_Ptr;
 }
 
-const int* NonLinearProjection::getViewportCoords() {
+glm::ivec4 NonLinearProjection::getViewportCoords() {
     return mVpCoords;
 }
 

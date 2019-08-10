@@ -59,15 +59,15 @@ size_t SGCTNode::getNumberOfWindows() {
 /*!
     Get the window pointer at index in window vector.
 */
-sgct::SGCTWindow* SGCTNode::getWindowPtr(size_t index) {
-    return &mWindows[index];
+sgct::SGCTWindow& SGCTNode::getWindowPtr(size_t index) {
+    return mWindows[index];
 }
 
 /*!
     Get the active window pointer.
 */
-sgct::SGCTWindow* SGCTNode::getCurrentWindowPtr() {
-    return &mWindows[mCurrentWindowIndex];
+sgct::SGCTWindow& SGCTNode::getCurrentWindowPtr() {
+    return mWindows[mCurrentWindowIndex];
 }
 
 /*! Get the current window index */

@@ -76,10 +76,10 @@ std::string TextureManager::getTexturePath(const std::string& name) {
 Get the dimensions of a texture by name. If not found all variables will be set to -1.
 */
 void TextureManager::getDimensions(const std::string& name, int& width, int& height,
-                                   int& channels)
+                                   int& channels) const
 {
     if (mTextures.count(name) > 0) {
-        const sgct_core::TextureData& texData = mTextures[name];
+        const sgct_core::TextureData& texData = mTextures.at(name);
         width = texData.mWidth;
         height = texData.mWidth;
         channels = texData.mWidth;
@@ -157,7 +157,7 @@ void TextureManager::setWarpingMode(int warp_s, int warp_t) {
 /*!
 \returns the current compression mode
 */
-TextureManager::CompressionMode TextureManager::getCompression() {
+TextureManager::CompressionMode TextureManager::getCompression() const {
     return mCompression;
 }
 

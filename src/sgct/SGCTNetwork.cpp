@@ -242,21 +242,21 @@ void SGCTNetwork::connectionHandler() {
 /*!
 \return the port of this connection
 */
-std::string SGCTNetwork::getPort() {
+std::string SGCTNetwork::getPort() const {
     return mPort;
 }
 
 /*!
 \return the address of this connection
 */
-std::string SGCTNetwork::getAddress() {
+std::string SGCTNetwork::getAddress() const {
     return mAddress;
 }
 
 /*!
 \return the connection type as string
 */
-std::string SGCTNetwork::getTypeStr() {
+std::string SGCTNetwork::getTypeStr() const {
     return getTypeStr(getType());
 }
 
@@ -540,11 +540,11 @@ void SGCTNetwork::enableNaglesAlgorithmInDataTransfer() {
     mUseNaglesAlgorithmInDataTransfer = true;
 }
 
-int SGCTNetwork::getSendFrame(ReceivedIndex ri) {
+int SGCTNetwork::getSendFrame(ReceivedIndex ri) const {
     return mSendFrame[ri];
 }
 
-int SGCTNetwork::getRecvFrame(ReceivedIndex ri) {
+int SGCTNetwork::getRecvFrame(ReceivedIndex ri) const {
     return mRecvFrame[ri];
 }
 
@@ -579,7 +579,7 @@ When the server recieves a frame sync number equal to the send frame number it s
 
 \returns true if updates has been received
 */
-bool SGCTNetwork::isUpdated() {
+bool SGCTNetwork::isUpdated() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::NOTIFY_INFO,
@@ -648,11 +648,11 @@ void SGCTNetwork::setConnectedStatus(bool state) {
     #endif
 }
 
-bool SGCTNetwork::isConnected() {
+bool SGCTNetwork::isConnected() const {
     return mConnected;
 }
 
-SGCTNetwork::ConnectionTypes SGCTNetwork::getType() {
+SGCTNetwork::ConnectionTypes SGCTNetwork::getType() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::NOTIFY_INFO,
@@ -675,11 +675,11 @@ int SGCTNetwork::getId() const {
     return mId;
 }
 
-bool SGCTNetwork::isServer() {
+bool SGCTNetwork::isServer() const {
     return mServer;
 }
 
-bool SGCTNetwork::isTerminated() {
+bool SGCTNetwork::isTerminated() const {
     return mTerminate;
 }
 

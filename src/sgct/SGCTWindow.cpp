@@ -1136,8 +1136,8 @@ void SGCTWindow::windowResizeCallback(GLFWwindow* window, int width, int height)
     if (thisNode != nullptr) {
         //find the correct window to update
         for (std::size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
-            if (thisNode->getWindowPtr(i)->getWindowHandle() == window) {
-                thisNode->getWindowPtr(i)->setWindowResolution(
+            if (thisNode->getWindowPtr(i).getWindowHandle() == window) {
+                thisNode->getWindowPtr(i).setWindowResolution(
                     std::max(width, 1),
                     std::max(height, 1)
                 );
@@ -1152,8 +1152,8 @@ void SGCTWindow::frameBufferResizeCallback(GLFWwindow * window, int width, int h
     if (thisNode != nullptr) {
         //find the correct window to update
         for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
-            if (thisNode->getWindowPtr(i)->getWindowHandle() == window) {
-                thisNode->getWindowPtr(i)->setFramebufferResolution(
+            if (thisNode->getWindowPtr(i).getWindowHandle() == window) {
+                thisNode->getWindowPtr(i).setFramebufferResolution(
                     std::max(width, 1),
                     std::max(height, 1)
                 );
@@ -1168,8 +1168,8 @@ void SGCTWindow::windowFocusCallback(GLFWwindow * window, int state) {
     if (thisNode != nullptr) {
         //find the correct window to update
         for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
-            if (thisNode->getWindowPtr(i)->getWindowHandle() == window)
-                thisNode->getWindowPtr(i)->setFocused(state == GL_TRUE);
+            if (thisNode->getWindowPtr(i).getWindowHandle() == window)
+                thisNode->getWindowPtr(i).setFocused(state == GL_TRUE);
         }
     }
 }
@@ -1180,8 +1180,8 @@ void SGCTWindow::windowIconifyCallback(GLFWwindow * window, int state) {
     if (thisNode != nullptr) {
         //find the correct window to update
         for (size_t i = 0; i < thisNode->getNumberOfWindows(); i++) {
-            if (thisNode->getWindowPtr(i)->getWindowHandle() == window)
-                thisNode->getWindowPtr(i)->setIconified(state == GL_TRUE);
+            if (thisNode->getWindowPtr(i).getWindowHandle() == window)
+                thisNode->getWindowPtr(i).setIconified(state == GL_TRUE);
         }
     }
 }
@@ -2269,8 +2269,8 @@ float SGCTWindow::getHorizFieldOfViewDegrees() {
     return mHorizontalFovDegrees;
 }
 
-PostFX * SGCTWindow::getPostFXPtr(std::size_t index) {
-    return &mPostFXPasses[index];
+PostFX& SGCTWindow::getPostFX(std::size_t index) {
+    return mPostFXPasses[index];
 }
 
 size_t SGCTWindow::getNumberOfPostFXs() const {

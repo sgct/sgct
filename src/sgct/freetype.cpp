@@ -20,26 +20,26 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
 void setupViewport() {
-    sgct::SGCTWindow* cWin = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
     int x = static_cast<int>(
-        cWin->getCurrentViewport()->getX() *
-        static_cast<float>(cWin->getXFramebufferResolution())
-        );
+        cWin.getCurrentViewport()->getX() *
+        static_cast<float>(cWin.getXFramebufferResolution())
+    );
     int y = static_cast<int>(
-        cWin->getCurrentViewport()->getY() *
-        static_cast<float>(cWin->getYFramebufferResolution())
-        );
+        cWin.getCurrentViewport()->getY() *
+        static_cast<float>(cWin.getYFramebufferResolution())
+    );
     int xSize = static_cast<int>(
-        cWin->getCurrentViewport()->getXSize() *
-        static_cast<float>(cWin->getXFramebufferResolution())
-        );
+        cWin.getCurrentViewport()->getXSize() *
+        static_cast<float>(cWin.getXFramebufferResolution())
+    );
     int ySize = static_cast<int>(
-        cWin->getCurrentViewport()->getYSize() *
-        static_cast<float>(cWin->getYFramebufferResolution())
-        );
+        cWin.getCurrentViewport()->getYSize() *
+        static_cast<float>(cWin.getYFramebufferResolution())
+    );
 
-    sgct::SGCTWindow::StereoMode sm = cWin->getStereoMode();
+    sgct::SGCTWindow::StereoMode sm = cWin.getStereoMode();
     if (sm >= sgct::SGCTWindow::Side_By_Side_Stereo) {
         if (sgct::Engine::instance()->getCurrentFrustumMode() ==
             sgct_core::Frustum::StereoLeftEye)
@@ -94,17 +94,17 @@ void setupViewport() {
 
 glm::mat4 setupOrthoMat() {
     glm::mat4 orthoMat;
-    sgct::SGCTWindow* cWin = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
 
     orthoMat = glm::ortho(
         0.f,
-        cWin->getCurrentViewport()->getXSize() *
-        static_cast<float>(cWin->getXResolution()) *
-        cWin->getXScale(),
-        0.0f,
-        cWin->getCurrentViewport()->getYSize() *
-        static_cast<float>(cWin->getYResolution()) *
-        cWin->getYScale()
+        cWin.getCurrentViewport()->getXSize() *
+        static_cast<float>(cWin.getXResolution()) *
+        cWin.getXScale(),
+        0.f,
+        cWin.getCurrentViewport()->getYSize() *
+        static_cast<float>(cWin.getYResolution()) *
+        cWin.getYScale()
     );
 
     return orthoMat;

@@ -71,16 +71,16 @@ public:
     void setOptions(SGCT_SOCKET* socketPtr);
     void closeSocket(SGCT_SOCKET lSocket);
 
-    ConnectionTypes getType();
+    ConnectionTypes getType() const;
     int getId() const;
-    bool isServer();
-    bool isConnected();
+    bool isServer() const;
+    bool isConnected() const;
 
-    bool isTerminated();
-    int getSendFrame(ReceivedIndex ri = Current);
-    int getRecvFrame(ReceivedIndex ri);
+    bool isTerminated() const;
+    int getSendFrame(ReceivedIndex ri = Current) const;
+    int getRecvFrame(ReceivedIndex ri) const;
     double getLoopTime();
-    bool isUpdated();
+    bool isUpdated() const;
     void setRecvFrame(int i);
     void sendData(const void* data, int length);
     void sendStr(const std::string& msg);
@@ -91,9 +91,9 @@ public:
     int iterateFrameCounter();
     void pushClientMessage();
     void enableNaglesAlgorithmInDataTransfer();
-    std::string getPort();
-    std::string getAddress();
-    std::string getTypeStr();
+    std::string getPort() const;
+    std::string getAddress() const;
+    std::string getTypeStr() const;
     static std::string getTypeStr(ConnectionTypes ct);
 
     std::function<void(const char*, int, int)> mDecoderCallbackFn;
@@ -135,7 +135,7 @@ private:
     std::atomic<int32_t> mRecvFrame[2] = { 0, -1 };
     std::atomic<bool> mTerminate = false; //set to true upon exit
 
-    std::mutex mConnectionMutex;
+    mutable std::mutex mConnectionMutex;
     std::thread* mCommThread = nullptr;
     std::thread* mMainThread = nullptr;
 

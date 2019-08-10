@@ -64,13 +64,13 @@ public:
     bool operator==(const std::string & rhs) const;
 
     /*! Get the name of the program */
-    std::string getName();
+    std::string getName() const;
 
     /*! Check if the program is linked */
-    bool isLinked();
+    bool isLinked() const;
 
     /*! Get the program ID */
-    int getId();
+    int getId() const;
 
 private:
     bool createProgram();

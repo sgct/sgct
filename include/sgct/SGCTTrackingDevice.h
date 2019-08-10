@@ -40,9 +40,9 @@ public:
     void setOffset(float x, float y, float z);
     void setTransform(glm::mat4 mat);
 
-    const std::string & getName();
-    size_t getNumberOfButtons();
-    size_t getNumberOfAxes();
+    const std::string& getName() const;
+    size_t getNumberOfButtons() const;
+    size_t getNumberOfAxes() const;
     bool getButton(size_t index, DataLocation i = CURRENT);
     double getAnalog(size_t index, DataLocation i = CURRENT);
     bool isEnabled();

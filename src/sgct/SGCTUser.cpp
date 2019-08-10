@@ -160,43 +160,35 @@ void SGCTUser::updateEyeTransform() {
     @param fm which eye/projection
     @returns position vector
 */
-const glm::vec3& SGCTUser::getPos(Frustum::FrustumMode fm) {
+const glm::vec3& SGCTUser::getPos(Frustum::FrustumMode fm) const {
     return mPos[fm];
 }
 
-glm::vec3* SGCTUser::getPosPtr() {
-    return &mPos[Frustum::MonoEye];
-}
-
-glm::vec3* SGCTUser::getPosPtr(Frustum::FrustumMode fm) {
-    return &mPos[fm];
-}
-
-float SGCTUser::getEyeSeparation() {
+float SGCTUser::getEyeSeparation() const {
     return mEyeSeparation;
 }
 
-float SGCTUser::getHalfEyeSeparation() {
+float SGCTUser::getHalfEyeSeparation() const {
     return mEyeSeparation / 2.f;
 }
 
-float SGCTUser::getXPos() {
+float SGCTUser::getXPos() const {
     return mPos[Frustum::MonoEye].x;
 }
 
-float SGCTUser::getYPos() {
+float SGCTUser::getYPos() const {
     return mPos[Frustum::MonoEye].y;
 }
 
-float SGCTUser::getZPos() {
+float SGCTUser::getZPos() const {
     return mPos[Frustum::MonoEye].z;
 }
 
-const char* SGCTUser::getHeadTrackerName() {
+const char* SGCTUser::getHeadTrackerName() const {
     return mHeadTrackerName.c_str();
 }
 
-const char* SGCTUser::getHeadTrackerDeviceName() {
+const char* SGCTUser::getHeadTrackerDeviceName() const {
     return mHeadTrackerDeviceName.c_str();
 }
 
@@ -204,7 +196,7 @@ const char* SGCTUser::getHeadTrackerDeviceName() {
 Get the users name
 @returns users name
 */
-std::string SGCTUser::getName() {
+std::string SGCTUser::getName() const {
     return mName;
 }
 

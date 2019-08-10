@@ -35,18 +35,16 @@ public:
     void setOrientation(glm::quat q);
     void setEyeSeparation(float eyeSeparation);
 
-    std::string getName();
-    const glm::vec3 & getPos(Frustum::FrustumMode fm = Frustum::MonoEye);
-    glm::vec3* getPosPtr();
-    glm::vec3* getPosPtr(Frustum::FrustumMode fm);
+    std::string getName() const;
+    const glm::vec3& getPos(Frustum::FrustumMode fm = Frustum::MonoEye) const;
 
-    float getEyeSeparation();
-    float getHalfEyeSeparation();
-    float getXPos();
-    float getYPos();
-    float getZPos();
-    const char* getHeadTrackerName();
-    const char* getHeadTrackerDeviceName();
+    float getEyeSeparation() const;
+    float getHalfEyeSeparation() const;
+    float getXPos() const;
+    float getYPos() const;
+    float getZPos() const;
+    const char* getHeadTrackerName() const;
+    const char* getHeadTrackerDeviceName() const;
 
     bool isTracked() const;
 

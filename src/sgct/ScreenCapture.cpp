@@ -387,13 +387,13 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     std::stringstream ss;
     if (useDefaultSettings) {
         ss << tmpPath;
-        sgct::SGCTWindow* win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+        sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
         
-        if (win->getName().empty()) {
+        if (win.getName().empty()) {
             ss << "_win" << mWindowIndex;
         }
         else {
-            ss << "_" << win->getName();
+            ss << "_" << win.getName();
         }
     }
     else {
@@ -483,26 +483,26 @@ void ScreenCapture::updateDownloadFormat() {
 }
 
 void ScreenCapture::checkImageBuffer(const CaptureSrc& CapSrc) {
-    sgct::SGCTWindow* win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
+    sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
     
     if (CapSrc == CAPTURE_TEXTURE) {
-        if (mX != win->getXFramebufferResolution() ||
-            mY != win->getYFramebufferResolution())
+        if (mX != win.getXFramebufferResolution() ||
+            mY != win.getYFramebufferResolution())
         {
             mDownloadType = mDownloadTypeSetByUser;
-            int bytesPerColor = win->getFramebufferBPCC();
+            int bytesPerColor = win.getFramebufferBPCC();
             initOrResize(
-                win->getXFramebufferResolution(),
-                win->getYFramebufferResolution(),
+                win.getXFramebufferResolution(),
+                win.getYFramebufferResolution(),
                 mChannels,
                 bytesPerColor
             );
         }
     }
     else { //capture directly from back buffer (no HDR support)
-        if (mX != win->getXResolution() || mY != win->getYResolution()) {
+        if (mX != win.getXResolution() || mY != win.getYResolution()) {
             mDownloadType = GL_UNSIGNED_BYTE;
-            initOrResize(win->getXResolution(), win->getYResolution(), mChannels, 1);
+            initOrResize(win.getXResolution(), win.getYResolution(), mChannels, 1);
         }
     }
 }

@@ -92,7 +92,7 @@ FontManager::FontManager() {
 
     if (error != 0) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Could not initiate Freetype library.\n"
         );
         return; // No need to continue
@@ -216,7 +216,7 @@ bool FontManager::addFont(std::string fontName, std::string path, FontPath fontP
 
     if (!inserted) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Font with name '%s' already specified.\n", fontName.c_str()
         );
         return false;
@@ -260,7 +260,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
 
     if (it == mFontPaths.end()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "FontManager: No font file specified for font [%s].\n", fontName.c_str()
         );
         return mFontMap.end()->second.end()->second;
@@ -268,7 +268,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
 
     if (mFTLibrary == nullptr) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "FontManager: Freetype library is not initialized, can't create font [%s].\n",
             fontName.c_str()
         );
@@ -279,7 +279,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
 
     if (error == FT_Err_Unknown_File_Format) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "FontManager: Unsopperted file format [%s] for font [%s].\n",
             it->second.c_str(), fontName.c_str()
         );
@@ -287,7 +287,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
     }
     else if (error != 0 || mFace == nullptr) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "FontManager: Font '%s' not found!\n", it->second.c_str()
         );
         return mFontMap.end()->second.end()->second;
@@ -295,7 +295,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
 
     if (FT_Set_Char_Size(mFace, height << 6, height << 6, 96, 96) != 0) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "FontManager: Could not set pixel size for font[%s].\n", fontName.c_str()
         );
         return mFontMap.end()->second.end()->second;
@@ -340,7 +340,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
         );
         if (!vertShader) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load font vertex shader\n"
             );
         }
@@ -351,7 +351,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
         );
         if (!fragShader) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load font fragment shader\n"
             );
         }

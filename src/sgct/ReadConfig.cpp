@@ -53,7 +53,7 @@ ReadConfig::ReadConfig(std::string filename) {
     
     if (filename.empty()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "ReadConfig: No file specified! Using default configuration...\n"
         );
         readAndParseXMLString();
@@ -61,7 +61,7 @@ ReadConfig::ReadConfig(std::string filename) {
     }
     else {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ReadConfig: Parsing XML config '%s'...\n", filename.c_str()
         );
     
@@ -71,7 +71,7 @@ ReadConfig::ReadConfig(std::string filename) {
     
         if (!readAndParseXMLFile()) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "ReadConfig: Error occured while reading config file '%s'\nError: %s\n",
                 xmlFileName.c_str(), mErrorMsg.c_str()
             );
@@ -80,20 +80,20 @@ ReadConfig::ReadConfig(std::string filename) {
         valid = true;
     
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ReadConfig: Config file '%s' read successfully!\n",
             xmlFileName.c_str()
         );
     }
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_INFO,
+        sgct::MessageHandler::Level::Info,
         "ReadConfig: Number of nodes in cluster: %d\n",
         ClusterManager::instance()->getNumberOfNodes()
     );
     
     for (unsigned int i = 0; i < ClusterManager::instance()->getNumberOfNodes(); i++) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_INFO,
+            sgct::MessageHandler::Level::Info,
             "\tNode(%d) address: %s [%s]\n", i,
             ClusterManager::instance()->getNodePtr(i)->getAddress().c_str(),
             ClusterManager::instance()->getNodePtr(i)->getSyncPort().c_str()
@@ -105,7 +105,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
     size_t foundIndex = filename.find('%');
     if (foundIndex != std::string::npos) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "ReadConfig: Error: SGCT doesn't support the usage of '%%' characters "
             "in path or file name.\n"
         );
@@ -129,7 +129,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
     
     if (beginEnvVar.size() != endEnvVar.size()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "ReadConfig: Error: Bad configuration path string!\n"
         );
         return false;
@@ -149,7 +149,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
             errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
             if (err) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
                     envVar.c_str()
                 );
@@ -159,7 +159,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
             fetchedEnvVar = getenv(envVar.c_str());
             if (fetchedEnvVar == nullptr) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
                     envVar.c_str()
                 );
@@ -268,8 +268,8 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
     if (debugMode != nullptr) {
         sgct::MessageHandler::instance()->setNotifyLevel(
             strcmp(debugMode, "true") == 0 ?
-                sgct::MessageHandler::NOTIFY_DEBUG :
-                sgct::MessageHandler::NOTIFY_WARNING
+                sgct::MessageHandler::Level::Debug :
+                sgct::MessageHandler::Level::Warning
         );
     }
     
@@ -313,7 +313,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             tmpOffset[2]
                         };
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_DEBUG,
+                            sgct::MessageHandler::Level::Debug,
                             "ReadConfig: Setting scene offset to (%f, %f, %f)\n",
                             sceneOffset.x, sceneOffset.y, sceneOffset.z
                         );
@@ -322,7 +322,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse scene offset from XML!\n"
                         );
                     }
@@ -337,7 +337,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     XMLError value = element[1]->QueryFloatAttribute("value", &tmpScale);
                     if (value  == tinyxml2::XML_NO_ERROR) {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_DEBUG,
+                            sgct::MessageHandler::Level::Debug,
                             "ReadConfig: Setting scene scale to %f\n",
                             tmpScale
                         );
@@ -346,7 +346,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse scene orientation from XML!\n"
                         );
                     }
@@ -591,7 +591,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse window position from XML!\n"
                                 );
                             }
@@ -611,7 +611,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse window resolution from XML!\n"
                                 );
                             }
@@ -635,7 +635,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse frame buffer resolution from XML!\n"
                                 );
                             }
@@ -667,7 +667,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 usrPtr = new SGCTUser(name);
                 ClusterManager::instance()->addUserPtr(usrPtr);
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_INFO,
+                    sgct::MessageHandler::Level::Info,
                     "ReadConfig: Adding user '%s'!\n", name.c_str()
                 );
             }
@@ -699,7 +699,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse user position from XML!\n"
                         );
                     }
@@ -723,7 +723,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse device orientation in XML!\n"
                         );
                     }
@@ -773,7 +773,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse user matrix in XML!\n"
                         );
                     }
@@ -787,7 +787,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse user tracking data from XML!\n"
                         );
                     }
@@ -916,7 +916,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse device offset in XML!\n"
                                 );
                             }
@@ -949,7 +949,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse device orientation in XML!\n"
                                 );
                             }
@@ -1007,7 +1007,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::NOTIFY_ERROR,
+                                    sgct::MessageHandler::Level::Error,
                                     "ReadConfig: Failed to parse device matrix in XML!\n"
                                 );
                             }
@@ -1037,7 +1037,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse tracker offset in XML!\n"
                         );
                     }
@@ -1070,7 +1070,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse tracker orientation quaternion in XML!\n"
                         );
                     }
@@ -1087,7 +1087,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse tracker scale in XML!\n"
                         );
                     }
@@ -1141,7 +1141,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_ERROR,
+                            sgct::MessageHandler::Level::Error,
                             "ReadConfig: Failed to parse tracker matrix in XML!\n"
                         );
                     }

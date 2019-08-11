@@ -25,7 +25,7 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsig
     //must be four or higher
     if (mResolution < 4) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Warning: Dome geometry resolution must be higher than 4.\n"
         );
         mResolution = 4;
@@ -87,16 +87,10 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsig
     // if error occured
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error!\n"
         );
         void cleanup();
-    }
-
-    //free data
-    if(mVerts != nullptr) {
-        delete[] mVerts;
-        mVerts = nullptr;
     }
 }
 
@@ -177,14 +171,14 @@ void SGCTDomeGrid::createVBO() {
         glBindVertexArray(mVAO);
         glEnableVertexAttribArray(0);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "SGCTDomeGrid: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTDomeGrid: Generating VBO: %d\n", mVBO
     );
 

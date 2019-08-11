@@ -235,7 +235,7 @@ void SharedData::encode() {
         else {
             SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "SharedData: Failed to compress data (error %d).\n", err
             );
             return;

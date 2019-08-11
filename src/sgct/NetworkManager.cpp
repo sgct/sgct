@@ -78,7 +78,7 @@ NetworkManager::NetworkManager(NetworkMode nm) {
     mCompressionLevel = Z_BEST_SPEED;
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Initiating network API...\n"
     );
     try {
@@ -89,7 +89,7 @@ NetworkManager::NetworkManager(NetworkMode nm) {
     }
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Getting host info...\n"
     );
     try {
@@ -111,13 +111,13 @@ NetworkManager::NetworkManager(NetworkMode nm) {
 
     if (mIsServer) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_INFO,
+            sgct::MessageHandler::Level::Info,
             "NetworkManager: This computer is the network server.\n"
         );
     }
     else {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_INFO,
+            sgct::MessageHandler::Level::Info,
             "NetworkManager: This computer is the network client.\n"
         );
     }
@@ -136,7 +136,7 @@ bool NetworkManager::init() {
     else {
         // error
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "NetworkManager: No address information for this node availible!\n"
         );
         return false;
@@ -149,7 +149,7 @@ bool NetworkManager::init() {
         }
         else {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "NetworkManager: No address information for master/host availible!\n"
             );
             return false;
@@ -178,7 +178,7 @@ bool NetworkManager::init() {
                 port == cm.getExternalControlPort())
             {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "NetworkManager: Port %s is already used by connection %u!\n",
                     cm.getThisNodePtr()->getSyncPort().c_str(),
                     i
@@ -203,7 +203,7 @@ bool NetworkManager::init() {
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "NetworkManager: Failed to add network connection to %s!\n",
                     cm.getMasterAddress().c_str()
                 );
@@ -249,9 +249,11 @@ bool NetworkManager::init() {
                     remote_address
                 );
                 if (!addSyncPort) {
-                    sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
                         "NetworkManager: Failed to add network connection to %s!\n",
-                        cm.getNodePtr(i)->getAddress().c_str());
+                        cm.getNodePtr(i)->getAddress().c_str()
+                    );
                     return false;
                 }
                 else {
@@ -319,7 +321,7 @@ bool NetworkManager::init() {
     }
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Cluster sync is set to %s\n",
         cm.getFirmFrameLockSyncStatus() ? "firm/strict" : "loose"
     );
@@ -413,7 +415,7 @@ bool NetworkManager::isSyncComplete() {
 
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTNetworkManager::isSyncComplete: counter %u of %u\n",
         counter, getSyncConnectionsCount()
     );
@@ -536,7 +538,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
                 }
 
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "NetworkManager: Failed to compress data! Error: %s\n",
                     errStr.c_str()
                 );
@@ -590,7 +592,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
     }
     else {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "NetworkManager: Failed to allocate data for transfer (bytes %d)!\n",
             length
         );
@@ -668,7 +670,7 @@ std::vector<std::string> NetworkManager::getLocalAddresses() {
 
 void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Updating status for connection %d\n",
         connection->getId()
     );
@@ -700,17 +702,17 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     }
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_INFO,
+        sgct::MessageHandler::Level::Info,
         "NetworkManager: Number of active connections %u of %u\n",
         numberOfConnectionsCounter, totalNumberOfConnections
     );
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Number of connected sync nodes %u of %u\n",
         numberOfConnectedSyncNodesCounter, totalNumberOfSyncConnections
     );
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "NetworkManager: Number of connected data transfer nodes %u of %u\n",
         numberOfConnectedDataTransferNodesCounter,totalNumberOfTransferConnections
     );
@@ -847,7 +849,7 @@ void NetworkManager::close() {
     //No cleanup needed
 #endif
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_INFO,
+        sgct::MessageHandler::Level::Info,
         "NetworkManager: Network API closed!\n"
     );
 }
@@ -857,7 +859,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
 {
     if (port.empty()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_INFO,
+            sgct::MessageHandler::Level::Info,
             "NetworkManager: No port set for %s!\n",
             SGCTNetwork::getTypeStr(connectionType).c_str()
         );
@@ -866,7 +868,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
 
     if (address.empty()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "NetworkManager: Error: No address set for %s!\n",
             SGCTNetwork::getTypeStr(connectionType).c_str()
         );
@@ -877,7 +879,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
 
     try {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "NetworkManager: Initiating network connection %d at port %s.\n",
             mNetworkConnections.size(), port.c_str()
         );
@@ -905,7 +907,7 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
     }
     catch (const char* err) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "NetworkManager: Network error: %s\n",
             err
         );
@@ -966,7 +968,7 @@ void sgct_core::NetworkManager::getHostInfo() {
     int result = getaddrinfo(tmpStr, "http", &hints, &info);
     if (result != 0) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "NetworkManager: Failed to get address info (error %d)!\n",
             SGCTNetwork::getLastError()
         );
@@ -1038,7 +1040,7 @@ void NetworkManager::retrieveNodeId() {
         if ( matchAddress(ClusterManager::instance()->getNodePtr(i)->getAddress())) {
             ClusterManager::instance()->setThisNodeId(static_cast<int>(i));
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::Level::Debug,
                 "NetworkManager: Running in cluster mode as node %d\n",
                 ClusterManager::instance()->getThisNodeId()
             );

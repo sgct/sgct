@@ -119,7 +119,7 @@ namespace sgct {
 
 SGCTTrackingManager::~SGCTTrackingManager() {
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Disconnecting VRPN...\n"
     );
 
@@ -170,7 +170,7 @@ SGCTTrackingManager::~SGCTTrackingManager() {
     mTrackers.clear();
     gTrackers.clear();
 
-    MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG, "Done.\n");
+    MessageHandler::instance()->print(MessageHandler::Level::Debug, "Done.\n");
 }
 
 
@@ -227,13 +227,13 @@ void SGCTTrackingManager::addTracker(std::string name) {
         gTrackers.push_back(tmpVRPNTracker);
 
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Tracking: Tracker '%s' added succesfully.\n", name.c_str()
         );
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Tracking: Tracker '%s' already exists!\n", name.c_str()
         );
     }
@@ -268,7 +268,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(const char* address, int id) 
 
         if (retVal.second && ptr.mSensorDevice == nullptr) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "Tracking: Connecting to sensor '%s'...\n", address
             );
             ptr.mSensorDevice = new vrpn_Tracker_Remote(address);
@@ -281,7 +281,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(const char* address, int id) 
             }
             else {
                 MessageHandler::instance()->print(
-                    MessageHandler::NOTIFY_ERROR,
+                    MessageHandler::Level::Error,
                     "Tracking: Failed to connect to sensor '%s' on device %s!\n",
                     address, devicePtr->getName().c_str()
                 );
@@ -290,7 +290,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(const char* address, int id) 
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Tracking: Failed to connect to sensor '%s'!\n",
             address
         );
@@ -309,7 +309,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(const char* address,
 
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Tracking: Connecting to buttons '%s' on device %s...\n",
             address, devicePtr->getName().c_str()
         );
@@ -323,7 +323,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(const char* address,
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Tracking: Failed to connect to buttons '%s' on device %s!\n",
                 address, devicePtr->getName().c_str()
             );
@@ -331,7 +331,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(const char* address,
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Tracking: Failed to connect to buttons '%s'!\n",
             address
         );
@@ -349,7 +349,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(const char* address, size_t 
 
     if (ptr.mAnalogDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Tracking: Connecting to analogs '%s' on device %s...\n",
                 address, devicePtr->getName().c_str()
         );
@@ -362,7 +362,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(const char* address, size_t 
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Tracking: Failed to connect to analogs '%s' on device %s!\n",
                 address, devicePtr->getName().c_str()
             );
@@ -370,7 +370,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(const char* address, size_t 
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Tracking: Failed to connect to analogs '%s'!\n",
             address
         );
@@ -400,7 +400,7 @@ void SGCTTrackingManager::setHeadTracker(const char* trackerName, const char* de
 
     if (mHead == nullptr && strlen(trackerName) > 0 && strlen(deviceName) > 0) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Tracking: Failed to set head tracker to %s@%s!\n",
             deviceName, trackerName
         );
@@ -423,7 +423,7 @@ SGCTTracker* SGCTTrackingManager::getTrackerPtr(const char* name) {
         }
     }
 
-    //MessageHandler::instance()->print(MessageHandler::NOTIFY_ERROR, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
+    //MessageHandler::instance()->print(MessageHandler::Level::Error, "SGCTTrackingManager: Tracker '%s' not found!\n", name);
 
     //if not found
     return nullptr;

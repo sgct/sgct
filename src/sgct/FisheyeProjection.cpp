@@ -572,7 +572,7 @@ void FisheyeProjection::initShaders() {
             );
             if (!depthCorrFrag) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
@@ -583,7 +583,7 @@ void FisheyeProjection::initShaders() {
             );
             if (!depthCorrVert) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -739,7 +739,7 @@ void FisheyeProjection::initShaders() {
             );
             if (!depthCorrFrag) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
@@ -750,7 +750,7 @@ void FisheyeProjection::initShaders() {
             );
             if (!depthCorrVert) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -858,7 +858,7 @@ void FisheyeProjection::initShaders() {
     );
     if (!fisheyeVertex) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load fisheye vertex shader:\n%s\n",
             fisheyeVertexShader.c_str()
         );
@@ -870,7 +870,7 @@ void FisheyeProjection::initShaders() {
     );
     if (!fisheyeFragment) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load fisheye fragment shader\n%s\n",
             fisheyeFragmentShader.c_str()
         );

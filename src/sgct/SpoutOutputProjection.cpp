@@ -451,7 +451,7 @@ void SpoutOutputProjection::initShaders() {
             );
             if (!fragShader) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
@@ -462,7 +462,7 @@ void SpoutOutputProjection::initShaders() {
             );
             if (!vertShader) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -540,7 +540,7 @@ void SpoutOutputProjection::initShaders() {
             );
             if (!fragShader) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction vertex shader\n"
                 );
             }
@@ -551,7 +551,7 @@ void SpoutOutputProjection::initShaders() {
             );
             if (!vertShader) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Failed to load fisheye depth correction fragment shader\n"
                 );
             }
@@ -645,7 +645,7 @@ void SpoutOutputProjection::initShaders() {
     );
     if (!vertShader) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load fisheye vertex shader:\n%s\n",
             fisheyeVertexShader.c_str()
         );
@@ -657,7 +657,7 @@ void SpoutOutputProjection::initShaders() {
     );
     if (!fragShader) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load fisheye fragment shader\n%s\n",
             fisheyeFragmentShader.c_str()
         );
@@ -710,10 +710,16 @@ void SpoutOutputProjection::initFBO() {
     mSpoutFBO_Ptr->createFBO(spoutMappingWidth, spoutMappingHeight, 1);
 
     if (mSpoutFBO_Ptr->checkForErrors()) {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_DEBUG, "Spout FBO created.\n");
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Debug,
+            "Spout FBO created.\n"
+        );
     }
     else {
-        sgct::MessageHandler::instance()->print(sgct::MessageHandler::NOTIFY_ERROR, "Spout FBO created with errors!\n");
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "Spout FBO created with errors!\n"
+        );
     }
 
     OffScreenBuffer::unBind();

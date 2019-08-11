@@ -101,7 +101,7 @@ SGCTSphere::SGCTSphere(float radius, unsigned int segments) {
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "SGCT Utils: Sphere creation error!\n"
         );
         void cleanup();
@@ -191,14 +191,14 @@ void SGCTSphere::createVBO() {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "SGCTSphere: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(2, &mVBO[0]);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTSphere: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]
     );
 

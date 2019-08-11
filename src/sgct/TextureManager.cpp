@@ -119,7 +119,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and "
             "min values for your hardware is %.1f and 1.0.\n",
             maximumAnistropy
@@ -214,7 +214,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         }
 
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "TextureManager: Texture created from '%s' [id=%d]\n",
             filename.c_str(), texID
         );
@@ -240,7 +240,7 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
 {
     if (!imgPtr) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "TextureManager: Cannot create texture '%s' from invalid image!\n",
             name.c_str()
         );
@@ -274,7 +274,7 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
         }
 
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "TextureManager: Texture created from image [id=%d]\n", texID
         );
     }
@@ -319,7 +319,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
         }
 
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "TextureManager: Unmanaged texture created from '%s' [id=%d]\n",
             filename.c_str(), tmpTexID
         );
@@ -353,7 +353,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr
 
         if (mOverWriteMode) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_DEBUG,
+                MessageHandler::Level::Debug,
                 "TextureManager: Reloading texture '%s'! [id=%d]\n",
                 name.c_str(), (*texPtr)
             );
@@ -366,7 +366,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_WARNING,
+                MessageHandler::Level::Warning,
                 "TextureManager: '%s' exists already! [id=%d]\n",
                 name.c_str(), (*texPtr)
             );
@@ -416,7 +416,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
 
     if (bpc > 2) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "TextureManager: %d-bit per channel is not supported!\n",
             bpc * 8
         );
@@ -425,7 +425,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
     else if (bpc == 2) {
         //turn of compression if 16-bit per color
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "TextureManager: Compression is not supported for bit depths higher than "
             "16-bit per channel!\n"
         );
@@ -504,7 +504,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
     }
 
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
         "Type: %#04x, Format: %#04x\n",
         imgPtr->getWidth(),

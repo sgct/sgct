@@ -111,7 +111,7 @@ void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
 
     if (parent == nullptr) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "SGCTTrackingDevice: Error, can't get handle to tracker for device '%s'!\n",
             mName.c_str()
         );

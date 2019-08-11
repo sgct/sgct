@@ -27,7 +27,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
     // must be four or higher
     if (mAzimuthSteps < 4) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Warning: Dome geometry azimuth steps must be exceed 4.\n"
         );
         mAzimuthSteps = 4;
@@ -36,7 +36,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
     // must be four or higher
     if (mElevationSteps < 4)  {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Warning: Dome geometry elevation steps must be exceed 4.\n"
         );
         mElevationSteps = 4;
@@ -142,7 +142,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error!\n"
         );
         cleanup();
@@ -255,14 +255,14 @@ void SGCTDome::createVBO() {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "SGCTDome: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(2, &mVBO[0]);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTDome: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]
     );
 

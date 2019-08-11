@@ -52,7 +52,7 @@ void Font::init(FT_Library lib, FT_Face face, std::string name, unsigned int hei
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         mListId = glGenLists(1);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Font: Generating display list: %u\n",
             mListId
         );
@@ -80,12 +80,12 @@ void Font::init(FT_Library lib, FT_Face face, std::string name, unsigned int hei
         glGenBuffers(1, &mVBO);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Font: Generating VAO: %u\n",
             mVAO
         );
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Font: Generating VBO: %u\n",
             mVBO
         );
@@ -237,7 +237,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
     if (char_index == 0) {
         std::string mName;                // Holds the font name
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Font %s: Missing face for char %u!\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
@@ -245,7 +245,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
 
     if (FT_Load_Glyph(mFace, char_index, FT_LOAD_FORCE_AUTOHINT)) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Font %s: FT_Load_Glyph failed for char %u!\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );
@@ -260,7 +260,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
     GlyphData gd;
     if (!getPixelData(mFace, width, height, &pixels, &gd)) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Font %s: FT_Get_Glyph failed for char %u.\n",
             mName.c_str(), static_cast<unsigned int>(c)
         );

@@ -23,14 +23,14 @@ public:
     /*!
         Different notify levels for messages
     */
-    enum NotifyLevel {
-        NOTIFY_ERROR = 0,
-        NOTIFY_IMPORTANT,
-        NOTIFY_VERSION_INFO,
-        NOTIFY_INFO,
-        NOTIFY_WARNING,
-        NOTIFY_DEBUG,
-        NOTIFY_ALL
+    enum class Level {
+        Error = 0,
+        Important,
+        VersionInfo,
+        Info,
+        Warning,
+        Debug,
+        NotifyAll
     };
     
     /*! Get the MessageHandler instance */
@@ -41,14 +41,14 @@ public:
 
     void decode(const char* receivedData, int receivedlength, int clientIndex);
     void print(const char* fmt, ...);
-    void print(NotifyLevel nl, const char* fmt, ...);
-    void printDebug(NotifyLevel nl, const char* fmt, ...);
-    void printIndent(NotifyLevel nl, unsigned int indentation, const char* fmt, ...);
+    void print(Level nl, const char* fmt, ...);
+    void printDebug(Level nl, const char* fmt, ...);
+    void printIndent(Level nl, unsigned int indentation, const char* fmt, ...);
     void sendMessageToServer(const char* fmt);
     void setSendFeedbackToServer(bool state);
     void clearBuffer();
-    void setNotifyLevel(NotifyLevel nl);
-    NotifyLevel getNotifyLevel();
+    void setNotifyLevel(Level nl);
+    Level getNotifyLevel();
     void setShowTime(bool state);
     bool getShowTime();
     void setLogToConsole(bool state);
@@ -82,7 +82,7 @@ private:
     std::vector<char> mRecBuffer;
     unsigned char* headerSpace;
 
-    std::atomic<int> mLevel;
+    std::atomic<Level> mLevel;
     std::atomic<bool> mLocal = true;
     std::atomic<bool> mShowTime = true;
     std::atomic<bool> mLogToConsole = true;

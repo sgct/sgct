@@ -14,7 +14,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct {
 
 // Initiate the manager to NULL
-sgct::ShaderManager * sgct::ShaderManager::mInstance = NULL;
+sgct::ShaderManager * sgct::ShaderManager::mInstance = nullptr;
 
 ShaderManager* ShaderManager::instance() {
     if (mInstance == nullptr) {
@@ -61,7 +61,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to add shader program [%s]: Name already exists.\n", name.c_str()
         );
         return false;
@@ -100,7 +100,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to add shader program [%s]: Name already exists.\n", name.c_str()
         );
         return false;
@@ -158,7 +158,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to add shader program [%s]: Name already exists.\n", name.c_str()
         );
         return false;
@@ -210,7 +210,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to add shader program [%s]: Name already exists.\n", name.c_str()
         );
         return false;
@@ -274,7 +274,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to add shader program [%s]: Name already exists.\n", name.c_str()
         );
         return false;
@@ -334,7 +334,7 @@ bool ShaderManager::reloadShaderProgram(const std::string& name) {
 
     if (shaderIt == mShaderPrograms[mCurrentBin].end()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to reload shader program [%s]: Not found in current bin.\n",
             name.c_str()
         );
@@ -361,7 +361,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
 
     if (shaderIt == mShaderPrograms[mCurrentBin].end()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to remove shader program [%s]: Not found in current bin.\n",
             name.c_str()
         );
@@ -390,7 +390,7 @@ bool ShaderManager::removeShaderProgram(const std::string& name, ShaderBinIndex 
 
     if (shaderIt == mShaderPrograms[bin].end()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Unable to remove shader program [%s]: Not found in current bin.\n",
             name.c_str()
         );
@@ -413,7 +413,7 @@ bool ShaderManager::bindShaderProgram(const std::string& name) const {
 
     if (sp == NullShader) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Could not set shader program [%s] as active: Not found in manager.\n",
             name.c_str()
         );
@@ -432,7 +432,7 @@ Set a shader program to be used in the current rendering pipeline
 bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const {
     if (shaderProgram == NullShader) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Could not set shader program [Invalid Pointer] as active: Not found in manager.\n"
         );
         glUseProgram(0); //unbind to prevent errors

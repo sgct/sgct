@@ -18,7 +18,7 @@ namespace {
 
         if (!ptr->mframeBufferImagePtr->save()) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Error: Failed to save '%s'!\n",
                 ptr->mframeBufferImagePtr->getFilename()
             );
@@ -40,7 +40,7 @@ namespace sgct_core {
 
 ScreenCapture::~ScreenCapture() {
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_INFO,
+        sgct::MessageHandler::Level::Info,
         "Clearing screen capture buffers...\n"
     );
 
@@ -62,7 +62,7 @@ ScreenCapture::~ScreenCapture() {
             mMutex.lock();
             if (mSCTIPtrs[i].mframeBufferImagePtr != nullptr) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_INFO,
+                    sgct::MessageHandler::Level::Info,
                     "\tBuffer %d...\n", i
                 );
                 delete mSCTIPtrs[i].mframeBufferImagePtr;
@@ -119,7 +119,7 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
     for (unsigned int i = 0; i < mNumberOfThreads; i++) {
         if (mSCTIPtrs[i].mframeBufferImagePtr != nullptr) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_INFO,
+                sgct::MessageHandler::Level::Info,
                 "Clearing screen capture buffer %d...\n", i
             );
 
@@ -140,7 +140,7 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
     if (mUsePBO) {
         glGenBuffers(1, &mPBO);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ScreenCapture: Generating %dx%dx%d PBO: %u\n", mX, mY, mChannels, mPBO
         );
 
@@ -255,7 +255,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
         }
         else {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Error: Can't map data (0) from GPU in frame capture!\n"
             );
         }
@@ -320,7 +320,7 @@ void ScreenCapture::setUsePBO(bool state) {
     mUsePBO = state;
     
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_INFO,
+        sgct::MessageHandler::Level::Info,
         "ScreenCapture: PBO rendering %s.\n", state ? "enabled" : "disabled"
     );
 }
@@ -338,7 +338,7 @@ void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
     mWindowIndex = windowIndex;
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "Number of screen capture threads is set to %d\n", mNumberOfThreads
     );
 }
@@ -510,14 +510,14 @@ void ScreenCapture::checkImageBuffer(const CaptureSrc& CapSrc) {
 Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Error in finding availible thread for screenshot/capture!\n"
         );
         return nullptr;
     }
     else {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Starting thread for screenshot/capture [%d]\n", index
         );
     }

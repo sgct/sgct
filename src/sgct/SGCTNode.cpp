@@ -129,7 +129,7 @@ void SGCTNode::setAddress(std::string address) {
     mAddress = std::move(address);
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTNode: Setting address to %s\n",
         mAddress.c_str()
     );
@@ -142,7 +142,7 @@ void SGCTNode::setSyncPort(std::string port) {
     mSyncPort = std::move(port);
     
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTNode: Setting sync port to %s\n",
         mSyncPort.c_str()
     );
@@ -155,7 +155,7 @@ void SGCTNode::setDataTransferPort(std::string port) {
     mDataTransferPort = std::move(port);
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTNode: Setting data transfer port to %s\n",
         mDataTransferPort.c_str()
     );

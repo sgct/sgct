@@ -40,7 +40,7 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
                 tmpVec.z = fTmp[2];
 
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    sgct::MessageHandler::Level::Debug,
                     "SGCTProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
                     tmpVec.x, tmpVec.y, tmpVec.z, i % 3
                 );
@@ -54,7 +54,7 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "SGCTProjectionPlane: Failed to parse coordinates from XML!\n"
                 );
             }

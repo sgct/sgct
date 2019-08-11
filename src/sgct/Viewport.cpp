@@ -125,7 +125,7 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Viewport: Failed to parse position from XML!\n"
                 );
             }
@@ -138,7 +138,7 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Viewport: Failed to parse size from XML!\n"
                 );
             }
@@ -175,7 +175,7 @@ void Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
             std::string fullErrorMessage = "Viewport: Failed to parse " + tag
                 + " from MPCDI XML!\n";
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 fullErrorMessage.c_str()
             );
         }
@@ -183,7 +183,7 @@ void Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
     else {
         std::string msg = "Viewport: No " + tag + " provided in MPCDI XML!\n";
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             msg.c_str()
         );
     }
@@ -202,7 +202,7 @@ bool Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx el
             std::string fullErrorMessage = "Viewport: Failed to parse frustum element "
                 + std::string(frustumTag) + " from MPCDI XML!\n";
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 fullErrorMessage.c_str()
             );
         }
@@ -242,7 +242,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
         expectedResolution[idx_y] != vpResolution[idx_y])
     {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Viewport: MPCDI region expected resolution does not match portion of window.\n"
         );
     }
@@ -322,7 +322,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
             for (bool hasFoundSpecificField : frustumElements.foundElem) {
                 if (!hasFoundSpecificField) {
                     sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::NOTIFY_ERROR,
+                        sgct::MessageHandler::Level::Error,
                         "Viewport: Failed to parse mpcdi projection FOV from XML!\n"
                     );
                     return;
@@ -330,7 +330,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
             }
 
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::Level::Debug,
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
                 frustumElements.value[FrustumData::elemIdx::down],
                 frustumElements.value[FrustumData::elemIdx::left],
@@ -386,7 +386,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
                 validFOV = true;
 
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    sgct::MessageHandler::Level::Debug,
                     "Viewport: Adding planar projection FOV left=%f right=%f up=%f down=%f\n",
                     left, right, up, down
                 );
@@ -397,7 +397,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
                 float tanTop = tan(glm::radians(up));
 
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    sgct::MessageHandler::Level::Debug,
                     "Tan angles: tanLeft=%f tanRight=%f tanBottom=%f tanTop=%f\n "
                     "width=%f\n height=%f\n",
                     tanLeft, tanRight, tanBottom, tanTop, tanRight + tanLeft,
@@ -406,7 +406,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "Viewport: Failed to parse planar projection FOV from XML!\n"
                 );
             }
@@ -477,7 +477,7 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         fishProj->setTilt(tilt);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ReadConfig: Setting fisheye tilt to %f degrees.\n", tilt
         );
     }
@@ -486,7 +486,7 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     if (element->QueryFloatAttribute("diameter", &diameter) == tinyxml2::XML_NO_ERROR) {
         fishProj->setDomeDiameter(diameter);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ReadConfig: Setting fisheye diameter to %f meters.\n", diameter
         );
     }
@@ -570,7 +570,7 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
 void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
 #ifndef SGCT_HAS_SPOUT
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_WARNING,
+        sgct::MessageHandler::Level::Warning,
         "ReadConfig: Spout library not added to SGCT.\n"
     );
     return;
@@ -691,7 +691,7 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     if (element->QueryFloatAttribute("tilt", &tilt) == tinyxml2::XML_NO_ERROR) {
         sphericalMirrorProj->setTilt(tilt);
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "ReadConfig: Setting spherical mirror tilt to %f degrees.\n", tilt
         );
     }
@@ -787,7 +787,7 @@ void Viewport::setTracked(bool state) {
 
 void Viewport::loadData() {
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "Viewport: loading GPU data for '%s'\n", mName.c_str()
     );
         

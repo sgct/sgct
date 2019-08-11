@@ -51,9 +51,9 @@ MessageHandler::MessageHandler() {
     }
 
 #ifdef __SGCT_DEBUG__
-    mLevel = NOTIFY_DEBUG;
+    mLevel = Level::Debug;
 #else
-    mLevel = NOTIFY_WARNING;
+    mLevel = Level::Warning;
 #endif
 
     mRecBuffer.reserve(mMaxMessageSize);
@@ -279,7 +279,7 @@ void MessageHandler::print(const char* fmt, ...) {
 
     \param nl is the notify level of this message
 */
-void MessageHandler::print(NotifyLevel nl, const char* fmt, ...) {
+void MessageHandler::print(Level nl, const char* fmt, ...) {
     if (nl > getNotifyLevel() || fmt == nullptr) {
         // If There's No Text
         *mParseBuffer = 0;    // Do Nothing
@@ -302,7 +302,7 @@ void MessageHandler::clearBuffer() {
 Set the notify level for displaying messages\n
 This function is mutex protected/thread safe
 */
-void MessageHandler::setNotifyLevel(NotifyLevel nl) {
+void MessageHandler::setNotifyLevel(Level nl) {
     mLevel = nl;
 }
 
@@ -310,8 +310,8 @@ void MessageHandler::setNotifyLevel(NotifyLevel nl) {
 Get the notify level for displaying messages\n
 This function is mutex protected/thread safe
 */
-MessageHandler::NotifyLevel MessageHandler::getNotifyLevel() {
-    return static_cast<NotifyLevel>(mLevel.load());
+MessageHandler::Level MessageHandler::getNotifyLevel() {
+    return static_cast<Level>(mLevel.load());
 }
 
 /*!
@@ -394,7 +394,7 @@ char* MessageHandler::getMessage() {
     return &mBuffer[0];
 }
 
-void MessageHandler::printDebug(NotifyLevel nl, const char* fmt, ...) {
+void MessageHandler::printDebug(Level nl, const char* fmt, ...) {
 #ifdef __SGCT_DEBUG__
     if (nl > getNotifyLevel() || fmt == nullptr) {
         *mParseBuffer = 0;
@@ -408,7 +408,7 @@ void MessageHandler::printDebug(NotifyLevel nl, const char* fmt, ...) {
 #endif
 }
 
-void MessageHandler::printIndent(NotifyLevel nl, unsigned int indentation,
+void MessageHandler::printIndent(Level nl, unsigned int indentation,
                                  const char* fmt, ...)
 {
     if (nl > getNotifyLevel() || fmt == nullptr) {

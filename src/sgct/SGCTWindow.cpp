@@ -131,7 +131,7 @@ void SGCTWindow::close() {
     mPostFXPasses.clear();
 
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "Deleting screen capture data for window %d...\n", mId
     );
     for (int i = 0; i < 2; i++) {
@@ -144,7 +144,7 @@ void SGCTWindow::close() {
     //delete FBO stuff
     if (mFinalFBO_Ptr != nullptr && SGCTSettings::instance()->useFBO()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Releasing OpenGL buffers for window %d...\n", mId
         );
         mFinalFBO_Ptr->destroy();
@@ -162,7 +162,7 @@ void SGCTWindow::close() {
 
     if (mVBO) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Deleting VBOs for window %d...\n", mId
         );
         glDeleteBuffers(1, &mVBO);
@@ -171,7 +171,7 @@ void SGCTWindow::close() {
 
     if (mVAO) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Deleting VAOs for window %d...\n", mId
         );
         glDeleteVertexArrays(1, &mVAO);
@@ -306,7 +306,7 @@ void SGCTWindow::initContextSpecificOGL() {
 unsigned int SGCTWindow::getFrameBufferTexture(unsigned int index) {
     if (index >= NUMBER_OF_TEXTURES) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "SGCTWindow: Requested framebuffer texture index %d is out of bounds!\n",
             index
         );
@@ -392,7 +392,7 @@ void SGCTWindow::setRenderWhileHidden(bool state) {
 */
 void SGCTWindow::setFocused(bool state) {
     mFocused = state;
-    //MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO, "SGCTWindow %d: Focused=%d.\n", mId, mFocused);
+    //MessageHandler::instance()->print(MessageHandler::Info, "SGCTWindow %d: Focused=%d.\n", mId, mFocused);
 }
 
 /*!
@@ -509,7 +509,8 @@ void SGCTWindow::updateResolutions() {
         for (std::size_t j = 0; j < getNumberOfViewports(); ++j) {
             sgct_core::Viewport* vpPtr = getViewport(j);
             vpPtr->updateFovToMatchAspectRatio(mAspectRatio, newAspectRatio);
-            MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::instance()->print(
+                MessageHandler::Level::Debug,
                 "SGCTWindow: update aspect ratio in viewport# %d (%f --> %f)...\n",
                 j,
                 mAspectRatio,
@@ -523,7 +524,8 @@ void SGCTWindow::updateResolutions() {
             glfwSetWindowSize(mWindowHandle, mWindowRes[0], mWindowRes[1]);
         }
 
-        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "SGCTWindow: Resolution changed to %dx%d in window %d...\n",
             mWindowRes[0],
             mWindowRes[1],
@@ -536,7 +538,8 @@ void SGCTWindow::updateResolutions() {
         mFramebufferResolution[0] = mPendingFramebufferRes[0];
         mFramebufferResolution[1] = mPendingFramebufferRes[1];
 
-        MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::instance()->print(
+            MessageHandler::Level::Debug,
             "SGCTWindow: Framebuffer resolution changed to %dx%d for window %d...\n",
             mFramebufferResolution[0],
             mFramebufferResolution[1],
@@ -554,7 +557,8 @@ void SGCTWindow::setHorizFieldOfView(float hFovDeg) {
         sgct_core::Viewport* vpPtr = getViewport(j);
         vpPtr->setHorizontalFieldOfView(hFovDeg, mAspectRatio);
     }
-    MessageHandler::instance()->print(MessageHandler::NOTIFY_DEBUG,
+    MessageHandler::instance()->print(
+        MessageHandler::Level::Debug,
         "SGCTWindow: Horizontal FOV changed to %f deg. in %d viewports for window %d "
         "using aspect ratio %f...\n",
         hFovDeg,
@@ -787,7 +791,7 @@ void SGCTWindow::setBarrier(bool state) {
 
     if (mUseSwapGroups && state != mBarrier) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "SGCTWindow: Enabling Nvidia swap barrier...\n"
         );
 
@@ -831,7 +835,7 @@ void SGCTWindow::setUseFXAA(bool state) {
         mUsePostFX = !mPostFXPasses.empty();
     }
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "FXAA status: %s for window %d\n", state ? "enabled" : "disabled", mId
     );
 }
@@ -847,7 +851,7 @@ void SGCTWindow::setUseQuadbuffer(bool state) {
     if (mUseQuadBuffer) {
         glfwWindowHint(GLFW_STEREO, GL_TRUE);
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Window %d: Enabling quadbuffered rendering.\n", mId
         );
     }
@@ -860,7 +864,7 @@ void SGCTWindow::setCallDraw2DFunction(bool state) {
     mCallDraw2DFunction = state;
     if (!mCallDraw2DFunction) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Window %d: Draw 2D function disabled for this window.\n", mId
         );
     }
@@ -873,7 +877,7 @@ void SGCTWindow::setCallDraw3DFunction(bool state) {
     mCallDraw3DFunction = state;
     if (!mCallDraw3DFunction) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Window %d: Draw (3D) function disabled for this window.\n", mId
         );
     }
@@ -886,7 +890,7 @@ void SGCTWindow::setCopyPreviousWindowToCurrentWindow(bool state) {
     mCopyPreviousWindowToCurrentWindow = state;
     if (mCopyPreviousWindowToCurrentWindow) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "Window %d: CopyPreviousWindowToCurrentWindow enabled for this window.\n", mId
         );
     }
@@ -936,7 +940,8 @@ bool SGCTWindow::openWindow(GLFWwindow* share, size_t lastWindowIdx) {
         else {
             mMonitor = glfwGetPrimaryMonitor();
             if (mMonitorIndex >= count) {
-                MessageHandler::instance()->print(MessageHandler::NOTIFY_INFO,
+                MessageHandler::instance()->print(
+                    MessageHandler::Level::Info,
                     "SGCTWindow(%d): Invalid monitor index (%d). This computer has %d monitors.\n",
                     mId, mMonitorIndex, count);
             }
@@ -1042,7 +1047,7 @@ void SGCTWindow::initNvidiaSwapGroups() {
 #ifdef __WIN32__ //Windows uses wglew.h
     if (glfwExtensionSupported("WGL_NV_swap_group")) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "SGCTWindow: Joining Nvidia swap group.\n"
         );
 
@@ -1052,7 +1057,7 @@ void SGCTWindow::initNvidiaSwapGroups() {
         unsigned int maxGroup = 0;
         wglQueryMaxSwapGroupsNV(hDC, &maxGroup, &maxBarrier);
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "WGL_NV_swap_group extension is supported.\n\tMax number of groups: %d\n\t"
             "Max number of barriers: %d\n",
             maxGroup, maxBarrier
@@ -1070,14 +1075,14 @@ void SGCTWindow::initNvidiaSwapGroups() {
         */
         if (wglJoinSwapGroupNV(hDC, 1)) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "SGCTWindow: Joining swapgroup 1 [ok].\n"
             );
             mUseSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "SGCTWindow: Joining swapgroup 1 [failed].\n"
             );
             mUseSwapGroups = false;
@@ -1091,7 +1096,7 @@ void SGCTWindow::initNvidiaSwapGroups() {
 
     if (glfwExtensionSupported("GLX_NV_swap_group")) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "SGCTWindow: Joining Nvidia swap group.\n"
         );
 
@@ -1102,7 +1107,7 @@ void SGCTWindow::initNvidiaSwapGroups() {
         unsigned int maxGroup = 0;
         glXQueryMaxSwapGroupsNV(disp, hDC, &maxGroup, &maxBarrier);
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_INFO,
+            MessageHandler::Level::Info,
             "GLX_NV_swap_group extension is supported.\n\tMax number of groups: %d\n\t"
             "Max number of barriers: %d\n",
             maxGroup, maxBarrier
@@ -1110,14 +1115,14 @@ void SGCTWindow::initNvidiaSwapGroups() {
 
         if (glXJoinSwapGroupNV(disp, hDC, 1)) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "SGCTWindow: Joining swapgroup 1 [ok].\n"
             );
             mUseSwapGroups = true;
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "SGCTWindow: Joining swapgroup 1 [failed].\n"
             );
             mUseSwapGroups = false;
@@ -1246,7 +1251,7 @@ void SGCTWindow::initScreenCapture() {
 
         if (!Engine::checkForOGLErrors()) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "SGCTWindow %d: OpenGL error occured in screen capture %d init!\n", mId, i
             );
         }
@@ -1290,14 +1295,14 @@ void SGCTWindow::resetSwapGroupFrameNumber() {
         {
             mSwapGroupMaster = true;
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "Resetting frame counter. This computer is the master.\n"
             );
         }
         else {
             mSwapGroupMaster = false;
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_INFO,
+                MessageHandler::Level::Info,
                 "Resetting frame counter failed. This computer is the slave.\n"
             );
         }
@@ -1324,7 +1329,7 @@ void SGCTWindow::createTextures() {
     glGetIntegerv(GL_MAX_TEXTURE_SIZE, &maxTexSize);
     if (mFramebufferResolution[0] > maxTexSize || mFramebufferResolution[1] > maxTexSize) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "SGCTWindow %d: Requested framebuffer is to big (Max: %dx%d)!\n",
             mId, maxTexSize, maxTexSize
         );
@@ -1432,14 +1437,14 @@ void SGCTWindow::createTextures() {
 
     if (Engine::checkForOGLErrors()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "Texture targets initiated successfully for window %d!\n",
             mId
         );
     }
     else {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Texture targets failed to initialize for window %d!\n",
             mId
         );
@@ -1487,7 +1492,7 @@ void SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize,
         }
         
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "%dx%d depth texture (id: %d, type %d) generated for window %d!\n",
             xSize, ySize, mFrameBufferTextures[id], id, mId
         );
@@ -1519,7 +1524,7 @@ void SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize,
         }
         
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "%dx%d normal texture (id: %d, type %d) generated for window %d!\n",
             xSize, ySize, mFrameBufferTextures[id], id, mId
         );
@@ -1551,7 +1556,7 @@ void SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize,
         }
         
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "%dx%d position texture (id: %d, type %d) generated for window %d!\n",
             xSize, ySize, mFrameBufferTextures[id], id, mId
         );
@@ -1577,7 +1582,7 @@ void SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize,
         }
         
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "%dx%d BGRA texture (id: %d, type %d) generated for window %d!\n",
             xSize, ySize, mFrameBufferTextures[id], id, mId
         );
@@ -1611,7 +1616,7 @@ void SGCTWindow::createFBOs() {
             mStereoMode = No_Stereo;
         }
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_WARNING,
+            MessageHandler::Level::Warning,
             "Warning! FBO rendering is not supported or enabled!\nPostFX, fisheye and "
             "some stereo modes are disabled.\n"
         );
@@ -1626,14 +1631,14 @@ void SGCTWindow::createFBOs() {
             
         if (mFinalFBO_Ptr->checkForErrors()) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_DEBUG,
+                MessageHandler::Level::Debug,
                 "Window %d: FBO initiated successfully. Number of samples: %d\n",
                 mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1
             );
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Window %d: FBO initiated with errors! Number of samples: %d\n",
                 mId, mFinalFBO_Ptr->isMultiSampled() ? mNumberOfAASamples : 1
             );
@@ -1648,14 +1653,14 @@ void SGCTWindow::createVBOs() {
     if (!Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_DEBUG,
+            MessageHandler::Level::Debug,
             "SGCTWindow: Generating VAO: %d\n", mVAO
         );
     }
 
     glGenBuffers(1, &mVBO);
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "SGCTWindow: Generating VBO: %d\n", mVBO
     );
 
@@ -1769,7 +1774,7 @@ void SGCTWindow::loadShaders() {
         );
         if (!vertShader) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Failed to load stereo vertex shader\n"
             );
         }
@@ -1780,7 +1785,7 @@ void SGCTWindow::loadShaders() {
         );
         if (!fragShader) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Failed to load stereo fragment shader\n"
             );
         }
@@ -1799,7 +1804,7 @@ void SGCTWindow::loadShaders() {
 
         if (!Engine::checkForOGLErrors()) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "SGCTWindow %d: OpenGL error occured while loading shaders!\n", mId
             );
         }
@@ -1888,13 +1893,13 @@ void SGCTWindow::resizeFBOs() {
 
         if (mFinalFBO_Ptr->checkForErrors()) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_DEBUG,
+                MessageHandler::Level::Debug,
                 "Window %d: FBOs resized successfully.\n", mId
             );
         }
         else {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Window %d: FBOs resized with GL errors!\n", mId
             );
         }
@@ -1912,7 +1917,7 @@ void SGCTWindow::addViewport(float left, float right, float bottom, float top) {
     sgct_core::Viewport* vpPtr = new sgct_core::Viewport(left, right, bottom, top);
     mViewports.push_back(vpPtr);
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "Adding viewport (total %d)\n", mViewports.size()
     );
 }
@@ -1920,7 +1925,7 @@ void SGCTWindow::addViewport(float left, float right, float bottom, float top) {
 void SGCTWindow::addViewport(sgct_core::Viewport* vpPtr) {
     mViewports.push_back(vpPtr);
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "Adding viewport (total %d)\n", mViewports.size()
     );
 }
@@ -1943,7 +1948,7 @@ void SGCTWindow::deleteAllViewports() {
 sgct_core::BaseViewport* SGCTWindow::getCurrentViewport() const {
     if (mCurrentViewport == nullptr) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Window %d error: Current viewport is nullptr!\n", mId
         );
     }
@@ -2002,7 +2007,7 @@ void SGCTWindow::setStereoMode(StereoMode sm) {
     mStereoMode = sm;
 
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_DEBUG,
+        MessageHandler::Level::Debug,
         "SGCTWindow: Setting stereo mode to '%s' for window %d.\n",
         getStereoModeStr().c_str(), mId
     );
@@ -2269,7 +2274,7 @@ float SGCTWindow::getHorizFieldOfViewDegrees() {
     return mHorizontalFovDegrees;
 }
 
-PostFX& SGCTWindow::getPostFX(std::size_t index) {
+PostFX& SGCTWindow::getPostFX(size_t index) {
     return mPostFXPasses[index];
 }
 

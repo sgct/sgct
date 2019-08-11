@@ -175,7 +175,7 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,\
+            sgct::MessageHandler::Level::Error,\
             "SGCT Utils: Box creation error!\n"
         );
         void cleanup();
@@ -253,14 +253,14 @@ void SGCTBox::createVBO() {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "SGCTBox: Generating VAO: %d\n", mVAO
         );
     }
     
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTBox: Generating VBO: %d\n", mVBO
     );
 

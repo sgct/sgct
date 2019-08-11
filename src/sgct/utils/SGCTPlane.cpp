@@ -29,7 +29,7 @@ SGCTPlane::SGCTPlane(float width, float height) {
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "SGCT Utils: Plane creation error!\n"
         );
         void cleanup();
@@ -107,7 +107,7 @@ void SGCTPlane::createVBO() {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "SGCTPlane: Generating VAO: %d\n",
             mVAO
         );
@@ -115,7 +115,7 @@ void SGCTPlane::createVBO() {
     
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::NOTIFY_DEBUG,
+        sgct::MessageHandler::Level::Debug,
         "SGCTPlane: Generating VBO: %d\n",
         mVBO
     );

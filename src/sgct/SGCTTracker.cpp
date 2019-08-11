@@ -13,9 +13,7 @@ extern GLFWmutex gTrackingMutex;
 
 namespace sgct {
 
-SGCTTracker::SGCTTracker(std::string name)
-    : mName(std::move(name))
-{}
+SGCTTracker::SGCTTracker(std::string name) : mName(std::move(name)) {}
 
 SGCTTracker::~SGCTTracker() {
     for (size_t i = 0; i < mTrackingDevices.size(); i++) {
@@ -38,7 +36,7 @@ void SGCTTracker::addDevice(std::string name, size_t index) {
     mTrackingDevices.push_back(td);
 
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "%s: Adding device '%s'...\n",
         mName.c_str(),
         name.c_str()

@@ -20,7 +20,7 @@ createAndLink() function is called. Make sure the shader sources are
 set before calling it.
 @param    name    Name of the shader program. Must be unique
 */
-ShaderProgram::ShaderProgram(std::string name )
+ShaderProgram::ShaderProgram(std::string name)
     : mName(std::move(name))
 {}
 
@@ -155,7 +155,7 @@ shader sources can be made.
 bool ShaderProgram::createAndLinkProgram() {
     if (mShaders.empty()) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "ShaderProgram: No shaders has been added to program '%s'!\n", mName.c_str()
         );
         return false;
@@ -189,7 +189,7 @@ Reloads a shader by deleting, recompiling and re-linking.
 */
 bool ShaderProgram::reload() {
     MessageHandler::instance()->print(
-        MessageHandler::NOTIFY_INFO,
+        MessageHandler::Level::Info,
         "ShaderProgram: Reloading program '%s'\n", mName.c_str()
     );
     
@@ -206,7 +206,7 @@ bool ShaderProgram::reload() {
 
         if (!success) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "ShaderProgram: Failed to load '%s'!\n", mShaders[i].mShaderSrc.c_str()
             );
             return false;
@@ -227,7 +227,7 @@ bool ShaderProgram::createProgram() {
         // if it has been linked already it can't be reused
         if (mIsLinked) {
             MessageHandler::instance()->print(
-                MessageHandler::NOTIFY_ERROR,
+                MessageHandler::Level::Error,
                 "Could not create shader program [%s]: Already linked to shaders.\n",
                 mName.c_str()
             );
@@ -242,7 +242,7 @@ bool ShaderProgram::createProgram() {
 
     if (mProgramId == 0) {
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Could not create shader program [%s]: Unknown error.\n", mName.c_str()
         );
         return false;
@@ -267,7 +267,7 @@ bool ShaderProgram::checkLinkStatus() const {
         glGetProgramInfoLog(mProgramId, logLength, nullptr, log);
 
         MessageHandler::instance()->print(
-            MessageHandler::NOTIFY_ERROR,
+            MessageHandler::Level::Error,
             "Shader program[%s] linking error: %s\n", mName.c_str(), log
         );
 

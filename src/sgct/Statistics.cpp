@@ -167,17 +167,17 @@ void Statistics::initVBO(bool fixedPipeline) {
             glGenVertexArrays(1, &mStaticVAO);
 
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::Level::Debug,
                 "Statistics: Generating VAOs:\n"
             );
             for (unsigned int i = 0; i < 2; i++) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    sgct::MessageHandler::Level::Debug,
                     "\t%d\n", mDynamicVAO[i]
                 );
             }
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::Level::Debug,
                 "\t%d\n\n", mStaticVAO
             );
         }
@@ -186,17 +186,17 @@ void Statistics::initVBO(bool fixedPipeline) {
         glGenBuffers(1, &mStaticVBO);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "Statistics: Generating VBOs:\n"
         );
         for (unsigned int i = 0; i < 2; i++) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_DEBUG,
+                sgct::MessageHandler::Level::Debug,
                 "\t%d\n", mDynamicVBO[i]
             );
         }
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_DEBUG,
+            sgct::MessageHandler::Level::Debug,
             "\t%d\n\n", mStaticVBO
         );
     
@@ -263,7 +263,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         );
         if (!vert) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load statistics vertex shader\n"
             );
         }
@@ -274,7 +274,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         );
         if (!frag) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load statistics fragment shader\n"
             );
         }
@@ -313,7 +313,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         );
         if (!vert) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load statistics vertex shader\n"
             );
         }
@@ -324,7 +324,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         );
         if (!frag) {
             sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::NOTIFY_ERROR,
+                sgct::MessageHandler::Level::Error,
                 "Failed to load statistics fragment shader\n"
             );
         }

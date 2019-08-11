@@ -87,14 +87,14 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
             );
             if (sgct::Engine::checkForOGLErrors()) {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_DEBUG,
+                    sgct::MessageHandler::Level::Debug,
                     "NonLinearProjection: %dx%d cube face texture (id: %d) generated!\n",
                     mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
                 );
             }
             else {
                 sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::NOTIFY_ERROR,
+                    sgct::MessageHandler::Level::Error,
                     "NonLinearProjection: Error occured while generating %dx%d cube face "
                     "texture (id: %d)!\n",
                     mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
@@ -191,7 +191,7 @@ void SphericalMirrorProjection::initShaders() {
     if (mStereo || mPreferedMonoFrustumMode != Frustum::MonoEye) {
         // if any frustum mode other than Mono (or stereo)
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_WARNING,
+            sgct::MessageHandler::Level::Warning,
             "Stereo rendering not supported in spherical projection!\n"
         );
     }
@@ -230,7 +230,7 @@ void SphericalMirrorProjection::initShaders() {
     );
     if (!vertShader) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load spherical mirror vertex shader:\n%s\n",
             sphericalMirrorVertexShader.c_str()
         );
@@ -242,7 +242,7 @@ void SphericalMirrorProjection::initShaders() {
     );
     if (!fragShader) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::NOTIFY_ERROR,
+            sgct::MessageHandler::Level::Error,
             "Failed to load spherical mirror fragment shader\n%s\n",
             sphericalMirrorFragmentShader.c_str()
         );

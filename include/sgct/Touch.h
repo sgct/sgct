@@ -31,9 +31,6 @@ public:
             Stationary,
             Moved
         };
-        TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np,
-            glm::vec2 nd = glm::vec2(0.f, 0.f));
-
         int id;
         TouchAction action;
         glm::vec2 pixelCoords;
@@ -44,18 +41,17 @@ public:
     // Retrieve the lastest touch points to process them in an event
     std::vector<TouchPoint> getLatestTouchPoints() const;
 
-    // Need to call this function after the latest touch points have been processed, to clear them
-    void latestPointsHandled();
+    // Need to call this after the latest touch points have been processed to clear them
+    void setLatestPointsHandled();
 
     // Adding touch points to the touch class
     // As an id is constant over the touch point, the order will be preserved
     void processPoint(int id, int action, double xpos, double ypos, int windowWidth,
         int windowHeight);
-    void processPoints(GLFWtouch* touchPoints, int count, int windowWidth, int windowHeight);
+    void processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
+        int windowHeight);
 
-    bool isAllPointsStationary() const;
-
-    static std::string getTouchPointInfo(const TouchPoint*);
+    bool areAllPointsStationary() const;
 
 private:
     std::vector<TouchPoint> mTouchPoints;
@@ -64,6 +60,9 @@ private:
     std::vector<int> mPrevTouchIds;
     bool mAllPointsStationary;
 };
+
+std::string getTouchPointInfo(const Touch::TouchPoint& tp);
+
 
 } // sgct_core
 

@@ -9,24 +9,49 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <GLFW/glfw3.h>
 #include <algorithm>
-#include <sstream>
 
 namespace sgct_core {
 
-Touch::TouchPoint::TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np,
-                              glm::vec2 nd)
-    : id(i)
-    , action(a)
-    , pixelCoords(std::move(p))
-    , normPixelCoords(std::move(np))
-    , normPixelDiff(std::move(nd))
-{}
+std::string getTouchPointInfo(const Touch::TouchPoint& tp) {
+    std::string result = "id(" + std::to_string(tp.id) + "),";
+
+    result += "action(";
+    switch (tp.action) {
+        case Touch::TouchPoint::TouchAction::Pressed:
+            result += "Pressed";
+            break;
+        case Touch::TouchPoint::TouchAction::Moved:
+            result += "Moved";
+            break;
+        case Touch::TouchPoint::TouchAction::Released:
+            result += "Released";
+            break;
+        case Touch::TouchPoint::TouchAction::Stationary:
+            result += "Stationary";
+            break;
+        default:
+            result += "NoAction";
+    }
+    result += "),";
+
+    result += "pixelCoords(" + std::to_string(tp.pixelCoords.x) + "," +
+              std::to_string(tp.pixelCoords.y) + "),";
+
+    result += "normPixelCoords(" + std::to_string(tp.normPixelCoords.x) + "," +
+              std::to_string(tp.normPixelCoords.y) + "),";
+
+    result += "normPixelDiff(" + std::to_string(tp.normPixelDiff.x) + "," +
+              std::to_string(tp.normPixelDiff.y) + ")";
+
+    return result;
+}
+
 
 std::vector<Touch::TouchPoint> Touch::getLatestTouchPoints() const {
     return mTouchPoints;
 }
 
-void Touch::latestPointsHandled() {
+void Touch::setLatestPointsHandled() {
     mTouchPoints.clear();
 }
 
@@ -40,33 +65,32 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     glm::vec2 pos = glm::vec2(static_cast<float>(xpos), static_cast<float>(ypos));
     glm::vec2 normpos = pos / windowSize;
 
-    TouchPoint::TouchAction touchAction;
+    using TouchAction = TouchPoint::TouchAction;
+    TouchAction touchAction;
     switch (action) {
         case GLFW_PRESS:
-            touchAction = TouchPoint::TouchAction::Pressed;
+            touchAction = TouchAction::Pressed;
             break;
         case GLFW_MOVE:
-            touchAction = TouchPoint::TouchAction::Moved;
+            touchAction = TouchAction::Moved;
             break;
         case GLFW_RELEASE:
-            touchAction = TouchPoint::TouchAction::Released;
+            touchAction = TouchAction::Released;
             break;
         case GLFW_REPEAT:
-            touchAction = TouchPoint::TouchAction::Stationary;
+            touchAction = TouchAction::Stationary;
             break;
         default:
-            touchAction = TouchPoint::TouchAction::NoAction;
+            touchAction = TouchAction::NoAction;
     }
 
     glm::vec2 prevPos = pos;
 
-    std::unordered_map<
-        int,
-        glm::vec2
-    >::iterator prevPosMapIt = mPreviousTouchPositions.find(id);
+    std::unordered_map<int, glm::vec2>::iterator prevPosMapIt =
+        mPreviousTouchPositions.find(id);
     if (prevPosMapIt != mPreviousTouchPositions.end()) {
         prevPos = prevPosMapIt->second;
-        if (touchAction == TouchPoint::TouchAction::Released) {
+        if (touchAction == TouchAction::Released) {
             mPreviousTouchPositions.erase(prevPosMapIt);
         }
         else {
@@ -78,7 +102,7 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     }
 
     // Add to end of corrected ordered vector if new touch point
-    std::vector<int>::iterator lastIdIdx = std::find(
+    std::vector<int>::const_iterator lastIdIdx = std::find(
         mPrevTouchIds.begin(),
         mPrevTouchIds.end(),
         id
@@ -88,19 +112,11 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     }
 
     // Check if position has not changed and make the point stationary then
-    if (touchAction == TouchPoint::TouchAction::Moved &&
-        glm::distance(pos, prevPos) == 0)
-    {
-        touchAction = TouchPoint::TouchAction::Stationary;
+    if (touchAction == TouchAction::Moved && glm::distance(pos, prevPos) == 0) {
+        touchAction = TouchAction::Stationary;
     }
 
-    mTouchPoints.emplace_back(
-        id,
-        touchAction,
-        pos,
-        normpos,
-        (pos - prevPos) / windowSize
-    );
+    mTouchPoints.push_back({id, touchAction, pos, normpos, (pos - prevPos) / windowSize});
 }
 
 void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
@@ -150,23 +166,19 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
 
     //Ignore stationary state and count none ended points
     mAllPointsStationary = true;
-    int livePoints = 0;
     std::vector<int> endedTouchIds;
     for (const TouchPoint& touchPoint : mTouchPoints) {
         if (touchPoint.action != TouchPoint::TouchAction::Stationary) {
             mAllPointsStationary = false;
         }
 
-        if (touchPoint.action != TouchPoint::TouchAction::Released) {
-            livePoints++;
-        }
-        else {
+        if (touchPoint.action == TouchPoint::TouchAction::Released) {
             endedTouchIds.push_back(touchPoint.id);
         }
     }
 
     for (int endedId : endedTouchIds) {
-        std::vector<int>::iterator foundIdx = std::find(
+        std::vector<int>::const_iterator foundIdx = std::find(
             mPrevTouchIds.begin(),
             mPrevTouchIds.end(),
             endedId
@@ -177,37 +189,8 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
     }
 }
 
-bool Touch::isAllPointsStationary() const {
+bool Touch::areAllPointsStationary() const {
     return mAllPointsStationary;
-}
-
-std::string Touch::getTouchPointInfo(const TouchPoint* tp) {
-    std::stringstream ss;
-
-    ss << "id(" << tp->id << "),";
-    ss << "action(";
-    switch (tp->action) {
-        case TouchPoint::TouchAction::Pressed:
-            ss << "Pressed";
-            break;
-        case TouchPoint::TouchAction::Moved:
-            ss << "Moved";
-            break;
-        case TouchPoint::TouchAction::Released:
-            ss << "Released";
-            break;
-        case TouchPoint::TouchAction::Stationary:
-            ss << "Stationary";
-            break;
-        default:
-            ss << "NoAction";
-    }
-    ss << "),";
-    ss << "pixelCoords(" << tp->pixelCoords.x << "," << tp->pixelCoords.y << "),";
-    ss << "normPixelCoords(" << tp->normPixelCoords.x << "," << tp->normPixelCoords.y << "),";
-    ss << "normPixelDiff(" << tp->normPixelDiff.x << "," << tp->normPixelDiff.y << ")";
-
-    return ss.str();
 }
 
 } // namespace sgct_core

@@ -4122,7 +4122,7 @@ void Engine::internal_touch_callback(GLFWwindow* window, GLFWtouch* touchPoints,
         gTouchCallbackFnPtr(&mCurrentTouchPoints);
     }
 
-    mCurrentTouchPoints.latestPointsHandled();
+    mCurrentTouchPoints.setLatestPointsHandled();
 }
 
 /*!

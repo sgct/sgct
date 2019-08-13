@@ -38,6 +38,24 @@ namespace {
         }
         return i;
     }
+
+    bool readMeshBuffer(float* dest, unsigned int& idx, const unsigned char* src,
+        size_t srcSize_bytes, int readSize_bytes)
+    {
+        float val;
+        if ((idx + readSize_bytes) > srcSize_bytes) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "CorrectionMesh: Reached EOF in mesh buffer!\n"
+            );
+            return false;
+        }
+        memcpy(&val, &src[idx], readSize_bytes);
+        *dest = val;
+        idx += readSize_bytes;
+        return true;
+    }
+
 } // namespace
 
 namespace sgct_core {
@@ -2020,7 +2038,7 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
 {
     bool isReadingFile = meshPath.length() > 0;
     unsigned int srcIdx = 0;
-    char* srcBuff;
+    const unsigned char* srcBuff;
     size_t srcSize_bytes;
     const int MaxHeaderLineLength = 100;
     FILE* meshFile = nullptr;
@@ -2056,8 +2074,8 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
             "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer.\n",
             meshPath.c_str()
         );
-        srcBuff = parent.mMpcdiWarpMeshData;
-        srcSize_bytes = parent.mMpcdiWarpMeshSize;
+        srcBuff = parent.mpcdiWarpMesh().data();
+        srcSize_bytes = parent.mpcdiWarpMesh().size();
     }
 
     size_t retval;
@@ -2326,23 +2344,6 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
         mGeometries[WARP_MESH].mNumberOfIndices
     );
 
-    return true;
-}
-
-bool CorrectionMesh::readMeshBuffer(float* dest, unsigned int& idx, char* src,
-                                    size_t srcSize_bytes, int readSize_bytes)
-{
-    float val;
-    if ((idx + readSize_bytes) > srcSize_bytes) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "CorrectionMesh: Reached EOF in mesh buffer!\n"
-        );
-        return false;
-    }
-    memcpy(&val, &src[idx], readSize_bytes);
-    *dest = val;
-    idx += readSize_bytes;
     return true;
 }
 

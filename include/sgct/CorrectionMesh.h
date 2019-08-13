@@ -77,8 +77,6 @@ private:
     bool readAndGeneratePaulBourkeMesh(const std::string& meshPath, Viewport& parent);
     bool readAndGenerateOBJMesh(const std::string& meshPath, Viewport& parent);
     bool readAndGenerateMpcdiMesh(const std::string& meshPath, Viewport& parent);
-    bool readMeshBuffer(float* dest, unsigned int& idx, char* src,
-        size_t srcSize_bytes, int readSize_bytes);
     void setupSimpleMesh(CorrectionMeshGeometry& geomPtr, Viewport& parent);
     void setupMaskMesh(Viewport& parent, bool flipX, bool flipY);
     void createMesh(CorrectionMeshGeometry& geomPtr);

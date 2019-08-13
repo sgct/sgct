@@ -27,36 +27,36 @@ public:
         MASK_MESH,
         LAST_MESH
     };
-    enum MeshHint {
-        NO_HINT = 0,
-        DOMEPROJECTION_HINT,
-        SCALEABLE_HINT,
-        SCISS_HINT,
-        SIMCAD_HINT,
-        SKYSKAN_HINT,
-        PAULBOURKE_HINT,
-        OBJ_HINT,
-        MPCDI_HINT
+    enum class MeshHint {
+        None = 0,
+        DomeProjection,
+        Scaleable,
+        Sciss,
+        SimCad,
+        SkySkan,
+        PaulBourke,
+        Obj,
+        Mpcdi
     };
         
     CorrectionMesh();
 
     bool readAndGenerateMesh(std::string meshPath, Viewport& parent,
-        MeshHint hint = NO_HINT);
+        MeshHint hint = MeshHint::None);
     void render(const MeshType & mt);
     static MeshHint parseHint(const std::string& hintStr);
         
 private:
-    enum MeshFormat {
-        NO_FMT = 0,
-        DOMEPROJECTION_FMT,
-        SCALEABLE_FMT,
-        SCISS_FMT,
-        SIMCAD_FMT,
-        SKYSKAN_FMT,
-        PAULBOURKE_FMT,
-        OBJ_FMT,
-        MPCDI_FMT
+    enum class MeshFormat {
+        None = 0,
+        DomeProjection,
+        Scaleable,
+        Sciss,
+        SimCad,
+        SkySkan,
+        PaulBourke,
+        Obj,
+        Mpcdi
     };
 
     class CorrectionMeshGeometry {
@@ -85,7 +85,7 @@ private:
     void exportMesh(const std::string& exportMeshPath);
     void cleanUp();
         
-    enum buffer {
+    enum Buffer {
         Vertex = 0,
         Index,
         Array

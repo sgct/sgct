@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>
+#include <sgct/SGCTSettings.h>
 #include <sgct/SGCTWindow.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders.h>
@@ -449,7 +450,7 @@ void SpoutOutputProjection::initShaders() {
             bool fragShader = mDepthCorrectionShader.addShaderSrc(
                 depth_corr_frag_shader,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!fragShader) {
                 sgct::MessageHandler::instance()->print(
@@ -460,7 +461,7 @@ void SpoutOutputProjection::initShaders() {
             bool vertShader = mDepthCorrectionShader.addShaderSrc(
                 depth_corr_vert_shader,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!vertShader) {
                 sgct::MessageHandler::instance()->print(
@@ -538,7 +539,7 @@ void SpoutOutputProjection::initShaders() {
             bool fragShader = mDepthCorrectionShader.addShaderSrc(
                 depth_corr_frag_shader,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!fragShader) {
                 sgct::MessageHandler::instance()->print(
@@ -549,7 +550,7 @@ void SpoutOutputProjection::initShaders() {
             bool vertShader = mDepthCorrectionShader.addShaderSrc(
                 depth_corr_vert_shader,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!vertShader) {
                 sgct::MessageHandler::instance()->print(
@@ -643,7 +644,7 @@ void SpoutOutputProjection::initShaders() {
     bool vertShader = mShader.addShaderSrc(
         fisheyeVertexShader,
         GL_VERTEX_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
         sgct::MessageHandler::instance()->print(
@@ -655,7 +656,7 @@ void SpoutOutputProjection::initShaders() {
     bool fragShader = mShader.addShaderSrc(
         fisheyeFragmentShader,
         GL_FRAGMENT_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
         sgct::MessageHandler::instance()->print(

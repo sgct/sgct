@@ -38,9 +38,9 @@ public:
     /*!
         Different modes for warping/edge blending meshes 
     */
-    enum MeshImplementation {
-        BUFFER_OBJECTS = 0,
-        DISPLAY_LIST
+    enum class MeshImplementation {
+        BufferObjects = 0,
+        DisplayList
     };
 
     void addNode(SGCTNode node);
@@ -148,7 +148,7 @@ private:
     glm::mat4 mSceneScale = glm::mat4(1.f);
     glm::mat4 mSceneTranslate = glm::mat4(1.f);
     glm::mat4 mSceneRotation = glm::mat4(1.f);
-    MeshImplementation mMeshImpl = BUFFER_OBJECTS;
+    MeshImplementation mMeshImpl = MeshImplementation::BufferObjects;
     NetworkManager::NetworkMode mNetMode = NetworkManager::Remote;
 };
 

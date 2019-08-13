@@ -46,30 +46,34 @@ public:
 
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
         const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
+        ShaderProgram::ShaderSourceType sSrcType =
+            ShaderProgram::ShaderSourceType::File);
 
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
         const std::string& vertexSrc, const std::string& fragmentSrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
+        ShaderProgram::ShaderSourceType sSrcType =
+            ShaderProgram::ShaderSourceType::File);
 
     bool addShaderProgram(const std::string& name, const std::string& vertexSrc,
         const std::string& fragmentSrc, const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
+        ShaderProgram::ShaderSourceType sSrcType =
+            ShaderProgram::ShaderSourceType::File);
 
     bool addShaderProgram(ShaderProgram& shaderProgram, const std::string& name,
         const std::string& vertexSrc, const std::string& fragmentSrc,
         const std::string& geometrySrc,
-        ShaderProgram::ShaderSourceType sSrcType = ShaderProgram::SHADER_SRC_FILE );
+        ShaderProgram::ShaderSourceType sSrcType =
+            ShaderProgram::ShaderSourceType::File);
 
-    void setCurrentBin(ShaderBinIndex bin );
-    bool reloadShaderProgram(const std::string& name );
-    bool removeShaderProgram(const std::string& name );
-    bool removeShaderProgram(const std::string& name, ShaderBinIndex bin );
-    bool bindShaderProgram(const std::string& name ) const;
-    bool bindShaderProgram(const ShaderProgram& shaderProgram ) const;
+    void setCurrentBin(ShaderBinIndex bin);
+    bool reloadShaderProgram(const std::string& name);
+    bool removeShaderProgram(const std::string& name);
+    bool removeShaderProgram(const std::string& name, ShaderBinIndex bin);
+    bool bindShaderProgram(const std::string& name) const;
+    bool bindShaderProgram(const ShaderProgram& shaderProgram) const;
     void unBindShaderProgram();
 
-    bool shaderProgramExists(const std::string& name ) const;
+    bool shaderProgramExists(const std::string& name) const;
     
     const ShaderProgram& getShaderProgram(const std::string& name) const;
 

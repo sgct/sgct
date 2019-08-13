@@ -214,7 +214,7 @@ bool NetworkManager::init() {
             bool addTransferPort = addConnection(
                 cm.getThisNodePtr()->getDataTransferPort(),
                 remote_address,
-                SGCTNetwork::DataTransfer
+                SGCTNetwork::ConnectionTypes::DataTransfer
             );
             if (addTransferPort) {
                 mNetworkConnections[mNetworkConnections.size() - 1]->setPackageDecodeFunction(
@@ -269,7 +269,7 @@ bool NetworkManager::init() {
                 bool addTransferPort = addConnection(
                     cm.getNodePtr(i)->getDataTransferPort(),
                     remote_address,
-                    SGCTNetwork::DataTransfer
+                    SGCTNetwork::ConnectionTypes::DataTransfer
                 );
                 if (addTransferPort) {
                     mNetworkConnections[mNetworkConnections.size() - 1]->setPackageDecodeFunction(
@@ -304,8 +304,8 @@ bool NetworkManager::init() {
             cm.getExternalControlPort(),
             "127.0.0.1",
             cm.getUseASCIIForExternalControl() ?
-                SGCTNetwork::ExternalASCIIConnection :
-                SGCTNetwork::ExternalRawConnection
+                SGCTNetwork::ConnectionTypes::ExternalASCIIConnection :
+                SGCTNetwork::ConnectionTypes::ExternalRawConnection
         );
         if (addExternalPort) {
             mNetworkConnections[mNetworkConnections.size() - 1]->setDecodeFunction(
@@ -333,7 +333,7 @@ bool NetworkManager::init() {
     \param if this application is server/master in cluster then set to true
 */
 void NetworkManager::sync(SyncMode sm, Statistics* statsPtr) {
-    if (sm == SendDataToClients) {
+    if (sm == SyncMode::SendDataToClients) {
         double maxTime = -999999.0;
         double minTime = 999999.0;
 
@@ -386,7 +386,7 @@ void NetworkManager::sync(SyncMode sm, Statistics* statsPtr) {
             );
         }
     }
-    else if (sm == AcknowledgeData) {
+    else if (sm == SyncMode::AcknowledgeData) {
         for (unsigned int i = 0; i < mSyncConnections.size(); i++) {
             //Client
             if (!mSyncConnections[i]->isServer() && mSyncConnections[i]->isConnected()) {
@@ -692,10 +692,10 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     for (unsigned int i = 0; i < mNetworkConnections.size(); i++) {
         if (mNetworkConnections[i] != nullptr && mNetworkConnections[i]->isConnected()) {
             numberOfConnectionsCounter++;
-            if (mNetworkConnections[i]->getType() == SGCTNetwork::SyncConnection) {
+            if (mNetworkConnections[i]->getType() == SGCTNetwork::ConnectionTypes::SyncConnection) {
                 numberOfConnectedSyncNodesCounter++;
             }
-            else if (mNetworkConnections[i]->getType() == SGCTNetwork::DataTransfer) {
+            else if (mNetworkConnections[i]->getType() == SGCTNetwork::ConnectionTypes::DataTransfer) {
                 numberOfConnectedDataTransferNodesCounter++;
             }
         }
@@ -771,14 +771,18 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
         /*
             Check if any external connection
         */
-        if (connection->getType() == sgct_core::SGCTNetwork::ExternalASCIIConnection) {
+        if (connection->getType() ==
+                sgct_core::SGCTNetwork::ConnectionTypes::ExternalASCIIConnection)
+        {
             bool externalControlConnectionStatus = connection->isConnected();
             connection->sendStr("Connected to SGCT!\r\n");
             sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
         }
-        else if (connection->getType() == sgct_core::SGCTNetwork::ExternalRawConnection) {
+        else if (connection->getType() ==
+                sgct_core::SGCTNetwork::ConnectionTypes::ExternalRawConnection)
+        {
             bool externalControlConnectionStatus = connection->isConnected();
             sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
@@ -791,7 +795,9 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     }
 
 
-    if (connection->getType() == sgct_core::SGCTNetwork::DataTransfer) {
+    if (connection->getType() ==
+            sgct_core::SGCTNetwork::ConnectionTypes::DataTransfer)
+    {
         bool dataTransferConnectionStatus = connection->isConnected();
         sgct::Engine::instance()->invokeUpdateCallbackForDataTransfer(
             dataTransferConnectionStatus,
@@ -890,10 +896,10 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         //bind callback
         netPtr->setConnectedFunction([this]() { setAllNodesConnected(); });
 
-        if (connectionType == SGCTNetwork::SyncConnection) {
+        if (connectionType == SGCTNetwork::ConnectionTypes::SyncConnection) {
             mSyncConnections.push_back(netPtr);
         }
-        else if (connectionType == SGCTNetwork::DataTransfer) {
+        else if (connectionType == SGCTNetwork::ConnectionTypes::DataTransfer) {
             mDataTransferConnections.push_back(netPtr);
         }
         else {

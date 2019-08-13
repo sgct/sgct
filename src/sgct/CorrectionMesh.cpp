@@ -76,7 +76,7 @@ enum SCISSDistortionType {
 
 CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     if (ClusterManager::instance()->getMeshImplementation() ==
-        ClusterManager::DISPLAY_LIST)
+        ClusterManager::MeshImplementation::DisplayList)
     {
         if (mMeshData[0]) {
             sgct::MessageHandler::instance()->print(
@@ -134,7 +134,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
         
         bool flipX = false;
         bool flipY = false;
-        //if (hint == DOMEPROJECTION_HINT)
+        //if (hint == DomeProjection)
         //    flip_x = true;
 
         setupMaskMesh(parent, flipX, flipY);
@@ -159,80 +159,80 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
     std::string path(meshPath);
     std::transform(path.begin(), path.end(), path.begin(), ::tolower);
 
-    MeshFormat meshFmt = NO_FMT;
+    MeshFormat meshFmt = MeshFormat::None;
     //find a suitible format
     if (path.find(".sgc") != std::string::npos) {
-        meshFmt = SCISS_FMT;
+        meshFmt = MeshFormat::Sciss;
     }
     else if (path.find(".ol") != std::string::npos) {
-        meshFmt = SCALEABLE_FMT;
+        meshFmt = MeshFormat::Scaleable;
     }
     else if (path.find(".skyskan") != std::string::npos) {
-        meshFmt = SKYSKAN_FMT;
+        meshFmt = MeshFormat::SkySkan;
     }
     else if (path.find(".txt") != std::string::npos) {
         // default for this suffix
-        if (hint == NO_HINT || hint == SKYSKAN_HINT) {
-            meshFmt = SKYSKAN_FMT;
+        if (hint == MeshHint::None || hint == MeshHint::SkySkan) {
+            meshFmt = MeshFormat::SkySkan;
         }
     }
     else if (path.find(".csv") != std::string::npos) {
         // default for this suffix
-        if (hint == NO_HINT || hint == DOMEPROJECTION_HINT) {
-            meshFmt = DOMEPROJECTION_FMT;
+        if (hint == MeshHint::None || hint == MeshHint::DomeProjection) {
+            meshFmt = MeshFormat::DomeProjection;
         }
     }
     else if (path.find(".data") != std::string::npos) {
         // default for this suffix
-        if (hint == NO_HINT || hint == PAULBOURKE_HINT) {
-            meshFmt = PAULBOURKE_FMT;
+        if (hint == MeshHint::None || hint == MeshHint::PaulBourke) {
+            meshFmt = MeshFormat::PaulBourke;
         }
     }
     else if (path.find(".obj") != std::string::npos) {
         // default for this suffix
-        if (hint == NO_HINT || hint == OBJ_HINT) {
-            meshFmt = OBJ_FMT;
+        if (hint == MeshHint::None || hint == MeshHint::Obj) {
+            meshFmt = MeshFormat::Obj;
         }
     }
     else if (path.find(".mpcdi") != std::string::npos) {
-        //if (hint == MPCDI_HINT)
-        meshFmt = MPCDI_FMT;
+        //if (hint == Mpcdi)
+        meshFmt = MeshFormat::Mpcdi;
     }
     else if (path.find(".simcad") != std::string::npos) {
         // default for this suffix
-        if (hint == NO_HINT || hint == SIMCAD_HINT) {
-            meshFmt = SIMCAD_FMT;
+        if (hint == MeshHint::None || hint == MeshHint::SimCad) {
+            meshFmt = MeshFormat::SimCad;
         }
     }
 
     //select parser
     bool loadStatus = false;
     switch (meshFmt) {
-        case DOMEPROJECTION_FMT:
+        case MeshFormat::DomeProjection:
             loadStatus = readAndGenerateDomeProjectionMesh(meshPath, parent);
             break;
-        case SCALEABLE_FMT:
+        case MeshFormat::Scaleable:
             loadStatus = readAndGenerateScalableMesh(meshPath, parent);
             break;
-        case SCISS_FMT:
+        case MeshFormat::Sciss:
             loadStatus = readAndGenerateScissMesh(meshPath, parent);
             break;
-        case SIMCAD_FMT:
+        case MeshFormat::SimCad:
             loadStatus = readAndGenerateSimCADMesh(meshPath, parent);
             break;
-        case SKYSKAN_FMT:
+        case MeshFormat::SkySkan:
             loadStatus = readAndGenerateSkySkanMesh(meshPath, parent);
             break;
-        case PAULBOURKE_FMT:
+        case MeshFormat::PaulBourke:
             loadStatus = readAndGeneratePaulBourkeMesh(meshPath, parent);
             break;
-        case OBJ_FMT:
+        case MeshFormat::Obj:
             loadStatus = readAndGenerateOBJMesh(meshPath, parent);
             break;
-        case MPCDI_FMT:
+        case MeshFormat::Mpcdi:
             loadStatus = readAndGenerateMpcdiMesh("", parent);
             break;
-        case NO_FMT:
+        case MeshFormat::None:
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "CorrectionMesh error: Loading mesh '%s' failed!\n", meshPath.c_str()
@@ -2463,7 +2463,7 @@ void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
         ClusterManager::instance()->getMeshImplementation());*/
     
     if (ClusterManager::instance()->getMeshImplementation() ==
-        ClusterManager::BUFFER_OBJECTS)
+        ClusterManager::MeshImplementation::BufferObjects)
     {
         if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
             glGenVertexArrays(1, &(geomPtr.mMeshData[Array]));
@@ -2675,7 +2675,7 @@ void CorrectionMesh::render(const MeshType& mt) {
     CorrectionMeshGeometry* geomPtr = &mGeometries[mt];
 
     if (ClusterManager::instance()->getMeshImplementation() ==
-        ClusterManager::BUFFER_OBJECTS)
+        ClusterManager::MeshImplementation::BufferObjects)
     {
         if (sgct::Engine::instance()->isOGLPipelineFixed()) {
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
@@ -2727,31 +2727,31 @@ Parse hint from string to enum.
 */
 CorrectionMesh::MeshHint CorrectionMesh::parseHint(const std::string& hintStr) {
     if (hintStr.empty()) {
-        return NO_HINT;
+        return MeshHint::None;
     }
     
     //transform to lowercase
     std::string str(hintStr);
     std::transform(str.begin(), str.end(), str.begin(), ::tolower);
 
-    sgct_core::CorrectionMesh::MeshHint hint = NO_HINT;
+    sgct_core::CorrectionMesh::MeshHint hint = MeshHint::None;
     if (str == "domeprojection") {
-        hint = DOMEPROJECTION_HINT;
+        hint = MeshHint::DomeProjection;
     }
     else if (str == "scalable") {
-        hint = SCALEABLE_HINT;
+        hint = MeshHint::Scaleable;
     }
     else if (str == "sciss") {
-        hint = SCISS_HINT;
+        hint = MeshHint::Sciss;
     }
     else if (str == "simcad") {
-        hint = SIMCAD_HINT;
+        hint = MeshHint::SimCad;
     }
     else if (str == "skyskan") {
-        hint = SKYSKAN_HINT;
+        hint = MeshHint::SkySkan;
     }
     else if (str == "mpcdi") {
-        hint = MPCDI_HINT;
+        hint = MeshHint::Mpcdi;
     }
     else {
         sgct::MessageHandler::instance()->print(

@@ -38,24 +38,24 @@ void setupViewport() {
     );
 
     sgct::SGCTWindow::StereoMode sm = cWin.getStereoMode();
-    if (sm >= sgct::SGCTWindow::Side_By_Side_Stereo) {
+    if (sm >= sgct::SGCTWindow::StereoMode::SideBySide) {
         if (sgct::Engine::instance()->getCurrentFrustumMode() ==
             sgct_core::Frustum::StereoLeftEye)
         {
             switch (sm) {
-            case sgct::SGCTWindow::Side_By_Side_Stereo:
+            case sgct::SGCTWindow::StereoMode::SideBySide:
                 x = x >> 1; //x offset
                 xSize = xSize >> 1; //x size
                 break;
-            case sgct::SGCTWindow::Side_By_Side_Inverted_Stereo:
+            case sgct::SGCTWindow::StereoMode::SideBySideInverted:
                 x = (x >> 1) + (xSize >> 1); //x offset
                 xSize = xSize >> 1; //x size
                 break;
-            case sgct::SGCTWindow::Top_Bottom_Stereo:
+            case sgct::SGCTWindow::StereoMode::TopBottom:
                 y = (y >> 1) + (ySize >> 1); //y offset
                 ySize = ySize >> 1; //y size
                 break;
-            case sgct::SGCTWindow::Top_Bottom_Inverted_Stereo:
+            case sgct::SGCTWindow::StereoMode::TopBottomInverted:
                 y = y >> 1; //y offset
                 ySize = ySize >> 1; //y size
                 break;
@@ -65,19 +65,19 @@ void setupViewport() {
         }
         else {
             switch (sm) {
-            case sgct::SGCTWindow::Side_By_Side_Stereo:
+            case sgct::SGCTWindow::StereoMode::SideBySide:
                 x = (x >> 1) + (xSize >> 1); //x offset
                 xSize = xSize >> 1; //x size
                 break;
-            case sgct::SGCTWindow::Side_By_Side_Inverted_Stereo:
+            case sgct::SGCTWindow::StereoMode::SideBySideInverted:
                 x = x >> 1; //x offset
                 xSize = xSize >> 1; //x size
                 break;
-            case sgct::SGCTWindow::Top_Bottom_Stereo:
+            case sgct::SGCTWindow::StereoMode::TopBottom:
                 y = y >> 1; //y offset
                 ySize = ySize >> 1; //y size
                 break;
-            case sgct::SGCTWindow::Top_Bottom_Inverted_Stereo:
+            case sgct::SGCTWindow::StereoMode::TopBottomInverted:
                 y = (y >> 1) + (ySize >> 1); //y offset
                 ySize = ySize >> 1; //y size
                 break;
@@ -221,10 +221,10 @@ void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
         for (size_t i = 0; i < lines.size(); ++i) {
             glm::vec3 offset(x, y - h * static_cast<float>(i), 0.f);
             
-            if (mode == TOP_CENTER) {
+            if (mode == TextAlignMode::TopCenter) {
                 offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
             }
-            else if (mode == TOP_RIGHT) {
+            else if (mode == TextAlignMode::TopRight) {
                 offset.x -= getLineWidth(ft_font, lines[i]);
             }
 
@@ -296,10 +296,10 @@ void render2d(const std::vector<std::wstring>& lines, Font* ft_font,
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(x, y - h * static_cast<float>(i), 0.f);
 
-            if (mode == TOP_CENTER) {
+            if (mode == TextAlignMode::TopCenter) {
                 offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
             }
-            else if (mode == TOP_RIGHT) {
+            else if (mode == TextAlignMode::TopRight) {
                 offset.x -= getLineWidth(ft_font, lines[i]);
             }
 
@@ -394,10 +394,10 @@ void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(0.f, -h * static_cast<float>(i), 0.f);
 
-            if (mode == TOP_CENTER) {
+            if (mode == TextAlignMode::TopCenter) {
                 offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
             }
-            else if (mode == TOP_RIGHT) {
+            else if (mode == TextAlignMode::TopRight) {
                 offset.x -= getLineWidth(ft_font, lines[i]);
             }
             
@@ -472,10 +472,10 @@ void render3d(const std::vector<std::wstring>& lines, Font* ft_font,
         for (size_t i = 0; i < lines.size(); i++) {
             glm::vec3 offset(0.f, -h * static_cast<float>(i), 0.f);
 
-            if (mode == TOP_CENTER) {
+            if (mode == TextAlignMode::TopCenter) {
                 offset.x -= getLineWidth(ft_font, lines[i]) / 2.f;
             }
-            else if (mode == TOP_RIGHT) {
+            else if (mode == TextAlignMode::TopRight) {
                 offset.x -= getLineWidth(ft_font, lines[i]);
             }
 

@@ -39,7 +39,7 @@ private:
     unsigned int mNumberOfVertices;
     unsigned int mNumberOfFaces;
 
-    enum bufferType { Vertex = 0, Index };
+    enum BufferType { Vertex = 0, Index };
     unsigned int mVBO[2] = { 0, 0 };
     unsigned int mVAO = 0;
 };

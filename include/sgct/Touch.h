@@ -24,7 +24,7 @@ class Touch {
 public:
     //! Touch point information
     struct TouchPoint {
-        enum TouchAction {
+        enum class TouchAction {
             NoAction,
             Released,
             Pressed,

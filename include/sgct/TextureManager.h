@@ -29,8 +29,8 @@ public:
         The compression mode modes. For more info about texute compression look here:
         <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">S3 Texture compression</a>
     */
-    enum CompressionMode {
-        No_Compression = 0,
+    enum class CompressionMode {
+        None = 0,
         Generic,
         S3TC_DXT
     };
@@ -78,7 +78,7 @@ private:
     static TextureManager* mInstance;
     
     float mAnisotropicFilterSize;
-    CompressionMode mCompression = No_Compression;
+    CompressionMode mCompression = CompressionMode::None;
     bool mAlphaMode = false;
     bool mOverWriteMode = true;
     bool mInterpolate = true;

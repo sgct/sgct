@@ -158,7 +158,7 @@ void Statistics::initVBO(bool fixedPipeline) {
     mStaticVerts.push_back(1.f / 60.f); //y1
 
     if (ClusterManager::instance()->getMeshImplementation() ==
-        ClusterManager::BUFFER_OBJECTS)
+        ClusterManager::MeshImplementation::BufferObjects)
     {
         if (!mFixedPipeline) {
             glGenVertexArrays(2, &mDynamicVAO[0]);
@@ -257,7 +257,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         bool vert = mShader.addShaderSrc(
             vert_shader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
             sgct::MessageHandler::instance()->print(
@@ -268,7 +268,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         bool frag = mShader.addShaderSrc(
             frag_shader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
             sgct::MessageHandler::instance()->print(
@@ -307,7 +307,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         bool vert = mShader.addShaderSrc(
             vert_shader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!vert) {
             sgct::MessageHandler::instance()->print(
@@ -318,7 +318,7 @@ void Statistics::initVBO(bool fixedPipeline) {
         bool frag = mShader.addShaderSrc(
             frag_shader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!frag) {
             sgct::MessageHandler::instance()->print(
@@ -429,7 +429,7 @@ void Statistics::addSyncTime(float t) {
 
 void Statistics::update() {
     if (ClusterManager::instance()->getMeshImplementation() !=
-        ClusterManager::BUFFER_OBJECTS)
+        ClusterManager::MeshImplementation::BufferObjects)
     {
         return;
     }
@@ -477,7 +477,7 @@ void Statistics::draw(float lineWidth) {
         glLineWidth(lineWidth);
 
         if (ClusterManager::instance()->getMeshImplementation() ==
-            ClusterManager::BUFFER_OBJECTS)
+            ClusterManager::MeshImplementation::BufferObjects)
         {
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             glEnableClientState(GL_VERTEX_ARRAY);

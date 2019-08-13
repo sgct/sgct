@@ -22,7 +22,7 @@ Base class for non linear projections
 */
 class NonLinearProjection {
 public:
-    enum InterpolationMode { Linear, Cubic };
+    enum class InterpolationMode { Linear, Cubic };
 
     NonLinearProjection();
     virtual ~NonLinearProjection();
@@ -47,7 +47,7 @@ public:
     void setPreferedMonoFrustumMode(Frustum::FrustumMode fm);
 
     int getCubemapResolution() const;
-    const InterpolationMode& getInterpolationMode() const;
+    InterpolationMode getInterpolationMode() const;
 
     void bindShaderProgram() const;
     void bindDepthCorrectionShaderProgram() const;
@@ -78,7 +78,7 @@ protected:
     bool mStereo = false;
 
     BaseViewport mSubViewports[6]; //cubemap
-    InterpolationMode mInterpolationMode = Linear;
+    InterpolationMode mInterpolationMode = InterpolationMode::Linear;
     Frustum::FrustumMode mPreferedMonoFrustumMode = Frustum::MonoEye;
 
     //opengl data

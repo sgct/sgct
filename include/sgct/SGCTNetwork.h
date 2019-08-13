@@ -43,7 +43,7 @@ public:
         CompressedDataId = 21
     };
 
-    enum ConnectionTypes {
+    enum class ConnectionTypes {
         SyncConnection = 0,
         ExternalASCIIConnection,
         ExternalRawConnection,
@@ -120,12 +120,12 @@ public:
     std::condition_variable mStartConnectionCond;
 
 private:
-    enum timeStampIndex { Send = 0, Total };
+    enum TimeStampIndex { Send = 0, Total };
 
     SGCT_SOCKET mSocket;
     SGCT_SOCKET mListenSocket;
 
-    ConnectionTypes mConnectionType = SyncConnection;
+    ConnectionTypes mConnectionType = ConnectionTypes::SyncConnection;
     std::atomic<bool> mServer;
     std::atomic<bool> mConnected = false;
     std::atomic<bool> mUpdated = false;

@@ -22,9 +22,9 @@ namespace sgct_utils {
 */
 class SGCTBox {
 public:
-    enum TextureMappingMode { Regular = 0, CubeMap, SkyBox };
+    enum class TextureMappingMode { Regular = 0, CubeMap, SkyBox };
 
-    SGCTBox(float size, TextureMappingMode tmm = Regular);
+    SGCTBox(float size, TextureMappingMode tmm = TextureMappingMode::Regular);
     ~SGCTBox();
     void draw();
 

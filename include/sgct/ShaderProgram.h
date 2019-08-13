@@ -23,7 +23,7 @@ Shader program for uniform and attribute locations.
 class ShaderProgram {
 public:
     /*! If shader source should be loaded from file or read as is */
-    enum ShaderSourceType { SHADER_SRC_FILE, SHADER_SRC_STRING };
+    enum class ShaderSourceType { File, String };
 
     ShaderProgram() = default;
     ShaderProgram(std::string name);
@@ -39,7 +39,7 @@ public:
 
     void setName(std::string name);
     bool addShaderSrc(const std::string& src, sgct_core::Shader::ShaderType type,
-        ShaderSourceType sSrcType = SHADER_SRC_FILE);
+        ShaderSourceType sSrcType = ShaderSourceType::File);
 
     bool createAndLinkProgram();
     bool reload();

@@ -207,7 +207,7 @@ Adds a font file to the manager.
 */
 bool FontManager::addFont(std::string fontName, std::string path, FontPath fontPath) {
     // Perform file exists check
-    if (fontPath == FontPath_Default) {
+    if (fontPath == FontPath::Default) {
         path = mDefaultFontPath + path;
     }
 
@@ -335,7 +335,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
         bool vertShader = mShader.addShaderSrc(
             vert_shader,
             GL_VERTEX_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!vertShader) {
             sgct::MessageHandler::instance()->print(
@@ -346,7 +346,7 @@ Font* FontManager::createFont(const std::string& fontName, unsigned int height) 
         bool fragShader = mShader.addShaderSrc(
             frag_shader,
             GL_FRAGMENT_SHADER,
-            sgct::ShaderProgram::SHADER_SRC_STRING
+            sgct::ShaderProgram::ShaderSourceType::String
         );
         if (!fragShader) {
             sgct::MessageHandler::instance()->print(

@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
 #include <sgct/SGCTUser.h>
 #include <sgct/SGCTWindow.h>
 #include <sgct/OffScreenBuffer.h>
@@ -195,10 +196,12 @@ void FisheyeProjection::initViewports() {
 
     //four faces doesn't cover more than 180 degrees
     if (mFOV > 180.f && mFOV <= fiveFaceLimit) {
-        mMethod = FiveFaceCube;
+        mMethod = FisheyeMethod::FiveFaceCube;
     }
 
-    if (mMethod == FiveFaceCube && mFOV >= topFaceLimit && mFOV <= fiveFaceLimit) {
+    if (mMethod == FisheyeMethod::FiveFaceCube &&
+        mFOV >= topFaceLimit && mFOV <= fiveFaceLimit)
+    {
         //helper variable
         float cosAngle = cosf(glm::radians(mFOV / 2.f));
         if (mFOV < 180.f) {
@@ -216,12 +219,12 @@ void FisheyeProjection::initViewports() {
         //projectionOffset = radius;
     }
     else if (mFOV > fiveFaceLimit) {
-        mMethod = SixFaceCube;
+        mMethod = FisheyeMethod::SixFaceCube;
         cropLevel = 0.f;
         projectionOffset = radius;
     }
 
-    if (mMethod == FiveFaceCube || mMethod == SixFaceCube) {
+    if (mMethod == FisheyeMethod::FiveFaceCube || mMethod == FisheyeMethod::SixFaceCube) {
         //tilt
         glm::mat4 tiltMat = glm::rotate(
             glm::mat4(1.f),
@@ -297,7 +300,7 @@ void FisheyeProjection::initViewports() {
                     rotMat = rollRot;
                     break;
                 case Neg_Z: //-Z face
-                    if (mMethod == FiveFaceCube) {
+                    if (mMethod == FisheyeMethod::FiveFaceCube) {
                         mSubViewports[i].setEnabled(false);
                     }
                     rotMat = glm::rotate(
@@ -424,7 +427,7 @@ void FisheyeProjection::initShaders() {
     std::string fisheyeFragmentShader;
     std::string fisheyeVertexShader;
 
-    bool isCubic = (mInterpolationMode == Cubic);
+    bool isCubic = (mInterpolationMode == InterpolationMode::Cubic);
 
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         fisheyeVertexShader = isCubic ?
@@ -572,7 +575,7 @@ void FisheyeProjection::initShaders() {
             bool depthCorrFrag = mDepthCorrectionShader.addShaderSrc(
                 depthCorrFragSshader,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!depthCorrFrag) {
                 sgct::MessageHandler::instance()->print(
@@ -583,7 +586,7 @@ void FisheyeProjection::initShaders() {
             bool depthCorrVert = mDepthCorrectionShader.addShaderSrc(
                 depthCorrVertSshader,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!depthCorrVert) {
                 sgct::MessageHandler::instance()->print(
@@ -739,7 +742,7 @@ void FisheyeProjection::initShaders() {
             bool depthCorrFrag = mDepthCorrectionShader.addShaderSrc(
                 depthCorrFragShader,
                 GL_VERTEX_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!depthCorrFrag) {
                 sgct::MessageHandler::instance()->print(
@@ -750,7 +753,7 @@ void FisheyeProjection::initShaders() {
             bool depthCorrVert = mDepthCorrectionShader.addShaderSrc(
                 depthCorrVertShader,
                 GL_FRAGMENT_SHADER,
-                sgct::ShaderProgram::SHADER_SRC_STRING
+                sgct::ShaderProgram::ShaderSourceType::String
             );
             if (!depthCorrVert) {
                 sgct::MessageHandler::instance()->print(
@@ -818,7 +821,7 @@ void FisheyeProjection::initShaders() {
     }
 
     //replace add correct transform in the fragment shader
-    if (mMethod == FourFaceCube) {
+    if (mMethod == FisheyeMethod::FourFaceCube) {
         sgct_helpers::findAndReplace(
             fisheyeFragmentShader,
             "**rotVec**",
@@ -858,7 +861,7 @@ void FisheyeProjection::initShaders() {
     bool fisheyeVertex = mShader.addShaderSrc(
         fisheyeVertexShader,
         GL_VERTEX_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!fisheyeVertex) {
         sgct::MessageHandler::instance()->print(
@@ -870,7 +873,7 @@ void FisheyeProjection::initShaders() {
     bool fisheyeFragment = mShader.addShaderSrc(
         fisheyeFragmentShader,
         GL_FRAGMENT_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!fisheyeFragment) {
         sgct::MessageHandler::instance()->print(

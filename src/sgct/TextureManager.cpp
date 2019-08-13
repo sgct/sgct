@@ -122,7 +122,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
 
 /*!
     Set texture compression. Can be one of the following:
-    - sgct::TextureManager::No_Compression
+    - sgct::TextureManager::None
     - sgct::TextureManager::Generic
     - sgct::TextureManager::S3TC_DXT
 
@@ -416,15 +416,15 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
             "TextureManager: Compression is not supported for bit depths higher than "
             "16-bit per channel!\n"
         );
-        mCompression = No_Compression;
+        mCompression = CompressionMode::None;
     }
 
     switch (imgPtr->getChannels()) {
         case 4:
-            if (mCompression == No_Compression) {
+            if (mCompression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
             }
-            else if (mCompression == Generic) {
+            else if (mCompression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGBA;
             }
             else {
@@ -432,10 +432,10 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
             }
             break;
         case 3:
-            if (mCompression == No_Compression) {
+            if (mCompression == CompressionMode::None) {
                 internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
             }
-            else if (mCompression == Generic) {
+            else if (mCompression == CompressionMode::Generic) {
                 internalFormat = GL_COMPRESSED_RGB;
             }
             else {
@@ -444,7 +444,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
             break;
         case 2:
             if (Engine::instance()->isOGLPipelineFixed()) {
-                if (mCompression == No_Compression) {
+                if (mCompression == CompressionMode::None) {
                     internalFormat = bpc == 1 ?
                         GL_LUMINANCE8_ALPHA8 :
                         GL_LUMINANCE16_ALPHA16;
@@ -454,10 +454,10 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
                 }
             }
             else {
-                if (mCompression == No_Compression) {
+                if (mCompression == CompressionMode::None) {
                     internalFormat = (bpc == 1 ? GL_RG8 : GL_RG16);
                 }
-                else if (mCompression == Generic) {
+                else if (mCompression == CompressionMode::Generic) {
                     internalFormat = GL_COMPRESSED_RG;
                 }
                 else {
@@ -468,7 +468,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
         case 1:
             if (Engine::instance()->isOGLPipelineFixed()) {
                 if (bpc == 1) {
-                    internalFormat = (mCompression == No_Compression) ?
+                    internalFormat = (mCompression == CompressionMode::None) ?
                         (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) :
                         (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
                 }
@@ -477,10 +477,10 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
                 }
             }
             else {
-                if (mCompression == No_Compression) {
+                if (mCompression == CompressionMode::None) {
                     internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
                 }
-                else if (mCompression == Generic) {
+                else if (mCompression == CompressionMode::Generic) {
                     internalFormat = GL_COMPRESSED_RED;
                 }
                 else {
@@ -497,9 +497,9 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
         imgPtr->getWidth(),
         imgPtr->getHeight(),
         imgPtr->getChannels(),
-        (mCompression == No_Compression) ?
+        (mCompression == CompressionMode::None) ?
             "none" :
-            ((mCompression == Generic) ? "generic" : "S3TC/DXT"),
+            ((mCompression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
         textureType,
         internalFormat
     );

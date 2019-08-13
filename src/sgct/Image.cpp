@@ -26,6 +26,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
 
 namespace {
     constexpr const int PngBytesToCheck = 8;
@@ -110,26 +111,26 @@ Image::FormatType Image::getFormatType(const std::string& filename) {
 
     // if png file
     if (filenameLC.find(".png") != std::string::npos) {
-        return FORMAT_PNG;
+        return FormatType::PNG;
     }
 
-    //if jpg
+    // if jpg
     if (filenameLC.find(".jpg") != std::string::npos) {
-        return FORMAT_JPEG;
+        return FormatType::JPEG;
     }
 
-    //if jpeg
+    // if jpeg
     if (filenameLC.find(".jpeg") != std::string::npos) {
-        return FORMAT_JPEG;
+        return FormatType::JPEG;
     }
 
-    //if tga
+    // if tga
     if (filenameLC.find(".tga") != std::string::npos) {
-        return FORMAT_TGA;
+        return FormatType::TGA;
     }
 
-    //no match found
-    return UNKNOWN_FORMAT;
+    // no match found
+    return FormatType::Unknown;
 }
 
 bool Image::load(std::string filename) {
@@ -145,7 +146,7 @@ bool Image::load(std::string filename) {
     double t0 = sgct::Engine::getTime();
 
     switch (getFormatType(filename)) {
-        case FORMAT_PNG:
+        case FormatType::PNG:
             res = loadPNG(filename);
             if (res) {
                 sgct::MessageHandler::instance()->print(
@@ -156,7 +157,7 @@ bool Image::load(std::string filename) {
             }
             break;
 
-        case FORMAT_JPEG:
+        case FormatType::JPEG:
             res = loadJPEG(filename);
             if (res) {
                 sgct::MessageHandler::instance()->print(
@@ -167,7 +168,7 @@ bool Image::load(std::string filename) {
             }
             break;
 
-        case FORMAT_TGA:
+        case FormatType::TGA:
             res = loadTGA(filename);
             if (res) {
                 sgct::MessageHandler::instance()->print(
@@ -970,13 +971,13 @@ bool Image::save() {
     }
 
     switch (getFormatType(mFilename)) {
-        case FORMAT_PNG:
+        case FormatType::PNG:
             savePNG();
             return true;
-        case FORMAT_JPEG:
+        case FormatType::JPEG:
             saveJPEG();
             return true;
-        case FORMAT_TGA:
+        case FormatType::TGA:
             saveTGA();
             return true;
         default:

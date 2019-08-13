@@ -229,7 +229,7 @@ void SphericalMirrorProjection::initShaders() {
     bool vertShader = mShader.addShaderSrc(
         sphericalMirrorVertexShader,
         GL_VERTEX_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!vertShader) {
         sgct::MessageHandler::instance()->print(
@@ -241,7 +241,7 @@ void SphericalMirrorProjection::initShaders() {
     bool fragShader = mShader.addShaderSrc(
         sphericalMirrorFragmentShader,
         GL_FRAGMENT_SHADER,
-        sgct::ShaderProgram::SHADER_SRC_STRING
+        sgct::ShaderProgram::ShaderSourceType::String
     );
     if (!fragShader) {
         sgct::MessageHandler::instance()->print(

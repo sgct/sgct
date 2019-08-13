@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
+#include <sgct/ScreenCapture.h>
 #include <mutex>
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -35,7 +36,7 @@ public:
         Diffuse_Position,
         Diffuse_Normal_Position
     };
-    enum BufferFloatPrecision {
+    enum class BufferFloatPrecision {
         Float_16Bit = 0,
         Float_32Bit
     };
@@ -100,7 +101,7 @@ public:
 
     // -- mutex protected get functions ---------- //
     bool getUseRLE();
-    int getCaptureFormat();
+    sgct_core::ScreenCapture::CaptureFormat getCaptureFormat();
     int getPNGCompressionLevel();
     int getJPEGQuality();
 
@@ -134,7 +135,7 @@ private:
 private:
     static SGCTSettings* mInstance;
 
-    int mCaptureFormat;
+    sgct_core::ScreenCapture::CaptureFormat mCaptureFormat;
     int mSwapInterval = 1;
     int mRefreshRate = 0;
     int mNumberOfCaptureThreads = std::thread::hardware_concurrency();
@@ -175,7 +176,7 @@ private:
     unsigned int mFontSize = 10;
 
     DrawBufferType mCurrentDrawBuffer = Diffuse;
-    BufferFloatPrecision mCurrentBufferFloatPrecision = Float_16Bit;
+    BufferFloatPrecision mCurrentBufferFloatPrecision = BufferFloatPrecision::Float_16Bit;
 
     //mutex
     std::mutex mMutex;

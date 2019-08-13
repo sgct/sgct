@@ -25,7 +25,7 @@ namespace sgct_core {
 class NonLinearProjection;
 
 struct FrustumData {
-    enum elemIdx {
+    enum ElemIdx {
         down = 0,
         up,
         left,
@@ -89,7 +89,7 @@ private:
     void parseSphericalMirrorProjection(tinyxml2::XMLElement* element);
     void parseFloatFromAttribute(tinyxml2::XMLElement* element, const std::string& tag,
         float& target);
-    bool parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
+    bool parseFrustumElement(FrustumData& frustum, FrustumData::ElemIdx elemIndex,
         tinyxml2::XMLElement* elem, const char* frustumTag);
 
     CorrectionMesh mCM;

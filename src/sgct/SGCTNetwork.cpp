@@ -84,7 +84,7 @@ void SGCTNetwork::init(std::string port, const std::string address, bool isServe
 {
     mServer = isServer;
     mConnectionType = connectionType;
-    if (mConnectionType == SyncConnection) {
+    if (mConnectionType == ConnectionTypes::SyncConnection) {
         mBufferSize = static_cast<uint32_t>(sgct::SharedData::instance()->getBufferSize());
         mUncompressedBufferSize = mBufferSize;
     }
@@ -268,14 +268,14 @@ std::string SGCTNetwork::getTypeStr() const {
 */
 std::string SGCTNetwork::getTypeStr(ConnectionTypes ct) {
     switch (ct) {
-        case SyncConnection:
+        case ConnectionTypes::SyncConnection:
         default:
             return "sync";
-        case ExternalASCIIConnection:
+        case ConnectionTypes::ExternalASCIIConnection:
             return "external ASCII control";
-        case ExternalRawConnection:
+        case ConnectionTypes::ExternalRawConnection:
             return "external binary control";
-        case DataTransfer:
+        case ConnectionTypes::DataTransfer:
             return "data transfer";
     }
 }
@@ -285,7 +285,9 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
         int flag = 1;
         int iResult;
 
-        if (!(getType() == DataTransfer && mUseNaglesAlgorithmInDataTransfer)) {
+        if (!(getType() == ConnectionTypes::DataTransfer &&
+            mUseNaglesAlgorithmInDataTransfer))
+        {
             //set no delay, disable nagle's algorithm
             iResult = setsockopt(
                 *socketPtr,    // socket affected
@@ -339,7 +341,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
             The default buffer value is 8k (8192 bytes) which is good for external control
             but might be a bit to big for sync data.
         */
-        if (getType() == sgct_core::SGCTNetwork::SyncConnection) {
+        if (getType() == sgct_core::SGCTNetwork::ConnectionTypes::SyncConnection) {
             int bufferSize = SocketBufferSize;
             iResult = setsockopt(
                 *socketPtr,
@@ -1038,7 +1040,7 @@ void SGCTNetwork::communicationHandler() {
     _ssize_t iResult = 0;
     do {
         //resize buffer request
-        if (getType() != DataTransfer && mRequestedSize > mBufferSize) {
+        if (getType() != ConnectionTypes::DataTransfer && mRequestedSize > mBufferSize) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
                 "Re-sizing tcp buffer size from %d to %d... ",
@@ -1066,7 +1068,7 @@ void SGCTNetwork::communicationHandler() {
         
         mHeaderId = DefaultId;
 
-        if (getType() == SyncConnection) {
+        if (getType() == ConnectionTypes::SyncConnection) {
             iResult = readSyncMessage(
                 recvHeader,
                 syncFrameNumber,
@@ -1074,7 +1076,7 @@ void SGCTNetwork::communicationHandler() {
                 uncompressedDataSize
             );
         }
-        else if (getType() == DataTransfer) {
+        else if (getType() == ConnectionTypes::DataTransfer) {
             iResult = readDataTransferMessage(
                 recvHeader,
                 packageId,
@@ -1088,7 +1090,7 @@ void SGCTNetwork::communicationHandler() {
 
         // if data was read successfully, then decode it
         if (iResult > 0) {
-            if (getType() == SyncConnection) {
+            if (getType() == ConnectionTypes::SyncConnection) {
                 // handle sync disconnect
                 if (parseDisconnectPackage(recvHeader)) {
                     setConnectedStatus(false);
@@ -1190,7 +1192,7 @@ void SGCTNetwork::communicationHandler() {
                 }
             }
             // handle external ascii communication
-            else if (getType() == ExternalASCIIConnection) {
+            else if (getType() == ConnectionTypes::ExternalASCIIConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(
                     sgct::MessageHandler::Level::Info,
@@ -1260,7 +1262,7 @@ void SGCTNetwork::communicationHandler() {
 #endif
             }
             // handle external raw/binary communication
-            else if (getType() == ExternalRawConnection) {
+            else if (getType() == ConnectionTypes::ExternalRawConnection) {
 #ifdef __SGCT_NETWORK_DEBUG__
                 sgct::MessageHandler::instance()->printDebug(
                     sgct::MessageHandler::Level::Info,
@@ -1279,7 +1281,7 @@ void SGCTNetwork::communicationHandler() {
 #endif
             }
             // handle data transfer communication
-            else if (getType() == DataTransfer) {
+            else if (getType() == ConnectionTypes::DataTransfer) {
                 // Disconnect if requested
                 if (parseDisconnectPackage(recvHeader)) {
                     setConnectedStatus(false);

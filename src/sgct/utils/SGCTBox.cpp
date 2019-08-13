@@ -22,7 +22,7 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm) {
     memset(mVerts, 0, 36 * sizeof(sgct_helpers::SGCTVertexData));
 
     //populate the array
-    if(tmm == Regular) {
+    if(tmm == TextureMappingMode::Regular) {
         //A (front/+z)
         mVerts[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f,  size / 2.f, size / 2.f };
         mVerts[1] = { 0.f, 0.f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f };
@@ -71,7 +71,7 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm) {
         mVerts[34] = { 1.f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f };
         mVerts[35] = { 1.f, 1.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f,  size / 2.f };
     }
-    else if (tmm == CubeMap) {
+    else if (tmm == TextureMappingMode::CubeMap) {
         //A (front/+z)
         mVerts[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f };
         mVerts[1] = { 0.f, 0.5f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f };

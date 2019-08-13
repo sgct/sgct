@@ -43,19 +43,19 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     TouchPoint::TouchAction touchAction;
     switch (action) {
         case GLFW_PRESS:
-            touchAction = TouchPoint::Pressed;
+            touchAction = TouchPoint::TouchAction::Pressed;
             break;
         case GLFW_MOVE:
-            touchAction = TouchPoint::Moved;
+            touchAction = TouchPoint::TouchAction::Moved;
             break;
         case GLFW_RELEASE:
-            touchAction = TouchPoint::Released;
+            touchAction = TouchPoint::TouchAction::Released;
             break;
         case GLFW_REPEAT:
-            touchAction = TouchPoint::Stationary;
+            touchAction = TouchPoint::TouchAction::Stationary;
             break;
         default:
-            touchAction = TouchPoint::NoAction;
+            touchAction = TouchPoint::TouchAction::NoAction;
     }
 
     glm::vec2 prevPos = pos;
@@ -66,7 +66,7 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     >::iterator prevPosMapIt = mPreviousTouchPositions.find(id);
     if (prevPosMapIt != mPreviousTouchPositions.end()) {
         prevPos = prevPosMapIt->second;
-        if (touchAction == TouchPoint::Released) {
+        if (touchAction == TouchPoint::TouchAction::Released) {
             mPreviousTouchPositions.erase(prevPosMapIt);
         }
         else {
@@ -88,8 +88,10 @@ void Touch::processPoint(int id, int action, double xpos, double ypos, int windo
     }
 
     // Check if position has not changed and make the point stationary then
-    if (touchAction == TouchPoint::Moved && glm::distance(pos, prevPos) == 0) {
-        touchAction = TouchPoint::Stationary;
+    if (touchAction == TouchPoint::TouchAction::Moved &&
+        glm::distance(pos, prevPos) == 0)
+    {
+        touchAction = TouchPoint::TouchAction::Stationary;
     }
 
     mTouchPoints.emplace_back(
@@ -151,11 +153,11 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
     int livePoints = 0;
     std::vector<int> endedTouchIds;
     for (const TouchPoint& touchPoint : mTouchPoints) {
-        if (touchPoint.action != TouchPoint::Stationary) {
+        if (touchPoint.action != TouchPoint::TouchAction::Stationary) {
             mAllPointsStationary = false;
         }
 
-        if (touchPoint.action != TouchPoint::Released) {
+        if (touchPoint.action != TouchPoint::TouchAction::Released) {
             livePoints++;
         }
         else {
@@ -185,16 +187,16 @@ std::string Touch::getTouchPointInfo(const TouchPoint* tp) {
     ss << "id(" << tp->id << "),";
     ss << "action(";
     switch (tp->action) {
-        case TouchPoint::Pressed:
+        case TouchPoint::TouchAction::Pressed:
             ss << "Pressed";
             break;
-        case TouchPoint::Moved:
+        case TouchPoint::TouchAction::Moved:
             ss << "Moved";
             break;
-        case TouchPoint::Released:
+        case TouchPoint::TouchAction::Released:
             ss << "Released";
             break;
-        case TouchPoint::Stationary:
+        case TouchPoint::TouchAction::Stationary:
             ss << "Stationary";
             break;
         default:

@@ -25,7 +25,7 @@ public:
     /*!
         Different sync stages. Server sync data to clients and clients syncs acknowlagement
     */
-    enum SyncMode { SendDataToClients = 0, AcknowledgeData };
+    enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
     enum NetworkMode { Remote = 0, LocalServer, LocalClient };
 
     static std::condition_variable gCond;
@@ -65,7 +65,7 @@ public:
 
 private:
     bool addConnection(const std::string& port, const std::string& address,
-        SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::SyncConnection);
+        SGCTNetwork::ConnectionTypes connectionType = SGCTNetwork::ConnectionTypes::SyncConnection);
     void initAPI();
     void getHostInfo();
     void updateConnectionStatus(SGCTNetwork* connection);

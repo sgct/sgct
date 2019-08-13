@@ -15,7 +15,8 @@ namespace sgct_utils {
 */
 class SGCTDomeGrid {
 public:
-    SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution = 128);
+    SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
+        unsigned int resolution = 128);
     ~SGCTDomeGrid();
     void draw();
 

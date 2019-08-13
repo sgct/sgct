@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/OffScreenBuffer.h>
 #include <sgct/ReadConfig.h>
 #include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTSettings.h>
 #include <sgct/SGCTUser.h>
 #include <sgct/SGCTVersion.h>
 #include <sgct/ShaderManager.h>
@@ -628,7 +629,7 @@ void Engine::initOGL() {
 
         //force buffer objects since display lists are not supported in core opengl 3.3+
         sgct_core::ClusterManager::instance()->setMeshImplementation(
-            sgct_core::ClusterManager::BUFFER_OBJECTS
+            sgct_core::ClusterManager::MeshImplementation::BufferObjects
         );
         mFixedOGLPipeline = false;
     }
@@ -705,7 +706,7 @@ void Engine::initOGL() {
     }
 
     //init window opengl data
-    getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+    getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::OGL_Context::Shared_Context);
 
     loadShaders();
     mStatistics->initVBO(mFixedOGLPipeline);
@@ -797,7 +798,7 @@ void Engine::initOGL() {
         if (!sgct_text::FontManager::instance()->addFont(
                 "SGCTFont",
                 tmpPath,
-                sgct_text::FontManager::FontPath_Local)
+                sgct_text::FontManager::Local)
             )
         {
             sgct_text::FontManager::instance()->getFont(
@@ -839,7 +840,9 @@ void Engine::clean() {
 
     if (mCleanUpFnPtr != nullptr) {
         if (mThisNode != nullptr && mThisNode->getNumberOfWindows() > 0) {
-            mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+            mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(
+                SGCTWindow::OGL_Context::Shared_Context
+            );
         }
         mCleanUpFnPtr();
     }
@@ -890,7 +893,9 @@ void Engine::clean() {
     // Destroy explicitly to avoid memory leak messages
     // Shared contex -------------------------------------------------------------------->
     if (mThisNode != nullptr && mThisNode->getNumberOfWindows() > 0) {
-        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Shared_Context
+        );
     }
     if (mStatistics != nullptr) {
         MessageHandler::instance()->print(
@@ -926,7 +931,9 @@ void Engine::clean() {
 
     //Window specific context ----------------------------------------------------------->
     if (mThisNode != nullptr && mThisNode->getNumberOfWindows() > 0) {
-        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(SGCTWindow::Window_Context);
+        mThisNode->getWindowPtr(0).makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Window_Context
+        );
     }
     
     MessageHandler::instance()->print(
@@ -1013,11 +1020,11 @@ Locks the rendering thread for synchronization. The two stages are:
 Sync time from statistics is the time each computer waits for sync.
 */
 bool Engine::frameLock(sgct::Engine::SyncStage stage) {
-    if (stage == PreStage) {
+    if (stage == SyncStage::PreStage) {
         double t0 = glfwGetTime();
         // from server to clients
         mNetworkConnections->sync(
-            sgct_core::NetworkManager::SendDataToClients,
+            sgct_core::NetworkManager::SyncMode::SendDataToClients,
             mStatistics
         ); 
         mStatistics->setSyncTime(static_cast<float>(glfwGetTime() - t0));
@@ -1090,7 +1097,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                 Let's signal that back to the master/server.
             */
             mNetworkConnections->sync(
-                sgct_core::NetworkManager::AcknowledgeData,
+                sgct_core::NetworkManager::SyncMode::AcknowledgeData,
                 mStatistics
             );
 
@@ -1198,7 +1205,9 @@ void Engine::render() {
     //create openGL query objects for opengl 3.3+
     GLuint time_queries[2];
     if (!mFixedOGLPipeline) {
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+        getCurrentWindowPtr().makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Shared_Context
+        );
         glGenQueries(2, time_queries);
     }
 
@@ -1253,7 +1262,7 @@ void Engine::render() {
             "Render-Loop: Sync/framelock\n"
         );
 #endif
-        if (!frameLock(PreStage)) {
+        if (!frameLock(SyncStage::PreStage)) {
             break;
         }
 
@@ -1279,7 +1288,9 @@ void Engine::render() {
     
         mRenderingOffScreen = SGCTSettings::instance()->useFBO();
         if (mRenderingOffScreen) {
-            getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+            getCurrentWindowPtr().makeOpenGLContextCurrent(
+                SGCTWindow::OGL_Context::Shared_Context
+            );
         }
 
         //Make sure correct context is current
@@ -1311,7 +1322,7 @@ void Engine::render() {
                 SGCTWindow& win = getCurrentWindowPtr();
 
                 if (!mRenderingOffScreen) {
-                    win.makeOpenGLContextCurrent(SGCTWindow::Window_Context);
+                    win.makeOpenGLContextCurrent(SGCTWindow::OGL_Context::Window_Context);
                 }
 
                 SGCTWindow::StereoMode sm = win.getStereoMode();
@@ -1335,7 +1346,7 @@ void Engine::render() {
                         mCurrentOffScreenBuffer = nonLinearProjPtr->getOffScreenBuffer();
 
                         nonLinearProjPtr->setAlpha(getCurrentWindowPtr().getAlpha() ? 0.f : 1.f);
-                        if (sm == static_cast<int>(SGCTWindow::No_Stereo)) {
+                        if (sm == SGCTWindow::StereoMode::NoStereo) {
                             //for mono viewports frustum mode can be selected by user or xml
                             mCurrentFrustumMode = win.getViewport(j)->getEye();
                             nonLinearProjPtr->renderCubemap(&mCurrentViewportIndex[SubViewport]);
@@ -1363,7 +1374,7 @@ void Engine::render() {
                 );
 #endif
                 //if any stereo type (except passive) then set frustum mode to left eye
-                if (sm == static_cast<int>(SGCTWindow::No_Stereo)) {
+                if (sm == SGCTWindow::StereoMode::NoStereo) {
                     mCurrentFrustumMode = sgct_core::Frustum::MonoEye;
                     renderViewports(LeftEye);
                 }
@@ -1376,7 +1387,7 @@ void Engine::render() {
                 mCurrentDrawBufferIndex++;
 
                 //if stereo
-                if (sm != static_cast<int>(SGCTWindow::No_Stereo)) {
+                if (sm != SGCTWindow::StereoMode::NoStereo) {
                     //jump back counter to the first buffer index for current window
                     mCurrentDrawBufferIndex = firstDrawBufferIndexInWindow;
 
@@ -1421,7 +1432,7 @@ void Engine::render() {
 #endif
                     mCurrentFrustumMode = sgct_core::Frustum::StereoRightEye;
                     //use a single texture for side-by-side and top-bottom stereo modes
-                    sm >= SGCTWindow::Side_By_Side_Stereo ?
+                    sm >= SGCTWindow::StereoMode::SideBySide ?
                         renderViewports(LeftEye) :
                         renderViewports(RightEye);
 
@@ -1471,7 +1482,9 @@ void Engine::render() {
         //glFinish(); //wait for all rendering to finish /* ATI doesn't like this.. the 
         // framerate is halfed if it's used. */
 
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+        getCurrentWindowPtr().makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Shared_Context
+        );
 
 #ifdef __SGCT_DEBUG__
         //check for errors
@@ -1548,7 +1561,7 @@ void Engine::render() {
         );
 #endif
         // master will wait for nodes render before swapping
-        if (!frameLock(PostStage)) {
+        if (!frameLock(SyncStage::PostStage)) {
             break;
         }
 
@@ -1591,7 +1604,9 @@ void Engine::render() {
     }
 
     if (!mFixedOGLPipeline) {
-        getCurrentWindowPtr().makeOpenGLContextCurrent(SGCTWindow::Shared_Context);
+        getCurrentWindowPtr().makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Shared_Context
+        );
         glDeleteQueries(2, time_queries);
     }
 }
@@ -1633,7 +1648,7 @@ void Engine::renderDisplayInfo() {
         
         sgct_text::print(
             font,
-            sgct_text::TOP_LEFT,
+            sgct_text::TopLeft,
             xPos,
             lineHeight * 6.f + yPos,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1644,7 +1659,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TOP_LEFT,
+            sgct_text::TopLeft,
             xPos,
             lineHeight * 5.f + yPos,
             glm::vec4(0.8f,0.8f,0.f,1.f),
@@ -1655,7 +1670,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TOP_LEFT,
+            sgct_text::TopLeft,
             xPos,
             lineHeight * 4.f + yPos,
             glm::vec4(0.8f, 0.f, 0.8f, 1.f),
@@ -1666,7 +1681,7 @@ void Engine::renderDisplayInfo() {
         if (isMaster()) {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 3.f + yPos,
                 glm::vec4(0.f,0.8f,0.8f,1.f),
@@ -1679,7 +1694,7 @@ void Engine::renderDisplayInfo() {
         else {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 3.f + yPos,
                 glm::vec4(0.f, 0.8f, 0.8f, 1.f),
@@ -1692,7 +1707,7 @@ void Engine::renderDisplayInfo() {
         if (usingSwapGroups) {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 2.f + yPos,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1706,7 +1721,7 @@ void Engine::renderDisplayInfo() {
         else {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 2.f + yPos,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1716,7 +1731,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TOP_LEFT,
+            sgct_text::TopLeft,
             xPos,
             lineHeight * 1.f + yPos,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1727,7 +1742,7 @@ void Engine::renderDisplayInfo() {
 
         sgct_text::print(
             font,
-            sgct_text::TOP_LEFT,
+            sgct_text::TopLeft,
             xPos,
             lineHeight * 0.f + yPos,
             glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1739,7 +1754,7 @@ void Engine::renderDisplayInfo() {
         if (mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye) {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 8.f + yPos,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1750,7 +1765,7 @@ void Engine::renderDisplayInfo() {
         else if (mCurrentFrustumMode == sgct_core::Frustum::StereoRightEye) {
             sgct_text::print(
                 font,
-                sgct_text::TOP_LEFT,
+                sgct_text::TopLeft,
                 xPos,
                 lineHeight * 8.f + yPos,
                 glm::vec4(0.8f, 0.8f, 0.8f, 1.f),
@@ -1988,13 +2003,13 @@ void Engine::renderFBOTexture() {
     bool maskShaderSet = false;
 
     SGCTWindow& win = getCurrentWindowPtr();
-    win.makeOpenGLContextCurrent(SGCTWindow::Window_Context);
+    win.makeOpenGLContextCurrent(SGCTWindow::OGL_Context::Window_Context);
 
     glDisable(GL_BLEND);
     glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA); //needed for shaders
 
     //clear buffers
-    mCurrentFrustumMode = win.getStereoMode() == SGCTWindow::Active_Stereo ?
+    mCurrentFrustumMode = win.getStereoMode() == SGCTWindow::StereoMode::Active ?
         sgct_core::Frustum::StereoLeftEye :
         sgct_core::Frustum::MonoEye;
 
@@ -2015,7 +2030,9 @@ void Engine::renderFBOTexture() {
         sgct_core::CorrectionMesh::QUAD_MESH;
 
     SGCTWindow::StereoMode sm = win.getStereoMode();
-    if (sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo) {
+    if (sm > SGCTWindow::StereoMode::Active &&
+        sm < SGCTWindow::StereoMode::SideBySide)
+    {
         glActiveTexture(GL_TEXTURE0);
         glBindTexture(GL_TEXTURE_2D, win.getFrameBufferTexture(LeftEye));
 
@@ -2044,7 +2061,7 @@ void Engine::renderFBOTexture() {
         }
 
         // render right eye in active stereo mode
-        if (win.getStereoMode() == SGCTWindow::Active_Stereo) {
+        if (win.getStereoMode() == SGCTWindow::StereoMode::Active) {
             glViewport(0, 0, xSize, ySize);
             
             //clear buffers
@@ -2119,10 +2136,10 @@ void Engine::renderFBOTextureFixedPipeline() {
     sgct_core::OffScreenBuffer::unBind();
     
     SGCTWindow& win = getCurrentWindowPtr();
-    win.makeOpenGLContextCurrent(SGCTWindow::Window_Context);
+    win.makeOpenGLContextCurrent(SGCTWindow::OGL_Context::Window_Context);
     
     //clear buffers
-    mCurrentFrustumMode = win.getStereoMode() == SGCTWindow::Active_Stereo ?
+    mCurrentFrustumMode = win.getStereoMode() == SGCTWindow::StereoMode::Active ?
         sgct_core::Frustum::StereoLeftEye :
         sgct_core::Frustum::MonoEye;
     
@@ -2161,7 +2178,9 @@ void Engine::renderFBOTextureFixedPipeline() {
         sgct_core::CorrectionMesh::WARP_MESH :
         sgct_core::CorrectionMesh::QUAD_MESH;
 
-    if (sm > SGCTWindow::Active_Stereo && sm < SGCTWindow::Side_By_Side_Stereo) {
+    if (sm > SGCTWindow::StereoMode::Active &&
+        sm < SGCTWindow::StereoMode::SideBySide)
+    {
         win.bindStereoShaderProgram();
 
         glUniform1i(win.getStereoShaderLeftTexLoc(), 0);
@@ -2190,7 +2209,7 @@ void Engine::renderFBOTextureFixedPipeline() {
         }
 
         //render right eye in active stereo mode
-        if (win.getStereoMode() == SGCTWindow::Active_Stereo) {
+        if (win.getStereoMode() == SGCTWindow::StereoMode::Active) {
             glViewport(0, 0, win.getXResolution(), win.getYResolution());
             
             //clear buffers
@@ -2272,7 +2291,7 @@ void Engine::renderViewports(TextureIndexes ti) {
 
         if (vp->isEnabled()) {
             //if passive stereo or mono
-            if (sm == SGCTWindow::No_Stereo) {
+            if (sm == SGCTWindow::StereoMode::NoStereo) {
                 mCurrentFrustumMode = vp->getEye();
             }
 
@@ -2331,7 +2350,7 @@ void Engine::renderViewports(TextureIndexes ti) {
     glDisable(GL_DEPTH_TEST);
 
     //if side-by-side and top-bottom mode only do post fx and blit only after rendered right eye
-    bool split_screen_stereo = (sm >= sgct::SGCTWindow::Side_By_Side_Stereo);
+    bool split_screen_stereo = (sm >= sgct::SGCTWindow::StereoMode::SideBySide);
     if (!( split_screen_stereo &&
         mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye))
     {
@@ -2396,7 +2415,9 @@ void Engine::render2D() {
             //The text renderer enters automatically the correct viewport
             if (mShowInfo) {
                 //choose specified eye from config
-                if (getCurrentWindowPtr().getStereoMode() == SGCTWindow::No_Stereo) {
+                if (getCurrentWindowPtr().getStereoMode() ==
+                        SGCTWindow::StereoMode::NoStereo)
+                {
                     mCurrentFrustumMode = getCurrentWindowPtr().getCurrentViewport()->getEye();
                 }
                 renderDisplayInfo();
@@ -2720,7 +2741,7 @@ void Engine::loadShaders() {
     bool fxaaVertShader = mShaders[FXAAShader].addShaderSrc(
         fxaa_vert_shader,
         GL_VERTEX_SHADER,
-        ShaderProgram::SHADER_SRC_STRING
+        ShaderProgram::ShaderSourceType::String
     );
     if (!fxaaVertShader) {
         MessageHandler::instance()->print(
@@ -2732,7 +2753,7 @@ void Engine::loadShaders() {
     bool fxaaFragShader = mShaders[FXAAShader].addShaderSrc(
         fxaa_frag_shader,
         GL_FRAGMENT_SHADER,
-        ShaderProgram::SHADER_SRC_STRING
+        ShaderProgram::ShaderSourceType::String
     );
     if (!fxaaFragShader) {
         MessageHandler::instance()->print(
@@ -2797,7 +2818,7 @@ void Engine::loadShaders() {
         bool fboQuadVertShader = mShaders[FBOQuadShader].addShaderSrc(
             FBO_quad_vert_shader,
             GL_VERTEX_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!fboQuadVertShader) {
             MessageHandler::instance()->print(
@@ -2808,7 +2829,7 @@ void Engine::loadShaders() {
         bool fboQuadFragShader = mShaders[FBOQuadShader].addShaderSrc(
             FBO_quad_frag_shader,
             GL_FRAGMENT_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!fboQuadFragShader) {
             MessageHandler::instance()->print(
@@ -2843,7 +2864,7 @@ void Engine::loadShaders() {
         bool overlayVertShader = mShaders[OverlayShader].addShaderSrc(
             Overlay_vert_shader,
             GL_VERTEX_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!overlayVertShader) {
             MessageHandler::instance()->print(
@@ -2854,7 +2875,7 @@ void Engine::loadShaders() {
         bool overlayFragShader = mShaders[OverlayShader].addShaderSrc(
             Overlay_frag_shader,
             GL_FRAGMENT_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!overlayFragShader) {
             MessageHandler::instance()->print(
@@ -2886,7 +2907,7 @@ void Engine::loadShaders() {
 void Engine::setAndClearBuffer(BufferMode mode) {
     if (mode < RenderToTexture) {
         //Set buffer
-        if (getCurrentWindowPtr().getStereoMode() != SGCTWindow::Active_Stereo) {
+        if (getCurrentWindowPtr().getStereoMode() != SGCTWindow::StereoMode::Active) {
             glDrawBuffer(
                 getCurrentWindowPtr().isDoubleBuffered() ? GL_BACK : GL_FRONT
             );
@@ -3054,7 +3075,9 @@ std::string Engine::getGLSLVersion() const {
 void Engine::waitForAllWindowsInSwapGroupToOpen() {
     //clear the buffers initially
     for (size_t i = 0; i < mThisNode->getNumberOfWindows(); i++) {
-        mThisNode->getWindowPtr(i).makeOpenGLContextCurrent(SGCTWindow::Window_Context);
+        mThisNode->getWindowPtr(i).makeOpenGLContextCurrent(
+            SGCTWindow::OGL_Context::Window_Context
+        );
         glDrawBuffer(getCurrentWindowPtr().isDoubleBuffered() ? GL_BACK : GL_FRONT);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
@@ -4129,22 +4152,22 @@ void Engine::enterCurrentViewport() {
     mCurrentViewportCoords[3] = static_cast<int>(vp->getYSize() * yRes);
 
     SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();
-    if (sm >= SGCTWindow::Side_By_Side_Stereo) {
+    if (sm >= SGCTWindow::StereoMode::SideBySide) {
         if (mCurrentFrustumMode == sgct_core::Frustum::StereoLeftEye) {
             switch (sm) {
-                case SGCTWindow::Side_By_Side_Stereo:
+                case SGCTWindow::StereoMode::SideBySide:
                     mCurrentViewportCoords[0] = mCurrentViewportCoords[0] >> 1; //x offset
                     mCurrentViewportCoords[2] = mCurrentViewportCoords[2] >> 1; //x size
                     break;
-                case SGCTWindow::Side_By_Side_Inverted_Stereo:
+                case SGCTWindow::StereoMode::SideBySideInverted:
                     mCurrentViewportCoords[0] = (mCurrentViewportCoords[0] >> 1) + (mCurrentViewportCoords[2] >> 1); //x offset
                     mCurrentViewportCoords[2] = mCurrentViewportCoords[2] >> 1; //x size
                     break;
-                case SGCTWindow::Top_Bottom_Stereo:
+                case SGCTWindow::StereoMode::TopBottom:
                     mCurrentViewportCoords[1] = (mCurrentViewportCoords[1] >> 1) + (mCurrentViewportCoords[3] >> 1); //y offset
                     mCurrentViewportCoords[3] = mCurrentViewportCoords[3] >> 1; //y size
                     break;
-                case SGCTWindow::Top_Bottom_Inverted_Stereo:
+                case SGCTWindow::StereoMode::TopBottomInverted:
                     mCurrentViewportCoords[1] = mCurrentViewportCoords[1] >> 1; //y offset
                     mCurrentViewportCoords[3] = mCurrentViewportCoords[3] >> 1; //y size
                     break;
@@ -4154,19 +4177,19 @@ void Engine::enterCurrentViewport() {
         }
         else {
             switch (sm) {
-                case SGCTWindow::Side_By_Side_Stereo:
+                case SGCTWindow::StereoMode::SideBySide:
                     mCurrentViewportCoords[0] = (mCurrentViewportCoords[0] >> 1) + (mCurrentViewportCoords[2] >> 1); //x offset
                     mCurrentViewportCoords[2] = mCurrentViewportCoords[2] >> 1; //x size
                     break;
-                case SGCTWindow::Side_By_Side_Inverted_Stereo:
+                case SGCTWindow::StereoMode::SideBySideInverted:
                     mCurrentViewportCoords[0] = mCurrentViewportCoords[0] >> 1; //x offset
                     mCurrentViewportCoords[2] = mCurrentViewportCoords[2] >> 1; //x size
                     break;
-                case SGCTWindow::Top_Bottom_Stereo:
+                case SGCTWindow::StereoMode::TopBottom:
                     mCurrentViewportCoords[1] = mCurrentViewportCoords[1] >> 1; //y offset
                     mCurrentViewportCoords[3] = mCurrentViewportCoords[3] >> 1; //y size
                     break;
-                case SGCTWindow::Top_Bottom_Inverted_Stereo:
+                case SGCTWindow::StereoMode::TopBottomInverted:
                     mCurrentViewportCoords[1] = (mCurrentViewportCoords[1] >> 1) + (mCurrentViewportCoords[3] >> 1); //y offset
                     mCurrentViewportCoords[3] = mCurrentViewportCoords[3] >> 1; //y size
                     break;

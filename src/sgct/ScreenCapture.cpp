@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ScreenCapture.h>
 
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTSettings.h>
 #include <sgct/SGCTWindow.h>
 #include <sgct/Engine.h>
 #include <sgct/Image.h>
@@ -40,6 +41,10 @@ namespace {
 } // namespace
 
 namespace sgct_core {
+
+ScreenCapture::ScreenCapture()
+    : mNumberOfThreads(sgct::SGCTSettings::instance()->getNumberOfCaptureThreads())
+{}
 
 ScreenCapture::~ScreenCapture() {
     sgct::MessageHandler::instance()->print(
@@ -355,21 +360,21 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     std::string tmpPath;
     using Settings = sgct::SGCTSettings;
     switch (mEyeIndex) {
-        case MONO:
+        case EyeIndex::Mono:
         default:
             if (useDefaultSettings) {
                 tmpPath = Settings::instance()->getCapturePath(Settings::Mono);
             }
             break;
 
-        case STEREO_LEFT:
+        case EyeIndex::StereoLeft:
             eye = "_L";
             if (useDefaultSettings) {
                 tmpPath = Settings::instance()->getCapturePath(Settings::LeftStereo);
             }
             break;
 
-        case STEREO_RIGHT:
+        case EyeIndex::StereoRight:
             eye = "_R";
             if (useDefaultSettings)
                 tmpPath = Settings::instance()->getCapturePath(Settings::RightStereo);
@@ -377,10 +382,10 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     }
 
     std::string suffix;
-    if (mFormat == PNG) {
+    if (mFormat == CaptureFormat::PNG) {
         suffix = "png";
     }
-    else if (mFormat == TGA) {
+    else if (mFormat == CaptureFormat::TGA) {
         suffix = "tga";
     }
     else {

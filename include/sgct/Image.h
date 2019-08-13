@@ -21,7 +21,7 @@ namespace sgct_core {
 class Image {
 public:
     enum ChannelType { Blue = 0, Green, Red, Alpha };
-    enum FormatType { FORMAT_PNG = 0, FORMAT_JPEG, FORMAT_TGA, UNKNOWN_FORMAT };
+    enum class FormatType { PNG = 0, JPEG, TGA, Unknown };
     
     Image() = default;
     ~Image();

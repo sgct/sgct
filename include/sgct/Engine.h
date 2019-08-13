@@ -403,9 +403,8 @@ public:
     void setSyncParameters(bool printMessage = true, float timeout = 60.f);
 
 private:
-    enum SyncStage { PreStage = 0, PostStage };
+    enum class SyncStage { PreStage = 0, PostStage };
     enum BufferMode { BackBuffer = 0, BackBufferBlack, RenderToTexture };
-    enum ViewportSpace { ScreenSpace = 0, FBOSpace };
     enum ShaderIndexes { FBOQuadShader = 0, FXAAShader, OverlayShader };
     enum ShaderLocIndexes {
         MonoTex = 0,
@@ -421,7 +420,7 @@ private:
 
     bool frameLock(SyncStage stage);
     void calculateFPS(double timestamp);
-    void parseArguments( std::vector<std::string>& arg );
+    void parseArguments(std::vector<std::string>& arg);
     void renderDisplayInfo();
     void printNodeInfo(unsigned int nodeId);
     void enterCurrentViewport();

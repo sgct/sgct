@@ -60,7 +60,7 @@ bool ShaderProgram::addShaderSrc(const std::string& src,
 {
     sgct_core::ShaderData sd;
     sd.mShader.setShaderType(type);
-    sd.mIsSrcFile = sSrcType == SHADER_SRC_FILE;
+    sd.mIsSrcFile = sSrcType == ShaderSourceType::File;
     sd.mShaderSrc = src;
 
     bool success;

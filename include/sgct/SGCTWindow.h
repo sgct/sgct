@@ -33,34 +33,34 @@ public:
     /*!
         Different stereo modes used for rendering
     */
-    enum StereoMode {
-        No_Stereo = 0,
-        Active_Stereo,
-        Anaglyph_Red_Cyan_Stereo,
-        Anaglyph_Amber_Blue_Stereo,
-        Anaglyph_Red_Cyan_Wimmer_Stereo,
-        Checkerboard_Stereo,
-        Checkerboard_Inverted_Stereo,
-        Vertical_Interlaced_Stereo,
-        Vertical_Interlaced_Inverted_Stereo,
-        Dummy_Stereo,
-        Side_By_Side_Stereo,
-        Side_By_Side_Inverted_Stereo,
-        Top_Bottom_Stereo,
-        Top_Bottom_Inverted_Stereo,
-        Number_Of_Stereo_Items
+    enum class StereoMode {
+        NoStereo = 0,
+        Active,
+        AnaglyphRedCyan,
+        AnaglyphAmberBlue,
+        AnaglyphRedCyanWimmer,
+        Checkerboard,
+        CheckerboardInverted,
+        VerticalInterlaced,
+        VerticalInterlacedInverted,
+        Dummy,
+        SideBySide,
+        SideBySideInverted,
+        TopBottom,
+        TopBottomInverted
     };
 
-    enum OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
-    enum ColorBitDepth {
-        BufferColorBitDepth8,
-        BufferColorBitDepth16,
-        BufferColorBitDepth16Float,
-        BufferColorBitDepth32Float,
-        BufferColorBitDepth16Int,
-        BufferColorBitDepth32Int,
-        BufferColorBitDepth16UInt,
-        BufferColorBitDepth32UInt
+    enum class OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
+    
+    enum class ColorBitDepth {
+        Depth8,
+        Depth16,
+        Depth16Float,
+        Depth32Float,
+        Depth16Int,
+        Depth32Int,
+        Depth16UInt,
+        Depth32UInt
     };
 
     SGCTWindow(int id);
@@ -307,7 +307,7 @@ private:
     bool mUseFXAA;
     bool mUsePostFX = false;
 
-    ColorBitDepth mBufferColorBitDepth = BufferColorBitDepth8;
+    ColorBitDepth mBufferColorBitDepth = ColorBitDepth::Depth8;
     int mInternalColorFormat;
     unsigned int mColorFormat;
     unsigned int mColorDataType;
@@ -319,7 +319,7 @@ private:
 
     sgct_core::ScreenCapture* mScreenCapture[2] = { nullptr, nullptr };
 
-    StereoMode mStereoMode = No_Stereo;
+    StereoMode mStereoMode = StereoMode::NoStereo;
     int mNumberOfAASamples;
     int mId;
 

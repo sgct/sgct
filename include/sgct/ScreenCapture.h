@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__SCREEN_CAPTURE__H__
 
 #include <sgct/ogl_headers.h>
-#include <sgct/SGCTSettings.h>
 #include <mutex>
 #include <string>
 #include <thread>
@@ -32,8 +31,8 @@ struct ScreenCaptureThreadInfo {
 class ScreenCapture {
 public:
     //! The different file formats supported
-    enum CaptureFormat {
-        NOT_SET = -1,
+    enum class CaptureFormat {
+        NotSet = -1,
         PNG = 0,
         TGA,
         JPEG
@@ -44,12 +43,13 @@ public:
         CAPTURE_LEFT_BACK_BUFFER = GL_BACK_LEFT,
         CAPTURE_RIGHT_BACK_BUFFER = GL_BACK_RIGHT
     };
-    enum EyeIndex {
-        MONO = 0,
-        STEREO_LEFT,
-        STEREO_RIGHT
+    enum class EyeIndex {
+        Mono = 0,
+        StereoLeft,
+        StereoRight
     };
 
+    ScreenCapture();
     ~ScreenCapture();
 
     void init(size_t windowIndex, EyeIndex ei);
@@ -80,8 +80,7 @@ private:
     std::mutex mMutex;
     ScreenCaptureThreadInfo* mSCTIPtrs = nullptr;
 
-    unsigned int mNumberOfThreads =
-        sgct::SGCTSettings::instance()->getNumberOfCaptureThreads();
+    unsigned int mNumberOfThreads ;
     unsigned int mPBO = 0;
     unsigned int mDownloadFormat = GL_BGRA;
     unsigned int mDownloadType = GL_UNSIGNED_BYTE;
@@ -97,8 +96,8 @@ private:
     std::string mPath;
     bool mUsePBO = true;
     bool mPreferBGR = true;
-    EyeIndex mEyeIndex = MONO;
-    CaptureFormat mFormat = PNG;
+    EyeIndex mEyeIndex = EyeIndex::Mono;
+    CaptureFormat mFormat = CaptureFormat::PNG;
     size_t mWindowIndex = 0;
 };
 

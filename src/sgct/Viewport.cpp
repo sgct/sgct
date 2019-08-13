@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/FisheyeProjection.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/ReadConfig.h>
+#include <sgct/ScreenCapture.h>
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
 #include <sgct/TextureManager.h>
@@ -188,7 +189,7 @@ void Viewport::parseFloatFromAttribute(tinyxml2::XMLElement* element,
     }
 }
 
-bool Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::elemIdx elemIndex,
+bool Viewport::parseFrustumElement(FrustumData& frustum, FrustumData::ElemIdx elemIndex,
                                    tinyxml2::XMLElement* elem, const char* frustumTag)
 {
     if (strcmp(frustumTag, elem->Value()) == 0) {
@@ -261,7 +262,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::right,
+                        FrustumData::ElemIdx::right,
                         element[4],
                         "rightAngle"
                     );
@@ -269,7 +270,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::left,
+                        FrustumData::ElemIdx::left,
                         element[4],
                         "leftAngle"
                     );
@@ -277,7 +278,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::up,
+                        FrustumData::ElemIdx::up,
                         element[4],
                         "upAngle"
                     );
@@ -285,7 +286,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::down,
+                        FrustumData::ElemIdx::down,
                         element[4],
                         "downAngle"
                     );
@@ -293,7 +294,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::yaw,
+                        FrustumData::ElemIdx::yaw,
                         element[4],
                         "yaw"
                     );
@@ -301,7 +302,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::pitch,
+                        FrustumData::ElemIdx::pitch,
                         element[4],
                         "pitch"
                     );
@@ -309,7 +310,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
                 if (!frustumTagFound) {
                     frustumTagFound = parseFrustumElement(
                         frustumElements,
-                        FrustumData::elemIdx::roll,
+                        FrustumData::ElemIdx::roll,
                         element[4],
                         "roll"
                     );
@@ -331,24 +332,24 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
-                frustumElements.value[FrustumData::elemIdx::down],
-                frustumElements.value[FrustumData::elemIdx::left],
-                frustumElements.value[FrustumData::elemIdx::right],
-                frustumElements.value[FrustumData::elemIdx::up],
-                frustumElements.value[FrustumData::elemIdx::yaw],
-                frustumElements.value[FrustumData::elemIdx::pitch],
-                frustumElements.value[FrustumData::elemIdx::roll]
+                frustumElements.value[FrustumData::ElemIdx::down],
+                frustumElements.value[FrustumData::ElemIdx::left],
+                frustumElements.value[FrustumData::ElemIdx::right],
+                frustumElements.value[FrustumData::ElemIdx::up],
+                frustumElements.value[FrustumData::ElemIdx::yaw],
+                frustumElements.value[FrustumData::ElemIdx::pitch],
+                frustumElements.value[FrustumData::ElemIdx::roll]
             );
             rotQuat = ReadConfig::parseMpcdiOrientationNode(
-                frustumElements.value[FrustumData::elemIdx::yaw],
-                frustumElements.value[FrustumData::elemIdx::pitch],
-                frustumElements.value[FrustumData::elemIdx::roll]
+                frustumElements.value[FrustumData::ElemIdx::yaw],
+                frustumElements.value[FrustumData::ElemIdx::pitch],
+                frustumElements.value[FrustumData::ElemIdx::roll]
             );
             setViewPlaneCoordsUsingFOVs(
-                frustumElements.value[FrustumData::elemIdx::up],
-                frustumElements.value[FrustumData::elemIdx::down],
-                frustumElements.value[FrustumData::elemIdx::left],
-                frustumElements.value[FrustumData::elemIdx::right],
+                frustumElements.value[FrustumData::ElemIdx::up],
+                frustumElements.value[FrustumData::ElemIdx::down],
+                frustumElements.value[FrustumData::ElemIdx::left],
+                frustumElements.value[FrustumData::ElemIdx::right],
                 rotQuat,
                 distance
             );
@@ -459,16 +460,16 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     if (element->Attribute("method") != nullptr) {
         fishProj->setRenderingMethod(
             strcmp(element->Attribute("method"), "five_face_cube") == 0 ?
-                FisheyeProjection::FiveFaceCube :
-                FisheyeProjection::FourFaceCube
+                FisheyeProjection::FisheyeMethod::FiveFaceCube :
+                FisheyeProjection::FisheyeMethod::FourFaceCube
         );
     }
 
     if (element->Attribute("interpolation") != nullptr) {
         fishProj->setInterpolationMode(
             strcmp(element->Attribute("interpolation"), "cubic") == 0 ?
-                NonLinearProjection::Cubic :
-                NonLinearProjection::Linear
+                NonLinearProjection::InterpolationMode::Cubic :
+                NonLinearProjection::InterpolationMode::Linear
         );
     }
 

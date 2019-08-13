@@ -19,7 +19,8 @@ class PostFX {
 public:
     bool init(std::string name, const std::string& vertShaderSrc,
         const std::string& fragShaderSrc,
-        ShaderProgram::ShaderSourceType srcType = ShaderProgram::SHADER_SRC_FILE);
+        ShaderProgram::ShaderSourceType srcType =
+            ShaderProgram::ShaderSourceType::File);
     void destroy();
     void render();
     void setUpdateUniformsFunction(void(*fnPtr)());

@@ -41,33 +41,34 @@ if( !sgct_text::FontManager::instance()->addFont( "Verdana", "verdana.ttf" ) )
     sgct_text::FontManager::instance()->getFont( "Verdana", 14 );
  
 //Add Special font from local path
-if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", sgct_text::FontManager::FontPath_Local ) )
+if( !sgct_text::FontManager::instance()->addFont( "Special", "Special.ttf", sgct_text::FontManager::Local ) )
     sgct_text::FontManager::instance()->getFont( "Special", 14 );
 \endcode
 \n
 Then in the draw or draw2d callback the font can be rendered:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), sgct_text::TOP_LEFT, 50, 50, "Hello World!");
+sgct_text::print(sgct_text::FontManager::instance()->getFont( "Verdana", 14 ), sgct_text::TopLeft, 50, 50, "Hello World!");
 \endcode
 \n
 SGCT has an internal font that can be used as well:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TOP_LEFT, 50, 50, "Hello World!");
+sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TopLeft, 50, 50, "Hello World!");
 \endcode
 \n
 Non ASCII characters are supported as well:
 \code{.cpp}
-sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TOP_LEFT, 50, 50, L"Hallå Världen!");
+sgct_text::print(sgct_text::FontManager::instance()->getDefaultFont( 14 ), sgct_text::TopLeft, 50, 50, L"Hallå Världen!");
 \endcode
 */
 class FontManager {
 public:
     // Convenience enum from where to load font files
-    enum FontPath { FontPath_Local, FontPath_Default };
+    enum class FontPath { Local, Default };
 
     ~FontManager();
 
-    bool addFont(std::string fontName, std::string path, FontPath fontPath = FontPath_Default);
+    bool addFont(std::string fontName, std::string path,
+        FontPath fontPath = FontPath::Default);
     Font* getFont(const std::string& name, unsigned int height = mDefaultHeight);
     Font* getDefaultFont(unsigned int height = mDefaultHeight);
     

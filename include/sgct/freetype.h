@@ -16,7 +16,7 @@ namespace sgct_text {
 
 class Font;
 
-enum TextAlignMode { TOP_LEFT, TOP_CENTER, TOP_RIGHT};
+enum class TextAlignMode { TopLeft, TopCenter, TopRight};
 
 void print(Font* ft_font, TextAlignMode mode, float x, float y, const char* format, ...);
 void print(Font* ft_font, TextAlignMode mode, float x, float y,

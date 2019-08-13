@@ -18,7 +18,7 @@ This class manages and renders non linear fisheye projections
 */
 class FisheyeProjection : public NonLinearProjection {
 public:
-    enum FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
+    enum class FisheyeMethod { FourFaceCube = 0, FiveFaceCube, SixFaceCube };
     enum FisheyeCropSide { CropLeft = 0, CropRight, CropBottom, CropTop };
 
     void update(float width, float height);
@@ -62,7 +62,7 @@ private:
     glm::vec3 mBaseOffset = glm::vec3(0.f);
     glm::vec3 mTotalOffset = mBaseOffset + mOffset;
 
-    FisheyeMethod mMethod = FourFaceCube;
+    FisheyeMethod mMethod = FisheyeMethod::FourFaceCube;
 
     //shader locations
     struct {

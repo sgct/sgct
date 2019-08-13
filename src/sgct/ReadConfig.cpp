@@ -1163,85 +1163,85 @@ sgct::SGCTWindow::StereoMode ReadConfig::getStereoType(std::string type) {
     std::transform(type.begin(), type.end(), type.begin(), ::tolower);
     
     if (type == "none" || type == "no_stereo") {
-        return sgct::SGCTWindow::No_Stereo;
+        return sgct::SGCTWindow::StereoMode::NoStereo;
     }
     else if (type == "active" || type == "quadbuffer") {
-        return sgct::SGCTWindow::Active_Stereo;
+        return sgct::SGCTWindow::StereoMode::Active;
     }
     else if (type == "checkerboard") {
-        return sgct::SGCTWindow::Checkerboard_Stereo;
+        return sgct::SGCTWindow::StereoMode::Checkerboard;
     }
     else if (type == "checkerboard_inverted") {
-        return sgct::SGCTWindow::Checkerboard_Inverted_Stereo;
+        return sgct::SGCTWindow::StereoMode::CheckerboardInverted;
     }
     else if (type == "anaglyph_red_cyan") {
-        return sgct::SGCTWindow::Anaglyph_Red_Cyan_Stereo;
+        return sgct::SGCTWindow::StereoMode::AnaglyphRedCyan;
     }
     else if (type == "anaglyph_amber_blue") {
-        return sgct::SGCTWindow::Anaglyph_Amber_Blue_Stereo;
+        return sgct::SGCTWindow::StereoMode::AnaglyphAmberBlue;
     }
     else if (type == "anaglyph_wimmer") {
-        return sgct::SGCTWindow::Anaglyph_Red_Cyan_Wimmer_Stereo;
+        return sgct::SGCTWindow::StereoMode::AnaglyphRedCyanWimmer;
     }
     else if (type == "vertical_interlaced") {
-        return sgct::SGCTWindow::Vertical_Interlaced_Stereo;
+        return sgct::SGCTWindow::StereoMode::VerticalInterlaced;
     }
     else if (type == "vertical_interlaced_inverted") {
-        return sgct::SGCTWindow::Vertical_Interlaced_Inverted_Stereo;
+        return sgct::SGCTWindow::StereoMode::VerticalInterlacedInverted;
     }
     else if (type == "test" || type == "dummy") {
-        return sgct::SGCTWindow::Dummy_Stereo;
+        return sgct::SGCTWindow::StereoMode::Dummy;
     }
     else if (type == "side_by_side") {
-        return sgct::SGCTWindow::Side_By_Side_Stereo;
+        return sgct::SGCTWindow::StereoMode::SideBySide;
     }
     else if (type == "side_by_side_inverted") {
-        return sgct::SGCTWindow::Side_By_Side_Inverted_Stereo;
+        return sgct::SGCTWindow::StereoMode::SideBySideInverted;
     }
     else if (type == "top_bottom") {
-        return sgct::SGCTWindow::Top_Bottom_Stereo;
+        return sgct::SGCTWindow::StereoMode::TopBottom;
     }
     else if (type == "top_bottom_inverted") {
-        return sgct::SGCTWindow::Top_Bottom_Inverted_Stereo;
+        return sgct::SGCTWindow::StereoMode::TopBottomInverted;
     }
     
     //if match not found
-    return sgct::SGCTWindow::No_Stereo;
+    return sgct::SGCTWindow::StereoMode::NoStereo;
 }
 
 sgct::SGCTWindow::ColorBitDepth ReadConfig::getBufferColorBitDepth(std::string type) {
     std::transform(type.begin(), type.end(), type.begin(), ::tolower);
 
     if (type == "8") {
-        return sgct::SGCTWindow::BufferColorBitDepth8;
+        return sgct::SGCTWindow::ColorBitDepth::Depth8;
     }
     else if (type == "16") {
-        return sgct::SGCTWindow::BufferColorBitDepth16;
+        return sgct::SGCTWindow::ColorBitDepth::Depth16;
     }
     
     else if (type == "16f") {
-        return sgct::SGCTWindow::BufferColorBitDepth16Float;
+        return sgct::SGCTWindow::ColorBitDepth::Depth16Float;
     }
     else if (type == "32f") {
-        return sgct::SGCTWindow::BufferColorBitDepth32Float;
+        return sgct::SGCTWindow::ColorBitDepth::Depth32Float;
     }
 
     else if (type == "16i") {
-        return sgct::SGCTWindow::BufferColorBitDepth16Int;
+        return sgct::SGCTWindow::ColorBitDepth::Depth16Int;
     }
     else if (type == "32i") {
-        return sgct::SGCTWindow::BufferColorBitDepth32Int;
+        return sgct::SGCTWindow::ColorBitDepth::Depth32Int;
     }
 
     else if (type == "16ui") {
-        return sgct::SGCTWindow::BufferColorBitDepth16UInt;
+        return sgct::SGCTWindow::ColorBitDepth::Depth16UInt;
     }
     else if (type == "32ui") {
-        return sgct::SGCTWindow::BufferColorBitDepth32UInt;
+        return sgct::SGCTWindow::ColorBitDepth::Depth32UInt;
     }
 
     //default
-    return sgct::SGCTWindow::BufferColorBitDepth8;
+    return sgct::SGCTWindow::ColorBitDepth::Depth8;
 }
 
 bool ReadConfig::isValid() const {

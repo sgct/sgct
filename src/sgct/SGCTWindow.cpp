@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>
+#include <sgct/SGCTSettings.h>
 #include <sgct/TextureManager.h>
 #include <sgct/Viewport.h>
 #include <sgct/shaders/SGCTInternalShaders.h>
@@ -121,7 +122,7 @@ bool SGCTWindow::isIconified() const {
 }
 
 void SGCTWindow::close() {
-    makeOpenGLContextCurrent(Shared_Context);
+    makeOpenGLContextCurrent(OGL_Context::Shared_Context);
 
     //delete postFX
     for (size_t i = 0; i < getNumberOfPostFXs(); i++) {
@@ -183,7 +184,7 @@ void SGCTWindow::close() {
     /*
     Current handle must be set at the end to propely destroy the window
     */
-    makeOpenGLContextCurrent(Window_Context);
+    makeOpenGLContextCurrent(OGL_Context::Window_Context);
 
     deleteAllViewports();
 
@@ -250,7 +251,9 @@ void SGCTWindow::initOGL() {
     for (sgct_core::Viewport* vp : mViewports) {
         if (vp->hasSubViewports()) {
             setCurrentViewport(vp);
-            vp->getNonLinearProjectionPtr()->setStereo(mStereoMode != No_Stereo);
+            vp->getNonLinearProjectionPtr()->setStereo(
+                mStereoMode != StereoMode::NoStereo
+            );
             vp->getNonLinearProjectionPtr()->setPreferedMonoFrustumMode(vp->getEye());
             vp->getNonLinearProjectionPtr()->init(
                 mInternalColorFormat,
@@ -270,11 +273,11 @@ void SGCTWindow::initOGL() {
     Init context specific data such as viewport corrections/warping meshes
 */
 void SGCTWindow::initContextSpecificOGL() {
-    makeOpenGLContextCurrent(Window_Context);
+    makeOpenGLContextCurrent(OGL_Context::Window_Context);
     unsigned int numberOfMasks = 0;
     TextureManager::CompressionMode cm = TextureManager::instance()->getCompression();
     // must be uncompressed otherwise arifacts will occur in gradients
-    TextureManager::instance()->setCompression(TextureManager::No_Compression);
+    TextureManager::instance()->setCompression(TextureManager::CompressionMode::None);
 
     for (size_t j = 0; j < getNumberOfViewports(); j++) {
         sgct_core::Viewport* vpPtr = getViewport(j);
@@ -452,20 +455,22 @@ void SGCTWindow::setFramebufferResolution(int x, int y) {
 */
 void SGCTWindow::swap(bool takeScreenshot) {
     if ((mVisible || mRenderWhileHidden) && mAllowCapture) {
-        makeOpenGLContextCurrent( Window_Context );
+        makeOpenGLContextCurrent(OGL_Context::Window_Context);
         
         if (takeScreenshot) {
             if (SGCTSettings::instance()->getCaptureFromBackBuffer() && mDoubleBuffered) {
                 if (mScreenCapture[0] != nullptr) {
                     mScreenCapture[0]->saveScreenCapture(
                         0,
-                        mStereoMode == Active_Stereo ?
+                        mStereoMode == StereoMode::Active ?
                             sgct_core::ScreenCapture::CAPTURE_LEFT_BACK_BUFFER :
                             sgct_core::ScreenCapture::CAPTURE_BACK_BUFFER
                     );
                 }
 
-                if (mScreenCapture[1] != nullptr && mStereoMode == Active_Stereo) {
+                if (mScreenCapture[1] != nullptr &&
+                    mStereoMode == StereoMode::Active)
+                {
                     mScreenCapture[0]->saveScreenCapture(
                         0,
                         sgct_core::ScreenCapture::CAPTURE_RIGHT_BACK_BUFFER
@@ -478,8 +483,8 @@ void SGCTWindow::swap(bool takeScreenshot) {
                         mFrameBufferTextures[Engine::LeftEye]
                     );
                 }
-                if (mScreenCapture[1] != nullptr && mStereoMode > No_Stereo &&
-                    mStereoMode < SGCTWindow::Side_By_Side_Stereo)
+                if (mScreenCapture[1] != nullptr && mStereoMode > StereoMode::NoStereo &&
+                    mStereoMode < SGCTWindow::StereoMode::SideBySide)
                 {
                     mScreenCapture[1]->saveScreenCapture(
                         mFrameBufferTextures[Engine::RightEye]
@@ -594,7 +599,7 @@ bool SGCTWindow::update() {
     if (!mVisible || !isWindowResized()) {
         return false;
     }
-    makeOpenGLContextCurrent(Window_Context);
+    makeOpenGLContextCurrent(OGL_Context::Window_Context);
 
     //resize FBOs
     resizeFBOs();
@@ -647,11 +652,13 @@ bool SGCTWindow::update() {
     track of which context is in use and only set the context to current if it's not.
 */
 void SGCTWindow::makeOpenGLContextCurrent(OGL_Context context) {
-    if (context == Shared_Context && mCurrentContextOwner != mSharedHandle) {
+    if (context == OGL_Context::Shared_Context && mCurrentContextOwner != mSharedHandle) {
         glfwMakeContextCurrent(mSharedHandle);
         mCurrentContextOwner = mSharedHandle;
     }
-    else if (context == Window_Context && mCurrentContextOwner != mWindowHandle) {
+    else if (context == OGL_Context::Window_Context &&
+             mCurrentContextOwner != mWindowHandle)
+    {
         glfwMakeContextCurrent(mWindowHandle);
         mCurrentContextOwner = mWindowHandle;
     }
@@ -736,7 +743,7 @@ bool SGCTWindow::isWindowResolutionSet() const {
     Returns true if any kind of stereo is enabled
 */
 bool SGCTWindow::isStereo() const {
-    return mStereoMode != No_Stereo;
+    return mStereoMode != StereoMode::NoStereo;
 }
 
 /*!
@@ -920,7 +927,7 @@ bool SGCTWindow::openWindow(GLFWwindow* share, size_t lastWindowIdx) {
         glfwWindowHint(GLFW_VISIBLE, GL_FALSE);
     }
 
-    setUseQuadbuffer(mStereoMode == Active_Stereo);
+    setUseQuadbuffer(mStereoMode == StereoMode::Active);
 
     if (mFullScreen) {
         int count;
@@ -1200,14 +1207,14 @@ void SGCTWindow::initScreenCapture() {
         //init PBO in screen capture
         if (i == 0) {
             if (mUseRightEyeTexture) {
-                sc.init(mId, sgct_core::ScreenCapture::STEREO_LEFT);
+                sc.init(mId, sgct_core::ScreenCapture::EyeIndex::StereoLeft);
             }
             else {
-                sc.init(mId, sgct_core::ScreenCapture::MONO);
+                sc.init(mId, sgct_core::ScreenCapture::EyeIndex::Mono);
             }
         }
         else {
-            sc.init(mId, sgct_core::ScreenCapture::STEREO_RIGHT);
+            sc.init(mId, sgct_core::ScreenCapture::EyeIndex::StereoRight);
         }
 
         //a workaround for devices that are supporting pbos but not showing it, like OS X (Intel)
@@ -1240,7 +1247,7 @@ void SGCTWindow::initScreenCapture() {
             );
         }
 
-        if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::NOT_SET) {
+        if (SGCTSettings::instance()->getCaptureFormat() != sgct_core::ScreenCapture::CaptureFormat::NotSet) {
             sc.setCaptureFormat(
                 static_cast<sgct_core::ScreenCapture::CaptureFormat>(
                     SGCTSettings::instance()->getCaptureFormat()
@@ -1610,9 +1617,9 @@ void SGCTWindow::generateTexture(unsigned int id, int xSize, int ySize,
 */
 void SGCTWindow::createFBOs() {
     if (!SGCTSettings::instance()->useFBO()) {
-        //disable anaglyph & checkerboard stereo if FBOs are not used
-        if (mStereoMode > Active_Stereo) {
-            mStereoMode = No_Stereo;
+        // disable anaglyph & checkerboard stereo if FBOs are not used
+        if (mStereoMode > StereoMode::Active) {
+            mStereoMode = StereoMode::NoStereo;
         }
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -1700,7 +1707,9 @@ void SGCTWindow::createVBOs() {
 
 void SGCTWindow::loadShaders() {
     //load shaders
-    if (mStereoMode > Active_Stereo && mStereoMode < Side_By_Side_Stereo) {
+    if (mStereoMode > StereoMode::Active &&
+        mStereoMode < StereoMode::SideBySide)
+    {
         std::string stereo_frag_shader;
         std::string stereo_vert_shader;
         
@@ -1713,37 +1722,37 @@ void SGCTWindow::loadShaders() {
             sgct_core::shaders::Anaglyph_Vert_Shader :
             sgct_core::shaders_modern::Anaglyph_Vert_Shader;
 
-        if (mStereoMode == Anaglyph_Red_Cyan_Stereo) {
+        if (mStereoMode == StereoMode::AnaglyphRedCyan) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader :
                 sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader;
         }
-        else if (mStereoMode == Anaglyph_Amber_Blue_Stereo) {
+        else if (mStereoMode == StereoMode::AnaglyphAmberBlue) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader :
                 sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader;
         }
-        else if (mStereoMode == Anaglyph_Red_Cyan_Wimmer_Stereo) {
+        else if (mStereoMode == StereoMode::AnaglyphRedCyanWimmer) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer :
                 sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer;
         }
-        else if (mStereoMode == Checkerboard_Stereo) {
+        else if (mStereoMode == StereoMode::Checkerboard) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::CheckerBoard_Frag_Shader :
                 sgct_core::shaders_modern::CheckerBoard_Frag_Shader;
         }
-        else if (mStereoMode == Checkerboard_Inverted_Stereo) {
+        else if (mStereoMode == StereoMode::CheckerboardInverted) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader :
                 sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader;
         }
-        else if (mStereoMode == Vertical_Interlaced_Stereo) {
+        else if (mStereoMode == StereoMode::VerticalInterlaced) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader :
                 sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader;
         }
-        else if (mStereoMode == Vertical_Interlaced_Inverted_Stereo) {
+        else if (mStereoMode == StereoMode::VerticalInterlacedInverted) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
                 sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader :
                 sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader;
@@ -1769,7 +1778,7 @@ void SGCTWindow::loadShaders() {
         bool vertShader = mStereoShader.addShaderSrc(
             stereo_vert_shader,
             GL_VERTEX_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!vertShader) {
             MessageHandler::instance()->print(
@@ -1780,7 +1789,7 @@ void SGCTWindow::loadShaders() {
         bool fragShader = mStereoShader.addShaderSrc(
             stereo_frag_shader,
             GL_FRAGMENT_SHADER,
-            ShaderProgram::SHADER_SRC_STRING
+            ShaderProgram::ShaderSourceType::String
         );
         if (!fragShader) {
             MessageHandler::instance()->print(
@@ -1868,7 +1877,7 @@ void SGCTWindow::addPostFX(PostFX& fx) {
 */
 void SGCTWindow::resizeFBOs() {
     if (!mUseFixResolution && SGCTSettings::instance()->useFBO()) {
-        makeOpenGLContextCurrent(Shared_Context);
+        makeOpenGLContextCurrent(OGL_Context::Shared_Context);
         for (unsigned int i = 0; i < NUMBER_OF_TEXTURES; i++) {
             if (mFrameBufferTextures[i] != 0) {
                 glDeleteTextures(1, &mFrameBufferTextures[i]);
@@ -2011,7 +2020,8 @@ void SGCTWindow::setStereoMode(StereoMode sm) {
         getStereoModeStr().c_str(), mId
     );
 
-    mUseRightEyeTexture = mStereoMode != No_Stereo && mStereoMode < Side_By_Side_Stereo;
+    mUseRightEyeTexture = mStereoMode != StereoMode::NoStereo &&
+                          mStereoMode < StereoMode::SideBySide;
 
     if (mWindowHandle) {
         loadShaders();
@@ -2030,14 +2040,16 @@ sgct_core::ScreenCapture* SGCTWindow::getScreenCapturePointer(unsigned int eye) 
 }
 
 /*!
-    Set the which viewport that is the current. This is done from the Engine and end users shouldn't change this
+    Set the which viewport that is the current. This is done from the Engine and end users
+    shouldn't change this
 */
 void SGCTWindow::setCurrentViewport(size_t index) {
     mCurrentViewport = mViewports[index];
 }
 
 /*!
-Set the which viewport that is the current. This is done internally from SGCT and end users shouldn't change this
+    Set the which viewport that is the current. This is done internally from SGCT and end
+    users shouldn't change this
 */
 void SGCTWindow::setCurrentViewport(sgct_core::BaseViewport* vp) {
     mCurrentViewport = vp;
@@ -2045,31 +2057,31 @@ void SGCTWindow::setCurrentViewport(sgct_core::BaseViewport* vp) {
 
 std::string SGCTWindow::getStereoModeStr() const {
     switch (mStereoMode) {
-        case Active_Stereo:
+        case StereoMode::Active:
             return "active";
-        case Anaglyph_Red_Cyan_Stereo:
+        case StereoMode::AnaglyphRedCyan:
             return "anaglyph_red_cyan";
-        case Anaglyph_Amber_Blue_Stereo:
+        case StereoMode::AnaglyphAmberBlue:
             return "anaglyph_amber_blue";
-        case Anaglyph_Red_Cyan_Wimmer_Stereo:
+        case StereoMode::AnaglyphRedCyanWimmer:
             return "anaglyph_wimmer";
-        case Checkerboard_Stereo:
+        case StereoMode::Checkerboard:
             return "checkerboard";
-        case Checkerboard_Inverted_Stereo:
+        case StereoMode::CheckerboardInverted:
             return "checkerboard_inverted";
-        case Vertical_Interlaced_Stereo:
+        case StereoMode::VerticalInterlaced:
             return "vertical_interlaced";
-        case Vertical_Interlaced_Inverted_Stereo:
+        case StereoMode::VerticalInterlacedInverted:
             return "vertical_interlaced_inverted";
-        case Dummy_Stereo:
+        case StereoMode::Dummy:
             return "dummy";
-        case Side_By_Side_Stereo:
+        case StereoMode::SideBySide:
             return "side_by_side";
-        case Side_By_Side_Inverted_Stereo:
+        case StereoMode::SideBySideInverted:
             return "side_by_side_inverted";
-        case Top_Bottom_Stereo:
+        case StereoMode::TopBottom:
             return "top_bottom";
-        case Top_Bottom_Inverted_Stereo:
+        case StereoMode::TopBottomInverted:
             return "top_bottom_inverted";
         default:
             return "none";
@@ -2117,42 +2129,42 @@ void SGCTWindow::updateColorBufferData() {
     
     switch (mBufferColorBitDepth) {
         default:
-        case BufferColorBitDepth8:
+        case ColorBitDepth::Depth8:
             mInternalColorFormat = GL_RGBA8;
             mColorDataType = GL_UNSIGNED_BYTE;
             mBytesPerColor = 1;
             break;
-        case BufferColorBitDepth16:
+        case ColorBitDepth::Depth16:
             mInternalColorFormat = GL_RGBA16;
             mColorDataType = GL_UNSIGNED_SHORT;
             mBytesPerColor = 2;
             break;
-        case BufferColorBitDepth16Float:
+        case ColorBitDepth::Depth16Float:
             mInternalColorFormat = GL_RGBA16F;
             mColorDataType = GL_HALF_FLOAT;
             mBytesPerColor = 2;
             break;
-        case BufferColorBitDepth32Float:
+        case ColorBitDepth::Depth32Float:
             mInternalColorFormat = GL_RGBA32F;
             mColorDataType = GL_FLOAT;
             mBytesPerColor = 4;
             break;
-        case BufferColorBitDepth16Int:
+        case ColorBitDepth::Depth16Int:
             mInternalColorFormat = GL_RGBA16I;
             mColorDataType = GL_SHORT;
             mBytesPerColor = 2;
             break;
-        case BufferColorBitDepth32Int:
+        case ColorBitDepth::Depth32Int:
             mInternalColorFormat = GL_RGBA32I;
             mColorDataType = GL_INT;
             mBytesPerColor = 2;
             break;
-        case BufferColorBitDepth16UInt:
+        case ColorBitDepth::Depth16UInt:
             mInternalColorFormat = GL_RGBA16UI;
             mColorDataType = GL_UNSIGNED_SHORT;
             mBytesPerColor = 2;
             break;
-        case BufferColorBitDepth32UInt:
+        case ColorBitDepth::Depth32UInt:
             mInternalColorFormat = GL_RGBA32UI;
             mColorDataType = GL_UNSIGNED_INT;
             mBytesPerColor = 4;

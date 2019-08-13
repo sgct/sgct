@@ -22,7 +22,7 @@ public:
     SpoutOutputProjection() = default;
     virtual ~SpoutOutputProjection();
 
-    enum Mapping {
+    enum class Mapping {
         Fisheye,
         Equirectangular,
         Cubemap

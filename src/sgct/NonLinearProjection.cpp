@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>
+#include <sgct/SGCTSettings.h>
 #include <algorithm>
 
 namespace sgct_core {
@@ -190,9 +191,7 @@ int NonLinearProjection::getCubemapResolution() const {
 /*!
 @returns the interpolation mode used for the non linear rendering
 */
-const NonLinearProjection::InterpolationMode&
-NonLinearProjection::getInterpolationMode() const
-{
+NonLinearProjection::InterpolationMode NonLinearProjection::getInterpolationMode() const {
     return mInterpolationMode;
 }
 

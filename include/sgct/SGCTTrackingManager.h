@@ -51,7 +51,7 @@ public:
     bool isRunning();
 
 private:
-    void setHeadTracker(const char * trackerName, const char * deviceName);
+    void setHeadTracker(const char* trackerName, const char * deviceName);
 
 private:
     std::thread* mSamplingThread = nullptr;

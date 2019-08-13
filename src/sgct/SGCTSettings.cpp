@@ -30,7 +30,9 @@ void SGCTSettings::destroy() {
     }
 }
 
-SGCTSettings::SGCTSettings() : mCaptureFormat(sgct_core::ScreenCapture::NOT_SET) {}
+SGCTSettings::SGCTSettings()
+    : mCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::NotSet)
+{}
 
 
 void SGCTSettings::configure(tinyxml2::XMLElement* element) {
@@ -74,10 +76,10 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             int fprec = 0;
             if (subElement->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
                 if (fprec == 16) {
-                    instance()->setBufferFloatPrecision(Float_16Bit);
+                    instance()->setBufferFloatPrecision(BufferFloatPrecision::Float_16Bit);
                 }
                 else if (fprec == 32) {
-                    instance()->setBufferFloatPrecision(Float_32Bit);
+                    instance()->setBufferFloatPrecision(BufferFloatPrecision::Float_32Bit);
                 }
                 else {
                     MessageHandler::instance()->print(
@@ -443,13 +445,13 @@ void SGCTSettings::setCaptureFormat(const char* format) {
     mMutex.lock();
     
     if (strcmp("png", format) == 0 || strcmp("PNG", format) == 0) {
-        mCaptureFormat = sgct_core::ScreenCapture::PNG;
+        mCaptureFormat = sgct_core::ScreenCapture::CaptureFormat::PNG;
     }
     else if (strcmp("tga", format) == 0 || strcmp("TGA", format) == 0) {
-        mCaptureFormat = sgct_core::ScreenCapture::TGA;
+        mCaptureFormat = sgct_core::ScreenCapture::CaptureFormat::TGA;
     }
     else if (strcmp("jpg", format) == 0 || strcmp("JPG", format) == 0) {
-        mCaptureFormat = sgct_core::ScreenCapture::JPEG;
+        mCaptureFormat = sgct_core::ScreenCapture::CaptureFormat::JPEG;
     }
 
     mMutex.unlock();
@@ -469,9 +471,9 @@ const char* SGCTSettings::getCapturePath(CapturePathIndex cpi) const {
 
     \return the captureformat if set, otherwise -1 is returned
 */
-int SGCTSettings::getCaptureFormat() {
+sgct_core::ScreenCapture::CaptureFormat SGCTSettings::getCaptureFormat() {
     mMutex.lock();
-    int tmpI = mCaptureFormat;
+    sgct_core::ScreenCapture::CaptureFormat tmpI = mCaptureFormat;
     mMutex.unlock();
     return tmpI;
 }
@@ -702,7 +704,9 @@ const std::string& SGCTSettings::getOSDTextFontPath() const {
     Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
 */
 int SGCTSettings::getBufferFloatPrecisionAsGLint() const {
-    return mCurrentBufferFloatPrecision == Float_16Bit ? GL_RGB16F : GL_RGB32F;
+    return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float_16Bit ?
+        GL_RGB16F :
+        GL_RGB32F;
 }
 
 /*!

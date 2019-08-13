@@ -5,12 +5,8 @@
  For conditions of distribution and use, see copyright notice in sgct.h
  *************************************************************************/
 
-#define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
-#define MAX_XML_DEPTH 16
-
 #include <sgct/ReadConfig.h>
 
-#include <sgct/ogl_headers.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTMpcdi.h>
@@ -288,11 +284,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
         );
     }
     
-    XMLElement* element[MAX_XML_DEPTH];
-    for (unsigned int i = 0; i < MAX_XML_DEPTH; i++) {
+    constexpr const int MaxXmlDepth = 16;
+    XMLElement* element[MaxXmlDepth];
+    for (unsigned int i = 0; i < MaxXmlDepth; i++) {
         element[i] = nullptr;
     }
-    const char* val[MAX_XML_DEPTH];
+    const char* val[MaxXmlDepth];
     element[0] = XMLroot->FirstChildElement();
     while (element[0] != nullptr) {
         val[0] = element[0]->Value();

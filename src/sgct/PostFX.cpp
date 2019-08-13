@@ -7,12 +7,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/PostFX.h>
 
-#include <sgct/ogl_headers.h>
-#include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/OffScreenBuffer.h>
 #include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/OffScreenBuffer.h>
 
 namespace sgct {
 

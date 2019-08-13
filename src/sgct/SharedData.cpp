@@ -7,8 +7,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SharedData.h>
 
-#include <sgct/NetworkManager.h>
 #include <sgct/Engine.h>
+#include <sgct/SGCTNetwork.h>
 #include <sgct/SGCTMutexManager.h>
 #include <sgct/MessageHandler.h>
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -16,13 +16,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #else
 #include <zlib.h>
 #endif
-#include <stdio.h>
-#include <stdlib.h>
-#include <string.h>
+#include <string>
 
 namespace sgct {
-
-#define DEFAULT_SIZE 1024
 
 SharedData* SharedData::mInstance = nullptr;
 
@@ -43,15 +39,17 @@ void SharedData::destroy() {
 }
 
 SharedData::SharedData() {
+    constexpr const int DefaultSize = 1024;
+
     // use a compression buffer twice as large
     // to fit huffman tree + data which can be
     // larger than original data in some cases.
     // Normally a sixe x 1.1 should be enough.
-    mCompressedBuffer = new (std::nothrow) unsigned char[DEFAULT_SIZE * 2];
-    mCompressedBufferSize = DEFAULT_SIZE * 2;
+    mCompressedBuffer = new (std::nothrow) unsigned char[DefaultSize * 2];
+    mCompressedBufferSize = DefaultSize * 2;
 
-    dataBlock.reserve(DEFAULT_SIZE);
-    dataBlockToCompress.reserve(DEFAULT_SIZE);
+    dataBlock.reserve(DefaultSize);
+    dataBlockToCompress.reserve(DefaultSize);
 
     mCompressionLevel = Z_BEST_SPEED;
 

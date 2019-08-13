@@ -7,9 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/utils/SGCTDome.h>
 
+#include <sgct/Engine.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
-#include <sgct/Engine.h>
 #include <glm/gtc/constants.hpp>
 
 namespace sgct_utils {
@@ -17,9 +17,10 @@ namespace sgct_utils {
 /*!
     This constructor requires a valid openGL contex
 */
-SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned int elevationSteps)
-    : mElevationSteps(elevationSteps),
-    mAzimuthSteps(azimuthSteps)
+SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
+                   unsigned int elevationSteps)
+    : mElevationSteps(elevationSteps)
+    , mAzimuthSteps(azimuthSteps)
 {
     float lift = (180.0f - FOV) / 2.0f;
     std::vector<sgct_helpers::SGCTVertexData> vertices;

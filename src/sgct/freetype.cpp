@@ -7,17 +7,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/freetype.h>
 
-#include <sgct/ogl_headers.h>
-#include <sgct/FontManager.h>
-#include <sgct/ShaderManager.h>
-#include <sgct/Font.h>
-#include <sgct/MessageHandler.h>
 #include <sgct/Engine.h>
+#include <sgct/Font.h>
+#include <sgct/FontManager.h>
+#include <sgct/SGCTWindow.h>
 #include <sgct/helpers/SGCTPortedFunctions.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
-#include <sgct/SGCTWindow.h>
 
 namespace {
 void setupViewport() {

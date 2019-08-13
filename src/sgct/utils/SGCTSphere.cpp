@@ -7,9 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/utils/SGCTSphere.h>
 
-#include <sgct/ogl_headers.h>
-#include <sgct/MessageHandler.h>
 #include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
 #include <sgct/helpers/SGCTVertexData.h>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>

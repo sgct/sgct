@@ -7,26 +7,22 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTTrackingManager.h>
 
-
-#include "../include/vrpn/vrpn_Tracker.h"
-#include "../include/vrpn/vrpn_Button.h"
-#include "../include/vrpn/vrpn_Analog.h"
-
-#include <sgct/ClusterManager.h>
 #include <sgct/Engine.h>
+#include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTMutexManager.h>
 #include <sgct/SGCTTracker.h>
 #include <sgct/SGCTTrackingDevice.h>
 #include <sgct/SGCTUser.h>
-
+#include "../include/vrpn/vrpn_Tracker.h"
+#include "../include/vrpn/vrpn_Button.h"
+#include "../include/vrpn/vrpn_Analog.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
 namespace {
-
     struct VRPNPointer {
         vrpn_Tracker_Remote* mSensorDevice;
         vrpn_Analog_Remote* mAnalogDevice;
@@ -77,7 +73,7 @@ namespace {
 
     void samplingLoop(void* arg) {
         using namespace sgct;
-        SGCTTrackingManager* tmPtr = reinterpret_cast<SGCTTrackingManager *>(arg);
+        SGCTTrackingManager* tmPtr = reinterpret_cast<SGCTTrackingManager*>(arg);
 
         while (true) {
             double t = sgct::Engine::getTime();

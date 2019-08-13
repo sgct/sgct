@@ -7,9 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/utils/SGCTDomeGrid.h>
 
+#include <sgct/Engine.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
-#include <sgct/Engine.h>
 #include <glm/gtc/constants.hpp>
 
 namespace sgct_utils {
@@ -17,7 +17,8 @@ namespace sgct_utils {
 /*!
     This constructor requires a valid openGL contex
 */
-SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings, unsigned int resolution)
+SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
+                           unsigned int rings, unsigned int resolution)
     : mResolution(resolution)
     , mRings(rings)
     , mSegments(segments)

@@ -5,11 +5,10 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sgct/ogl_headers.h>
 #include <sgct/ShaderProgram.h>
+
 #include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
 
 namespace sgct {
 

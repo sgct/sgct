@@ -5,11 +5,6 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#define MAX_LINE_LENGTH 1024
-#define CONVERT_SCISS_TO_DOMEPROJECTION 0
-#define CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC 0
-#define MAX_XML_DEPTH 16
-
 #include <sgct/CorrectionMesh.h>
 
 #include <sgct/ClusterManager.h>
@@ -20,12 +15,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTUser.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <algorithm>
-#include <cstring>
 #include <fstream>
 #include <iomanip>
-#include <iostream>
-#include <sstream>
-#include <stdio.h>
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     #define _sscanf sscanf_s
@@ -33,7 +24,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #define _sscanf sscanf
 #endif
 
+//#define CONVERT_SCISS_TO_DOMEPROJECTION
+//#define CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+
 namespace {
+    constexpr const int MaxLineLength = 1024;
+    constexpr const int MaxXmlDepth = 16;
+
     int numberOfDigitsInInt(int number) {
         int i = 0;
         while (number > pow(10, i)) {
@@ -298,7 +295,7 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
     }
 #endif
 
-    char lineBuffer[MAX_LINE_LENGTH];
+    char lineBuffer[MaxLineLength];
     float x, y, u, v;
     unsigned int col, row;
     unsigned int numberOfCols = 0;
@@ -314,7 +311,7 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
     vertex.a = 1.f;
 
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
             if (sscanf_s(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
 #else
@@ -467,9 +464,9 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
 
     CorrectionMeshVertex* vertexPtr;
 
-    char lineBuffer[MAX_LINE_LENGTH];
+    char lineBuffer[MaxLineLength];
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
             if (sscanf_s(lineBuffer, "%f %f %u %f %f", &x, &y, &intensity, &s, &t) == 5)
 #else
@@ -929,13 +926,13 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
             scissVertexPtr->tx, scissVertexPtr->ty, scissVertexPtr->tz);*/
     }
 
-#if CONVERT_SCISS_TO_DOMEPROJECTION
+#ifdef CONVERT_SCISS_TO_DOMEPROJECTION
     //test export to dome projection
     std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".sgc") - 3);
     
     //test export frustum
     std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Debug,
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Debug,
         "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
     std::ofstream outFrustumFile;
     outFrustumFile.open(outFrustumFilename, std::ios::out);
@@ -958,7 +955,7 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
     //test export mesh
     std::string outMeshFilename = baseOutFilename + "_mesh" + std::string(".csv");
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Debug,
+        sgct::MessageHandler::Level::Debug,
         "CorrectionMesh: Exporting dome projection mesh file \"%s\"\n",
         outMeshFilename.c_str()
     );
@@ -1067,8 +1064,8 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
             return false;
         }
 
-        tinyxml2::XMLElement* element[MAX_XML_DEPTH];
-        const char * val[MAX_XML_DEPTH];
+        tinyxml2::XMLElement* element[MaxXmlDepth];
+        const char* val[MaxXmlDepth];
         element[0] = XMLroot->FirstChildElement();
         if (element[0] != nullptr) {
             val[0] = element[0]->Value();
@@ -1127,13 +1124,13 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
     unsigned int numberOfRows = static_cast<unsigned int>(numberOfRowsf);
 
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+#ifdef CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
     //export to dome projection
     std::string baseOutFilename = meshPath.substr(0, meshPath.find_last_of(".simcad") - 6);
 
     //export domeprojection frustum
     std::string outFrustumFilename = baseOutFilename + "_frustum" + std::string(".csv");
-    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Debug,
+    sgct::MessageHandler::instance()->print(sgct::MessageHandler::Level::Debug,
         "CorrectionMesh: Exporting dome projection frustum file \"%s\"\n", outFrustumFilename.c_str());
     std::ofstream outFrustumFile;
     outFrustumFile.open(outFrustumFilename, std::ios::out);
@@ -1144,18 +1141,18 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
     //write viewdata
     SCISSViewData viewData;
 
-    glm::quat rotation = parent->getRotation();
+    glm::quat rotation = parent.getRotation();
     viewData.qw = rotation.w;
     viewData.qx = rotation.x;
     viewData.qy = rotation.y;
     viewData.qz = rotation.z;
 
-    glm::vec3 position = parent->getUser()->getPos();
+    glm::vec3 position = parent.getUser()->getPos();
     viewData.x = position.x;
     viewData.y = position.y;
     viewData.z = position.z;
 
-    glm::vec4 fov = parent->getFOV();
+    glm::vec4 fov = parent.getFOV();
     viewData.fovUp = fov.x;
     viewData.fovDown = -fov.y;
     viewData.fovLeft = -fov.z;
@@ -1264,7 +1261,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
     outMeshFile << "x;y;u;v;column;row" << std::endl;
     outMeshFile << std::fixed;
     outMeshFile << std::setprecision(6);
-#endif
+#endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
 
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
@@ -1300,7 +1297,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
 
             i++;
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+#ifdef CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
             outMeshFile << x << ";";
             outMeshFile << 1.f - y << ";";
             outMeshFile << u << ";";
@@ -1321,7 +1318,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
                 reinterpret_cast<const char *>(&scissVertex),
                 sizeof(SCISSTexturedVertex)
             );
-#endif
+#endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
         }
 
     }
@@ -1350,7 +1347,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
         }
     }
 
-#if CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
+#ifdef CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
     // Implementation of individual triangle index list
     /*std::vector<unsigned int> indices_tris;
     unsigned int i0, i1, i2, i3;
@@ -1394,7 +1391,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
 
     outSGCFiles[0].close();
     outSGCFiles[1].close();
-#endif
+#endif // CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC
 
     //allocate and copy indices
     mGeometries[WARP_MESH].mNumberOfIndices = static_cast<unsigned int>(indices_trilist.size());
@@ -1465,9 +1462,9 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
     unsigned int size[2];
     unsigned int counter = 0;
 
-    char lineBuffer[MAX_LINE_LENGTH];
+    char lineBuffer[MaxLineLength];
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
             if (sscanf_s(lineBuffer, "Dome Azimuth=%f", &azimuth) == 1)
@@ -1780,10 +1777,10 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     int size[2] = { -1, -1 };
     unsigned int counter = 0;
     float x, y, s, t, intensity;
-    char lineBuffer[MAX_LINE_LENGTH];
+    char lineBuffer[MaxLineLength];
 
     //get the fist line containing the mapping type id
-    if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+    if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         int tmpi;
         if (_sscanf(lineBuffer, "%d", &tmpi) == 1) {
             mappingType = tmpi;
@@ -1791,7 +1788,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     }
 
     //get the mesh dimensions
-    if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+    if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
         if (_sscanf(lineBuffer, "%d %d", &size[0], &size[1]) == 2) {
             mTempVertices = new CorrectionMeshVertex[size[0] * size[1]];
             mGeometries[WARP_MESH].mNumberOfVertices =
@@ -1810,7 +1807,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
 
     //get all data
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
             if (_sscanf(lineBuffer, "%f %f %f %f %f", &x, &y, &s, &t, &intensity) == 5) {
                 mTempVertices[counter].x = x;
                 mTempVertices[counter].y = y;
@@ -1947,14 +1944,14 @@ bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewpor
     //variables
     int i0, i1, i2;
     unsigned int counter = 0;
-    char lineBuffer[MAX_LINE_LENGTH];
+    char lineBuffer[MaxLineLength];
     CorrectionMeshVertex tmpVert;
     std::vector<CorrectionMeshVertex> verts;
     std::vector<unsigned int> indices;
 
     //get all data
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
+        if (fgets(lineBuffer, MaxLineLength, meshFile) != nullptr) {
             if (_sscanf(lineBuffer, "v %f %f %*f", &tmpVert.x, &tmpVert.y) == 2) {
                 tmpVert.r = 1.f;
                 tmpVert.g = 1.f;

@@ -19,12 +19,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #if defined(__WIN32__) || defined(__MINGW32__) || defined(__MINGW64__)
     #define _WIN_PLATFORM
-    typedef size_t SGCT_SOCKET;
+    using SGCT_SOCKET = size_t;
 #else //linux & OS X
-    typedef int SGCT_SOCKET;
+    using SGCT_SOCKET = int;
 #endif
 
-typedef int _ssize_t;
+using _ssize_t = int;
 
 namespace sgct_core {
 

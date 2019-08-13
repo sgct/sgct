@@ -9,10 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
-
 #include <fstream>
-#include <sstream>
-#include <iostream>
 
 namespace sgct_core {
 
@@ -22,15 +19,17 @@ Default constructor
 
 /*!
 The constructor sets shader type
-@param    shaderType    The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+  @param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
+                    GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER,
+                    or GL_FRAGMENT_SHADER
 */
-Shader::Shader(ShaderType shaderType)
-    : mShaderType(shaderType)
-{}
+Shader::Shader(ShaderType shaderType) : mShaderType(shaderType) {}
 
 /*!
 Set the shader type
-@param    shaderType    The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+@param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
+                  GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER,
+                  or GL_FRAGMENT_SHADER
 */
 void Shader::setShaderType(ShaderType shaderType) {
     mShaderType = shaderType;

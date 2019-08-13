@@ -66,7 +66,7 @@ private:
         GLenum mGeometryType = GL_TRIANGLE_STRIP;
         unsigned int mNumberOfVertices = 0;
         unsigned int mNumberOfIndices = 0;
-        unsigned int mMeshData[3] = { GL_FALSE, GL_FALSE, GL_FALSE };
+        unsigned int mMeshData[3] = { 0, 0, 0 };
     };
 
     bool readAndGenerateDomeProjectionMesh(const std::string& meshPath, Viewport& parent);

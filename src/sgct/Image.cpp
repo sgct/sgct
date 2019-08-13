@@ -5,6 +5,7 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
+// png.h needs all of this included before it's include.. sigh
 #include <stdio.h>
 #include <fstream>
 #include <algorithm>
@@ -20,16 +21,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <jpeglib.h>
 #include <turbojpeg.h>
 #endif
-#include <stdlib.h>
 
 #include <sgct/Image.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/Engine.h>
 
-#define PNG_BYTES_TO_CHECK 8
-#define TGA_BYTES_TO_CHECK 18
-#define READ_ENTIRE_FILE_TO_MEMORY 0
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+
+namespace {
+    constexpr const int PngBytesToCheck = 8;
+    constexpr const int TgaBytesToCheck = 18;
+} // namespace
 
 struct PNG_IO_DATA {
     size_t memOffset;
@@ -143,7 +144,6 @@ bool Image::load(std::string filename) {
     bool res = false;
     double t0 = sgct::Engine::getTime();
 
-#if !READ_ENTIRE_FILE_TO_MEMORY
     switch (getFormatType(filename)) {
         case FORMAT_PNG:
             res = loadPNG(filename);
@@ -186,77 +186,6 @@ bool Image::load(std::string filename) {
             );
             break;
     }
-#else
-    if (getFormatType(filename) == UNKNOWN_FORMAT) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Image error: Unknown file '%s'\n", filename.c_str()
-        );
-        return false;
-    }
-
-    //load enitre file into memory
-    std::ifstream file;
-    file.rdbuf()->pubsetbuf(0, 0); 
-    file.open(filename, std::ios::binary | std::ios::ate);
-    if (!file) {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "Image error: File '%s' not found!\n", filename.c_str()
-        );
-    }
-    else {
-        std::streamsize size = file.tellg();
-        file.seekg(0, std::ios::beg);
-
-        std::vector<char> buffer(size);
-        if (file.read(buffer.data(), size)) {
-            switch (getFormatType(filename)) {
-                case FORMAT_PNG:
-                    res = loadPNG(
-                        reinterpret_cast<unsigned char*>(buffer.data()),
-                        static_cast<int>(buffer.size())
-                    );
-                    if (res) {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_DEBUG,
-                            "Image: '%s' was loaded successfully (%.2f ms)!\n",
-                            filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
-                        );
-                    }
-                    break;
-                case FORMAT_JPEG:
-                    res = loadJPEG(
-                        reinterpret_cast<unsigned char*>(buffer.data()),
-                        static_cast<int>(buffer.size())
-                    );
-                    if (res) {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_DEBUG,
-                            "Image: '%s' was loaded successfully (%.2f ms)!\n",
-                            filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
-                        );
-                    }
-                    break;
-                case FORMAT_TGA:
-                    res = loadTGA(
-                        reinterpret_cast<unsigned char*>(buffer.data()),
-                        static_cast<int>(buffer.size())
-                    );
-                    if (res) {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::NOTIFY_DEBUG,
-                            "Image: '%s' was loaded successfully (%.2f ms)!\n",
-                            filename.c_str(), (sgct::Engine::getTime() - t0) * 1000.0
-                        );
-                    }
-                    break;
-            }
-            buffer.clear();
-        }
-        file.close();
-    }
-#endif
 
     return res;
 }
@@ -475,7 +404,7 @@ bool Image::loadPNG(std::string filename) {
 
     png_structp png_ptr;
     png_infop info_ptr;
-    unsigned char header[PNG_BYTES_TO_CHECK];
+    unsigned char header[PngBytesToCheck];
     int color_type, bpp;
 
     FILE* fp = nullptr;
@@ -498,9 +427,9 @@ bool Image::loadPNG(std::string filename) {
     }
     #endif
 
-    size_t result = fread(header, 1, PNG_BYTES_TO_CHECK, fp);
-    if (result != PNG_BYTES_TO_CHECK ||
-        png_sig_cmp(reinterpret_cast<png_byte*>(&header[0]), 0, PNG_BYTES_TO_CHECK))
+    size_t result = fread(header, 1, PngBytesToCheck, fp);
+    if (result != PngBytesToCheck ||
+        png_sig_cmp(reinterpret_cast<png_byte*>(&header[0]), 0, PngBytesToCheck))
     {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -547,7 +476,7 @@ bool Image::loadPNG(std::string filename) {
     }
 
     png_init_io(png_ptr, fp);
-    png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
+    png_set_sig_bytes(png_ptr, PngBytesToCheck);
     png_read_info(png_ptr, info_ptr);
     
     png_get_IHDR(
@@ -631,7 +560,7 @@ bool Image::loadPNG(std::string filename) {
 }
 
 bool Image::loadPNG(unsigned char* data, size_t len) {
-    if (data == nullptr || len <= PNG_BYTES_TO_CHECK) {
+    if (data == nullptr || len <= PngBytesToCheck) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image: failed to load PNG from memory. Invalid input data."
@@ -641,12 +570,12 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     
     png_structp png_ptr;
     png_infop info_ptr;
-    unsigned char header[PNG_BYTES_TO_CHECK];
+    unsigned char header[PngBytesToCheck];
     int color_type, bpp;
     
     //get header
-    memcpy( header, data, PNG_BYTES_TO_CHECK);
-    if (!png_check_sig( header, PNG_BYTES_TO_CHECK)) {
+    memcpy(header, data, PngBytesToCheck);
+    if (!png_check_sig( header, PngBytesToCheck)) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image error: Invalid PNG file header.\n"
@@ -675,7 +604,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
     
     //set the read position in memory
     PNG_IO_DATA io;
-    io.memOffset = PNG_BYTES_TO_CHECK;
+    io.memOffset = PngBytesToCheck;
     io.data = data;
     png_set_read_fn(png_ptr, &io, readPNGFromBuffer);
     
@@ -688,7 +617,7 @@ bool Image::loadPNG(unsigned char* data, size_t len) {
         return false;
     }
     
-    png_set_sig_bytes(png_ptr, PNG_BYTES_TO_CHECK);
+    png_set_sig_bytes(png_ptr, PngBytesToCheck);
     png_read_info(png_ptr, info_ptr);
     
     png_get_IHDR(
@@ -774,7 +703,7 @@ bool Image::loadTGA(std::string filename) {
 
     mFilename = std::move(filename);
 
-    unsigned char header[TGA_BYTES_TO_CHECK];
+    unsigned char header[TgaBytesToCheck];
 
     FILE* fp = nullptr;
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
@@ -796,8 +725,8 @@ bool Image::loadTGA(std::string filename) {
     }
 #endif
 
-    size_t result = fread(header, 1, TGA_BYTES_TO_CHECK, fp);
-    if (result != TGA_BYTES_TO_CHECK) {
+    size_t result = fread(header, 1, TgaBytesToCheck, fp);
+    if (result != TgaBytesToCheck) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image error: file '%s' is not in TGA format\n", mFilename.c_str()
@@ -852,7 +781,7 @@ bool Image::loadTGA(std::string filename) {
 }
 
 bool Image::loadTGA(unsigned char* data, size_t len) {
-    if (data == nullptr || len <= TGA_BYTES_TO_CHECK) {
+    if (data == nullptr || len <= TgaBytesToCheck) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Image: failed to load TGA from memory. Invalid input data."
@@ -871,7 +800,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
 
     if (data_type == 10) {
         //RGB rle
-        if (!decodeTGARLE(&data[TGA_BYTES_TO_CHECK], len - TGA_BYTES_TO_CHECK)) {
+        if (!decodeTGARLE(&data[TgaBytesToCheck], len - TgaBytesToCheck)) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Image error: data is corrupted or insufficent!\n"
@@ -880,7 +809,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
         }
     }
     else {
-        if (len < (mDataSize + TGA_BYTES_TO_CHECK)) {
+        if (len < (mDataSize + TgaBytesToCheck)) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Image error: data is corrupted or insufficent!\n"
@@ -888,7 +817,7 @@ bool Image::loadTGA(unsigned char* data, size_t len) {
             return false;
         }
         
-        memcpy(mData, &data[TGA_BYTES_TO_CHECK], mDataSize);
+        memcpy(mData, &data[TgaBytesToCheck], mDataSize);
     }
     
     sgct::MessageHandler::instance()->print(
@@ -1398,7 +1327,7 @@ bool Image::saveTGA() {
     }
 
     // The image header
-    unsigned char header[TGA_BYTES_TO_CHECK] = { 0 };
+    unsigned char header[TgaBytesToCheck] = { 0 };
     header[ 2] = data_type; //datatype
     header[12] =  mSize_x        & 0xFF;
     header[13] = (mSize_x  >> 8) & 0xFF;

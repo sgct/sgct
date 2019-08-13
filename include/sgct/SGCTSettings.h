@@ -12,9 +12,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>
-#else
+#else // SGCT_DONT_USE_EXTERNAL
     #include <tinyxml2.h>
-#endif
+#endif // SGCT_DONT_USE_EXTERNAL
 
 namespace sgct {
 

@@ -5,19 +5,15 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/ogl_headers.h>
 #include <sgct/Viewport.h>
-#include <sgct/TextureManager.h>
+
 #include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/NonLinearProjection.h>
-#include <sgct/ReadConfig.h>
 #include <sgct/FisheyeProjection.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ReadConfig.h>
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
-//#include <glm/gtc/matrix_transform.hpp>
-
-#define MAX_XML_DEPTH 16
+#include <sgct/TextureManager.h>
 
 namespace sgct_core {
 

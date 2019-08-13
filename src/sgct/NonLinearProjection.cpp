@@ -7,8 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/NonLinearProjection.h>
 
-#include <sgct/ogl_headers.h>
-#include <sgct/SGCTSettings.h>
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>

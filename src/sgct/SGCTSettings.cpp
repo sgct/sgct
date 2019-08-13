@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/MessageHandler.h>
 #include <sgct/ScreenCapture.h>
-#include <sgct/ogl_headers.h>
 
 namespace sgct {
 
@@ -31,9 +30,7 @@ void SGCTSettings::destroy() {
     }
 }
 
-SGCTSettings::SGCTSettings()
-    : mCaptureFormat(sgct_core::ScreenCapture::NOT_SET)
-{}
+SGCTSettings::SGCTSettings() : mCaptureFormat(sgct_core::ScreenCapture::NOT_SET) {}
 
 
 void SGCTSettings::configure(tinyxml2::XMLElement* element) {

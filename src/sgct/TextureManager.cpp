@@ -7,12 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/TextureManager.h>
 
-#include <stdio.h>
-#include <GL/glew.h>
-
-#include <sgct/MessageHandler.h>
-#include <sgct/Image.h>
 #include <sgct/Engine.h>
+#include <sgct/Image.h>
+#include <sgct/MessageHandler.h>
 
 namespace sgct {
 

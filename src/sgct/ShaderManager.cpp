@@ -5,16 +5,16 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <sgct/ogl_headers.h>
 #include <sgct/ShaderManager.h>
-#include <sgct/MessageHandler.h>
 
+#include <sgct/ogl_headers.h>
+#include <sgct/MessageHandler.h>
 #include <algorithm>
 
 namespace sgct {
 
 // Initiate the manager to NULL
-sgct::ShaderManager * sgct::ShaderManager::mInstance = nullptr;
+ShaderManager* ShaderManager::mInstance = nullptr;
 
 ShaderManager* ShaderManager::instance() {
     if (mInstance == nullptr) {

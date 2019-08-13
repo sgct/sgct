@@ -8,19 +8,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 
 #include <sgct/NetworkManager.h>
-#include <sgct/ClusterManager.h>
 #include <sgct/SGCTMutexManager.h>
 #include <sgct/helpers/SGCTPortedFunctions.h>
-#include <stdlib.h>
-#include <stdio.h>
 #include <iostream>
 #include <sstream>
-#include <string.h>
-#include <time.h>
 
 namespace sgct {
 
-sgct::MessageHandler* sgct::MessageHandler::mInstance = nullptr;
+MessageHandler* MessageHandler::mInstance = nullptr;
 
 /*! Get the MessageHandler instance */
 MessageHandler* MessageHandler::instance() {
@@ -43,7 +38,7 @@ MessageHandler::MessageHandler() {
     //nothrow makes sure that a null pointer is returned upon failure
     mParseBuffer    = new (std::nothrow) char[mMaxMessageSize];
     mCombinedBuffer = new (std::nothrow) char[mCombinedMessageSize];
-    headerSpace     = new (std::nothrow) unsigned char[ sgct_core::SGCTNetwork::mHeaderSize ];
+    headerSpace     = new (std::nothrow) unsigned char[sgct_core::SGCTNetwork::mHeaderSize];
 
     if (!headerSpace || !mCombinedBuffer || !headerSpace) {
         fprintf(stderr, "Fatal error while allocating memory for MessageHandler!\n");

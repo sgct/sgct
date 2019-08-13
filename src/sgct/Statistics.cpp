@@ -16,15 +16,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <GLFW/glfw3.h>
 
-#include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <string>
-#include <memory.h>
-#include <limits>
 
 #undef min
 #undef max

@@ -5,44 +5,31 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifdef __WIN32__
-    #define WIN32_LEAN_AND_MEAN
-    //prevent conflict between max() in limits.h and max script in windef.h
-    #define NOMINMAX
-#endif
-
 #include <sgct/Engine.h>
-#include <sgct/SGCTConfig.h>
+
+//#include <sgct/SGCTConfig.h>
 #if INCLUDE_SGCT_TEXT
     #include <sgct/freetype.h>
     #include <sgct/FontManager.h>
 #endif
-#include <sgct/MessageHandler.h>
-#include <sgct/TextureManager.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/SharedData.h>
-#include <sgct/Viewport.h>
 #include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/OffScreenBuffer.h>
+#include <sgct/ReadConfig.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTUser.h>
+#include <sgct/SGCTVersion.h>
+#include <sgct/ShaderManager.h>
+#include <sgct/SharedData.h>
 #include <sgct/Statistics.h>
+#include <sgct/TextureManager.h>
 #include <sgct/Touch.h>
+#include <sgct/Viewport.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <sgct/shaders/SGCTInternalShaders.h>
 #include <sgct/shaders/SGCTInternalShaders_modern.h>
-#include <sgct/SGCTVersion.h>
-#include <sgct/OffScreenBuffer.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/ReadConfig.h>
-#include <sgct/NetworkManager.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/SGCTUser.h>
-#include <sgct/ShaderManager.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
-
-#include <glm/gtc/constants.hpp>
-#include <math.h>
 #include <algorithm>
 #include <iostream>
-#include <sstream>
-#include <deque>
 #include <glm/gtc/type_ptr.hpp>
 
 //#define __SGCT_RENDER_LOOP_DEBUG__
@@ -68,10 +55,11 @@ bool sRunUpdateFrameLockLoop = true;
 GLEWContext* glewGetContext();
 #endif
 
-#define USE_SLEEP_TO_WAIT_FOR_NODES 0
-#define MAX_SGCT_PATH_LENGTH 512
-#define FRAME_LOCK_TIMEOUT 100 //ms
-#define RUN_FRAME_LOCK_CHECK_THREAD 1
+namespace {
+    constexpr const bool UseSleepToWaitForNodes = false;
+    constexpr const bool RunFrameLockCheckThread = true;
+    constexpr const std::chrono::milliseconds FrameLockTimeout(100);
+} // namespace
 
 namespace sgct {
 
@@ -611,7 +599,7 @@ bool Engine::initWindows() {
     updateDrawBufferResolutions();//init draw buffer resolution
     waitForAllWindowsInSwapGroupToOpen();
 
-    if ( RUN_FRAME_LOCK_CHECK_THREAD) {
+    if (RunFrameLockCheckThread) {
         if (sgct_core::ClusterManager::instance()->getNumberOfNodes() > 1) {
             mThreadPtr = new (std::nothrow) std::thread(updateFrameLockLoop, nullptr);
         }
@@ -1045,7 +1033,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                     break;
                 }
 
-                if (USE_SLEEP_TO_WAIT_FOR_NODES) {
+                if (UseSleepToWaitForNodes) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
                 else {
@@ -1125,7 +1113,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                     break;
                 }
 
-                if (USE_SLEEP_TO_WAIT_FOR_NODES) {
+                if (UseSleepToWaitForNodes) {
                     std::this_thread::sleep_for(std::chrono::milliseconds(1));
                 }
                 else {
@@ -4981,7 +4969,7 @@ void sgct::Engine::outputHelpMessage() {
 
 
 /*
-    For feedback: breaks a frame lock wait condition every time interval (FRAME_LOCK_TIMEOUT)
+    For feedback: breaks a frame lock wait condition every time interval (FrameLockTimeout)
     in order to print waiting message.
 */
 void updateFrameLockLoop(void* arg) {
@@ -4998,6 +4986,6 @@ void updateFrameLockLoop(void* arg) {
 
         sgct_core::NetworkManager::gCond.notify_all();
 
-        std::this_thread::sleep_for(std::chrono::milliseconds(FRAME_LOCK_TIMEOUT));
+        std::this_thread::sleep_for(FrameLockTimeout);
     }
 }

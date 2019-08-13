@@ -7,17 +7,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/FisheyeProjection.h>
 
-#include <sgct/SGCTSettings.h>
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTUser.h>
+#include <sgct/SGCTWindow.h>
+#include <sgct/OffScreenBuffer.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_modern.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_cubic.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h>
-#include <sgct/helpers/SGCTStringFunctions.h>
-#include <sgct/SGCTUser.h>
-#include <sgct/SGCTWindow.h>
-#include <sgct/OffScreenBuffer.h>
 #include <algorithm>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/type_ptr.hpp>
@@ -1012,7 +1011,7 @@ void FisheyeProjection::drawCubeFace(size_t face) {
     glEnable(GL_SCISSOR_TEST);
     setupViewport(face);
 
-#if defined DebugCubemap
+#ifdef DebugCubemap
     float color[4];
     switch (face) {
         case 0:

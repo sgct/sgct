@@ -9,17 +9,11 @@
 
 #include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/ReadConfig.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/SGCTWindow.h>
 #include <sgct/Viewport.h>
 #include <algorithm>
 #include <sstream>
 #include "unzip.h"
 #include <zip.h>
-
-#define MAX_XML_DEPTH 16
 
 namespace {
     bool doesStringHaveSuffix(const std::string& str, const std::string& suffix) {
@@ -308,11 +302,12 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tm
         mErrorMsg = "Cannot find XML root!";
         return false;
     }
-    tinyxml2::XMLElement* element[MAX_XML_DEPTH];
-    for (unsigned int i = 0; i < MAX_XML_DEPTH; i++) {
+    constexpr const int MaxXmlDepth = 16;
+    tinyxml2::XMLElement* element[MaxXmlDepth];
+    for (unsigned int i = 0; i < MaxXmlDepth; i++) {
         element[i] = nullptr;
     }
-    const char* val[MAX_XML_DEPTH];
+    const char* val[MaxXmlDepth];
 
     bool hasExpectedValue;
     hasExpectedValue = checkAttributeForExpectedValue(

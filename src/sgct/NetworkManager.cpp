@@ -12,13 +12,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <windows.h>
 #endif
 
-#include <sgct/MessageHandler.h>
-#include <sgct/Statistics.h>
-#include <condition_variable>
 #include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
 #include <sgct/SharedData.h>
 #include <sgct/SGCTMutexManager.h>
-#include <sgct/Engine.h>
+#include <sgct/Statistics.h>
 #include <algorithm>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -43,16 +42,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 //missing function on mingw
 #if defined(__MINGW32__) || defined(__MINGW64__)
-const char* inet_ntop(int af, const void* src, char* dst, int cnt)
-{
-
+const char* inet_ntop(int af, const void* src, char* dst, int cnt) {
     struct sockaddr_in srcaddr;
 
-    memset(&srcaddr, 0, sizeof(struct sockaddr_in));
+    memset(&srcaddr, 0, sizeof(sockaddr_in));
     memcpy(&(srcaddr.sin_addr), src, sizeof(srcaddr.sin_addr));
 
     srcaddr.sin_family = af;
-    if (WSAAddressToString((struct sockaddr*) &srcaddr, sizeof(struct sockaddr_in), 0, dst, (LPDWORD) &cnt) != 0) {
+    if (WSAAddressToString((sockaddr*) &srcaddr, sizeof(sockaddr_in), 0, dst, (LPDWORD) &cnt) != 0) {
         DWORD rv = WSAGetLastError();
         printf("WSAAddressToString() : %d\n",rv);
         return NULL;

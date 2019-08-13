@@ -36,12 +36,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #define SGCT_ERRNO errno
 #endif
 
-#include <sgct/NetworkManager.h>
-#include <sgct/SharedData.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/ClusterManager.h>
 #include <sgct/Engine.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/NetworkManager.h>
 #include <sgct/SGCTMutexManager.h>
+#include <sgct/SharedData.h>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"
@@ -49,12 +49,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <zlib.h>
 #endif
 
-#include <stdlib.h>
-#include <stdio.h>
 #include <algorithm>
+//#include <stdlib.h>
+//#include <stdio.h>
 
-#define MAX_NUMBER_OF_ATTEMPTS 10
-#define SGCT_SOCKET_BUFFER_SIZE 4096
+namespace {
+    constexpr const int MaxNumberOfAttempts = 10;
+    constexpr const int SocketBufferSize = 4096;
+} // namespace
 
 namespace sgct_core {
 
@@ -338,7 +340,7 @@ void SGCTNetwork::setOptions(SGCT_SOCKET* socketPtr) {
             but might be a bit to big for sync data.
         */
         if (getType() == sgct_core::SGCTNetwork::SyncConnection) {
-            int bufferSize = SGCT_SOCKET_BUFFER_SIZE;
+            int bufferSize = SocketBufferSize;
             iResult = setsockopt(
                 *socketPtr,
                 SOL_SOCKET,
@@ -745,9 +747,9 @@ _ssize_t SGCTNetwork::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length
             iResult += tmpRes;
         }
 #ifdef __WIN32__
-        else if (SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPTS)
+        else if (SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
 #else
-        else if (SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPTS)
+        else if (SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
 #endif
         {
             sgct::MessageHandler::instance()->print(
@@ -941,9 +943,9 @@ int SGCTNetwork::readExternalMessage() {
     //if read fails try for x attempts
     int attempts = 1;
 #ifdef __WIN32__
-    while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MAX_NUMBER_OF_ATTEMPTS)
+    while (iResult <= 0 && SGCT_ERRNO == WSAEINTR && attempts <= MaxNumberOfAttempts)
 #else
-    while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MAX_NUMBER_OF_ATTEMPTS)
+    while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
 #endif
     {
         iResult = recv(mSocket, mRecvBuf, mBufferSize, 0);

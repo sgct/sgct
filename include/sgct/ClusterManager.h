@@ -11,9 +11,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTNode.h>
 #include <sgct/SGCTTrackingManager.h>
 #include <sgct/NetworkManager.h>
+#include <glm/glm.hpp>
 #include <memory>
 #include <string>
-#include <glm/glm.hpp>
 
 
 /*! \namespace sgct_core

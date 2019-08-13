@@ -7,18 +7,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/utils/SGCTBox.h>
 
-#include <sgct/ogl_headers.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/helpers/SGCTVertexData.h>
 #include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/helpers/SGCTVertexData.h>
 
 namespace sgct_utils {
 
 /*!
     This constructor requires a valid openGL contex 
 */
-sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
-{
+sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm) {
     mVerts = new sgct_helpers::SGCTVertexData[36];
     memset(mVerts, 0, 36 * sizeof(sgct_helpers::SGCTVertexData));
 

@@ -11,8 +11,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/OffScreenBuffer.h>
-#include <sgct/SGCTSettings.h>
-#include <sgct/ScreenCapture.h>
 #include <sgct/TextureManager.h>
 #include <sgct/Viewport.h>
 #include <sgct/shaders/SGCTInternalShaders.h>

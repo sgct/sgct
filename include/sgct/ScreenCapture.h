@@ -10,7 +10,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/ogl_headers.h>
 #include <sgct/SGCTSettings.h>
-
 #include <mutex>
 #include <string>
 #include <thread>

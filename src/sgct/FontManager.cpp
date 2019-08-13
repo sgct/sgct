@@ -7,15 +7,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/FontManager.h>
 
-#include <sgct/ogl_headers.h>
+#include <sgct/Engine.h>
 #include <sgct/Font.h>
 #include <sgct/MessageHandler.h>
-#include <sgct/Engine.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
-#include <stdio.h>
 
 namespace {
     constexpr const char* FontVertShader = R"(**glsl_version**

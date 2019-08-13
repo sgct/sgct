@@ -13,8 +13,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 
 #include <sgct/MessageHandler.h>
+#include <sgct/Statistics.h>
+#include <condition_variable>
 #include <sgct/ClusterManager.h>
 #include <sgct/SharedData.h>
+#include <sgct/SGCTMutexManager.h>
 #include <sgct/Engine.h>
 #include <algorithm>
 

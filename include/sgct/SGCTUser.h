@@ -8,11 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__USER__H__
 #define __SGCT__USER__H__
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <glm/gtc/matrix_transform.hpp>
-#include <string>
 #include <sgct/Frustum.h>
+#include <glm/glm.hpp>
+#include <string>
 
 namespace sgct_core {
 

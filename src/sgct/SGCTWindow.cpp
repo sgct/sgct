@@ -7,18 +7,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTWindow.h>
 
-#include <sgct/Engine.h>
-#include <sgct/TextureManager.h>
-#include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/OffScreenBuffer.h>
 #include <sgct/SGCTSettings.h>
+#include <sgct/ScreenCapture.h>
+#include <sgct/TextureManager.h>
+#include <sgct/Viewport.h>
 #include <sgct/shaders/SGCTInternalShaders.h>
 #include <sgct/shaders/SGCTInternalShaders_modern.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/matrix_transform.hpp>
-#include <stdio.h>
 #include <algorithm>
-#include <sstream>
 
 /*
     Apple doesn't support advanced sync features

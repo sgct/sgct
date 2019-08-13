@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/FontManager.h>
 
 #include <sgct/ogl_headers.h>
+#include <sgct/Font.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/Engine.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
@@ -180,7 +181,7 @@ bool FontManager::getDrawInScreenSpace() {
     return mDrawInScreenSpace;
 }
 
-sgct::ShaderProgram FontManager::getShader() {
+const sgct::ShaderProgram& FontManager::getShader() const {
     return mShader;
 }
 

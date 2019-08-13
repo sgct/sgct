@@ -8,11 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__READ_CONFIG__H__
 #define __SGCT__READ_CONFIG__H__
 
-#include <string>
-#include <vector>
-#include <glm/glm.hpp>
 #include <sgct/SGCTWindow.h>
-#include <sgct/SGCTNode.h>
+#include <glm/glm.hpp>
+#include <string>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>

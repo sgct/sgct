@@ -27,8 +27,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTSettings.h>
 #include <sgct/Engine.h>
 
-#include <setjmp.h>
-
 #define PNG_BYTES_TO_CHECK 8
 #define TGA_BYTES_TO_CHECK 18
 #define READ_ENTIRE_FILE_TO_MEMORY 0

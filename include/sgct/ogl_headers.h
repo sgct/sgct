@@ -5,8 +5,8 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SGCT_OGL_HEADERS_
-#define _SGCT_OGL_HEADERS_
+#ifndef __SGCT__OGL_HEADERS__H__
+#define __SGCT__OGL_HEADERS__H__
 
 #ifndef GLEW_STATIC
 #define GLEW_STATIC
@@ -71,4 +71,4 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <GLFW/glfw3native.h>
 #endif
 
-#endif
+#endif // __SGCT__OGL_HEADERS__H__

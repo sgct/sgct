@@ -11,17 +11,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <GL/glew.h>
 
 #include <sgct/MessageHandler.h>
+#include <sgct/Image.h>
 #include <sgct/Engine.h>
 
-namespace sgct_core {
+namespace sgct {
 
-void TextureData::reset() {
+void TextureManager::TextureData::reset() {
     *this = TextureData();
 }
-
-} // namespace sgct_core
-
-namespace sgct {
 
 TextureManager* TextureManager::mInstance = nullptr;
 
@@ -41,13 +38,12 @@ void TextureManager::destroy() {
     }
 }
 
-TextureManager::TextureManager()
-{
+TextureManager::TextureManager() {
     setAnisotropicFilterSize(1.f);
     mWarpMode[0] = GL_CLAMP_TO_EDGE;
     mWarpMode[1] = GL_CLAMP_TO_EDGE;
 
-    sgct_core::TextureData tmpTexture;
+    TextureData tmpTexture;
     mTextures["NOTSET"] = tmpTexture;
 }
 
@@ -79,7 +75,7 @@ void TextureManager::getDimensions(const std::string& name, int& width, int& hei
                                    int& channels) const
 {
     if (mTextures.count(name) > 0) {
-        const sgct_core::TextureData& texData = mTextures.at(name);
+        const TextureData& texData = mTextures.at(name);
         width = texData.mWidth;
         height = texData.mWidth;
         channels = texData.mWidth;
@@ -174,7 +170,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
 {
     GLuint texID = 0;
     bool reload = false;
-    sgct_core::TextureData tmpTexture;
+    TextureData tmpTexture;
     sgct_core::Image img;
 
     mInterpolate = interpolate;
@@ -184,10 +180,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         return true;
     }
     
-    std::unordered_map<
-        std::string,
-        sgct_core::TextureData
-    >::iterator textureItem = mTextures.end();
+    std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
     //load image
     if (!img.load(filename)) {
@@ -249,7 +242,7 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
     
     GLuint texID = 0;
     bool reload = false;
-    sgct_core::TextureData tmpTexture;
+    TextureData tmpTexture;
 
     mInterpolate = interpolate;
     mMipmapLevels = mipmapLevels;
@@ -341,10 +334,7 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr
 {
     //check if texture exits in manager
     bool exist = mTextures.count(name) > 0;
-    std::unordered_map<
-        std::string,
-        sgct_core::TextureData
-    >::iterator textureItem = mTextures.end();
+    std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
     if (exist) {
         //get it
@@ -584,7 +574,7 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
 void TextureManager::freeTextureData() {
     //the textures might not be stored in a sequence so
     //let's erase them one by one
-    for (const std::pair<const std::string, sgct_core::TextureData>& p : mTextures) {
+    for (const std::pair<const std::string, TextureData>& p : mTextures) {
         if (p.second.mId) {
             glDeleteTextures(1, &p.second.mId);
         }

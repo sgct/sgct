@@ -18,20 +18,6 @@ namespace sgct_core {
 Helper class for measuring application statistics
 */
 class Statistics {
-private:
-    enum mStatsDynamicType {
-        FRAME_TIME = 0,
-        DRAW_TIME = 1,
-        SYNC_TIME = 2,
-        LOOP_TIME_MAX = 3,
-        LOOP_TIME_MIN = 4
-    };
-    enum mStatsStaticType {
-        GRID = 0,
-        FREQ,
-        BG
-    };
-
 public:
     Statistics();
     ~Statistics();
@@ -57,6 +43,20 @@ public:
     float getSyncTime() const;
 
 private:
+    enum mStatsDynamicType {
+        FRAME_TIME = 0,
+        DRAW_TIME = 1,
+        SYNC_TIME = 2,
+        LOOP_TIME_MAX = 3,
+        LOOP_TIME_MIN = 4
+    };
+
+    enum mStatsStaticType {
+        GRID = 0,
+        FREQ,
+        BG
+    };
+
     struct StatsVertex {
         float x;
         float y;

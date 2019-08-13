@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/Engine.h>
+#include <sgct/helpers/SGCTVertexData.h>
 #include <glm/gtc/constants.hpp>
 #include <algorithm>
 
@@ -126,7 +127,14 @@ SGCTSphere::~SGCTSphere() {
 void SGCTSphere::addVertexData(unsigned int pos, float s, float t, float nx, float ny,
                                float nz, float x, float y,  float z)
 {
-    mVerts[pos].set(s, t, nx, ny, nz, x, y, z);
+    mVerts[pos].x = x;
+    mVerts[pos].y = y;
+    mVerts[pos].z = z;
+    mVerts[pos].nx = nx;
+    mVerts[pos].ny = ny;
+    mVerts[pos].nz = nz;
+    mVerts[pos].s = s;
+    mVerts[pos].t = t;
 }
 
 void SGCTSphere::cleanUp() {

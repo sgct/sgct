@@ -8,15 +8,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SCREEN_CAPTURE__H__
 #define __SGCT__SCREEN_CAPTURE__H__
 
-#include "ogl_headers.h"
-#include "Image.h"
-#include <string>
+#include <sgct/ogl_headers.h>
 #include <sgct/SGCTSettings.h>
 
 #include <mutex>
+#include <string>
 #include <thread>
 
 namespace sgct_core {
+
+class Image;
 
 struct ScreenCaptureThreadInfo {
     Image* mframeBufferImagePtr = nullptr;

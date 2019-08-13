@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__SETTINGS__H__
 
 #include <mutex>
-#include <stdio.h>
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
     #include <external/tinyxml2.h>

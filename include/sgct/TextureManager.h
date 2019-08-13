@@ -8,22 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TEXTURE_MANAGER__H__
 #define __SGCT__TEXTURE_MANAGER__H__
 
-#include <sgct/Image.h>
-
 #include <string>
 #include <unordered_map>
 
 namespace sgct_core {
 
-struct TextureData {
-    void reset();
-
-    std::string mPath = "NOTSET";
-    unsigned int mId = 0;
-    int mWidth = -1;
-    int mHeight = -1;
-    int mChannels = -1;
-};
+class Image;
 
 } // namespace sgct_core
 
@@ -69,6 +59,16 @@ public:
         bool interpolate, int mipmapLevels = 8);
 
 private:
+    struct TextureData {
+        void reset();
+
+        std::string mPath = "NOTSET";
+        unsigned int mId = 0;
+        int mWidth = -1;
+        int mHeight = -1;
+        int mChannels = -1;
+    };
+
     TextureManager();
     ~TextureManager();
     bool updateTexture(const std::string& name, unsigned int* texPtr, bool* reload);
@@ -82,7 +82,7 @@ private:
     bool mAlphaMode = false;
     bool mOverWriteMode = true;
     bool mInterpolate = true;
-    std::unordered_map<std::string, sgct_core::TextureData> mTextures;
+    std::unordered_map<std::string, TextureData> mTextures;
     int mMipmapLevels = 8;
     int mWarpMode[2];
 };

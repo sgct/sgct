@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTProjection.h>
 
+#include <sgct/SGCTProjectionPlane.h>
 #include <glm/gtc/matrix_transform.hpp>
 
 namespace sgct_core {
@@ -57,37 +58,35 @@ void SGCTProjection::calculateProjection(glm::vec3 base,
 
     //invert & transform
     glm::mat3 DCM_inv = glm::inverse(DCM);
-    glm::vec3 transformedViewPlane[3];
-    transformedViewPlane[SGCTProjectionPlane::LowerLeft] = DCM_inv * lowerLeft;
-    transformedViewPlane[SGCTProjectionPlane::UpperLeft] = DCM_inv * upperLeft;
-    transformedViewPlane[SGCTProjectionPlane::UpperRight] = DCM_inv * upperRight;
-    glm::vec3 transformedEyePos = DCM_inv * base;
+    glm::vec3 viewPlane[3];
+    viewPlane[SGCTProjectionPlane::LowerLeft] = DCM_inv * lowerLeft;
+    viewPlane[SGCTProjectionPlane::UpperLeft] = DCM_inv * upperLeft;
+    viewPlane[SGCTProjectionPlane::UpperRight] = DCM_inv * upperRight;
+    glm::vec3 eyePos = DCM_inv * base;
 
     //nearFactor = near clipping plane / focus plane dist
-    float nearFactor = nearClippingPlane /
-        (transformedViewPlane[SGCTProjectionPlane::LowerLeft].z - transformedEyePos.z);
-    if (nearFactor < 0)
-        nearFactor = -nearFactor;
-
-    mFrustum.set(
-        (transformedViewPlane[SGCTProjectionPlane::LowerLeft].x - transformedEyePos.x) * nearFactor,
-        (transformedViewPlane[SGCTProjectionPlane::UpperRight].x - transformedEyePos.x) * nearFactor,
-        (transformedViewPlane[SGCTProjectionPlane::LowerLeft].y - transformedEyePos.y) * nearFactor,
-        (transformedViewPlane[SGCTProjectionPlane::UpperRight].y - transformedEyePos.y) * nearFactor,
-        nearClippingPlane,
-        farClippingPlane
+    float nearF = abs(
+        nearClippingPlane / (viewPlane[SGCTProjectionPlane::LowerLeft].z - eyePos.z)
     );
 
-    mViewMatrix = glm::mat4(DCM_inv) * glm::translate(glm::mat4(1.f), -(base + viewOffset));
+    mFrustum.left = (viewPlane[SGCTProjectionPlane::LowerLeft].x - eyePos.x) * nearF;
+    mFrustum.right = (viewPlane[SGCTProjectionPlane::UpperRight].x - eyePos.x) * nearF;
+    mFrustum.bottom = (viewPlane[SGCTProjectionPlane::LowerLeft].y - eyePos.y) * nearF;
+    mFrustum.top = (viewPlane[SGCTProjectionPlane::UpperRight].y - eyePos.y) * nearF;
+    mFrustum.nearPlane = nearClippingPlane;
+    mFrustum.farPlane = farClippingPlane;
+
+    mViewMatrix = glm::mat4(DCM_inv) *
+                  glm::translate(glm::mat4(1.f), -(base + viewOffset));
 
     //calc frustum matrix
     mProjectionMatrix = glm::frustum(
-        mFrustum.getLeft(),
-        mFrustum.getRight(),
-        mFrustum.getBottom(),
-        mFrustum.getTop(),
-        mFrustum.getNear(),
-        mFrustum.getFar()
+        mFrustum.left,
+        mFrustum.right,
+        mFrustum.bottom,
+        mFrustum.top,
+        mFrustum.nearPlane,
+        mFrustum.farPlane
     );
 
     mViewProjectionMatrix = mProjectionMatrix * mViewMatrix;

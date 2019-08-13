@@ -8,11 +8,10 @@
 #ifndef __SGCT__MPCDI__H__
 #define __SGCT__MPCDI__H__
 
+#include <glm/glm.hpp>
 #include <string>
 #include <vector>
-#include <glm/glm.hpp>
-#include "SGCTWindow.h"
-#include "SGCTNode.h"
+
 #include "external/unzip.h"
 #include "external/zip.h"
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -21,7 +20,13 @@
     #include <tinyxml2.h>
 #endif
 
+namespace sgct {
+    class SGCTWindow;
+} // namespace sgct
+
 namespace sgct_core {
+
+class SGCTNode;
 
 struct MpcdiSubFiles {
     enum MpcdiSubFileTypes {
@@ -67,20 +72,20 @@ public:
 private:
     bool readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tmpNode,
-             sgct::SGCTWindow& tmpWin);
+        sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_display(tinyxml2::XMLElement* element[], const char* val[],
-             SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
+        SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_files(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin);
+        sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_buffer(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
+        sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_region(tinyxml2::XMLElement* element[], const char* val[],
-             sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
+        sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
-             const char* val[], sgct::SGCTWindow& tmpWin,
-             std::string filesetRegionId);
+        const char* val[], sgct::SGCTWindow& tmpWin,
+        std::string filesetRegionId);
     bool processSubFiles(std::string filename, unzFile* zipfile,
-             unz_file_info& file_info);
+        unz_file_info& file_info);
 
     MpcdiSubFiles mMpcdiSubFileContents;
     std::vector<MpcdiRegion*> mBufferRegions;

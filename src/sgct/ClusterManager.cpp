@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
+#include <glm/gtc/matrix_transform.hpp>
 #include <algorithm>
 
 namespace sgct_core {
@@ -33,17 +34,7 @@ void ClusterManager::destroy() {
 }
 
 ClusterManager::ClusterManager() {
-    SGCTUser* defaultUser = new SGCTUser("default");
-    mUsers.push_back(defaultUser);
-}
-
-ClusterManager::~ClusterManager() {
-    nodes.clear();
-    
-    for (size_t i = 0; i < mUsers.size(); i++) {
-        delete mUsers[i];
-    }
-    mUsers.clear();
+    mUsers.push_back(std::make_unique<SGCTUser>("default"));
 }
 
 /*!
@@ -56,8 +47,8 @@ void ClusterManager::addNode(SGCTNode node) {
 /*!
     Add an user ptr. The cluster manager will deallocate the user upon destruction.
 */
-void ClusterManager::addUserPtr(SGCTUser* userPtr) {
-    mUsers.push_back(userPtr);
+void ClusterManager::addUser(std::unique_ptr<SGCTUser> userPtr) {
+    mUsers.push_back(std::move(userPtr));
 }
 
 /*!
@@ -101,7 +92,7 @@ SGCTNode* ClusterManager::getThisNodePtr() {
 \returns the pointer to the default user
 */
 SGCTUser* ClusterManager::getDefaultUserPtr() {
-    return mUsers[0];
+    return mUsers[0].get();
 }
 
 /*!
@@ -111,10 +102,10 @@ SGCTUser* ClusterManager::getUserPtr(const std::string& name) {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [&name](SGCTUser* user) { return user->getName() == name; }
+        [&name](const std::unique_ptr<SGCTUser>& user) { return user->getName() == name; }
     );
     if (it != mUsers.end()) {
-        return *it;
+        return it->get();
     }
     else {
         return nullptr;
@@ -128,10 +119,10 @@ SGCTUser* ClusterManager::getTrackedUserPtr() {
     auto it = std::find_if(
         mUsers.begin(),
         mUsers.end(),
-        [](SGCTUser* u) { return u->isTracked(); }
+        [](const std::unique_ptr<SGCTUser>& u) { return u->isTracked(); }
     );
     if (it != mUsers.end()) {
-        return *it;
+        return it->get();
     }
     else {
         return nullptr;

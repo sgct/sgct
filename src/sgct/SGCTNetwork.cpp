@@ -41,6 +41,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 #include <sgct/ClusterManager.h>
 #include <sgct/Engine.h>
+#include <sgct/SGCTMutexManager.h>
 
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"

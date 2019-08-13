@@ -8,14 +8,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__NETWORK_MANAGER__H__
 #define __SGCT__NETWORK_MANAGER__H__
 
-#include "SGCTNetwork.h"
-#include "Statistics.h"
-#include <vector>
-#include <string>
+#include <sgct/SGCTNetwork.h>
 #include <atomic>
-#include <condition_variable>
+#include <string>
+#include <vector>
 
 namespace sgct_core {
+
+class Statistics;
+
 /*!
     The network manager manages all network connections for SGCT.
 */
@@ -48,7 +49,7 @@ public:
     bool areAllNodesConnected();
     SGCTNetwork* getExternalControlPtr();
     void transferData(const void* data, int length, int packageId);
-    void transferData(const void* data, int length, int packageId, std::size_t nodeIndex);
+    void transferData(const void* data, int length, int packageId, size_t nodeIndex);
     void transferData(const void* data, int length, int packageId, SGCTNetwork* connection);
     void setDataTransferCompression(bool state, int level = 1);
 

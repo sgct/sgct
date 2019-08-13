@@ -19,12 +19,21 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #endif
 #include <sgct/MessageHandler.h>
 #include <sgct/TextureManager.h>
+#include <sgct/SGCTMutexManager.h>
 #include <sgct/SharedData.h>
+#include <sgct/Viewport.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/Statistics.h>
+#include <sgct/Touch.h>
 #include <sgct/shaders/SGCTInternalShaders.h>
 #include <sgct/shaders/SGCTInternalShaders_modern.h>
 #include <sgct/SGCTVersion.h>
+#include <sgct/OffScreenBuffer.h>
 #include <sgct/SGCTSettings.h>
+#include <sgct/ReadConfig.h>
+#include <sgct/NetworkManager.h>
 #include <sgct/ogl_headers.h>
+#include <sgct/SGCTUser.h>
 #include <sgct/ShaderManager.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 
@@ -34,10 +43,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <iostream>
 #include <sstream>
 #include <deque>
+#include <glm/gtc/type_ptr.hpp>
 
 //#define __SGCT_RENDER_LOOP_DEBUG__
 
-sgct::Engine * sgct::Engine::mInstance = nullptr;
+sgct::Engine* sgct::Engine::mInstance = nullptr;
 sgct_core::Touch sgct::Engine::mCurrentTouchPoints = sgct_core::Touch();
 
 //Callback wrappers for GLFW

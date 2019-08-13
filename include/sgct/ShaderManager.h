@@ -8,9 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHADER_MANAGER__H__
 #define __SGCT__SHADER_MANAGER__H__
 
+#include <sgct/ShaderProgram.h>
 #include <string>
 #include <vector>
-#include "ShaderProgram.h"
 
 #define NUMBER_OF_SHADER_BINS 8
 

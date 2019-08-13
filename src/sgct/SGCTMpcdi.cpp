@@ -7,15 +7,19 @@
 
 #include <sgct/SGCTMpcdi.h>
 
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/ReadConfig.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/ClusterManager.h>
 #include <sgct/SGCTSettings.h>
+#include <sgct/SGCTWindow.h>
+#include <sgct/Viewport.h>
 #include <algorithm>
 #include <sstream>
 #include "unzip.h"
 #include <zip.h>
+
+#define MAX_XML_DEPTH 16
 
 namespace {
     bool doesStringHaveSuffix(const std::string& str, const std::string& suffix) {

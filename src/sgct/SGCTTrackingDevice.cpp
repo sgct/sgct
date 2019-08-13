@@ -5,14 +5,14 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#include <stdlib.h>
-#include <stdio.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/MessageHandler.h>
 #include <sgct/SGCTTrackingDevice.h>
-#include <sgct/Engine.h>
 
-extern GLFWmutex gTrackingMutex;
+#include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTTracker.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace sgct {
 
@@ -390,9 +390,9 @@ bool SGCTTrackingDevice::isEnabled() {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Is device enabled...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
     bool tmpVal = mEnabled;
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
 
     return tmpVal;
 }
@@ -413,7 +413,7 @@ void SGCTTrackingDevice::setTrackerTimeStamp() {
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
     //swap
     mTrackerTime[1] = mTrackerTime[0];
-    mTrackerTime[0] = sgct::Engine::getTime();
+    mTrackerTime[0] = Engine::getTime();
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
@@ -421,7 +421,7 @@ void SGCTTrackingDevice::setAnalogTimeStamp() {
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
     //swap
     mAnalogTime[1] = mAnalogTime[0];
-    mAnalogTime[0] = sgct::Engine::getTime();
+    mAnalogTime[0] = Engine::getTime();
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
@@ -429,7 +429,7 @@ void SGCTTrackingDevice::setButtonTimeStamp(size_t index) {
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
     //swap
     mButtonTime[index + mNumberOfButtons] = mButtonTime[index];
-    mButtonTime[index] = sgct::Engine::getTime();
+    mButtonTime[index] = Engine::getTime();
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
 }
 
@@ -437,9 +437,9 @@ double SGCTTrackingDevice::getTrackerTimeStamp(DataLocation i) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get device tracker time stamp...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
     double tmpVal = mTrackerTime[i];
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
 
     return tmpVal;
 }
@@ -460,9 +460,9 @@ double SGCTTrackingDevice::getButtonTimeStamp(size_t index, DataLocation i) {
     fprintf(stderr, "Get device button time stamp...\n");
 #endif
 
-    SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
     double tmpVal = mButtonTime[index + mNumberOfButtons * i];
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
 
     return tmpVal;
 }

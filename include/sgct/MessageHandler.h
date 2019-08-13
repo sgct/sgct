@@ -8,13 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__MESSAGE_HANDLER__H__
 #define __SGCT__MESSAGE_HANDLER__H__
 
-#include <stddef.h> //get definition for NULL
-#include <stdarg.h>
-#include <vector>
+#include <atomic>
 #include <functional>
 #include <string>
-
-#include <atomic>
+#include <vector>
 
 namespace sgct {
 

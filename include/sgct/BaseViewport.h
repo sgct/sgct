@@ -10,6 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Frustum.h>
 #include <sgct/SGCTProjection.h>
+#include <sgct/SGCTProjectionPlane.h>
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
@@ -70,7 +71,7 @@ protected:
     Frustum::FrustumMode mEye = Frustum::MonoEye;
 
     SGCTUser* mUser;
-    std::string mName;
+    std::string mName = "NoName";
     std::string mUserName;
     bool mEnabled = true;
     float mX = 0.f;

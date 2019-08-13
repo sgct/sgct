@@ -13,8 +13,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/shaders/SGCTInternalSphericalProjectionShaders.h>
 #include <sgct/shaders/SGCTInternalSphericalProjectionShaders_modern.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/SGCTWindow.h>
+#include <sgct/OffScreenBuffer.h>
+#include <sgct/Viewport.h>
 #include <sstream>
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 //#define DebugCubemap
 
@@ -114,7 +119,7 @@ void SphericalMirrorProjection::initVBO() {
     );
     if (vp) {
         for (int i = 0; i < LAST_MESH; i++) {
-            mMeshes[i].readAndGenerateMesh(mMeshPaths[i], vp);
+            mMeshes[i].readAndGenerateMesh(mMeshPaths[i], *vp);
         }
     }
 }

@@ -8,18 +8,26 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__FONT_MANAGER__H__
 #define __SGCT__FONT_MANAGER__H__
 
+#include <sgct/ShaderProgram.h>
+#include <glm/glm.hpp>
 #include <string>
 #include <map>
-
-#include "Font.h"
-#include "ShaderProgram.h"
-#include <glm/glm.hpp>
 #include <unordered_map>
+
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include <external/freetype/ftglyph.h>
+#include <external/freetype/ftstroke.h>
+#else
+#include <freetype/ftglyph.h>
+#include <freetype/ftstroke.h>
+#endif
 
 /*! \namespace sgct_text
 \brief SGCT text namespace is used for text rendering and font management
 */
 namespace sgct_text {
+
+class Font;
 
 /*!
 Singleton for font handling. A lot of the font handling is based on Nehes tutorials for freetype <a href="http://nehe.gamedev.net/tutorial/freetype_fonts_in_opengl/24001/">Nehes tutorials for freetype</a>
@@ -67,11 +75,11 @@ public:
     void setStrokeColor(glm::vec4 color);
     void setDrawInScreenSpace(bool state);
 
-    std::size_t getTotalNumberOfLoadedChars();
+    size_t getTotalNumberOfLoadedChars();
     glm::vec4 getStrokeColor();
     bool getDrawInScreenSpace();
 
-    sgct::ShaderProgram getShader();
+    const sgct::ShaderProgram& getShader() const;
     unsigned int getMVPLoc();
     unsigned int getColLoc();
     unsigned int getStkLoc();
@@ -90,12 +98,12 @@ private:
     const FontManager& operator=(const FontManager& rhs) = delete;
 
     static FontManager* mInstance; // Singleton instance of the LogManager
-    static const FT_Short mDefaultHeight = 10; // Default height of font faces in pixels
+    static const signed short mDefaultHeight = 10; // Default height of font faces in pixels
 
     // The default font path from where to look for font files
     std::string mDefaultFontPath;
 
-    FT_Library  mFTLibrary; // Freetype library
+    FT_Library mFTLibrary; // Freetype library
     FT_Face mFace = nullptr;
     glm::vec4 mStrokeColor = glm::vec4(0.f, 0.f, 0.f, 0.9f);
 

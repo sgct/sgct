@@ -8,9 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__NETWORK__H__
 #define __SGCT__NETWORK__H__
 
+#include <atomic>
+#include <condition_variable>
+#include <mutex>
 #include <string>
+#include <thread>
 #include <vector>
-#include <stdint.h>
 
 #define MAX_NET_SYNC_FRAME_NUMBER 10000
 
@@ -23,12 +26,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 typedef int _ssize_t;
 
-#include <atomic>
-#include <condition_variable>
-#include <mutex>
-#include <thread>
-
-namespace sgct_core  {
+namespace sgct_core {
 
 /*!
 SGCTNetwork manages peer-to-peer tcp connections.

@@ -8,7 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__DOME__H__
 #define __SGCT__DOME__H__
 
-#include "../helpers/SGCTVertexData.h"
+#include <sgct/helpers/SGCTVertexData.h>
 #include <vector>
 
 namespace sgct_utils {

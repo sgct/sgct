@@ -5,51 +5,47 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
-#ifndef _SGCT_INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN_H_
-#define _SGCT_INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN_H_
+#ifndef __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__
+#define __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__
 
-#include <string>
+namespace sgct_core::shaders_modern {
+/*
+    Contains GLSL 3.3+ shaders
+*/
 
-namespace sgct_core
-{
-    /*
-        Contains GLSL 3.3+ shaders
-    */
+constexpr const char* Spherical_Projection_Vert_Shader = R"(
+    **glsl_version**
 
-    namespace shaders_modern
-    {
-        const std::string Spherical_Projection_Vert_Shader = "\
-            **glsl_version**\n\
-            \n\
-            layout (location = 0) in vec2 Position;\n\
-            layout (location = 1) in vec2 TexCoords;\n\
-            layout (location = 2) in vec4 VertColor;\n\
-            \n\
-            uniform mat4 MVP;\n\
-            \n\
-            out vec2 UV;\n\
-            out vec4 Col;\n\
-            \n\
-            void main()\n\
-            {\n\
-               gl_Position = MVP * vec4(Position, 0.0, 1.0);\n\
-               UV = TexCoords;\n\
-               Col = VertColor;\n\
-            }\n";
+    layout (location = 0) in vec2 Position;
+    layout (location = 1) in vec2 TexCoords;
+    layout (location = 2) in vec4 VertColor;
 
-        const std::string Spherical_Projection_Frag_Shader = "\
-            **glsl_version**\n\
-            \n\
-            in vec2 UV;\n\
-            in vec4 Col;\n\
-            out vec4 Color;\n\
-            \n\
-            uniform sampler2D Tex;\n\
-            \n\
-            void main()\n\
-            {\n\
-                Color = Col * texture(Tex, UV);\n\
-            }\n";
+    uniform mat4 MVP;
+
+    out vec2 UV;
+    out vec4 Col;
+
+    void main() {
+        gl_Position = MVP * vec4(Position, 0.0, 1.0);
+        UV = TexCoords;
+        Col = VertColor;
     }
-}
-#endif
+)";
+
+constexpr const char* Spherical_Projection_Frag_Shader = R"(
+    **glsl_version**
+
+    in vec2 UV;
+    in vec4 Col;
+    out vec4 Color;
+
+    uniform sampler2D Tex;
+
+    void main() {
+        Color = Col * texture(Tex, UV);
+    }
+)";
+
+} // sgct_core::shaders_modern
+
+#endif // __SGCT__INTERNAL_SPHERICAL_PROJECTION_SHADERS_MODERN__H__

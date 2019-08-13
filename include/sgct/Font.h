@@ -16,10 +16,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
     #include <freetype/ftstroke.h>
 #endif
 
-#include <vector>
+#include <glm/gtc/type_ptr.hpp>
 #include <string>
 #include <unordered_map>
-#include <glm/gtc/type_ptr.hpp>
+#include <vector>
 
 namespace sgct_text {
 
@@ -79,13 +79,12 @@ private:
         FT_Bitmap* mStrokeBitmapPtr;
     };
 
-
     void createCharacter(wchar_t c);
-    bool createGlyph(wchar_t c, FontFaceData* FFDPtr);
+    bool createGlyph(wchar_t c, FontFaceData& FFDPtr);
     unsigned int generateTexture(int width, int height, unsigned char* data);
 
     bool getPixelData(FT_Face face, int& width, int& height, unsigned char** pixels,
-        GlyphData* gd);
+        GlyphData& gd);
     
     std::string mName; // Holds the font name
     float mHeight; // Holds the height of the font.

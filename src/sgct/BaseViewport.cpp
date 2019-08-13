@@ -6,6 +6,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/BaseViewport.h>
+
 #include <sgct/ClusterManager.h>
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTUser.h>
@@ -14,7 +15,6 @@ namespace sgct_core {
 
 BaseViewport::BaseViewport()
     : mUser(ClusterManager::instance()->getDefaultUserPtr())
-    , mName("NoName")
 {}
 
 /*!

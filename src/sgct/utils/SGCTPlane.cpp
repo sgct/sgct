@@ -6,9 +6,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/utils/SGCTPlane.h>
-#include <sgct/ogl_headers.h>
-#include <sgct/MessageHandler.h>
+
 #include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/helpers/SGCTVertexData.h>
 
 namespace sgct_utils {
 
@@ -20,10 +22,10 @@ SGCTPlane::SGCTPlane(float width, float height) {
     memset(mVerts, 0, 4 * sizeof(sgct_helpers::SGCTVertexData));
 
     //populate the array
-    mVerts[0].set(0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f);
-    mVerts[1].set(1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f);
-    mVerts[2].set(0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f);
-    mVerts[3].set(1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f);
+    mVerts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
+    mVerts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
+    mVerts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
+    mVerts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
         
     createVBO();
 
@@ -37,7 +39,7 @@ SGCTPlane::SGCTPlane(float width, float height) {
 
     //free data
     if (mVerts != nullptr) {
-        delete [] mVerts;
+        delete[] mVerts;
         mVerts = nullptr;
     }
 }

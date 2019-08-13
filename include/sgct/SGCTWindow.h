@@ -8,14 +8,20 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
-#include "ogl_headers.h"
-#include "OffScreenBuffer.h"
-#include "ScreenCapture.h"
-#include "Viewport.h"
-#include "PostFX.h"
+#include <sgct/PostFX.h>
 #include <vector>
 
 #define NUMBER_OF_TEXTURES 8
+
+struct GLFWmonitor;
+struct GLFWwindow;
+
+namespace sgct_core {
+    class BaseViewport;
+    class OffScreenBuffer;
+    class ScreenCapture;
+    class Viewport;
+} // namespace sgct_core
 
 namespace sgct {
 
@@ -100,7 +106,7 @@ public:
     void setNumberOfAASamples(int samples);
     void setStereoMode(StereoMode sm);
     void setCurrentViewport(size_t index);
-    void setCurrentViewport(sgct_core::BaseViewport * vp);
+    void setCurrentViewport(sgct_core::BaseViewport* vp);
     void setAlpha(bool state);
     void setGamma(float gamma);
     void setContrast(float contrast);
@@ -143,7 +149,7 @@ public:
     GLFWmonitor* getMonitor() const;
     GLFWwindow* getWindowHandle() const;
     sgct_core::BaseViewport* getCurrentViewport() const;
-    sgct_core::Viewport* getViewport(std::size_t index) const;
+    sgct_core::Viewport* getViewport(size_t index) const;
     void getCurrentViewportPixelCoords(int& x, int& y, int& xSize, int& ySize) const;
     size_t getNumberOfViewports() const;
     std::string getStereoModeStr() const;

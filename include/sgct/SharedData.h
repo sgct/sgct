@@ -8,19 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHARED_DATA__H__
 #define __SGCT__SHARED_DATA__H__
 
+#include <sgct/SharedDataTypes.h>
 #include <vector>
 #include <string>
-#include <string.h>
-#include <sgct/SharedDataTypes.h>
-#include <sgct/SGCTMutexManager.h>
-
-#ifndef SGCT_DEPRECATED
-#if defined(_MSC_VER) //if visual studio
-    #define SGCT_DEPRECATED __declspec(deprecated)
-#else
-    #define SGCT_DEPRECATED __attribute__((deprecated))
-#endif
-#endif
 
 namespace sgct {
 
@@ -34,21 +24,10 @@ order of encoding must be the same as in decoding.
 class SharedData {
 public:
     /*! Get the SharedData instance */
-    static SharedData* instance() {
-        if (mInstance == nullptr) {
-            mInstance = new SharedData();
-        }
-
-        return mInstance;
-    }
+    static SharedData* instance();
 
     /*! Destroy the SharedData */
-    static void destroy() {
-        if (mInstance != nullptr) {
-            delete mInstance;
-            mInstance = nullptr;
-        }
-    }
+    static void destroy();
 
     void setCompression(bool state, int level = 1);
     /*! Get the compresson ratio:

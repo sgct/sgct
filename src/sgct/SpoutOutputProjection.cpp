@@ -15,8 +15,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/shaders/SGCTInternalFisheyeShaders_cubic.h>
 #include <sgct/shaders/SGCTInternalFisheyeShaders_modern_cubic.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
+#include <sgct/OffScreenBuffer.h>
+#include <sgct/SGCTWindow.h>
 #include <sstream>
 #include <algorithm>
+#include <glm/gtc/matrix_transform.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 #ifdef SGCT_HAS_SPOUT
 #include <spout/SpoutLibrary.h>

@@ -221,12 +221,12 @@ void Font::createCharacter(wchar_t c) {
     FontFaceData ffd;
     
     // create glyph
-    if (createGlyph(c, &ffd)) {
+    if (createGlyph(c, ffd)) {
         mFontFaceDataMap[c] = ffd;
     }
 }
 
-bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
+bool Font::createGlyph(wchar_t c, FontFaceData& ffd) {
     //Load the Glyph for our character.
     /*
     Hints:
@@ -258,7 +258,7 @@ bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
 
     //load pixel data
     GlyphData gd;
-    if (!getPixelData(mFace, width, height, &pixels, &gd)) {
+    if (!getPixelData(mFace, width, height, &pixels, gd)) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Font %s: FT_Get_Glyph failed for char %u.\n",
@@ -270,28 +270,28 @@ bool Font::createGlyph(wchar_t c, FontFaceData* FFDPtr) {
     //create texture
     if (char_index > 0) {
         //skip null
-        FFDPtr->mTexId = generateTexture(width, height, pixels);
+        ffd.mTexId = generateTexture(width, height, pixels);
     }
     else {
-        FFDPtr->mTexId = GL_FALSE;
+        ffd.mTexId = GL_FALSE;
     }
 
     //With the texture created, we don't need to expanded data anymore
     delete[] pixels;
 
     //setup geometry data
-    FFDPtr->mPos.x = static_cast<float>(gd.mBitmapGlyph->left);
-    FFDPtr->mPos.y = static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows);
-    FFDPtr->mSize.x = static_cast<float>(width);
-    FFDPtr->mSize.y = static_cast<float>(height);
+    ffd.mPos.x = static_cast<float>(gd.mBitmapGlyph->left);
+    ffd.mPos.y = static_cast<float>(gd.mBitmapGlyph->top - gd.mBitmapPtr->rows);
+    ffd.mSize.x = static_cast<float>(width);
+    ffd.mSize.y = static_cast<float>(height);
 
     //delete the stroke glyph
     FT_Stroker_Done(gd.mStroker);
     FT_Done_Glyph(gd.mStrokeGlyph);
     
     // Can't delete them while they are used, delete when font is cleaned
-    FFDPtr->mGlyph = gd.mGlyph;
-    FFDPtr->mDistToNextChar = static_cast<float>(mFace->glyph->advance.x >> 6);
+    ffd.mGlyph = gd.mGlyph;
+    ffd.mDistToNextChar = static_cast<float>(mFace->glyph->advance.x >> 6);
 
     return true;
 }
@@ -346,45 +346,45 @@ unsigned int Font::generateTexture(int width, int height, unsigned char* data) {
 }
 
 bool Font::getPixelData(FT_Face face, int& width, int& height, unsigned char** pixels,
-                        GlyphData* gd)
+                        GlyphData& gd)
 {
     //Move the face's glyph into a Glyph object.
-    if (FT_Get_Glyph(face->glyph, &(gd->mGlyph)) ||
-        FT_Get_Glyph(face->glyph, &(gd->mStrokeGlyph)))
+    if (FT_Get_Glyph(face->glyph, &(gd.mGlyph)) ||
+        FT_Get_Glyph(face->glyph, &(gd.mStrokeGlyph)))
     {
         return false;
     }
 
-    gd->mStroker = nullptr;
-    FT_Error error = FT_Stroker_New(mFTLibrary, &(gd->mStroker));
+    gd.mStroker = nullptr;
+    FT_Error error = FT_Stroker_New(mFTLibrary, &(gd.mStroker));
     if (!error) {
         FT_Stroker_Set(
-            gd->mStroker,
+            gd.mStroker,
             64 * mStrokeSize,
             FT_STROKER_LINECAP_ROUND,
             FT_STROKER_LINEJOIN_ROUND,
             0
         );
 
-        error = FT_Glyph_Stroke(&(gd->mStrokeGlyph), gd->mStroker, 1);
+        error = FT_Glyph_Stroke(&(gd.mStrokeGlyph), gd.mStroker, 1);
     }
 
     //Convert the glyph to a bitmap.
-    FT_Glyph_To_Bitmap(&(gd->mGlyph), ft_render_mode_normal, 0, 1);
-    gd->mBitmapGlyph = (FT_BitmapGlyph)(gd->mGlyph);
+    FT_Glyph_To_Bitmap(&(gd.mGlyph), ft_render_mode_normal, 0, 1);
+    gd.mBitmapGlyph = (FT_BitmapGlyph)(gd.mGlyph);
 
-    FT_Glyph_To_Bitmap(&(gd->mStrokeGlyph), ft_render_mode_normal, 0, 1);
-    gd->mBitmapStrokeGlyph = (FT_BitmapGlyph)(gd->mStrokeGlyph);
+    FT_Glyph_To_Bitmap(&(gd.mStrokeGlyph), ft_render_mode_normal, 0, 1);
+    gd.mBitmapStrokeGlyph = (FT_BitmapGlyph)(gd.mStrokeGlyph);
 
     //This pointer will make accessing the bitmap easier
-    gd->mBitmapPtr = &(gd->mBitmapGlyph->bitmap);
-    gd->mStrokeBitmapPtr = &(gd->mBitmapStrokeGlyph->bitmap);
+    gd.mBitmapPtr = &(gd.mBitmapGlyph->bitmap);
+    gd.mStrokeBitmapPtr = &(gd.mBitmapStrokeGlyph->bitmap);
 
     //Use our helper function to get the widths of
     //the bitmap data that we will need in order to create
     //our texture.
-    width = gd->mStrokeBitmapPtr->width; //stroke is always larger
-    height = gd->mStrokeBitmapPtr->rows;
+    width = gd.mStrokeBitmapPtr->width; //stroke is always larger
+    height = gd.mStrokeBitmapPtr->rows;
 
     //Allocate memory for the texture data.
     (*pixels) = new unsigned char[2 * width * height];
@@ -395,21 +395,21 @@ bool Font::getPixelData(FT_Face face, int& width, int& height, unsigned char** p
     //is the the Freetype bitmap otherwise.
     int k, l;
     int diff_offset[2];
-    diff_offset[0] = (gd->mStrokeBitmapPtr->width - gd->mBitmapPtr->width) >> 1;
-    diff_offset[1] = (gd->mStrokeBitmapPtr->rows - gd->mBitmapPtr->rows) >> 1;
+    diff_offset[0] = (gd.mStrokeBitmapPtr->width - gd.mBitmapPtr->width) >> 1;
+    diff_offset[1] = (gd.mStrokeBitmapPtr->rows - gd.mBitmapPtr->rows) >> 1;
     for (int j = 0; j < height; ++j) {
         for (int i = 0; i < width; ++i) {
             k = i - diff_offset[0];
             l = j - diff_offset[1];
             (*pixels)[2 * (i + j * width)] =
-                (k >= gd->mBitmapPtr->width || l >= gd->mBitmapPtr->rows || k < 0 || l < 0) ?
+                (k >= gd.mBitmapPtr->width || l >= gd.mBitmapPtr->rows || k < 0 || l < 0) ?
                 0 :
-                gd->mBitmapPtr->buffer[k + gd->mBitmapPtr->width * l];
+                gd.mBitmapPtr->buffer[k + gd.mBitmapPtr->width * l];
 
             unsigned char strokeVal =
-                (i >= gd->mStrokeBitmapPtr->width || j >= gd->mStrokeBitmapPtr->rows) ?
+                (i >= gd.mStrokeBitmapPtr->width || j >= gd.mStrokeBitmapPtr->rows) ?
                 0 :
-                gd->mStrokeBitmapPtr->buffer[i + gd->mStrokeBitmapPtr->width * j];
+                gd.mStrokeBitmapPtr->buffer[i + gd.mStrokeBitmapPtr->width * j];
 
             //simple union
             (*pixels)[2 * (i + j*width) + 1] = strokeVal < (*pixels)[2 * (i + j*width)] ?

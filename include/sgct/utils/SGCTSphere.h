@@ -8,7 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPHERE__H__
 #define __SGCT__SPHERE__H__
 
-#include "../helpers/SGCTVertexData.h"
+namespace sgct_helpers {
+struct SGCTVertexData;
+} // namespace sgct_helpers
 
 namespace sgct_utils {
 

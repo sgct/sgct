@@ -7,15 +7,18 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTTrackingManager.h>
 
-#include <sgct/Engine.h>
 
 #include "../include/vrpn/vrpn_Tracker.h"
 #include "../include/vrpn/vrpn_Button.h"
 #include "../include/vrpn/vrpn_Analog.h"
 
-#include <sgct/SGCTTracker.h>
 #include <sgct/ClusterManager.h>
+#include <sgct/Engine.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTTracker.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/SGCTUser.h>
 
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>

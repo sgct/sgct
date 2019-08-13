@@ -11,7 +11,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define SGCT_NUMBER_OF_MUTEXES 6
 
 #include <mutex>
-#include <stddef.h>
 
 namespace sgct {
 

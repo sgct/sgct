@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTNode.h>
 
 #include <sgct/MessageHandler.h>
+#include <sgct.h>
 #include <algorithm>
 
 namespace sgct_core {

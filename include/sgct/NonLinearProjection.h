@@ -8,13 +8,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__NON_LINEAR_PROJECTION__H__
 #define __SGCT__NON_LINEAR_PROJECTION__H__
 
-#include "BaseViewport.h"
-#include "OffScreenBuffer.h"
-#include "ShaderProgram.h"
-#include <string>
+#include <sgct/BaseViewport.h>
+#include <sgct/ShaderProgram.h>
 #include <glm/glm.hpp>
+#include <string>
 
 namespace sgct_core {
+
+class OffScreenBuffer;
+
 /*!
 Base class for non linear projections
 */

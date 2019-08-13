@@ -8,15 +8,14 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__OFF_SCREEN_BUFFER__H__
 #define __SGCT__OFF_SCREEN_BUFFER__H__
 
-#include "ogl_headers.h"
+#include <sgct/ogl_headers.h>
 
 namespace sgct_core {
 
 /*!
 Helper class for creating frame buffer objects and render buffer objects.
 */
-class OffScreenBuffer
-{
+class OffScreenBuffer {
 public:
     void createFBO(int width, int height, int samples = 1);
     void resizeFBO(int width, int height, int samples = 1);

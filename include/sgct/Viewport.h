@@ -9,12 +9,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__VIEWPORT__H__
 
 #include <sgct/BaseViewport.h>
-#include <sgct/NonLinearProjection.h>
-#include <glm/glm.hpp>
-#include <glm/gtc/quaternion.hpp>
-#include <string>
+
 #include <sgct/CorrectionMesh.h>
-#include <stddef.h> //get definition for NULL
+#include <string>
 
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -22,10 +19,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #else
     #include <tinyxml2.h>
 #endif
-#define MAX_XML_DEPTH 16
-
 
 namespace sgct_core {
+
+class NonLinearProjection;
+
 struct FrustumData {
     enum elemIdx {
         down = 0,

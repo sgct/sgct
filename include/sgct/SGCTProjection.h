@@ -8,13 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__PROJECTION__H__
 #define __SGCT__PROJECTION__H__
 
-//#include <string>
-//#include "SGCTUser.h"
 #include <glm/glm.hpp>
-#include "Frustum.h"
-#include "SGCTProjectionPlane.h"
+#include <sgct/Frustum.h>
 
 namespace sgct_core {
+
+class SGCTProjectionPlane;
 
 /*!
     This class holds and manages 3D projections

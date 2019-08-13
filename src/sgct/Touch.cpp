@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/Touch.h>
 
+#include <GLFW/glfw3.h>
 #include <algorithm>
 #include <sstream>
 
@@ -20,7 +21,6 @@ Touch::TouchPoint::TouchPoint(int i, TouchAction a, glm::vec2 p, glm::vec2 np,
     , normPixelCoords(std::move(np))
     , normPixelDiff(std::move(nd))
 {}
-
 
 std::vector<Touch::TouchPoint> Touch::getLatestTouchPoints() const {
     return mTouchPoints;

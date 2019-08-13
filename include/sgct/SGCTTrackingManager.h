@@ -11,10 +11,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <vector>
 #include <set>
 #include <thread>
-#include <sgct/SGCTTracker.h>
-#include <sgct/SGCTUser.h>
+
+namespace sgct_core {
+    class SGCTUser;
+} // namespace sgct_core
 
 namespace sgct {
+
+class SGCTTracker;
+class SGCTTrackingDevice;
 
 /*!
 Class that manages tracking systems
@@ -33,7 +38,7 @@ public:
     
     size_t getNumberOfTrackers();
     size_t getNumberOfDevices();
-    SGCTTrackingDevice * getHeadDevicePtr();
+    SGCTTrackingDevice* getHeadDevicePtr();
 
     SGCTTracker* getLastTrackerPtr();
     SGCTTracker* getTrackerPtr(size_t index);

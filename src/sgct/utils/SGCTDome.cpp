@@ -67,15 +67,15 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
         t = t * 0.5f + 0.5f;
 
         sgct_helpers::SGCTVertexData vertex;
-        vertex.setPositionX(x * radius);
-        vertex.setPositionY(y * radius);
-        vertex.setPositionZ(z * radius);
-        vertex.setNormalX(x);
-        vertex.setNormalY(y);
-        vertex.setNormalZ(z);
-        vertex.setTextureS(s);
-        vertex.setTextureT(t);
-        mVerts.push_back(vertex);
+        vertex.x = x * radius;
+        vertex.y = y * radius;
+        vertex.z = z * radius;
+        vertex.nx = x;
+        vertex.ny = y;
+        vertex.nz = z;
+        vertex.s = s;
+        vertex.t = t;
+        mVerts.push_back(std::move(vertex));
     }
 
     for (e = 1; e <= mElevationSteps - 1; e++) {
@@ -96,15 +96,15 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
             t = t * 0.5f + 0.5f;
 
             sgct_helpers::SGCTVertexData vertex;
-            vertex.setPositionX(x * radius);
-            vertex.setPositionY(y * radius);
-            vertex.setPositionZ(z * radius);
-            vertex.setNormalX(x);
-            vertex.setNormalY(y);
-            vertex.setNormalZ(z);
-            vertex.setTextureS(s);
-            vertex.setTextureT(t);
-            mVerts.push_back(vertex);
+            vertex.x = x * radius;
+            vertex.y = y * radius;
+            vertex.z = z * radius;
+            vertex.nx = x;
+            vertex.ny = y;
+            vertex.nz = z;
+            vertex.s = s;
+            vertex.t = t;
+            mVerts.push_back(std::move(vertex));
 
             mIndices.push_back(numVerts);
             mIndices.push_back(mAzimuthSteps + numVerts++);
@@ -121,15 +121,15 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps, unsigned 
     y = sinf(elevation);
 
     sgct_helpers::SGCTVertexData vertex;
-    vertex.setPositionX(0.f);
-    vertex.setPositionY(y * radius);
-    vertex.setPositionZ(0.f);
-    vertex.setNormalX(0.f);
-    vertex.setNormalY(1.f);
-    vertex.setNormalZ(0.f);
-    vertex.setTextureS(0.5f);
-    vertex.setTextureT(0.5f);
-    mVerts.push_back(vertex);
+    vertex.x = 0.f;
+    vertex.y = y * radius;
+    vertex.z = 0.f;
+    vertex.nx = 0.f;
+    vertex.ny = 1.f;
+    vertex.nz = 0.f;
+    vertex.s = 0.5f;
+    vertex.t = 0.5f;
+    mVerts.push_back(std::move(vertex));
 
     mIndices.push_back(numVerts + mAzimuthSteps);
 

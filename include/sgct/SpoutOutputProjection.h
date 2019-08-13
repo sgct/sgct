@@ -8,7 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPOUTOUTPUT_PROJECTION__H__
 #define __SGCT__SPOUTOUTPUT_PROJECTION__H__
 
-#include "NonLinearProjection.h"
+#include <sgct/NonLinearProjection.h>
+
+#include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
 
 namespace sgct_core {

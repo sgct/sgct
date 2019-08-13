@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <sgct/SGCTWindow.h>
 
 namespace {
 void setupViewport() {

@@ -9,7 +9,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__SHARED_DATA_TYPES__H__
 
 #include <mutex>
-#include <stdint.h>
 #include <string>
 #include <vector>
 

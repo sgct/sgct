@@ -8,24 +8,33 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__ENGINE__H__
 #define __SGCT__ENGINE__H__
 
-#include <sgct/NetworkManager.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/SGCTMutexManager.h>
-#include <sgct/Statistics.h>
-#include <sgct/ReadConfig.h>
 #include <sgct/ShaderProgram.h>
 #include <sgct/FisheyeProjection.h>
+#include <sgct/ScreenCapture.h>
 #include <sgct/SphericalMirrorProjection.h>
 #include <sgct/SpoutOutputProjection.h>
-#include <sgct/Touch.h>
 
 #define MAX_UNIFORM_LOCATIONS 16
 #define NUMBER_OF_SHADERS 8
+
+namespace sgct_core {
+class Image;
+class NetworkManager;
+class SGCTNode;
+class ReadConfig;
+class Statistics;
+class Touch;
+} // namespace sgct_core
 
 /*! \namespace sgct
 \brief SGCT namespace contains the most basic functionality of the toolkit
 */
 namespace sgct {
+
+class PostFX;
+class SGCTTrackingManager;
+class SGCTWindow;
+
 /*!
 The Engine class is the central part of sgct and handles most of the callbacks, rendering, network handling, input devices etc.
 
@@ -41,7 +50,6 @@ class Engine {
 
 //all enums
 public:
-    
     //! The different run modes used by the init function
     enum RunMode { 
         /// The default mode using fixed OpenGL pipeline (compability mode)

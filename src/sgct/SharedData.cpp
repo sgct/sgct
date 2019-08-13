@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/NetworkManager.h>
 #include <sgct/Engine.h>
+#include <sgct/SGCTMutexManager.h>
 #include <sgct/MessageHandler.h>
 #ifndef SGCT_DONT_USE_EXTERNAL
 #include "../include/external/zlib.h"
@@ -24,6 +25,22 @@ namespace sgct {
 #define DEFAULT_SIZE 1024
 
 SharedData* SharedData::mInstance = nullptr;
+
+SharedData* SharedData::instance() {
+    if (mInstance == nullptr) {
+        mInstance = new SharedData();
+    }
+
+    return mInstance;
+}
+
+/*! Destroy the SharedData */
+void SharedData::destroy() {
+    if (mInstance != nullptr) {
+        delete mInstance;
+        mInstance = nullptr;
+    }
+}
 
 SharedData::SharedData() {
     // use a compression buffer twice as large

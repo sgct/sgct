@@ -5,23 +5,19 @@ All rights reserved.
 For conditions of distribution and use, see copyright notice in sgct.h 
 *************************************************************************/
 
-#ifndef _SHADER_DATA_H_
-#define _SHADER_DATA_H_
+#ifndef __SGCT__SHADER_DATA__H__
+#define __SGCT__SHADER_DATA__H__
 
-#include "Shader.h"
-#include "ShaderProgram.h"
+#include <sgct/Shader.h>
 
-namespace sgct_core
-{
+namespace sgct_core {
 
-class ShaderData
-{
-public:
+struct ShaderData {
     Shader mShader;
     std::string mShaderSrc;
     bool mIsSrcFile;
 };
 
-}
+} // namespace sgct_core
 
-#endif
+#endif // __SGCT__SHADER_DATA__H__

@@ -9,6 +9,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/helpers/SGCTVertexData.h>
 #include <sgct/Engine.h>
 
 namespace sgct_utils {
@@ -24,151 +25,151 @@ sgct_utils::SGCTBox::SGCTBox(float size, TextureMappingMode tmm)
     //populate the array
     if(tmm == Regular) {
         //A (front/+z)
-        mVerts[0].set(0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f,  size / 2.f, size / 2.f);
-        mVerts[1].set(0.f, 0.f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[2].set(1.f, 0.f, 0.f, 0.f, 1.f,  size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[3].set(0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f,  size / 2.f, size / 2.f);
-        mVerts[4].set(1.f, 0.f, 0.f, 0.f, 1.f,  size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[5].set(1.f, 1.f, 0.f, 0.f, 1.f,  size / 2.f,  size / 2.f, size / 2.f);
+        mVerts[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f,  size / 2.f, size / 2.f };
+        mVerts[1] = { 0.f, 0.f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[2] = { 1.f, 0.f, 0.f, 0.f, 1.f,  size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[3] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f,  size / 2.f, size / 2.f };
+        mVerts[4] = { 1.f, 0.f, 0.f, 0.f, 1.f,  size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[5] = { 1.f, 1.f, 0.f, 0.f, 1.f,  size / 2.f,  size / 2.f, size / 2.f };
 
         //B (right/+x)
-        mVerts[ 6].set(0.f, 1.f, 1.f, 0.f, 0.f, size  /2.f,  size / 2.f,  size / 2.f);
-        mVerts[ 7].set(0.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f,  size / 2.f);
-        mVerts[ 8].set(1.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[ 9].set(0.f, 1.f, 1.f, 0.f, 0.f, size / 2.f,  size / 2.f,  size / 2.f);
-        mVerts[10].set(1.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[11].set(1.f, 1.f, 1.f, 0.f, 0.f, size / 2.f,  size / 2.f, -size / 2.f);
+        mVerts[ 6] = { 0.f, 1.f, 1.f, 0.f, 0.f, size  /2.f,  size / 2.f,  size / 2.f };
+        mVerts[ 7] = { 0.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[ 8] = { 1.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[ 9] = { 0.f, 1.f, 1.f, 0.f, 0.f, size / 2.f,  size / 2.f,  size / 2.f };
+        mVerts[10] = { 1.f, 0.f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[11] = { 1.f, 1.f, 1.f, 0.f, 0.f, size / 2.f,  size / 2.f, -size / 2.f };
 
         //C (Back/-z)
-        mVerts[12].set(0.f, 1.f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f);
-        mVerts[13].set(0.f, 0.f, 0.f, 0.f, -1.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[14].set(1.f, 0.f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[15].set(0.f, 1.f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f);
-        mVerts[16].set(1.f, 0.f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[17].set(1.f, 1.f, 0.f, 0.f, -1.f, -size / 2.f,  size / 2.f, -size / 2.f);
+        mVerts[12] = { 0.f, 1.f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[13] = { 0.f, 0.f, 0.f, 0.f, -1.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[14] = { 1.f, 0.f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[15] = { 0.f, 1.f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[16] = { 1.f, 0.f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[17] = { 1.f, 1.f, 0.f, 0.f, -1.f, -size / 2.f,  size / 2.f, -size / 2.f };
 
         //D (Left/-x)
-        mVerts[18].set(0.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size /2.f, -size / 2.f);
-        mVerts[19].set(0.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size /2.f, -size / 2.f);
-        mVerts[20].set(1.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size /2.f,  size / 2.f);
-        mVerts[21].set(0.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size /2.f, -size / 2.f);
-        mVerts[22].set(1.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size /2.f,  size / 2.f);
-        mVerts[23].set(1.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size /2.f,  size / 2.f);
+        mVerts[18] = { 0.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[19] = { 0.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[20] = { 1.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[21] = { 0.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[22] = { 1.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[23] = { 1.f, 1.f, -1.f, 0.f, 0.f, -size / 2.f,  size / 2.f,  size / 2.f };
 
         //E (Top/+y)
-        mVerts[24].set(0.f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[25].set(0.f, 0.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[26].set(1.f, 0.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[27].set(0.f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[28].set(1.f, 0.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[29].set(1.f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[24] = { 0.f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[25] = { 0.f, 0.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[26] = { 1.f, 0.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[27] = { 0.f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[28] = { 1.f, 0.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[29] = { 1.f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f, -size / 2.f };
 
         //F (Bottom/-y)
-        mVerts[30].set(0.f, 1.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f);
-        mVerts[31].set(0.f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[32].set(1.f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[33].set(0.f, 1.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f);
-        mVerts[34].set(1.f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[35].set(1.f, 1.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f,  size / 2.f);
+        mVerts[30] = { 0.f, 1.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[31] = { 0.f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[32] = { 1.f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[33] = { 0.f, 1.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[34] = { 1.f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[35] = { 1.f, 1.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f,  size / 2.f };
     }
     else if (tmm == CubeMap) {
         //A (front/+z)
-        mVerts[0].set(0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f);
-        mVerts[1].set(0.f, 0.5f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[2].set(0.333333f, 0.5f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[3].set(0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f);
-        mVerts[4].set(0.333333f, 0.5f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[5].set(0.333333f, 1.f, 0.f, 0.f, 1.f, size / 2.f, size / 2.f, size / 2.f);
+        mVerts[0] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f };
+        mVerts[1] = { 0.f, 0.5f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[2] = { 0.333333f, 0.5f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[3] = { 0.f, 1.f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f };
+        mVerts[4] = { 0.333333f, 0.5f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[5] = { 0.333333f, 1.f, 0.f, 0.f, 1.f, size / 2.f, size / 2.f, size / 2.f };
 
         //B (right/+x)
-        mVerts[6].set(0.333334f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[7].set(0.333334f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[8].set(0.666666f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[9].set(0.333334f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[10].set(0.666666f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[11].set(0.666666f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[6] = { 0.333334f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[7] = { 0.333334f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[8] = { 0.666666f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[9] = { 0.333334f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[10] = { 0.666666f, 0.5f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[11] = { 0.666666f, 1.f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, -size / 2.f };
 
         //C (Back/-z)
-        mVerts[12].set(0.666667f, 1.f, 0.f, 0.f, -1.f, size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[13].set(0.666667f, 0.5f, 0.f, 0.f, -1.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[14].set(1.0f, 0.5f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[15].set(0.666667f, 1.f, 0.f, 0.f, -1.f, size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[16].set(1.f, 0.5f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[17].set(1.f, 1.f, 0.f, 0.f, -1.f, -size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[12] = { 0.666667f, 1.f, 0.f, 0.f, -1.f, size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[13] = { 0.666667f, 0.5f, 0.f, 0.f, -1.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[14] = { 1.f, 0.5f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[15] = { 0.666667f, 1.f, 0.f, 0.f, -1.f, size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[16] = { 1.f, 0.5f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[17] = { 1.f, 1.f, 0.f, 0.f, -1.f, -size / 2.f, size / 2.f, -size / 2.f };
 
         //D (Left/-x)
-        mVerts[18].set(0.f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[19].set(0.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[20].set(0.333333f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[21].set(0.f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[22].set(0.333333f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[23].set(0.333333f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, size / 2.f);
+        mVerts[18] = { 0.f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[19] = { 0.f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[20] = { 0.333333f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[21] = { 0.f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[22] = { 0.333333f, 0.f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[23] = { 0.333333f, 0.5f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, size / 2.f };
 
         //E (Top/+y)
-        mVerts[24].set(0.333334f, 0.5f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[25].set(0.333334f, 0.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, size / 2.f);
-        mVerts[26].set(0.666666f, 0.f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[27].set(0.333334f, 0.5f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[28].set(0.666666f, 0.f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[29].set(0.666666f, 0.5f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[24] = { 0.333334f, 0.5f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[25] = { 0.333334f, 0.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, size / 2.f };
+        mVerts[26] = { 0.666666f, 0.f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[27] = { 0.333334f, 0.5f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[28] = { 0.666666f, 0.f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[29] = { 0.666666f, 0.5f, 0.f, 1.f, 0.f, size / 2.f, size / 2.f, -size / 2.f };
 
         //F (Bottom/-y)
-        mVerts[30].set(0.666667f, 0.5f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[31].set(0.666667f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[32].set(1.f, 0.f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[33].set(0.666667f, 0.5f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[34].set(1.f, 0.f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[35].set(1.f, 0.5f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, size / 2.f);
+        mVerts[30] = { 0.666667f, 0.5f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[31] = { 0.666667f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[32] = { 1.f, 0.f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[33] = { 0.666667f, 0.5f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[34] = { 1.f, 0.f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[35] = { 1.f, 0.5f, 0.f, -1.f, 0.f, size / 2.f, -size / 2.f, size / 2.f };
     }
     else  {
         //skybox
         //A (front/+z)
-        mVerts[0].set(1.f, 0.666666f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f);
-        mVerts[1].set(1.f, 0.333334f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[2].set(0.751f, 0.333334f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[3].set(1.f, 0.666666f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f);
-        mVerts[4].set(0.751f, 0.333334f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[5].set(0.751f, 0.666666f, 0.f, 0.f, 1.f, size / 2.f, size / 2.f, size / 2.f);
+        mVerts[0] = { 1.f, 0.666666f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f };
+        mVerts[1] = { 1.f, 0.333334f, 0.f, 0.f, 1.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[2] = { 0.751f, 0.333334f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[3] = { 1.f, 0.666666f, 0.f, 0.f, 1.f, -size / 2.f, size / 2.f, size / 2.f };
+        mVerts[4] = { 0.751f, 0.333334f, 0.f, 0.f, 1.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[5] = { 0.751f, 0.666666f, 0.f, 0.f, 1.f, size / 2.f, size / 2.f, size / 2.f };
 
         //B (right/+x)
-        mVerts[6].set(0.749f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[7].set(0.749f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[8].set(0.501f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[9].set(0.749f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f);
-        mVerts[10].set(0.501f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[11].set(0.501f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[6] = { 0.749f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[7] = { 0.749f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[8] = { 0.501f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[9] = { 0.749f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, size / 2.f };
+        mVerts[10] = { 0.501f, 0.333334f, 1.f, 0.f, 0.f, size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[11] = { 0.501f, 0.666666f, 1.f, 0.f, 0.f, size / 2.f, size / 2.f, -size / 2.f };
 
         //C (Back/-z)
-        mVerts[12].set(0.499f, 0.666666f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f);
-        mVerts[13].set(0.499f, 0.333334f, 0.f, 0.f, -1.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[14].set(0.251f, 0.333334f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[15].set(0.499f, 0.666666f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f);
-        mVerts[16].set(0.251f, 0.333334f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[17].set(0.251f, 0.666666f, 0.f, 0.f, -1.f, -size / 2.f,  size / 2.f, -size / 2.f);
+        mVerts[12] = { 0.499f, 0.666666f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[13] = { 0.499f, 0.333334f, 0.f, 0.f, -1.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[14] = { 0.251f, 0.333334f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[15] = { 0.499f, 0.666666f, 0.f, 0.f, -1.f,  size / 2.f,  size / 2.f, -size / 2.f };
+        mVerts[16] = { 0.251f, 0.333334f, 0.f, 0.f, -1.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[17] = { 0.251f, 0.666666f, 0.f, 0.f, -1.f, -size / 2.f,  size / 2.f, -size / 2.f };
 
         //D (Left/-x)
-        mVerts[18].set(0.249f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[19].set(0.249f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[20].set(0.000f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[21].set(0.249f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[22].set(0.000f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f);
-        mVerts[23].set(0.000f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, size / 2.f);
+        mVerts[18] = { 0.249f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[19] = { 0.249f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[20] = { 0.000f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[21] = { 0.249f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[22] = { 0.000f, 0.333334f, -1.f, 0.f, 0.f, -size / 2.f, -size / 2.f, size / 2.f };
+        mVerts[23] = { 0.000f, 0.666666f, -1.f, 0.f, 0.f, -size / 2.f, size / 2.f, size / 2.f };
 
         //E (Top/+y)
-        mVerts[24].set(0.251f, 0.666667f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[25].set(0.251f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[26].set(0.499f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[27].set(0.251f, 0.666667f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f);
-        mVerts[28].set(0.499f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f);
-        mVerts[29].set(0.499f, 0.666667f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f, -size / 2.f);
+        mVerts[24] = { 0.251f, 0.666667f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[25] = { 0.251f, 1.f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[26] = { 0.499f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[27] = { 0.251f, 0.666667f, 0.f, 1.f, 0.f, -size / 2.f, size / 2.f, -size / 2.f };
+        mVerts[28] = { 0.499f, 1.f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f,  size / 2.f };
+        mVerts[29] = { 0.499f, 0.666667f, 0.f, 1.f, 0.f,  size / 2.f, size / 2.f, -size / 2.f };
 
         //F (Bottom/-y)
-        mVerts[30].set(0.251f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f);
-        mVerts[31].set(0.251f, 0.333333f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[32].set(0.499f, 0.333333f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[33].set(0.251f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f);
-        mVerts[34].set(0.499f, 0.333333f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f);
-        mVerts[35].set(0.499f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f,  size / 2.f);
+        mVerts[30] = { 0.251f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[31] = { 0.251f, 0.333333f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[32] = { 0.499f, 0.333333f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[33] = { 0.251f, 0.f, 0.f, -1.f, 0.f, -size / 2.f, -size / 2.f,  size / 2.f };
+        mVerts[34] = { 0.499f, 0.333333f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f, -size / 2.f };
+        mVerts[35] = { 0.499f, 0.f, 0.f, -1.f, 0.f,  size / 2.f, -size / 2.f,  size / 2.f };
     }
 
     createVBO();

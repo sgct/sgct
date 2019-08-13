@@ -7,6 +7,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTUser.h>
 
+#include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/euler_angles.hpp>
 
@@ -15,9 +16,7 @@ namespace sgct_core {
 /*!
     Default contructor
 */
-SGCTUser::SGCTUser(std::string name)
-    : mName(std::move(name))
-{}
+SGCTUser::SGCTUser(std::string name) : mName(std::move(name)) {}
 
 /*!
     Sets user's head position

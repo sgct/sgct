@@ -7,7 +7,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/ScreenCapture.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/SGCTWindow.h>
 #include <sgct/Engine.h>
+#include <sgct/Image.h>
 #include <sstream>
 #include <string>
 

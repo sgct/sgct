@@ -8,16 +8,20 @@
 #define TIXML_USE_STL //needed for tinyXML lib to link properly in mingw
 #define MAX_XML_DEPTH 16
 
-#include <sgct/ogl_headers.h>
 #include <sgct/ReadConfig.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/ClusterManager.h>
-#include <sgct/SGCTTrackingDevice.h>
 
-#include <sgct/SGCTSettings.h>
+#include <sgct/ogl_headers.h>
+#include <sgct/ClusterManager.h>
+#include <sgct/MessageHandler.h>
 #include <sgct/SGCTMpcdi.h>
+#include <sgct/SGCTSettings.h>
+#include <sgct/SGCTTracker.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <sgct/SGCTUser.h>
+#include <sgct/Viewport.h>
 #include <algorithm>
 #include <sstream>
+#include <glm/gtc/type_ptr.hpp>
 
 namespace {
 
@@ -664,8 +668,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
             SGCTUser* usrPtr;
             if (element[0]->Attribute("name") != nullptr) {
                 std::string name(element[0]->Attribute("name"));
-                usrPtr = new SGCTUser(name);
-                ClusterManager::instance()->addUserPtr(usrPtr);
+                ClusterManager::instance()->addUser(std::make_unique<SGCTUser>(name));
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Info,
                     "ReadConfig: Adding user '%s'!\n", name.c_str()

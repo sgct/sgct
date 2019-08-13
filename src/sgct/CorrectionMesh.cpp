@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define MAX_LINE_LENGTH 1024
 #define CONVERT_SCISS_TO_DOMEPROJECTION 0
 #define CONVERT_SIMCAD_TO_DOMEPROJECTION_AND_SGC 0
+#define MAX_XML_DEPTH 16
 
 #include <sgct/CorrectionMesh.h>
 
@@ -16,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 #include <sgct/SGCTSettings.h>
 #include <sgct/Viewport.h>
+#include <sgct/SGCTUser.h>
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <algorithm>
 #include <cstring>
@@ -38,16 +40,6 @@ namespace {
             i++;
         }
         return i;
-    }
-
-
-    void clamp(float& val, float max, float min) {
-        if (val > max) {
-            val = max;
-        }
-        else if (val < min) {
-            val = min;
-        }
     }
 } // namespace
 
@@ -85,7 +77,7 @@ enum SCISSDistortionType {
     MESHTYPE_CUBE
 };
 
-CorrectionMeshGeometry::~CorrectionMeshGeometry() {
+CorrectionMesh::CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::DISPLAY_LIST)
     {
@@ -113,7 +105,7 @@ CorrectionMeshGeometry::~CorrectionMeshGeometry() {
     }
 }
 
-CorrectionMesh::CorrectionMesh() {
+CorrectionMesh::CorrectionMesh::CorrectionMesh() {
     for (int i = 0; i < LAST_MESH; i++) {
         mGeometries[i].mNumberOfVertices = 0;
         mGeometries[i].mNumberOfIndices = 0;
@@ -128,35 +120,35 @@ This function finds a suitible parser for warping meshes and loads them into mem
 @param parent the pointer to parent viewport
 @return true if mesh found and loaded successfully
 */
-bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport* parent,
+bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport& parent,
                                          MeshHint hint)
 {    
     //generate unwarped mask
-    setupSimpleMesh(&mGeometries[QUAD_MESH], parent);
-    createMesh(&mGeometries[QUAD_MESH]);
+    setupSimpleMesh(mGeometries[QUAD_MESH], parent);
+    createMesh(mGeometries[QUAD_MESH]);
     cleanUp();
     
     //generate unwarped mesh for mask
-    if (parent->hasBlendMaskTexture() || parent->hasBlackLevelMaskTexture()) {
+    if (parent.hasBlendMaskTexture() || parent.hasBlackLevelMaskTexture()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "CorrectionMesh: Creating mask mesh\n"
         );
         
-        bool flip_x = false;
-        bool flip_y = false;
+        bool flipX = false;
+        bool flipY = false;
         //if (hint == DOMEPROJECTION_HINT)
         //    flip_x = true;
 
-        setupMaskMesh(parent, flip_x, flip_y);
-        createMesh(&mGeometries[MASK_MESH]);
+        setupMaskMesh(parent, flipX, flipY);
+        createMesh(mGeometries[MASK_MESH]);
         cleanUp();
     }
 
     //fallback if no mesh is provided
     if (meshPath.empty()) {
-        setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-        createMesh(&mGeometries[WARP_MESH]);
+        setupSimpleMesh(mGeometries[WARP_MESH], parent);
+        createMesh(mGeometries[WARP_MESH]);
         cleanUp();
 
         sgct::MessageHandler::instance()->print(
@@ -266,8 +258,8 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport* parent,
             "CorrectionMesh error: Loading mesh '%s' failed!\n", meshPath.c_str()
         );
         
-        setupSimpleMesh(&mGeometries[WARP_MESH], parent);
-        createMesh(&mGeometries[WARP_MESH]);
+        setupSimpleMesh(mGeometries[WARP_MESH], parent);
+        createMesh(mGeometries[WARP_MESH]);
         cleanUp();
         return false;
     }
@@ -279,7 +271,7 @@ bool CorrectionMesh::readAndGenerateMesh(std::string meshPath, Viewport* parent,
 Parse data from domeprojection's camera based calibration system. Domeprojection.com
 */
 bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPath,
-                                                       Viewport* parent)
+                                                       Viewport& parent)
 {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -315,14 +307,14 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
     CorrectionMeshVertex vertex;
     std::vector<CorrectionMeshVertex> vertices;
 
-    //init to max intencity (opaque white)
+    //init to max intensity (opaque white)
     vertex.r = 1.f;
     vertex.g = 1.f;
     vertex.b = 1.f;
     vertex.a = 1.f;
 
     while (!feof(meshFile)) {
-        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != NULL) {
+        if (fgets(lineBuffer, MAX_LINE_LENGTH, meshFile) != nullptr) {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
             if (sscanf_s(lineBuffer, "%f;%f;%f;%f;%u;%u", &x, &y, &u, &v, &col, &row) == 6)
 #else
@@ -339,18 +331,18 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
                 }
 
                 //clamp
-                clamp(x, 1.f, 0.f);
-                clamp(y, 1.f, 0.f);
+                glm::clamp(x, 0.f, 1.f);
+                glm::clamp(y, 0.f, 1.f);
                 //clamp(u, 1.0f, 0.0f);
                 //clamp(v, 1.0f, 0.0f);
 
                 //convert to [-1, 1]
-                vertex.x = 2.f * (x * parent->getXSize() + parent->getX()) - 1.f;
-                vertex.y = 2.f * ((1.f - y) * parent->getYSize() + parent->getY()) - 1.f;
+                vertex.x = 2.f * (x * parent.getXSize() + parent.getX()) - 1.f;
+                vertex.y = 2.f * ((1.f - y) * parent.getYSize() + parent.getY()) - 1.f;
 
                 //scale to viewport coordinates
-                vertex.s = u * parent->getXSize() + parent->getX();
-                vertex.t = (1.f - v) * parent->getYSize() + parent->getY();
+                vertex.s = u * parent.getXSize() + parent.getX();
+                vertex.t = (1.f - v) * parent.getYSize() + parent.getY();
 
                 vertices.push_back(vertex);
             }
@@ -421,7 +413,7 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -434,7 +426,7 @@ bool CorrectionMesh::readAndGenerateDomeProjectionMesh(const std::string& meshPa
 }
 
 bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
-                                                 Viewport* parent)
+                                                 Viewport& parent)
 {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -487,15 +479,15 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
                 if (mTempVertices && resolution[0] != 0 && resolution[1] != 0) {
                     vertexPtr = &mTempVertices[numOfVerticesRead];
                     vertexPtr->x = (x / static_cast<float>(resolution[0])) *
-                        parent->getXSize() + parent->getX();
+                                    parent.getXSize() + parent.getX();
                     vertexPtr->y = (y / static_cast<float>(resolution[1])) *
-                        parent->getYSize() + parent->getY();
+                                    parent.getYSize() + parent.getY();
                     vertexPtr->r = static_cast<float>(intensity) / 255.f;
                     vertexPtr->g = static_cast<float>(intensity) / 255.f;
                     vertexPtr->b = static_cast<float>(intensity) / 255.f;
                     vertexPtr->a = 1.f;
-                    vertexPtr->s = (1.f - t) * parent->getXSize() + parent->getX();
-                    vertexPtr->t = (1.f - s) * parent->getYSize() + parent->getY();
+                    vertexPtr->s = (1.f - t) * parent.getXSize() + parent.getX();
+                    vertexPtr->t = (1.f - s) * parent.getYSize() + parent.getY();
 
                     numOfVerticesRead++;
                 }
@@ -618,7 +610,7 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
     mGeometries[WARP_MESH].mNumberOfIndices = numberOfIndices;
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -631,7 +623,7 @@ bool CorrectionMesh::readAndGenerateScalableMesh(const std::string& meshPath,
 }
 
 bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
-                                              Viewport* parent)
+                                              Viewport& parent)
 {    
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -893,9 +885,9 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
 
     fclose(meshFile);
 
-    parent->getUser()->setPos(viewData.x, viewData.y, viewData.z);
+    parent.getUser()->setPos(viewData.x, viewData.y, viewData.z);
 
-    parent->setViewPlaneCoordsUsingFOVs(
+    parent.setViewPlaneCoordsUsingFOVs(
         viewData.fovUp,
         viewData.fovDown,
         viewData.fovLeft,
@@ -920,17 +912,17 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
         vertexPtr->a = 1.f;
 
         //clamp
-        clamp(scissVertexPtr->x, 1.f, 0.f);
-        clamp(scissVertexPtr->y, 1.f, 0.f);
-        clamp(scissVertexPtr->tx, 1.f, 0.f);
-        clamp(scissVertexPtr->ty, 1.f, 0.f);
+        glm::clamp(scissVertexPtr->x, 0.f, 1.f);
+        glm::clamp(scissVertexPtr->y, 0.f, 1.f);
+        glm::clamp(scissVertexPtr->tx, 0.f, 1.f);
+        glm::clamp(scissVertexPtr->ty, 0.f, 1.f);
 
         //convert to [-1, 1]
-        vertexPtr->x = 2.f * (scissVertexPtr->x * parent->getXSize() + parent->getX()) - 1.f;
-        vertexPtr->y = 2.f * ((1.f - scissVertexPtr->y) * parent->getYSize() + parent->getY()) - 1.f;
+        vertexPtr->x = 2.f * (scissVertexPtr->x * parent.getXSize() + parent.getX()) - 1.f;
+        vertexPtr->y = 2.f * ((1.f - scissVertexPtr->y) * parent.getYSize() + parent.getY()) - 1.f;
 
-        vertexPtr->s = scissVertexPtr->tx * parent->getXSize() + parent->getX();
-        vertexPtr->t = scissVertexPtr->ty * parent->getYSize() + parent->getY();
+        vertexPtr->s = scissVertexPtr->tx * parent.getXSize() + parent.getX();
+        vertexPtr->t = scissVertexPtr->ty * parent.getYSize() + parent.getY();
 
         /*fprintf(stderr, "Coords: %f %f %f\tTex: %f %f %f\n",
             scissVertexPtr->x, scissVertexPtr->y, scissVertexPtr->z,
@@ -1010,7 +1002,7 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
     delete [] texturedVertexList;
     texturedVertexList = NULL;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1022,7 +1014,7 @@ bool CorrectionMesh::readAndGenerateScissMesh(const std::string& meshPath,
 }
 
 bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
-                                               Viewport* parent)
+                                               Viewport& parent)
 {
     /*
      * During projector alignment, a 33x33 matrix is used. This means 33x33 points can be
@@ -1297,12 +1289,12 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
             y = v - ycorrections[i];
 
             //convert to [-1, 1]
-            vertex.x = 2.f * (x * parent->getXSize() + parent->getX()) - 1.f;
-            vertex.y = 2.f * (y * parent->getYSize() + parent->getY()) - 1.f;
+            vertex.x = 2.f * (x * parent.getXSize() + parent.getX()) - 1.f;
+            vertex.y = 2.f * (y * parent.getYSize() + parent.getY()) - 1.f;
 
             //scale to viewport coordinates
-            vertex.s = u * parent->getXSize() + parent->getX();
-            vertex.t = v * parent->getYSize() + parent->getY();
+            vertex.s = u * parent.getXSize() + parent.getX();
+            vertex.t = v * parent.getYSize() + parent.getY();
 
             vertices.push_back(vertex);
 
@@ -1416,7 +1408,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLE_STRIP;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1429,7 +1421,7 @@ bool CorrectionMesh::readAndGenerateSimCADMesh(const std::string& meshPath,
 }
 
 bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
-                                                Viewport* parent)
+                                                Viewport& parent)
 {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -1637,8 +1629,8 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
     rotQuat = glm::rotate(rotQuat, glm::radians(-azimuth), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(elevation), glm::vec3(1.f, 0.f, 0.f));
 
-    parent->getUser()->setPos(0.f, 0.f, 0.f);
-    parent->setViewPlaneCoordsUsingFOVs(
+    parent.getUser()->setPos(0.f, 0.f, 0.f);
+    parent.setViewPlaneCoordsUsingFOVs(
         vertical_fov / 2.f,
         -vertical_fov / 2.f,
         -horizontal_fov / 2.f,
@@ -1718,17 +1710,17 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
 
         //convert to [-1, 1]
         mTempVertices[i].x = 2.f * (mTempVertices[i].x *
-                             parent->getXSize() + parent->getX()) - 1.f;
+                             parent.getXSize() + parent.getX()) - 1.f;
         //mTempVertices[i].x = 2.0f*((1.0f - mTempVertices[i].x) * parent->getXSize() + parent->getX()) - 1.0f;
         //mTempVertices[i].y = 2.0f*(mTempVertices[i].y * parent->getYSize() + parent->getY()) - 1.0f;
         mTempVertices[i].y = 2.f * ((1.f - mTempVertices[i].y) *
-                             parent->getYSize() + parent->getY()) - 1.f;
+                             parent.getYSize() + parent.getY()) - 1.f;
         //test code
         //mTempVertices[i].x /= 1.5f;
         //mTempVertices[i].y /= 1.5f;
 
-        mTempVertices[i].s = mTempVertices[i].s * parent->getXSize() + parent->getX();
-        mTempVertices[i].t = mTempVertices[i].t * parent->getYSize() + parent->getY();
+        mTempVertices[i].s = mTempVertices[i].s * parent.getXSize() + parent.getX();
+        mTempVertices[i].t = mTempVertices[i].t * parent.getYSize() + parent.getY();
     }
 
     //allocate and copy indices
@@ -1742,7 +1734,7 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -1755,7 +1747,7 @@ bool CorrectionMesh::readAndGenerateSkySkanMesh(const std::string& meshPath,
 }
 
 bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
-                                                   Viewport* parent)
+                                                   Viewport& parent)
 {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -1876,7 +1868,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     }
 
     float aspect = sgct::Engine::instance()->getCurrentWindowPtr().getAspectRatio() *
-        (parent->getXSize() / parent->getYSize());
+                   (parent.getXSize() / parent.getYSize());
     
     for (unsigned int i = 0; i < mGeometries[WARP_MESH].mNumberOfVertices; i++) {
         //convert to [0, 1] (normalize)
@@ -1886,13 +1878,13 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
         
         //scale, re-position and convert to [-1, 1]
         mTempVertices[i].x =
-            (mTempVertices[i].x * parent->getXSize() + parent->getX()) * 2.f - 1.f;
+            (mTempVertices[i].x * parent.getXSize() + parent.getX()) * 2.f - 1.f;
         mTempVertices[i].y =
-            (mTempVertices[i].y * parent->getYSize() + parent->getY()) * 2.f - 1.f;
+            (mTempVertices[i].y * parent.getYSize() + parent.getY()) * 2.f - 1.f;
 
         //convert to viewport coordinates
-        mTempVertices[i].s = mTempVertices[i].s * parent->getXSize() + parent->getX();
-        mTempVertices[i].t = mTempVertices[i].t * parent->getYSize() + parent->getY();
+        mTempVertices[i].s = mTempVertices[i].s * parent.getXSize() + parent.getX();
+        mTempVertices[i].t = mTempVertices[i].t * parent.getYSize() + parent.getY();
     }
 
     //allocate and copy indices
@@ -1905,11 +1897,11 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     );
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     //force regeneration of dome render quad
     FisheyeProjection* fishPrj = dynamic_cast<FisheyeProjection*>(
-        parent->getNonLinearProjectionPtr()
+        parent.getNonLinearProjectionPtr()
     );
     if (fishPrj) {
         fishPrj->setIgnoreAspectRatio(true);
@@ -1924,7 +1916,7 @@ bool CorrectionMesh::readAndGeneratePaulBourkeMesh(const std::string& meshPath,
     return true;
 }
 
-bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewport* parent)
+bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewport& parent)
 {
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Info,
@@ -2015,7 +2007,7 @@ bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewpor
     );
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -2027,7 +2019,7 @@ bool CorrectionMesh::readAndGenerateOBJMesh(const std::string& meshPath, Viewpor
 }
 
 bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
-                                              Viewport* parent)
+                                              Viewport& parent)
 {
     bool isReadingFile = meshPath.length() > 0;
     unsigned int srcIdx = 0;
@@ -2067,8 +2059,8 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
             "CorrectionMesh: Reading MPCDI mesh (PFM format) from buffer.\n",
             meshPath.c_str()
         );
-        srcBuff = parent->mMpcdiWarpMeshData;
-        srcSize_bytes = parent->mMpcdiWarpMeshSize;
+        srcBuff = parent.mMpcdiWarpMeshData;
+        srcSize_bytes = parent.mMpcdiWarpMeshSize;
     }
 
     size_t retval;
@@ -2328,7 +2320,7 @@ bool CorrectionMesh::readAndGenerateMpcdiMesh(const std::string& meshPath,
 
     mGeometries[WARP_MESH].mGeometryType = GL_TRIANGLES;
 
-    createMesh(&mGeometries[WARP_MESH]);
+    createMesh(mGeometries[WARP_MESH]);
 
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
@@ -2357,13 +2349,13 @@ bool CorrectionMesh::readMeshBuffer(float* dest, unsigned int& idx, char* src,
     return true;
 }
 
-void CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry* geomPtr, Viewport* parent) {
+void CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry& geomPtr, Viewport& parent) {
     unsigned int numberOfVertices = 4;
     unsigned int numberOfIndices = 4;
     
-    geomPtr->mNumberOfVertices = numberOfVertices;
-    geomPtr->mNumberOfIndices = numberOfIndices;
-    geomPtr->mGeometryType = GL_TRIANGLE_STRIP;
+    geomPtr.mNumberOfVertices = numberOfVertices;
+    geomPtr.mNumberOfIndices = numberOfIndices;
+    geomPtr.mGeometryType = GL_TRIANGLE_STRIP;
 
     mTempVertices = new CorrectionMeshVertex[ numberOfVertices ];
     memset(mTempVertices, 0, numberOfVertices * sizeof(CorrectionMeshVertex));
@@ -2380,40 +2372,40 @@ void CorrectionMesh::setupSimpleMesh(CorrectionMeshGeometry* geomPtr, Viewport* 
     mTempVertices[0].g = 1.f;
     mTempVertices[0].b = 1.f;
     mTempVertices[0].a = 1.f;
-    mTempVertices[0].s = 0.f * parent->getXSize() + parent->getX();
-    mTempVertices[0].t = 0.f * parent->getYSize() + parent->getY();
-    mTempVertices[0].x = 2.f * (0.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[0].y = 2.f * (0.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[0].s = 0.f * parent.getXSize() + parent.getX();
+    mTempVertices[0].t = 0.f * parent.getYSize() + parent.getY();
+    mTempVertices[0].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[0].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[1].r = 1.f;
     mTempVertices[1].g = 1.f;
     mTempVertices[1].b = 1.f;
     mTempVertices[1].a = 1.f;
-    mTempVertices[1].s = 1.f * parent->getXSize() + parent->getX();
-    mTempVertices[1].t = 0.f * parent->getYSize() + parent->getY();
-    mTempVertices[1].x = 2.f * (1.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[1].y = 2.f * (0.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[1].s = 1.f * parent.getXSize() + parent.getX();
+    mTempVertices[1].t = 0.f * parent.getYSize() + parent.getY();
+    mTempVertices[1].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[1].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[2].r = 1.f;
     mTempVertices[2].g = 1.f;
     mTempVertices[2].b = 1.f;
     mTempVertices[2].a = 1.f;
-    mTempVertices[2].s = 1.f * parent->getXSize() + parent->getX();
-    mTempVertices[2].t = 1.f * parent->getYSize() + parent->getY();
-    mTempVertices[2].x = 2.f * (1.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[2].y = 2.f * (1.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[2].s = 1.f * parent.getXSize() + parent.getX();
+    mTempVertices[2].t = 1.f * parent.getYSize() + parent.getY();
+    mTempVertices[2].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[2].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[3].r = 1.f;
     mTempVertices[3].g = 1.f;
     mTempVertices[3].b = 1.f;
     mTempVertices[3].a = 1.f;
-    mTempVertices[3].s = 0.f * parent->getXSize() + parent->getX();
-    mTempVertices[3].t = 1.f * parent->getYSize() + parent->getY();
-    mTempVertices[3].x = 2.f * (0.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[3].y = 2.f * (1.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[3].s = 0.f * parent.getXSize() + parent.getX();
+    mTempVertices[3].t = 1.f * parent.getYSize() + parent.getY();
+    mTempVertices[3].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[3].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
 }
 
-void CorrectionMesh::setupMaskMesh(Viewport* parent, bool flip_x, bool flip_y) {
+void CorrectionMesh::setupMaskMesh(Viewport& parent, bool flip_x, bool flip_y) {
     unsigned int numberOfVertices = 4;
     unsigned int numberOfIndices = 4;
 
@@ -2438,8 +2430,8 @@ void CorrectionMesh::setupMaskMesh(Viewport* parent, bool flip_x, bool flip_y) {
     mTempVertices[0].a = 1.f;
     mTempVertices[0].s = flip_x ? 1.f : 0.f;
     mTempVertices[0].t = flip_y ? 1.f : 0.f;
-    mTempVertices[0].x = 2.f * (0.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[0].y = 2.f * (0.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[0].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[0].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[1].r = 1.f;
     mTempVertices[1].g = 1.f;
@@ -2447,8 +2439,8 @@ void CorrectionMesh::setupMaskMesh(Viewport* parent, bool flip_x, bool flip_y) {
     mTempVertices[1].a = 1.f;
     mTempVertices[1].s = flip_x ? 0.f : 1.f;
     mTempVertices[1].t = flip_y ? 1.F : 0.f;
-    mTempVertices[1].x = 2.f * (1.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[1].y = 2.f * (0.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[1].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[1].y = 2.f * (0.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[2].r = 1.f;
     mTempVertices[2].g = 1.f;
@@ -2456,8 +2448,8 @@ void CorrectionMesh::setupMaskMesh(Viewport* parent, bool flip_x, bool flip_y) {
     mTempVertices[2].a = 1.f;
     mTempVertices[2].s = flip_x ? 0.f : 1.f;
     mTempVertices[2].t = flip_y ? 0.f : 1.f;
-    mTempVertices[2].x = 2.f * (1.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[2].y = 2.f * (1.f *parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[2].x = 2.f * (1.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[2].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
 
     mTempVertices[3].r = 1.f;
     mTempVertices[3].g = 1.f;
@@ -2465,11 +2457,11 @@ void CorrectionMesh::setupMaskMesh(Viewport* parent, bool flip_x, bool flip_y) {
     mTempVertices[3].a = 1.f;
     mTempVertices[3].s = flip_x ? 1.f : 0.f;
     mTempVertices[3].t = flip_y ? 0.f : 1.f;
-    mTempVertices[3].x = 2.f * (0.f * parent->getXSize() + parent->getX()) - 1.f;
-    mTempVertices[3].y = 2.f * (1.f * parent->getYSize() + parent->getY()) - 1.f;
+    mTempVertices[3].x = 2.f * (0.f * parent.getXSize() + parent.getX()) - 1.f;
+    mTempVertices[3].y = 2.f * (1.f * parent.getYSize() + parent.getY()) - 1.f;
 }
 
-void CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry* geomPtr) {
+void CorrectionMesh::createMesh(CorrectionMeshGeometry& geomPtr) {
     /*sgct::MessageHandler::instance()->print(sgct::MessageHandler::Info, "Uploading mesh data (type=%d)...\n",
         ClusterManager::instance()->getMeshImplementation());*/
     
@@ -2477,27 +2469,27 @@ void CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry* geomPtr) {
         ClusterManager::BUFFER_OBJECTS)
     {
         if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-            glGenVertexArrays(1, &(geomPtr->mMeshData[Array]));
-            glBindVertexArray(geomPtr->mMeshData[Array]);
+            glGenVertexArrays(1, &(geomPtr.mMeshData[Array]));
+            glBindVertexArray(geomPtr.mMeshData[Array]);
 
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
                 "CorrectionMesh: Generating VAO: %d\n",
-                geomPtr->mMeshData[Array]
+                geomPtr.mMeshData[Array]
             );
         }
 
-        glGenBuffers(2, &(geomPtr->mMeshData[0]));
+        glGenBuffers(2, &(geomPtr.mMeshData[0]));
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "CorrectionMesh: Generating VBOs: %d %d\n",
-            geomPtr->mMeshData[0], geomPtr->mMeshData[1]
+            geomPtr.mMeshData[0], geomPtr.mMeshData[1]
         );
 
-        glBindBuffer(GL_ARRAY_BUFFER, geomPtr->mMeshData[Vertex]);
+        glBindBuffer(GL_ARRAY_BUFFER, geomPtr.mMeshData[Vertex]);
         glBufferData(
             GL_ARRAY_BUFFER,
-            geomPtr->mNumberOfVertices * sizeof(CorrectionMeshVertex),
+            geomPtr.mNumberOfVertices * sizeof(CorrectionMeshVertex),
             &mTempVertices[0],
             GL_STATIC_DRAW
         );
@@ -2534,10 +2526,10 @@ void CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry* geomPtr) {
             );
         }
 
-        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomPtr->mMeshData[Index]);
+        glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, geomPtr.mMeshData[Index]);
         glBufferData(
             GL_ELEMENT_ARRAY_BUFFER,
-            geomPtr->mNumberOfIndices * sizeof(unsigned int),
+            geomPtr.mNumberOfIndices * sizeof(unsigned int),
             &mTempIndices[0],
             GL_STATIC_DRAW
         );
@@ -2552,13 +2544,13 @@ void CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry* geomPtr) {
     }
     else {
         //display lists
-        geomPtr->mMeshData[Vertex] = glGenLists(1);
-        glNewList(geomPtr->mMeshData[Vertex], GL_COMPILE);
+        geomPtr.mMeshData[Vertex] = glGenLists(1);
+        glNewList(geomPtr.mMeshData[Vertex], GL_COMPILE);
 
-        glBegin(geomPtr->mGeometryType);
+        glBegin(geomPtr.mGeometryType);
         CorrectionMeshVertex vertex;
         
-        for (unsigned int i = 0; i < geomPtr->mNumberOfIndices; i++) {
+        for (unsigned int i = 0; i < geomPtr.mNumberOfIndices; i++) {
             vertex = mTempVertices[mTempIndices[i]];
 
             glColor4f(vertex.r, vertex.g, vertex.b, vertex.a);
@@ -2572,7 +2564,7 @@ void CorrectionMesh::createMesh(sgct_core::CorrectionMeshGeometry* geomPtr) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "CorrectionMesh: Generating display list: %d\n",
-            geomPtr->mMeshData[Vertex]
+            geomPtr.mMeshData[Vertex]
         );
     }
 }

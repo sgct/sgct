@@ -11,7 +11,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTNode.h>
 #include <sgct/SGCTTrackingManager.h>
 #include <sgct/NetworkManager.h>
+#include <memory>
 #include <string>
+#include <glm/glm.hpp>
 
 
 /*! \namespace sgct_core
@@ -42,7 +44,7 @@ public:
     };
 
     void addNode(SGCTNode node);
-    void addUserPtr(SGCTUser* userPtr);
+    void addUser(std::unique_ptr<SGCTUser> userPtr);
 
     SGCTNode* getNodePtr(size_t index);
     SGCTNode* getNodePtr(const std::string& name);
@@ -56,7 +58,7 @@ public:
     /*!
         \returns the number of nodes in the cluster
     */
-    std::size_t getNumberOfNodes() const;
+    size_t getNumberOfNodes() const;
     
     /*!
         \returns the scene transform specified in the configuration file
@@ -121,7 +123,7 @@ public:
 
 private:
     ClusterManager();
-    ~ClusterManager();
+    ~ClusterManager() = default;
 
     void calculateSceneTransform();
 
@@ -139,7 +141,7 @@ private:
     std::string mExternalControlPort;
     bool mUseASCIIForExternalControl = true;
 
-    std::vector<SGCTUser*> mUsers;
+    std::vector<std::unique_ptr<SGCTUser>> mUsers;
     sgct::SGCTTrackingManager mTrackingManager;
 
     glm::mat4 mSceneTransform = glm::mat4(1.f);

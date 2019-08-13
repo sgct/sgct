@@ -8,12 +8,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TRACKING_DEVICE__H__
 #define __SGCT__TRACKING_DEVICE__H__
 
-#include <string>
 #include <glm/glm.hpp>
-#include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtc/quaternion.hpp>
-
-using GLFWmutex = void*;
+#include <string>
 
 namespace sgct {
 

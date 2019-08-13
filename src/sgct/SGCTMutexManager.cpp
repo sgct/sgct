@@ -7,8 +7,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/SGCTMutexManager.h>
 
-#include <stdio.h>
-
 //#define __SGCT_MUTEX_DEBUG__
 
 namespace sgct {

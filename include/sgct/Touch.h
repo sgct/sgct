@@ -8,12 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TOUCH__H__
 #define __SGCT__TOUCH__H__
 
-#include <GLFW/glfw3.h>
-#include <glm/glm.hpp>
 #include <string>
-#include <vector>
 #include <unordered_map>
-#include <stddef.h>
+#include <vector>
+#include <glm/glm.hpp>
 
 struct GLFWtouch;
 

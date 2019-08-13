@@ -6,10 +6,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 *************************************************************************/
 
 #include <sgct/SGCTTracker.h>
-#include <sgct/MessageHandler.h>
-#include <sgct/Engine.h>
 
-extern GLFWmutex gTrackingMutex;
+#include <sgct/Engine.h>
+#include <sgct/MessageHandler.h>
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTTrackingDevice.h>
+#include <glm/gtc/matrix_transform.hpp>
 
 namespace sgct {
 

@@ -13,7 +13,7 @@ namespace sgct_core::shaders_modern_fisheye {
     Contains GLSL 3.3+ shaders
 */
 
-constexpr const char* sample_fun = R"(
+constexpr const char* SampleFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float s = 2.0 * (texel.s - 0.5);
         float t = 2.0 * (texel.t - 0.5);
@@ -33,7 +33,7 @@ constexpr const char* sample_fun = R"(
     }
 )";
 
-constexpr const char* sample_latlon_fun = R"(
+constexpr const char* SampleLatlonFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float phi = 3.14159265359 * (1.0 - texel.t);
         float theta = 6.28318530718 * (texel.s - 0.5);
@@ -45,7 +45,7 @@ constexpr const char* sample_latlon_fun = R"(
     }
 )";
 
-constexpr const char* sample_offset_fun = R"(
+constexpr const char* SampleOffsetFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float s = 2.0 * (texel.s - 0.5);
         float t = 2.0 * (texel.t - 0.5);
@@ -65,7 +65,7 @@ constexpr const char* sample_offset_fun = R"(
     }
 )";
    
-constexpr const char* Base_Vert_Shader = R"(
+constexpr const char* BaseVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 TexCoords;
@@ -79,7 +79,7 @@ constexpr const char* Base_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Vert_Shader = R"(
+constexpr const char* FisheyeVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 TexCoords;
@@ -93,7 +93,7 @@ constexpr const char* Fisheye_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader = R"(
+constexpr const char* FisheyeFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -110,7 +110,7 @@ constexpr const char* Fisheye_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal = R"(
+constexpr const char* FisheyeFragNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -143,7 +143,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Position = R"(
+constexpr const char* FisheyeFragPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -176,7 +176,7 @@ constexpr const char* Fisheye_Frag_Shader_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
+constexpr const char* FisheyeFragNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -213,7 +213,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth = R"(
+constexpr const char* FisheyeFragDepth = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -245,7 +245,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
+constexpr const char* FisheyeFragDepthNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -281,7 +281,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
+constexpr const char* FisheyeFragDepthPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -317,7 +317,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragDepthNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -357,7 +357,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
+constexpr const char* FisheyeFragOffAxis = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -375,7 +375,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
+constexpr const char* FisheyeFragOffAxisNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -409,7 +409,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
+constexpr const char* FisheyeFragOffAxisPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -443,7 +443,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -481,7 +481,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
+constexpr const char* FisheyeFragOffAxisDepth = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -514,7 +514,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -553,7 +553,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -590,7 +590,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -631,7 +631,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Depth_Correction_Frag_Shader = R"(
+constexpr const char* FisheyeDepthCorrectionFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -660,125 +660,6 @@ constexpr const char* Fisheye_Depth_Correction_Frag_Shader = R"(
         //No correction
         //gl_FragDepth = texture(dTex, UV).x; 
     }
-)";
-
-constexpr const char* Fisheye_Frag_Shader_Cubic_Test = R"(
-    **glsl_version**
-    
-    in vec2 UV;
-    out vec4 diffuse;
-    
-    uniform samplerCube cubemap;
-    uniform float halfFov;
-    uniform vec4 **bgColor**;
-    float size = 4096.0;
-    float angle45Factor = 0.7071067812;
-    
-    vec4 getCubeSample(vec2 texel) {
-        float s = 2.0 * (texel.s - 0.5);
-        float t = 2.0 * (texel.t - 0.5);
-        float r2 = s * s + t * t;
-        if( r2 <= 1.0 ) {
-            float phi = sqrt(r2) * halfFov;
-            float theta = atan(s, t);
-            float x = sin(phi) * sin(theta);
-            float y = -sin(phi) * cos(theta);
-            float z = cos(phi);
-            **rotVec**;
-            return texture(cubemap, rotVec);
-        }
-        else {
-            return **bgColor**;
-        }
-    }
-    
-    vec4 cubic(float x) {
-        float x2 = x * x;
-        float x3 = x2 * x;
-        vec4 w = vec4(
-              -x3 + 3*x2 - 3*x + 1,
-             3*x3 - 6*x2      + 4,
-            -3*x3 + 3*x2 + 3*x + 1,
-               x3
-        );
-        return w / 6.0;
-    }
-    
-    vec4 catmull_rom(float x) {
-        float x2 = x * x;
-        float x3 = x2 * x;
-        vec4 w = vec4(
-            -x + 2*x2 - x3,
-             2 - 5*x2 + 3*x3,
-             x + 4*x2 - 3*x3,
-                  -x2 + x3
-        );
-        return w / 2.0;
-    }
-    
-    vec4 filter4(vec2 texcoord) {
-        float fx = fract(texcoord.x);
-        float fy = fract(texcoord.y);
-        texcoord.x -= fx;
-        texcoord.y -= fy;
-        
-        vec4 xcubic = catmull_rom(fx);
-        vec4 ycubic = catmull_rom(fy);
-        
-        vec4 c = vec4(texcoord.x - 0.75, texcoord.x + 0.75, texcoord.y - 0.75, texcoord.y + 0.75);
-        vec4 s = vec4(xcubic.x + xcubic.y, xcubic.z + xcubic.w, ycubic.x + ycubic.y, ycubic.z + ycubic.w);
-        vec4 offset = c + vec4(xcubic.y, xcubic.w, ycubic.y, ycubic.w) / s;
-        
-        vec4 sample0 = getCubeSample(vec2(offset.x, offset.z) / vec2(size, size));
-        vec4 sample1 = getCubeSample(vec2(offset.y, offset.z) / vec2(size, size));
-        vec4 sample2 = getCubeSample(vec2(offset.x, offset.w) / vec2(size, size));
-        vec4 sample3 = getCubeSample(vec2(offset.y, offset.w) / vec2(size, size));
-        
-        float sx = s.x / (s.x + s.y);
-        float sy = s.z / (s.z + s.w);
-        
-        return mix(mix(sample3, sample2, sx), mix(sample1, sample0, sx), sy);
-    }
-    vec4 filter16(vec2 texcoord) {
-        vec2 xy = floor(texcoord);
-        vec2 normxy = texcoord - xy;
-        
-        vec2 st0 = ((2.0 - normxy) * normxy - 1.0) * normxy;
-        vec2 st1 = (3.0 * normxy - 5.0) * normxy * normxy + 2.0;
-        vec2 st2 = ((4.0 - 3.0 * normxy) * normxy + 1.0) * normxy;
-        vec2 st3 = (normxy - 1.0) * normxy * normxy;
-        
-        vec4 row0 =
-            st0.s * getCubeSample((xy + vec2(-1.0, -1.0)) / vec2(size, size)) +
-            st1.s * getCubeSample((xy + vec2(0.0, -1.0)) / vec2(size, size)) +
-            st2.s * getCubeSample((xy + vec2(1.0, -1.0)) / vec2(size, size)) +
-            st3.s * getCubeSample((xy + vec2(2.0, -1.0)) / vec2(size, size));
-        
-        vec4 row1 =
-            st0.s * getCubeSample((xy + vec2(-1.0, 0.0)) / vec2(size, size)) +
-            st1.s * getCubeSample((xy + vec2(0.0, 0.0)) / vec2(size, size)) +
-            st2.s * getCubeSample((xy + vec2(1.0, 0.0)) / vec2(size, size)) +
-            st3.s * getCubeSample((xy + vec2(2.0, 0.0)) / vec2(size, size));
-        
-        vec4 row2 =
-            st0.s * getCubeSample((xy + vec2(-1.0, 1.0)) / vec2(size, size)) +
-            st1.s * getCubeSample((xy + vec2(0.0, 1.0)) / vec2(size, size)) +
-            st2.s * getCubeSample((xy + vec2(1.0, 1.0)) / vec2(size, size)) +
-            st3.s * getCubeSample((xy + vec2(2.0, 1.0)) / vec2(size, size));
-        
-        vec4 row3 =
-            st0.s * getCubeSample((xy + vec2(-1.0, 2.0)) / vec2(size, size)) +
-            st1.s * getCubeSample((xy + vec2(0.0, 2.0)) / vec2(size, size)) +
-            st2.s * getCubeSample((xy + vec2(1.0, 2.0)) / vec2(size, size)) +
-            st3.s * getCubeSample((xy + vec2(2.0, 2.0)) / vec2(size, size));
-        
-        return 0.25 * ((st0.t * row0) + (st1.t * row1) + (st2.t * row2) + (st3.t * row3));
-    }
-    
-    void main() {
-        diffuse = filter4(UV * vec2(size, size));
-        //diffuse = getCubeSample(UV);
-    }\n";
 )";
 
 } // sgct_core::shaders_modern_fisheye

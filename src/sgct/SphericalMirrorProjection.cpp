@@ -206,13 +206,13 @@ void SphericalMirrorProjection::initShaders() {
 
     std::string sphericalMirrorVertexShader =
         sgct::Engine::instance()->isOGLPipelineFixed() ?
-        sgct_core::shaders::Spherical_Projection_Vert_Shader :
-        sgct_core::shaders_modern::Spherical_Projection_Vert_Shader;
+        sgct_core::shaders::SphericalProjectionVert :
+        sgct_core::shaders_modern::SphericalProjectionVert;
 
     std::string sphericalMirrorFragmentShader =
         sgct::Engine::instance()->isOGLPipelineFixed() ?
-        sgct_core::shaders::Spherical_Projection_Frag_Shader :
-        sgct_core::shaders_modern::Spherical_Projection_Frag_Shader;
+        sgct_core::shaders::SphericalProjectionFrag :
+        sgct_core::shaders_modern::SphericalProjectionFrag;
 
     //replace glsl version
     sgct_helpers::findAndReplace(

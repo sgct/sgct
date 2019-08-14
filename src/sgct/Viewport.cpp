@@ -535,10 +535,10 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
             //               initialized to false or true;  it did use 'true' in the end
             //               but I don't think that is the correct way though
 
-            std::array<bool, SpoutOutputProjection::spoutTotalFaces> channel = { true };
-            for (size_t i = 0; i < SpoutOutputProjection::spoutTotalFaces; i++) {
+            std::array<bool, SpoutOutputProjection::NFaces> channel = { true };
+            for (size_t i = 0; i < SpoutOutputProjection::NFaces; i++) {
                 subElement->QueryBoolAttribute(
-                    SpoutOutputProjection::spoutCubeMapFaceName[i].c_str(),
+                    SpoutOutputProjection::CubeMapFaceName[i],
                     &channel[i]
                 );
             }

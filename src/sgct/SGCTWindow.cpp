@@ -1719,48 +1719,48 @@ void SGCTWindow::loadShaders() {
         }
 
         stereo_vert_shader = Engine::instance()->isOGLPipelineFixed() ?
-            sgct_core::shaders::Anaglyph_Vert_Shader :
-            sgct_core::shaders_modern::Anaglyph_Vert_Shader;
+            sgct_core::shaders::AnaglyphVert :
+            sgct_core::shaders_modern::AnaglyphVert;
 
         if (mStereoMode == StereoMode::AnaglyphRedCyan) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader :
-                sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader;
+                sgct_core::shaders::AnaglyphRedCyanFrag :
+                sgct_core::shaders_modern::AnaglyphRedCyanFrag;
         }
         else if (mStereoMode == StereoMode::AnaglyphAmberBlue) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Anaglyph_Amber_Blue_Stereo_Frag_Shader :
-                sgct_core::shaders_modern::Anaglyph_Amber_Blue_Stereo_Frag_Shader;
+                sgct_core::shaders::AnaglyphAmberBlueFrag :
+                sgct_core::shaders_modern::AnaglyphAmberBlueFrag;
         }
         else if (mStereoMode == StereoMode::AnaglyphRedCyanWimmer) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer :
-                sgct_core::shaders_modern::Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer;
+                sgct_core::shaders::AnaglyphRedCyanWimmerFrag :
+                sgct_core::shaders_modern::AnaglyphRedCyanWimmerFrag;
         }
         else if (mStereoMode == StereoMode::Checkerboard) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::CheckerBoard_Frag_Shader :
-                sgct_core::shaders_modern::CheckerBoard_Frag_Shader;
+                sgct_core::shaders::CheckerBoardFrag :
+                sgct_core::shaders_modern::CheckerBoardFrag;
         }
         else if (mStereoMode == StereoMode::CheckerboardInverted) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::CheckerBoard_Inverted_Frag_Shader :
-                sgct_core::shaders_modern::CheckerBoard_Inverted_Frag_Shader;
+                sgct_core::shaders::CheckerBoardInvertedFrag :
+                sgct_core::shaders_modern::CheckerBoardInvertedFrag;
         }
         else if (mStereoMode == StereoMode::VerticalInterlaced) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Vertical_Interlaced_Stereo_Frag_Shader :
-                sgct_core::shaders_modern::Vertical_Interlaced_Stereo_Frag_Shader;
+                sgct_core::shaders::VerticalInterlacedFrag :
+                sgct_core::shaders_modern::VerticalInterlacedFrag;
         }
         else if (mStereoMode == StereoMode::VerticalInterlacedInverted) {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Vertical_Interlaced_Inverted_Stereo_Frag_Shader :
-                sgct_core::shaders_modern::Vertical_Interlaced_Inverted_Stereo_Frag_Shader;
+                sgct_core::shaders::VerticalInterlacedInvertedFrag :
+                sgct_core::shaders_modern::VerticalInterlacedInvertedFrag;
         }
         else {
             stereo_frag_shader = Engine::instance()->isOGLPipelineFixed() ?
-                sgct_core::shaders::Dummy_Stereo_Frag_Shader :
-                sgct_core::shaders_modern::Dummy_Stereo_Frag_Shader;
+                sgct_core::shaders::DummyStereoFrag :
+                sgct_core::shaders_modern::DummyStereoFrag;
         }
 
         //replace glsl version

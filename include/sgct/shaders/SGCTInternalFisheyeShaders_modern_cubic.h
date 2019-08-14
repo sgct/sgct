@@ -13,7 +13,7 @@ namespace sgct_core::shaders_modern_fisheye_cubic {
     Contains GLSL 3.3+ shaders
 */
 
-constexpr const char* B_spline_fun = R"(
+constexpr const char* BSplineFun = R"(
     vec4 cubic(float x) {
         float x2 = x * x;
         float x3 = x2 * x;
@@ -27,7 +27,7 @@ constexpr const char* B_spline_fun = R"(
     }
 )";
 
-constexpr const char* catmull_rom_fun = R"(
+constexpr const char* catmullRomFun = R"(
     vec4 cubic(float x) {
         float x2 = x * x;
         float x3 = x2 * x;
@@ -401,7 +401,7 @@ constexpr const char* interpolate16_4f = R"(
     }
 )";
    
-constexpr const char* Fisheye_Vert_Shader = R"(
+constexpr const char* FisheyeVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 TexCoords;
@@ -415,7 +415,7 @@ constexpr const char* Fisheye_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader = R"(
+constexpr const char* FisheyeFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -434,7 +434,7 @@ constexpr const char* Fisheye_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal = R"(
+constexpr const char* FisheyeFragNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -457,7 +457,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Position = R"(
+constexpr const char* FisheyeFragPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -480,7 +480,7 @@ constexpr const char* Fisheye_Frag_Shader_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
+constexpr const char* FisheyeFragNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -506,7 +506,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth = R"(
+constexpr const char* FisheyeFragDepth = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -528,7 +528,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
+constexpr const char* FisheyeFragDepthNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -554,7 +554,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
+constexpr const char* FisheyeFragDepthPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -580,7 +580,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragDepthNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -609,7 +609,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
+constexpr const char* FisheyeFragOffAxis = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -629,7 +629,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
+constexpr const char* FisheyeFragOffAxisNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -653,7 +653,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
+constexpr const char* FisheyeFragOffAxisPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -677,7 +677,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -704,7 +704,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
+constexpr const char* FisheyeFragOffAxisDepth = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -727,7 +727,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -754,7 +754,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -781,7 +781,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
     **glsl_version**
     
     in vec2 UV;

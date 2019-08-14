@@ -2726,12 +2726,12 @@ void Engine::loadShaders() {
     std::string fxaa_frag_shader;
     
     if (mFixedOGLPipeline) {
-        fxaa_vert_shader = sgct_core::shaders::FXAA_Vert_Shader;
-        fxaa_frag_shader = sgct_core::shaders::FXAA_Frag_Shader;
+        fxaa_vert_shader = sgct_core::shaders::FXAAVert;
+        fxaa_frag_shader = sgct_core::shaders::FXAAFrag;
     }
     else {
-        fxaa_vert_shader = sgct_core::shaders_modern::FXAA_Vert_Shader;
-        fxaa_frag_shader = sgct_core::shaders_modern::FXAA_Frag_Shader;
+        fxaa_vert_shader = sgct_core::shaders_modern::FXAAVert;
+        fxaa_frag_shader = sgct_core::shaders_modern::FXAAFrag;
     }
 
     //replace glsl version
@@ -2799,8 +2799,8 @@ void Engine::loadShaders() {
     if (!mFixedOGLPipeline) {
         std::string FBO_quad_vert_shader;
         std::string FBO_quad_frag_shader;
-        FBO_quad_vert_shader = sgct_core::shaders_modern::Base_Vert_Shader;
-        FBO_quad_frag_shader = sgct_core::shaders_modern::Base_Frag_Shader;
+        FBO_quad_vert_shader = sgct_core::shaders_modern::BaseVert;
+        FBO_quad_frag_shader = sgct_core::shaders_modern::BaseFrag;
         
         //replace glsl version
         sgct_helpers::findAndReplace(
@@ -2845,8 +2845,8 @@ void Engine::loadShaders() {
         
         std::string Overlay_vert_shader;
         std::string Overlay_frag_shader;
-        Overlay_vert_shader = sgct_core::shaders_modern::Overlay_Vert_Shader;
-        Overlay_frag_shader = sgct_core::shaders_modern::Overlay_Frag_Shader;
+        Overlay_vert_shader = sgct_core::shaders_modern::OverlayVert;
+        Overlay_frag_shader = sgct_core::shaders_modern::OverlayFrag;
         
         //replace glsl version
         sgct_helpers::findAndReplace(

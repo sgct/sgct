@@ -13,7 +13,7 @@ namespace sgct_core::shaders_modern {
     Contains GLSL 3.3+ shaders
 */
 
-constexpr const char* Base_Vert_Shader = R"(
+constexpr const char* BaseVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 Position;
@@ -30,7 +30,7 @@ constexpr const char* Base_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Base_Frag_Shader = R"(
+constexpr const char* BaseFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -44,7 +44,7 @@ constexpr const char* Base_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Overlay_Vert_Shader = R"(
+constexpr const char* OverlayVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 TexCoords;
@@ -58,7 +58,7 @@ constexpr const char* Overlay_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Overlay_Frag_Shader = R"(
+constexpr const char* OverlayFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -71,7 +71,7 @@ constexpr const char* Overlay_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Vert_Shader = R"(
+constexpr const char* AnaglyphVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 Position;
@@ -88,7 +88,7 @@ constexpr const char* Anaglyph_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader = R"(
+constexpr const char* AnaglyphRedCyanFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -108,7 +108,7 @@ constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = R"(
+constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -131,7 +131,7 @@ constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Amber_Blue_Stereo_Frag_Shader = R"(
+constexpr const char* AnaglyphAmberBlueFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -150,7 +150,7 @@ constexpr const char* Anaglyph_Amber_Blue_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* CheckerBoard_Frag_Shader = R"(
+constexpr const char* CheckerBoardFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -171,7 +171,7 @@ constexpr const char* CheckerBoard_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* CheckerBoard_Inverted_Frag_Shader = R"(
+constexpr const char* CheckerBoardInvertedFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -192,7 +192,7 @@ constexpr const char* CheckerBoard_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Vertical_Interlaced_Stereo_Frag_Shader = R"(
+constexpr const char* VerticalInterlacedFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -213,7 +213,7 @@ constexpr const char* Vertical_Interlaced_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Vertical_Interlaced_Inverted_Stereo_Frag_Shader = R"(
+constexpr const char* VerticalInterlacedInvertedFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -234,7 +234,7 @@ constexpr const char* Vertical_Interlaced_Inverted_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* SBS_Stereo_Frag_Shader = R"(
+constexpr const char* SBSFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -254,7 +254,7 @@ constexpr const char* SBS_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* SBS_Stereo_Inverted_Frag_Shader = R"(
+constexpr const char* SBSInvertedFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -274,7 +274,7 @@ constexpr const char* SBS_Stereo_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* TB_Stereo_Frag_Shader = R"(
+constexpr const char* TBFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -294,7 +294,7 @@ constexpr const char* TB_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* TB_Stereo_Inverted_Frag_Shader = R"(
+constexpr const char* TBInvertedFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -314,7 +314,7 @@ constexpr const char* TB_Stereo_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Dummy_Stereo_Frag_Shader = R"(
+constexpr const char* DummyStereoFrag = R"(
     **glsl_version**
     
     in vec2 UV;
@@ -329,7 +329,7 @@ constexpr const char* Dummy_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* FXAA_Vert_Shader = R"(
+constexpr const char* FXAAVert = R"(
     **glsl_version**
     
     layout (location = 0) in vec2 TexCoords;
@@ -353,7 +353,7 @@ constexpr const char* FXAA_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* FXAA_Frag_Shader = R"(
+constexpr const char* FXAAFrag = R"(
     **glsl_version**
     /* 
     FXAA_EDGE_THRESHOLD 

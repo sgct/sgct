@@ -12,7 +12,7 @@ namespace sgct_core::shaders_fisheye {
     /*
         All shaders are in GLSL 1.2 for compability with Mac OS X
     */
-constexpr const char* sample_fun = R"(
+constexpr const char* SampleFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float s = 2.0 * (texel.s - 0.5);
         float t = 2.0 * (texel.t - 0.5);
@@ -32,7 +32,7 @@ constexpr const char* sample_fun = R"(
     }
 )";
 
-constexpr const char* sample_latlon_fun = R"(
+constexpr const char* SampleLatlonFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float phi = 3.14159265359 * (1.0 - texel.t);
         float theta = 6.28318530718 * (texel.s - 0.5);
@@ -44,7 +44,7 @@ constexpr const char* sample_latlon_fun = R"(
     }
 )";
 
-constexpr const char* sample_offset_fun = R"(
+constexpr const char* SampleOffsetFun = R"(
     vec4 getCubeSample(vec2 texel, samplerCube map, vec4 bg) {
         float s = 2.0 * (texel.s - 0.5);
         float t = 2.0 * (texel.t - 0.5);
@@ -63,7 +63,7 @@ constexpr const char* sample_offset_fun = R"(
         }
 )";
         
-constexpr const char* Base_Vert_Shader = R"(
+constexpr const char* BaseVert = R"(
     **glsl_version**
 
     void main() {
@@ -72,7 +72,7 @@ constexpr const char* Base_Vert_Shader = R"(
     }
 )";
         
-constexpr const char* Fisheye_Vert_Shader = R"(
+constexpr const char* FisheyeVert = R"(
     **glsl_version**
 
     void main() {
@@ -81,7 +81,7 @@ constexpr const char* Fisheye_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader = R"(
+constexpr const char* FisheyeFrag = R"(
     **glsl_version**
     //#pragma optionNV(fastmath off) // For NVIDIA cards.
     //#pragma optionNV(fastprecision off) // For NVIDIA cards.
@@ -97,7 +97,7 @@ constexpr const char* Fisheye_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal = R"(
+constexpr const char* FisheyeFragNormal = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -126,7 +126,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Position = R"(
+constexpr const char* FisheyeFragPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -155,7 +155,7 @@ constexpr const char* Fisheye_Frag_Shader_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
+constexpr const char* FisheyeFragNormalPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -187,7 +187,7 @@ constexpr const char* Fisheye_Frag_Shader_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth = R"(
+constexpr const char* FisheyeFragDepth = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -216,7 +216,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
+constexpr const char* FisheyeFragDepthNormal = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -248,7 +248,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
+constexpr const char* FisheyeFragDepthPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -280,7 +280,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragDepthNormalPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -315,7 +315,7 @@ constexpr const char* Fisheye_Frag_Shader_Depth_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
+constexpr const char* FisheyeFragOffAxis = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -330,7 +330,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
+constexpr const char* FisheyeFragOffAxisNormal = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -360,7 +360,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
+constexpr const char* FisheyeFragOffAxisPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -390,7 +390,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisNormalPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -423,7 +423,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
+constexpr const char* FisheyeFragOffAxisDepth = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -453,7 +453,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormal = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -486,7 +486,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -519,7 +519,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = R"(
+constexpr const char* FisheyeFragOffAxisDepthNormalPosition = R"(
     **glsl_version**
 
     uniform samplerCube cubemap;
@@ -555,7 +555,7 @@ constexpr const char* Fisheye_Frag_Shader_OffAxis_Depth_Normal_Position = R"(
     }
 )";
 
-constexpr const char* Fisheye_Depth_Correction_Frag_Shader = R"(
+constexpr const char* FisheyeDepthCorrectionFrag = R"(
     **glsl_version**
 
     uniform sampler2D cTex;

@@ -13,7 +13,7 @@ namespace sgct_core::shaders {
     All shaders are in GLSL 1.2 for compability with Mac OS X
 */
 
-constexpr const char* Base_Vert_Shader = R"(
+constexpr const char* BaseVert = R"(
     **glsl_version**
     
     void main() {
@@ -23,7 +23,7 @@ constexpr const char* Base_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Base_Frag_Shader = R"(
+constexpr const char* BaseFrag = R"(
     **glsl_version**
     
     uniform sampler2D Tex;
@@ -33,7 +33,7 @@ constexpr const char* Base_Frag_Shader = R"(
     }
 )";
    
-constexpr const char* Overlay_Vert_Shader = R"(
+constexpr const char* OverlayVert = R"(
     **glsl_version**
     
     void main() {
@@ -43,7 +43,7 @@ constexpr const char* Overlay_Vert_Shader = R"(
     }
 )";
    
-constexpr const char* Overlay_Frag_Shader = R"(
+constexpr const char* OverlayFrag = R"(
     **glsl_version**
     
     uniform sampler2D Tex;
@@ -53,7 +53,7 @@ constexpr const char* Overlay_Frag_Shader = R"(
     }
 )";
    
-constexpr const char* Anaglyph_Vert_Shader = R"(
+constexpr const char* AnaglyphVert = R"(
     **glsl_version**
     
     void main() {
@@ -63,7 +63,7 @@ constexpr const char* Anaglyph_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader = R"(
+constexpr const char* AnaglyphRedCyanFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -81,7 +81,7 @@ constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = R"(
+constexpr const char* AnaglyphRedCyanWimmerFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -96,7 +96,7 @@ constexpr const char* Anaglyph_Red_Cyan_Stereo_Frag_Shader_Wimmer = R"(
     }
 )";
 
-constexpr const char* Anaglyph_Amber_Blue_Stereo_Frag_Shader = R"(
+constexpr const char* AnaglyphAmberBlueFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -113,7 +113,7 @@ constexpr const char* Anaglyph_Amber_Blue_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* CheckerBoard_Frag_Shader = R"(
+constexpr const char* CheckerBoardFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -129,7 +129,7 @@ constexpr const char* CheckerBoard_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* CheckerBoard_Inverted_Frag_Shader = R"(
+constexpr const char* CheckerBoardInvertedFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -145,7 +145,7 @@ constexpr const char* CheckerBoard_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Vertical_Interlaced_Stereo_Frag_Shader = R"(
+constexpr const char* VerticalInterlacedFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -161,7 +161,7 @@ constexpr const char* Vertical_Interlaced_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Dummy_Stereo_Frag_Shader = R"(
+constexpr const char* DummyStereoFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -172,7 +172,7 @@ constexpr const char* Dummy_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* Vertical_Interlaced_Inverted_Stereo_Frag_Shader = R"(
+constexpr const char* VerticalInterlacedInvertedFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -188,7 +188,7 @@ constexpr const char* Vertical_Interlaced_Inverted_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* SBS_Stereo_Frag_Shader = R"(
+constexpr const char* SBSFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -205,7 +205,7 @@ constexpr const char* SBS_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* SBS_Stereo_Inverted_Frag_Shader = R"(
+constexpr const char* SBSInvertedFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -222,7 +222,7 @@ constexpr const char* SBS_Stereo_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* TB_Stereo_Frag_Shader = R"(
+constexpr const char* TBFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -239,7 +239,7 @@ constexpr const char* TB_Stereo_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* TB_Stereo_Inverted_Frag_Shader = R"(
+constexpr const char* TBInvertedFrag = R"(
     **glsl_version**
     uniform sampler2D LeftTex;
     uniform sampler2D RightTex;
@@ -256,7 +256,7 @@ constexpr const char* TB_Stereo_Inverted_Frag_Shader = R"(
     }
 )";
 
-constexpr const char* FXAA_Vert_Shader = R"(
+constexpr const char* FXAAVert = R"(
     **glsl_version**
     uniform float rt_w;
     uniform float rt_h;
@@ -279,7 +279,7 @@ constexpr const char* FXAA_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* FXAA_Frag_Shader = R"(
+constexpr const char* FXAAFrag = R"(
     **glsl_version**
     #extension GL_EXT_gpu_shader4 : enable // For NVIDIA cards.
     /* 

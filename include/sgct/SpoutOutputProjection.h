@@ -10,8 +10,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/NonLinearProjection.h>
 
+#include <sgct/OffScreenBuffer.h>
 #include <sgct/ogl_headers.h>
 #include <glm/glm.hpp>
+#include <memory>
 
 namespace sgct_core {
 /*!
@@ -36,17 +38,23 @@ public:
     virtual void render() override;
     virtual void renderCubemap(size_t* subViewPortIndex) override;
 
-    static const size_t spoutTotalFaces = 6;
-    static const std::string spoutCubeMapFaceName[spoutTotalFaces];
+    static const int NFaces = 6;
+    inline static const char* CubeMapFaceName[] = {
+        "Right",
+        "zLeft",
+        "Bottom",
+        "Top",
+        "Left",
+        "zRight"
+    };
 
 private:
-    void initTextures();
-    void initViewports();
-    void initShaders();
-    void initFBO();
-    void updateGeometry(float width, float height);
+    virtual void initTextures() override;
+    virtual void initViewports() override;
+    virtual void initShaders() override;
+    virtual void initFBO() override;
 
-    void drawCubeFace(size_t face);
+    void drawCubeFace(int face);
     void blitCubeFace(int face);
     void attachTextures(int face);
     void renderInternal();
@@ -62,23 +70,23 @@ private:
     int mSwapNearLoc = -1;
     int mSwapFarLoc = -1;
 
-    OffScreenBuffer* mSpoutFBO_Ptr = nullptr;
+    std::unique_ptr<OffScreenBuffer> mSpoutFBO = nullptr;
 
     struct SpoutInfo {
         bool enabled = true;
         void* handle = nullptr;
-        GLuint texture = -1;
+        GLuint texture = 0;
     };
-    SpoutInfo mSpout[spoutTotalFaces];
+    SpoutInfo mSpout[NFaces];
 
-    void* spoutMappingHandle = nullptr;
-    GLuint spoutMappingTexture = -1;
-    Mapping spoutMappingType = Mapping::Cubemap;
-    std::string spoutMappingName = "SPOUT_OS_MAPPING";
-    glm::vec3 spoutRigOrientation = glm::vec3(0.f);
+    void* mappingHandle = nullptr;
+    GLuint mappingTexture = 0;
+    Mapping mappingType = Mapping::Cubemap;
+    std::string mappingName = "SPOUT_OS_MAPPING";
+    glm::vec3 rigOrientation = glm::vec3(0.f);
 
-    int spoutMappingWidth;
-    int spoutMappingHeight;
+    int mappingWidth;
+    int mappingHeight;
 };
 
 } // namespace sgct_core

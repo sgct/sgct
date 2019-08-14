@@ -13,7 +13,7 @@ namespace sgct_core::shaders {
     All shaders are in GLSL 1.2 for compability with Mac OS X
 */
 
-constexpr const char* Spherical_Projection_Vert_Shader = R"(
+constexpr const char* SphericalProjectionVert = R"(
     **glsl_version**
 
     void main() {
@@ -23,7 +23,7 @@ constexpr const char* Spherical_Projection_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Spherical_Projection_Frag_Shader = R"(
+constexpr const char* SphericalProjectionFrag = R"(
     **glsl_version**
 
     uniform sampler2D Tex;

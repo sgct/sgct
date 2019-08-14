@@ -13,7 +13,7 @@ namespace sgct_core::shaders_modern {
     Contains GLSL 3.3+ shaders
 */
 
-constexpr const char* Spherical_Projection_Vert_Shader = R"(
+constexpr const char* SphericalProjectionVert = R"(
     **glsl_version**
 
     layout (location = 0) in vec2 Position;
@@ -32,7 +32,7 @@ constexpr const char* Spherical_Projection_Vert_Shader = R"(
     }
 )";
 
-constexpr const char* Spherical_Projection_Frag_Shader = R"(
+constexpr const char* SphericalProjectionFrag = R"(
     **glsl_version**
 
     in vec2 UV;

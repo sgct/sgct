@@ -43,25 +43,6 @@ public:
     float getSyncTime() const;
 
 private:
-    enum mStatsDynamicType {
-        FRAME_TIME = 0,
-        DRAW_TIME = 1,
-        SYNC_TIME = 2,
-        LOOP_TIME_MAX = 3,
-        LOOP_TIME_MIN = 4
-    };
-
-    enum mStatsStaticType {
-        GRID = 0,
-        FREQ,
-        BG
-    };
-
-    struct StatsVertex {
-        float x;
-        float y;
-    };
-
     static inline const int StatsHistoryLength = 512;
     static inline const int StatsAverageLength = 32;
     static inline const float VertScale = 5000.f;
@@ -75,9 +56,29 @@ private:
     float mMinFrameTime;
     float mMaxFrameTime;
     float mStdDevFrameTime;
-    StatsVertex mDynamicVertexList[StatsHistoryLength * StatsNumberOfDynamicObjs];
-    glm::vec4 mDynamicColors[StatsNumberOfDynamicObjs];
-    glm::vec4 mStaticColors[StatsNumberOfStaticObjs];
+
+    struct StatsVertex {
+        float x;
+        float y;
+    };
+    struct {
+        StatsVertex frameTime[StatsHistoryLength];
+        StatsVertex drawTime[StatsHistoryLength];
+        StatsVertex syncTime[StatsHistoryLength];
+        StatsVertex loopTimeMax[StatsHistoryLength];
+        StatsVertex loopTimeMin[StatsHistoryLength];
+    } mDynamicVertexList;
+    struct {
+        glm::vec4 frameTime = glm::vec4(1.f, 1.f, 0.f, 0.8f);
+        glm::vec4 drawTime = glm::vec4(1.f, 0.f, 1.f, 0.8f);
+        glm::vec4 syncTime = glm::vec4(0.f, 1.f, 1.f, 0.8f);
+        glm::vec4 loopTimeMax = glm::vec4(0.4f, 0.4f, 1.f, 0.8f);
+        glm::vec4 loopTimeMin = glm::vec4(0.f, 0.f, 0.8f, 0.8f);
+    } mDynamicColors;
+
+    glm::vec4 mStaticColorGrid = glm::vec4(1.f, 1.f, 1.f, 0.2f);
+    glm::vec4 mStaticColorFrequency = glm::vec4(1.f, 0.f, 0.f, 1.f);
+    glm::vec4 mStaticColorBackground = glm::vec4(0.f, 0.f, 0.f, 0.5f);
 
     //VBOs
     unsigned int mVBOIndex = 0;

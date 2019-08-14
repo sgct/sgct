@@ -583,6 +583,13 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     }
 
     tinyxml2::XMLElement* subElement = element->FirstChildElement();
+    struct {
+        std::string bottom;
+        std::string left;
+        std::string right;
+        std::string top;
+    } meshes;
+
     while (subElement != nullptr) {
         const std::string val = subElement->Value();
 
@@ -596,37 +603,31 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
         }
         else if (val == "Geometry") {
             if (subElement->Attribute("bottom")) {
-                sphericalMirrorProj->setMeshPath(
-                    SphericalMirrorProjection::BOTTOM_MESH,
-                    subElement->Attribute("bottom")
-                );
+                meshes.bottom = subElement->Attribute("bottom");
             }
 
             if (subElement->Attribute("left")) {
-                sphericalMirrorProj->setMeshPath(
-                    SphericalMirrorProjection::LEFT_MESH,
-                    subElement->Attribute("left")
-                );
+                meshes.left = subElement->Attribute("left");
             }
 
             if (subElement->Attribute("right")) {
-                sphericalMirrorProj->setMeshPath(
-                    SphericalMirrorProjection::RIGHT_MESH,
-                    subElement->Attribute("right")
-                );
+                meshes.right = subElement->Attribute("right");
             }
 
             if (subElement->Attribute("top")) {
-                sphericalMirrorProj->setMeshPath(
-                    SphericalMirrorProjection::TOP_MESH,
-                    subElement->Attribute("top")
-                );
+                meshes.top = subElement->Attribute("top");
             }
         }
 
         subElement = subElement->NextSiblingElement();
     }
 
+    sphericalMirrorProj->setMeshPaths(
+        std::move(meshes.bottom),
+        std::move(meshes.left),
+        std::move(meshes.right),
+        std::move(meshes.top)
+    );
     sphericalMirrorProj->setUseDepthTransformation(false);
     mNonLinearProjection = std::move(sphericalMirrorProj);
 }

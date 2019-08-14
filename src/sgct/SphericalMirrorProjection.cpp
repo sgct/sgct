@@ -68,8 +68,13 @@ Set the mesh path for selected cube face.
 @param mt the mesh face
 @param str the path to the mesh
 */
-void SphericalMirrorProjection::setMeshPath(MeshFace mf, const char * str) {
-    mMeshPaths[mf] = str;
+void SphericalMirrorProjection::setMeshPaths(std::string bottom, std::string left,
+                                             std::string right, std::string top)
+{
+    mMeshPaths.bottom = std::move(bottom);
+    mMeshPaths.left = std::move(left);
+    mMeshPaths.right = std::move(right);
+    mMeshPaths.top = std::move(top);
 }
 
 void sgct_core::SphericalMirrorProjection::initTextures() {
@@ -116,9 +121,10 @@ void SphericalMirrorProjection::initVBO() {
         sgct::Engine::instance()->getCurrentWindowPtr().getCurrentViewport()
     );
     if (vp) {
-        for (int i = 0; i < LAST_MESH; i++) {
-            mMeshes[i].readAndGenerateMesh(mMeshPaths[i], *vp);
-        }
+        mMeshes.bottom.readAndGenerateMesh(mMeshPaths.bottom, *vp);
+        mMeshes.left.readAndGenerateMesh(mMeshPaths.left, *vp);
+        mMeshes.right.readAndGenerateMesh(mMeshPaths.right, *vp);
+        mMeshes.top.readAndGenerateMesh(mMeshPaths.top, *vp);
     }
 }
 
@@ -395,16 +401,16 @@ void SphericalMirrorProjection::renderInternal() {
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, &MVP[0][0]);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceFront]);
-    mMeshes[BOTTOM_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceLeft]);
-    mMeshes[LEFT_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.left.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceRight]);
-    mMeshes[RIGHT_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.right.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceTop]);
-    mMeshes[TOP_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.top.render(CorrectionMesh::WARP_MESH);
 
     sgct::ShaderProgram::unbind();
 
@@ -460,16 +466,16 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glUniform1i(mTexLoc, 0);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceFront]);
-    mMeshes[BOTTOM_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceLeft]);
-    mMeshes[LEFT_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.left.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceRight]);
-    mMeshes[RIGHT_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.right.render(CorrectionMesh::WARP_MESH);
 
     glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceTop]);
-    mMeshes[TOP_MESH].render(CorrectionMesh::WARP_MESH);
+    mMeshes.top.render(CorrectionMesh::WARP_MESH);
 
     sgct::ShaderProgram::unbind();
 

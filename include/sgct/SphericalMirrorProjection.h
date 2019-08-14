@@ -19,8 +19,6 @@ This class manages and renders non linear fisheye projections
 */
 class SphericalMirrorProjection : public NonLinearProjection {
 public:
-    enum MeshFace { BOTTOM_MESH = 0, LEFT_MESH, RIGHT_MESH, TOP_MESH, LAST_MESH };
-
     SphericalMirrorProjection() = default;
     virtual ~SphericalMirrorProjection() = default;
 
@@ -29,7 +27,8 @@ public:
     virtual void renderCubemap(size_t* subViewPortIndex) override;
 
     void setTilt(float angle);
-    void setMeshPath(MeshFace mf, const char* str);
+    void setMeshPaths(std::string bottom, std::string left, std::string right,
+        std::string top);
 
 private:
     virtual void initTextures() override;
@@ -49,8 +48,18 @@ private:
     float mDiameter = 2.4f;
         
     //mesh data
-    CorrectionMesh mMeshes[4];
-    std::string mMeshPaths[4];
+    struct {
+        CorrectionMesh bottom;
+        CorrectionMesh left;
+        CorrectionMesh right;
+        CorrectionMesh top;
+    } mMeshes;
+    struct {
+        std::string bottom;
+        std::string left;
+        std::string right;
+        std::string top;
+    } mMeshPaths;
 
     //shader locations
     int mTexLoc = -1;

@@ -12,9 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <unordered_map>
 
 namespace sgct_core {
-
 class Image;
-
 } // namespace sgct_core
 
 namespace sgct {
@@ -49,7 +47,7 @@ public:
     void setOverWriteMode(bool mode);
     void setAnisotropicFilterSize(float fval);
     void setCompression(CompressionMode cm);
-    void setWarpingMode(int warp_s, int warp_t);
+    void setWarpingMode(int warpS, int warpT);
     CompressionMode getCompression() const;
     bool loadTexture(const std::string& name, const std::string& filename,
         bool interpolate, int mipmapLevels = 8);
@@ -60,8 +58,6 @@ public:
 
 private:
     struct TextureData {
-        void reset();
-
         std::string mPath = "NOTSET";
         unsigned int mId = 0;
         int mWidth = -1;
@@ -71,8 +67,9 @@ private:
 
     TextureManager();
     ~TextureManager();
-    bool updateTexture(const std::string& name, unsigned int* texPtr, bool* reload);
-    bool uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr);
+
+    bool updateTexture(const std::string& name, unsigned int& texPtr, bool& reload);
+    bool uploadImage(const sgct_core::Image& imgPtr, unsigned int& texPtr);
     void freeTextureData();
 
     static TextureManager* mInstance;
@@ -84,7 +81,10 @@ private:
     bool mInterpolate = true;
     std::unordered_map<std::string, TextureData> mTextures;
     int mMipmapLevels = 8;
-    int mWarpMode[2];
+    struct {
+        int s;
+        int t;
+    } mWarpMode;
 };
 
 } // namespace sgct_core

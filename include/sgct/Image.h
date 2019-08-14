@@ -45,7 +45,7 @@ public:
     bool getPreferBGRExport() const;
     bool getPreferBGRImport() const;
 
-    unsigned char* getData();
+    const unsigned char* getData() const;
     unsigned char* getDataAt(size_t x, size_t y);
     size_t getChannels() const;
     size_t getWidth() const;

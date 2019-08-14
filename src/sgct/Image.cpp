@@ -1516,7 +1516,7 @@ void Image::cleanup() {
     }
 }
 
-unsigned char* Image::getData() {
+const unsigned char* Image::getData() const {
     return mData;
 }
 

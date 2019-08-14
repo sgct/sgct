@@ -13,10 +13,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-void TextureManager::TextureData::reset() {
-    *this = TextureData();
-}
-
 TextureManager* TextureManager::mInstance = nullptr;
 
 TextureManager* TextureManager::instance() {
@@ -37,8 +33,8 @@ void TextureManager::destroy() {
 
 TextureManager::TextureManager() {
     setAnisotropicFilterSize(1.f);
-    mWarpMode[0] = GL_CLAMP_TO_EDGE;
-    mWarpMode[1] = GL_CLAMP_TO_EDGE;
+    mWarpMode.s = GL_CLAMP_TO_EDGE;
+    mWarpMode.t = GL_CLAMP_TO_EDGE;
 
     TextureData tmpTexture;
     mTextures["NOTSET"] = tmpTexture;
@@ -62,7 +58,7 @@ unsigned int TextureManager::getTextureId(const std::string& name) {
 Get the texture path. If not found then "NOT_FOUND" is returned.
 */
 std::string TextureManager::getTexturePath(const std::string& name) {
-    return mTextures.count(name) > 0 ? mTextures[name].mPath : std::string("NOT_FOUND");
+    return mTextures.count(name) > 0 ? mTextures[name].mPath : "NOT_FOUND";
 }
 
 /*!
@@ -99,15 +95,17 @@ void TextureManager::setOverWriteMode(bool mode) {
 }
 
 /*!
-    Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables anisotropic filtering.
-    This filtering mode can slow down performace. For more info look at: <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">Anisotropic filtering</a>
+    Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables
+    anisotropic filtering.
+    This filtering mode can slow down performace. For more info look at:
+    <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">Anisotropic filtering</a>
 */
 void TextureManager::setAnisotropicFilterSize(float fval) {
     //get max
     float maximumAnistropy;
     glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maximumAnistropy);
 
-    if (fval >= 1.0f && fval <= maximumAnistropy) {
+    if (fval >= 1.f && fval <= maximumAnistropy) {
         mAnisotropicFilterSize = fval;
     }
     else {
@@ -139,12 +137,12 @@ void TextureManager::setCompression(CompressionMode cm) {
     - GL_MIRRORED_REPEAT
     - GL_REPEAT
 
-    @param warp_s warping parameter along the s-axis (x-axis) 
-    @param warp_t warping parameter along the t-axis (y-axis)
+    @param warpS warping parameter along the s-axis (x-axis) 
+    @param warpT warping parameter along the t-axis (y-axis)
 */
-void TextureManager::setWarpingMode(int warp_s, int warp_t) {
-    mWarpMode[0] = warp_s;
-    mWarpMode[1] = warp_t;
+void TextureManager::setWarpingMode(int warpS, int warpT) {
+    mWarpMode.s = warpS;
+    mWarpMode.t = warpT;
 }
 
 /*!
@@ -159,40 +157,39 @@ TextureManager::CompressionMode TextureManager::getCompression() const {
     \param name the name of the texture
     \param filename the filename or path to the texture
     \param interpolate set to true for using interpolation (bi-linear filtering)
-    \param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+    \param mipmapLevels is the number of mipmap levels that will be generated, setting
+                        this value to 1 or less disables mipmaps
     \return true if texture loaded successfully
 */
 bool TextureManager::loadTexture(const std::string& name, const std::string& filename,
                                  bool interpolate, int mipmapLevels)
 {
-    GLuint texID = 0;
-    bool reload = false;
-    TextureData tmpTexture;
-    sgct_core::Image img;
-
     mInterpolate = interpolate;
     mMipmapLevels = mipmapLevels;
 
-    if (!updateTexture(name, &texID, &reload)) {
+    GLuint texID = 0;
+    bool reload = false;
+    if (!updateTexture(name, texID, reload)) {
         return true;
     }
     
     std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
     //load image
+    sgct_core::Image img;
     if (!img.load(filename)) {
         if (reload) {
-            textureItem->second.reset();
+            textureItem->second = TextureData();
         }
-
         return false;
     }
     
     if (img.getData() != nullptr) {
-        if (!uploadImage(&img, &texID)) {
+        if (!uploadImage(img, texID)) {
             return false;
         }
 
+        TextureData tmpTexture;
         tmpTexture.mId = texID;
         tmpTexture.mPath.assign(filename);
         tmpTexture.mWidth = static_cast<int>(img.getWidth());
@@ -200,7 +197,7 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
         tmpTexture.mChannels = static_cast<int>(img.getChannels());
 
         if (!reload) {
-            mTextures[name] = tmpTexture;
+            mTextures[name] = std::move(tmpTexture);
         }
 
         MessageHandler::instance()->print(
@@ -237,22 +234,21 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
         return false;
     }
     
-    GLuint texID = 0;
-    bool reload = false;
-    TextureData tmpTexture;
-
     mInterpolate = interpolate;
     mMipmapLevels = mipmapLevels;
 
-    if (!updateTexture(name, &texID, &reload)) {
+    GLuint texID = 0;
+    bool reload = false;
+    if (!updateTexture(name, texID, reload)) {
         return true;
     }
 
     if (imgPtr->getData() != nullptr) {
-        if (!uploadImage(imgPtr, &texID)) {
+        if (!uploadImage(*imgPtr, texID)) {
             return false;
         }
 
+        TextureData tmpTexture;
         tmpTexture.mId = texID;
         tmpTexture.mPath.assign("NOTSET");
         tmpTexture.mWidth = static_cast<int>(imgPtr->getWidth());
@@ -304,7 +300,7 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
     }
 
     if (img.getData() != nullptr) {
-        if (!uploadImage(&img, &tmpTexID)) {
+        if (!uploadImage(img, tmpTexID)) {
             return false;
         }
 
@@ -326,8 +322,8 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
 /*!
 returns true if texture will be uploaded
 */
-bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr,
-                                   bool* reload)
+bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr,
+                                   bool& reload)
 {
     //check if texture exits in manager
     bool exist = mTextures.count(name) > 0;
@@ -336,26 +332,24 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr
     if (exist) {
         //get it
         textureItem = mTextures.find(name);
-        (*texPtr) = textureItem->second.mId;
+        texPtr = textureItem->second.mId;
 
         if (mOverWriteMode) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Debug,
-                "TextureManager: Reloading texture '%s'! [id=%d]\n",
-                name.c_str(), (*texPtr)
+                "TextureManager: Reloading texture '%s'! [id=%d]\n", name.c_str(), texPtr
             );
 
-            if ((*texPtr) != 0) {
-                glDeleteTextures(1, texPtr);
+            if (texPtr != 0) {
+                glDeleteTextures(1, &texPtr);
             }
-            (*texPtr) = 0;
-            (*reload) = true;
+            texPtr = 0;
+            reload = true;
         }
         else {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Warning,
-                "TextureManager: '%s' exists already! [id=%d]\n",
-                name.c_str(), (*texPtr)
+                "TextureManager: '%s' exists already! [id=%d]\n", name.c_str(), texPtr
             );
             return false;
         }
@@ -364,42 +358,42 @@ bool TextureManager::updateTexture(const std::string& name, unsigned int* texPtr
     return true;
 }
 
-bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr) {
-    glGenTextures(1, texPtr);
-    glBindTexture(GL_TEXTURE_2D, *texPtr);
+bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& texPtr) {
+    glGenTextures(1, &texPtr);
+    glBindTexture(GL_TEXTURE_2D, texPtr);
 
-    bool isBGR = imgPtr->getPreferBGRImport();
+    bool isBGR = imgPtr.getPreferBGRImport();
 
     //if three channels
     int textureType = isBGR ? GL_BGR : GL_RGB;
 
     //if OpenGL 1-2
     if (Engine::instance()->isOGLPipelineFixed()) {
-        if (imgPtr->getChannels() == 4) {
+        if (imgPtr.getChannels() == 4) {
             textureType = isBGR ? GL_BGRA : GL_RGBA;
         }
-        else if (imgPtr->getChannels() == 1) {
+        else if (imgPtr.getChannels() == 1) {
             textureType = (mAlphaMode ? GL_ALPHA : GL_LUMINANCE);
         }
-        else if (imgPtr->getChannels() == 2) {
+        else if (imgPtr.getChannels() == 2) {
             textureType = GL_LUMINANCE_ALPHA;
         }
     }
     else {
         //OpenGL 3+
-        if (imgPtr->getChannels() == 4) {
+        if (imgPtr.getChannels() == 4) {
             textureType = isBGR ? GL_BGRA : GL_RGBA;
         }
-        else if (imgPtr->getChannels() == 1) {
+        else if (imgPtr.getChannels() == 1) {
             textureType = GL_RED;
         }
-        else if (imgPtr->getChannels() == 2) {
+        else if (imgPtr.getChannels() == 2) {
             textureType = GL_RG;
         }
     }
 
     GLint internalFormat;
-    unsigned int bpc = static_cast<unsigned int>(imgPtr->getBytesPerChannel());
+    unsigned int bpc = static_cast<unsigned int>(imgPtr.getBytesPerChannel());
 
     if (bpc > 2) {
         MessageHandler::instance()->print(
@@ -419,27 +413,28 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
         mCompression = CompressionMode::None;
     }
 
-    switch (imgPtr->getChannels()) {
-        case 4:
-            if (mCompression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
-            }
-            else if (mCompression == CompressionMode::Generic) {
-                internalFormat = GL_COMPRESSED_RGBA;
-            }
-            else {
-                internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
-            }
-            break;
-        case 3:
-            if (mCompression == CompressionMode::None) {
-                internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
-            }
-            else if (mCompression == CompressionMode::Generic) {
-                internalFormat = GL_COMPRESSED_RGB;
+    switch (imgPtr.getChannels()) {
+        case 1:
+            if (Engine::instance()->isOGLPipelineFixed()) {
+                if (bpc == 1) {
+                    internalFormat = (mCompression == CompressionMode::None) ?
+                        (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) :
+                        (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
+                }
+                else {
+                    internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
+                }
             }
             else {
-                internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+                if (mCompression == CompressionMode::None) {
+                    internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
+                }
+                else if (mCompression == CompressionMode::Generic) {
+                    internalFormat = GL_COMPRESSED_RED;
+                }
+                else {
+                    internalFormat = GL_COMPRESSED_RED_RGTC1;
+                }
             }
             break;
         case 2:
@@ -465,27 +460,26 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
                 }
             }
             break;
-        case 1:
-            if (Engine::instance()->isOGLPipelineFixed()) {
-                if (bpc == 1) {
-                    internalFormat = (mCompression == CompressionMode::None) ?
-                        (mAlphaMode ? GL_ALPHA8 : GL_LUMINANCE8) :
-                        (mAlphaMode ? GL_COMPRESSED_ALPHA : GL_COMPRESSED_LUMINANCE);
-                }
-                else {
-                    internalFormat = (mAlphaMode ? GL_ALPHA16 : GL_LUMINANCE16);
-                }
+        case 3:
+            if (mCompression == CompressionMode::None) {
+                internalFormat = (bpc == 1 ? GL_RGB8 : GL_RGB16);
+            }
+            else if (mCompression == CompressionMode::Generic) {
+                internalFormat = GL_COMPRESSED_RGB;
             }
             else {
-                if (mCompression == CompressionMode::None) {
-                    internalFormat = (bpc == 1 ? GL_R8 : GL_R16);
-                }
-                else if (mCompression == CompressionMode::Generic) {
-                    internalFormat = GL_COMPRESSED_RED;
-                }
-                else {
-                    internalFormat = GL_COMPRESSED_RED_RGTC1;
-                }
+                internalFormat = GL_COMPRESSED_RGB_S3TC_DXT1_EXT;
+            }
+            break;
+        case 4:
+            if (mCompression == CompressionMode::None) {
+                internalFormat = (bpc == 1 ? GL_RGBA8 : GL_RGBA16);
+            }
+            else if (mCompression == CompressionMode::Generic) {
+                internalFormat = GL_COMPRESSED_RGBA;
+            }
+            else {
+                internalFormat = GL_COMPRESSED_RGBA_S3TC_DXT3_EXT;
             }
             break;
     }
@@ -494,9 +488,9 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
         MessageHandler::Level::Debug,
         "TextureManager: Creating texture... size: %dx%d, %d-channels, compression: %s, "
         "Type: %#04x, Format: %#04x\n",
-        imgPtr->getWidth(),
-        imgPtr->getHeight(),
-        imgPtr->getChannels(),
+        imgPtr.getWidth(),
+        imgPtr.getHeight(),
+        imgPtr.getChannels(),
         (mCompression == CompressionMode::None) ?
             "none" :
             ((mCompression == CompressionMode::Generic) ? "generic" : "S3TC/DXT"),
@@ -507,31 +501,29 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
     glPixelStorei(GL_PACK_ALIGNMENT, 1);
     glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
 
-    if (mMipmapLevels <= 1) {
-        mMipmapLevels = 1;
-    }
+    mMipmapLevels = glm::max(mMipmapLevels, 1);
 
     GLenum format = (bpc == 1 ? GL_UNSIGNED_BYTE : GL_UNSIGNED_SHORT);
     glTexImage2D(
         GL_TEXTURE_2D,
         0,
         internalFormat,
-        static_cast<GLsizei>(imgPtr->getWidth()),
-        static_cast<GLsizei>(imgPtr->getHeight()),
+        static_cast<GLsizei>(imgPtr.getWidth()),
+        static_cast<GLsizei>(imgPtr.getHeight()),
         0,
         textureType, 
         format,
-        imgPtr->getData()
+        imgPtr.getData()
     );
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_BASE_LEVEL, 0);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAX_LEVEL, mMipmapLevels - 1);
 
     if (mMipmapLevels > 1) {
-        glGenerateMipmap(GL_TEXTURE_2D); //allocate the mipmaps
+        glGenerateMipmap(GL_TEXTURE_2D); // allocate the mipmaps
 
         GLfloat maxAni;
         glGetFloatv(GL_MAX_TEXTURE_MAX_ANISOTROPY_EXT, &maxAni);
-        //MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
+        // MessageHandler::instance()->print("Max anisotropy: %f\n", maxAni);
 
         glTexParameteri(
             GL_TEXTURE_2D,
@@ -562,15 +554,15 @@ bool TextureManager::uploadImage(sgct_core::Image* imgPtr, unsigned int* texPtr)
         );
     }
 
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode[0]);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode[1]);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, mWarpMode.s);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, mWarpMode.t);
 
     return true;
 }
 
 void TextureManager::freeTextureData() {
-    //the textures might not be stored in a sequence so
-    //let's erase them one by one
+    // the textures might not be stored in a sequence so
+    // let's erase them one by one
     for (const std::pair<const std::string, TextureData>& p : mTextures) {
         if (p.second.mId) {
             glDeleteTextures(1, &p.second.mId);

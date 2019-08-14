@@ -802,7 +802,7 @@ void SharedData::readString(SharedString* ss) {
     pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss->clear();
+        ss->setVal("");
         return;
     }
 
@@ -842,7 +842,7 @@ void SharedData::readWString(SharedWString* ss) {
     pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss->clear();
+        ss->setVal(std::wstring());
         return;
     }
 

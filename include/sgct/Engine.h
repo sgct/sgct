@@ -151,8 +151,7 @@ public:
     unsigned int getCurrentDepthTexture() const;
     unsigned int getCurrentNormalTexture() const;
     unsigned int getCurrentPositionTexture() const;
-    int getCurrentXResolution() const;
-    int getCurrentYResolution() const;
+    glm::ivec2 getCurrentResolution() const;
     size_t getFocusedWindowIndex() const;
 
     /*!

@@ -2013,14 +2013,11 @@ void Engine::renderFBOTexture() {
         sgct_core::Frustum::StereoLeftEye :
         sgct_core::Frustum::MonoEye;
 
-    int xSize = static_cast<int>(
-        ceilf(win.getXScale() * static_cast<float>(win.getXResolution()))
-    );
-    int ySize = static_cast<int>(
-        ceilf(win.getYScale() * static_cast<float>(win.getYResolution()))
+    glm::ivec2 size = glm::ivec2(
+        glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
     );
         
-    glViewport(0, 0, xSize, ySize);
+    glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(BackBufferBlack);
     
     std::size_t numberOfIterations = win.getNumberOfViewports();
@@ -2062,7 +2059,7 @@ void Engine::renderFBOTexture() {
 
         // render right eye in active stereo mode
         if (win.getStereoMode() == SGCTWindow::StereoMode::Active) {
-            glViewport(0, 0, xSize, ySize);
+            glViewport(0, 0, size.x, size.y);
             
             //clear buffers
             mCurrentFrustumMode = sgct_core::Frustum::StereoRightEye;
@@ -2103,7 +2100,7 @@ void Engine::renderFBOTexture() {
 
         // render black level masks
         for (size_t i = 0; i < numberOfIterations; i++) {
-            sgct_core::Viewport * vpPtr = win.getViewport(i);
+            sgct_core::Viewport* vpPtr = win.getViewport(i);
             if (vpPtr->hasBlackLevelMaskTexture() && vpPtr->isEnabled()) {
                 glBindTexture(GL_TEXTURE_2D, vpPtr->getBlackLevelMaskTextureIndex());
 
@@ -2143,14 +2140,10 @@ void Engine::renderFBOTextureFixedPipeline() {
         sgct_core::Frustum::StereoLeftEye :
         sgct_core::Frustum::MonoEye;
     
-    int xSize = static_cast<int>(
-        ceilf(win.getXScale() * static_cast<float>(win.getXResolution()))
+    glm::ivec2 size = glm::ivec2(
+        glm::ceil(win.getScale() * glm::vec2(win.getResolution()))
     );
-    int ySize = static_cast<int>(
-        ceilf(win.getYScale() * static_cast<float>(win.getYResolution()))
-    );
-    
-    glViewport(0, 0, xSize, ySize);
+    glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(BackBufferBlack);
 
     //enter ortho mode
@@ -2210,7 +2203,8 @@ void Engine::renderFBOTextureFixedPipeline() {
 
         //render right eye in active stereo mode
         if (win.getStereoMode() == SGCTWindow::StereoMode::Active) {
-            glViewport(0, 0, win.getXResolution(), win.getYResolution());
+            glm::ivec2 res = win.getResolution();
+            glViewport(0, 0, res.x, res.y);
             
             //clear buffers
             mCurrentFrustumMode = sgct_core::Frustum::StereoRightEye;
@@ -2408,8 +2402,8 @@ void Engine::render2D() {
 
             if (mShowGraph) {
                 mStatistics->draw(
-                    static_cast<float>(getCurrentWindowPtr().getYFramebufferResolution())
-                    / static_cast<float>(getCurrentWindowPtr().getYResolution())
+                    static_cast<float>(getCurrentWindowPtr().getFramebufferResolution().y)
+                    / static_cast<float>(getCurrentWindowPtr().getResolution().y)
                 );
             }
             //The text renderer enters automatically the correct viewport
@@ -2476,13 +2470,9 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
             getCurrentWindowPtr().getFrameBufferTexture(finalTargetIndex)
         );
 
+        glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
         //if for some reson the active texture has been reset
-        glViewport(
-            0,
-            0,
-            getCurrentWindowPtr().getXFramebufferResolution(),
-            getCurrentWindowPtr().getYFramebufferResolution()
-        );
+        glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
 
@@ -2499,18 +2489,9 @@ void Engine::renderPostFX(TextureIndexes finalTargetIndex) {
         }
 
         mShaders[FXAAShader].bind();
-        glUniform1f(
-            mShaderLocs[SizeX],
-            static_cast<float>(getCurrentWindowPtr().getXFramebufferResolution())
-        );
-        glUniform1f(
-            mShaderLocs[SizeY],
-            static_cast<float>(getCurrentWindowPtr().getYFramebufferResolution())
-        );
-        glUniform1i(
-            mShaderLocs[FXAA_Texture],
-            0
-        );
+        glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
+        glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
+        glUniform1i(mShaderLocs[FXAA_Texture], 0);
         glUniform1f(
             mShaderLocs[FXAA_SUBPIX_TRIM],
             SGCTSettings::instance()->getFXAASubPixTrim()
@@ -2593,12 +2574,8 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glLoadIdentity();
 
         glMatrixMode(GL_MODELVIEW); //restore
-        glViewport(
-            0,
-            0,
-            getCurrentWindowPtr().getXFramebufferResolution(),
-            getCurrentWindowPtr().getYFramebufferResolution()
-        );
+        glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
+        glViewport(0, 0, framebufferSize.x, framebufferSize.y);
         
         glClearColor(0.f, 0.f, 0.f, 0.f);
         glClear(GL_COLOR_BUFFER_BIT);
@@ -2621,14 +2598,8 @@ void Engine::renderPostFXFixedPipeline(TextureIndexes finalTargetIndex) {
         glDisable(GL_DEPTH_TEST);
 
         mShaders[FXAAShader].bind();
-        glUniform1f(
-            mShaderLocs[SizeX],
-            static_cast<float>(getCurrentWindowPtr().getXFramebufferResolution())
-        );
-        glUniform1f(
-            mShaderLocs[SizeY],
-            static_cast<float>(getCurrentWindowPtr().getYFramebufferResolution())
-        );
+        glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
+        glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
         glUniform1i(mShaderLocs[FXAA_Texture], 0 );
         glUniform1f(
             mShaderLocs[FXAA_SUBPIX_TRIM],
@@ -2765,16 +2736,11 @@ void Engine::loadShaders() {
     mShaders[FXAAShader].bind();
 
     mShaderLocs[SizeX] = mShaders[FXAAShader].getUniformLocation("rt_w");
-    glUniform1f(
-        mShaderLocs[SizeX],
-        static_cast<float>(getCurrentWindowPtr().getXFramebufferResolution())
-    );
+    glm::ivec2 framebufferSize = getCurrentWindowPtr().getFramebufferResolution();
+    glUniform1f(mShaderLocs[SizeX], static_cast<float>(framebufferSize.x));
 
     mShaderLocs[SizeY] = mShaders[FXAAShader].getUniformLocation("rt_h");
-    glUniform1f(
-        mShaderLocs[SizeY],
-        static_cast<float>(getCurrentWindowPtr().getYFramebufferResolution())
-    );
+    glUniform1f(mShaderLocs[SizeY], static_cast<float>(framebufferSize.y));
 
     mShaderLocs[FXAA_SUBPIX_TRIM] = mShaders[FXAAShader].getUniformLocation("FXAA_SUBPIX_TRIM");
     glUniform1f(
@@ -4143,13 +4109,12 @@ void Engine::printNodeInfo(unsigned int nodeId) {
 void Engine::enterCurrentViewport() {
     sgct_core::BaseViewport* vp = getCurrentWindowPtr().getCurrentViewport();
     
-    float xRes = static_cast<float>(getCurrentWindowPtr().getXFramebufferResolution());
-    float yRes = static_cast<float>(getCurrentWindowPtr().getYFramebufferResolution());
+    glm::vec2 res = glm::vec2(getCurrentWindowPtr().getFramebufferResolution());
         
-    mCurrentViewportCoords[0] = static_cast<int>(vp->getX() * xRes);
-    mCurrentViewportCoords[1] = static_cast<int>(vp->getY() * yRes);
-    mCurrentViewportCoords[2] = static_cast<int>(vp->getXSize() * xRes);
-    mCurrentViewportCoords[3] = static_cast<int>(vp->getYSize() * yRes);
+    mCurrentViewportCoords[0] = static_cast<int>(vp->getX() * res.x);
+    mCurrentViewportCoords[1] = static_cast<int>(vp->getY() * res.y);
+    mCurrentViewportCoords[2] = static_cast<int>(vp->getXSize() * res.x);
+    mCurrentViewportCoords[3] = static_cast<int>(vp->getYSize() * res.y);
 
     SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();
     if (sm >= SGCTWindow::StereoMode::SideBySide) {
@@ -4414,17 +4379,10 @@ unsigned int Engine::getCurrentPositionTexture() const {
 }
 
 /*!
-    \Returns the horizontal resolution in pixels for the active window's framebuffer
+    \Returns the resolution in pixels for the active window's framebuffer
 */
-int Engine::getCurrentXResolution() const {
-    return getCurrentWindowPtr().getXFramebufferResolution();
-}
-
-/*!
-    \Returns the vertical resolution in pixels for the active window's framebuffer
-*/
-int Engine::getCurrentYResolution() const {
-    return getCurrentWindowPtr().getYFramebufferResolution();
+glm::ivec2 Engine::getCurrentResolution() const {
+    return getCurrentWindowPtr().getFramebufferResolution();
 }
 
 /*!
@@ -4647,9 +4605,8 @@ void Engine::updateDrawBufferResolutions() {
         }
 
         // second add window resolution
-        int x, y;
-        win.getFinalFBODimensions(x, y);
-        mDrawBufferResolutions.push_back(glm::ivec2(x, y));
+        glm::ivec2 size = win.getFinalFBODimensions();
+        mDrawBufferResolutions.push_back(size);
     }
 }
 

@@ -494,23 +494,23 @@ void ScreenCapture::checkImageBuffer(const CaptureSrc& CapSrc) {
     sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
     
     if (CapSrc == CAPTURE_TEXTURE) {
-        if (mX != win.getXFramebufferResolution() ||
-            mY != win.getYFramebufferResolution())
+        if (mX != win.getFramebufferResolution().x ||
+            mY != win.getFramebufferResolution().y)
         {
             mDownloadType = mDownloadTypeSetByUser;
             int bytesPerColor = win.getFramebufferBPCC();
             initOrResize(
-                win.getXFramebufferResolution(),
-                win.getYFramebufferResolution(),
+                win.getFramebufferResolution().x,
+                win.getFramebufferResolution().y,
                 mChannels,
                 bytesPerColor
             );
         }
     }
     else { //capture directly from back buffer (no HDR support)
-        if (mX != win.getXResolution() || mY != win.getYResolution()) {
+        if (mX != win.getResolution().x || mY != win.getResolution().y) {
             mDownloadType = GL_UNSIGNED_BYTE;
-            initOrResize(win.getXResolution(), win.getYResolution(), mChannels, 1);
+            initOrResize(win.getResolution().x, win.getResolution().y, mChannels, 1);
         }
     }
 }

@@ -9,6 +9,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define __SGCT__WINDOW__H__
 
 #include <sgct/PostFX.h>
+#include <sgct/ScreenCapture.h>
+#include <glm/glm.hpp>
 #include <vector>
 
 #define NUMBER_OF_TEXTURES 8
@@ -18,8 +20,8 @@ struct GLFWwindow;
 
 namespace sgct_core {
     class BaseViewport;
-    class OffScreenBuffer;
     class ScreenCapture;
+    class OffScreenBuffer;
     class Viewport;
 } // namespace sgct_core
 
@@ -63,7 +65,8 @@ public:
         Depth32UInt
     };
 
-    SGCTWindow(int id);
+    explicit SGCTWindow(int id);
+
     void close();
     void init();
     void initOGL();
@@ -144,7 +147,7 @@ public:
     int getNumberOfAASamples() const;
     StereoMode getStereoMode() const;
     static void getSwapGroupFrameNumber(unsigned int & frameNumber);
-    void getFinalFBODimensions(int& width, int& height) const;
+    glm::ivec2 getFinalFBODimensions() const;
     sgct_core::OffScreenBuffer* getFBOPtr() const;
     GLFWmonitor* getMonitor() const;
     GLFWwindow* getWindowHandle() const;
@@ -171,37 +174,25 @@ public:
     size_t getNumberOfPostFXs() const;
 
     /*!
-        \returns Get the horizontal window resolution.
+        \returns Get the window resolution.
     */
-    int getXResolution() const;
+    glm::ivec2 getResolution() const;
+
     /*!
-        \returns Get the vertical window resolution.
+        \returns Get the frame buffer resolution.
     */
-    int getYResolution() const;
+    glm::ivec2 getFramebufferResolution() const;
+
     /*!
-        \returns Get the horizontal frame buffer resolution.
+        \returns Get the initial window resolution.
     */
-    int getXFramebufferResolution() const;
+    glm::ivec2 getInitialResolution() const;
+
     /*!
-        \returns Get the vertical frame buffer resolution.
-    */
-    int getYFramebufferResolution() const;
-    /*!
-        \returns Get the initial horizontal window resolution.
-    */
-    int getXInitialResolution() const;
-    /*!
-        \returns Get the initial vertical window resolution.
-    */
-    int getYInitialResolution() const;
-    /*!
-     \returns Get the horizontal scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
+     \returns Get the scale value (relation between pixel and point size). Normally this
+              value is 1.0f but 2.0f on retina computers.
      */
-    float getXScale() const;
-    /*!
-     \returns Get the vertical scale value (relation between pixel and point size). Normally this value is 1.0f but 2.0f on retina computers.
-     */
-    float getYScale() const;
+    glm::vec2 getScale() const;
 
     //! \returns the aspect ratio of the window 
     float getAspectRatio() const;
@@ -250,7 +241,7 @@ private:
     void initScreenCapture();
     void deleteAllViewports();
     void createTextures();
-    void generateTexture(unsigned int id, int xSize, int ySize, TextureType type,
+    void generateTexture(unsigned int id, glm::ivec2 size, TextureType type,
         bool interpolate);
     void createFBOs();
     void resizeFBOs();
@@ -283,15 +274,15 @@ private:
     bool mSetWindowPos = false;
     bool mDecorated = true;
     bool mAlpha = false;
-    int mFramebufferResolution[2] = { 512, 256 };
-    int mWindowInitialRes[2] = { 640, 480 };
+    glm::ivec2 mFramebufferResolution = glm::ivec2(512, 256);
+    glm::ivec2 mWindowInitialRes = glm::ivec2(640, 480);
     bool mHasPendingWindowRes = false;
-    int mPendingWindowRes[2] = { 0, 0 };
+    glm::ivec2 mPendingWindowRes = glm::ivec2(0, 0);
     bool mHasPendingFramebufferRes = false;
-    int mPendingFramebufferRes[2] = { 0, 0 };
-    int mWindowRes[2] = { 640, 480 };
-    int mWindowPos[2] = { 0, 0 };
-    int mWindowResOld[2] = { 640, 480 };
+    glm::ivec2 mPendingFramebufferRes = glm::ivec2(0, 0);
+    glm::ivec2 mWindowRes = glm::ivec2(640, 480);
+    glm::ivec2 mWindowPos = glm::ivec2(0, 0);
+    glm::ivec2 mWindowResOld = glm::ivec2(640, 480);
     int mMonitorIndex = 0;
     GLFWmonitor* mMonitor = nullptr;
     GLFWwindow* mWindowHandle = nullptr;
@@ -301,7 +292,7 @@ private:
     float mGamma = 1.f;
     float mContrast = 1.f;
     float mBrightness = 1.f;
-    float mScale[2] = { 0.f, 0.f };
+    glm::vec2 mScale = glm::vec2(0.f, 0.f);
     float mHorizontalFovDegrees = 90.f;
 
     bool mUseFXAA;
@@ -317,7 +308,8 @@ private:
     //FBO stuff
     unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];
 
-    sgct_core::ScreenCapture* mScreenCapture[2] = { nullptr, nullptr };
+    std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureLeftOrMono;
+    std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureRight;
 
     StereoMode mStereoMode = StereoMode::NoStereo;
     int mNumberOfAASamples;

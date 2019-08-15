@@ -16,6 +16,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #define NOMINMAX
 #endif
 
+// abock (2019-05-15) This is necessary as GLEW includes Windows.h that includes winsock.h
+// which is incompatible with including winsock2.h later. Good job, Microsoft
+#ifndef WIN32_LEAN_AND_MEAN
+#define WIN32_LEAN_AND_MEAN
+#endif // WIN32_LEAN_AND_MEAN
+
 #ifndef SGCT_OGL_HEADERS
     #define SGCT_OGL_HEADERS
     #include <GL/glew.h>

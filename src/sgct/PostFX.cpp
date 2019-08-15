@@ -122,8 +122,8 @@ void PostFX::internalRender() {
     //bind target FBO
     win.mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
 
-    mXSize = win.getXFramebufferResolution();
-    mYSize = win.getYFramebufferResolution();
+    mXSize = win.getFramebufferResolution().x;
+    mYSize = win.getFramebufferResolution().y;
 
     //if for some reson the active texture has been reset
     glViewport(0, 0, mXSize, mYSize);
@@ -154,8 +154,8 @@ void PostFX::internalRenderFixedPipeline() {
     //bind target FBO
     win.mFinalFBO_Ptr->attachColorTexture(mOutputTexture);
 
-    mXSize = win.getXFramebufferResolution();
-    mYSize = win.getYFramebufferResolution();
+    mXSize = win.getFramebufferResolution().x;
+    mYSize = win.getFramebufferResolution().y;
 
     //if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);

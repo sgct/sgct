@@ -17,7 +17,7 @@ namespace sgct_core {
     Add a window to the window vector. Note that a window must be opened to become visible.
 */
 void SGCTNode::addWindow(sgct::SGCTWindow window) {
-    mWindows.push_back(std::move(window));
+    mWindows.emplace_back(std::move(window));
 }
 
 /*!

@@ -650,8 +650,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         //iterate
                         element[2] = element[2]->NextSiblingElement();
                     }
-                    
-                    tmpNode.addWindow(tmpWin);
+                    tmpNode.addWindow(std::move(tmpWin));
                 }//end window
                 
                 //iterate
@@ -659,7 +658,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 
             }//end while
             
-            ClusterManager::instance()->addNode(tmpNode);
+            ClusterManager::instance()->addNode(std::move(tmpNode));
         }//end if node
         else if (strcmp("User", val[0]) == 0) {
             SGCTUser* usrPtr;

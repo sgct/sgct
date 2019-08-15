@@ -22,19 +22,19 @@ void setupViewport() {
 
     int x = static_cast<int>(
         cWin.getCurrentViewport()->getX() *
-        static_cast<float>(cWin.getXFramebufferResolution())
+        static_cast<float>(cWin.getFramebufferResolution().x)
     );
     int y = static_cast<int>(
         cWin.getCurrentViewport()->getY() *
-        static_cast<float>(cWin.getYFramebufferResolution())
+        static_cast<float>(cWin.getFramebufferResolution().y)
     );
     int xSize = static_cast<int>(
         cWin.getCurrentViewport()->getXSize() *
-        static_cast<float>(cWin.getXFramebufferResolution())
+        static_cast<float>(cWin.getFramebufferResolution().x)
     );
     int ySize = static_cast<int>(
         cWin.getCurrentViewport()->getYSize() *
-        static_cast<float>(cWin.getYFramebufferResolution())
+        static_cast<float>(cWin.getFramebufferResolution().y)
     );
 
     sgct::SGCTWindow::StereoMode sm = cWin.getStereoMode();
@@ -92,17 +92,18 @@ void setupViewport() {
 
 glm::mat4 setupOrthoMat() {
     glm::mat4 orthoMat;
-    sgct::SGCTWindow& cWin = sgct::Engine::instance()->getCurrentWindowPtr();
+    sgct::SGCTWindow& win = sgct::Engine::instance()->getCurrentWindowPtr();
 
+    glm::ivec2 res = win.getResolution();
+    glm::vec2 size;
+    size.x = win.getCurrentViewport()->getXSize();
+    size.y = win.getCurrentViewport()->getYSize();
+    glm::vec2 scale = win.getScale();
     orthoMat = glm::ortho(
         0.f,
-        cWin.getCurrentViewport()->getXSize() *
-        static_cast<float>(cWin.getXResolution()) *
-        cWin.getXScale(),
+        size.x * static_cast<float>(res.x) * scale.x,
         0.f,
-        cWin.getCurrentViewport()->getYSize() *
-        static_cast<float>(cWin.getYResolution()) *
-        cWin.getYScale()
+        size.y * static_cast<float>(res.y) * scale.y
     );
 
     return orthoMat;

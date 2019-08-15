@@ -294,7 +294,7 @@ bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWi
     return mpcdiParseResult;
 }
 
-bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tmpNode,
+bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
                                       sgct::SGCTWindow& tmpWin)
 {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
@@ -373,7 +373,7 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tm
 }
 
 bool SGCTMpcdi::readAndParseXML_display(tinyxml2::XMLElement* element[],
-                                        const char* val[], SGCTNode tmpNode,
+                                        const char* val[], SGCTNode& tmpNode,
                                         sgct::SGCTWindow& tmpWin,
                                         MpcdiFoundItems& parsedItems)
 {
@@ -394,7 +394,7 @@ bool SGCTMpcdi::readAndParseXML_display(tinyxml2::XMLElement* element[],
              if (!readAndParseXML_buffer(element, val, tmpWin, parsedItems)) {
                  return false;
              }
-             tmpNode.addWindow(tmpWin);
+             tmpNode.addWindow(std::move(tmpWin));
          }
          //iterate
          element[1] = element[1]->NextSiblingElement();
@@ -477,7 +477,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
         for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r) {
             std::string tmpWindowName = tmpWin.getViewport(r)->getName();
             std::string currRegion_warpName = mWarp.back()->id;
-            if( tmpWindowName == currRegion_warpName) {
+            if (tmpWindowName == currRegion_warpName) {
                 std::string currRegion_warpFilename = mWarp.back()->pathWarpFile;
                 std::string matchingMpcdiDataFile
                     = mMpcdiSubFileContents.filename[MpcdiSubFiles::MpcdiPfm];

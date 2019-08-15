@@ -71,10 +71,10 @@ public:
 
 private:
     bool readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin);
-    bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode tmpNode,
+    bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
         sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_display(tinyxml2::XMLElement* element[], const char* val[],
-        SGCTNode tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
+        SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
     bool readAndParseXML_files(tinyxml2::XMLElement* element[], const char* val[],
         sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_buffer(tinyxml2::XMLElement* element[], const char* val[],

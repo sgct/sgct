@@ -710,7 +710,7 @@ void Viewport::loadData() {
 Render the viewport mesh which the framebuffer texture is attached to
 \param type of mesh; quad, warped or mask
 */
-void Viewport::renderMesh(CorrectionMesh::MeshType mt) {
+void Viewport::renderMesh(CorrectionMesh::MeshType mt) const {
     if (mEnabled) {
         mCM.render(mt);
     }

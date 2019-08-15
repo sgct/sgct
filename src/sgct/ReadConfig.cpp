@@ -642,9 +642,9 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                         }
                         else if (strcmp("Viewport", val[2]) == 0) {
-                            Viewport* vpPtr = new sgct_core::Viewport();
-                            vpPtr->configure(element[2]);
-                            tmpWin.addViewport(vpPtr);
+                            std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
+                            vp->configure(element[2]);
+                            tmpWin.addViewport(std::move(vp));
                         }
                         
                         //iterate

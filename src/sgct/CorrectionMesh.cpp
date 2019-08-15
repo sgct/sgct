@@ -2665,7 +2665,7 @@ void CorrectionMesh::cleanUp() {
 Render the final mesh where for mapping the frame buffer to the screen
 \param mask to enable mask texture mode
 */
-void CorrectionMesh::render(const MeshType& mt) {
+void CorrectionMesh::render(const MeshType& mt) const {
     //for test
     //glDisable(GL_CULL_FACE);
 
@@ -2673,7 +2673,7 @@ void CorrectionMesh::render(const MeshType& mt) {
         glPolygonMode(GL_FRONT_AND_BACK, GL_LINE);
     }
 
-    CorrectionMeshGeometry* geomPtr = &mGeometries[mt];
+    const CorrectionMeshGeometry* geomPtr = &mGeometries[mt];
 
     if (ClusterManager::instance()->getMeshImplementation() ==
         ClusterManager::MeshImplementation::BufferObjects)

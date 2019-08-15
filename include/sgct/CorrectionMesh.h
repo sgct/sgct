@@ -43,7 +43,7 @@ public:
 
     bool readAndGenerateMesh(std::string meshPath, Viewport& parent,
         MeshHint hint = MeshHint::None);
-    void render(const MeshType & mt);
+    void render(const MeshType& mt) const;
     static MeshHint parseHint(const std::string& hintStr);
         
 private:

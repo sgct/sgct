@@ -46,7 +46,7 @@ public:
     void setTracked(bool state);
     void loadData();
 
-    void renderMesh(CorrectionMesh::MeshType mt);
+    void renderMesh(CorrectionMesh::MeshType mt) const;
 
     bool hasOverlayTexture() const;
     bool hasBlendMaskTexture() const;

@@ -8,8 +8,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__WINDOW__H__
 #define __SGCT__WINDOW__H__
 
+#include <sgct/OffScreenBuffer.h>
 #include <sgct/PostFX.h>
 #include <sgct/ScreenCapture.h>
+#include <sgct/Viewport.h>
 #include <glm/glm.hpp>
 #include <vector>
 
@@ -21,8 +23,6 @@ struct GLFWwindow;
 namespace sgct_core {
     class BaseViewport;
     class ScreenCapture;
-    class OffScreenBuffer;
-    class Viewport;
 } // namespace sgct_core
 
 namespace sgct {
@@ -52,7 +52,7 @@ public:
         TopBottomInverted
     };
 
-    enum class OGL_Context { Shared_Context = 0, Window_Context, Unset_Context };
+    enum class Context { Shared = 0, Window, Unset };
     
     enum class ColorBitDepth {
         Depth8,
@@ -77,7 +77,7 @@ public:
     void updateResolutions();
     bool update();
     bool openWindow(GLFWwindow* share, size_t lastWindowIdx);
-    void makeOpenGLContextCurrent(OGL_Context context);
+    void makeOpenGLContextCurrent(Context context);
     static void restoreSharedContext();
     static void resetSwapGroupFrameNumber();
 
@@ -146,13 +146,14 @@ public:
     sgct_core::ScreenCapture* getScreenCapturePointer(unsigned int eye) const;
     int getNumberOfAASamples() const;
     StereoMode getStereoMode() const;
-    static void getSwapGroupFrameNumber(unsigned int & frameNumber);
+    static unsigned int getSwapGroupFrameNumber();
     glm::ivec2 getFinalFBODimensions() const;
     sgct_core::OffScreenBuffer* getFBOPtr() const;
     GLFWmonitor* getMonitor() const;
     GLFWwindow* getWindowHandle() const;
     sgct_core::BaseViewport* getCurrentViewport() const;
-    sgct_core::Viewport* getViewport(size_t index) const;
+    sgct_core::Viewport& getViewport(size_t index);
+    const sgct_core::Viewport& getViewport(size_t index) const;
     void getCurrentViewportPixelCoords(int& x, int& y, int& xSize, int& ySize) const;
     size_t getNumberOfViewports() const;
     std::string getStereoModeStr() const;
@@ -210,8 +211,7 @@ public:
 
     //------------- Other ------------------------- //
     void addPostFX(PostFX& fx);
-    void addViewport(float left, float right, float bottom, float top);
-    void addViewport(sgct_core::Viewport* vpPtr);
+    void addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr);
 
     /*! \return true if any masks are used */
     bool hasAnyMasks() const;
@@ -228,8 +228,6 @@ public:
     bool getCallDraw2DFunction() const;
     bool getCallDraw3DFunction() const;
     bool getCopyPreviousWindowToCurrentWindow() const;
-
-    sgct_core::OffScreenBuffer* mFinalFBO_Ptr = nullptr;
 
 private:
     enum TextureType { ColorTexture = 0, DepthTexture, NormalTexture, PositionTexture };
@@ -249,8 +247,8 @@ private:
     void loadShaders();
     void updateTransferCurve();
     void updateColorBufferData();
+    bool useRightEyeTexture() const;
 
-private:
     std::string mName;
     std::vector<std::string> mTags;
 
@@ -315,16 +313,7 @@ private:
     int mNumberOfAASamples;
     int mId;
 
-    float mQuadVerts[20] = {
-        0.f, 0.f, -1.f, -1.f, -1.f,
-        1.f, 0.f,  1.f, -1.f, -1.f,
-        0.f, 1.f, -1.f,  1.f, -1.f,
-        1.f, 1.f,  1.f,  1.f, -1.f
-    };
-
-    //VBO:s
     unsigned int mVBO = 0;
-    //VAO:s
     unsigned int mVAO = 0;
 
     //Shaders
@@ -333,12 +322,12 @@ private:
     int StereoLeftTex = -1;
     int StereoRightTex = -1;
 
-    bool mUseRightEyeTexture = false;
     bool mHasAnyMasks = false;
 
     sgct_core::BaseViewport* mCurrentViewport = nullptr;
-    std::vector<sgct_core::Viewport*> mViewports;
+    std::vector<std::unique_ptr<sgct_core::Viewport>> mViewports;
     std::vector<sgct::PostFX> mPostFXPasses;
+    std::unique_ptr<sgct_core::OffScreenBuffer> mFinalFBO;
 };
 
 } // namespace sgct

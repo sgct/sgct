@@ -475,7 +475,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r) {
-            std::string tmpWindowName = tmpWin.getViewport(r)->getName();
+            std::string tmpWindowName = tmpWin.getViewport(r).getName();
             std::string currRegion_warpName = mWarp.back()->id;
             if (tmpWindowName == currRegion_warpName) {
                 std::string currRegion_warpFilename = mWarp.back()->pathWarpFile;
@@ -488,7 +488,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
                         mMpcdiSubFileContents.buffer[MpcdiSubFiles::MpcdiPfm] +
                             mMpcdiSubFileContents.size[MpcdiSubFiles::MpcdiPfm]
                     );
-                    tmpWin.getViewport(r)->setMpcdiWarpMesh(std::move(meshData));
+                    tmpWin.getViewport(r).setMpcdiWarpMesh(std::move(meshData));
                     foundMatchingPfmBuffer = true;
                 }
             }
@@ -582,9 +582,9 @@ bool SGCTMpcdi::readAndParseXML_region(tinyxml2::XMLElement* element[],
         );
         return false;
     }
-    Viewport* vpPtr = new sgct_core::Viewport;
-    vpPtr->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
-    tmpWin.addViewport(vpPtr);
+    std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
+    vp->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
+    tmpWin.addViewport(std::move(vp));
     return true;
 }
 

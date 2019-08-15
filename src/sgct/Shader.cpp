@@ -14,10 +14,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_core {
 
 /*!
-Default constructor
-*/
-
-/*!
 The constructor sets shader type
   @param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
                     GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER,
@@ -36,15 +32,14 @@ void Shader::setShaderType(ShaderType shaderType) {
 }
 
 /*!
-Set the shader source code from a file, will create and compile the shader if it is not already done.
-At this point a compiled shader can't have its source reset. Recompilation of shaders is not supported
-@param    file    Path to shader file
-@return    If setting source and compilation went ok.
+Set the shader source code from a file, will create and compile the shader if it is not
+already done. At this point a compiled shader can't have its source reset. Recompilation
+of shaders is not supported
+@param file Path to shader file
+@return If setting source and compilation went ok.
 */
 bool Shader::setSourceFromFile(const std::string& file) {
-    //
     // Make sure file can be opened
-    //
     std::ifstream shaderFile(file);
 
     if (!shaderFile.is_open()) {
@@ -57,18 +52,13 @@ bool Shader::setSourceFromFile(const std::string& file) {
         return false;
     }
 
-    //
     // Create needed resources by reading file length
-    //
     shaderFile.seekg(0, std::ios_base::end);
-    std::streamoff fileLength = shaderFile.tellg();
-
+    std::streamoff fileSize = shaderFile.tellg();
     shaderFile.seekg(0, std::ios_base::beg);
 
-    //
     // Make sure the file is not empty
-    //
-    if(fileLength == 0) {
+    if (fileSize == 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "Can't create source for %s: empty file [%s].\n",
@@ -78,43 +68,25 @@ bool Shader::setSourceFromFile(const std::string& file) {
         return false;
     }
 
-    //
     // Copy file content to string
-    //
-
-    // Obs: take special care if changing the way of reading the file.
-    // This was the only way I got it to work for both VS2010 and GCC 4.6.2 without
-    // crashing. See the commented lines below for how it originally was. Those
-    // lines did not work with GCC 4.6.2. Feel free to update the reading but
-    // make sure it works for both VS and GCC.
-
-    std::string shaderSrc;
-    shaderSrc.reserve(4096);
-    while (shaderFile.good()) {
-        char c = shaderFile.get();
-
-        if (shaderFile.good()) {
-            shaderSrc += c;
-        }
-    }
+    std::vector<char> bytes(fileSize);
+    shaderFile.read(bytes.data(), fileSize);
+    std::string shaderSrc(bytes.data(), fileSize);
     shaderFile.close();
 
-    //
     // Compile shader source
-    //
     return setSourceFromString(shaderSrc);
 }
 
 /*!
-Set the shader source code from a file, will create and compile the shader if it is not already done.
-At this point a compiled shader can't have its source reset. Recompilation of shaders is not supported
-@param    sourceString    String with shader source code
-@return    If setting the source and compilation went ok.
+Set the shader source code from a file, will create and compile the shader if it is not
+already done. At this point a compiled shader can't have its source reset. Recompilation
+of shaders is not supported
+@param sourceString String with shader source code
+@return If setting the source and compilation went ok.
 */
 bool Shader::setSourceFromString(const std::string& sourceString) {
-    //
     // At this point no resetting of shaders are supported
-    //
     if (mShaderId > 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
@@ -124,17 +96,13 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
         return false;
     }
 
-    //
     // Prepare source code for shader
-    //
     const char* shaderSrc[] = { sourceString.c_str() };
 
     mShaderId = glCreateShader(mShaderType);
     glShaderSource(mShaderId, 1, shaderSrc, nullptr);
 
-    //
     // Compile and check status
-    //
     glCompileShader(mShaderId);
 
     return checkCompilationStatus();
@@ -171,17 +139,14 @@ bool Shader::checkCompilationStatus() const {
             return false;
         }
 
-        GLchar* log = new GLchar[logLength];
-
-        glGetShaderInfoLog(mShaderId, logLength, nullptr, log);
+        std::vector<GLchar> log(logLength);
+        glGetShaderInfoLog(mShaderId, logLength, nullptr, log.data());
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "%s compile error: %s\n",
             getShaderTypeName(mShaderType).c_str(),
-            log
+            log.data()
         );
-
-        delete[] log;
 
         return false;
     }
@@ -191,8 +156,8 @@ bool Shader::checkCompilationStatus() const {
 
 /*!
 Will return the name of the shader type
-@param    shaderType    The shader type
-@return    Shader type name
+@param shaderType The shader type
+@return Shader type name
 */
 std::string Shader::getShaderTypeName(ShaderType shaderType) const {
     switch (shaderType) {

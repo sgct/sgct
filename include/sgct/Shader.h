@@ -31,8 +31,8 @@ public:
     std::string getShaderTypeName(ShaderType shaderType) const;
 
     /*!
-    Get the id for this shader used for linking against programs. The shader source must be set
-    befor the id can be used. The shader won't be created until it has the source set
+    Get the id for this shader used for linking against programs. The shader source must
+    be set before the id can be used. The shader won't be created until it has a source
     @return Shader id that can be used for program linking
     */
     int getId() const;

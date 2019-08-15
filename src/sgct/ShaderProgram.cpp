@@ -17,27 +17,23 @@ Default only sets the program name.Shaders objects won't be created until
 the any shader source code is set. The program will be created when the
 createAndLink() function is called. Make sure the shader sources are
 set before calling it.
-@param    name    Name of the shader program. Must be unique
+@param name Name of the shader program. Must be unique
 */
-ShaderProgram::ShaderProgram(std::string name)
-    : mName(std::move(name))
-{}
+ShaderProgram::ShaderProgram(std::string name) : mName(std::move(name)) {}
 
 /*!
 Will deattach all attached shaders, delete them and then delete the program
 */
-void ShaderProgram::deleteProgram() {        
-    for (size_t i = 0; i < mShaders.size(); i++) {
-        if (mShaders[i].mShader.getId() > 0) {
-            glDetachShader(mProgramId, mShaders[i].mShader.getId());
-            mShaders[i].mShader.deleteShader();
+void ShaderProgram::deleteProgram() {
+    for (sgct_core::ShaderData& sd : mShaders) {
+        if (sd.mShader.getId() > 0) {
+            glDetachShader(mProgramId, sd.mShader.getId());
+            sd.mShader.deleteShader();
         }
     }
 
-    if (mProgramId > 0) {
-        glDeleteProgram(mProgramId);
-        mProgramId = GL_FALSE;
-    }
+    glDeleteProgram(mProgramId);
+    mProgramId = 0;
 }
 
 /*!
@@ -49,30 +45,31 @@ void ShaderProgram::setName(std::string name) {
 
 /*!
 Will add a shader to the program
-@param    src            Where the source is found, can be either a file path or shader source string
-@param  type        Type of shader can be one of the following: GL_COMPUTE_SHADER, GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
-@param    sSrcType    What type of source code should be read, file or string
-@return    Wheter the source code was set correctly or not
+@param src Where the source is found, can be either a file path or shader source string
+@param type Type of shader can be one of the following: GL_COMPUTE_SHADER,
+            GL_VERTEX_SHADER, GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER,
+            GL_GEOMETRY_SHADER, or GL_FRAGMENT_SHADER
+@param sSrcType What type of source code should be read, file or string
+@return Whether the source code was set correctly or not
 */
-bool ShaderProgram::addShaderSrc(const std::string& src,
-                                 sgct_core::Shader::ShaderType type,
+bool ShaderProgram::addShaderSrc(std::string src, sgct_core::Shader::ShaderType type,
                                  ShaderSourceType sSrcType)
 {
     sgct_core::ShaderData sd;
     sd.mShader.setShaderType(type);
     sd.mIsSrcFile = sSrcType == ShaderSourceType::File;
-    sd.mShaderSrc = src;
+    sd.mShaderSrc = std::move(src);
 
     bool success;
     if (sd.mIsSrcFile) {
-        success = sd.mShader.setSourceFromFile(src);
+        success = sd.mShader.setSourceFromFile(sd.mShaderSrc);
     }
     else {
-        success = sd.mShader.setSourceFromString(src);
+        success = sd.mShader.setSourceFromString(sd.mShaderSrc);
     }
 
     if (success) {
-        mShaders.push_back(sd);
+        mShaders.push_back(std::move(sd));
     }
 
     return success;
@@ -110,26 +107,6 @@ void ShaderProgram::bindFragDataLocation(unsigned int colorNumber,
     glBindFragDataLocation(mProgramId, colorNumber, name.c_str());
 }
 
-/*! Less than ShaderProgram operator */
-bool ShaderProgram::operator<(const ShaderProgram & rhs) const {
-    return mName < rhs.mName;
-}
-
-/*! Equal to ShaderProgram operator */
-bool ShaderProgram::operator==(const ShaderProgram & rhs) const {
-    return mName == rhs.mName;
-}
-
-/*! Not equal to ShaderProgram operator */
-bool ShaderProgram::operator!=(const ShaderProgram & rhs) const {
-    return mName != rhs.mName;
-}
-
-/*! Equal to string operator */
-bool ShaderProgram::operator==(const std::string & rhs) const {
-    return mName == rhs;
-}
-
 /*! Get the name of the program */
 std::string ShaderProgram::getName() const {
     return mName;
@@ -163,7 +140,8 @@ bool ShaderProgram::createAndLinkProgram() {
     //
     // Create the program
     //
-    if (!createProgram()) {
+    bool createSuccess = createProgram();
+    if (!createSuccess) {
         // Error text handled in createProgram()
         return false;
     }
@@ -171,20 +149,21 @@ bool ShaderProgram::createAndLinkProgram() {
     //
     // Link shaders
     //
-    for (size_t i = 0; i < mShaders.size(); i++) {
-        if (mShaders[i].mShader.getId() > 0) {
-            glAttachShader(mProgramId, mShaders[i].mShader.getId());
+    for (const sgct_core::ShaderData& sd : mShaders) {
+        if (sd.mShader.getId() > 0) {
+            glAttachShader(mProgramId, sd.mShader.getId());
         }
     }
 
     glLinkProgram(mProgramId);
 
-    return mIsLinked = checkLinkStatus();
+    mIsLinked = checkLinkStatus();
+    return mIsLinked;
 }
 
 /*!
 Reloads a shader by deleting, recompiling and re-linking.
-@return    Wheter the program was created and linked correctly or not
+@return Whether the program was created and linked correctly or not
 */
 bool ShaderProgram::reload() {
     MessageHandler::instance()->print(
@@ -194,19 +173,19 @@ bool ShaderProgram::reload() {
     
     deleteProgram();
 
-    for (size_t i = 0; i < mShaders.size(); i++) {
+    for (sgct_core::ShaderData& sd : mShaders) {
         bool success;
-        if (mShaders[i].mIsSrcFile) {
-            success = mShaders[i].mShader.setSourceFromFile(mShaders[i].mShaderSrc);
+        if (sd.mIsSrcFile) {
+            success = sd.mShader.setSourceFromFile(sd.mShaderSrc);
         }
         else {
-            success = mShaders[i].mShader.setSourceFromString(mShaders[i].mShaderSrc);
+            success = sd.mShader.setSourceFromString(sd.mShaderSrc);
         }
 
         if (!success) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "ShaderProgram: Failed to load '%s'!\n", mShaders[i].mShaderSrc.c_str()
+                "ShaderProgram: Failed to load '%s'!\n", sd.mShaderSrc.c_str()
             );
             return false;
         }
@@ -217,7 +196,7 @@ bool ShaderProgram::reload() {
 
 /*!
 Will create the program.
-@return    Wheter the program was properly created or not
+@return Wheter the program was properly created or not
 */
 bool ShaderProgram::createProgram() {
     if (mProgramId > 0) {
@@ -252,7 +231,7 @@ bool ShaderProgram::createProgram() {
 
 /*!
 Will check the link status of the program and output any errors from the program log
-return    Status of the compilation
+@return Status of the compilation
 */
 bool ShaderProgram::checkLinkStatus() const {
     GLint linkStatus;
@@ -262,19 +241,18 @@ bool ShaderProgram::checkLinkStatus() const {
         GLint logLength;
         glGetProgramiv(mProgramId, GL_INFO_LOG_LENGTH, &logLength);
 
-        GLchar* log = new GLchar[logLength];
-        glGetProgramInfoLog(mProgramId, logLength, nullptr, log);
+        std::vector<GLchar> log(logLength);
+        glGetProgramInfoLog(mProgramId, logLength, nullptr, log.data());
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Shader program[%s] linking error: %s\n", mName.c_str(), log
         );
 
-        delete[] log;
         return false;
     }
 
-    return linkStatus == GL_TRUE;
+    return true;
 }
 
 /*!
@@ -296,7 +274,7 @@ bool ShaderProgram::bind() const {
 Unset the shader program in the current rendering pipeline
 */
 void ShaderProgram::unbind() {
-    glUseProgram(GL_FALSE);
+    glUseProgram(0);
 }
 
 } // namespace sgct

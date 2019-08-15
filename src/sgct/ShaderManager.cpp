@@ -326,10 +326,10 @@ Reloads a shader program from the manager for the current bin.
 @return    true if the shader program was reloaded correctly
 */
 bool ShaderManager::reloadShaderProgram(const std::string& name) {
-    std::vector<ShaderProgram>::iterator shaderIt = std::find(
+    std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         mShaderPrograms[mCurrentBin].begin(),
         mShaderPrograms[mCurrentBin].end(),
-        name
+        [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
     if (shaderIt == mShaderPrograms[mCurrentBin].end()) {
@@ -353,10 +353,10 @@ All resources allocated for the program will be deallocated and removed
 @return    true if the shader program was removed correctly
 */
 bool ShaderManager::removeShaderProgram(const std::string& name) {
-    std::vector<ShaderProgram>::iterator shaderIt = std::find(
+    std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         mShaderPrograms[mCurrentBin].begin(),
         mShaderPrograms[mCurrentBin].end(),
-        name
+        [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
     if (shaderIt == mShaderPrograms[mCurrentBin].end()) {
@@ -382,10 +382,10 @@ All resources allocated for the program will be deallocated and remved
 @return    true if the shader program was removed correctly
 */
 bool ShaderManager::removeShaderProgram(const std::string& name, ShaderBinIndex bin) {
-    std::vector<ShaderProgram>::iterator shaderIt = std::find(
+    std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         mShaderPrograms[bin].begin(),
         mShaderPrograms[bin].end(),
-        name
+        [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
     if (shaderIt == mShaderPrograms[bin].end()) {
@@ -411,7 +411,7 @@ Set a shader program to be used in the current rendering pipeline
 bool ShaderManager::bindShaderProgram(const std::string& name) const {
     ShaderProgram sp = getShaderProgram(name);
 
-    if (sp == NullShader) {
+    if (sp.getName() == NullShader.getName()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Could not set shader program [%s] as active: Not found in manager.\n",
@@ -430,7 +430,7 @@ Set a shader program to be used in the current rendering pipeline
 @return    Wether the specified shader was set as active or not.
 */
 bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const {
-    if (shaderProgram == NullShader) {
+    if (shaderProgram.getName() == NullShader.getName()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "Could not set shader program [Invalid Pointer] as active: Not found in manager.\n"
@@ -456,10 +456,10 @@ can not be set as active or used in the rendering pipeline
 @return The specified shader program or ShaderManager::NullShader if shader is not found.
 */
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
-    std::vector<ShaderProgram>::const_iterator shaderIt = std::find(
+    std::vector<ShaderProgram>::const_iterator shaderIt = std::find_if(
         mShaderPrograms[mCurrentBin].begin(),
         mShaderPrograms[mCurrentBin].end(),
-        name
+        [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
     if (shaderIt != mShaderPrograms[mCurrentBin].end()) {
         return *shaderIt;
@@ -474,10 +474,10 @@ Check if a shader program exists in the manager
 @param    name    Name of the shader program.
 */
 bool ShaderManager::shaderProgramExists(const std::string& name ) const {
-    std::vector<ShaderProgram>::const_iterator exists = std::find(
+    std::vector<ShaderProgram>::const_iterator exists = std::find_if(
         mShaderPrograms[mCurrentBin].begin(),
         mShaderPrograms[mCurrentBin].end(),
-        name
+        [name](const ShaderProgram& prg) { return prg.getName() == name; }
     );
 
     return exists != mShaderPrograms[mCurrentBin].end();

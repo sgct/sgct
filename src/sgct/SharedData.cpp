@@ -8,7 +8,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SharedData.h>
 
 #include <sgct/Engine.h>
-#include <sgct/SGCTNetwork.h>
 #include <sgct/SGCTMutexManager.h>
 #include <sgct/MessageHandler.h>
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -41,12 +40,9 @@ void SharedData::destroy() {
 SharedData::SharedData() {
     constexpr const int DefaultSize = 1024;
 
-    // use a compression buffer twice as large
-    // to fit huffman tree + data which can be
-    // larger than original data in some cases.
-    // Normally a sixe x 1.1 should be enough.
-    mCompressedBuffer = new (std::nothrow) unsigned char[DefaultSize * 2];
-    mCompressedBufferSize = DefaultSize * 2;
+    // use a compression buffer twice as large to fit huffman tree + data which can be
+    // larger than original data in some cases. Normally a sixe x 1.1 should be enough.
+    mCompressedBuffer.resize(DefaultSize * 2);
 
     dataBlock.reserve(DefaultSize);
     dataBlockToCompress.reserve(DefaultSize);
@@ -60,29 +56,14 @@ SharedData::SharedData() {
         currentStorage = &dataBlock;
     }
 
-    headerSpace = new (std::nothrow) unsigned char[sgct_core::SGCTNetwork::mHeaderSize];
-
-    if (!mCompressedBuffer || !headerSpace) {
-        fprintf(stderr, "Fatal error! Failed to allocate SharedData memory pool.\n");
-        return;
-    }
-    
-    headerSpace[0] = sgct_core::SGCTNetwork::DataId;
-    
     // fill rest of header with SGCTNetwork::DefaultId
     memset(
-        headerSpace + 1,
+        headerSpace.data(),
         sgct_core::SGCTNetwork::DefaultId,
-        sgct_core::SGCTNetwork::mHeaderSize - 1
+        sgct_core::SGCTNetwork::mHeaderSize
     );
-}
 
-SharedData::~SharedData() {
-    delete[] headerSpace;
-    headerSpace = nullptr;
-
-    delete[] mCompressedBuffer;
-    mCompressedBuffer = nullptr;
+    headerSpace[0] = sgct_core::SGCTNetwork::DataId;
 }
 
 /*!
@@ -160,7 +141,7 @@ void SharedData::decode(const char* receivedData, int receivedlength, int client
     if (receivedlength > static_cast<int>(dataBlock.capacity())) {
         dataBlock.reserve(receivedlength);
     }
-    dataBlock.insert(dataBlock.end(), receivedData, receivedData+receivedlength);
+    dataBlock.insert(dataBlock.end(), receivedData, receivedData + receivedlength);
 
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -193,8 +174,8 @@ void SharedData::encode() {
     //reserve header space
     dataBlock.insert(
         dataBlock.begin(),
-        headerSpace,
-        headerSpace + sgct_core::SGCTNetwork::mHeaderSize
+        headerSpace.begin(),
+        headerSpace.begin() + sgct_core::SGCTNetwork::mHeaderSize
     );
 
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
@@ -206,29 +187,25 @@ void SharedData::encode() {
     if (mUseCompression && !dataBlockToCompress.empty()) {
         SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
 
-        // re-allocatate if needed
-        // use a compression buffer twice as large
-        // to fit huffman tree + data which can be
-        // larger than original data in some cases.
+        // re-allocate if needed use a compression buffer twice as large to fit huffman
+        // tree + data which can  larger than original data in some cases.
         // Normally a sixe x 1.1 should be enough.
-        if (mCompressedBufferSize < (dataBlockToCompress.size() / 2)) {
-            delete[] mCompressedBuffer;
-            mCompressedBufferSize = dataBlockToCompress.size() * 2;
-            mCompressedBuffer = new (std::nothrow) unsigned char[mCompressedBufferSize];
+        if (mCompressedBuffer.size() < (dataBlockToCompress.size() / 2)) {
+            mCompressedBuffer.resize(dataBlockToCompress.size() * 2);
         }
 
-        uLongf compressed_size = static_cast<uLongf>(mCompressedBufferSize);
-        uLongf data_size = static_cast<uLongf>(dataBlockToCompress.size());
+        uLongf compressedSize = static_cast<uLongf>(mCompressedBuffer.size());
+        uLongf dataSize = static_cast<uLongf>(dataBlockToCompress.size());
         int err = compress2(
-            mCompressedBuffer,
-            &compressed_size,
-            &dataBlockToCompress[0],
-            data_size,
+            mCompressedBuffer.data(),
+            &compressedSize,
+            dataBlockToCompress.data(),
+            dataSize,
             mCompressionLevel
         );
 
         if (err == Z_OK) {
-            //add original size
+            // add original size
             uint32_t uncompressedSize = static_cast<uint32_t>(dataBlockToCompress.size());
             unsigned char* p = reinterpret_cast<unsigned char*>(&uncompressedSize);
 
@@ -237,14 +214,14 @@ void SharedData::encode() {
             dataBlock[11] = p[2];
             dataBlock[12] = p[3];
             
-            mCompressionRatio = static_cast<float>(compressed_size) /
+            mCompressionRatio = static_cast<float>(compressedSize) /
                                 static_cast<float>(uncompressedSize);
 
-            //add the compressed block
+            // add the compressed block
             dataBlock.insert(
                 dataBlock.end(),
-                mCompressedBuffer,
-                mCompressedBuffer + compressed_size
+                mCompressedBuffer.begin(),
+                mCompressedBuffer.begin() + compressedSize
             );
         }
         else {
@@ -265,7 +242,7 @@ std::size_t SharedData::getUserDataSize() {
 }
 
 unsigned char* SharedData::getDataBlock() {
-    return &dataBlock[0];
+    return dataBlock.data();
 }
 
 size_t SharedData::getDataSize() {
@@ -276,7 +253,7 @@ size_t SharedData::getBufferSize() {
     return dataBlock.capacity();
 }
 
-void SharedData::writeFloat(SharedFloat* sf) {
+void SharedData::writeFloat(const SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__    
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -284,14 +261,14 @@ void SharedData::writeFloat(SharedFloat* sf) {
     );
 #endif
 
-    float val = sf->getVal();
+    float val = sf.getVal();
     SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
-    currentStorage->insert(currentStorage->end(), p, p + 4);
+    currentStorage->insert(currentStorage->end(), p, p + sizeof(float));
     SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeDouble(SharedDouble* sd) {
+void SharedData::writeDouble(const SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -299,14 +276,14 @@ void SharedData::writeDouble(SharedDouble* sd) {
     );
 #endif
 
-    double val = sd->getVal();
+    double val = sd.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
-    currentStorage->insert(currentStorage->end(), p, p + 8);
+    currentStorage->insert(currentStorage->end(), p, p + sizeof(double));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeInt64(SharedInt64* si) {
+void SharedData::writeInt64(const SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -314,14 +291,14 @@ void SharedData::writeInt64(SharedInt64* si) {
     );
 #endif
 
-    int64_t val = si->getVal();
+    int64_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char* >(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(int64_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeInt32(SharedInt32* si) {
+void SharedData::writeInt32(const SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -329,14 +306,14 @@ void SharedData::writeInt32(SharedInt32* si) {
     );
 #endif
 
-    int32_t val = si->getVal();
+    int32_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(int32_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeInt16(SharedInt16* si) {
+void SharedData::writeInt16(const SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -344,14 +321,14 @@ void SharedData::writeInt16(SharedInt16* si) {
     );
 #endif
 
-    int16_t val = si->getVal();
+    int16_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(int16_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeInt8(SharedInt8* si) {
+void SharedData::writeInt8(const SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -359,14 +336,14 @@ void SharedData::writeInt8(SharedInt8* si) {
     );
 #endif
 
-    int8_t val = si->getVal();
+    int8_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(int8_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUInt64(SharedUInt64* si) {
+void SharedData::writeUInt64(const SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
         MessageHandler::NOTIFY_INFO,
@@ -374,14 +351,14 @@ void SharedData::writeUInt64(SharedUInt64* si) {
     );
 #endif
 
-    uint64_t val = si->getVal();
+    uint64_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint64_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUInt32(SharedUInt32* si) {
+void SharedData::writeUInt32(const SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -389,14 +366,14 @@ void SharedData::writeUInt32(SharedUInt32* si) {
     );
 #endif
 
-    uint32_t val = si->getVal();
+    uint32_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUInt16(SharedUInt16* si) {
+void SharedData::writeUInt16(const SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
         MessageHandler::NOTIFY_INFO,
@@ -404,14 +381,14 @@ void SharedData::writeUInt16(SharedUInt16* si) {
     );
 #endif
 
-    uint16_t val = si->getVal();
+    uint16_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint16_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUInt8(SharedUInt8 * si)
+void SharedData::writeUInt8(const SharedUInt8& si)
 {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->pruintDebug(
@@ -420,14 +397,14 @@ void SharedData::writeUInt8(SharedUInt8 * si)
     );
 #endif
 
-    uint8_t val = si->getVal();
+    uint8_t val = si.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint8_t));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUChar(SharedUChar* suc) {
+void SharedData::writeUChar(const SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -435,13 +412,13 @@ void SharedData::writeUChar(SharedUChar* suc) {
     );
 #endif
 
-    unsigned char val = suc->getVal();
+    unsigned char val = suc.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     currentStorage->push_back(val);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeBool(SharedBool* sb) {
+void SharedData::writeBool(const SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -449,7 +426,7 @@ void SharedData::writeBool(SharedBool* sb) {
     );
 #endif
     
-    bool val = sb->getVal();
+    bool val = sb.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     if (val) {
         currentStorage->push_back(1);
@@ -460,7 +437,7 @@ void SharedData::writeBool(SharedBool* sb) {
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeString(SharedString* ss) {
+void SharedData::writeString(const SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -468,18 +445,18 @@ void SharedData::writeString(SharedString* ss) {
     );
 #endif
     
-    std::string tmpStr(ss->getVal());
+    std::string tmpStr = ss.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     
-    currentStorage->insert(currentStorage->end(), p, p + 4);
+    currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
     currentStorage->insert(currentStorage->end(), tmpStr.data(), tmpStr.data() + length);
     
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeWString(SharedWString* ss) {
+void SharedData::writeWString(const SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -487,45 +464,19 @@ void SharedData::writeWString(SharedWString* ss) {
     );
 #endif
 
-    std::wstring tmpStr(ss->getVal());
+    std::wstring tmpStr = ss.getVal();
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     uint32_t length = static_cast<uint32_t>(tmpStr.size());
     unsigned char* p = reinterpret_cast<unsigned char*>(&length);
     unsigned char* ws = reinterpret_cast<unsigned char*>(&tmpStr[0]);
 
-    currentStorage->insert(currentStorage->end(), p, p + 4);
+    currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
     currentStorage->insert(currentStorage->end(), ws, ws + length * sizeof(wchar_t));
 
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
-void SharedData::writeUCharArray(unsigned char* c, uint32_t length) {
-#ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
-        "SharedData::writeUCharArray\n"
-    );
-#endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    currentStorage->insert(currentStorage->end(), c, c + length);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
-}
-
-void SharedData::writeSize(uint32_t size) {
-#ifdef __SGCT_NETWORK_DEBUG__     
-    MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
-        "SharedData::writeSize\n"
-    );
-#endif
-    
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    unsigned char* p = reinterpret_cast<unsigned char*>(&size);
-    currentStorage->insert(currentStorage->end(), p, p + 4);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
-}
-
-void SharedData::readFloat(SharedFloat* sf) {
+void SharedData::readFloat(SharedFloat& sf) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -534,7 +485,7 @@ void SharedData::readFloat(SharedFloat* sf) {
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     
-    float val = *(reinterpret_cast<float*>(&dataBlock[pos]));
+    float val = *reinterpret_cast<float*>(&dataBlock[pos]);
     pos += sizeof(float);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -545,10 +496,10 @@ void SharedData::readFloat(SharedFloat* sf) {
     );
 #endif
 
-    sf->setVal(val);
+    sf.setVal(val);
 }
 
-void SharedData::readDouble(SharedDouble* sd) {
+void SharedData::readDouble(SharedDouble& sd) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -556,7 +507,7 @@ void SharedData::readDouble(SharedDouble* sd) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    double val = *(reinterpret_cast<double*>(&dataBlock[pos]));
+    double val = *reinterpret_cast<double*>(&dataBlock[pos]);
     pos += sizeof(double);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -567,10 +518,10 @@ void SharedData::readDouble(SharedDouble* sd) {
     );
 #endif
 
-    sd->setVal(val);
+    sd.setVal(val);
 }
 
-void SharedData::readInt64(SharedInt64* si) {
+void SharedData::readInt64(SharedInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -578,7 +529,7 @@ void SharedData::readInt64(SharedInt64* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    int64_t val = *(reinterpret_cast<int64_t*>(&dataBlock[pos]));
+    int64_t val = *reinterpret_cast<int64_t*>(&dataBlock[pos]);
     pos += sizeof(int64_t);
     SGCTMutexManager::instance()->unlockMutex(
         SGCTMutexManager::DataSyncMutex
@@ -591,10 +542,10 @@ void SharedData::readInt64(SharedInt64* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readInt32(SharedInt32* si) {
+void SharedData::readInt32(SharedInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -602,7 +553,7 @@ void SharedData::readInt32(SharedInt32* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    int32_t val = *(reinterpret_cast<int32_t*>(&dataBlock[pos]));
+    int32_t val = *reinterpret_cast<int32_t*>(&dataBlock[pos]);
     pos += sizeof(int32_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -613,10 +564,10 @@ void SharedData::readInt32(SharedInt32* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readInt16(SharedInt16* si) {
+void SharedData::readInt16(SharedInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -624,7 +575,7 @@ void SharedData::readInt16(SharedInt16* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    int16_t val = *(reinterpret_cast<int16_t*>(&dataBlock[pos]));
+    int16_t val = *reinterpret_cast<int16_t*>(&dataBlock[pos]);
     pos += sizeof(int16_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -635,10 +586,10 @@ void SharedData::readInt16(SharedInt16* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readInt8(SharedInt8* si) {
+void SharedData::readInt8(SharedInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -646,7 +597,7 @@ void SharedData::readInt8(SharedInt8* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    int8_t val = *(reinterpret_cast<int8_t*>(&dataBlock[pos]));
+    int8_t val = *reinterpret_cast<int8_t*>(&dataBlock[pos]);
     pos += sizeof(int8_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -657,10 +608,10 @@ void SharedData::readInt8(SharedInt8* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readUInt64(SharedUInt64* si) {
+void SharedData::readUInt64(SharedUInt64& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -668,7 +619,7 @@ void SharedData::readUInt64(SharedUInt64* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    uint64_t val = *(reinterpret_cast<uint64_t*>(&dataBlock[pos]));
+    uint64_t val = *reinterpret_cast<uint64_t*>(&dataBlock[pos]);
     pos += sizeof(uint64_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -679,10 +630,10 @@ void SharedData::readUInt64(SharedUInt64* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readUInt32(SharedUInt32* si) {
+void SharedData::readUInt32(SharedUInt32& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -690,7 +641,7 @@ void SharedData::readUInt32(SharedUInt32* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    uint32_t val = *(reinterpret_cast<uint32_t*>(&dataBlock[pos]));
+    uint32_t val = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
     pos += sizeof(uint32_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -701,10 +652,10 @@ void SharedData::readUInt32(SharedUInt32* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readUInt16(SharedUInt16* si) {
+void SharedData::readUInt16(SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -712,7 +663,7 @@ void SharedData::readUInt16(SharedUInt16* si) {
         ");
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    uint16_t val = *(reinterpret_cast<uint16_t*>(&dataBlock[pos]));
+    uint16_t val = *reinterpret_cast<uint16_t*>(&dataBlock[pos]);
     pos += sizeof(uint16_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -723,10 +674,10 @@ void SharedData::readUInt16(SharedUInt16* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readUInt8(SharedUInt8* si) {
+void SharedData::readUInt8(SharedUInt8& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -734,7 +685,7 @@ void SharedData::readUInt8(SharedUInt8* si) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    uint8_t val = *(reinterpret_cast<uint8_t*>(&dataBlock[pos]));
+    uint8_t val = *reinterpret_cast<uint8_t*>(&dataBlock[pos]);
     pos += sizeof(uint8_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
@@ -745,10 +696,10 @@ void SharedData::readUInt8(SharedUInt8* si) {
     );
 #endif
 
-    si->setVal(val);
+    si.setVal(val);
 }
 
-void SharedData::readUChar(SharedUChar* suc) {
+void SharedData::readUChar(SharedUChar& suc) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -756,10 +707,9 @@ void SharedData::readUChar(SharedUChar* suc) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    unsigned char c;
-    c = dataBlock[pos];
-    pos += 1;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex );
+    unsigned char c = dataBlock[pos];
+    pos += sizeof(unsigned char);
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
@@ -767,10 +717,10 @@ void SharedData::readUChar(SharedUChar* suc) {
         "UChar = %d\n", c
     );
 #endif
-    suc->setVal(c);
+    suc.setVal(c);
 }
 
-void SharedData::readBool(SharedBool* sb) {
+void SharedData::readBool(SharedBool& sb) {
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -778,18 +728,17 @@ void SharedData::readBool(SharedBool* sb) {
     );
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    bool b;
-    b = dataBlock[pos] == 1;
+    bool b = dataBlock[pos] == 1;
     pos += 1;
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
 #ifdef __SGCT_NETWORK_DEBUG__ 
     MessageHandler::instance()->printDebug(MessageHandler::NOTIFY_INFO, "Bool = %d\n", b);
 #endif
-    sb->setVal(b);
+    sb.setVal(b);
 }
 
-void SharedData::readString(SharedString* ss) {
+void SharedData::readString(SharedString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -798,21 +747,15 @@ void SharedData::readString(SharedString* ss) {
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     
-    uint32_t length = *(reinterpret_cast<uint32_t*>(&dataBlock[pos]));
+    uint32_t length = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
     pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss->setVal("");
+        ss.setVal("");
         return;
     }
 
-    char* stringData = new (std::nothrow) char[length + 1];
-    if (stringData) {
-        memcpy(stringData, &dataBlock[pos], length);
-        //add string terminator
-        stringData[length] = '\0';
-    }
-
+    std::string stringData(dataBlock.begin() + pos, dataBlock.begin() + pos + length);
     pos += length;
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
     
@@ -823,13 +766,10 @@ void SharedData::readString(SharedString* ss) {
     );
 #endif
 
-    ss->setVal(stringData);
-
-    delete[] stringData;
-    stringData = nullptr;
+    ss.setVal(std::move(stringData));
 }
 
-void SharedData::readWString(SharedWString* ss) {
+void SharedData::readWString(SharedWString& ss) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
@@ -842,59 +782,15 @@ void SharedData::readWString(SharedWString* ss) {
     pos += sizeof(uint32_t);
 
     if (length == 0) {
-        ss->setVal(std::wstring());
+        ss.setVal(std::wstring());
         return;
     }
 
-    wchar_t* stringData = new (std::nothrow) wchar_t[length + 1];
-    if (stringData) {
-        memcpy(stringData, &dataBlock[pos], length * sizeof(wchar_t));
-        //add string terminator
-        stringData[length] = L'\0';
-    }
-
+    std::wstring stringData(dataBlock.begin() + pos, dataBlock.begin() + pos + length);
     pos += length * sizeof(wchar_t);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
-    ss->setVal(stringData);
-
-    delete[] stringData;
-    stringData = NULL;
-}
-
-unsigned char* SharedData::readUCharArray(uint32_t length) {
-#ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
-        "SharedData::readUCharArray\n"
-    );
-#endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-
-    unsigned char* p = &dataBlock[pos];
-    pos += length;
-
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
-
-    return p;
-}
-
-uint32_t SharedData::readSize() {
-#ifdef __SGCT_NETWORK_DEBUG__ 
-    MessageHandler::instance()->printDebug(
-        MessageHandler::NOTIFY_INFO,
-        "SharedData::readSize\n"
-    );
-#endif
-
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    
-    uint32_t size = *(reinterpret_cast<uint32_t*>(&dataBlock[pos]));
-    pos += sizeof(uint32_t);
-
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
-
-    return size;
+    ss.setVal(std::move(stringData));
 }
 
 } // namespace sgct

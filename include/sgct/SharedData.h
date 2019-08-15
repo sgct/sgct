@@ -8,9 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SHARED_DATA__H__
 #define __SGCT__SHARED_DATA__H__
 
+#include <sgct/SGCTMutexManager.h>
+#include <sgct/SGCTNetwork.h>
 #include <sgct/SharedDataTypes.h>
-#include <vector>
+#include <array>
 #include <string>
+#include <vector>
 
 namespace sgct {
 
@@ -39,54 +42,54 @@ public:
     float getCompressionRatio();
 
     template<class T>
-    void writeObj(SharedObject<T>* sobj);
-    void writeFloat(SharedFloat* sf);
-    void writeDouble(SharedDouble* sd);
+    void writeObj(const SharedObject<T>& sobj);
+    void writeFloat(const SharedFloat& sf);
+    void writeDouble(const SharedDouble& sd);
     
-    void writeInt64(SharedInt64* si);
-    void writeInt32(SharedInt32* si);
-    void writeInt16(SharedInt16* si);
-    void writeInt8(SharedInt8* si);
+    void writeInt64(const SharedInt64& si);
+    void writeInt32(const SharedInt32& si);
+    void writeInt16(const SharedInt16& si);
+    void writeInt8(const SharedInt8& si);
     
-    void writeUInt64(SharedUInt64* si);
-    void writeUInt32(SharedUInt32* si);
-    void writeUInt16(SharedUInt16* si);
-    void writeUInt8(SharedUInt8* si);
+    void writeUInt64(const SharedUInt64& si);
+    void writeUInt32(const SharedUInt32& si);
+    void writeUInt16(const SharedUInt16& si);
+    void writeUInt8(const SharedUInt8& si);
     
-    void writeUChar(SharedUChar* suc);
-    void writeBool(SharedBool* sb);
-    void writeString(SharedString* ss);
-    void writeWString(SharedWString* ss);
+    void writeUChar(const SharedUChar& suc);
+    void writeBool(const SharedBool& sb);
+    void writeString(const SharedString& ss);
+    void writeWString(const SharedWString& ss);
     template<class T>
-    void writeVector(SharedVector<T>* vector);
+    void writeVector(const SharedVector<T>& vector);
 
     template<class T>
-    void readObj(SharedObject<T>* sobj);
-    void readFloat(SharedFloat* f);
-    void readDouble(SharedDouble* d);
+    void readObj(SharedObject<T>& sobj);
+    void readFloat(SharedFloat& f);
+    void readDouble(SharedDouble& d);
     
-    void readInt64(SharedInt64* si);
-    void readInt32(SharedInt32* si);
-    void readInt16(SharedInt16* si);
-    void readInt8(SharedInt8* si);
+    void readInt64(SharedInt64& si);
+    void readInt32(SharedInt32& si);
+    void readInt16(SharedInt16& si);
+    void readInt8(SharedInt8& si);
     
-    void readUInt64(SharedUInt64* si);
-    void readUInt32(SharedUInt32* si);
-    void readUInt16(SharedUInt16* si);
-    void readUInt8(SharedUInt8* si);
+    void readUInt64(SharedUInt64& si);
+    void readUInt32(SharedUInt32& si);
+    void readUInt16(SharedUInt16& si);
+    void readUInt8(SharedUInt8& si);
     
-    void readUChar(SharedUChar* suc);
-    void readBool(SharedBool* sb);
-    void readString(SharedString* ss);
-    void readWString(SharedWString* ss);
+    void readUChar(SharedUChar& suc);
+    void readBool(SharedBool& sb);
+    void readString(SharedString& ss);
+    void readWString(SharedWString& ss);
     template<class T>
-    void readVector(SharedVector<T>* vector);
+    void readVector(SharedVector<T>& vector);
 
     void setEncodeFunction(void(*fnPtr)());
     void setDecodeFunction(void(*fnPtr)());
 
     void encode();
-    void decode(const char* receivedData, int receivedlength, int clientIndex);
+    void decode(const char* receivedData, int receivedLength, int clientIndex);
 
     size_t getUserDataSize();
     unsigned char* getDataBlock();
@@ -95,15 +98,7 @@ public:
 
 private:
     SharedData();
-    ~SharedData();
 
-    void writeUCharArray(unsigned char* c, uint32_t length);
-    unsigned char* readUCharArray(uint32_t length);
-
-    void writeSize(uint32_t size);
-    uint32_t readSize();
-
-private:
     //function pointers
     void (*mEncodeFn)() = nullptr;
     void (*mDecodeFn)() = nullptr;
@@ -112,9 +107,8 @@ private:
     std::vector<unsigned char> dataBlock;
     std::vector<unsigned char> dataBlockToCompress;
     std::vector<unsigned char>* currentStorage;
-    unsigned char* mCompressedBuffer;
-    size_t mCompressedBufferSize;
-    unsigned char* headerSpace;
+    std::vector<unsigned char> mCompressedBuffer;
+    std::array<unsigned char, sgct_core::SGCTNetwork::mHeaderSize> headerSpace;
     unsigned int pos;
     int mCompressionLevel;
     float mCompressionRatio = 1.f;
@@ -122,66 +116,80 @@ private:
 };
 
 template <class T>
-void SharedData::writeObj(SharedObject<T>* sobj) {
-    T val = sobj->getVal();
+void SharedData::writeObj(const SharedObject<T>& sobj) {
+    T val = sobj.getVal();
     
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    unsigned char*p  = reinterpret_cast<unsigned char*>(&val);
+    unsigned char* p = reinterpret_cast<unsigned char*>(&val);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(T));
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 }
 
 template<class T>
-void SharedData::readObj(SharedObject<T>* sobj) {
+void SharedData::readObj(SharedObject<T>& sobj) {
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
-    T val = (*(reinterpret_cast<T*>(&dataBlock[pos])));
+    T val = *reinterpret_cast<T*>(&dataBlock[pos]);
     pos += sizeof(T);
     SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
     
-    sobj->setVal(val);
+    sobj.setVal(val);
 }
 
 template<class T>
-void SharedData::writeVector(SharedVector<T>* vector) {
-    std::vector<T> tmpVec = vector->getVal();
+void SharedData::writeVector(const SharedVector<T>& vector) {
+    std::vector<T> tmpVec = vector.getVal();
 
-    unsigned char* p;
-    p = tmpVec.size() ? reinterpret_cast<unsigned char*>(&tmpVec[0]) : nullptr;
-    
-    uint32_t element_size = sizeof(T);
-    uint32_t vector_size = static_cast<uint32_t>(tmpVec.size());
+    uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
+    currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
 
-    writeSize(vector_size);
-    if (p) {
-        writeUCharArray(p, element_size * vector_size);
+    if (vectorSize > 0) {
+        unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
+        uint32_t length = sizeof(T) * vectorSize;
+        SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+        currentStorage->insert(currentStorage->end(), c, c + length);
+        SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
     }
 }
 
 template<class T>
-void SharedData::readVector(SharedVector<T>* vector) {
-    uint32_t size = readSize();
-    if(size == 0) {
-        vector->clear();
+void SharedData::readVector(SharedVector<T>& vector) {
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+
+    uint32_t size = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
+    pos += sizeof(uint32_t);
+
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+
+    if (size == 0) {
+        vector.clear();
         return;
     }
 
+    // abock:  Not sure why the additional allocation was necessary
     uint32_t totalSize = size * sizeof(T);
-    unsigned char* data = new unsigned char[totalSize];
-    unsigned char* c = readUCharArray(totalSize);
+    //unsigned char* data = new unsigned char[totalSize];
 
-    //for(std::size_t i = 0; i < totalSize; i++)
-    //    data[i] = c[i];
-    memcpy(data, c, totalSize);
+    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+
+    unsigned char* c = &dataBlock[pos];
+    pos += totalSize;
+
+    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+
+    //memcpy(data, c, totalSize);
 
     std::vector<T> tmpVec;
     tmpVec.insert(
         tmpVec.begin(),
-        reinterpret_cast<T*>(data),
-        reinterpret_cast<T*>(data) + size
+        reinterpret_cast<T*>(c),
+        reinterpret_cast<T*>(c) + size
     );
 
-    vector->setVal(tmpVec);
-    delete[] data;
+    vector.setVal(std::move(tmpVec));
+    //delete[] data;
 }
 
 } // namespace sgct

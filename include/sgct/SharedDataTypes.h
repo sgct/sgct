@@ -23,7 +23,7 @@ public:
     SharedObject() = default;
     explicit SharedObject(T val) : mVal(std::move(val)) {}
 
-    T getVal() {
+    T getVal() const {
         mMutex.lock();
         T tmpT = mVal;
         mMutex.unlock();
@@ -50,7 +50,7 @@ public:
 
 private:
     T mVal;
-    std::mutex mMutex;
+    mutable std::mutex mMutex;
 };
 
 using SharedFloat = SharedObject<float>;
@@ -94,14 +94,14 @@ public:
         mVector.reserve(size);
     }
 
-    T getValAt(size_t index) {
+    T getValAt(size_t index) const {
         mMutex.lock();
         T tmpT = mVector[index];
         mMutex.unlock();
         return tmpT;
     }
 
-    std::vector<T> getVal() {
+    std::vector<T> getVal() const {
         mMutex.lock();
         std::vector<T> mCopy = mVector;
         mMutex.unlock();
@@ -132,7 +132,7 @@ public:
         mMutex.unlock();
     }
 
-    size_t getSize() {
+    size_t getSize() const {
         mMutex.lock();
         size_t size = mVector.size();
         mMutex.unlock();
@@ -141,7 +141,7 @@ public:
 
 private:
     std::vector<T> mVector;
-    std::mutex mMutex;
+    mutable std::mutex mMutex;
 };
 
 } // namespace sgct

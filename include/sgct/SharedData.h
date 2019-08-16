@@ -17,19 +17,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-/*!
-This class shares application data between nodes in a cluster where the master encodes and
-transmits the data and the slaves receives and decode the data. If a large number of
-strings are used for the synchronization then the data can be compressed using the
-setCompression function. The process of synchronization is serial which means that the
-order of encoding must be the same as in decoding.
-*/
+/**
+ * This class shares application data between nodes in a cluster where the master encodes
+ * and transmits the data and the slaves receives and decode the data. If a large number
+ * of strings are used for the synchronization then the data can be compressed using the
+ * setCompression function. The process of synchronization is serial which means that the
+ * order of encoding must be the same as in decoding.
+ */
 class SharedData {
 public:
-    /*! Get the SharedData instance */
+    /// Get the SharedData instance
     static SharedData* instance();
 
-    /*! Destroy the SharedData */
+    /// Destroy the SharedData
     static void destroy();
 
     /**
@@ -41,12 +41,11 @@ public:
      */
     void setCompression(bool state, int level = 1);
 
-    /*! Get the compresson ratio:
-    \n
-    ratio = (compressed data size + Huffman tree)/(original data size)
-    \n
-    If the ratio is larger than 1.0 then there is no use for using compression.
-    */
+    /** Get the compresson ratio:
+     *  ratio = (compressed data size + Huffman tree)/(original data size)
+     *
+     * If the ratio is larger than 1.0 then there is no use for using compression.
+     */
     float getCompressionRatio();
 
     template<class T>

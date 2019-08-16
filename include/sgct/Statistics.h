@@ -14,9 +14,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-/*!
-Helper class for measuring application statistics
-*/
+/**
+ * Helper class for measuring application statistics
+ */
 class Statistics {
 public:
     Statistics();

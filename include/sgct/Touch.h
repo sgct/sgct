@@ -17,12 +17,12 @@ struct GLFWtouch;
 
 namespace sgct_core {
 
-/*!
-    This class holds and manages touch points
-*/
+/**
+ * This class holds and manages touch points
+ */
 class Touch {
 public:
-    //! Touch point information
+    /// Touch point information
     struct TouchPoint {
         enum class TouchAction {
             NoAction,
@@ -38,14 +38,16 @@ public:
         glm::vec2 normPixelDiff;
     };
 
-    // Retrieve the lastest touch points to process them in an event
+    /// Retrieve the lastest touch points to process them in an event
     std::vector<TouchPoint> getLatestTouchPoints() const;
 
-    // Need to call this after the latest touch points have been processed to clear them
+    /// Need to call this after the latest touch points have been processed to clear them
     void setLatestPointsHandled();
 
-    // Adding touch points to the touch class
-    // As an id is constant over the touch point, the order will be preserved
+    /**
+     * Adding touch points to the touch class
+     * As an id is constant over the touch point, the order will be preserved
+     */
     void processPoint(int id, int action, double xpos, double ypos, int windowWidth,
         int windowHeight);
     void processPoints(GLFWtouch* touchPoints, int count, int windowWidth,

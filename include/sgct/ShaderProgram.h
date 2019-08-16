@@ -14,15 +14,15 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-/*!
-Helper class for handling compiling, linking and using shader programs. Current
-implementation only supports vertex and fragment shader. Uniform and attribute handling
-must be managed explicitly but it is possible to poll the Shader program for uniform and
-attribute locations.
+/**
+ * Helper class for handling compiling, linking and using shader programs. Current
+ * implementation only supports vertex and fragment shader. Uniform and attribute handling
+ * must be managed explicitly but it is possible to poll the Shader program for uniform
+ * and attribute locations.
 */
 class ShaderProgram {
 public:
-    /*! If shader source should be loaded from file or read as is */
+    /// If shader source should be loaded from file or read as is
     enum class ShaderSourceType { File, String };
 
     /**
@@ -35,11 +35,11 @@ public:
     ShaderProgram() = default;
     ShaderProgram(std::string name);
 
-    /*!
-    The destructor clears the shader data vector but the program can still be used. The
-    program have to be destroyed explicitly by calling deleteProgram. This is so that
-    programs can be copied when storing in containers.
-    */
+    /**
+     * The destructor clears the shader data vector but the program can still be used. The
+     * program have to be destroyed explicitly by calling deleteProgram. This is so that
+     * programs can be copied when storing in containers.
+     */
     ~ShaderProgram() = default;
 
     /// Will detach all attached shaders, delete them and then delete the program

@@ -14,15 +14,16 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-/*!
-For managing shader programs. Implemented as a singleton
-The current implementation of shader programs only support vertex and fragment shaders.
-*/
+/**
+ * For managing shader programs. Implemented as a singleton
+ * The current implementation of shader programs only support vertex and fragment shaders.
+ */
 class ShaderManager {
 public:
-    // A shader program that never will be initialized.
-    // Will be returned for not found programs and can be used as 
-    // comparison for NULL values
+    /**
+     * A shader program that never will be initialized. Will be returned for not found
+     * programs and can be used as comparison for NULL values
+     */
     ShaderProgram NullShader = ShaderProgram("SGCT_NULL");
 
     /// Destructor deallocates and deletes all shaders

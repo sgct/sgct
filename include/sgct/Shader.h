@@ -12,13 +12,13 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-/*!
-Simple helper class for handling shaders. Shader can't be used directly, they must be
-linked to a program. Current implementation only supports vertex and fragment shader.
-*/
+/**
+ * Simple helper class for handling shaders. Shader can't be used directly, they must be
+ * linked to a program. Current implementation only supports vertex and fragment shader.
+ */
 class Shader {
 public:
-    /*! Enum for deciding shader type */
+    /// Enum for deciding shader type
     using ShaderType = int;
 
     Shader() = default;
@@ -73,11 +73,13 @@ public:
      */
     std::string getShaderTypeName(ShaderType shaderType) const;
 
-    /*!
-    Get the id for this shader used for linking against programs. The shader source must
-    be set before the id can be used. The shader won't be created until it has a source
-    @return Shader id that can be used for program linking
-    */
+    /**
+     * Get the id for this shader used for linking against programs. The shader source
+     * must be set before the id can be used. The shader won't be created until it has a
+     * source.
+     *
+     * \return Shader id that can be used for program linking
+     */
     int getId() const;
 
     /// Delete the shader

@@ -14,9 +14,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 
 namespace sgct_core {
-/*!
-This class manages and renders non-linear fisheye projections
-*/
+
+/**
+ * This class manages and renders non-linear fisheye projections
+ */
 class SphericalMirrorProjection : public NonLinearProjection {
 public:
     SphericalMirrorProjection() = default;

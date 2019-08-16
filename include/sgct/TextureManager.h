@@ -17,26 +17,26 @@ class Image;
 
 namespace sgct {
 
-/*!
-    The TextureManager loads and handles textures. It is a singleton and can be accessed
-    anywhere using its static instance. Currently only PNG textures are supported.
-*/
+/**
+ * The TextureManager loads and handles textures. It is a singleton and can be accessed
+ *   anywhere using its static instance. Currently only PNG textures are supported.
+ */
 class TextureManager {
 public:
-    /*!
-        The compression mode modes. For more info about texute compression look here:
-        <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">S3 Texture compression</a>
-    */
+    /**
+     * The compression mode modes. For more info about texute compression look here:
+     * <a href="http://en.wikipedia.org/wiki/S3_Texture_Compression">S3 Texture compression</a>
+     */
     enum class CompressionMode {
         None = 0,
         Generic,
         S3TC_DXT
     };
 
-    /*! Get the TextureManager instance */
+    /// Get the TextureManager instance
     static TextureManager* instance();
 
-    /*! Destroy the TextureManager */
+    /// Destroy the TextureManager
     static void destroy();
 
     /**
@@ -115,7 +115,8 @@ public:
      * \param name the name of the texture
      * \param imgPtr pointer to image object
      * \param interpolate set to true for using interpolation (bi-linear filtering)
-     * \param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+     * \param mipmapLevels is the number of mipmap levels that will be generated, setting
+     *                     this value to 1 or less disables mipmaps
      *
      * \return true if texture loaded successfully
      */
@@ -128,7 +129,8 @@ public:
      * \param texID the openGL texture id
      * \param filename the filename or path to the texture
      * \param interpolate set to true for using interpolation (bi-linear filtering)
-     * \param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
+     * \param mipmapLevels is the number of mipmap levels that will be generated, setting
+     *                     this value to 1 or less disables mipmaps
      *
      * \return true if texture loaded successfully
      */

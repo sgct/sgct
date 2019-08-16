@@ -26,9 +26,9 @@ namespace sgct_core {
 
 class NonLinearProjection;
 
-/*!
-    This class holds and manages viewportdata and calculates frustums
-*/
+/**
+ * This class holds and manages viewportdata and calculates frustums
+ */
 class Viewport : public BaseViewport {
 public:
     Viewport();

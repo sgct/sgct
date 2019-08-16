@@ -14,9 +14,9 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {    
 
-/*!
-Mutex protected template for multi-thread data sharing
-*/
+/**
+ * Mutex protected template for multi-thread data sharing
+ */
 template <class T>
 class SharedObject {
 public:
@@ -83,9 +83,9 @@ extern template class SharedObject<bool>;
 extern template class SharedObject<std::string>;
 extern template class SharedObject<std::wstring>;
 
-/*!
-Mutex protected std::vector template for multi-thread data sharing
-*/
+/**
+ * Mutex protected std::vector template for multi-thread data sharing
+ */
 template <class T>
 class SharedVector {
 public:

@@ -16,9 +16,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <memory>
 
 namespace sgct_core {
-/*!
-This class manages and renders non linear fisheye projections
-*/
+
+/**
+ * This class manages and renders non linear fisheye projections
+ */
 class SpoutOutputProjection : public NonLinearProjection {
 public:
     SpoutOutputProjection() = default;
@@ -68,7 +69,7 @@ private:
     void renderCubemapInternal(size_t* subViewPortIndex);
     void renderCubemapInternalFixedPipeline(size_t* subViewPortIndex);
 
-    //shader locations
+    // shader locations
     int mCubemapLoc = -1;
     int mHalfFovLoc = -1;
     int mSwapColorLoc = -1;

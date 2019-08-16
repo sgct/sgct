@@ -27,14 +27,12 @@ namespace sgct_core {
 
 namespace sgct {
 
-/*!
-Helper class for window data. 
-*/
+/**
+ * Helper class for window data. 
+ */
 class SGCTWindow {
 public:    
-    /*!
-        Different stereo modes used for rendering
-    */
+    /// Different stereo modes used for rendering
     enum class StereoMode {
         NoStereo = 0,
         Active,
@@ -408,60 +406,47 @@ public:
     /// Get FOV of viewport[0]
     float getHorizFieldOfViewDegrees() const;
     
-    /*!
-        \returns the pointer to a specific post effect
-    */
+    /// \returns the pointer to a specific post effect
     sgct::PostFX& getPostFX(size_t index);
-    /*!
-        \returns the number of post effects
-    */
+
+    /// \returns the number of post effects
     size_t getNumberOfPostFXs() const;
 
-    /*!
-        \returns Get the window resolution.
-    */
+    /// \returns Get the window resolution.
     glm::ivec2 getResolution() const;
 
-    /*!
-        \returns Get the frame buffer resolution.
-    */
+    /// \returns Get the frame buffer resolution.
     glm::ivec2 getFramebufferResolution() const;
 
-    /*!
-        \returns Get the initial window resolution.
-    */
+    /// \returns Get the initial window resolution.
     glm::ivec2 getInitialResolution() const;
 
-    /*!
-     \returns Get the scale value (relation between pixel and point size). Normally this
-              value is 1.0f but 2.0f on retina computers.
+    /**
+     * \returns Get the scale value (relation between pixel and point size). Normally this
+     *          value is 1.0f but 2.0f on retina computers.
      */
     glm::vec2 getScale() const;
 
-    //! \returns the aspect ratio of the window 
+    /// \returns the aspect ratio of the window 
     float getAspectRatio() const;
 
-    /*!
-    \returns Get the frame buffer bytes per color component (BPCC) count.
-    */
+    /// \returns Get the frame buffer bytes per color component (BPCC) count.
     int getFramebufferBPCC() const;
 
-    // -------------- bind functions -------------------//
     void bindVAO() const;
     void bindVBO() const;
     void unbindVBO() const;
     void unbindVAO() const;
 
-    //------------- Other ------------------------- //
     /// Add a post effect for this window
     void addPostFX(PostFX fx);
     void addViewport(std::unique_ptr<sgct_core::Viewport> vpPtr);
 
-    /*! \return true if any masks are used */
+    /// \return true if any masks are used
     bool hasAnyMasks() const;
-    /*! \returns true if FXAA should be used */
+    /// \returns true if FXAA should be used
     bool useFXAA() const;
-    /*! \returns true if PostFX pass should be used */
+    /// \returns true if PostFX pass should be used
     bool usePostFX() const;
 
     void bindStereoShaderProgram() const;

@@ -737,13 +737,20 @@ void Engine::initOGL() {
                 invokeScreenShotCallback1(img, size, idx, type);
             };
             
-            //left channel (Mono and Stereo_Left)
-            if (getCurrentWindowPtr().getScreenCapturePointer(0) != nullptr) {
-                getCurrentWindowPtr().getScreenCapturePointer(0)->setCaptureCallback(callback);
+            sgct::SGCTWindow& win = getCurrentWindowPtr();
+            // left channel (Mono and Stereo_Left)
+            sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
+                SGCTWindow::Eye::MonoOrLeft
+            );
+            if (monoCapture != nullptr) {
+                monoCapture->setCaptureCallback(callback);
             }
-            //right channel (Stereo_Right)
-            if (getCurrentWindowPtr().getScreenCapturePointer(1) != nullptr) {
-                getCurrentWindowPtr().getScreenCapturePointer(1)->setCaptureCallback(callback);
+            // right channel (Stereo_Right)
+            sgct_core::ScreenCapture* rightCapture = win.getScreenCapturePointer(
+                SGCTWindow::Eye::Right
+            );
+            if (rightCapture != nullptr) {
+                rightCapture->setCaptureCallback(callback);
             }
         }
         else if (mScreenShotFnPtr2 != nullptr) {
@@ -755,13 +762,21 @@ void Engine::initOGL() {
                 invokeScreenShotCallback2(img, size, idx, type);
             };
 
-            //left channel (Mono and Stereo_Left)
-            if (getCurrentWindowPtr().getScreenCapturePointer(0) != nullptr) {
-                getCurrentWindowPtr().getScreenCapturePointer(0)->setCaptureCallback(callback);
+            sgct::SGCTWindow& win = getCurrentWindowPtr();
+
+            // left channel (Mono and Stereo_Left)
+            sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
+                SGCTWindow::Eye::MonoOrLeft
+            );
+            if (monoCapture != nullptr) {
+                monoCapture->setCaptureCallback(callback);
             }
-            //right channel (Stereo_Right)
-            if (getCurrentWindowPtr().getScreenCapturePointer(1) != nullptr) {
-                getCurrentWindowPtr().getScreenCapturePointer(1)->setCaptureCallback(callback);
+            // right channel (Stereo_Right)
+            sgct_core::ScreenCapture* rightCapture = win.getScreenCapturePointer(
+                SGCTWindow::Eye::Right
+            );
+            if (rightCapture != nullptr) {
+                rightCapture->setCaptureCallback(callback);
             }
         }
     }

@@ -64,7 +64,9 @@ public:
         Depth16UInt,
         Depth32UInt
     };
-    
+
+    enum class Eye { MonoOrLeft, Right };
+
     /**
      * Init Nvidia swap groups if they are supported by hardware. Supported hardware is
      * Nvidia Quadro graphics card + sync card or AMD/ATI FireGL graphics card + sync
@@ -345,7 +347,7 @@ public:
      *
      * \returns pointer to screen capture ptr
      */
-    sgct_core::ScreenCapture* getScreenCapturePointer(unsigned int eye) const;
+    sgct_core::ScreenCapture* getScreenCapturePointer(Eye eye) const;
 
     /// \returns the number of samples used in multisampled anti-aliasing
     int getNumberOfAASamples() const;
@@ -472,13 +474,12 @@ public:
     bool getCopyPreviousWindowToCurrentWindow() const;
 
 private:
-    enum class TextureType { ColorTexture, DepthTexture, NormalTexture, PositionTexture };
+    enum class TextureType { Color, Depth, Normal, Position };
 
     void initScreenCapture();
     /// This function creates textures that will act as FBO targets.
     void createTextures();
-    void generateTexture(unsigned int id, glm::ivec2 size, TextureType type,
-        bool interpolate);
+    void generateTexture(unsigned int& id, TextureType type);
 
     /**
      * This function creates FBOs if they are supported. This is done in the initOGL
@@ -491,6 +492,8 @@ private:
      * mapping.
      */
     void resizeFBOs();
+
+    void destroyFBOs();
 
     /// Create vertex buffer objects used to render framebuffer quad
     void createVBOs();
@@ -519,7 +522,7 @@ private:
     bool mSetWindowPos = false;
     bool mDecorated = true;
     bool mAlpha = false;
-    glm::ivec2 mFramebufferResolution = glm::ivec2(512, 256);
+    glm::ivec2 mFramebufferRes = glm::ivec2(512, 256);
     glm::ivec2 mWindowInitialRes = glm::ivec2(640, 480);
     bool mHasPendingWindowRes = false;
     glm::ivec2 mPendingWindowRes = glm::ivec2(0, 0);
@@ -547,8 +550,16 @@ private:
     bool mPreferBGR = true;
     int mBytesPerColor;
 
-    //FBO stuff
-    unsigned int mFrameBufferTextures[NUMBER_OF_TEXTURES];
+    struct {
+        unsigned int leftEye = 0;
+        unsigned int rightEye = 0;
+        unsigned int depth = 0;
+        unsigned int fx1 = 0;
+        unsigned int fx2 = 0;
+        unsigned int intermediate = 0;
+        unsigned int normals = 0;
+        unsigned int positions = 0;
+    } mFrameBufferTextures;
 
     std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureLeftOrMono;
     std::unique_ptr<sgct_core::ScreenCapture> mScreenCaptureRight;

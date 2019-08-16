@@ -8,13 +8,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
-#include <vector>
+#include <memory>
 #include <set>
 #include <thread>
+#include <vector>
 
-namespace sgct_core {
-    class SGCTUser;
-} // namespace sgct_core
+namespace sgct_core { class SGCTUser; }
 
 namespace sgct {
 
@@ -29,39 +28,42 @@ public:
     ~SGCTTrackingManager();
     
     void startSampling();
+
+    /**
+     * Update the user position if headtracking is used. This function is called from the
+     * engine.
+     */
     void updateTrackingDevices();
     void addTracker(std::string name);
     void addDeviceToCurrentTracker(std::string name);
-    void addSensorToCurrentDevice(const char* address, int id);
-    void addButtonsToCurrentDevice(const char* address, size_t numOfButtons);
-    void addAnalogsToCurrentDevice(const char* address, size_t numOfAxes);
+    void addSensorToCurrentDevice(std::string address, int id);
+    void addButtonsToCurrentDevice(std::string address, int numOfButtons);
+    void addAnalogsToCurrentDevice(std::string address, int numOfAxes);
     
-    size_t getNumberOfTrackers();
-    size_t getNumberOfDevices();
-    SGCTTrackingDevice* getHeadDevicePtr();
+    int getNumberOfTrackers() const;
+    int getNumberOfDevices() const;
+    SGCTTrackingDevice* getHeadDevicePtr() const;
 
-    SGCTTracker* getLastTrackerPtr();
-    SGCTTracker* getTrackerPtr(size_t index);
-    SGCTTracker* getTrackerPtr(const std::string& name);
+    SGCTTracker* getLastTrackerPtr() const;
+    SGCTTracker* getTrackerPtr(size_t index) const;
+    SGCTTracker* getTrackerPtr(const std::string& name) const;
 
     void setEnabled(bool state);
     void setSamplingTime(double t);
-    double getSamplingTime();
+    double getSamplingTime() const;
 
-    bool isRunning();
+    bool isRunning() const;
 
 private:
-    void setHeadTracker(const std::string& trackerName, const std::string& deviceName);
-
-    std::thread* mSamplingThread = nullptr;
-    std::vector<SGCTTracker*> mTrackers;
+    std::unique_ptr<std::thread> mSamplingThread;
+    std::vector<std::unique_ptr<SGCTTracker>> mTrackers;
     std::set<std::string> mAddresses;
     double mSamplingTime = 0.0;
     bool mRunning = true;
 
     sgct_core::SGCTUser* mHeadUser = nullptr;
     SGCTTrackingDevice* mHead = nullptr;
-    size_t mNumberOfDevices = 0;
+    int mNumberOfDevices = 0;
 };
 
 } // namespace sgct

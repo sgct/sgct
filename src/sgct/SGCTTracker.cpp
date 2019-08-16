@@ -49,11 +49,11 @@ SGCTTrackingDevice* SGCTTracker::getLastDevicePtr() {
     return mTrackingDevices.size() > 0 ? mTrackingDevices.back() : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtr(size_t index) {
+SGCTTrackingDevice* SGCTTracker::getDevicePtr(size_t index) const {
     return index < mTrackingDevices.size() ? mTrackingDevices[index] : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) {
+SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) const {
     for (size_t i = 0; i < mTrackingDevices.size(); i++) {
         if (mTrackingDevices[i]->getName() == name) {
             return mTrackingDevices[i];
@@ -64,7 +64,7 @@ SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) {
     return nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtrBySensorId(int id) {
+SGCTTrackingDevice* SGCTTracker::getDevicePtrBySensorId(int id) const {
     for (size_t i = 0; i < mTrackingDevices.size(); i++) {
         if (mTrackingDevices[i]->getSensorId() == id) {
             return mTrackingDevices[i];
@@ -167,7 +167,7 @@ double SGCTTracker::getScale() {
     return tmpD;
 }
 
-size_t SGCTTracker::getNumberOfDevices() {
+size_t SGCTTracker::getNumberOfDevices() const {
     return mTrackingDevices.size();
 }
 

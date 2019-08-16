@@ -27,9 +27,9 @@ public:
     void addDevice(std::string name, size_t index);
 
     SGCTTrackingDevice* getLastDevicePtr();
-    SGCTTrackingDevice* getDevicePtr(size_t index);
-    SGCTTrackingDevice* getDevicePtr(const std::string& name);
-    SGCTTrackingDevice* getDevicePtrBySensorId(int id);
+    SGCTTrackingDevice* getDevicePtr(size_t index) const;
+    SGCTTrackingDevice* getDevicePtr(const std::string& name) const;
+    SGCTTrackingDevice* getDevicePtrBySensorId(int id) const;
 
     void setOrientation(glm::quat q);
     void setOrientation(float xRot, float yRot, float zRot);
@@ -41,7 +41,7 @@ public:
     glm::mat4 getTransform();
     double getScale();
 
-    size_t getNumberOfDevices();
+    size_t getNumberOfDevices() const;
     const std::string& getName();
 
 private:

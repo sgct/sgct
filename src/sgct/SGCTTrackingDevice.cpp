@@ -65,7 +65,7 @@ void SGCTTrackingDevice::setSensorId(int id) {
 /*!
 Set the number of digital buttons
 */
-void SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons) {
+void SGCTTrackingDevice::setNumberOfButtons(int numOfButtons) {
     if (mButtons != nullptr) {
         delete[] mButtons;
         mButtons = nullptr;
@@ -90,7 +90,7 @@ void SGCTTrackingDevice::setNumberOfButtons(size_t numOfButtons) {
 /*!
 Set the number of analog axes
 */
-void SGCTTrackingDevice::setNumberOfAxes(size_t numOfAxes) {
+void SGCTTrackingDevice::setNumberOfAxes(int numOfAxes) {
     //clear
     if (mAxes != nullptr) {
         delete[] mAxes;

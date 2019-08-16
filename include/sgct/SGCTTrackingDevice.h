@@ -26,8 +26,8 @@ public:
 
     void setEnabled(bool state);
     void setSensorId(int id);
-    void setNumberOfButtons(size_t numOfButtons);
-    void setNumberOfAxes(size_t numOfAxes);
+    void setNumberOfButtons(int numOfButtons);
+    void setNumberOfAxes(int numOfAxes);
     void setSensorTransform(glm::dvec3 vec, glm::dquat rot );
     void setButtonVal(bool val, size_t index);
     void setAnalogVal(const double* array, size_t size);

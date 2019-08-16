@@ -533,8 +533,8 @@ bool SGCTMpcdi::readAndParseXML_buffer(tinyxml2::XMLElement* element[],
         element[1]->QueryAttribute("yResolution", &parsedItems.resolutionY);
     }
     if (parsedItems.resolutionX >= 0 && parsedItems.resolutionY >= 0) {
-        tmpWin.initWindowResolution(parsedItems.resolutionX, parsedItems.resolutionY);
-        tmpWin.setFramebufferResolution(parsedItems.resolutionX, parsedItems.resolutionY);
+        tmpWin.initWindowResolution(glm::ivec2(parsedItems.resolutionX, parsedItems.resolutionY));
+        tmpWin.setFramebufferResolution(glm::ivec2(parsedItems.resolutionX, parsedItems.resolutionY));
         tmpWin.setFixResolution(true);
     }
     else {
@@ -545,7 +545,7 @@ bool SGCTMpcdi::readAndParseXML_buffer(tinyxml2::XMLElement* element[],
         return false;
     }
     //Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
-    tmpWin.setWindowPosition(0, 0);
+    tmpWin.setWindowPosition(glm::ivec2(0, 0));
 
     element[2] = element[1]->FirstChildElement();
     while (element[2] != nullptr) {

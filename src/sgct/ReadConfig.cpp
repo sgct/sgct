@@ -398,7 +398,17 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
 
                     if (element[1]->Attribute("tags") != nullptr) {
-                        tmpWin.setTags(element[1]->Attribute("tags"));
+                        std::string tags = element[1]->Attribute("tags");
+
+                        std::vector<std::string> t;
+                        std::stringstream ss(std::move(tags));
+                        while (ss.good()) {
+                            std::string substr;
+                            getline(ss, substr, ',');
+                            t.push_back(substr);
+                        }
+
+                        tmpWin.setTags(std::move(t));
                     }
 
                     if (element[1]->Attribute("bufferBitDepth") != nullptr) {
@@ -569,8 +579,6 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     element[2] = element[1]->FirstChildElement();
                     while( element[2] != nullptr) {
                         val[2] = element[2]->Value();
-                        int tmpWinData[2];
-                        memset(tmpWinData, 0, 4);
                         
                         if (strcmp("Stereo", val[2]) == 0) {
                             sgct::SGCTWindow::StereoMode v = getStereoType(
@@ -579,16 +587,11 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             tmpWin.setStereoMode(v);
                         }
                         else if (strcmp("Pos", val[2]) == 0) {
-                            XMLError xErr = element[2]->QueryIntAttribute(
-                                "x",
-                                &tmpWinData[0]
-                            );
-                            XMLError yErr = element[2]->QueryIntAttribute(
-                                "y",
-                                &tmpWinData[1]
-                            );
+                            glm::ivec2 pos;
+                            XMLError xErr = element[2]->QueryIntAttribute("x", &pos[0]);
+                            XMLError yErr = element[2]->QueryIntAttribute("y", &pos[1]);
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.setWindowPosition(tmpWinData[0], tmpWinData[1]);
+                                tmpWin.setWindowPosition(std::move(pos));
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -598,17 +601,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                         }
                         else if (strcmp("Size", val[2]) == 0) {
-                            XMLError xErr = element[2]->QueryIntAttribute(
-                                "x",
-                                &tmpWinData[0]
-                            );
-                            XMLError yErr = element[2]->QueryIntAttribute(
-                                "y",
-                                &tmpWinData[1]
-                            );
+                            glm::ivec2 size;
+                            XMLError xErr = element[2]->QueryIntAttribute("x", &size[0]);
+                            XMLError yErr = element[2]->QueryIntAttribute("y", &size[1]);
 
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.initWindowResolution(tmpWinData[0], tmpWinData[1]);
+                                tmpWin.initWindowResolution(size);
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -618,20 +616,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                         }
                         else if (strcmp("Res", val[2]) == 0) {
-                            XMLError xErr = element[2]->QueryIntAttribute(
-                                "x",
-                                &tmpWinData[0]
-                            );
-                            XMLError yErr = element[2]->QueryIntAttribute(
-                                "y",
-                                &tmpWinData[1]
-                            );
+                            glm::ivec2 res;
+                            XMLError xErr = element[2]->QueryIntAttribute("x", &res[0]);
+                            XMLError yErr = element[2]->QueryIntAttribute("y", &res[1]);
 
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.setFramebufferResolution(
-                                    tmpWinData[0],
-                                    tmpWinData[1]
-                                );
+                                tmpWin.setFramebufferResolution(std::move(res));
                                 tmpWin.setFixResolution(true);
                             }
                             else {

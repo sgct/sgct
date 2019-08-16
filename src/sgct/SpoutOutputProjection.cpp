@@ -152,7 +152,7 @@ void SpoutOutputProjection::initTextures() {
     sgct::MessageHandler::instance()->print("SpoutOutputProjection initTextures");
 
     const bool compat = sgct::Engine::instance()->getRunMode() <=
-                        sgct::Engine::OpenGL_Compablity_Profile;
+                        sgct::Engine::OpenGL_Compatibility_Profile;
     if (compat) {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);

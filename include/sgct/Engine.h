@@ -55,7 +55,7 @@ public:
         /// The default mode using fixed OpenGL pipeline (compability mode)
         Default_Mode = 0,
         /// This option is using a fixed OpenGL pipeline that allows mixing legacy and modern OpenGL
-        OpenGL_Compablity_Profile,
+        OpenGL_Compatibility_Profile,
         /// This option is using a programmable OpenGL 3.3 pipeline using a core profile
         OpenGL_3_3_Core_Profile,
         /// This option is using a programmable OpenGL 4.0 pipeline using a core profile

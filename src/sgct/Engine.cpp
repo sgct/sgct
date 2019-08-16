@@ -621,7 +621,7 @@ void Engine::initOGL() {
     /*
         Set up function pointers etc. depending on if fixed or programmable pipeline is used
     */
-    if (mRunMode > OpenGL_Compablity_Profile) {
+    if (mRunMode > OpenGL_Compatibility_Profile) {
         mInternalDrawFn = [this]() { draw(); };
         mInternalRenderFBOFn = [this]() { renderFBOTexture(); };
         mInternalDrawOverlaysFn = [this]() { drawOverlays(); };
@@ -2011,7 +2011,7 @@ void Engine::renderFBOTexture() {
     glViewport(0, 0, size.x, size.y);
     setAndClearBuffer(BackBufferBlack);
     
-    std::size_t numberOfIterations = win.getNumberOfViewports();
+    size_t numberOfIterations = win.getNumberOfViewports();
 
     sgct_core::CorrectionMesh::MeshType mt = SGCTSettings::instance()->getUseWarping() ?
         sgct_core::CorrectionMesh::WARP_MESH :
@@ -4067,14 +4067,11 @@ void Engine::internal_drop_callback(GLFWwindow* window, int count, const char** 
 void Engine::internal_touch_callback(GLFWwindow* window, GLFWtouch* touchPoints,
                                      int count)
 {
-    int x, y, xSize, ySize;
-    mInstance->getCurrentWindowPtr().getCurrentViewportPixelCoords(x, y, xSize, ySize);
+    glm::ivec4 coords = mInstance->getCurrentWindowPtr().getCurrentViewportPixelCoords();
 
-    mCurrentTouchPoints.processPoints(touchPoints, count, xSize, ySize);
+    mCurrentTouchPoints.processPoints(touchPoints, count, coords.z, coords.w);
 
-    if (!mCurrentTouchPoints.getLatestTouchPoints().empty() &&
-        gTouchCallbackFnPtr != nullptr)
-    {
+    if (gTouchCallbackFnPtr && !mCurrentTouchPoints.getLatestTouchPoints().empty()) {
         gTouchCallbackFnPtr(&mCurrentTouchPoints);
     }
 
@@ -4101,10 +4098,12 @@ void Engine::enterCurrentViewport() {
     
     glm::vec2 res = glm::vec2(getCurrentWindowPtr().getFramebufferResolution());
         
-    mCurrentViewportCoords[0] = static_cast<int>(vp->getX() * res.x);
-    mCurrentViewportCoords[1] = static_cast<int>(vp->getY() * res.y);
-    mCurrentViewportCoords[2] = static_cast<int>(vp->getXSize() * res.x);
-    mCurrentViewportCoords[3] = static_cast<int>(vp->getYSize() * res.y);
+    mCurrentViewportCoords = glm::ivec4(
+        static_cast<int>(vp->getX() * res.x),
+        static_cast<int>(vp->getY() * res.y),
+        static_cast<int>(vp->getXSize() * res.x),
+        static_cast<int>(vp->getYSize() * res.y)
+    );
 
     SGCTWindow::StereoMode sm = getCurrentWindowPtr().getStereoMode();
     if (sm >= SGCTWindow::StereoMode::SideBySide) {

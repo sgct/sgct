@@ -23,7 +23,6 @@ TextureManager* TextureManager::instance() {
     return mInstance;
 }
 
-/*! Destroy the TextureManager */
 void TextureManager::destroy() {
     if (mInstance != nullptr) {
         delete mInstance;
@@ -44,26 +43,14 @@ TextureManager::~TextureManager() {
     freeTextureData();
 }
 
-/*!
-    This function gets a texture id by it's name.
-
-    \param name of texture
-    \returns openGL texture id if texture is found otherwise GL_FALSE/0.
-*/
 unsigned int TextureManager::getTextureId(const std::string& name) {
     return mTextures.count(name) > 0 ? mTextures[name].mId : 0;
 }
 
-/*!
-Get the texture path. If not found then "NOT_FOUND" is returned.
-*/
 std::string TextureManager::getTexturePath(const std::string& name) {
     return mTextures.count(name) > 0 ? mTextures[name].mPath : "NOT_FOUND";
 }
 
-/*!
-Get the dimensions of a texture by name. If not found all variables will be set to -1.
-*/
 void TextureManager::getDimensions(const std::string& name, int& width, int& height,
                                    int& channels) const
 {
@@ -80,26 +67,14 @@ void TextureManager::getDimensions(const std::string& name, int& width, int& hei
     }
 }
 
-/*!
-    Sets if a single channel texture should be interpreted as alpha or luminance.
-*/
 void TextureManager::setAlphaModeForSingleChannelTextures(bool alpha) {
     mAlphaMode = alpha;
 }
 
-/*!
-    Sets if loading a texture with an existing name should be overwritten or not.
-*/
 void TextureManager::setOverWriteMode(bool mode) {
     mOverWriteMode = mode;
 }
 
-/*!
-    Sets the anisotropic filter size. Default is 1.0 (isotropic) which disables
-    anisotropic filtering.
-    This filtering mode can slow down performace. For more info look at:
-    <a href="http://en.wikipedia.org/wiki/Anisotropic_filtering">Anisotropic filtering</a>
-*/
 void TextureManager::setAnisotropicFilterSize(float fval) {
     //get max
     float maximumAnistropy;
@@ -118,49 +93,19 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
     }
 }
 
-/*!
-    Set texture compression. Can be one of the following:
-    - sgct::TextureManager::None
-    - sgct::TextureManager::Generic
-    - sgct::TextureManager::S3TC_DXT
-
-    @param cm the compression mode
-*/
 void TextureManager::setCompression(CompressionMode cm) {
     mCompression = cm;
 }
 
-/*!
-    Set the OpenGL texture warping mode. Can be one of the following:
-    - GL_CLAMP_TO_EDGE (Default)
-    - GL_CLAMP_TO_BORDER 
-    - GL_MIRRORED_REPEAT
-    - GL_REPEAT
-
-    @param warpS warping parameter along the s-axis (x-axis) 
-    @param warpT warping parameter along the t-axis (y-axis)
-*/
 void TextureManager::setWarpingMode(int warpS, int warpT) {
     mWarpMode.s = warpS;
     mWarpMode.t = warpT;
 }
 
-/*!
-\returns the current compression mode
-*/
 TextureManager::CompressionMode TextureManager::getCompression() const {
     return mCompression;
 }
 
-/*!
-    Load a texture to the TextureManager.
-    \param name the name of the texture
-    \param filename the filename or path to the texture
-    \param interpolate set to true for using interpolation (bi-linear filtering)
-    \param mipmapLevels is the number of mipmap levels that will be generated, setting
-                        this value to 1 or less disables mipmaps
-    \return true if texture loaded successfully
-*/
 bool TextureManager::loadTexture(const std::string& name, const std::string& filename,
                                  bool interpolate, int mipmapLevels)
 {
@@ -214,14 +159,6 @@ bool TextureManager::loadTexture(const std::string& name, const std::string& fil
     return true;
 }
 
-/*!
-Load a texture to the TextureManager.
-\param name the name of the texture
-\param imgPtr pointer to image object
-\param interpolate set to true for using interpolation (bi-linear filtering)
-\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
-\return true if texture loaded successfully
-*/
 bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgPtr,
                                  bool interpolate, int mipmapLevels)
 {
@@ -272,14 +209,6 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
     return true;
 }
 
-/*!
-Load a unmanged texture. Note that this type of textures doesn't auto destruct.
-\param texID the openGL texture id
-\param filename the filename or path to the texture
-\param interpolate set to true for using interpolation (bi-linear filtering)
-\param mipmapLevels is the number of mipmap levels that will be generated, setting this value to 1 or less disables mipmaps
-\return true if texture loaded successfully
-*/
 bool TextureManager::loadUnManagedTexture(unsigned int& texID,
                                           const std::string& filename, bool interpolate,
                                           int mipmapLevels)
@@ -319,18 +248,15 @@ bool TextureManager::loadUnManagedTexture(unsigned int& texID,
     return true;
 }
 
-/*!
-returns true if texture will be uploaded
-*/
 bool TextureManager::updateTexture(const std::string& name, unsigned int& texPtr,
                                    bool& reload)
 {
-    //check if texture exits in manager
+    // check if texture exits in manager
     bool exist = mTextures.count(name) > 0;
     std::unordered_map<std::string, TextureData>::iterator textureItem = mTextures.end();
 
     if (exist) {
-        //get it
+        // get it
         textureItem = mTextures.find(name);
         texPtr = textureItem->second.mId;
 
@@ -404,7 +330,7 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
         return false;
     }
     else if (bpc == 2) {
-        //turn of compression if 16-bit per color
+        // turn of compression if 16-bit per color
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "TextureManager: Compression is not supported for bit depths higher than "

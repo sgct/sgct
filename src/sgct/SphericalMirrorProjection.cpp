@@ -23,14 +23,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-/*!
-Update projection when aspect ratio changes for the viewport.
-*/
 void SphericalMirrorProjection::update(float width, float height) {}
 
-/*!
-Render the non linear projection to currently bounded FBO
-*/
 void SphericalMirrorProjection::render() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         renderInternalFixedPipeline();
@@ -40,9 +34,6 @@ void SphericalMirrorProjection::render() {
     }
 }
 
-/*!
-Render the enabled faces of the cubemap
-*/
 void SphericalMirrorProjection::renderCubemap(size_t* subViewPortIndex) {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         renderCubemapInternalFixedPipeline(subViewPortIndex);
@@ -52,22 +43,10 @@ void SphericalMirrorProjection::renderCubemap(size_t* subViewPortIndex) {
     }
 }
 
-/*!
-Set the dome tilt angle used in the spherical mirror renderer.
-The tilt angle is from the horizontal.
-
-@param angle the tilt angle in degrees
-*/
 void SphericalMirrorProjection::setTilt(float angle) {
     mTilt = angle;
 }
 
-/*!
-Set the mesh path for selected cube face.
-
-@param mt the mesh face
-@param str the path to the mesh
-*/
 void SphericalMirrorProjection::setMeshPaths(std::string bottom, std::string left,
                                              std::string right, std::string top)
 {
@@ -129,13 +108,13 @@ void SphericalMirrorProjection::initVBO() {
 }
 
 void SphericalMirrorProjection::initViewports() {
-    enum cubeFaces { Pos_X = 0, Neg_X, Pos_Y, Neg_Y, Pos_Z, Neg_Z };
+    enum class CubeFaces { PosX = 0, NegX, PosY, NegY, PosZ, NegZ };
 
-    //radius is needed to calculate the distance to all view planes
+    // radius is needed to calculate the distance to all view planes
     float radius = mDiameter / 2.f;
 
-    //setup base viewport that will be rotated to create the other cubemap views
-    //+Z face
+    // setup base viewport that will be rotated to create the other cubemap views
+    // +Z face
     const glm::vec4 lowerLeftBase(-radius, -radius, radius, 1.f);
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
@@ -157,28 +136,28 @@ void SphericalMirrorProjection::initViewports() {
 
         glm::mat4 rotMat(1.f);
 
-        switch (i) {
-        case Pos_X: //+X face, right
-            rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
-            break;
-        case Neg_X: //-X face, left
-            rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
-            break;
-        case Pos_Y: //+Y face, bottom
-            mSubViewports[i].setEnabled(false);
-            rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
-            break;
-        case Neg_Y: //-Y face, top
-            rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
-            break;
-        case Pos_Z: //+Z face, front
-            rotMat = tiltMat;
-            break;
-        case Neg_Z: //-Z face, back
-            mSubViewports[i].setEnabled(false);
-            rotMat = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
-            break;
-        }// end switch
+        switch (static_cast<CubeFaces>(i)) {
+            case CubeFaces::PosX: //+X face, right
+                rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(0.f, 1.f, 0.f));
+                break;
+            case CubeFaces::NegX: //-X face, left
+                rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(0.f, 1.f, 0.f));
+                break;
+            case CubeFaces::PosY: //+Y face, bottom
+                mSubViewports[i].setEnabled(false);
+                rotMat = glm::rotate(tiltMat, glm::radians(-90.f), glm::vec3(1.f, 0.f, 0.f));
+                break;
+            case CubeFaces::NegY: //-Y face, top
+                rotMat = glm::rotate(tiltMat, glm::radians(90.f), glm::vec3(1.f, 0.f, 0.f));
+                break;
+            case CubeFaces::PosZ: //+Z face, front
+                rotMat = tiltMat;
+                break;
+            case CubeFaces::NegZ: //-Z face, back
+                mSubViewports[i].setEnabled(false);
+                rotMat = glm::rotate(tiltMat, glm::radians(180.f), glm::vec3(0.f, 1.f, 0.f));
+                break;
+        }
 
         // add viewplane vertices
         mSubViewports[i].getProjectionPlane().setCoordinate(
@@ -193,7 +172,7 @@ void SphericalMirrorProjection::initViewports() {
             SGCTProjectionPlane::UpperRight,
             glm::vec3(rotMat * upperRight)
         );
-    } //end for
+    }
 }
 
 void SphericalMirrorProjection::initShaders() {
@@ -220,7 +199,7 @@ void SphericalMirrorProjection::initShaders() {
         sgct_core::shaders::SphericalProjectionFrag :
         sgct_core::shaders_modern::SphericalProjectionFrag;
 
-    //replace glsl version
+    // replace glsl version
     sgct_helpers::findAndReplace(
         sphericalMirrorVertexShader,
         "**glsl_version**",
@@ -349,16 +328,17 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
         ));
     }
 
-    //render
+    // render
     sgct::Engine::mInstance->mDrawFnPtr();
 
-    //restore polygon mode
+    // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void SphericalMirrorProjection::blitCubeFace(TextureIndex ti) {
-    //copy AA-buffer to "regular"/non-AA buffer
-    mCubeMapFBO_Ptr->bindBlit(); //bind separate read and draw buffers to prepare blit operation
+    // copy AA-buffer to "regular"/non-AA buffer
+    // bind separate read and draw buffers to prepare blit operation
+    mCubeMapFBO_Ptr->bindBlit();
     attachTextures(ti);
     mCubeMapFBO_Ptr->blit();
 }
@@ -420,7 +400,7 @@ void SphericalMirrorProjection::renderInternal() {
         glDisable(GL_BLEND);
     }
 
-    //restore depth func
+    // restore depth func
     glDepthFunc(GL_LESS);
 }
 
@@ -438,7 +418,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     bindShaderProgram();
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
-    //if for some reson the active texture has been reset
+    // if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
 
     glMatrixMode(GL_TEXTURE);
@@ -497,35 +477,7 @@ void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) 
         TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
 
         if (vp->isEnabled()) {
-            //bind & attach buffer
-            mCubeMapFBO_Ptr->bind(); //osg seems to unbind FBO when rendering with osg FBO cameras
-            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
-                attachTextures(ti);
-            }
-
-            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
-            drawCubeFace(i);
-
-            //blit MSAA fbo to texture
-            if (mCubeMapFBO_Ptr->isMultiSampled()) {
-                blitCubeFace(ti);
-            }
-        } //end if viewport is enabled
-    } //end for
-}
-
-void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex)
-{
-    BaseViewport* vp;
-    unsigned int faceIndex;
-    for (std::size_t i = 0; i < 6; i++) {
-        vp = &mSubViewports[i];
-        *subViewPortIndex = i;
-        faceIndex = static_cast<unsigned int>(i);
-        TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
-
-        if (vp->isEnabled()) {
-            //bind & attach buffer
+            // bind & attach buffer
             mCubeMapFBO_Ptr->bind();
             if (!mCubeMapFBO_Ptr->isMultiSampled()) {
                 attachTextures(ti);
@@ -534,12 +486,39 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
             sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
             drawCubeFace(i);
 
-            //blit MSAA fbo to texture
+            // blit MSAA fbo to texture
             if (mCubeMapFBO_Ptr->isMultiSampled()) {
                 blitCubeFace(ti);
             }
-        } //end if viewport is enabled
-    } //end for
+        }
+    }
+}
+
+void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex)
+{
+    unsigned int faceIndex;
+    for (std::size_t i = 0; i < 6; i++) {
+        BaseViewport& vp = mSubViewports[i];
+        *subViewPortIndex = i;
+        faceIndex = static_cast<unsigned int>(i);
+        TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
+
+        if (vp.isEnabled()) {
+            // bind & attach buffer
+            mCubeMapFBO_Ptr->bind();
+            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
+                attachTextures(ti);
+            }
+
+            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+            drawCubeFace(i);
+
+            // blit MSAA fbo to texture
+            if (mCubeMapFBO_Ptr->isMultiSampled()) {
+                blitCubeFace(ti);
+            }
+        }
+    }
 }
 
 } // namespace sgct_core

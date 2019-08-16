@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 /*!
-This class manages and renders non linear fisheye projections
+This class manages and renders non-linear fisheye projections
 */
 class SphericalMirrorProjection : public NonLinearProjection {
 public:
@@ -23,10 +23,27 @@ public:
     virtual ~SphericalMirrorProjection() = default;
 
     virtual void update(float width, float height) override;
+
+    /// Render the non linear projection to currently bounded FBO
     virtual void render() override;
+
+    /// Render the enabled faces of the cubemap
     virtual void renderCubemap(size_t* subViewPortIndex) override;
 
+    /**
+     * Set the dome tilt angle used in the spherical mirror renderer. The tilt angle is
+     * from the horizontal.
+     *
+     * \param angle the tilt angle in degrees
+     */
     void setTilt(float angle);
+
+    /**
+     * Set the mesh path for selected cube face.
+     *
+     * \param mt the mesh face
+     * \param str the path to the mesh
+     */
     void setMeshPaths(std::string bottom, std::string left, std::string right,
         std::string top);
 

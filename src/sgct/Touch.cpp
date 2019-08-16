@@ -164,7 +164,7 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
         }
     }
 
-    //Ignore stationary state and count none ended points
+    // Ignore stationary state and count none ended points
     mAllPointsStationary = true;
     std::vector<int> endedTouchIds;
     for (const TouchPoint& touchPoint : mTouchPoints) {

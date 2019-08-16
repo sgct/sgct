@@ -66,13 +66,6 @@ SharedData::SharedData() {
     headerSpace[0] = sgct_core::SGCTNetwork::DataId;
 }
 
-/*!
- Compression levels 1-9.
- -1 = Default compression
- 0 = No compression
- 1 = Best speed
- 9 = Best compression
- */
 void SharedData::setCompression(bool state, int level) {
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
     mUseCompression = state;
@@ -92,39 +85,14 @@ float SharedData::getCompressionRatio() {
     return mCompressionRatio;
 }
 
-/*!
-Set the encode callback.
-
-Sample of a encode function:
-\code{.cpp}
-void myEncodeFun()
-{
-    sgct::SharedData::instance()->writeDouble( curr_time );
-}
-\endcode
-*/
 void SharedData::setEncodeFunction(void(*fnPtr)(void)) {
     mEncodeFn = fnPtr;
 }
 
-/*!
-Set the decoder callback.
-
-Sample of a decode function:
-\code{.cpp}
-void myDecodeFun()
-{
-    curr_time = sgct::SharedData::instance()->readDouble();
-}
-\endcode
-*/
 void SharedData::setDecodeFunction(void(*fnPtr)(void)) {
     mDecodeFn = fnPtr;
 }
 
-/*!
-This fuction is called internally by SGCT and shouldn't be used by the user.
-*/
 void SharedData::decode(const char* receivedData, int receivedlength, int clientIndex) {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(
@@ -134,7 +102,7 @@ void SharedData::decode(const char* receivedData, int receivedlength, int client
 #endif
     SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
 
-    //reset
+    // reset
     pos = 0;
     dataBlock.clear();
 
@@ -150,9 +118,6 @@ void SharedData::decode(const char* receivedData, int receivedlength, int client
     }
 }
 
-/*!
-This fuction is called internally by SGCT and shouldn't be used by the user.
-*/
 void SharedData::encode() {
 #ifdef __SGCT_NETWORK_DEBUG__
     MessageHandler::instance()->printDebug(

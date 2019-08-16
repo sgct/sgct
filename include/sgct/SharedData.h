@@ -32,7 +32,15 @@ public:
     /*! Destroy the SharedData */
     static void destroy();
 
+    /**
+     * Compression levels 1-9.
+     *   -1 = Default compression
+     *    0 = No compression
+     *    1 = Best speed
+     *    9 = Best compression
+     */
     void setCompression(bool state, int level = 1);
+
     /*! Get the compresson ratio:
     \n
     ratio = (compressed data size + Huffman tree)/(original data size)
@@ -85,10 +93,34 @@ public:
     template<class T>
     void readVector(SharedVector<T>& vector);
 
+    /**
+     * Set the encode callback.
+     * Sample of a encode function:
+     * \code{.cpp}
+void myEncodeFun()
+{
+    sgct::SharedData::instance()->writeDouble( curr_time );
+}
+\endcode
+    */
     void setEncodeFunction(void(*fnPtr)());
+
+    /**
+     * Set the decoder callback.
+     * Sample of a decode function:
+\code{.cpp}
+void myDecodeFun()
+{
+    curr_time = sgct::SharedData::instance()->readDouble();
+}
+\endcode
+    */
     void setDecodeFunction(void(*fnPtr)());
 
+    /// This fuction is called internally by SGCT and shouldn't be used by the user.
     void encode();
+
+    /// This function is called internally by SGCT and shouldn't be used by the user.
     void decode(const char* receivedData, int receivedLength, int clientIndex);
 
     size_t getUserDataSize();

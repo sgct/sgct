@@ -32,7 +32,11 @@ class NonLinearProjection;
 class Viewport : public BaseViewport {
 public:
     Viewport();
+
+    /// Create a viewport coordinates are relative to the window size [0, 1]
     Viewport(float x, float y, float xSize, float ySize);
+
+    /// Destructor that deletes any overlay or mask textures
     ~Viewport();
 
     void configure(tinyxml2::XMLElement* element);
@@ -46,6 +50,10 @@ public:
     void setTracked(bool state);
     void loadData();
 
+    /**
+     * Render the viewport mesh which the framebuffer texture is attached to
+     * \param type of mesh; quad, warped or mask
+     */
     void renderMesh(CorrectionMesh::MeshType mt) const;
 
     bool hasOverlayTexture() const;

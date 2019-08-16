@@ -13,31 +13,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core {
 
-/*!
-The constructor sets shader type
-  @param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
-                    GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER,
-                    or GL_FRAGMENT_SHADER
-*/
 Shader::Shader(ShaderType shaderType) : mShaderType(shaderType) {}
 
-/*!
-Set the shader type
-@param shaderType The shader type: GL_COMPUTE_SHADER, GL_VERTEX_SHADER,
-                  GL_TESS_CONTROL_SHADER, GL_TESS_EVALUATION_SHADER, GL_GEOMETRY_SHADER,
-                  or GL_FRAGMENT_SHADER
-*/
 void Shader::setShaderType(ShaderType shaderType) {
     mShaderType = shaderType;
 }
 
-/*!
-Set the shader source code from a file, will create and compile the shader if it is not
-already done. At this point a compiled shader can't have its source reset. Recompilation
-of shaders is not supported
-@param file Path to shader file
-@return If setting source and compilation went ok.
-*/
 bool Shader::setSourceFromFile(const std::string& file) {
     // Make sure file can be opened
     std::ifstream shaderFile(file);
@@ -78,13 +59,6 @@ bool Shader::setSourceFromFile(const std::string& file) {
     return setSourceFromString(shaderSrc);
 }
 
-/*!
-Set the shader source code from a file, will create and compile the shader if it is not
-already done. At this point a compiled shader can't have its source reset. Recompilation
-of shaders is not supported
-@param sourceString String with shader source code
-@return If setting the source and compilation went ok.
-*/
 bool Shader::setSourceFromString(const std::string& sourceString) {
     // At this point no resetting of shaders are supported
     if (mShaderId > 0) {
@@ -108,7 +82,6 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
     return checkCompilationStatus();
 }
 
-/*! Delete the shader */
 void Shader::deleteShader() {
     glDeleteShader(mShaderId);
     mShaderId = 0;
@@ -118,10 +91,6 @@ int Shader::getId() const {
     return mShaderId;
 }
 
-/*!
-Will check the compilation status of the shader and output any errors from the shader log
-return    Status of the compilation
-*/
 bool Shader::checkCompilationStatus() const {
     GLint compilationStatus;
     glGetShaderiv(mShaderId, GL_COMPILE_STATUS, &compilationStatus);
@@ -154,11 +123,6 @@ bool Shader::checkCompilationStatus() const {
     return compilationStatus == GL_TRUE;
 }
 
-/*!
-Will return the name of the shader type
-@param shaderType The shader type
-@return Shader type name
-*/
 std::string Shader::getShaderTypeName(ShaderType shaderType) const {
     switch (shaderType) {
         case GL_VERTEX_SHADER:

@@ -44,9 +44,6 @@ namespace sgct_core {
 
 Viewport::Viewport() : Viewport(0.f, 0.f, 0.f, 0.f) {}
 
-/*!
-    Create a viewport coordinates are relative to the window size [0, 1]
-*/
 Viewport::Viewport(float x, float y, float xSize, float ySize) {
     mX = x;
     mY = y;
@@ -59,9 +56,6 @@ Viewport::Viewport(float x, float y, float xSize, float ySize) {
     mProjectionPlane.reset();
 }
 
-/*!
-Destructor that deletes any overlay or mask textures
-*/
 Viewport::~Viewport() {
     glDeleteTextures(1, &mOverlayTextureIndex);
     glDeleteTextures(1, &mBlendMaskTextureIndex);
@@ -81,7 +75,7 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
         setOverlayTexture(element->Attribute("overlay"));
     }
 
-    //for backward compability
+    // for backward compability
     if (element->Attribute("mask")) {
         setBlendMaskTexture(element->Attribute("mask"));
     }
@@ -106,7 +100,7 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
         setTracked(strcmp(element->Attribute("tracked"), "true") == 0);
     }
 
-    //get eye if set
+    // get eye if set
     if (element->Attribute("eye")) {
         if (strcmp("center", element->Attribute("eye")) == 0) {
             setEye(Frustum::MonoEye);
@@ -706,10 +700,6 @@ void Viewport::loadData() {
     }
 }
 
-/*!
-Render the viewport mesh which the framebuffer texture is attached to
-\param type of mesh; quad, warped or mask
-*/
 void Viewport::renderMesh(CorrectionMesh::MeshType mt) const {
     if (mEnabled) {
         mCM.render(mt);

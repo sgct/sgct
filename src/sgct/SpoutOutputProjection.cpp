@@ -55,9 +55,6 @@ SpoutOutputProjection::~SpoutOutputProjection() {
     }
 }
 
-/*!
-Update projection when aspect ratio changes for the viewport.
-*/
 void SpoutOutputProjection::update(float width, float height) {
     mVerts[0] = 0.f;
     mVerts[1] = 0.f;
@@ -83,7 +80,7 @@ void SpoutOutputProjection::update(float width, float height) {
     mVerts[18] = 1.f;
     mVerts[19] = -1.f;
 
-    //update VBO
+    // update VBO
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(mVAO);
     }
@@ -101,9 +98,6 @@ void SpoutOutputProjection::update(float width, float height) {
     }
 }
 
-/*!
-Render the non linear projection to currently bounded FBO
-*/
 void SpoutOutputProjection::render() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         renderInternalFixedPipeline();
@@ -113,9 +107,6 @@ void SpoutOutputProjection::render() {
     }
 }
 
-/*!
-Render the enabled faces of the cubemap
-*/
 void SpoutOutputProjection::renderCubemap(size_t* subViewPortIndex) {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         renderCubemapInternalFixedPipeline(subViewPortIndex);
@@ -557,7 +548,7 @@ void SpoutOutputProjection::initShaders() {
         }
     }
 
-    //add functions to shader
+    // add functions to shader
     switch (mappingType) {
         case Mapping::Fisheye:
             sgct_helpers::findAndReplace(
@@ -803,17 +794,17 @@ void SpoutOutputProjection::drawCubeFace(int face) {
         ));
     }
 
-    //render
+    // render
     sgct::Engine::mInstance->mDrawFnPtr();
 
-    //restore polygon mode
+    // restore polygon mode
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
 void SpoutOutputProjection::blitCubeFace(int face) {
-    //copy AA-buffer to "regular"/non-AA buffer
+    // copy AA-buffer to "regular"/non-AA buffer
 
-    //bind separate read and draw buffers to prepare blit operation
+    // bind separate read and draw buffers to prepare blit operation
     mCubeMapFBO_Ptr->bindBlit();
     attachTextures(face);
     mCubeMapFBO_Ptr->blit();
@@ -908,7 +899,7 @@ void SpoutOutputProjection::renderInternal() {
             glDisable(GL_BLEND);
         }
 
-        //restore depth func
+        // restore depth func
         glDepthFunc(GL_LESS);
 
         mSpoutFBO->unBind();
@@ -1122,7 +1113,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
             engine->getCurrentWindowPtr().unbindVAO();
 
-            //unbind shader
+            // unbind shader
             sgct::ShaderProgram::unbind();
 
             glDisable(GL_DEPTH_TEST);
@@ -1131,10 +1122,10 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
                 glDisable(GL_BLEND);
             }
 
-            //restore depth func
+            // restore depth func
             glDepthFunc(GL_LESS);
             glDisable(GL_SCISSOR_TEST);
-        } //end if depthmap
+        } // end if depthmap
 
         if (mappingType == Mapping::Cubemap) {
             mCubeMapFBO_Ptr->unBind();
@@ -1187,7 +1178,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             blitCubeFace(idx);
         }
 
-        //re-calculate depth values from a cube to spherical model
+        // re-calculate depth values from a cube to spherical model
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
             mCubeMapFBO_Ptr->bind(false, 1, buffers); //bind no multi-sampled
@@ -1209,7 +1200,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
 
             glMatrixMode(GL_MODELVIEW); //restore
 
-            //bind shader
+            // bind shader
             bindDepthCorrectionShaderProgram();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
@@ -1249,10 +1240,10 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             sgct::Engine::mInstance->getCurrentWindowPtr().unbindVBO();
             glPopClientAttrib();
 
-            //unbind shader
+            // unbind shader
             sgct::ShaderProgram::unbind();
             glPopAttrib();
-        } //end if depthmap
+        }
 
         if (mappingType == Mapping::Cubemap) {
             mCubeMapFBO_Ptr->unBind();
@@ -1277,8 +1268,8 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
                     1
                 );
             }
-        } //end if viewport is enabled
-    } //end for
+        }
+    }
 }
 
 } // namespace sgct_core

@@ -34,8 +34,14 @@ public:
     void setSpoutMappingName(std::string name);
     void setSpoutMapping(Mapping type);
     void setSpoutRigOrientation(glm::vec3 orientation);
+
+    /// Update projection when aspect ratio changes for the viewport.
     virtual void update(float width, float height) override;
+
+    /// Render the non linear projection to currently bounded FBO
     virtual void render() override;
+
+    /// Render the enabled faces of the cubemap
     virtual void renderCubemap(size_t* subViewPortIndex) override;
 
     static const int NFaces = 6;

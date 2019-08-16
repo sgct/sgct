@@ -23,7 +23,6 @@ ShaderManager* ShaderManager::instance() {
     return mInstance;
 }
 
-/*! Destroy the ShaderManager */
 void ShaderManager::destroy() {
     if (mInstance != nullptr) {
         delete mInstance;
@@ -31,28 +30,16 @@ void ShaderManager::destroy() {
     }
 }
 
-/*!
-Destructor deallocates and deletes all shaders
-*/
 ShaderManager::~ShaderManager() {
     for (ShaderProgram& p : mShaderPrograms) {
         p.deleteProgram();
     }
 }
 
-/*!
-Add a empty shader program to the manager. This function is used when creating advanced
-shader programs. Compilation is not automatic in this case.
-@param name Unique name of the shader
-@param shaderProgram Reference to ShaderProgram
-@return true if shader program was added to the shader manager
-*/
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      ShaderProgram& shaderProgram)
 {
-    //
     // Check if shader already exists
-    //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -61,9 +48,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
         return false;
     }
 
-    //
     // If shader don't exist, create it and add to container
-    //
     ShaderProgram sp(name);
     mShaderPrograms.push_back(sp);
     shaderProgram = mShaderPrograms.back();
@@ -71,25 +56,12 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     return true;
 }
 
-/*!
-Add a shader program to the manager. The shaders will be compiled and linked to
-the program. The name of the shader needs to be unique or it won't be added. 
-Both vertex shader and fragment shader source need to be provided, either as a 
-link to a shader source code file or as shader source code.
-@param name Unique name of the shader
-@param vertexSrc The vertex shader source code, can be a file path or source code
-@param fragmentSrc The fragment shader source code, can be a file path or source code
-@param sSrcTyp Shader source code type, if it is a link to a file or source code
-@return Whether the shader was created, linked and added to the manager correctly or not.
-*/
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      const std::string& vertexSrc,
                                      const std::string& fragmentSrc,
                                      ShaderProgram::ShaderSourceType sSrcType)
 {
-    //
     // Check if shader already exists
-    //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -98,9 +70,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
         return false;
     }
 
-    //
     // If shader don't exist, create it and add to container
-    //
     ShaderProgram sp(name);
     
     if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
@@ -123,18 +93,6 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     return false;
 }
 
-/*!
-Add a shader program to the manager. The shaders will be compiled and linked to
-the program. The name of the shader needs to be unique or it won't be added. 
-Both vertex shader and fragment shader source need to be provided, either as a 
-link to a shader source code file or as shader source code.
-@param shaderProgram Reference to ShaderProgram
-@param name Unique name of the shader
-@param vertexSrc The vertex shader source code, can be a file path or source code
-@param fragmentSrc The fragment shader source code, can be a file path or source code
-@param sSrcTyp Shader source code type, if it is a link to a file or source code
-@return Whether the shader was created, linked and added to the manager correctly or not.
-*/
 bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
                                      const std::string& name,
                                      const std::string& vertexSrc,
@@ -144,9 +102,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     // if something failes set shader pointer to NullShader
     shaderProgram = NullShader;
     
-    //
     // Check if shader already exists
-    //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -178,27 +134,13 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     return false;
 }
 
-/*!
-Add a shader program to the manager. The shaders will be compiled and linked to
-the program. The name of the shader needs to be unique or it won't be added. 
-Both vertex shader and fragment shader source need to be provided, either as a 
-link to a shader source code file or as shader source code.
-@param name Unique name of the shader
-@param vertexSrc The vertex shader source code, can be a file path or source code
-@param fragmentSrc The fragment shader source code, can be a file path or source code
-@param geometrySrc The geometry shader source code, can be a file path or source code
-@param sSrcTyp Shader source code type, if it is a link to a file or source code
-@return Whether the shader was created, linked and added to the manager correctly or not.
-*/
 bool ShaderManager::addShaderProgram(const std::string& name,
                                      const std::string& vertexSrc,
                                      const std::string& fragmentSrc,
                                      const std::string& geometrySrc,
                                      ShaderProgram::ShaderSourceType sSrcType)
 {
-    //
     // Check if shader already exists
-    //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -207,9 +149,7 @@ bool ShaderManager::addShaderProgram(const std::string& name,
         return false;
     }
 
-    //
     // If shader don't exist, create it and add to container
-    //
     ShaderProgram sp(name);
     
     if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
@@ -237,19 +177,6 @@ bool ShaderManager::addShaderProgram(const std::string& name,
     return false;
 }
 
-/*!
-Add a shader program to the manager. The shaders will be compiled and linked to
-the program. The name of the shader needs to be unique or it won't be added. 
-Both vertex shader and fragment shader source need to be provided, either as a 
-link to a shader source code file or as shader source code.
-@param shaderProgram Reference to ShaderProgram
-@param name Unique name of the shader
-@param vertexSrc The vertex shader source code, can be a file path or source code
-@param fragmentSrc The fragment shader source code, can be a file path or source code
-@param geometrySrc The geometry shader source code, can be a file path or source code
-@param sSrcTyp Shader source code type, if it is a link to a file or source code
-@return Whether the shader was created, linked and added to the manager correctly or not.
-*/
 bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
                                      const std::string& name,
                                      const std::string& vertexSrc,
@@ -260,9 +187,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     //if something failes set shader pointer to NullShader
     shaderProgram = NullShader;
     
-    //
     // Check if shader already exists
-    //
     if (shaderProgramExists(name)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
@@ -271,9 +196,7 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
         return false;
     }
 
-    //
     // If shader don't exist, create it and add to container
-    //
     ShaderProgram sp(name);
     
     if (!sp.addShaderSrc(vertexSrc, GL_VERTEX_SHADER, sSrcType)) {
@@ -302,11 +225,6 @@ bool ShaderManager::addShaderProgram(ShaderProgram& shaderProgram,
     return false;
 }
 
-/*!
-Reloads a shader program from the manager for the current bin.
-@param name Name of the shader program to reload
-@return true if the shader program was reloaded correctly
-*/
 bool ShaderManager::reloadShaderProgram(const std::string& name) {
     std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         mShaderPrograms.begin(),
@@ -328,12 +246,6 @@ bool ShaderManager::reloadShaderProgram(const std::string& name) {
     return true;
 }
 
-/*!
-Removes a shader program from the manager for the current bin.
-All resources allocated for the program will be deallocated and removed
-@param name Name of the shader program to remove
-@return true if the shader program was removed correctly
-*/
 bool ShaderManager::removeShaderProgram(const std::string& name) {
     std::vector<ShaderProgram>::iterator shaderIt = std::find_if(
         mShaderPrograms.begin(),
@@ -356,11 +268,6 @@ bool ShaderManager::removeShaderProgram(const std::string& name) {
     return true;
 }
 
-/*!
-Set a shader program to be used in the current rendering pipeline
-@param name Name of the shader program to set as active
-@return Whether the specified shader was set as active or not.
-*/
 bool ShaderManager::bindShaderProgram(const std::string& name) const {
     const ShaderProgram& sp = getShaderProgram(name);
 
@@ -377,11 +284,6 @@ bool ShaderManager::bindShaderProgram(const std::string& name) const {
     return sp.bind();
 }
 
-/*!
-Set a shader program to be used in the current rendering pipeline
-@param shader Reference to the shader program to set as active
-@return Whether the specified shader was set as active or not.
-*/
 bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const {
     if (shaderProgram.getName() == NullShader.getName()) {
         MessageHandler::instance()->print(
@@ -395,20 +297,10 @@ bool ShaderManager::bindShaderProgram(const ShaderProgram& shaderProgram) const 
     return shaderProgram.bind();
 }
 
-/*!
-    Unbind/unset/diable current shader program in the rendering pipeline.
-*/
 void ShaderManager::unBindShaderProgram() {
     glUseProgram(0);
 }
 
-/*!
-Get the specified shader program from the shader manager. If the shader is not found
-ShaderManager::NullShader will be returned which can be used for comparisons. The
-NullShader can not be set as active or used in the rendering pipeline
-@param name Name of the shader program
-@return The specified shader program or ShaderManager::NullShader if shader is not found.
-*/
 const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) const {
     std::vector<ShaderProgram>::const_iterator shaderIt = std::find_if(
         mShaderPrograms.begin(),
@@ -423,10 +315,6 @@ const ShaderProgram& ShaderManager::getShaderProgram(const std::string& name) co
     }
 }
 
-/*!
-Check if a shader program exists in the manager
-@param    name    Name of the shader program.
-*/
 bool ShaderManager::shaderProgramExists(const std::string& name) const {
     std::vector<ShaderProgram>::const_iterator exists = std::find_if(
         mShaderPrograms.begin(),

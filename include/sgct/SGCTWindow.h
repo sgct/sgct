@@ -122,6 +122,7 @@ public:
 
     /// Name this window
     void setName(std::string name);
+
     /**
      * Tag this window. Tags are seperated by comma
      */

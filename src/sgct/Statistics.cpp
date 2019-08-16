@@ -597,8 +597,8 @@ void Statistics::draw(float lineWidth) {
         glPopMatrix();
     }
     else {
-        //programmable pipeline
-        //gives an opengl error in mac os x (intel iris)
+        // programmable pipeline
+        // gives an opengl error in mac os x (intel iris)
         glLineWidth(lineWidth);
         
         float size = static_cast<float>(StatsHistoryLength);

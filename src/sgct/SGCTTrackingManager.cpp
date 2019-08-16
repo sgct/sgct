@@ -388,7 +388,7 @@ SGCTTrackingDevice* SGCTTrackingManager::getHeadDevicePtr() {
     return mHead;
 }
 
-void SGCTTrackingManager::setHeadTracker(const char* trackerName, const char* deviceName)
+void SGCTTrackingManager::setHeadTracker(const std::string& trackerName, const std::string& deviceName)
 {
     SGCTTracker* trackerPtr = getTrackerPtr(trackerName);
 
@@ -397,11 +397,11 @@ void SGCTTrackingManager::setHeadTracker(const char* trackerName, const char* de
     }
     //else no head tracker found
 
-    if (mHead == nullptr && strlen(trackerName) > 0 && strlen(deviceName) > 0) {
+    if (mHead == nullptr && !trackerName.empty() && !deviceName.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
             "Tracking: Failed to set head tracker to %s@%s!\n",
-            deviceName, trackerName
+            deviceName.c_str(), trackerName.c_str()
         );
     }
 }
@@ -415,9 +415,9 @@ SGCTTracker* SGCTTrackingManager::getTrackerPtr(size_t index) {
     return index < mTrackers.size() ? mTrackers[index] : nullptr;
 }
 
-SGCTTracker* SGCTTrackingManager::getTrackerPtr(const char* name) {
+SGCTTracker* SGCTTrackingManager::getTrackerPtr(const std::string& name) {
     for (size_t i = 0; i < mTrackers.size(); i++) {
-        if (name == mTrackers[i]->getName()) {
+        if (mTrackers[i]->getName() == name) {
             return mTrackers[i];
         }
     }

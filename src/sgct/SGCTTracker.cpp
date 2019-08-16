@@ -53,9 +53,9 @@ SGCTTrackingDevice* SGCTTracker::getDevicePtr(size_t index) {
     return index < mTrackingDevices.size() ? mTrackingDevices[index] : nullptr;
 }
 
-SGCTTrackingDevice* SGCTTracker::getDevicePtr(const char* name) {
+SGCTTrackingDevice* SGCTTracker::getDevicePtr(const std::string& name) {
     for (size_t i = 0; i < mTrackingDevices.size(); i++) {
-        if (name == mTrackingDevices[i]->getName()) {
+        if (mTrackingDevices[i]->getName() == name) {
             return mTrackingDevices[i];
         }
     }

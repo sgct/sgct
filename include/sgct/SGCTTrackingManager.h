@@ -42,7 +42,7 @@ public:
 
     SGCTTracker* getLastTrackerPtr();
     SGCTTracker* getTrackerPtr(size_t index);
-    SGCTTracker* getTrackerPtr(const char* name);
+    SGCTTracker* getTrackerPtr(const std::string& name);
 
     void setEnabled(bool state);
     void setSamplingTime(double t);
@@ -51,9 +51,8 @@ public:
     bool isRunning();
 
 private:
-    void setHeadTracker(const char* trackerName, const char * deviceName);
+    void setHeadTracker(const std::string& trackerName, const std::string& deviceName);
 
-private:
     std::thread* mSamplingThread = nullptr;
     std::vector<SGCTTracker*> mTrackers;
     std::set<std::string> mAddresses;

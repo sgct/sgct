@@ -676,15 +676,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 val[1] = element[1]->Value();
                 
                 if (strcmp("Pos", val[1]) == 0) {
-                    float fTmp[3];
-                    XMLError xErr = element[1]->QueryFloatAttribute("x", &fTmp[0]);
-                    XMLError yErr = element[1]->QueryFloatAttribute("y", &fTmp[1]);
-                    XMLError zErr = element[1]->QueryFloatAttribute("z", &fTmp[2]);
-                    if (xErr == XML_NO_ERROR &&
-                        yErr == XML_NO_ERROR &&
-                        zErr == XML_NO_ERROR)
-                    {
-                        usrPtr->setPos(fTmp);
+                    glm::vec3 pos;
+                    XMLError xe = element[1]->QueryFloatAttribute("x", &pos[0]);
+                    XMLError ye = element[1]->QueryFloatAttribute("y", &pos[1]);
+                    XMLError ze = element[1]->QueryFloatAttribute("z", &pos[2]);
+                    if (xe == XML_NO_ERROR && ye == XML_NO_ERROR && ze == XML_NO_ERROR) {
+                        usrPtr->setPos(std::move(pos));
                     }
                     else {
                         sgct::MessageHandler::instance()->print(

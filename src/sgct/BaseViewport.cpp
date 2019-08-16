@@ -115,7 +115,18 @@ void BaseViewport::calculateFrustum(const Frustum::FrustumMode& frustumMode,
                                     float nearClippingPlane,
                                     float farClippingPlane)
 {
-    glm::vec3 eyePos = mUser->getPos(frustumMode);
+    glm::vec3 eyePos = [this, frustumMode]() {
+        switch (frustumMode) {
+            case Frustum::FrustumMode::MonoEye:
+                return mUser->getPosMono();
+            case Frustum::FrustumMode::StereoLeftEye:
+                return mUser->getPosLeftEye();
+            case Frustum::FrustumMode::StereoRightEye:
+                return mUser->getPosRightEye();
+            default:
+                return glm::vec3();
+        }
+    }();
     mProjections[frustumMode].calculateProjection(
         eyePos,
         &mProjectionPlane,
@@ -131,8 +142,20 @@ void BaseViewport::calculateNonLinearFrustum(const Frustum::FrustumMode& frustum
                                              float nearClippingPlane,
                                              float farClippingPlane)
 {
-    glm::vec3 eyePos = mUser->getPos();
-    glm::vec3 offset = mUser->getPos(frustumMode) - eyePos;
+    glm::vec3 eyePos = mUser->getPosMono();
+    glm::vec3 offset = [this, frustumMode, eyePos]() {
+        switch (frustumMode) {
+        case Frustum::FrustumMode::MonoEye:
+            return mUser->getPosMono() - eyePos;
+        case Frustum::FrustumMode::StereoLeftEye:
+            return mUser->getPosLeftEye() - eyePos;
+        case Frustum::FrustumMode::StereoRightEye:
+            return mUser->getPosRightEye() - eyePos;
+        default:
+            return glm::vec3();
+        }
+    }();
+
     mProjections[frustumMode].calculateProjection(
         eyePos,
         &mProjectionPlane,

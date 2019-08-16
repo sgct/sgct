@@ -28,7 +28,7 @@ public:
 
     SGCTTrackingDevice* getLastDevicePtr();
     SGCTTrackingDevice* getDevicePtr(size_t index);
-    SGCTTrackingDevice* getDevicePtr(const char* name);
+    SGCTTrackingDevice* getDevicePtr(const std::string& name);
     SGCTTrackingDevice* getDevicePtrBySensorId(int id);
 
     void setOrientation(glm::quat q);

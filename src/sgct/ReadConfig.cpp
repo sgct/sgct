@@ -883,11 +883,11 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             }
                         }
                         else if (strcmp("Offset", val[2]) == 0) {
-                            float tmpf[3];
+                            glm::vec3 offset;
                             XMLError err[3] = {
-                                element[2]->QueryFloatAttribute("x", &tmpf[0]),
-                                element[2]->QueryFloatAttribute("y", &tmpf[1]),
-                                element[2]->QueryFloatAttribute("z", &tmpf[2])
+                                element[2]->QueryFloatAttribute("x", &offset[0]),
+                                element[2]->QueryFloatAttribute("y", &offset[1]),
+                                element[2]->QueryFloatAttribute("z", &offset[2])
                             };
 
                             if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
@@ -898,7 +898,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                                device.setOffset(tmpf[0], tmpf[1], tmpf[2]);
+                                device.setOffset(std::move(offset));
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -931,7 +931,9 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                                device.setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
+                                device.setOrientation(
+                                    glm::quat(tmpf[0], tmpf[1], tmpf[2], tmpf[3])
+                                );
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -1004,12 +1006,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     
                 }
-                else if ( strcmp("Offset", val[1]) == 0) {
-                    float tmpf[3];
+                else if (strcmp("Offset", val[1]) == 0) {
+                    glm::vec3 offset;
                     XMLError err[3] = {
-                        element[1]->QueryFloatAttribute("x", &tmpf[0]),
-                        element[1]->QueryFloatAttribute("z", &tmpf[1]),
-                        element[1]->QueryFloatAttribute("y", &tmpf[2])
+                        element[1]->QueryFloatAttribute("x", &offset[0]),
+                        element[1]->QueryFloatAttribute("y", &offset[1]),
+                        element[1]->QueryFloatAttribute("z", &offset[2])
                     };
                     if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                         err[2] == XML_NO_ERROR)
@@ -1019,7 +1021,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         SGCTTracker& tr = *m.getLastTrackerPtr();
                         SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                        device.setOffset(tmpf[0], tmpf[1], tmpf[2]);
+                        device.setOffset(std::move(offset));
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
@@ -1052,7 +1054,9 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         SGCTTracker& tr = *m.getLastTrackerPtr();
                         SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                        device.setOrientation(tmpf[0], tmpf[1], tmpf[2], tmpf[3]);
+                        device.setOrientation(
+                            glm::quat(tmpf[0], tmpf[1], tmpf[2], tmpf[3])
+                        );
                     }
                     else {
                         sgct::MessageHandler::instance()->print(

@@ -11,6 +11,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <glm/gtc/quaternion.hpp>
 #include <string>
+#include <vector>
 
 namespace sgct {
 
@@ -19,49 +20,106 @@ Helper class that holds tracking device/sensor data
 */
 class SGCTTrackingDevice {
 public:
-    enum DataLocation { CURRENT = 0, PREVIOUS };
-
+    /// Constructor
     SGCTTrackingDevice(size_t parentIndex, std::string name);
-    ~SGCTTrackingDevice();
-
+    
+    /// Set if this device is enabled or not
     void setEnabled(bool state);
+
+    /// Set the id for this sensor
     void setSensorId(int id);
+
+    /// Set the number of digital buttons
     void setNumberOfButtons(int numOfButtons);
+
+    /// Set the number of analog axes
     void setNumberOfAxes(int numOfAxes);
-    void setSensorTransform(glm::dvec3 vec, glm::dquat rot );
-    void setButtonVal(bool val, size_t index);
-    void setAnalogVal(const double* array, size_t size);
+    void setSensorTransform(glm::dvec3 vec, glm::dquat rot);
+    void setButtonVal(bool val, int index);
+    void setAnalogVal(const double* array, int size);
+
+    /// Set the orientation euler angles (degrees) used to generate the orientation matrix
     void setOrientation(float xRot, float yRot, float zRot);
-    void setOrientation(float w, float x, float y, float z);
+
+    /// Set the orientation quaternion used to generate the orientation matrix
     void setOrientation(glm::quat q);
-    void setOffset(float x, float y, float z);
+
+    /// Set the offset vector used to generate the offset matrix
+    void setOffset(glm::vec3 offset);
+
+    /// Set the device transform matrix
     void setTransform(glm::mat4 mat);
 
     const std::string& getName() const;
-    size_t getNumberOfButtons() const;
-    size_t getNumberOfAxes() const;
-    bool getButton(size_t index, DataLocation i = CURRENT);
-    double getAnalog(size_t index, DataLocation i = CURRENT);
-    bool isEnabled();
-    bool hasSensor();
-    bool hasButtons();
-    bool hasAnalogs();
+    int getNumberOfButtons() const;
+    int getNumberOfAxes() const;
+
+    /// \returns a digital value from array
+    bool getButton(size_t index) const;
+    
+    /// \returns a digital value from array
+    bool getButtonPrevious(size_t index) const;
+
+    /// \returns an analog value from array
+    double getAnalog(size_t index) const;
+    /// \returns an analog value from array
+    double getAnalogPrevious(size_t index) const;
+    
+    bool isEnabled() const;
+    bool hasSensor() const;
+    bool hasButtons() const;
+    bool hasAnalogs() const;
+
+    /// \returns the id of this device/sensor
     int getSensorId();
 
-    glm::vec3 getPosition(DataLocation i = CURRENT);
-    glm::vec3 getEulerAngles(DataLocation i = CURRENT);
-    glm::quat getRotation(DataLocation i = CURRENT);
-    glm::mat4 getWorldTransform(DataLocation i = CURRENT);
-    glm::dquat getSensorRotation(DataLocation i = CURRENT);
-    glm::dvec3 getSensorPosition(DataLocation i = CURRENT);
+    /// \returns the sensor's position in world coordinates
+    glm::vec3 getPosition() const;
 
-    double getTrackerTimeStamp(DataLocation i = CURRENT);
-    double getAnalogTimeStamp(DataLocation i = CURRENT);
-    double getButtonTimeStamp(size_t index, DataLocation i = CURRENT);
+    /// \returns the sensor's position in world coordinates
+    glm::vec3 getPreviousPosition() const;
 
-    double getTrackerDeltaTime();
-    double getAnalogDeltaTime();
-    double getButtonDeltaTime(size_t index);
+    /// \returns the sensor's rotation as as euler angles in world coordinates
+    glm::vec3 getEulerAngles() const;
+
+    /// \returns the sensor's rotation as as euler angles in world coordinates
+    glm::vec3 getEulerAnglesPrevious() const;
+
+    /// \returns the sensor's rotation as a quaternion in world coordinates
+    glm::quat getRotation() const;
+
+    /// \returns the sensor's rotation as a quaternion in world coordinates
+    glm::quat getRotationPrevious() const;
+
+    /// \returns the sensor's transform matrix in world coordinates
+    glm::mat4 getWorldTransform() const;
+
+    /// \returns the sensor's transform matrix in world coordinates
+    glm::mat4 getWorldTransformPrevious() const;
+
+    /// \returns the raw sensor rotation quaternion
+    glm::dquat getSensorRotation() const;
+
+    /// \returns the raw sensor rotation quaternion
+    glm::dquat getSensorRotationPrevious() const;
+
+    /// \returns the raw sensor position vector
+    glm::dvec3 getSensorPosition() const;
+
+    /// \returns the raw sensor position vector
+    glm::dvec3 getSensorPositionPrevious() const;
+
+    double getTrackerTimeStamp();
+    double getTrackerTimeStampPrevious();
+
+    double getAnalogTimeStamp() const;
+    double getAnalogTimeStampPrevious() const;
+    double getButtonTimeStamp(size_t index) const;
+    double getButtonTimeStampPrevious(size_t index) const;
+
+    double getTrackerDeltaTime() const;
+    double getAnalogDeltaTime() const;
+    double getButtonDeltaTime(size_t index) const;
 
 private:
     void calculateTransform();
@@ -69,28 +127,38 @@ private:
     void setAnalogTimeStamp();
     void setButtonTimeStamp(size_t index);
 
-private:
     bool mEnabled = true;
     std::string mName;
     size_t mParentIndex; //the index of parent SGCTTracker
-    size_t mNumberOfButtons = 0;
-    size_t mNumberOfAxes = 0;
+    int mNumberOfButtons = 0;
+    int mNumberOfAxes = 0;
     int mSensorId = -1;
 
-    glm::mat4 mDeviceTransformMatrix = glm::mat4(1.f);
-    glm::mat4 mWorldTransform[2] = { glm::mat4(1.f), glm::mat4(1.f) };
-    glm::dquat mSensorRotation[2] = {
-        glm::dquat(0.0, 0.0, 0.0, 0.0), glm::dquat(0.0, 0.0, 0.0, 0.0)
-    };
-    glm::dvec3 mSensorPos[2] = { glm::dvec3(0.0), glm::dvec3(0.0) };
+    glm::mat4 mDeviceTransform = glm::mat4(1.f);
+
+    glm::mat4 mWorldTransform = glm::mat4(1.f);
+    glm::mat4 mWorldTransformPrevious = glm::mat4(1.f);
+
+    glm::dquat mSensorRotation = glm::dquat(0.0, 0.0, 0.0, 0.0);
+    glm::dquat mSensorRotationPrevious = glm::dquat(0.0, 0.0, 0.0, 0.0);
+
+    glm::dvec3 mSensorPos = glm::dvec3(0.0);
+    glm::dvec3 mSensorPosPrevious = glm::dvec3(0.0);
     glm::quat mOrientation;
     glm::vec3 mOffset;
 
-    double mTrackerTime[2] = { 0.0, 0.0 };
-    double mAnalogTime[2] = { 0.0, 0.0 };
-    double* mButtonTime = nullptr;
-    bool* mButtons = nullptr;
-    double* mAxes = nullptr;
+    double mTrackerTime = 0.0;
+    double mTrackerTimePrevious = 0.0;
+
+    double mAnalogTime = 0.0;
+    double mAnalogTimePrevious = 0.0;
+
+    std::vector<double> mButtonTime;
+    std::vector<double> mButtonTimePrevious;
+    std::vector<bool> mButtons;
+    std::vector<bool> mButtonsPrevious;
+    std::vector<double> mAxes;
+    std::vector<double> mAxesPrevious;
 };
 
 } // namespace sgct

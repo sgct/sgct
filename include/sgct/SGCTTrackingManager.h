@@ -8,6 +8,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__TRACKING_MANAGER__H__
 #define __SGCT__TRACKING_MANAGER__H__
 
+#include <sgct/SGCTTracker.h>
 #include <memory>
 #include <set>
 #include <thread>
@@ -17,7 +18,6 @@ namespace sgct_core { class SGCTUser; }
 
 namespace sgct {
 
-class SGCTTracker;
 class SGCTTrackingDevice;
 
 /*!

@@ -15,6 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/helpers/SGCTStringFunctions.h>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+#include <sstream>
 
 namespace {
 void setupViewport() {
@@ -163,6 +164,40 @@ wchar_t* parseArgList(va_list args, const wchar_t* format) {
 
     return buffer;
 }
+
+std::vector<std::wstring> split(std::wstring str, wchar_t delimiter) {
+    std::vector<std::wstring> tmpVec;
+    std::wstringstream ss(std::move(str));
+    std::wstring part;
+
+    while (getline(ss, part, delimiter)) {
+        tmpVec.push_back(part);
+    }
+
+    return tmpVec;
+}
+
+std::vector<std::wstring> split(std::string str, wchar_t delimiter) {
+    std::vector<std::wstring> tmpVec;
+    std::wstring ws;
+    ws.assign(str.begin(), str.end());
+
+    std::wstringstream ss(ws);
+    std::wstring part;
+
+    while (getline(ss, part, delimiter)) {
+        tmpVec.push_back(part);
+    }
+
+    return tmpVec;
+}
+
+std::wstring makeWideString(const std::string& str) {
+    std::wstring ws;
+    ws.assign(str.begin(), str.end());
+    return ws;
+}
+
 } // namespace
 
 namespace sgct_text {
@@ -536,7 +571,7 @@ void print(Font* ft_font, TextAlignMode mode, float x, float y, const char* form
     char* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render2d(lines, ft_font, mode, x, y, glm::vec4(1.f));
 
@@ -557,7 +592,7 @@ void print(Font* ft_font, TextAlignMode mode, float x, float y,
     wchar_t* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render2d(lines, ft_font, mode, x, y, glm::vec4(1.f));
 
@@ -578,7 +613,7 @@ void print(Font* ft_font, TextAlignMode mode, float x, float y, const glm::vec4&
     char * buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render2d(lines, ft_font, mode, x, y, color);
 
@@ -599,7 +634,7 @@ void print(Font* ft_font, TextAlignMode mode, float x, float y, const glm::vec4&
     wchar_t* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render2d(lines, ft_font, mode, x, y, color);
 
@@ -617,7 +652,7 @@ void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const char* forma
     char* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render3d(lines, ft_font, mode, mvp, glm::vec4(1.f));
 
@@ -637,7 +672,7 @@ void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const wchar_t* fo
     wchar_t* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render3d(lines, ft_font, mode, mvp, glm::vec4(1.f));
 
@@ -658,7 +693,7 @@ void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& 
     char* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render3d(lines, ft_font, mode, mvp, color);
 
@@ -679,7 +714,7 @@ void print3d(Font* ft_font, TextAlignMode mode, glm::mat4 mvp, const glm::vec4& 
     wchar_t* buffer = parseArgList(args, format);
     va_end(args); // Results Are Stored In Text
 
-    std::vector<std::wstring> lines = sgct_helpers::split(buffer, L'\n');
+    std::vector<std::wstring> lines = split(buffer, L'\n');
 
     render3d(lines, ft_font, mode, mvp, color);
 

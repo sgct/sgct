@@ -22,12 +22,9 @@ SGCTSettings* SGCTSettings::instance() {
     return mInstance;
 }
 
-/*! Destroy the SGCTSettings instance */
 void SGCTSettings::destroy() {
-    if (mInstance != nullptr) {
-        delete mInstance;
-        mInstance = nullptr;
-    }
+    delete mInstance;
+    mInstance = nullptr;
 }
 
 SGCTSettings::SGCTSettings()
@@ -217,84 +214,44 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             }
         }
 
-        //iterate
         subElement = subElement->NextSiblingElement();
     }
 }
 
-/*!
-Set swap interval for all windows
-    - -1 = adaptive sync (Nvidia)
-    - 0  = vertical sync off
-    - 1  = wait for vertical sync
-    - 2  = fix when using swapgroups in xp and running half the framerate
-*/
 void SGCTSettings::setSwapInterval(int val) {
     mSwapInterval = val;
 }
 
-/*!
-Get swap interval for all windows
-    - -1 = adaptive sync (Nvidia)
-    - 0  = vertical sync off
-    - 1  = wait for vertical sync
-    - 2  = fix when using swapgroups in xp and running half the framerate
-*/
 int SGCTSettings::getSwapInterval() const {
     return mSwapInterval;
 }
 
-/*!
-    Set the refreshrate hint of the window in fullscreen mode.
-    If it's not listed in your monitor's video-mode list than it will not be used.
-
-    \param freq the refresh frequency/rate
-*/
 void SGCTSettings::setRefreshRateHint(int freq) {
     mRefreshRate = freq;
 }
 
-/*!
-    Get the refreshrate hint of the window in fullscreen mode.
-*/
 int SGCTSettings::getRefreshRateHint() const {
     return mRefreshRate;
 }
 
-/*!
-Set to true if depth buffer textures should be allocated and used.
-*/
 void SGCTSettings::setUseDepthTexture(bool state) {
     mUseDepthTexture = state;
 }
 
-/*!
-Set to true if normal textures should be allocated and used.
-*/
 void SGCTSettings::setUseNormalTexture(bool state) {
     mUseNormalTexture = state;
     updateDrawBufferFlag();
 }
 
-/*!
-Set to true if position buffer textures should be allocated and used.
-*/
 void SGCTSettings::setUsePositionTexture(bool state) {
     mUsePositionTexture = state;
     updateDrawBufferFlag();
 }
 
-/*!
-Set the float precision of the float buffers (normal and position buffer)
-@param bfp is the float precition that will be used in next buffer resize or creation
-*/
 void SGCTSettings::setBufferFloatPrecision(BufferFloatPrecision bfp) {
     mCurrentBufferFloatPrecision = bfp;
 }
 
-/*!
-Update the draw buffer flags
-*/
 void SGCTSettings::updateDrawBufferFlag() {
     if (mUseNormalTexture && mUsePositionTexture) {
         mCurrentDrawBuffer = Diffuse_Normal_Position;
@@ -310,47 +267,26 @@ void SGCTSettings::updateDrawBufferFlag() {
     }
 }
 
-/*!
-Set the FBO mode. This is done internally using SGCT config file.
-*/
 void SGCTSettings::setUseFBO(bool state) {
     mUseFBO = state;
 }
 
-/*!
-Set the number of capture threads used by SGCT (multi-threaded screenshots)
-*/
 void SGCTSettings::setNumberOfCaptureThreads(int count) {
     mNumberOfCaptureThreads = count;
 }
 
-/*!
-Set the zlib compression level used for saving png files
-
-Compression levels 1-9.
-    -1 = Default compression\n
-    0 = No compression\n
-    1 = Best speed\n
-    9 = Best compression\n
-*/
 void SGCTSettings::setPNGCompressionLevel(int level) {
     mMutex.lock();
     mPNGCompressionLevel = level;
     mMutex.unlock();
 }
 
-/*!
-Set the JPEG quality in range [0-100].
-*/
 void SGCTSettings::setJPEGQuality(int quality) {
     mMutex.lock();
     mJPEGQuality = quality;
     mMutex.unlock();
 }
 
-/*!
-Get the zlib compression level used in png export.
-*/
 int SGCTSettings::getPNGCompressionLevel() { 
     mMutex.lock();
     int tmpI = mPNGCompressionLevel;
@@ -358,9 +294,6 @@ int SGCTSettings::getPNGCompressionLevel() {
     return tmpI;
 }
 
-/*!
-Get the JPEG quality settings (0-100)
-*/
 int SGCTSettings::getJPEGQuality() {
     mMutex.lock();
     int tmpI = mJPEGQuality;
@@ -408,12 +341,6 @@ SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() const {
     return mCurrentDrawBuffer;
 }
 
-/*!
-Set capture/screenshot path used by SGCT
-
-\param path the path including filename without suffix
-\param cpi index to which path to set (Mono = default, Left or Right)
-*/
 void SGCTSettings::setCapturePath(std::string path, CapturePathIndex cpi) {
     if (path.empty()) {
         MessageHandler::instance()->print(
@@ -426,21 +353,10 @@ void SGCTSettings::setCapturePath(std::string path, CapturePathIndex cpi) {
     mCapturePath[cpi] = std::move(path);
 }
 
-/*!
-Append capture/screenshot path used by SGCT
-
-\param str the string to append including filename without suffix
-\param cpi index to which path to set (Mono = default, Left or Right)
-*/
 void SGCTSettings::appendCapturePath(std::string str, CapturePathIndex cpi) {
     mCapturePath[cpi].append(std::move(str));
 }
 
-/*!
-Set the capture format which can be one of the following:
--PNG
--TGA
-*/
 void SGCTSettings::setCaptureFormat(const char* format) {
     mMutex.lock();
     
@@ -457,20 +373,10 @@ void SGCTSettings::setCaptureFormat(const char* format) {
     mMutex.unlock();
 }
 
-/*!
-    Get the capture/screenshot path
-
-    \param cpi index to which path to get (Mono = default, Left or Right)
-*/
 const char* SGCTSettings::getCapturePath(CapturePathIndex cpi) const {
     return mCapturePath[cpi].c_str();
 }
 
-/*!
-    Get the capture/screenshot path
-
-    \return the captureformat if set, otherwise -1 is returned
-*/
 sgct_core::ScreenCapture::CaptureFormat SGCTSettings::getCaptureFormat() {
     mMutex.lock();
     sgct_core::ScreenCapture::CaptureFormat tmpI = mCaptureFormat;
@@ -478,64 +384,35 @@ sgct_core::ScreenCapture::CaptureFormat SGCTSettings::getCaptureFormat() {
     return tmpI;
 }
 
-/*!
-    Controls removal of sub-pixel aliasing.
-    - 1/2 - low removal
-    - 1/3 - medium removal
-    - 1/4 - default removal
-    - 1/8 - high removal
-    - 0 - complete removal
-*/
 void SGCTSettings::setFXAASubPixTrim(float val) {
     mFXAASubPixTrim = val;
 }
 
-/*!
-    Set the pixel offset for contrast/edge detection. Values should be in the range [1.0f/8.0f, 1.0f]. Default is 0.5f.
-*/
 void SGCTSettings::setFXAASubPixOffset(float val) {
     mFXAASubPixOffset = val;
 }
 
 
-/*!
-    Set the horizontal OSD text Offset between 0.0 and 1.0
-*/
-void SGCTSettings::setOSDTextXOffset(float val) {
-    mOSDTextOffset[0] = val;
+void SGCTSettings::setOSDTextOffset(glm::vec2 val) {
+    mOSDTextOffset[0] = val.x;
+    mOSDTextOffset[1] = val.y;
 }
 
 /*!
-    Set the vertical OSD text Offset between 0.0 and 1.0
-*/
-void SGCTSettings::setOSDTextYOffset(float val) {
-    mOSDTextOffset[1] = val;
-}
-
-/*!
-    Set the OSD text font size
+    
 */
 void SGCTSettings::setOSDTextFontSize(unsigned int size) {
     mFontSize = size;
 }
 
-/*!
-    Set the OSD text font name
-*/
 void SGCTSettings::setOSDTextFontName(std::string name) {
     mFontName = std::move(name);
 }
 
-/*!
-    Set the OSD text font path
-*/
 void SGCTSettings::setOSDTextFontPath(std::string path) {
     mFontPath = std::move(path);
 }
 
-/*!
-Set the default number of AA samples (MSAA) for all windows
-*/
 void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
     if ((samples != 0) && ((samples & (samples - 1)) == 0)) {
         //if power of two
@@ -550,81 +427,48 @@ void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
     }
 }
 
-/*!
-Set the default FXAA state for all windows (enabled or disabled)
-*/
 void SGCTSettings::setDefaultFXAAState(bool state) {
     mDefaultFXAA = state;
 }
 
-/*!
-Set the glTexImage2D (legacy) should be used instead of glTexStorage2D (modern). For example gDebugger can't display textures created using glTexStorage2D.
-*/
 void SGCTSettings::setForceGlTexImage2D(bool state) {
     mForceGlTexImage2D = state;
 }
 
-/*!
-Get if glTexImage2D(legacy) should be used instead of glTexStorage2D(modern). For example gDebugger can't display textures created using glTexStorage2D.
-*/
 bool SGCTSettings::getForceGlTexImage2D() const {
     return mForceGlTexImage2D;
 }
 
-/*!
-Set if pixel buffer object transferes should be used
-*/
 void SGCTSettings::setUsePBO(bool state) {
     mUsePBO = state;
 }
 
-/*!
-Get if pixel buffer object transferes should be used
-*/
 bool SGCTSettings::getUsePBO() const {
     return mUsePBO;
 }
 
-/*!
-Set if run length encoding (RLE) should be used in PNG and TGA export.
-*/
 void SGCTSettings::setUseRLE(bool state) {
     mMutex.lock();
     mUseRLE = state;
     mMutex.unlock();
 }
 
-/*!
-Set if screen warping should be used or not
-*/
 void SGCTSettings::setUseWarping(bool state) {
     mUseWarping = state;
 }
 
-/*!
-Set if warping mesh wireframe should be rendered
-*/
 void SGCTSettings::setShowWarpingWireframe(bool state) {
     mShowWarpingWireframe = state;
 }
 
-/*!
-Set if capture should capture warped from backbuffer instead of texture. Backbuffer data includes masks and warping.
-*/
 void SGCTSettings::setCaptureFromBackBuffer(bool state) {
     mCaptureBackBuffer = state;
 }
 
-/*!
-Set to true if warping meshes should be exported as OBJ files.
-*/
 void SGCTSettings::setExportWarpingMeshes(bool state) {
     mExportWarpingMeshes = state;
 }
 
-/*!
-Get if run length encoding (RLE) is used in PNG and TGA export.
-*/
 bool SGCTSettings::getUseRLE() {
     mMutex.lock();
     bool tmpB = mUseRLE;
@@ -632,44 +476,26 @@ bool SGCTSettings::getUseRLE() {
     return tmpB;
 }
 
-/*!
-Get if aspect ratio is taken into acount when generation some display geometries.
-*/
 bool SGCTSettings::getTryMaintainAspectRatio() const {
     return mTryMaintainAspectRatio;
 }
 
-/*!
-Get if warping meshes should be exported as obj-files.
-*/
 bool SGCTSettings::getExportWarpingMeshes() const {
     return mExportWarpingMeshes;
 }
 
-/*!
-Get if screen warping is used
-*/
 bool SGCTSettings::getUseWarping() const {
     return mUseWarping;
 }
 
-/*!
-Get if warping wireframe mesh should be rendered
-*/
 bool SGCTSettings::getShowWarpingWireframe() const {
     return mShowWarpingWireframe;
 }
 
-/*!
-Get if capture should use backbuffer data or texture. Backbuffer data includes masks and warping.
-*/
 bool SGCTSettings::getCaptureFromBackBuffer() const {
     return mCaptureBackBuffer;
 }
 
-/*!
-Set if geometry should try to adapt after framebuffer dimensions. This is valid for multi-viewport renderings like fisheye projections.
-*/
 void SGCTSettings::setTryMaintainAspectRatio(bool state) {
     mTryMaintainAspectRatio = state;
     sgct::MessageHandler::instance()->print(
@@ -679,46 +505,28 @@ void SGCTSettings::setTryMaintainAspectRatio(bool state) {
     );
 }
 
-/*!
-    Get the OSD text font size
-*/
 unsigned int SGCTSettings::getOSDTextFontSize() const {
     return mFontSize;
 }
 
-/*!
-    Get the OSD text font name
-*/
 const std::string& SGCTSettings::getOSDTextFontName() const {
     return mFontName;
 }
 
-/*!
-    Get the OSD text font path
-*/
 const std::string& SGCTSettings::getOSDTextFontPath() const {
     return mFontPath;
 }
 
-/*!
-    Get the precision of the float buffers as an GLint (GL_RGB16F or GL_RGB32F)
-*/
 int SGCTSettings::getBufferFloatPrecisionAsGLint() const {
     return mCurrentBufferFloatPrecision == BufferFloatPrecision::Float_16Bit ?
         GL_RGB16F :
         GL_RGB32F;
 }
 
-/*!
-Get the default MSAA setting
-*/
 int SGCTSettings::getDefaultNumberOfAASamples() const {
     return mDefaultNumberOfAASamples;
 }
 
-/*!
-Get the FXAA default state
-*/
 bool SGCTSettings::getDefaultFXAAState() const {
     return mDefaultFXAA;
 }

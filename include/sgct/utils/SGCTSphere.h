@@ -8,39 +8,41 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPHERE__H__
 #define __SGCT__SPHERE__H__
 
-namespace sgct_helpers {
-struct SGCTVertexData;
-} // namespace sgct_helpers
+#include <vector>
+
+namespace sgct_helpers { struct SGCTVertexData; }
 
 namespace sgct_utils {
 
-/*!
-    This class creates and renders a textured sphere.
-*/
+/**
+ * This class creates and renders a textured sphere.
+ */
 class SGCTSphere {
 public:
+    /// This constructor requires a valid openGL contex
     SGCTSphere(float radius, unsigned int segments);
     ~SGCTSphere();
+
+    /**
+     * If openGL 3.3+ is used:
+     *   - layout 0 contains texture coordinates (vec2)
+     *   - layout 1 contains vertex normals (vec3)
+     *   - layout 2 contains vertex positions (vec3).
+     */
     void draw();
 
 private:
-    void addVertexData(unsigned int pos, float t, float s, float nx, float ny, float nz,
-        float x, float y, float z);
-
     void drawVBO();
     void drawVAO();
 
-    void createVBO();
-    void cleanUp();
+    void createVBO(const std::vector<sgct_helpers::SGCTVertexData>& verts,
+        const std::vector<unsigned int>& indices);
 
-    sgct_helpers::SGCTVertexData* mVerts = nullptr;
-    unsigned int* mIndices = nullptr;
+    unsigned int mNumberOfVertices = 0;
+    unsigned int mNumberOfFaces = 0;
 
-    unsigned int mNumberOfVertices;
-    unsigned int mNumberOfFaces;
-
-    enum BufferType { Vertex = 0, Index };
-    unsigned int mVBO[2] = { 0, 0 };
+    unsigned int mVBO = 0;
+    unsigned int mIBO = 0;
     unsigned int mVAO = 0;
 };
 

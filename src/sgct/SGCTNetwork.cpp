@@ -422,13 +422,13 @@ int SGCTNetwork::iterateFrameCounter() {
     );
 #endif
 
-    mSendFrame[Previous].store(mSendFrame[Current].load());
+    mSendFramePrevious.store(mSendFrameCurrent.load());
 
-    if (mSendFrame[Current] < MAX_NET_SYNC_FRAME_NUMBER) {
-        mSendFrame[Current]++;
+    if (mSendFrameCurrent < MAX_NET_SYNC_FRAME_NUMBER) {
+        mSendFrameCurrent++;
     }
     else {
-        mSendFrame[Current] = 0;
+        mSendFrameCurrent = 0;
     }
 
     mUpdated = false;
@@ -444,7 +444,7 @@ int SGCTNetwork::iterateFrameCounter() {
     fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
 #endif
 
-    return mSendFrame[Current];
+    return mSendFrameCurrent;
 }
 
 void SGCTNetwork::pushClientMessage() {
@@ -528,12 +528,20 @@ void SGCTNetwork::enableNaglesAlgorithmInDataTransfer() {
     mUseNaglesAlgorithmInDataTransfer = true;
 }
 
-int SGCTNetwork::getSendFrame(ReceivedIndex ri) const {
-    return mSendFrame[ri];
+int SGCTNetwork::getSendFrameCurrent() const {
+    return mSendFrameCurrent;
 }
 
-int SGCTNetwork::getRecvFrame(ReceivedIndex ri) const {
-    return mRecvFrame[ri];
+int SGCTNetwork::getSendFramePrevious() const {
+    return mSendFramePrevious;
+}
+
+int SGCTNetwork::getRecvFrameCurrent() const {
+    return mRecvFrameCurrent;
+}
+
+int SGCTNetwork::getRecvFramePrevious() const {
+    return mRecvFramePrevious;
 }
 
 double SGCTNetwork::getLoopTime() {
@@ -565,14 +573,14 @@ bool SGCTNetwork::isUpdated() const {
     if (mServer) {
         state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
             //master sends first -> so on reply they should be equal
-            (mRecvFrame[Current] == mSendFrame[Current]) :
+            (mRecvFrameCurrent == mSendFrameCurrent) :
             //don't check if loose sync
             true;
     }
     else {
         state = ClusterManager::instance()->getFirmFrameLockSyncStatus() ?
             // slaves receive first and then send so the prev should be equal to the send
-            (mRecvFrame[Previous] == mSendFrame[Current]) :
+            (mRecvFramePrevious == mSendFrameCurrent) :
             //if loose sync just check if updated
             mUpdated;
     }
@@ -664,8 +672,8 @@ void SGCTNetwork::setRecvFrame(int i) {
     );
 #endif
     
-    mRecvFrame[Previous].store(mRecvFrame[Current].load());
-    mRecvFrame[Current] = i;
+    mRecvFramePrevious.store(mRecvFrameCurrent.load());
+    mRecvFrameCurrent = i;
     mUpdated = true;
 
 #ifdef __SGCT_MUTEX_DEBUG__
@@ -950,8 +958,8 @@ void SGCTNetwork::communicationHandler() {
     }
 
     // init buffers
-    char recvHeader[mHeaderSize];
-    memset(recvHeader, DefaultId, mHeaderSize);
+    char RecvHeader[mHeaderSize];
+    memset(RecvHeader, DefaultId, mHeaderSize);
 
     mConnectionMutex.lock();
     mRecvBuf = new char[mBufferSize];
@@ -971,7 +979,7 @@ void SGCTNetwork::communicationHandler() {
                 mBufferSize, mRequestedSize.load()
             );
 
-            updateBuffer(&mRecvBuf, mRequestedSize.load(), mBufferSize);
+            updateBuffer(&mRecvBuf, mRequestedSize, mBufferSize);
 
             sgct::MessageHandler::instance()->printDebug(
                 sgct::MessageHandler::Level::Info, "Done.\n"
@@ -992,7 +1000,7 @@ void SGCTNetwork::communicationHandler() {
 
         if (getType() == ConnectionTypes::SyncConnection) {
             iResult = readSyncMessage(
-                recvHeader,
+                RecvHeader,
                 syncFrameNumber,
                 dataSize,
                 uncompressedDataSize
@@ -1000,7 +1008,7 @@ void SGCTNetwork::communicationHandler() {
         }
         else if (getType() == ConnectionTypes::DataTransfer) {
             iResult = readDataTransferMessage(
-                recvHeader,
+                RecvHeader,
                 packageId,
                 dataSize,
                 uncompressedDataSize
@@ -1014,7 +1022,7 @@ void SGCTNetwork::communicationHandler() {
         if (iResult > 0) {
             if (getType() == ConnectionTypes::SyncConnection) {
                 // handle sync disconnect
-                if (parseDisconnectPackage(recvHeader)) {
+                if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);
 
                     // Terminate client only. The server only resets the connection,
@@ -1188,7 +1196,7 @@ void SGCTNetwork::communicationHandler() {
             // handle data transfer communication
             else if (getType() == ConnectionTypes::DataTransfer) {
                 // Disconnect if requested
-                if (parseDisconnectPackage(recvHeader)) {
+                if (parseDisconnectPackage(RecvHeader)) {
                     setConnectedStatus(false);
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Info,
@@ -1345,8 +1353,7 @@ void SGCTNetwork::communicationHandler() {
     delete[] mUncompressBuf;
     mUncompressBuf = nullptr;
 
-    // Close socket
-    // contains mutex
+    // Close socket; contains mutex
     closeSocket(mSocket);
 
     if (mUpdateCallbackFn != nullptr) {
@@ -1436,8 +1443,7 @@ void SGCTNetwork::initShutdown() {
     }
 
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Info,
-        "Closing connection %d...\n", mId
+        sgct::MessageHandler::Level::Info, "Closing connection %d...\n", mId
     );
 
 #ifdef __SGCT_MUTEX_DEBUG__
@@ -1455,7 +1461,7 @@ void SGCTNetwork::initShutdown() {
     mConnected = false;
     mTerminate = true;
 
-    //wake up the connection handler thread (in order to finish)
+    // wake up the connection handler thread (in order to finish)
     if (mServer) {
         mStartConnectionCond.notify_all();
     }

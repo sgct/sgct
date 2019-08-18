@@ -1084,8 +1084,8 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                             "frame %d\n\tNvidia swap groups: %s\n\tNvidia swap barrier: "
                             "%s\n\tNvidia universal frame number: %u\n\tSGCT frame "
                             "number: %u\n",
-                            conn->getSendFrame(),
-                            conn->getRecvFrame(sgct_core::SGCTNetwork::Previous),
+                            conn->getSendFrameCurrent(),
+                            conn->getRecvFramePrevious(),
                             getCurrentWindowPtr().isUsingSwapGroups() ? "enabled" : "disabled",
                             getCurrentWindowPtr().isBarrierActive() ? "enabled" : "disabled",
                             getCurrentWindowPtr().getSwapGroupFrameNumber(),
@@ -1154,7 +1154,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                 sgct_core::SGCTNetwork* conn;
                 if (glfwGetTime() - t0 > 1.0) {
                     // more than a second
-                    for (unsigned int i=0;
+                    for (unsigned int i = 0;
                          i < mNetworkConnections->getSyncConnectionsCount();
                          i++)
                     {
@@ -1167,10 +1167,8 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                                 "Nvidia universal frame number: %u\n\t"
                                 "SGCT frame number: %u\n",
                                 i,
-                                mNetworkConnections->getConnectionByIndex(i)->getSendFrame(),
-                                mNetworkConnections->getConnectionByIndex(i)->getRecvFrame(
-                                    sgct_core::SGCTNetwork::Current
-                                ),
+                                mNetworkConnections->getConnectionByIndex(i)->getSendFrameCurrent(),
+                                mNetworkConnections->getConnectionByIndex(i)->getRecvFrameCurrent(),
                                 getCurrentWindowPtr().isUsingSwapGroups() ? "enabled" : "disabled",
                                 getCurrentWindowPtr().isBarrierActive() ? "enabled" : "disabled",
                                 getCurrentWindowPtr().getSwapGroupFrameNumber(),

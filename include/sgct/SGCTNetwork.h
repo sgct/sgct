@@ -49,8 +49,6 @@ public:
         DataTransfer
     };
 
-    enum ReceivedIndex { Current = 0, Previous };
-
     SGCTNetwork();
 
     /**
@@ -86,8 +84,10 @@ public:
     bool isConnected() const;
 
     bool isTerminated() const;
-    int getSendFrame(ReceivedIndex ri = Current) const;
-    int getRecvFrame(ReceivedIndex ri) const;
+    int getSendFrameCurrent() const;
+    int getSendFramePrevious() const;
+    int getRecvFrameCurrent() const;
+    int getRecvFramePrevious() const;
 
     /// Get the time in seconds from send to receive of sync data.
     double getLoopTime();
@@ -156,8 +156,10 @@ private:
     std::atomic_bool mServer;
     std::atomic_bool mConnected = false;
     std::atomic_bool mUpdated = false;
-    std::atomic<int32_t> mSendFrame[2] = { 0, 0 };
-    std::atomic<int32_t> mRecvFrame[2] = { 0, -1 };
+    std::atomic<int32_t> mSendFrameCurrent = 0;
+    std::atomic<int32_t> mSendFramePrevious = 0;
+    std::atomic<int32_t> mRecvFrameCurrent = 0;
+    std::atomic<int32_t> mRecvFramePrevious = -1;
     std::atomic_bool mTerminate = false; //set to true upon exit
 
     mutable std::mutex mConnectionMutex;

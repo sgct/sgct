@@ -198,9 +198,9 @@ void BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(
                                                          glm::vec3 untransformedCoords[3],
                                                                      const glm::quat& rot)
 {
-    mProjectionPlane.setCoordinate(0, rot * untransformedCoords[0]);
-    mProjectionPlane.setCoordinate(1, rot * untransformedCoords[1]);
-    mProjectionPlane.setCoordinate(2, rot * untransformedCoords[2]);
+    mProjectionPlane.setCoordinateLowerLeft(rot * untransformedCoords[0]);
+    mProjectionPlane.setCoordinateUpperLeft(rot * untransformedCoords[1]);
+    mProjectionPlane.setCoordinateUpperRight(rot * untransformedCoords[2]);
 }
 
 void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
@@ -214,15 +214,15 @@ void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
 }
 
 float BaseViewport::getHorizontalFieldOfViewDegrees() const {
-    float xDist = (mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).x -
-        mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperLeft).x) / 2;
-    float zDist = mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
+    float xDist = (mProjectionPlane.getCoordinateUpperRight().x -
+        mProjectionPlane.getCoordinateUpperLeft().x) / 2;
+    float zDist = mProjectionPlane.getCoordinateUpperRight().z;
     return (glm::degrees(atanf(fabs(xDist / zDist)))) * 2;
 }
 
 void BaseViewport::setHorizontalFieldOfView(float horizFovDeg, float aspectRatio) {
     glm::vec2 projPlaneDims;
-    float zDist = mProjectionPlane.getCoordinate(SGCTProjectionPlane::UpperRight).z;
+    float zDist = mProjectionPlane.getCoordinateUpperRight().z;
     projPlaneDims.x = fabs(zDist) * tanf(glm::radians<float>(horizFovDeg) / 2);
     projPlaneDims.y = projPlaneDims.x / aspectRatio;
     float verticalAngle = glm::degrees(atanf(projPlaneDims.y / fabs(zDist)));

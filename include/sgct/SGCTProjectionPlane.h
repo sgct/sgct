@@ -10,11 +10,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <glm/glm.hpp>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-#include "external/tinyxml2.h"
-#else
-#include <tinyxml2.h>
-#endif
+namespace tinyxml2 { class XMLElement; }
 
 namespace sgct_core {
 
@@ -26,17 +22,30 @@ public:
     enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
 
     SGCTProjectionPlane();
-    void configure(tinyxml2::XMLElement* element, glm::vec3* initializedCornerPoints);
+    void configure(tinyxml2::XMLElement* element, glm::vec3& initializedLowerLeftCorner,
+        glm::vec3& initializedUpperLeftCorner, glm::vec3& initializedUpperRightCorner);
     void reset();
     void offset(const glm::vec3& p);
 
-    void setCoordinate(ProjectionPlaneCorner corner, glm::vec3 coordinate);
-    void setCoordinate(size_t corner, glm::vec3 coordinate);
-    const glm::vec3* getCoordinatePtr(ProjectionPlaneCorner corner) const;
-    glm::vec3 getCoordinate(ProjectionPlaneCorner corner) const;
+    void setCoordinateLowerLeft(glm::vec3 coordinate);
+    void setCoordinateUpperLeft(glm::vec3 coordinate);
+    void setCoordinateUpperRight(glm::vec3 coordinate);
+
+    /// \returns coordinates for the lower left projection plane corner
+    glm::vec3 getCoordinateLowerLeft() const;
+
+    /// \returns coordinates for the upper left projection plane corner
+    glm::vec3 getCoordinateUpperLeft() const;
+
+    /// \returns coordinates for the upper right projection plane corner
+    glm::vec3 getCoordinateUpperRight() const;
 
 protected:
-    glm::vec3 mProjectionPlaneCoords[3];
+    struct {
+        glm::vec3 lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+        glm::vec3 upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+        glm::vec3 upperRight = glm::vec3(1.f, 1.f, -2.f);
+    } mProjectionPlaneCoords;
 };
 
 } // namespace sgct_core

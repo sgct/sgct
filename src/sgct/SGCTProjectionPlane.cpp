@@ -9,6 +9,12 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/MessageHandler.h>
 
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include "external/tinyxml2.h"
+#else
+#include <tinyxml2.h>
+#endif
+
 namespace sgct_core{
 
 sgct_core::SGCTProjectionPlane::SGCTProjectionPlane() {
@@ -16,7 +22,9 @@ sgct_core::SGCTProjectionPlane::SGCTProjectionPlane() {
 }
 
 void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
-                                    glm::vec3* initializedCornerPoints)
+                                    glm::vec3& initializedLowerLeftCorner,
+                                    glm::vec3& initializedUpperLeftCorner,
+                                    glm::vec3& initializedUpperRightCorner)
 {
     using namespace tinyxml2;
 
@@ -45,11 +53,21 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
                     tmpVec.x, tmpVec.y, tmpVec.z, i % 3
                 );
 
-                setCoordinate(i % 3, tmpVec);
-                //Write this to initializedCornerPoints so caller knows initial corner values
-                initializedCornerPoints[i].x = tmpVec.x;
-                initializedCornerPoints[i].y = tmpVec.y;
-                initializedCornerPoints[i].z = tmpVec.z;
+                switch (i % 3) {
+                    case 0:
+                        setCoordinateLowerLeft(tmpVec);
+                        initializedLowerLeftCorner = tmpVec;
+                        break;
+                    case 1:
+                        setCoordinateUpperLeft(tmpVec);
+                        initializedUpperLeftCorner = tmpVec;
+                        break;
+                    case 2:
+                        setCoordinateUpperRight(tmpVec);
+                        initializedUpperRightCorner = tmpVec;
+                        break;
+                }
+
                 i++;
             }
             else {
@@ -60,46 +78,46 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             }
         }
 
-        //iterate
         subElement = subElement->NextSiblingElement();
     }
 }
 
 void SGCTProjectionPlane::reset() {
-    mProjectionPlaneCoords[LowerLeft] = glm::vec3(-1.f, -1.f, -2.f);
-    mProjectionPlaneCoords[UpperLeft] = glm::vec3(-1.f, 1.f, -2.f);
-    mProjectionPlaneCoords[UpperRight] = glm::vec3(1.f, 1.f, -2.f);
+    mProjectionPlaneCoords.lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    mProjectionPlaneCoords.upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    mProjectionPlaneCoords.upperRight = glm::vec3(1.f, 1.f, -2.f);
 }
 
 void SGCTProjectionPlane::offset(const glm::vec3& p) {
-    mProjectionPlaneCoords[LowerLeft] += p;
-    mProjectionPlaneCoords[UpperLeft] += p;
-    mProjectionPlaneCoords[UpperRight] += p;
+    mProjectionPlaneCoords.lowerLeft += p;
+    mProjectionPlaneCoords.upperLeft += p;
+    mProjectionPlaneCoords.upperRight += p;
 }
 
-void SGCTProjectionPlane::setCoordinate(ProjectionPlaneCorner corner,
-                                        glm::vec3 coordinate)
-{
-    mProjectionPlaneCoords[corner] = std::move(coordinate);
+void SGCTProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
+    mProjectionPlaneCoords.lowerLeft = std::move(coordinate);
 }
 
-void SGCTProjectionPlane::setCoordinate(size_t corner, glm::vec3 coordinate) {
-    mProjectionPlaneCoords[corner] = std::move(coordinate);
+void SGCTProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
+    mProjectionPlaneCoords.upperLeft = std::move(coordinate);
+
 }
 
-/*!
-\returns coordinate pointer for the selected projection plane corner
-*/
-const glm::vec3* SGCTProjectionPlane::getCoordinatePtr(ProjectionPlaneCorner corner) const
-{
-    return &mProjectionPlaneCoords[corner];
+void SGCTProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
+    mProjectionPlaneCoords.upperRight = std::move(coordinate);
+
 }
 
-/*!
-\returns coordinate for selected the projection plane corner
-*/
-glm::vec3 SGCTProjectionPlane::getCoordinate(ProjectionPlaneCorner corner) const {
-    return mProjectionPlaneCoords[corner];
+glm::vec3 SGCTProjectionPlane::getCoordinateLowerLeft() const {
+    return mProjectionPlaneCoords.lowerLeft;
+}
+
+glm::vec3 SGCTProjectionPlane::getCoordinateUpperLeft() const {
+    return mProjectionPlaneCoords.upperLeft;
+}
+
+glm::vec3 SGCTProjectionPlane::getCoordinateUpperRight() const {
+    return mProjectionPlaneCoords.upperRight;
 }
 
 } // namespace sgct_core

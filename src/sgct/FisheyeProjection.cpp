@@ -312,16 +312,13 @@ void FisheyeProjection::initViewports() {
                     break;
             }
 
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::LowerLeft,
+            mSubViewports[i].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::UpperLeft,
+            mSubViewports[i].getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::UpperRight,
+            mSubViewports[i].getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         }
@@ -398,16 +395,13 @@ void FisheyeProjection::initViewports() {
             } //end switch
 
             //add viewplane vertices
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::LowerLeft,
+            mSubViewports[i].getProjectionPlane().setCoordinateLowerLeft(
                 glm::vec3(rotMat * lowerLeft)
             );
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::UpperLeft,
+            mSubViewports[i].getProjectionPlane().setCoordinateUpperLeft(
                 glm::vec3(rotMat * upperLeft)
             );
-            mSubViewports[i].getProjectionPlane().setCoordinate(
-                SGCTProjectionPlane::UpperRight,
+            mSubViewports[i].getProjectionPlane().setCoordinateUpperRight(
                 glm::vec3(rotMat * upperRight)
             );
         } //end for

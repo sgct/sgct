@@ -17,6 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <fstream>
 #include <iomanip>
+#include <sstream>
 
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
     #define _sscanf sscanf_s

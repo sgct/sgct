@@ -12,11 +12,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <atomic>
 #include <mutex>
 #include <string>
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include <external/tinyxml2.h>
-#else // SGCT_DONT_USE_EXTERNAL
-    #include <tinyxml2.h>
-#endif // SGCT_DONT_USE_EXTERNAL
+
+namespace tinyxml2 { class XMLElement; }
 
 namespace sgct {
 

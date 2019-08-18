@@ -9,6 +9,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <sgct/MessageHandler.h>
 #include <sgct/ScreenCapture.h>
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include <external/tinyxml2.h>
+#else // SGCT_DONT_USE_EXTERNAL
+#include <tinyxml2.h>
+#endif // SGCT_DONT_USE_EXTERNAL
 
 namespace sgct {
 
@@ -31,34 +36,34 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
     using namespace tinyxml2;
 
     const char* val;
-    XMLElement* subElement = element->FirstChildElement();
+    XMLElement* elem = element->FirstChildElement();
 
-    while (subElement != nullptr) {
-        val = subElement->Value();
+    while (elem) {
+        val = elem->Value();
 
         if (strcmp("DepthBufferTexture", val) == 0) {
-            if (subElement->Attribute("value") != nullptr) {
-                setUseDepthTexture(strcmp(subElement->Attribute("value"), "true") == 0);
+            if (elem->Attribute("value") != nullptr) {
+                setUseDepthTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("NormalTexture", val) == 0) {
-            if (subElement->Attribute("value") != nullptr) {
-                setUseNormalTexture(strcmp(subElement->Attribute("value"), "true") == 0);
+            if (elem->Attribute("value") != nullptr) {
+                setUseNormalTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("PositionTexture", val) == 0) {
-            if (subElement->Attribute("value") != nullptr) {
-                setUsePositionTexture(strcmp(subElement->Attribute("value"), "true") == 0);
+            if (elem->Attribute("value") != nullptr) {
+                setUsePositionTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("PBO", val) == 0) {
-            if (subElement->Attribute("value") != nullptr) {
-                setUsePBO(strcmp(subElement->Attribute("value"), "true") == 0);
+            if (elem->Attribute("value") != nullptr) {
+                setUsePBO(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("Precision", val) == 0) {
             int fprec = 0;
-            if (subElement->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
+            if (elem->QueryIntAttribute("float", &fprec) == XML_NO_ERROR) {
                 if (fprec == 16) {
                     setBufferFloatPrecision(BufferFloatPrecision::Float_16Bit);
                 }
@@ -68,7 +73,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 else {
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Warning,
-                        "ReadConfig: Invalid float precition value (%d)! Must be 16 or 32.\n",
+                        "ReadConfig: Invalid precition value (%d)! Must be 16 or 32.\n",
                         fprec
                     );
                 }
@@ -76,13 +81,13 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             else {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Warning,
-                    "ReadConfig: Invalid float precition value! Must be 16 or 32.\n"
+                    "ReadConfig: Invalid precition value! Must be 16 or 32.\n"
                 );
             }
         }
         else if (strcmp("Display", val) == 0) {
             int interval = 0;
-            if (subElement->QueryIntAttribute("swapInterval", &interval) == XML_NO_ERROR) {
+            if (elem->QueryIntAttribute("swapInterval", &interval) == XML_NO_ERROR) {
                 setSwapInterval(interval);
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
@@ -91,7 +96,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             }
 
             int rate = 0;
-            if (subElement->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR) {
+            if (elem->QueryIntAttribute("refreshRate", &rate) == XML_NO_ERROR) {
                 setRefreshRateHint(rate);
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
@@ -99,12 +104,12 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 );
             }
 
-            const char* maintainAspect = subElement->Attribute("tryMaintainAspectRatio");
+            const char* maintainAspect = elem->Attribute("tryMaintainAspectRatio");
             if (maintainAspect != nullptr) {
                 setTryMaintainAspectRatio(strcmp(maintainAspect, "true") == 0);
             }
 
-            const char* exportMeshes = subElement->Attribute("exportWarpingMeshes");
+            const char* exportMeshes = elem->Attribute("exportWarpingMeshes");
             if (exportMeshes != nullptr) {
                 setExportWarpingMeshes(strcmp(exportMeshes, "true") == 0);
             }
@@ -113,25 +118,25 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             float x = 0.f;
             float y = 0.f;
 
-            if (subElement->Attribute("name") != nullptr) {
-                setOSDTextFontName(subElement->Attribute("name"));
+            if (elem->Attribute("name") != nullptr) {
+                setOSDTextFontName(elem->Attribute("name"));
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font name to %s\n", subElement->Attribute("name")
+                    "ReadConfig: Setting font name to %s\n", elem->Attribute("name")
                 );
             }
 
-            if (subElement->Attribute("path") != nullptr) {
-                setOSDTextFontPath(subElement->Attribute("path"));
+            if (elem->Attribute("path") != nullptr) {
+                setOSDTextFontPath(elem->Attribute("path"));
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
-                    "ReadConfig: Setting font path to %s\n", subElement->Attribute("path")
+                    "ReadConfig: Setting font path to %s\n", elem->Attribute("path")
                 );
             }
 
-            if (subElement->Attribute("size") != nullptr) {
+            if (elem->Attribute("size") != nullptr) {
                 unsigned int tmpi;
-                XMLError err = subElement->QueryUnsignedAttribute("size", &tmpi);
+                XMLError err = elem->QueryUnsignedAttribute("size", &tmpi);
                 if (err == tinyxml2::XML_NO_ERROR && tmpi > 0) {
                     setOSDTextFontSize(tmpi);
                     MessageHandler::instance()->print(
@@ -142,12 +147,12 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 else {
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Warning,
-                        "ReadConfig: Font size not specified. Setting to default size=10!\n"
+                        "ReadConfig: Font size not specified. Setting to size=10!\n"
                     );
                 }
             }
 
-            if (subElement->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR) {
+            if (elem->QueryFloatAttribute("xOffset", &x) == XML_NO_ERROR) {
                 mOSDTextOffset.x = x;
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
@@ -155,7 +160,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 );
             }
 
-            if (subElement->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR) {
+            if (elem->QueryFloatAttribute("yOffset", &y) == XML_NO_ERROR) {
                 mOSDTextOffset.y = y;
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
@@ -165,7 +170,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
         }
         else if (strcmp("FXAA", val) == 0) {
             float offset = 0.f;
-            if (subElement->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR) {
+            if (elem->QueryFloatAttribute("offset", &offset) == XML_NO_ERROR) {
                 setFXAASubPixOffset(offset);
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Debug,
@@ -174,7 +179,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             }
 
             float trim = 0.f;
-            if (subElement->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR) {
+            if (elem->QueryFloatAttribute("trim", &trim) == XML_NO_ERROR) {
                 if (trim > 0.f) {
                     setFXAASubPixTrim(1.f / trim);
                     MessageHandler::instance()->print(
@@ -192,7 +197,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             }
         }
 
-        subElement = subElement->NextSiblingElement();
+        elem = elem->NextSiblingElement();
     }
 }
 
@@ -304,13 +309,6 @@ SGCTSettings::DrawBufferType SGCTSettings::getCurrentDrawBufferType() const {
 }
 
 void SGCTSettings::setCapturePath(std::string path, CapturePath cpi) {
-    if (path.empty()) {
-        MessageHandler::instance()->print(
-            MessageHandler::Level::Error, "SGCTSettings: Empty screen capture path!\n"
-        );
-        return;
-    }
-
     switch (cpi) {
         case CapturePath::Mono:
             mCapturePath.mono = std::move(path);
@@ -351,7 +349,6 @@ void SGCTSettings::setFXAASubPixOffset(float val) {
     mFXAASubPixOffset = val;
 }
 
-
 void SGCTSettings::setOSDTextOffset(glm::vec2 val) {
     mOSDTextOffset = std::move(val);
 }
@@ -376,7 +373,7 @@ void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
-            "SGCTSettings: Number of default MSAA samples must be a power of two (not %d)!\n",
+            "SGCTSettings: Number of default MSAA samples must be a power of two.\n",
             samples
         );
     }

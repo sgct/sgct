@@ -17,15 +17,9 @@ void SGCTProjection::calculateProjection(glm::vec3 base,
                                          float nearClippingPlane,
                                          float farClippingPlane, glm::vec3 viewOffset)
 {
-    glm::vec3 lowerLeft = projectionPlanePtr->getCoordinate(
-        SGCTProjectionPlane::LowerLeft
-    );
-    glm::vec3 upperLeft = projectionPlanePtr->getCoordinate(
-        SGCTProjectionPlane::UpperLeft
-    );
-    glm::vec3 upperRight = projectionPlanePtr->getCoordinate(
-        SGCTProjectionPlane::UpperRight
-    );
+    glm::vec3 lowerLeft = projectionPlanePtr->getCoordinateLowerLeft();
+    glm::vec3 upperLeft = projectionPlanePtr->getCoordinateUpperLeft();
+    glm::vec3 upperRight = projectionPlanePtr->getCoordinateUpperRight();
     
     //calculate viewplane's internal coordinate system bases
     glm::vec3 plane_x = upperRight - upperLeft;

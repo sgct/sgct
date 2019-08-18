@@ -46,16 +46,16 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
 
                 switch (i % 3) {
                     case 0:
-                        setCoordinateLowerLeft(tmpVec);
-                        initializedLowerLeftCorner = tmpVec;
+                        setCoordinateLowerLeft(pos);
+                        initializedLowerLeftCorner = pos;
                         break;
                     case 1:
-                        setCoordinateUpperLeft(tmpVec);
-                        initializedUpperLeftCorner = tmpVec;
+                        setCoordinateUpperLeft(pos);
+                        initializedUpperLeftCorner = pos;
                         break;
                     case 2:
-                        setCoordinateUpperRight(tmpVec);
-                        initializedUpperRightCorner = tmpVec;
+                        setCoordinateUpperRight(pos);
+                        initializedUpperRightCorner = pos;
                         break;
                 }
 

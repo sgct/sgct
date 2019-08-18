@@ -129,7 +129,7 @@ void BaseViewport::calculateFrustum(const Frustum::FrustumMode& frustumMode,
     }();
     mProjections[frustumMode].calculateProjection(
         eyePos,
-        &mProjectionPlane,
+        mProjectionPlane,
         nearClippingPlane,
         farClippingPlane
     );
@@ -158,7 +158,7 @@ void BaseViewport::calculateNonLinearFrustum(const Frustum::FrustumMode& frustum
 
     mProjections[frustumMode].calculateProjection(
         eyePos,
-        &mProjectionPlane,
+        mProjectionPlane,
         nearClippingPlane,
         farClippingPlane,
         offset
@@ -173,44 +173,52 @@ void BaseViewport::setViewPlaneCoordsUsingFOVs(float up, float down, float left,
     mFOV = glm::vec4(up, down, left, right);
     mDistance = dist;
 
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].x =
+    mUnTransformedViewPlaneCoords.lowerLeft.x =
         dist * tanf(glm::radians<float>(left));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].y =
+    mUnTransformedViewPlaneCoords.lowerLeft.y =
         dist * tanf(glm::radians<float>(down));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::LowerLeft].z = -dist;
+    mUnTransformedViewPlaneCoords.lowerLeft.z = -dist;
 
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].x =
+    mUnTransformedViewPlaneCoords.upperLeft.x =
         dist * tanf(glm::radians<float>(left));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].y =
+    mUnTransformedViewPlaneCoords.upperLeft.y =
         dist * tanf(glm::radians<float>(up));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperLeft].z = -dist;
+    mUnTransformedViewPlaneCoords.upperLeft.z = -dist;
 
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].x =
+    mUnTransformedViewPlaneCoords.upperRight.x =
         dist * tanf(glm::radians<float>(right));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].y =
+    mUnTransformedViewPlaneCoords.upperRight.y =
         dist * tanf(glm::radians<float>(up));
-    mUnTransformedViewPlaneCoords[SGCTProjectionPlane::UpperRight].z = -dist;
+    mUnTransformedViewPlaneCoords.upperRight.z = -dist;
 
-    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, rot);
+    setViewPlaneCoordsFromUnTransformedCoords(
+        mUnTransformedViewPlaneCoords.lowerLeft,
+        mUnTransformedViewPlaneCoords.upperLeft,
+        mUnTransformedViewPlaneCoords.upperRight,
+        rot
+    );
 }
 
-void BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(
-                                                         glm::vec3 untransformedCoords[3],
-                                                                     const glm::quat& rot)
+void BaseViewport::setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 lowerLeft,
+                                                             glm::vec3 upperLeft,
+                                                             glm::vec3 upperRight,
+                                                             const glm::quat& rot)
 {
-    mProjectionPlane.setCoordinateLowerLeft(rot * untransformedCoords[0]);
-    mProjectionPlane.setCoordinateUpperLeft(rot * untransformedCoords[1]);
-    mProjectionPlane.setCoordinateUpperRight(rot * untransformedCoords[2]);
+    mProjectionPlane.setCoordinateLowerLeft(rot * std::move(lowerLeft));
+    mProjectionPlane.setCoordinateUpperLeft(rot * std::move(upperLeft));
+    mProjectionPlane.setCoordinateUpperRight(rot * std::move(upperRight));
 }
 
 void BaseViewport::updateFovToMatchAspectRatio(float oldRatio, float newRatio) {
-    for (unsigned int c = static_cast<unsigned int>(SGCTProjectionPlane::LowerLeft);
-         c <= static_cast<unsigned int>(SGCTProjectionPlane::UpperRight);
-         ++c)
-    {
-        mUnTransformedViewPlaneCoords[c].x *= newRatio / oldRatio;
-    }
-    setViewPlaneCoordsFromUnTransformedCoords(mUnTransformedViewPlaneCoords, mRot);
+    mUnTransformedViewPlaneCoords.lowerLeft.x *= newRatio / oldRatio;
+    mUnTransformedViewPlaneCoords.upperLeft.x *= newRatio / oldRatio;
+    mUnTransformedViewPlaneCoords.upperRight.x *= newRatio / oldRatio;
+    setViewPlaneCoordsFromUnTransformedCoords(
+        mUnTransformedViewPlaneCoords.lowerLeft,
+        mUnTransformedViewPlaneCoords.upperLeft,
+        mUnTransformedViewPlaneCoords.upperRight,
+        mRot
+    );
 }
 
 float BaseViewport::getHorizontalFieldOfViewDegrees() const {

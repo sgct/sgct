@@ -161,8 +161,12 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
             parseSpoutOutputProjection(subElement);
         }
         else if (val == "Viewplane" || val == "Projectionplane") {
-            mProjectionPlane.configure(subElement, mUnTransformedViewPlaneCoords[0],
-                mUnTransformedViewPlaneCoords[1], mUnTransformedViewPlaneCoords[2]);
+            mProjectionPlane.configure(
+                subElement,
+                mUnTransformedViewPlaneCoords.lowerLeft,
+                mUnTransformedViewPlaneCoords.upperLeft,
+                mUnTransformedViewPlaneCoords.upperRight
+            );
         }
 
         //iterate

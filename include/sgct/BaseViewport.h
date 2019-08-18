@@ -60,8 +60,8 @@ public:
         float nearClippingPlane, float farClippingPlane);
     void setViewPlaneCoordsUsingFOVs(float up, float down, float left, float right,
         glm::quat rot, float dist = 10.f);
-    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 untransformedCoords[3],
-        const glm::quat& rot);
+    void setViewPlaneCoordsFromUnTransformedCoords(glm::vec3 lowerLeft,
+        glm::vec3 upperLeft, glm::vec3 upperRight, const glm::quat& rot);
     void updateFovToMatchAspectRatio(float oldRatio, float newRatio);
     void setHorizontalFieldOfView(float horizFovDeg, float aspectRatio);
 
@@ -79,7 +79,11 @@ protected:
     float mXSize = 1.f;
     float mYSize = 1.f;
 
-    glm::vec3 mUnTransformedViewPlaneCoords[3];
+    struct {
+        glm::vec3 lowerLeft;
+        glm::vec3 upperLeft;
+        glm::vec3 upperRight;
+    } mUnTransformedViewPlaneCoords;
     glm::quat mRot;
     float mDistance;
     glm::vec4 mFOV;

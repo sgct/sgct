@@ -80,6 +80,13 @@ namespace {
         }
     }
 
+    bool parseDisconnectPackage(char* headerPtr) {
+        return (headerPtr[0] == sgct_core::SGCTNetwork::DisconnectId && headerPtr[1] == 24 &&
+            headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
+            headerPtr[4] == 27 && headerPtr[5] == '\r' &&
+            headerPtr[6] == '\n' && headerPtr[7] == '\0');
+    }
+
 } // namespace
 
 namespace sgct_core {
@@ -197,12 +204,7 @@ void SGCTNetwork::init(std::string port, const std::string address, bool isServe
     }
 
     freeaddrinfo(res);
-    mMainThread = std::make_unique<std::thread>(connectionHandlerStarter, this);
-}
-
-void SGCTNetwork::connectionHandlerStarter(void* arg) {
-    SGCTNetwork* nPtr = reinterpret_cast<SGCTNetwork*>(arg);
-    nPtr->connectionHandler();
+    mMainThread = std::make_unique<std::thread>([this]() { connectionHandler(); });
 }
 
 void SGCTNetwork::connectionHandler() {
@@ -217,8 +219,7 @@ void SGCTNetwork::connectionHandler() {
 
                 // start a new connection enabling the client to reconnect
                 mCommThread = std::make_unique<std::thread>(
-                    communicationHandlerStarter,
-                    this
+                    [this]() { communicationHandler(); }
                 );
             }
 
@@ -238,7 +239,7 @@ void SGCTNetwork::connectionHandler() {
     }
     else {
         // if client
-        mCommThread = std::make_unique<std::thread>(communicationHandlerStarter, this);
+        mCommThread = std::make_unique<std::thread>([this]() { communicationHandler(); });
     }
 
     sgct::MessageHandler::instance()->print(
@@ -437,7 +438,7 @@ int SGCTNetwork::iterateFrameCounter() {
     fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 #endif
     mConnectionMutex.lock();
-    mTimeStamp[Send] = sgct::Engine::getTime();
+    mTimeStampSend = sgct::Engine::getTime();
     mConnectionMutex.unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
@@ -545,7 +546,7 @@ double SGCTNetwork::getLoopTime() {
         fprintf(stderr, "Locking mutex for connection %d...\n", mId);
     #endif
     mConnectionMutex.lock();
-    double tmpd = mTimeStamp[Total];
+    double tmpd = mTimeStampTotal;
     mConnectionMutex.unlock();
     #ifdef __SGCT_MUTEX_DEBUG__
         fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
@@ -671,7 +672,7 @@ void SGCTNetwork::setRecvFrame(int i) {
     fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 #endif
     mConnectionMutex.lock();
-    mTimeStamp[Total] = sgct::Engine::getTime() - mTimeStamp[Send];
+    mTimeStampTotal = sgct::Engine::getTime() - mTimeStampSend;
     mConnectionMutex.unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
     fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
@@ -893,11 +894,6 @@ int SGCTNetwork::readExternalMessage() {
     }
     
     return iResult;
-}
-
-void SGCTNetwork::communicationHandlerStarter(void* arg) {
-    SGCTNetwork* nPtr = reinterpret_cast<SGCTNetwork*>(arg);
-    nPtr->communicationHandler();
 }
 
 void SGCTNetwork::communicationHandler() {
@@ -1466,13 +1462,6 @@ void SGCTNetwork::initShutdown() {
 
     closeSocket(mSocket);
     closeSocket(mListenSocket);
-}
-
-bool SGCTNetwork::parseDisconnectPackage(char* headerPtr) {
-    return (headerPtr[0] == DisconnectId && headerPtr[1] == 24 &&
-            headerPtr[2] == '\r' && headerPtr[3] == '\n' &&
-            headerPtr[4] == 27 && headerPtr[5] == '\r' &&
-            headerPtr[6] == '\n' && headerPtr[7] == '\0');
 }
 
 } // namespace sgct_core

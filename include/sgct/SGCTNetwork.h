@@ -27,9 +27,9 @@ using _ssize_t = int;
 
 namespace sgct_core {
 
-/*!
-SGCTNetwork manages peer-to-peer tcp connections.
-*/
+/**
+ * SGCTNetwork manages peer-to-peer tcp connections.
+ */
 class SGCTNetwork {
 public:
     // ASCII device control chars = 17, 18, 19 & 20
@@ -140,37 +140,32 @@ private:
         uint32_t& uncompressedDataSize);
     int readExternalMessage();
 
-    static void communicationHandlerStarter(void* arg);
-    static void connectionHandlerStarter(void* arg);
-
     /// function to decode messages
     void communicationHandler();
     void connectionHandler();
-    static bool parseDisconnectPackage(char* headerPtr);
 
 public:
     static const size_t mHeaderSize = 13;
     std::condition_variable mStartConnectionCond;
 
 private:
-    enum TimeStampIndex { Send = 0, Total };
-
     SGCT_SOCKET mSocket;
     SGCT_SOCKET mListenSocket;
 
     ConnectionTypes mConnectionType = ConnectionTypes::SyncConnection;
-    std::atomic<bool> mServer;
-    std::atomic<bool> mConnected = false;
-    std::atomic<bool> mUpdated = false;
+    std::atomic_bool mServer;
+    std::atomic_bool mConnected = false;
+    std::atomic_bool mUpdated = false;
     std::atomic<int32_t> mSendFrame[2] = { 0, 0 };
     std::atomic<int32_t> mRecvFrame[2] = { 0, -1 };
-    std::atomic<bool> mTerminate = false; //set to true upon exit
+    std::atomic_bool mTerminate = false; //set to true upon exit
 
     mutable std::mutex mConnectionMutex;
     std::unique_ptr<std::thread> mCommThread;
     std::unique_ptr<std::thread> mMainThread;
 
-    double mTimeStamp[2] = { 0.0, 0.0 };
+    double mTimeStampSend = 0.0;
+    double mTimeStampTotal = 0.0;
     int mId;
     uint32_t mBufferSize = 1024;
     uint32_t mUncompressedBufferSize = mBufferSize;

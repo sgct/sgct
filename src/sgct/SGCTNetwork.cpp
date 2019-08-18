@@ -737,21 +737,16 @@ _ssize_t SGCTNetwork::receiveData(SGCT_SOCKET& lsocket, char* buffer, int length
 }
 
 
-
-void SGCTNetwork::updateBuffer(char** buffer, uint32_t reqSize, uint32_t& currSize) {
+void SGCTNetwork::updateBuffer(std::vector<char>& buffer, uint32_t reqSize,
+                               uint32_t& currSize) {
     // grow only
     if (reqSize <= currSize) {
         return;
     }
 
     mConnectionMutex.lock();
-
-    delete[](*buffer);
-    (*buffer) = new (std::nothrow) char[reqSize];
-    if ((*buffer) != nullptr) {
-        currSize = reqSize;
-    }
-
+    buffer.resize(reqSize);
+    currSize = reqSize;
     mConnectionMutex.unlock();
 }
 
@@ -797,8 +792,8 @@ int SGCTNetwork::readSyncMessage(char* header, int32_t& syncFrameNumber,
             fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 #endif
             
-            updateBuffer(&mRecvBuf, dataSize, mBufferSize);
-            updateBuffer(&mUncompressBuf, uncompressedDataSize, mUncompressedBufferSize);
+            updateBuffer(mRecvBuf, dataSize, mBufferSize);
+            updateBuffer(mUncompressBuf, uncompressedDataSize, mUncompressedBufferSize);
             
 #ifdef __SGCT_MUTEX_DEBUG__
             fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
@@ -815,7 +810,7 @@ int SGCTNetwork::readSyncMessage(char* header, int32_t& syncFrameNumber,
 
     // Get the data/message
     if (dataSize > 0) {
-        iResult = receiveData(mSocket, mRecvBuf, dataSize, 0);
+        iResult = receiveData(mSocket, mRecvBuf.data(), dataSize, 0);
     }
 
     return iResult;
@@ -846,8 +841,8 @@ int SGCTNetwork::readDataTransferMessage(char* header, int32_t& packageId,
 #ifdef __SGCT_MUTEX_DEBUG__
             fprintf(stderr, "Locking mutex for connection %d...\n", mId);
 #endif
-            updateBuffer(&mRecvBuf, dataSize, mBufferSize);
-            updateBuffer(&mUncompressBuf, uncompressedDataSize, mUncompressedBufferSize);
+            updateBuffer(mRecvBuf, dataSize, mBufferSize);
+            updateBuffer(mUncompressBuf, uncompressedDataSize, mUncompressedBufferSize);
 
 #ifdef __SGCT_MUTEX_DEBUG__
             fprintf(stderr, "Mutex for connection %d is unlocked.\n", mId);
@@ -868,7 +863,7 @@ int SGCTNetwork::readDataTransferMessage(char* header, int32_t& packageId,
 #endif
     // Get the data/message
     if (dataSize > 0 && packageId > -1) {
-        iResult = receiveData(mSocket, mRecvBuf, dataSize, 0);
+        iResult = receiveData(mSocket, mRecvBuf.data(), dataSize, 0);
 #ifdef __SGCT_NETWORK_DEBUG__
         sgct::MessageHandler::instance()->printDebug(
             sgct::MessageHandler::Level::Info,
@@ -882,7 +877,7 @@ int SGCTNetwork::readDataTransferMessage(char* header, int32_t& packageId,
 
 int SGCTNetwork::readExternalMessage() {
     // do a normal read
-    int iResult = recv(mSocket, mRecvBuf, mBufferSize, 0);
+    int iResult = recv(mSocket, mRecvBuf.data(), mBufferSize, 0);
 
     // if read fails try for x attempts
     int attempts = 1;
@@ -892,7 +887,7 @@ int SGCTNetwork::readExternalMessage() {
     while (iResult <= 0 && SGCT_ERRNO == EINTR && attempts <= MaxNumberOfAttempts)
 #endif
     {
-        iResult = recv(mSocket, mRecvBuf, mBufferSize, 0);
+        iResult = recv(mSocket, mRecvBuf.data(), mBufferSize, 0);
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Info,
@@ -962,8 +957,8 @@ void SGCTNetwork::communicationHandler() {
     memset(RecvHeader, DefaultId, mHeaderSize);
 
     mConnectionMutex.lock();
-    mRecvBuf = new char[mBufferSize];
-    mUncompressBuf = new char[mUncompressedBufferSize];
+    mRecvBuf.resize(mBufferSize);
+    mUncompressBuf.resize(mUncompressedBufferSize);
     mConnectionMutex.unlock();
     
     std::string extBuffer; //for external comm
@@ -979,7 +974,7 @@ void SGCTNetwork::communicationHandler() {
                 mBufferSize, mRequestedSize.load()
             );
 
-            updateBuffer(&mRecvBuf, mRequestedSize, mBufferSize);
+            updateBuffer(mRecvBuf, mRequestedSize, mBufferSize);
 
             sgct::MessageHandler::instance()->printDebug(
                 sgct::MessageHandler::Level::Info, "Done.\n"
@@ -1043,7 +1038,7 @@ void SGCTNetwork::communicationHandler() {
                     if (mHeaderId == DataId && mDecoderCallbackFn != nullptr) {
                         //decode callback
                         if (dataSize > 0) {
-                            mDecoderCallbackFn(mRecvBuf, dataSize, mId);
+                            mDecoderCallbackFn(mRecvBuf.data(), dataSize, mId);
                         }
 
                         NetworkManager::gCond.notify_all();
@@ -1065,16 +1060,16 @@ void SGCTNetwork::communicationHandler() {
                             );
     
                             int err = uncompress(
-                                reinterpret_cast<Bytef*>(mUncompressBuf),
+                                reinterpret_cast<Bytef*>(mUncompressBuf.data()),
                                 &uncompressedSize,
-                                reinterpret_cast<Bytef*>(mRecvBuf),
+                                reinterpret_cast<Bytef*>(mRecvBuf.data()),
                                 static_cast<uLongf>(dataSize)
                             );
                             
                             if (err == Z_OK) {
-                                //decode callback
+                                // decode callback
                                 mDecoderCallbackFn(
-                                    mUncompressBuf,
+                                    mUncompressBuf.data(),
                                     static_cast<int>(uncompressedSize),
                                     mId
                                 );
@@ -1117,7 +1112,7 @@ void SGCTNetwork::communicationHandler() {
                     "Parsing external TCP ASCII data... "
                 );
 #endif
-                extBuffer += std::string(mRecvBuf).substr(0, iResult);
+                extBuffer += std::string(mRecvBuf.data()).substr(0, iResult);
 
                 bool breakConnection = false;
                 // look for cancel
@@ -1184,7 +1179,7 @@ void SGCTNetwork::communicationHandler() {
                 );
 #endif
                 if (mDecoderCallbackFn != nullptr) {
-                    mDecoderCallbackFn(mRecvBuf, iResult, mId);
+                    mDecoderCallbackFn(mRecvBuf.data(), iResult, mId);
                 }
 
 #ifdef __SGCT_NETWORK_DEBUG__
@@ -1213,7 +1208,12 @@ void SGCTNetwork::communicationHandler() {
                         if (mHeaderId == DataId) {
                             // uncompressed
                             // decode callback
-                            mPackageDecoderCallbackFn(mRecvBuf, dataSize, packageId, mId);
+                            mPackageDecoderCallbackFn(
+                                mRecvBuf.data(),
+                                dataSize,
+                                packageId,
+                                mId
+                            );
                             recvOk = true;
                         }
                         else {
@@ -1224,16 +1224,16 @@ void SGCTNetwork::communicationHandler() {
                             );
                             
                             int err = uncompress(
-                                reinterpret_cast<Bytef*>(mUncompressBuf),
+                                reinterpret_cast<Bytef*>(mUncompressBuf.data()),
                                 &uncompressedSize,
-                                reinterpret_cast<Bytef*>(mRecvBuf),
+                                reinterpret_cast<Bytef*>(mRecvBuf.data()),
                                 static_cast<uLongf>(dataSize)
                             );
                             
                             if (err == Z_OK) {
                                 // decode callback
                                 mPackageDecoderCallbackFn(
-                                    mUncompressBuf,
+                                    mUncompressBuf.data(),
                                     static_cast<int>(uncompressedSize),
                                     packageId,
                                     mId
@@ -1274,12 +1274,9 @@ void SGCTNetwork::communicationHandler() {
                         mConnectionMutex.lock();
 
                         // clean up
-                        delete[] mRecvBuf;
-                        mRecvBuf = nullptr;
+                        mRecvBuf.clear();
+                        mUncompressBuf.clear();
                         
-                        delete[] mUncompressBuf;
-                        mUncompressBuf = nullptr;
-
                         mBufferSize = 0;
                         mUncompressedBufferSize = 0;
                         mConnectionMutex.unlock();
@@ -1343,15 +1340,11 @@ void SGCTNetwork::communicationHandler() {
                 "TCP connection %d recv failed: %d\n", mId, SGCT_ERRNO
             );
         }
-
     } while (iResult > 0 || mConnected);
 
     // cleanup
-    delete[] mRecvBuf;
-    mRecvBuf = nullptr;
-    
-    delete[] mUncompressBuf;
-    mUncompressBuf = nullptr;
+    mRecvBuf.clear();
+    mUncompressBuf.clear();
 
     // Close socket; contains mutex
     closeSocket(mSocket);

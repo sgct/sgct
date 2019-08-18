@@ -133,7 +133,7 @@ public:
     std::function<void(int, int)> mAcknowledgeCallbackFn;
 
 private:
-    void updateBuffer(char** buffer, uint32_t requested_size, uint32_t& current_size);
+    void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
     int readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
         uint32_t& uncompressedDataSize);
     int readDataTransferMessage(char* header, int32_t& packageId, uint32_t& dataSize,
@@ -175,8 +175,8 @@ private:
     std::string mPort;
     std::string mAddress;
 
-    char* mRecvBuf = nullptr;
-    char* mUncompressBuf = nullptr;
+    std::vector<char> mRecvBuf;
+    std::vector<char> mUncompressBuf;
     char mHeaderId;
 
     bool mUseNaglesAlgorithmInDataTransfer = false;

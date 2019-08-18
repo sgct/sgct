@@ -957,10 +957,17 @@ void SGCTWindow::initScreenCapture() {
             sc.initOrResize(res.x, res.y, nCaptureChannels, mBytesPerColor);
         }
 
-        if (SGCTSettings::instance()->getCaptureFormat() !=
-            sgct_core::ScreenCapture::CaptureFormat::NotSet)
-        {
-            sc.setCaptureFormat(SGCTSettings::instance()->getCaptureFormat());
+        SGCTSettings::CaptureFormat format = SGCTSettings::instance()->getCaptureFormat();
+        switch (format) {
+            case SGCTSettings::CaptureFormat::PNG:
+                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::PNG);
+                break;
+            case SGCTSettings::CaptureFormat::TGA:
+                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::TGA);
+                break;
+            case SGCTSettings::CaptureFormat::JPG:
+                sc.setCaptureFormat(sgct_core::ScreenCapture::CaptureFormat::JPEG);
+                break;
         }
 
         if (!Engine::checkForOGLErrors()) {

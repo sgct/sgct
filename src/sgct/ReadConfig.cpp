@@ -791,28 +791,50 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 using namespace sgct;
 
                 const char* p = element[0]->Attribute("path");
-                SGCTSettings::instance()->setCapturePath(p, SGCTSettings::Mono);
-                SGCTSettings::instance()->setCapturePath(p, SGCTSettings::LeftStereo);
-                SGCTSettings::instance()->setCapturePath(p, SGCTSettings::RightStereo);
+                using CPI = SGCTSettings::CapturePath;
+                SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
+                SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
+                SGCTSettings::instance()->setCapturePath(p, CPI::RightStereo);
             }
             if (element[0]->Attribute("monoPath") != nullptr) {
                 using namespace sgct;
                 const char* p = element[0]->Attribute("monoPath");
-                SGCTSettings::instance()->setCapturePath(p, SGCTSettings::Mono);
+                using CPI = SGCTSettings::CapturePath;
+                SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
             }
             if (element[0]->Attribute("leftPath") != nullptr) {
                 using namespace sgct;
                 const char* p = element[0]->Attribute("leftPath");
-                SGCTSettings::instance()->setCapturePath(p, SGCTSettings::LeftStereo);
+                using CPI = SGCTSettings::CapturePath;
+                SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
             }
             if (element[0]->Attribute("rightPath") != nullptr) {
                 using namespace sgct;
                 const char* rPath = element[0]->Attribute("rightPath");
-                SGCTSettings::instance()->setCapturePath(rPath, SGCTSettings::RightStereo);
+                using CPI = SGCTSettings::CapturePath;
+                SGCTSettings::instance()->setCapturePath(rPath, CPI::RightStereo);
             }
             
             if (element[0]->Attribute("format") != nullptr) {
-                const char* f = element[0]->Attribute("format");
+                std::string format = element[0]->Attribute("format");
+                sgct::SGCTSettings::CaptureFormat f = [](const std::string& format) {
+                    if (format == "png" || format == "PNG") {
+                        return sgct::SGCTSettings::CaptureFormat::PNG;
+                    }
+                    else if (format == "tga" || format == "TGA") {
+                        return sgct::SGCTSettings::CaptureFormat::TGA;
+                    }
+                    else if (format == "jpg" || format == "JPG") {
+                        return sgct::SGCTSettings::CaptureFormat::JPG;
+                    }
+                    else {
+                        sgct::MessageHandler::instance()->print(
+                            sgct::MessageHandler::Level::Warning,
+                            "ReadConfig: Unkonwn capturing format. Using PNG\n"
+                        );
+                        return sgct::SGCTSettings::CaptureFormat::PNG;
+                    }
+                } (format);
                 sgct::SGCTSettings::instance()->setCaptureFormat(f);
             }
         }

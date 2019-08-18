@@ -8,8 +8,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SETTINGS__H__
 #define __SGCT__SETTINGS__H__
 
-#include <sgct/ScreenCapture.h>
 #include <glm/glm.hpp>
+#include <atomic>
 #include <mutex>
 #include <string>
 #ifndef SGCT_DONT_USE_EXTERNAL
@@ -25,17 +25,23 @@ namespace sgct {
  */
 class SGCTSettings {
 public:
-    enum CapturePathIndex {
+    enum class CapturePath {
         Mono = 0,
         LeftStereo,
         RightStereo
     };
 
-    enum DrawBufferType {
+    enum class CaptureFormat {
+        PNG,
+        TGA,
+        JPG
+    };
+
+    enum class DrawBufferType {
         Diffuse = 0,
-        Diffuse_Normal,
-        Diffuse_Position,
-        Diffuse_Normal_Position
+        DiffuseNormal,
+        DiffusePosition,
+        DiffuseNormalPosition
     };
     enum class BufferFloatPrecision {
         Float_16Bit = 0,
@@ -108,22 +114,14 @@ public:
      * \param path the path including filename without suffix
      * \param cpi index to which path to set (Mono = default, Left or Right)
      */
-    void setCapturePath(std::string path, CapturePathIndex cpi = Mono);
-
-    /**
-     * Append capture/screenshot path used by SGCT
-     *
-     * \param str the string to append including filename without suffix
-     * \param cpi index to which path to set (Mono = default, Left or Right)
-     */
-    void appendCapturePath(std::string str, CapturePathIndex cpi = Mono);
+    void setCapturePath(std::string path, CapturePath cpi = CapturePath::Mono);
 
     /**
      * Set the capture format which can be one of the following:
      *   - PNG
      *   - TGA
      */
-    void setCaptureFormat(const char* format);
+    void setCaptureFormat(CaptureFormat format);
 
     /**
      * Set if capture should capture warped from backbuffer instead of texture. Backbuffer
@@ -194,7 +192,7 @@ public:
      *
      * \param cpi index to which path to get (Mono = default, Left or Right)
      */
-    const char* getCapturePath(CapturePathIndex cpi = Mono) const;
+    const std::string& getCapturePath(CapturePath i = CapturePath::Mono) const;
 
     /**
      * Get swap interval for all windows
@@ -261,7 +259,7 @@ public:
      *
      * \return the captureformat if set, otherwise -1 is returned
      */
-    sgct_core::ScreenCapture::CaptureFormat getCaptureFormat();
+    CaptureFormat getCaptureFormat();
 
     /// Get the zlib compression level used in png export.
     int getPNGCompressionLevel();
@@ -284,11 +282,8 @@ public:
     /// Get the number of capture threads (for screenshot recording)
     int getNumberOfCaptureThreads() const;
 
-    /// The relative On-Screen-Display text x-offset in range [0, 1]
-    float getOSDTextXOffset() const;
-
-    /// The relative On-Screen-Display text y-offset in range [0, 1]
-    float getOSDTextYOffset() const;
+    /// The relative On-Screen-Display text offset in range [0, 1]
+    glm::vec2 getOSDTextOffset() const;
 
     /// \returns the FXAA removal of sub-pixel aliasing
     float getFXAASubPixTrim() const;
@@ -300,20 +295,16 @@ public:
     DrawBufferType getCurrentDrawBufferType() const;
 
 private:
-    SGCTSettings();
+    SGCTSettings() = default;
 
-    /// Update the draw buffer flags
-    void updateDrawBufferFlag();
-
-private:
     static SGCTSettings* mInstance;
 
-    sgct_core::ScreenCapture::CaptureFormat mCaptureFormat;
+    std::atomic<CaptureFormat> mCaptureFormat = CaptureFormat::PNG;
     int mSwapInterval = 1;
     int mRefreshRate = 0;
     int mNumberOfCaptureThreads = std::thread::hardware_concurrency();
-    int mPNGCompressionLevel = 1;
-    int mJPEGQuality = 100;
+    std::atomic_int mPNGCompressionLevel = 1;
+    std::atomic_int mJPEGQuality = 100;
     int mDefaultNumberOfAASamples = 1;
     
     bool mUseDepthTexture = false;
@@ -323,18 +314,22 @@ private:
     bool mDefaultFXAA = false;
     bool mForceGlTexImage2D = false;
     bool mUsePBO = true;
-    bool mUseRLE = false;
+    std::atomic_bool mUseRLE = false;
     bool mUseWarping = true;
     bool mShowWarpingWireframe = false;
     bool mCaptureBackBuffer = false;
     bool mTryMaintainAspectRatio = true;
     bool mExportWarpingMeshes = false;
 
-    float mOSDTextOffset[2] = { 0.05f, 0.05f };
+    glm::vec2 mOSDTextOffset = glm::vec2(0.05f, 0.05f);
     float mFXAASubPixTrim = 1.f / 4.f;
     float mFXAASubPixOffset = 1.f / 2.f;
 
-    std::string mCapturePath[3] = { "SGCT", "SGCT", "SGCT" };
+    struct {
+        std::string mono = "SGCT";
+        std::string left = "SGCT";
+        std::string right = "SGCT";
+    } mCapturePath;
 
     //fontdata
 #ifdef WIN32
@@ -348,10 +343,7 @@ private:
     std::string mFontPath;
     unsigned int mFontSize = 10;
 
-    DrawBufferType mCurrentDrawBuffer = Diffuse;
     BufferFloatPrecision mCurrentBufferFloatPrecision = BufferFloatPrecision::Float_16Bit;
-
-    std::mutex mMutex;
 };
 
 } // namespace sgct

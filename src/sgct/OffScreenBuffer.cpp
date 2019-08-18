@@ -205,26 +205,26 @@ void OffScreenBuffer::setInternalColorFormat(GLint internalFormat) {
 
 void OffScreenBuffer::setDrawBuffers() {
     switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-        case sgct::SGCTSettings::Diffuse:
+        case sgct::SGCTSettings::DrawBufferType::Diffuse:
         default:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
                 glDrawBuffers(1, buffers);
                 break;
             }
-        case sgct::SGCTSettings::Diffuse_Normal:
+        case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT1 };
                 glDrawBuffers(2, buffers);
                 break;
             }
-        case sgct::SGCTSettings::Diffuse_Position:
+        case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
             {
                 GLenum buffers[] = { GL_COLOR_ATTACHMENT0, GL_COLOR_ATTACHMENT2 };
                 glDrawBuffers(2, buffers);
                 break;
             }
-        case sgct::SGCTSettings::Diffuse_Normal_Position:
+        case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
             {
                 GLenum buffers[] = {
                     GL_COLOR_ATTACHMENT0,

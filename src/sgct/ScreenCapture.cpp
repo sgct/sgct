@@ -363,21 +363,21 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         case EyeIndex::Mono:
         default:
             if (useDefaultSettings) {
-                tmpPath = Settings::instance()->getCapturePath(Settings::Mono);
+                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::Mono);
             }
             break;
 
         case EyeIndex::StereoLeft:
             eye = "_L";
             if (useDefaultSettings) {
-                tmpPath = Settings::instance()->getCapturePath(Settings::LeftStereo);
+                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::LeftStereo);
             }
             break;
 
         case EyeIndex::StereoRight:
             eye = "_R";
             if (useDefaultSettings)
-                tmpPath = Settings::instance()->getCapturePath(Settings::RightStereo);
+                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::RightStereo);
             break;
     }
 

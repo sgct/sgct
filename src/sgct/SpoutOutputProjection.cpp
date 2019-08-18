@@ -389,14 +389,14 @@ void SpoutOutputProjection::initShaders() {
 
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-            case sgct::SGCTSettings::Diffuse:
-                case sgct::SGCTSettings::Diffuse_Normal:
+            case sgct::SGCTSettings::DrawBufferType::Diffuse:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::SGCTSettings::Diffuse_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragDepthNormalPosition;
                     break;
                 default:
@@ -407,20 +407,20 @@ void SpoutOutputProjection::initShaders() {
         else  {
             // no depth
             switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::Diffuse:
+                case sgct::SGCTSettings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_fisheye::FisheyeFrag;
                     break;
 
-                case sgct::SGCTSettings::Diffuse_Normal:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormal;
                     break;
 
-                case sgct::SGCTSettings::Diffuse_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragPosition;
                     break;
 
-                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_fisheye::FisheyeFragNormalPosition;
                     break;
             }
@@ -473,17 +473,17 @@ void SpoutOutputProjection::initShaders() {
 
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::Diffuse:
+                case sgct::SGCTSettings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepth;
                     break;
-                case sgct::SGCTSettings::Diffuse_Normal:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormal;
                     break;
-                case sgct::SGCTSettings::Diffuse_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
                     break;
-                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
                     break;
             }
@@ -491,17 +491,17 @@ void SpoutOutputProjection::initShaders() {
         else {
             //no depth
             switch (sgct::SGCTSettings::instance()->getCurrentDrawBufferType()) {
-                case sgct::SGCTSettings::Diffuse:
+                case sgct::SGCTSettings::DrawBufferType::Diffuse:
                 default:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFrag;
                     break;
-                case sgct::SGCTSettings::Diffuse_Normal:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormal:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormal;
                     break;
-                case sgct::SGCTSettings::Diffuse_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffusePosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragPosition;
                     break;
-                case sgct::SGCTSettings::Diffuse_Normal_Position:
+                case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragNormalPosition;
                     break;
             }

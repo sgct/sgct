@@ -31,6 +31,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/shaders/SGCTInternalShaders_modern.h>
 #include <algorithm>
 #include <iostream>
+#include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 
 //#define __SGCT_RENDER_LOOP_DEBUG__
@@ -697,12 +698,13 @@ void Engine::initOGL() {
     }
 
     if (sgct_core::ClusterManager::instance()->getNumberOfNodes() > 1) {
-        std::stringstream ss;
-        ss << "_node" << sgct_core::ClusterManager::instance()->getThisNodeId();
+        std::string path = SGCTSettings::instance()->getCapturePath();
+        path += "_node";
+        path += std::to_string(sgct_core::ClusterManager::instance()->getThisNodeId());
 
-        SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::Mono);
-        SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::LeftStereo);
-        SGCTSettings::instance()->appendCapturePath(ss.str(), SGCTSettings::RightStereo);
+        SGCTSettings::instance()->setCapturePath(path, SGCTSettings::CapturePath::Mono);
+        SGCTSettings::instance()->setCapturePath(path, SGCTSettings::CapturePath::LeftStereo);
+        SGCTSettings::instance()->setCapturePath(path, SGCTSettings::CapturePath::RightStereo);
     }
 
     //init window opengl data
@@ -3354,15 +3356,15 @@ void Engine::parseArguments(std::vector<std::string>& arg) {
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--Capture-TGA") {
-            SGCTSettings::instance()->setCaptureFormat("TGA");
+            SGCTSettings::instance()->setCaptureFormat(SGCTSettings::CaptureFormat::TGA);
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--Capture-PNG") {
-            SGCTSettings::instance()->setCaptureFormat("PNG");
+            SGCTSettings::instance()->setCaptureFormat(SGCTSettings::CaptureFormat::PNG);
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--Capture-JPG") {
-            SGCTSettings::instance()->setCaptureFormat("JPG");
+            SGCTSettings::instance()->setCaptureFormat(SGCTSettings::CaptureFormat::JPG);
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "-numberOfCaptureThreads" && arg.size() > (i + 1)) {

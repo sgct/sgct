@@ -91,7 +91,7 @@ namespace {
 
 namespace sgct_core {
 
-MpcdiSubFiles::MpcdiSubFiles() {
+SGCTMpcdi::MpcdiSubFiles::MpcdiSubFiles() {
     for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
         hasFound[i] = false;
         buffer[i] = nullptr;
@@ -100,22 +100,18 @@ MpcdiSubFiles::MpcdiSubFiles() {
     extension[MpcdiPfm] = "pfm";
 }
 
-MpcdiSubFiles::~MpcdiSubFiles() {
+SGCTMpcdi::MpcdiSubFiles::~MpcdiSubFiles() {
     for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
         if (buffer[i] != nullptr)
             delete buffer[i];
     }
 }
 
-
 SGCTMpcdi::SGCTMpcdi(std::string parentErrorMessage)
     : mErrorMsg(std::move(parentErrorMessage))
 {}
 
 SGCTMpcdi::~SGCTMpcdi() {
-    for (MpcdiWarp* ptr : mWarp) {
-        delete ptr;
-    }
     for (MpcdiRegion* ptr : mBufferRegions) {
         delete ptr;
     }
@@ -449,14 +445,14 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
                                             sgct::SGCTWindow& tmpWin,
                                             std::string filesetRegionId)
 {
-    mWarp.push_back(new MpcdiWarp);
-    mWarp.back()->id = filesetRegionId;
+    std::unique_ptr<MpcdiWarp> warp = std::make_unique<MpcdiWarp>();
+    warp->id = filesetRegionId;
     element[3] = element[2]->FirstChildElement();
     while (element[3] != nullptr) {
         val[3] = element[3]->Value();
         if (strcmp("path", val[3]) == 0) {
-            mWarp.back()->pathWarpFile = element[3]->GetText();
-            mWarp.back()->haveFoundPath = true;
+            warp->pathWarpFile = element[3]->GetText();
+            warp->haveFoundPath = true;
         }
         else if (strcmp("interpolation", val[3]) == 0) {
             std::string interpolation = element[3]->GetText();
@@ -466,19 +462,19 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
                     "parseMpcdiXml: only linear interpolation is supported.\n"
                 );
             }
-            mWarp.back()->haveFoundInterpolation = true;
+            warp->haveFoundInterpolation = true;
         }
         element[3] = element[3]->NextSiblingElement();
     }
-    if (mWarp.back()->haveFoundPath && mWarp.back()->haveFoundInterpolation) {
+    if (warp->haveFoundPath && warp->haveFoundInterpolation) {
         //Look for matching MPCDI region (SGCT viewport) to pass
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r) {
             std::string tmpWindowName = tmpWin.getViewport(r).getName();
-            std::string currRegion_warpName = mWarp.back()->id;
+            std::string currRegion_warpName = warp->id;
             if (tmpWindowName == currRegion_warpName) {
-                std::string currRegion_warpFilename = mWarp.back()->pathWarpFile;
+                std::string currRegion_warpFilename = warp->pathWarpFile;
                 std::string matchingMpcdiDataFile
                     = mMpcdiSubFileContents.filename[MpcdiSubFiles::MpcdiPfm];
                 if (currRegion_warpFilename == matchingMpcdiDataFile) {
@@ -508,6 +504,8 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
         );
         return false;
     }
+
+    mWarp.push_back(std::move(warp));
     return true;
 }
 

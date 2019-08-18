@@ -9,6 +9,7 @@
 #define __SGCT__MPCDI__H__
 
 #include <glm/glm.hpp>
+#include <memory>
 #include <string>
 #include <vector>
 
@@ -20,56 +21,55 @@
     #include <tinyxml2.h>
 #endif
 
-namespace sgct {
-    class SGCTWindow;
-} // namespace sgct
+namespace sgct { class SGCTWindow; }
 
 namespace sgct_core {
 
 class SGCTNode;
 
-struct MpcdiSubFiles {
-    enum MpcdiSubFileTypes {
-        MpcdiXml = 0,
-        MpcdiPfm,
-        Mpcdi_nRequiredFiles //Leave at end
-    };
-    bool hasFound[Mpcdi_nRequiredFiles];
-    std::string extension[Mpcdi_nRequiredFiles];
-    std::string filename[Mpcdi_nRequiredFiles];
-    int size[Mpcdi_nRequiredFiles];
-    char* buffer[Mpcdi_nRequiredFiles];
-
-    MpcdiSubFiles();
-    ~MpcdiSubFiles();
-};
-
-struct MpcdiRegion {
-    std::string id;
-};
-
-struct MpcdiWarp {
-    std::string id;
-    std::string pathWarpFile;
-    bool haveFoundPath = false;
-    bool haveFoundInterpolation = false;
-};
-
-struct MpcdiFoundItems {
-    bool haveDisplayElem = false;
-    bool haveBufferElem = false;
-    int resolutionX = -1;
-    int resolutionY = -1;
-};
-
 class SGCTMpcdi {
 public:
     explicit SGCTMpcdi(std::string parentErrorMessage);
     ~SGCTMpcdi();
+
     bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& tmpNode,
-             sgct::SGCTWindow& tmpWin);
+        sgct::SGCTWindow& tmpWin);
 
 private:
+    struct MpcdiSubFiles {
+        enum MpcdiSubFileTypes {
+            MpcdiXml = 0,
+            MpcdiPfm,
+            Mpcdi_nRequiredFiles //Leave at end
+        };
+        bool hasFound[Mpcdi_nRequiredFiles];
+        std::string extension[Mpcdi_nRequiredFiles];
+        std::string filename[Mpcdi_nRequiredFiles];
+        int size[Mpcdi_nRequiredFiles];
+        char* buffer[Mpcdi_nRequiredFiles];
+
+        MpcdiSubFiles();
+        ~MpcdiSubFiles();
+    };
+
+    struct MpcdiFoundItems {
+        bool haveDisplayElem = false;
+        bool haveBufferElem = false;
+        int resolutionX = -1;
+        int resolutionY = -1;
+    };
+
+    struct MpcdiRegion {
+        std::string id;
+    };
+
+    struct MpcdiWarp {
+        std::string id;
+        std::string pathWarpFile;
+        bool haveFoundPath = false;
+        bool haveFoundInterpolation = false;
+    };
+
     bool readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin);
     bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
         sgct::SGCTWindow& tmpWin);
@@ -89,7 +89,7 @@ private:
 
     MpcdiSubFiles mMpcdiSubFileContents;
     std::vector<MpcdiRegion*> mBufferRegions;
-    std::vector<MpcdiWarp*> mWarp;
+    std::vector<std::unique_ptr<MpcdiWarp>> mWarp;
     std::string mErrorMsg;
 };
 

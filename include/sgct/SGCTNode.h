@@ -16,43 +16,77 @@ namespace sgct_core {
 
 class SGCTNode {
 public:
-    bool getKeyPressed(int key);
-
-    /*!
-        Get the number of windows in the window vector
-    */
-    size_t getNumberOfWindows();
-
-    /*!
-        Get the window pointer at index in window vector.
-    */
-    sgct::SGCTWindow& getWindowPtr(size_t index);
-    
-    /*!
-        Get the active window pointer.
-    */
-    sgct::SGCTWindow& getCurrentWindowPtr();
-
-    /*! Get the current window index */
-    size_t getCurrentWindowIndex();
-
+    /**
+     * Add a window to the window vector. Note that a window must be opened to become
+     * visible.
+     */
     void addWindow(sgct::SGCTWindow window);
-    void setCurrentWindowIndex(size_t index);
+
+    /// Set which window that will render the draw calls.
+    void setCurrentWindowIndex(int index);
+
+    /**
+     * Set to true if this node's windows should belong to a nvida swap group. Only valid
+     * before window opens.
+     */
     void setUseSwapGroups(bool state);
 
+    /// Check if all windows are set to close and close them.
     bool shouldAllWindowsClose();
-    bool isUsingSwapGroups();
+
+    /// Is this node using nvidia swap groups for it's windows?
+    bool isUsingSwapGroups() const;
+
+    /// Show all hidden windows.
     void showAllWindows();
+
+    /// Hide all windows.
     void hideAllWindows();
 
+    /// Check if a key is pressed for all windows.
+    bool getKeyPressed(int key);
+
+    /// Get the number of windows in the window vector
+    int getNumberOfWindows();
+
+    /// Get the window pointer at index in window vector.
+    sgct::SGCTWindow& getWindowPtr(int index);
+
+    /// Get the active window pointer.
+    sgct::SGCTWindow& getCurrentWindowPtr();
+
+    /// Get the current window index
+    int getCurrentWindowIndex();
+
+    /// \param address is the hostname, DNS-name or ip
     void setAddress(std::string address);
+
+    /**
+     * \param sync port is the number of the tcp port used for communication with this
+     * node
+     */
     void setSyncPort(std::string port);
+
+    /**
+     * \param data transfer port is the number of the tcp port used for data transfers to 
+     * this node
+     */
     void setDataTransferPort(std::string port);
+
+    /// \param name the name identification string of this node
     void setName(std::string name);
-    std::string getAddress() const;
-    std::string getSyncPort() const;
-    std::string getDataTransferPort() const;
-    std::string getName() const;
+
+    /// \returns the address of this node
+    const std::string& getAddress() const;
+
+    /// \returns the sync port of this node
+    const std::string& getSyncPort() const;
+
+    /// \returns the data transfer port of this node
+    const std::string& getDataTransferPort() const;
+
+    /// \returns the name if this node
+    const std::string& getName() const;
 
 private:
     std::string mName;
@@ -60,7 +94,7 @@ private:
     std::string mSyncPort;
     std::string mDataTransferPort;
 
-    size_t mCurrentWindowIndex = 0;
+    int mCurrentWindowIndex = 0;
     std::vector<sgct::SGCTWindow> mWindows;
     bool mUseSwapGroups = false;
 };

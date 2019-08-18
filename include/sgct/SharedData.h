@@ -171,28 +171,28 @@ void SharedData::writeVector(const SharedVector<T>& vector) {
     std::vector<T> tmpVec = vector.getVal();
 
     uint32_t vectorSize = static_cast<uint32_t>(tmpVec.size());
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned char* p = reinterpret_cast<unsigned char*>(&vectorSize);
     currentStorage->insert(currentStorage->end(), p, p + sizeof(uint32_t));
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
     if (vectorSize > 0) {
         unsigned char* c = reinterpret_cast<unsigned char*>(tmpVec.data());
         uint32_t length = sizeof(T) * vectorSize;
-        SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+        SGCTMutexManager::instance()->mDataSyncMutex.lock();
         currentStorage->insert(currentStorage->end(), c, c + length);
-        SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+        SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     }
 }
 
 template<class T>
 void SharedData::readVector(SharedVector<T>& vector) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
 
     uint32_t size = *reinterpret_cast<uint32_t*>(&dataBlock[pos]);
     pos += sizeof(uint32_t);
 
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
     if (size == 0) {
         vector.clear();
@@ -203,12 +203,12 @@ void SharedData::readVector(SharedVector<T>& vector) {
     uint32_t totalSize = size * sizeof(T);
     //unsigned char* data = new unsigned char[totalSize];
 
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
 
     unsigned char* c = &dataBlock[pos];
     pos += totalSize;
 
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
     //memcpy(data, c, totalSize);
 

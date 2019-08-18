@@ -121,9 +121,9 @@ SGCTTrackingManager::~SGCTTrackingManager() {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Destructing, setting running to false...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mRunning = false;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     // destroy thread
     if (mSamplingThread) {
@@ -142,9 +142,9 @@ bool SGCTTrackingManager::isRunning() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     bool tmpVal = mRunning;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
@@ -352,18 +352,18 @@ void SGCTTrackingManager::setSamplingTime(double t) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Set sampling time for vrpn loop...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mSamplingTime = t;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 double SGCTTrackingManager::getSamplingTime() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Get sampling time for vrpn loop...\n");
 #endif
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mSamplingTime;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }

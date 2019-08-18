@@ -23,9 +23,9 @@ SGCTTrackingDevice::SGCTTrackingDevice(size_t parentIndex, std::string name)
 {}
 
 void SGCTTrackingDevice::setEnabled(bool state) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mEnabled = state;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setSensorId(int id) {
@@ -69,7 +69,7 @@ void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     const glm::mat4 sensorTransMat = glm::translate(glm::mat4(1.f), sensorPos);
     const glm::mat4 sensorRotMat(glm::mat4_cast(sensorRot));
 
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     
     // swap
     mSensorRotationPrevious = std::move(mSensorRotation);
@@ -81,7 +81,7 @@ void SGCTTrackingDevice::setSensorTransform(glm::dvec3 vec, glm::dquat rot) {
     mWorldTransformPrevious = std::move(mWorldTransform);
     mWorldTransform = parentTrans * sensorTransMat * sensorRotMat * mDeviceTransform;
 
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     setTrackerTimeStamp();
 }
@@ -91,22 +91,22 @@ void SGCTTrackingDevice::setButtonVal(bool val, int index) {
         return;
     }
 
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     // swap
     mButtonsPrevious[index] = mButtons[index];
     mButtons[index] = val;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     setButtonTimeStamp(index);
 }
 
 void SGCTTrackingDevice::setAnalogVal(const double* array, int size) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     for (size_t i = 0; i < std::min(size, mNumberOfAxes); i++) {
         mAxesPrevious[i] = mAxes[i];
         mAxes[i] = array[i];
     }
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     setAnalogTimeStamp();
 }
@@ -118,30 +118,30 @@ void SGCTTrackingDevice::setOrientation(float xRot, float yRot, float zRot) {
     rotQuat = glm::rotate(rotQuat, glm::radians(yRot), glm::vec3(0.f, 1.f, 0.f));
     rotQuat = glm::rotate(rotQuat, glm::radians(zRot), glm::vec3(0.f, 0.f, 1.f));
 
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mOrientation = std::move(rotQuat);
     calculateTransform();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setOrientation(glm::quat q) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mOrientation = std::move(q);
     calculateTransform();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setOffset(glm::vec3 offset) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mOffset = std::move(offset);
     calculateTransform();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setTransform(glm::mat4 mat) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mDeviceTransform = std::move(mat);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 const std::string& SGCTTrackingDevice::getName() const {
@@ -164,130 +164,130 @@ void SGCTTrackingDevice::calculateTransform() {
 }
 
 int SGCTTrackingDevice::getSensorId() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     int tmpVal = mSensorId;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 bool SGCTTrackingDevice::getButton(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     bool tmpVal = index < mNumberOfButtons ? mButtons[index] : false;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 bool SGCTTrackingDevice::getButtonPrevious(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     bool tmpVal = index < mNumberOfButtons ? mButtonsPrevious[index] : false;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getAnalog(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = index < mNumberOfAxes ? mAxes[index] : 0.0;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getAnalogPrevious(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = index < mNumberOfAxes ? mAxesPrevious[index] : 0.0;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 glm::vec3 SGCTTrackingDevice::getPosition() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::vec3 tmpVal = glm::vec3(mWorldTransform[3]);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 glm::vec3 SGCTTrackingDevice::getPreviousPosition() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::vec3 tmpVal = glm::vec3(mWorldTransformPrevious[3]);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 
 glm::vec3 SGCTTrackingDevice::getEulerAngles() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::vec3 tmpVal = glm::eulerAngles(glm::quat_cast(mWorldTransform));
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 glm::vec3 SGCTTrackingDevice::getEulerAnglesPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::vec3 tmpVal = glm::eulerAngles(glm::quat_cast(mWorldTransformPrevious));
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
 
 glm::quat SGCTTrackingDevice::getRotation() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::quat tmpQuat = glm::quat_cast(mWorldTransform);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpQuat;
 }
 
 glm::quat SGCTTrackingDevice::getRotationPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::quat tmpQuat = glm::quat_cast(mWorldTransformPrevious);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpQuat;
 }
 
 glm::mat4 SGCTTrackingDevice::getWorldTransform() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::mat4 tmpMat = mWorldTransform;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpMat;
 }
 
 glm::mat4 SGCTTrackingDevice::getWorldTransformPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::mat4 tmpMat = mWorldTransformPrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpMat;
 }
 
 glm::dquat SGCTTrackingDevice::getSensorRotation() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::dquat tmpQuat = mSensorRotation;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpQuat;
 }
 
 glm::dquat SGCTTrackingDevice::getSensorRotationPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::dquat tmpQuat = mSensorRotationPrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpQuat;
 }
 
 glm::dvec3 SGCTTrackingDevice::getSensorPosition() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::dvec3 tmpVec = mSensorPos;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVec;
 }
 
 glm::dvec3 SGCTTrackingDevice::getSensorPositionPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::dvec3 tmpVec = mSensorPosPrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVec;
 }
 
 bool SGCTTrackingDevice::isEnabled() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     bool tmpVal = mEnabled;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpVal;
 }
 
@@ -304,98 +304,98 @@ bool SGCTTrackingDevice::hasAnalogs() const {
 }
 
 void SGCTTrackingDevice::setTrackerTimeStamp() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     // swap
     mTrackerTimePrevious = mTrackerTime;
     mTrackerTime = Engine::getTime();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setAnalogTimeStamp() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     //swap
     mAnalogTimePrevious = mAnalogTime;
     mAnalogTime = Engine::getTime();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTrackingDevice::setButtonTimeStamp(size_t index) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     //swap
     mButtonTimePrevious[index] = mButtonTime[index];
     mButtonTime[index] = Engine::getTime();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 double SGCTTrackingDevice::getTrackerTimeStamp() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mTrackerTime;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getTrackerTimeStampPrevious() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mTrackerTimePrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getAnalogTimeStamp() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mAnalogTime;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getAnalogTimeStampPrevious() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mAnalogTimePrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getButtonTimeStamp(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mButtonTime[index];
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex );
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getButtonTimeStampPrevious(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mButtonTimePrevious[index];
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 
 double SGCTTrackingDevice::getTrackerDeltaTime() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mTrackerTime - mTrackerTimePrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getAnalogDeltaTime() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mAnalogTime - mAnalogTimePrevious;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }
 
 double SGCTTrackingDevice::getButtonDeltaTime(size_t index) const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpVal = mButtonTime[index] - mButtonTimePrevious[index];
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 
     return tmpVal;
 }

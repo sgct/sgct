@@ -97,17 +97,17 @@ MessageHandler::~MessageHandler() {
 void MessageHandler::decode(const char* receivedData, int receivedlength,
                                   int clientIndex)
 {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
     mRecBuffer.clear();
     mRecBuffer.insert(mRecBuffer.end(), receivedData, receivedData + receivedlength);
     mRecBuffer.push_back('\0');
     print("\n[client %d]: %s [end]\n", clientIndex, &mRecBuffer[0]);
-    SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::DataSyncMutex );
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 }
 
 void MessageHandler::printv(const char*fmt, va_list ap) {
     //prevent writing to console simultaneously
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::ConsoleMutex);
+    SGCTMutexManager::instance()->mConsoleMutex.lock();
 
     size_t size = static_cast<size_t>(1 + vscprintf(fmt, ap));
     if (size > mMaxMessageSize) {
@@ -176,7 +176,7 @@ void MessageHandler::printv(const char*fmt, va_list ap) {
         }
     }
 
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::ConsoleMutex);
+    SGCTMutexManager::instance()->mConsoleMutex.unlock();
 
     //if client send to server
     sendMessageToServer(mParseBuffer);
@@ -288,9 +288,9 @@ void MessageHandler::print(Level nl, const char* fmt, ...) {
 }
 
 void MessageHandler::clearBuffer() {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.lock();
     mBuffer.clear();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+    SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 }
 
 /*!
@@ -437,7 +437,7 @@ void MessageHandler::sendMessageToServer(const char* str) {
 
     // if client send to server
     if (!mLocal) {
-        SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::DataSyncMutex);
+        SGCTMutexManager::instance()->mDataSyncMutex.lock();
         if (mBuffer.empty()) {
             mBuffer.insert(
                 mBuffer.begin(),
@@ -446,7 +446,7 @@ void MessageHandler::sendMessageToServer(const char* str) {
             );
         }
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));
-        SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::DataSyncMutex);
+        SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     }
 }
 

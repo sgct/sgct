@@ -877,9 +877,9 @@ void Engine::clean() {
             "Waiting for frameLock thread to finish...\n"
         );
 
-        sgct::SGCTMutexManager::instance()->lockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+        sgct::SGCTMutexManager::instance()->mFrameSyncMutex.lock();
         sRunUpdateFrameLockLoop = false;
-        sgct::SGCTMutexManager::instance()->unlockMutex( sgct::SGCTMutexManager::FrameSyncMutex );
+        sgct::SGCTMutexManager::instance()->mFrameSyncMutex.unlock();
 
         mThreadPtr->join();
         delete mThreadPtr;
@@ -1062,9 +1062,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                 }
                 else {
                     std::unique_lock<std::mutex> lk(
-                        SGCTMutexManager::instance()->getMutexPtr(
-                            SGCTMutexManager::FrameSyncMutex
-                        )
+                        SGCTMutexManager::instance()->mFrameSyncMutex
                     );
                     sgct_core::NetworkManager::gCond.wait(lk);
                     //SGCTMutexManager::instance()->lockMutex( SGCTMutexManager::FrameSyncMutex );
@@ -1139,9 +1137,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                 }
                 else {
                     std::unique_lock<std::mutex> lk(
-                        SGCTMutexManager::instance()->getMutexPtr(
-                            SGCTMutexManager::FrameSyncMutex
-                        )
+                        SGCTMutexManager::instance()->mFrameSyncMutex
                     );
                     sgct_core::NetworkManager::gCond.wait(lk);
 
@@ -4960,13 +4956,9 @@ void updateFrameLockLoop(void* arg) {
     bool run = true;
 
     while (run) {
-        sgct::SGCTMutexManager::instance()->lockMutex(
-            sgct::SGCTMutexManager::FrameSyncMutex
-        );
+        sgct::SGCTMutexManager::instance()->mFrameSyncMutex.lock();
         run = sRunUpdateFrameLockLoop;
-        sgct::SGCTMutexManager::instance()->unlockMutex(
-            sgct::SGCTMutexManager::FrameSyncMutex
-        );
+        sgct::SGCTMutexManager::instance()->mFrameSyncMutex.unlock();
 
         sgct_core::NetworkManager::gCond.notify_all();
 

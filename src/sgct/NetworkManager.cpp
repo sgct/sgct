@@ -615,44 +615,44 @@ void NetworkManager::setDataTransferCompression(bool state, int level) {
 }
 
 unsigned int NetworkManager::getActiveConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = mNumberOfActiveConnections;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
 unsigned int NetworkManager::getActiveSyncConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = mNumberOfActiveSyncConnections;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
 unsigned int NetworkManager::getActiveDataTransferConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = mNumberOfActiveDataTransferConnections;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
 unsigned int NetworkManager::getConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = static_cast<unsigned int>(mNetworkConnections.size());
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
 unsigned int NetworkManager::getSyncConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = static_cast<unsigned int>(mSyncConnections.size());
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
 unsigned int NetworkManager::getDataTransferConnectionsCount() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int retVal = static_cast<unsigned int>(mDataTransferConnections.size());
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return retVal;
 }
 
@@ -679,14 +679,14 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     unsigned int numberOfConnectedSyncNodesCounter = 0;
     unsigned int numberOfConnectedDataTransferNodesCounter = 0;
 
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     unsigned int totalNumberOfConnections =
         static_cast<unsigned int>(mNetworkConnections.size());
     unsigned int totalNumberOfSyncConnections =
         static_cast<unsigned int>(mSyncConnections.size());
     unsigned int totalNumberOfTransferConnections =
         static_cast<unsigned int>(mDataTransferConnections.size());
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
     //count connections
     for (unsigned int i = 0; i < mNetworkConnections.size(); i++) {
@@ -717,7 +717,7 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
         numberOfConnectedDataTransferNodesCounter,totalNumberOfTransferConnections
     );
 
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     mNumberOfActiveConnections = numberOfConnectionsCounter;
     mNumberOfActiveSyncConnections = numberOfConnectedSyncNodesCounter;
     mNumberOfActiveDataTransferConnections = numberOfConnectedDataTransferNodesCounter;
@@ -729,19 +729,19 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
     if (mNumberOfActiveSyncConnections == 0 && !isServer) {
         mIsRunning = false;
     }
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
     if (isServer) {
         bool allNodesConnectedCopy;
 
-        sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+        sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
         //local copy (thread safe)
         allNodesConnectedCopy =
             (numberOfConnectedSyncNodesCounter == totalNumberOfSyncConnections) &&
             (numberOfConnectedDataTransferNodesCounter == totalNumberOfTransferConnections);
 
         mAllNodesConnected = allNodesConnectedCopy;
-        sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+        sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
         //send cluster connected message to nodes/slaves
         if (allNodesConnectedCopy) {
@@ -811,7 +811,7 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
 }
 
 void NetworkManager::setAllNodesConnected() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
 
     if (!mIsServer) {
         unsigned int totalNumberOfTransferConnections =
@@ -819,7 +819,7 @@ void NetworkManager::setAllNodesConnected() {
         mAllNodesConnected = (mNumberOfActiveSyncConnections == 1) &&
             (mNumberOfActiveDataTransferConnections == totalNumberOfTransferConnections);
     }
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 }
 
 void NetworkManager::close() {
@@ -1029,23 +1029,23 @@ bool NetworkManager::matchAddress(const std::string& address) {
 }
 
 bool NetworkManager::isComputerServer() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     bool tmpB = mIsServer;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return tmpB;
 }
 
 bool NetworkManager::isRunning() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     bool tmpB = mIsRunning;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return tmpB;
 }
 
 bool NetworkManager::areAllNodesConnected() {
-    sgct::SGCTMutexManager::instance()->lockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
     bool tmpB = mAllNodesConnected;
-    sgct::SGCTMutexManager::instance()->unlockMutex(sgct::SGCTMutexManager::DataSyncMutex);
+    sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
     return tmpB;
 }
 

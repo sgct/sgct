@@ -74,13 +74,13 @@ SGCTTrackingDevice* SGCTTracker::getDevicePtrBySensorId(int id) const {
 }
 
 void SGCTTracker::setOrientation(glm::quat q) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
 
     // create inverse rotation matrix
     mOrientation = glm::inverse(glm::mat4_cast(q));
 
     calculateTransform();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -93,37 +93,37 @@ void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void SGCTTracker::setOffset(glm::vec3 offset) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mOffset = std::move(offset);
     calculateTransform();
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setScale(double scaleVal) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     if (scaleVal > 0.0) {
         mScale = scaleVal;
     }
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setTransform(glm::mat4 mat) {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     mXform = std::move(mat);
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 glm::mat4 SGCTTracker::getTransform() const { 
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     glm::mat4 tmpMat = mXform;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpMat;
 }
 
 double SGCTTracker::getScale() const {
-    SGCTMutexManager::instance()->lockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.lock();
     double tmpD = mScale;
-    SGCTMutexManager::instance()->unlockMutex(SGCTMutexManager::TrackingMutex);
+    SGCTMutexManager::instance()->mTrackingMutex.unlock();
     return tmpD;
 }
 

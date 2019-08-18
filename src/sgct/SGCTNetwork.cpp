@@ -459,9 +459,7 @@ void SGCTNetwork::pushClientMessage() {
     unsigned char* p = reinterpret_cast<unsigned char*>(&currentFrame);
 
     if (sgct::MessageHandler::instance()->getDataSize() > mHeaderSize) {
-        sgct::SGCTMutexManager::instance()->lockMutex(
-            sgct::SGCTMutexManager::DataSyncMutex
-        );
+        sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
 
         // Don't remove this pointer, somehow the send function doesn't
         // work during the first call without setting the pointer first!!!
@@ -494,9 +492,7 @@ void SGCTNetwork::pushClientMessage() {
             static_cast<int>(currentMessageSize)
         );
 
-        sgct::SGCTMutexManager::instance()->unlockMutex(
-            sgct::SGCTMutexManager::DataSyncMutex
-        );
+        sgct::SGCTMutexManager::instance()->mDataSyncMutex.unlock();
 
         sgct::MessageHandler::instance()->clearBuffer();
     }

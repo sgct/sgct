@@ -13,8 +13,8 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <stdarg.h>
 
 #ifdef _WIN32
-//Replacement for Visual Studio's _vscprintf function
-#if (_MSC_VER < 1400) //if older than visual studio 2005
+// Replacement for Visual Studio's _vscprintf function
+#if (_MSC_VER < 1400) // if older than visual studio 2005
 static int vscprintf(const char* format, va_list pargs) {
     int retval;
     va_list argcopy;
@@ -30,7 +30,7 @@ static int vscwprintf(const wchar_t* format, va_list pargs) {
     //
     // Unlike vsnprintf(), vswprintf() does not tell you how many characters would have
     // been written if there was space enough in the buffer - it just reports an error
-    // whjen there is not enough space. ssume a moderatly large machine, so kilobytes of
+    // whjen there is not enough space. assume a moderatly large machine, so kilobytes of
     // wchar_t on the stack is not a problem
     int bufSize = 1024;
     while (bufSize < 1024 * 1024) {

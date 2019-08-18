@@ -8,10 +8,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #ifndef __SGCT__SPHERE__H__
 #define __SGCT__SPHERE__H__
 
-#include <vector>
-
-namespace sgct_helpers { struct SGCTVertexData; }
-
 namespace sgct_utils {
 
 /**
@@ -35,8 +31,7 @@ private:
     void drawVBO();
     void drawVAO();
 
-    void createVBO(const std::vector<sgct_helpers::SGCTVertexData>& verts,
-        const std::vector<unsigned int>& indices);
+    void createVBO(float radius, unsigned int segments);
 
     unsigned int mNumberOfVertices = 0;
     unsigned int mNumberOfFaces = 0;

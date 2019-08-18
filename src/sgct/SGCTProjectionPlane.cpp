@@ -15,7 +15,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <tinyxml2.h>
 #endif
 
-namespace sgct_core{
+namespace sgct_core {
 
 void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
                                     glm::vec3& initializedLowerLeftCorner,
@@ -23,13 +23,11 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
                                     glm::vec3& initializedUpperRightCorner)
 {
     using namespace tinyxml2;
-
-    const char* val;
     size_t i = 0;
 
     tinyxml2::XMLElement* elem = element->FirstChildElement();
     while (elem) {
-        val = elem->Value();
+        const char* val = elem->Value();
 
         if (strcmp("Pos", val) == 0) {
             glm::vec3 pos;
@@ -91,7 +89,6 @@ void SGCTProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
 
 void SGCTProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
     mPlaneCoords.upperLeft = std::move(coordinate);
-
 }
 
 void SGCTProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {

@@ -17,77 +17,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 namespace sgct_utils {
 
 SGCTSphere::SGCTSphere(float radius, unsigned int segments) {
-    unsigned int vsegs = std::max<unsigned int>(segments, 2);
-    unsigned int hsegs = vsegs*2;
-    mNumberOfVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
-    mNumberOfFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
-
-    std::vector<sgct_helpers::SGCTVertexData> verts(mNumberOfVertices);
-
-    // First vertex: top pole (+y is "up" in object local coords)
-    verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
-
-    // Last vertex: bottom pole
-    verts[mNumberOfVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
-
-    // All other vertices:
-    // vsegs-1 latitude rings of hsegs+1 vertices each (duplicates at texture seam s=0 / s=1)
-    for (unsigned int j = 0; j < vsegs - 1; j++) {
-        // vsegs-1 latitude rings of vertices
-        const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs)) *
-                              glm::pi<double>();
-        const float y = static_cast<float>(cos(theta));
-        const float R = static_cast<float>(sin(theta));
-
-        for (unsigned int i = 0; i <= hsegs; i++) {
-            // hsegs+1 vertices in each ring (duplicate for texcoords)
-            const double phi = (static_cast<double>(i) / static_cast<double>(hsegs)) *
-                                glm::two_pi<double>();
-            const float x = R * static_cast<float>(cos(phi));
-            const float z = R * static_cast<float>(sin(phi));
-
-            verts[1 + j * (hsegs + 1) + i] = {
-                static_cast<float>(i) / static_cast<float>(hsegs), //s
-                1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), //t
-                x, y, z, //normals
-                radius * x,
-                radius * y,
-                radius * z
-            };
-        }
-    }
-
-    std::vector<unsigned int> indices(mNumberOfFaces * 3, 0);
-    // The index array: triplets of integers, one for each triangle
-    // Top cap
-    for (unsigned int i = 0; i < hsegs; i++) {
-        indices[3 * i] = 0;
-        indices[3 * i + 2] = 1 + i;
-        indices[3 * i + 1] = 2 + i;
-    }
-    // Middle part (possibly empty if vsegs=2)
-    for (unsigned int j = 0; j < vsegs - 2; j++) {
-        for (unsigned int i = 0; i < hsegs; i++) {
-            const unsigned int base = 3 * (hsegs + 2 * (j * hsegs + i));
-            const unsigned int i0 = 1 + j * (hsegs + 1) + i;
-            indices[base] = i0;
-            indices[base + 1] = i0 + 1;
-            indices[base + 2] = i0 + hsegs + 1;
-            indices[base + 3] = i0 + hsegs + 1;
-            indices[base + 4] = i0 + 1;
-            indices[base + 5] = i0 + hsegs + 2;
-        }
-    }
-    // Bottom cap
-    for (unsigned int i = 0; i < hsegs; i++) {
-        const unsigned int base = 3 * (hsegs + 2 * (vsegs - 2) * hsegs);
-        indices[base + 3 * i] = mNumberOfVertices - 1;
-        indices[base + 3 * i + 2] = mNumberOfVertices - 2 - i;
-        indices[base + 3 * i + 1] = mNumberOfVertices - 3 - i;
-    }
-
-    //create mesh
-    createVBO(verts, indices);
+    createVBO(radius, segments);
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
@@ -140,9 +70,77 @@ void SGCTSphere::drawVAO() {
     glBindVertexArray(0);
 }
 
-void SGCTSphere::createVBO(const std::vector<sgct_helpers::SGCTVertexData>& verts,
-                           const std::vector<unsigned int>& indices)
-{
+void SGCTSphere::createVBO(float radius, unsigned int segments) {
+    unsigned int vsegs = std::max<unsigned int>(segments, 2);
+    unsigned int hsegs = vsegs * 2;
+    mNumberOfVertices = 1 + (vsegs - 1) * (hsegs + 1) + 1; // top + middle + bottom
+    mNumberOfFaces = hsegs + (vsegs - 2) * hsegs * 2 + hsegs; // top + middle + bottom
+
+    std::vector<sgct_helpers::SGCTVertexData> verts(mNumberOfVertices);
+
+    // First vertex: top pole (+y is "up" in object local coords)
+    verts[0] = { 0.5f, 1.f, 0.f, 1.f, 0.f, 0.f, radius, 0.f };
+
+    // Last vertex: bottom pole
+    verts[mNumberOfVertices - 1] = { 0.5f, 0.f, 0.f, -1.f, 0.f, 0.f, -radius, 0.f };
+
+    // All other vertices:
+    // vsegs-1 latitude rings of hsegs+1 vertices each (duplicates at texture seam s=0 / s=1)
+    for (unsigned int j = 0; j < vsegs - 1; j++) {
+        // vsegs-1 latitude rings of vertices
+        const double theta = (static_cast<double>(j + 1) / static_cast<double>(vsegs)) *
+            glm::pi<double>();
+        const float y = static_cast<float>(cos(theta));
+        const float R = static_cast<float>(sin(theta));
+
+        for (unsigned int i = 0; i <= hsegs; i++) {
+            // hsegs+1 vertices in each ring (duplicate for texcoords)
+            const double phi = (static_cast<double>(i) / static_cast<double>(hsegs)) *
+                glm::two_pi<double>();
+            const float x = R * static_cast<float>(cos(phi));
+            const float z = R * static_cast<float>(sin(phi));
+
+            verts[1 + j * (hsegs + 1) + i] = {
+                static_cast<float>(i) / static_cast<float>(hsegs), //s
+                1.f - static_cast<float>(j + 1) / static_cast<float>(vsegs), //t
+                x, y, z, //normals
+                radius * x,
+                radius * y,
+                radius * z
+            };
+        }
+    }
+
+    std::vector<unsigned int> indices(mNumberOfFaces * 3, 0);
+    // The index array: triplets of integers, one for each triangle
+    // Top cap
+    for (unsigned int i = 0; i < hsegs; i++) {
+        indices[3 * i] = 0;
+        indices[3 * i + 2] = 1 + i;
+        indices[3 * i + 1] = 2 + i;
+    }
+    // Middle part (possibly empty if vsegs=2)
+    for (unsigned int j = 0; j < vsegs - 2; j++) {
+        for (unsigned int i = 0; i < hsegs; i++) {
+            const unsigned int base = 3 * (hsegs + 2 * (j * hsegs + i));
+            const unsigned int i0 = 1 + j * (hsegs + 1) + i;
+            indices[base] = i0;
+            indices[base + 1] = i0 + 1;
+            indices[base + 2] = i0 + hsegs + 1;
+            indices[base + 3] = i0 + hsegs + 1;
+            indices[base + 4] = i0 + 1;
+            indices[base + 5] = i0 + hsegs + 2;
+        }
+    }
+    // Bottom cap
+    for (unsigned int i = 0; i < hsegs; i++) {
+        const unsigned int base = 3 * (hsegs + 2 * (vsegs - 2) * hsegs);
+        indices[base + 3 * i] = mNumberOfVertices - 1;
+        indices[base + 3 * i + 2] = mNumberOfVertices - 2 - i;
+        indices[base + 3 * i + 1] = mNumberOfVertices - 3 - i;
+    }
+
+
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);

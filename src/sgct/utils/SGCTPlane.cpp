@@ -11,49 +11,28 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/MessageHandler.h>
 #include <sgct/ogl_headers.h>
 #include <sgct/helpers/SGCTVertexData.h>
+#include <array>
 
 namespace sgct_utils {
 
-/*!
-    This constructor requires a valid openGL contex 
-*/
 SGCTPlane::SGCTPlane(float width, float height) {
-    mVerts = new sgct_helpers::SGCTVertexData[4];
-    memset(mVerts, 0, 4 * sizeof(sgct_helpers::SGCTVertexData));
-
-    //populate the array
-    mVerts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
-    mVerts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
-    mVerts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
-    mVerts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
-        
-    createVBO();
+    createVBO(width, height);
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error,
-            "SGCT Utils: Plane creation error!\n"
+            sgct::MessageHandler::Level::Error, "SGCT Utils: Plane creation error!\n"
         );
-        void cleanup();
-    }
-
-    //free data
-    if (mVerts != nullptr) {
-        delete[] mVerts;
-        mVerts = nullptr;
     }
 }
 
 SGCTPlane::~SGCTPlane() {
-    cleanUp();
+    glDeleteBuffers(1, &mVBO);
+    mVBO = 0;
+
+    glDeleteVertexArrays(1, &mVAO);
+    mVAO = 0;
 }
 
-/*!
-    If openGL 3.3+ is used:
-    layout 0 contains texture coordinates (vec2)
-    layout 1 contains vertex normals (vec3)
-    layout 2 contains vertex positions (vec3).
-*/
 void SGCTPlane::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
@@ -82,25 +61,17 @@ void SGCTPlane::drawVBO() {
 void SGCTPlane::drawVAO() {
     glBindVertexArray(mVAO);
     glDrawArrays(GL_TRIANGLE_STRIP, 0, 4);
-
-    //unbind
     glBindVertexArray(0);
 }
 
-void SGCTPlane::cleanUp() {
-    //cleanup
-    if (mVBO != 0) {
-        glDeleteBuffers(1, &mVBO);
-        mVBO = 0;
-    }
+void SGCTPlane::createVBO(float width, float height) {
+    std::array<sgct_helpers::SGCTVertexData, 4> verts;
+    verts[0] = { 0.f, 0.f, 0.f, 0.f, 1.f, -width / 2.f, -height / 2.f, 0.f };
+    verts[1] = { 1.f, 0.f, 0.f, 0.f, 1.f,  width / 2.f, -height / 2.f, 0.f };
+    verts[2] = { 0.f, 1.f, 0.f, 0.f, 1.f, -width / 2.f,  height / 2.f, 0.f };
+    verts[3] = { 1.f, 1.f, 0.f, 0.f, 1.f,  width / 2.f,  height / 2.f, 0.f };
 
-    if (mVAO != 0) {
-        glDeleteVertexArrays(1, &mVAO);
-        mVAO = 0;
-    }
-}
 
-void SGCTPlane::createVBO() {
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
@@ -109,24 +80,20 @@ void SGCTPlane::createVBO() {
         glEnableVertexAttribArray(2);
 
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
-            "SGCTPlane: Generating VAO: %d\n",
-            mVAO
+            sgct::MessageHandler::Level::Debug, "SGCTPlane: Generating VAO: %d\n", mVAO
         );
     }
     
     glGenBuffers(1, &mVBO);
     sgct::MessageHandler::instance()->print(
-        sgct::MessageHandler::Level::Debug,
-        "SGCTPlane: Generating VBO: %d\n",
-        mVBO
+        sgct::MessageHandler::Level::Debug, "SGCTPlane: Generating VBO: %d\n", mVBO
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
         4 * sizeof(sgct_helpers::SGCTVertexData),
-        mVerts,
+        verts.data(),
         GL_STATIC_DRAW
     );
 
@@ -149,7 +116,7 @@ void SGCTPlane::createVBO() {
             sizeof(sgct_helpers::SGCTVertexData),
             reinterpret_cast<void*>(8)
         );
-        //vert positions
+        // vert positions
         glVertexAttribPointer(
             2,
             3,
@@ -160,7 +127,7 @@ void SGCTPlane::createVBO() {
         );
     }
 
-    //unbind
+    // unbind
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }

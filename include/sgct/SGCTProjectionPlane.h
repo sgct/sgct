@@ -14,14 +14,11 @@ namespace tinyxml2 { class XMLElement; }
 
 namespace sgct_core {
 
-/*!
-This class holds and manages the 3D projection plane
-*/
+/**
+ * This class holds and manages the 3D projection plane
+ */
 class SGCTProjectionPlane {
 public:
-    enum ProjectionPlaneCorner { LowerLeft = 0, UpperLeft, UpperRight };
-
-    SGCTProjectionPlane();
     void configure(tinyxml2::XMLElement* element, glm::vec3& initializedLowerLeftCorner,
         glm::vec3& initializedUpperLeftCorner, glm::vec3& initializedUpperRightCorner);
     void reset();
@@ -45,7 +42,7 @@ protected:
         glm::vec3 lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
         glm::vec3 upperLeft = glm::vec3(-1.f, 1.f, -2.f);
         glm::vec3 upperRight = glm::vec3(1.f, 1.f, -2.f);
-    } mProjectionPlaneCoords;
+    } mPlaneCoords;
 };
 
 } // namespace sgct_core

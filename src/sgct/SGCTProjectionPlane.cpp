@@ -17,10 +17,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct_core{
 
-sgct_core::SGCTProjectionPlane::SGCTProjectionPlane() {
-    reset();
-}
-
 void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
                                     glm::vec3& initializedLowerLeftCorner,
                                     glm::vec3& initializedUpperLeftCorner,
@@ -31,26 +27,21 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
     const char* val;
     size_t i = 0;
 
-    tinyxml2::XMLElement* subElement = element->FirstChildElement();
-    while (subElement != nullptr) {
-        val = subElement->Value();
+    tinyxml2::XMLElement* elem = element->FirstChildElement();
+    while (elem) {
+        val = elem->Value();
 
         if (strcmp("Pos", val) == 0) {
-            glm::vec3 tmpVec;
-            float fTmp[3];
+            glm::vec3 pos;
 
-            if (subElement->QueryFloatAttribute("x", &fTmp[0]) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("y", &fTmp[1]) == XML_NO_ERROR &&
-                subElement->QueryFloatAttribute("z", &fTmp[2]) == XML_NO_ERROR)
+            if (elem->QueryFloatAttribute("x", &pos[0]) == XML_NO_ERROR &&
+                elem->QueryFloatAttribute("y", &pos[1]) == XML_NO_ERROR &&
+                elem->QueryFloatAttribute("z", &pos[2]) == XML_NO_ERROR)
             {
-                tmpVec.x = fTmp[0];
-                tmpVec.y = fTmp[1];
-                tmpVec.z = fTmp[2];
-
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
                     "SGCTProjectionPlane: Adding plane coordinates %f %f %f for corner %d\n",
-                    tmpVec.x, tmpVec.y, tmpVec.z, i % 3
+                    pos.x, pos.y, pos.z, i % 3
                 );
 
                 switch (i % 3) {
@@ -78,46 +69,45 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             }
         }
 
-        subElement = subElement->NextSiblingElement();
+        elem = elem->NextSiblingElement();
     }
 }
 
 void SGCTProjectionPlane::reset() {
-    mProjectionPlaneCoords.lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
-    mProjectionPlaneCoords.upperLeft = glm::vec3(-1.f, 1.f, -2.f);
-    mProjectionPlaneCoords.upperRight = glm::vec3(1.f, 1.f, -2.f);
+    mPlaneCoords.lowerLeft = glm::vec3(-1.f, -1.f, -2.f);
+    mPlaneCoords.upperLeft = glm::vec3(-1.f, 1.f, -2.f);
+    mPlaneCoords.upperRight = glm::vec3(1.f, 1.f, -2.f);
 }
 
 void SGCTProjectionPlane::offset(const glm::vec3& p) {
-    mProjectionPlaneCoords.lowerLeft += p;
-    mProjectionPlaneCoords.upperLeft += p;
-    mProjectionPlaneCoords.upperRight += p;
+    mPlaneCoords.lowerLeft += p;
+    mPlaneCoords.upperLeft += p;
+    mPlaneCoords.upperRight += p;
 }
 
 void SGCTProjectionPlane::setCoordinateLowerLeft(glm::vec3 coordinate) {
-    mProjectionPlaneCoords.lowerLeft = std::move(coordinate);
+    mPlaneCoords.lowerLeft = std::move(coordinate);
 }
 
 void SGCTProjectionPlane::setCoordinateUpperLeft(glm::vec3 coordinate) {
-    mProjectionPlaneCoords.upperLeft = std::move(coordinate);
+    mPlaneCoords.upperLeft = std::move(coordinate);
 
 }
 
 void SGCTProjectionPlane::setCoordinateUpperRight(glm::vec3 coordinate) {
-    mProjectionPlaneCoords.upperRight = std::move(coordinate);
-
+    mPlaneCoords.upperRight = std::move(coordinate);
 }
 
 glm::vec3 SGCTProjectionPlane::getCoordinateLowerLeft() const {
-    return mProjectionPlaneCoords.lowerLeft;
+    return mPlaneCoords.lowerLeft;
 }
 
 glm::vec3 SGCTProjectionPlane::getCoordinateUpperLeft() const {
-    return mProjectionPlaneCoords.upperLeft;
+    return mPlaneCoords.upperLeft;
 }
 
 glm::vec3 SGCTProjectionPlane::getCoordinateUpperRight() const {
-    return mProjectionPlaneCoords.upperRight;
+    return mPlaneCoords.upperRight;
 }
 
 } // namespace sgct_core

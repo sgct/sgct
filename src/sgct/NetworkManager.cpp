@@ -775,7 +775,8 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
                 sgct_core::SGCTNetwork::ConnectionTypes::ExternalASCIIConnection)
         {
             bool externalControlConnectionStatus = connection->isConnected();
-            connection->sendStr("Connected to SGCT!\r\n");
+            std::string msg = "Connected to SGCT!\r\n";
+            connection->sendData(msg.c_str(), static_cast<int>(msg.size()));
             sgct::Engine::instance()->invokeUpdateCallbackForExternalControl(
                 externalControlConnectionStatus
             );
@@ -911,7 +912,18 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         //must be inited after binding
         netPtr->init(port, address, mIsServer, connectionType);
     }
+    catch (const std::runtime_error& e) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "NetworkManager: Network error: %s\n",
+            e.what()
+        );
+        return false;
+    }
     catch (const char* err) {
+        // abock (2019-08-17):  I don't think catch block is necessary anymore as we now
+        //                      throw the correct type from SGCTNetwork, but I don't dare
+        //                      to remove it yet
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "NetworkManager: Network error: %s\n",

@@ -10,12 +10,11 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 #include <atomic>
 #include <condition_variable>
+#include <memory>
 #include <mutex>
 #include <string>
 #include <thread>
 #include <vector>
-
-#define MAX_NET_SYNC_FRAME_NUMBER 10000
 
 #if defined(__WIN32__) || defined(__MINGW32__) || defined(__MINGW64__)
     #define _WIN_PLATFORM
@@ -33,7 +32,7 @@ SGCTNetwork manages peer-to-peer tcp connections.
 */
 class SGCTNetwork {
 public:
-    //ASCII device control chars = 17, 18, 19 & 20
+    // ASCII device control chars = 17, 18, 19 & 20
     enum PackageHeaderId {
         DefaultId = 0,
         Ack = 6,
@@ -53,6 +52,18 @@ public:
     enum ReceivedIndex { Current = 0, Previous };
 
     SGCTNetwork();
+
+    /**
+     * Inits this network connection.
+     *
+     * \param port is the network port (TCP)
+     * \param address is the hostname, IPv4 address or ip6 address
+     * \param isServer indicates if this connection is a server or client
+     * \param id is a unique id of this connection
+     * \param connectionType is the type of connection
+     * \param firmSync if set to true then firm framesync will be used for the whole
+                       cluster
+     */
     void init(std::string port, std::string address, bool isServer,
         ConnectionTypes serverType);
     void closeNetwork(bool forced);
@@ -77,21 +88,42 @@ public:
     bool isTerminated() const;
     int getSendFrame(ReceivedIndex ri = Current) const;
     int getRecvFrame(ReceivedIndex ri) const;
+
+    /// Get the time in seconds from send to receive of sync data.
     double getLoopTime();
+
+    /**
+     * This function compares the received frame number with the sent frame number.
+     *
+     * The server starts by sending a frame sync number to the client. The client receives
+     * the sync frame number and sends it back after drawing when ready for buffer swap.
+     * When the server recieves a frame sync number equal to the send frame number it
+     * swaps buffers.
+     *
+     * \returns true if updates has been received
+     */
     bool isUpdated() const;
     void setRecvFrame(int i);
     void sendData(const void* data, int length);
-    void sendStr(const std::string& msg);
+
+    /// @return last error code 
     static int getLastError();
     static _ssize_t receiveData(SGCT_SOCKET& lsocket, char* buffer, int length, int flags);
-    static int32_t parseInt32(char* str);
-    static uint32_t parseUInt32(char* str);
+
+    /// Iterates the send frame number and returns the new frame number
     int iterateFrameCounter();
+
+    /// The client sends ack message to server + console messages
     void pushClientMessage();
     void enableNaglesAlgorithmInDataTransfer();
-    std::string getPort() const;
-    std::string getAddress() const;
-    std::string getTypeStr() const;
+
+    /// \return the port of this connection
+    const std::string& getPort() const;
+
+    /// \return the address of this connection
+    const std::string& getAddress() const;
+
+    /// \return the connection type as string
     static std::string getTypeStr(ConnectionTypes ct);
 
     std::function<void(const char*, int, int)> mDecoderCallbackFn;
@@ -110,10 +142,11 @@ private:
 
     static void communicationHandlerStarter(void* arg);
     static void connectionHandlerStarter(void* arg);
+
+    /// function to decode messages
     void communicationHandler();
     void connectionHandler();
     static bool parseDisconnectPackage(char* headerPtr);
-    static std::string getUncompressionErrorAsStr(int err);
 
 public:
     static const size_t mHeaderSize = 13;
@@ -134,8 +167,8 @@ private:
     std::atomic<bool> mTerminate = false; //set to true upon exit
 
     mutable std::mutex mConnectionMutex;
-    std::thread* mCommThread = nullptr;
-    std::thread* mMainThread = nullptr;
+    std::unique_ptr<std::thread> mCommThread;
+    std::unique_ptr<std::thread> mMainThread;
 
     double mTimeStamp[2] = { 0.0, 0.0 };
     int mId;

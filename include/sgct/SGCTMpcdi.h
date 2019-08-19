@@ -32,25 +32,11 @@ public:
     explicit SGCTMpcdi(std::string parentErrorMessage);
     ~SGCTMpcdi();
 
-    bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& tmpNode,
-        sgct::SGCTWindow& tmpWin);
+    bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
+        sgct::SGCTWindow& window);
 
 private:
-    struct MpcdiSubFiles {
-        enum MpcdiSubFileTypes {
-            MpcdiXml = 0,
-            MpcdiPfm,
-            Mpcdi_nRequiredFiles //Leave at end
-        };
-        bool hasFound[Mpcdi_nRequiredFiles];
-        std::string extension[Mpcdi_nRequiredFiles];
-        std::string filename[Mpcdi_nRequiredFiles];
-        int size[Mpcdi_nRequiredFiles];
-        char* buffer[Mpcdi_nRequiredFiles];
 
-        MpcdiSubFiles();
-        ~MpcdiSubFiles();
-    };
 
     struct MpcdiFoundItems {
         bool haveDisplayElem = false;
@@ -87,7 +73,33 @@ private:
     bool processSubFiles(std::string filename, unzFile* zipfile,
         unz_file_info& file_info);
 
-    MpcdiSubFiles mMpcdiSubFileContents;
+
+    //struct MpcdiSubFiles {
+    //    enum MpcdiSubFileTypes {
+    //        MpcdiXml = 0,
+    //        MpcdiPfm,
+    //        Mpcdi_nRequiredFiles //Leave at end
+    //    };
+    //    bool hasFound[Mpcdi_nRequiredFiles];
+    //    std::string extension[Mpcdi_nRequiredFiles];
+    //    std::string filename[Mpcdi_nRequiredFiles];
+    //    int size[Mpcdi_nRequiredFiles];
+    //    char* buffer[Mpcdi_nRequiredFiles];
+
+    //    MpcdiSubFiles();
+    //    ~MpcdiSubFiles();
+    //};
+
+    struct SubFile {
+        bool hasFound = false;
+        std::string extension;
+        std::string fileName;
+        int size;
+        std::vector<char> buffer;
+    };
+    SubFile mXmlFileContents;
+    SubFile mPfmFileContents;
+
     std::vector<MpcdiRegion*> mBufferRegions;
     std::vector<std::unique_ptr<MpcdiWarp>> mWarp;
     std::string mErrorMsg;

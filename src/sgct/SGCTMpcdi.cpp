@@ -91,21 +91,21 @@ namespace {
 
 namespace sgct_core {
 
-SGCTMpcdi::MpcdiSubFiles::MpcdiSubFiles() {
-    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
-        hasFound[i] = false;
-        buffer[i] = nullptr;
-    }
-    extension[MpcdiXml] = "xml";
-    extension[MpcdiPfm] = "pfm";
-}
-
-SGCTMpcdi::MpcdiSubFiles::~MpcdiSubFiles() {
-    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
-        if (buffer[i] != nullptr)
-            delete buffer[i];
-    }
-}
+//SGCTMpcdi::MpcdiSubFiles::MpcdiSubFiles() {
+//    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
+//        hasFound[i] = false;
+//        buffer[i] = nullptr;
+//    }
+//    extension[MpcdiXml] = "xml";
+//    extension[MpcdiPfm] = "pfm";
+//}
+//
+//SGCTMpcdi::MpcdiSubFiles::~MpcdiSubFiles() {
+//    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
+//        if (buffer[i] != nullptr)
+//            delete buffer[i];
+//    }
+//}
 
 SGCTMpcdi::SGCTMpcdi(std::string parentErrorMessage)
     : mErrorMsg(std::move(parentErrorMessage))
@@ -117,13 +117,11 @@ SGCTMpcdi::~SGCTMpcdi() {
     }
 }
 
-bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
-                                   SGCTNode& tmpNode,
-                                   sgct::SGCTWindow& tmpWin)
+bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
+                                   sgct::SGCTWindow& window)
 {
     FILE* cfgFile = nullptr;
     unzFile zipfile;
-    const int MaxFilenameSize_bytes = 500;
 
     bool fileOpenSuccess = openZipFile(cfgFile, filenameMpcdi, &zipfile);
     if (!fileOpenSuccess) {
@@ -135,8 +133,8 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
         return false;
     }
     // Get info about the zip file
-    unz_global_info global_info;
-    int globalInfoRet = unzGetGlobalInfo(zipfile, &global_info);
+    unz_global_info globalInfo;
+    int globalInfoRet = unzGetGlobalInfo(zipfile, &globalInfo);
     if (globalInfoRet != UNZ_OK) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -148,14 +146,15 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
     }
 
     //Search for required files inside mpcdi archive file
-    for (unsigned int i = 0; i < global_info.number_entry; ++i) {
-        unz_file_info file_info;
-        char filename[MaxFilenameSize_bytes];
+    for (unsigned int i = 0; i < globalInfo.number_entry; ++i) {
+        unz_file_info fileInfo;
+        constexpr const int MaxFilenameSize = 500;
+        char filename[MaxFilenameSize];
         int getCurrentFileInfo = unzGetCurrentFileInfo(
             zipfile,
-            &file_info,
+            &fileInfo,
             filename,
-            MaxFilenameSize_bytes,
+            MaxFilenameSize,
             nullptr,
             0,
             nullptr,
@@ -170,12 +169,12 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
             return false;
         }
 
-        bool isSubFileValid =  processSubFiles(filename, &zipfile, file_info);
+        bool isSubFileValid =  processSubFiles(filename, &zipfile, fileInfo);
         if (!isSubFileValid) {
             unzClose(zipfile);
             return false;
         }
-        if ((i + 1) < global_info.number_entry) {
+        if ((i + 1) < globalInfo.number_entry) {
             int goToNextFileStatus = unzGoToNextFile(zipfile);
             if (goToNextFileStatus != UNZ_OK) {
                 sgct::MessageHandler::instance()->print(
@@ -186,8 +185,8 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
         }
     }
     unzClose(zipfile);
-    bool hasXmlFile = mMpcdiSubFileContents.hasFound[MpcdiSubFiles::MpcdiXml];
-    bool hasPfmFile = mMpcdiSubFileContents.hasFound[MpcdiSubFiles::MpcdiPfm];
+    bool hasXmlFile = mXmlFileContents.hasFound;
+    bool hasPfmFile = mPfmFileContents.hasFound;
     if( !hasXmlFile || !hasPfmFile) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
@@ -196,73 +195,64 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi,
         );
         return false;
     }
-    if (!readAndParseXMLString(tmpNode, tmpWin)) {
-        return false;
-    }
-    else {
-        return true;
-    }
+
+    const bool parseSuccess = readAndParseXMLString(node, window);
+    return parseSuccess;
 }
 
-
-
 bool SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfile,
-                                unz_file_info& file_info)
+                                unz_file_info& fileInfo)
 {
-    for (int i = 0; i < mMpcdiSubFileContents.Mpcdi_nRequiredFiles; ++i) {
-        if( !mMpcdiSubFileContents.hasFound[i]
-            && doesStringHaveSuffix(filename, mMpcdiSubFileContents.extension[i]))
-        {
-            mMpcdiSubFileContents.hasFound[i] = true;
-            mMpcdiSubFileContents.size[i] = file_info.uncompressed_size;
-            mMpcdiSubFileContents.filename[i] = filename;
-            int openCurrentFile = unzOpenCurrentFile(*zipfile);
-            if (openCurrentFile != UNZ_OK) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
-                );
-                unzClose(*zipfile);
-                return false;
-            }
-            mMpcdiSubFileContents.buffer[i] = new char[file_info.uncompressed_size];
-            if( mMpcdiSubFileContents.buffer[i] != nullptr) {
-                int error = unzReadCurrentFile(
-                    *zipfile,
-                    mMpcdiSubFileContents.buffer[i],
-                    file_info.uncompressed_size
-                );
-                if (error < 0) {
-                    sgct::MessageHandler::instance()->print(
-                        sgct::MessageHandler::Level::Error,
-                        "parseMpcdiConfiguration: %s read from %s failed.\n",
-                        mMpcdiSubFileContents.extension[i].c_str(), filename.c_str()
-                    );
-                    unzClose(*zipfile);
-                    return false;
-                }
-            }
-            else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    "parseMpcdiConfiguration: Unable to allocate memory for %s\n",
-                    filename.c_str()
-                );
-                unzClose(*zipfile);
-                return false;
-            }
+    auto handleFile = [&filename, &zipfile, &fileInfo](SubFile& sf, std::string suffix) {
+        if (sf.hasFound || !doesStringHaveSuffix(filename, suffix)) {
+            return true;
         }
+
+        sf.hasFound = true;
+        sf.size = fileInfo.uncompressed_size;
+        sf.fileName = filename;
+        int openCurrentFile = unzOpenCurrentFile(*zipfile);
+        if (openCurrentFile != UNZ_OK) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
+            );
+            unzClose(*zipfile);
+            return false;
+        }
+        sf.buffer.resize(fileInfo.uncompressed_size);
+        int error = unzReadCurrentFile(
+            *zipfile,
+            sf.buffer.data(),
+            fileInfo.uncompressed_size
+        );
+        if (error < 0) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "parseMpcdiConfiguration: %s read from %s failed.\n",
+                suffix.c_str(), filename.c_str()
+            );
+            unzClose(*zipfile);
+            return false;
+        }
+        return true;
+    };
+
+    bool xmlSuccess = handleFile(mXmlFileContents, "xml");
+    if (xmlSuccess) {
+        return true;
     }
-    return true;
+    bool pfmSuccess = handleFile(mPfmFileContents, "pfm");
+    return pfmSuccess;
 }
 
 bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin) {
     bool mpcdiParseResult = false;
-    if (mMpcdiSubFileContents.buffer[MpcdiSubFiles::MpcdiXml] != nullptr) {
+    if (!mXmlFileContents.buffer.empty()) {
         tinyxml2::XMLDocument xmlDoc;
         tinyxml2::XMLError result = xmlDoc.Parse(
-            mMpcdiSubFileContents.buffer[MpcdiSubFiles::MpcdiXml],
-            mMpcdiSubFileContents.size[MpcdiSubFiles::MpcdiXml]
+            mXmlFileContents.buffer.data(),
+            mXmlFileContents.size
         );
 
         if (result != tinyxml2::XML_NO_ERROR) {
@@ -476,13 +466,12 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
             if (tmpWindowName == currRegion_warpName) {
                 std::string currRegion_warpFilename = warp->pathWarpFile;
                 std::string matchingMpcdiDataFile
-                    = mMpcdiSubFileContents.filename[MpcdiSubFiles::MpcdiPfm];
+                    = mPfmFileContents.fileName;
                 if (currRegion_warpFilename == matchingMpcdiDataFile) {
                     std::vector<unsigned char> meshData;
                     meshData.assign(
-                        mMpcdiSubFileContents.buffer[MpcdiSubFiles::MpcdiPfm],
-                        mMpcdiSubFileContents.buffer[MpcdiSubFiles::MpcdiPfm] +
-                            mMpcdiSubFileContents.size[MpcdiSubFiles::MpcdiPfm]
+                        mPfmFileContents.buffer.data(),
+                        mPfmFileContents.buffer.data() + mPfmFileContents.size
                     );
                     tmpWin.getViewport(r).setMpcdiWarpMesh(std::move(meshData));
                     foundMatchingPfmBuffer = true;

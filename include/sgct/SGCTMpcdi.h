@@ -30,23 +30,16 @@ class SGCTNode;
 class SGCTMpcdi {
 public:
     explicit SGCTMpcdi(std::string parentErrorMessage);
-    ~SGCTMpcdi();
 
     bool parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
         sgct::SGCTWindow& window);
 
 private:
-
-
     struct MpcdiFoundItems {
         bool haveDisplayElem = false;
         bool haveBufferElem = false;
         int resolutionX = -1;
         int resolutionY = -1;
-    };
-
-    struct MpcdiRegion {
-        std::string id;
     };
 
     struct MpcdiWarp {
@@ -100,7 +93,7 @@ private:
     SubFile mXmlFileContents;
     SubFile mPfmFileContents;
 
-    std::vector<MpcdiRegion*> mBufferRegions;
+    std::vector<std::string> mBufferRegions;
     std::vector<std::unique_ptr<MpcdiWarp>> mWarp;
     std::string mErrorMsg;
 };

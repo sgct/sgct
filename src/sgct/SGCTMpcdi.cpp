@@ -91,31 +91,9 @@ namespace {
 
 namespace sgct_core {
 
-//SGCTMpcdi::MpcdiSubFiles::MpcdiSubFiles() {
-//    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
-//        hasFound[i] = false;
-//        buffer[i] = nullptr;
-//    }
-//    extension[MpcdiXml] = "xml";
-//    extension[MpcdiPfm] = "pfm";
-//}
-//
-//SGCTMpcdi::MpcdiSubFiles::~MpcdiSubFiles() {
-//    for (int i = 0; i < Mpcdi_nRequiredFiles; ++i) {
-//        if (buffer[i] != nullptr)
-//            delete buffer[i];
-//    }
-//}
-
 SGCTMpcdi::SGCTMpcdi(std::string parentErrorMessage)
     : mErrorMsg(std::move(parentErrorMessage))
 {}
-
-SGCTMpcdi::~SGCTMpcdi() {
-    for (MpcdiRegion* ptr : mBufferRegions) {
-        delete ptr;
-    }
-}
 
 bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
                                    sgct::SGCTWindow& window)
@@ -185,9 +163,7 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
         }
     }
     unzClose(zipfile);
-    bool hasXmlFile = mXmlFileContents.hasFound;
-    bool hasPfmFile = mPfmFileContents.hasFound;
-    if( !hasXmlFile || !hasPfmFile) {
+    if (!mXmlFileContents.hasFound || !mPfmFileContents.hasFound) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
@@ -247,37 +223,37 @@ bool SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfile,
 }
 
 bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin) {
-    bool mpcdiParseResult = false;
-    if (!mXmlFileContents.buffer.empty()) {
-        tinyxml2::XMLDocument xmlDoc;
-        tinyxml2::XMLError result = xmlDoc.Parse(
-            mXmlFileContents.buffer.data(),
-            mXmlFileContents.size
-        );
+    if (mXmlFileContents.buffer.empty()) {
+        return false;
+    }
+    tinyxml2::XMLDocument xmlDoc;
+    tinyxml2::XMLError result = xmlDoc.Parse(
+        mXmlFileContents.buffer.data(),
+        mXmlFileContents.size
+    );
 
-        if (result != tinyxml2::XML_NO_ERROR) {
-            std::stringstream ss;
-            if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " "
-                   << xmlDoc.GetErrorStr2();
-            }
-            else if (xmlDoc.GetErrorStr1()) {
-                ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
-            }
-            else if (xmlDoc.GetErrorStr2()) {
-                ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
-            }
-            else {
-                ss << "File not found";
-            }
-            mErrorMsg = ss.str();
-            mpcdiParseResult = false;
+    if (result != tinyxml2::XML_NO_ERROR) {
+        std::stringstream ss;
+        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " "
+                << xmlDoc.GetErrorStr2();
+        }
+        else if (xmlDoc.GetErrorStr1()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+        }
+        else if (xmlDoc.GetErrorStr2()) {
+            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
         }
         else {
-            mpcdiParseResult = readAndParseXML_mpcdi(xmlDoc, tmpNode, tmpWin);
+            ss << "File not found";
         }
+        mErrorMsg = ss.str();
+        return false;
     }
-    return mpcdiParseResult;
+    else {
+        const bool success = readAndParseXML_mpcdi(xmlDoc, tmpNode, tmpWin);
+        return success;
+    }
 }
 
 bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
@@ -295,40 +271,39 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& t
     }
     const char* val[MaxXmlDepth];
 
-    bool hasExpectedValue;
-    hasExpectedValue = checkAttributeForExpectedValue(
+    const bool hasProfile = checkAttributeForExpectedValue(
         XMLroot,
         "profile",
         "MPCDI profile",
         "3d"
     );
-    if (!hasExpectedValue) {
+    if (!hasProfile) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "readAndParseXML_mpcdi: Problem with 'MPCDI' attribute in XML\n"
         );
         return false;
     }
-    hasExpectedValue = checkAttributeForExpectedValue(
+    const bool hasGeometry = checkAttributeForExpectedValue(
         XMLroot,
         "geometry",
         "MPCDI geometry level",
         "1"
     );
-    if (!hasExpectedValue) {
+    if (!hasGeometry) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "readAndParseXML_mpcdi: Problem with 'geometry' attribute in XML\n"
         );
         return false;
     }
-    hasExpectedValue = checkAttributeForExpectedValue(
+    const bool hasVersion = checkAttributeForExpectedValue(
         XMLroot,
         "version",
         "MPCDI version",
         "2.0"
     );
-    if (!hasExpectedValue) {
+    if (!hasVersion) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "readAndParseXML_mpcdi: Problem with 'version' attribute in XML\n"
@@ -446,7 +421,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
         }
         else if (strcmp("interpolation", val[3]) == 0) {
             std::string interpolation = element[3]->GetText();
-            if (interpolation == "linear" != 0) {
+            if (interpolation != "linear") {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Warning,
                     "parseMpcdiXml: only linear interpolation is supported.\n"
@@ -457,7 +432,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
         element[3] = element[3]->NextSiblingElement();
     }
     if (warp->haveFoundPath && warp->haveFoundInterpolation) {
-        //Look for matching MPCDI region (SGCT viewport) to pass
+        // Look for matching MPCDI region (SGCT viewport) to pass
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
         for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r) {
@@ -465,8 +440,7 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
             std::string currRegion_warpName = warp->id;
             if (tmpWindowName == currRegion_warpName) {
                 std::string currRegion_warpFilename = warp->pathWarpFile;
-                std::string matchingMpcdiDataFile
-                    = mPfmFileContents.fileName;
+                std::string matchingMpcdiDataFile = mPfmFileContents.fileName;
                 if (currRegion_warpFilename == matchingMpcdiDataFile) {
                     std::vector<unsigned char> meshData;
                     meshData.assign(
@@ -554,13 +528,12 @@ bool SGCTMpcdi::readAndParseXML_region(tinyxml2::XMLElement* element[],
                                        const char* val[], sgct::SGCTWindow& tmpWin,
                                        MpcdiFoundItems& parsedItems)
 {
-    //Require an 'id' attribute for each region. These will be compared later to the
+    // Require an 'id' attribute for each region. These will be compared later to the
     // fileset, in which there must be a matching 'id'. The mBufferRegions vector is
     // intended for use with MPCDI files containing multiple regions, but currently
     // only is tested with single region files.
     if (element[2]->Attribute("id") != nullptr) {
-        mBufferRegions.push_back(new MpcdiRegion);
-        mBufferRegions.back()->id = element[2]->Attribute("id");
+        mBufferRegions.push_back(element[2]->Attribute("id"));
     }
     else {
         sgct::MessageHandler::instance()->print(

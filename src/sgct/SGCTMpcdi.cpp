@@ -23,20 +23,19 @@ namespace {
 
     bool openZipFile(FILE* cfgFile, const std::string& cfgFilePath, unzFile* zipfile) {
 #if (_MSC_VER >= 1400) //visual studio 2005 or later
-        if (fopen_s(&cfgFile, cfgFilePath.c_str(), "r") != 0 || !cfgFile)
+        const bool success = fopen_s(&cfgFile, cfgFilePath.c_str(), "r") == 0 && cfgFile;
 #else
         cfgFile = fopen(cfgFilePath.c_str(), "r");
-        if (cfgFile == nullptr)
+        const bool = cfgFile != nullptr;
 #endif
-        {
+        if (!success) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "parseMpcdiConfiguration: Failed to open file %s\n",
-                cfgFilePath.c_str()
+                "parseMpcdiConfiguration: Failed to open file %s\n", cfgFilePath.c_str()
             );
             return false;
         }
-        //Open MPCDI file (zip compressed format)
+        // Open MPCDI file (zip compressed format)
         *zipfile = unzOpen(cfgFilePath.c_str());
         if (zipfile == nullptr) {
             sgct::MessageHandler::instance()->print(
@@ -49,9 +48,9 @@ namespace {
         return true;
     }
 
-    void unsupportedFeatureCheck(std::string tag, std::string featureName) {
-        if (featureName == tag) {
-            std::string warn = "ReadConfigMpcdi: Unsupported feature: " + featureName + " \n";
+    void unsupportedFeatureCheck(const std::string& tag, const std::string& feature) {
+        if (feature == tag) {
+            std::string warn = "ReadConfigMpcdi: Unsupported feature: " + feature + " \n";
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Warning,
                 warn.c_str()
@@ -64,36 +63,33 @@ namespace {
                                         const std::string& tagDescription,
                                         const std::string& expectedTag)
     {
-        std::string errorMsg;
         const char* attr = elem->Attribute(attrRequired.c_str());
         if (attr != nullptr) {
             if (expectedTag != attr) {
-                errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
+                std::string errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
                     expectedTag + "' is supported.\n";
+                sgct::MessageHandler::instance()->print(
+                    sgct::MessageHandler::Level::Error,
+                    errorMsg.c_str()
+                );
+                return false;
             }
         }
         else {
-            errorMsg = "parseMpcdiXml: No " + tagDescription + " attribute found \n";
-        }
-
-        if (!errorMsg.empty()) {
+            std::string errorMsg = "parseMpcdiXml: No " + tagDescription +
+                                   " attribute found \n";
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 errorMsg.c_str()
             );
             return false;
         }
-        else {
-            return true;
-        }
+
+        return true;
     }
 } // namespace
 
 namespace sgct_core {
-
-SGCTMpcdi::SGCTMpcdi(std::string parentErrorMessage)
-    : mErrorMsg(std::move(parentErrorMessage))
-{}
 
 bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& node,
                                    sgct::SGCTWindow& window)
@@ -123,7 +119,7 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
         return false;
     }
 
-    //Search for required files inside mpcdi archive file
+    // Search for required files inside mpcdi archive file
     for (unsigned int i = 0; i < globalInfo.number_entry; ++i) {
         unz_file_info fileInfo;
         constexpr const int MaxFilenameSize = 500;
@@ -233,21 +229,26 @@ bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWi
     );
 
     if (result != tinyxml2::XML_NO_ERROR) {
-        std::stringstream ss;
+        std::string str = "Parsing failed after: ";
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1() << " "
-                << xmlDoc.GetErrorStr2();
+            str += xmlDoc.GetErrorStr1();
+            str += ' ';
+            str += xmlDoc.GetErrorStr2();
         }
         else if (xmlDoc.GetErrorStr1()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+            str += xmlDoc.GetErrorStr1();
         }
         else if (xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+            str += xmlDoc.GetErrorStr2();
         }
         else {
-            ss << "File not found";
+            str = "File not found";
         }
-        mErrorMsg = ss.str();
+
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "readAndParseXMLString: error parsing file %s.\n", str.c_str()
+        );
         return false;
     }
     else {
@@ -543,7 +544,7 @@ bool SGCTMpcdi::readAndParseXML_region(tinyxml2::XMLElement* element[],
         return false;
     }
     std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-    vp->configureMpcdi(element, val, parsedItems.resolutionX, parsedItems.resolutionY);
+    vp->configureMpcdi(element, val, parsedItems.resolution.x, parsedItems.resolution.y);
     tmpWin.addViewport(std::move(vp));
     return true;
 }

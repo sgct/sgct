@@ -15,7 +15,7 @@ namespace sgct_utils {
  */
 class SGCTDomeGrid {
 public:
-    /// This constructor requires a valid openGL contex
+    /// This constructor requires a valid OpenGL contex
     SGCTDomeGrid(float radius, float FOV, unsigned int segments, unsigned int rings,
         unsigned int resolution = 128);
     ~SGCTDomeGrid();

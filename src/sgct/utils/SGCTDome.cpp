@@ -8,21 +8,17 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/utils/SGCTDome.h>
 
 #include <sgct/Engine.h>
-#include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
 #include <glm/gtc/constants.hpp>
 
 namespace sgct_utils {
 
-/*!
-    This constructor requires a valid openGL contex
-*/
 SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
                    unsigned int elevationSteps)
     : mElevationSteps(elevationSteps)
     , mAzimuthSteps(azimuthSteps)
 {
-    float lift = (180.0f - FOV) / 2.0f;
     std::vector<sgct_helpers::SGCTVertexData> vertices;
 
     // must be four or higher
@@ -43,137 +39,26 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
         mElevationSteps = 4;
     }
 
-    int e, numVerts = 0;
-    float x, z;
-    float s, t;
-    float azimuth;
-    e = 0;
 
-    // delta elevation
-    float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
-    float elevation = glm::radians(lift + de * (90.f - lift));
-    float y = sinf(elevation);
-
-    for (int a = 0; a < mAzimuthSteps; a++) {
-        azimuth = glm::radians(
-            static_cast<float>(a * 360) / static_cast<float>(mAzimuthSteps)
-        );
-
-        x = cosf(elevation) * sinf(azimuth);
-        z = -cosf(elevation) * cosf(azimuth);
-
-        s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
-        t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
-        s = s * 0.5f + 0.5f;
-        t = t * 0.5f + 0.5f;
-
-        sgct_helpers::SGCTVertexData vertex;
-        vertex.x = x * radius;
-        vertex.y = y * radius;
-        vertex.z = z * radius;
-        vertex.nx = x;
-        vertex.ny = y;
-        vertex.nz = z;
-        vertex.s = s;
-        vertex.t = t;
-        mVerts.push_back(std::move(vertex));
-    }
-
-    for (e = 1; e <= mElevationSteps - 1; e++) {
-        de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
-        elevation = glm::radians(lift + de * (90.0f - lift));
-
-        y = sinf(elevation);
-
-        for (int a = 0; a < mAzimuthSteps; a++) {
-            azimuth = glm::radians(static_cast<float>(a * 360) / static_cast<float>(mAzimuthSteps));
-
-            x = cosf(elevation) * sinf(azimuth);
-            z = -cosf(elevation) * cosf(azimuth);
-
-            s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
-            t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
-            s = s * 0.5f + 0.5f;
-            t = t * 0.5f + 0.5f;
-
-            sgct_helpers::SGCTVertexData vertex;
-            vertex.x = x * radius;
-            vertex.y = y * radius;
-            vertex.z = z * radius;
-            vertex.nx = x;
-            vertex.ny = y;
-            vertex.nz = z;
-            vertex.s = s;
-            vertex.t = t;
-            mVerts.push_back(std::move(vertex));
-
-            mIndices.push_back(numVerts);
-            mIndices.push_back(mAzimuthSteps + numVerts++);
-        }
-
-        mIndices.push_back(numVerts - mAzimuthSteps);
-        mIndices.push_back(numVerts);
-    }
-
-    e = mElevationSteps;
-    de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
-    elevation = glm::radians(lift + de * (90.f - lift));
-
-    y = sinf(elevation);
-
-    sgct_helpers::SGCTVertexData vertex;
-    vertex.x = 0.f;
-    vertex.y = y * radius;
-    vertex.z = 0.f;
-    vertex.nx = 0.f;
-    vertex.ny = 1.f;
-    vertex.nz = 0.f;
-    vertex.s = 0.5f;
-    vertex.t = 0.5f;
-    mVerts.push_back(std::move(vertex));
-
-    mIndices.push_back(numVerts + mAzimuthSteps);
-
-    for (int a = 1; a <= mAzimuthSteps; a++) {
-        mIndices.push_back(numVerts + mAzimuthSteps - a);
-    }
-    mIndices.push_back(numVerts + mAzimuthSteps - 1);
-
-    createVBO();
+    createVBO(radius, FOV);
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error!\n"
         );
-        cleanup();
     }
-
-    // free data
-    mVerts.clear();
-    mIndices.clear();
 }
 
 SGCTDome::~SGCTDome() {
-    cleanup();
-}
-
-void SGCTDome::cleanup() {
-    //cleanup
-    glDeleteBuffers(2, &mVBO[0]);
-    mVBO[Vertex] = 0;
-    mVBO[Index] = 0;
-
+    glDeleteBuffers(1, &mVBO);
+    mVBO = 0;
+    glDeleteBuffers(1, &mIBO);
+    mIBO = 0;
     glDeleteVertexArrays(1, &mVAO);
     mVAO = 0;
 }
 
-/*!
-If openGL 3.3+ is used:
-layout 0 contains texture coordinates (vec2)
-layout 1 contains vertex normals (vec3)
-layout 2 contains vertex positions (vec3).
-*/
 void SGCTDome::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
@@ -189,14 +74,14 @@ void SGCTDome::drawVBO() {
     glEnableClientState(GL_NORMAL_ARRAY);
     glEnableClientState(GL_VERTEX_ARRAY);
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
 
     glInterleavedArrays(GL_T2F_N3F_V3F, 0, 0);
     
-    for (int n = 0; n < mElevationSteps - 1; n++) {
-        unsigned int size = (2 * mAzimuthSteps + 2);
-        unsigned int offset = n * size;
+    for (int i = 0; i < mElevationSteps - 1; i++) {
+        const unsigned int size = (2 * mAzimuthSteps + 2);
+        const unsigned int offset = i * size;
         glDrawElements(
             GL_TRIANGLE_STRIP,
             size,
@@ -205,9 +90,9 @@ void SGCTDome::drawVBO() {
         );
     }
 
-    //one extra for the cap vertex and one extra for duplication of last index
-    unsigned int size = mAzimuthSteps + 2;
-    unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
+    // one extra for the cap vertex and one extra for duplication of last index
+    const unsigned int size = mAzimuthSteps + 2;
+    const unsigned int offset = (2 * mAzimuthSteps + 2) * (mElevationSteps - 1);
     glDrawElements(
         GL_TRIANGLE_FAN,
         size,
@@ -224,9 +109,9 @@ void SGCTDome::drawVBO() {
 void SGCTDome::drawVAO() {
     glBindVertexArray(mVAO);
 
-    for (int n = 0; n < mElevationSteps - 1; n++) {
-        unsigned int size = (2 * mAzimuthSteps + 2);
-        unsigned int offset = n * size;
+    for (int i = 0; i < mElevationSteps - 1; i++) {
+        const unsigned int size = (2 * mAzimuthSteps + 2);
+        const unsigned int offset = i * size;
         glDrawElements(
             GL_TRIANGLE_STRIP,
             size,
@@ -247,7 +132,85 @@ void SGCTDome::drawVAO() {
     glBindVertexArray(0);
 }
 
-void SGCTDome::createVBO() {
+void SGCTDome::createVBO(float radius, float FOV) {
+    const float lift = (180.f - FOV) / 2.f;
+
+    std::vector<sgct_helpers::SGCTVertexData> verts;
+    std::vector<unsigned int> indices;
+
+    for (int a = 0; a < mAzimuthSteps; a++) {
+        const float azimuth = glm::radians(
+            static_cast<float>(a * 360.f) / static_cast<float>(mAzimuthSteps)
+        );
+
+        const float elevation = glm::radians(lift);
+        const float x = cosf(elevation) * sinf(azimuth);
+        const float y = sin(elevation);
+        const float z = -cosf(elevation) * cosf(azimuth);
+        const float s =  sinf(azimuth) * 0.5f + 0.5f;
+        const float t = -cosf(azimuth) * 0.5f + 0.5f;
+
+        verts.push_back({
+            s, t,
+            x, y, z,
+            x * radius, y * radius, z * radius
+        });
+    }
+
+    int numVerts = 0;
+    for (int e = 1; e <= mElevationSteps - 1; e++) {
+        const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+        const float elevation = glm::radians(lift + de * (90.0f - lift));
+
+        const float y = sinf(elevation);
+
+        for (int a = 0; a < mAzimuthSteps; a++) {
+            const float azimuth = glm::radians(
+                static_cast<float>(a * 360.f) / static_cast<float>(mAzimuthSteps)
+            );
+
+            const float x = cosf(elevation) * sinf(azimuth);
+            const float z = -cosf(elevation) * cosf(azimuth);
+
+            float s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
+            float t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
+            s = s * 0.5f + 0.5f;
+            t = t * 0.5f + 0.5f;
+
+            verts.push_back({
+                s, t,
+                x, y, z,
+                x * radius, y * radius, z * radius
+                }
+            );
+
+            indices.push_back(numVerts);
+            indices.push_back(mAzimuthSteps + numVerts);
+            ++numVerts;
+        }
+
+        indices.push_back(numVerts - mAzimuthSteps);
+        indices.push_back(numVerts);
+    }
+
+    const int e = mElevationSteps;
+    const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
+    const float elevation = glm::radians(lift + de * (90.f - lift));
+    const float y = sinf(elevation);
+    verts.push_back({
+        0.5f, 0.5f,
+        0.f, 1.f, 0.f,
+        0.f, y * radius, 0.f
+    });
+
+
+    indices.push_back(numVerts + mAzimuthSteps);
+    for (int a = 1; a <= mAzimuthSteps; a++) {
+        indices.push_back(numVerts + mAzimuthSteps - a);
+    }
+    indices.push_back(numVerts + mAzimuthSteps - 1);
+
+
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
@@ -261,17 +224,17 @@ void SGCTDome::createVBO() {
         );
     }
 
-    glGenBuffers(2, &mVBO[0]);
+    glGenBuffers(2, &mVBO);
     sgct::MessageHandler::instance()->print(
         sgct::MessageHandler::Level::Debug,
-        "SGCTDome: Generating VBOs: %d %d\n", mVBO[0], mVBO[1]
+        "SGCTDome: Generating VBOs: %d %d\n", mVBO, mIBO
     );
 
-    glBindBuffer(GL_ARRAY_BUFFER, mVBO[Vertex]);
+    glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        static_cast<int>(mVerts.size()) * sizeof(sgct_helpers::SGCTVertexData),
-        mVerts.data(),
+        static_cast<int>(verts.size()) * sizeof(sgct_helpers::SGCTVertexData),
+        verts.data(),
         GL_STATIC_DRAW
     );
 
@@ -305,15 +268,14 @@ void SGCTDome::createVBO() {
         );
     }
 
-    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mVBO[Index]);
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, mIBO);
     glBufferData(
         GL_ELEMENT_ARRAY_BUFFER,
-        static_cast<int>(mIndices.size()) * sizeof(unsigned int),
-        mIndices.data(),
+        static_cast<int>(indices.size()) * sizeof(unsigned int),
+        indices.data(),
         GL_STATIC_DRAW
     );
 
-    //unbind
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }

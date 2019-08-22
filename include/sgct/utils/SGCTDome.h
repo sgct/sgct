@@ -18,26 +18,31 @@ namespace sgct_utils {
 */
 class SGCTDome {
 public:
+    /// This constructor requires a valid OpenGL contex
     SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
         unsigned int elevationSteps);
     ~SGCTDome();
+
+    /**
+     * If openGL 3.3+ is used:
+     *   layout 0 contains texture coordinates (vec2)
+     *   layout 1 contains vertex normals (vec3)
+     *   layout 2 contains vertex positions (vec3).
+     */
     void draw();
 
 private:
     void drawVBO();
     void drawVAO();
 
-    void createVBO();
-    void cleanup();
+    void createVBO(float radius, float FOV);
 
 private:
-    std::vector<sgct_helpers::SGCTVertexData> mVerts;
-    std::vector<unsigned int> mIndices;
     int mElevationSteps;
     int mAzimuthSteps;
 
-    enum bufferType { Vertex = 0, Index };
-    unsigned int mVBO[2] = { 0, 0 };
+    unsigned int mVBO = 0;
+    unsigned int mIBO = 0;
     unsigned int mVAO = 0;
 };
 

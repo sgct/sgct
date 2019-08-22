@@ -46,47 +46,28 @@ private:
         bool haveFoundInterpolation = false;
     };
 
-    bool readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin);
-    bool readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
-        sgct::SGCTWindow& tmpWin);
-    bool readAndParseXML_display(tinyxml2::XMLElement* element[], const char* val[],
-        SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
-    bool readAndParseXML_files(tinyxml2::XMLElement* element[], const char* val[],
-        sgct::SGCTWindow& tmpWin);
-    bool readAndParseXML_buffer(tinyxml2::XMLElement* element[], const char* val[],
-        sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
-    bool readAndParseXML_region(tinyxml2::XMLElement* element[], const char* val[],
-        sgct::SGCTWindow& tmpWin, MpcdiFoundItems& parsedItems);
-    bool readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
-        const char* val[], sgct::SGCTWindow& tmpWin,
-        std::string filesetRegionId);
-    bool processSubFiles(std::string filename, unzFile* zipfile,
-        unz_file_info& file_info);
-
-
-    //struct MpcdiSubFiles {
-    //    enum MpcdiSubFileTypes {
-    //        MpcdiXml = 0,
-    //        MpcdiPfm,
-    //        Mpcdi_nRequiredFiles //Leave at end
-    //    };
-    //    bool hasFound[Mpcdi_nRequiredFiles];
-    //    std::string extension[Mpcdi_nRequiredFiles];
-    //    std::string filename[Mpcdi_nRequiredFiles];
-    //    int size[Mpcdi_nRequiredFiles];
-    //    char* buffer[Mpcdi_nRequiredFiles];
-
-    //    MpcdiSubFiles();
-    //    ~MpcdiSubFiles();
-    //};
+    bool readAndParseString(SGCTNode& node, sgct::SGCTWindow& win);
+    bool readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
+        sgct::SGCTWindow& win);
+    bool readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& node,
+        sgct::SGCTWindow& win, MpcdiFoundItems& parsedItems);
+    bool readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindow& win);
+    bool readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+        MpcdiFoundItems& parsedItems);
+    bool readAndParseRegion(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+        MpcdiFoundItems& parsedItems);
+    bool readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
+        sgct::SGCTWindow& win, std::string filesetRegionId);
 
     struct SubFile {
-        bool hasFound = false;
-        std::string extension;
+        bool isFound = false;
         std::string fileName;
-        int size;
         std::vector<char> buffer;
     };
+
+    bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
+        const std::string& filename, unzFile zipfile, const unz_file_info& fileInfo);
+
     SubFile mXmlFileContents;
     SubFile mPfmFileContents;
 

@@ -40,8 +40,7 @@ public:
     ~Viewport();
 
     void configure(tinyxml2::XMLElement* element);
-    void configureMpcdi(tinyxml2::XMLElement* element[], const char* val[], int winResX,
-        int winResY);
+    void configureMpcdi(tinyxml2::XMLElement* element, int winResX, int winResY);
     void setOverlayTexture(std::string texturePath);
     void setBlendMaskTexture(std::string texturePath);
     void setBlackLevelMaskTexture(std::string texturePath);

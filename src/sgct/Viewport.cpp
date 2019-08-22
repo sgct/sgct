@@ -177,19 +177,17 @@ void Viewport::configure(tinyxml2::XMLElement* element) {
 // @TODO(abock)  The function signature needs to be cleaned up during a pass of SGCTMpcdi
 //               file.  It's not clear what is happening with the double pointers here and
 //               which assignments are actually used
-void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[],
-                              int winResX, int winResY)
-{
+void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int winResY) {
     using namespace tinyxml2;
 
-    if (element[2]->Attribute("id")) {
-        setName(element[2]->Attribute("id"));
+    if (element->Attribute("id")) {
+        setName(element->Attribute("id"));
     }
 
     float vpPositionX;
     float vpPositionY;
-    if (element[2]->QueryFloatAttribute("x", &vpPositionX) == XML_NO_ERROR &&
-        element[2]->QueryFloatAttribute("y", &vpPositionY) == XML_NO_ERROR)
+    if (element->QueryFloatAttribute("x", &vpPositionX) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("y", &vpPositionY) == XML_NO_ERROR)
     {
         setPos(vpPositionX, vpPositionY);
     }
@@ -202,8 +200,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
 
     float vpSizeX;
     float vpSizeY;
-    if (element[2]->QueryFloatAttribute("xSize", &vpSizeX) == XML_NO_ERROR &&
-        element[2]->QueryFloatAttribute("ySize", &vpSizeY) == XML_NO_ERROR)
+    if (element->QueryFloatAttribute("xSize", &vpSizeX) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("ySize", &vpSizeY) == XML_NO_ERROR)
     {
         setSize(vpSizeX, vpSizeY);
     }
@@ -216,8 +214,8 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
 
     float vpResolutionX;
     float vpResolutionY;
-    if (element[2]->QueryFloatAttribute("xResolution", &vpResolutionX) == XML_NO_ERROR &&
-        element[2]->QueryFloatAttribute("yResolution", &vpResolutionY) == XML_NO_ERROR)
+    if (element->QueryFloatAttribute("xResolution", &vpResolutionX) == XML_NO_ERROR &&
+        element->QueryFloatAttribute("yResolution", &vpResolutionY) == XML_NO_ERROR)
     {
         float expectedResolutionX = std::floor(vpResolutionX * winResX);
         float expectedResolutionY = std::floor(vpResolutionY * winResY);
@@ -249,48 +247,48 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
     std::optional<float> roll;
 
 
-    element[3] = element[2]->FirstChildElement();
-    while (element[3] != nullptr) {
-        val[3] = element[3]->Value();
-        if (strcmp("frustum", val[3]) == 0) {
+    tinyxml2::XMLElement* child = element->FirstChildElement();
+    while (child) {
+        const char* val = child->Value();
+        if (strcmp("frustum", val) == 0) {
             float distance = 10.f;
             glm::quat rotQuat;
             glm::vec3 offset(0.f, 0.f, 0.f);
 
-            element[4] = element[3]->FirstChildElement();
-            while (element[4] != nullptr) {
+            tinyxml2::XMLElement* grandChild = child->FirstChildElement();
+            while (grandChild) {
                 bool frustumTagFound = false;
 
                 if (!frustumTagFound) {
-                    right = parseFrustumElement(*element[4], "rightAngle");
+                    right = parseFrustumElement(*grandChild, "rightAngle");
                     frustumTagFound = right.has_value();
                 }
                 if (!frustumTagFound) {
-                    left = parseFrustumElement(*element[4], "leftAngle");
+                    left = parseFrustumElement(*grandChild, "leftAngle");
                     frustumTagFound = left.has_value();
                 }
                 if (!frustumTagFound) {
-                    up = parseFrustumElement(*element[4], "upAngle");
+                    up = parseFrustumElement(*grandChild, "upAngle");
                     frustumTagFound = up.has_value();
                 }
                 if (!frustumTagFound) {
-                    down = parseFrustumElement(*element[4], "downAngle");
+                    down = parseFrustumElement(*grandChild, "downAngle");
                     frustumTagFound = down.has_value();
                 }
                 if (!frustumTagFound) {
-                    yaw = parseFrustumElement(*element[4], "yaw");
+                    yaw = parseFrustumElement(*grandChild, "yaw");
                     frustumTagFound = yaw.has_value();
                 }
                 if (!frustumTagFound) {
-                    pitch = parseFrustumElement(*element[4], "pitch");
+                    pitch = parseFrustumElement(*grandChild, "pitch");
                     frustumTagFound = pitch.has_value();
                 }
                 if (!frustumTagFound) {
-                    roll = parseFrustumElement(*element[4], "roll");
+                    roll = parseFrustumElement(*grandChild, "roll");
                     frustumTagFound = roll.has_value();
                 }
 
-                element[4] = element[4]->NextSiblingElement();
+                grandChild = grandChild->NextSiblingElement();
             }
 
             bool hasMissingField = !down.has_value() || !up.has_value() ||
@@ -314,7 +312,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element[], const char* val[]
             setViewPlaneCoordsUsingFOVs(*up, *down, *left, *right, rotQuat, distance);
             mProjectionPlane.offset(offset);
         }
-        element[3] = element[3]->NextSiblingElement();
+        child = child->NextSiblingElement();
     }
 }
 

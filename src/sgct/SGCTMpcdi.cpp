@@ -143,8 +143,11 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
             return false;
         }
 
-        bool isSubFileValid =  processSubFiles(filename, &zipfile, fileInfo);
-        if (!isSubFileValid) {
+        bool suc = processSubFile(mXmlFileContents, "xml", filename, zipfile, fileInfo);
+        if (!suc) {
+            suc = processSubFile(mPfmFileContents, "pfm", filename, zipfile, fileInfo);
+        }
+        if (!suc) {
             unzClose(zipfile);
             return false;
         }
@@ -159,7 +162,7 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
         }
     }
     unzClose(zipfile);
-    if (!mXmlFileContents.hasFound || !mPfmFileContents.hasFound) {
+    if (!mXmlFileContents.isFound || !mPfmFileContents.isFound) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
@@ -168,64 +171,51 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
         return false;
     }
 
-    const bool parseSuccess = readAndParseXMLString(node, window);
+    const bool parseSuccess = readAndParseString(node, window);
     return parseSuccess;
 }
 
-bool SGCTMpcdi::processSubFiles(std::string filename, unzFile* zipfile,
-                                unz_file_info& fileInfo)
+bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
+                               const std::string& filename, unzFile zipfile,
+                               const unz_file_info& fileInfo)
 {
-    auto handleFile = [&filename, &zipfile, &fileInfo](SubFile& sf, std::string suffix) {
-        if (sf.hasFound || !doesStringHaveSuffix(filename, suffix)) {
-            return true;
-        }
-
-        sf.hasFound = true;
-        sf.size = fileInfo.uncompressed_size;
-        sf.fileName = filename;
-        int openCurrentFile = unzOpenCurrentFile(*zipfile);
-        if (openCurrentFile != UNZ_OK) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
-                "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
-            );
-            unzClose(*zipfile);
-            return false;
-        }
-        sf.buffer.resize(fileInfo.uncompressed_size);
-        int error = unzReadCurrentFile(
-            *zipfile,
-            sf.buffer.data(),
-            fileInfo.uncompressed_size
-        );
-        if (error < 0) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
-                "parseMpcdiConfiguration: %s read from %s failed.\n",
-                suffix.c_str(), filename.c_str()
-            );
-            unzClose(*zipfile);
-            return false;
-        }
-        return true;
-    };
-
-    bool xmlSuccess = handleFile(mXmlFileContents, "xml");
-    if (xmlSuccess) {
+    if (sf.isFound || !doesStringHaveSuffix(filename, suffix)) {
         return true;
     }
-    bool pfmSuccess = handleFile(mPfmFileContents, "pfm");
-    return pfmSuccess;
+
+    sf.isFound = true;
+    sf.fileName = filename;
+    int openCurrentFile = unzOpenCurrentFile(zipfile);
+    if (openCurrentFile != UNZ_OK) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "parseMpcdiConfiguration: Unable to open %s\n", filename.c_str()
+        );
+        unzClose(zipfile);
+        return false;
+    }
+    sf.buffer.resize(fileInfo.uncompressed_size);
+    int err = unzReadCurrentFile(zipfile, sf.buffer.data(), sf.buffer.size());
+    if (err < 0) {
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "parseMpcdiConfiguration: %s read from %s failed.\n",
+            suffix.c_str(), filename.c_str()
+        );
+        unzClose(zipfile);
+        return false;
+    }
+    return true;
 }
 
-bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWin) {
+bool SGCTMpcdi::readAndParseString(SGCTNode& node, sgct::SGCTWindow& win) {
     if (mXmlFileContents.buffer.empty()) {
         return false;
     }
     tinyxml2::XMLDocument xmlDoc;
     tinyxml2::XMLError result = xmlDoc.Parse(
         mXmlFileContents.buffer.data(),
-        mXmlFileContents.size
+        mXmlFileContents.buffer.size()
     );
 
     if (result != tinyxml2::XML_NO_ERROR) {
@@ -252,25 +242,22 @@ bool SGCTMpcdi::readAndParseXMLString(SGCTNode& tmpNode, sgct::SGCTWindow& tmpWi
         return false;
     }
     else {
-        const bool success = readAndParseXML_mpcdi(xmlDoc, tmpNode, tmpWin);
+        const bool success = readAndParseMpcdi(xmlDoc, node, win);
         return success;
     }
 }
 
-bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& tmpNode,
-                                      sgct::SGCTWindow& tmpWin)
+bool SGCTMpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
+                                  sgct::SGCTWindow& win)
 {
     tinyxml2::XMLElement* XMLroot = xmlDoc.FirstChildElement("MPCDI");
     if (XMLroot == nullptr) {
-        mErrorMsg = "Cannot find XML root!";
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "readAndParseMpcdi: Cannot find XML root!"
+        );
         return false;
     }
-    constexpr const int MaxXmlDepth = 16;
-    tinyxml2::XMLElement* element[MaxXmlDepth];
-    for (unsigned int i = 0; i < MaxXmlDepth; i++) {
-        element[i] = nullptr;
-    }
-    const char* val[MaxXmlDepth];
 
     const bool hasProfile = checkAttributeForExpectedValue(
         XMLroot,
@@ -281,7 +268,7 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& t
     if (!hasProfile) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "readAndParseXML_mpcdi: Problem with 'MPCDI' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'MPCDI' attribute in XML\n"
         );
         return false;
     }
@@ -294,7 +281,7 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& t
     if (!hasGeometry) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "readAndParseXML_mpcdi: Problem with 'geometry' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'geometry' attribute in XML\n"
         );
         return false;
     }
@@ -307,121 +294,111 @@ bool SGCTMpcdi::readAndParseXML_mpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& t
     if (!hasVersion) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "readAndParseXML_mpcdi: Problem with 'version' attribute in XML\n"
+            "readAndParseMpcdi: Problem with 'version' attribute in XML\n"
         );
         return false;
     }
 
     MpcdiFoundItems parsedItems;
-    element[0] = XMLroot->FirstChildElement();
-    while (element[0] != nullptr) {
-        val[0] = element[0]->Value();
-        if (strcmp("display", val[0]) == 0) {
-            if (!readAndParseXML_display(element, val, tmpNode, tmpWin, parsedItems)) {
+    tinyxml2::XMLElement* element = XMLroot->FirstChildElement();
+    while (element) {
+        const char* val = element->Value();
+        if (strcmp("display", val) == 0) {
+            if (!readAndParseDisplay(element, node, win, parsedItems)) {
                 return false;
             }
         }
-        else if (strcmp("files", val[0]) == 0) {
-            if (!readAndParseXML_files(element, val, tmpWin)) {
+        else if (strcmp("files", val) == 0) {
+            if (!readAndParseFiles(element, win)) {
                 return false;
             }
         }
-        unsupportedFeatureCheck(val[0], "extensionSet");
-        //iterate
-        element[0] = element[0]->NextSiblingElement();
+        unsupportedFeatureCheck(val, "extensionSet");
+        element = element->NextSiblingElement();
     }
 
     return true;
 }
 
-bool SGCTMpcdi::readAndParseXML_display(tinyxml2::XMLElement* element[],
-                                        const char* val[], SGCTNode& tmpNode,
-                                        sgct::SGCTWindow& tmpWin,
-                                        MpcdiFoundItems& parsedItems)
+bool SGCTMpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& node,
+                                    sgct::SGCTWindow& win, MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveDisplayElem) {
-         sgct::MessageHandler::instance()->print(
-             sgct::MessageHandler::Level::Error,
-             "parseMpcdiXml: Multiple 'display' elements not supported.\n"
-         );
-         return false;
-     }
-     else {
-         parsedItems.haveDisplayElem = true;
-     }
-     element[1] = element[0]->FirstChildElement();
-     while (element[1] != nullptr) {
-         val[1] = element[1]->Value();
-         if (strcmp("buffer", val[1]) == 0) {
-             if (!readAndParseXML_buffer(element, val, tmpWin, parsedItems)) {
-                 return false;
-             }
-             tmpNode.addWindow(std::move(tmpWin));
-         }
-         //iterate
-         element[1] = element[1]->NextSiblingElement();
-     }
-     return true;
-}
-
-bool sgct_core::SGCTMpcdi::readAndParseXML_files(tinyxml2::XMLElement* element[],
-                                                 const char* val[],
-                                                 sgct::SGCTWindow& tmpWin)
-{
-    std::string filesetRegionId;
-
-    element[1] = element[0]->FirstChildElement();
-    while (element[1] != nullptr) {
-        val[1] = element[1]->Value();
-        if (strcmp("fileset", val[1]) == 0) {
-            if (element[1]->Attribute("region") != nullptr) {
-                filesetRegionId = element[1]->Attribute("region");
+        sgct::MessageHandler::instance()->print(
+            sgct::MessageHandler::Level::Error,
+            "parseMpcdiXml: Multiple 'display' elements not supported.\n"
+        );
+        return false;
+    }
+    else {
+        parsedItems.haveDisplayElem = true;
+    }
+    tinyxml2::XMLElement* child = element->FirstChildElement();
+    while (child) {
+        const char* val = child->Value();
+        if (strcmp("buffer", val) == 0) {
+            const bool success = readAndParseBuffer(child, win, parsedItems);
+            if (!success) {
+                return false;
             }
-            element[2] = element[1]->FirstChildElement();
-            while (element [2] != nullptr) {
-                val[2] = element[2]->Value();
-                if (strcmp("geometryWarpFile", val[2]) == 0) {
-                    bool success = readAndParseXML_geoWarpFile(
-                        element,
-                        val,
-                        tmpWin,
-                        filesetRegionId
-                    );
-                    if (!success) {
-                        return false;
-                    }
-                }
-                unsupportedFeatureCheck(val[2], "alphaMap");
-                unsupportedFeatureCheck(val[2], "betaMap");
-                unsupportedFeatureCheck(val[2], "distortionMap");
-                unsupportedFeatureCheck(val[2], "decodeLUT");
-                unsupportedFeatureCheck(val[2], "correctLUT");
-                unsupportedFeatureCheck(val[2], "encodeLUT");
-
-                element[2] = element[2]->NextSiblingElement();
-            }
+            node.addWindow(std::move(win));
         }
-        element[1] = element[1]->NextSiblingElement();
+        child = child->NextSiblingElement();
     }
     return true;
 }
 
-bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
-                                            const char* val[],
-                                            sgct::SGCTWindow& tmpWin,
-                                            std::string filesetRegionId)
+bool SGCTMpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindow& win) {
+    std::string fileRegion;
+
+    tinyxml2::XMLElement* child = element->FirstChildElement();
+    while (child) {
+        const char* val = child->Value();
+        if (strcmp("fileset", val) != 0) {
+            continue;
+        }
+
+        if (child->Attribute("region")) {
+            fileRegion = child->Attribute("region");
+        }
+        tinyxml2::XMLElement* grandChild = child->FirstChildElement();
+        while (grandChild) {
+            const char* grandChildVal = grandChild->Value();
+            if (strcmp("geometryWarpFile", grandChildVal) == 0) {
+                bool success = readAndParseGeoWarpFile(grandChild, win, fileRegion);
+                if (!success) {
+                    return false;
+                }
+            }
+            unsupportedFeatureCheck(grandChildVal, "alphaMap");
+            unsupportedFeatureCheck(grandChildVal, "betaMap");
+            unsupportedFeatureCheck(grandChildVal, "distortionMap");
+            unsupportedFeatureCheck(grandChildVal, "decodeLUT");
+            unsupportedFeatureCheck(grandChildVal, "correctLUT");
+            unsupportedFeatureCheck(grandChildVal, "encodeLUT");
+
+            grandChild = grandChild->NextSiblingElement();
+        }
+        child = child->NextSiblingElement();
+    }
+    return true;
+}
+
+bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
+                                        sgct::SGCTWindow& win,
+                                        std::string filesetRegionId)
 {
     std::unique_ptr<MpcdiWarp> warp = std::make_unique<MpcdiWarp>();
     warp->id = filesetRegionId;
-    element[3] = element[2]->FirstChildElement();
-    while (element[3] != nullptr) {
-        val[3] = element[3]->Value();
-        if (strcmp("path", val[3]) == 0) {
-            warp->pathWarpFile = element[3]->GetText();
+    tinyxml2::XMLElement* child = element->FirstChildElement();
+    while (child) {
+        const char* val = child->Value();
+        if (strcmp("path", val) == 0) {
+            warp->pathWarpFile = child->GetText();
             warp->haveFoundPath = true;
         }
-        else if (strcmp("interpolation", val[3]) == 0) {
-            std::string interpolation = element[3]->GetText();
+        else if (strcmp("interpolation", val) == 0) {
+            std::string interpolation = child->GetText();
             if (interpolation != "linear") {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Warning,
@@ -430,27 +407,22 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
             }
             warp->haveFoundInterpolation = true;
         }
-        element[3] = element[3]->NextSiblingElement();
+        child = child->NextSiblingElement();
     }
     if (warp->haveFoundPath && warp->haveFoundInterpolation) {
         // Look for matching MPCDI region (SGCT viewport) to pass
         // the warp field data to
         bool foundMatchingPfmBuffer = false;
-        for (int r = 0; r < tmpWin.getNumberOfViewports(); ++r) {
-            std::string tmpWindowName = tmpWin.getViewport(r).getName();
-            std::string currRegion_warpName = warp->id;
-            if (tmpWindowName == currRegion_warpName) {
-                std::string currRegion_warpFilename = warp->pathWarpFile;
-                std::string matchingMpcdiDataFile = mPfmFileContents.fileName;
-                if (currRegion_warpFilename == matchingMpcdiDataFile) {
-                    std::vector<unsigned char> meshData;
-                    meshData.assign(
-                        mPfmFileContents.buffer.data(),
-                        mPfmFileContents.buffer.data() + mPfmFileContents.size
-                    );
-                    tmpWin.getViewport(r).setMpcdiWarpMesh(std::move(meshData));
-                    foundMatchingPfmBuffer = true;
-                }
+        for (int i = 0; i < win.getNumberOfViewports(); ++i) {
+            const std::string& winName = win.getViewport(i).getName();
+            const std::string& warpName = warp->id;
+            if (winName == warpName && warp->pathWarpFile == mPfmFileContents.fileName) {
+                std::vector<unsigned char> meshData(
+                    mPfmFileContents.buffer.begin(),
+                    mPfmFileContents.buffer.end()
+                );
+                win.getViewport(i).setMpcdiWarpMesh(std::move(meshData));
+                foundMatchingPfmBuffer = true;
             }
         }
         if (!foundMatchingPfmBuffer) {
@@ -473,10 +445,8 @@ bool SGCTMpcdi::readAndParseXML_geoWarpFile(tinyxml2::XMLElement* element[],
     return true;
 }
 
-
-bool SGCTMpcdi::readAndParseXML_buffer(tinyxml2::XMLElement* element[],
-                                       const char* val[], sgct::SGCTWindow& tmpWin,
-                                       MpcdiFoundItems& parsedItems)
+bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+                                   MpcdiFoundItems& parsedItems)
 {
     if (parsedItems.haveBufferElem) {
         sgct::MessageHandler::instance()->print(
@@ -488,16 +458,16 @@ bool SGCTMpcdi::readAndParseXML_buffer(tinyxml2::XMLElement* element[],
     else {
         parsedItems.haveBufferElem = true;
     }
-    if (element[1]->Attribute("xResolution") != nullptr) {
-        element[1]->QueryAttribute("xResolution", &parsedItems.resolutionX);
+    if (element->Attribute("xResolution")) {
+        element->QueryAttribute("xResolution", &parsedItems.resolution.x);
     }
-    if (element[1]->Attribute("yResolution") != nullptr) {
-        element[1]->QueryAttribute("yResolution", &parsedItems.resolutionY);
+    if (element->Attribute("yResolution")) {
+        element->QueryAttribute("yResolution", &parsedItems.resolution.y);
     }
-    if (parsedItems.resolutionX >= 0 && parsedItems.resolutionY >= 0) {
-        tmpWin.initWindowResolution(glm::ivec2(parsedItems.resolutionX, parsedItems.resolutionY));
-        tmpWin.setFramebufferResolution(glm::ivec2(parsedItems.resolutionX, parsedItems.resolutionY));
-        tmpWin.setFixResolution(true);
+    if (parsedItems.resolution.x >= 0 && parsedItems.resolution.y >= 0) {
+        win.initWindowResolution(parsedItems.resolution);
+        win.setFramebufferResolution(parsedItems.resolution);
+        win.setFixResolution(true);
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -506,35 +476,33 @@ bool SGCTMpcdi::readAndParseXML_buffer(tinyxml2::XMLElement* element[],
         );
         return false;
     }
-    //Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
-    tmpWin.setWindowPosition(glm::ivec2(0, 0));
+    // Assume a 0,0 offset for an MPCDI buffer, which maps to an SGCT window
+    win.setWindowPosition(glm::ivec2(0, 0));
 
-    element[2] = element[1]->FirstChildElement();
-    while (element[2] != nullptr) {
-        val[2] = element[2]->Value();
-        if (strcmp("region", val[2]) == 0) {
-            if (!readAndParseXML_region(element, val, tmpWin, parsedItems)) {
+    tinyxml2::XMLElement* child = element->FirstChildElement();
+    while (child) {
+        const char* val = child->Value();
+        if (strcmp("region", val) == 0) {
+            if (!readAndParseRegion(child, win, parsedItems)) {
                 return false;
             }
         }
-        unsupportedFeatureCheck(val[2], "coordinateFrame");
-        unsupportedFeatureCheck(val[2], "color");
-        //iterate
-        element[2] = element[2]->NextSiblingElement();
+        unsupportedFeatureCheck(val, "coordinateFrame");
+        unsupportedFeatureCheck(val, "color");
+        child = child->NextSiblingElement();
     }
     return true;
 }
 
-bool SGCTMpcdi::readAndParseXML_region(tinyxml2::XMLElement* element[],
-                                       const char* val[], sgct::SGCTWindow& tmpWin,
-                                       MpcdiFoundItems& parsedItems)
+bool SGCTMpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::SGCTWindow& win,
+                                   MpcdiFoundItems& parsedItems)
 {
     // Require an 'id' attribute for each region. These will be compared later to the
     // fileset, in which there must be a matching 'id'. The mBufferRegions vector is
     // intended for use with MPCDI files containing multiple regions, but currently
     // only is tested with single region files.
-    if (element[2]->Attribute("id") != nullptr) {
-        mBufferRegions.push_back(element[2]->Attribute("id"));
+    if (element->Attribute("id")) {
+        mBufferRegions.push_back(element->Attribute("id"));
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -544,8 +512,8 @@ bool SGCTMpcdi::readAndParseXML_region(tinyxml2::XMLElement* element[],
         return false;
     }
     std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-    vp->configureMpcdi(element, val, parsedItems.resolution.x, parsedItems.resolution.y);
-    tmpWin.addViewport(std::move(vp));
+    vp->configureMpcdi(element, parsedItems.resolution.x, parsedItems.resolution.y);
+    win.addViewport(std::move(vp));
     return true;
 }
 

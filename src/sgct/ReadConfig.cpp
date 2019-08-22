@@ -552,7 +552,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                     }
                     
                     if (element[1]->Attribute("mpcdi") != nullptr) {
-                        sgct_core::SGCTMpcdi mpcdiHandler(mErrorMsg);
+                        sgct_core::SGCTMpcdi mpcdiHandler;
                         std::string pathToMpcdiFile;
                         size_t lastSlashPos = xmlFileName.find_last_of("/");
                         if (lastSlashPos != std::string::npos) {

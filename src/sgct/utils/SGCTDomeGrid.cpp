@@ -8,22 +8,19 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/utils/SGCTDomeGrid.h>
 
 #include <sgct/Engine.h>
-#include <sgct/ogl_headers.h>
 #include <sgct/MessageHandler.h>
+#include <sgct/ogl_headers.h>
 #include <glm/gtc/constants.hpp>
 
 namespace sgct_utils {
 
-/*!
-    This constructor requires a valid openGL contex
-*/
 SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
                            unsigned int rings, unsigned int resolution)
     : mResolution(resolution)
     , mRings(rings)
     , mSegments(segments)
 {
-    //must be four or higher
+    // must be four or higher
     if (mResolution < 4) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
@@ -32,58 +29,7 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
         mResolution = 4;
     }
 
-    mNumberOfVertices = (mSegments * ((mResolution/4)+1) + mRings * mResolution)*6;
-
-    mVerts = new float[mNumberOfVertices];
-    memset(mVerts, 0, mNumberOfVertices * sizeof(float));
-
-    float elevationAngle, theta;
-    glm::vec3 vertex;
-    unsigned int pos = 0;
-
-    //create rings
-    for (unsigned int r = 1; r <= mRings; r++) {
-        elevationAngle = glm::radians<float>(
-            (FOV / 2.f) * (static_cast<float>(r) / static_cast<float>(mRings))
-        );
-        vertex.y = radius * cosf(elevationAngle);
-
-        for (unsigned int i = 0; i < mResolution; i++) {
-            theta = glm::two_pi<float>() *
-                    (static_cast<float>(i) / static_cast<float>(mResolution));
-
-            vertex.x = radius * sinf(elevationAngle) * cosf(theta);
-            vertex.z = radius * sinf(elevationAngle) * sinf(theta);
-            
-            mVerts[pos] = vertex.x;
-            mVerts[pos + 1] = vertex.y;
-            mVerts[pos + 2] = vertex.z;
-
-            pos += 3;
-        }
-    }
-
-    //create segments
-    for (unsigned int s = 0; s < mSegments; s++) {
-        theta = glm::two_pi<float>() *
-                (static_cast<float>(s)/static_cast<float>(mSegments));
-
-        for (unsigned int i = 0; i < (mResolution / 4) + 1; i++) {
-            elevationAngle = glm::radians<float>(FOV / 2.f) *
-                             (static_cast<float>(i) / static_cast<float>(mResolution / 4));
-            vertex.x = radius * sinf(elevationAngle) * cosf(theta);
-            vertex.y = radius * cosf(elevationAngle);
-            vertex.z = radius * sinf(elevationAngle) * sinf(theta);
-
-            mVerts[pos] = vertex.x;
-            mVerts[pos + 1] = vertex.y;
-            mVerts[pos + 2] = vertex.z;
-
-            pos += 3;
-        }
-    }
-
-    createVBO();
+    createVBO(radius, FOV);
 
     // if error occured
     if (!sgct::Engine::checkForOGLErrors()) {
@@ -91,30 +37,17 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
             sgct::MessageHandler::Level::Error,
             "SGCT Utils: Dome creation error!\n"
         );
-        void cleanup();
     }
 }
 
 SGCTDomeGrid::~SGCTDomeGrid() {
-    cleanup();
+    glDeleteBuffers(1, &mVBO);
+    mVBO = 0;
+
+    glDeleteVertexArrays(1, &mVAO);
+    mVAO = 0;
 }
 
-void SGCTDomeGrid::cleanup() {
-    //cleanup
-    if(mVBO != 0) {
-        glDeleteBuffers(1, &mVBO);
-        mVBO = 0;
-    }
-
-    if(mVAO != 0) {
-        glDeleteVertexArrays(1, &mVAO);
-        mVAO = 0;
-    }
-}
-
-/*!
-    If openGL 3.3+ is used layout 0 contains vertex positions (vec3).
-*/
 void SGCTDomeGrid::draw() {
     if (sgct::Engine::instance()->isOGLPipelineFixed()) {
         drawVBO();
@@ -130,7 +63,7 @@ void SGCTDomeGrid::drawVBO() {
 
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
-    glVertexPointer(3, GL_FLOAT, 0, NULL);
+    glVertexPointer(3, GL_FLOAT, 0, nullptr);
 
     for (unsigned int r = 0; r < mRings; r++) {
         glDrawArrays(GL_LINE_LOOP, r * mResolution, mResolution);
@@ -143,13 +76,12 @@ void SGCTDomeGrid::drawVBO() {
         );
     }
 
-    //unbind
     glBindBuffer(GL_ARRAY_BUFFER, 0);
     glPopClientAttrib();
 }
 
 void SGCTDomeGrid::drawVAO() {
-    glBindVertexArray( mVAO );
+    glBindVertexArray(mVAO);
 
     for (unsigned int r = 0; r < mRings; r++) {
         glDrawArrays(GL_LINE_LOOP, r * mResolution, mResolution);
@@ -162,11 +94,50 @@ void SGCTDomeGrid::drawVAO() {
         );
     }
 
-    //unbind
     glBindVertexArray(0);
 }
 
-void SGCTDomeGrid::createVBO() {
+void SGCTDomeGrid::createVBO(float radius, float FOV) {
+    const unsigned int numberOfVertices = (mSegments * ((mResolution / 4) + 1) +
+                                           mRings * mResolution) * 6;
+    std::vector<float> verts(numberOfVertices, 0.f);
+
+    unsigned int pos = 0;
+
+    // create rings
+    for (unsigned int r = 1; r <= mRings; r++) {
+        const float elevationAngle = glm::radians<float>(
+            (FOV / 2.f) * (static_cast<float>(r) / static_cast<float>(mRings))
+        );
+        for (unsigned int i = 0; i < mResolution; i++) {
+            const float theta = glm::two_pi<float>() *
+                (static_cast<float>(i) / static_cast<float>(mResolution));
+
+            verts[pos] = radius * sinf(elevationAngle) * cosf(theta);
+            verts[pos + 1] = radius * cosf(elevationAngle);
+            verts[pos + 2] = radius * sinf(elevationAngle) * sinf(theta);
+            pos += 3;
+        }
+    }
+
+    // create segments
+    for (unsigned int s = 0; s < mSegments; s++) {
+        const float theta = glm::two_pi<float>() *
+            (static_cast<float>(s) / static_cast<float>(mSegments));
+
+        for (unsigned int i = 0; i < (mResolution / 4) + 1; i++) {
+            const float elevationAngle = glm::radians<float>(FOV / 2.f) *
+                (static_cast<float>(i) / static_cast<float>(mResolution / 4));
+
+            verts[pos] = radius * sinf(elevationAngle) * cosf(theta);
+            verts[pos + 1] = radius * cosf(elevationAngle);
+            verts[pos + 2] = radius * sinf(elevationAngle) * sinf(theta);
+            pos += 3;
+        }
+    }
+
+
+
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glGenVertexArrays(1, &mVAO);
         glBindVertexArray(mVAO);
@@ -186,24 +157,23 @@ void SGCTDomeGrid::createVBO() {
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
     glBufferData(
         GL_ARRAY_BUFFER,
-        mNumberOfVertices * sizeof(float),
-        mVerts,
+        verts.size() * sizeof(float),
+        verts.data(),
         GL_STATIC_DRAW
     );
 
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
-        // vert positions
         glVertexAttribPointer(
             0,
             3,
             GL_FLOAT,
             GL_FALSE,
             0,
-            reinterpret_cast<void*>(0)
+            nullptr
         );
     }
 
-    //unbind
+    // unbind
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }

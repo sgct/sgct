@@ -133,6 +133,337 @@ namespace {
     }
 
 
+    void parseScene(tinyxml2::XMLElement* element) {
+        using namespace sgct_core;
+        using namespace tinyxml2;
+
+        XMLElement* child = element->FirstChildElement();
+        while (child) {
+            const char* childVal = child->Value();
+
+            if (strcmp("Offset", childVal) == 0) {
+                glm::vec3 sceneOffset = glm::vec3(0.f);
+                XMLError xValue = child->QueryFloatAttribute("x", &sceneOffset[0]);
+                XMLError yValue = child->QueryFloatAttribute("y", &sceneOffset[1]);
+                XMLError zValue = child->QueryFloatAttribute("z", &sceneOffset[2]);
+                if (xValue == XML_NO_ERROR &&
+                    yValue == XML_NO_ERROR &&
+                    zValue == XML_NO_ERROR)
+                {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Debug,
+                        "ReadConfig: Setting scene offset to (%f, %f, %f)\n",
+                        sceneOffset.x, sceneOffset.y, sceneOffset.z
+                    );
+
+                    sgct_core::ClusterManager::instance()->setSceneOffset(sceneOffset);
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "ReadConfig: Failed to parse scene offset from XML!\n"
+                    );
+                }
+            }
+            else if (strcmp("Orientation", childVal) == 0) {
+                sgct_core::ClusterManager::instance()->setSceneRotation(
+                    glm::mat4_cast(sgct_core::ReadConfig::parseOrientationNode(child))
+                );
+            }
+            else if (strcmp("Scale", childVal) == 0) {
+                float scale = 1.f;
+                XMLError value = child->QueryFloatAttribute("value", &scale);
+                if (value == tinyxml2::XML_NO_ERROR) {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Debug,
+                        "ReadConfig: Setting scene scale to %f\n", scale
+                    );
+
+                    sgct_core::ClusterManager::instance()->setSceneScale(scale);
+                }
+                else {
+                    sgct::MessageHandler::instance()->print(
+                        sgct::MessageHandler::Level::Error,
+                        "ReadConfig: Failed to parse scene orientation from XML!\n"
+                    );
+                }
+            }
+            child = child->NextSiblingElement();
+        }
+    }
+
+    void parseNode(tinyxml2::XMLElement* element) {
+        using namespace sgct_core;
+
+        SGCTNode node;
+
+        if (element->Attribute("address")) {
+            node.setAddress(element->Attribute("address"));
+        }
+        if (element->Attribute("name")) {
+            node.setName(element->Attribute("name"));
+        }
+        if (element->Attribute("ip")) {
+            //backward compability with older versions of SGCT config files
+            node.setAddress(element->Attribute("ip"));
+        }
+        if (element->Attribute("port")) {
+            node.setSyncPort(element->Attribute("port"));
+        }
+        if (element->Attribute("syncPort")) {
+            node.setSyncPort(element->Attribute("syncPort"));
+        }
+        if (element->Attribute("dataTransferPort")) {
+            node.setDataTransferPort(element->Attribute("dataTransferPort"));
+        }
+        if (element->Attribute("swapLock")) {
+            bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
+            node.setUseSwapGroups(useSwapLock);
+        }
+
+        XMLElement* child = element->FirstChildElement();
+        while (child) {
+            const char* childVal = child->Value();
+            if (strcmp("Window", childVal) == 0) {
+                sgct::SGCTWindow win(static_cast<int>(node.getNumberOfWindows()));
+
+                if (child->Attribute("name")) {
+                    win.setName(child->Attribute("name"));
+                }
+
+                if (child->Attribute("tags")) {
+                    std::string tags = child->Attribute("tags");
+
+                    std::vector<std::string> t;
+                    std::stringstream ss(std::move(tags));
+                    while (ss.good()) {
+                        std::string substr;
+                        getline(ss, substr, ',');
+                        t.push_back(substr);
+                    }
+
+                    win.setTags(std::move(t));
+                }
+
+                if (child->Attribute("bufferBitDepth")) {
+                    win.setColorBitDepth(
+                        getBufferColorBitDepth(child->Attribute("bufferBitDepth"))
+                    );
+                }
+
+                if (child->Attribute("preferBGR")) {
+                    win.setPreferBGR(
+                        strcmp(child->Attribute("preferBGR"), "true") == 0
+                    );
+                }
+
+                //compability with older versions
+                if (child->Attribute("fullScreen")) {
+                    bool v = strcmp(child->Attribute("fullScreen"), "true") == 0;
+                    win.setWindowMode(v);
+                }
+
+                if (child->Attribute("fullscreen")) {
+                    bool v = strcmp(child->Attribute("fullscreen"), "true") == 0;
+                    win.setWindowMode(v);
+                }
+
+                if (child->Attribute("floating")) {
+                    bool v = strcmp(child->Attribute("floating"), "true") == 0;
+                    win.setFloating(v);
+                }
+
+                if (child->Attribute("alwaysRender")) {
+                    bool v = strcmp(child->Attribute("alwaysRender"), "true") == 0;
+                    win.setRenderWhileHidden(v);
+                }
+
+                if (child->Attribute("hidden")) {
+                    bool v = strcmp(child->Attribute("hidden"), "true") == 0;
+                    win.setVisibility(!v);
+                }
+
+                if (child->Attribute("dbuffered")) {
+                    bool v = strcmp(child->Attribute("dbuffered"), "true") == 0;
+                    win.setDoubleBuffered(v);
+                }
+
+                float gamma = 0.f;
+                XMLError gammaErr = child->QueryFloatAttribute("gamma", &gamma);
+                if (gammaErr == XML_NO_ERROR && gamma > 0.1f) {
+                    win.setGamma(gamma);
+                }
+
+                float contrast = -1.f;
+                XMLError contrastErr = child->QueryFloatAttribute(
+                    "contrast",
+                    &contrast
+                );
+                if (contrastErr == XML_NO_ERROR && contrast > 0.f) {
+                    win.setContrast(contrast);
+                }
+
+                float brightness = -1.f;
+                XMLError brightnessErr = child->QueryFloatAttribute(
+                    "brightness",
+                    &brightness
+                );
+                if (brightnessErr == XML_NO_ERROR && brightness > 0.f) {
+                    win.setBrightness(brightness);
+                }
+
+                int tmpSamples = 0;
+                //compability with older versions
+
+                XMLError sampleErr = child->QueryIntAttribute(
+                    "numberOfSamples",
+                    &tmpSamples
+                );
+                XMLError msaaErr = child->QueryIntAttribute("msaa", &tmpSamples);
+                XMLError msErr = child->QueryIntAttribute("MSAA", &tmpSamples);
+
+                const bool hasSample = sampleErr == XML_NO_ERROR ||
+                    msaaErr == XML_NO_ERROR ||
+                    msErr == XML_NO_ERROR;
+
+                if (hasSample && tmpSamples <= 128) {
+                    win.setNumberOfAASamples(tmpSamples);
+                }
+
+                if (child->Attribute("alpha")) {
+                    bool v = strcmp(child->Attribute("alpha"), "true") == 0;
+                    win.setAlpha(v);
+                }
+
+                if (child->Attribute("fxaa")) {
+                    bool v = strcmp(child->Attribute("fxaa"), "true") == 0;
+                    win.setUseFXAA(v);
+                }
+
+                if (child->Attribute("FXAA")) {
+                    bool v = strcmp(child->Attribute("FXAA"), "true") == 0;
+                    win.setUseFXAA(v);
+                }
+
+                if (child->Attribute("decorated")) {
+                    bool v = strcmp(child->Attribute("decorated"), "true") == 0;
+                    win.setWindowDecoration(v);
+                }
+
+                if (child->Attribute("border")) {
+                    bool v = strcmp(child->Attribute("border"), "true") == 0;
+                    win.setWindowDecoration(v);
+                }
+
+                if (child->Attribute("draw2D")) {
+                    bool v = strcmp(child->Attribute("draw2D"), "true") == 0;
+                    win.setCallDraw2DFunction(v);
+                }
+
+                if (child->Attribute("draw3D")) {
+                    bool v = strcmp(child->Attribute("draw3D"), "true") == 0;
+                    win.setCallDraw3DFunction(v);
+                }
+
+                if (child->Attribute("copyPreviousWindowToCurrentWindow")) {
+                    bool v = strcmp(
+                        child->Attribute("copyPreviousWindowToCurrentWindow"),
+                        "true"
+                    ) == 0;
+                    win.setCopyPreviousWindowToCurrentWindow(v);
+                }
+
+                int index = 0;
+                XMLError monitorErr = child->QueryIntAttribute("monitor", &index);
+                if (monitorErr == tinyxml2::XML_NO_ERROR) {
+                    win.setFullScreenMonitorIndex(index);
+                }
+
+                if (child->Attribute("mpcdi")) {
+                    std::string path;
+                    size_t lastSlashPos = xmlFileName.find_last_of("/");
+                    if (lastSlashPos != std::string::npos) {
+                        path = xmlFileName.substr(0, lastSlashPos) + "/";
+                    }
+                    path += child->Attribute("mpcdi");
+                    //replace all backslashes with slashes
+                    std::replace(path.begin(), path.end(), '\\', '/');
+                    bool parse = sgct_core::SGCTMpcdi().parseConfiguration(
+                        path,
+                        node,
+                        win
+                    );
+                    if (!parse) {
+                        return false;
+                    }
+                }
+
+                XMLElement* grandChild = child->FirstChildElement();
+                while (grandChild) {
+                    const char* grandChildVal = grandChild->Value();
+
+                    if (strcmp("Stereo", grandChildVal) == 0) {
+                        sgct::SGCTWindow::StereoMode v = getStereoType(
+                            grandChild->Attribute("type")
+                        );
+                        win.setStereoMode(v);
+                    }
+                    else if (strcmp("Pos", grandChildVal) == 0) {
+                        glm::ivec2 pos;
+                        XMLError xErr = grandChild->QueryIntAttribute("x", &pos[0]);
+                        XMLError yErr = grandChild->QueryIntAttribute("y", &pos[1]);
+                        if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
+                            win.setWindowPosition(std::move(pos));
+                        }
+                        else {
+                            sgct::MessageHandler::instance()->print(
+                                sgct::MessageHandler::Level::Error,
+                                "ReadConfig: Failed to parse window position from XML!\n"
+                            );
+                        }
+                    }
+                    else if (strcmp("Size", grandChildVal) == 0) {
+                        glm::ivec2 size;
+                        XMLError xErr = grandChild->QueryIntAttribute("x", &size[0]);
+                        XMLError yErr = grandChild->QueryIntAttribute("y", &size[1]);
+                        if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
+                            win.initWindowResolution(size);
+                        }
+                        else {
+                            sgct::MessageHandler::instance()->print(
+                                sgct::MessageHandler::Level::Error,
+                                "ReadConfig: Failed to parse window resolution from XML!\n"
+                            );
+                        }
+                    }
+                    else if (strcmp("Res", grandChildVal) == 0) {
+                        glm::ivec2 res;
+                        XMLError xErr = grandChild->QueryIntAttribute("x", &res[0]);
+                        XMLError yErr = grandChild->QueryIntAttribute("y", &res[1]);
+                        if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
+                            win.setFramebufferResolution(std::move(res));
+                            win.setFixResolution(true);
+                        }
+                        else {
+                            sgct::MessageHandler::instance()->print(
+                                sgct::MessageHandler::Level::Error,
+                                "ReadConfig: Failed to parse frame buffer resolution from XML!\n"
+                            );
+                        }
+                    }
+                    else if (strcmp("Viewport", grandChildVal) == 0) {
+                        std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
+                        vp->configure(grandChild);
+                        win.addViewport(std::move(vp));
+                    }
+                    grandChild = grandChild->NextSiblingElement();
+                }
+                node.addWindow(std::move(win));
+            }
+            child = child->NextSiblingElement();
+        }
+        ClusterManager::instance()->addNode(std::move(node));
+    }
 
 } // namespace
 
@@ -366,340 +697,15 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
         );
     }
     
-    //constexpr const int MaxXmlDepth = 16;
-    //XMLElement* element[MaxXmlDepth];
-    //for (unsigned int i = 0; i < MaxXmlDepth; i++) {
-    //    element[i] = nullptr;
-    //}
-    //const char* val[MaxXmlDepth];
     XMLElement* element = XMLroot->FirstChildElement();
     while (element) {
         const char* val = element->Value();
         
         if (strcmp("Scene", val) == 0) {
-            XMLElement* child = element->FirstChildElement();
-            while (child) {
-                const char* childVal = child->Value();
-                
-                if (strcmp("Offset", childVal) == 0) {
-                    glm::vec3 sceneOffset = glm::vec3(0.f);
-                    XMLError xValue = child->QueryFloatAttribute("x", &sceneOffset[0]);
-                    XMLError yValue = child->QueryFloatAttribute("y", &sceneOffset[1]);
-                    XMLError zValue = child->QueryFloatAttribute("z", &sceneOffset[2]);
-                    if (xValue == XML_NO_ERROR &&
-                        yValue == XML_NO_ERROR &&
-                        zValue == XML_NO_ERROR)
-                    {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::Level::Debug,
-                            "ReadConfig: Setting scene offset to (%f, %f, %f)\n",
-                            sceneOffset.x, sceneOffset.y, sceneOffset.z
-                        );
-                        
-                        ClusterManager::instance()->setSceneOffset(sceneOffset);
-                    }
-                    else {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::Level::Error,
-                            "ReadConfig: Failed to parse scene offset from XML!\n"
-                        );
-                    }
-                }
-                else if (strcmp("Orientation", childVal) == 0) {
-                    ClusterManager::instance()->setSceneRotation(
-                        glm::mat4_cast(parseOrientationNode(child))
-                    );
-                }
-                else if (strcmp("Scale", childVal) == 0) {
-                    float scale = 1.f;
-                    XMLError value = child->QueryFloatAttribute("value", &scale);
-                    if (value  == tinyxml2::XML_NO_ERROR) {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::Level::Debug,
-                            "ReadConfig: Setting scene scale to %f\n", scale
-                        );
-                       
-                        ClusterManager::instance()->setSceneScale(scale);
-                    }
-                    else {
-                        sgct::MessageHandler::instance()->print(
-                            sgct::MessageHandler::Level::Error,
-                            "ReadConfig: Failed to parse scene orientation from XML!\n"
-                        );
-                    }
-                }
-                child = child->NextSiblingElement();
-            }
+            parseScene(element);
         }
         else if (strcmp("Node", val) == 0) {
-            SGCTNode node;
-            
-            if (element->Attribute("address")) {
-                node.setAddress(element->Attribute("address"));
-            }
-            if (element->Attribute("name")) {
-                node.setName(element->Attribute("name"));
-            }
-            if (element->Attribute("ip")) {
-                //backward compability with older versions of SGCT config files
-                node.setAddress(element->Attribute("ip"));
-            }
-            if (element->Attribute("port")) {
-                node.setSyncPort(element->Attribute("port"));
-            }
-            if (element->Attribute("syncPort")) {
-                node.setSyncPort(element->Attribute("syncPort"));
-            }
-            if (element->Attribute("dataTransferPort")) {
-                node.setDataTransferPort(element->Attribute("dataTransferPort"));
-            }
-            if (element->Attribute("swapLock")) {
-                bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
-                node.setUseSwapGroups(useSwapLock);
-            }
-            
-            XMLElement* child = element->FirstChildElement();
-            while (child) {
-                const char* childVal = child->Value();
-                if (strcmp("Window", childVal) == 0) {
-                    sgct::SGCTWindow win(static_cast<int>(node.getNumberOfWindows()));
-                    
-                    if (child->Attribute("name")) {
-                        win.setName(child->Attribute("name"));
-                    }
-
-                    if (child->Attribute("tags")) {
-                        std::string tags = child->Attribute("tags");
-
-                        std::vector<std::string> t;
-                        std::stringstream ss(std::move(tags));
-                        while (ss.good()) {
-                            std::string substr;
-                            getline(ss, substr, ',');
-                            t.push_back(substr);
-                        }
-
-                        win.setTags(std::move(t));
-                    }
-
-                    if (child->Attribute("bufferBitDepth")) {
-                        win.setColorBitDepth(
-                            getBufferColorBitDepth(child->Attribute("bufferBitDepth"))
-                        );
-                    }
-
-                    if (child->Attribute("preferBGR")) {
-                        win.setPreferBGR(
-                            strcmp(child->Attribute("preferBGR"), "true") == 0
-                        );
-                    }
-                        
-                    //compability with older versions
-                    if (child->Attribute("fullScreen")) {
-                        bool v = strcmp(child->Attribute("fullScreen"), "true") == 0;
-                        win.setWindowMode(v);
-                    }
-
-                    if (child->Attribute("fullscreen")) {
-                        bool v = strcmp(child->Attribute("fullscreen"), "true") == 0;
-                        win.setWindowMode(v);
-                    }
-                    
-                    if (child->Attribute("floating")) {
-                        bool v = strcmp(child->Attribute("floating"), "true") == 0;
-                        win.setFloating(v);
-                    }
-
-                    if (child->Attribute("alwaysRender")) {
-                        bool v = strcmp(child->Attribute("alwaysRender"), "true") == 0;
-                        win.setRenderWhileHidden(v);
-                    }
-
-                    if (child->Attribute("hidden")) {
-                        bool v = strcmp(child->Attribute("hidden"), "true") == 0;
-                        win.setVisibility(!v);
-                    }
-
-                    if (child->Attribute("dbuffered")) {
-                        bool v = strcmp(child->Attribute("dbuffered"), "true") == 0;
-                        win.setDoubleBuffered(v);
-                    }
-
-                    float gamma = 0.f;
-                    XMLError gammaErr = child->QueryFloatAttribute("gamma", &gamma);
-                    if (gammaErr == XML_NO_ERROR && gamma > 0.1f) {
-                        win.setGamma(gamma);
-                    }
-
-                    float contrast = -1.f;
-                    XMLError contrastErr = child->QueryFloatAttribute(
-                        "contrast",
-                        &contrast
-                    );
-                    if (contrastErr == XML_NO_ERROR && contrast > 0.f) {
-                        win.setContrast(contrast);
-                    }
-
-                    float brightness = -1.f;
-                    XMLError brightnessErr = child->QueryFloatAttribute(
-                        "brightness",
-                        &brightness
-                    );
-                    if (brightnessErr == XML_NO_ERROR && brightness > 0.f) {
-                        win.setBrightness(brightness);
-                    }
-                    
-                    int tmpSamples = 0;
-                    //compability with older versions
-
-                    XMLError sampleErr = child->QueryIntAttribute(
-                        "numberOfSamples",
-                        &tmpSamples
-                    );
-                    XMLError msaaErr = child->QueryIntAttribute("msaa", &tmpSamples);
-                    XMLError msErr = child->QueryIntAttribute("MSAA", &tmpSamples);
-
-                    const bool hasSample = sampleErr == XML_NO_ERROR ||
-                        msaaErr == XML_NO_ERROR ||
-                        msErr == XML_NO_ERROR;
-
-                    if (hasSample && tmpSamples <= 128) {
-                        win.setNumberOfAASamples(tmpSamples);
-                    }
-                    
-                    if (child->Attribute("alpha")) {
-                        bool v = strcmp(child->Attribute("alpha"), "true") == 0;
-                        win.setAlpha(v);
-                    }
-                    
-                    if (child->Attribute("fxaa")) {
-                        bool v = strcmp(child->Attribute("fxaa"), "true") == 0;
-                        win.setUseFXAA(v);
-                    }
-                    
-                    if (child->Attribute("FXAA")) {
-                        bool v = strcmp(child->Attribute("FXAA"), "true") == 0;
-                        win.setUseFXAA(v);
-                    }
-                    
-                    if (child->Attribute("decorated")) {
-                        bool v = strcmp(child->Attribute("decorated"), "true") == 0;
-                        win.setWindowDecoration(v);
-                    }
-                    
-                    if (child->Attribute("border")) {
-                        bool v = strcmp(child->Attribute("border"), "true") == 0;
-                        win.setWindowDecoration(v);
-                    }
-
-                    if (child->Attribute("draw2D")) {
-                        bool v = strcmp(child->Attribute("draw2D"), "true") == 0;
-                        win.setCallDraw2DFunction(v);
-                    }
-
-                    if (child->Attribute("draw3D")) {
-                        bool v = strcmp(child->Attribute("draw3D"), "true") == 0;
-                        win.setCallDraw3DFunction(v);
-                    }
-
-                    if (child->Attribute("copyPreviousWindowToCurrentWindow")) {
-                        bool v = strcmp(
-                            child->Attribute("copyPreviousWindowToCurrentWindow"),
-                            "true"
-                        ) == 0;
-                        win.setCopyPreviousWindowToCurrentWindow(v);
-                    }
-                    
-                    int index = 0;
-                    XMLError monitorErr = child->QueryIntAttribute("monitor", &index);
-                    if (monitorErr == tinyxml2::XML_NO_ERROR) {
-                        win.setFullScreenMonitorIndex(index);
-                    }
-                    
-                    if (child->Attribute("mpcdi")) {
-                        std::string path;
-                        size_t lastSlashPos = xmlFileName.find_last_of("/");
-                        if (lastSlashPos != std::string::npos) {
-                            path = xmlFileName.substr(0, lastSlashPos) + "/";
-                        }
-                        path += child->Attribute("mpcdi");
-                        //replace all backslashes with slashes
-                        std::replace(path.begin(), path.end(), '\\', '/');
-                        bool parse = sgct_core::SGCTMpcdi().parseConfiguration(
-                            path,
-                            node,
-                            win
-                        );
-                        if (!parse) {
-                            return false;
-                        }
-                    }
-
-                    XMLElement* grandChild = child->FirstChildElement();
-                    while (grandChild) {
-                        const char* grandChildVal = grandChild->Value();
-                        
-                        if (strcmp("Stereo", grandChildVal) == 0) {
-                            sgct::SGCTWindow::StereoMode v = getStereoType(
-                                grandChild->Attribute("type")
-                            );
-                            win.setStereoMode(v);
-                        }
-                        else if (strcmp("Pos", grandChildVal) == 0) {
-                            glm::ivec2 pos;
-                            XMLError xErr = grandChild->QueryIntAttribute("x", &pos[0]);
-                            XMLError yErr = grandChild->QueryIntAttribute("y", &pos[1]);
-                            if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                win.setWindowPosition(std::move(pos));
-                            }
-                            else {
-                                sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::Level::Error,
-                                    "ReadConfig: Failed to parse window position from XML!\n"
-                                );
-                            }
-                        }
-                        else if (strcmp("Size", grandChildVal) == 0) {
-                            glm::ivec2 size;
-                            XMLError xErr = grandChild->QueryIntAttribute("x", &size[0]);
-                            XMLError yErr = grandChild->QueryIntAttribute("y", &size[1]);
-                            if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                win.initWindowResolution(size);
-                            }
-                            else {
-                                sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::Level::Error,
-                                    "ReadConfig: Failed to parse window resolution from XML!\n"
-                                );
-                            }
-                        }
-                        else if (strcmp("Res", grandChildVal) == 0) {
-                            glm::ivec2 res;
-                            XMLError xErr = grandChild->QueryIntAttribute("x", &res[0]);
-                            XMLError yErr = grandChild->QueryIntAttribute("y", &res[1]);
-                            if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                win.setFramebufferResolution(std::move(res));
-                                win.setFixResolution(true);
-                            }
-                            else {
-                                sgct::MessageHandler::instance()->print(
-                                    sgct::MessageHandler::Level::Error,
-                                    "ReadConfig: Failed to parse frame buffer resolution from XML!\n"
-                                );
-                            }
-                        }
-                        else if (strcmp("Viewport", grandChildVal) == 0) {
-                            std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-                            vp->configure(grandChild);
-                            win.addViewport(std::move(vp));
-                        }
-                        grandChild = grandChild->NextSiblingElement();
-                    }
-                    node.addWindow(std::move(win));
-                }
-                child = child->NextSiblingElement();
-            }
-            ClusterManager::instance()->addNode(std::move(node));
+            parseNode(element);
         }
         else if (strcmp("User", val) == 0) {
             SGCTUser* usrPtr;

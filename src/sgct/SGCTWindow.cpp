@@ -529,13 +529,13 @@ bool SGCTWindow::update() {
             // capture from buffer supports only 8-bit per color component
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
             const glm::ivec2 res = getResolution();
-            sc.initOrResize(res.x, res.y, nCaptureChannels, 1 );
+            sc.initOrResize(res, nCaptureChannels, 1 );
         }
         else {
             // default: capture from texture (supports HDR)
             sc.setTextureTransferProperties(mColorDataType, mPreferBGR);
             const glm::ivec2 res = getFramebufferResolution();
-            sc.initOrResize(res.x, res.y, nCaptureChannels, mBytesPerColor);
+            sc.initOrResize(res, nCaptureChannels, mBytesPerColor);
         }
     };
     if (mScreenCaptureLeftOrMono) {
@@ -948,13 +948,13 @@ void SGCTWindow::initScreenCapture() {
             // capturing from buffer supports only 8-bit per color component capture
             sc.setTextureTransferProperties(GL_UNSIGNED_BYTE, mPreferBGR);
             const glm::ivec2 res = getResolution();
-            sc.initOrResize(res.x, res.y, nCaptureChannels, 1);
+            sc.initOrResize(res, nCaptureChannels, 1);
         }
         else {
             // default: capture from texture (supports HDR)
             sc.setTextureTransferProperties(mColorDataType, mPreferBGR);
             const glm::ivec2 res = getFramebufferResolution();
-            sc.initOrResize(res.x, res.y, nCaptureChannels, mBytesPerColor);
+            sc.initOrResize(res, nCaptureChannels, mBytesPerColor);
         }
 
         SGCTSettings::CaptureFormat format = SGCTSettings::instance()->getCaptureFormat();
@@ -1128,6 +1128,7 @@ void SGCTWindow::generateTexture(unsigned int& id, SGCTWindow::TextureType type)
     const auto [internalFormat, format, pType] =
         [this, type](SGCTWindow::TextureType type) -> std::tuple<int, unsigned int, int> {
             switch (type) {
+                default:
                 case TextureType::Color:
                     return { mInternalColorFormat, mColorFormat, mColorDataType };
                 case TextureType::Depth:

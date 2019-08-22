@@ -18,13 +18,6 @@ namespace sgct_core {
 
 class Image;
 
-struct ScreenCaptureThreadInfo {
-    Image* mframeBufferImagePtr = nullptr;
-    std::thread* mFrameCaptureThreadPtr = nullptr;
-    std::mutex* mMutexPtr = nullptr;
-    bool mRunning = false; // needed for test if running without join
-};
-
 /**
  * This class is used internally by SGCT and is called when using the takeScreenshot
  * function from the Engine.
@@ -51,6 +44,17 @@ public:
         StereoRight
     };
 
+    struct ScreenCaptureThreadInfo {
+        //ScreenCaptureThreadInfo() = default;
+        //ScreenCaptureThreadInfo(ScreenCaptureThreadInfo&&) = default;
+        //ScreenCaptureThreadInfo& operator=(ScreenCaptureThreadInfo&&) = default;
+
+        std::unique_ptr<Image> mFrameBufferImage;
+        std::unique_ptr<std::thread> mFrameCaptureThread;
+        std::mutex* mMutex = nullptr;
+        bool mRunning = false; // needed for test if running without join
+    };
+
     ScreenCapture();
     ~ScreenCapture();
 
@@ -60,14 +64,13 @@ public:
      * Initializes the pixel buffer object (PBO) or re-sizes it if the frame buffer size
      * have changed.
      *
-     * \param x the horizontal pixel resolution of the frame buffer
-     * \param y the vertical pixel resolution of the frame buffer
+     * \param resolution the  pixel resolution of the frame buffer
      * \param channels the number of color channels
      *
      * If PBOs are not supported nothing will and the screenshot process will fall back on
      * slower GPU data fetching.
      */
-    void initOrResize(int x, int y, int channels, int bytesPerColor);
+    void initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor);
 
     /**
      * Set the opengl texture properties for glGetTexImage.
@@ -80,7 +83,7 @@ public:
     void setCaptureFormat(CaptureFormat cf);
 
     /// Get the image format
-    CaptureFormat getCaptureFormat();
+    CaptureFormat getCaptureFormat() const;
 
     /**
      * This function saves the images to disc.
@@ -111,7 +114,7 @@ private:
     Image* prepareImage(int index);
 
     std::mutex mMutex;
-    ScreenCaptureThreadInfo* mSCTIPtrs = nullptr;
+    std::vector<ScreenCaptureThreadInfo> mSCTIs;
 
     unsigned int mNumberOfThreads;
     unsigned int mPBO = 0;
@@ -123,9 +126,7 @@ private:
     int mChannels;
     int mBytesPerColor = 1;
 
-    std::function<
-        void(Image*, size_t, EyeIndex, unsigned int type)
-    > mCaptureCallbackFn;
+    std::function<void(Image*, size_t, EyeIndex, unsigned int type)> mCaptureCallbackFn;
 
     std::string mFilename;
     std::string mBaseName;

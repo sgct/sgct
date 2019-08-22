@@ -16,23 +16,23 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace {
     void screenCaptureHandler(void* arg) {
-        using SCTI = sgct_core::ScreenCaptureThreadInfo;
+        using SCTI = sgct_core::ScreenCapture::ScreenCaptureThreadInfo;
         SCTI* ptr = reinterpret_cast<SCTI*>(arg);
 
-        if (!ptr->mframeBufferImagePtr->save()) {
+        const bool saveSuccess = ptr->mFrameBufferImage->save();
+        if (!saveSuccess) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Error: Failed to save '%s'!\n",
-                ptr->mframeBufferImagePtr->getFilename()
+                "Error: Failed to save '%s'!\n", ptr->mFrameBufferImage->getFilename()
             );
         }
 
 #ifdef __SGCT_MUTEX_DEBUG__
         fprintf(stderr, "Locking mutex for screencapture...\n");
 #endif
-        ptr->mMutexPtr->lock();
+        ptr->mMutex->lock();
         ptr->mRunning = false;
-        ptr->mMutexPtr->unlock();
+        ptr->mMutex->unlock();
 #ifdef __SGCT_MUTEX_DEBUG__
         fprintf(stderr, "Mutex for screencapture is unlocked.\n");
 #endif
@@ -61,48 +61,34 @@ ScreenCapture::~ScreenCapture() {
         "Clearing screen capture buffers...\n"
     );
 
-    if (mSCTIPtrs) {
-        for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-            // kill threads that are still running
-            if (mSCTIPtrs[i].mFrameCaptureThreadPtr) {
-                mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
-                delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
-                mSCTIPtrs[i].mFrameCaptureThreadPtr = nullptr;
-            }
-
-            #ifdef __SGCT_MUTEX_DEBUG__
-                fprintf(stderr, "Locking mutex for screencapture...\n");
-            #endif
-            mMutex.lock();
-            if (mSCTIPtrs[i].mframeBufferImagePtr) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Info,
-                    "\tBuffer %d...\n", i
-                );
-                delete mSCTIPtrs[i].mframeBufferImagePtr;
-                mSCTIPtrs[i].mframeBufferImagePtr = nullptr;
-            }
-
-            mSCTIPtrs[i].mRunning = false;
-            mMutex.unlock();
-            #ifdef __SGCT_MUTEX_DEBUG__
-                fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-            #endif
+    for (ScreenCaptureThreadInfo& info : mSCTIs) {
+        // kill threads that are still running
+        if (info.mFrameCaptureThread) {
+            info.mFrameCaptureThread->join();
+            info.mFrameCaptureThread = nullptr;
         }
 
-        delete[] mSCTIPtrs;
-        mSCTIPtrs = nullptr;
+#ifdef __SGCT_MUTEX_DEBUG__
+        fprintf(stderr, "Locking mutex for screencapture...\n");
+#endif
+        mMutex.lock();
+        info.mFrameBufferImage = nullptr;
+        info.mRunning = false;
+        mMutex.unlock();
+#ifdef __SGCT_MUTEX_DEBUG__
+        fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+#endif
     }
 
     glDeleteBuffers(1, &mPBO);
     mPBO = 0;
 }
 
-void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) {
+void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesPerColor) {
     glDeleteBuffers(1, &mPBO);
     mPBO = 0;
 
-    mResolution = glm::ivec2(x, y);
+    mResolution = resolution;
     mBytesPerColor = bytesPerColor;
     
     mChannels = channels;
@@ -110,29 +96,20 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
 
     updateDownloadFormat();
 
-    #ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Locking mutex for screencapture...\n");
-    #endif
+#ifdef __SGCT_MUTEX_DEBUG__
+    fprintf(stderr, "Locking mutex for screencapture...\n");
+#endif
     mMutex.lock();
-    for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-        if (mSCTIPtrs[i].mframeBufferImagePtr) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Info,
-                "Clearing screen capture buffer %d...\n", i
-            );
-
+    for (ScreenCaptureThreadInfo& info : mSCTIs) {
+        if (info.mFrameBufferImage) {
             // kill threads that are still running
-            if (mSCTIPtrs[i].mFrameCaptureThreadPtr) {
-                mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
-                delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
-                mSCTIPtrs[i].mFrameCaptureThreadPtr = nullptr;
+            if (info.mFrameCaptureThread) {
+                info.mFrameCaptureThread->join();
+                info.mFrameCaptureThread = nullptr;
             }
-
-            delete mSCTIPtrs[i].mframeBufferImagePtr;
-            mSCTIPtrs[i].mframeBufferImagePtr = nullptr;
+            info.mFrameBufferImage = nullptr;
         }
-
-        mSCTIPtrs[i].mRunning = false;
+        info.mRunning = false;
     }
 
     if (mUsePBO) {
@@ -149,9 +126,9 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
     }
 
     mMutex.unlock();
-    #ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-    #endif
+#ifdef __SGCT_MUTEX_DEBUG__
+    fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+#endif
 }
 
 void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR) {
@@ -166,7 +143,7 @@ void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
     mFormat = cf;
 }
 
-ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() {
+ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() const {
     return mFormat;
 }
 
@@ -224,10 +201,10 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
             }
             else if (mBytesPerColor <= 2) {
                 // save the image
-                mSCTIPtrs[threadIndex].mRunning = true;
-                mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(
+                mSCTIs[threadIndex].mRunning = true;
+                mSCTIs[threadIndex].mFrameCaptureThread = std::make_unique<std::thread>(
                     screenCaptureHandler,
-                    &mSCTIPtrs[threadIndex]
+                    &mSCTIs[threadIndex]
                 );
             }
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
@@ -281,10 +258,10 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capS
         }
         else if (mBytesPerColor <= 2) {
             // save the image
-            mSCTIPtrs[threadIndex].mRunning = true;
-            mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(
+            mSCTIs[threadIndex].mRunning = true;
+            mSCTIs[threadIndex].mFrameCaptureThread = std::make_unique<std::thread>(
                 screenCaptureHandler,
-                &mSCTIPtrs[threadIndex]
+                &mSCTIs[threadIndex]
             );
         }
     }
@@ -307,9 +284,12 @@ void ScreenCapture::setUsePBO(bool state) {
 void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
     mEyeIndex = ei;
     
-    mSCTIPtrs = new ScreenCaptureThreadInfo[mNumberOfThreads];
+    mSCTIs.resize(mNumberOfThreads);
     for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-        mSCTIPtrs[i].mMutexPtr = &mMutex;
+        mSCTIs[i].mFrameBufferImage = nullptr;
+        mSCTIs[i].mFrameCaptureThread = nullptr;
+        mSCTIs[i].mMutex = &mMutex;
+        mSCTIs[i].mRunning = false;
     }
     mWindowIndex = windowIndex;
 
@@ -322,6 +302,7 @@ void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
 void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
     const std::string suffix = [](CaptureFormat format) {
         switch (format) {
+            default:
             case CaptureFormat::PNG:
                 return "png";
             case CaptureFormat::TGA:
@@ -364,12 +345,7 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
         }
     }
     else {
-        if (mPath.empty()) {
-            filename = mBaseName;
-        }
-        else {
-            filename = mPath + '/' + mBaseName;
-        }
+        filename = mPath.empty() ? mBaseName : mPath + '/' + mBaseName;
     }
 
     filename += eye;
@@ -400,25 +376,24 @@ void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
 
 int ScreenCapture::getAvailableCaptureThread() {
     while (true) {
-        for (unsigned int i = 0; i < mNumberOfThreads; i++) {
+        for (unsigned int i = 0; i < mSCTIs.size(); i++) {
             // check if thread is dead
-            if (mSCTIPtrs[i].mFrameCaptureThreadPtr == nullptr) {
+            if (mSCTIs[i].mFrameCaptureThread == nullptr) {
                 return i;
             }
-            #ifdef __SGCT_MUTEX_DEBUG__
-                fprintf(stderr, "Locking mutex for screencapture...\n");
-            #endif
+#ifdef __SGCT_MUTEX_DEBUG__
+            fprintf(stderr, "Locking mutex for screencapture...\n");
+#endif
             mMutex.lock();
-            bool running = mSCTIPtrs[i].mRunning;
+            bool running = mSCTIs[i].mRunning;
             mMutex.unlock();
-            #ifdef __SGCT_MUTEX_DEBUG__
-                fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-            #endif
+#ifdef __SGCT_MUTEX_DEBUG__
+            fprintf(stderr, "Mutex for screencapture is unlocked.\n");
+#endif
 
             if (!running) {
-                mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
-                delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
-                mSCTIPtrs[i].mFrameCaptureThreadPtr = nullptr;
+                mSCTIs[i].mFrameCaptureThread->join();
+                mSCTIs[i].mFrameCaptureThread = nullptr;
 
                 return i;
             }
@@ -452,25 +427,17 @@ void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
     sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
     
     if (CapSrc == CaptureSource::Texture) {
-        if (mResolution.x != win.getFramebufferResolution().x ||
-            mResolution.y != win.getFramebufferResolution().y)
-        {
+        if (mResolution != win.getFramebufferResolution()) {
             mDownloadType = mDownloadTypeSetByUser;
             const int bytesPerColor = win.getFramebufferBPCC();
-            initOrResize(
-                win.getFramebufferResolution().x,
-                win.getFramebufferResolution().y,
-                mChannels,
-                bytesPerColor
-            );
+            initOrResize(win.getFramebufferResolution(), mChannels, bytesPerColor);
         }
     }
-    else { // capture directly from back buffer (no HDR support)
-        if (mResolution.x != win.getResolution().x ||
-            mResolution.y != win.getResolution().y)
-        {
+    else {
+        // capture directly from back buffer (no HDR support)
+        if (mResolution != win.getResolution()) {
             mDownloadType = GL_UNSIGNED_BYTE;
-            initOrResize(win.getResolution().x, win.getResolution().y, mChannels, 1);
+            initOrResize(win.getResolution(), mChannels, 1);
         }
     }
 }
@@ -489,27 +456,27 @@ Image* ScreenCapture::prepareImage(int index) {
         "Starting thread for screenshot/capture [%d]\n", index
     );
 
-    Image** imPtr = &mSCTIPtrs[index].mframeBufferImagePtr;
-    if ((*imPtr) == nullptr) {
-        (*imPtr) = new sgct_core::Image();
-        (*imPtr)->setBytesPerChannel(mBytesPerColor);
-        (*imPtr)->setPreferBGRExport(mPreferBGR);
-        (*imPtr)->setChannels(mChannels);
-        (*imPtr)->setSize(mResolution.x, mResolution.y);
-        if (!(*imPtr)->allocateOrResizeData()) {
-            delete (*imPtr);
+    if (mSCTIs[index].mFrameBufferImage == nullptr) {
+        mSCTIs[index].mFrameBufferImage = std::make_unique<sgct_core::Image>();
+        mSCTIs[index].mFrameBufferImage->setBytesPerChannel(mBytesPerColor);
+        mSCTIs[index].mFrameBufferImage->setPreferBGRExport(mPreferBGR);
+        mSCTIs[index].mFrameBufferImage->setChannels(mChannels);
+        mSCTIs[index].mFrameBufferImage->setSize(mResolution.x, mResolution.y);
+        const bool success = mSCTIs[index].mFrameBufferImage->allocateOrResizeData();
+        if (!success) {
+            mSCTIs[index].mFrameBufferImage = nullptr;
             return nullptr;
         }
     }
-    (*imPtr)->setFilename(mFilename);
+    mSCTIs[index].mFrameBufferImage->setFilename(mFilename);
 
-    return (*imPtr);
+    return mSCTIs[index].mFrameBufferImage.get();
 }
 
 void ScreenCapture::setCaptureCallback(
                 std::function<void(Image*, size_t, EyeIndex, unsigned int type)> callback)
 {
-    mCaptureCallbackFn = callback;
+    mCaptureCallbackFn = std::move(callback);
 }
 
 } // namespace sgct_core

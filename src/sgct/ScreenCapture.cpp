@@ -12,7 +12,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <sgct/SGCTWindow.h>
 #include <sgct/Engine.h>
 #include <sgct/Image.h>
-#include <sstream>
 #include <string>
 
 namespace {
@@ -38,6 +37,16 @@ namespace {
         fprintf(stderr, "Mutex for screencapture is unlocked.\n");
 #endif
     }
+
+    GLenum sourceForCaptureSource(sgct_core::ScreenCapture::CaptureSource source) {
+        using Source = sgct_core::ScreenCapture::CaptureSource;
+        switch (source) {
+            default:
+            case Source::BackBuffer: return GL_BACK;
+            case Source::LeftBackBuffer: return GL_BACK_LEFT;
+            case Source::RightBackBuffer: return GL_BACK_RIGHT;
+        }
+    }
 } // namespace
 
 namespace sgct_core {
@@ -52,13 +61,10 @@ ScreenCapture::~ScreenCapture() {
         "Clearing screen capture buffers...\n"
     );
 
-    mCaptureCallbackFn1 = nullptr;
-    mCaptureCallbackFn2 = nullptr;
-
-    if (mSCTIPtrs != nullptr) {
+    if (mSCTIPtrs) {
         for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-            //kill threads that are still running
-            if (mSCTIPtrs[i].mFrameCaptureThreadPtr != nullptr) {
+            // kill threads that are still running
+            if (mSCTIPtrs[i].mFrameCaptureThreadPtr) {
                 mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
                 delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
                 mSCTIPtrs[i].mFrameCaptureThreadPtr = nullptr;
@@ -68,7 +74,7 @@ ScreenCapture::~ScreenCapture() {
                 fprintf(stderr, "Locking mutex for screencapture...\n");
             #endif
             mMutex.lock();
-            if (mSCTIPtrs[i].mframeBufferImagePtr != nullptr) {
+            if (mSCTIPtrs[i].mframeBufferImagePtr) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Info,
                     "\tBuffer %d...\n", i
@@ -88,35 +94,19 @@ ScreenCapture::~ScreenCapture() {
         mSCTIPtrs = nullptr;
     }
 
-    if (mPBO) {
-        //delete if buffer exitsts
-        glDeleteBuffers(1, &mPBO);
-        mPBO = GL_FALSE;
-    }
+    glDeleteBuffers(1, &mPBO);
+    mPBO = 0;
 }
 
-/*!
-    Inits the pixel buffer object (PBO) or re-sizes it if the frame buffer size have changed.
-
-    \param x the horizontal pixel resolution of the frame buffer
-    \param y the vertical pixel resolution of the frame buffer
-    \param channels the number of color channels
-
-    If PBOs are not supported nothing will and the screenshot process will fall back on slower GPU data fetching.
-*/
 void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) {
-    if (mPBO) {
-        //delete if buffer exists
-        glDeleteBuffers(1, &mPBO);
-        mPBO = 0;
-    }
+    glDeleteBuffers(1, &mPBO);
+    mPBO = 0;
 
-    mX = x;
-    mY = y;
+    mResolution = glm::ivec2(x, y);
     mBytesPerColor = bytesPerColor;
     
     mChannels = channels;
-    mDataSize = mX * mY * mChannels * mBytesPerColor;
+    mDataSize = mResolution.x * mResolution.y * mChannels * mBytesPerColor;
 
     updateDownloadFormat();
 
@@ -125,14 +115,14 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
     #endif
     mMutex.lock();
     for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-        if (mSCTIPtrs[i].mframeBufferImagePtr != nullptr) {
+        if (mSCTIPtrs[i].mframeBufferImagePtr) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
                 "Clearing screen capture buffer %d...\n", i
             );
 
             // kill threads that are still running
-            if (mSCTIPtrs[i].mFrameCaptureThreadPtr != nullptr) {
+            if (mSCTIPtrs[i].mFrameCaptureThreadPtr) {
                 mSCTIPtrs[i].mFrameCaptureThreadPtr->join();
                 delete mSCTIPtrs[i].mFrameCaptureThreadPtr;
                 mSCTIPtrs[i].mFrameCaptureThreadPtr = nullptr;
@@ -149,7 +139,8 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
         glGenBuffers(1, &mPBO);
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "ScreenCapture: Generating %dx%dx%d PBO: %u\n", mX, mY, mChannels, mPBO
+            "ScreenCapture: Generating %dx%dx%d PBO: %u\n",
+            mResolution.x, mResolution.y, mChannels, mPBO
         );
 
         glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
@@ -163,10 +154,6 @@ void ScreenCapture::initOrResize(int x, int y, int channels, int bytesPerColor) 
     #endif
 }
 
-/*!
-Set the opengl texture properties for glGetTexImage.
-Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
-*/
 void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR) {
     mDownloadType = type;
     mDownloadTypeSetByUser = mDownloadType;
@@ -175,29 +162,18 @@ void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferB
     updateDownloadFormat();
 }
 
-/*!
-Set the image format to use
-*/
 void ScreenCapture::setCaptureFormat(CaptureFormat cf) {
     mFormat = cf;
 }
 
-/*!
-Get the image format
-*/
 ScreenCapture::CaptureFormat ScreenCapture::getCaptureFormat() {
     return mFormat;
 }
 
-/*!
-This function saves the images to disc.
-
-@param textureId textureId is the texture that will be streamed from the GPU if frame buffer objects are used in the rendering.
-*/
-void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc) {
+void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSource capSrc) {
     addFrameNumberToFilename(sgct::Engine::instance()->getScreenShotNumber());
 
-    checkImageBuffer(CapSrc);
+    checkImageBuffer(capSrc);
 
     int threadIndex = getAvailableCaptureThread();
     Image* imPtr = prepareImage(threadIndex);
@@ -205,7 +181,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
         return;
     }
     
-    glPixelStorei(GL_PACK_ALIGNMENT, 1); //byte alignment
+    glPixelStorei(GL_PACK_ALIGNMENT, 1); // byte alignment
 
     if (mUsePBO) {
         glBindBuffer(GL_PIXEL_PACK_BUFFER, mPBO);
@@ -215,13 +191,13 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
             glEnable(GL_TEXTURE_2D);
         }
             
-        if (CapSrc == CAPTURE_TEXTURE) {
+        if (capSrc == CaptureSource::Texture) {
             glBindTexture(GL_TEXTURE_2D, textureId);
             glGetTexImage(GL_TEXTURE_2D, 0, mDownloadFormat, mDownloadType, 0);
         }
         else {
             // set the target framebuffer to read
-            glReadBuffer(CapSrc);
+            glReadBuffer(sourceForCaptureSource(capSrc));
             glReadPixels(
                 0,
                 0,
@@ -241,23 +217,18 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
             glMapBuffer(GL_PIXEL_PACK_BUFFER, GL_READ_ONLY)
         );
         if (ptr) {
-            if (mCaptureCallbackFn2 != nullptr) {
-                mCaptureCallbackFn2(ptr, mWindowIndex, mEyeIndex, mDownloadType);
-            }
-            else {
-                memcpy(imPtr->getData(), ptr, mDataSize);
+            memcpy(imPtr->getData(), ptr, mDataSize);
                 
-                if (mCaptureCallbackFn1 != nullptr) {
-                    mCaptureCallbackFn1(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
-                }
-                else if (mBytesPerColor <= 2) {
-                    //save the image
-                    mSCTIPtrs[threadIndex].mRunning = true;
-                    mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(
-                        screenCaptureHandler,
-                        &mSCTIPtrs[threadIndex]
-                    );
-                }
+            if (mCaptureCallbackFn) {
+                mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+            }
+            else if (mBytesPerColor <= 2) {
+                // save the image
+                mSCTIPtrs[threadIndex].mRunning = true;
+                mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(
+                    screenCaptureHandler,
+                    &mSCTIPtrs[threadIndex]
+                );
             }
             glUnmapBuffer(GL_PIXEL_PACK_BUFFER);
         }
@@ -271,13 +242,13 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0); //unbind pbo
     }
     else {
-        //no PBO
+        // no PBO
         if (sgct::Engine::instance()->isOGLPipelineFixed()) {
             glPushAttrib(GL_ENABLE_BIT | GL_TEXTURE_BIT);
             glEnable(GL_TEXTURE_2D);
         }
             
-        if (CapSrc == CAPTURE_TEXTURE) {
+        if (capSrc == CaptureSource::Texture) {
             glBindTexture(GL_TEXTURE_2D, textureId);
             glGetTexImage(
                 GL_TEXTURE_2D,
@@ -289,7 +260,7 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
         }
         else {
             // set the target framebuffer to read
-            glReadBuffer(CapSrc);
+            glReadBuffer(sourceForCaptureSource(capSrc));
             glReadPixels(
                 0,
                 0,
@@ -305,11 +276,11 @@ void ScreenCapture::saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc)
             glPopAttrib();
         }
         
-        if (mCaptureCallbackFn1 != nullptr) {
-            mCaptureCallbackFn1(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
+        if (mCaptureCallbackFn) {
+            mCaptureCallbackFn(imPtr, mWindowIndex, mEyeIndex, mDownloadType);
         }
         else if (mBytesPerColor <= 2) {
-            //save the image
+            // save the image
             mSCTIPtrs[threadIndex].mRunning = true;
             mSCTIPtrs[threadIndex].mFrameCaptureThreadPtr = new std::thread(
                 screenCaptureHandler,
@@ -333,9 +304,6 @@ void ScreenCapture::setUsePBO(bool state) {
     );
 }
 
-/*!
-    Init
-*/
 void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
     mEyeIndex = ei;
     
@@ -352,98 +320,88 @@ void ScreenCapture::init(size_t windowIndex, ScreenCapture::EyeIndex ei) {
 }
 
 void ScreenCapture::addFrameNumberToFilename(unsigned int frameNumber) {
+    const std::string suffix = [](CaptureFormat format) {
+        switch (format) {
+            case CaptureFormat::PNG:
+                return "png";
+            case CaptureFormat::TGA:
+                return "tga";
+            case CaptureFormat::JPEG:
+                return "jpg";
+        }
+    }(mFormat);
+
+    // use default settings if path is empty
+    std::string filename;
     std::string eye;
-    
-    //use default settings if path is empty
     bool useDefaultSettings = mPath.empty() && mBaseName.empty();
-
-    std::string tmpPath;
-    using Settings = sgct::SGCTSettings;
-    switch (mEyeIndex) {
-        case EyeIndex::Mono:
-        default:
-            if (useDefaultSettings) {
-                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::Mono);
-            }
-            break;
-
-        case EyeIndex::StereoLeft:
-            eye = "_L";
-            if (useDefaultSettings) {
-                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::LeftStereo);
-            }
-            break;
-
-        case EyeIndex::StereoRight:
-            eye = "_R";
-            if (useDefaultSettings)
-                tmpPath = Settings::instance()->getCapturePath(Settings::CapturePath::RightStereo);
-            break;
-    }
-
-    std::string suffix;
-    if (mFormat == CaptureFormat::PNG) {
-        suffix = "png";
-    }
-    else if (mFormat == CaptureFormat::TGA) {
-        suffix = "tga";
-    }
-    else {
-        suffix = "jpg";
-    }
-
-    std::stringstream ss;
     if (useDefaultSettings) {
-        ss << tmpPath;
+        std::string tmpPath;
+        using Settings = sgct::SGCTSettings;
+        using CapturePath = sgct::SGCTSettings::CapturePath;
+        switch (mEyeIndex) {
+            case EyeIndex::Mono:
+            default:
+                tmpPath = Settings::instance()->getCapturePath(CapturePath::Mono);
+                break;
+            case EyeIndex::StereoLeft:
+                eye = "_L";
+                tmpPath = Settings::instance()->getCapturePath(CapturePath::LeftStereo);
+                break;
+            case EyeIndex::StereoRight:
+                eye = "_R";
+                tmpPath = Settings::instance()->getCapturePath(CapturePath::RightStereo);
+                break;
+        }
+        filename = tmpPath;
         sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
         
         if (win.getName().empty()) {
-            ss << "_win" << mWindowIndex;
+            filename += "_win" + std::to_string(mWindowIndex);
         }
         else {
-            ss << "_" << win.getName();
+            filename += '_' + win.getName();
         }
     }
     else {
         if (mPath.empty()) {
-            ss << mBaseName;
+            filename = mBaseName;
         }
         else {
-            ss << mPath << "/" << mBaseName;
+            filename = mPath + '/' + mBaseName;
         }
     }
 
-    ss << eye;
+    filename += eye;
 
-    //add frame numbers
+    // add frame numbers
     if (frameNumber < 10) {
-        ss << "_00000" << frameNumber;
+        filename += "_00000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 100) {
-        ss << "_0000" << frameNumber;
+        filename += "_0000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 1000) {
-        ss << "_000" << frameNumber;
+        filename += "_000" + std::to_string(frameNumber);
     }
     else if (frameNumber < 10000) {
-        ss << "_00" << frameNumber;
+        filename += "_00" + std::to_string(frameNumber);
     }
     else if (frameNumber < 100000) {
-        ss << "_0" << frameNumber;
+        filename += "_0" + std::to_string(frameNumber);
     }
     else if (frameNumber < 1000000) {
-        ss << "_" << frameNumber;
+        filename += '_' + std::to_string(frameNumber);
     }
 
-    //add suffix
-    ss << "." << suffix;
-    mFilename = ss.str();
+    filename += '.' + suffix;
+    mFilename = std::move(filename);
 }
 
 int ScreenCapture::getAvailableCaptureThread() {
     while (true) {
         for (unsigned int i = 0; i < mNumberOfThreads; i++) {
-            //check if thread is dead
+            // check if thread is dead
             if (mSCTIPtrs[i].mFrameCaptureThreadPtr == nullptr) {
                 return i;
             }
@@ -473,7 +431,7 @@ int ScreenCapture::getAvailableCaptureThread() {
 }
 
 void ScreenCapture::updateDownloadFormat() {
-    bool fixedPipeline = sgct::Engine::instance()->isOGLPipelineFixed();
+    const bool fixedPipeline = sgct::Engine::instance()->isOGLPipelineFixed();
     switch (mChannels) {
         default:
             mDownloadFormat = mPreferBGR ? GL_BGRA : GL_RGBA;
@@ -490,15 +448,15 @@ void ScreenCapture::updateDownloadFormat() {
     }
 }
 
-void ScreenCapture::checkImageBuffer(const CaptureSrc& CapSrc) {
+void ScreenCapture::checkImageBuffer(CaptureSource CapSrc) {
     sgct::SGCTWindow& win = sgct::Engine::instance()->getWindowPtr(mWindowIndex);
     
-    if (CapSrc == CAPTURE_TEXTURE) {
-        if (mX != win.getFramebufferResolution().x ||
-            mY != win.getFramebufferResolution().y)
+    if (CapSrc == CaptureSource::Texture) {
+        if (mResolution.x != win.getFramebufferResolution().x ||
+            mResolution.y != win.getFramebufferResolution().y)
         {
             mDownloadType = mDownloadTypeSetByUser;
-            int bytesPerColor = win.getFramebufferBPCC();
+            const int bytesPerColor = win.getFramebufferBPCC();
             initOrResize(
                 win.getFramebufferResolution().x,
                 win.getFramebufferResolution().y,
@@ -507,8 +465,10 @@ void ScreenCapture::checkImageBuffer(const CaptureSrc& CapSrc) {
             );
         }
     }
-    else { //capture directly from back buffer (no HDR support)
-        if (mX != win.getResolution().x || mY != win.getResolution().y) {
+    else { // capture directly from back buffer (no HDR support)
+        if (mResolution.x != win.getResolution().x ||
+            mResolution.y != win.getResolution().y)
+        {
             mDownloadType = GL_UNSIGNED_BYTE;
             initOrResize(win.getResolution().x, win.getResolution().y, mChannels, 1);
         }
@@ -523,12 +483,11 @@ Image* ScreenCapture::prepareImage(int index) {
         );
         return nullptr;
     }
-    else {
-        sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Debug,
-            "Starting thread for screenshot/capture [%d]\n", index
-        );
-    }
+
+    sgct::MessageHandler::instance()->print(
+        sgct::MessageHandler::Level::Debug,
+        "Starting thread for screenshot/capture [%d]\n", index
+    );
 
     Image** imPtr = &mSCTIPtrs[index].mframeBufferImagePtr;
     if ((*imPtr) == nullptr) {
@@ -536,7 +495,7 @@ Image* ScreenCapture::prepareImage(int index) {
         (*imPtr)->setBytesPerChannel(mBytesPerColor);
         (*imPtr)->setPreferBGRExport(mPreferBGR);
         (*imPtr)->setChannels(mChannels);
-        (*imPtr)->setSize(mX, mY);
+        (*imPtr)->setSize(mResolution.x, mResolution.y);
         if (!(*imPtr)->allocateOrResizeData()) {
             delete (*imPtr);
             return nullptr;
@@ -547,29 +506,10 @@ Image* ScreenCapture::prepareImage(int index) {
     return (*imPtr);
 }
 
-//multi-threaded screenshot saver
-
-
-/*!
-Set the screen capture callback\n
-Parameters are: image pointer to captured image, window index, eye index and OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
-*/
 void ScreenCapture::setCaptureCallback(
                 std::function<void(Image*, size_t, EyeIndex, unsigned int type)> callback)
 {
-    mCaptureCallbackFn1 = callback;
-    mCaptureCallbackFn2 = nullptr; //only allow one callback
-}
-
-/*!
-Set the screen capture callback\n
-Parameters are: raw buffer, window index, eye index and OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT, GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
-*/
-void ScreenCapture::setCaptureCallback(
-        std::function<void(unsigned char*, size_t, EyeIndex, unsigned int type)> callback)
-{
-    mCaptureCallbackFn2 = callback;
-    mCaptureCallbackFn1 = nullptr; //only allow one callback
+    mCaptureCallbackFn = callback;
 }
 
 } // namespace sgct_core

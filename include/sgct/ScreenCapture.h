@@ -12,6 +12,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <mutex>
 #include <string>
 #include <thread>
+#include <glm/glm.hpp>
 
 namespace sgct_core {
 
@@ -21,27 +22,28 @@ struct ScreenCaptureThreadInfo {
     Image* mframeBufferImagePtr = nullptr;
     std::thread* mFrameCaptureThreadPtr = nullptr;
     std::mutex* mMutexPtr = nullptr;
-    bool mRunning = false; //needed for test if running without join
+    bool mRunning = false; // needed for test if running without join
 };
 
-/*!
-    This class is used internally by SGCT and is called when using the takeScreenshot function from the Engine.
-    Screenshots are saved as PNG or TGA images and and can also be used for movie recording.
-*/
+/**
+ * This class is used internally by SGCT and is called when using the takeScreenshot
+ * function from the Engine.
+ * 
+ * Screenshots are saved as PNG or TGA images and and can also be used for movie recording
+ */
 class ScreenCapture {
 public:
-    //! The different file formats supported
+    /// The different file formats supported
     enum class CaptureFormat {
-        NotSet = -1,
         PNG = 0,
         TGA,
         JPEG
     };
-    enum CaptureSrc {
-        CAPTURE_TEXTURE = 0,
-        CAPTURE_BACK_BUFFER = GL_BACK,
-        CAPTURE_LEFT_BACK_BUFFER = GL_BACK_LEFT,
-        CAPTURE_RIGHT_BACK_BUFFER = GL_BACK_RIGHT
+    enum class CaptureSource {
+        Texture = 0,
+        BackBuffer,
+        LeftBackBuffer,
+        RightBackBuffer
     };
     enum class EyeIndex {
         Mono = 0,
@@ -53,43 +55,77 @@ public:
     ~ScreenCapture();
 
     void init(size_t windowIndex, EyeIndex ei);
+
+    /**
+     * Initializes the pixel buffer object (PBO) or re-sizes it if the frame buffer size
+     * have changed.
+     *
+     * \param x the horizontal pixel resolution of the frame buffer
+     * \param y the vertical pixel resolution of the frame buffer
+     * \param channels the number of color channels
+     *
+     * If PBOs are not supported nothing will and the screenshot process will fall back on
+     * slower GPU data fetching.
+     */
     void initOrResize(int x, int y, int channels, int bytesPerColor);
+
+    /**
+     * Set the opengl texture properties for glGetTexImage.
+     * Type can be: GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
+     * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT
+     */
     void setTextureTransferProperties(unsigned int type, bool preferBGR);
+
+    /// Set the image format to use
     void setCaptureFormat(CaptureFormat cf);
+
+    /// Get the image format
     CaptureFormat getCaptureFormat();
-    void saveScreenCapture(unsigned int textureId, CaptureSrc CapSrc = CAPTURE_TEXTURE);
+
+    /**
+     * This function saves the images to disc.
+     *
+     * \param textureId textureId is the texture that will be streamed from the GPU if
+     *        frame buffer objects are used in the rendering.
+     */
+    void saveScreenCapture(unsigned int textureId,
+        CaptureSource capSrc = CaptureSource::Texture);
     void setPathAndFileName(std::string path, std::string filename);
     void setUsePBO(bool state);
 
+    /**
+     * Set the screen capture callback
+     *
+     * Parameters are: image pointer to captured image, window index, eye index and
+     * OpenGL type (GL_UNSIGNED_BYTE, GL_UNSIGNED_SHORT, GL_HALF_FLOAT, GL_FLOAT,
+     * GL_SHORT, GL_INT, GL_UNSIGNED_SHORT or GL_UNSIGNED_INT)
+     */
     void setCaptureCallback(
         std::function<void(Image*, size_t, EyeIndex, unsigned int type)> callback);
-    void setCaptureCallback(
-        std::function<void(unsigned char*, size_t, EyeIndex, unsigned int type)> callback);
-
-    // move to private
-    std::function<void(Image*, size_t, EyeIndex, unsigned int type)> mCaptureCallbackFn1;
-    std::function<void(unsigned char*, size_t, EyeIndex, unsigned int type)> mCaptureCallbackFn2;
 
 private:
     void addFrameNumberToFilename(unsigned int frameNumber);
     int getAvailableCaptureThread();
     void updateDownloadFormat();
-    void checkImageBuffer(const CaptureSrc& CapSrc);
+    void checkImageBuffer(CaptureSource CapSrc);
     Image* prepareImage(int index);
 
     std::mutex mMutex;
     ScreenCaptureThreadInfo* mSCTIPtrs = nullptr;
 
-    unsigned int mNumberOfThreads ;
+    unsigned int mNumberOfThreads;
     unsigned int mPBO = 0;
     unsigned int mDownloadFormat = GL_BGRA;
     unsigned int mDownloadType = GL_UNSIGNED_BYTE;
     unsigned int mDownloadTypeSetByUser = mDownloadType;
     int mDataSize = 0;
-    int mX;
-    int mY;
+    glm::ivec2 mResolution;
     int mChannels;
     int mBytesPerColor = 1;
+
+    std::function<
+        void(Image*, size_t, EyeIndex, unsigned int type)
+    > mCaptureCallbackFn;
 
     std::string mFilename;
     std::string mBaseName;

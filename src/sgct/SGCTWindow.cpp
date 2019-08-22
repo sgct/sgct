@@ -48,7 +48,7 @@ void windowResizeCallback(GLFWwindow* window, int width, int height) {
 
     width = std::max(width, 1);
     height = std::max(height, 1);
-    for (size_t i = 0; i < node->getNumberOfWindows(); i++) {
+    for (int i = 0; i < node->getNumberOfWindows(); i++) {
         if (node->getWindowPtr(i).getWindowHandle() == window) {
             node->getWindowPtr(i).setWindowResolution(glm::ivec2(width, height));
         }
@@ -63,7 +63,7 @@ void frameBufferResizeCallback(GLFWwindow* window, int width, int height) {
 
     width = std::max(width, 1);
     height = std::max(height, 1);
-    for (size_t i = 0; i < node->getNumberOfWindows(); i++) {
+    for (int i = 0; i < node->getNumberOfWindows(); i++) {
         if (node->getWindowPtr(i).getWindowHandle() == window) {
             node->getWindowPtr(i).setFramebufferResolution(glm::ivec2(width, height));
         }
@@ -76,7 +76,7 @@ void windowFocusCallback(GLFWwindow* window, int state) {
         return;
     }
 
-    for (size_t i = 0; i < node->getNumberOfWindows(); i++) {
+    for (int i = 0; i < node->getNumberOfWindows(); i++) {
         if (node->getWindowPtr(i).getWindowHandle() == window) {
             node->getWindowPtr(i).setFocused(state == GL_TRUE);
         }
@@ -89,7 +89,7 @@ void windowIconifyCallback(GLFWwindow* window, int state) {
         return;
     }
 
-    for (size_t i = 0; i < node->getNumberOfWindows(); i++) {
+    for (int i = 0; i < node->getNumberOfWindows(); i++) {
         if (node->getWindowPtr(i).getWindowHandle() == window) {
             node->getWindowPtr(i).setIconified(state == GL_TRUE);
         }
@@ -406,8 +406,8 @@ void SGCTWindow::swap(bool takeScreenshot) {
                 mScreenCaptureLeftOrMono->saveScreenCapture(
                     0,
                     mStereoMode == StereoMode::Active ?
-                        sgct_core::ScreenCapture::CAPTURE_LEFT_BACK_BUFFER :
-                        sgct_core::ScreenCapture::CAPTURE_BACK_BUFFER
+                        sgct_core::ScreenCapture::CaptureSource::LeftBackBuffer :
+                        sgct_core::ScreenCapture::CaptureSource::BackBuffer
                 );
             }
 
@@ -416,7 +416,7 @@ void SGCTWindow::swap(bool takeScreenshot) {
                 //              it should have been mScreenCapture[1] instead?!
                 mScreenCaptureLeftOrMono->saveScreenCapture(
                     0,
-                    sgct_core::ScreenCapture::CAPTURE_RIGHT_BACK_BUFFER
+                    sgct_core::ScreenCapture::CaptureSource::RightBackBuffer
                 );
             }
         }

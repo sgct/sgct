@@ -180,10 +180,8 @@ public:
     void takeScreenshot();
     void setScreenShotNumber(unsigned int number);
     unsigned int getScreenShotNumber() const;
-    void invokeScreenShotCallback1(sgct_core::Image* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
-    void invokeScreenShotCallback2(unsigned char* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
+    void invokeScreenShotCallback(sgct_core::Image* imPtr, size_t winIndex, sgct_core::ScreenCapture::EyeIndex ei, unsigned int type);
     void setScreenShotCallback(void(*fnPtr)(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
-    void setScreenShotCallback(void(*fnPtr)(unsigned char*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type));
 
     size_t createTimer(double millisec, void(*fnPtr)(size_t));
     void stopTimer(std::size_t id);
@@ -476,8 +474,7 @@ private:
     std::function<void(void*, int, int, int)> mDataTransferDecodeCallbackFnPtr;
     std::function<void(bool, int)> mDataTransferStatusCallbackFnPtr;
     std::function<void(int, int)> mDataTransferAcknowledgeCallbackFnPtr;
-    std::function<void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr1;
-    std::function<void(unsigned char*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr2; //less latency, more advanced
+    std::function<void(sgct_core::Image*, size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type)> mScreenShotFnPtr;
     std::function<void(GLFWwindow*)> mContextCreationFnPtr;
     
     std::function<void()> mInternalDrawFn;

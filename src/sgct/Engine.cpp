@@ -730,42 +730,16 @@ void Engine::initOGL() {
         mThisNode->setCurrentWindowIndex(i);
         getCurrentWindowPtr().initOGL(); //sets context to shared
         
-        if (mScreenShotFnPtr1 != nullptr) {
+        if (mScreenShotFnPtr != nullptr) {
             //set callback
             auto callback = [this](sgct_core::Image* img, size_t size,
                                    sgct_core::ScreenCapture::EyeIndex idx,
                                    unsigned int type)
             {
-                invokeScreenShotCallback1(img, size, idx, type);
+                invokeScreenShotCallback(img, size, idx, type);
             };
             
             sgct::SGCTWindow& win = getCurrentWindowPtr();
-            // left channel (Mono and Stereo_Left)
-            sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
-                SGCTWindow::Eye::MonoOrLeft
-            );
-            if (monoCapture != nullptr) {
-                monoCapture->setCaptureCallback(callback);
-            }
-            // right channel (Stereo_Right)
-            sgct_core::ScreenCapture* rightCapture = win.getScreenCapturePointer(
-                SGCTWindow::Eye::Right
-            );
-            if (rightCapture != nullptr) {
-                rightCapture->setCaptureCallback(callback);
-            }
-        }
-        else if (mScreenShotFnPtr2 != nullptr) {
-            //set callback
-            auto callback = [this](unsigned char* img, size_t size,
-                                   sgct_core::ScreenCapture::EyeIndex idx,
-                                   unsigned int type)
-            {
-                invokeScreenShotCallback2(img, size, idx, type);
-            };
-
-            sgct::SGCTWindow& win = getCurrentWindowPtr();
-
             // left channel (Mono and Stereo_Left)
             sgct_core::ScreenCapture* monoCapture = win.getScreenCapturePointer(
                 SGCTWindow::Eye::MonoOrLeft
@@ -1005,8 +979,7 @@ void Engine::clearAllCallbacks() {
     mDataTransferStatusCallbackFnPtr = nullptr;
     mDataTransferAcknowledgeCallbackFnPtr = nullptr;
     mContextCreationFnPtr = nullptr;
-    mScreenShotFnPtr1 = nullptr;
-    mScreenShotFnPtr2 = nullptr;
+    mScreenShotFnPtr = nullptr;
 
     mInternalDrawFn = nullptr;
     mInternalRenderFBOFn = nullptr;
@@ -3694,19 +3667,7 @@ void Engine::setContextCreationCallback(std::function<void(GLFWwindow*)> fn) {
  */
 void Engine::setScreenShotCallback(void(*fnPtr)(sgct_core::Image *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
 {
-    mScreenShotFnPtr1 = fnPtr;
-    mScreenShotFnPtr2 = nullptr; //allow only one callback
-}
-
-/*!
-\param fnPtr is the function pointer to a screenshot callback for custom frame capture & export
-This callback must be set before Engine::init is called\n
-Parameters to the callback are: raw data pointer for image data, window index, eye index, download type
-*/
-void Engine::setScreenShotCallback(void(*fnPtr)(unsigned char *, std::size_t, sgct_core::ScreenCapture::EyeIndex, unsigned int type))
-{
-    mScreenShotFnPtr2 = fnPtr;
-    mScreenShotFnPtr1 = nullptr; //allow only one callback
+    mScreenShotFnPtr = fnPtr;
 }
 
 /*!
@@ -4470,24 +4431,12 @@ void Engine::invokeAcknowledgeCallbackForDataTransfer(int packageId, int clientI
 /*!
     Don't use this. This function is called internally in SGCT.
 */
-void Engine::invokeScreenShotCallback1(sgct_core::Image* imPtr, size_t winIndex,
+void Engine::invokeScreenShotCallback(sgct_core::Image* imPtr, size_t winIndex,
                                        sgct_core::ScreenCapture::EyeIndex ei,
                                        unsigned int type)
 {
-    if (mScreenShotFnPtr1 != nullptr) {
-        mScreenShotFnPtr1(imPtr, winIndex, ei, type);
-    }
-}
-
-/*!
-Don't use this. This function is called internally in SGCT.
-*/
-void Engine::invokeScreenShotCallback2(unsigned char* data, size_t winIndex,
-                                       sgct_core::ScreenCapture::EyeIndex ei,
-                                       unsigned int type)
-{
-    if (mScreenShotFnPtr2 != nullptr) {
-        mScreenShotFnPtr2(data, winIndex, ei, type);
+    if (mScreenShotFnPtr != nullptr) {
+        mScreenShotFnPtr(imPtr, winIndex, ei, type);
     }
 }
 

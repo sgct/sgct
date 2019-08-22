@@ -26,10 +26,8 @@ public:
 private:
     void drawVBO();
     void drawVAO();
-
     void createVBO(float radius, float FOV);
 
-private:
     unsigned int mResolution;
     unsigned int mRings;
     unsigned int mSegments;

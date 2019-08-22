@@ -1,9 +1,9 @@
 /*************************************************************************
-Copyright (c) 2012-2015 Miroslav Andel
-All rights reserved.
+ Copyright (c) 2012-2015 Miroslav Andel
+ All rights reserved.
 
-For conditions of distribution and use, see copyright notice in sgct.h 
-*************************************************************************/
+ For conditions of distribution and use, see copyright notice in sgct.h 
+ *************************************************************************/
 
 #ifndef __SGCT__READ_CONFIG__H__
 #define __SGCT__READ_CONFIG__H__
@@ -12,11 +12,10 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <glm/glm.hpp>
 #include <string>
 
-#ifndef SGCT_DONT_USE_EXTERNAL
-    #include <external/tinyxml2.h>
-#else
-    #include <tinyxml2.h>
-#endif
+namespace tinyxml2 {
+    class XMLDocument;
+    class XMLElement;
+} // namespace tinyxml2
 
 namespace sgct_core {
 
@@ -33,10 +32,8 @@ private:
     bool readAndParseXMLFile();
     bool readAndParseXMLString();
     bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc);
-    sgct::SGCTWindow::StereoMode getStereoType(std::string type);
-    sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type);
 
-    bool valid;
+    bool mIsValid;
     std::string xmlFileName;
     std::string mErrorMsg;
 };

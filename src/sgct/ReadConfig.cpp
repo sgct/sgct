@@ -19,37 +19,127 @@
 #include <sstream>
 #include <glm/gtc/type_ptr.hpp>
 
-namespace {
+#ifndef SGCT_DONT_USE_EXTERNAL
+#include <external/tinyxml2.h>
+#else
+#include <tinyxml2.h>
+#endif
 
-constexpr const char* DefaultSingleConfiguration = R"(
-<?xml version="1.0" ?>
-  <Cluster masterAddress="localhost">
-    <Node address="localhost" port="20401">
-      <Window fullScreen="false">
-        <Size x="640" y="480" />
-        <Viewport>
-          <Pos x="0.0" y="0.0" />
-          <Size x="1.0" y="1.0" />
-          <Projectionplane>
-            <Pos x="-1.778" y="-1.0" z="0.0" />
-            <Pos x="-1.778" y=" 1.0" z="0.0" />
-            <Pos x=" 1.778" y=" 1.0" z="0.0" />
-          </Projectionplane>
-        </Viewport>
-      </Window>
-    </Node>
-    <User eyeSeparation="0.06\>
-    <Pos x="0.0" y="0.0" z="4.0" />
-  </User>
-</Cluster>
-)";
+namespace {
+    constexpr const char* DefaultSingleConfiguration = R"(
+    <?xml version="1.0" ?>
+      <Cluster masterAddress="localhost">
+        <Node address="localhost" port="20401">
+          <Window fullScreen="false">
+            <Size x="640" y="480" />
+            <Viewport>
+              <Pos x="0.0" y="0.0" />
+              <Size x="1.0" y="1.0" />
+              <Projectionplane>
+                <Pos x="-1.778" y="-1.0" z="0.0" />
+                <Pos x="-1.778" y=" 1.0" z="0.0" />
+                <Pos x=" 1.778" y=" 1.0" z="0.0" />
+              </Projectionplane>
+            </Viewport>
+          </Window>
+        </Node>
+        <User eyeSeparation="0.06\>
+        <Pos x="0.0" y="0.0" z="4.0" />
+      </User>
+    </Cluster>
+    )";
+
+    sgct::SGCTWindow::StereoMode getStereoType(std::string type) {
+        std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+        if (type == "none" || type == "no_stereo") {
+            return sgct::SGCTWindow::StereoMode::NoStereo;
+        }
+        else if (type == "active" || type == "quadbuffer") {
+            return sgct::SGCTWindow::StereoMode::Active;
+        }
+        else if (type == "checkerboard") {
+            return sgct::SGCTWindow::StereoMode::Checkerboard;
+        }
+        else if (type == "checkerboard_inverted") {
+            return sgct::SGCTWindow::StereoMode::CheckerboardInverted;
+        }
+        else if (type == "anaglyph_red_cyan") {
+            return sgct::SGCTWindow::StereoMode::AnaglyphRedCyan;
+        }
+        else if (type == "anaglyph_amber_blue") {
+            return sgct::SGCTWindow::StereoMode::AnaglyphAmberBlue;
+        }
+        else if (type == "anaglyph_wimmer") {
+            return sgct::SGCTWindow::StereoMode::AnaglyphRedCyanWimmer;
+        }
+        else if (type == "vertical_interlaced") {
+            return sgct::SGCTWindow::StereoMode::VerticalInterlaced;
+        }
+        else if (type == "vertical_interlaced_inverted") {
+            return sgct::SGCTWindow::StereoMode::VerticalInterlacedInverted;
+        }
+        else if (type == "test" || type == "dummy") {
+            return sgct::SGCTWindow::StereoMode::Dummy;
+        }
+        else if (type == "side_by_side") {
+            return sgct::SGCTWindow::StereoMode::SideBySide;
+        }
+        else if (type == "side_by_side_inverted") {
+            return sgct::SGCTWindow::StereoMode::SideBySideInverted;
+        }
+        else if (type == "top_bottom") {
+            return sgct::SGCTWindow::StereoMode::TopBottom;
+        }
+        else if (type == "top_bottom_inverted") {
+            return sgct::SGCTWindow::StereoMode::TopBottomInverted;
+        }
+
+        return sgct::SGCTWindow::StereoMode::NoStereo;
+    }
+
+    sgct::SGCTWindow::ColorBitDepth getBufferColorBitDepth(std::string type) {
+        std::transform(type.begin(), type.end(), type.begin(), ::tolower);
+
+        if (type == "8") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth8;
+        }
+        else if (type == "16") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth16;
+        }
+
+        else if (type == "16f") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth16Float;
+        }
+        else if (type == "32f") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth32Float;
+        }
+
+        else if (type == "16i") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth16Int;
+        }
+        else if (type == "32i") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth32Int;
+        }
+
+        else if (type == "16ui") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth16UInt;
+        }
+        else if (type == "32ui") {
+            return sgct::SGCTWindow::ColorBitDepth::Depth32UInt;
+        }
+
+        return sgct::SGCTWindow::ColorBitDepth::Depth8;
+    }
+
+
 
 } // namespace
 
 namespace sgct_core {
 
 ReadConfig::ReadConfig(std::string filename) {
-    valid = false;
+    mIsValid = false;
     
     if (filename.empty()) {
         sgct::MessageHandler::instance()->print(
@@ -57,7 +147,7 @@ ReadConfig::ReadConfig(std::string filename) {
             "ReadConfig: No file specified! Using default configuration...\n"
         );
         readAndParseXMLString();
-        valid = true;
+        mIsValid = true;
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -77,12 +167,11 @@ ReadConfig::ReadConfig(std::string filename) {
             );
             return;
         }
-        valid = true;
+        mIsValid = true;
     
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "ReadConfig: Config file '%s' read successfully!\n",
-            xmlFileName.c_str()
+            "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str()
         );
     }
     sgct::MessageHandler::instance()->print(
@@ -102,12 +191,11 @@ ReadConfig::ReadConfig(std::string filename) {
 }
 
 bool ReadConfig::replaceEnvVars(const std::string& filename) {
-    size_t foundIndex = filename.find('%');
-    if (foundIndex != std::string::npos) {
+    size_t foundPercentage = filename.find('%');
+    if (foundPercentage != std::string::npos) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "ReadConfig: Error: SGCT doesn't support the usage of '%%' characters "
-            "in path or file name.\n"
+            "ReadConfig: SGCT doesn't support the usage of '%%' characters in the path.\n"
         );
         return false;
     }
@@ -115,7 +203,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
     std::vector<size_t> beginEnvVar;
     std::vector<size_t> endEnvVar;
     
-    foundIndex = 0;
+    size_t foundIndex = 0;
     while (foundIndex != std::string::npos) {
         foundIndex = filename.find("$(", foundIndex);
         if (foundIndex != std::string::npos) {
@@ -142,10 +230,10 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
                 beginEnvVar[i] + 2,
                 endEnvVar[i] - (beginEnvVar[i] + 2)
             );
-            char* fetchedEnvVar = nullptr;
             
-#if (_MSC_VER >= 1400) //visual studio 2005 or later
+#if (_MSC_VER >= 1400) // visual studio 2005 or later
             size_t len;
+            char* fetchedEnvVar;
             errno_t err = _dupenv_s(&fetchedEnvVar, &len, envVar.c_str());
             if (err) {
                 sgct::MessageHandler::instance()->print(
@@ -156,7 +244,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
                 return false;
             }
 #else
-            fetchedEnvVar = getenv(envVar.c_str());
+            char* fetchedEnvVar = getenv(envVar.c_str());
             if (fetchedEnvVar == nullptr) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
@@ -172,14 +260,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
         }
         
         xmlFileName.append(filename.substr(appendPos));
-        
-        //replace all backslashes with slashes
-        for (unsigned int i = 0; i < xmlFileName.size(); i++) {
-            if (xmlFileName[i] == 92) {
-                //backslash
-                xmlFileName[i] = '/';
-            }
-        }
+        std::replace(xmlFileName.begin(), xmlFileName.end(), char(92), '/');
     }
     
     return true;
@@ -193,26 +274,27 @@ bool ReadConfig::readAndParseXMLFile() {
     
     tinyxml2::XMLDocument xmlDoc;
     if (xmlDoc.LoadFile(xmlFileName.c_str()) != tinyxml2::XML_NO_ERROR) {
-        std::stringstream ss;
+        mErrorMsg.clear();
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1()
-               << " " << xmlDoc.GetErrorStr2();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr1() + ' ';
+            mErrorMsg += xmlDoc.GetErrorStr2();
         }
         else if (xmlDoc.GetErrorStr1()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr1();
         }
         else if (xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr2();
         }
         else {
-            ss << "File not found";
+            mErrorMsg = "File not found";
         }
-        mErrorMsg = ss.str();
         return false;
     }
-    else {
-        return readAndParseXML(xmlDoc);
-    }
+
+    return readAndParseXML(xmlDoc);
 }
 
 bool ReadConfig::readAndParseXMLString() {
@@ -223,27 +305,27 @@ bool ReadConfig::readAndParseXMLString() {
     ) == tinyxml2::XML_NO_ERROR;
     
     if (!loadSuccess) {
-        std::stringstream ss;
+        mErrorMsg.clear();
         if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1()
-               << " " << xmlDoc.GetErrorStr2();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr1() + ' ';
+            mErrorMsg += xmlDoc.GetErrorStr2();
         }
         else if (xmlDoc.GetErrorStr1()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr1();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr1();
         }
         else if (xmlDoc.GetErrorStr2()) {
-            ss << "Parsing failed after: " << xmlDoc.GetErrorStr2();
+            mErrorMsg += "Parsing failed after: ";
+            mErrorMsg += xmlDoc.GetErrorStr2();
         }
         else {
-            ss << "File not found";
+            mErrorMsg = "File not found";
         }
-        mErrorMsg = ss.str();
-        assert(false);
         return false;
     }
-    else {
-        return readAndParseXML(xmlDoc);
-    }
+
+    return readAndParseXML(xmlDoc);
 }
 
 bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
@@ -265,54 +347,49 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
     }
     
     const char* debugMode = XMLroot->Attribute("debug");
-    if (debugMode != nullptr) {
+    if (debugMode) {
+        const bool m = strcmp(debugMode, "true") == 0;
         sgct::MessageHandler::instance()->setNotifyLevel(
-            strcmp(debugMode, "true") == 0 ?
-                sgct::MessageHandler::Level::Debug :
-                sgct::MessageHandler::Level::Warning
+             m ? sgct::MessageHandler::Level::Debug :sgct::MessageHandler::Level::Warning
         );
     }
     
-    if (XMLroot->Attribute("externalControlPort") != nullptr) {
-        std::string tmpStr(XMLroot->Attribute("externalControlPort"));
-        ClusterManager::instance()->setExternalControlPort(tmpStr);
+    const char* externalControlPort = XMLroot->Attribute("externalControlPort");
+    if (externalControlPort) {
+        ClusterManager::instance()->setExternalControlPort(externalControlPort);
     }
     
-    if (XMLroot->Attribute("firmSync") != nullptr) {
+    const char* firmSync = XMLroot->Attribute("firmSync");
+    if (firmSync) {
         ClusterManager::instance()->setFirmFrameLockSyncStatus(
-            strcmp(XMLroot->Attribute("firmSync"), "true") == 0
+            strcmp(firmSync, "true") == 0
         );
     }
     
-    constexpr const int MaxXmlDepth = 16;
-    XMLElement* element[MaxXmlDepth];
-    for (unsigned int i = 0; i < MaxXmlDepth; i++) {
-        element[i] = nullptr;
-    }
-    const char* val[MaxXmlDepth];
-    element[0] = XMLroot->FirstChildElement();
-    while (element[0] != nullptr) {
-        val[0] = element[0]->Value();
+    //constexpr const int MaxXmlDepth = 16;
+    //XMLElement* element[MaxXmlDepth];
+    //for (unsigned int i = 0; i < MaxXmlDepth; i++) {
+    //    element[i] = nullptr;
+    //}
+    //const char* val[MaxXmlDepth];
+    XMLElement* element = XMLroot->FirstChildElement();
+    while (element) {
+        const char* val = element->Value();
         
-        if (strcmp("Scene", val[0]) == 0) {
-            element[1] = element[0]->FirstChildElement();
-            while (element[1] != nullptr) {
-                val[1] = element[1]->Value();
+        if (strcmp("Scene", val) == 0) {
+            XMLElement* child = element->FirstChildElement();
+            while (child) {
+                const char* childVal = child->Value();
                 
-                if (strcmp("Offset", val[1]) == 0) {
-                    float tmpOffset[] = { 0.f, 0.f, 0.f };
-                    XMLError xValue = element[1]->QueryFloatAttribute("x", &tmpOffset[0]);
-                    XMLError yValue = element[1]->QueryFloatAttribute("y", &tmpOffset[1]);
-                    XMLError zValue = element[1]->QueryFloatAttribute("z", &tmpOffset[2]);
+                if (strcmp("Offset", childVal) == 0) {
+                    glm::vec3 sceneOffset = glm::vec3(0.f);
+                    XMLError xValue = child->QueryFloatAttribute("x", &sceneOffset[0]);
+                    XMLError yValue = child->QueryFloatAttribute("y", &sceneOffset[1]);
+                    XMLError zValue = child->QueryFloatAttribute("z", &sceneOffset[2]);
                     if (xValue == XML_NO_ERROR &&
                         yValue == XML_NO_ERROR &&
                         zValue == XML_NO_ERROR)
                     {
-                        glm::vec3 sceneOffset = {
-                            tmpOffset[0],
-                            tmpOffset[1],
-                            tmpOffset[2]
-                        };
                         sgct::MessageHandler::instance()->print(
                             sgct::MessageHandler::Level::Debug,
                             "ReadConfig: Setting scene offset to (%f, %f, %f)\n",
@@ -328,22 +405,21 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Orientation", val[1]) == 0) {
+                else if (strcmp("Orientation", childVal) == 0) {
                     ClusterManager::instance()->setSceneRotation(
-                        glm::mat4_cast(parseOrientationNode(element[1]))
+                        glm::mat4_cast(parseOrientationNode(child))
                     );
                 }
-                else if (strcmp("Scale", val[1]) == 0) {
-                    float tmpScale = 1.f;
-                    XMLError value = element[1]->QueryFloatAttribute("value", &tmpScale);
+                else if (strcmp("Scale", childVal) == 0) {
+                    float scale = 1.f;
+                    XMLError value = child->QueryFloatAttribute("value", &scale);
                     if (value  == tinyxml2::XML_NO_ERROR) {
                         sgct::MessageHandler::instance()->print(
                             sgct::MessageHandler::Level::Debug,
-                            "ReadConfig: Setting scene scale to %f\n",
-                            tmpScale
+                            "ReadConfig: Setting scene scale to %f\n", scale
                         );
                        
-                        ClusterManager::instance()->setSceneScale(tmpScale);
+                        ClusterManager::instance()->setSceneScale(scale);
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
@@ -352,53 +428,48 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                
-                //iterate
-                element[1] = element[1]->NextSiblingElement();
+                child = child->NextSiblingElement();
             }
         }
-        else if (strcmp("Node", val[0]) == 0) {
-            SGCTNode tmpNode;
+        else if (strcmp("Node", val) == 0) {
+            SGCTNode node;
             
-            if (element[0]->Attribute("address")) {
-                tmpNode.setAddress(element[0]->Attribute("address"));
+            if (element->Attribute("address")) {
+                node.setAddress(element->Attribute("address"));
             }
-            if (element[0]->Attribute("name")) {
-                tmpNode.setName(element[0]->Attribute("name"));
+            if (element->Attribute("name")) {
+                node.setName(element->Attribute("name"));
             }
-            if (element[0]->Attribute("ip")) {
+            if (element->Attribute("ip")) {
                 //backward compability with older versions of SGCT config files
-                tmpNode.setAddress(element[0]->Attribute("ip"));
+                node.setAddress(element->Attribute("ip"));
             }
-            if (element[0]->Attribute("port")) {
-                tmpNode.setSyncPort(element[0]->Attribute("port"));
+            if (element->Attribute("port")) {
+                node.setSyncPort(element->Attribute("port"));
             }
-            if (element[0]->Attribute("syncPort")) {
-                tmpNode.setSyncPort(element[0]->Attribute("syncPort"));
+            if (element->Attribute("syncPort")) {
+                node.setSyncPort(element->Attribute("syncPort"));
             }
-            if (element[0]->Attribute("dataTransferPort")) {
-                tmpNode.setDataTransferPort(element[0]->Attribute("dataTransferPort"));
+            if (element->Attribute("dataTransferPort")) {
+                node.setDataTransferPort(element->Attribute("dataTransferPort"));
+            }
+            if (element->Attribute("swapLock")) {
+                bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
+                node.setUseSwapGroups(useSwapLock);
             }
             
-            if (element[0]->Attribute("swapLock") != nullptr) {
-                bool useSwapLock = strcmp(element[0]->Attribute("swapLock"), "true") == 0;
-                tmpNode.setUseSwapGroups(useSwapLock);
-            }
-            
-            element[1] = element[0]->FirstChildElement();
-            while (element[1] != nullptr) {
-                val[1] = element[1]->Value();
-                if (strcmp("Window", val[1]) == 0) {
-                    sgct::SGCTWindow tmpWin(
-                        static_cast<int>(tmpNode.getNumberOfWindows())
-                    );
+            XMLElement* child = element->FirstChildElement();
+            while (child) {
+                const char* childVal = child->Value();
+                if (strcmp("Window", childVal) == 0) {
+                    sgct::SGCTWindow win(static_cast<int>(node.getNumberOfWindows()));
                     
-                    if (element[1]->Attribute("name") != nullptr) {
-                        tmpWin.setName(element[1]->Attribute("name"));
+                    if (child->Attribute("name")) {
+                        win.setName(child->Attribute("name"));
                     }
 
-                    if (element[1]->Attribute("tags") != nullptr) {
-                        std::string tags = element[1]->Attribute("tags");
+                    if (child->Attribute("tags")) {
+                        std::string tags = child->Attribute("tags");
 
                         std::vector<std::string> t;
                         std::stringstream ss(std::move(tags));
@@ -408,190 +479,178 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             t.push_back(substr);
                         }
 
-                        tmpWin.setTags(std::move(t));
+                        win.setTags(std::move(t));
                     }
 
-                    if (element[1]->Attribute("bufferBitDepth") != nullptr) {
-                        tmpWin.setColorBitDepth(
-                            getBufferColorBitDepth(element[1]->Attribute("bufferBitDepth"))
+                    if (child->Attribute("bufferBitDepth")) {
+                        win.setColorBitDepth(
+                            getBufferColorBitDepth(child->Attribute("bufferBitDepth"))
                         );
                     }
 
-                    if (element[1]->Attribute("preferBGR") != nullptr) {
-                        tmpWin.setPreferBGR(
-                            strcmp(element[1]->Attribute("preferBGR"), "true") == 0
+                    if (child->Attribute("preferBGR")) {
+                        win.setPreferBGR(
+                            strcmp(child->Attribute("preferBGR"), "true") == 0
                         );
                     }
                         
                     //compability with older versions
-                    if (element[1]->Attribute("fullScreen") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("fullScreen"), "true") == 0;
-                        tmpWin.setWindowMode(v);
+                    if (child->Attribute("fullScreen")) {
+                        bool v = strcmp(child->Attribute("fullScreen"), "true") == 0;
+                        win.setWindowMode(v);
                     }
 
-                    if (element[1]->Attribute("fullscreen") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("fullscreen"), "true") == 0;
-                        tmpWin.setWindowMode(v);
+                    if (child->Attribute("fullscreen")) {
+                        bool v = strcmp(child->Attribute("fullscreen"), "true") == 0;
+                        win.setWindowMode(v);
                     }
                     
-                    if (element[1]->Attribute("floating") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("floating"), "true") == 0;
-                        tmpWin.setFloating(v);
+                    if (child->Attribute("floating")) {
+                        bool v = strcmp(child->Attribute("floating"), "true") == 0;
+                        win.setFloating(v);
                     }
 
-                    if (element[1]->Attribute("alwaysRender") != nullptr) {
-                        bool v =
-                            strcmp(element[1]->Attribute("alwaysRender"), "true") == 0;
-                        tmpWin.setRenderWhileHidden(v);
+                    if (child->Attribute("alwaysRender")) {
+                        bool v = strcmp(child->Attribute("alwaysRender"), "true") == 0;
+                        win.setRenderWhileHidden(v);
                     }
 
-                    if (element[1]->Attribute("hidden") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("hidden"), "true") == 0;
-                        tmpWin.setVisibility(!v);
+                    if (child->Attribute("hidden")) {
+                        bool v = strcmp(child->Attribute("hidden"), "true") == 0;
+                        win.setVisibility(!v);
                     }
 
-                    if (element[1]->Attribute("dbuffered") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("dbuffered"), "true") == 0;
-                        tmpWin.setDoubleBuffered(v);
+                    if (child->Attribute("dbuffered")) {
+                        bool v = strcmp(child->Attribute("dbuffered"), "true") == 0;
+                        win.setDoubleBuffered(v);
                     }
 
                     float gamma = 0.f;
-                    XMLError gammaErr = element[1]->QueryFloatAttribute("gamma", &gamma);
+                    XMLError gammaErr = child->QueryFloatAttribute("gamma", &gamma);
                     if (gammaErr == XML_NO_ERROR && gamma > 0.1f) {
-                        tmpWin.setGamma(gamma);
+                        win.setGamma(gamma);
                     }
 
                     float contrast = -1.f;
-                    XMLError contrastErr = element[1]->QueryFloatAttribute(
+                    XMLError contrastErr = child->QueryFloatAttribute(
                         "contrast",
                         &contrast
                     );
                     if (contrastErr == XML_NO_ERROR && contrast > 0.f) {
-                        tmpWin.setContrast(contrast);
+                        win.setContrast(contrast);
                     }
 
                     float brightness = -1.f;
-                    XMLError brightnessErr = element[1]->QueryFloatAttribute(
+                    XMLError brightnessErr = child->QueryFloatAttribute(
                         "brightness",
                         &brightness
                     );
                     if (brightnessErr == XML_NO_ERROR && brightness > 0.f) {
-                        tmpWin.setBrightness(brightness);
+                        win.setBrightness(brightness);
                     }
                     
                     int tmpSamples = 0;
                     //compability with older versions
 
-                    XMLError sampleErr = element[1]->QueryIntAttribute(
+                    XMLError sampleErr = child->QueryIntAttribute(
                         "numberOfSamples",
                         &tmpSamples
                     );
-                    XMLError msaaErr = element[1]->QueryIntAttribute("msaa", &tmpSamples);
-                    XMLError msErr = element[1]->QueryIntAttribute("MSAA", &tmpSamples);
+                    XMLError msaaErr = child->QueryIntAttribute("msaa", &tmpSamples);
+                    XMLError msErr = child->QueryIntAttribute("MSAA", &tmpSamples);
 
-                    if (sampleErr == XML_NO_ERROR && tmpSamples <= 128) {
-                        tmpWin.setNumberOfAASamples(tmpSamples);
-                    }
-                    else if (msaaErr == XML_NO_ERROR && tmpSamples <= 128) {
-                        tmpWin.setNumberOfAASamples(tmpSamples);
-                    }
-                    else if (msErr == XML_NO_ERROR && tmpSamples <= 128) {
-                        tmpWin.setNumberOfAASamples(tmpSamples);
+                    const bool hasSample = sampleErr == XML_NO_ERROR ||
+                        msaaErr == XML_NO_ERROR ||
+                        msErr == XML_NO_ERROR;
+
+                    if (hasSample && tmpSamples <= 128) {
+                        win.setNumberOfAASamples(tmpSamples);
                     }
                     
-                    if (element[1]->Attribute("alpha") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("alpha"), "true") == 0;
-                        tmpWin.setAlpha(v);
+                    if (child->Attribute("alpha")) {
+                        bool v = strcmp(child->Attribute("alpha"), "true") == 0;
+                        win.setAlpha(v);
                     }
                     
-                    if (element[1]->Attribute("fxaa") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("fxaa"), "true") == 0;
-                        tmpWin.setUseFXAA(v);
+                    if (child->Attribute("fxaa")) {
+                        bool v = strcmp(child->Attribute("fxaa"), "true") == 0;
+                        win.setUseFXAA(v);
                     }
                     
-                    if (element[1]->Attribute("FXAA") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("FXAA"), "true") == 0;
-                        tmpWin.setUseFXAA(v);
+                    if (child->Attribute("FXAA")) {
+                        bool v = strcmp(child->Attribute("FXAA"), "true") == 0;
+                        win.setUseFXAA(v);
                     }
                     
-                    if (element[1]->Attribute("decorated") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("decorated"), "true") == 0;
-                        tmpWin.setWindowDecoration(v);
+                    if (child->Attribute("decorated")) {
+                        bool v = strcmp(child->Attribute("decorated"), "true") == 0;
+                        win.setWindowDecoration(v);
                     }
                     
-                    if (element[1]->Attribute("border") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("border"), "true") == 0;
-                        tmpWin.setWindowDecoration(v);
+                    if (child->Attribute("border")) {
+                        bool v = strcmp(child->Attribute("border"), "true") == 0;
+                        win.setWindowDecoration(v);
                     }
 
-                    if (element[1]->Attribute("draw2D") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("draw2D"), "true") == 0;
-                        tmpWin.setCallDraw2DFunction(v);
+                    if (child->Attribute("draw2D")) {
+                        bool v = strcmp(child->Attribute("draw2D"), "true") == 0;
+                        win.setCallDraw2DFunction(v);
                     }
 
-                    if (element[1]->Attribute("draw3D") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("draw3D"), "true") == 0;
-                        tmpWin.setCallDraw3DFunction(v);
+                    if (child->Attribute("draw3D")) {
+                        bool v = strcmp(child->Attribute("draw3D"), "true") == 0;
+                        win.setCallDraw3DFunction(v);
                     }
 
-                    if (element[1]->Attribute("copyPreviousWindowToCurrentWindow") != nullptr) {
+                    if (child->Attribute("copyPreviousWindowToCurrentWindow")) {
                         bool v = strcmp(
-                            element[1]->Attribute("copyPreviousWindowToCurrentWindow"),
+                            child->Attribute("copyPreviousWindowToCurrentWindow"),
                             "true"
                         ) == 0;
-                        tmpWin.setCopyPreviousWindowToCurrentWindow(v);
+                        win.setCopyPreviousWindowToCurrentWindow(v);
                     }
                     
-                    int tmpMonitorIndex = 0;
-                    XMLError monitorErr = element[1]->QueryIntAttribute(
-                        "monitor",
-                        &tmpMonitorIndex
-                    );
+                    int index = 0;
+                    XMLError monitorErr = child->QueryIntAttribute("monitor", &index);
                     if (monitorErr == tinyxml2::XML_NO_ERROR) {
-                        tmpWin.setFullScreenMonitorIndex(tmpMonitorIndex);
+                        win.setFullScreenMonitorIndex(index);
                     }
                     
-                    if (element[1]->Attribute("mpcdi") != nullptr) {
-                        sgct_core::SGCTMpcdi mpcdiHandler;
-                        std::string pathToMpcdiFile;
+                    if (child->Attribute("mpcdi")) {
+                        std::string path;
                         size_t lastSlashPos = xmlFileName.find_last_of("/");
                         if (lastSlashPos != std::string::npos) {
-                            pathToMpcdiFile = xmlFileName.substr(0, lastSlashPos) + "/";
+                            path = xmlFileName.substr(0, lastSlashPos) + "/";
                         }
-                        pathToMpcdiFile += element[1]->Attribute("mpcdi");
+                        path += child->Attribute("mpcdi");
                         //replace all backslashes with slashes
-                        std::replace(
-                            pathToMpcdiFile.begin(),
-                            pathToMpcdiFile.end(),
-                            '\\',
-                            '/'
-                        );
-                        bool parse = mpcdiHandler.parseConfiguration(
-                            pathToMpcdiFile,
-                            tmpNode,
-                            tmpWin
+                        std::replace(path.begin(), path.end(), '\\', '/');
+                        bool parse = sgct_core::SGCTMpcdi().parseConfiguration(
+                            path,
+                            node,
+                            win
                         );
                         if (!parse) {
                             return false;
                         }
                     }
 
-                    element[2] = element[1]->FirstChildElement();
-                    while( element[2] != nullptr) {
-                        val[2] = element[2]->Value();
+                    XMLElement* grandChild = child->FirstChildElement();
+                    while (grandChild) {
+                        const char* grandChildVal = grandChild->Value();
                         
-                        if (strcmp("Stereo", val[2]) == 0) {
+                        if (strcmp("Stereo", grandChildVal) == 0) {
                             sgct::SGCTWindow::StereoMode v = getStereoType(
-                                element[2]->Attribute("type")
+                                grandChild->Attribute("type")
                             );
-                            tmpWin.setStereoMode(v);
+                            win.setStereoMode(v);
                         }
-                        else if (strcmp("Pos", val[2]) == 0) {
+                        else if (strcmp("Pos", grandChildVal) == 0) {
                             glm::ivec2 pos;
-                            XMLError xErr = element[2]->QueryIntAttribute("x", &pos[0]);
-                            XMLError yErr = element[2]->QueryIntAttribute("y", &pos[1]);
+                            XMLError xErr = grandChild->QueryIntAttribute("x", &pos[0]);
+                            XMLError yErr = grandChild->QueryIntAttribute("y", &pos[1]);
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.setWindowPosition(std::move(pos));
+                                win.setWindowPosition(std::move(pos));
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -600,13 +659,12 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        else if (strcmp("Size", val[2]) == 0) {
+                        else if (strcmp("Size", grandChildVal) == 0) {
                             glm::ivec2 size;
-                            XMLError xErr = element[2]->QueryIntAttribute("x", &size[0]);
-                            XMLError yErr = element[2]->QueryIntAttribute("y", &size[1]);
-
+                            XMLError xErr = grandChild->QueryIntAttribute("x", &size[0]);
+                            XMLError yErr = grandChild->QueryIntAttribute("y", &size[1]);
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.initWindowResolution(size);
+                                win.initWindowResolution(size);
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -615,14 +673,13 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        else if (strcmp("Res", val[2]) == 0) {
+                        else if (strcmp("Res", grandChildVal) == 0) {
                             glm::ivec2 res;
-                            XMLError xErr = element[2]->QueryIntAttribute("x", &res[0]);
-                            XMLError yErr = element[2]->QueryIntAttribute("y", &res[1]);
-
+                            XMLError xErr = grandChild->QueryIntAttribute("x", &res[0]);
+                            XMLError yErr = grandChild->QueryIntAttribute("y", &res[1]);
                             if (xErr == XML_NO_ERROR && yErr == XML_NO_ERROR) {
-                                tmpWin.setFramebufferResolution(std::move(res));
-                                tmpWin.setFixResolution(true);
+                                win.setFramebufferResolution(std::move(res));
+                                win.setFixResolution(true);
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -631,29 +688,23 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        else if (strcmp("Viewport", val[2]) == 0) {
+                        else if (strcmp("Viewport", grandChildVal) == 0) {
                             std::unique_ptr<Viewport> vp = std::make_unique<Viewport>();
-                            vp->configure(element[2]);
-                            tmpWin.addViewport(std::move(vp));
+                            vp->configure(grandChild);
+                            win.addViewport(std::move(vp));
                         }
-                        
-                        //iterate
-                        element[2] = element[2]->NextSiblingElement();
+                        grandChild = grandChild->NextSiblingElement();
                     }
-                    tmpNode.addWindow(std::move(tmpWin));
-                }//end window
-                
-                //iterate
-                element[1] = element[1]->NextSiblingElement();
-                
-            }//end while
-            
-            ClusterManager::instance()->addNode(std::move(tmpNode));
-        }//end if node
-        else if (strcmp("User", val[0]) == 0) {
+                    node.addWindow(std::move(win));
+                }
+                child = child->NextSiblingElement();
+            }
+            ClusterManager::instance()->addNode(std::move(node));
+        }
+        else if (strcmp("User", val) == 0) {
             SGCTUser* usrPtr;
-            if (element[0]->Attribute("name") != nullptr) {
-                std::string name(element[0]->Attribute("name"));
+            if (element->Attribute("name") != nullptr) {
+                std::string name(element->Attribute("name"));
                 ClusterManager::instance()->addUser(std::make_unique<SGCTUser>(name));
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Info,
@@ -665,21 +716,20 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
             }
 
             float eyeSep;
-            XMLError eyeSepErr = element[0]->QueryFloatAttribute("eyeSeparation", &eyeSep);
-
+            XMLError eyeSepErr = element->QueryFloatAttribute("eyeSeparation", &eyeSep);
             if (eyeSepErr == XML_NO_ERROR) {
                 usrPtr->setEyeSeparation(eyeSep);
             }
             
-            element[1] = element[0]->FirstChildElement();
-            while (element[1] != nullptr) {
-                val[1] = element[1]->Value();
+            XMLElement* child = element->FirstChildElement();
+            while (child) {
+                const char* childVal = child->Value();
                 
-                if (strcmp("Pos", val[1]) == 0) {
+                if (strcmp("Pos", childVal) == 0) {
                     glm::vec3 pos;
-                    XMLError xe = element[1]->QueryFloatAttribute("x", &pos[0]);
-                    XMLError ye = element[1]->QueryFloatAttribute("y", &pos[1]);
-                    XMLError ze = element[1]->QueryFloatAttribute("z", &pos[2]);
+                    XMLError xe = child->QueryFloatAttribute("x", &pos[0]);
+                    XMLError ye = child->QueryFloatAttribute("y", &pos[1]);
+                    XMLError ze = child->QueryFloatAttribute("z", &pos[2]);
                     if (xe == XML_NO_ERROR && ye == XML_NO_ERROR && ze == XML_NO_ERROR) {
                         usrPtr->setPos(std::move(pos));
                     }
@@ -690,21 +740,21 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Orientation", val[1]) == 0) {
-                    usrPtr->setOrientation(parseOrientationNode(element[1]));
+                else if (strcmp("Orientation", childVal) == 0) {
+                    usrPtr->setOrientation(parseOrientationNode(child));
                 }
-                else if (strcmp("Quaternion", val[1]) == 0) {
-                    float tmpd[4];
-                    XMLError wErr = element[1]->QueryFloatAttribute("w", &tmpd[0]);
-                    XMLError xErr = element[1]->QueryFloatAttribute("x", &tmpd[1]);
-                    XMLError yErr = element[1]->QueryFloatAttribute("y", &tmpd[2]);
-                    XMLError zErr = element[1]->QueryFloatAttribute("z", &tmpd[3]);
-                    if (wErr == tinyxml2::XML_NO_ERROR &&
-                        xErr == tinyxml2::XML_NO_ERROR &&
-                        yErr == tinyxml2::XML_NO_ERROR &&
-                        zErr == tinyxml2::XML_NO_ERROR)
+                else if (strcmp("Quaternion", childVal) == 0) {
+                    glm::quat q;
+                    
+                    // Yes, this order is correct;  the constructor takes w,x,y,z but the
+                    // layout in memory is x,y,z,w
+                    XMLError we = child->QueryFloatAttribute("w", &q[3]);
+                    XMLError xe = child->QueryFloatAttribute("x", &q[0]);
+                    XMLError ye = child->QueryFloatAttribute("y", &q[1]);
+                    XMLError ze = child->QueryFloatAttribute("z", &q[2]);
+                    if (we == tinyxml2::XML_NO_ERROR && xe == tinyxml2::XML_NO_ERROR &&
+                        ye == tinyxml2::XML_NO_ERROR && ze == tinyxml2::XML_NO_ERROR)
                     {
-                        glm::quat q(tmpd[0], tmpd[1], tmpd[2], tmpd[3]);
                         usrPtr->setOrientation(q);
                     }
                     else {
@@ -714,31 +764,30 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Matrix", val[1]) == 0) {
+                else if (strcmp("Matrix", childVal) == 0) {
                     bool transpose = true;
-                    if (element[1]->Attribute("transpose") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("transpose"), "true") == 0;
-                        transpose = v;
+                    if (child->Attribute("transpose")) {
+                        transpose = strcmp(child->Attribute("transpose"), "true") == 0;
                     }
 
                     float tmpf[16];
                     XMLError err[16] = {
-                        element[1]->QueryFloatAttribute("x0", &tmpf[ 0]),
-                        element[1]->QueryFloatAttribute("y0", &tmpf[ 1]),
-                        element[1]->QueryFloatAttribute("z0", &tmpf[ 2]),
-                        element[1]->QueryFloatAttribute("w0", &tmpf[ 3]),
-                        element[1]->QueryFloatAttribute("x1", &tmpf[ 4]),
-                        element[1]->QueryFloatAttribute("y1", &tmpf[ 5]),
-                        element[1]->QueryFloatAttribute("z1", &tmpf[ 6]),
-                        element[1]->QueryFloatAttribute("w1", &tmpf[ 7]),
-                        element[1]->QueryFloatAttribute("x2", &tmpf[ 8]),
-                        element[1]->QueryFloatAttribute("y2", &tmpf[ 9]),
-                        element[1]->QueryFloatAttribute("z2", &tmpf[10]),
-                        element[1]->QueryFloatAttribute("w2", &tmpf[11]),
-                        element[1]->QueryFloatAttribute("x3", &tmpf[12]),
-                        element[1]->QueryFloatAttribute("y3", &tmpf[13]),
-                        element[1]->QueryFloatAttribute("z3", &tmpf[14]),
-                        element[1]->QueryFloatAttribute("w3", &tmpf[15])
+                        child->QueryFloatAttribute("x0", &tmpf[ 0]),
+                        child->QueryFloatAttribute("y0", &tmpf[ 1]),
+                        child->QueryFloatAttribute("z0", &tmpf[ 2]),
+                        child->QueryFloatAttribute("w0", &tmpf[ 3]),
+                        child->QueryFloatAttribute("x1", &tmpf[ 4]),
+                        child->QueryFloatAttribute("y1", &tmpf[ 5]),
+                        child->QueryFloatAttribute("z1", &tmpf[ 6]),
+                        child->QueryFloatAttribute("w1", &tmpf[ 7]),
+                        child->QueryFloatAttribute("x2", &tmpf[ 8]),
+                        child->QueryFloatAttribute("y2", &tmpf[ 9]),
+                        child->QueryFloatAttribute("z2", &tmpf[10]),
+                        child->QueryFloatAttribute("w2", &tmpf[11]),
+                        child->QueryFloatAttribute("x3", &tmpf[12]),
+                        child->QueryFloatAttribute("y3", &tmpf[13]),
+                        child->QueryFloatAttribute("z3", &tmpf[14]),
+                        child->QueryFloatAttribute("w3", &tmpf[15])
                     };
                     if (err[ 0] == XML_NO_ERROR && err[ 1] == XML_NO_ERROR &&
                         err[ 2] == XML_NO_ERROR && err[ 3] == XML_NO_ERROR &&
@@ -749,7 +798,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         err[12] == XML_NO_ERROR && err[13] == XML_NO_ERROR &&
                         err[14] == XML_NO_ERROR && err[15] == XML_NO_ERROR)
                     {
-                        //glm & opengl uses column major order (normally row major
+                        // glm & opengl uses column major order (normally row major
                         // order is used in linear algebra)
                         glm::mat4 mat = glm::make_mat4(tmpf);
                         if (transpose) {
@@ -764,11 +813,11 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Tracking", val[1]) == 0) {
-                    const char* tracker = element[1]->Attribute("tracker");
-                    const char* device = element[1]->Attribute("device");
+                else if (strcmp("Tracking", childVal) == 0) {
+                    const char* tracker = child->Attribute("tracker");
+                    const char* device = child->Attribute("device");
 
-                    if (tracker != nullptr && device != nullptr) {
+                    if (tracker && device) {
                         usrPtr->setHeadTracker(tracker, device);
                     }
                     else {
@@ -778,45 +827,42 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                
-                //iterate
-                element[1] = element[1]->NextSiblingElement();
+                child = child->NextSiblingElement();
             }
-        } //end user
-        else if (strcmp("Settings", val[0]) == 0) {
-            sgct::SGCTSettings::instance()->configure(element[0]);
-        } //end settings
-        else if (strcmp("Capture", val[0]) == 0) {
-            if (element[0]->Attribute("path") != nullptr) {
-                using namespace sgct;
+        }
+        else if (strcmp("Settings", val) == 0) {
+            sgct::SGCTSettings::instance()->configure(element);
+        }
+        else if (strcmp("Capture", val) == 0) {
+            if (element->Attribute("path")) {
+                using CPI = sgct::SGCTSettings::CapturePath;
 
-                const char* p = element[0]->Attribute("path");
-                using CPI = SGCTSettings::CapturePath;
-                SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
-                SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
-                SGCTSettings::instance()->setCapturePath(p, CPI::RightStereo);
+                const char* p = element->Attribute("path");
+                sgct::SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
+                sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
+                sgct::SGCTSettings::instance()->setCapturePath(p, CPI::RightStereo);
             }
-            if (element[0]->Attribute("monoPath") != nullptr) {
-                using namespace sgct;
-                const char* p = element[0]->Attribute("monoPath");
-                using CPI = SGCTSettings::CapturePath;
-                SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
+            if (element->Attribute("monoPath") != nullptr) {
+                using CPI = sgct::SGCTSettings::CapturePath;
+
+                const char* p = element->Attribute("monoPath");
+                sgct::SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
             }
-            if (element[0]->Attribute("leftPath") != nullptr) {
-                using namespace sgct;
-                const char* p = element[0]->Attribute("leftPath");
-                using CPI = SGCTSettings::CapturePath;
-                SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
+            if (element->Attribute("leftPath") != nullptr) {
+                using CPI = sgct::SGCTSettings::CapturePath;
+
+                const char* p = element->Attribute("leftPath");
+                sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
             }
-            if (element[0]->Attribute("rightPath") != nullptr) {
-                using namespace sgct;
-                const char* rPath = element[0]->Attribute("rightPath");
-                using CPI = SGCTSettings::CapturePath;
-                SGCTSettings::instance()->setCapturePath(rPath, CPI::RightStereo);
+            if (element->Attribute("rightPath") != nullptr) {
+                using CPI = sgct::SGCTSettings::CapturePath;
+
+                const char* rPath = element->Attribute("rightPath");
+                sgct::SGCTSettings::instance()->setCapturePath(rPath, CPI::RightStereo);
             }
             
-            if (element[0]->Attribute("format") != nullptr) {
-                std::string format = element[0]->Attribute("format");
+            if (element->Attribute("format") != nullptr) {
+                std::string format = element->Attribute("format");
                 sgct::SGCTSettings::CaptureFormat f = [](const std::string& format) {
                     if (format == "png" || format == "PNG") {
                         return sgct::SGCTSettings::CaptureFormat::PNG;
@@ -838,78 +884,75 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                 sgct::SGCTSettings::instance()->setCaptureFormat(f);
             }
         }
-        else if (strcmp("Tracker", val[0]) == 0 &&
-                 element[0]->Attribute("name") != nullptr)
-        {
-        ClusterManager& cm = *ClusterManager::instance();
+        else if (strcmp("Tracker", val) == 0 && element->Attribute("name")) {
+            ClusterManager& cm = *ClusterManager::instance();
             cm.getTrackingManagerPtr().addTracker(
-                std::string(element[0]->Attribute("name"))
+                std::string(element->Attribute("name"))
             );
             
-            element[1] = element[0]->FirstChildElement();
-            while( element[1] != nullptr) {
-                val[1] = element[1]->Value();
+            XMLElement* child = element->FirstChildElement();
+            while (child) {
+                const char* childVal = child->Value();
                 
-                if (strcmp("Device", val[1]) == 0 &&
-                    element[1]->Attribute("name") != nullptr)
-                {
+                if (strcmp("Device", childVal) == 0 && child->Attribute("name")) {
                     cm.getTrackingManagerPtr().addDeviceToCurrentTracker(
-                        std::string(element[1]->Attribute("name"))
+                        std::string(child->Attribute("name"))
                     );
                     
-                    element[2] = element[1]->FirstChildElement();
+                    XMLElement* grandChild = child->FirstChildElement();
                     
-                    while( element[2] != nullptr) {
-                        val[2] = element[2]->Value();
-                        unsigned int tmpUI = 0;
-                        int tmpi = -1;
+                    while (grandChild) {
+                        const char* grandChildVal = grandChild->Value();
                         
-                        if (strcmp("Sensor", val[2]) == 0) {
-                            XMLError err = element[2]->QueryIntAttribute("id", &tmpi);
-                            if (element[2]->Attribute("vrpnAddress") != nullptr &&
-                                err == XML_NO_ERROR )
+                        if (strcmp("Sensor", grandChildVal) == 0) {
+                            int id;
+                            XMLError err = grandChild->QueryIntAttribute("id", &id);
+                            if (grandChild->Attribute("vrpnAddress") &&
+                                err == XML_NO_ERROR)
                             {
                                 cm.getTrackingManagerPtr().addSensorToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"),
-                                    tmpi
+                                    grandChild->Attribute("vrpnAddress"),
+                                    id
                                 );
                             }
                         }
-                        else if (strcmp("Buttons", val[2]) == 0) {
-                            XMLError err = element[2]->QueryUnsignedAttribute(
+                        else if (strcmp("Buttons", grandChildVal) == 0) {
+                            unsigned int count = 0;
+                            XMLError err = grandChild->QueryUnsignedAttribute(
                                 "count",
-                                &tmpUI
+                                &count
                             );
-                            if (element[2]->Attribute("vrpnAddress") != nullptr &&
-                               err == XML_NO_ERROR)
+                            if (grandChild->Attribute("vrpnAddress") &&
+                                err == XML_NO_ERROR)
                             {
                                 cm.getTrackingManagerPtr().addButtonsToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"),
-                                    tmpUI
+                                    grandChild->Attribute("vrpnAddress"),
+                                    count
                                 );
                             }
                             
                         }
-                        else if (strcmp("Axes", val[2]) == 0) {
-                            XMLError err = element[2]->QueryUnsignedAttribute(
+                        else if (strcmp("Axes", grandChildVal) == 0) {
+                            unsigned int count = 0;
+                            XMLError err = grandChild->QueryUnsignedAttribute(
                                 "count",
-                                &tmpUI
+                                &count
                             );
-                            if (element[2]->Attribute("vrpnAddress") != nullptr &&
+                            if (grandChild->Attribute("vrpnAddress") &&
                                err == tinyxml2::XML_NO_ERROR)
                             {
                                 cm.getTrackingManagerPtr().addAnalogsToCurrentDevice(
-                                    element[2]->Attribute("vrpnAddress"),
-                                    tmpUI
+                                    grandChild->Attribute("vrpnAddress"),
+                                    count
                                 );
                             }
                         }
-                        else if (strcmp("Offset", val[2]) == 0) {
+                        else if (strcmp("Offset", grandChildVal) == 0) {
                             glm::vec3 offset;
                             XMLError err[3] = {
-                                element[2]->QueryFloatAttribute("x", &offset[0]),
-                                element[2]->QueryFloatAttribute("y", &offset[1]),
-                                element[2]->QueryFloatAttribute("z", &offset[2])
+                                grandChild->QueryFloatAttribute("x", &offset[0]),
+                                grandChild->QueryFloatAttribute("y", &offset[1]),
+                                grandChild->QueryFloatAttribute("z", &offset[2])
                             };
 
                             if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
@@ -929,21 +972,23 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        else if (strcmp("Orientation", val[2]) == 0) {
+                        else if (strcmp("Orientation", grandChildVal) == 0) {
                             using namespace sgct;
                             SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                             SGCTTracker& tr = *m.getLastTrackerPtr();
                             SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                            device.setOrientation(parseOrientationNode(element[2]));
+                            device.setOrientation(parseOrientationNode(grandChild));
                         }
-                        else if (strcmp("Quaternion", val[2]) == 0) {
-                            float tmpf[4];
+                        else if (strcmp("Quaternion", grandChildVal) == 0) {
+                            glm::quat q;
+                            // Yes, this order is correct;  the constructor takes w,x,y,z
+                            //but the layout in memory is x,y,z,w
                             XMLError err[4] = {
-                                element[2]->QueryFloatAttribute("w", &tmpf[0]),
-                                element[2]->QueryFloatAttribute("x", &tmpf[1]),
-                                element[2]->QueryFloatAttribute("y", &tmpf[2]),
-                                element[2]->QueryFloatAttribute("z", &tmpf[3])
+                                grandChild->QueryFloatAttribute("w", &q[3]),
+                                grandChild->QueryFloatAttribute("x", &q[0]),
+                                grandChild->QueryFloatAttribute("y", &q[1]),
+                                grandChild->QueryFloatAttribute("z", &q[2])
                             };
                             if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                                 err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR)
@@ -953,9 +998,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                                device.setOrientation(
-                                    glm::quat(tmpf[0], tmpf[1], tmpf[2], tmpf[3])
-                                );
+                                device.setOrientation(std::move(q));
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -964,11 +1007,11 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        else if (strcmp("Matrix", val[2]) == 0) {
+                        else if (strcmp("Matrix", grandChildVal) == 0) {
                             bool transpose = true;
-                            if (element[2]->Attribute("transpose") != nullptr) {
+                            if (grandChild->Attribute("transpose") != nullptr) {
                                 bool v = strcmp(
-                                    element[2]->Attribute("transpose"),
+                                    grandChild->Attribute("transpose"),
                                     "true"
                                 ) == 0;
                                 transpose = v;
@@ -976,22 +1019,22 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                             
                             float tmpf[16];
                             XMLError err[16] = {
-                                element[2]->QueryFloatAttribute("x0", &tmpf[0]),
-                                element[2]->QueryFloatAttribute("y0", &tmpf[1]),
-                                element[2]->QueryFloatAttribute("z0", &tmpf[2]),
-                                element[2]->QueryFloatAttribute("w0", &tmpf[3]),
-                                element[2]->QueryFloatAttribute("x1", &tmpf[4]),
-                                element[2]->QueryFloatAttribute("y1", &tmpf[5]),
-                                element[2]->QueryFloatAttribute("z1", &tmpf[6]),
-                                element[2]->QueryFloatAttribute("w1", &tmpf[7]),
-                                element[2]->QueryFloatAttribute("x2", &tmpf[8]),
-                                element[2]->QueryFloatAttribute("y2", &tmpf[9]),
-                                element[2]->QueryFloatAttribute("z2", &tmpf[10]),
-                                element[2]->QueryFloatAttribute("w2", &tmpf[11]),
-                                element[2]->QueryFloatAttribute("x3", &tmpf[12]),
-                                element[2]->QueryFloatAttribute("y3", &tmpf[13]),
-                                element[2]->QueryFloatAttribute("z3", &tmpf[14]),
-                                element[2]->QueryFloatAttribute("w3", &tmpf[15])
+                                grandChild->QueryFloatAttribute("x0", &tmpf[0]),
+                                grandChild->QueryFloatAttribute("y0", &tmpf[1]),
+                                grandChild->QueryFloatAttribute("z0", &tmpf[2]),
+                                grandChild->QueryFloatAttribute("w0", &tmpf[3]),
+                                grandChild->QueryFloatAttribute("x1", &tmpf[4]),
+                                grandChild->QueryFloatAttribute("y1", &tmpf[5]),
+                                grandChild->QueryFloatAttribute("z1", &tmpf[6]),
+                                grandChild->QueryFloatAttribute("w1", &tmpf[7]),
+                                grandChild->QueryFloatAttribute("x2", &tmpf[8]),
+                                grandChild->QueryFloatAttribute("y2", &tmpf[9]),
+                                grandChild->QueryFloatAttribute("z2", &tmpf[10]),
+                                grandChild->QueryFloatAttribute("w2", &tmpf[11]),
+                                grandChild->QueryFloatAttribute("x3", &tmpf[12]),
+                                grandChild->QueryFloatAttribute("y3", &tmpf[13]),
+                                grandChild->QueryFloatAttribute("z3", &tmpf[14]),
+                                grandChild->QueryFloatAttribute("w3", &tmpf[15])
                             };
                             if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                                 err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR &&
@@ -1013,7 +1056,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 SGCTTracker& tr = *m.getLastTrackerPtr();
                                 SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                                device.setTransform(mat);
+                                device.setTransform(std::move(mat));
                             }
                             else {
                                 sgct::MessageHandler::instance()->print(
@@ -1022,18 +1065,16 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                                 );
                             }
                         }
-                        
-                        //iterate
-                        element[2] = element[2]->NextSiblingElement();
+                        grandChild = grandChild->NextSiblingElement();
                     }
                     
                 }
-                else if (strcmp("Offset", val[1]) == 0) {
+                else if (strcmp("Offset", childVal) == 0) {
                     glm::vec3 offset;
                     XMLError err[3] = {
-                        element[1]->QueryFloatAttribute("x", &offset[0]),
-                        element[1]->QueryFloatAttribute("y", &offset[1]),
-                        element[1]->QueryFloatAttribute("z", &offset[2])
+                        child->QueryFloatAttribute("x", &offset[0]),
+                        child->QueryFloatAttribute("y", &offset[1]),
+                        child->QueryFloatAttribute("z", &offset[2])
                     };
                     if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                         err[2] == XML_NO_ERROR)
@@ -1052,21 +1093,23 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Orientation", val[1]) == 0) {
+                else if (strcmp("Orientation", childVal) == 0) {
                     using namespace sgct;
                     SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                     SGCTTracker& tr = *m.getLastTrackerPtr();
                     SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                    device.setOrientation(parseOrientationNode(element[1]));
+                    device.setOrientation(parseOrientationNode(child));
                 }
-                else if (strcmp("Quaternion", val[1]) == 0) {
-                    float tmpf[4];
+                else if (strcmp("Quaternion", childVal) == 0) {
+                    glm::quat q;
+                    // Yes, this order is correct;  the constructor takes w,x,y,z
+                    // but the layout in memory is x,y,z,w
                     XMLError err[4] = {
-                        element[1]->QueryFloatAttribute("w", &tmpf[0]),
-                        element[1]->QueryFloatAttribute("x", &tmpf[1]),
-                        element[1]->QueryFloatAttribute("y", &tmpf[2]),
-                        element[1]->QueryFloatAttribute("z", &tmpf[3])
+                        child->QueryFloatAttribute("w", &q[3]),
+                        child->QueryFloatAttribute("x", &q[0]),
+                        child->QueryFloatAttribute("y", &q[1]),
+                        child->QueryFloatAttribute("z", &q[2])
                     };
                     if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                         err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR)
@@ -1076,9 +1119,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         SGCTTracker& tr = *m.getLastTrackerPtr();
                         SGCTTrackingDevice& device = *tr.getLastDevicePtr();
 
-                        device.setOrientation(
-                            glm::quat(tmpf[0], tmpf[1], tmpf[2], tmpf[3])
-                        );
+                        device.setOrientation(std::move(q));
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
@@ -1087,15 +1128,15 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Scale", val[1]) == 0) {
-                    double scaleVal;
-                    XMLError err = element[1]->QueryDoubleAttribute("value", &scaleVal);
+                else if (strcmp("Scale", childVal) == 0) {
+                    double value;
+                    XMLError err = child->QueryDoubleAttribute("value", &value);
                     if (err == tinyxml2::XML_NO_ERROR) {
                         using namespace sgct;
                         SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
 
-                        tr.setScale(scaleVal);
+                        tr.setScale(value);
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
@@ -1104,31 +1145,31 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                else if (strcmp("Matrix", val[1]) == 0) {
+                else if (strcmp("Matrix", childVal) == 0) {
                     bool transpose = true;
-                    if (element[1]->Attribute("transpose") != nullptr) {
-                        bool v = strcmp(element[1]->Attribute("transpose"), "true") == 0;
+                    if (child->Attribute("transpose")) {
+                        bool v = strcmp(child->Attribute("transpose"), "true") == 0;
                         transpose = v;
                     }
 
                     float tmpf[16];
                     XMLError err[16] = {
-                        element[1]->QueryFloatAttribute("x0", &tmpf[0]),
-                        element[1]->QueryFloatAttribute("y0", &tmpf[1]),
-                        element[1]->QueryFloatAttribute("z0", &tmpf[2]),
-                        element[1]->QueryFloatAttribute("w0", &tmpf[3]),
-                        element[1]->QueryFloatAttribute("x1", &tmpf[4]),
-                        element[1]->QueryFloatAttribute("y1", &tmpf[5]),
-                        element[1]->QueryFloatAttribute("z1", &tmpf[6]),
-                        element[1]->QueryFloatAttribute("w1", &tmpf[7]),
-                        element[1]->QueryFloatAttribute("x2", &tmpf[8]),
-                        element[1]->QueryFloatAttribute("y2", &tmpf[9]),
-                        element[1]->QueryFloatAttribute("z2", &tmpf[10]),
-                        element[1]->QueryFloatAttribute("w2", &tmpf[11]),
-                        element[1]->QueryFloatAttribute("x3", &tmpf[12]),
-                        element[1]->QueryFloatAttribute("y3", &tmpf[13]),
-                        element[1]->QueryFloatAttribute("z3", &tmpf[14]),
-                        element[1]->QueryFloatAttribute("w3", &tmpf[15])
+                        child->QueryFloatAttribute("x0", &tmpf[0]),
+                        child->QueryFloatAttribute("y0", &tmpf[1]),
+                        child->QueryFloatAttribute("z0", &tmpf[2]),
+                        child->QueryFloatAttribute("w0", &tmpf[3]),
+                        child->QueryFloatAttribute("x1", &tmpf[4]),
+                        child->QueryFloatAttribute("y1", &tmpf[5]),
+                        child->QueryFloatAttribute("z1", &tmpf[6]),
+                        child->QueryFloatAttribute("w1", &tmpf[7]),
+                        child->QueryFloatAttribute("x2", &tmpf[8]),
+                        child->QueryFloatAttribute("y2", &tmpf[9]),
+                        child->QueryFloatAttribute("z2", &tmpf[10]),
+                        child->QueryFloatAttribute("w2", &tmpf[11]),
+                        child->QueryFloatAttribute("x3", &tmpf[12]),
+                        child->QueryFloatAttribute("y3", &tmpf[13]),
+                        child->QueryFloatAttribute("z3", &tmpf[14]),
+                        child->QueryFloatAttribute("w3", &tmpf[15])
                     };
                     if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
                         err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR &&
@@ -1149,7 +1190,7 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                         SGCTTracker& tr = *m.getLastTrackerPtr();
 
-                        tr.setTransform(mat);
+                        tr.setTransform(std::move(mat));
                     }
                     else {
                         sgct::MessageHandler::instance()->print(
@@ -1158,165 +1199,76 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc) {
                         );
                     }
                 }
-                
-                // iterate
-                element[1] = element[1]->NextSiblingElement();
+                child = child->NextSiblingElement();
             }
-        } // end tracking part
-        
-        //iterate
-        element[0] = element[0]->NextSiblingElement();
+        }
+        element = element->NextSiblingElement();
     }
 
     return true;
 }
 
-sgct::SGCTWindow::StereoMode ReadConfig::getStereoType(std::string type) {
-    std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-    
-    if (type == "none" || type == "no_stereo") {
-        return sgct::SGCTWindow::StereoMode::NoStereo;
-    }
-    else if (type == "active" || type == "quadbuffer") {
-        return sgct::SGCTWindow::StereoMode::Active;
-    }
-    else if (type == "checkerboard") {
-        return sgct::SGCTWindow::StereoMode::Checkerboard;
-    }
-    else if (type == "checkerboard_inverted") {
-        return sgct::SGCTWindow::StereoMode::CheckerboardInverted;
-    }
-    else if (type == "anaglyph_red_cyan") {
-        return sgct::SGCTWindow::StereoMode::AnaglyphRedCyan;
-    }
-    else if (type == "anaglyph_amber_blue") {
-        return sgct::SGCTWindow::StereoMode::AnaglyphAmberBlue;
-    }
-    else if (type == "anaglyph_wimmer") {
-        return sgct::SGCTWindow::StereoMode::AnaglyphRedCyanWimmer;
-    }
-    else if (type == "vertical_interlaced") {
-        return sgct::SGCTWindow::StereoMode::VerticalInterlaced;
-    }
-    else if (type == "vertical_interlaced_inverted") {
-        return sgct::SGCTWindow::StereoMode::VerticalInterlacedInverted;
-    }
-    else if (type == "test" || type == "dummy") {
-        return sgct::SGCTWindow::StereoMode::Dummy;
-    }
-    else if (type == "side_by_side") {
-        return sgct::SGCTWindow::StereoMode::SideBySide;
-    }
-    else if (type == "side_by_side_inverted") {
-        return sgct::SGCTWindow::StereoMode::SideBySideInverted;
-    }
-    else if (type == "top_bottom") {
-        return sgct::SGCTWindow::StereoMode::TopBottom;
-    }
-    else if (type == "top_bottom_inverted") {
-        return sgct::SGCTWindow::StereoMode::TopBottomInverted;
-    }
-    
-    //if match not found
-    return sgct::SGCTWindow::StereoMode::NoStereo;
-}
-
-sgct::SGCTWindow::ColorBitDepth ReadConfig::getBufferColorBitDepth(std::string type) {
-    std::transform(type.begin(), type.end(), type.begin(), ::tolower);
-
-    if (type == "8") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth8;
-    }
-    else if (type == "16") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth16;
-    }
-    
-    else if (type == "16f") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth16Float;
-    }
-    else if (type == "32f") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth32Float;
-    }
-
-    else if (type == "16i") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth16Int;
-    }
-    else if (type == "32i") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth32Int;
-    }
-
-    else if (type == "16ui") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth16UInt;
-    }
-    else if (type == "32ui") {
-        return sgct::SGCTWindow::ColorBitDepth::Depth32UInt;
-    }
-
-    //default
-    return sgct::SGCTWindow::ColorBitDepth::Depth8;
-}
-
 bool ReadConfig::isValid() const {
-    return valid;
+    return mIsValid;
 }
 
 glm::quat ReadConfig::parseOrientationNode(tinyxml2::XMLElement* element) {
     float x = 0.f;
     float y = 0.f;
     float z = 0.f;
-    float tmpf;
 
     bool eulerMode = false;
     bool quatMode = false;
 
     glm::quat quat;
 
-    if (element->QueryFloatAttribute("w", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        quat.w = tmpf;
+    float value;
+    if (element->QueryFloatAttribute("w", &value) == tinyxml2::XML_NO_ERROR) {
+        quat.w = value;
         quatMode = true;
     }
 
-    if (element->QueryFloatAttribute("y", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        y = tmpf;
+    if (element->QueryFloatAttribute("y", &value) == tinyxml2::XML_NO_ERROR) {
+        y = value;
         eulerMode = true;
     }
 
-    if (element->QueryFloatAttribute("yaw", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        y = -tmpf;
+    if (element->QueryFloatAttribute("yaw", &value) == tinyxml2::XML_NO_ERROR) {
+        y = -value;
     }
 
-    if (element->QueryFloatAttribute("heading", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        y = -tmpf;
+    if (element->QueryFloatAttribute("heading", &value) == tinyxml2::XML_NO_ERROR) {
+        y = -value;
     }
 
-    if (element->QueryFloatAttribute("azimuth", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        y = -tmpf;
+    if (element->QueryFloatAttribute("azimuth", &value) == tinyxml2::XML_NO_ERROR) {
+        y = -value;
     }
 
-    if (element->QueryFloatAttribute("x", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        x = tmpf;
+    if (element->QueryFloatAttribute("x", &value) == tinyxml2::XML_NO_ERROR) {
+        x = value;
         eulerMode = true;
     }
 
-    if (element->QueryFloatAttribute("pitch", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        x = tmpf;
+    if (element->QueryFloatAttribute("pitch", &value) == tinyxml2::XML_NO_ERROR) {
+        x = value;
     }
 
-    if (element->QueryFloatAttribute("elevation", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        x = tmpf;
+    if (element->QueryFloatAttribute("elevation", &value) == tinyxml2::XML_NO_ERROR) {
+        x = value;
     }
 
-    if (element->QueryFloatAttribute("z", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        z = tmpf;
+    if (element->QueryFloatAttribute("z", &value) == tinyxml2::XML_NO_ERROR) {
+        z = value;
         eulerMode = true;
     }
 
-    if (element->QueryFloatAttribute("roll", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        z = -tmpf;
+    if (element->QueryFloatAttribute("roll", &value) == tinyxml2::XML_NO_ERROR) {
+        z = -value;
     }
 
-    if (element->QueryFloatAttribute("bank", &tmpf) == tinyxml2::XML_NO_ERROR) {
-        z = -tmpf;
+    if (element->QueryFloatAttribute("bank", &value) == tinyxml2::XML_NO_ERROR) {
+        z = -value;
     }
 
     if (quatMode) {

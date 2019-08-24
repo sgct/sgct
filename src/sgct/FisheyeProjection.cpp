@@ -1123,7 +1123,7 @@ void FisheyeProjection::renderInternal() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    bindShaderProgram();
+    mShader.bind();
 
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
 
@@ -1192,7 +1192,7 @@ void FisheyeProjection::renderInternalFixedPipeline() {
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
     glDisable(GL_SCISSOR_TEST);
 
-    bindShaderProgram();
+    mShader.bind();
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -1331,7 +1331,7 @@ void FisheyeProjection::renderCubemapInternal(std::size_t* subViewPortIndex) {
                 glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
                 //bind shader
-                bindDepthCorrectionShaderProgram();
+                mDepthCorrectionShader.bind();
                 glUniform1i(mShaderLoc.swapColorLoc, 0);
                 glUniform1i(mShaderLoc.swapDepthLoc, 1);
                 glUniform1f(
@@ -1414,7 +1414,7 @@ void FisheyeProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIn
                 glMatrixMode(GL_MODELVIEW); //restore
 
                 //bind shader
-                bindDepthCorrectionShaderProgram();
+                mDepthCorrectionShader.bind();
                 glUniform1i(mShaderLoc.swapColorLoc, 0);
                 glUniform1i(mShaderLoc.swapDepthLoc, 1);
                 glUniform1f(mShaderLoc.swapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);

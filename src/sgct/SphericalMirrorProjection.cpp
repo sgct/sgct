@@ -359,7 +359,7 @@ void SphericalMirrorProjection::renderInternal() {
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    bindShaderProgram();
+    mShader.bind();
 
     //if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
@@ -414,7 +414,7 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glClearColor(mClearColor.r, mClearColor.g, mClearColor.b, mClearColor.a);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
 
-    bindShaderProgram();
+    mShader.bind();
 
     glPushAttrib(GL_ALL_ATTRIB_BITS);
     // if for some reson the active texture has been reset

@@ -81,9 +81,9 @@ void NonLinearProjection::init(int internalTextureFormat,
                                unsigned int textureFormat, unsigned int textureType,
                                int samples)
 {
-    mTextureInternalFormat = internalTextureFormat;
-    mTextureFormat = textureFormat;
-    mTextureType = textureType;
+    mTexInternalFormat = internalTextureFormat;
+    mTexFormat = textureFormat;
+    mTexType = textureType;
     mSamples = samples;
 
     initViewports();
@@ -152,14 +152,6 @@ NonLinearProjection::InterpolationMode NonLinearProjection::getInterpolationMode
     return mInterpolationMode;
 }
 
-void NonLinearProjection::bindShaderProgram() const {
-    mShader.bind();
-}
-
-void NonLinearProjection::bindDepthCorrectionShaderProgram() const {
-    mDepthCorrectionShader.bind();
-}
-
 OffScreenBuffer* NonLinearProjection::getOffScreenBuffer() {
     return mCubeMapFbo.get();
 }
@@ -169,17 +161,18 @@ glm::ivec4 NonLinearProjection::getViewportCoords() {
 }
 
 void NonLinearProjection::initTextures() {    
-    if (sgct::Engine::instance()->getRunMode() <= sgct::Engine::OpenGL_Compatibility_Profile)
+    if (sgct::Engine::instance()->getRunMode() <=
+        sgct::Engine::OpenGL_Compatibility_Profile)
     {
         glPushAttrib(GL_CURRENT_BIT | GL_ENABLE_BIT | GL_TEXTURE_BIT);
         glEnable(GL_TEXTURE_2D);
     }
     
-    generateCubeMap(mTextures.cubeMapColor, mTextureInternalFormat, mTextureFormat, mTextureType);
+    generateCubeMap(mTextures.cubeMapColor, mTexInternalFormat, mTexFormat, mTexType);
     if (sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "NonLinearProjection: %dx%d color cube map texture (id: %d) generated!\n",
+            "NonLinearProjection: %dx%d color cube map texture (id: %d) generated\n",
             mCubemapResolution, mCubemapResolution, mTextures.cubeMapColor
         );
     }
@@ -187,7 +180,7 @@ void NonLinearProjection::initTextures() {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
             "NonLinearProjection: Error occured while generating %dx%d color "
-            "cube texture (id: %d)!\n",
+            "cube texture (id: %d)\n",
             mCubemapResolution, mCubemapResolution, mTextures.cubeMapColor
         );
     }
@@ -202,7 +195,7 @@ void NonLinearProjection::initTextures() {
         if (sgct::Engine::checkForOGLErrors()) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
-                "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated!\n",
+                "NonLinearProjection: %dx%d depth cube map texture (id: %d) generated\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapDepth
             );
         }
@@ -210,18 +203,23 @@ void NonLinearProjection::initTextures() {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "NonLinearProjection: Error occured while generating %dx%d depth "
-                "cube texture (id: %d)!\n",
+                "cube texture (id: %d)\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapDepth
             );
         }
 
         if (mUseDepthTransformation) {
-            //generate swap textures
-            generateMap(mTextures.depthSwap, GL_DEPTH_COMPONENT32, GL_DEPTH_COMPONENT, GL_FLOAT);
+            // generate swap textures
+            generateMap(
+                mTextures.depthSwap,
+                GL_DEPTH_COMPONENT32,
+                GL_DEPTH_COMPONENT,
+                GL_FLOAT
+            );
             if (sgct::Engine::checkForOGLErrors()) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated!\n",
+                    "NonLinearProjection: %dx%d depth swap map texture (id: %d) generated\n",
                     mCubemapResolution, mCubemapResolution, mTextures.depthSwap
                 );
             }
@@ -229,16 +227,16 @@ void NonLinearProjection::initTextures() {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
                     "NonLinearProjection: Error occured while generating %dx%d depth "
-                    "swap texture (id: %d)!\n",
+                    "swap texture (id: %d)\n",
                     mCubemapResolution, mCubemapResolution, mTextures.depthSwap
                 );
             }
 
-            generateMap(mTextures.colorSwap, mTextureInternalFormat, mTextureFormat, mTextureType);
+            generateMap(mTextures.colorSwap, mTexInternalFormat, mTexFormat, mTexType);
             if (sgct::Engine::checkForOGLErrors()) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "NonLinearProjection: %dx%d color swap map texture (id: %d) generated!\n",
+                    "NonLinearProjection: %dx%d color swap map texture (id: %d) generated\n",
                     mCubemapResolution, mCubemapResolution, mTextures.colorSwap
                 );
             }
@@ -246,7 +244,7 @@ void NonLinearProjection::initTextures() {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
                     "NonLinearProjection: Error occured while generating %dx%d color "
-                    "swap texture (id: %d)!\n",
+                    "swap texture (id: %d)\n",
                     mCubemapResolution, mCubemapResolution, mTextures.colorSwap
                 );
             }
@@ -263,7 +261,7 @@ void NonLinearProjection::initTextures() {
         if (sgct::Engine::checkForOGLErrors()) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
-                "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated!\n",
+                "NonLinearProjection: %dx%d normal cube map texture (id: %d) generated\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapNormals
             );
         }
@@ -271,7 +269,7 @@ void NonLinearProjection::initTextures() {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "NonLinearProjection: Error occured while generating %dx%d normal "
-                "cube texture (id: %d)!\n",
+                "cube texture (id: %d)\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapNormals
             );
         }
@@ -287,7 +285,7 @@ void NonLinearProjection::initTextures() {
         if (sgct::Engine::checkForOGLErrors()) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Debug,
-                "NonLinearProjection: %dx%d position cube map texture (id: %d) generated!\n",
+                "NonLinearProjection: %dx%d position cube map texture (id: %d) generated\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapPositions
             );
         }
@@ -295,7 +293,7 @@ void NonLinearProjection::initTextures() {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "NonLinearProjection: Error occured while generating %dx%d position "
-                "cube texture (id: %d)!\n",
+                "cube texture (id: %d)\n",
                 mCubemapResolution, mCubemapResolution, mTextures.cubeMapPositions
             );
         }
@@ -309,19 +307,19 @@ void NonLinearProjection::initTextures() {
 
 void NonLinearProjection::initFBO() {
     mCubeMapFbo = std::make_unique<sgct_core::OffScreenBuffer>();
-    mCubeMapFbo->setInternalColorFormat(mTextureInternalFormat);
+    mCubeMapFbo->setInternalColorFormat(mTexInternalFormat);
     mCubeMapFbo->createFBO(mCubemapResolution, mCubemapResolution, mSamples);
 
     if (mCubeMapFbo->checkForErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "NonLinearProjection: Cube map FBO created.\n"
+            "NonLinearProjection: Cube map FBO created\n"
         );
     }
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "NonLinearProjection: Cube map FBO created with errors!\n"
+            "NonLinearProjection: Cube map FBO created with errors\n"
         );
     }
 

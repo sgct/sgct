@@ -855,7 +855,7 @@ void SpoutOutputProjection::renderInternal() {
         mSpoutFBO->bind(false, 1, buffers); //bind no multi-sampled
         mSpoutFBO->attachColorTexture(mappingTexture);
 
-        bindShaderProgram();
+        mShader.bind();
 
         glViewport(0, 0, mappingWidth, mappingHeight);
         glScissor(0, 0, mappingWidth, mappingHeight);
@@ -957,7 +957,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         mSpoutFBO->bind(false, 1, buffers); //bind no multi-sampled
         mSpoutFBO->attachColorTexture(mappingTexture);
 
-        bindShaderProgram();
+        mShader.bind();
 
         glPushAttrib(GL_ALL_ATTRIB_BITS);
         glEnable(GL_TEXTURE_CUBE_MAP_SEAMLESS);
@@ -1102,7 +1102,7 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             sgct::Engine* engine = sgct::Engine::instance();
 
             //bind shader
-            bindDepthCorrectionShaderProgram();
+            mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
             glUniform1f(mSwapNearLoc, engine->mNearClippingPlaneDist);
@@ -1200,7 +1200,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glMatrixMode(GL_MODELVIEW); //restore
 
             // bind shader
-            bindDepthCorrectionShaderProgram();
+            mDepthCorrectionShader.bind();
             glUniform1i(mSwapColorLoc, 0);
             glUniform1i(mSwapDepthLoc, 1);
             glUniform1f(mSwapNearLoc, sgct::Engine::mInstance->mNearClippingPlaneDist);

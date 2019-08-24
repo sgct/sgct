@@ -308,7 +308,7 @@ void Viewport::configureMpcdi(tinyxml2::XMLElement* element, int winResX, int wi
                 "Viewport: Adding mpcdi FOV d=%f l=%f r=%f u=%f y=%f p=%f r=%f\n",
                 *down, *left, *right, *up, *yaw, *pitch, *roll
             );
-            rotQuat = ReadConfig::parseMpcdiOrientationNode(*yaw, *pitch, *roll);
+            rotQuat = parseMpcdiOrientationNode(*yaw, *pitch, *roll);
             setViewPlaneCoordsUsingFOVs(*up, *down, *left, *right, rotQuat, distance);
             mProjectionPlane.offset(offset);
         }
@@ -369,7 +369,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
             subElement->QueryFloatAttribute("distance", &distance);
         }
         else if (val == "Orientation") {
-            rotQuat = ReadConfig::parseOrientationNode(subElement);
+            rotQuat = parseOrientationNode(subElement);
         }
         else if (val == "Offset") {
             subElement->QueryFloatAttribute("x", &offset[0]);

@@ -15,6 +15,7 @@
 #include <sgct/SGCTTrackingDevice.h>
 #include <sgct/SGCTUser.h>
 #include <sgct/Viewport.h>
+#include <sgct/helpers/SGCTStringFunctions.h>
 #include <algorithm>
 #include <optional>
 #include <sstream>
@@ -27,7 +28,7 @@
 #endif
 
 namespace {
-    constexpr const char* DefaultSingleConfiguration = R"(
+    constexpr const char* DefaultConfig = R"(
     <?xml version="1.0" ?>
       <Cluster masterAddress="localhost">
         <Node address="localhost" port="20401">
@@ -134,12 +135,10 @@ namespace {
     }
 
     std::optional<glm::ivec2> parseValueIVec2(const tinyxml2::XMLElement& e) {
-        using namespace tinyxml2;
-
         glm::ivec2 value;
-        XMLError xe = e.QueryIntAttribute("x", &value[0]);
-        XMLError ye = e.QueryIntAttribute("y", &value[1]);
-        if (xe == XML_NO_ERROR && ye == XML_NO_ERROR) {
+        tinyxml2::XMLError xe = e.QueryIntAttribute("x", &value[0]);
+        tinyxml2::XMLError ye = e.QueryIntAttribute("y", &value[1]);
+        if (xe == tinyxml2::XML_NO_ERROR && ye == tinyxml2::XML_NO_ERROR) {
             return value;
         }
         else {
@@ -165,7 +164,7 @@ namespace {
     std::optional<glm::quat> parseValueQuat(const tinyxml2::XMLElement& e) {
         glm::quat q;
         // Yes, this order is correct;  the constructor takes w,x,y,z but the
-        // layout in memory is x,y,z,w
+        // layout in memory is x, y, z, w
         tinyxml2::XMLError we = e.QueryFloatAttribute("w", &q[3]);
         tinyxml2::XMLError xe = e.QueryFloatAttribute("x", &q[0]);
         tinyxml2::XMLError ye = e.QueryFloatAttribute("y", &q[1]);
@@ -181,10 +180,8 @@ namespace {
     }
 
     std::optional<glm::mat4> parseValueMat4(const tinyxml2::XMLElement& e) {
-        using namespace tinyxml2;
-
         float tmpf[16];
-        XMLError err[16] = {
+        tinyxml2::XMLError err[16] = {
             e.QueryFloatAttribute("x0", &tmpf[0]),
             e.QueryFloatAttribute("y0", &tmpf[1]),
             e.QueryFloatAttribute("z0", &tmpf[2]),
@@ -202,17 +199,15 @@ namespace {
             e.QueryFloatAttribute("z3", &tmpf[14]),
             e.QueryFloatAttribute("w3", &tmpf[15])
         };
-        if (err[0] == XML_NO_ERROR && err[1] == XML_NO_ERROR &&
-            err[2] == XML_NO_ERROR && err[3] == XML_NO_ERROR &&
-            err[4] == XML_NO_ERROR && err[5] == XML_NO_ERROR &&
-            err[6] == XML_NO_ERROR && err[7] == XML_NO_ERROR &&
-            err[8] == XML_NO_ERROR && err[9] == XML_NO_ERROR &&
-            err[10] == XML_NO_ERROR && err[11] == XML_NO_ERROR &&
-            err[12] == XML_NO_ERROR && err[13] == XML_NO_ERROR &&
-            err[14] == XML_NO_ERROR && err[15] == XML_NO_ERROR)
+        if (err[0] == tinyxml2::XML_NO_ERROR && err[1] == tinyxml2::XML_NO_ERROR &&
+            err[2] == tinyxml2::XML_NO_ERROR && err[3] == tinyxml2::XML_NO_ERROR &&
+            err[4] == tinyxml2::XML_NO_ERROR && err[5] == tinyxml2::XML_NO_ERROR &&
+            err[6] == tinyxml2::XML_NO_ERROR && err[7] == tinyxml2::XML_NO_ERROR &&
+            err[8] == tinyxml2::XML_NO_ERROR && err[9] == tinyxml2::XML_NO_ERROR &&
+            err[10] == tinyxml2::XML_NO_ERROR && err[11] == tinyxml2::XML_NO_ERROR &&
+            err[12] == tinyxml2::XML_NO_ERROR && err[13] == tinyxml2::XML_NO_ERROR &&
+            err[14] == tinyxml2::XML_NO_ERROR && err[15] == tinyxml2::XML_NO_ERROR)
         {
-            // glm & opengl uses column major order (normally row major
-            // order is used in linear algebra)
             glm::mat4 mat = glm::make_mat4(tmpf);
             return mat;
         }
@@ -238,7 +233,7 @@ namespace {
             err = e.QueryDoubleAttribute(name, &value);
         }
         else {
-            static_assert(false);
+            static_assert(false, "Unhandled type");
         }
 
         if (err == tinyxml2::XML_NO_ERROR) {
@@ -256,7 +251,7 @@ namespace {
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
 
             if (childVal == "Offset") {
                 std::optional<glm::vec3> offset = parseValueVec3(*child);
@@ -272,7 +267,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse scene offset from XML!\n"
+                        "ReadConfig: Failed to parse scene offset from XML\n"
                     );
                 }
             }
@@ -296,7 +291,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse scene orientation from XML!\n"
+                        "ReadConfig: Failed to parse scene orientation from XML\n"
                     );
                 }
             }
@@ -311,7 +306,7 @@ namespace {
         using namespace sgct_core;
         using namespace tinyxml2;
 
-        sgct::SGCTWindow win(node.getNumberOfWindows());
+        sgct::SGCTWindow win = sgct::SGCTWindow(node.getNumberOfWindows());
 
         if (element->Attribute("name")) {
             win.setName(element->Attribute("name"));
@@ -319,15 +314,7 @@ namespace {
 
         if (element->Attribute("tags")) {
             std::string tags = element->Attribute("tags");
-
-            std::vector<std::string> t;
-            std::stringstream ss(std::move(tags));
-            while (ss.good()) {
-                std::string substr;
-                getline(ss, substr, ',');
-                t.push_back(substr);
-            }
-
+            std::vector<std::string> t = sgct_helpers::split(tags, ',');
             win.setTags(std::move(t));
         }
 
@@ -338,39 +325,37 @@ namespace {
         }
 
         if (element->Attribute("preferBGR")) {
-            win.setPreferBGR(
-                strcmp(element->Attribute("preferBGR"), "true") == 0
-            );
+            win.setPreferBGR(strcmp(element->Attribute("preferBGR"), "true") == 0);
         }
 
         //compability with older versions
         if (element->Attribute("fullScreen")) {
-            bool v = strcmp(element->Attribute("fullScreen"), "true") == 0;
+            const bool v = strcmp(element->Attribute("fullScreen"), "true") == 0;
             win.setWindowMode(v);
         }
 
         if (element->Attribute("fullscreen")) {
-            bool v = strcmp(element->Attribute("fullscreen"), "true") == 0;
+            const bool v = strcmp(element->Attribute("fullscreen"), "true") == 0;
             win.setWindowMode(v);
         }
 
         if (element->Attribute("floating")) {
-            bool v = strcmp(element->Attribute("floating"), "true") == 0;
+            const bool v = strcmp(element->Attribute("floating"), "true") == 0;
             win.setFloating(v);
         }
 
         if (element->Attribute("alwaysRender")) {
-            bool v = strcmp(element->Attribute("alwaysRender"), "true") == 0;
+            const bool v = strcmp(element->Attribute("alwaysRender"), "true") == 0;
             win.setRenderWhileHidden(v);
         }
 
         if (element->Attribute("hidden")) {
-            bool v = strcmp(element->Attribute("hidden"), "true") == 0;
+            const bool v = strcmp(element->Attribute("hidden"), "true") == 0;
             win.setVisibility(!v);
         }
 
         if (element->Attribute("dbuffered")) {
-            bool v = strcmp(element->Attribute("dbuffered"), "true") == 0;
+            const bool v = strcmp(element->Attribute("dbuffered"), "true") == 0;
             win.setDoubleBuffered(v);
         }
 
@@ -389,9 +374,6 @@ namespace {
             win.setBrightness(*brightness);
         }
 
-        int tmpSamples = 0;
-        //compability with older versions
-
         std::optional<int> numberOfSamples = parseValue<int>(*element, "numberOfSamples");
         if (numberOfSamples && numberOfSamples <= 128) {
             win.setNumberOfAASamples(*numberOfSamples);
@@ -408,42 +390,42 @@ namespace {
         }
 
         if (element->Attribute("alpha")) {
-            bool v = strcmp(element->Attribute("alpha"), "true") == 0;
+            const bool v = strcmp(element->Attribute("alpha"), "true") == 0;
             win.setAlpha(v);
         }
 
         if (element->Attribute("fxaa")) {
-            bool v = strcmp(element->Attribute("fxaa"), "true") == 0;
+            const bool v = strcmp(element->Attribute("fxaa"), "true") == 0;
             win.setUseFXAA(v);
         }
 
         if (element->Attribute("FXAA")) {
-            bool v = strcmp(element->Attribute("FXAA"), "true") == 0;
+            const bool v = strcmp(element->Attribute("FXAA"), "true") == 0;
             win.setUseFXAA(v);
         }
 
         if (element->Attribute("decorated")) {
-            bool v = strcmp(element->Attribute("decorated"), "true") == 0;
+            const bool v = strcmp(element->Attribute("decorated"), "true") == 0;
             win.setWindowDecoration(v);
         }
 
         if (element->Attribute("border")) {
-            bool v = strcmp(element->Attribute("border"), "true") == 0;
+            const bool v = strcmp(element->Attribute("border"), "true") == 0;
             win.setWindowDecoration(v);
         }
 
         if (element->Attribute("draw2D")) {
-            bool v = strcmp(element->Attribute("draw2D"), "true") == 0;
+            const bool v = strcmp(element->Attribute("draw2D"), "true") == 0;
             win.setCallDraw2DFunction(v);
         }
 
         if (element->Attribute("draw3D")) {
-            bool v = strcmp(element->Attribute("draw3D"), "true") == 0;
+            const bool v = strcmp(element->Attribute("draw3D"), "true") == 0;
             win.setCallDraw3DFunction(v);
         }
 
         if (element->Attribute("copyPreviousWindowToCurrentWindow")) {
-            bool v = strcmp(
+            const bool v = strcmp(
                 element->Attribute("copyPreviousWindowToCurrentWindow"),
                 "true"
             ) == 0;
@@ -462,14 +444,13 @@ namespace {
                 path = xmlFileName.substr(0, lastSlashPos) + "/";
             }
             path += element->Attribute("mpcdi");
-            //replace all backslashes with slashes
             std::replace(path.begin(), path.end(), '\\', '/');
-            bool parse = sgct_core::SGCTMpcdi().parseConfiguration(path, node, win);
+            sgct_core::SGCTMpcdi().parseConfiguration(path, node, win);
         }
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
 
             if (childVal == "Stereo") {
                 sgct::SGCTWindow::StereoMode v = getStereoType(child->Attribute("type"));
@@ -483,7 +464,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse window position from XML!\n"
+                        "ReadConfig: Failed to parse window position from XML\n"
                     );
                 }
             }
@@ -495,7 +476,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse window resolution from XML!\n"
+                        "ReadConfig: Failed to parse window resolution from XML\n"
                     );
                 }
             }
@@ -508,7 +489,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse frame buffer resolution from XML!\n"
+                        "ReadConfig: Failed to parse frame buffer resolution from XML\n"
                     );
                 }
             }
@@ -535,7 +516,7 @@ namespace {
             node.setName(element->Attribute("name"));
         }
         if (element->Attribute("ip")) {
-            //backward compability with older versions of SGCT config files
+            // backward compability with older versions of SGCT config files
             node.setAddress(element->Attribute("ip"));
         }
         if (element->Attribute("port")) {
@@ -548,13 +529,13 @@ namespace {
             node.setDataTransferPort(element->Attribute("dataTransferPort"));
         }
         if (element->Attribute("swapLock")) {
-            bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
+            const bool useSwapLock = strcmp(element->Attribute("swapLock"), "true") == 0;
             node.setUseSwapGroups(useSwapLock);
         }
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
             if (childVal == "Window") {
                 parseWindow(child, xmlFileName, node);
             }
@@ -569,13 +550,13 @@ namespace {
 
         SGCTUser* usrPtr;
         if (element->Attribute("name")) {
-            std::string name(element->Attribute("name"));
-            std::unique_ptr<SGCTUser> usr = std::make_unique<SGCTUser>(name);
+            std::string name = element->Attribute("name");
+            std::unique_ptr<SGCTUser> usr = std::make_unique<SGCTUser>(std::move(name));
             usrPtr = usr.get();
             ClusterManager::instance()->addUser(std::move(usr));
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info,
-                "ReadConfig: Adding user '%s'!\n", name.c_str()
+                "ReadConfig: Adding user '%s'\n", name.c_str()
             );
         }
         else {
@@ -589,7 +570,7 @@ namespace {
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
 
             if (childVal == "Pos") {
                 std::optional<glm::vec3> pos = parseValueVec3(*child);
@@ -599,7 +580,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user position from XML!\n"
+                        "ReadConfig: Failed to parse user position from XML\n"
                     );
                 }
             }
@@ -614,7 +595,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device orientation in XML!\n"
+                        "ReadConfig: Failed to parse device orientation in XML\n"
                     );
                 }
             }
@@ -636,7 +617,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user matrix in XML!\n"
+                        "ReadConfig: Failed to parse user matrix in XML\n"
                     );
                 }
             }
@@ -650,7 +631,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse user tracking data from XML!\n"
+                        "ReadConfig: Failed to parse user tracking data from XML\n"
                     );
                 }
             }
@@ -667,28 +648,28 @@ namespace {
             sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
             sgct::SGCTSettings::instance()->setCapturePath(p, CPI::RightStereo);
         }
-        if (element->Attribute("monoPath") != nullptr) {
+        if (element->Attribute("monoPath")) {
             using CPI = sgct::SGCTSettings::CapturePath;
 
             const char* p = element->Attribute("monoPath");
             sgct::SGCTSettings::instance()->setCapturePath(p, CPI::Mono);
         }
-        if (element->Attribute("leftPath") != nullptr) {
+        if (element->Attribute("leftPath")) {
             using CPI = sgct::SGCTSettings::CapturePath;
 
             const char* p = element->Attribute("leftPath");
             sgct::SGCTSettings::instance()->setCapturePath(p, CPI::LeftStereo);
         }
-        if (element->Attribute("rightPath") != nullptr) {
+        if (element->Attribute("rightPath")) {
             using CPI = sgct::SGCTSettings::CapturePath;
 
             const char* rPath = element->Attribute("rightPath");
             sgct::SGCTSettings::instance()->setCapturePath(rPath, CPI::RightStereo);
         }
 
-        if (element->Attribute("format") != nullptr) {
-            std::string format = element->Attribute("format");
-            sgct::SGCTSettings::CaptureFormat f = [](const std::string& format) {
+        if (element->Attribute("format")) {
+            std::string_view format = element->Attribute("format");
+            sgct::SGCTSettings::CaptureFormat f = [](std::string_view format) {
                 if (format == "png" || format == "PNG") {
                     return sgct::SGCTSettings::CaptureFormat::PNG;
                 }
@@ -715,14 +696,12 @@ namespace {
         using namespace tinyxml2;
 
         ClusterManager& cm = *ClusterManager::instance();
-        cm.getTrackingManagerPtr().addDeviceToCurrentTracker(
-            std::string(element->Attribute("name"))
-        );
+        cm.getTrackingManagerPtr().addDeviceToCurrentTracker(element->Attribute("name"));
 
         XMLElement* child = element->FirstChildElement();
 
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
 
             if (childVal == "Sensor") {
                 std::optional<int> id = parseValue<int>(*child, "id");
@@ -766,7 +745,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device offset in XML!\n"
+                        "ReadConfig: Failed to parse device offset in XML\n"
                     );
                 }
             }
@@ -788,7 +767,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device orientation in XML!\n"
+                        "ReadConfig: Failed to parse device orientation in XML\n"
                     );
                 }
             }
@@ -814,7 +793,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse device matrix in XML!\n"
+                        "ReadConfig: Failed to parse device matrix in XML\n"
                     );
                 }
             }
@@ -831,7 +810,7 @@ namespace {
 
         XMLElement* child = element->FirstChildElement();
         while (child) {
-            std::string childVal = child->Value();
+            std::string_view childVal = child->Value();
 
             if (childVal == "Device" && child->Attribute("name")) {
                 parseDevice(child);
@@ -847,7 +826,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker offset in XML!\n"
+                        "ReadConfig: Failed to parse tracker offset in XML\n"
                     );
                 }
             }
@@ -855,7 +834,6 @@ namespace {
                 sgct::SGCTTrackingManager& m = cm.getTrackingManagerPtr();
                 sgct::SGCTTracker& tr = *m.getLastTrackerPtr();
                 sgct::SGCTTrackingDevice& device = *tr.getLastDevicePtr();
-
                 device.setOrientation(parseOrientationNode(child));
             }
             else if (childVal == "Quaternion") {
@@ -869,7 +847,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker orientation quaternion!\n"
+                        "ReadConfig: Failed to parse tracker orientation quaternion\n"
                     );
                 }
             }
@@ -883,7 +861,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker scale in XML!\n"
+                        "ReadConfig: Failed to parse tracker scale in XML\n"
                     );
                 }
             }
@@ -908,7 +886,7 @@ namespace {
                 else {
                     sgct::MessageHandler::instance()->print(
                         sgct::MessageHandler::Level::Error,
-                        "ReadConfig: Failed to parse tracker matrix in XML!\n"
+                        "ReadConfig: Failed to parse tracker matrix in XML\n"
                     );
                 }
             }
@@ -1014,15 +992,12 @@ glm::quat parseOrientationNode(tinyxml2::XMLElement* element) {
 }
 
 ReadConfig::ReadConfig(std::string filename) {
-    mIsValid = false;
-    
     if (filename.empty()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
             "ReadConfig: No file specified! Using default configuration...\n"
         );
         readAndParseXMLString();
-        mIsValid = true;
     }
     else {
         sgct::MessageHandler::instance()->print(
@@ -1030,23 +1005,17 @@ ReadConfig::ReadConfig(std::string filename) {
             "ReadConfig: Parsing XML config '%s'...\n", filename.c_str()
         );
     
-        if (!replaceEnvVars(filename)) {
-            return;
+        filename = replaceEnvVars(filename);
+        if (filename.empty()) {
+            throw std::runtime_error("Could not resolve file path");
         }
     
-        if (!readAndParseXMLFile()) {
-            sgct::MessageHandler::instance()->print(
-                sgct::MessageHandler::Level::Error,
-                "ReadConfig: Error occured while reading config file '%s'\nError: %s\n",
-                xmlFileName.c_str(), mErrorMsg.c_str()
-            );
-            return;
-        }
-        mIsValid = true;
-    
+        readAndParseXMLFile(filename);
+
+ 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "ReadConfig: Config file '%s' read successfully!\n", xmlFileName.c_str()
+            "ReadConfig: Config file '%s' read successfully\n", filename.c_str()
         );
     }
     sgct::MessageHandler::instance()->print(
@@ -1065,19 +1034,21 @@ ReadConfig::ReadConfig(std::string filename) {
     }
 }
 
-bool ReadConfig::replaceEnvVars(const std::string& filename) {
+std::string ReadConfig::replaceEnvVars(const std::string& filename) {
     size_t foundPercentage = filename.find('%');
     if (foundPercentage != std::string::npos) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "ReadConfig: SGCT doesn't support the usage of '%%' characters in the path.\n"
+            "ReadConfig: SGCT doesn't support the usage of '%%' characters in the path\n"
         );
-        return false;
+        return "";
     }
     
     std::vector<size_t> beginEnvVar;
     std::vector<size_t> endEnvVar;
     
+    std::string res;
+
     size_t foundIndex = 0;
     while (foundIndex != std::string::npos) {
         foundIndex = filename.find("$(", foundIndex);
@@ -1093,14 +1064,14 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
     if (beginEnvVar.size() != endEnvVar.size()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "ReadConfig: Error: Bad configuration path string!\n"
+            "ReadConfig: Error: Bad configuration path string\n"
         );
         return false;
     }
     else {
         size_t appendPos = 0;
         for (unsigned int i = 0; i < beginEnvVar.size(); i++) {
-            xmlFileName.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
+            res.append(filename.substr(appendPos, beginEnvVar[i] - appendPos));
             std::string envVar = filename.substr(
                 beginEnvVar[i] + 2,
                 endEnvVar[i] - (beginEnvVar[i] + 2)
@@ -1113,7 +1084,7 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
             if (err) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
-                    "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
+                    "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
                     envVar.c_str()
                 );
                 return false;
@@ -1123,80 +1094,60 @@ bool ReadConfig::replaceEnvVars(const std::string& filename) {
             if (fetchedEnvVar == nullptr) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
-                    "ReadConfig: Error: Cannot fetch environment variable '%s'.\n",
+                    "ReadConfig: Error: Cannot fetch environment variable '%s'\n",
                     envVar.c_str()
                 );
-                return false;
+                return std::string();
             }
 #endif
             
-            xmlFileName.append(fetchedEnvVar);
+            res.append(fetchedEnvVar);
             appendPos = endEnvVar[i] + 1;
         }
         
-        xmlFileName.append(filename.substr(appendPos));
-        std::replace(xmlFileName.begin(), xmlFileName.end(), char(92), '/');
+        res.append(filename.substr(appendPos));
+        std::replace(res.begin(), res.end(), char(92), '/');
     }
     
-    return true;
+    return res;
 }
 
-bool ReadConfig::readAndParseXMLFile() {
-    if (xmlFileName.empty()) {
-        mErrorMsg = "No XML file set!";
-        return false;
+void ReadConfig::readAndParseXMLFile(const std::string& filename) {
+    if (filename.empty()) {
+        throw std::runtime_error("No XML file set");
     }
     
     tinyxml2::XMLDocument xmlDoc;
-    bool loadSuccess = xmlDoc.LoadFile(xmlFileName.c_str()) == tinyxml2::XML_NO_ERROR;
-
-    return readAndParseXML(xmlDoc, loadSuccess);
+    bool s = xmlDoc.LoadFile(filename.c_str()) == tinyxml2::XML_NO_ERROR;
+    if (!s) {
+        throw std::runtime_error(
+            "Error loading XML file '" + filename + "'. " +
+            xmlDoc.GetErrorStr1() + ' ' + xmlDoc.GetErrorStr2()
+        );
+    }
+    readAndParseXML(xmlDoc, filename);
 }
 
-bool ReadConfig::readAndParseXMLString() {
+void ReadConfig::readAndParseXMLString() {
     tinyxml2::XMLDocument xmlDoc;
-    bool loadSuccess = xmlDoc.Parse(
-        DefaultSingleConfiguration,
-        strlen(DefaultSingleConfiguration)
-    ) == tinyxml2::XML_NO_ERROR;
-    
-    return readAndParseXML(xmlDoc, loadSuccess);
+    bool s = xmlDoc.Parse(DefaultConfig, strlen(DefaultConfig)) == tinyxml2::XML_NO_ERROR;
+    assert(s);
+    readAndParseXML(xmlDoc, "");
 }
 
-bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc, bool loadSuccess) {
+void ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc, 
+                                 const std::string& filename)
+{
     using namespace tinyxml2;
-
-    if (!loadSuccess) {
-        mErrorMsg.clear();
-        if (xmlDoc.GetErrorStr1() && xmlDoc.GetErrorStr2()) {
-            mErrorMsg += "Parsing failed after: ";
-            mErrorMsg += xmlDoc.GetErrorStr1() + ' ';
-            mErrorMsg += xmlDoc.GetErrorStr2();
-        }
-        else if (xmlDoc.GetErrorStr1()) {
-            mErrorMsg += "Parsing failed after: ";
-            mErrorMsg += xmlDoc.GetErrorStr1();
-        }
-        else if (xmlDoc.GetErrorStr2()) {
-            mErrorMsg += "Parsing failed after: ";
-            mErrorMsg += xmlDoc.GetErrorStr2();
-        }
-        else {
-            mErrorMsg = "File not found";
-        }
-        return false;
-    }
 
     XMLElement* XMLroot = xmlDoc.FirstChildElement("Cluster");
     if (XMLroot == nullptr) {
-        mErrorMsg = "Cannot find XML root!";
-        return false;
+        throw std::runtime_error("Cannot find XML root");
     }
     
     const char* masterAddress = XMLroot->Attribute("masterAddress");
     if (!masterAddress) {
-        mErrorMsg = "Cannot find master address or DNS name in XML!";
-        return false;
+        throw std::runtime_error("Cannot find master address or DNS name in XML");
     }
     ClusterManager::instance()->setMasterAddress(masterAddress);
     
@@ -1222,13 +1173,13 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc, bool loadSuccess
     
     XMLElement* element = XMLroot->FirstChildElement();
     while (element) {
-        std::string val = element->Value();
+        std::string_view val = element->Value();
         
         if (val == "Scene") {
             parseScene(element);
         }
         else if (val == "Node") {
-            parseNode(element, xmlFileName);
+            parseNode(element, filename);
         }
         else if (val == "User") {
             parseUser(element);
@@ -1244,12 +1195,6 @@ bool ReadConfig::readAndParseXML(tinyxml2::XMLDocument& xmlDoc, bool loadSuccess
         }
         element = element->NextSiblingElement();
     }
-
-    return true;
-}
-
-bool ReadConfig::isValid() const {
-    return mIsValid;
 }
 
 } // namespace sgct_config

@@ -32,6 +32,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <algorithm>
 #include <iostream>
 #include <sstream>
+#include <stdexcept>
 #include <glm/gtc/type_ptr.hpp>
 
 //#define __SGCT_RENDER_LOOP_DEBUG__
@@ -199,13 +200,16 @@ bool Engine::init(RunMode rm) {
         return false;
     }
 
-    mConfig = new sgct_core::ReadConfig(configFilename);
-    if (!mConfig->isValid()) {
+    try {
+        mConfig = new sgct_core::ReadConfig(configFilename);
+    }
+    catch (const std::runtime_error& e) {
         // fatal error
         outputHelpMessage();
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Error in xml config file parsing. Application will close in 5 seconds.\n"
+            "Error in xml config file parsing. %s. Application will close in 5 seconds\n",
+            e.what()
         );
         sleep(5.0);
 

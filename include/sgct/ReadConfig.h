@@ -26,17 +26,12 @@ class ReadConfig {
 public:
     explicit ReadConfig(std::string filename);
 
-    bool isValid() const;
-
 private:
-    bool replaceEnvVars(const std::string& filename);
-    bool readAndParseXMLFile();
-    bool readAndParseXMLString();
-    bool readAndParseXML(tinyxml2::XMLDocument& xmlDoc, bool loadSuccess);
-
-    bool mIsValid;
-    std::string xmlFileName;
-    std::string mErrorMsg;
+    // returns an empty string if the replacement fails
+    std::string replaceEnvVars(const std::string& filename);
+    void readAndParseXMLFile(const std::string& filename);
+    void readAndParseXMLString();
+    void readAndParseXML(tinyxml2::XMLDocument& xmlDoc, const std::string& filename);
 };
 
 } // namespace sgct_config

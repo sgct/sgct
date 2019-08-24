@@ -75,7 +75,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
             if (sgct::Engine::checkForOGLErrors()) {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Debug,
-                    "NonLinearProjection: %dx%d cube face texture (id: %d) generated!\n",
+                    "NonLinearProjection: %dx%d cube face texture (id: %d) generated\n",
                     mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
                 );
             }
@@ -83,7 +83,7 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
                     "NonLinearProjection: Error occured while generating %dx%d cube face "
-                    "texture (id: %d)!\n",
+                    "texture (id: %d)\n",
                     mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
                 );
             }
@@ -119,14 +119,14 @@ void SphericalMirrorProjection::initViewports() {
     const glm::vec4 upperLeftBase(-radius, radius, radius, 1.f);
     const glm::vec4 upperRightBase(radius, radius, radius, 1.f);
 
-    //tilt
+    // tilt
     glm::mat4 tiltMat = glm::rotate(
         glm::mat4(1.f),
         glm::radians(45.f - mTilt),
         glm::vec3(1.f, 0.f, 0.f)
     );
 
-    //add viewports
+    // add viewports
     for (unsigned int i = 0; i < 6; i++) {
         mSubViewports[i].setName("SphericalMirror " + std::to_string(i));
 
@@ -177,7 +177,7 @@ void SphericalMirrorProjection::initShaders() {
         // if any frustum mode other than Mono (or stereo)
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "Stereo rendering not supported in spherical projection!\n"
+            "Stereo rendering not supported in spherical projection\n"
         );
     }
 
@@ -345,7 +345,7 @@ void SphericalMirrorProjection::attachTextures(TextureIndex ti) {
 }
 
 void SphericalMirrorProjection::renderInternal() {
-    sgct::Engine::mInstance->enterCurrentViewport();
+    sgct::Engine::instance()->enterCurrentViewport();
 
     sgct::SGCTWindow& winPtr = sgct::Engine::instance()->getCurrentWindowPtr();
     BaseViewport* vpPtr = winPtr.getCurrentViewport();
@@ -500,20 +500,22 @@ void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subVi
         faceIndex = static_cast<unsigned int>(i);
         TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
 
-        if (vp.isEnabled()) {
-            // bind & attach buffer
-            mCubeMapFBO_Ptr->bind();
-            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
-                attachTextures(ti);
-            }
+        if (!vp.isEnabled()) {
+            continue;
+        }
 
-            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
-            drawCubeFace(i);
+        // bind & attach buffer
+        mCubeMapFBO_Ptr->bind();
+        if (!mCubeMapFBO_Ptr->isMultiSampled()) {
+            attachTextures(ti);
+        }
 
-            // blit MSAA fbo to texture
-            if (mCubeMapFBO_Ptr->isMultiSampled()) {
-                blitCubeFace(ti);
-            }
+        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
+        drawCubeFace(i);
+
+        // blit MSAA fbo to texture
+        if (mCubeMapFBO_Ptr->isMultiSampled()) {
+            blitCubeFace(ti);
         }
     }
 }

@@ -26,7 +26,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
     if (!shaderFile.is_open()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Could not open %s file[%s].\n",
+            "Could not open %s file[%s]\n",
             getShaderTypeName(mShaderType).c_str(),
             file.c_str()
         );
@@ -42,7 +42,7 @@ bool Shader::setSourceFromFile(const std::string& file) {
     if (fileSize == 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Can't create source for %s: empty file [%s].\n",
+            "Can't create source for %s: empty file [%s]\n",
             getShaderTypeName(mShaderType).c_str(),
             file.c_str()
         );
@@ -64,7 +64,7 @@ bool Shader::setSourceFromString(const std::string& sourceString) {
     if (mShaderId > 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "%s is already set for specified shader.\n",
+            "%s is already set for specified shader\n",
             getShaderTypeName(mShaderType).c_str()
         );
         return false;

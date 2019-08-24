@@ -481,7 +481,8 @@ void SpoutOutputProjection::initShaders() {
                     fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthPosition;
                     break;
                 case sgct::SGCTSettings::DrawBufferType::DiffuseNormalPosition:
-                    fisheyeFragShader = shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
+                    fisheyeFragShader =
+                        shaders_modern_fisheye::FisheyeFragDepthNormalPosition;
                     break;
             }
         }
@@ -507,7 +508,8 @@ void SpoutOutputProjection::initShaders() {
         //depth correction shader only
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             std::string depthCorrFrag = shaders_modern_fisheye::BaseVert;
-            std::string depthCorrVert = shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
+            std::string depthCorrVert =
+                shaders_modern_fisheye::FisheyeDepthCorrectionFrag;
 
             //replace glsl version
             sgct_helpers::findAndReplace(
@@ -696,13 +698,13 @@ void SpoutOutputProjection::initFBO() {
     if (mSpoutFBO->checkForErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
-            "Spout FBO created.\n"
+            "Spout FBO created\n"
         );
     }
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Spout FBO created with errors!\n"
+            "Spout FBO created with errors\n"
         );
     }
 
@@ -1179,7 +1181,7 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         // re-calculate depth values from a cube to spherical model
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFBO_Ptr->bind(false, 1, buffers); //bind no multi-sampled
+            mCubeMapFBO_Ptr->bind(false, 1, buffers); // bind no multi-sampled
 
             mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], idx);
             mCubeMapFBO_Ptr->attachCubeMapDepthTexture(mTextures[CubeMapDepth], idx);

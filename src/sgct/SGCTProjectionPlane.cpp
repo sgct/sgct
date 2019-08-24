@@ -62,7 +62,7 @@ void SGCTProjectionPlane::configure(tinyxml2::XMLElement* element,
             else {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Error,
-                    "SGCTProjectionPlane: Failed to parse coordinates from XML!\n"
+                    "SGCTProjectionPlane: Failed to parse coordinates from XML\n"
                 );
             }
         }

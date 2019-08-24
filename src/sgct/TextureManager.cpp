@@ -87,7 +87,7 @@ void TextureManager::setAnisotropicFilterSize(float fval) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "TextureManager warning: Anisotropic filtersize=%.2f is incorrect.\nMax and "
-            "min values for your hardware is %.1f and 1.0.\n",
+            "min values for your hardware is %.1f and 1.0\n",
             maximumAnistropy
         );
     }
@@ -165,7 +165,7 @@ bool TextureManager::loadTexture(const std::string& name, sgct_core::Image* imgP
     if (!imgPtr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
-            "TextureManager: Cannot create texture '%s' from invalid image!\n",
+            "TextureManager: Cannot create texture '%s' from invalid image\n",
             name.c_str()
         );
         return false;
@@ -324,7 +324,7 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
     if (bpc > 2) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "TextureManager: %d-bit per channel is not supported!\n",
+            "TextureManager: %d-bit per channel is not supported\n",
             bpc * 8
         );
         return false;
@@ -334,7 +334,7 @@ bool TextureManager::uploadImage(const sgct_core::Image& imgPtr, unsigned int& t
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
             "TextureManager: Compression is not supported for bit depths higher than "
-            "16-bit per channel!\n"
+            "16-bit per channel\n"
         );
         mCompression = CompressionMode::None;
     }

@@ -42,22 +42,22 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
         val = elem->Value();
 
         if (strcmp("DepthBufferTexture", val) == 0) {
-            if (elem->Attribute("value") != nullptr) {
+            if (elem->Attribute("value")) {
                 setUseDepthTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("NormalTexture", val) == 0) {
-            if (elem->Attribute("value") != nullptr) {
+            if (elem->Attribute("value")) {
                 setUseNormalTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("PositionTexture", val) == 0) {
-            if (elem->Attribute("value") != nullptr) {
+            if (elem->Attribute("value")) {
                 setUsePositionTexture(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
         else if (strcmp("PBO", val) == 0) {
-            if (elem->Attribute("value") != nullptr) {
+            if (elem->Attribute("value")) {
                 setUsePBO(strcmp(elem->Attribute("value"), "true") == 0);
             }
         }
@@ -73,7 +73,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 else {
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Warning,
-                        "ReadConfig: Invalid precition value (%d)! Must be 16 or 32.\n",
+                        "ReadConfig: Invalid precition value (%d)! Must be 16 or 32\n",
                         fprec
                     );
                 }
@@ -81,7 +81,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
             else {
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Warning,
-                    "ReadConfig: Invalid precition value! Must be 16 or 32.\n"
+                    "ReadConfig: Invalid precition value! Must be 16 or 32\n"
                 );
             }
         }
@@ -91,7 +91,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 setSwapInterval(interval);
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
-                    "ReadConfig: Display swap interval is set to %d.\n", interval
+                    "ReadConfig: Display swap interval is set to %d\n", interval
                 );
             }
 
@@ -100,7 +100,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 setRefreshRateHint(rate);
                 MessageHandler::instance()->print(
                     MessageHandler::Level::Info,
-                    "ReadConfig: Display refresh rate hint is set to %d Hz.\n", rate
+                    "ReadConfig: Display refresh rate hint is set to %d Hz\n", rate
                 );
             }
 
@@ -147,7 +147,7 @@ void SGCTSettings::configure(tinyxml2::XMLElement* element) {
                 else {
                     MessageHandler::instance()->print(
                         MessageHandler::Level::Warning,
-                        "ReadConfig: Font size not specified. Setting to size=10!\n"
+                        "ReadConfig: Font size not specified. Setting to size=10\n"
                     );
                 }
             }
@@ -373,7 +373,7 @@ void SGCTSettings::setDefaultNumberOfAASamples(int samples) {
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
-            "SGCTSettings: Number of default MSAA samples must be a power of two.\n",
+            "SGCTSettings: Number of default MSAA samples must be a power of two\n",
             samples
         );
     }

@@ -14,11 +14,6 @@ For conditions of distribution and use, see copyright notice in sgct.h
 
 namespace sgct {
 
-bool PostFX::mDeleted = false;
-
-/*!
-    \returns true if shader and output/target texture created successfully
-*/
 bool PostFX::init(std::string name, const std::string& vertShaderSrc,
                   const std::string& fragShaderSrc, ShaderProgram::ShaderSourceType srcType)
 {
@@ -28,8 +23,7 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
     if (!mShaderProgram.addShaderSrc(vertShaderSrc, GL_VERTEX_SHADER, srcType)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to load or set vertex shader.\n",
-            mName.c_str()
+            "PostFX: Pass '%s' failed to load or set vertex shader\n", mName.c_str()
         );
         return false;
     }
@@ -37,8 +31,7 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
     if (!mShaderProgram.addShaderSrc(fragShaderSrc, GL_FRAGMENT_SHADER, srcType)) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to load or set fragment shader.\n",
-            mName.c_str()
+            "PostFX: Pass '%s' failed to load or set fragment shader\n", mName.c_str()
         );
         return false;
     }
@@ -46,8 +39,7 @@ bool PostFX::init(std::string name, const std::string& vertShaderSrc,
     if (!mShaderProgram.createAndLinkProgram()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "PostFX: Pass '%s' failed to link shader!\n",
-            mName.c_str()
+            "PostFX: Pass '%s' failed to link shader\n", mName.c_str()
         );
         return false;
     }
@@ -78,11 +70,8 @@ void PostFX::destroy() {
     }
 }
 
-/*!
-    Render this pass
-*/
 void PostFX::render() {
-    if (mRenderFn != nullptr) {
+    if (mRenderFn) {
         (this->*mRenderFn)();
     }
 }
@@ -111,7 +100,11 @@ ShaderProgram& PostFX::getShaderProgram() {
     return mShaderProgram;
 }
 
-const std::string& PostFX::getName() {
+const ShaderProgram& PostFX::getShaderProgram() const {
+    return mShaderProgram;
+}
+
+const std::string& PostFX::getName() const {
     return mName;
 }
 
@@ -119,15 +112,12 @@ void PostFX::internalRender() {
     SGCTWindow& win =
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
-    //bind target FBO
+    // bind target FBO
     win.getFBOPtr()->attachColorTexture(mOutputTexture);
 
-    mXSize = win.getFramebufferResolution().x;
-    mYSize = win.getFramebufferResolution().y;
+    mSize = win.getFramebufferResolution();
 
-    //if for some reson the active texture has been reset
-    glViewport(0, 0, mXSize, mYSize);
-    
+    glViewport(0, 0, mSize.x, mSize.y);
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);
 
@@ -136,7 +126,7 @@ void PostFX::internalRender() {
 
     mShaderProgram.bind();
 
-    if (mUpdateFn != nullptr) {
+    if (mUpdateFn) {
         mUpdateFn();
     }
 
@@ -151,11 +141,10 @@ void PostFX::internalRenderFixedPipeline() {
     SGCTWindow& win =
         sgct_core::ClusterManager::instance()->getThisNodePtr()->getCurrentWindowPtr();
 
-    //bind target FBO
+    // bind target FBO
     win.getFBOPtr()->attachColorTexture(mOutputTexture);
-
-    mXSize = win.getFramebufferResolution().x;
-    mYSize = win.getFramebufferResolution().y;
+    
+    mSize = win.getFramebufferResolution();
 
     //if for some reson the active texture has been reset
     glActiveTexture(GL_TEXTURE0);
@@ -165,7 +154,7 @@ void PostFX::internalRenderFixedPipeline() {
     glMatrixMode(GL_MODELVIEW);
 
     //if for some reson the active texture has been reset
-    glViewport(0, 0, mXSize, mYSize);
+    glViewport(0, 0, mSize.x, mSize.y);
     
     glClearColor(0.f, 0.f, 0.f, 0.f);
     glClear(GL_COLOR_BUFFER_BIT);

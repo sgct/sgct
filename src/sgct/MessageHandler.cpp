@@ -38,7 +38,7 @@ MessageHandler::MessageHandler() {
     //nothrow makes sure that a null pointer is returned upon failure
     mParseBuffer    = new (std::nothrow) char[mMaxMessageSize];
     mCombinedBuffer = new (std::nothrow) char[mCombinedMessageSize];
-    headerSpace     = new (std::nothrow) unsigned char[sgct_core::SGCTNetwork::mHeaderSize];
+    headerSpace     = new (std::nothrow) unsigned char[sgct_core::SGCTNetwork::HeaderSize];
 
     if (!headerSpace || !mCombinedBuffer || !headerSpace) {
         fprintf(stderr, "Fatal error while allocating memory for MessageHandler!\n");
@@ -60,13 +60,13 @@ MessageHandler::MessageHandler() {
     memset(
         headerSpace + 1,
         sgct_core::SGCTNetwork::DefaultId,
-        sgct_core::SGCTNetwork::mHeaderSize - 1
+        sgct_core::SGCTNetwork::HeaderSize - 1
     );
     
     mBuffer.insert(
         mBuffer.begin(),
         headerSpace,
-        headerSpace + sgct_core::SGCTNetwork::mHeaderSize
+        headerSpace + sgct_core::SGCTNetwork::HeaderSize
     );
 
     setLogPath(nullptr);
@@ -442,7 +442,7 @@ void MessageHandler::sendMessageToServer(const char* str) {
             mBuffer.insert(
                 mBuffer.begin(),
                 headerSpace,
-                headerSpace + sgct_core::SGCTNetwork::mHeaderSize
+                headerSpace + sgct_core::SGCTNetwork::HeaderSize
             );
         }
         mBuffer.insert(mBuffer.end(), str, str + strlen(str));

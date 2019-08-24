@@ -20,7 +20,7 @@ SGCTPlane::SGCTPlane(float width, float height) {
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error, "SGCT Utils: Plane creation error!\n"
+            sgct::MessageHandler::Level::Error, "SGCT Utils: Plane creation error\n"
         );
     }
 }

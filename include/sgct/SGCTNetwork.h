@@ -145,7 +145,7 @@ private:
     void connectionHandler();
 
 public:
-    static const size_t mHeaderSize = 13;
+    static const size_t HeaderSize = 13;
     std::condition_variable mStartConnectionCond;
 
 private:
@@ -179,7 +179,7 @@ private:
     std::vector<char> mUncompressBuf;
     char mHeaderId;
 
-    bool mUseNaglesAlgorithmInDataTransfer = false;
+    bool mUseNaglesAlgorithmInTransfer = false;
 };
 
 } // namespace sgct_core

@@ -345,7 +345,10 @@ void Statistics::setFrameTime(float t) {
 
     float sumSquaredDeviation = 0.f;
     for (int i = 0; i < StatsAverageLength; ++i) {
-        sumSquaredDeviation += std::pow(mDynamicVertexList.frameTime[i].y - mAvgFrameTime, 2.f);
+        sumSquaredDeviation += std::pow(
+            mDynamicVertexList.frameTime[i].y - mAvgFrameTime,
+            2.f
+        );
     }
 
     mStdDevFrameTime = glm::sqrt(

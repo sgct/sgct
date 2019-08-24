@@ -139,7 +139,7 @@ private:
     std::vector<unsigned char> dataBlockToCompress;
     std::vector<unsigned char>* currentStorage;
     std::vector<unsigned char> mCompressedBuffer;
-    std::array<unsigned char, sgct_core::SGCTNetwork::mHeaderSize> headerSpace;
+    std::array<unsigned char, sgct_core::SGCTNetwork::HeaderSize> headerSpace;
     unsigned int pos;
     int mCompressionLevel;
     float mCompressionRatio = 1.f;

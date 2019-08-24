@@ -349,7 +349,7 @@ void NetworkManager::sync(SyncMode sm, Statistics* statsPtr) {
 
                 int currentSize =
                     static_cast<int>(sgct::SharedData::instance()->getDataSize()) -
-                    SGCTNetwork::mHeaderSize;
+                    SGCTNetwork::HeaderSize;
 
                 // iterate counter
                 int currentFrame = mSyncConnections[i]->iterateFrameCounter();
@@ -496,7 +496,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
     if (mCompress) {
         length = compressBound(static_cast<uLong>(length));
     }
-    length += static_cast<int>(SGCTNetwork::mHeaderSize);
+    length += static_cast<int>(SGCTNetwork::HeaderSize);
 
     (*bufferPtr) = new (std::nothrow) char[length];
     if ((*bufferPtr) != nullptr) {
@@ -508,10 +508,10 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
         (*bufferPtr)[3] = packageIdPtr[2];
         (*bufferPtr)[4] = packageIdPtr[3];
 
-        char* compDataPtr = (*bufferPtr) + SGCTNetwork::mHeaderSize;
+        char* compDataPtr = (*bufferPtr) + SGCTNetwork::HeaderSize;
 
         if (mCompress) {
-            uLong compressedSize = static_cast<uLongf>(length - SGCTNetwork::mHeaderSize);
+            uLong compressedSize = static_cast<uLongf>(length - SGCTNetwork::HeaderSize);
             int err = compress2(
                 reinterpret_cast<Bytef*>(compDataPtr),
                 &compressedSize,
@@ -554,7 +554,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
 
             length = static_cast<int>(compressedSize);
             //re-calculate the true send size
-            length = length + static_cast<int>(SGCTNetwork::mHeaderSize);
+            length = length + static_cast<int>(SGCTNetwork::HeaderSize);
         }
         else {
             //set uncompressed size to DefaultId since compression is not used
@@ -565,7 +565,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
             );
 
             //add data to buffer
-            //memcpy(buffer + SGCTNetwork::mHeaderSize, data, length);
+            //memcpy(buffer + SGCTNetwork::HeaderSize, data, length);
             //faster to copy chunks of 4k than the whole buffer
             int offset = 0;
             int stride = 4096;
@@ -576,7 +576,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
                 }
 
                 memcpy(
-                    (*bufferPtr) + SGCTNetwork::mHeaderSize + offset,
+                    (*bufferPtr) + SGCTNetwork::HeaderSize + offset,
                     reinterpret_cast<const char*>(data)+offset,
                     stride
                 );
@@ -747,23 +747,23 @@ void NetworkManager::updateConnectionStatus(SGCTNetwork* connection) {
         if (allNodesConnectedCopy) {
             for (unsigned int i = 0; i < mSyncConnections.size(); i++) {
                 if (mSyncConnections[i]->isConnected()) {
-                    char tmpc[SGCTNetwork::mHeaderSize];
+                    char tmpc[SGCTNetwork::HeaderSize];
                     tmpc[0] = SGCTNetwork::ConnectedId;
-                    for (unsigned int j = 1; j < SGCTNetwork::mHeaderSize; j++) {
+                    for (unsigned int j = 1; j < SGCTNetwork::HeaderSize; j++) {
                         tmpc[j] = SGCTNetwork::DefaultId;
                     }
 
-                    mSyncConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
+                    mSyncConnections[i]->sendData(&tmpc, SGCTNetwork::HeaderSize);
                 }
             }
             for (unsigned int i = 0; i < mDataTransferConnections.size(); i++) {
                 if (mDataTransferConnections[i]->isConnected()) {
-                    char tmpc[SGCTNetwork::mHeaderSize];
+                    char tmpc[SGCTNetwork::HeaderSize];
                     tmpc[0] = SGCTNetwork::ConnectedId;
-                    for (unsigned int j = 1; j < SGCTNetwork::mHeaderSize; j++)
+                    for (unsigned int j = 1; j < SGCTNetwork::HeaderSize; j++)
                         tmpc[j] = SGCTNetwork::DefaultId;
 
-                    mDataTransferConnections[i]->sendData(&tmpc, SGCTNetwork::mHeaderSize);
+                    mDataTransferConnections[i]->sendData(&tmpc, SGCTNetwork::HeaderSize);
                 }
             }
         }

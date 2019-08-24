@@ -119,11 +119,12 @@ SGCTTrackingManager::~SGCTTrackingManager() {
     );
 
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Destructing, setting running to false...\n");
+    fprintf(stderr, "Destructing, setting running to false\n");
 #endif
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
-    mRunning = false;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
+    {
+        std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+        mRunning = false;
+    }
 
     // destroy thread
     if (mSamplingThread) {
@@ -142,11 +143,8 @@ bool SGCTTrackingManager::isRunning() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
     fprintf(stderr, "Checking if tracking is running...\n");
 #endif
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
-    bool tmpVal = mRunning;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
-
-    return tmpVal;
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    return mRunning;
 }
 
 void SGCTTrackingManager::startSampling() {
@@ -173,7 +171,7 @@ void SGCTTrackingManager::startSampling() {
     if (mHead == nullptr && !trackerName.empty() && !deviceName.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Tracking: Failed to set head tracker to %s@%s!\n",
+            "Tracking: Failed to set head tracker to %s@%s\n",
             deviceName.c_str(), trackerName.c_str()
         );
         return;
@@ -200,13 +198,13 @@ void SGCTTrackingManager::addTracker(std::string name) {
 
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Tracking: Tracker '%s' added succesfully.\n", name.c_str()
+            "Tracking: Tracker '%s' added succesfully\n", name.c_str()
         );
     }
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Warning,
-            "Tracking: Tracker '%s' already exists!\n", name.c_str()
+            "Tracking: Tracker '%s' already exists\n", name.c_str()
         );
     }
 }
@@ -234,7 +232,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) 
         if (retVal.second && ptr.mSensorDevice == nullptr) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Info,
-                "Tracking: Connecting to sensor '%s'...\n", address.c_str()
+                "Tracking: Connecting to sensor '%s'\n", address.c_str()
             );
             ptr.mSensorDevice = std::make_unique<vrpn_Tracker_Remote>(address.c_str());
             ptr.mSensorDevice->register_change_handler(
@@ -246,7 +244,7 @@ void SGCTTrackingManager::addSensorToCurrentDevice(std::string address, int id) 
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Tracking: Failed to connect to sensor '%s'!\n", address.c_str()
+            "Tracking: Failed to connect to sensor '%s'\n", address.c_str()
         );
     }
 }
@@ -262,7 +260,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(std::string address, int nBu
     if (ptr.mButtonDevice == nullptr && devicePtr != nullptr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Tracking: Connecting to buttons '%s' on device %s...\n",
+            "Tracking: Connecting to buttons '%s' on device %s\n",
             address.c_str(), devicePtr->getName().c_str()
         );
 
@@ -273,7 +271,7 @@ void SGCTTrackingManager::addButtonsToCurrentDevice(std::string address, int nBu
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Tracking: Failed to connect to buttons '%s'!\n", address.c_str()
+            "Tracking: Failed to connect to buttons '%s'\n", address.c_str()
         );
     }
 }
@@ -289,7 +287,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(std::string address, int nAx
     if (ptr.mAnalogDevice == nullptr && devicePtr) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Info,
-            "Tracking: Connecting to analogs '%s' on device %s...\n",
+            "Tracking: Connecting to analogs '%s' on device %s\n",
                 address.c_str(), devicePtr->getName().c_str()
         );
 
@@ -300,7 +298,7 @@ void SGCTTrackingManager::addAnalogsToCurrentDevice(std::string address, int nAx
     else {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Tracking: Failed to connect to analogs '%s'!\n",
+            "Tracking: Failed to connect to analogs '%s'\n",
             address.c_str()
         );
     }
@@ -350,22 +348,18 @@ void SGCTTrackingManager::setEnabled(bool state) {
 
 void SGCTTrackingManager::setSamplingTime(double t) {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Set sampling time for vrpn loop...\n");
+    fprintf(stderr, "Set sampling time for vrpn loop\n");
 #endif
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     mSamplingTime = t;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 double SGCTTrackingManager::getSamplingTime() const {
 #ifdef __SGCT_TRACKING_MUTEX_DEBUG__
-    fprintf(stderr, "Get sampling time for vrpn loop...\n");
+    fprintf(stderr, "Get sampling time for vrpn loop\n");
 #endif
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
-    double tmpVal = mSamplingTime;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
-
-    return tmpVal;
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    return mSamplingTime;
 }
 
 } // namespace sgct

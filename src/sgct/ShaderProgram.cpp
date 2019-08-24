@@ -83,7 +83,7 @@ bool ShaderProgram::createAndLinkProgram() {
     if (mShaders.empty()) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "ShaderProgram: No shaders has been added to program '%s'!\n", mName.c_str()
+            "ShaderProgram: No shaders has been added to program '%s'\n", mName.c_str()
         );
         return false;
     }
@@ -128,7 +128,7 @@ bool ShaderProgram::reload() {
         if (!success) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "ShaderProgram: Failed to load '%s'!\n", sd.mShaderSrc.c_str()
+                "ShaderProgram: Failed to load '%s'\n", sd.mShaderSrc.c_str()
             );
             return false;
         }
@@ -145,7 +145,7 @@ bool ShaderProgram::createProgram() {
         if (mIsLinked) {
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "Could not create shader program [%s]: Already linked to shaders.\n",
+                "Could not create shader program [%s]: Already linked to shaders\n",
                 mName.c_str()
             );
             return false;
@@ -160,7 +160,7 @@ bool ShaderProgram::createProgram() {
     if (mProgramId == 0) {
         MessageHandler::instance()->print(
             MessageHandler::Level::Error,
-            "Could not create shader program [%s]: Unknown error.\n", mName.c_str()
+            "Could not create shader program [%s]: Unknown error\n", mName.c_str()
         );
         return false;
     }

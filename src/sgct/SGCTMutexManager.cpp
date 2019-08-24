@@ -20,10 +20,8 @@ SGCTMutexManager* SGCTMutexManager::instance() {
 }
 
 void SGCTMutexManager::destroy() {
-    if (mInstance != nullptr) {
-        delete mInstance;
-        mInstance = nullptr;
-    }
+    delete mInstance;
+    mInstance = nullptr;
 }
 
 } // namespace sgct

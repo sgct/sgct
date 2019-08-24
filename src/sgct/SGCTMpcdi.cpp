@@ -48,7 +48,7 @@ namespace {
         return true;
     }
 
-    void unsupportedFeatureCheck(const std::string& tag, const std::string& feature) {
+    void unsupportedFeatureCheck(std::string_view tag, const std::string& feature) {
         if (feature == tag) {
             std::string warn = "ReadConfigMpcdi: Unsupported feature: " + feature + " \n";
             sgct::MessageHandler::instance()->print(
@@ -64,20 +64,17 @@ namespace {
                                         const std::string& expectedTag)
     {
         const char* attr = elem->Attribute(attrRequired.c_str());
-        if (attr != nullptr) {
-            if (expectedTag != attr) {
-                std::string errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
-                    expectedTag + "' is supported.\n";
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    errorMsg.c_str()
-                );
-                return false;
-            }
+        if (attr == nullptr) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                ("parseMpcdiXml: No " + tagDescription + " attribute found\n").c_str()
+            );
+            return false;
         }
-        else {
-            std::string errorMsg = "parseMpcdiXml: No " + tagDescription +
-                                   " attribute found \n";
+
+        if (expectedTag != attr) {
+            std::string errorMsg = "parseMpcdiXml: Only " + tagDescription + " '" +
+                expectedTag + "' is supported.\n";
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 errorMsg.c_str()
@@ -123,11 +120,11 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
     for (unsigned int i = 0; i < globalInfo.number_entry; ++i) {
         unz_file_info fileInfo;
         constexpr const int MaxFilenameSize = 500;
-        char filename[MaxFilenameSize];
+        char fileName[MaxFilenameSize];
         int getCurrentFileInfo = unzGetCurrentFileInfo(
             zipfile,
             &fileInfo,
-            filename,
+            fileName,
             MaxFilenameSize,
             nullptr,
             0,
@@ -143,9 +140,9 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
             return false;
         }
 
-        bool suc = processSubFile(mXmlFileContents, "xml", filename, zipfile, fileInfo);
+        bool suc = processSubFile(mXmlFileContents, "xml", fileName, zipfile, fileInfo);
         if (!suc) {
-            suc = processSubFile(mPfmFileContents, "pfm", filename, zipfile, fileInfo);
+            suc = processSubFile(mPfmFileContents, "pfm", fileName, zipfile, fileInfo);
         }
         if (!suc) {
             unzClose(zipfile);
@@ -165,7 +162,7 @@ bool SGCTMpcdi::parseConfiguration(const std::string& filenameMpcdi, SGCTNode& n
     if (!mXmlFileContents.isFound || !mPfmFileContents.isFound) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiConfiguration: mpcdi file %s does not contain xml and/or pfm file\n",
+            "parseMpcdiConfiguration: file %s does not contain xml and/or pfm file\n",
             filenameMpcdi.c_str()
         );
         return false;
@@ -199,7 +196,7 @@ bool SGCTMpcdi::processSubFile(SubFile& sf, const std::string& suffix,
     if (err < 0) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiConfiguration: %s read from %s failed.\n",
+            "parseMpcdiConfiguration: %s read from %s failed\n",
             suffix.c_str(), filename.c_str()
         );
         unzClose(zipfile);
@@ -237,7 +234,7 @@ bool SGCTMpcdi::readAndParseString(SGCTNode& node, sgct::SGCTWindow& win) {
 
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "readAndParseXMLString: error parsing file %s.\n", str.c_str()
+            "readAndParseXMLString: error parsing file %s\n", str.c_str()
         );
         return false;
     }
@@ -254,7 +251,7 @@ bool SGCTMpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
     if (XMLroot == nullptr) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "readAndParseMpcdi: Cannot find XML root!"
+            "readAndParseMpcdi: Cannot find XML root"
         );
         return false;
     }
@@ -302,14 +299,16 @@ bool SGCTMpcdi::readAndParseMpcdi(tinyxml2::XMLDocument& xmlDoc, SGCTNode& node,
     MpcdiFoundItems parsedItems;
     tinyxml2::XMLElement* element = XMLroot->FirstChildElement();
     while (element) {
-        const char* val = element->Value();
-        if (strcmp("display", val) == 0) {
-            if (!readAndParseDisplay(element, node, win, parsedItems)) {
+        std::string_view val = element->Value();
+        if (val == "display") {
+            const bool success = readAndParseDisplay(element, node, win, parsedItems);
+            if (!success) {
                 return false;
             }
         }
-        else if (strcmp("files", val) == 0) {
-            if (!readAndParseFiles(element, win)) {
+        else if (val == "files") {
+            const bool success = readAndParseFiles(element, win);
+            if (!success) {
                 return false;
             }
         }
@@ -326,7 +325,7 @@ bool SGCTMpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& nod
     if (parsedItems.haveDisplayElem) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiXml: Multiple 'display' elements not supported.\n"
+            "parseMpcdiXml: Multiple 'display' elements not supported\n"
         );
         return false;
     }
@@ -335,8 +334,8 @@ bool SGCTMpcdi::readAndParseDisplay(tinyxml2::XMLElement* element, SGCTNode& nod
     }
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
-        const char* val = child->Value();
-        if (strcmp("buffer", val) == 0) {
+        std::string_view val = child->Value();
+        if (val == "buffer") {
             const bool success = readAndParseBuffer(child, win, parsedItems);
             if (!success) {
                 return false;
@@ -353,8 +352,8 @@ bool SGCTMpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindo
 
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
-        const char* val = child->Value();
-        if (strcmp("fileset", val) != 0) {
+        std::string_view val = child->Value();
+        if (val == "fileset") {
             continue;
         }
 
@@ -363,8 +362,8 @@ bool SGCTMpcdi::readAndParseFiles(tinyxml2::XMLElement* element, sgct::SGCTWindo
         }
         tinyxml2::XMLElement* grandChild = child->FirstChildElement();
         while (grandChild) {
-            const char* grandChildVal = grandChild->Value();
-            if (strcmp("geometryWarpFile", grandChildVal) == 0) {
+            std::string_view grandChildVal = grandChild->Value();
+            if (grandChildVal == "geometryWarpFile") {
                 bool success = readAndParseGeoWarpFile(grandChild, win, fileRegion);
                 if (!success) {
                     return false;
@@ -392,17 +391,17 @@ bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
     warp->id = filesetRegionId;
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
-        const char* val = child->Value();
-        if (strcmp("path", val) == 0) {
+        std::string_view val = child->Value();
+        if (val == "path") {
             warp->pathWarpFile = child->GetText();
             warp->haveFoundPath = true;
         }
-        else if (strcmp("interpolation", val) == 0) {
-            std::string interpolation = child->GetText();
+        else if (val == "interpolation") {
+            std::string_view interpolation = child->GetText();
             if (interpolation != "linear") {
                 sgct::MessageHandler::instance()->print(
                     sgct::MessageHandler::Level::Warning,
-                    "parseMpcdiXml: only linear interpolation is supported.\n"
+                    "parseMpcdiXml: only linear interpolation is supported\n"
                 );
             }
             warp->haveFoundInterpolation = true;
@@ -428,7 +427,7 @@ bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
         if (!foundMatchingPfmBuffer) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "parseMpcdiXml: matching geometryWarpFile not found.\n"
+                "parseMpcdiXml: matching geometryWarpFile not found\n"
             );
             return false;
         }
@@ -436,7 +435,7 @@ bool SGCTMpcdi::readAndParseGeoWarpFile(tinyxml2::XMLElement* element,
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiXml: geometryWarpFile requires both path and interpolation.\n"
+            "parseMpcdiXml: geometryWarpFile requires both path and interpolation\n"
         );
         return false;
     }
@@ -451,7 +450,7 @@ bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWind
     if (parsedItems.haveBufferElem) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiXml: Multiple 'buffer' elements unsupported.\n"
+            "parseMpcdiXml: Multiple 'buffer' elements unsupported\n"
         );
         return false;
     }
@@ -472,7 +471,7 @@ bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWind
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiXml: Require both xResolution and yResolution values.\n"
+            "parseMpcdiXml: Require both xResolution and yResolution values\n"
         );
         return false;
     }
@@ -481,8 +480,8 @@ bool SGCTMpcdi::readAndParseBuffer(tinyxml2::XMLElement* element, sgct::SGCTWind
 
     tinyxml2::XMLElement* child = element->FirstChildElement();
     while (child) {
-        const char* val = child->Value();
-        if (strcmp("region", val) == 0) {
+        std::string_view val = child->Value();
+        if (val == "region") {
             if (!readAndParseRegion(child, win, parsedItems)) {
                 return false;
             }
@@ -507,7 +506,7 @@ bool SGCTMpcdi::readAndParseRegion(tinyxml2::XMLElement* element, sgct::SGCTWind
     else {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "parseMpcdiXml: No 'id' attribute provided for region.\n"
+            "parseMpcdiXml: No 'id' attribute provided for region\n"
         );
         return false;
     }

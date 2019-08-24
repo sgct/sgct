@@ -155,7 +155,7 @@ void Touch::processPoints(GLFWtouch* touchPoints, int count, int windowWidth,
             mTouchPoints.end(),
             [prevTouchPointId](const TouchPoint& p) { return p.id == prevTouchPointId; }
         );
-        // Swap current location in the container with the location it was in last touch event.
+        // Swap current container location with the location it was in last touch event
         if (touchPointIt != mTouchPoints.end() &&
             std::distance(mTouchPoints.begin(), touchPointIt) != touchIndex)
         {

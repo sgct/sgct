@@ -23,19 +23,10 @@ namespace {
         if (!saveSuccess) {
             sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
-                "Error: Failed to save '%s'!\n", ptr->mFrameBufferImage->getFilename()
+                "Error: Failed to save '%s'\n", ptr->mFrameBufferImage->getFilename()
             );
         }
-
-#ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Locking mutex for screencapture...\n");
-#endif
-        ptr->mMutex->lock();
         ptr->mRunning = false;
-        ptr->mMutex->unlock();
-#ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-#endif
     }
 
     GLenum sourceForCaptureSource(sgct_core::ScreenCapture::CaptureSource source) {
@@ -68,16 +59,9 @@ ScreenCapture::~ScreenCapture() {
             info.mFrameCaptureThread = nullptr;
         }
 
-#ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Locking mutex for screencapture...\n");
-#endif
-        mMutex.lock();
+        std::unique_lock lock(mMutex);
         info.mFrameBufferImage = nullptr;
         info.mRunning = false;
-        mMutex.unlock();
-#ifdef __SGCT_MUTEX_DEBUG__
-        fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-#endif
     }
 
     glDeleteBuffers(1, &mPBO);
@@ -96,10 +80,7 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
 
     updateDownloadFormat();
 
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Locking mutex for screencapture...\n");
-#endif
-    mMutex.lock();
+    std::unique_lock lock(mMutex);
     for (ScreenCaptureThreadInfo& info : mSCTIs) {
         if (info.mFrameBufferImage) {
             // kill threads that are still running
@@ -124,11 +105,6 @@ void ScreenCapture::initOrResize(glm::ivec2 resolution, int channels, int bytesP
         glBufferData(GL_PIXEL_PACK_BUFFER, mDataSize, 0, GL_STATIC_READ);
         glBindBuffer(GL_PIXEL_PACK_BUFFER, 0);
     }
-
-    mMutex.unlock();
-#ifdef __SGCT_MUTEX_DEBUG__
-    fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-#endif
 }
 
 void ScreenCapture::setTextureTransferProperties(unsigned int type, bool preferBGR) {
@@ -381,16 +357,8 @@ int ScreenCapture::getAvailableCaptureThread() {
             if (mSCTIs[i].mFrameCaptureThread == nullptr) {
                 return i;
             }
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Locking mutex for screencapture...\n");
-#endif
-            mMutex.lock();
-            bool running = mSCTIs[i].mRunning;
-            mMutex.unlock();
-#ifdef __SGCT_MUTEX_DEBUG__
-            fprintf(stderr, "Mutex for screencapture is unlocked.\n");
-#endif
 
+            bool running = mSCTIs[i].mRunning;
             if (!running) {
                 mSCTIs[i].mFrameCaptureThread->join();
                 mSCTIs[i].mFrameCaptureThread = nullptr;
@@ -446,7 +414,7 @@ Image* ScreenCapture::prepareImage(int index) {
     if (index == -1) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "Error in finding availible thread for screenshot/capture!\n"
+            "Error in finding availible thread for screenshot/capture\n"
         );
         return nullptr;
     }

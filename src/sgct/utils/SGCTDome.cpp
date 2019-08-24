@@ -25,7 +25,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
     if (mAzimuthSteps < 4) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "Warning: Dome geometry azimuth steps must be exceed 4.\n"
+            "Warning: Dome geometry azimuth steps must be exceed 4\n"
         );
         mAzimuthSteps = 4;
     }
@@ -34,7 +34,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
     if (mElevationSteps < 4)  {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "Warning: Dome geometry elevation steps must be exceed 4.\n"
+            "Warning: Dome geometry elevation steps must be exceed 4\n"
         );
         mElevationSteps = 4;
     }
@@ -45,7 +45,7 @@ SGCTDome::SGCTDome(float radius, float FOV, unsigned int azimuthSteps,
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "SGCT Utils: Dome creation error!\n"
+            "SGCT Utils: Dome creation error\n"
         );
     }
 }
@@ -162,7 +162,7 @@ void SGCTDome::createVBO(float radius, float FOV) {
         const float de = static_cast<float>(e) / static_cast<float>(mElevationSteps);
         const float elevation = glm::radians(lift + de * (90.0f - lift));
 
-        const float y = sinf(elevation);
+        const float y = sin(elevation);
 
         for (int a = 0; a < mAzimuthSteps; a++) {
             const float azimuth = glm::radians(
@@ -172,8 +172,10 @@ void SGCTDome::createVBO(float radius, float FOV) {
             const float x = cosf(elevation) * sinf(azimuth);
             const float z = -cosf(elevation) * cosf(azimuth);
 
-            float s = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * sinf(azimuth);
-            float t = (static_cast<float>(mElevationSteps - e) / static_cast<float>(mElevationSteps)) * -cosf(azimuth);
+            float s = (static_cast<float>(mElevationSteps - e) /
+                       static_cast<float>(mElevationSteps)) * sin(azimuth);
+            float t = (static_cast<float>(mElevationSteps - e) /
+                       static_cast<float>(mElevationSteps)) * -cos(azimuth);
             s = s * 0.5f + 0.5f;
             t = t * 0.5f + 0.5f;
 

@@ -95,48 +95,38 @@ public:
     }
 
     T getValAt(size_t index) const {
-        mMutex.lock();
-        T tmpT = mVector[index];
-        mMutex.unlock();
-        return tmpT;
+        std::unique_lock lock(mMutex);
+        return mVector[index];
     }
 
     std::vector<T> getVal() const {
-        mMutex.lock();
-        std::vector<T> mCopy = mVector;
-        mMutex.unlock();
-        return mCopy;
+        std::unique_lock lock(mMutex);
+        return mVector;
     }
 
     void setValAt(size_t index, T val) {
-        mMutex.lock();
+        std::unique_lock lock(mMutex);
         mVector[index] = val;
-        mMutex.unlock();
     }
 
     void addVal(T val) {
-        mMutex.lock();
+        std::unique_lock lock(mMutex);
         mVector.push_back(val);
-        mMutex.unlock();
     }
 
     void setVal(std::vector<T> mCopy) {
-        mMutex.lock();
+        std::unique_lock lock(mMutex);
         mVector = std::move(mCopy);
-        mMutex.unlock();
     }
 
     void clear() {
-        mMutex.lock();
+        std::unique_lock lock(mMutex);
         mVector.clear();
-        mMutex.unlock();
     }
 
     size_t getSize() const {
-        mMutex.lock();
-        size_t size = mVector.size();
-        mMutex.unlock();
-        return size;
+        std::unique_lock lock(mMutex);
+        return mVector.size();
     }
 
 private:

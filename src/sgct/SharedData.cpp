@@ -29,7 +29,6 @@ SharedData* SharedData::instance() {
     return mInstance;
 }
 
-/*! Destroy the SharedData */
 void SharedData::destroy() {
     if (mInstance != nullptr) {
         delete mInstance;
@@ -60,7 +59,7 @@ SharedData::SharedData() {
     memset(
         headerSpace.data(),
         sgct_core::SGCTNetwork::DefaultId,
-        sgct_core::SGCTNetwork::mHeaderSize
+        sgct_core::SGCTNetwork::HeaderSize
     );
 
     headerSpace[0] = sgct_core::SGCTNetwork::DataId;
@@ -140,7 +139,7 @@ void SharedData::encode() {
     dataBlock.insert(
         dataBlock.begin(),
         headerSpace.begin(),
-        headerSpace.begin() + sgct_core::SGCTNetwork::mHeaderSize
+        headerSpace.begin() + sgct_core::SGCTNetwork::HeaderSize
     );
 
     SGCTMutexManager::instance()->mDataSyncMutex.unlock();
@@ -193,7 +192,7 @@ void SharedData::encode() {
             SGCTMutexManager::instance()->mDataSyncMutex.unlock();
             MessageHandler::instance()->print(
                 MessageHandler::Level::Error,
-                "SharedData: Failed to compress data (error %d).\n", err
+                "SharedData: Failed to compress data (error %d)\n", err
             );
             return;
         }
@@ -203,7 +202,7 @@ void SharedData::encode() {
 }
 
 std::size_t SharedData::getUserDataSize() {
-    return dataBlock.size() - sgct_core::SGCTNetwork::mHeaderSize;
+    return dataBlock.size() - sgct_core::SGCTNetwork::HeaderSize;
 }
 
 unsigned char* SharedData::getDataBlock() {
@@ -622,8 +621,8 @@ void SharedData::readUInt16(SharedUInt16& si) {
 #ifdef __SGCT_NETWORK_DEBUG__     
     MessageHandler::instance()->printDebug(
         MessageHandler::NOTIFY_INFO,
-        "SharedData::readUInt16\n
-        ");
+        "SharedData::readUInt16\n"
+    );
 #endif
     SGCTMutexManager::instance()->mDataSyncMutex.lock();
     uint16_t val = *reinterpret_cast<uint16_t*>(&dataBlock[pos]);

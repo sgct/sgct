@@ -24,7 +24,7 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
     if (mResolution < 4) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Warning,
-            "Warning: Dome geometry resolution must be higher than 4.\n"
+            "Warning: Dome geometry resolution must be higher than 4\n"
         );
         mResolution = 4;
     }
@@ -35,7 +35,7 @@ SGCTDomeGrid::SGCTDomeGrid(float radius, float FOV, unsigned int segments,
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Error,
-            "SGCT Utils: Dome creation error!\n"
+            "SGCT Utils: Dome creation error\n"
         );
     }
 }

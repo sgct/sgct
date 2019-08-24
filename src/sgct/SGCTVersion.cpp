@@ -12,8 +12,8 @@ namespace sgct {
 std::string getSGCTVersion() {
     std::string major = std::to_string(SGCT_VERSION_MAJOR);
     std::string minor = std::to_string(SGCT_VERSION_MINOR);
-    std::string revis = std::to_string(SGCT_VERSION_REVISION);
-    return "SGCT ver " + major + "." + minor + "." + revis;
+    std::string patch = std::to_string(SGCT_VERSION_REVISION);
+    return "SGCT ver " + major + "." + minor + "." + patch;
 }
 
 } // namespace sgct

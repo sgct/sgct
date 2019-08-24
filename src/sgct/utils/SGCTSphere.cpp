@@ -21,7 +21,7 @@ SGCTSphere::SGCTSphere(float radius, unsigned int segments) {
 
     if (!sgct::Engine::checkForOGLErrors()) {
         sgct::MessageHandler::instance()->print(
-            sgct::MessageHandler::Level::Error, "SGCT Utils: Sphere creation error!\n"
+            sgct::MessageHandler::Level::Error, "SGCT Utils: Sphere creation error\n"
         );
     }
 }
@@ -206,7 +206,6 @@ void SGCTSphere::createVBO(float radius, unsigned int segments) {
         GL_STATIC_DRAW
     );
 
-    //unbind
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
         glBindVertexArray(0);
     }

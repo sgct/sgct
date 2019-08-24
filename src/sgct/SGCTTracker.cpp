@@ -29,7 +29,7 @@ void SGCTTracker::addDevice(std::string name, size_t index) {
 
     MessageHandler::instance()->print(
         MessageHandler::Level::Info,
-        "%s: Adding device '%s'...\n", mName.c_str(), name.c_str()
+        "%s: Adding device '%s'\n", mName.c_str(), name.c_str()
     );
 }
 
@@ -74,13 +74,12 @@ SGCTTrackingDevice* SGCTTracker::getDevicePtrBySensorId(int id) const {
 }
 
 void SGCTTracker::setOrientation(glm::quat q) {
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
 
     // create inverse rotation matrix
     mOrientation = glm::inverse(glm::mat4_cast(q));
 
     calculateTransform();
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
@@ -93,38 +92,31 @@ void SGCTTracker::setOrientation(float xRot, float yRot, float zRot) {
 }
 
 void SGCTTracker::setOffset(glm::vec3 offset) {
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     mOffset = std::move(offset);
     calculateTransform();
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setScale(double scaleVal) {
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     if (scaleVal > 0.0) {
         mScale = scaleVal;
     }
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 void SGCTTracker::setTransform(glm::mat4 mat) {
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
     mXform = std::move(mat);
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
 }
 
 glm::mat4 SGCTTracker::getTransform() const { 
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
-    glm::mat4 tmpMat = mXform;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
-    return tmpMat;
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    return mXform;
 }
 
 double SGCTTracker::getScale() const {
-    SGCTMutexManager::instance()->mTrackingMutex.lock();
-    double tmpD = mScale;
-    SGCTMutexManager::instance()->mTrackingMutex.unlock();
-    return tmpD;
+    std::unique_lock lock(SGCTMutexManager::instance()->mTrackingMutex);
+    return mScale;
 }
 
 int SGCTTracker::getNumberOfDevices() const {

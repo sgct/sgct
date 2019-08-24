@@ -4830,6 +4830,7 @@ const Engine::RenderTarget& Engine::getCurrentRenderTarget() const {
 \returns the active off screen buffer. If no buffer is active NULL is returned. 
 */
 sgct_core::OffScreenBuffer* Engine::getCurrentFBO() const {
+    // Potentially unused; also affects 'getOffScreenBuffer in NonLinearProjection---abock
     return mCurrentOffScreenBuffer;
 }
 

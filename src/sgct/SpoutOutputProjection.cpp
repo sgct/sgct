@@ -38,7 +38,6 @@ SpoutOutputProjection::~SpoutOutputProjection() {
             reinterpret_cast<SPOUTHANDLE>(mSpout[i].handle)->Release();
 #endif
         }
-        glDeleteTextures(1, &mTextures[i]);
     }
 
     if (mappingHandle) {
@@ -88,7 +87,7 @@ void SpoutOutputProjection::update(float width, float height) {
     glBindBuffer(GL_ARRAY_BUFFER, mVBO);
 
     GLvoid* PositionBuffer = glMapBuffer(GL_ARRAY_BUFFER, GL_WRITE_ONLY);
-    memcpy(PositionBuffer, mVerts, 20 * sizeof(float));
+    memcpy(PositionBuffer, mVerts.data(), 20 * sizeof(float));
     glUnmapBuffer(GL_ARRAY_BUFFER);
 
     if (!sgct::Engine::instance()->isOGLPipelineFixed()) {
@@ -725,7 +724,7 @@ void SpoutOutputProjection::drawCubeFace(int face) {
 
     // run scissor test to prevent clearing of entire buffer
     glEnable(GL_SCISSOR_TEST);
-    setupViewport(face);
+    setupViewport(mSubViewports[face]);
 
 #ifdef DebugCubemap
     glm::vec4 color;
@@ -805,31 +804,31 @@ void SpoutOutputProjection::blitCubeFace(int face) {
     // copy AA-buffer to "regular"/non-AA buffer
 
     // bind separate read and draw buffers to prepare blit operation
-    mCubeMapFBO_Ptr->bindBlit();
+    mCubeMapFbo->bindBlit();
     attachTextures(face);
-    mCubeMapFBO_Ptr->blit();
+    mCubeMapFbo->blit();
 }
 
 void SpoutOutputProjection::attachTextures(int face) {
     if (sgct::SGCTSettings::instance()->useDepthTexture()) {
-        mCubeMapFBO_Ptr->attachDepthTexture(mTextures[DepthSwap]);
-        mCubeMapFBO_Ptr->attachColorTexture(mTextures[ColorSwap]);
+        mCubeMapFbo->attachDepthTexture(mTextures.depthSwap);
+        mCubeMapFbo->attachColorTexture(mTextures.colorSwap);
     }
     else {
-        mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], face);
+        mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, face);
     }
 
     if (sgct::SGCTSettings::instance()->useNormalTexture()) {
-        mCubeMapFBO_Ptr->attachCubeMapTexture(
-            mTextures[CubeMapNormals],
+        mCubeMapFbo->attachCubeMapTexture(
+            mTextures.cubeMapNormals,
             face,
             GL_COLOR_ATTACHMENT1
         );
     }
 
     if (sgct::SGCTSettings::instance()->usePositionTexture()) {
-        mCubeMapFBO_Ptr->attachCubeMapTexture(
-            mTextures[CubeMapPositions],
+        mCubeMapFbo->attachCubeMapTexture(
+            mTextures.cubeMapPositions,
             face,
             GL_COLOR_ATTACHMENT2
         );
@@ -864,7 +863,7 @@ void SpoutOutputProjection::renderInternal() {
 
         //if for some reson the active texture has been reset
         glActiveTexture(GL_TEXTURE0);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures[CubeMapColor]);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
         bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
@@ -971,7 +970,7 @@ void SpoutOutputProjection::renderInternalFixedPipeline() {
         glMatrixMode(GL_MODELVIEW); //restore
 
         glEnable(GL_TEXTURE_CUBE_MAP);
-        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures[CubeMapColor]);
+        glBindTexture(GL_TEXTURE_CUBE_MAP, mTextures.cubeMapColor);
 
         glDisable(GL_CULL_FACE);
         bool alpha = sgct::Engine::mInstance->getCurrentWindowPtr().getAlpha();
@@ -1054,8 +1053,8 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         }
 
         //bind & attach buffer
-        mCubeMapFBO_Ptr->bind();
-        if (!mCubeMapFBO_Ptr->isMultiSampled()) {
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1063,17 +1062,17 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         drawCubeFace(i);
 
         //blit MSAA fbo to texture
-        if (mCubeMapFBO_Ptr->isMultiSampled()) {
+        if (mCubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         //re-calculate depth values from a cube to spherical model
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFBO_Ptr->bind(false, 1, buffers); //bind no multi-sampled
+            mCubeMapFbo->bind(false, 1, buffers); //bind no multi-sampled
 
-            mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], idx);
-            mCubeMapFBO_Ptr->attachCubeMapDepthTexture(mTextures[CubeMapDepth], idx);
+            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
+            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
 
             glViewport(0, 0, mappingWidth, mappingHeight);
             glScissor(0, 0, mappingWidth, mappingHeight);
@@ -1095,10 +1094,10 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
             glDepthFunc(GL_ALWAYS);
 
             glActiveTexture(GL_TEXTURE0);
-            glBindTexture(GL_TEXTURE_2D, mTextures[ColorSwap]);
+            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
-            glBindTexture(GL_TEXTURE_2D, mTextures[DepthSwap]);
+            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             sgct::Engine* engine = sgct::Engine::instance();
 
@@ -1128,12 +1127,12 @@ void SpoutOutputProjection::renderCubemapInternal(size_t* subViewPortIndex) {
         } // end if depthmap
 
         if (mappingType == Mapping::Cubemap) {
-            mCubeMapFBO_Ptr->unBind();
+            mCubeMapFbo->unBind();
 
             if (mSpout[i].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glCopyImageSubData(
-                    mTextures[CubeMapColor],
+                    mTextures.cubeMapColor,
                     GL_TEXTURE_CUBE_MAP,
                     0,
                     0,
@@ -1165,8 +1164,8 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         }
 
         //bind & attach buffer
-        mCubeMapFBO_Ptr->bind();
-        if (!mCubeMapFBO_Ptr->isMultiSampled()) {
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
             attachTextures(idx);
         }
 
@@ -1174,17 +1173,17 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         drawCubeFace(i);
 
         //blit MSAA fbo to texture
-        if (mCubeMapFBO_Ptr->isMultiSampled()) {
+        if (mCubeMapFbo->isMultiSampled()) {
             blitCubeFace(idx);
         }
 
         // re-calculate depth values from a cube to spherical model
         if (sgct::SGCTSettings::instance()->useDepthTexture()) {
             GLenum buffers[] = { GL_COLOR_ATTACHMENT0 };
-            mCubeMapFBO_Ptr->bind(false, 1, buffers); // bind no multi-sampled
+            mCubeMapFbo->bind(false, 1, buffers); // bind no multi-sampled
 
-            mCubeMapFBO_Ptr->attachCubeMapTexture(mTextures[CubeMapColor], idx);
-            mCubeMapFBO_Ptr->attachCubeMapDepthTexture(mTextures[CubeMapDepth], idx);
+            mCubeMapFbo->attachCubeMapTexture(mTextures.cubeMapColor, idx);
+            mCubeMapFbo->attachCubeMapDepthTexture(mTextures.cubeMapDepth, idx);
 
             glViewport(0, 0, mappingWidth, mappingHeight);
             glScissor(0, 0, mappingWidth, mappingHeight);
@@ -1221,11 +1220,11 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
             glDepthFunc(GL_ALWAYS);
 
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures[ColorSwap]);
+            glBindTexture(GL_TEXTURE_2D, mTextures.colorSwap);
 
             glActiveTexture(GL_TEXTURE1);
             glEnable(GL_TEXTURE_2D);
-            glBindTexture(GL_TEXTURE_2D, mTextures[DepthSwap]);
+            glBindTexture(GL_TEXTURE_2D, mTextures.depthSwap);
 
             glPushClientAttrib(GL_CLIENT_VERTEX_ARRAY_BIT);
             sgct::Engine::mInstance->getCurrentWindowPtr().bindVBO();
@@ -1246,12 +1245,12 @@ void SpoutOutputProjection::renderCubemapInternalFixedPipeline(size_t* subViewPo
         }
 
         if (mappingType == Mapping::Cubemap) {
-            mCubeMapFBO_Ptr->unBind();
+            mCubeMapFbo->unBind();
 
             if (mSpout[i].handle) {
                 glBindTexture(GL_TEXTURE_2D, 0);
                 glCopyImageSubData(
-                    mTextures[CubeMapColor],
+                    mTextures.cubeMapColor,
                     GL_TEXTURE_CUBE_MAP,
                     0,
                     0,

@@ -55,8 +55,8 @@ private:
     virtual void initShaders() override;
         
     void drawCubeFace(size_t face);
-    void blitCubeFace(TextureIndex ti);
-    void attachTextures(TextureIndex ti);
+    void blitCubeFace(unsigned int texture);
+    void attachTextures(unsigned int texture);
     void renderInternal();
     void renderInternalFixedPipeline();
     void renderCubemapInternal(size_t* subViewPortIndex);

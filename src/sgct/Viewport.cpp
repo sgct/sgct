@@ -388,9 +388,7 @@ void Viewport::parsePlanarProjection(tinyxml2::XMLElement* element) {
 
 void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     std::unique_ptr<FisheyeProjection> fishProj = std::make_unique<FisheyeProjection>();
-    for (size_t i = 0; i < 6; i++) {
-        fishProj->getSubViewportPtr(i).setUser(mUser);
-    }
+    fishProj->setUser(mUser);
     
     float fov;
     if (element->QueryFloatAttribute("fov", &fov) == tinyxml2::XML_NO_ERROR) {
@@ -398,7 +396,9 @@ void Viewport::parseFisheyeProjection(tinyxml2::XMLElement* element) {
     }
 
     if (element->Attribute("quality")) {
-        fishProj->setCubemapResolution(element->Attribute("quality"));
+        fishProj->setCubemapResolution(
+            cubeMapResolutionForQuality(element->Attribute("quality"))
+        );
     }
 
     if (element->Attribute("method")) {
@@ -488,12 +488,12 @@ void Viewport::parseSpoutOutputProjection(tinyxml2::XMLElement* element) {
     std::unique_ptr<SpoutOutputProjection> spoutProj =
         std::make_unique<SpoutOutputProjection>();
 
-    for (size_t i = 0; i < 6; i++) {
-        spoutProj->getSubViewportPtr(i).setUser(mUser);
-    }
+    spoutProj->setUser(mUser);
 
     if (element->Attribute("quality")) {
-        spoutProj->setCubemapResolution(std::string(element->Attribute("quality")));
+        spoutProj->setCubemapResolution(
+            cubeMapResolutionForQuality(element->Attribute("quality"))
+        );
     }
     if (element->Attribute("mapping")) {
         const std::string val = element->Attribute("mapping");
@@ -562,12 +562,12 @@ void Viewport::parseSphericalMirrorProjection(tinyxml2::XMLElement* element) {
     std::unique_ptr<SphericalMirrorProjection> sphericalMirrorProj =
         std::make_unique<SphericalMirrorProjection>();
 
-    for (size_t i = 0; i < 6; i++) {
-        sphericalMirrorProj->getSubViewportPtr(i).setUser(mUser);
-    }
+    sphericalMirrorProj->setUser(mUser);
 
     if (element->Attribute("quality")) {
-        sphericalMirrorProj->setCubemapResolution(element->Attribute("quality"));
+        sphericalMirrorProj->setCubemapResolution(
+            cubeMapResolutionForQuality(element->Attribute("quality"))
+        );
     }
 
     float tilt;

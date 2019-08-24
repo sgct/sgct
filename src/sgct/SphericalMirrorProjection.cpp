@@ -64,31 +64,33 @@ void sgct_core::SphericalMirrorProjection::initTextures() {
         glEnable(GL_TEXTURE_2D);
     }
 
-    for (unsigned int i = 0; i < 6; i++) {
-        if (mSubViewports[i].isEnabled()) {
-            generateMap(
-                static_cast<TextureIndex>(CubeFaceRight + i),
-                mTextureInternalFormat,
-                mTextureFormat,
-                mTextureType
-            );
-            if (sgct::Engine::checkForOGLErrors()) {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Debug,
-                    "NonLinearProjection: %dx%d cube face texture (id: %d) generated\n",
-                    mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
-                );
-            }
-            else {
-                sgct::MessageHandler::instance()->print(
-                    sgct::MessageHandler::Level::Error,
-                    "NonLinearProjection: Error occured while generating %dx%d cube face "
-                    "texture (id: %d)\n",
-                    mCubemapResolution, mCubemapResolution, mTextures[CubeFaceRight + i]
-                );
-            }
+    auto generate = [this](const BaseViewport& bv, unsigned int& texture) {
+        if (!bv.isEnabled()) {
+            return;
         }
-    }
+        generateMap(texture, mTextureInternalFormat, mTextureFormat, mTextureType);
+        if (sgct::Engine::checkForOGLErrors()) {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Debug,
+                "NonLinearProjection: %dx%d cube face texture (id: %d) generated\n",
+                mCubemapResolution, mCubemapResolution, texture
+            );
+        }
+        else {
+            sgct::MessageHandler::instance()->print(
+                sgct::MessageHandler::Level::Error,
+                "NonLinearProjection: Error occured while generating %dx%d cube face "
+                "texture (id: %d)\n", mCubemapResolution, mCubemapResolution, texture
+            );
+        }
+    };
+
+    generate(mSubViewports[0], mTextures.cubeFaceRight);
+    generate(mSubViewports[1], mTextures.cubeFaceLeft);
+    generate(mSubViewports[2], mTextures.cubeFaceBottom);
+    generate(mSubViewports[3], mTextures.cubeFaceTop);
+    generate(mSubViewports[4], mTextures.cubeFaceFront);
+    generate(mSubViewports[5], mTextures.cubeFaceBack);
 
     if (compatProfile) {
         glPopAttrib();
@@ -258,7 +260,7 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     //reset depth function (to opengl default)
     glDepthFunc(GL_LESS);
 
-    setupViewport(face);
+    setupViewport(mSubViewports[face]);
 
 #if defined DebugCubemap
     float color[4];
@@ -332,16 +334,16 @@ void SphericalMirrorProjection::drawCubeFace(size_t face) {
     glPolygonMode(GL_FRONT_AND_BACK, GL_FILL);
 }
 
-void SphericalMirrorProjection::blitCubeFace(TextureIndex ti) {
+void SphericalMirrorProjection::blitCubeFace(unsigned int texture) {
     // copy AA-buffer to "regular"/non-AA buffer
     // bind separate read and draw buffers to prepare blit operation
-    mCubeMapFBO_Ptr->bindBlit();
-    attachTextures(ti);
-    mCubeMapFBO_Ptr->blit();
+    mCubeMapFbo->bindBlit();
+    attachTextures(texture);
+    mCubeMapFbo->blit();
 }
 
-void SphericalMirrorProjection::attachTextures(TextureIndex ti) {
-    mCubeMapFBO_Ptr->attachColorTexture(mTextures[ti]);
+void SphericalMirrorProjection::attachTextures(unsigned int texture) {
+    mCubeMapFbo->attachColorTexture(texture);
 }
 
 void SphericalMirrorProjection::renderInternal() {
@@ -377,16 +379,16 @@ void SphericalMirrorProjection::renderInternal() {
     glUniform1i(mTexLoc, 0);
     glUniformMatrix4fv(mMatrixLoc, 1, GL_FALSE, &MVP[0][0]);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceFront]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceFront);
     mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceLeft]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceLeft);
     mMeshes.left.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceRight]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceRight);
     mMeshes.right.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceTop]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
     mMeshes.top.render(CorrectionMesh::WARP_MESH);
 
     sgct::ShaderProgram::unbind();
@@ -442,16 +444,16 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
     glEnable(GL_TEXTURE_2D);
     glUniform1i(mTexLoc, 0);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceFront]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceFront);
     mMeshes.bottom.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceLeft]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceLeft);
     mMeshes.left.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceRight]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceRight);
     mMeshes.right.render(CorrectionMesh::WARP_MESH);
 
-    glBindTexture(GL_TEXTURE_2D, mTextures[CubeFaceTop]);
+    glBindTexture(GL_TEXTURE_2D, mTextures.cubeFaceTop);
     mMeshes.top.render(CorrectionMesh::WARP_MESH);
 
     sgct::ShaderProgram::unbind();
@@ -465,59 +467,59 @@ void SphericalMirrorProjection::renderInternalFixedPipeline() {
 }
 
 void SphericalMirrorProjection::renderCubemapInternal(size_t* subViewPortIndex) {
-    BaseViewport * vp;
-    unsigned int faceIndex;
-    for (std::size_t i = 0; i < 6; i++) {
-        vp = &mSubViewports[i];
-        *subViewPortIndex = i;
-        faceIndex = static_cast<unsigned int>(i);
-        TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
-
-        if (vp->isEnabled()) {
-            // bind & attach buffer
-            mCubeMapFBO_Ptr->bind();
-            if (!mCubeMapFBO_Ptr->isMultiSampled()) {
-                attachTextures(ti);
-            }
-
-            sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(vp);
-            drawCubeFace(i);
-
-            // blit MSAA fbo to texture
-            if (mCubeMapFBO_Ptr->isMultiSampled()) {
-                blitCubeFace(ti);
-            }
+    auto renderInternal = [this](BaseViewport& bv, unsigned int& texture, int idx) {
+        if (!bv.isEnabled()) {
+            return;
         }
-    }
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
+            attachTextures(texture);
+        }
+
+        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&bv);
+        drawCubeFace(idx);
+
+        // blit MSAA fbo to texture
+        if (mCubeMapFbo->isMultiSampled()) {
+            blitCubeFace(texture);
+        }
+    };
+
+    renderInternal(mSubViewports[0], mTextures.cubeFaceRight, 0);
+    renderInternal(mSubViewports[1], mTextures.cubeFaceLeft, 1);
+    renderInternal(mSubViewports[2], mTextures.cubeFaceBottom, 2);
+    renderInternal(mSubViewports[3], mTextures.cubeFaceTop, 3);
+    renderInternal(mSubViewports[4], mTextures.cubeFaceFront, 4);
+    renderInternal(mSubViewports[5], mTextures.cubeFaceBack, 5);
 }
 
 void SphericalMirrorProjection::renderCubemapInternalFixedPipeline(size_t* subViewPortIndex)
 {
-    unsigned int faceIndex;
-    for (std::size_t i = 0; i < 6; i++) {
-        BaseViewport& vp = mSubViewports[i];
-        *subViewPortIndex = i;
-        faceIndex = static_cast<unsigned int>(i);
-        TextureIndex ti = static_cast<TextureIndex>(CubeFaceRight + i);
-
-        if (!vp.isEnabled()) {
-            continue;
+    auto renderInternal = [this](BaseViewport& bv, unsigned int& texture, int idx) {
+        if (!bv.isEnabled()) {
+            return;
         }
 
-        // bind & attach buffer
-        mCubeMapFBO_Ptr->bind();
-        if (!mCubeMapFBO_Ptr->isMultiSampled()) {
-            attachTextures(ti);
+        mCubeMapFbo->bind();
+        if (!mCubeMapFbo->isMultiSampled()) {
+            attachTextures(texture);
         }
 
-        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&vp);
-        drawCubeFace(i);
+        sgct::Engine::mInstance->getCurrentWindowPtr().setCurrentViewport(&bv);
+        drawCubeFace(idx);
 
         // blit MSAA fbo to texture
-        if (mCubeMapFBO_Ptr->isMultiSampled()) {
-            blitCubeFace(ti);
+        if (mCubeMapFbo->isMultiSampled()) {
+            blitCubeFace(texture);
         }
-    }
+    };
+
+    renderInternal(mSubViewports[0], mTextures.cubeFaceRight, 0);
+    renderInternal(mSubViewports[1], mTextures.cubeFaceLeft, 1);
+    renderInternal(mSubViewports[2], mTextures.cubeFaceBottom, 2);
+    renderInternal(mSubViewports[3], mTextures.cubeFaceTop, 3);
+    renderInternal(mSubViewports[4], mTextures.cubeFaceFront, 4);
+    renderInternal(mSubViewports[5], mTextures.cubeFaceBack, 5);
 }
 
 } // namespace sgct_core

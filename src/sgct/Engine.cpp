@@ -364,9 +364,6 @@ bool Engine::initNetwork() {
         MessageHandler::instance()->setLogToFile(true);
     }
 
-    //Set message handler to send messages or not
-    //MessageHandler::instance()->setSendFeedbackToServer( !mNetworkConnections->isComputerServer() );
-
     if (!mNetworkConnections->init()) {
         return false;
     }

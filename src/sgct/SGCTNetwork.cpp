@@ -464,6 +464,9 @@ void SGCTNetwork::pushClientMessage() {
     if (sgct::MessageHandler::instance()->getDataSize() > HeaderSize) {
         sgct::SGCTMutexManager::instance()->mDataSyncMutex.lock();
 
+        // abock (2019-08-26):  Why is this using the buffer from the MessageHandler even
+        // though it has nothing to do with the messaging?
+
         // Don't remove this pointer, somehow the send function doesn't
         // work during the first call without setting the pointer first!!!
         char* messageToSend = sgct::MessageHandler::instance()->getMessage();
@@ -473,7 +476,7 @@ void SGCTNetwork::pushClientMessage() {
         messageToSend[3] = p[2];
         messageToSend[4] = p[3];
 
-        //crop if needed
+        // crop if needed
         uint32_t size = mBufferSize;
         uint32_t messageSize = std::min(
             static_cast<uint32_t>(sgct::MessageHandler::instance()->getDataSize()),
@@ -900,7 +903,7 @@ void SGCTNetwork::communicationHandler() {
         }
 
         if (mSocket == INVALID_SOCKET) {
-            sgct::MessageHandler::instance()->printDebug(
+            sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Error,
                 "Accept connection %d failed! Error: %d\n", mId, accErr
             );
@@ -945,7 +948,7 @@ void SGCTNetwork::communicationHandler() {
 
             updateBuffer(mRecvBuf, mRequestedSize, mBufferSize);
 
-            sgct::MessageHandler::instance()->printDebug(
+            sgct::MessageHandler::instance()->print(
                 sgct::MessageHandler::Level::Info, "Done.\n"
             );
         }

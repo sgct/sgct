@@ -248,7 +248,10 @@ bool NetworkManager::init() {
                 else {
                     mNetworkConnections.back()->setDecodeFunction(
                         [](const char* data, int length, int index) {
-                            sgct::MessageHandler::instance()->decode(data, length, index);
+                            sgct::MessageHandler::instance()->decode(
+                                std::vector<char>(data, data + length),
+                                index
+                            );
                         }
                     );
                 }

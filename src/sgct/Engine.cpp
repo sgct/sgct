@@ -322,7 +322,7 @@ bool Engine::initNetwork() {
 
     //check in cluster configuration which it is
     if (sgct_core::ClusterManager::instance()->getNetworkMode() ==
-        sgct_core::NetworkManager::Remote)
+        sgct_core::NetworkManager::NetworkMode::Remote)
     {
         MessageHandler::instance()->print(
             MessageHandler::Level::Debug,
@@ -1029,7 +1029,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
         // from server to clients
         mNetworkConnections->sync(
             sgct_core::NetworkManager::SyncMode::SendDataToClients,
-            mStatistics
+            *mStatistics
         ); 
         mStatistics->setSyncTime(static_cast<float>(glfwGetTime() - t0));
 
@@ -1097,7 +1097,7 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
             */
             mNetworkConnections->sync(
                 sgct_core::NetworkManager::SyncMode::AcknowledgeData,
-                mStatistics
+                *mStatistics
             );
 
             mStatistics->addSyncTime(static_cast<float>(glfwGetTime() - t0));
@@ -1133,16 +1133,15 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                     //SGCTMutexManager::instance()->unlockMutex( SGCTMutexManager::FrameSyncMutex );
                 }
 
-                //for debuging
-                sgct_core::SGCTNetwork* conn;
+                //for debugging
                 if (glfwGetTime() - t0 > 1.0) {
                     // more than a second
                     for (unsigned int i = 0;
                          i < mNetworkConnections->getSyncConnectionsCount();
                          i++)
                     {
-                        conn = mNetworkConnections->getConnectionByIndex(i);
-                        if (mPrintSyncMessage && !conn->isUpdated()) {
+                        const sgct_core::SGCTNetwork& conn = mNetworkConnections->getConnectionByIndex(i);
+                        if (mPrintSyncMessage && !conn.isUpdated()) {
                             MessageHandler::instance()->print(
                                 MessageHandler::Level::Info,
                                 "Waiting for slave%d: send frame %d != recv frame %d\n\t"
@@ -1150,8 +1149,8 @@ bool Engine::frameLock(sgct::Engine::SyncStage stage) {
                                 "Nvidia universal frame number: %u\n\t"
                                 "SGCT frame number: %u\n",
                                 i,
-                                mNetworkConnections->getConnectionByIndex(i)->getSendFrameCurrent(),
-                                mNetworkConnections->getConnectionByIndex(i)->getRecvFrameCurrent(),
+                                mNetworkConnections->getConnectionByIndex(i).getSendFrameCurrent(),
+                                mNetworkConnections->getConnectionByIndex(i).getRecvFrameCurrent(),
                                 getCurrentWindowPtr().isUsingSwapGroups() ? "enabled" : "disabled",
                                 getCurrentWindowPtr().isBarrierActive() ? "enabled" : "disabled",
                                 getCurrentWindowPtr().getSwapGroupFrameNumber(),
@@ -3242,13 +3241,13 @@ void Engine::parseArguments(std::vector<std::string>& arg) {
         }
         else if (arg[i] == "--client") {
             sgct_core::ClusterManager::instance()->setNetworkMode(
-                sgct_core::NetworkManager::LocalClient
+                sgct_core::NetworkManager::NetworkMode::LocalClient
             );
             arg.erase(arg.begin() + i);
         }
         else if (arg[i] == "--slave") {
             sgct_core::ClusterManager::instance()->setNetworkMode(
-                sgct_core::NetworkManager::LocalClient
+                sgct_core::NetworkManager::NetworkMode::LocalClient
             );
             arg.erase(arg.begin() + i);
         }
@@ -3263,7 +3262,7 @@ void Engine::parseArguments(std::vector<std::string>& arg) {
         }
         else if (arg[i] == "-local" && arg.size() > (i + 1)) {
             sgct_core::ClusterManager::instance()->setNetworkMode(
-                sgct_core::NetworkManager::LocalServer
+                sgct_core::NetworkManager::NetworkMode::LocalServer
             );
             int tmpi = -1;
             std::stringstream ss(arg[i+1]);

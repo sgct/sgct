@@ -23,7 +23,7 @@ class Statistics;
 class NetworkManager {
 public:
     enum class SyncMode { SendDataToClients = 0, AcknowledgeData };
-    enum NetworkMode { Remote = 0, LocalServer, LocalClient };
+    enum class NetworkMode { Remote = 0, LocalServer, LocalClient };
 
     static std::condition_variable gCond;
 
@@ -32,7 +32,7 @@ public:
     bool init();
 
     ///  \param if this application is server/master in cluster then set to true
-    void sync(SyncMode sm, Statistics* statsPtr);
+    void sync(SyncMode sm, Statistics& statsPtr);
 
     /**
      * Compare if the last frame and current frames are different -> data update
@@ -71,9 +71,9 @@ public:
     unsigned int getConnectionsCount();
     unsigned int getSyncConnectionsCount();
     unsigned int getDataTransferConnectionsCount();
-    SGCTNetwork* getConnectionByIndex(unsigned int index) const;
+    const SGCTNetwork& getConnectionByIndex(unsigned int index) const;
     SGCTNetwork* getSyncConnectionByIndex(unsigned int index) const;
-    std::vector<std::string> getLocalAddresses();
+    const std::vector<std::string>& getLocalAddresses() const;
 
 private:
     bool addConnection(const std::string& port, const std::string& address,
@@ -82,10 +82,13 @@ private:
     void getHostInfo();
     void updateConnectionStatus(SGCTNetwork* connection);
     void setAllNodesConnected();
-    bool prepareTransferData(const void* data, char** bufferPtr, int& length,
+    bool prepareTransferData(const void* data, std::vector<char>& buffer, int& length,
         int packageId);
 
     static NetworkManager* mInstance;
+
+    // This could be a std::vector<SGCTNetwork>, but SGCTNetwork is not move-constructible
+    // because of the std::condition_variable in it
     std::vector<std::unique_ptr<SGCTNetwork>> mNetworkConnections;
     std::vector<SGCTNetwork*> mSyncConnections;
     std::vector<SGCTNetwork*> mDataTransferConnections;
@@ -100,7 +103,7 @@ private:
     bool mAllNodesConnected = false;
     std::atomic_bool mCompress = false;
     std::atomic_int mCompressionLevel;
-    int mMode;
+    NetworkMode mMode;
     unsigned int mNumberOfActiveConnections = 0;
     unsigned int mNumberOfActiveSyncConnections = 0;
     unsigned int mNumberOfActiveDataTransferConnections = 0;

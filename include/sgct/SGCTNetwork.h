@@ -49,6 +49,8 @@ public:
         DataTransfer
     };
 
+    static const size_t HeaderSize = 13;
+
     SGCTNetwork();
 
     /**
@@ -90,7 +92,7 @@ public:
     int getRecvFramePrevious() const;
 
     /// Get the time in seconds from send to receive of sync data.
-    double getLoopTime();
+    double getLoopTime() const;
 
     /**
      * This function compares the received frame number with the sent frame number.
@@ -132,6 +134,8 @@ public:
     std::function<void(void)> mConnectedCallbackFn;
     std::function<void(int, int)> mAcknowledgeCallbackFn;
 
+    std::condition_variable mStartConnectionCond;
+
 private:
     void updateBuffer(std::vector<char>& buffer, uint32_t reqSize, uint32_t& currSize);
     int readSyncMessage(char* header, int32_t& syncFrameNumber, uint32_t& dataSize,
@@ -144,11 +148,6 @@ private:
     void communicationHandler();
     void connectionHandler();
 
-public:
-    static const size_t HeaderSize = 13;
-    std::condition_variable mStartConnectionCond;
-
-private:
     SGCT_SOCKET mSocket;
     SGCT_SOCKET mListenSocket;
 

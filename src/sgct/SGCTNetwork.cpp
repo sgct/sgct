@@ -543,7 +543,7 @@ int SGCTNetwork::getRecvFramePrevious() const {
     return mRecvFramePrevious;
 }
 
-double SGCTNetwork::getLoopTime() {
+double SGCTNetwork::getLoopTime() const {
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
         sgct::MessageHandler::Info, "SGCTNetwork::getLoopTime\n"

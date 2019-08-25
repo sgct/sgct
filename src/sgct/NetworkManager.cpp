@@ -27,7 +27,7 @@ For conditions of distribution and use, see copyright notice in sgct.h
 #include <zlib.h>
 #endif
 
-#if defined(_WIN_PLATFORM)//WinSock
+#ifdef _WIN_PLATFORM
     #include <ws2tcpip.h>
 #else //Use BSD sockets
     #ifdef _XCODE
@@ -97,10 +97,10 @@ NetworkManager::NetworkManager(NetworkMode nm)
     );
     getHostInfo();
 
-    if (mMode == Remote) {
+    if (mMode == NetworkMode::Remote) {
         mIsServer = matchAddress(ClusterManager::instance()->getMasterAddress());
     }
-    else if (mMode == LocalServer) {
+    else if (mMode == NetworkMode::LocalServer) {
         mIsServer = true;
     }
     else {
@@ -137,7 +137,7 @@ bool NetworkManager::init() {
     }
 
     std::string remoteAddress;
-    if (mMode == Remote) {
+    if (mMode == NetworkMode::Remote) {
         remoteAddress = cm.getMasterAddress();
 
         if (remoteAddress.empty()) {
@@ -155,7 +155,7 @@ bool NetworkManager::init() {
 
 
     // if faking an address (running local) then add it to the search list
-    if (mMode != Remote) {
+    if (mMode != NetworkMode::Remote) {
         mLocalAddresses.push_back(cm.getThisNodePtr()->getAddress());
     }
 
@@ -184,7 +184,7 @@ bool NetworkManager::init() {
                 remoteAddress
             );
             if (addSyncPort) {
-                mNetworkConnections[mNetworkConnections.size() - 1]->setDecodeFunction(
+                mNetworkConnections.back()->setDecodeFunction(
                     [](const char* data, int length, int index) {
                         sgct::SharedData::instance()->decode(data, length, index);
                     }
@@ -206,7 +206,7 @@ bool NetworkManager::init() {
                 SGCTNetwork::ConnectionTypes::DataTransfer
             );
             if (addTransferPort) {
-                mNetworkConnections[mNetworkConnections.size() - 1]->setPackageDecodeFunction(
+                mNetworkConnections.back()->setPackageDecodeFunction(
                     [](void* data, int length, int packageId, int clientId) {
                         sgct::Engine::instance()->invokeDecodeCallbackForDataTransfer(
                             data,
@@ -218,7 +218,7 @@ bool NetworkManager::init() {
                 );
 
                 // acknowledge callback
-                mNetworkConnections[mNetworkConnections.size() - 1]->setAcknowledgeFunction(
+                mNetworkConnections.back()->setAcknowledgeFunction(
                     [](int packageId, int clientId) {
                         sgct::Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                             packageId,
@@ -246,7 +246,7 @@ bool NetworkManager::init() {
                     return false;
                 }
                 else {
-                    mNetworkConnections[mNetworkConnections.size() - 1]->setDecodeFunction(
+                    mNetworkConnections.back()->setDecodeFunction(
                         [](const char* data, int length, int index) {
                             sgct::MessageHandler::instance()->decode(data, length, index);
                         }
@@ -260,7 +260,7 @@ bool NetworkManager::init() {
                     SGCTNetwork::ConnectionTypes::DataTransfer
                 );
                 if (addTransferPort) {
-                    mNetworkConnections[mNetworkConnections.size() - 1]->setPackageDecodeFunction(
+                    mNetworkConnections.back()->setPackageDecodeFunction(
                         [](void* data, int length, int packageId, int clientId) {
                             sgct::Engine::instance()->invokeDecodeCallbackForDataTransfer(
                                 data,
@@ -272,7 +272,7 @@ bool NetworkManager::init() {
                     );
 
                     // acknowledge callback
-                    mNetworkConnections[mNetworkConnections.size() - 1]->setAcknowledgeFunction(
+                    mNetworkConnections.back()->setAcknowledgeFunction(
                         [](int packageId, int clientId) {
                             sgct::Engine::instance()->invokeAcknowledgeCallbackForDataTransfer(
                                 packageId,
@@ -296,7 +296,7 @@ bool NetworkManager::init() {
                 SGCTNetwork::ConnectionTypes::ExternalRawConnection
         );
         if (addExternalPort) {
-            mNetworkConnections[mNetworkConnections.size() - 1]->setDecodeFunction(
+            mNetworkConnections.back()->setDecodeFunction(
                 [](const char* data, int length, int client) {
                     sgct::Engine::instance()->invokeDecodeCallbackForExternalControl(
                         data,
@@ -317,10 +317,10 @@ bool NetworkManager::init() {
     return true;
 }
 
-void NetworkManager::sync(SyncMode sm, Statistics* stats) {
+void NetworkManager::sync(SyncMode sm, Statistics& stats) {
     if (sm == SyncMode::SendDataToClients) {
-        double maxTime = -999999.0;
-        double minTime = 999999.0;
+        double maxTime = -std::numeric_limits<double>::max();
+        double minTime = std::numeric_limits<double>::max();
 
         for (SGCTNetwork* connection : mSyncConnections) {
             if (!connection->isServer() || !connection->isConnected()) {
@@ -352,7 +352,7 @@ void NetworkManager::sync(SyncMode sm, Statistics* stats) {
         }
 
         if (isComputerServer()) {
-            stats->setLoopTime(static_cast<float>(minTime), static_cast<float>(maxTime));
+            stats.setLoopTime(static_cast<float>(minTime), static_cast<float>(maxTime));
         }
     }
     else if (sm == SyncMode::AcknowledgeData) {
@@ -369,11 +369,12 @@ void NetworkManager::sync(SyncMode sm, Statistics* stats) {
 }
 
 bool NetworkManager::isSyncComplete() {
-    unsigned int counter = std::accumulate(
-        mSyncConnections.begin(),
-        mSyncConnections.end(),
-        0,
-        [](unsigned int l, SGCTNetwork* r) { return r->isUpdated() ? l + 1 : l; }
+    unsigned int counter = static_cast<unsigned int>(
+        std::count_if(
+            mSyncConnections.begin(),
+            mSyncConnections.end(),
+            [](SGCTNetwork* n) { return n->isUpdated(); }
+        )
     );
 #ifdef __SGCT_NETWORK_DEBUG__
     sgct::MessageHandler::instance()->printDebug(
@@ -391,44 +392,30 @@ SGCTNetwork* NetworkManager::getExternalControlPtr() {
 }
 
 void NetworkManager::transferData(const void* data, int length, int packageId) {
-    char* buffer = nullptr;
-    int sendSize = length;
-
-    const bool success = prepareTransferData(data, &buffer, sendSize, packageId);
+    std::vector<char> buffer;
+    const bool success = prepareTransferData(data, buffer, length, packageId);
     if (success) {
         for (SGCTNetwork* connection : mDataTransferConnections) {
             if (connection->isConnected()) {
-                connection->sendData(buffer, sendSize);
+                connection->sendData(buffer.data(), length);
             }
         }
-    }
-
-    if (buffer) {
-        //clean up
-        delete[] buffer;
-        buffer = nullptr;
     }
 }
 
 void NetworkManager::transferData(const void* data, int length, int packageId,
                                   size_t nodeIndex)
 {
-    if (nodeIndex < mDataTransferConnections.size() &&
-        mDataTransferConnections[nodeIndex]->isConnected())
+    if (nodeIndex >= mDataTransferConnections.size() ||
+        !mDataTransferConnections[nodeIndex]->isConnected())
     {
-        char* buffer = nullptr;
-        int sendSize = length;
+        return;
 
-        const bool success = prepareTransferData(data, &buffer, sendSize, packageId);
-        if (success) {
-            mDataTransferConnections[nodeIndex]->sendData(buffer, sendSize);
-        }
-
-        if (buffer) {
-            //clean up
-            delete[] buffer;
-            buffer = nullptr;
-        }
+    }
+    std::vector<char> buffer;
+    const bool success = prepareTransferData(data, buffer, length, packageId);
+    if (success) {
+        mDataTransferConnections[nodeIndex]->sendData(buffer.data(), length);
     }
 }
 
@@ -436,24 +423,16 @@ void NetworkManager::transferData(const void* data, int length, int packageId,
                                   SGCTNetwork* connection)
 {
     if (connection->isConnected()) {
-        char* buffer = nullptr;
-        int sendSize = length;
-
-        const bool success = prepareTransferData(data, &buffer, sendSize, packageId);
+        std::vector<char> buffer;
+        const bool success = prepareTransferData(data, buffer, length, packageId);
         if (success) {
-            connection->sendData(buffer, sendSize);
-        }
-
-        if (buffer) {
-            //clean up
-            delete[] buffer;
-            buffer = nullptr;
+            connection->sendData(buffer.data(), length);
         }
     }
 }
 
-bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int& length,
-                                         int packageId)
+bool NetworkManager::prepareTransferData(const void* data, std::vector<char>& buffer,
+                                         int& length, int packageId)
 {
     int messageLength = length;
 
@@ -462,13 +441,13 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
     }
     length += static_cast<int>(SGCTNetwork::HeaderSize);
 
-    (*bufferPtr) = new char[length];
+    buffer.resize(length);
 
-    (*bufferPtr)[0] = mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
-    std::memcpy(*bufferPtr + 1, &packageId, sizeof(int));
+    buffer[0] = mCompress ? SGCTNetwork::CompressedDataId : SGCTNetwork::DataId;
+    std::memcpy(buffer.data() + 1, &packageId, sizeof(int));
 
     if (mCompress) {
-        char* compDataPtr = (*bufferPtr) + SGCTNetwork::HeaderSize;
+        char* compDataPtr = buffer.data() + SGCTNetwork::HeaderSize;
         uLong compressedSize = static_cast<uLongf>(length - SGCTNetwork::HeaderSize);
         int err = compress2(
             reinterpret_cast<Bytef*>(compDataPtr),
@@ -504,7 +483,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
         }
 
         // send original size
-        std::memcpy((*bufferPtr) + 9, &length, sizeof(int));
+        std::memcpy(buffer.data() + 9, &length, sizeof(int));
 
         length = static_cast<int>(compressedSize);
         // re-calculate the true send size
@@ -512,10 +491,10 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
     }
     else {
         // set uncompressed size to DefaultId since compression is not used
-        memset((*bufferPtr) + 9, SGCTNetwork::DefaultId, sizeof(int));
+        memset(buffer.data() + 9, SGCTNetwork::DefaultId, sizeof(int));
 
         // add data to buffer
-        memcpy(*bufferPtr + SGCTNetwork::HeaderSize, data, length);
+        memcpy(buffer.data() + SGCTNetwork::HeaderSize, data, length);
         //int offset = 0;
         //int stride = 4096;
 
@@ -533,7 +512,7 @@ bool NetworkManager::prepareTransferData(const void* data, char** bufferPtr, int
         //}
     }
 
-    std::memcpy((*bufferPtr) + 5, &messageLength, sizeof(int));
+    std::memcpy(buffer.data() + 5, &messageLength, sizeof(int));
 
     return true;
 }
@@ -573,15 +552,15 @@ unsigned int NetworkManager::getDataTransferConnectionsCount() {
     return static_cast<unsigned int>(mDataTransferConnections.size());
 }
 
-SGCTNetwork* NetworkManager::getConnectionByIndex(unsigned int index) const {
-    return mNetworkConnections[index].get();
+const SGCTNetwork& NetworkManager::getConnectionByIndex(unsigned int index) const {
+    return *mNetworkConnections[index];
 }
 
 SGCTNetwork* NetworkManager::getSyncConnectionByIndex(unsigned int index) const {
     return mSyncConnections[index];
 }
 
-std::vector<std::string> NetworkManager::getLocalAddresses() {
+const std::vector<std::string>& NetworkManager::getLocalAddresses() const {
     return mLocalAddresses;
 }
 
@@ -743,7 +722,7 @@ void NetworkManager::close() {
     gCond.notify_all();
 
     // signal to terminate
-    for (const std::unique_ptr<SGCTNetwork>& connection : mNetworkConnections) {
+    for (std::unique_ptr<SGCTNetwork>& connection : mNetworkConnections) {
         connection->initShutdown();
     }
 
@@ -751,7 +730,7 @@ void NetworkManager::close() {
     std::this_thread::sleep_for(std::chrono::milliseconds(250));
 
     // wait for threads to die
-    for (const std::unique_ptr<SGCTNetwork>& connection : mNetworkConnections) {
+    for (std::unique_ptr<SGCTNetwork>& connection : mNetworkConnections) {
         connection->closeNetwork(false);
     }
 
@@ -789,30 +768,15 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
         return false;
     }
 
-    std::unique_ptr<SGCTNetwork> netPtr = std::make_unique<SGCTNetwork>();
-
     try {
+        std::unique_ptr<SGCTNetwork> netPtr = std::make_unique<SGCTNetwork>();
         sgct::MessageHandler::instance()->print(
             sgct::MessageHandler::Level::Debug,
             "NetworkManager: Initiating network connection %d at port %s\n",
             mNetworkConnections.size(), port.c_str()
         );
-
-        // bind callback
         netPtr->setUpdateFunction([this](SGCTNetwork* c) { updateConnectionStatus(c); });
-
-        // bind callback
         netPtr->setConnectedFunction([this]() { setAllNodesConnected(); });
-
-        if (connectionType == SGCTNetwork::ConnectionTypes::SyncConnection) {
-            mSyncConnections.push_back(netPtr.get());
-        }
-        else if (connectionType == SGCTNetwork::ConnectionTypes::DataTransfer) {
-            mDataTransferConnections.push_back(netPtr.get());
-        }
-        else {
-            mExternalControlConnection = netPtr.get();
-        }
 
         // must be inited after binding
         netPtr->init(port, address, mIsServer, connectionType);
@@ -836,6 +800,22 @@ bool NetworkManager::addConnection(const std::string& port, const std::string& a
             err
         );
         return false;
+    }
+
+    // Update the previously existing shortcuts (maybe remove them altogether?)
+    mSyncConnections.clear();
+    mDataTransferConnections.clear();
+    mExternalControlConnection = nullptr;
+
+    for (std::unique_ptr<SGCTNetwork>& connection : mNetworkConnections) {
+        switch (connection->getType()) {
+            case SGCTNetwork::ConnectionTypes::SyncConnection:
+                mSyncConnections.push_back(connection.get());
+            case SGCTNetwork::ConnectionTypes::DataTransfer:
+                mDataTransferConnections.push_back(connection.get());
+            default:
+                mExternalControlConnection = connection.get();
+        }
     }
 
     return true;

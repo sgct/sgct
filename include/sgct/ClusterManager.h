@@ -149,7 +149,7 @@ private:
     glm::mat4 mSceneTranslate = glm::mat4(1.f);
     glm::mat4 mSceneRotation = glm::mat4(1.f);
     MeshImplementation mMeshImpl = MeshImplementation::BufferObjects;
-    NetworkManager::NetworkMode mNetMode = NetworkManager::Remote;
+    NetworkManager::NetworkMode mNetMode = NetworkManager::NetworkMode::Remote;
 };
 
 } // namespace sgct_core
